@@ -1,20 +1,15 @@
-.. metakb documentation master file, created by
-   sphinx-quickstart on Wed Dec 12 11:04:36 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to metakb's documentation!
+The VICC Meta-Knowledgebase
 ==================================
+
+The meta-knowledgebase is a harmonized collection of clinical variant interpretations
+and related variant information informing of the clinical significance of variants
+observed in human cancers.
+
+Meta-Knowledgebase Contents
+---------------------------
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   
+   spec/data_types
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
