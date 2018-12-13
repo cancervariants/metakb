@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'metakb'
-copyright = '2018, Alex Wagner'
+copyright = '2018, Variant Interpretation for Cancer Consortium'
 author = 'Alex Wagner'
 
 # The short X.Y version
