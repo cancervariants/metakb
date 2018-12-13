@@ -12,16 +12,18 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
 
+from docs.__authors__ import AUTHORS
+
 project = 'metakb'
 copyright = '2018, Variant Interpretation for Cancer Consortium'
-author = 'Alex Wagner'
+author = ', '.join(AUTHORS)
 
 # The short X.Y version
 version = '0.0.0'
