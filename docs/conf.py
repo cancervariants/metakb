@@ -24,9 +24,9 @@ copyright = '2018, Variant Interpretation for Cancer Consortium'
 author = 'Alex Wagner'
 
 # The short X.Y version
-version = ''
+version = '0.0.0'
 # The full version, including alpha/beta/rc tags
-release = ''
+release = '0.0.0'
 
 
 # -- General configuration ---------------------------------------------------
