@@ -7,3 +7,4 @@ exclude =
   __pycache__
   source
   outputs
+  docs
