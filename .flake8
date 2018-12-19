@@ -1,0 +1,10 @@
+
+[flake8]
+ignore = E501, E704, W605
+exclude =
+  .git
+  venv
+  __pycache__
+  source
+  outputs
+  docs
