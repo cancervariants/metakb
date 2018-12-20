@@ -1,0 +1,4 @@
+['remote "metakb"']
+url = s3://metakb-dvc
+[core]
+remote = metakb
