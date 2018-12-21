@@ -7,7 +7,7 @@ install:
   - pip install -r requirements.txt
   - pip install -r requirements-dev.txt
   - pip install -e .
-# command to run tests
+# command to run unit tests
 script:
-  - pytest
-  - flake8 
+  - pytest tests/unit
+  - flake8

@@ -1,0 +1,9 @@
+cmd: cd .. ; bin/download_civic.sh
+deps:
+- md5: 6808ca805661622ad65ae014a4b2a094
+  path: ../downloads/civic/sentinel.txt
+md5: b7d34a530e47da888c12e2905df59637
+outs:
+- cache: true
+  md5: eba8a9559f47692dc4206560d40a40de
+  path: ../downloads/civic/civic.json.gz

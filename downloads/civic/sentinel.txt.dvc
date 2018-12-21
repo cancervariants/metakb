@@ -1,0 +1,5 @@
+md5: 3750efe1a715de6ae863571dc29174d2
+outs:
+- cache: true
+  md5: 6808ca805661622ad65ae014a4b2a094
+  path: sentinel.txt
