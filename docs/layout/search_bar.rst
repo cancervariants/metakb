@@ -30,3 +30,23 @@ against every field of the dataset. This can be helpful for removing evidence re
 terms that are not the subject of the evidence, but are mentioned in the record text (e.g. as a
 study cofactor; see BRAF mention in a CIViC `MET evidence`_ record).
 
+
+The Paper filter
+----------------
+
+The original goal of the meta-knowledgebase was the harmonization of clinical interpretations of
+somatic variants in cancers. Our manuscript describes this harmonization across six established
+clinical interpretation knowledgebases. However, we have since expanded the meta-kb to include
+additional sources of information, including matching on clinical trial data. These data are an
+exploratory and highly experimental component of the project.
+
+We want to provide the research community both with the set of data explicitly described in our
+manuscript, as well as the latest sources as we work to integrate them. Consequently, we have
+implemented a "paper filter" which filters the results to the sources described in our manuscript,
+which is enabled by default.
+
+
+.. # Links
+
+.. _`MET evidence`: https://civicdb.org/events/genes/52/summary/variants/621/summary/evidence/1584/summary#evidence
+.. _`ElasticSearch query documentation`: https://www.elastic.co/guide/en/elasticsearch/reference/6.6/query-dsl-query-string-query.html#query-string-syntax
