@@ -1,12 +1,12 @@
-Searching the meta-knowledgebase
-================================
+Getting Started
+===============
 
 Searching the meta-knowledgebase is done via free-text entry through the search bar at the top
 of the page:
 
-**TODO: insert picture of search bar, search icon, help icon**
+.. image:: /images/search_bar.png
 
-Typical terms entered in this box include HGNC gene symbols, variant names, hgvs strings,
+Typical terms entered in this box include HGNC gene symbols, variant names, HGVS strings,
 drug names, or diseases. See examples **TODO: link to examples** page for example queries that
 may be made in this box.
 
