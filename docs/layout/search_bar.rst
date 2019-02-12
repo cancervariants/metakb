@@ -46,7 +46,10 @@ exploratory and highly experimental component of the project.
 We want to provide the research community both with the set of data explicitly described in our
 manuscript, as well as the latest sources as we work to integrate them. Consequently, we have
 implemented a "paper filter" which filters the results to the sources described in our manuscript,
-which is enabled by default.
+which is enabled by default. To disable the filter (and view results from all sources), you may
+hover over the paper filter icon and select "disable filter":
+
+.. image:: /images/filter_disable.png
 
 
 .. # Links
