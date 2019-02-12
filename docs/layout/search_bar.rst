@@ -1,6 +1,9 @@
 Getting Started
 ===============
 
+Basic Search
+------------
+
 Searching the meta-knowledgebase is done via free-text entry through the search bar at the top
 of the page:
 
