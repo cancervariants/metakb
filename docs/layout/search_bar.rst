@@ -17,7 +17,7 @@ After entering terms into the box, hit "Enter" or click on the search icon to pe
 Clicking the help icon will bring you to this documentation site.
 
 
-Advanced search
+Advanced Search
 ---------------
 By default, the search results must match all terms put in the search box somewhere in the result
 record, though this behavior is customizable by adjusting the query.
@@ -34,7 +34,9 @@ terms that are not the subject of the evidence, but are mentioned in the record 
 study cofactor; see BRAF mention in a CIViC `MET evidence`_ record).
 
 
-The Paper filter
+.. _paper-filter:
+
+The Paper Filter
 ----------------
 
 The original goal of the meta-knowledgebase was the harmonization of clinical interpretations of
@@ -50,6 +52,7 @@ which is enabled by default. To disable the filter (and view results from all so
 hover over the paper filter icon and select "disable filter":
 
 .. image:: /images/filter_disable.png
+    :width: 300px
 
 
 .. # Links
