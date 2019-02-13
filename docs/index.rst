@@ -1,5 +1,5 @@
 The VICC Meta-Knowledgebase
-==================================
+===========================
 
 The Variant Interpretation for Cancer Consortium (`VICC`_) meta-knowledgebase is a harmonized
 collection of clinical variant interpretations and related variant information informing of
@@ -9,15 +9,15 @@ The meta-knowledgebase was created to evaluate the disparities in variant interp
 content and structure across established resources of clinical interpretation knowledge.
 This result of this work is described in full detail in our `preprint`_.
 
-This site is reference documentation for using the associated `search interface`_ for performing
-free-text queries against the meta-knowledgebase.
+This site is reference documentation for using the associated `web interface`_ for searching
+the meta-knowledgebase.
 
 .. _`VICC`: http://cancervariants.org
 .. _`preprint`: https://www.biorxiv.org/content/10.1101/366856v2
-.. _`search interface`: https://search.cancervariants.org
+.. _`web interface`: https://search.cancervariants.org
 
-Meta-Knowledgebase Contents
----------------------------
+User Guide
+----------
 
 .. toctree::
    :maxdepth: 2
