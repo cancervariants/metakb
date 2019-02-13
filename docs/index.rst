@@ -24,6 +24,6 @@ User Guide
    
    layout/search_bar
    layout/interactive
-   layout/result_grid
+   layout/result_table
    examples
 
