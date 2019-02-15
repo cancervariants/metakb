@@ -25,5 +25,6 @@ User Guide
    layout/search_bar
    layout/interactive
    layout/result_table
-   examples
+   other/examples
+   other/glossary
 
