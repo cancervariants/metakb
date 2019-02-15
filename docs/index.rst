@@ -12,9 +12,9 @@ This result of this work is described in full detail in our `preprint`_.
 This site is reference documentation for using the associated `web interface`_ for searching
 the meta-knowledgebase.
 
-.. _`VICC`: http://cancervariants.org
-.. _`preprint`: https://www.biorxiv.org/content/10.1101/366856v2
-.. _`web interface`: https://search.cancervariants.org
+.. _VICC: http://cancervariants.org
+.. _preprint: https://www.biorxiv.org/content/10.1101/366856v2
+.. _web interface: https://search.cancervariants.org
 
 User Guide
 ----------
