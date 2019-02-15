@@ -36,8 +36,8 @@ study cofactor; see BRAF mention in a CIViC `MET evidence`_ record).
 
 .. _paper-filter:
 
-The Paper Filter
-----------------
+Paper Filter
+------------
 
 The original goal of the meta-knowledgebase was the harmonization of clinical interpretations of
 somatic variants in cancers. Our manuscript describes this harmonization across six established
@@ -57,5 +57,5 @@ hover over the paper filter icon and select "disable filter":
 
 .. # Links
 
-.. _`MET evidence`: https://civicdb.org/events/genes/52/summary/variants/621/summary/evidence/1584/summary#evidence
-.. _`ElasticSearch query documentation`: https://www.elastic.co/guide/en/elasticsearch/reference/6.6/query-dsl-query-string-query.html#query-string-syntax
+.. _MET evidence: https://civicdb.org/events/genes/52/summary/variants/621/summary/evidence/1584/summary#evidence
+.. _ElasticSearch query documentation: https://www.elastic.co/guide/en/elasticsearch/reference/6.6/query-dsl-query-string-query.html#query-string-syntax
