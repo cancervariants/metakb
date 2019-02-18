@@ -71,5 +71,5 @@ pair. Clicking on a tile of the heatmap will automatically create two
 :ref:`Custom Filters<custom-filter>` for the selected gene and drug, respectively.
 Each element may be enabled, disabled, and edited independently.
 
-.. image:: /images/gene_drug_heatmap.png
+.. image:: /images/gene_disease_heatmap.png
     :width: 750px
