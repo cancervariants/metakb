@@ -16,6 +16,14 @@ Glossary
     Evidence
         Evidence is great
 
+    Evidence Label
+        Evidence labels follow the `guidelines`_ jointly published by the Association for Molecular
+        Pathology, American Society of Clinical Oncology, and the College of American Pathologists.
+        We have normalized the :term:`evidence` for each knowledgebase to best fit these
+        recommendations:
+
+        .. image:: /images/amp_asco_cap_table.png
+
     Features
         Genomic features are great
 
@@ -23,3 +31,4 @@ Glossary
 
 
 .. _Disease Ontology: http://disease-ontology.org/
+.. _guidelines: https://jmd.amjpathol.org/article/S1525-1578(16)30223-9/abstract
