@@ -3,14 +3,14 @@ Glossary
 
 .. glossary::
 
-    Associations
+    Association
         Associations are top-level records linking between one or more :term:`features<feature>` and
         one or more :term:`diseases<disease>`, supported by some amount of published :term:`evidence`.
         For somatic :term:`features<feature>`, associations typically describe a therapeutic response
         to a linked :term:`drug` in the context of a :term:`disease`.
 
     Disease
-        Diseases are terms describing the phenotypic context of the containing :term:`Associations`,
+        Diseases are terms describing the phenotypic context of the containing :term:`associations<association>`,
         the majority of which are cancers. These terms have been normalized to `Disease Ontology`_
         terms when possible.
 
@@ -18,7 +18,7 @@ Glossary
         Drugs are terms describing therapeutic interventions, which have been normalized to the
 
     Evidence
-        Evidence describes the clinical significance of :term:`associations` by :term:`evidence label`
+        Evidence describes the clinical significance of :term:`associations<association>` by :term:`evidence label`
         and links the significance to a publication or expert consensus.
 
     Evidence Label
