@@ -16,10 +16,18 @@ After selecting **Save**, the above will create a filter for AMP/ASCO/CAP Tier I
 (evidence label A, B) interpretations by selecting the *evidence_label* field and
 designating a set of values (`A`, `B`) that the field must match. We now have this
 additional filter available to be enable or disabled as needed during the review
-of search results by selecting the *disable*/*enable* button on the filter:
+of search results by selecting the *Disable*/*Enable filter* button on the filter:
 
-.. image:: /images/filter_disable.png
+.. image:: /images/custom_filter_disable.png
     :width: 300px
+
+Filters can also be *negated*, such that they exclude results matching the filter
+criteria, which can be achieved by selecting the *Exclude matches* button on the
+filter:
+
+.. image:: /images/custom_filter_negate.png
+    :width: 280px
+
 
 Result Count
 ------------
@@ -58,7 +66,7 @@ Gene/Drug Heatmap
 This interactive heatmap visualizes the frequency of results describing a gene/drug
 pair. Clicking on a tile of the heatmap will automatically create two
 :ref:`Custom Filters<custom-filter>` for the selected gene and drug, respectively.
-Each element may be enabled, disabled, and edited independently.
+Each filter may be toggled and edited independently.
 
 .. image:: /images/gene_drug_heatmap.png
     :width: 750px
@@ -69,7 +77,7 @@ Gene/Disease Heatmap
 This interactive heatmap visualizes the frequency of results describing a gene/disease
 pair. Clicking on a tile of the heatmap will automatically create two
 :ref:`Custom Filters<custom-filter>` for the selected gene and drug, respectively.
-Each element may be enabled, disabled, and edited independently.
+Each element may be toggled and edited independently.
 
 .. image:: /images/gene_disease_heatmap.png
     :width: 750px
