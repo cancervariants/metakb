@@ -26,7 +26,7 @@ parentheticals (e.g. `BRAF AND (V600E OR V600D) AND NOT melanoma`). Additional d
 to construct these and other advanced search queries (e.g. fuzzy searching, regular expressions)
 may be found in the `ElasticSearch query documentation`_.
 
-Individual record fields **TODO: link to record field documentation** are queryable by searching
+Individual record fields found in the :ref:`result-table` are queryable by searching
 using a `fieldname:term` pattern (e.g. `genes:BRAF`). By default, each search term is searched
 against every field of the dataset. This can be helpful for removing evidence records that describe
 terms that are not the subject of the evidence, but are mentioned in the record text (e.g. as a
