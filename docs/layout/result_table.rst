@@ -19,11 +19,15 @@ Each record contains the following fields:
 **Feature names**
     The names given by the source to the :term:`features<feature>` of the :term:`association`.
 
-**Disease**
+**Diseases**
     The common name for the :term:`disease` attributed to the :term:`association`.
 
-**Drug**
+**Drugs**
     The common name for the :term:`drug` of the :term:`association`.
+
+**Response**
+    This field indicates the type of :term:`disease` response to a :term:`drug` in the presence
+    of the associated :term:`feature`.
 
 **Evidence label**
     The AMP/ASCO/CAP :term:`evidence label` of the :term:`association`.
