@@ -7,6 +7,7 @@ This section contains example queries for common types of searches on the meta-k
 
 **Searching for interpretations given a variant and disease**
     **query:** *BRAF V600E melanoma*
+    **query:** *BRAF breast cancer*
 
 **Searching for interpretations describing a gene fusion**
     **query:** *BCR ABL fusion*
