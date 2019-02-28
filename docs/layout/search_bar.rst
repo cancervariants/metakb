@@ -13,7 +13,8 @@ Typical terms entered in this box include HGNC gene symbols, variant names, HGVS
 drug names, or diseases. See :ref:`examples` for common queries that may be made in this box.
 
 After entering terms into the box, hit "Enter" or click on the search icon to perform the query.
-Clicking the help icon will bring you to this documentation site.
+Clicking the help icon will expand the welcome text above the search bar, which includes a link
+to this documentation site.
 
 
 Advanced Search
