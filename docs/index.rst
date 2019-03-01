@@ -1,6 +1,8 @@
 The VICC Meta-Knowledgebase
 ===========================
 
+.. image:: /images/mkb-overview.png
+
 The Variant Interpretation for Cancer Consortium (`VICC`_) meta-knowledgebase is a harmonized
 collection of clinical variant interpretations and related variant information informing of
 the clinical significance of variants observed in human cancers.
