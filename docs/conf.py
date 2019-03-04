@@ -106,6 +106,11 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
+# The name of an image file (relative to this directory) to place at the top
+# of the sidebar.
+#
+html_logo = 'images/VICC_black_text.png'
+
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
