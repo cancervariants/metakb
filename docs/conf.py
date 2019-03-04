@@ -26,9 +26,9 @@ copyright = '2018, Variant Interpretation for Cancer Consortium'
 author = ', '.join(AUTHORS)
 
 # The short X.Y version
-version = '0.0.0'
+version = '0.0'
 # The full version, including alpha/beta/rc tags
-release = '0.0.0'
+release = '0.0.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -42,6 +42,7 @@ release = '0.0.0'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinxjp.themes.basicstrap'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -77,13 +78,18 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'basicstrap'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'header_inverse': False,
+    'relbar_inverse': False,
+    'inner_theme': True,
+    'inner_theme_name': 'bootswatch-cosmo',
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
