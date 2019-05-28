@@ -2,7 +2,8 @@ Cite This Work
 ===========================
 The result of this work is described in full detail in our `preprint`_.
 
-The full citation for use in publications:
+Full Citation
+-------------
 Wagner, A. H. et al. *A harmonized meta-knowledgebase of clinical interpretations of cancer genomic variants.*
 bioRxiv 366856 (2018). doi:10.1101/366856
 
