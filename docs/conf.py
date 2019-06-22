@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.abspath('..'))
 from docs.__authors__ import AUTHORS
 
 project = 'metakb'
-copyright = '2018, Variant Interpretation for Cancer Consortium'
+copyright = '2018-2019, Variant Interpretation for Cancer Consortium'
 author = ', '.join(AUTHORS)
 
 # The short X.Y version
