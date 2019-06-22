@@ -28,3 +28,13 @@ genes:EGFR evidence_label:(A OR B) (`Try it <https://search.cancervariants.org/#
 **Search for interpretations describing increased sensitivity to a drug**
 
 Cisplatin association.evidence.description:sensitiv* (`Try it <https://search.cancervariants.org/#Cisplatin%20association.evidence.description%3Asensitiv*>`_)
+
+**Search the API for interpretations using the GA4GH VR Specification**
+
+The `GA4GH VR specification`_ is a way of representing variants for quick lookup across systems:
+
+*Examples:*
+  * By Allele accession (`Try it <https://search.cancervariants.org/api/v1/associations?size=10&from=1&q=ga4gh:VA.mJbjSsW541oOsOtBoX36Mppr6hMjbjFr>`__)
+  * By Sequence Location accession (`Try it <https://search.cancervariants.org/api/v1/associations?size=10&from=1&q=ga4gh:SL.gJeEs42k4qeXOKy9CJ515c0v2HTu8s4K>`__)
+
+.. _GA4GH VR specification: https://vr-spec.readthedocs.io/en/latest/
