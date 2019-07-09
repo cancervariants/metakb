@@ -29,5 +29,6 @@ User Guide
    layout/result_table
    other/examples
    other/glossary
+   license
    cite
 
