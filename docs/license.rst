@@ -16,7 +16,7 @@ CGI is restricted from commercial use (`CC-BY-NC 4.0`_; `CGI license statement`_
 
 Jax CKB
 -------
-The Jackson Labs Clinical Knowledgebase Jax-CKB is restricted from commercial use and has share-alike requirements for non-commercial use (`CC-BY-NC-SA 4.0`_; `Jax-CKB license statement`_). Contact this resource for information on licensing for commercial purposes.
+The Jackson Labs Clinical Knowledgebase is restricted from commercial use and has share-alike requirements for non-commercial use (`CC-BY-NC-SA 4.0`_; `Jax-CKB license statement`_). Contact this resource for information on licensing for commercial purposes.
 
 OncoKB
 ------
