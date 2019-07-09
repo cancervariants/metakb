@@ -1,18 +1,18 @@
 License FAQ
 ===========
-The VICC meta-knowledgebase contains content from multiple knowledge providers. As a data integrator, we do not impose any additional licensing requirements beyond the terms of the constituent resources. The full content of the VICC meta-knowledgebase is available for non-commercial, research use only. Below is a brief statement of our understanding on the commercial / non-commercial availability and links to the licensing information for each constituent knowledgebase.
+The VICC meta-knowledgebase contains content from multiple knowledge providers. As a data integrator, we do not impose any additional licensing requirements beyond the terms of the constituent resources. The full content of the VICC meta-knowledgebase is available for non-commercial, research use only. For each constituent knowledgebase below, we provide a brief summary of the free use of content for non-research / commercial use and links to the knowledgebase licensing information.
 
 CIViC
 -----
-Content from CIViC is public domain (`CC0`_; `CIViC license statement`_).
+Content from the Clinical Interpretation of Variants in Cancer knowledgebase is public domain (`CC0`_; `CIViC license statement`_).
 
 PMKB
 ----
-Content from PMKB is freely accessible with attribution (`CC-BY 4.0`_; `PMKB license statement`_).
+Content from the Precision Medicine Knowledgebase is freely accessible with attribution (`CC-BY 4.0`_; `PMKB license statement`_).
 
 CGI
 ---
-CGI is restricted from commercial use (`CC-BY-NC 4.0`_; `CGI license statement`_). Contact this resource for information on licensing for commercial purposes.
+The Cancer Genome Interpreter is restricted from commercial use (`CC-BY-NC 4.0`_; `CGI license statement`_). Contact this resource for information on licensing for commercial purposes.
 
 Jax CKB
 -------
