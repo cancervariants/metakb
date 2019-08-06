@@ -5,8 +5,8 @@ import uuid
 import metakb.utils.ioutils as ioutils
 import pytest
 import gzip
-import json
 import hashlib
+import io
 
 
 def test_ensure_directory():
@@ -61,16 +61,104 @@ def test_plain_emitter():
     os.remove(path)
 
 
+def test_GzipBufferedTextReader():
+    """Should read plain text zip file."""
+    path = _path(_dir(), 'fixtures', 'test.txt.gz')
+    with ioutils.GzipBufferedTextReader(path) as ins:
+        for line in ins:
+            assert line == 'any text ....\n', 'Should return expected text'
+
+
+def test_GzipBufferedDictReader():
+    """Should read csv or tsv zip file."""
+    path = _path(_dir(), 'fixtures', 'test.csv.gz')
+    ins = ioutils.GzipBufferedDictReader(path)
+    for line in ins:
+        assert isinstance(line, dict), 'Should return dict'
+    path = _path(_dir(), 'fixtures', 'test.tsv.gz')
+    ins = ioutils.GzipBufferedDictReader(path)
+    for line in ins:
+        assert isinstance(line, dict), 'Should return dict'
+    # should support 'with'
+    with ioutils.GzipBufferedDictReader(path) as ins:
+        for line in ins:
+            assert isinstance(line, dict), 'Should return dict'
+
+
+def test_CsvReader():
+    """Should read tsv or csv files."""
+    path = _path(_dir(), 'fixtures', 'test.tsv')
+    ins = ioutils.CsvReader(path)
+    for line in ins:
+        assert isinstance(line, dict), 'Should return dict'
+    path = _path(_dir(), 'fixtures', 'test.csv')
+    ins = ioutils.CsvReader(path)
+    for line in ins:
+        assert isinstance(line, dict), 'Should return dict'
+    # should support 'with'
+    with ioutils.CsvReader(path) as ins:
+        for line in ins:
+            assert isinstance(line, dict), 'Should return dict'
+
+
+def test_JsonReader():
+    """Should read tsv or csv files."""
+    path = _path(_dir(), 'fixtures', 'test.json')
+    ins = ioutils.JsonReader(path)
+    for line in ins:
+        assert isinstance(line, dict), 'Should return dict'
+    path = _path(_dir(), 'fixtures', 'test.json.gz')
+    ins = ioutils.JsonReader(path)
+    for line in ins:
+        assert isinstance(line, dict), 'Should return dict'
+    # should support 'with'
+    with ioutils.JsonReader(path) as ins:
+        for line in ins:
+            assert isinstance(line, dict), 'Should return dict'
+
+
 def test_reader():
     """Should return appropriate reader."""
     path = _path(_dir(), 'fixtures', 'test.txt')
     assert str(ioutils.reader(path).__class__.__name__) == 'TextIOWrapper'
     path = _path(_dir(), 'fixtures', 'test.csv')
-    assert str(ioutils.reader(path).__class__.__name__) == 'DictReader'
+    assert str(ioutils.reader(path).__class__.__name__) == 'CsvReader'
     path = _path(_dir(), 'fixtures', 'test.tsv')
-    assert str(ioutils.reader(path).__class__.__name__) == 'DictReader'
+    assert str(ioutils.reader(path).__class__.__name__) == 'CsvReader'
     path = _path(_dir(), 'fixtures', 'test.txt.gz')
+    assert str(ioutils.reader(path).__class__.__name__) == 'GzipBufferedTextReader'
+    path = _path(_dir(), 'fixtures', 'test.csv.gz')
+    assert str(ioutils.reader(path).__class__.__name__) == 'GzipBufferedDictReader'
+    path = _path(_dir(), 'fixtures', 'test.tsv.gz')
+    assert str(ioutils.reader(path).__class__.__name__) == 'GzipBufferedDictReader'
+    path = _path(_dir(), 'fixtures', 'test.json')
+    assert str(ioutils.reader(path).__class__.__name__) == 'JsonReader'
+    path = _path(_dir(), 'fixtures', 'test.json.gz')
+    assert str(ioutils.reader(path).__class__.__name__) == 'JsonReader'
+    path = _path(_dir(), 'fixtures', 'test.unknown_type')
     assert str(ioutils.reader(path).__class__.__name__) == 'TextIOWrapper'
+
+
+def test_reader_reader_class():
+    """Should return specified reader."""
+    path = _path(_dir(), 'fixtures', 'test.txt')
+    assert str(ioutils.reader(path, reader_class=io.TextIOBase).__class__.__name__) == 'TextIOBase'
+    path = _path(_dir(), 'fixtures', 'test.csv')
+    assert str(ioutils.reader(path, reader_class=io.TextIOBase).__class__.__name__) == 'TextIOBase'
+    path = _path(_dir(), 'fixtures', 'test.tsv')
+    assert str(ioutils.reader(path, reader_class=io.TextIOBase).__class__.__name__) == 'TextIOBase'
+    path = _path(_dir(), 'fixtures', 'test.txt.gz')
+    assert str(ioutils.reader(path, reader_class=io.TextIOBase).__class__.__name__) == 'TextIOBase'
+    path = _path(_dir(), 'fixtures', 'test.csv.gz')
+    assert str(ioutils.reader(path, reader_class=io.TextIOBase).__class__.__name__) == 'TextIOBase'
+    path = _path(_dir(), 'fixtures', 'test.tsv.gz')
+    assert str(ioutils.reader(path, reader_class=io.TextIOBase).__class__.__name__) == 'TextIOBase'
+    path = _path(_dir(), 'fixtures', 'test.json')
+    assert str(ioutils.reader(path, reader_class=io.TextIOBase).__class__.__name__) == 'TextIOBase'
+    path = _path(_dir(), 'fixtures', 'test.json.gz')
+    assert str(ioutils.reader(path, reader_class=io.TextIOBase).__class__.__name__) == 'TextIOBase'
+    path = _path(_dir(), 'fixtures', 'test.unknown_type')
+    assert str(ioutils.reader(path, reader_class=io.TextIOBase).__class__.__name__) == 'TextIOBase'
 
 
 def test_gzip_emitter_read():
@@ -79,8 +167,9 @@ def test_gzip_emitter_read():
     with ioutils.JSONEmitter(path) as emitter:
         emitter.write({'foo': 'bar'})
     try:
-        with ioutils.reader(path) as input:
-            json.load(input)
+        input = ioutils.reader(path)
+        for line in input:
+            assert line['foo'] == 'bar'
     except Exception as e:
         assert False, 'should be able to read gzip {}'.format(str(e))
 
