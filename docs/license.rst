@@ -12,7 +12,7 @@ Content from the Precision Medicine Knowledgebase is freely accessible with attr
 
 CGI
 ---
-The Cancer Genome Interpreter is restricted from commercial use (`CC-BY-NC 4.0`_; `CGI license statement`_). Contact this resource for information on licensing for commercial purposes.
+While the Cancer Genome Interpreter is restricted from commercial use (`CC-BY-NC 4.0`_; `CGI license statement`_), the content from the Cancer Biomarkers Database (used in this resource) is public domain (`CC0`_; `CBD license statement`_). Contact this resource for information on licensing for commercial purposes.
 
 Jax CKB
 -------
@@ -33,6 +33,7 @@ MolecularMatch is restricted from commercial use (`MolecularMatch license statem
 .. _CIViC license statement: https://civicdb.org/faq
 .. _PMKB license statement: https://academic.oup.com/jamia/article/24/3/513/2418181#73918723
 .. _CGI license statement: https://www.cancergenomeinterpreter.org/faq#q11c
+.. _CBD license statement: https://www.cancergenomeinterpreter.org/biomarkers
 .. _Jax-CKB license statement: https://ckb.jax.org/about/index
 .. _OncoKB license statement: https://oncokb.org/terms
 .. _MolecularMatch license statement: https://www.molecularmatch.com/terms/
