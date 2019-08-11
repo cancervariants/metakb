@@ -12,7 +12,7 @@ Content from the Precision Medicine Knowledgebase is freely accessible with attr
 
 CGI
 ---
-While the Cancer Genome Interpreter is restricted from commercial use (`CC-BY-NC 4.0`_; `CGI license statement`_), the content from the Cancer Biomarkers Database (used in this resource) is public domain (`CC0`_; `CBD license statement`_). Contact this resource for information on licensing for commercial purposes.
+While the Cancer Genome Interpreter is restricted from commercial use (`CC-BY-NC 4.0`_; `CGI license statement`_), the content from the Cancer Biomarkers Database (used in this resource) is public domain (`CC0`_; `CBD license statement`_).
 
 Jax CKB
 -------
