@@ -99,7 +99,10 @@ pre-commit install
 
 We use [dvc](https://dvc.org) to run ensure reproducibility by consistently maintaining a combination of input data, configuration, and the code that was initially used to harvest and transform data.  DVC is storage agnostic [S3, Azure, GCP, SSH, SFTP, hdfs, ...].  The metakb source and processed data is maintained on an s3 bucket.
 
-By default DVC expects your AWS CLI is already [configured](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html). DVC will be using default AWS credentials file to access S3. To override some of these settings, you could the options described in `dvc remote modify`. e.g. `dvc remote modify metakb profile my-profile --local`
+By default DVC expects your AWS CLI is already [configured](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html). DVC will be using default AWS credentials file to access S3. To override some of these settings, you could alter the options described in `dvc remote modify`. e.g. `dvc remote modify metakb profile my-profile --local`
+
+Once setup is complete, you are ready to pulls data files to the project working space. By default, the [dvc pull](https://dvc.org/doc/commands-reference/pull) command will retrieve and link all data dependences for the current branch into the project workspace.
+
 
 
 ## Versioning
