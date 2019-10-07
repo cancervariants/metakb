@@ -1,5 +1,6 @@
-requests==2.21.0
-dvc==0.23.2
-boto3==1.7.4
+requests==2.22.0
+dvc==0.55.0
+boto3==1.9.210
+requests-cache==0.5.2
 botocore==1.12.71
 awscli==1.16.81
