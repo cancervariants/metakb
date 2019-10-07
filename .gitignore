@@ -103,5 +103,10 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+
 # docs images
 docs/images/*.ai
+
+# application level caches
+caches/
+
