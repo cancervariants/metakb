@@ -1,4 +1,4 @@
 ['remote "metakb"']
-url = s3://metakb-dvc
+url = s3://vicc
 [core]
 remote = metakb
