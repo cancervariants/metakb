@@ -1,4 +1,0 @@
-['remote "metakb"']
-url = s3://vicc
-[core]
-remote = metakb
