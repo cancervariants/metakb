@@ -5,7 +5,7 @@ import pytest
 
 
 @pytest.fixture
-def bh():
+def bh(scope='module'):
     """Create a base Harvester fixture for testing."""
     bh = base.Harvester()
     return bh
