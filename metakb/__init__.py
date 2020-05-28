@@ -1,1 +1,1 @@
-"""Treat this directory as a package."""
+"""The MetaKB package."""
