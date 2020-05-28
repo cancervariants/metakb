@@ -1,6 +1,6 @@
 """Data models for representing VICC records."""
 from dataclasses import dataclass
-from enum import Enum, auto
+from enum import Enum
 
 
 class Biomarker:
@@ -39,10 +39,10 @@ class AssertionType(Enum):
     _AMP/ASCO/CAP Guidelines: https://pubmed.ncbi.nlm.nih.gov/27993330/
     """
 
-    THERAPEUTIC_PREDICTIVE = auto()
-    DIAGNOSTIC = auto()
-    PROGNOSTIC = auto()
-    PREDISPOSING = auto()
+    THERAPEUTIC_PREDICTIVE = 1
+    DIAGNOSTIC = 2
+    PROGNOSTIC = 3
+    PREDISPOSING = 4
 
 
 @dataclass
