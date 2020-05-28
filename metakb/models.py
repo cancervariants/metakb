@@ -31,10 +31,10 @@ class Therapeutic:
     pass
 
 
-class ClinSigType(Enum):
+class AssertionType(Enum):
     """
-    The clinical significance evidence types, drawn from the
-    `AMP/ASCO/CAP Guidelines`_.
+    The clinical significance assertion types, drawn from the
+    `AMP/ASCO/CAP Guidelines`_ describing evidence.
 
     _AMP/ASCO/CAP Guidelines: https://pubmed.ncbi.nlm.nih.gov/27993330/
     """
@@ -46,7 +46,7 @@ class ClinSigType(Enum):
 
 
 @dataclass
-class ClinSigAssertion:
+class Assertion:
     """
     A VICC assertion of the clinical significance of a :class:`Biomarker` to a
     :class:`Disease` (when applicable), along with provenance of the supporting
@@ -56,4 +56,4 @@ class ClinSigAssertion:
     biomarker: Biomarker
     disease: Disease
     therapeutic: Therapeutic
-    type: ClinSigType
+    type: AssertionType
