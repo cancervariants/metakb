@@ -110,3 +110,5 @@ docs/images/*.ai
 # application level caches
 caches/
 
+# allow pytest override with pytest.ini
+pytest.ini
