@@ -17,6 +17,7 @@ def test_base_harvester_harvest_not_implemented(bh):
         bh.harvest()
 
 
+@pytest.mark.skip(reason='This requires development of Assertions')
 def test_base_harvester_yields_assertions(bh):
     """Harvesters should yield Assertion records."""
     for assertion in bh.iter_assertions():
