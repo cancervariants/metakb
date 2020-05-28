@@ -1,2 +1,4 @@
 [run]
-omit = setup.py
+source =
+   metakb
+   tests
