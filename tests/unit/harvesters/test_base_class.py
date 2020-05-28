@@ -1,6 +1,6 @@
 """This module tests the Harvester base class."""
 from metakb.harvesters import base
-from metakb.models import Assertion
+from metakb.models.assertions import Assertion
 import pytest
 
 
