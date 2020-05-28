@@ -1,4 +1,7 @@
 [run]
 source =
-   metakb
-   tests
+   metakb/
+   tests/
+omit =
+   setup.py
+   docs/*
