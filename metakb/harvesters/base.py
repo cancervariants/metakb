@@ -1,12 +1,10 @@
 """A module for the Harvester base class"""
-from abc import ABC, abstractmethod
 
 
-class Harvester(ABC):
-    """An abstract class for content harvesters."""
+class Harvester:
+    """A base class for content harvesters."""
 
-    @abstractmethod
-    def harvest(self, *args, **kwargs):
+    def harvest(self):
         """
         Retrieve and store records from a resource. Records may be stored in
         any manner, but must be retrievable by :method:`iterate_records`.
@@ -14,13 +12,14 @@ class Harvester(ABC):
         :return: `True` if operation was successful, `False` otherwise.
         :rtype: bool
         """
+        raise NotImplementedError
 
-    @abstractmethod
-    def iter_statements(self):
+    def iter_assertions(self):
         """
         Yield all :class:`ClinSigAssertion` records for the resource.
 
         :return: An iterator
         :rtype: Iterator[:class:`ClinSigAssertion`]
         """
-        pass
+        for statement in self.assertions:
+            yield statement
