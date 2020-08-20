@@ -9,13 +9,13 @@ the clinical significance of variants observed in human cancers.
 
 The meta-knowledgebase was created to evaluate the disparities in variant interpretation
 content and structure across established resources of clinical interpretation knowledge.
-The result of this work is described in full detail in our `preprint`_.
+The result of this work is described in full detail in our 2020 *Nature Genetics* `publication`_.
 
 This site is reference documentation for using the associated `web interface`_ for searching
 the meta-knowledgebase.
 
 .. _VICC: http://cancervariants.org
-.. _preprint: https://www.biorxiv.org/content/10.1101/366856v2
+.. _publication: https://doi.org/10.1038/s41588-020-0603-8
 .. _web interface: https://search.cancervariants.org
 
 User Guide
