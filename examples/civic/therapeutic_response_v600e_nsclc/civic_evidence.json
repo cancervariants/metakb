@@ -1,0 +1,644 @@
+{
+  "id": 3017,
+  "name": "EID3017",
+  "description": "Patients with BRAF V600E-mutant NSCLC (n=57) were enrolled into a phase 2, multicentre, non-randomised, open-label study, administering dabrafenib plus trametinib. The overall response rate was 36/57 (63.2%, [95% CI 49.3-75.6]) and the median progression-free survival was 9.7 months (95% CI 6.9-19.6). At data cutoff (11.6 months of follow-up), 18/36  (50%) confirmed responses were ongoing and 23/57 (40%) of patients had died.",
+  "disease": {
+    "id": 8,
+    "name": "Lung Non-small Cell Carcinoma",
+    "display_name": "Lung Non-small Cell Carcinoma",
+    "doid": "3908",
+    "url": "http://www.disease-ontology.org/?id=DOID:3908"
+  },
+  "drugs": [
+    {
+      "id": 19,
+      "name": "Trametinib",
+      "ncit_id": "C77908",
+      "aliases": ["N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide", "Mekinist", "MEK Inhibitor GSK1120212", "JTP-74057", "GSK1120212"]
+    }, {
+      "id": 22,
+      "name": "Dabrafenib",
+      "ncit_id": "C82386",
+      "aliases": ["GSK2118436", "GSK-2118436A", "GSK-2118436", "BRAF Inhibitor GSK2118436", "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-"]
+    }
+  ],
+  "rating": 4,
+  "evidence_level": "A",
+  "evidence_type": "Predictive",
+  "clinical_significance": "Sensitivity/Response",
+  "evidence_direction": "Supports",
+  "variant_origin": "Somatic",
+  "drug_interaction_type": "Combination",
+  "status": "accepted",
+  "open_change_count": 0,
+  "type": "evidence",
+  "source": {
+    "id": 1296,
+    "name": "Dabrafenib plus trametinib in patients with previously treated BRAF(V600E)-mutant metastatic non-small cell lung cancer: an open-label, multicentre phase 2 trial.",
+    "citation": "Planchard et al., 2016, Lancet Oncol.",
+    "citation_id": "27283860",
+    "source_type": "PubMed",
+    "asco_abstract_id": null,
+    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/27283860",
+    "open_access": true,
+    "pmc_id": "PMC4993103",
+    "publication_date": {
+      "year": 2016,
+      "month": 7
+    },
+    "journal": "Lancet Oncol.",
+    "full_journal_title": "The Lancet. Oncology",
+    "status": "partially curated",
+    "is_review": false,
+    "clinical_trials": [{
+      "nct_id": "NCT01336634",
+      "name": "Study of Selective BRAF Kinase Inhibitor Dabrafenib Monotherapy Twice Daily and in Combination With Dabrafenib Twice Daily and Trametinib Once Daily in Combination Therapy in Subjects With BRAF V600E Mutation Positive Metastatic (Stage IV) Non-small Cell Lung Cancer.",
+      "description": "Dabrafenib is a potent and selective inhibitor of BRAF kinase activity. This is a Phase II, non-randomized, open-label study to assess the efficacy, safety, and tolerability of dabrafenib administered as a single agent and in combination with trametinib in stage IV disease to subjects with BRAF mutant advanced non-small cell lung cancer. Subjects will receive dabrafenib 150 mg twice daily (BID) in monotherapy treatment and dabrafenib 150 mg bid and trametinib 2 mg once daily in combination therapy and continue on treatment until disease progression, death, or unacceptable adverse event.",
+      "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01336634"
+    }]
+  },
+  "variant_id": 12,
+  "phenotypes": [],
+  "assertions": [],
+  "errors": {},
+  "lifecycle_actions": {
+    "submitted": {
+      "timestamp": "2017-05-18T15:56:13.383Z",
+      "user": {
+        "id": 14,
+        "name": "Katie Campbell",
+        "last_seen_at": "2019-09-24T17:13:22.425Z",
+        "username": "KatieCampbell",
+        "role": "curator",
+        "avatar_url": "https://secure.gravatar.com/avatar/1822cf42a9dc6c398f9f71670b5b8fc3.png?d=identicon\u0026r=pg\u0026s=32",
+        "avatars": {
+          "x128": "https://secure.gravatar.com/avatar/1822cf42a9dc6c398f9f71670b5b8fc3.png?d=identicon\u0026r=pg\u0026s=128",
+          "x64": "https://secure.gravatar.com/avatar/1822cf42a9dc6c398f9f71670b5b8fc3.png?d=identicon\u0026r=pg\u0026s=64",
+          "x32": "https://secure.gravatar.com/avatar/1822cf42a9dc6c398f9f71670b5b8fc3.png?d=identicon\u0026r=pg\u0026s=32",
+          "x14": "https://secure.gravatar.com/avatar/1822cf42a9dc6c398f9f71670b5b8fc3.png?d=identicon\u0026r=pg\u0026s=14"
+        },
+        "area_of_expertise": "Research Scientist",
+        "orcid": "0000-0001-6491-4432",
+        "display_name": "KatieCampbell",
+        "created_at": "2015-02-26T21:27:21.537Z",
+        "url": "",
+        "twitter_handle": "CampKatiee",
+        "facebook_profile": "",
+        "linkedin_profile": "",
+        "bio": "",
+        "country": {
+          "id": 214,
+          "iso": "US",
+          "name": "United States"
+        },
+        "featured_expert": false,
+        "accepted_license": null,
+        "signup_complete": null,
+        "organizations": [{
+          "id": 12,
+          "name": "Washington University in Saint Louis",
+          "url": "https://wustl.edu/",
+          "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+            "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+            "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+            "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+            "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+          },
+          "parent": {}
+        }, {
+          "id": 1,
+          "name": "The McDonnell Genome Institute",
+          "url": "http://genome.wustl.edu/",
+          "description": "The McDonnell Genome Institute (MGI) is a world leader in the fast-paced, constantly changing field of genomics. A truly unique institution, we are pushing the limits of academic research by creating, testing, and implementing new approaches to the study of biology with the goal of understanding human health and disease, as well as evolution and the biology of other organisms.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/001/x256/mgi-org.png?1592507909",
+            "x128": "/system/organizations/profile_images/000/000/001/x128/mgi-org.png?1592507909",
+            "x64": "/system/organizations/profile_images/000/000/001/x64/mgi-org.png?1592507909",
+            "x32": "/system/organizations/profile_images/000/000/001/x32/mgi-org.png?1592507909",
+            "x14": "/system/organizations/profile_images/000/000/001/x14/mgi-org.png?1592507909"
+          },
+          "parent": {
+            "id": 12,
+            "name": "Washington University in Saint Louis",
+            "url": "https://wustl.edu/",
+            "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+            "profile_image": {
+              "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+              "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+              "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+              "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+              "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+            },
+            "parent": {}
+          }
+        }],
+        "most_recent_organization": {
+          "id": 1,
+          "name": "The McDonnell Genome Institute",
+          "url": "http://genome.wustl.edu/",
+          "description": "The McDonnell Genome Institute (MGI) is a world leader in the fast-paced, constantly changing field of genomics. A truly unique institution, we are pushing the limits of academic research by creating, testing, and implementing new approaches to the study of biology with the goal of understanding human health and disease, as well as evolution and the biology of other organisms.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/001/x256/mgi-org.png?1592507909",
+            "x128": "/system/organizations/profile_images/000/000/001/x128/mgi-org.png?1592507909",
+            "x64": "/system/organizations/profile_images/000/000/001/x64/mgi-org.png?1592507909",
+            "x32": "/system/organizations/profile_images/000/000/001/x32/mgi-org.png?1592507909",
+            "x14": "/system/organizations/profile_images/000/000/001/x14/mgi-org.png?1592507909"
+          },
+          "parent": {
+            "id": 12,
+            "name": "Washington University in Saint Louis",
+            "url": "https://wustl.edu/",
+            "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+            "profile_image": {
+              "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+              "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+              "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+              "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+              "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+            },
+            "parent": {}
+          }
+        },
+        "conflict_of_interest": {
+          "coi_valid": "missing",
+          "details": {}
+        }
+      },
+      "organization": {
+        "id": 1,
+        "name": "The McDonnell Genome Institute",
+        "url": "http://genome.wustl.edu/",
+        "description": "The McDonnell Genome Institute (MGI) is a world leader in the fast-paced, constantly changing field of genomics. A truly unique institution, we are pushing the limits of academic research by creating, testing, and implementing new approaches to the study of biology with the goal of understanding human health and disease, as well as evolution and the biology of other organisms.",
+        "profile_image": {
+          "x256": "/system/organizations/profile_images/000/000/001/x256/mgi-org.png?1592507909",
+          "x128": "/system/organizations/profile_images/000/000/001/x128/mgi-org.png?1592507909",
+          "x64": "/system/organizations/profile_images/000/000/001/x64/mgi-org.png?1592507909",
+          "x32": "/system/organizations/profile_images/000/000/001/x32/mgi-org.png?1592507909",
+          "x14": "/system/organizations/profile_images/000/000/001/x14/mgi-org.png?1592507909"
+        },
+        "parent": {
+          "id": 12,
+          "name": "Washington University in Saint Louis",
+          "url": "https://wustl.edu/",
+          "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+            "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+            "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+            "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+            "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+          },
+          "parent": {}
+        }
+      }
+    },
+    "last_modified": {
+      "timestamp": "2017-06-29T14:32:01.444Z",
+      "user": {
+        "id": 6,
+        "name": "Kilannin Krysiak",
+        "last_seen_at": "2020-11-03T18:00:17.269Z",
+        "username": "kkrysiak",
+        "role": "admin",
+        "avatar_url": "https://secure.gravatar.com/avatar/17180f9afc9f7f04fff97197c1ee5cb6.png?d=identicon\u0026r=pg\u0026s=32",
+        "avatars": {
+          "x128": "https://secure.gravatar.com/avatar/17180f9afc9f7f04fff97197c1ee5cb6.png?d=identicon\u0026r=pg\u0026s=128",
+          "x64": "https://secure.gravatar.com/avatar/17180f9afc9f7f04fff97197c1ee5cb6.png?d=identicon\u0026r=pg\u0026s=64",
+          "x32": "https://secure.gravatar.com/avatar/17180f9afc9f7f04fff97197c1ee5cb6.png?d=identicon\u0026r=pg\u0026s=32",
+          "x14": "https://secure.gravatar.com/avatar/17180f9afc9f7f04fff97197c1ee5cb6.png?d=identicon\u0026r=pg\u0026s=14"
+        },
+        "area_of_expertise": "Research Scientist",
+        "orcid": "0000-0002-6299-9230",
+        "display_name": "kkrysiak",
+        "created_at": "2015-02-26T04:14:20.953Z",
+        "url": "",
+        "twitter_handle": "",
+        "facebook_profile": "",
+        "linkedin_profile": "kilannin-krysiak-69047819",
+        "bio": "Dr. Krysiak is an Instructor at the McDonnell Genome Institute at Washington University School of Medicine where she is involved in the comprehensive genomic analysis of cancer patient cohorts and “n-of-1” studies. She received her PhD in Molecular Genetics and Genomics at Washington University in St. Louis where she focused on the genetics of myelodysplastic syndrome through advanced flow cytometry techniques, primary cell culture and mouse models. She is a founding member of the CIViC team, helping to define the CIViC data model, and a leading content curator and feature development consultant.",
+        "country": {
+          "id": 214,
+          "iso": "US",
+          "name": "United States"
+        },
+        "featured_expert": true,
+        "accepted_license": null,
+        "signup_complete": null,
+        "organizations": [{
+          "id": 12,
+          "name": "Washington University in Saint Louis",
+          "url": "https://wustl.edu/",
+          "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+            "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+            "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+            "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+            "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+          },
+          "parent": {}
+        }, {
+          "id": 1,
+          "name": "The McDonnell Genome Institute",
+          "url": "http://genome.wustl.edu/",
+          "description": "The McDonnell Genome Institute (MGI) is a world leader in the fast-paced, constantly changing field of genomics. A truly unique institution, we are pushing the limits of academic research by creating, testing, and implementing new approaches to the study of biology with the goal of understanding human health and disease, as well as evolution and the biology of other organisms.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/001/x256/mgi-org.png?1592507909",
+            "x128": "/system/organizations/profile_images/000/000/001/x128/mgi-org.png?1592507909",
+            "x64": "/system/organizations/profile_images/000/000/001/x64/mgi-org.png?1592507909",
+            "x32": "/system/organizations/profile_images/000/000/001/x32/mgi-org.png?1592507909",
+            "x14": "/system/organizations/profile_images/000/000/001/x14/mgi-org.png?1592507909"
+          },
+          "parent": {
+            "id": 12,
+            "name": "Washington University in Saint Louis",
+            "url": "https://wustl.edu/",
+            "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+            "profile_image": {
+              "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+              "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+              "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+              "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+              "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+            },
+            "parent": {}
+          }
+        }],
+        "most_recent_organization": {
+          "id": 1,
+          "name": "The McDonnell Genome Institute",
+          "url": "http://genome.wustl.edu/",
+          "description": "The McDonnell Genome Institute (MGI) is a world leader in the fast-paced, constantly changing field of genomics. A truly unique institution, we are pushing the limits of academic research by creating, testing, and implementing new approaches to the study of biology with the goal of understanding human health and disease, as well as evolution and the biology of other organisms.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/001/x256/mgi-org.png?1592507909",
+            "x128": "/system/organizations/profile_images/000/000/001/x128/mgi-org.png?1592507909",
+            "x64": "/system/organizations/profile_images/000/000/001/x64/mgi-org.png?1592507909",
+            "x32": "/system/organizations/profile_images/000/000/001/x32/mgi-org.png?1592507909",
+            "x14": "/system/organizations/profile_images/000/000/001/x14/mgi-org.png?1592507909"
+          },
+          "parent": {
+            "id": 12,
+            "name": "Washington University in Saint Louis",
+            "url": "https://wustl.edu/",
+            "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+            "profile_image": {
+              "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+              "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+              "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+              "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+              "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+            },
+            "parent": {}
+          }
+        },
+        "conflict_of_interest": {
+          "coi_valid": "valid",
+          "details": {
+            "coi_present": false,
+            "coi_statement": "",
+            "created_at": "2020-10-22T19:47:23.496Z",
+            "expires_at": "2021-10-22T19:47:23.496Z"
+          }
+        }
+      },
+      "organization": {
+        "id": 1,
+        "name": "The McDonnell Genome Institute",
+        "url": "http://genome.wustl.edu/",
+        "description": "The McDonnell Genome Institute (MGI) is a world leader in the fast-paced, constantly changing field of genomics. A truly unique institution, we are pushing the limits of academic research by creating, testing, and implementing new approaches to the study of biology with the goal of understanding human health and disease, as well as evolution and the biology of other organisms.",
+        "profile_image": {
+          "x256": "/system/organizations/profile_images/000/000/001/x256/mgi-org.png?1592507909",
+          "x128": "/system/organizations/profile_images/000/000/001/x128/mgi-org.png?1592507909",
+          "x64": "/system/organizations/profile_images/000/000/001/x64/mgi-org.png?1592507909",
+          "x32": "/system/organizations/profile_images/000/000/001/x32/mgi-org.png?1592507909",
+          "x14": "/system/organizations/profile_images/000/000/001/x14/mgi-org.png?1592507909"
+        },
+        "parent": {
+          "id": 12,
+          "name": "Washington University in Saint Louis",
+          "url": "https://wustl.edu/",
+          "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+            "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+            "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+            "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+            "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+          },
+          "parent": {}
+        }
+      }
+    },
+    "last_reviewed": {
+      "timestamp": "2017-09-05T18:46:09.318Z",
+      "user": {
+        "id": 179,
+        "name": "Erica Barnell",
+        "last_seen_at": "2020-10-15T14:02:55.215Z",
+        "username": "EricaBarnell",
+        "role": "admin",
+        "avatar_url": "https://secure.gravatar.com/avatar/b9800d871c67538acd31728e8f509c80.png?d=identicon\u0026r=pg\u0026s=32",
+        "avatars": {
+          "x128": "https://secure.gravatar.com/avatar/b9800d871c67538acd31728e8f509c80.png?d=identicon\u0026r=pg\u0026s=128",
+          "x64": "https://secure.gravatar.com/avatar/b9800d871c67538acd31728e8f509c80.png?d=identicon\u0026r=pg\u0026s=64",
+          "x32": "https://secure.gravatar.com/avatar/b9800d871c67538acd31728e8f509c80.png?d=identicon\u0026r=pg\u0026s=32",
+          "x14": "https://secure.gravatar.com/avatar/b9800d871c67538acd31728e8f509c80.png?d=identicon\u0026r=pg\u0026s=14"
+        },
+        "area_of_expertise": "Research Scientist",
+        "orcid": "0000-0003-1631-1201",
+        "display_name": "EricaBarnell",
+        "created_at": "2016-07-06T14:48:11.341Z",
+        "url": "",
+        "twitter_handle": "erica.barnell",
+        "facebook_profile": "",
+        "linkedin_profile": "https://www.linkedin.com/in/erica-barnell-72b16a60",
+        "bio": "MD/PhD candidate at the Washington University School of Medicine with PhD in Molecular Genetics and Genomics. Thesis work being completed in the Griffith Lab at the McDonnell Genome Institute to advance bioinformatic tools in the precision oncology space. Co-founded and current Chief Science Officer at Geneoscopy LLC, which is a life-sciences start-up company that leverages eukaryotic biomarkers to noninvasively diagnose, assess, and treat gastrointestinal disease.",
+        "country": {
+          "id": 214,
+          "iso": "US",
+          "name": "United States"
+        },
+        "featured_expert": false,
+        "accepted_license": null,
+        "signup_complete": null,
+        "organizations": [{
+          "id": 12,
+          "name": "Washington University in Saint Louis",
+          "url": "https://wustl.edu/",
+          "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+            "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+            "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+            "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+            "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+          },
+          "parent": {}
+        }, {
+          "id": 1,
+          "name": "The McDonnell Genome Institute",
+          "url": "http://genome.wustl.edu/",
+          "description": "The McDonnell Genome Institute (MGI) is a world leader in the fast-paced, constantly changing field of genomics. A truly unique institution, we are pushing the limits of academic research by creating, testing, and implementing new approaches to the study of biology with the goal of understanding human health and disease, as well as evolution and the biology of other organisms.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/001/x256/mgi-org.png?1592507909",
+            "x128": "/system/organizations/profile_images/000/000/001/x128/mgi-org.png?1592507909",
+            "x64": "/system/organizations/profile_images/000/000/001/x64/mgi-org.png?1592507909",
+            "x32": "/system/organizations/profile_images/000/000/001/x32/mgi-org.png?1592507909",
+            "x14": "/system/organizations/profile_images/000/000/001/x14/mgi-org.png?1592507909"
+          },
+          "parent": {
+            "id": 12,
+            "name": "Washington University in Saint Louis",
+            "url": "https://wustl.edu/",
+            "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+            "profile_image": {
+              "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+              "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+              "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+              "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+              "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+            },
+            "parent": {}
+          }
+        }],
+        "most_recent_organization": {
+          "id": 1,
+          "name": "The McDonnell Genome Institute",
+          "url": "http://genome.wustl.edu/",
+          "description": "The McDonnell Genome Institute (MGI) is a world leader in the fast-paced, constantly changing field of genomics. A truly unique institution, we are pushing the limits of academic research by creating, testing, and implementing new approaches to the study of biology with the goal of understanding human health and disease, as well as evolution and the biology of other organisms.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/001/x256/mgi-org.png?1592507909",
+            "x128": "/system/organizations/profile_images/000/000/001/x128/mgi-org.png?1592507909",
+            "x64": "/system/organizations/profile_images/000/000/001/x64/mgi-org.png?1592507909",
+            "x32": "/system/organizations/profile_images/000/000/001/x32/mgi-org.png?1592507909",
+            "x14": "/system/organizations/profile_images/000/000/001/x14/mgi-org.png?1592507909"
+          },
+          "parent": {
+            "id": 12,
+            "name": "Washington University in Saint Louis",
+            "url": "https://wustl.edu/",
+            "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+            "profile_image": {
+              "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+              "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+              "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+              "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+              "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+            },
+            "parent": {}
+          }
+        },
+        "conflict_of_interest": {
+          "coi_valid": "conflict",
+          "details": {
+            "coi_present": true,
+            "coi_statement": "Chief Science Officer, stock holder, board member, and holder of intellectual property in Geneoscopy, Inc.",
+            "created_at": "2020-10-15T14:03:25.988Z",
+            "expires_at": "2021-10-15T14:03:25.988Z"
+          }
+        }
+      },
+      "organization": {
+        "id": 1,
+        "name": "The McDonnell Genome Institute",
+        "url": "http://genome.wustl.edu/",
+        "description": "The McDonnell Genome Institute (MGI) is a world leader in the fast-paced, constantly changing field of genomics. A truly unique institution, we are pushing the limits of academic research by creating, testing, and implementing new approaches to the study of biology with the goal of understanding human health and disease, as well as evolution and the biology of other organisms.",
+        "profile_image": {
+          "x256": "/system/organizations/profile_images/000/000/001/x256/mgi-org.png?1592507909",
+          "x128": "/system/organizations/profile_images/000/000/001/x128/mgi-org.png?1592507909",
+          "x64": "/system/organizations/profile_images/000/000/001/x64/mgi-org.png?1592507909",
+          "x32": "/system/organizations/profile_images/000/000/001/x32/mgi-org.png?1592507909",
+          "x14": "/system/organizations/profile_images/000/000/001/x14/mgi-org.png?1592507909"
+        },
+        "parent": {
+          "id": 12,
+          "name": "Washington University in Saint Louis",
+          "url": "https://wustl.edu/",
+          "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+            "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+            "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+            "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+            "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+          },
+          "parent": {}
+        }
+      }
+    },
+    "last_commented_on": {
+      "timestamp": "2017-06-24T06:04:59.298Z",
+      "user": {
+        "id": 100,
+        "name": "Damian Rieke",
+        "last_seen_at": "2020-09-03T12:38:56.767Z",
+        "username": "DamianRieke",
+        "role": "editor",
+        "avatar_url": "https://secure.gravatar.com/avatar/baaffa3938cc82f434ca5561e34d3de9.png?d=identicon\u0026r=pg\u0026s=32",
+        "avatars": {
+          "x128": "https://secure.gravatar.com/avatar/baaffa3938cc82f434ca5561e34d3de9.png?d=identicon\u0026r=pg\u0026s=128",
+          "x64": "https://secure.gravatar.com/avatar/baaffa3938cc82f434ca5561e34d3de9.png?d=identicon\u0026r=pg\u0026s=64",
+          "x32": "https://secure.gravatar.com/avatar/baaffa3938cc82f434ca5561e34d3de9.png?d=identicon\u0026r=pg\u0026s=32",
+          "x14": "https://secure.gravatar.com/avatar/baaffa3938cc82f434ca5561e34d3de9.png?d=identicon\u0026r=pg\u0026s=14"
+        },
+        "area_of_expertise": "Clinical Scientist",
+        "orcid": "0000-0003-0027-7977",
+        "display_name": "DamianRieke",
+        "created_at": "2015-12-14T08:37:49.264Z",
+        "url": "https://cccc.charite.de",
+        "twitter_handle": "",
+        "facebook_profile": "",
+        "linkedin_profile": "",
+        "bio": "Damian Rieke is a physician and researcher at the Charité Comprehensive Cancer Center and the Department for Hematology, Oncology and Tumor Immunology at Charité - University Medicine Berlin in Berlin, Germany. His main areas of interest include the development of targeted therapy strategies and the targeted use of immune therapeutics as well as their application in clinic.",
+        "country": {
+          "id": 74,
+          "iso": "DE",
+          "name": "Germany"
+        },
+        "featured_expert": true,
+        "accepted_license": null,
+        "signup_complete": null,
+        "organizations": [{
+          "id": 5,
+          "name": "The Charité Comprehensive Cancer Center",
+          "url": "https://cccc.charite.de/en/",
+          "description": "Charité – Universitätsmedizin Berlin in Berlin, Germany is one of the largest university hospitals in Europe. The Charité Comprehensive Cancer Center is dedicated to integrating medical, psychological and social care as well as preclinical and clinical research to improve therapies for tumor patients. In collaboration with CIViC, the Charité Comprehensive Cancer Center translates genomic data into therapy, aiming to improve personalized oncology and advance its application in clinical routine.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/005/x256/charite-org.png?1592507820",
+            "x128": "/system/organizations/profile_images/000/000/005/x128/charite-org.png?1592507820",
+            "x64": "/system/organizations/profile_images/000/000/005/x64/charite-org.png?1592507820",
+            "x32": "/system/organizations/profile_images/000/000/005/x32/charite-org.png?1592507820",
+            "x14": "/system/organizations/profile_images/000/000/005/x14/charite-org.png?1592507820"
+          },
+          "parent": {}
+        }],
+        "most_recent_organization": {
+          "id": 5,
+          "name": "The Charité Comprehensive Cancer Center",
+          "url": "https://cccc.charite.de/en/",
+          "description": "Charité – Universitätsmedizin Berlin in Berlin, Germany is one of the largest university hospitals in Europe. The Charité Comprehensive Cancer Center is dedicated to integrating medical, psychological and social care as well as preclinical and clinical research to improve therapies for tumor patients. In collaboration with CIViC, the Charité Comprehensive Cancer Center translates genomic data into therapy, aiming to improve personalized oncology and advance its application in clinical routine.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/005/x256/charite-org.png?1592507820",
+            "x128": "/system/organizations/profile_images/000/000/005/x128/charite-org.png?1592507820",
+            "x64": "/system/organizations/profile_images/000/000/005/x64/charite-org.png?1592507820",
+            "x32": "/system/organizations/profile_images/000/000/005/x32/charite-org.png?1592507820",
+            "x14": "/system/organizations/profile_images/000/000/005/x14/charite-org.png?1592507820"
+          },
+          "parent": {}
+        },
+        "conflict_of_interest": {
+          "coi_valid": "expired",
+          "details": {
+            "coi_present": true,
+            "coi_statement": "consulting: Alacris Theranostics GmbH, honoraria: Bristol-Myers Squibb",
+            "created_at": "2019-10-18T07:38:06.558Z",
+            "expires_at": "2020-10-18T07:38:06.558Z"
+          }
+        }
+      },
+      "organization": {
+        "id": 5,
+        "name": "The Charité Comprehensive Cancer Center",
+        "url": "https://cccc.charite.de/en/",
+        "description": "Charité – Universitätsmedizin Berlin in Berlin, Germany is one of the largest university hospitals in Europe. The Charité Comprehensive Cancer Center is dedicated to integrating medical, psychological and social care as well as preclinical and clinical research to improve therapies for tumor patients. In collaboration with CIViC, the Charité Comprehensive Cancer Center translates genomic data into therapy, aiming to improve personalized oncology and advance its application in clinical routine.",
+        "profile_image": {
+          "x256": "/system/organizations/profile_images/000/000/005/x256/charite-org.png?1592507820",
+          "x128": "/system/organizations/profile_images/000/000/005/x128/charite-org.png?1592507820",
+          "x64": "/system/organizations/profile_images/000/000/005/x64/charite-org.png?1592507820",
+          "x32": "/system/organizations/profile_images/000/000/005/x32/charite-org.png?1592507820",
+          "x14": "/system/organizations/profile_images/000/000/005/x14/charite-org.png?1592507820"
+        },
+        "parent": {}
+      }
+    },
+    "accepted": {
+      "timestamp": "2017-06-24T06:00:00.982Z",
+      "user": {
+        "id": 100,
+        "name": "Damian Rieke",
+        "last_seen_at": "2020-09-03T12:38:56.767Z",
+        "username": "DamianRieke",
+        "role": "editor",
+        "avatar_url": "https://secure.gravatar.com/avatar/baaffa3938cc82f434ca5561e34d3de9.png?d=identicon\u0026r=pg\u0026s=32",
+        "avatars": {
+          "x128": "https://secure.gravatar.com/avatar/baaffa3938cc82f434ca5561e34d3de9.png?d=identicon\u0026r=pg\u0026s=128",
+          "x64": "https://secure.gravatar.com/avatar/baaffa3938cc82f434ca5561e34d3de9.png?d=identicon\u0026r=pg\u0026s=64",
+          "x32": "https://secure.gravatar.com/avatar/baaffa3938cc82f434ca5561e34d3de9.png?d=identicon\u0026r=pg\u0026s=32",
+          "x14": "https://secure.gravatar.com/avatar/baaffa3938cc82f434ca5561e34d3de9.png?d=identicon\u0026r=pg\u0026s=14"
+        },
+        "area_of_expertise": "Clinical Scientist",
+        "orcid": "0000-0003-0027-7977",
+        "display_name": "DamianRieke",
+        "created_at": "2015-12-14T08:37:49.264Z",
+        "url": "https://cccc.charite.de",
+        "twitter_handle": "",
+        "facebook_profile": "",
+        "linkedin_profile": "",
+        "bio": "Damian Rieke is a physician and researcher at the Charité Comprehensive Cancer Center and the Department for Hematology, Oncology and Tumor Immunology at Charité - University Medicine Berlin in Berlin, Germany. His main areas of interest include the development of targeted therapy strategies and the targeted use of immune therapeutics as well as their application in clinic.",
+        "country": {
+          "id": 74,
+          "iso": "DE",
+          "name": "Germany"
+        },
+        "featured_expert": true,
+        "accepted_license": null,
+        "signup_complete": null,
+        "organizations": [{
+          "id": 5,
+          "name": "The Charité Comprehensive Cancer Center",
+          "url": "https://cccc.charite.de/en/",
+          "description": "Charité – Universitätsmedizin Berlin in Berlin, Germany is one of the largest university hospitals in Europe. The Charité Comprehensive Cancer Center is dedicated to integrating medical, psychological and social care as well as preclinical and clinical research to improve therapies for tumor patients. In collaboration with CIViC, the Charité Comprehensive Cancer Center translates genomic data into therapy, aiming to improve personalized oncology and advance its application in clinical routine.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/005/x256/charite-org.png?1592507820",
+            "x128": "/system/organizations/profile_images/000/000/005/x128/charite-org.png?1592507820",
+            "x64": "/system/organizations/profile_images/000/000/005/x64/charite-org.png?1592507820",
+            "x32": "/system/organizations/profile_images/000/000/005/x32/charite-org.png?1592507820",
+            "x14": "/system/organizations/profile_images/000/000/005/x14/charite-org.png?1592507820"
+          },
+          "parent": {}
+        }],
+        "most_recent_organization": {
+          "id": 5,
+          "name": "The Charité Comprehensive Cancer Center",
+          "url": "https://cccc.charite.de/en/",
+          "description": "Charité – Universitätsmedizin Berlin in Berlin, Germany is one of the largest university hospitals in Europe. The Charité Comprehensive Cancer Center is dedicated to integrating medical, psychological and social care as well as preclinical and clinical research to improve therapies for tumor patients. In collaboration with CIViC, the Charité Comprehensive Cancer Center translates genomic data into therapy, aiming to improve personalized oncology and advance its application in clinical routine.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/005/x256/charite-org.png?1592507820",
+            "x128": "/system/organizations/profile_images/000/000/005/x128/charite-org.png?1592507820",
+            "x64": "/system/organizations/profile_images/000/000/005/x64/charite-org.png?1592507820",
+            "x32": "/system/organizations/profile_images/000/000/005/x32/charite-org.png?1592507820",
+            "x14": "/system/organizations/profile_images/000/000/005/x14/charite-org.png?1592507820"
+          },
+          "parent": {}
+        },
+        "conflict_of_interest": {
+          "coi_valid": "expired",
+          "details": {
+            "coi_present": true,
+            "coi_statement": "consulting: Alacris Theranostics GmbH, honoraria: Bristol-Myers Squibb",
+            "created_at": "2019-10-18T07:38:06.558Z",
+            "expires_at": "2020-10-18T07:38:06.558Z"
+          }
+        }
+      },
+      "organization": {
+        "id": 5,
+        "name": "The Charité Comprehensive Cancer Center",
+        "url": "https://cccc.charite.de/en/",
+        "description": "Charité – Universitätsmedizin Berlin in Berlin, Germany is one of the largest university hospitals in Europe. The Charité Comprehensive Cancer Center is dedicated to integrating medical, psychological and social care as well as preclinical and clinical research to improve therapies for tumor patients. In collaboration with CIViC, the Charité Comprehensive Cancer Center translates genomic data into therapy, aiming to improve personalized oncology and advance its application in clinical routine.",
+        "profile_image": {
+          "x256": "/system/organizations/profile_images/000/000/005/x256/charite-org.png?1592507820",
+          "x128": "/system/organizations/profile_images/000/000/005/x128/charite-org.png?1592507820",
+          "x64": "/system/organizations/profile_images/000/000/005/x64/charite-org.png?1592507820",
+          "x32": "/system/organizations/profile_images/000/000/005/x32/charite-org.png?1592507820",
+          "x14": "/system/organizations/profile_images/000/000/005/x14/charite-org.png?1592507820"
+        },
+        "parent": {}
+      }
+    }
+  },
+  "fields_with_pending_changes": {},
+  "gene_id": 5
+}
