@@ -11,59 +11,47 @@ class CIViC:
     def __init__(self):
         self.project_root = Path(__file__).resolve().parents[2]
         self.genes_url = 'https://civicdb.org/api/genes'
+        self.variants_url = 'https://civicdb.org/api/variants'
 
     def harvest(self):
         """Retrieve and store records from CIViC."""
-        self.harvest_gene()
-
-    def harvest_gene(self):
-        """Harvest gene information."""
         start = timer()
-        self._get_gene_information()
+        #self.harvest_gene()
+        self.harvest_type(self.genes_url, 'gene')
+        # self.harvest_type(self.variants_url, 'variant')
         end = timer()
-        print(end-start)
-        return True
+        print(end - start)
 
-    def _get_gene_information(self):
-        r = requests.get(self.genes_url)
-        r_json = r.json()
+    def harvest_type(self, main_url, obj_type):
+        r_json = self._get_json(main_url)
         next_link = r_json['_meta']['links']['next']
-        all_links = [self.genes_url]
+        all_links = [main_url]
         records_json = list()
 
+        self._get_links(all_links, next_link)
+
+        for link in all_links:
+            r_json = self._get_json(link)
+            records = r_json['records']
+            for record in records:
+                record_url = f"{main_url}/{record['id']}"
+                record_obj = self._get_json(record_url)
+                records_json.append(record_obj)
+
+        with open(f"{self.project_root}/data/civic/{obj_type}.json", 'w+') as f:
+            f.write(json.dumps(records_json))
+            f.close()
+
+    def _get_links(self, all_links, next_link):
         while next_link:
             all_links.append(next_link)
             r = requests.get(next_link)
             r_json = r.json()
             next_link = r_json['_meta']['links']['next']
 
-        for link in all_links:
-            r = requests.get(link)
-            r_json = r.json()
-            records = r_json['records']
-            for record in records:
-                gene_url = f"{self.genes_url}/{record['name']}" \
-                           f"?identifier_type=entrez_symbol"
-                r = requests.get(gene_url)
-                gene = r.json()
-
-                records_json.append({
-                    'id': gene['id'],
-                    'name': gene['name'],
-                    'entrez_id': gene['entrez_id'],
-                    'description': gene['description'],
-                    'variants': gene['variants'],
-                    'aliases': gene['aliases'],
-                    'type': gene['type'],
-                    'lifecycle_actions': gene['lifecycle_actions'],
-                    'sources': gene['sources'],
-                    'provisional_values': gene['provisional_values'],
-                    'errors': gene['errors']
-                })
-
-        with open(f"{self.project_root}/data/civic/gene.json", 'w+') as f:
-            f.write(json.dumps(records_json))
-            f.close()
+    def _get_json(self, url):
+        r = requests.get(url)
+        return r.json()
 
 
 civic = CIViC()
