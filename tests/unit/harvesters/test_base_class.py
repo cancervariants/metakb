@@ -4,8 +4,8 @@ from metakb.models.assertions import Assertion
 import pytest
 
 
-@pytest.fixture
-def bh(scope='module'):
+@pytest.fixture(scope='module')
+def bh():
     """Create a base Harvester fixture for testing."""
     bh = base.Harvester()
     return bh

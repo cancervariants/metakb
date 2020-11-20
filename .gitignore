@@ -112,3 +112,12 @@ caches/
 
 # allow pytest override with pytest.ini
 pytest.ini
+
+# ide
+.idea/
+
+# system files
+.DS_Store
+
+# data files
+data/*
