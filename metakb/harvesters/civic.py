@@ -10,19 +10,27 @@ class CIViC:
 
     def __init__(self):
         self.project_root = Path(__file__).resolve().parents[2]
-        self.genes_url = 'https://civicdb.org/api/genes'
-        self.variants_url = 'https://civicdb.org/api/variants'
+        self.civic_api_url = 'https://civicdb.org/api/'
 
     def harvest(self):
         """Retrieve and store records from CIViC."""
         start = timer()
-        #self.harvest_gene()
-        self.harvest_type(self.genes_url, 'gene')
-        # self.harvest_type(self.variants_url, 'variant')
+        self.harvest_type('genes')
         end = timer()
-        print(end - start)
+        print(f"Finished Genes in {end - start}s.")
 
-    def harvest_type(self, main_url, obj_type):
+        start = timer()
+        self.harvest_type('variants')
+        end = timer()
+        print(f"Finished Variants in {end - start}s.")
+
+        start = timer()
+        self.harvest_type('evidence_items')
+        end = timer()
+        print(f"Finished Evidence Items in {end - start}s.")
+
+    def harvest_type(self, obj_type):
+        main_url = f"{self.civic_api_url}{obj_type}"
         r_json = self._get_json(main_url)
         next_link = r_json['_meta']['links']['next']
         all_links = [main_url]
