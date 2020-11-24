@@ -5,8 +5,10 @@ name = "pypi"
 
 [packages]
 ipykernel = "*"
-civicpy = "*"
 jupyter = "*"
+civicpy = "*"
+pytest = "*"
+pytest-cov = "*"
 
 [dev-packages]
 
