@@ -14,12 +14,13 @@ class CIViC:
         # self.civic_api_url = 'https://civicdb.org/api/'
 
     def harvest(self):
-        self.harvest_evidence()
+        self.evidence = self.harvest_evidence()
+
 
     def harvest_evidence(self):
         civicpy.load_cache(on_stale='ignore')
         evidence_classes = civicpy.get_all_evidence()
-        evidence_statements = []
+        evidence = []
 
         for ev in evidence_classes:
             ev_record = {
@@ -64,7 +65,7 @@ class CIViC:
                     "full_journal_title": ev.source.full_journal_title,
                     "status": ev.source.status,
                     "is_review": ev.source.is_review,
-                    "clinical trials": ev.source.clinical_trials
+                    "clinical_trials": ev.source.clinical_trials
                 },
                 "variant_id": ev.variant_id,
                 "phenotypes": ev.phenotypes,
@@ -93,62 +94,14 @@ class CIViC:
                         "status": a.status,
                     } for a in ev.assertions
                 ],
-                "lifecycle_actions": ev.lifecycle_actions,
+                # "lifecycle_actions": ev.lifecycle_actions,
                 "gene_id": ev.gene_id
             }
-            evidence_statements.append(ev_record)
+            evidence.append(ev_record)
 
         with open(f"{self.project_root}/data/civic/evidence.json", 'w+') as f:
-            f.write(json.dumps(evidence_statements))
-
-    # def harvest(self):
-    #     """Retrieve and store records from CIViC."""
-    #     start = timer()
-    #     self.harvest_type('genes')
-    #     end = timer()
-    #     print(f"Finished Genes in {end - start}s.")
-
-    #     start = timer()
-    #     self.harvest_type('variants')
-    #     end = timer()
-    #     print(f"Finished Variants in {end - start}s.")
-
-    #     start = timer()
-    #     self.harvest_type('evidence_items')
-    #     end = timer()
-    #     print(f"Finished Evidence Items in {end - start}s.")
-
-    # def harvest_type(self, obj_type):
-    #     main_url = f"{self.civic_api_url}{obj_type}"
-    #     r_json = self._get_json(main_url)
-    #     next_link = r_json['_meta']['links']['next']
-    #     all_links = [main_url]
-    #     records_json = list()
-
-    #     self._get_links(all_links, next_link)
-
-    #     for link in all_links:
-    #         r_json = self._get_json(link)
-    #         records = r_json['records']
-    #         for record in records:
-    #             record_url = f"{main_url}/{record['id']}"
-    #             record_obj = self._get_json(record_url)
-    #             records_json.append(record_obj)
-
-    #     with open(f"{self.project_root}/data/civic/{obj_type}.json", 'w+') as f:
-    #         f.write(json.dumps(records_json))
-    #         f.close()
-
-    # def _get_links(self, all_links, next_link):
-    #     while next_link:
-    #         all_links.append(next_link)
-    #         r = requests.get(next_link)
-    #         r_json = r.json()
-    #         next_link = r_json['_meta']['links']['next']
-
-    # def _get_json(self, url):
-    #     r = requests.get(url)
-    #     return r.json()
+            f.write(json.dumps(evidence))
+        return evidence
 
 
 civic = CIViC()
