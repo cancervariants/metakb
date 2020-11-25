@@ -1,5 +1,5 @@
 """A module for the CIViC harvester."""
-from civicpy import civic
+from civicpy import civic as civicpy
 import json
 from pathlib import Path
 
@@ -13,96 +13,131 @@ class CIViC:
 
     def harvest(self):
         """Retrieve and store records from CIViC."""
-        genes_list = self.harvest_gene()
-        variants_list = self.harvest_variants()
-        assertions_list = self.harvest_assertions()
-        self._create_composite_json(genes_list, variants_list, assertions_list)
+        try:
+            # civicpy.load_cache(on_stale='ignore')
+            evidence = self.harvest_evidence()
+            genes = self.harvest_genes()
+            variants = self.harvest_variants()
+            assertions = self.harvest_assertions()
+            self._create_json(evidence, genes, variants, assertions)
+            print('CIViC Harvester was successful.')
+            return True
+        except:  # noqa: E722 # TODO: Add specific exception error
+            print('CIViC Harvester was not successful.')
+            return False
 
-    def _create_composite_json(self, genes_list, variants_list,
-                               assertions_list):
-        """Create composite json file containing gene,
-        evidence, variant, and assertion data.
+    def _create_json(self, evidence, genes, variants, assertions):
+        """Create a composite json file containing evidence, genes, variants,
+        and assertions.
         """
         composite_dict = {
-            'GENES': genes_list,
-            'VARIANTS': variants_list,
-            'ASSERTIONS': assertions_list
+            'evidence': evidence,
+            'genes': genes,
+            'variants': variants,
+            'assertions': assertions
         }
 
+        # Create composite json
         with open(f'{self.project_root}/data/civic/civic_harvester.json',
                   'w+') as f:
             json.dump(composite_dict, f)
+            f.close()
 
-    def harvest_variants(self):
-        """Harvest variant data."""
-        variants = civic.get_all_variants()
-        variants_list = list()
+        # Create individual json for evidence, genes, variants, and assertions
+        data = ['evidence', 'genes', 'variants', 'assertions']
+        for d in data:
+            with open(f'{self.project_root}/data/civic/{d}.json', 'w+') as f:
+                f.write(json.dumps(composite_dict[d]))
+                f.close()
 
-        for variant in variants:
-            v = {
-                'id': variant.id,
-                'entrez_name': variant.entrez_name,
-                'entrez_id': variant.entrez_id,
-                'name': variant.name,
-                'description': variant.description,
-                'gene_id': variant.gene_id,
-                'type': variant.type,
-                'variant_types': [
-                    self._variant_types(variant_type)
-                    for variant_type in variant.variant_types
-                ],
-                'civic_actionability_score':
-                    variant.civic_actionability_score,
-                'coordinates': self._variant_coordinates(variant),
-                'evidence_items': [
-                    self._evidence_item(evidence_item)
-                    for evidence_item in variant.evidence_items
-                ],
-                'variant_groups': [
+    def harvest_evidence(self):
+        """Harvest evidence."""
+        evidence_classes = civicpy.get_all_evidence()
+        evidence = list()
+
+        for ev in evidence_classes:
+            ev_record = {
+                "id": ev.id,
+                "name": ev.name,
+                "description": ev.description,
+                "disease": {
+                    "id": ev.disease.id,
+                    "name": ev.disease.name,
+                    "display_name": ev.disease.display_name,
+                    "doid": ev.disease.doid,
+                    "url": ev.disease.url
+                },
+                "drugs": [
                     {
-                        'id': variant_group.id,
-                        'name': variant_group.name,
-                        'description': variant_group.description,
-                        'variants': [
-                            {
-                                'id': variant.id,
-                                'entrez_name': variant.entrez_name,
-                                'entrez_id': variant.entrez_id,
-                                'name': variant.name,
-                                'gene_id': variant.gene_id,
-                                'type': variant.type,
-                                'variant_types': [
-                                    self._variant_types(variant_type)
-                                    for variant_type in variant.variant_types
-                                ],
-                                'civic_actionability_score':
-                                    variant.civic_actionability_score,
-                                'coordinates':
-                                    self._variant_coordinates(variant)
-                            }
-                            for variant in variant_group.variants
-                        ]
+                        "id": drug.id,
+                        "name": drug.name,
+                        "ncit_id": drug.ncit_id,
+                        "aliases": drug.aliases
                     }
-                    for variant_group in variant.variant_groups
+                    for drug in ev.drugs
                 ],
-                # TODO: FIX
-                'assertions': [
-                    self._assertions(assertion)
-                    for assertion in variant.assertions
+                "rating": ev.rating,
+                "evidence_level": ev.evidence_level,
+                "evidence_type": ev.evidence_type,
+                "clinical_significance": ev.clinical_significance,
+                "evidence_direction": ev.evidence_direction,
+                "variant_origin": ev.variant_origin,
+                "drug_interaction_type": ev.drug_interaction_type,
+                "status": ev.status,
+                "type": ev.type,
+                "source": {
+                    "id": ev.source.id,
+                    "name": ev.source.name,
+                    "citation": ev.source.citation,
+                    "citation_id": ev.source.citation_id,
+                    "source_type": ev.source.source_type,
+                    "asco_abstract_id": ev.source.asco_abstract_id,
+                    "source_url": ev.source.source_url,
+                    "open_access": ev.source.open_access,
+                    "pmc_id": ev.source.pmc_id,
+                    "publication_date": ev.source.publication_date,
+                    "journal": ev.source.journal,
+                    "full_journal_title": ev.source.full_journal_title,
+                    "status": ev.source.status,
+                    "is_review": ev.source.is_review,
+                    "clinical_trials": ev.source.clinical_trials
+                },
+                "variant_id": ev.variant_id,
+                "phenotypes": ev.phenotypes,
+                "assertions": [
+                    {
+                        "id": a.id,
+                        "type": a.type,
+                        "name": a.name,
+                        "summary": a.summary,
+                        "description": a.description,
+                        "gene": {
+                            "name": a.gene.name,
+                            "id": a.gene.id
+                        },
+                        "variant": {
+                            "name": a.variant.name,
+                            "id": a.variant.id
+                        },
+                        "disease": a.disease,
+                        "drugs": a.drugs,
+                        "evidence_type": a.evidence_type,
+                        "evidence_direction": a.evidence_direction,
+                        "clinical_significance": a.clinical_significance,
+                        # "evidence_item_count": a.evidence_item_count,
+                        "fda_regulatory_approval": a.fda_regulatory_approval,
+                        "status": a.status,
+                    } for a in ev.assertions
                 ],
-                'variant_aliases': variant.variant_aliases,
-                'hgvs_expressions': variant.hgvs_expressions,
-                'clinvar_entries': variant.clinvar_entries,
-                # TODO: Add lifecycle_actions
-                'allele_registry_id': variant.allele_registry_id,
-                # TODO: Add allele_registry_hgvs
+                # "lifecycle_actions": ev.lifecycle_actions,
+                "gene_id": ev.gene_id
             }
-            variants_list.append(v)
-        return variants_list
+            evidence.append(ev_record)
+        return evidence
 
-    def harvest_gene(self):
-        """Harvest gene information."""
-        genes = civic.get_all_genes()
+    def harvest_genes(self):
+        """Harvest genes."""
+        genes = civicpy.get_all_genes()
         genes_list = list()
         for gene in genes:
             g = {
@@ -147,9 +182,77 @@ class CIViC:
             genes_list.append(g)
         return genes_list
 
+    def harvest_variants(self):
+        """Harvest variants."""
+        variants = civicpy.get_all_variants()
+        variants_list = list()
+
+        for variant in variants:
+            v = {
+                'id': variant.id,
+                'entrez_name': variant.entrez_name,
+                'entrez_id': variant.entrez_id,
+                'name': variant.name,
+                'description': variant.description,
+                'gene_id': variant.gene_id,
+                'type': variant.type,
+                'variant_types': [
+                    self._variant_types(variant_type)
+                    for variant_type in variant.variant_types
+                ],
+                'civic_actionability_score':
+                    int(variant.civic_actionability_score),
+                'coordinates': self._variant_coordinates(variant),
+                'evidence_items': [
+                    self._evidence_item(evidence_item)
+                    for evidence_item in variant.evidence_items
+                ],
+                'variant_groups': [
+                    {
+                        'id': variant_group.id,
+                        'name': variant_group.name,
+                        'description': variant_group.description,
+                        'variants': [
+                            {
+                                'id': variant.id,
+                                'entrez_name': variant.entrez_name,
+                                'entrez_id': variant.entrez_id,
+                                'name': variant.name,
+                                'description': variant.description,
+                                'gene_id': variant.gene_id,
+                                'type': variant.type,
+                                'variant_types': [
+                                    self._variant_types(variant_type)
+                                    for variant_type in variant.variant_types
+                                ],
+                                'civic_actionability_score':
+                                    int(variant.civic_actionability_score) if int(variant.civic_actionability_score) == variant.civic_actionability_score else variant.civic_actionability_score,  # noqa: E501
+                                'coordinates':
+                                    self._variant_coordinates(variant)
+                            }
+                            for variant in variant_group.variants
+                        ],
+                        'type': variant_group.type
+                    }
+                    for variant_group in variant.variant_groups
+                ],
+                'assertions': [
+                    self._assertions(assertion)
+                    for assertion in variant.assertions
+                ],
+                'variant_aliases': variant.variant_aliases,
+                'hgvs_expressions': variant.hgvs_expressions,
+                'clinvar_entries': variant.clinvar_entries,
+                # TODO: Add lifecycle_actions
+                'allele_registry_id': variant.allele_registry_id,
+                # TODO: Add allele_registry_hgvs
+            }
+            variants_list.append(v)
+        return variants_list
+
     def harvest_assertions(self):
-        """Harvest assertion data."""
-        assertions = civic.get_all_assertions()
+        """Harvest assertions."""
+        assertions = civicpy.get_all_assertions()
         assertions_list = list()
 
         for assertion in assertions:
@@ -209,6 +312,7 @@ class CIViC:
         return assertions_list
 
     def _evidence_item(self, evidence_item, is_assertion=False):
+        """Return evidence item data."""
         e = {
             'id': evidence_item.id,
             'name': evidence_item.name,
@@ -285,6 +389,7 @@ class CIViC:
         return e
 
     def _assertions(self, assertion):
+        """Return assertions."""
         return {
             'id': assertion.id,
             'type': assertion.type,
@@ -345,6 +450,7 @@ class CIViC:
         }
 
     def _variant_types(self, variant_type):
+        """Return variant_type data."""
         return {
             'id': variant_type.id,
             'name': variant_type.name,
@@ -355,5 +461,5 @@ class CIViC:
         }
 
 
-c = CIViC()
-c.harvest()
+civic = CIViC()
+civic.harvest()
