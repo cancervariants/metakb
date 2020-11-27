@@ -56,82 +56,7 @@ class CIViC:
         evidence = list()
 
         for ev in evidence_classes:
-            ev_record = {
-                "id": ev.id,
-                "name": ev.name,
-                "description": ev.description,
-                "disease": {
-                    "id": ev.disease.id,
-                    "name": ev.disease.name,
-                    "display_name": ev.disease.display_name,
-                    "doid": ev.disease.doid,
-                    "url": ev.disease.url
-                },
-                "drugs": [
-                    {
-                        "id": drug.id,
-                        "name": drug.name,
-                        "ncit_id": drug.ncit_id,
-                        "aliases": drug.aliases
-                    }
-                    for drug in ev.drugs
-                ],
-                "rating": ev.rating,
-                "evidence_level": ev.evidence_level,
-                "evidence_type": ev.evidence_type,
-                "clinical_significance": ev.clinical_significance,
-                "evidence_direction": ev.evidence_direction,
-                "variant_origin": ev.variant_origin,
-                "drug_interaction_type": ev.drug_interaction_type,
-                "status": ev.status,
-                "type": ev.type,
-                "source": {
-                    "id": ev.source.id,
-                    "name": ev.source.name,
-                    "citation": ev.source.citation,
-                    "citation_id": ev.source.citation_id,
-                    "source_type": ev.source.source_type,
-                    "asco_abstract_id": ev.source.asco_abstract_id,
-                    "source_url": ev.source.source_url,
-                    "open_access": ev.source.open_access,
-                    "pmc_id": ev.source.pmc_id,
-                    "publication_date": ev.source.publication_date,
-                    "journal": ev.source.journal,
-                    "full_journal_title": ev.source.full_journal_title,
-                    "status": ev.source.status,
-                    "is_review": ev.source.is_review,
-                    "clinical_trials": ev.source.clinical_trials
-                },
-                "variant_id": ev.variant_id,
-                "phenotypes": ev.phenotypes,
-                "assertions": [
-                    {
-                        "id": a.id,
-                        "type": a.type,
-                        "name": a.name,
-                        "summary": a.summary,
-                        "description": a.description,
-                        "gene": {
-                            "name": a.gene.name,
-                            "id": a.gene.id
-                        },
-                        "variant": {
-                            "name": a.variant.name,
-                            "id": a.variant.id
-                        },
-                        "disease": a.disease,
-                        "drugs": a.drugs,
-                        "evidence_type": a.evidence_type,
-                        "evidence_direction": a.evidence_direction,
-                        "clinical_significance": a.clinical_significance,
-                        # "evidence_item_count": a.evidence_item_count,
-                        "fda_regulatory_approval": a.fda_regulatory_approval,
-                        "status": a.status,
-                    } for a in ev.assertions
-                ],
-                # "lifecycle_actions": ev.lifecycle_actions,
-                "gene_id": ev.gene_id
-            }
+            ev_record = self._evidence_item(ev, is_evidence=True)
             evidence.append(ev_record)
         return evidence
 
@@ -188,21 +113,8 @@ class CIViC:
         variants_list = list()
 
         for variant in variants:
-            v = {
-                'id': variant.id,
-                'entrez_name': variant.entrez_name,
-                'entrez_id': variant.entrez_id,
-                'name': variant.name,
-                'description': variant.description,
-                'gene_id': variant.gene_id,
-                'type': variant.type,
-                'variant_types': [
-                    self._variant_types(variant_type)
-                    for variant_type in variant.variant_types
-                ],
-                'civic_actionability_score':
-                    int(variant.civic_actionability_score),
-                'coordinates': self._variant_coordinates(variant),
+            v = self._variant(variant)
+            v_extra = {
                 'evidence_items': [
                     self._evidence_item(evidence_item)
                     for evidence_item in variant.evidence_items
@@ -213,23 +125,7 @@ class CIViC:
                         'name': variant_group.name,
                         'description': variant_group.description,
                         'variants': [
-                            {
-                                'id': variant.id,
-                                'entrez_name': variant.entrez_name,
-                                'entrez_id': variant.entrez_id,
-                                'name': variant.name,
-                                'description': variant.description,
-                                'gene_id': variant.gene_id,
-                                'type': variant.type,
-                                'variant_types': [
-                                    self._variant_types(variant_type)
-                                    for variant_type in variant.variant_types
-                                ],
-                                'civic_actionability_score':
-                                    int(variant.civic_actionability_score) if int(variant.civic_actionability_score) == variant.civic_actionability_score else variant.civic_actionability_score,  # noqa: E501
-                                'coordinates':
-                                    self._variant_coordinates(variant)
-                            }
+                            self._variant(variant)
                             for variant in variant_group.variants
                         ],
                         'type': variant_group.type
@@ -247,6 +143,7 @@ class CIViC:
                 'allele_registry_id': variant.allele_registry_id,
                 # TODO: Add allele_registry_hgvs
             }
+            v.update(v_extra)
             variants_list.append(v)
         return variants_list
 
@@ -256,43 +153,8 @@ class CIViC:
         assertions_list = list()
 
         for assertion in assertions:
-            a = {
-                'id': assertion.id,
-                'type': assertion.type,
-                'name': assertion.name,
-                'summary': assertion.summary,
-                'description': assertion.description,
-                'gene': {
-                    'name': assertion.gene.name,
-                    'id': assertion.gene.id
-                },
-                'variant': {
-                    'name': assertion.variant.name,
-                    'id': assertion.variant.id
-                },
-                'disease': {
-                    'id': assertion.disease.id,
-                    'name': assertion.disease.name,
-                    'display_name': assertion.disease.display_name,
-                    'doid': assertion.disease.doid,
-                    'url': assertion.disease.url
-                },
-                'drugs': [
-                    {
-                        'id': drug.id,
-                        'name': drug.name,
-                        'ncit_id': drug.ncit_id,
-                        'aliases': drug.aliases
-                    }
-                    for drug in assertion.drugs
-                ],
-                'evidence_type': assertion.evidence_type,
-                'evidence_direction': assertion.evidence_direction,
-                'clinical_significance': assertion.clinical_significance,
-                # TODO: Add evidence_item_count
-                'fda_regulatory_approval': assertion.fda_regulatory_approval,
-                'status': assertion.status,
-                # TODO: Add open_change_count, pending_evidence_count
+            a = self._assertions(assertion)
+            a_extra = {
                 'nccn_guideline': assertion.nccn_guideline,
                 'nccn_guideline_version': assertion.nccn_guideline_version,
                 'amp_level': assertion.amp_level,
@@ -308,30 +170,20 @@ class CIViC:
                 'variant_origin': assertion.variant_origin
                 # TODO: Add lifecycle_actions
             }
+            a.update(a_extra)
             assertions_list.append(a)
         return assertions_list
 
-    def _evidence_item(self, evidence_item, is_assertion=False):
+    def _evidence_item(self, evidence_item,
+                       is_evidence=False, is_assertion=False):
         """Return evidence item data."""
         e = {
             'id': evidence_item.id,
             'name': evidence_item.name,
             'description': evidence_item.description,
-            'disease': {
-                'id': evidence_item.disease.id,
-                'name': evidence_item.disease.name,
-                'display_name':
-                    evidence_item.disease.display_name,
-                'doid': evidence_item.disease.doid,
-                'url': evidence_item.disease.url
-            },
+            'disease': self._disease(evidence_item),
             'drugs': [
-                {
-                    'id': drug.id,
-                    'name': drug.name,
-                    'ncit_id': drug.ncit_id,
-                    'aliases': drug.aliases
-                }
+                self._drug(drug)
                 for drug in evidence_item.drugs
             ],
             'rating': evidence_item.rating,
@@ -347,44 +199,21 @@ class CIViC:
             'status': evidence_item.status,
             # TODO: Add open_change_count
             'type': evidence_item.type,
-            'source': {
-                'id': evidence_item.source.id,
-                'name': evidence_item.source.name,
-                'citation': evidence_item.source.citation,
-                'citation_id':
-                    evidence_item.source.citation_id,
-                'source_type':
-                    evidence_item.source.source_type,
-                'asco_abstract_id':
-                    evidence_item.source.asco_abstract_id,
-                'source_url': evidence_item.source.source_url,
-                'open_access':
-                    evidence_item.source.open_access,
-                'pmc_id': evidence_item.source.pmc_id,
-                'publication_date':
-                    evidence_item.source.publication_date,
-                'journal': evidence_item.source.journal,
-                'full_journal_title':
-                    evidence_item.source.full_journal_title,
-                'status': evidence_item.source.status,
-                'is_review': evidence_item.source.is_review,
-                'clinical_trials': [
-                    ct
-                    for ct in evidence_item.source.clinical_trials
-                ]
-            },
+            'source': self._source(evidence_item),
             'variant_id': evidence_item.variant_id,
             # TODO: Find variant w phenotypes
             'phenotypes': []
         }
-        if is_assertion:
+        if is_assertion or is_evidence:
             e['assertions'] = [
                 self._assertions(assertion)
                 for assertion in evidence_item.assertions
             ]
             # TODO: Add lifecycle_actions, fields_with_pending_changes
-            e['gene_id'] = evidence_item.gene_id,
-            # TODO: Add state_params
+            e['gene_id'] = evidence_item.gene_id
+            if is_assertion:
+                # TODO: Add state_params
+                pass
 
         return e
 
@@ -396,14 +225,8 @@ class CIViC:
             'name': assertion.name,
             'summary': assertion.summary,
             'description': assertion.description,
-            'gene': {
-                'name': assertion.gene.name,
-                'id': assertion.gene.id
-            },
-            'variant': {
-                'name': assertion.variant.name,
-                'id': assertion.variant.id
-            },
+            'gene': self._gene_name_id(assertion),
+            'variant': self._variant_name_id(assertion),
             'disease': {
                 'id': assertion.disease.id,
                 'name': assertion.disease.name,
@@ -412,12 +235,7 @@ class CIViC:
                 'url': assertion.disease.url
             },
             'drugs': [
-                {
-                    'id': drug.id,
-                    'name': drug.name,
-                    'ncit_id': drug.ncit_id,
-                    'aliases': drug.aliases
-                }
+                self._drug(drug)
                 for drug in assertion.drugs
             ],
             'evidence_type': assertion.evidence_type,
@@ -458,6 +276,83 @@ class CIViC:
             'so_id': variant_type.so_id,
             'description': variant_type.description,
             'url': variant_type.url
+        }
+
+    def _source(self, evidence_item):
+        """Return source data."""
+        return {
+            'id': evidence_item.source.id,
+            'name': evidence_item.source.name,
+            'citation': evidence_item.source.citation,
+            'citation_id': evidence_item.source.citation_id,
+            'source_type': evidence_item.source.source_type,
+            'asco_abstract_id': evidence_item.source.asco_abstract_id,
+            'source_url': evidence_item.source.source_url,
+            'open_access': evidence_item.source.open_access,
+            'pmc_id': evidence_item.source.pmc_id,
+            'publication_date': evidence_item.source.publication_date,
+            'journal': evidence_item.source.journal,
+            'full_journal_title': evidence_item.source.full_journal_title,
+            'status': evidence_item.source.status,
+            'is_review': evidence_item.source.is_review,
+            'clinical_trials': [
+                ct
+                for ct in evidence_item.source.clinical_trials
+            ]
+        }
+
+    def _disease(self, evidence_item):
+        """Return disease data."""
+        return {
+            'id': evidence_item.disease.id,
+            'name': evidence_item.disease.name,
+            'display_name':
+                evidence_item.disease.display_name,
+            'doid': evidence_item.disease.doid,
+            'url': evidence_item.disease.url
+        }
+
+    def _drug(self, drug):
+        """Return drug data."""
+        return {
+            "id": drug.id,
+            "name": drug.name,
+            "ncit_id": drug.ncit_id,
+            "aliases": drug.aliases
+        }
+
+    def _gene_name_id(self, assertion):
+        """Return gene name and gene id."""
+        return {
+            'name': assertion.gene.name,
+            'id': assertion.gene.id
+        }
+
+    def _variant_name_id(self, assertion):
+        """Return variant name and variant id."""
+        return {
+            'name': assertion.variant.name,
+            'id': assertion.variant.id
+        }
+
+    def _variant(self, variant):
+        """Return variant data."""
+        return {
+            'id': variant.id,
+            'entrez_name': variant.entrez_name,
+            'entrez_id': variant.entrez_id,
+            'name': variant.name,
+            'description': variant.description,
+            'gene_id': variant.gene_id,
+            'type': variant.type,
+            'variant_types': [
+                self._variant_types(variant_type)
+                for variant_type in variant.variant_types
+            ],
+            'civic_actionability_score':
+                int(variant.civic_actionability_score) if int(variant.civic_actionability_score) == variant.civic_actionability_score else variant.civic_actionability_score,  # noqa: E501
+            'coordinates':
+                self._variant_coordinates(variant)
         }
 
 
