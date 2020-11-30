@@ -12,9 +12,11 @@ with open(f'{PROJECT_ROOT}/data/civic/civic_harvester.json', 'r') as f:
 
 # Create 5 examples from evidence items
 evidence_items = list()
-for i in range(len(data['evidence'])) and len(evidence_items) < 6:
+for i in range(len(data['evidence'])):
     if data['evidence'][i]['assertions']:
         evidence_items.append(data['evidence'][i])
+    if len(evidence_items) == 6:
+        break
 
 
 for evidence_item in evidence_items:
@@ -31,8 +33,8 @@ for evidence_item in evidence_items:
         if g['id'] == gene_id:
             gene = g
 
-    with open(f'{PROJECT_ROOT}/analysis/civic/examples/ev_id_'
-              f'{evidence_item_id}.json', 'w+') as f:
+    with open(f"{PROJECT_ROOT}/analysis/civic/examples/"
+              f"{evidence_item['name']}.json", 'w+') as f:
         example = {
             'EVIDENCE': evidence_item,
             'GENE': gene,
@@ -41,6 +43,7 @@ for evidence_item in evidence_items:
         }
 
         json.dump(example, f)
+        print(f"Created JSON for evidence: {evidence_item['name']}")
         f.close()
 
 # BRAF600E, BCR-ABL Variant, TP53 Loss (of function), EGFR Amplification
@@ -55,5 +58,5 @@ for variant in variants:
               f"{variant['name'].lower()}.json", 'w+') as f:
         variant['evidence_items'] = variant['evidence_items'][0]
         f.write(json.dumps(variant))
-        print(f"Creating JSON for variant: {variant['name']}")
+        print(f"Created JSON for variant: {variant['name']}")
         f.close()
