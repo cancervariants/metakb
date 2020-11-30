@@ -1,10 +1,13 @@
 """Create an example json file for CIViC Harvester."""
 import json
-from pathlib import Path
+from metakb.harvesters import CIViC
+from metakb import PROJECT_ROOT
 
-project_root = Path(__file__).resolve().parents[1]
 
-with open(f'{project_root}/data/civic/civic_harvester.json', 'r') as f:
+c = CIViC()
+c.harvest()
+
+with open(f'{PROJECT_ROOT}/data/civic/civic_harvester.json', 'r') as f:
     data = json.load(f)
 
 for i in range(len(data['evidence'])):
@@ -24,7 +27,7 @@ for g in data['genes']:
     if g['id'] == gene_id:
         gene = g
 
-with open(f'{project_root}/analysis/civic_harvester_ev_id_'
+with open(f'{PROJECT_ROOT}/analysis/civic_harvester_ev_id_'
           f'{evidence_item_id}.json', 'w+') as f:
     example = {
         'EVIDENCE': evidence_item,

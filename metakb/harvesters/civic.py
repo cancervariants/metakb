@@ -1,15 +1,11 @@
 """A module for the CIViC harvester."""
+from metakb import PROJECT_ROOT
 from civicpy import civic as civicpy
 import json
-from pathlib import Path
 
 
 class CIViC:
     """A class for the CIViC harvester."""
-
-    def __init__(self):
-        """Initialize CIViC object."""
-        self.project_root = Path(__file__).resolve().parents[2]
 
     def harvest(self):
         """Retrieve and store records from CIViC."""
@@ -38,7 +34,7 @@ class CIViC:
         }
 
         # Create composite json
-        with open(f'{self.project_root}/data/civic/civic_harvester.json',
+        with open(f'{PROJECT_ROOT}/data/civic/civic_harvester.json',
                   'w+') as f:
             json.dump(composite_dict, f)
             f.close()
@@ -46,7 +42,7 @@ class CIViC:
         # Create individual json for evidence, genes, variants, and assertions
         data = ['evidence', 'genes', 'variants', 'assertions']
         for d in data:
-            with open(f'{self.project_root}/data/civic/{d}.json', 'w+') as f:
+            with open(f'{PROJECT_ROOT}/data/civic/{d}.json', 'w+') as f:
                 f.write(json.dumps(composite_dict[d]))
                 f.close()
 
@@ -354,7 +350,3 @@ class CIViC:
             'coordinates':
                 self._variant_coordinates(variant)
         }
-
-
-civic = CIViC()
-civic.harvest()
