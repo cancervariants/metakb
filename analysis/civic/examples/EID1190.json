@@ -1,0 +1,1145 @@
+{
+    "EVIDENCE": {
+        "id": 1190,
+        "name": "EID1190",
+        "description": "Multiplex RT-PCR to detect in-frame fusions of EML4 to ALK was performed on total RNA from 253 lung adenocarcinomas, and 9 samples were found to contain such fusions, one of which was a novel fusion containing EML4 exon 2 and exon 20 of ALK. This was called variant 5. Two versions of this variant were seen: 5a consisted of EML4 exon 2 fused to ALK exon 20 while 5b contained a 117bp intronic ALK region between the two exons. Genomic PCR showed that EML4-ALK variant 5 tumor cells contained a single EML4-ALK fusion, suggesting 5a and 5b arise from alternate splicing.  5a and 5b showed in-vitro kinase activity and transformed 3T3 cells in cell culture. 5a and 5b transformed 3T3 cells formed tumors when injected in 8/8 nude mice, but 3T3 transformed with ALK alone did not.  These results suggest that EML4-ALK variant 5 is a driver mutation in lung adenocarcinoma targetable by ALK inhibitors like crizotinib.",
+        "disease": {
+            "id": 8,
+            "name": "Lung Non-small Cell Carcinoma",
+            "display_name": "Lung Non-small Cell Carcinoma",
+            "doid": "3908",
+            "url": "http://www.disease-ontology.org/?id=DOID:3908"
+        },
+        "drugs": [
+            {
+                "id": 12,
+                "name": "Crizotinib",
+                "ncit_id": "C74061",
+                "aliases": [
+                    "Xalkori",
+                    "PF-2341066",
+                    "PF-02341066",
+                    "MET Tyrosine Kinase Inhibitor PF-02341066",
+                    "2-Pyridinamine, 3-((1R)-1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(4-Piperidinyl)-1H-Pyrazol-4-yl)-",
+                    "(R)-3-(1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(Piperidin-4-Yl)-1h-Pyrazol-4-Yl)Pyridin-2-Amine"
+                ]
+            }
+        ],
+        "rating": 4,
+        "evidence_level": "E",
+        "evidence_type": "Predictive",
+        "clinical_significance": "Sensitivity/Response",
+        "evidence_direction": "Supports",
+        "variant_origin": "Somatic",
+        "drug_interaction_type": null,
+        "status": "accepted",
+        "type": "evidence",
+        "source": {
+            "id": 821,
+            "name": "Multiplex reverse transcription-PCR screening for EML4-ALK fusion transcripts.",
+            "citation": "Takeuchi et al., 2008, Clin. Cancer Res.",
+            "citation_id": "18927303",
+            "source_type": "PubMed",
+            "asco_abstract_id": null,
+            "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/18927303",
+            "open_access": null,
+            "pmc_id": null,
+            "publication_date": {
+                "year": 2008,
+                "month": 10,
+                "day": 15
+            },
+            "journal": "Clin. Cancer Res.",
+            "full_journal_title": "Clinical cancer research : an official journal of the American Association for Cancer Research",
+            "status": "fully curated",
+            "is_review": false,
+            "clinical_trials": []
+        },
+        "variant_id": 501,
+        "phenotypes": [],
+        "assertions": [
+            {
+                "id": 3,
+                "type": "assertion",
+                "name": "AID3",
+                "summary": "Lung adenocarcinoma positive for ALK-FUSIONS have been found to be sensitive to crizotinib treatment",
+                "description": "ALK-FUSIONS induce an active form of the receptor tyrosine kinase ALK.  ALK-FUSIONS are found in 3-5% of non-small cell lung cancer and act as a targetable driver mutation. the ALK inhibitor crizotinib was effective in lung cancer patients with ALK fusions and was granted accelerated FDA approval in 2011. The Vysis break-apart FISH assay is an FDA approved test for the presence of ALK fusion. NCCN guideline version 9.2017 lists crizotinib as approved first-line NSCLC treatment in the presence of ALK fusions but now lists alectinib as preferred first-line therapy.",
+                "gene": {
+                    "name": "ALK",
+                    "id": 1
+                },
+                "variant": {
+                    "name": "ALK FUSIONS",
+                    "id": 499
+                },
+                "disease": {
+                    "id": 8,
+                    "name": "Lung Non-small Cell Carcinoma",
+                    "display_name": "Lung Non-small Cell Carcinoma",
+                    "doid": "3908",
+                    "url": "http://www.disease-ontology.org/?id=DOID:3908"
+                },
+                "drugs": [
+                    {
+                        "id": 12,
+                        "name": "Crizotinib",
+                        "ncit_id": "C74061",
+                        "aliases": [
+                            "Xalkori",
+                            "PF-2341066",
+                            "PF-02341066",
+                            "MET Tyrosine Kinase Inhibitor PF-02341066",
+                            "2-Pyridinamine, 3-((1R)-1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(4-Piperidinyl)-1H-Pyrazol-4-yl)-",
+                            "(R)-3-(1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(Piperidin-4-Yl)-1h-Pyrazol-4-Yl)Pyridin-2-Amine"
+                        ]
+                    }
+                ],
+                "evidence_type": "Predictive",
+                "evidence_direction": "Supports",
+                "clinical_significance": "Sensitivity/Response",
+                "fda_regulatory_approval": true,
+                "status": "accepted"
+            }
+        ],
+        "gene_id": 1
+    },
+    "GENE": {
+        "id": 1,
+        "name": "ALK",
+        "entrez_id": 238,
+        "description": "ALK amplifications, fusions and mutations have been shown to be driving events in non-small cell lung cancer. While crizontinib has demonstrated efficacy in treating the amplification, mutations in ALK have been shown to confer resistance to current tyrosine kinase inhibitors. Second-generation TKI's have seen varied success in treating these resistant cases, and the HSP90 inhibitor 17-AAG has been shown to be cytostatic in ALK-altered cell lines.",
+        "variants": [
+            {
+                "name": "CAD-ALK",
+                "id": 2769,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "EML4-ALK (E6;A19) G1269A and AMPLIFICATION",
+                "id": 3204,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "EML4-ALK G1202del",
+                "id": 2813,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "EML4-ALK L1152R",
+                "id": 307,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "EML4-ALK L1198F",
+                "id": 2816,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "L1198F",
+                "id": 1275,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 1,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "HIP1-ALK I1171N",
+                "id": 588,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "L1196Q",
+                "id": 1553,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "RANBP2-ALK",
+                "id": 514,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "EML4-ALK L1196M and L1198F",
+                "id": 2810,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "F1174C",
+                "id": 1492,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "R214H",
+                "id": 1683,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "EML4-ALK C1156Y",
+                "id": 6,
+                "evidence_items": {
+                    "accepted_count": 4,
+                    "rejected_count": 2,
+                    "submitted_count": 7
+                }
+            },
+            {
+                "name": "EML4-ALK G1202R and L1196M",
+                "id": 2809,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "T1151M",
+                "id": 1493,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "EML4-ALK  V1180L",
+                "id": 528,
+                "evidence_items": {
+                    "accepted_count": 5,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "R1192P",
+                "id": 1661,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 1,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "DEL4-11",
+                "id": 550,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "EML6-ALK E1;A20 and FBXO11-ALK E1;A20",
+                "id": 2750,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "MUTATION",
+                "id": 512,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "EML4-ALK",
+                "id": 5,
+                "evidence_items": {
+                    "accepted_count": 7,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "EML4-ALK S1206Y",
+                "id": 172,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "EML4-ALK and AMPLIFICATION",
+                "id": 170,
+                "evidence_items": {
+                    "accepted_count": 3,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "EXPRESSION",
+                "id": 2914,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "CLTC-ALK",
+                "id": 520,
+                "evidence_items": {
+                    "accepted_count": 3,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "G1128A",
+                "id": 2798,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 1,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "EML4-ALK E2;A20",
+                "id": 501,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "EML4-ALK E6;A20",
+                "id": 503,
+                "evidence_items": {
+                    "accepted_count": 7,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "R1275Q",
+                "id": 9,
+                "evidence_items": {
+                    "accepted_count": 6,
+                    "rejected_count": 0,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "F1245V",
+                "id": 1295,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "ALTERNATIVE TRANSCRIPT (ATI)",
+                "id": 839,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "EML4-ALK I1171S",
+                "id": 589,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "F1174V",
+                "id": 1505,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "F1174L",
+                "id": 8,
+                "evidence_items": {
+                    "accepted_count": 9,
+                    "rejected_count": 0,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "STRN-ALK",
+                "id": 2218,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "ALK FUSION G1269A",
+                "id": 552,
+                "evidence_items": {
+                    "accepted_count": 4,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "ALK FUSION G1202R",
+                "id": 171,
+                "evidence_items": {
+                    "accepted_count": 6,
+                    "rejected_count": 0,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "ALK FUSION I1171",
+                "id": 527,
+                "evidence_items": {
+                    "accepted_count": 7,
+                    "rejected_count": 0,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "EML4-ALK G1269A",
+                "id": 308,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 6
+                }
+            },
+            {
+                "name": "EML4-ALK L1196M",
+                "id": 7,
+                "evidence_items": {
+                    "accepted_count": 4,
+                    "rejected_count": 0,
+                    "submitted_count": 11
+                }
+            },
+            {
+                "name": "F1245C",
+                "id": 549,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "L1198P",
+                "id": 1556,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "L1152P",
+                "id": 1554,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "EML4-ALK G1202R and L1198F",
+                "id": 2811,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "EML4-ALK E20;A20",
+                "id": 500,
+                "evidence_items": {
+                    "accepted_count": 4,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "ALK FUSIONS",
+                "id": 499,
+                "evidence_items": {
+                    "accepted_count": 31,
+                    "rejected_count": 2,
+                    "submitted_count": 10
+                }
+            },
+            {
+                "name": "ALK FUSION F1245C",
+                "id": 551,
+                "evidence_items": {
+                    "accepted_count": 3,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "ALK FUSION L1196M",
+                "id": 2819,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "EML4-ALK C1156Y-L1198F",
+                "id": 352,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "NPM-ALK",
+                "id": 513,
+                "evidence_items": {
+                    "accepted_count": 3,
+                    "rejected_count": 1,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "OVEREXPRESSION",
+                "id": 2635,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "EML4-ALK T1151INST",
+                "id": 173,
+                "evidence_items": {
+                    "accepted_count": 4,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            }
+        ],
+        "aliases": [
+            "ALK",
+            "NBLST3",
+            "CD246"
+        ],
+        "type": "gene"
+    },
+    "VARIANT": {
+        "id": 501,
+        "entrez_name": "ALK",
+        "entrez_id": 238,
+        "name": "EML4-ALK E2;A20",
+        "description": "",
+        "gene_id": 1,
+        "type": "variant",
+        "variant_types": [
+            {
+                "id": 120,
+                "name": "transcript_fusion",
+                "display_name": "Transcript Fusion",
+                "so_id": "SO:0001886",
+                "description": "A feature fusion where the deletion brings together transcript regions.",
+                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
+            }
+        ],
+        "civic_actionability_score": 1.75,
+        "coordinates": {
+            "chromosome": "2",
+            "start": 42396490,
+            "stop": 42472827,
+            "reference_bases": null,
+            "variant_bases": null,
+            "representative_transcript": "ENST00000318522.5",
+            "chromosome2": "2",
+            "start2": 29415640,
+            "stop2": 29446394,
+            "representative_transcript2": "ENST00000389048.3",
+            "ensembl_version": 75,
+            "reference_build": "GRCh37"
+        },
+        "evidence_items": [
+            {
+                "id": 1266,
+                "name": "EID1266",
+                "description": "Adenocarcinoma cells were detected via urinary cytology in a 53 year old woman. Cancer morphology suggested papillary renal cell carcinoma (RCC), type 2A.  EML4-ALK variant 5 was discovered in tumor tissue using PCR with EML4 and ALK specific primers. The authors conclude that their findings confirm the potential for ALK targeting therapy in select cases of RCC.",
+                "disease": {
+                    "id": 160,
+                    "name": "Renal Cell Carcinoma",
+                    "display_name": "Renal Cell Carcinoma",
+                    "doid": "4450",
+                    "url": "http://www.disease-ontology.org/?id=DOID:4450"
+                },
+                "drugs": [],
+                "rating": 3,
+                "evidence_level": "E",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": null,
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 876,
+                    "name": "Identification of anaplastic lymphoma kinase fusions in renal cancer: large-scale immunohistochemical screening by the intercalated antibody-enhanced polymer method.",
+                    "citation": "Sugawara et al., 2012, Cancer",
+                    "citation_id": "22252991",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/22252991",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2012,
+                        "month": 9,
+                        "day": 15
+                    },
+                    "journal": "Cancer",
+                    "full_journal_title": "Cancer",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": []
+                },
+                "variant_id": 501,
+                "phenotypes": []
+            },
+            {
+                "id": 1190,
+                "name": "EID1190",
+                "description": "Multiplex RT-PCR to detect in-frame fusions of EML4 to ALK was performed on total RNA from 253 lung adenocarcinomas, and 9 samples were found to contain such fusions, one of which was a novel fusion containing EML4 exon 2 and exon 20 of ALK. This was called variant 5. Two versions of this variant were seen: 5a consisted of EML4 exon 2 fused to ALK exon 20 while 5b contained a 117bp intronic ALK region between the two exons. Genomic PCR showed that EML4-ALK variant 5 tumor cells contained a single EML4-ALK fusion, suggesting 5a and 5b arise from alternate splicing.  5a and 5b showed in-vitro kinase activity and transformed 3T3 cells in cell culture. 5a and 5b transformed 3T3 cells formed tumors when injected in 8/8 nude mice, but 3T3 transformed with ALK alone did not.  These results suggest that EML4-ALK variant 5 is a driver mutation in lung adenocarcinoma targetable by ALK inhibitors like crizotinib.",
+                "disease": {
+                    "id": 8,
+                    "name": "Lung Non-small Cell Carcinoma",
+                    "display_name": "Lung Non-small Cell Carcinoma",
+                    "doid": "3908",
+                    "url": "http://www.disease-ontology.org/?id=DOID:3908"
+                },
+                "drugs": [
+                    {
+                        "id": 12,
+                        "name": "Crizotinib",
+                        "ncit_id": "C74061",
+                        "aliases": [
+                            "Xalkori",
+                            "PF-2341066",
+                            "PF-02341066",
+                            "MET Tyrosine Kinase Inhibitor PF-02341066",
+                            "2-Pyridinamine, 3-((1R)-1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(4-Piperidinyl)-1H-Pyrazol-4-yl)-",
+                            "(R)-3-(1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(Piperidin-4-Yl)-1h-Pyrazol-4-Yl)Pyridin-2-Amine"
+                        ]
+                    }
+                ],
+                "rating": 4,
+                "evidence_level": "E",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": null,
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 821,
+                    "name": "Multiplex reverse transcription-PCR screening for EML4-ALK fusion transcripts.",
+                    "citation": "Takeuchi et al., 2008, Clin. Cancer Res.",
+                    "citation_id": "18927303",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/18927303",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2008,
+                        "month": 10,
+                        "day": 15
+                    },
+                    "journal": "Clin. Cancer Res.",
+                    "full_journal_title": "Clinical cancer research : an official journal of the American Association for Cancer Research",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": []
+                },
+                "variant_id": 501,
+                "phenotypes": []
+            }
+        ],
+        "variant_groups": [
+            {
+                "id": 11,
+                "name": "ALK Fusions",
+                "description": "ALK fusion positive non-small cell lung cancer (NSCLC) is treated as its own subset of NSCLC. Many ALK fusions that have been seen as recurrent in cancer serve to increase the activity of the ALK oncogene relative to normal cells. While EML4 is the most common fusion partner, other 5' partners have been observed. The EML4-ALK fusion has shown sensitivity to targeted tyrosine kinase inhibitors such as crizotinib. ",
+                "variants": [
+                    {
+                        "id": 5,
+                        "entrez_name": "ALK",
+                        "entrez_id": 238,
+                        "name": "EML4-ALK",
+                        "description": "The EML4-ALK fusion variant 1 consisting of ALK kinase domain (exons 20-29) fused to EML4 exons 1-13 is the most common EML4-ALK variant, and was discovered in non-small cell lung cancer. Multiple EML4 breakpoint shave been described with differential sensitivity to inhibitors with variant 1 showing greater sensitivity than 3a in cell lines. EML4-ALK is crizotinib sensitive; however, several mutations that confer resistance mutations have been described in case studies. In the only clinical trial for crizotinib that included determination of EML4-ALK variant type in a subset of its participants, a very high response rate was observed, although the numbers were insufficient to validate correlation of variant type to outcome. Preclinical studies with this variant have indicated sensitivity to Hsp90 inhibitors.",
+                        "gene_id": 1,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 120,
+                                "name": "transcript_fusion",
+                                "display_name": "Transcript Fusion",
+                                "so_id": "SO:0001886",
+                                "description": "A feature fusion where the deletion brings together transcript regions.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
+                            }
+                        ],
+                        "civic_actionability_score": 38,
+                        "coordinates": {
+                            "chromosome": "2",
+                            "start": 42396490,
+                            "stop": 42522656,
+                            "reference_bases": null,
+                            "variant_bases": null,
+                            "representative_transcript": "ENST00000318522.5",
+                            "chromosome2": "2",
+                            "start2": 29415640,
+                            "stop2": 29446394,
+                            "representative_transcript2": "ENST00000389048.3",
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 6,
+                        "entrez_name": "ALK",
+                        "entrez_id": 238,
+                        "name": "EML4-ALK C1156Y",
+                        "description": "In patients with non-small cell lung cancer exhibiting EML4-ALK fusion, C1156Y has been shown to confer resistance to crizotinib. Case reports indicate that secondary mutations can modulate drug sensitivity. EML4-ALK C1156Y/L1196M maintained crizotinib resistance while the lorlatinib resistant combination EML4-ALK C1156Y/L1198F re-sensitized the tumor to crizotinib treatment.",
+                        "gene_id": 1,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 47,
+                                "name": "missense_variant",
+                                "display_name": "Missense Variant",
+                                "so_id": "SO:0001583",
+                                "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
+                            },
+                            {
+                                "id": 120,
+                                "name": "transcript_fusion",
+                                "display_name": "Transcript Fusion",
+                                "so_id": "SO:0001886",
+                                "description": "A feature fusion where the deletion brings together transcript regions.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
+                            }
+                        ],
+                        "civic_actionability_score": 29,
+                        "coordinates": {
+                            "chromosome": "2",
+                            "start": 29445258,
+                            "stop": 29445258,
+                            "reference_bases": "C",
+                            "variant_bases": "T",
+                            "representative_transcript": "ENST00000389048.3",
+                            "chromosome2": null,
+                            "start2": null,
+                            "stop2": null,
+                            "representative_transcript2": null,
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 7,
+                        "entrez_name": "ALK",
+                        "entrez_id": 238,
+                        "name": "EML4-ALK L1196M",
+                        "description": "In patients with non-small cell lung cancer exhibiting EML4-ALK fusion, L1196M has been shown to confer resistance to crizotinib. This was also true in a patient with both EML4-ALK C1156Y & L1196M.",
+                        "gene_id": 1,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 47,
+                                "name": "missense_variant",
+                                "display_name": "Missense Variant",
+                                "so_id": "SO:0001583",
+                                "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
+                            },
+                            {
+                                "id": 120,
+                                "name": "transcript_fusion",
+                                "display_name": "Transcript Fusion",
+                                "so_id": "SO:0001886",
+                                "description": "A feature fusion where the deletion brings together transcript regions.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
+                            }
+                        ],
+                        "civic_actionability_score": 21,
+                        "coordinates": {
+                            "chromosome": "2",
+                            "start": 29443631,
+                            "stop": 29443631,
+                            "reference_bases": "G",
+                            "variant_bases": "T",
+                            "representative_transcript": "ENST00000389048.3",
+                            "chromosome2": null,
+                            "start2": null,
+                            "stop2": null,
+                            "representative_transcript2": null,
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 499,
+                        "entrez_name": "ALK",
+                        "entrez_id": 238,
+                        "name": "ALK FUSIONS",
+                        "description": "Following the initial discovery and characterization of NPM-ALK fusion mutation in anaplastic large cell lymphoma (ALCL), EML4-ALK fusions were found to be driver mutations in a subset of lung adenocarcinomas. ALK fusions bring the C-terminal ALK kinase domain together with the N terminal region of the fusion partner, and have since been found in a range of cancers including inflammatory myofibroblastic tumor, renal cell carcinoma, diffuse large B cell lymphoma and colorectal cancer. \n\nIn a Phase I trial for crizotinib, a 92% response rate was seen in the subset of patients with a specific EML4-ALK variant, which was higher than the 57% rate in the overall ALK-rearranged population, but the subpopulation numbers were insufficient to correlate variant type with patient response. \n\nDue to restricted wild-type ALK expression, and also mild phenotypes seen in ALK knockout mice, ALK fusions are desirable targets.  ALK inhibitor TAE684 was used in initial characterizations of ALK fusion cancer drivers, and crizotinib \u2013 a small molecule ATP-competitor RTK inhibitor which is highly selective for ALK and MET - has been approved as first line therapy in ALK-rearranged NSCLC.   \n\nALK-rearrangement defines an NSCLC subtype that makes up 3-5% of NSCLC cases, and is characterized by higher proportions of younger patients and never smokers. EML4-ALK variant 1 is the most common ALK fusion in NSCLC and was the first to be discovered and demonstrate cancer driver properties in vitro and in mouse models. A Phase I study of crizotinib in ALK-rearranged NSCLC demonstrated an increase in overall survival when compared to standard chemotherapy. These and other initial results prompted accelerated approval for crizotinib in NSCLC.  Continued clinical work demonstrated benefit with crizotinib over chemotherapy in multi-armed studies, and as first line therapy. Crizotinib was also found to remain beneficial to NSCLC patients who had progressed on crizotinib. Additionally, crizotinib was shown to increase intracranial disease control in brain metastasis occurring from ALK-rearranged NSCLC.",
+                        "gene_id": 1,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 120,
+                                "name": "transcript_fusion",
+                                "display_name": "Transcript Fusion",
+                                "so_id": "SO:0001886",
+                                "description": "A feature fusion where the deletion brings together transcript regions.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
+                            }
+                        ],
+                        "civic_actionability_score": 598,
+                        "coordinates": {
+                            "chromosome": "2",
+                            "start": 29415640,
+                            "stop": 29446394,
+                            "reference_bases": null,
+                            "variant_bases": null,
+                            "representative_transcript": "ENST00000389048.3",
+                            "chromosome2": null,
+                            "start2": null,
+                            "stop2": null,
+                            "representative_transcript2": null,
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 500,
+                        "entrez_name": "ALK",
+                        "entrez_id": 238,
+                        "name": "EML4-ALK E20;A20",
+                        "description": "EML4-ALK variant 2 consists of a fusion of the ALK kinase domain (exons 20-29) with EML4 exons 1-20. Variant 2 has cytoplasmic distribution and makes up ~10% of EML4-ALK fusions found in NSCLC,. Although the specific variant is not consistently reported, single cases demonstrating response to crizotinib treatment in NSCLC and a differentiated malignant neoplasm of unknown origin have been reported. In vitro, this variant has shown greater sensitivity to ALK inhibition with TAE684 and crizotinib than the EML4-ALK variants 1 (E13;A20), 3a (E6;A20) and 3b (E6ins33;A20). The variant was reported to be less stable in cells than other variants, and may be a client protein of Hsp90. Along these lines the variant has shown preclinical sensitivity to Hsp90 inhibition.",
+                        "gene_id": 1,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 120,
+                                "name": "transcript_fusion",
+                                "display_name": "Transcript Fusion",
+                                "so_id": "SO:0001886",
+                                "description": "A feature fusion where the deletion brings together transcript regions.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
+                            }
+                        ],
+                        "civic_actionability_score": 16.5,
+                        "coordinates": {
+                            "chromosome": "2",
+                            "start": 42396490,
+                            "stop": 42552694,
+                            "reference_bases": null,
+                            "variant_bases": null,
+                            "representative_transcript": "ENST00000318522.5",
+                            "chromosome2": "2",
+                            "start2": 29415640,
+                            "stop2": 29446394,
+                            "representative_transcript2": "ENST00000389048.3",
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 501,
+                        "entrez_name": "ALK",
+                        "entrez_id": 238,
+                        "name": "EML4-ALK E2;A20",
+                        "description": "",
+                        "gene_id": 1,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 120,
+                                "name": "transcript_fusion",
+                                "display_name": "Transcript Fusion",
+                                "so_id": "SO:0001886",
+                                "description": "A feature fusion where the deletion brings together transcript regions.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
+                            }
+                        ],
+                        "civic_actionability_score": 1.75,
+                        "coordinates": {
+                            "chromosome": "2",
+                            "start": 42396490,
+                            "stop": 42472827,
+                            "reference_bases": null,
+                            "variant_bases": null,
+                            "representative_transcript": "ENST00000318522.5",
+                            "chromosome2": "2",
+                            "start2": 29415640,
+                            "stop2": 29446394,
+                            "representative_transcript2": "ENST00000389048.3",
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 503,
+                        "entrez_name": "ALK",
+                        "entrez_id": 238,
+                        "name": "EML4-ALK E6;A20",
+                        "description": "The EML4-ALK variant 3a consists of the ALK kinase domain fused to EML4 exons 1-6, while the 3b variant has an additional 33bp of intronic EML4 sequence between EML4 and ALK regions. The two variants were found to originate from a single genomic rearrangement, and 3a/3b is found in ~ 30% of EML4-ALK positive NSCLC. Variant 3a has cytoplasmic and nuclear distribution. In vitro, these variants have shown sensitivity to ALK inhibitors TAE684 and crizotinib but less sensitive than other EML4-ALK variants. The H2228 cell line contains 3a and 3b variants and is described as having cyctostatic response to ALK inhibition as opposed to apoptotic. In a study of 31 NSCLC patients with EML4-ALK rearrangements, 4/5 patients with the 3a variant showed a partial response while 1 showed progressive disease (the only PD observed). In cells the 3a variant was reported to be more stable than other variants, less sensitive to crizotinib and not to respond to Hsp90 inhibition.",
+                        "gene_id": 1,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 120,
+                                "name": "transcript_fusion",
+                                "display_name": "Transcript Fusion",
+                                "so_id": "SO:0001886",
+                                "description": "A feature fusion where the deletion brings together transcript regions.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
+                            }
+                        ],
+                        "civic_actionability_score": 25,
+                        "coordinates": {
+                            "chromosome": "2",
+                            "start": 42396490,
+                            "stop": 42491871,
+                            "reference_bases": null,
+                            "variant_bases": null,
+                            "representative_transcript": "ENST00000318522.5",
+                            "chromosome2": "2",
+                            "start2": 29415640,
+                            "stop2": 29446394,
+                            "representative_transcript2": "ENST00000389048.3",
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 513,
+                        "entrez_name": "ALK",
+                        "entrez_id": 238,
+                        "name": "NPM-ALK",
+                        "description": "",
+                        "gene_id": 1,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 120,
+                                "name": "transcript_fusion",
+                                "display_name": "Transcript Fusion",
+                                "so_id": "SO:0001886",
+                                "description": "A feature fusion where the deletion brings together transcript regions.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
+                            }
+                        ],
+                        "civic_actionability_score": 27,
+                        "coordinates": {
+                            "chromosome": "5",
+                            "start": 170814120,
+                            "stop": 170818803,
+                            "reference_bases": null,
+                            "variant_bases": null,
+                            "representative_transcript": "ENST00000517671.1",
+                            "chromosome2": "2",
+                            "start2": 29415640,
+                            "stop2": 29446394,
+                            "representative_transcript2": "ENST00000389048.3",
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 514,
+                        "entrez_name": "ALK",
+                        "entrez_id": 238,
+                        "name": "RANBP2-ALK",
+                        "description": "",
+                        "gene_id": 1,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 120,
+                                "name": "transcript_fusion",
+                                "display_name": "Transcript Fusion",
+                                "so_id": "SO:0001886",
+                                "description": "A feature fusion where the deletion brings together transcript regions.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
+                            }
+                        ],
+                        "civic_actionability_score": 10,
+                        "coordinates": {
+                            "chromosome": "2",
+                            "start": 109335937,
+                            "stop": 109375004,
+                            "reference_bases": null,
+                            "variant_bases": null,
+                            "representative_transcript": "ENST00000283195.6",
+                            "chromosome2": "2",
+                            "start2": 29415640,
+                            "stop2": 29446394,
+                            "representative_transcript2": "ENST00000389048.3",
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 520,
+                        "entrez_name": "ALK",
+                        "entrez_id": 238,
+                        "name": "CLTC-ALK",
+                        "description": "The t(2;17)(p23;q23) translocation results in the CLTC-ALK fusion protein, the most common ALK fusion observed in diffuse large B cell lymphoma (DLBCL). ALK-rearranged DLBCL is less responsive to CHOP chemotherapy. Preclinical work indicates that CLTC-ALK DLBCL is responsive to ALK inhibition in cell lines and mouse models, and two case studies show short response followed by progression when heavily pretreated and advanced ALK-positive DLBCL is treated with crizotinib (one case CLTC-ALK, one case an unknown ALK fusion).",
+                        "gene_id": 1,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 120,
+                                "name": "transcript_fusion",
+                                "display_name": "Transcript Fusion",
+                                "so_id": "SO:0001886",
+                                "description": "A feature fusion where the deletion brings together transcript regions.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
+                            }
+                        ],
+                        "civic_actionability_score": 19,
+                        "coordinates": {
+                            "chromosome": "17",
+                            "start": 57697219,
+                            "stop": 57768072,
+                            "reference_bases": null,
+                            "variant_bases": null,
+                            "representative_transcript": "ENST00000269122.3",
+                            "chromosome2": "2",
+                            "start2": 29415640,
+                            "stop2": 29446394,
+                            "representative_transcript2": "ENST00000389048.3",
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    }
+                ],
+                "type": "variant_group"
+            }
+        ],
+        "assertions": [],
+        "variant_aliases": [],
+        "hgvs_expressions": [],
+        "clinvar_entries": [
+            "N/A"
+        ],
+        "allele_registry_id": null
+    },
+    "ASSERTIONS": [
+        {
+            "id": 3,
+            "type": "assertion",
+            "name": "AID3",
+            "summary": "Lung adenocarcinoma positive for ALK-FUSIONS have been found to be sensitive to crizotinib treatment",
+            "description": "ALK-FUSIONS induce an active form of the receptor tyrosine kinase ALK.  ALK-FUSIONS are found in 3-5% of non-small cell lung cancer and act as a targetable driver mutation. the ALK inhibitor crizotinib was effective in lung cancer patients with ALK fusions and was granted accelerated FDA approval in 2011. The Vysis break-apart FISH assay is an FDA approved test for the presence of ALK fusion. NCCN guideline version 9.2017 lists crizotinib as approved first-line NSCLC treatment in the presence of ALK fusions but now lists alectinib as preferred first-line therapy.",
+            "gene": {
+                "name": "ALK",
+                "id": 1
+            },
+            "variant": {
+                "name": "ALK FUSIONS",
+                "id": 499
+            },
+            "disease": {
+                "id": 8,
+                "name": "Lung Non-small Cell Carcinoma",
+                "display_name": "Lung Non-small Cell Carcinoma",
+                "doid": "3908",
+                "url": "http://www.disease-ontology.org/?id=DOID:3908"
+            },
+            "drugs": [
+                {
+                    "id": 12,
+                    "name": "Crizotinib",
+                    "ncit_id": "C74061",
+                    "aliases": [
+                        "Xalkori",
+                        "PF-2341066",
+                        "PF-02341066",
+                        "MET Tyrosine Kinase Inhibitor PF-02341066",
+                        "2-Pyridinamine, 3-((1R)-1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(4-Piperidinyl)-1H-Pyrazol-4-yl)-",
+                        "(R)-3-(1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(Piperidin-4-Yl)-1h-Pyrazol-4-Yl)Pyridin-2-Amine"
+                    ]
+                }
+            ],
+            "evidence_type": "Predictive",
+            "evidence_direction": "Supports",
+            "clinical_significance": "Sensitivity/Response",
+            "fda_regulatory_approval": true,
+            "status": "accepted"
+        }
+    ]
+}
