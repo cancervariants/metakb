@@ -38,15 +38,16 @@ def alk():
                     'submitted_count': 0
                 }
             },
-            {
-                'name': "EML4-ALK (E6;A19) G1269A and AMPLIFICATION",
-                'id': 3204,
-                'evidence_items': {
-                    'accepted_count': 0,
-                    'rejected_count': 0,
-                    'submitted_count': 1
-                }
-            },
+            # TODO: Check if we should be downloading from API query
+            # {
+            #     'name': "EML4-ALK (E6;A19) G1269A and AMPLIFICATION",
+            #     'id': 3204,
+            #     'evidence_items': {
+            #         'accepted_count': 0,
+            #         'rejected_count': 0,
+            #         'submitted_count': 1
+            #     }
+            # },
             {
                 'name': "EML4-ALK G1202del",
                 'id': 2813,
