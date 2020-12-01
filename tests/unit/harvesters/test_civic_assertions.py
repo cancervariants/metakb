@@ -1,11 +1,13 @@
 """Test CIViC source"""
 import pytest
 from metakb.harvesters.civic import CIViC
+from civicpy import civic as civicpy
 
 
 @pytest.fixture(scope='module')
 def civic():
     """Create a list of genes."""
+    civicpy.load_cache(on_stale='ignore')
     c = CIViC()
     return c
 
