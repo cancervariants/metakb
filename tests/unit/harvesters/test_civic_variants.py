@@ -1,6 +1,7 @@
 """Test CIViC source"""
 import pytest
 from metakb.harvesters.civic import CIViC
+import gc
 
 
 @pytest.fixture(scope='module')
@@ -629,3 +630,5 @@ def test_variants(pdgfra, variants):
             assert set(actual_pdgfra[key]) == set(pdgfra[key])
         else:
             assert actual_pdgfra[key] == pdgfra[key]
+    del variants
+    gc.collect()
