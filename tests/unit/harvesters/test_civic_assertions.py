@@ -1,6 +1,7 @@
 """Test CIViC source"""
 import pytest
 from metakb.harvesters.civic import CIViC
+import gc
 
 
 @pytest.fixture(scope='module')
@@ -108,3 +109,5 @@ def test_assertions(aid40, assertions):
         # Ignore evidence_items due to largeness. Tested in others.
         if key != 'evidence_items':
             assert actual_aid40[key] == aid40[key]
+    del assertions
+    gc.collect()

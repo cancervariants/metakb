@@ -1,6 +1,7 @@
 """Test CIViC source"""
 import pytest
 from metakb.harvesters.civic import CIViC
+import gc
 
 
 @pytest.fixture(scope='module')
@@ -563,3 +564,5 @@ def test_genes_alk(alk, genes):
     keys = alk.keys()
     for key in keys:
         assert actual_alk[key] == alk[key]
+    del genes
+    gc.collect()
