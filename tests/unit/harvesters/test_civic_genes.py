@@ -1,14 +1,13 @@
 """Test CIViC source"""
 import pytest
 from metakb.harvesters.civic import CIViC
-import gc
 
 
 @pytest.fixture(scope='module')
-def genes():
+def civic():
     """Create a list of genes."""
     c = CIViC()
-    return c.harvest_genes()
+    return c
 
 
 @pytest.fixture(scope='module')
@@ -542,27 +541,19 @@ def dux4():
     }
 
 
-def test_genes_dux4(dux4, genes):
+def test_genes_dux4(dux4, civic):
     """Test civic harvester works correctly for genes."""
-    for gene in genes:
-        if gene['id'] == 34321:
-            actual_dux4 = gene
-            break
+    actual_dux4 = civic._harvest_gene_by_id(34321)
     assert actual_dux4.keys() == dux4.keys()
     keys = dux4.keys()
     for key in keys:
         assert actual_dux4[key] == dux4[key]
 
 
-def test_genes_alk(alk, genes):
+def test_genes_alk(alk, civic):
     """Test civic harvester works correctly for genes."""
-    for gene in genes:
-        if gene['id'] == 1:
-            actual_alk = gene
-            break
+    actual_alk = civic._harvest_gene_by_id(1)
     assert actual_alk.keys() == alk.keys()
     keys = alk.keys()
     for key in keys:
         assert actual_alk[key] == alk[key]
-    del genes
-    gc.collect()

@@ -1,14 +1,13 @@
 """Test CIViC source"""
 import pytest
 from metakb.harvesters.civic import CIViC
-import gc
 
 
 @pytest.fixture(scope='module')
-def assertions():
-    """Create a listof assertions."""
+def civic():
+    """Create a list of genes."""
     c = CIViC()
-    return c.harvest_assertions()
+    return c
 
 
 @pytest.fixture(scope='module')
@@ -97,17 +96,12 @@ def aid40():
     }
 
 
-def test_assertions(aid40, assertions):
+def test_assertions(aid40, civic):
     """Test civic harvester works correctly for assertions."""
-    for assertion in assertions:
-        if assertion['id'] == 40:
-            actual_aid40 = assertion
-            break
+    actual_aid40 = civic._harvest_assertion_by_id(40)
     assert actual_aid40.keys() == aid40.keys()
     keys = aid40.keys()
     for key in keys:
         # Ignore evidence_items due to largeness. Tested in others.
         if key != 'evidence_items':
             assert actual_aid40[key] == aid40[key]
-    del assertions
-    gc.collect()
