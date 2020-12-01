@@ -1,14 +1,13 @@
 """Test CIViC source"""
 import pytest
 from metakb.harvesters.civic import CIViC
-import gc
 
 
 @pytest.fixture(scope='module')
-def variants():
-    """Create a list of variants."""
+def civic():
+    """Create a list of genes."""
     c = CIViC()
-    return c.harvest_variants()
+    return c
 
 
 @pytest.fixture(scope='module')
@@ -617,12 +616,9 @@ def pdgfra():
     }
 
 
-def test_variants(pdgfra, variants):
+def test_variants(pdgfra, civic):
     """Test civic harvester works correctly for variants."""
-    for variant in variants:
-        if variant['id'] == 100:
-            actual_pdgfra = variant
-            break
+    actual_pdgfra = civic._harvest_variant_by_id(100)
     assert actual_pdgfra.keys() == pdgfra.keys()
     keys = pdgfra.keys()
     for key in keys:
@@ -630,5 +626,3 @@ def test_variants(pdgfra, variants):
             assert set(actual_pdgfra[key]) == set(pdgfra[key])
         else:
             assert actual_pdgfra[key] == pdgfra[key]
-    del variants
-    gc.collect()

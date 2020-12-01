@@ -11,10 +11,10 @@ class CIViC:
         """Retrieve and store records from CIViC."""
         try:
             # civicpy.load_cache(on_stale='ignore')
-            evidence = self.harvest_evidence()
-            genes = self.harvest_genes()
-            variants = self.harvest_variants()
-            assertions = self.harvest_assertions()
+            evidence = self._harvest_evidence()
+            genes = self._harvest_genes()
+            variants = self._harvest_variants()
+            assertions = self._harvest_assertions()
             self._create_json(evidence, genes, variants, assertions)
             print('CIViC Harvester was successful.')
             return True
@@ -46,7 +46,7 @@ class CIViC:
                 f.write(json.dumps(composite_dict[d]))
                 f.close()
 
-    def harvest_evidence(self):
+    def _harvest_evidence(self):
         """Harvest evidence."""
         evidence_classes = civicpy.get_all_evidence()
         evidence = list()
@@ -56,119 +56,143 @@ class CIViC:
             evidence.append(ev_record)
         return evidence
 
-    def harvest_genes(self):
+    def _harvest_genes(self):
         """Harvest genes."""
         genes = civicpy.get_all_genes()
         genes_list = list()
         for gene in genes:
-            g = {
-                'id': gene.id,
-                'name': gene.name,
-                'entrez_id': gene.entrez_id,
-                'description': gene.description,
-                'variants': [
-                    {
-                        'name': variant.name,
-                        'id': variant.id,
-                        'evidence_items_temp': [
-                            e.status for e in variant.evidence_items
-                        ]
-                    }
-                    for variant in gene.variants
-                ],
-                'aliases': gene.aliases,
-                # TODO: Add lifecycle_actions, sources
-                'type': gene.type
-            }
-
-            # Update evidence_items
-            for v in g['variants']:
-                evidence_items = {
-                    'accepted_count': 0,
-                    'rejected_count': 0,
-                    'submitted_count': 0
-                }
-                for e in v['evidence_items_temp']:
-                    if e == 'accepted':
-                        evidence_items['accepted_count'] = \
-                            evidence_items['accepted_count'] + 1
-                    elif e == 'submitted':
-                        evidence_items['submitted_count'] = \
-                            evidence_items['submitted_count'] + 1
-                    elif e == 'rejected':
-                        evidence_items['rejected_count'] = \
-                            evidence_items['rejected_count'] + 1
-                del v['evidence_items_temp']
-                v['evidence_items'] = evidence_items
+            g = self._harvest_gene(gene)
             genes_list.append(g)
         return genes_list
 
-    def harvest_variants(self):
+    def _harvest_variants(self):
         """Harvest variants."""
         variants = civicpy.get_all_variants()
         variants_list = list()
 
         for variant in variants:
-            v = self._variant(variant)
-            v_extra = {
-                'evidence_items': [
-                    self._evidence_item(evidence_item)
-                    for evidence_item in variant.evidence_items
-                ],
-                'variant_groups': [
-                    {
-                        'id': variant_group.id,
-                        'name': variant_group.name,
-                        'description': variant_group.description,
-                        'variants': [
-                            self._variant(variant)
-                            for variant in variant_group.variants
-                        ],
-                        'type': variant_group.type
-                    }
-                    for variant_group in variant.variant_groups
-                ],
-                'assertions': [
-                    self._assertions(assertion)
-                    for assertion in variant.assertions
-                ],
-                'variant_aliases': variant.variant_aliases,
-                'hgvs_expressions': variant.hgvs_expressions,
-                'clinvar_entries': variant.clinvar_entries,
-                # TODO: Add lifecycle_actions
-                'allele_registry_id': variant.allele_registry_id,
-                # TODO: Add allele_registry_hgvs
-            }
-            v.update(v_extra)
+            v = self._harvest_variant(variant)
             variants_list.append(v)
         return variants_list
 
-    def harvest_assertions(self):
+    def _harvest_assertions(self):
         """Harvest assertions."""
         assertions = civicpy.get_all_assertions()
         assertions_list = list()
 
         for assertion in assertions:
-            a = self._assertions(assertion)
-            a_extra = {
-                'nccn_guideline': assertion.nccn_guideline,
-                'nccn_guideline_version': assertion.nccn_guideline_version,
-                'amp_level': assertion.amp_level,
-                'evidence_items': [
-                    self._evidence_item(evidence_item, is_assertion=True)
-                    for evidence_item in assertion.evidence_items
-                ],
-                'acmg_codes': assertion.acmg_codes,
-                'drug_interaction_type': assertion.drug_interaction_type,
-                'fda_companion_test': assertion.fda_companion_test,
-                'allele_registry_id': assertion.allele_registry_id,
-                'phenotypes': assertion.phenotypes,
-                'variant_origin': assertion.variant_origin
-                # TODO: Add lifecycle_actions
-            }
-            a.update(a_extra)
+            a = self._harvest_assertion(assertion)
             assertions_list.append(a)
         return assertions_list
+
+    def _harvest_gene(self, gene):
+        g = {
+            'id': gene.id,
+            'name': gene.name,
+            'entrez_id': gene.entrez_id,
+            'description': gene.description,
+            'variants': [
+                {
+                    'name': variant.name,
+                    'id': variant.id,
+                    'evidence_items_temp': [
+                        e.status for e in variant.evidence_items
+                    ]
+                }
+                for variant in gene.variants
+            ],
+            'aliases': gene.aliases,
+            # TODO: Add lifecycle_actions, sources
+            'type': gene.type
+        }
+
+        # Update evidence_items
+        for v in g['variants']:
+            evidence_items = {
+                'accepted_count': 0,
+                'rejected_count': 0,
+                'submitted_count': 0
+            }
+            for e in v['evidence_items_temp']:
+                if e == 'accepted':
+                    evidence_items['accepted_count'] = \
+                        evidence_items['accepted_count'] + 1
+                elif e == 'submitted':
+                    evidence_items['submitted_count'] = \
+                        evidence_items['submitted_count'] + 1
+                elif e == 'rejected':
+                    evidence_items['rejected_count'] = \
+                        evidence_items['rejected_count'] + 1
+            del v['evidence_items_temp']
+            v['evidence_items'] = evidence_items
+        return g
+
+    def _harvest_variant(self, variant):
+        v = self._variant(variant)
+        v_extra = {
+            'evidence_items': [
+                self._evidence_item(evidence_item)
+                for evidence_item in variant.evidence_items
+            ],
+            'variant_groups': [
+                {
+                    'id': variant_group.id,
+                    'name': variant_group.name,
+                    'description': variant_group.description,
+                    'variants': [
+                        self._variant(variant)
+                        for variant in variant_group.variants
+                    ],
+                    'type': variant_group.type
+                }
+                for variant_group in variant.variant_groups
+            ],
+            'assertions': [
+                self._assertions(assertion)
+                for assertion in variant.assertions
+            ],
+            'variant_aliases': variant.variant_aliases,
+            'hgvs_expressions': variant.hgvs_expressions,
+            'clinvar_entries': variant.clinvar_entries,
+            # TODO: Add lifecycle_actions
+            'allele_registry_id': variant.allele_registry_id,
+            # TODO: Add allele_registry_hgvs
+        }
+        v.update(v_extra)
+        return v
+
+    def _harvest_assertion(self, assertion):
+        a = self._assertions(assertion)
+        a_extra = {
+            'nccn_guideline': assertion.nccn_guideline,
+            'nccn_guideline_version': assertion.nccn_guideline_version,
+            'amp_level': assertion.amp_level,
+            'evidence_items': [
+                self._evidence_item(evidence_item, is_assertion=True)
+                for evidence_item in assertion.evidence_items
+            ],
+            'acmg_codes': assertion.acmg_codes,
+            'drug_interaction_type': assertion.drug_interaction_type,
+            'fda_companion_test': assertion.fda_companion_test,
+            'allele_registry_id': assertion.allele_registry_id,
+            'phenotypes': assertion.phenotypes,
+            'variant_origin': assertion.variant_origin
+            # TODO: Add lifecycle_actions
+        }
+        a.update(a_extra)
+        return a
+
+    def _harvest_gene_by_id(self, id):
+        gene = civicpy.get_gene_by_id(id)
+        return self._harvest_gene(gene)
+
+    def _harvest_variant_by_id(self, id):
+        variant = civicpy.get_variant_by_id(id)
+        return self._harvest_variant(variant)
+
+    def _harvest_assertion_by_id(self, id):
+        assertion = civicpy.get_assertion_by_id(id)
+        return self._harvest_assertion(assertion)
 
     def _evidence_item(self, evidence_item,
                        is_evidence=False, is_assertion=False):

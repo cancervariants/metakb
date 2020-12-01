@@ -1,14 +1,13 @@
 """Test CIViC source"""
 import pytest
 from metakb.harvesters.civic import CIViC
-import gc
 
 
 @pytest.fixture(scope='module')
 def evidence():
     """Create a list of evidence."""
     c = CIViC()
-    return c.harvest_evidence()
+    return c._harvest_evidence()
 
 
 @pytest.fixture(scope='module')
@@ -131,5 +130,3 @@ def test_evidence_json(lnscc, evidence):
     keys = lnscc.keys()
     for key in keys:
         assert actual[key] == lnscc[key]
-    del evidence
-    gc.collect()
