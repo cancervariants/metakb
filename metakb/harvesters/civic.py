@@ -1,10 +1,11 @@
 """A module for the CIViC harvester."""
+from .base import Harvester
 from metakb import PROJECT_ROOT
 from civicpy import civic as civicpy
 import json
 
 
-class CIViC:
+class CIViC(Harvester):
     """A class for the CIViC harvester."""
 
     def harvest(self):
