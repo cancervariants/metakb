@@ -26,6 +26,7 @@ class CIViC(Harvester):
             genes = self._harvest_genes()
             variants = self._harvest_variants()
             assertions = self._harvest_assertions()
+            self.assertions = assertions
             self._create_json(evidence, genes, variants, assertions)
             logger.info('CIViC Harvester was successful.')
             return True
