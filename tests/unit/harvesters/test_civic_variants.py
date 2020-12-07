@@ -6,10 +6,17 @@ from civicpy import civic as civicpy
 
 @pytest.fixture(scope='module')
 def civic():
-    """Create a list of genes."""
-    civicpy.load_cache(on_stale='ignore')
-    c = CIViC()
-    return c
+    """Create CIViC Harvester test fixture.."""
+    class CIViCVariants:
+
+        def __init__(self):
+            civicpy.load_cache(on_stale='ignore')
+            self.c = CIViC()
+
+        def _harvest_variant_by_id(self, variant_id):
+            variant = civicpy.get_variant_by_id(variant_id)
+            return self.c._harvest_variant(variant)
+    return CIViCVariants()
 
 
 @pytest.fixture(scope='module')

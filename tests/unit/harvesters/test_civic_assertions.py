@@ -6,10 +6,17 @@ from civicpy import civic as civicpy
 
 @pytest.fixture(scope='module')
 def civic():
-    """Create a list of genes."""
-    civicpy.load_cache(on_stale='ignore')
-    c = CIViC()
-    return c
+    """Create CIViC Harvester test fixture.."""
+    class CIViCAssertions:
+
+        def __init__(self):
+            civicpy.load_cache(on_stale='ignore')
+            self.c = CIViC()
+
+        def _harvest_assertion_by_id(self, assertion_id):
+            assertion = civicpy.get_assertion_by_id(assertion_id)
+            return self.c._harvest_assertion(assertion)
+    return CIViCAssertions()
 
 
 @pytest.fixture(scope='module')
