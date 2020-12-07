@@ -115,6 +115,7 @@ pytest.ini
 
 # ide
 .idea/
+.vim/
 
 # system files
 .DS_Store
