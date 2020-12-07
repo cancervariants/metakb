@@ -3,6 +3,8 @@
 
 class Harvester:
     """A base class for content harvesters."""
+def __init__(self):
+    self.assertions = []
 
     def harvest(self):
         """
