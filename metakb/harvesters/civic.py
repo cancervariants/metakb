@@ -3,6 +3,11 @@ from .base import Harvester
 from metakb import PROJECT_ROOT
 from civicpy import civic as civicpy
 import json
+import logging
+
+logger = logging.getLogger('gene')
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler())
 
 
 class CIViC(Harvester):
@@ -17,10 +22,10 @@ class CIViC(Harvester):
             variants = self._harvest_variants()
             assertions = self._harvest_assertions()
             self._create_json(evidence, genes, variants, assertions)
-            print('CIViC Harvester was successful.')
+            logger.info('CIViC Harvester was successful.')
             return True
         except:  # noqa: E722 # TODO: Add specific exception error
-            print('CIViC Harvester was not successful.')
+            logger.info('CIViC Harvester was not successful.')
             return False
 
     def _create_json(self, evidence, genes, variants, assertions):
