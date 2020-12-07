@@ -188,18 +188,6 @@ class CIViC(Harvester):
         a.update(a_extra)
         return a
 
-    def _harvest_gene_by_id(self, id):
-        gene = civicpy.get_gene_by_id(id)
-        return self._harvest_gene(gene)
-
-    def _harvest_variant_by_id(self, id):
-        variant = civicpy.get_variant_by_id(id)
-        return self._harvest_variant(variant)
-
-    def _harvest_assertion_by_id(self, id):
-        assertion = civicpy.get_assertion_by_id(id)
-        return self._harvest_assertion(assertion)
-
     def _evidence_item(self, evidence_item,
                        is_evidence=False, is_assertion=False):
         """Return evidence item data."""
