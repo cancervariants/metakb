@@ -14,9 +14,14 @@ class CIViC(Harvester):
     """A class for the CIViC harvester."""
 
     def harvest(self):
-        """Retrieve and store records from CIViC."""
+        """Retrieve and store evidence, gene, variant, and assertion
+        records from CIViC in composite and individual JSON files.
+
+        :return: `True` if operation was successful, `False` otherwise.
+        :rtype: bool
+        """
         try:
-            # civicpy.load_cache(on_stale='ignore')
+            civicpy.load_cache(on_stale='ignore')
             evidence = self._harvest_evidence()
             genes = self._harvest_genes()
             variants = self._harvest_variants()
@@ -29,8 +34,13 @@ class CIViC(Harvester):
             return False
 
     def _create_json(self, evidence, genes, variants, assertions):
-        """Create a composite json file containing evidence, genes, variants,
-        and assertions.
+        """Create a composite JSON file containing evidence, genes, variants,
+        and assertions and individual JSON files for each CIViC record.
+
+        :param list evidence: A list of CIViC evidence item records
+        :param list genes: A list of CIViC gene records
+        :param list variants: A list of CIViC variant records
+        :param list assertions: A list of CIViC assertion records
         """
         composite_dict = {
             'evidence': evidence,
@@ -53,7 +63,10 @@ class CIViC(Harvester):
                 f.close()
 
     def _harvest_evidence(self):
-        """Harvest evidence."""
+        """Harvest all CIViC evidence item records.
+
+        :return: A list of all CIViC evidence item records.
+        """
         evidence_classes = civicpy.get_all_evidence()
         evidence = list()
 
@@ -63,7 +76,10 @@ class CIViC(Harvester):
         return evidence
 
     def _harvest_genes(self):
-        """Harvest genes."""
+        """Harvest all CIViC gene records.
+
+        :return: A list of all CIViC gene records.
+        """
         genes = civicpy.get_all_genes()
         genes_list = list()
         for gene in genes:
@@ -72,7 +88,10 @@ class CIViC(Harvester):
         return genes_list
 
     def _harvest_variants(self):
-        """Harvest variants."""
+        """Harvest all CIViC variant records.
+
+        :return: A list of all CIViC variant records.
+        """
         variants = civicpy.get_all_variants()
         variants_list = list()
 
@@ -82,7 +101,10 @@ class CIViC(Harvester):
         return variants_list
 
     def _harvest_assertions(self):
-        """Harvest assertions."""
+        """Harvest all CIViC assertion records.
+
+        :return: A list of all CIViC assertion records.
+        """
         assertions = civicpy.get_all_assertions()
         assertions_list = list()
 
@@ -92,6 +114,11 @@ class CIViC(Harvester):
         return assertions_list
 
     def _harvest_gene(self, gene):
+        """Harvest an individual CIViC gene record.
+
+        :param Gene gene: A CIViC gene object
+        :return: A dictionary containing CIViC gene data
+        """
         g = {
             'id': gene.id,
             'name': gene.name,
@@ -112,7 +139,7 @@ class CIViC(Harvester):
             'type': gene.type
         }
 
-        # Update evidence_items
+        # Update evidence_items to emulate CIViC API output
         for v in g['variants']:
             evidence_items = {
                 'accepted_count': 0,
@@ -134,7 +161,14 @@ class CIViC(Harvester):
         return g
 
     def _harvest_variant(self, variant):
+        """Harvest an individual CIViC variant record.
+
+        :param Gene variant: A CIViC variant object
+        :return: A dictionary containing CIViC variant data
+        """
         v = self._variant(variant)
+
+        # Add more attributes to variant data
         v_extra = {
             'evidence_items': [
                 self._evidence_item(evidence_item)
@@ -154,7 +188,7 @@ class CIViC(Harvester):
                 for variant_group in variant.variant_groups
             ],
             'assertions': [
-                self._assertions(assertion)
+                self._assertion(assertion)
                 for assertion in variant.assertions
             ],
             'variant_aliases': variant.variant_aliases,
@@ -168,7 +202,14 @@ class CIViC(Harvester):
         return v
 
     def _harvest_assertion(self, assertion):
-        a = self._assertions(assertion)
+        """Harvest an individual CIViC assertion record.
+
+        :param Gene assertion: A CIViC variant object
+        :return: A dictionary containing CIViC assertion data
+        """
+        a = self._assertion(assertion)
+
+        # Add more attributes to assertion data
         a_extra = {
             'nccn_guideline': assertion.nccn_guideline,
             'nccn_guideline_version': assertion.nccn_guideline_version,
@@ -190,7 +231,15 @@ class CIViC(Harvester):
 
     def _evidence_item(self, evidence_item,
                        is_evidence=False, is_assertion=False):
-        """Return evidence item data."""
+        """Get evidence item data.
+
+        :param Evidence evidence_item: A CIViC Evidence record
+        :param bool is_evidence: Whether or not the evidence item is
+                                 being harvested in an evidence record
+        :param bool is_assertion: Whether or not the evidence item is
+                                  being harvested in an assertion record
+        :return: A dictionary containing evidence item data
+        """
         e = {
             'id': evidence_item.id,
             'name': evidence_item.name,
@@ -218,9 +267,11 @@ class CIViC(Harvester):
             # TODO: Find variant w phenotypes
             'phenotypes': []
         }
+
+        # Assertions and Evidence Items contain more attributes
         if is_assertion or is_evidence:
             e['assertions'] = [
-                self._assertions(assertion)
+                self._assertion(assertion)
                 for assertion in evidence_item.assertions
             ]
             # TODO: Add lifecycle_actions, fields_with_pending_changes
@@ -231,8 +282,36 @@ class CIViC(Harvester):
 
         return e
 
-    def _assertions(self, assertion):
-        """Return assertions."""
+    def _variant(self, variant):
+        """Get basic variant data.
+
+        :param Variant variant: A CIViC Variant record
+        :return: A dictionary containing variant data
+        """
+        return {
+            'id': variant.id,
+            'entrez_name': variant.entrez_name,
+            'entrez_id': variant.entrez_id,
+            'name': variant.name,
+            'description': variant.description,
+            'gene_id': variant.gene_id,
+            'type': variant.type,
+            'variant_types': [
+                self._variant_types(variant_type)
+                for variant_type in variant.variant_types
+            ],
+            'civic_actionability_score':
+                int(variant.civic_actionability_score) if int(variant.civic_actionability_score) == variant.civic_actionability_score else variant.civic_actionability_score,  # noqa: E501
+            'coordinates':
+                self._variant_coordinates(variant)
+        }
+
+    def _assertion(self, assertion):
+        """Get assertion data.
+
+        :param Assertion assertion: A CIViC Assertion record
+        :return: A dictionary containing assertion data
+        """
         return {
             'id': assertion.id,
             'type': assertion.type,
@@ -263,7 +342,11 @@ class CIViC(Harvester):
         }
 
     def _variant_coordinates(self, variant):
-        """Return a variant's coordinates."""
+        """Get a variant's coordinates.
+
+        :param Variant variant: A CIViC variant record
+        :return: A dictionary containing a variant's coordinates
+        """
         return {
             'chromosome': variant.coordinates.chromosome,
             'start': variant.coordinates.start,
@@ -282,7 +365,11 @@ class CIViC(Harvester):
         }
 
     def _variant_types(self, variant_type):
-        """Return variant_type data."""
+        """Get variant_type data.
+
+        :param CivicAttribute variant_type: A CIViC variant_type record
+        :return: A dictionary containing variant_type data
+        """
         return {
             'id': variant_type.id,
             'name': variant_type.name,
@@ -293,7 +380,11 @@ class CIViC(Harvester):
         }
 
     def _source(self, evidence_item):
-        """Return source data."""
+        """Get an evidence item's source data.
+
+        :param Evidence evidence_item: A CIViC Evidence record
+        :return: A dictionary containing source data
+        """
         return {
             'id': evidence_item.source.id,
             'name': evidence_item.source.name,
@@ -316,7 +407,11 @@ class CIViC(Harvester):
         }
 
     def _disease(self, evidence_item):
-        """Return disease data."""
+        """Get an evidence item's disease data.
+
+        :param Evidence evidence_item: A CIViC Evidence record
+        :return: A dictionary containing disease data
+        """
         return {
             'id': evidence_item.disease.id,
             'name': evidence_item.disease.name,
@@ -327,7 +422,11 @@ class CIViC(Harvester):
         }
 
     def _drug(self, drug):
-        """Return drug data."""
+        """Get drug data.
+
+        :param Drug drug: A CIViC Drug record
+        :return: A dictionary containing drug data.
+        """
         return {
             "id": drug.id,
             "name": drug.name,
@@ -336,35 +435,23 @@ class CIViC(Harvester):
         }
 
     def _gene_name_id(self, assertion):
-        """Return gene name and gene id."""
+        """Get gene name and id.
+
+        :param Assertion assertion: A CIViC Assertion record
+        :return: A dictionary containing a gene's name and id
+        """
         return {
             'name': assertion.gene.name,
             'id': assertion.gene.id
         }
 
     def _variant_name_id(self, assertion):
-        """Return variant name and variant id."""
+        """Get variant name and id.
+
+        :param Assertion assertion: A CIViC Assertion record
+        :return: A dictionary containing a variant's name and id
+        """
         return {
             'name': assertion.variant.name,
             'id': assertion.variant.id
-        }
-
-    def _variant(self, variant):
-        """Return variant data."""
-        return {
-            'id': variant.id,
-            'entrez_name': variant.entrez_name,
-            'entrez_id': variant.entrez_id,
-            'name': variant.name,
-            'description': variant.description,
-            'gene_id': variant.gene_id,
-            'type': variant.type,
-            'variant_types': [
-                self._variant_types(variant_type)
-                for variant_type in variant.variant_types
-            ],
-            'civic_actionability_score':
-                int(variant.civic_actionability_score) if int(variant.civic_actionability_score) == variant.civic_actionability_score else variant.civic_actionability_score,  # noqa: E501
-            'coordinates':
-                self._variant_coordinates(variant)
         }
