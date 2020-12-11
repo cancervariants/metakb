@@ -1,2 +1,9 @@
 [run]
-omit = setup.py
+source =
+   metakb/
+   tests/
+omit =
+   setup.py
+   docs/*
+   analysis/*
+   venv/*
