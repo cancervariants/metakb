@@ -6,3 +6,4 @@ omit =
    setup.py
    docs/*
    analysis/*
+   venv/*
