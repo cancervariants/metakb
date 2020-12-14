@@ -6,7 +6,7 @@ import json
 import logging
 
 
-class MOAlamanc:
+class MOAlmanac:
 	"""A class for the Molecular Oncology Almanac harvester."""
 
 	def harvest(self):
@@ -19,16 +19,17 @@ class MOAlamanc:
 		try: 
 
 			assertions = self._harvest_assertions()
+			evidence = self._harvest_evidence()
 			variants = self._harvest_variants()
 			genes = self._harvest_genes(variants)
-			self._create_json(genes, assertions, variants)
+			self._create_json(assertions, evidence, variants, genes)
 			logging.info('MOAlamanc harvester was successful.')
 			return True
 		except:
 			logging.info('MOAlamanc harvester was not successful.')
 			return False
 
-	def _create_json(self, genes, assertions, variants):
+	def _create_json(self, assertions, evidence, variants, genes):
 		"""
 		Create a composite JSON file containing genes, assertions and variants
 		and individual JSON files for each MOA record.
@@ -39,8 +40,9 @@ class MOAlamanc:
 		"""
 		composite_dict = {
 			'assertions': assertions,
-			'genes': genes,
+			'evidence': evidence,
 			'variants': variants,
+			'genes': genes
 		}
 
 		#with open(f'{PROJECT_ROOT}/data/civic/civic_harvester.json', 'w+') as f:
@@ -48,28 +50,12 @@ class MOAlamanc:
 			json.dump(composite_dict, f)
 			f.close()
 
-		data = ['assertions', 'genes', 'variants']
+		data = ['assertions', 'evidence', 'variants', 'genes']
 		for d in data:
 			#with open(f'{PROJECT_ROOT}/data/civic/{d}.json', 'w+') as f:
 			with open(f'./data/{d}.json', 'w+') as f:
 				f.write(json.dumps(composite_dict[d]))
 				f.close()
-
-	def _harvest_genes(self, variants):
-		"""
-		Harvest all MOA genes
-
-		:return: A list of genes
-		:rtype: list
-		"""
-		with requests_cache.disabled():
-			r = requests.get('https://moalmanac.org/api/genes')
-			genes = r.json()
-			genes_list = []
-			for gene in genes:
-				g = self._harvest_gene(gene, variants)
-				genes_list.append(g)
-			return genes_list
 
 	def _harvest_assertions(self):
 		"""
@@ -87,6 +73,28 @@ class MOAlamanc:
 				assertions_list.append(a)
 
 		return assertions_list
+
+	def _harvest_evidence(self):
+		"""
+		Harvest all MOA evidences
+
+		:return: A list of evidence
+		:rtype: list
+		"""
+		evidence_list = []
+		id_list = []
+		with requests_cache.disabled():
+			r = requests.get('https://moalmanac.org/api/sources')
+			sources = r.json()
+			for source in sources:
+				if source['source_id'] in id_list:
+					continue
+				else:
+					e = self._evidence_item(source)
+					evidence_list.append(e)
+					id_list.append(source['source_id'])
+		return evidence_list
+
 
 	def _harvest_variants(self):
 		"""
@@ -129,22 +137,21 @@ class MOAlamanc:
 
 		return variants_list
 
-	def _harvest_gene(self, gene, variants):
+	def _harvest_genes(self, variants):
 		"""
-		Harvest an individual MOA gene record
+		Harvest all MOA genes
 
-		:param: a MOA gene associated with assertions
-		:return: A dictionary containing MOA gene data
-		:rtype: dict
+		:return: A list of genes
+		:rtype: list
 		"""
-		gene_record = {
-			'name': gene,
-			'variants': self._get_variant(gene, variants)
-			# TODO: add other details for each indivicual MOA gene
-			# entrez_id, description, aliases, etc
-
-		}
-		return gene_record
+		with requests_cache.disabled():
+			r = requests.get('https://moalmanac.org/api/genes')
+			genes = r.json()
+			genes_list = []
+			for gene in genes:
+				g = self._harvest_gene(gene, variants)
+				genes_list.append(g)
+			return genes_list
 
 	def _harvest_assertion(self, assertion):
 		"""
@@ -173,6 +180,28 @@ class MOAlamanc:
 		}
 		return assertion_record
 
+	def _evidence_item(self, source):
+		"""
+		Harvest an individual MOA evidence
+
+		:param: source id of each assertion record
+		:return: a dictionary containing MOA evidence data
+		:rtype: dict
+		"""
+
+		e = {
+			'id': source['source_id'],
+			'type': source['source_type'],
+			'assertion_id': source['assertions'],
+			'doi': source['doi'],
+			'nct': source['nct'],
+			'pmid': source['pmid'],
+			'url': source['url'],
+			'citation': source['citation']
+		}
+		return e
+			
+
 	def _harvest_variant(self, variant, variant_record, attr_def):
 		"""
 		Harvest an individual MOA variant record.
@@ -184,6 +213,23 @@ class MOAlamanc:
 		variant_record.update({attr_def[variant['attribute_definition']]: variant['value']})
 
 		return variant_record
+
+	def _harvest_gene(self, gene, variants):
+		"""
+		Harvest an individual MOA gene record
+
+		:param: a MOA gene associated with assertions
+		:return: A dictionary containing MOA gene data
+		:rtype: dict
+		"""
+		gene_record = {
+			'name': gene,
+			'variants': self._get_variant(gene, variants)
+			# TODO: add other details for each indivicual MOA gene
+			# entrez_id, description, aliases, etc
+
+		}
+		return gene_record
 
 
 	def _get_attr_def(self, attr_def):
@@ -301,17 +347,17 @@ class MOAlamanc:
 		feature = []
 		for variant in variants:
 			if gene in variant.values():
-				if variant['feature'] not in feature:
+				if variant['feature'] in feature:
+					continue
+				else:
 					feature.append(variant['feature'])
 					v.append(variant)
-				else:
-					continue
 		return v
 
 
 
 
 
-a = MOAlamanc()
+a = MOAlmanac()
 a.harvest()
 
