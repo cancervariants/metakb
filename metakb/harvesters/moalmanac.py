@@ -45,14 +45,14 @@ class MOAlmanac:
 			'genes': genes
 		}
 
-		#with open(f'{PROJECT_ROOT}/data/civic/civic_harvester.json', 'w+') as f:
+		#with open(f'{PROJECT_ROOT}/data/moa/moa_harvester.json', 'w+') as f:
 		with open(f'./data/moa_harvester.json', 'w+') as f:
 			json.dump(composite_dict, f)
 			f.close()
 
 		data = ['assertions', 'evidence', 'variants', 'genes']
 		for d in data:
-			#with open(f'{PROJECT_ROOT}/data/civic/{d}.json', 'w+') as f:
+			#with open(f'{PROJECT_ROOT}/data/moa/{d}.json', 'w+') as f:
 			with open(f'./data/{d}.json', 'w+') as f:
 				f.write(json.dumps(composite_dict[d]))
 				f.close()
