@@ -4,6 +4,10 @@
 class Harvester:
     """A base class for content harvesters."""
 
+    def __init__(self):
+        """Initialize Harvester class."""
+        self.assertions = []
+
     def harvest(self):
         """
         Retrieve and store records from a resource. Records may be stored in
