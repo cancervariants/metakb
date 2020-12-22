@@ -40,13 +40,86 @@ class PMKB(Harvester):
         reader = csv.reader(infile)
         next(reader)  # skip header
 
+        evidence = []
         genes = []
         variants = []
-        interpretations = []
+        assertions = []
         for row in reader:
-            pass  # TODO
+            tumors_split = row[1].split('|')
+            tissue_split = row[2].split('|')
+            vars_split = row[3].split('|')
+            cites_split = row[6].split('|')
+            row_ev = {
+                "type": "evidence",
+                "assertions": {
+                    "type": "assertion",
+                    "description": row[5],
+                    "gene": {
+                        "name": row[0]
+                    },
+                    "variants": [
+                        {"name": v} for v in vars_split
+                    ],
+                    "tier": int(row[4]),
+                    "tumor_types": tumors_split,
+                    "tissue_types": tissue_split,
+                },
+                "source": {
+                    "citations": [
+                        row[6][11:].split('|')
+                    ]
+                }
+            }
+            evidence.append(row_ev)
 
-        self._create_json(genes, variants, interpretations)
+            row_gene = {
+                "type": "gene",
+                "name": row[0],
+                "variants": [
+                    {"name": v} for v in vars_split
+                ],
+            }
+            genes.append(row_gene)
+
+            row_variants = [
+                {
+                    "name": v,
+                    "gene": row[0],
+                    "evidence": {
+                        "type": "evidence",
+                        "sources": cites_split
+                    },
+                    "assertions": {
+                        "type": "assertion",
+                        "description": row[5],
+                        "tumor_types": tumors_split,
+                        "tissue_types": vars_split,
+                        "tier": int(row[4]),
+                        "gene": {
+                            "name": row[0]
+                        }
+                    }
+                } for v in row[3].split('|')
+            ]
+            variants.append(row_variants)
+
+            row_assertion = {
+                "type": "assertion",
+                "description": row[5],
+                "tumor_types": tumors_split,
+                "tissue_types": tissue_split,
+                "tier": int(row[4]),
+                "gene": {
+                    "name": row[0]
+                },
+                "variants": [
+                    {"name": v} for v in vars_split
+                ],
+                "citations": row[6][11:].split('|')
+            }
+            assertions.append(row_assertion)
+
+        self._create_json(evidence, genes, variants, assertions)
         logger.info('PMKB Harvester was successful.')
         return True
 
@@ -68,7 +141,7 @@ class PMKB(Harvester):
             logger.error(f"PMKB source download failed with status code: {response.status_code}")  # noqa: E501
             raise FileDownloadException("PMKB source download failed")
 
-    def _create_json(self, genes, variants, interpretations):
+    def _create_json(self, evidence, genes, variants, interpretations):
         """Create composite JSON file containing genes, variants, and
         interpretations, and create individual JSON files for each assertion.
 
@@ -77,6 +150,7 @@ class PMKB(Harvester):
         :param list interpretations: List of interpretations
         """
         composite_dict = {
+            'evidence': evidence,
             'genes': genes,
             'variants': variants,
             'interpretations': interpretations
@@ -86,6 +160,6 @@ class PMKB(Harvester):
         with open(data_dir / 'pmkb_harvester.json', 'w+') as f:
             json.dump(composite_dict, f)
 
-        for d in ['genes', 'variants', 'assertions']:
+        for d in ['evidence', 'genes', 'variants', 'assertions']:
             with open(data_dir / f"{d}.json", 'w+') as f:
                 json.dump(composite_dict[d], f)
