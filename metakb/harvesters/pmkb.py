@@ -38,102 +38,6 @@ class PMKB(Harvester):
                      if f.name.startswith('PMKB_Interpretations_Complete')]
         newest_filename = sorted(files, reverse=True)[0]   # get most recent
         infile = open(newest_filename, 'r')
-
-        # reader = csv.reader(infile)
-        # next(reader)  # skip header
-        # evidence_rows = []
-        # genes_rows = []
-        # variants_rows = []
-        # assertions_rows = []
-        # for row in reader:
-        #     tumors_split = row[1].split('|')
-        #     tissue_split = row[2].split('|')
-        #     vars_split = row[3].split('|')
-        #     cites_split = row[6].split('|')
-        #     row_ev = {
-        #         "type": "evidence",
-        #         "assertions": {
-        #             "type": "assertion",
-        #             "description": row[5],
-        #             "gene": {
-        #                 "name": row[0]
-        #             },
-        #             "variants": [
-        #                 {"name": v} for v in vars_split
-        #             ],
-        #             "tier": int(row[4]),
-        #             "tumor_types": tumors_split,
-        #             "tissue_types": tissue_split,
-        #         },
-        #         "source": {
-        #             "citations": [
-        #                 row[6][11:].split('|')
-        #             ]
-        #         }
-        #     }
-        #     evidence_rows.append(row_ev)
-
-        #     row_gene = {
-        #         "type": "gene",
-        #         "name": row[0],
-        #         "variants": vars_split,
-        #     }
-        #     genes_rows.append(row_gene)
-
-        #     row_variants = [
-        #         {
-        #             "name": v,
-        #             "gene": row[0],
-        #             "evidence": {
-        #                 "type": "evidence",
-        #                 "sources": cites_split
-        #             },
-        #             "assertions": {
-        #                 "type": "assertion",
-        #                 "description": row[5],
-        #                 "tumor_types": tumors_split,
-        #                 "tissue_types": vars_split,
-        #                 "tier": int(row[4]),
-        #                 "gene": {
-        #                     "name": row[0]
-        #                 }
-        #             }
-        #         } for v in row[3].split('|')
-        #     ]
-        #     variants_rows.append(row_variants)
-
-        #     row_assertion = {
-        #         "type": "assertion",
-        #         "description": row[5],
-        #         "tumor_types": tumors_split,
-        #         "tissue_types": tissue_split,
-        #         "tier": int(row[4]),
-        #         "gene": {
-        #             "name": row[0]
-        #         },
-        #         "variants": [
-        #             {"name": v} for v in vars_split
-        #         ],
-        #         "citations": row[6][11:].split('|')
-        #     }
-        #     assertions_rows.append(row_assertion)
-
-        # # rebuild genes
-        # genes_dict = dict()
-        # for gene in genes_rows:
-        #     if gene['name'] in genes_dict:
-        #         existing_gene = gene['name']
-
-        #     else:
-        #         genes_dict[gene['name']] = {
-        #             'name': gene['name'],
-        #             'type': 'gene',
-        #             'variants': {
-        #                 v: {'name': v, 'evidence_count': 1}
-        #                 for v in gene['variants']
-        #             }
-        #         }
-
         df = pd.read_csv(infile, na_filter=False)
         df = df[1:]
         df.columns = ['gene', 'tumor_types', 'tissue_types', 'variants',
@@ -207,7 +111,7 @@ class PMKB(Harvester):
         # build evidence and assertions
         evidence = list()
         assertions = list()
-        for row in df.iterrows():
+        for _, row in df.iterrows():
             evidence.append({
                 'type': 'evidence',
                 'assertions': [
@@ -264,7 +168,7 @@ class PMKB(Harvester):
             logger.error(f"PMKB source download failed with status code: {response.status_code}")  # noqa: E501
             raise FileDownloadException("PMKB source download failed")
 
-    def _create_json(self, evidence, genes, variants, interpretations):
+    def _create_json(self, evidence, genes, variants, assertions):
         """Create composite JSON file containing genes, variants, and
         interpretations, and create individual JSON files for each assertion.
 
@@ -276,7 +180,7 @@ class PMKB(Harvester):
             'evidence': evidence,
             'genes': genes,
             'variants': variants,
-            'interpretations': interpretations
+            'assertions': assertions
         }
 
         data_dir = PROJECT_ROOT / 'data' / 'pmkb'
