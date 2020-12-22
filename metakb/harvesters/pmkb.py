@@ -4,7 +4,8 @@ from .base import Harvester
 from metakb import PROJECT_ROOT, FileDownloadException
 import requests
 import re
-import csv
+import pandas as pd
+import numpy as np
 import json
 
 
@@ -37,87 +38,209 @@ class PMKB(Harvester):
                      if f.name.startswith('PMKB_Interpretations_Complete')]
         newest_filename = sorted(files, reverse=True)[0]   # get most recent
         infile = open(newest_filename, 'r')
-        reader = csv.reader(infile)
-        next(reader)  # skip header
 
-        evidence = []
-        genes = []
-        variants = []
-        assertions = []
-        for row in reader:
-            tumors_split = row[1].split('|')
-            tissue_split = row[2].split('|')
-            vars_split = row[3].split('|')
-            cites_split = row[6].split('|')
-            row_ev = {
-                "type": "evidence",
-                "assertions": {
-                    "type": "assertion",
-                    "description": row[5],
-                    "gene": {
-                        "name": row[0]
-                    },
-                    "variants": [
-                        {"name": v} for v in vars_split
-                    ],
-                    "tier": int(row[4]),
-                    "tumor_types": tumors_split,
-                    "tissue_types": tissue_split,
-                },
-                "source": {
-                    "citations": [
-                        row[6][11:].split('|')
-                    ]
-                }
-            }
-            evidence.append(row_ev)
+        # reader = csv.reader(infile)
+        # next(reader)  # skip header
+        # evidence_rows = []
+        # genes_rows = []
+        # variants_rows = []
+        # assertions_rows = []
+        # for row in reader:
+        #     tumors_split = row[1].split('|')
+        #     tissue_split = row[2].split('|')
+        #     vars_split = row[3].split('|')
+        #     cites_split = row[6].split('|')
+        #     row_ev = {
+        #         "type": "evidence",
+        #         "assertions": {
+        #             "type": "assertion",
+        #             "description": row[5],
+        #             "gene": {
+        #                 "name": row[0]
+        #             },
+        #             "variants": [
+        #                 {"name": v} for v in vars_split
+        #             ],
+        #             "tier": int(row[4]),
+        #             "tumor_types": tumors_split,
+        #             "tissue_types": tissue_split,
+        #         },
+        #         "source": {
+        #             "citations": [
+        #                 row[6][11:].split('|')
+        #             ]
+        #         }
+        #     }
+        #     evidence_rows.append(row_ev)
 
-            row_gene = {
-                "type": "gene",
-                "name": row[0],
-                "variants": [
-                    {"name": v} for v in vars_split
-                ],
-            }
-            genes.append(row_gene)
+        #     row_gene = {
+        #         "type": "gene",
+        #         "name": row[0],
+        #         "variants": vars_split,
+        #     }
+        #     genes_rows.append(row_gene)
 
-            row_variants = [
-                {
-                    "name": v,
-                    "gene": row[0],
-                    "evidence": {
-                        "type": "evidence",
-                        "sources": cites_split
-                    },
-                    "assertions": {
-                        "type": "assertion",
-                        "description": row[5],
-                        "tumor_types": tumors_split,
-                        "tissue_types": vars_split,
-                        "tier": int(row[4]),
-                        "gene": {
-                            "name": row[0]
-                        }
+        #     row_variants = [
+        #         {
+        #             "name": v,
+        #             "gene": row[0],
+        #             "evidence": {
+        #                 "type": "evidence",
+        #                 "sources": cites_split
+        #             },
+        #             "assertions": {
+        #                 "type": "assertion",
+        #                 "description": row[5],
+        #                 "tumor_types": tumors_split,
+        #                 "tissue_types": vars_split,
+        #                 "tier": int(row[4]),
+        #                 "gene": {
+        #                     "name": row[0]
+        #                 }
+        #             }
+        #         } for v in row[3].split('|')
+        #     ]
+        #     variants_rows.append(row_variants)
+
+        #     row_assertion = {
+        #         "type": "assertion",
+        #         "description": row[5],
+        #         "tumor_types": tumors_split,
+        #         "tissue_types": tissue_split,
+        #         "tier": int(row[4]),
+        #         "gene": {
+        #             "name": row[0]
+        #         },
+        #         "variants": [
+        #             {"name": v} for v in vars_split
+        #         ],
+        #         "citations": row[6][11:].split('|')
+        #     }
+        #     assertions_rows.append(row_assertion)
+
+        # # rebuild genes
+        # genes_dict = dict()
+        # for gene in genes_rows:
+        #     if gene['name'] in genes_dict:
+        #         existing_gene = gene['name']
+
+        #     else:
+        #         genes_dict[gene['name']] = {
+        #             'name': gene['name'],
+        #             'type': 'gene',
+        #             'variants': {
+        #                 v: {'name': v, 'evidence_count': 1}
+        #                 for v in gene['variants']
+        #             }
+        #         }
+
+        df = pd.read_csv(infile, na_filter=False)
+        df = df[1:]
+        df.columns = ['gene', 'tumor_types', 'tissue_types', 'variants',
+                      'tier', 'interpretation', 'citations']
+        df['variants'] = df['variants'].apply(lambda t: t.split('|'))
+        df['tumor_types'] = df['tumor_types'].apply(lambda t: t.split('|'))
+        df['tissue_types'] = df['tissue_types'].apply(lambda t: t.split('|'))
+        df['citations'] = df['citations'].apply(lambda t: t.split('|'))
+
+        # build genes
+        genes = list()
+        genes_grouped = df[['gene', 'variants']].groupby('gene',
+                                                         as_index=False)
+        for (gene, grouped) in genes_grouped:
+            # flatten variant values
+            var_series = grouped['variants'].apply(pd.Series)\
+                .stack().reset_index(drop=True)
+            # get counts for variants
+            var_counts = pd.Series([v for v in var_series if v != ''],
+                                   dtype=str).value_counts()
+            genes.append({
+                'type': 'gene',
+                'name': gene,
+                'variants': [
+                    {
+                        'name': name,
+                        'evidence_count': count,
                     }
-                } for v in row[3].split('|')
-            ]
-            variants.append(row_variants)
+                    for name, count in var_counts.iteritems()
+                ]
+            })
 
-            row_assertion = {
-                "type": "assertion",
-                "description": row[5],
-                "tumor_types": tumors_split,
-                "tissue_types": tissue_split,
-                "tier": int(row[4]),
-                "gene": {
-                    "name": row[0]
+        # build variants
+        variants = list()
+        # create duplicate entries with unique variants for each row
+        v = pd.DataFrame(
+            {
+                col: np.repeat(df[col].values, df['variants'].str.len())
+                for col in df.columns.drop('variants')
+            }).assign(**{
+                'variants': np.concatenate(df['variants'].values)
+            })
+        v['variants'].replace('', np.nan, inplace=True)
+        v.dropna(subset=['variants'], inplace=True)
+        v = v.groupby('variants')
+        for (variant, grouped) in v:
+            gene = grouped['gene'].iloc[0]
+            variants.append({
+                'type': 'variant',
+                'name': variant,
+                'gene': gene,
+                'evidence': {
+                    'type': 'evidence',
+                    # flatten citation lists and reduce to unique cites
+                    'sources': list(grouped['citations'].apply(pd.Series)
+                                    .stack().reset_index(drop=True).unique())
                 },
-                "variants": [
-                    {"name": v} for v in vars_split
+                'assertions': [
+                    {
+                        'type': 'assertion',
+                        'description': row['interpretation'],
+                        'tumor_types': row['tumor_types'],
+                        'tissue_types': row['tissue_types'],
+                        'tier': row['tier'],
+                        'gene': gene,
+                    }
+                    for _, row in grouped.iterrows()
+                ]
+            })
+
+        # build evidence and assertions
+        evidence = list()
+        assertions = list()
+        for row in df.iterrows():
+            evidence.append({
+                'type': 'evidence',
+                'assertions': [
+                    {
+                        'type': 'assertion',
+                        'description': row['interpretation'],
+                        'gene': {
+                            'name': row['gene']
+                        },
+                        'variants': [
+                            {'name': v} for v in row['variants']
+                        ],
+                        'tier': row['tier'],
+                        'tumor_types': row['tumor_types'],
+                        'tissue_types': row['tissue_types']
+                    }
+                ]
+
+            })
+            assertions.append({
+                'type': 'assertion',
+                'gene': {
+                    'name': row['gene']
+                },
+                'description': row['interpretation'],
+                'tier': row['tier'],
+                'tumor_types': row['tumor_types'],
+                'tissue_types': row['tissue_types'],
+                'variants': [
+                    {'name': v} for v in row['variants']
                 ],
-                "citations": row[6][11:].split('|')
-            }
-            assertions.append(row_assertion)
+                'citations': row['citations']
+            })
 
         self._create_json(evidence, genes, variants, assertions)
         logger.info('PMKB Harvester was successful.')
