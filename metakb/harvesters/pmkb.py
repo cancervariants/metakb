@@ -51,9 +51,9 @@ class PMKB(Harvester):
 
         genes = self._build_genes(data)
         variants = self._build_variants(data)
-        (evidence, assertions) = self._build_ev_and_assertions(data)
+        (evidence, self.assertions) = self._build_ev_and_assertions(data)
 
-        self._create_json(evidence, genes, variants, assertions)
+        self._create_json(evidence, genes, variants, self.assertions)
         logger.info('PMKB Harvester was successful.')
         return True
 
