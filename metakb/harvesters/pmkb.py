@@ -4,6 +4,7 @@ from .base import Harvester
 from metakb import PROJECT_ROOT, FileDownloadException
 import requests
 import re
+from typing import List
 import pandas as pd
 import numpy as np
 import json
@@ -38,22 +39,38 @@ class PMKB(Harvester):
                      if f.name.startswith('PMKB_Interpretations_Complete')]
         newest_filename = sorted(files, reverse=True)[0]   # get most recent
         infile = open(newest_filename, 'r')
-        df = pd.read_csv(infile, na_filter=False)
-        df = df[1:]
-        df.columns = ['gene', 'tumor_types', 'tissue_types', 'variants',
-                      'tier', 'interpretation', 'citations']
-        df['variants'] = df['variants'].apply(lambda t: t.split('|'))
-        df['tumor_types'] = df['tumor_types'].apply(lambda t: t.split('|'))
-        df['tissue_types'] = df['tissue_types'].apply(lambda t: t.split('|'))
-        df['citations'] = df['citations'].apply(lambda t: t.split('|'))
+        data = pd.read_csv(infile, na_filter=False)
+        data = data[1:]
+        data.columns = ['gene', 'tumor_types', 'tissue_types', 'variants',
+                        'tier', 'interpretation', 'citations']
+        data['variants'] = data['variants'].apply(lambda t: t.split('|'))
+        data['tumor_types'] = data['tumor_types'].apply(lambda t: t.split('|'))
+        data['tissue_types'] = data['tissue_types'] \
+            .apply(lambda t: t.split('|'))
+        data['citations'] = data['citations'].apply(lambda t: t.split('|'))
 
-        # build genes
+        genes = self._build_genes(data)
+        variants = self._build_variants(data)
+        (evidence, assertions) = self._build_ev_and_assertions(data)
+
+        self._create_json(evidence, genes, variants, assertions)
+        logger.info('PMKB Harvester was successful.')
+        return True
+
+    def _build_genes(data: pd.DataFrame) -> List:
+        """Build list of genes.
+
+        :param DataFrame data: PMKB input data formatted as a Pandas
+            DataFrame.
+        :return: completed List of gene items.
+        :rtype: List
+        """
         genes = list()
-        genes_grouped = df[['gene', 'variants']].groupby('gene',
-                                                         as_index=False)
+        genes_grouped = data[['gene', 'variants']].groupby('gene',
+                                                           as_index=False)
         for (gene, grouped) in genes_grouped:
-            # flatten variant values
-            var_series = grouped['variants'].apply(pd.Series)\
+            # flatten variant lists
+            var_series = grouped['variants'].apply(pd.Series) \
                 .stack().reset_index(drop=True)
             # get counts for variants
             var_counts = pd.Series([v for v in var_series if v != ''],
@@ -69,18 +86,28 @@ class PMKB(Harvester):
                     for name, count in var_counts.iteritems()
                 ]
             })
+        return genes
 
-        # build variants
+    def _build_variants(data: pd.DataFrame) -> List:
+        """Build list of variants.
+
+        :param pd.DataFrame data: PMKB input data formatted as a Pandas
+            DataFrame.
+        :return: completed List of variant items.
+        :rtype: List
+        """
         variants = list()
+
         # create duplicate entries with unique variants for each row
         v = pd.DataFrame(
             {
-                col: np.repeat(df[col].values, df['variants'].str.len())
-                for col in df.columns.drop('variants')
+                col: np.repeat(data[col].values, data['variants'].str.len())
+                for col in data.columns.drop('variants')
             }).assign(**{
-                'variants': np.concatenate(df['variants'].values)
+                'variants': np.concatenate(data['variants'].values)
             })
         v['variants'].replace('', np.nan, inplace=True)
+        # some rows don't provide variants - drop those
         v.dropna(subset=['variants'], inplace=True)
         v = v.groupby('variants')
         for (variant, grouped) in v:
@@ -107,11 +134,19 @@ class PMKB(Harvester):
                     for _, row in grouped.iterrows()
                 ]
             })
+        return variants
 
-        # build evidence and assertions
+    def _build_ev_and_assertions(data: pd.DataFrame) -> (List, List):
+        """Build list of evidence and assertions.
+
+        :param pd.DataFrame data: PMKB input data formatted as a Pandas
+            DataFrame.
+        :return: completed Lists of evidence and assertion items
+        :rtype: (List, List)
+        """
         evidence = list()
         assertions = list()
-        for _, row in df.iterrows():
+        for _, row in data.iterrows():
             evidence.append({
                 'type': 'evidence',
                 'assertions': [
@@ -147,10 +182,7 @@ class PMKB(Harvester):
                 ],
                 'citations': row['citations']
             })
-
-        self._create_json(evidence, genes, variants, assertions)
-        logger.info('PMKB Harvester was successful.')
-        return True
+        return (evidence, assertions)
 
     def _download_csv(self):
         """Download source data from PMKB server."""
@@ -170,13 +202,15 @@ class PMKB(Harvester):
             logger.error(f"PMKB source download failed with status code: {response.status_code}")  # noqa: E501
             raise FileDownloadException("PMKB source download failed")
 
-    def _create_json(self, evidence, genes, variants, assertions):
-        """Create composite JSON file containing genes, variants, and
+    def _create_json(self, evidence: List, genes: List, variants: List,
+                     assertions: List):
+        """Create and write composite JSON file containing genes, variants, and
         interpretations, and create individual JSON files for each assertion.
 
-        :param list genes: List of genes
-        :param list variants: List of variants
-        :param list interpretations: List of interpretations
+        :param List evidence: List of evidence items
+        :param List genes: List of genes
+        :param List variants: List of variants
+        :param List assertions: List of assertions
         """
         composite_dict = {
             'evidence': evidence,
