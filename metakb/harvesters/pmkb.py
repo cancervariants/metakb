@@ -128,8 +128,10 @@ class PMKB(Harvester):
                         'tumor_types': row['tumor_types'],
                         'tissue_types': row['tissue_types']
                     }
-                ]
-
+                ],
+                'source': {
+                    'citations': row['citations']
+                }
             })
             assertions.append({
                 'type': 'assertion',
