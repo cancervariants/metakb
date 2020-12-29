@@ -1,5 +1,4 @@
 """A module for the Molecular Oncology Almanac harvester"""
-
 from .base import Harvester
 from metakb import PROJECT_ROOT
 import requests
@@ -228,6 +227,7 @@ class MOAlmanac(Harvester):
             'therapy_name': assertion['therapy_name'],
             'therapy_type': assertion['therapy_type'],
             'clinical_significance': self._get_therapy(
+                assertion['therapy_resistance'],
                 assertion['therapy_sensitivity']),
             'predictive_implication': assertion["predictive_implication"],
             'feature_ids': assertion['features'],
