@@ -6,6 +6,10 @@ import requests_cache
 import json
 import logging
 
+logger = logging.getLogger('assertion')
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler())
+
 
 class MOAlmanac(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
@@ -71,9 +75,7 @@ class MOAlmanac(Harvester):
             r = requests.get('https://moalmanac.org/api/sources')
             sources = r.json()
             for source in sources:
-                if source['source_id'] in id_list:
-                    continue
-                else:
+                if source['source_id'] not in id_list:
                     e = self._evidence_item(source)
                     evidence_list.append(e)
                     id_list.append(source['source_id'])
@@ -378,9 +380,7 @@ class MOAlmanac(Harvester):
         feature = []
         for variant in variants:
             if gene in variant.values():
-                if variant['feature'] in feature:
-                    continue
-                else:
+                if variant['feature'] not in feature:
                     feature.append(variant['feature'])
                     v.append(variant)
         return v
