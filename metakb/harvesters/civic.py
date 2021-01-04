@@ -50,6 +50,9 @@ class CIViC(Harvester):
             'assertions': assertions
         }
 
+        civic_dir = PROJECT_ROOT / 'data' / 'civic'
+        civic_dir.mkdir(exist_ok=True, parents=True)
+
         # Create composite json
         with open(f'{PROJECT_ROOT}/data/civic/civic_harvester.json',
                   'w+') as f:
