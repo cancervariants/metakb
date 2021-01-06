@@ -55,10 +55,13 @@
     {
       "id": "civic:MPID12", // this is a recasting of the VID to MPID. CIViC v2 will have MPs containing VIDs.
       "type": "GksMolecularProfile" // This doesn't exist yet, but a solution is needed
+                    // Do we want to express this as a value object, with computable ID? Probably so.
+      "label": "BRAF V600E",
       "ruleset": {
         "rules": [
           {
             "predicate": "has_molecular_consequence",
+                // LB: this is confusing, could be "missense", etc. Maybe "has_protein_change" or similar
             "object": "civic:VID12"
           },
         ],
