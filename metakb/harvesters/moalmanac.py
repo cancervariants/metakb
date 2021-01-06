@@ -25,12 +25,12 @@ class MOAlmanac(Harvester):
             evidence = self._harvest_evidence()
             variants = self._harvest_variants()
             genes = self._harvest_genes(variants)
-            assertions = self._harvest_assertions(genes, variants)
+            assertions = self._harvest_assertions(variants)
             self._create_json(assertions, evidence, variants, genes)
-            logging.info('MOAlamanc harvester was successful.')
+            logger.info('MOAlamanc harvester was successful.')
             return True
         except:  # noqa: E722 # TODO: add details of exception error
-            logging.info('MOAlamanc harvester was not successful.')
+            logger.info('MOAlamanc harvester was not successful.')
             return False
 
     def _create_json(self, assertions, evidence, variants, genes):
@@ -141,7 +141,7 @@ class MOAlmanac(Harvester):
                 genes_list.append(g)
             return genes_list
 
-    def _harvest_assertions(self, genes, variants):
+    def _harvest_assertions(self, variants):
         """
         Harvest all MOA assertions
 
@@ -153,7 +153,7 @@ class MOAlmanac(Harvester):
             assertions = r.json()
             assertions_list = []
             for assertion in assertions:
-                a = self._harvest_assertion(assertion, genes, variants)
+                a = self._harvest_assertion(assertion, variants)
                 assertions_list.append(a)
 
         return assertions_list
@@ -210,7 +210,7 @@ class MOAlmanac(Harvester):
         }
         return gene_record
 
-    def _harvest_assertion(self, assertion, genes, variants):
+    def _harvest_assertion(self, assertion, variants):
         """
         Harvest an individual MOA assertion record
 
@@ -223,6 +223,7 @@ class MOAlmanac(Harvester):
             'context': assertion['context'],
             'description': assertion['description'],
             'disease': {
+                'name': assertion['disease'],
                 'oncotree_code': assertion['oncotree_code'],
                 'oncotree_term': assertion['oncotree_term']
             },
