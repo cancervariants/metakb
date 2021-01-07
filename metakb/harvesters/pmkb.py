@@ -8,6 +8,7 @@ from typing import List
 import pandas as pd
 import numpy as np
 import json
+from pathlib import Path
 
 
 logger = logging.getLogger('Harvesters')
@@ -22,14 +23,32 @@ class PMKB(Harvester):
         """Set up harvester object"""
         self.assertions = []
 
-    def harvest(self) -> bool:
+    def harvest(self, data_dir: Path = PROJECT_ROOT / 'data' / 'pmkb') -> bool:
         """Harvest PMKB source. Retrieve and store genes, variants, and
         interpretations.
 
+        :param pathlib.Path data_dir: path to local PMKB data source directory
         :return: `True` if successful, `False` otherwise.
         :rtype: bool
         """
-        self._data_dir = PROJECT_ROOT / 'data' / 'pmkb'
+        data = self._load_dataframe(data_dir)
+
+        genes = self._build_genes(data)
+        variants = self._build_variants(data)
+        (evidence, self.assertions) = self._build_ev_and_assertions(data)
+
+        self._create_json(evidence, genes, variants, self.assertions)
+        logger.info('PMKB Harvester was successful.')
+        return True
+
+    def _load_dataframe(self, data_dir: Path) -> pd.DataFrame:
+        """Load source file and build DataFrame object.
+
+        :param pathlib.Path data_dir: path to local PMKB data source directory
+        :return: formatted DataFrame with PMKB data
+        :rtype: pd.DataFrame
+        """
+        self._data_dir = data_dir
         self._data_dir.mkdir(exist_ok=True, parents=True)
         files = [f for f in self._data_dir.iterdir()
                  if f.name.startswith('PMKB_Interpretations_Complete')]
@@ -43,19 +62,27 @@ class PMKB(Harvester):
         data = data[1:]
         data.columns = ['gene', 'tumor_types', 'tissue_types', 'variants',
                         'tier', 'interpretation', 'citations']
-        data['variants'] = data['variants'].apply(lambda t: t.split('|'))
-        data['tumor_types'] = data['tumor_types'].apply(lambda t: t.split('|'))
-        data['tissue_types'] = data['tissue_types'] \
-            .apply(lambda t: t.split('|'))
-        data['citations'] = data['citations'].apply(lambda t: t.split('|'))
+        for col in ['variants', 'tumor_types', 'tissue_types', 'citations']:
+            data[col] = data[col].apply(lambda t: t.split('|'))
+        return data
 
-        genes = self._build_genes(data)
-        variants = self._build_variants(data)
-        (evidence, self.assertions) = self._build_ev_and_assertions(data)
-
-        self._create_json(evidence, genes, variants, self.assertions)
-        logger.info('PMKB Harvester was successful.')
-        return True
+    def _download_csv(self):
+        """Download source data from PMKB server."""
+        PMKB_URL = "https://pmkb.weill.cornell.edu/therapies/downloadCSV.csv"
+        response = requests.get(PMKB_URL, stream=True)
+        if response.status_code == 200:
+            fname = ''
+            if "Content-Disposition" in response.headers.keys():
+                fname = re.findall("filename=(.+)",
+                                   response.headers["Content-Disposition"])[0]
+                fname = fname.strip('\"')
+            else:
+                fname = PMKB_URL.split("/")[-1]
+            with open(self._data_dir / fname, 'wb') as f:
+                f.write(response.content)
+        else:
+            logger.error(f"PMKB source download failed with status code: {response.status_code}")  # noqa: E501
+            raise FileDownloadException("PMKB source download failed")
 
     def _build_genes(data: pd.DataFrame) -> List:
         """Build list of genes.
@@ -184,24 +211,6 @@ class PMKB(Harvester):
             })
         return (evidence, assertions)
 
-    def _download_csv(self):
-        """Download source data from PMKB server."""
-        PMKB_URL = "https://pmkb.weill.cornell.edu/therapies/downloadCSV.csv"
-        response = requests.get(PMKB_URL, stream=True)
-        if response.status_code == 200:
-            fname = ''
-            if "Content-Disposition" in response.headers.keys():
-                fname = re.findall("filename=(.+)",
-                                   response.headers["Content-Disposition"])[0]
-                fname = fname.strip('\"')
-            else:
-                fname = PMKB_URL.split("/")[-1]
-            with open(self._data_dir / fname, 'wb') as f:
-                f.write(response.content)
-        else:
-            logger.error(f"PMKB source download failed with status code: {response.status_code}")  # noqa: E501
-            raise FileDownloadException("PMKB source download failed")
-
     def _create_json(self, evidence: List, genes: List, variants: List,
                      assertions: List):
         """Create and write composite JSON file containing genes, variants, and
@@ -223,6 +232,6 @@ class PMKB(Harvester):
         with open(data_dir / 'pmkb_harvester.json', 'w+') as f:
             json.dump(composite_dict, f)
 
-        for d in ['evidence', 'genes', 'variants', 'assertions']:
-            with open(data_dir / f"{d}.json", 'w+') as f:
-                json.dump(composite_dict[d], f)
+        for data in ['evidence', 'genes', 'variants', 'assertions']:
+            with open(data_dir / f"{data}.json", 'w+') as f:
+                json.dump(composite_dict[data], f)
