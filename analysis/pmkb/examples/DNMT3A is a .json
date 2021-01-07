@@ -1,1 +1,196 @@
-{"EVIDENCE": {"type": "evidence", "assertions": [{"type": "assertion", "description": "DNMT3A is a DNA methyltransferase. Recurrent, somatic, heterozygous mutations in DNMT3A have been reported in approximately 18-25% of cases of acute myeloid leukemia (up to 34% of normal karyotype AML),  12-18% of cases of myelodysplastic syndrome,  up to 15% of myeloproliferative neoplasms,  less than 5% of cases of chronic myelomonocytic leukemia and 15% of cases of adult, eary T cell precursor acute lymphoblastic leukemia.  DNMT3A is also one of the most frequently mutated genes in CHIP and CCUS. Mutations in DNMT3A may occur together with mutations in other genes including JAK2, FLT3, IDH1/IDH2, ASXL1, TET2 and NPM1.  DNMT3A mutations have been associated with reduced enzymatic activity or altered histone binding, as well as reduced DNA methylation in various genomic regions and altered gene expression in some models. Codon R882 is a hotspot for mutations in DNMT3A.  DNMT3A mutations may be associated with adverse prognosis in specific subtypes of AML according to some, but not all studies; the prognostic significance of DNMT3A in AML may depend on patient age, type of DNMT3A mutation (R882 or non-R882 mutation) and the co-existence (or absence) of specific mutations in other genes.  DNMT3A mutations may also be associated with adverse prognosis in MDS according to some studies.", "gene": {"name": "DNMT3A"}, "variants": [{"name": "DNMT3A any mutation"}], "tier": 2, "tumor_types": ["Myeloproliferative Neoplasm", "Acute Myeloid Leukemia", "T Lymphoblastic Leukemia/Lymphoma", "Myelodysplastic Syndrome", "Chronic Myelomonocytic Leukemia", "Acute Leukemia of Unspecified Cell Type", "Anemia, Unspecified", "Atypical Chronic Myeloid Leukemia", "B Lymphoblastic Leukemia/Lymphoma", "Chronic Myeloid Leukemia", "Chronic Neutrophilic Leukemia", "Cytopenia", "Eosinophilia", "Essential Thrombocythemia", "Histiocytic and Dendritic Cell Neoplasms", "Langerhans Cell Histiocytosis", "Leukocytosis", "Leukopenia", "Mast Cell Neoplasm", "MDS with Ring Sideroblasts", "Monocytosis", "Myelodysplastic/Myeloproliferative Neoplasm", "Myeloid Neoplasm", "Other Acute Leukemia", "Polycythemia Vera", "Polycythemia", "Primary Myelofibrosis", "Thrombocytopenia, Unspecified", "Thrombocytosis"], "tissue_types": ["Blood", "Bone Marrow"]}], "source": {"citations": ["Larsson CA, et al. The changing mutational landscape of acute myeloid leukemia and myelodysplastic syndrome. Mol Cancer Res 2013;11(8):815-27", "Ley TJ, et al. DNMT3A mutations in acute myeloid leukemia. N Engl J Med 2010;363(25):2424-33", "Yan XJ, et al. Exome sequencing identifies somatic mutations of DNA methyltransferase gene DNMT3A in acute monocytic leukemia. Nat Genet 2011;43(4):309-15", "Walter MJ, et al. Recurrent DNMT3A mutations in patients with myelodysplastic syndromes. Leukemia 2011;25(7):1153-8", "Stegelmann F, et al. DNMT3A mutations in myeloproliferative neoplasms. Leukemia 2011;25(7):1217-9", "Thol F, et al. Incidence and prognostic influence of DNMT3A mutations in acute myeloid leukemia. J Clin Oncol 2011;29(21):2889-96", "Neumann M, et al. Whole-exome sequencing in adult ETP-ALL reveals a high rate of DNMT3A mutations. Blood 2013;121(23):4749-52", "Jankowska AM, et al. Mutational spectrum analysis of chronic myelomonocytic leukemia includes genes associated with epigenetic regulation: UTX, EZH2, and DNMT3A. Blood 2011;118(14):3932-41", "Ahn JS, et al. DNMT3A R882 Mutation with FLT3-ITD Positivity Is an Extremely Poor Prognostic Factor in Patients with Normal-Karyotype Acute Myeloid Leukemia after Allogeneic Hematopoietic Cell Transplantation. Biol Blood Marrow Transplant 2016;22(1):61-70", "Russler-Germain DA, et al. The R882H DNMT3A mutation associated with AML dominantly inhibits wild-type DNMT3A by blocking its ability to form active tetramers. Cancer Cell 2014;25(4):442-54", "National Comprehensive Cancer Network. Clinical Practice Guidelines in Oncology. Acute Myeloid Leukemia (Version 1.2018).", "National Comprehensive Cancer Network. Clinical Practice Guidelines in Oncology. Myelodysplastic Syndromes (Version 1.2019)."]}}, "GENE": {"type": "gene", "name": "DNMT3A", "variants": [{"name": "DNMT3A any mutation", "evidence_count": 1}]}, "VARIANTS": [{"type": "variant", "name": "DNMT3A any mutation", "gene": "DNMT3A", "evidence": {"type": "evidence", "sources": ["Larsson CA, et al. The changing mutational landscape of acute myeloid leukemia and myelodysplastic syndrome. Mol Cancer Res 2013;11(8):815-27", "Ley TJ, et al. DNMT3A mutations in acute myeloid leukemia. N Engl J Med 2010;363(25):2424-33", "Yan XJ, et al. Exome sequencing identifies somatic mutations of DNA methyltransferase gene DNMT3A in acute monocytic leukemia. Nat Genet 2011;43(4):309-15", "Walter MJ, et al. Recurrent DNMT3A mutations in patients with myelodysplastic syndromes. Leukemia 2011;25(7):1153-8", "Stegelmann F, et al. DNMT3A mutations in myeloproliferative neoplasms. Leukemia 2011;25(7):1217-9", "Thol F, et al. Incidence and prognostic influence of DNMT3A mutations in acute myeloid leukemia. J Clin Oncol 2011;29(21):2889-96", "Neumann M, et al. Whole-exome sequencing in adult ETP-ALL reveals a high rate of DNMT3A mutations. Blood 2013;121(23):4749-52", "Jankowska AM, et al. Mutational spectrum analysis of chronic myelomonocytic leukemia includes genes associated with epigenetic regulation: UTX, EZH2, and DNMT3A. Blood 2011;118(14):3932-41", "Ahn JS, et al. DNMT3A R882 Mutation with FLT3-ITD Positivity Is an Extremely Poor Prognostic Factor in Patients with Normal-Karyotype Acute Myeloid Leukemia after Allogeneic Hematopoietic Cell Transplantation. Biol Blood Marrow Transplant 2016;22(1):61-70", "Russler-Germain DA, et al. The R882H DNMT3A mutation associated with AML dominantly inhibits wild-type DNMT3A by blocking its ability to form active tetramers. Cancer Cell 2014;25(4):442-54", "National Comprehensive Cancer Network. Clinical Practice Guidelines in Oncology. Acute Myeloid Leukemia (Version 1.2018).", "National Comprehensive Cancer Network. Clinical Practice Guidelines in Oncology. Myelodysplastic Syndromes (Version 1.2019)."]}, "assertions": [{"type": "assertion", "description": "DNMT3A is a DNA methyltransferase. Recurrent, somatic, heterozygous mutations in DNMT3A have been reported in approximately 18-25% of cases of acute myeloid leukemia (up to 34% of normal karyotype AML),  12-18% of cases of myelodysplastic syndrome,  up to 15% of myeloproliferative neoplasms,  less than 5% of cases of chronic myelomonocytic leukemia and 15% of cases of adult, eary T cell precursor acute lymphoblastic leukemia.  DNMT3A is also one of the most frequently mutated genes in CHIP and CCUS. Mutations in DNMT3A may occur together with mutations in other genes including JAK2, FLT3, IDH1/IDH2, ASXL1, TET2 and NPM1.  DNMT3A mutations have been associated with reduced enzymatic activity or altered histone binding, as well as reduced DNA methylation in various genomic regions and altered gene expression in some models. Codon R882 is a hotspot for mutations in DNMT3A.  DNMT3A mutations may be associated with adverse prognosis in specific subtypes of AML according to some, but not all studies; the prognostic significance of DNMT3A in AML may depend on patient age, type of DNMT3A mutation (R882 or non-R882 mutation) and the co-existence (or absence) of specific mutations in other genes.  DNMT3A mutations may also be associated with adverse prognosis in MDS according to some studies.", "tumor_types": ["Myeloproliferative Neoplasm", "Acute Myeloid Leukemia", "T Lymphoblastic Leukemia/Lymphoma", "Myelodysplastic Syndrome", "Chronic Myelomonocytic Leukemia", "Acute Leukemia of Unspecified Cell Type", "Anemia, Unspecified", "Atypical Chronic Myeloid Leukemia", "B Lymphoblastic Leukemia/Lymphoma", "Chronic Myeloid Leukemia", "Chronic Neutrophilic Leukemia", "Cytopenia", "Eosinophilia", "Essential Thrombocythemia", "Histiocytic and Dendritic Cell Neoplasms", "Langerhans Cell Histiocytosis", "Leukocytosis", "Leukopenia", "Mast Cell Neoplasm", "MDS with Ring Sideroblasts", "Monocytosis", "Myelodysplastic/Myeloproliferative Neoplasm", "Myeloid Neoplasm", "Other Acute Leukemia", "Polycythemia Vera", "Polycythemia", "Primary Myelofibrosis", "Thrombocytopenia, Unspecified", "Thrombocytosis"], "tissue_types": ["Blood", "Bone Marrow"], "tier": 2, "gene": "DNMT3A"}]}], "ASSERTION": {"type": "assertion", "description": "DNMT3A is a DNA methyltransferase. Recurrent, somatic, heterozygous mutations in DNMT3A have been reported in approximately 18-25% of cases of acute myeloid leukemia (up to 34% of normal karyotype AML),  12-18% of cases of myelodysplastic syndrome,  up to 15% of myeloproliferative neoplasms,  less than 5% of cases of chronic myelomonocytic leukemia and 15% of cases of adult, eary T cell precursor acute lymphoblastic leukemia.  DNMT3A is also one of the most frequently mutated genes in CHIP and CCUS. Mutations in DNMT3A may occur together with mutations in other genes including JAK2, FLT3, IDH1/IDH2, ASXL1, TET2 and NPM1.  DNMT3A mutations have been associated with reduced enzymatic activity or altered histone binding, as well as reduced DNA methylation in various genomic regions and altered gene expression in some models. Codon R882 is a hotspot for mutations in DNMT3A.  DNMT3A mutations may be associated with adverse prognosis in specific subtypes of AML according to some, but not all studies; the prognostic significance of DNMT3A in AML may depend on patient age, type of DNMT3A mutation (R882 or non-R882 mutation) and the co-existence (or absence) of specific mutations in other genes.  DNMT3A mutations may also be associated with adverse prognosis in MDS according to some studies.", "gene": {"name": "DNMT3A"}, "variants": [{"name": "DNMT3A any mutation"}], "tier": 2, "tumor_types": ["Myeloproliferative Neoplasm", "Acute Myeloid Leukemia", "T Lymphoblastic Leukemia/Lymphoma", "Myelodysplastic Syndrome", "Chronic Myelomonocytic Leukemia", "Acute Leukemia of Unspecified Cell Type", "Anemia, Unspecified", "Atypical Chronic Myeloid Leukemia", "B Lymphoblastic Leukemia/Lymphoma", "Chronic Myeloid Leukemia", "Chronic Neutrophilic Leukemia", "Cytopenia", "Eosinophilia", "Essential Thrombocythemia", "Histiocytic and Dendritic Cell Neoplasms", "Langerhans Cell Histiocytosis", "Leukocytosis", "Leukopenia", "Mast Cell Neoplasm", "MDS with Ring Sideroblasts", "Monocytosis", "Myelodysplastic/Myeloproliferative Neoplasm", "Myeloid Neoplasm", "Other Acute Leukemia", "Polycythemia Vera", "Polycythemia", "Primary Myelofibrosis", "Thrombocytopenia, Unspecified", "Thrombocytosis"], "tissue_types": ["Blood", "Bone Marrow"]}}
+{
+    "EVIDENCE": {
+        "type": "evidence",
+        "assertions": [
+            {
+                "type": "assertion",
+                "description": "DNMT3A is a DNA methyltransferase. Recurrent, somatic, heterozygous mutations in DNMT3A have been reported in approximately 18-25% of cases of acute myeloid leukemia (up to 34% of normal karyotype AML),  12-18% of cases of myelodysplastic syndrome,  up to 15% of myeloproliferative neoplasms,  less than 5% of cases of chronic myelomonocytic leukemia and 15% of cases of adult, eary T cell precursor acute lymphoblastic leukemia.  DNMT3A is also one of the most frequently mutated genes in CHIP and CCUS. Mutations in DNMT3A may occur together with mutations in other genes including JAK2, FLT3, IDH1/IDH2, ASXL1, TET2 and NPM1.  DNMT3A mutations have been associated with reduced enzymatic activity or altered histone binding, as well as reduced DNA methylation in various genomic regions and altered gene expression in some models. Codon R882 is a hotspot for mutations in DNMT3A.  DNMT3A mutations may be associated with adverse prognosis in specific subtypes of AML according to some, but not all studies; the prognostic significance of DNMT3A in AML may depend on patient age, type of DNMT3A mutation (R882 or non-R882 mutation) and the co-existence (or absence) of specific mutations in other genes.  DNMT3A mutations may also be associated with adverse prognosis in MDS according to some studies.",
+                "gene": {
+                    "name": "DNMT3A"
+                },
+                "variants": [
+                    {
+                        "name": "DNMT3A any mutation"
+                    }
+                ],
+                "tier": 2,
+                "tumor_types": [
+                    "Myeloproliferative Neoplasm",
+                    "Acute Myeloid Leukemia",
+                    "T Lymphoblastic Leukemia/Lymphoma",
+                    "Myelodysplastic Syndrome",
+                    "Chronic Myelomonocytic Leukemia",
+                    "Acute Leukemia of Unspecified Cell Type",
+                    "Anemia, Unspecified",
+                    "Atypical Chronic Myeloid Leukemia",
+                    "B Lymphoblastic Leukemia/Lymphoma",
+                    "Chronic Myeloid Leukemia",
+                    "Chronic Neutrophilic Leukemia",
+                    "Cytopenia",
+                    "Eosinophilia",
+                    "Essential Thrombocythemia",
+                    "Histiocytic and Dendritic Cell Neoplasms",
+                    "Langerhans Cell Histiocytosis",
+                    "Leukocytosis",
+                    "Leukopenia",
+                    "Mast Cell Neoplasm",
+                    "MDS with Ring Sideroblasts",
+                    "Monocytosis",
+                    "Myelodysplastic/Myeloproliferative Neoplasm",
+                    "Myeloid Neoplasm",
+                    "Other Acute Leukemia",
+                    "Polycythemia Vera",
+                    "Polycythemia",
+                    "Primary Myelofibrosis",
+                    "Thrombocytopenia, Unspecified",
+                    "Thrombocytosis"
+                ],
+                "tissue_types": [
+                    "Blood",
+                    "Bone Marrow"
+                ]
+            }
+        ],
+        "source": {
+            "citations": [
+                "Larsson CA, et al. The changing mutational landscape of acute myeloid leukemia and myelodysplastic syndrome. Mol Cancer Res 2013;11(8):815-27",
+                "Ley TJ, et al. DNMT3A mutations in acute myeloid leukemia. N Engl J Med 2010;363(25):2424-33",
+                "Yan XJ, et al. Exome sequencing identifies somatic mutations of DNA methyltransferase gene DNMT3A in acute monocytic leukemia. Nat Genet 2011;43(4):309-15",
+                "Walter MJ, et al. Recurrent DNMT3A mutations in patients with myelodysplastic syndromes. Leukemia 2011;25(7):1153-8",
+                "Stegelmann F, et al. DNMT3A mutations in myeloproliferative neoplasms. Leukemia 2011;25(7):1217-9",
+                "Thol F, et al. Incidence and prognostic influence of DNMT3A mutations in acute myeloid leukemia. J Clin Oncol 2011;29(21):2889-96",
+                "Neumann M, et al. Whole-exome sequencing in adult ETP-ALL reveals a high rate of DNMT3A mutations. Blood 2013;121(23):4749-52",
+                "Jankowska AM, et al. Mutational spectrum analysis of chronic myelomonocytic leukemia includes genes associated with epigenetic regulation: UTX, EZH2, and DNMT3A. Blood 2011;118(14):3932-41",
+                "Ahn JS, et al. DNMT3A R882 Mutation with FLT3-ITD Positivity Is an Extremely Poor Prognostic Factor in Patients with Normal-Karyotype Acute Myeloid Leukemia after Allogeneic Hematopoietic Cell Transplantation. Biol Blood Marrow Transplant 2016;22(1):61-70",
+                "Russler-Germain DA, et al. The R882H DNMT3A mutation associated with AML dominantly inhibits wild-type DNMT3A by blocking its ability to form active tetramers. Cancer Cell 2014;25(4):442-54",
+                "National Comprehensive Cancer Network. Clinical Practice Guidelines in Oncology. Acute Myeloid Leukemia (Version 1.2018).",
+                "National Comprehensive Cancer Network. Clinical Practice Guidelines in Oncology. Myelodysplastic Syndromes (Version 1.2019)."
+            ]
+        }
+    },
+    "GENE": {
+        "type": "gene",
+        "name": "DNMT3A",
+        "variants": [
+            {
+                "name": "DNMT3A any mutation",
+                "evidence_count": 1
+            }
+        ]
+    },
+    "VARIANTS": [
+        {
+            "type": "variant",
+            "name": "DNMT3A any mutation",
+            "gene": "DNMT3A",
+            "evidence": {
+                "type": "evidence",
+                "sources": [
+                    "Larsson CA, et al. The changing mutational landscape of acute myeloid leukemia and myelodysplastic syndrome. Mol Cancer Res 2013;11(8):815-27",
+                    "Ley TJ, et al. DNMT3A mutations in acute myeloid leukemia. N Engl J Med 2010;363(25):2424-33",
+                    "Yan XJ, et al. Exome sequencing identifies somatic mutations of DNA methyltransferase gene DNMT3A in acute monocytic leukemia. Nat Genet 2011;43(4):309-15",
+                    "Walter MJ, et al. Recurrent DNMT3A mutations in patients with myelodysplastic syndromes. Leukemia 2011;25(7):1153-8",
+                    "Stegelmann F, et al. DNMT3A mutations in myeloproliferative neoplasms. Leukemia 2011;25(7):1217-9",
+                    "Thol F, et al. Incidence and prognostic influence of DNMT3A mutations in acute myeloid leukemia. J Clin Oncol 2011;29(21):2889-96",
+                    "Neumann M, et al. Whole-exome sequencing in adult ETP-ALL reveals a high rate of DNMT3A mutations. Blood 2013;121(23):4749-52",
+                    "Jankowska AM, et al. Mutational spectrum analysis of chronic myelomonocytic leukemia includes genes associated with epigenetic regulation: UTX, EZH2, and DNMT3A. Blood 2011;118(14):3932-41",
+                    "Ahn JS, et al. DNMT3A R882 Mutation with FLT3-ITD Positivity Is an Extremely Poor Prognostic Factor in Patients with Normal-Karyotype Acute Myeloid Leukemia after Allogeneic Hematopoietic Cell Transplantation. Biol Blood Marrow Transplant 2016;22(1):61-70",
+                    "Russler-Germain DA, et al. The R882H DNMT3A mutation associated with AML dominantly inhibits wild-type DNMT3A by blocking its ability to form active tetramers. Cancer Cell 2014;25(4):442-54",
+                    "National Comprehensive Cancer Network. Clinical Practice Guidelines in Oncology. Acute Myeloid Leukemia (Version 1.2018).",
+                    "National Comprehensive Cancer Network. Clinical Practice Guidelines in Oncology. Myelodysplastic Syndromes (Version 1.2019)."
+                ]
+            },
+            "assertions": [
+                {
+                    "type": "assertion",
+                    "description": "DNMT3A is a DNA methyltransferase. Recurrent, somatic, heterozygous mutations in DNMT3A have been reported in approximately 18-25% of cases of acute myeloid leukemia (up to 34% of normal karyotype AML),  12-18% of cases of myelodysplastic syndrome,  up to 15% of myeloproliferative neoplasms,  less than 5% of cases of chronic myelomonocytic leukemia and 15% of cases of adult, eary T cell precursor acute lymphoblastic leukemia.  DNMT3A is also one of the most frequently mutated genes in CHIP and CCUS. Mutations in DNMT3A may occur together with mutations in other genes including JAK2, FLT3, IDH1/IDH2, ASXL1, TET2 and NPM1.  DNMT3A mutations have been associated with reduced enzymatic activity or altered histone binding, as well as reduced DNA methylation in various genomic regions and altered gene expression in some models. Codon R882 is a hotspot for mutations in DNMT3A.  DNMT3A mutations may be associated with adverse prognosis in specific subtypes of AML according to some, but not all studies; the prognostic significance of DNMT3A in AML may depend on patient age, type of DNMT3A mutation (R882 or non-R882 mutation) and the co-existence (or absence) of specific mutations in other genes.  DNMT3A mutations may also be associated with adverse prognosis in MDS according to some studies.",
+                    "tumor_types": [
+                        "Myeloproliferative Neoplasm",
+                        "Acute Myeloid Leukemia",
+                        "T Lymphoblastic Leukemia/Lymphoma",
+                        "Myelodysplastic Syndrome",
+                        "Chronic Myelomonocytic Leukemia",
+                        "Acute Leukemia of Unspecified Cell Type",
+                        "Anemia, Unspecified",
+                        "Atypical Chronic Myeloid Leukemia",
+                        "B Lymphoblastic Leukemia/Lymphoma",
+                        "Chronic Myeloid Leukemia",
+                        "Chronic Neutrophilic Leukemia",
+                        "Cytopenia",
+                        "Eosinophilia",
+                        "Essential Thrombocythemia",
+                        "Histiocytic and Dendritic Cell Neoplasms",
+                        "Langerhans Cell Histiocytosis",
+                        "Leukocytosis",
+                        "Leukopenia",
+                        "Mast Cell Neoplasm",
+                        "MDS with Ring Sideroblasts",
+                        "Monocytosis",
+                        "Myelodysplastic/Myeloproliferative Neoplasm",
+                        "Myeloid Neoplasm",
+                        "Other Acute Leukemia",
+                        "Polycythemia Vera",
+                        "Polycythemia",
+                        "Primary Myelofibrosis",
+                        "Thrombocytopenia, Unspecified",
+                        "Thrombocytosis"
+                    ],
+                    "tissue_types": [
+                        "Blood",
+                        "Bone Marrow"
+                    ],
+                    "tier": 2,
+                    "gene": "DNMT3A"
+                }
+            ]
+        }
+    ],
+    "ASSERTION": {
+        "type": "assertion",
+        "description": "DNMT3A is a DNA methyltransferase. Recurrent, somatic, heterozygous mutations in DNMT3A have been reported in approximately 18-25% of cases of acute myeloid leukemia (up to 34% of normal karyotype AML),  12-18% of cases of myelodysplastic syndrome,  up to 15% of myeloproliferative neoplasms,  less than 5% of cases of chronic myelomonocytic leukemia and 15% of cases of adult, eary T cell precursor acute lymphoblastic leukemia.  DNMT3A is also one of the most frequently mutated genes in CHIP and CCUS. Mutations in DNMT3A may occur together with mutations in other genes including JAK2, FLT3, IDH1/IDH2, ASXL1, TET2 and NPM1.  DNMT3A mutations have been associated with reduced enzymatic activity or altered histone binding, as well as reduced DNA methylation in various genomic regions and altered gene expression in some models. Codon R882 is a hotspot for mutations in DNMT3A.  DNMT3A mutations may be associated with adverse prognosis in specific subtypes of AML according to some, but not all studies; the prognostic significance of DNMT3A in AML may depend on patient age, type of DNMT3A mutation (R882 or non-R882 mutation) and the co-existence (or absence) of specific mutations in other genes.  DNMT3A mutations may also be associated with adverse prognosis in MDS according to some studies.",
+        "gene": {
+            "name": "DNMT3A"
+        },
+        "variants": [
+            {
+                "name": "DNMT3A any mutation"
+            }
+        ],
+        "tier": 2,
+        "tumor_types": [
+            "Myeloproliferative Neoplasm",
+            "Acute Myeloid Leukemia",
+            "T Lymphoblastic Leukemia/Lymphoma",
+            "Myelodysplastic Syndrome",
+            "Chronic Myelomonocytic Leukemia",
+            "Acute Leukemia of Unspecified Cell Type",
+            "Anemia, Unspecified",
+            "Atypical Chronic Myeloid Leukemia",
+            "B Lymphoblastic Leukemia/Lymphoma",
+            "Chronic Myeloid Leukemia",
+            "Chronic Neutrophilic Leukemia",
+            "Cytopenia",
+            "Eosinophilia",
+            "Essential Thrombocythemia",
+            "Histiocytic and Dendritic Cell Neoplasms",
+            "Langerhans Cell Histiocytosis",
+            "Leukocytosis",
+            "Leukopenia",
+            "Mast Cell Neoplasm",
+            "MDS with Ring Sideroblasts",
+            "Monocytosis",
+            "Myelodysplastic/Myeloproliferative Neoplasm",
+            "Myeloid Neoplasm",
+            "Other Acute Leukemia",
+            "Polycythemia Vera",
+            "Polycythemia",
+            "Primary Myelofibrosis",
+            "Thrombocytopenia, Unspecified",
+            "Thrombocytosis"
+        ],
+        "tissue_types": [
+            "Blood",
+            "Bone Marrow"
+        ]
+    }
+}
