@@ -90,7 +90,7 @@ class PMKB(Harvester):
             logger.error(f"PMKB source download failed with status code: {response.status_code}")  # noqa: E501
             raise FileDownloadException("PMKB source download failed")
 
-    def _build_genes(data: pd.DataFrame) -> List:
+    def _build_genes(self, data: pd.DataFrame) -> List:
         """Build list of genes.
 
         :param DataFrame data: PMKB input data formatted as a Pandas DataFrame.
@@ -120,7 +120,7 @@ class PMKB(Harvester):
             })
         return genes
 
-    def _build_variants(data: pd.DataFrame) -> List:
+    def _build_variants(self, data: pd.DataFrame) -> List:
         """Build list of variants.
 
         :param pd.DataFrame data: PMKB input data formatted as a Pandas
@@ -169,7 +169,7 @@ class PMKB(Harvester):
             })
         return variants
 
-    def _build_ev_and_assertions(data: pd.DataFrame) -> (List, List):
+    def _build_ev_and_assertions(self, data: pd.DataFrame) -> (List, List):
         """Build list of evidence and assertions.
 
         :param pd.DataFrame data: PMKB input data formatted as a Pandas
