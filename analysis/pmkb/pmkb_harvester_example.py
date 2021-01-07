@@ -58,7 +58,7 @@ def create_variant_examples(data):
             variants.append(data['variants'][i])
 
     for variant in variants:
-        outpath = PROJECT_ROOT / 'analysis' / 'pmkb' /\
+        outpath = PROJECT_ROOT / 'analysis' / 'pmkb' / 'examples' / \
             f"{variant['name'].lower()}.json"
         with open(outpath, 'w+') as f:
             json.dump(variant, f)
