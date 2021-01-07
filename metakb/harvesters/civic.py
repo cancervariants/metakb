@@ -5,7 +5,7 @@ from civicpy import civic as civicpy
 import json
 import logging
 
-logger = logging.getLogger('gene')
+logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
@@ -49,6 +49,9 @@ class CIViC(Harvester):
             'variants': variants,
             'assertions': assertions
         }
+
+        civic_dir = PROJECT_ROOT / 'data' / 'civic'
+        civic_dir.mkdir(exist_ok=True, parents=True)
 
         # Create composite json
         with open(f'{PROJECT_ROOT}/data/civic/civic_harvester.json',
