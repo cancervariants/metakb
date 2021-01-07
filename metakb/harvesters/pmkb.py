@@ -69,6 +69,7 @@ class PMKB(Harvester):
     def _download_csv(self):
         """Download source data from PMKB server."""
         PMKB_URL = "https://pmkb.weill.cornell.edu/therapies/downloadCSV.csv"
+        logger.info("Downloading PMKB source CSV...")
         response = requests.get(PMKB_URL, stream=True)
         if response.status_code == 200:
             fname = ''
@@ -80,6 +81,7 @@ class PMKB(Harvester):
                 fname = PMKB_URL.split("/")[-1]
             with open(self._data_dir / fname, 'wb') as f:
                 f.write(response.content)
+            logger.info("PMKB source CSV download successful.")
         else:
             logger.error(f"PMKB source download failed with status code: {response.status_code}")  # noqa: E501
             raise FileDownloadException("PMKB source download failed")
@@ -95,9 +97,9 @@ class PMKB(Harvester):
         genes = list()
         genes_grouped = data[['gene', 'variants']].groupby('gene',
                                                            as_index=False)
-        for (gene, grouped) in genes_grouped:
+        for (gene, group) in genes_grouped:
             # flatten variant lists
-            var_series = grouped['variants'].apply(pd.Series) \
+            var_series = group['variants'].apply(pd.Series) \
                 .stack().reset_index(drop=True)
             # get counts for variants
             var_counts = pd.Series([v for v in var_series if v != ''],
@@ -123,22 +125,23 @@ class PMKB(Harvester):
         :return: completed List of variant items.
         :rtype: List
         """
-        variants = list()
-
-        # create duplicate entries with unique variants for each row
-        v = pd.DataFrame(
+        # break assertions out into rows for each included variant
+        var_df = pd.DataFrame(
             {
                 col: np.repeat(data[col].values, data['variants'].str.len())
                 for col in data.columns.drop('variants')
             }).assign(**{
                 'variants': np.concatenate(data['variants'].values)
             })
-        v['variants'].replace('', np.nan, inplace=True)
+        var_df['variants'].replace('', np.nan, inplace=True)
         # some rows don't provide variants - drop those
-        v.dropna(subset=['variants'], inplace=True)
-        v = v.groupby('variants')
-        for (variant, grouped) in v:
-            gene = grouped['gene'].iloc[0]
+        var_df.dropna(subset=['variants'], inplace=True)
+        # create DF that groups variants with all associated assertions
+        vars_grouped = var_df.groupby('variants')
+
+        variants = list()
+        for (variant, group) in vars_grouped:
+            gene = group['gene'].iloc[0]
             variants.append({
                 'type': 'variant',
                 'name': variant,
@@ -146,7 +149,7 @@ class PMKB(Harvester):
                 'evidence': {
                     'type': 'evidence',
                     # flatten citation lists and reduce to unique cites
-                    'sources': list(grouped['citations'].apply(pd.Series)
+                    'sources': list(group['citations'].apply(pd.Series)
                                     .stack().reset_index(drop=True).unique())
                 },
                 'assertions': [
@@ -158,7 +161,7 @@ class PMKB(Harvester):
                         'tier': row['tier'],
                         'gene': gene,
                     }
-                    for _, row in grouped.iterrows()
+                    for _, row in group.iterrows()
                 ]
             })
         return variants
@@ -216,7 +219,7 @@ class PMKB(Harvester):
         """Create and write composite JSON file containing genes, variants, and
         interpretations, and create individual JSON files for each assertion.
 
-        :param List evidence: List of evidence items
+        :param List evidence: List of evidence objects
         :param List genes: List of genes
         :param List variants: List of variants
         :param List assertions: List of assertions
