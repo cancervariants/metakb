@@ -42,7 +42,8 @@ class PMKB(Harvester):
         return True
 
     def _load_dataframe(self, data_dir: Path) -> pd.DataFrame:
-        """Load source file and build DataFrame object.
+        """Load source file and perform necessary transformations to build
+        workable DataFrame object.
 
         :param pathlib.Path data_dir: path to local PMKB data source directory
         :return: formatted DataFrame with PMKB data
@@ -67,7 +68,10 @@ class PMKB(Harvester):
         return data
 
     def _download_csv(self):
-        """Download source data from PMKB server."""
+        """Download source data from PMKB server. Doesn't return anything,
+        but saves file in the location designated by the instance's data_dir
+        attribute.
+        """
         PMKB_URL = "https://pmkb.weill.cornell.edu/therapies/downloadCSV.csv"
         logger.info("Downloading PMKB source CSV...")
         response = requests.get(PMKB_URL, stream=True)
@@ -89,8 +93,7 @@ class PMKB(Harvester):
     def _build_genes(data: pd.DataFrame) -> List:
         """Build list of genes.
 
-        :param DataFrame data: PMKB input data formatted as a Pandas
-            DataFrame.
+        :param DataFrame data: PMKB input data formatted as a Pandas DataFrame.
         :return: completed List of gene items.
         :rtype: List
         """
