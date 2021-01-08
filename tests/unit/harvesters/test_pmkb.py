@@ -70,11 +70,65 @@ def ev_fixture():
     return {
         "type": "evidence",
         "assertions": [
-
+            {
+                'type': 'assertion',
+                'description': 'NOTCH2 gain of function mutations have been reported in approximately 25% of splenic marginal zone lymphomas and are thought to be rare in non-splenic marginal zone lymphomas. These mutations are typically located near the C-terminal PEST domain and lead to protein truncation or, more rarely, are nonsynonymous substitution mutations affecting the extracellular heterodimerization domain. In addition, NOTCH2 PEST domain mutations have been reported in approximately 8% of diffuse large B cell lymphomas and in vitro systems suggest that PEST domain mutant NOTCH2 receptors have increased activity compared to wild type NOTCH2. The prognostic and therapeutic implications of these alterations continue to be elucidated.',  # noqa: E501
+                'gene': {
+                    'name': 'NOTCH2'
+                },
+                'variants': [
+                    {
+                        'name': 'NOTCH2 I2304fs'
+                    },
+                    {
+                        'name': 'NOTCH2 exon(s) 34 frameshift'
+                    }
+                ],
+                'tier': 1,
+                'tumor_types': [
+                    'Marginal Zone B Cell Lymphoma'
+                ],
+                'tissue_types': [
+                    'Spleen'
+                ]
+            }
         ],
         "source": {
-            "citations": []
+            "citations": [
+                'Kiel MJ, et al. Whole-genome sequencing identifies recurrent somatic NOTCH2 mutations in splenic marginal zone lymphoma. J Exp Med 2012;209(9):1553-65',  # noqa: E501
+                'Lee SY, et al. Gain-of-function mutations and copy number  increases of Notch2 in diffuse large B-cell lymphoma. Cancer Sci 2009;100(5):920-6'  # noqa: E501
+            ]
         }
+    }
+
+
+@pytest.fixture(scope='module')
+def assertion_fixture():
+    """Create assertion test fixture."""
+    return {
+        'type': 'assertion',
+        'gene': {
+            'name': 'FGFR3'
+        },
+        'description': 'FGFR3 is one of four high affinity tyrosine kinase receptors for the fibroblast growth factor family of ligands. On ligand stimulation, FGFR3 undergoes dimerization and tyrosine autophosphorylation, resulting in cell proliferation or differentiation through the mitogen-activated protein kinase (MAPK) and phospholipase Cg signal transduction pathways. Some FGFR3 mutations are believed to result in ligand-independent activation of the receptor. However, FGFR3 F384L mutation is not associated with activation of FGFR and, in NIH-3T3 cells, it was demonstrated to be devoid of any transforming activity. FGFR3 is altered in 2.9% of pancreatic adenocarcinomas. The FGFR3 F384L mutation has been reported as a benign/likely benign germline variant in ClinVar (https://www.ncbi.nlm.nih.gov/clinvar/variation/134404/). Clinical correlation is recommended.',  # noqa: E501
+        'tier': 3,
+        'tumor_types': [
+            'Adenocarcinoma'
+        ],
+        'tissue_types': [
+            'Ampulla (Pancreaticobiliary Duct)'
+        ],
+        'variants': [
+            {
+                'name': 'FGFR3 F384L'
+            }
+        ],
+        'citations': [
+            'Nakanishi Y, et al. The fibroblast growth factor receptor genetic status as a potential predictor of the sensitivity to CH5183284/Debio 1347, a novel selective FGFR inhibitor. Mol Cancer Ther 2014;13(11):2547-58.',  # noqa: E501
+            'Lafitte M, et al. FGFR3 has tumor suppressor properties in cells with epithelial phenotype. Mol Cancer 2013;12():83.',  # noqa: E501
+            'Kanazawa TY, et al. Frequency of the allelic variant c.1150T &amp;gt; C in exon 10 of the fibroblast growth factor receptor 3 (FGFR3) gene is not increased in patients with pathogenic mutations and related chondrodysplasia phenotypes. Genet Mol Biol 2014;37(4):622-4.',  # noqa: E501
+            'Comprehensive TCGA PanCanAtlas (https://gdc.cancer.gov/about-data/publications/pancanatlas).'  # noqa: E501
+        ]
     }
 
 
@@ -161,5 +215,53 @@ def test_variant_generation(pmkb, variant_fixture):
 
 def test_ev_generation(pmkb, ev_fixture):
     """Test generation of evidence objects by PMKB harvester."""
+    # get specific ev object
     test_ev = pmkb.get_ev()
-    assert test_ev == ev_fixture
+    for ev in test_ev:
+        if ev['assertions'][0]['description'] == \
+                ev_fixture['assertions'][0]['description']:
+            test_ev = ev
+            break
+
+    assert test_ev['type'] == ev_fixture['type']
+    assert len(test_ev['assertions']) == len(ev_fixture['assertions'])
+    test_assrtn = test_ev['assertions'][0]
+    fixture_assrtn = ev_fixture['assertions'][0]
+    assert test_assrtn['type'] == fixture_assrtn['type']
+    assert test_assrtn['description'] == fixture_assrtn['description']
+    assert test_assrtn['gene']['name'] == fixture_assrtn['gene']['name']
+    for fixture_var in fixture_assrtn['variants']:
+        var_in_test = False
+        for test_var in test_assrtn['variants']:
+            if test_var['name'] == fixture_var['name']:
+                var_in_test = True
+        assert var_in_test
+    assert test_assrtn['tier'] == fixture_assrtn['tier']
+    assert set(test_assrtn['tumor_types']) == \
+        set(fixture_assrtn['tumor_types'])
+    assert set(test_assrtn['tissue_types']) == \
+        set(fixture_assrtn['tissue_types'])
+    assert len(test_ev['source']['citations']) == \
+        len(ev_fixture['source']['citations'])
+
+
+def test_assertion_generation(pmkb, assertion_fixture):
+    """Test generation of assertion objects by PMKB harvester."""
+    # get specific assertion object
+    assertions = pmkb.get_assertions()
+    for assertion in assertions:
+        if assertion['description'] == assertion_fixture['description']:
+            test_assrtn = assertion
+            break
+
+    assert test_assrtn['type'] == assertion_fixture['type']
+    assert test_assrtn['gene']['name'] == assertion_fixture['gene']['name']
+    assert test_assrtn['tier'] == assertion_fixture['tier']
+    assert set(test_assrtn['tumor_types']) == \
+        set(assertion_fixture['tumor_types'])
+    assert set(test_assrtn['tissue_types']) == \
+        set(assertion_fixture['tissue_types'])
+    assert len(test_assrtn['variants']) == len(assertion_fixture['variants'])
+    assert test_assrtn['variants'][0]['name'] == \
+        assertion_fixture['variants'][0]['name']
+    assert set(test_assrtn['citations']) == set(assertion_fixture['citations'])
