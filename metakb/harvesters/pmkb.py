@@ -63,7 +63,10 @@ class PMKB(Harvester):
         data.columns = ['gene', 'tumor_types', 'tissue_types', 'variants',
                         'tier', 'interpretation', 'citations']
         for col in ['variants', 'tumor_types', 'tissue_types', 'citations']:
-            data[col] = data[col].apply(lambda t: t.split('|'))
+            data[col] = data[col].apply(lambda r: r.split('|'))
+            data[col] = data[col].apply(lambda r: [i.strip() for i in r])
+        for col in ['gene', 'interpretation']:
+            data[col] = data[col].apply(lambda r: r.strip())
         return data
 
     def _download_csv(self):
