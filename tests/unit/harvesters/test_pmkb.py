@@ -65,6 +65,20 @@ def variant_fixture():
 
 
 @pytest.fixture(scope='module')
+def ev_fixture():
+    """Create evidence test fixture."""
+    return {
+        "type": "evidence",
+        "assertions": [
+
+        ],
+        "source": {
+            "citations": []
+        }
+    }
+
+
+@pytest.fixture(scope='module')
 def pmkb():
     """Create PMKB harvester test fixture"""
     class PMKBVariants:
@@ -79,52 +93,73 @@ def pmkb():
         def get_vars(self):
             return self.pmkb._build_variants(self._data)
 
+        def get_ev(self):
+            evidence, _ = self.pmkb._build_ev_and_assertions(self._data)
+            return evidence
+
+        def get_assertions(self):
+            _, assertions = self.pmkb._build_ev_and_assertions(self._data)
+            return assertions
+
     return PMKBVariants()
 
 
 def test_gene_generation(pmkb, gene_fixture):
     """Test generation of gene objects by PMKB harvester."""
-    gene = [g for g in pmkb.get_genes() if g['name'] == 'NOTCH2']
-    assert len(gene) == 1
-    gene = gene[0]
-    assert gene['type'] == gene_fixture['type']
-    assert gene['name'] == gene_fixture['name']
-    assert len(gene['variants']) == len(gene_fixture['variants'])
-    assert gene['variants'] == gene_fixture['variants']
+    test_genes = [g for g in pmkb.get_genes() if g['name'] == 'NOTCH2']
+    assert len(test_genes) == 1
+    test_gene = test_genes[0]
+    assert test_gene['type'] == gene_fixture['type']
+    assert test_gene['name'] == gene_fixture['name']
+    assert len(test_gene['variants']) == len(gene_fixture['variants'])
+    # variants generated in inconsistent order - manually set variables
+    for v in test_gene['variants']:
+        if v['name'].endswith('frameshift'):
+            test_gene_v1 = v
+        elif v['name'].endswith('fs'):
+            test_gene_v2 = v
+    assert test_gene_v1 == gene_fixture['variants'][0]
+    assert test_gene_v2 == gene_fixture['variants'][1]
 
 
 def test_variant_generation(pmkb, variant_fixture):
     """Test generation of variant objects by PMKB harvester."""
     variants = [v for v in pmkb.get_vars() if v['name'] == 'FGFR3 F384L']
     assert len(variants) == 1
-    actual_var = variants[0]
+    fixture_var = variants[0]
     test_var = variant_fixture
-    assert test_var['type'] == actual_var['type']
-    assert test_var['name'] == actual_var['name']
-    assert test_var['gene'] == actual_var['gene']
-    assert test_var['evidence']['type'] == actual_var['evidence']['type']
+    assert test_var['type'] == fixture_var['type']
+    assert test_var['name'] == fixture_var['name']
+    assert test_var['gene'] == fixture_var['gene']
+    assert test_var['evidence']['type'] == fixture_var['evidence']['type']
     assert set(test_var['evidence']['source']) == \
         set(test_var['evidence']['source'])
-    assert len(test_var['assertions']) == len(actual_var['assertions'])
+    assert len(test_var['assertions']) == len(fixture_var['assertions'])
     test_assrtn1 = [a for a in test_var['assertions']
                     if 'four' in a['description']][0]
-    actual_assrtn1 = [a for a in actual_var['assertions']
-                      if 'four' in a['description']][0]
-    assert test_assrtn1['type'] == actual_assrtn1['type']
+    fixture_assrtn1 = [a for a in fixture_var['assertions']
+                       if 'four' in a['description']][0]
+    assert test_assrtn1['type'] == fixture_assrtn1['type']
     assert set(test_assrtn1['tumor_types']) == \
-        set(actual_assrtn1['tumor_types'])
+        set(fixture_assrtn1['tumor_types'])
     assert set(test_assrtn1['tissue_types']) == \
-        set(actual_assrtn1['tissue_types'])
-    assert test_assrtn1['tier'] == actual_assrtn1['tier']
-    assert test_assrtn1['gene'] == actual_assrtn1['gene']
+        set(fixture_assrtn1['tissue_types'])
+    assert test_assrtn1['tier'] == fixture_assrtn1['tier']
+    assert test_assrtn1['gene'] == fixture_assrtn1['gene']
     test_assrtn2 = [a for a in test_var['assertions']
                     if 'four' not in a['description']][0]
-    actual_assrtn2 = [a for a in actual_var['assertions']
-                      if 'four' not in a['description']][0]
-    assert test_assrtn2['type'] == actual_assrtn2['type']
+    fixture_assrtn2 = [a for a in fixture_var['assertions']
+                       if 'four' not in a['description']][0]
+    assert test_assrtn2['type'] == fixture_assrtn2['type']
     assert set(test_assrtn2['tumor_types']) == \
-        set(actual_assrtn2['tumor_types'])
+        set(fixture_assrtn2['tumor_types'])
     assert set(test_assrtn2['tissue_types']) == \
-        set(actual_assrtn2['tissue_types'])
-    assert test_assrtn2['tier'] == actual_assrtn2['tier']
-    assert test_assrtn2['gene'] == actual_assrtn2['gene']
+        set(fixture_assrtn2['tissue_types'])
+    assert test_assrtn2['tier'] == fixture_assrtn2['tier']
+    assert test_assrtn2['gene'] == fixture_assrtn2['gene']
+
+
+def test_ev_generation(pmkb, ev_fixture):
+    """Test generation of evidence objects by PMKB harvester."""
+    test_ev = pmkb.get_ev()
+    assert test_ev == ev_fixture
