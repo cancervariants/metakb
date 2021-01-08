@@ -4,7 +4,7 @@
         "assertions": [
             {
                 "type": "assertion",
-                "description": "NRAS encodes a membrane protein GTPase that is a central mediator of downstream growth factor receptor signaling, critical for cell proliferation and survival.  Mutations in codons 12, 13, and 61 of NRAS have been reported in 7-22% of acute myeloid leukemia,  12% of chronic myelomonocytic leukemia,  20% of blastic plasmacytoid dendritic cell neoplasm,  16% of juvenile myelomonocytic leukemia, 4-10% of myelodysplastic syndromes, and 5% of primary myelofibrosis. In addition, NRAS mutations have been described in approximately 15% of cases of B-ALL and, interestingly, some cases of ALL may show more than one abnormality in the RAS pathway.  NRAS mutations are associated with an unfavorable prognosis in chronic myelomonocytic leukemia and primary myelofibrosis. NRAS mutations are also associated with an unfavorable prognosis in myelodysplastic syndrome, particularly in patients predicted to have lower-risk myelodysplastic syndrome (NCCN Guidelines for Myelodysplastic Syndromes).  NRAS mutations do not seem to have significant prognostic impact in AML.  ",
+                "description": "NRAS encodes a membrane protein GTPase that is a central mediator of downstream growth factor receptor signaling, critical for cell proliferation and survival.  Mutations in codons 12, 13, and 61 of NRAS have been reported in 7-22% of acute myeloid leukemia,  12% of chronic myelomonocytic leukemia,  20% of blastic plasmacytoid dendritic cell neoplasm,  16% of juvenile myelomonocytic leukemia, 4-10% of myelodysplastic syndromes, and 5% of primary myelofibrosis. In addition, NRAS mutations have been described in approximately 15% of cases of B-ALL and, interestingly, some cases of ALL may show more than one abnormality in the RAS pathway.  NRAS mutations are associated with an unfavorable prognosis in chronic myelomonocytic leukemia and primary myelofibrosis. NRAS mutations are also associated with an unfavorable prognosis in myelodysplastic syndrome, particularly in patients predicted to have lower-risk myelodysplastic syndrome (NCCN Guidelines for Myelodysplastic Syndromes).  NRAS mutations do not seem to have significant prognostic impact in AML.",
                 "gene": {
                     "name": "NRAS"
                 },
@@ -86,19 +86,15 @@
                 "evidence_count": 8
             },
             {
-                "name": "NRAS G13R",
-                "evidence_count": 7
-            },
-            {
-                "name": "NRAS G12S",
-                "evidence_count": 7
-            },
-            {
                 "name": "NRAS G13C",
                 "evidence_count": 7
             },
             {
-                "name": "NRAS G12V",
+                "name": "NRAS codon(s) 12, 13, 61, 146 any",
+                "evidence_count": 7
+            },
+            {
+                "name": "NRAS Q61K",
                 "evidence_count": 7
             },
             {
@@ -106,7 +102,27 @@
                 "evidence_count": 7
             },
             {
+                "name": "NRAS G12C",
+                "evidence_count": 7
+            },
+            {
+                "name": "NRAS G13R",
+                "evidence_count": 7
+            },
+            {
                 "name": "NRAS Q61H",
+                "evidence_count": 7
+            },
+            {
+                "name": "NRAS G13A",
+                "evidence_count": 7
+            },
+            {
+                "name": "NRAS G13S",
+                "evidence_count": 7
+            },
+            {
+                "name": "NRAS G12V",
                 "evidence_count": 7
             },
             {
@@ -118,23 +134,7 @@
                 "evidence_count": 7
             },
             {
-                "name": "NRAS G13S",
-                "evidence_count": 7
-            },
-            {
-                "name": "NRAS G12C",
-                "evidence_count": 7
-            },
-            {
                 "name": "NRAS G12A",
-                "evidence_count": 7
-            },
-            {
-                "name": "NRAS G13A",
-                "evidence_count": 7
-            },
-            {
-                "name": "NRAS codon(s) 12, 13, 61, 146 any",
                 "evidence_count": 7
             },
             {
@@ -142,15 +142,15 @@
                 "evidence_count": 7
             },
             {
-                "name": "NRAS Q61K",
+                "name": "NRAS G12S",
                 "evidence_count": 7
             },
             {
-                "name": "NRAS T58I",
+                "name": "NRAS any mutation",
                 "evidence_count": 1
             },
             {
-                "name": "NRAS any mutation",
+                "name": "NRAS T58I",
                 "evidence_count": 1
             }
         ]
@@ -185,7 +185,7 @@
             "assertions": [
                 {
                     "type": "assertion",
-                    "description": "NRAS encodes a membrane protein GTPase that is a central mediator of downstream growth factor receptor signaling, critical for cell proliferation and survival.  Mutations in codons 12, 13, and 61 of NRAS have been reported in 7-22% of acute myeloid leukemia,  12% of chronic myelomonocytic leukemia,  20% of blastic plasmacytoid dendritic cell neoplasm,  16% of juvenile myelomonocytic leukemia, 4-10% of myelodysplastic syndromes, and 5% of primary myelofibrosis. In addition, NRAS mutations have been described in approximately 15% of cases of B-ALL and, interestingly, some cases of ALL may show more than one abnormality in the RAS pathway.  NRAS mutations are associated with an unfavorable prognosis in chronic myelomonocytic leukemia and primary myelofibrosis. NRAS mutations are also associated with an unfavorable prognosis in myelodysplastic syndrome, particularly in patients predicted to have lower-risk myelodysplastic syndrome (NCCN Guidelines for Myelodysplastic Syndromes).  NRAS mutations do not seem to have significant prognostic impact in AML.  ",
+                    "description": "NRAS encodes a membrane protein GTPase that is a central mediator of downstream growth factor receptor signaling, critical for cell proliferation and survival.  Mutations in codons 12, 13, and 61 of NRAS have been reported in 7-22% of acute myeloid leukemia,  12% of chronic myelomonocytic leukemia,  20% of blastic plasmacytoid dendritic cell neoplasm,  16% of juvenile myelomonocytic leukemia, 4-10% of myelodysplastic syndromes, and 5% of primary myelofibrosis. In addition, NRAS mutations have been described in approximately 15% of cases of B-ALL and, interestingly, some cases of ALL may show more than one abnormality in the RAS pathway.  NRAS mutations are associated with an unfavorable prognosis in chronic myelomonocytic leukemia and primary myelofibrosis. NRAS mutations are also associated with an unfavorable prognosis in myelodysplastic syndrome, particularly in patients predicted to have lower-risk myelodysplastic syndrome (NCCN Guidelines for Myelodysplastic Syndromes).  NRAS mutations do not seem to have significant prognostic impact in AML.",
                     "tumor_types": [
                         "Acute Myeloid Leukemia",
                         "Chronic Myelomonocytic Leukemia",
@@ -229,7 +229,7 @@
     ],
     "ASSERTION": {
         "type": "assertion",
-        "description": "NRAS encodes a membrane protein GTPase that is a central mediator of downstream growth factor receptor signaling, critical for cell proliferation and survival.  Mutations in codons 12, 13, and 61 of NRAS have been reported in 7-22% of acute myeloid leukemia,  12% of chronic myelomonocytic leukemia,  20% of blastic plasmacytoid dendritic cell neoplasm,  16% of juvenile myelomonocytic leukemia, 4-10% of myelodysplastic syndromes, and 5% of primary myelofibrosis. In addition, NRAS mutations have been described in approximately 15% of cases of B-ALL and, interestingly, some cases of ALL may show more than one abnormality in the RAS pathway.  NRAS mutations are associated with an unfavorable prognosis in chronic myelomonocytic leukemia and primary myelofibrosis. NRAS mutations are also associated with an unfavorable prognosis in myelodysplastic syndrome, particularly in patients predicted to have lower-risk myelodysplastic syndrome (NCCN Guidelines for Myelodysplastic Syndromes).  NRAS mutations do not seem to have significant prognostic impact in AML.  ",
+        "description": "NRAS encodes a membrane protein GTPase that is a central mediator of downstream growth factor receptor signaling, critical for cell proliferation and survival.  Mutations in codons 12, 13, and 61 of NRAS have been reported in 7-22% of acute myeloid leukemia,  12% of chronic myelomonocytic leukemia,  20% of blastic plasmacytoid dendritic cell neoplasm,  16% of juvenile myelomonocytic leukemia, 4-10% of myelodysplastic syndromes, and 5% of primary myelofibrosis. In addition, NRAS mutations have been described in approximately 15% of cases of B-ALL and, interestingly, some cases of ALL may show more than one abnormality in the RAS pathway.  NRAS mutations are associated with an unfavorable prognosis in chronic myelomonocytic leukemia and primary myelofibrosis. NRAS mutations are also associated with an unfavorable prognosis in myelodysplastic syndrome, particularly in patients predicted to have lower-risk myelodysplastic syndrome (NCCN Guidelines for Myelodysplastic Syndromes).  NRAS mutations do not seem to have significant prognostic impact in AML.",
         "gene": {
             "name": "NRAS"
         },

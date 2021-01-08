@@ -74,7 +74,7 @@
         "name": "MPL",
         "variants": [
             {
-                "name": "MPL W515L",
+                "name": "MPL S505N",
                 "evidence_count": 1
             },
             {
@@ -82,15 +82,15 @@
                 "evidence_count": 1
             },
             {
-                "name": "MPL codon(s) 515 missense",
-                "evidence_count": 1
-            },
-            {
-                "name": "MPL S505N",
-                "evidence_count": 1
-            },
-            {
                 "name": "MPL Y591D",
+                "evidence_count": 1
+            },
+            {
+                "name": "MPL W515L",
+                "evidence_count": 1
+            },
+            {
+                "name": "MPL codon(s) 515 missense",
                 "evidence_count": 1
             }
         ]

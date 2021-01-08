@@ -19,7 +19,7 @@
     "assertions": [
         {
             "type": "assertion",
-            "description": "ABL1 kinase domain mutations in Philadelphia chromosome positive acute lymphoblastic leukemia and chronic myelogenous leukemia are associated with resistance to some types of tryosine kinase inhibitor therapy. The various mutations span several hundred amino acids (M237 thru E507) and vary in their response to later generation tyrosine kinase inhibitors. ",
+            "description": "ABL1 kinase domain mutations in Philadelphia chromosome positive acute lymphoblastic leukemia and chronic myelogenous leukemia are associated with resistance to some types of tryosine kinase inhibitor therapy. The various mutations span several hundred amino acids (M237 thru E507) and vary in their response to later generation tyrosine kinase inhibitors.",
             "tumor_types": [
                 "Chronic Myeloid Leukemia",
                 "B Lymphoblastic Leukemia/Lymphoma",

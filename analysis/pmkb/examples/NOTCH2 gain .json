@@ -4,7 +4,7 @@
         "assertions": [
             {
                 "type": "assertion",
-                "description": "NOTCH2 gain of function mutations have been reported in apprximately 25% of splenic marginal zone lymphomas and are thought to be rare in non-splenic marginal zone lymphomas.  These mutations are typically located near the C-terminal PEST domain and lead to protein truncation or, more rarely, are nonsynonymous substitution mutations affected the extracellular heterodimerization domain.  NOTCH2 mutations may be associated with a worse prognosis among cases of splenic marginal zone lymphoma.  In addition, NOTCH2 PEST domain mutations have been reported in approximately 8% of diffuse large B cell lymphomas and in vitro systems have demonstrated these PEST domain mutant NOTCH2 receptors have increased activity compared to wild type NOTCH2.  In addion, copy number gain has been reported in a subset of DLBCL cases with NOTCH2 mutations. ",
+                "description": "NOTCH2 gain of function mutations have been reported in apprximately 25% of splenic marginal zone lymphomas and are thought to be rare in non-splenic marginal zone lymphomas.  These mutations are typically located near the C-terminal PEST domain and lead to protein truncation or, more rarely, are nonsynonymous substitution mutations affected the extracellular heterodimerization domain.  NOTCH2 mutations may be associated with a worse prognosis among cases of splenic marginal zone lymphoma.  In addition, NOTCH2 PEST domain mutations have been reported in approximately 8% of diffuse large B cell lymphomas and in vitro systems have demonstrated these PEST domain mutant NOTCH2 receptors have increased activity compared to wild type NOTCH2.  In addion, copy number gain has been reported in a subset of DLBCL cases with NOTCH2 mutations.",
                 "gene": {
                     "name": "NOTCH2"
                 },
@@ -63,7 +63,7 @@
             "assertions": [
                 {
                     "type": "assertion",
-                    "description": "NOTCH2 gain of function mutations have been reported in apprximately 25% of splenic marginal zone lymphomas and are thought to be rare in non-splenic marginal zone lymphomas.  These mutations are typically located near the C-terminal PEST domain and lead to protein truncation or, more rarely, are nonsynonymous substitution mutations affected the extracellular heterodimerization domain.  NOTCH2 mutations may be associated with a worse prognosis among cases of splenic marginal zone lymphoma.  In addition, NOTCH2 PEST domain mutations have been reported in approximately 8% of diffuse large B cell lymphomas and in vitro systems have demonstrated these PEST domain mutant NOTCH2 receptors have increased activity compared to wild type NOTCH2.  In addion, copy number gain has been reported in a subset of DLBCL cases with NOTCH2 mutations. ",
+                    "description": "NOTCH2 gain of function mutations have been reported in apprximately 25% of splenic marginal zone lymphomas and are thought to be rare in non-splenic marginal zone lymphomas.  These mutations are typically located near the C-terminal PEST domain and lead to protein truncation or, more rarely, are nonsynonymous substitution mutations affected the extracellular heterodimerization domain.  NOTCH2 mutations may be associated with a worse prognosis among cases of splenic marginal zone lymphoma.  In addition, NOTCH2 PEST domain mutations have been reported in approximately 8% of diffuse large B cell lymphomas and in vitro systems have demonstrated these PEST domain mutant NOTCH2 receptors have increased activity compared to wild type NOTCH2.  In addion, copy number gain has been reported in a subset of DLBCL cases with NOTCH2 mutations.",
                     "tumor_types": [
                         "Marginal Zone B Cell Lymphoma",
                         "Diffuse Large B Cell Lymphoma"
@@ -82,7 +82,7 @@
                         "Marginal Zone B Cell Lymphoma"
                     ],
                     "tissue_types": [
-                        "Spleen "
+                        "Spleen"
                     ],
                     "tier": 1,
                     "gene": "NOTCH2"
@@ -103,7 +103,7 @@
             "assertions": [
                 {
                     "type": "assertion",
-                    "description": "NOTCH2 gain of function mutations have been reported in apprximately 25% of splenic marginal zone lymphomas and are thought to be rare in non-splenic marginal zone lymphomas.  These mutations are typically located near the C-terminal PEST domain and lead to protein truncation or, more rarely, are nonsynonymous substitution mutations affected the extracellular heterodimerization domain.  NOTCH2 mutations may be associated with a worse prognosis among cases of splenic marginal zone lymphoma.  In addition, NOTCH2 PEST domain mutations have been reported in approximately 8% of diffuse large B cell lymphomas and in vitro systems have demonstrated these PEST domain mutant NOTCH2 receptors have increased activity compared to wild type NOTCH2.  In addion, copy number gain has been reported in a subset of DLBCL cases with NOTCH2 mutations. ",
+                    "description": "NOTCH2 gain of function mutations have been reported in apprximately 25% of splenic marginal zone lymphomas and are thought to be rare in non-splenic marginal zone lymphomas.  These mutations are typically located near the C-terminal PEST domain and lead to protein truncation or, more rarely, are nonsynonymous substitution mutations affected the extracellular heterodimerization domain.  NOTCH2 mutations may be associated with a worse prognosis among cases of splenic marginal zone lymphoma.  In addition, NOTCH2 PEST domain mutations have been reported in approximately 8% of diffuse large B cell lymphomas and in vitro systems have demonstrated these PEST domain mutant NOTCH2 receptors have increased activity compared to wild type NOTCH2.  In addion, copy number gain has been reported in a subset of DLBCL cases with NOTCH2 mutations.",
                     "tumor_types": [
                         "Marginal Zone B Cell Lymphoma",
                         "Diffuse Large B Cell Lymphoma"
@@ -122,7 +122,7 @@
                         "Marginal Zone B Cell Lymphoma"
                     ],
                     "tissue_types": [
-                        "Spleen "
+                        "Spleen"
                     ],
                     "tier": 1,
                     "gene": "NOTCH2"
@@ -132,7 +132,7 @@
     ],
     "ASSERTION": {
         "type": "assertion",
-        "description": "NOTCH2 gain of function mutations have been reported in apprximately 25% of splenic marginal zone lymphomas and are thought to be rare in non-splenic marginal zone lymphomas.  These mutations are typically located near the C-terminal PEST domain and lead to protein truncation or, more rarely, are nonsynonymous substitution mutations affected the extracellular heterodimerization domain.  NOTCH2 mutations may be associated with a worse prognosis among cases of splenic marginal zone lymphoma.  In addition, NOTCH2 PEST domain mutations have been reported in approximately 8% of diffuse large B cell lymphomas and in vitro systems have demonstrated these PEST domain mutant NOTCH2 receptors have increased activity compared to wild type NOTCH2.  In addion, copy number gain has been reported in a subset of DLBCL cases with NOTCH2 mutations. ",
+        "description": "NOTCH2 gain of function mutations have been reported in apprximately 25% of splenic marginal zone lymphomas and are thought to be rare in non-splenic marginal zone lymphomas.  These mutations are typically located near the C-terminal PEST domain and lead to protein truncation or, more rarely, are nonsynonymous substitution mutations affected the extracellular heterodimerization domain.  NOTCH2 mutations may be associated with a worse prognosis among cases of splenic marginal zone lymphoma.  In addition, NOTCH2 PEST domain mutations have been reported in approximately 8% of diffuse large B cell lymphomas and in vitro systems have demonstrated these PEST domain mutant NOTCH2 receptors have increased activity compared to wild type NOTCH2.  In addion, copy number gain has been reported in a subset of DLBCL cases with NOTCH2 mutations.",
         "gene": {
             "name": "NOTCH2"
         },
