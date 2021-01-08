@@ -132,9 +132,18 @@ def test_init():
     assert cd._new_json == NEW_JSON
 
 
-def test_evidence_delta(civic, diff):
+def test_compute_delta(civic, diff):
     """Test that compute_delta method is correct."""
     assert civic.compute_delta() == diff
+
+    # Test when _new_json is not in kwargs
+    cd = CIVICDelta(MAIN_JSON)
+    cd.compute_delta()
+    fn = PROJECT_ROOT / 'data' / 'civic' / \
+        f"civic_harvester_{date.today().strftime('%Y%m%d')}.json"
+    assert fn.exists()
+    os.remove(fn)
+    assert not fn.exists()
 
 
 def test_ins_del_delta(civic, diff, main_data, new_data, delta):
