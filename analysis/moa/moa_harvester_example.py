@@ -13,9 +13,9 @@ def create_assertion_examples(data):
 
     for assertion in assertions:
         source_id = assertion['source_ids'][0]
-        for s in data['evidence']:
+        for s in data['sourceOfevidence']:
             if s['id'] == source_id:
-                evidence_item = s
+                source_item = s
 
         feature_id = assertion['feature_ids'][0]
         for v in data['variants']:
@@ -33,7 +33,7 @@ def create_assertion_examples(data):
                   f"assertion {assertion['id']}.json", 'w+') as f:
             example = {
                 'ASSERTIONS': assertion,
-                'EVIDENCE': evidence_item,
+                'SOURCE_of_EVIDENCE': source_item,
                 'GENE': gene,
                 'VARIANT': variant
             }
@@ -65,5 +65,7 @@ if __name__ == '__main__':
     moa.harvest()
     with open(f'{PROJECT_ROOT}/data/moa/moa_harvester.json', 'r') as f:
         moa_data = json.load(f)
+    moa_ex_dir = PROJECT_ROOT / 'analysis' / 'moa' / 'examples'
+    moa_ex_dir.mkdir(exist_ok=True, parents=True)
     create_assertion_examples(moa_data)
     create_variant_examples(moa_data)
