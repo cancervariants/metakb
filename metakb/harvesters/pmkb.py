@@ -60,7 +60,6 @@ class PMKB(Harvester):
         newest_filename = sorted(files, reverse=True)[0]   # get most recent
         infile = open(newest_filename, 'r')
         data = pd.read_csv(infile, na_filter=False)
-        data = data[1:]
         data.columns = ['gene', 'tumor_types', 'tissue_types', 'variants',
                         'tier', 'interpretation', 'citations']
         for col in ['variants', 'tumor_types', 'tissue_types', 'citations']:
