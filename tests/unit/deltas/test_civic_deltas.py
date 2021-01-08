@@ -3,14 +3,33 @@ import pytest
 from metakb import PROJECT_ROOT
 from metakb.deltas.civic import CIVICDelta
 from datetime import date
+import json
+import os
+
+MAIN_JSON = PROJECT_ROOT / 'tests' / 'data' / 'deltas' / 'main_civic.json'
+NEW_JSON = PROJECT_ROOT / 'tests' / 'data' / 'deltas' / 'new_civic.json'
 
 
 @pytest.fixture(scope='module')
 def civic():
-    """Create CIViC Delta text fixture"""
-    main_json = PROJECT_ROOT / 'tests' / 'data' / 'deltas' / 'main_civic.json'
-    new_json = PROJECT_ROOT / 'tests' / 'data' / 'deltas' / 'new_civic.json'
-    return CIVICDelta(main_json, _new_json=new_json).compute_delta()
+    """Create CIViC Delta test fixture."""
+    return CIVICDelta(MAIN_JSON, _new_json=NEW_JSON)
+
+
+@pytest.fixture(scope='module')
+def main_data():
+    """Create main_data test fixture."""
+    with open(MAIN_JSON, 'r') as f:
+        main_data = json.load(f)
+        return main_data
+
+
+@pytest.fixture(scope='module')
+def new_data():
+    """Create new_data test fixture."""
+    with open(NEW_JSON, 'r') as f:
+        new_data = json.load(f)
+        return new_data
 
 
 @pytest.fixture(scope='module')
@@ -75,6 +94,92 @@ def diff():
     }
 
 
+@pytest.fixture(scope='module')
+def delta():
+    """Create empty delta test fixture."""
+    return {
+        'genes': {
+            'DELETE': [],
+            'INSERT': [],
+            'UPDATE': []
+        },
+        'variants': {
+            'DELETE': [],
+            'INSERT': [],
+            'UPDATE': []
+        },
+        'evidence': {
+            'DELETE': [],
+            'INSERT': [],
+            'UPDATE': []
+        },
+        'assertions': {
+            'DELETE': [],
+            'INSERT': [],
+            'UPDATE': []
+        }
+    }
+
+
+def test_init():
+    """Test that init is correct."""
+    cd = CIVICDelta(MAIN_JSON)
+    assert cd._main_json == MAIN_JSON
+    assert cd._new_json is None
+
+    cd = CIVICDelta(MAIN_JSON, _new_json=NEW_JSON)
+    assert cd._main_json == MAIN_JSON
+    assert cd._new_json == NEW_JSON
+
+
 def test_evidence_delta(civic, diff):
-    """Test that CIViC deltas are correct."""
-    assert civic == diff
+    """Test that compute_delta method is correct."""
+    assert civic.compute_delta() == diff
+
+
+def test_ins_del_delta(civic, diff, main_data, new_data, delta):
+    """Test that _ins_del_delta method is correct."""
+    civic._ins_del_delta(delta, 'genes', 'DELETE', [3], main_data['genes'])
+    assert delta['genes']['DELETE'] == diff['genes']['DELETE']
+
+    civic._ins_del_delta(delta, 'assertions', 'INSERT', [1],
+                         new_data['assertions'])
+    assert delta['assertions']['INSERT'] == diff['assertions']['INSERT']
+
+
+def test_update_delta(civic, diff, delta, new_data, main_data):
+    """Test that _update_delta method is correct."""
+    civic._update_delta(delta, 'genes', new_data['genes'], main_data['genes'])
+    assert delta['genes']['UPDATE'] == diff['genes']['UPDATE']
+
+    civic._update_delta(delta, 'variants', new_data['variants'],
+                        main_data['variants'])
+    assert delta['variants']['UPDATE'] == diff['variants']['UPDATE']
+
+    civic._update_delta(delta, 'evidence', new_data['evidence'],
+                        main_data['evidence'])
+    assert delta['evidence']['UPDATE'] == diff['evidence']['UPDATE']
+
+
+def test_get_ids(civic, main_data, new_data):
+    """Test that _get_ids method is correct."""
+    assert len(civic._get_ids(main_data['assertions'])) == 0
+    assert len(civic._get_ids(main_data['variants'])) == 1
+    assert len(civic._get_ids(main_data['genes'])) == 2
+    assert len(civic._get_ids(main_data['evidence'])) == 1
+
+    assert len(civic._get_ids(new_data['assertions'])) == 1
+    assert len(civic._get_ids(new_data['variants'])) == 1
+    assert len(civic._get_ids(new_data['genes'])) == 1
+    assert len(civic._get_ids(new_data['evidence'])) == 1
+
+
+def test_create_json(civic, diff):
+    """Test that _create_json method is correct."""
+    test_date = '19980108'
+    civic._create_json(diff, test_date)
+    file_name = PROJECT_ROOT / 'data' / 'civic' / f'civic_deltas_' \
+                                                  f'{test_date}.json'
+    assert file_name.exists()
+    os.remove(file_name)
+    assert not file_name.exists()
