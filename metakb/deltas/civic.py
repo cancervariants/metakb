@@ -26,7 +26,7 @@ class CIVICDelta:
             self._new_json = None
 
     def compute_delta(self):
-        """Compute delta for CIViC and store computed delta a JSON file.
+        """Compute delta for CIViC and store computed delta in a JSON file.
 
         :return: A dictionary of ids to delete, update, or insert to the main
                  harvester.
@@ -137,7 +137,3 @@ class CIVICDelta:
 
         with open(f"{civic_dir}/civic_deltas_{current_date}.json", 'w+') as f:
             json.dump(delta, f)
-
-
-# civic_delta = CIVICDelta(f"{PROJECT_ROOT}/data/civic/civic_harvester.json")
-# deltas = civic_delta.compute_delta()
