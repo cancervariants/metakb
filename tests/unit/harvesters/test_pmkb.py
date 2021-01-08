@@ -5,6 +5,26 @@ from metakb import PROJECT_ROOT
 
 
 @pytest.fixture(scope='module')
+def gene_fixture():
+    """Create NOTCH2 gene fixture."""
+    return {
+        'type': 'gene',
+        'name': 'NOTCH2',
+        'variants': [
+            {
+                'name': 'NOTCH2 exon(s) 34 frameshift',
+                'evidence_count': 2
+            },
+            {
+                'name': 'NOTCH2 I2304fs',
+                'evidence_count': 2
+            },
+
+        ]
+    }
+
+
+@pytest.fixture(scope='module')
 def variant_fixture():
     """Return fixture for data associated with FGFR3 F384L variant."""
     return {
@@ -45,21 +65,6 @@ def variant_fixture():
 
 
 @pytest.fixture(scope='module')
-def gene_fixture():
-    """Create NOTCH2 gene fixture."""
-    return {
-        'type': 'gene',
-        'name': 'NOTCH2',
-        'variants': [
-            {
-                'name': 'NOTCH2 I2304fs',
-                'evidence_count': 1
-            }
-        ]
-    }
-
-
-@pytest.fixture(scope='module')
 def pmkb():
     """Create PMKB harvester test fixture"""
     class PMKBVariants:
@@ -68,10 +73,24 @@ def pmkb():
             self.pmkb = PMKB()
             self._data = self.pmkb._load_dataframe(data_dir=PROJECT_ROOT / 'tests' / 'unit' / 'harvesters' / 'data')  # noqa: E501
 
+        def get_genes(self):
+            return self.pmkb._build_genes(self._data)
+
         def get_vars(self):
             return self.pmkb._build_variants(self._data)
 
     return PMKBVariants()
+
+
+def test_gene_generation(pmkb, gene_fixture):
+    """Test generation of gene objects by PMKB harvester."""
+    gene = [g for g in pmkb.get_genes() if g['name'] == 'NOTCH2']
+    assert len(gene) == 1
+    gene = gene[0]
+    assert gene['type'] == gene_fixture['type']
+    assert gene['name'] == gene_fixture['name']
+    assert len(gene['variants']) == len(gene_fixture['variants'])
+    assert gene['variants'] == gene_fixture['variants']
 
 
 def test_variant_generation(pmkb, variant_fixture):
@@ -98,3 +117,14 @@ def test_variant_generation(pmkb, variant_fixture):
         set(actual_assrtn1['tissue_types'])
     assert test_assrtn1['tier'] == actual_assrtn1['tier']
     assert test_assrtn1['gene'] == actual_assrtn1['gene']
+    test_assrtn2 = [a for a in test_var['assertions']
+                    if 'four' not in a['description']][0]
+    actual_assrtn2 = [a for a in actual_var['assertions']
+                      if 'four' not in a['description']][0]
+    assert test_assrtn2['type'] == actual_assrtn2['type']
+    assert set(test_assrtn2['tumor_types']) == \
+        set(actual_assrtn2['tumor_types'])
+    assert set(test_assrtn2['tissue_types']) == \
+        set(actual_assrtn2['tissue_types'])
+    assert test_assrtn2['tier'] == actual_assrtn2['tier']
+    assert test_assrtn2['gene'] == actual_assrtn2['gene']
