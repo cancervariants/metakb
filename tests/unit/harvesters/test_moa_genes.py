@@ -32,7 +32,7 @@ def pik3ca():
                 "variant_annotation": None,
                 "exon": None,
                 "rsid": None,
-                "feature": "PIK3CA  ()"
+                "feature": "PIK3CA"
             },
             {
                 "feature_type": "somatic_variant",
