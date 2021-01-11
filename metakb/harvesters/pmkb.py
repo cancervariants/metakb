@@ -31,13 +31,17 @@ class PMKB(Harvester):
         :return: `True` if successful, `False` otherwise.
         :rtype: bool
         """
-        data = self._load_dataframe(data_dir)
+        try:
+            data = self._load_dataframe(data_dir)
 
-        genes = self._build_genes(data)
-        variants = self._build_variants(data)
-        (evidence, self.assertions) = self._build_ev_and_assertions(data)
+            genes = self._build_genes(data)
+            variants = self._build_variants(data)
+            (evidence, self.assertions) = self._build_ev_and_assertions(data)
 
-        self._create_json(evidence, genes, variants, self.assertions)
+            self._create_json(evidence, genes, variants, self.assertions)
+        except:  # noqa: E722
+            logger.error('PMKB harvester failed.')
+            return False
         logger.info('PMKB Harvester was successful.')
         return True
 
