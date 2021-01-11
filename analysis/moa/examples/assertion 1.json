@@ -4,6 +4,7 @@
 		"context": "Chronic, accelerated, or blast phase", 
 		"description": "The U.S. Food and Drug Administration (FDA) granted approval for bosutinib for adult patients with chronic, accelerated, or blast phase Philidelphia chromosome-positive (Ph+) CML with resistance or intolernace to prior therapy.", 
 		"disease": {
+			"name": "Chronic Myelogenous Leukemia", 
 			"oncotree_code": "CML", 
 			"oncotree_term": "Chronic Myelogenous Leukemia"
 		}, 
@@ -12,6 +13,11 @@
 		"clinical_significance": "sensitivity", 
 		"predictive_implication": "FDA-Approved", 
 		"feature_ids": [1], 
+		"favorable_prognosis": null, 
+		"created_on": "01/07/21", 
+		"last_updated": "2020-11-12", 
+		"submitted_by": "breardon@broadinstitute.org", 
+		"validated": true, 
 		"source_ids": [1], 
 		"variant": {
 			"feature_type": "rearrangement", 
@@ -23,7 +29,7 @@
 			"feature": "BCR--ABL1 Fusion"
 		}
 	}, 
-	"EVIDENCE": {
+	"SOURCE_of_EVIDENCE": {
 		"id": 1, 
 		"type": "FDA", 
 		"assertion_id": [1], 
@@ -75,7 +81,7 @@
 				"variant_annotation": "Missense", 
 				"exon": null, 
 				"rsid": null, 
-				"feature": "ABL1  (Missense)"
+				"feature": "ABL1 (Missense)"
 			}, 
 			{
 				"feature_type": "somatic_variant", 
@@ -121,7 +127,8 @@
 				"cdna_change": "c.949T>G", 
 				"protein_change": "p.F317V", 
 				"variant_annotation": "Missense", 
-				"exon": "6.0", "rsid": "rs1057519773", 
+				"exon": "6.0", 
+				"rsid": "rs1057519773", 
 				"feature": "ABL1 p.F317V (Missense)"
 			}, 
 			{
@@ -170,7 +177,7 @@
 				"variant_annotation": null, 
 				"exon": null, 
 				"rsid": null, 
-				"feature": "ABL1  ()"
+				"feature": "ABL1"
 			}, 
 			{
 				"feature_type": "somatic_variant", 
