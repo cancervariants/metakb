@@ -4,6 +4,7 @@
 		"context": "Relapsed or refactory", 
 		"description": "The U.S. Food and Drug Administration (FDA) granted approval for imatinib for adult patients with relapsed or refactory Philidelphia chromosome-positive acute lymphphoblastic leukemia (Ph+ ALL). ", 
 		"disease": {
+			"name": "Acute Lymphoid Leukemia", 
 			"oncotree_code": "ALL", 
 			"oncotree_term": "Acute Lymphoid Leukemia"
 		}, 
@@ -12,6 +13,11 @@
 		"clinical_significance": "sensitivity", 
 		"predictive_implication": "FDA-Approved", 
 		"feature_ids": [5], 
+		"favorable_prognosis": null, 
+		"created_on": "01/07/21", 
+		"last_updated": "2020-11-12", 
+		"submitted_by": "breardon@broadinstitute.org", 
+		"validated": true, 
 		"source_ids": [3], 
 		"variant": {
 			"feature_type": "rearrangement", 
@@ -23,7 +29,7 @@
 			"feature": "BCR--ABL1 Fusion"
 		}
 	}, 
-	"EVIDENCE": {
+	"SOURCE_of_EVIDENCE": {
 		"id": 3, 
 		"type": "FDA", 
 		"assertion_id": [4, 5, 47, 48, 50, 336, 337], 
@@ -75,7 +81,7 @@
 				"variant_annotation": "Missense", 
 				"exon": null, 
 				"rsid": null, 
-				"feature": "ABL1  (Missense)"
+				"feature": "ABL1 (Missense)"
 			}, 
 			{
 				"feature_type": "somatic_variant", 
@@ -121,7 +127,8 @@
 				"cdna_change": "c.949T>G", 
 				"protein_change": "p.F317V", 
 				"variant_annotation": "Missense", 
-				"exon": "6.0", "rsid": "rs1057519773", 
+				"exon": "6.0", 
+				"rsid": "rs1057519773", 
 				"feature": "ABL1 p.F317V (Missense)"
 			}, 
 			{
@@ -170,7 +177,7 @@
 				"variant_annotation": null, 
 				"exon": null, 
 				"rsid": null, 
-				"feature": "ABL1  ()"
+				"feature": "ABL1"
 			}, 
 			{
 				"feature_type": "somatic_variant", 
