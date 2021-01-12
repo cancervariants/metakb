@@ -1,5 +1,5 @@
 {
-	"ASSERTION": {
+	"ASSERTIONS": {
 		"id": 1, 
 		"context": "Chronic, accelerated, or blast phase", 
 		"description": "The U.S. Food and Drug Administration (FDA) granted approval for bosutinib for adult patients with chronic, accelerated, or blast phase Philidelphia chromosome-positive (Ph+) CML with resistance or intolernace to prior therapy.", 
@@ -29,7 +29,7 @@
 			"feature": "BCR--ABL1 Fusion"
 		}
 	}, 
-	"SOURCE": {
+	"SOURCES": {
 		"id": 1, 
 		"type": "FDA", 
 		"assertion_id": [1], 
@@ -39,7 +39,7 @@
 		"url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/203441s018lbl.pdf", 
 		"citation": "Pfizer Inc. Bosulif (bosutinib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/203441s018lbl.pdf. Revised June 2020. Accessed November 12, 2020."
 	}, 
-	"VARIANT": {
+	"VARIANTS": {
 		"feature_type": "rearrangement", 
 		"feature_id": 1, 
 		"rearrangement_type": "Fusion", 

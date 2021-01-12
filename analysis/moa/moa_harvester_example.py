@@ -25,9 +25,9 @@ def create_assertion_examples(data):
         with open(f"{PROJECT_ROOT}/analysis/moa/examples/"
                   f"assertion {assertion['id']}.json", 'w+') as f:
             example = {
-                'ASSERTION': assertion,
-                'SOURCE': source_item,
-                'VARIANT': variant
+                'ASSERTIONS': assertion,
+                'SOURCES': source_item,
+                'VARIANTS': variant
             }
 
             json.dump(example, f)

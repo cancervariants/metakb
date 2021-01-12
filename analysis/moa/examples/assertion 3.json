@@ -1,5 +1,5 @@
 {
-	"ASSERTION": {
+	"ASSERTIONS": {
 		"id": 3, 
 		"context": null, 
 		"description": "The U.S. Food and Drug Administration (FDA) granted approval for dasatinib for adults with Philidelphia chromosome-positive acute lymphphoblastic leukemia (Ph+ ALL) with resistance or intolerance to prior therapy.", 
@@ -29,7 +29,7 @@
 			"feature": "BCR--ABL1 Fusion"
 		}
 	}, 
-	"SOURCE": {
+	"SOURCES": {
 		"id": 2, 
 		"type": "FDA", 
 		"assertion_id": [2, 3], 
@@ -39,7 +39,7 @@
 		"url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2018/021986s021lbl.pdf", 
 		"citation": "Bristol-Myers Squibb Company. Sprycel (dasatinib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2018/021986s021lbl.pdf. Revised December 2018. Accessed November 12, 2020."
 	}, 
-	"VARIANT": {
+	"VARIANTS": {
 		"feature_type": "rearrangement", 
 		"feature_id": 3, 
 		"rearrangement_type": "Fusion", 

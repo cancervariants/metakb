@@ -1,5 +1,5 @@
 {
-	"ASSERTION": {
+	"ASSERTIONS": {
 		"id": 5, 
 		"context": "Relapsed or refactory", 
 		"description": "The U.S. Food and Drug Administration (FDA) granted approval for imatinib for adult patients with relapsed or refactory Philidelphia chromosome-positive acute lymphphoblastic leukemia (Ph+ ALL). ", 
@@ -29,7 +29,7 @@
 			"feature": "BCR--ABL1 Fusion"
 		}
 	}, 
-	"SOURCE": {
+	"SOURCES": {
 		"id": 3, 
 		"type": "FDA", 
 		"assertion_id": [4, 5, 47, 48, 50, 336, 337], 
@@ -39,7 +39,7 @@
 		"url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/021588s056s057lbl.pdf", 
 		"citation": "Novartis Pharmaceuticals Corporation. Gleevec (imatinib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/021588s056s057lbl.pdf. Revised August 2020. Accessed November 12, 2020."
 	}, 
-	"VARIANT": {
+	"VARIANTS": {
 		"feature_type": "rearrangement", 
 		"feature_id": 5, 
 		"rearrangement_type": "Fusion", 
