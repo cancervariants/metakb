@@ -17,40 +17,38 @@ class MOAlmanac(Harvester):
 
     def harvest(self):
         """
-        Retrieve and store source of evidence, gene, variants, and assertion
+        Retrieve and store sources, variants, and assertions
         records from MOAlmanac in composite and individual JSON files.
 
         :return:'True' if successfully retreived, 'False' otherwise
         :rtype: bool
         """
         try:
-            sourceOfevidence = self._harvest_sourceOfevidence()
+            sources = self._harvest_sources()
             variants = self._harvest_variants()
-            genes = self._harvest_genes(variants)
+            # genes = self._harvest_genes(variants)
             assertions = self._harvest_assertions(variants)
-            self._create_json(assertions, sourceOfevidence, variants, genes)
+            self._create_json(assertions, sources, variants)
             logger.info('MOAlamanc harvester was successful.')
             return True
         except:  # noqa: E722 # TODO: add details of exception error
             logger.info('MOAlamanc harvester was not successful.')
             return False
 
-    def _create_json(self, assertions, sourceOfevidence, variants, genes):
+    def _create_json(self, assertions, sources, variants):
         """
-        Create a composite JSON file containing assertions, source of
-        of evidence, genes, and variants
+        Create a composite JSON file containing assertions,
+        sources, and variants
         and individual JSON files for each level of MOA record.
 
         :param: A list of MOA assertions
-        :param: A list of MOA source_of_evidence
+        :param: A list of MOA sources
         :param: A list of MOA variants
-        :param: A list of MOA genes
         """
         composite_dict = {
             'assertions': assertions,
-            'sourceOfevidence': sourceOfevidence,
+            'sources': sources,
             'variants': variants,
-            'genes': genes
         }
 
         # Create composite json
@@ -61,29 +59,28 @@ class MOAlmanac(Harvester):
             json.dump(composite_dict, f)
             f.close()
 
-        # Create individual json for assertions, source of evidence,
-        # variants and genes
-        data = ['assertions', 'sourceOfevidence', 'variants', 'genes']
+        # Create individual json for assertions, sources, variants
+        data = ['assertions', 'sources', 'variants']
         for d in data:
             with open(f'{PROJECT_ROOT}/data/moa/{d}.json', 'w+') as f:
                 f.write(json.dumps(composite_dict[d]))
                 f.close()
 
-    def _harvest_sourceOfevidence(self):
+    def _harvest_sources(self):
         """
-        Harvest all MOA source of evidences
+        Harvest all MOA sources
 
-        :return: A list of source of evidence
+        :return: A list of sources
         :rtype: list
         """
-        sourceOfevidence_list = []
+        sources_list = []
         with requests_cache.disabled():
             r = requests.get('https://moalmanac.org/api/sources')
             sources = r.json()
             for source in sources:
                 e = self._source_item(source)
-                sourceOfevidence_list.append(e)
-        return sourceOfevidence_list
+                sources_list.append(e)
+        return sources_list
 
     def _harvest_variants(self):
         """
