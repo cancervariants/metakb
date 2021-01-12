@@ -1,5 +1,5 @@
 {
-	"ASSERTION": {
+	"ASSERTIONS": {
 		"id": 4, 
 		"context": "Chronic phase", 
 		"description": "The U.S. Food and Drug Administration (FDA) granted approval for imatinib for newly diagnosed adult and pediatric patients with Philidelphia chromosome-positive (Ph+) CML in chronic phase. ", 
@@ -29,7 +29,7 @@
 			"feature": "BCR--ABL1 Fusion"
 		}
 	}, 
-	"SOURCE": {
+	"SOURCES": {
 		"id": 3, 
 		"type": "FDA", 
 		"assertion_id": [4, 5, 47, 48, 50, 336, 337], 
@@ -39,7 +39,7 @@
 		"url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/021588s056s057lbl.pdf", 
 		"citation": "Novartis Pharmaceuticals Corporation. Gleevec (imatinib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/021588s056s057lbl.pdf. Revised August 2020. Accessed November 12, 2020."
 	}, 
-	"VARIANT": {
+	"VARIANTS": {
 		"feature_type": "rearrangement", 
 		"feature_id": 4, 
 		"rearrangement_type": "Fusion", 
