@@ -13,7 +13,7 @@ def create_assertion_examples(data):
 
     for assertion in assertions:
         source_id = assertion['source_ids'][0]
-        for s in data['sourceOfevidence']:
+        for s in data['sources']:
             if s['id'] == source_id:
                 source_item = s
 
@@ -22,19 +22,11 @@ def create_assertion_examples(data):
             if v['feature_id'] == feature_id:
                 variant = v
 
-        for key, val in variant.items():
-            if key.startswith('gene'):
-                gene_name = val
-        for g in data['genes']:
-            if g['name'] == gene_name:
-                gene = g
-
         with open(f"{PROJECT_ROOT}/analysis/moa/examples/"
                   f"assertion {assertion['id']}.json", 'w+') as f:
             example = {
-                'ASSERTIONS': assertion,
-                'SOURCE_of_EVIDENCE': source_item,
-                'GENE': gene,
+                'ASSERTION': assertion,
+                'SOURCE': source_item,
                 'VARIANT': variant
             }
 
