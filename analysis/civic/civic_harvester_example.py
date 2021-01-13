@@ -64,5 +64,9 @@ if __name__ == '__main__':
     c.harvest()
     with open(f'{PROJECT_ROOT}/data/civic/civic_harvester.json', 'r') as f:
         civic_data = json.load(f)
+
+    civic_ex_dir = PROJECT_ROOT / 'analysis' / 'civic' / 'examples'
+    civic_ex_dir.mkdir(exist_ok=True, parents=True)
+
     create_evidence_examples(civic_data)
     create_variant_examples(civic_data)

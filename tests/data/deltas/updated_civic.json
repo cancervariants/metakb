@@ -1,0 +1,170 @@
+{
+    "assertions": [
+        {
+            "id": 1,
+            "description": "description"
+        }
+    ],
+    "variants": [
+        {
+            "id": 27,
+            "entrez_id": 1029,
+            "name": "PROMOTER HYPERMETHYLATION",
+            "description": "CDKN2A loss has been shown to be a significant event in a number of cancer types. One mechanism by which this can occur is by hypermethylation of the CDKN2A promoter region. While no targeted therapeutic has been engaged in clinical trials, the prognostic impact has been studied by a number of meta-analyses. The prognostic impact of promoter hypermethylation has been relatively ambiguous. Many studies have shown significant p-values suggesting poorer prognostic outcomes for patients with hypermethylation in colorectal, liver, and younger lung cancer patients. This being said, there is still research to be done before this becomes a widely-accepted prognostic indicator.",
+            "gene_id": 14,
+            "type": "variant",
+            "variant_types": [
+                {
+                    "id": 183,
+                    "name": "N/A",
+                    "display_name": "N/A",
+                    "so_id": "N/A",
+                    "description": "No suitable Sequence Ontology term exists.",
+                    "url": "http://www.sequenceontology.org/browser/current_svn/term/N/A"
+                }
+            ],
+            "civic_actionability_score": 15,
+            "coordinates": {
+                "chromosome": "9",
+                "start": 21974827,
+                "stop": 21994591,
+                "reference_bases": null,
+                "variant_bases": null,
+                "representative_transcript": "ENST00000498124.1",
+                "chromosome2": null,
+                "start2": null,
+                "stop2": null,
+                "representative_transcript2": null,
+                "ensembl_version": 75,
+                "reference_build": "GRCh37"
+            },
+            "evidence_items": [
+                {
+                    "id": 367,
+                    "name": "EID367",
+                    "description": "In NSCLC patients younger than 60 years at age of diagnosis, p16 (CDKN2A) promoter hypermethylation is associated with shorter time to recurrence and shorter overall survival.",
+                    "disease": {
+                        "id": 8,
+                        "name": "Lung Non-small Cell Carcinoma",
+                        "display_name": "Lung Non-small Cell Carcinoma",
+                        "doid": "3908",
+                        "url": "http://www.disease-ontology.org/?id=DOID:3908"
+                    },
+                    "drugs": [],
+                    "rating": 3,
+                    "evidence_level": "B",
+                    "evidence_type": "Prognostic",
+                    "clinical_significance": "Poor Outcome",
+                    "evidence_direction": "Supports",
+                    "variant_origin": "Somatic",
+                    "drug_interaction_type": null,
+                    "status": "accepted",
+                    "type": "evidence",
+                    "source": {
+                        "id": 18,
+                        "name": "CDKN2A (p16) promoter hypermethylation influences the outcome in young lung cancer patients.",
+                        "citation": "Bradly et al., 2012, Diagn. Mol. Pathol.",
+                        "citation_id": "23111194",
+                        "source_type": "PubMed",
+                        "asco_abstract_id": null,
+                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23111194",
+                        "open_access": null,
+                        "pmc_id": null,
+                        "publication_date": {
+                            "year": 2012,
+                            "month": 12
+                        },
+                        "journal": "Diagn. Mol. Pathol.",
+                        "full_journal_title": "Diagnostic molecular pathology : the American journal of surgical pathology, part B",
+                        "status": "fully curated",
+                        "is_review": false,
+                        "clinical_trials": []
+                    },
+                    "variant_id": 27,
+                    "phenotypes": []
+                }
+            ],
+            "variant_groups": [],
+            "assertions": [],
+            "variant_aliases": [],
+            "hgvs_expressions": [],
+            "clinvar_entries": [],
+            "allele_registry_id": null
+        }
+    ],
+    "genes": [
+        {
+            "id": 2778,
+            "name": "HSPA5",
+            "entrez_id": 3309,
+            "description": "",
+            "variants": [
+                {
+                    "name": "EXPRESSION",
+                    "id": 386,
+                    "evidence_items": {
+                        "accepted_count": 1,
+                        "rejected_count": 0,
+                        "submitted_count": 0
+                    }
+                }
+            ],
+            "aliases": [
+                "HSPA5",
+                "MIF2",
+                "HEL-S-89n",
+                "GRP78",
+                "BIP"
+            ],
+            "type": "gene"
+        }
+    ],
+    "evidence": [
+        {
+            "id": 358,
+            "name": "EID358",
+            "description": "Cyclin D1 overexpression is associated with shorter overall survival and increased metastasis in mantle cell lymphoma.",
+            "disease": {
+                "id": 38,
+                "name": "Mantle Cell Lymphoma",
+                "display_name": "Mantle Cell Lymphoma",
+                "doid": "0050746",
+                "url": "http://www.disease-ontology.org/?id=DOID:0050746"
+            },
+            "drugs": [],
+            "rating": 4,
+            "evidence_level": "B",
+            "evidence_type": "Prognostic",
+            "clinical_significance": "Poor Outcome",
+            "evidence_direction": "Supports",
+            "variant_origin": "Somatic",
+            "drug_interaction_type": null,
+            "status": "accepted",
+            "type": "evidence",
+            "source": {
+                "id": 219,
+                "name": "Genetic and molecular pathogenesis of mantle cell lymphoma: perspectives for new targeted therapeutics.",
+                "citation": "Jares et al., 2007, Nat. Rev. Cancer",
+                "citation_id": "17891190",
+                "source_type": "PubMed",
+                "asco_abstract_id": null,
+                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/17891190",
+                "open_access": null,
+                "pmc_id": null,
+                "publication_date": {
+                    "year": 2007,
+                    "month": 10
+                },
+                "journal": "Nat. Rev. Cancer",
+                "full_journal_title": "Nature reviews. Cancer",
+                "status": "fully curated",
+                "is_review": false,
+                "clinical_trials": []
+            },
+            "variant_id": 20,
+            "phenotypes": [],
+            "assertions": [],
+            "gene_id": 8
+        }
+    ]
+}

@@ -5,7 +5,7 @@ from civicpy import civic as civicpy
 import json
 import logging
 
-logger = logging.getLogger('gene')
+logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
@@ -13,10 +13,11 @@ logger.addHandler(logging.StreamHandler())
 class CIViC(Harvester):
     """A class for the CIViC harvester."""
 
-    def harvest(self):
+    def harvest(self, fn='civic_harvester.json'):
         """Retrieve and store evidence, gene, variant, and assertion
         records from CIViC in composite and individual JSON files.
 
+        :param str fn: File name for composite json
         :return: `True` if operation was successful, `False` otherwise.
         :rtype: bool
         """
@@ -27,14 +28,14 @@ class CIViC(Harvester):
             variants = self._harvest_variants()
             assertions = self._harvest_assertions()
             self.assertions = assertions
-            self._create_json(evidence, genes, variants, assertions)
+            self._create_json(evidence, genes, variants, assertions, fn)
             logger.info('CIViC Harvester was successful.')
             return True
         except:  # noqa: E722 # TODO: Add specific exception error
             logger.info('CIViC Harvester was not successful.')
             return False
 
-    def _create_json(self, evidence, genes, variants, assertions):
+    def _create_json(self, evidence, genes, variants, assertions, fn):
         """Create a composite JSON file containing evidence, genes, variants,
         and assertions and individual JSON files for each CIViC record.
 
@@ -42,6 +43,7 @@ class CIViC(Harvester):
         :param list genes: A list of CIViC gene records
         :param list variants: A list of CIViC variant records
         :param list assertions: A list of CIViC assertion records
+        :param str fn: File name for harvester
         """
         composite_dict = {
             'evidence': evidence,
@@ -50,8 +52,11 @@ class CIViC(Harvester):
             'assertions': assertions
         }
 
+        civic_dir = PROJECT_ROOT / 'data' / 'civic'
+        civic_dir.mkdir(exist_ok=True, parents=True)
+
         # Create composite json
-        with open(f'{PROJECT_ROOT}/data/civic/civic_harvester.json',
+        with open(f'{PROJECT_ROOT}/data/civic/{fn}',
                   'w+') as f:
             json.dump(composite_dict, f)
             f.close()

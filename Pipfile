@@ -6,17 +6,10 @@ name = "pypi"
 [packages]
 ipykernel = "*"
 jupyter = "*"
-civicpy = "~=1.1.2"
-pytest = "~=6.1.2"
-pytest-cov = "==2.9.0"
-pre-commit = "==2.4.0"
-flake8 = "==3.8.2"
-flake8-docstrings = "==1.5.0"
-coverage = "<5"
-coveralls = "==2.0.0"
-"sphinxjp.themes.basicstrap" = "==0.5.0"
-requests-cache = "==0.5.2"
-Sphinx = "==3.0.4"
+civicpy = "*"
+pytest = "*"
+pytest-cov = "*"
+jsondiff = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
