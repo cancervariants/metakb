@@ -207,8 +207,8 @@ class PMKB(Harvester):
         }
         data_dir = PROJECT_ROOT / 'data' / 'pmkb'
         with open(data_dir / 'pmkb_harvester.json', 'w+') as f:
-            json.dump(composite_dict, f)
+            json.dump(composite_dict, f, indent=2)
 
         for data in ['evidence', 'variants', 'assertions']:
             with open(data_dir / f"{data}.json", 'w+') as f:
-                json.dump(composite_dict[data], f)
+                json.dump(composite_dict[data], f, indent=2)
