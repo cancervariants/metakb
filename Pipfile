@@ -12,6 +12,7 @@ pytest-cov = "*"
 pandas = "*"
 requests = "*"
 numpy = "*"
+jsondiff = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
