@@ -20,11 +20,11 @@ class CIVICDelta:
         :param str main_json: The path to the main CIViC composite json file.
         """
         self._main_json = main_json
-        if '_new_json' in kwargs:
+        if '_updated_json' in kwargs:
             # The path to the updated CIViC harvester composite json file.
-            self._new_json = kwargs['_new_json']
+            self._updated_json = kwargs['_updated_json']
         else:
-            self._new_json = None
+            self._updated_json = None
 
     def compute_delta(self):
         """Compute delta for CIViC and store computed delta in a JSON file.
@@ -38,17 +38,19 @@ class CIVICDelta:
 
         current_date = date.today().strftime('%Y%m%d')
 
-        # New harvester
-        if self._new_json:
-            with open(self._new_json, 'r') as f:
-                new_civic = json.load(f)
+        # updated harvester
+        if self._updated_json:
+            # Updated harvester file already exists
+            with open(self._updated_json, 'r') as f:
+                updated_civic = json.load(f)
         else:
+            # Want to create updated harvester file
             fn = f"civic_harvester_{current_date}.json"
             c = CIViC()
             c.harvest(fn=fn)
 
             with open(f"{PROJECT_ROOT}/data/civic/{fn}", 'r') as f:
-                new_civic = json.load(f)
+                updated_civic = json.load(f)
 
         delta = {
             '_meta': {
@@ -69,19 +71,19 @@ class CIVICDelta:
                 'INSERT': [],
                 'UPDATE': []
             }
-            new = new_civic[civic_record]
+            updated = updated_civic[civic_record]
             main = main_civic[civic_record]
-            new_ids = self._get_ids(new)
+            updated_ids = self._get_ids(updated)
             main_ids = self._get_ids(main)
 
-            additional_ids = list(set(new_ids) - set(main_ids))
+            additional_ids = list(set(updated_ids) - set(main_ids))
             self._ins_del_delta(delta, civic_record, 'INSERT', additional_ids,
-                                new)
-            remove_ids = list(set(main_ids) - set(new_ids))
+                                updated)
+            remove_ids = list(set(main_ids) - set(updated_ids))
             self._ins_del_delta(delta, civic_record, 'DELETE', remove_ids,
                                 main)
 
-            self._update_delta(delta, civic_record, new, main)
+            self._update_delta(delta, civic_record, updated, main)
 
         self._create_json(delta, current_date)
         return delta
@@ -99,21 +101,21 @@ class CIVICDelta:
             if record['id'] in ids_list:
                 delta[civic_record][key].append(record)
 
-    def _update_delta(self, delta, civic_record, new, main):
+    def _update_delta(self, delta, civic_record, updated, main):
         """Store CIViC deltas.
 
         :param dict delta: The CIViC deltas
         :param str civic_record: The type of CIViC record
-        :param dict new: New harvester data
+        :param dict updated: updated harvester data
         :param dict main: Main harvester data
         """
-        for new_record in new:
+        for updated_record in updated:
             for main_record in main:
-                if main_record['id'] == new_record['id']:
-                    if new_record != main_record:
+                if main_record['id'] == updated_record['id']:
+                    if updated_record != main_record:
                         delta[civic_record]['UPDATE'].append({
                             str(main_record['id']):
-                                diff(main_record, new_record, marshal=True)
+                                diff(main_record, updated_record, marshal=True)
                         })
                     break
 

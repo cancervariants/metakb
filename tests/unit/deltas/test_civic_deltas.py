@@ -7,13 +7,14 @@ import json
 import os
 
 MAIN_JSON = PROJECT_ROOT / 'tests' / 'data' / 'deltas' / 'main_civic.json'
-NEW_JSON = PROJECT_ROOT / 'tests' / 'data' / 'deltas' / 'new_civic.json'
+UPDATED_JSON = \
+    PROJECT_ROOT / 'tests' / 'data' / 'deltas' / 'updated_civic.json'
 
 
 @pytest.fixture(scope='module')
 def civic():
     """Create CIViC Delta test fixture."""
-    return CIVICDelta(MAIN_JSON, _new_json=NEW_JSON)
+    return CIVICDelta(MAIN_JSON, _updated_json=UPDATED_JSON)
 
 
 @pytest.fixture(scope='module')
@@ -25,11 +26,11 @@ def main_data():
 
 
 @pytest.fixture(scope='module')
-def new_data():
-    """Create new_data test fixture."""
-    with open(NEW_JSON, 'r') as f:
-        new_data = json.load(f)
-        return new_data
+def updated_data():
+    """Create updated_data test fixture."""
+    with open(UPDATED_JSON, 'r') as f:
+        updated_data = json.load(f)
+        return updated_data
 
 
 @pytest.fixture(scope='module')
@@ -126,18 +127,18 @@ def test_init():
     """Test that init is correct."""
     cd = CIVICDelta(MAIN_JSON)
     assert cd._main_json == MAIN_JSON
-    assert cd._new_json is None
+    assert cd._updated_json is None
 
-    cd = CIVICDelta(MAIN_JSON, _new_json=NEW_JSON)
+    cd = CIVICDelta(MAIN_JSON, _updated_json=UPDATED_JSON)
     assert cd._main_json == MAIN_JSON
-    assert cd._new_json == NEW_JSON
+    assert cd._updated_json == UPDATED_JSON
 
 
 def test_compute_delta(civic, diff):
     """Test that compute_delta method is correct."""
     assert civic.compute_delta() == diff
 
-    # Test when _new_json is not in kwargs
+    # Test when _updated_json is not in kwargs
     cd = CIVICDelta(MAIN_JSON)
     cd.compute_delta()
     fn = PROJECT_ROOT / 'data' / 'civic' / \
@@ -147,41 +148,42 @@ def test_compute_delta(civic, diff):
     assert not fn.exists()
 
 
-def test_ins_del_delta(civic, diff, main_data, new_data, delta):
+def test_ins_del_delta(civic, diff, main_data, updated_data, delta):
     """Test that _ins_del_delta method is correct."""
     civic._ins_del_delta(delta, 'genes', 'DELETE', [3], main_data['genes'])
     assert delta['genes']['DELETE'] == diff['genes']['DELETE']
 
     civic._ins_del_delta(delta, 'assertions', 'INSERT', [1],
-                         new_data['assertions'])
+                         updated_data['assertions'])
     assert delta['assertions']['INSERT'] == diff['assertions']['INSERT']
 
 
-def test_update_delta(civic, diff, delta, new_data, main_data):
+def test_update_delta(civic, diff, delta, updated_data, main_data):
     """Test that _update_delta method is correct."""
-    civic._update_delta(delta, 'genes', new_data['genes'], main_data['genes'])
+    civic._update_delta(delta, 'genes', updated_data['genes'],
+                        main_data['genes'])
     assert delta['genes']['UPDATE'] == diff['genes']['UPDATE']
 
-    civic._update_delta(delta, 'variants', new_data['variants'],
+    civic._update_delta(delta, 'variants', updated_data['variants'],
                         main_data['variants'])
     assert delta['variants']['UPDATE'] == diff['variants']['UPDATE']
 
-    civic._update_delta(delta, 'evidence', new_data['evidence'],
+    civic._update_delta(delta, 'evidence', updated_data['evidence'],
                         main_data['evidence'])
     assert delta['evidence']['UPDATE'] == diff['evidence']['UPDATE']
 
 
-def test_get_ids(civic, main_data, new_data):
+def test_get_ids(civic, main_data, updated_data):
     """Test that _get_ids method is correct."""
     assert len(civic._get_ids(main_data['assertions'])) == 0
     assert len(civic._get_ids(main_data['variants'])) == 1
     assert len(civic._get_ids(main_data['genes'])) == 2
     assert len(civic._get_ids(main_data['evidence'])) == 1
 
-    assert len(civic._get_ids(new_data['assertions'])) == 1
-    assert len(civic._get_ids(new_data['variants'])) == 1
-    assert len(civic._get_ids(new_data['genes'])) == 1
-    assert len(civic._get_ids(new_data['evidence'])) == 1
+    assert len(civic._get_ids(updated_data['assertions'])) == 1
+    assert len(civic._get_ids(updated_data['variants'])) == 1
+    assert len(civic._get_ids(updated_data['genes'])) == 1
+    assert len(civic._get_ids(updated_data['evidence'])) == 1
 
 
 def test_create_json(civic, diff):
