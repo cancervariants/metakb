@@ -16,17 +16,11 @@ def create_evidence_examples(data):
     for evidence_item in evidence_items:
         assertion = evidence_item['assertions'][0]
         variants = assertion['variants']
-        gene = assertion['gene']
 
         variants_out = list()
         for v in data['variants']:
             if v['name'] in [variant['name'] for variant in variants]:
                 variants_out.append(v)
-
-        for g in data['genes']:
-            if g['name'] == gene['name']:
-                gene_out = g
-                break
 
         out_dir = PROJECT_ROOT / 'analysis' / 'pmkb' / 'examples'
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -34,7 +28,6 @@ def create_evidence_examples(data):
         with open(out_dir / f"{name}.json", 'w+') as f:
             example = {
                 'EVIDENCE': evidence_item,
-                'GENE': gene_out,
                 'VARIANTS': variants_out,
                 'ASSERTION': assertion,
             }

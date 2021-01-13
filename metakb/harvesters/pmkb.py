@@ -34,11 +34,10 @@ class PMKB(Harvester):
         try:
             data = self._load_dataframe(data_dir)
 
-            genes = self._build_genes(data)
             variants = self._build_variants(data)
             (evidence, self.assertions) = self._build_ev_and_assertions(data)
 
-            self._create_json(evidence, genes, variants, self.assertions)
+            self._create_json(evidence, variants, self.assertions)
         except:  # noqa: E722
             logger.error('PMKB harvester failed.')
             return False
@@ -193,13 +192,11 @@ class PMKB(Harvester):
             })
         return (evidence, assertions)
 
-    def _create_json(self, evidence: List, genes: List, variants: List,
-                     assertions: List):
-        """Create and write composite JSON file containing genes, variants, and
-        interpretations, and create individual JSON files for each assertion.
+    def _create_json(self, evidence: List, variants: List, assertions: List):
+        """Create and write composite JSON file and aggregate JSON files for
+        each object type.
 
         :param List evidence: List of evidence objects
-        :param List genes: List of genes
         :param List variants: List of variants
         :param List assertions: List of assertions
         """
@@ -208,7 +205,6 @@ class PMKB(Harvester):
             'variants': variants,
             'assertions': assertions
         }
-
         data_dir = PROJECT_ROOT / 'data' / 'pmkb'
         with open(data_dir / 'pmkb_harvester.json', 'w+') as f:
             json.dump(composite_dict, f)
