@@ -96,36 +96,6 @@ class PMKB(Harvester):
             logger.error(f"PMKB source download failed with status code: {response.status_code}")  # noqa: E501
             raise FileDownloadException("PMKB source download failed")
 
-    def _build_genes(self, data: pd.DataFrame) -> List:
-        """Build list of genes.
-
-        :param DataFrame data: PMKB input data formatted as a Pandas DataFrame.
-        :return: completed List of gene items.
-        :rtype: List
-        """
-        genes = list()
-        genes_grouped = data[['gene', 'variants']].groupby('gene',
-                                                           as_index=False)
-        for (gene, group) in genes_grouped:
-            # flatten variant lists
-            var_series = group['variants'].apply(pd.Series) \
-                .stack().reset_index(drop=True)
-            # get counts for variants
-            var_counts = pd.Series([v for v in var_series if v != ''],
-                                   dtype=str).value_counts()
-            genes.append({
-                'type': 'gene',
-                'name': gene,
-                'variants': [
-                    {
-                        'name': name,
-                        'evidence_count': count,
-                    }
-                    for name, count in var_counts.iteritems()
-                ]
-            })
-        return genes
-
     def _build_variants(self, data: pd.DataFrame) -> List:
         """Build list of variants.
 
@@ -235,7 +205,6 @@ class PMKB(Harvester):
         """
         composite_dict = {
             'evidence': evidence,
-            'genes': genes,
             'variants': variants,
             'assertions': assertions
         }
@@ -244,6 +213,6 @@ class PMKB(Harvester):
         with open(data_dir / 'pmkb_harvester.json', 'w+') as f:
             json.dump(composite_dict, f)
 
-        for data in ['evidence', 'genes', 'variants', 'assertions']:
+        for data in ['evidence', 'variants', 'assertions']:
             with open(data_dir / f"{data}.json", 'w+') as f:
                 json.dump(composite_dict[data], f)
