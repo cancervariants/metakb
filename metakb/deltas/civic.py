@@ -21,6 +21,7 @@ class CIVICDelta:
         """
         self._main_json = main_json
         if '_new_json' in kwargs:
+            # The path to the updated CIViC harvester composite json file.
             self._new_json = kwargs['_new_json']
         else:
             self._new_json = None
@@ -51,8 +52,11 @@ class CIVICDelta:
 
         delta = {
             '_meta': {
+                # TODO: Is this needed?
                 'civicpy_version':
                     pkg_resources.get_distribution("civicpy").version,
+                # TODO: Check version.
+                'metakb_version': '1.0.1',
                 # TODO: Might change. Assuming we harvest when computing delta
                 'date_harvested': current_date
             }

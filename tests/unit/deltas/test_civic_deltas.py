@@ -38,6 +38,7 @@ def diff():
     return {
         '_meta': {
             'civicpy_version': '1.1.2',
+            'metakb_version': '1.0.1',
             'date_harvested': date.today().strftime('%Y%m%d')
         },
         'genes': {
