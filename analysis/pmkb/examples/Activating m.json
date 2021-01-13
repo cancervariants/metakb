@@ -66,16 +66,6 @@
             ]
         }
     },
-    "GENE": {
-        "type": "gene",
-        "name": "JAK1",
-        "variants": [
-            {
-                "name": "JAK1 any mutation",
-                "evidence_count": 1
-            }
-        ]
-    },
     "VARIANTS": [
         {
             "type": "variant",

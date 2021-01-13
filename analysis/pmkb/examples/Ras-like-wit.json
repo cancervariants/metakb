@@ -31,16 +31,6 @@
             ]
         }
     },
-    "GENE": {
-        "type": "gene",
-        "name": "RIT1",
-        "variants": [
-            {
-                "name": "RIT1 M90I",
-                "evidence_count": 1
-            }
-        ]
-    },
     "VARIANTS": [
         {
             "type": "variant",

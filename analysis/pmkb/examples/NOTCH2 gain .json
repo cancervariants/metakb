@@ -34,20 +34,6 @@
             ]
         }
     },
-    "GENE": {
-        "type": "gene",
-        "name": "NOTCH2",
-        "variants": [
-            {
-                "name": "NOTCH2 exon(s) 34 frameshift",
-                "evidence_count": 2
-            },
-            {
-                "name": "NOTCH2 I2304fs",
-                "evidence_count": 2
-            }
-        ]
-    },
     "VARIANTS": [
         {
             "type": "variant",

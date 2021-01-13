@@ -69,32 +69,6 @@
             ]
         }
     },
-    "GENE": {
-        "type": "gene",
-        "name": "MPL",
-        "variants": [
-            {
-                "name": "MPL S505N",
-                "evidence_count": 1
-            },
-            {
-                "name": "MPL W515K",
-                "evidence_count": 1
-            },
-            {
-                "name": "MPL Y591D",
-                "evidence_count": 1
-            },
-            {
-                "name": "MPL W515L",
-                "evidence_count": 1
-            },
-            {
-                "name": "MPL codon(s) 515 missense",
-                "evidence_count": 1
-            }
-        ]
-    },
     "VARIANTS": [
         {
             "type": "variant",

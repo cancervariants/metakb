@@ -39,24 +39,6 @@
             ]
         }
     },
-    "GENE": {
-        "type": "gene",
-        "name": "CSF3R",
-        "variants": [
-            {
-                "name": "CSF3R any frameshift",
-                "evidence_count": 1
-            },
-            {
-                "name": "CSF3R T618I",
-                "evidence_count": 1
-            },
-            {
-                "name": "CSF3R any nonsense",
-                "evidence_count": 1
-            }
-        ]
-    },
     "VARIANTS": [
         {
             "type": "variant",
