@@ -9,7 +9,11 @@ jupyter = "*"
 civicpy = "*"
 pytest = "*"
 pytest-cov = "*"
+pandas = "*"
+requests = "*"
+numpy = "*"
 jsondiff = "*"
+requests-cache = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
