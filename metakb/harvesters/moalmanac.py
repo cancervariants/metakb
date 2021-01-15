@@ -26,13 +26,12 @@ class MOAlmanac(Harvester):
         try:
             sources = self._harvest_sources()
             variants = self._harvest_variants()
-            # genes = self._harvest_genes(variants)
             assertions = self._harvest_assertions(variants)
             self._create_json(assertions, sources, variants)
             logger.info('MOAlamanc harvester was successful.')
             return True
         except:  # noqa: E722 # TODO: add details of exception error
-            logger.info('MOAlamanc harvester was not successful.')
+            logger.error('MOAlamanc harvester was not successful.')
             return False
 
     def _create_json(self, assertions, sources, variants):
@@ -92,14 +91,12 @@ class MOAlmanac(Harvester):
         with requests_cache.disabled():
             r = requests.get('https://moalmanac.org/api/attribute_definitions')
             attr_def = r.json()
-            attr_def_idToname = self._get_attr_def(attr_def)
+            attr_def_id_to_name = self._get_attr_def(attr_def)
 
-        with requests_cache.disabled():
             r = requests.get('https://moalmanac.org/api/feature_definitions')
             feat_defs = r.json()
-            feat_def_nameToattr_def_id = self._get_feat_def(feat_defs)
+            feat_def_name_to_attr_def_id = self._get_feat_def(feat_defs)
 
-        with requests_cache.disabled():
             r = requests.get('https://moalmanac.org/api/attributes')
             variants = r.json()
             variants_list = []
@@ -107,7 +104,7 @@ class MOAlmanac(Harvester):
             temp = 1  # as a key to compare with feature id
             feature_type = self._get_feature_type(
                 variants[0]['attribute_definition'],
-                feat_def_nameToattr_def_id)
+                feat_def_name_to_attr_def_id)
             variant_record = {
                 'feature_type': feature_type,
                 'feature_id': variants[0]['feature']
@@ -115,40 +112,23 @@ class MOAlmanac(Harvester):
             for variant in variants:
                 if variant['feature'] == temp:
                     v = self._harvest_variant(
-                        variant, variant_record, attr_def_idToname)
+                        variant, variant_record, attr_def_id_to_name)
                     continue
                 else:
                     v.update(self._get_feature(v))
                     variants_list.append(v)
                     feature_type = self._get_feature_type(
                         variant['attribute_definition'],
-                        feat_def_nameToattr_def_id)
+                        feat_def_name_to_attr_def_id)
                     variant_record = {
                         'feature_type': feature_type,
                         'feature_id': variant['feature']
                     }
                     v = self._harvest_variant(
-                        variant, variant_record, attr_def_idToname)
+                        variant, variant_record, attr_def_id_to_name)
                     temp = variant['feature']
             variants_list.append(v)
         return variants_list
-
-    def _harvest_genes(self, variants):
-        """
-        Harvest all MOA genes
-
-        :param: A list of harvested MOA variants
-        :return: A list of genes
-        :rtype: list
-        """
-        with requests_cache.disabled():
-            r = requests.get('https://moalmanac.org/api/genes')
-            genes = r.json()
-            genes_list = []
-            for gene in genes:
-                g = self._harvest_gene(gene, variants)
-                genes_list.append(g)
-            return genes_list
 
     def _harvest_assertions(self, variants):
         """
@@ -204,24 +184,6 @@ class MOAlmanac(Harvester):
         # allele_registrey, hgvs, transcript, etc
 
         return variant_record
-
-    def _harvest_gene(self, gene, variants):
-        """
-        Harvest an individual MOA gene record
-
-        :param: a MOA gene record
-        :param: a list of harvested MOA variants
-        :return: A dictionary containing MOA gene data
-        :rtype: dict
-        """
-        gene_record = {
-            'name': gene,
-            'variants': self._get_variant(gene, variants)
-            # TODO: add other details for each indivicual MOA gene
-            # entrez_id, description, aliases, etc.
-
-        }
-        return gene_record
 
     def _harvest_assertion(self, assertion, variants):
         """
@@ -308,7 +270,7 @@ class MOAlmanac(Harvester):
         else:
             return
 
-    def _get_feature_type(self, attr_def_id, feat_def_nameToattr_def_id):
+    def _get_feature_type(self, attr_def_id, feat_def_name_to_attr_def_id):
         """
         Map the attribute definition id with its corresponding feature_type
 
@@ -318,7 +280,7 @@ class MOAlmanac(Harvester):
         :return: mapped feature type
         :rtype: str
         """
-        return ([k for k, v in feat_def_nameToattr_def_id.items()
+        return ([k for k, v in feat_def_name_to_attr_def_id.items()
                 if attr_def_id in v] or [None])[0]
 
     def _get_feature(self, v):
