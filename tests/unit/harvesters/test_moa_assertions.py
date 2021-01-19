@@ -35,7 +35,7 @@ def assertion168():
             168
         ],
         "favorable_prognosis": None,
-        "created_on": "01/07/21",
+        "created_on": "01/16/21",
         "last_updated": "2019-06-13",
         "submitted_by": "breardon@broadinstitute.org",
         "validated": True,
