@@ -15,11 +15,12 @@ logger.addHandler(logging.StreamHandler())
 class MOAlmanac(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
-    def harvest(self):
+    def harvest(self, fn='moa_harvester.json'):
         """
         Retrieve and store sources, variants, and assertions
         records from MOAlmanac in composite and individual JSON files.
 
+        :param: file name of composite json
         :return:'True' if successfully retreived, 'False' otherwise
         :rtype: bool
         """
@@ -27,14 +28,14 @@ class MOAlmanac(Harvester):
             sources = self._harvest_sources()
             variants = self._harvest_variants()
             assertions = self._harvest_assertions(variants)
-            self._create_json(assertions, sources, variants)
+            self._create_json(assertions, sources, variants, fn)
             logger.info('MOAlamanc harvester was successful.')
             return True
         except:  # noqa: E722 # TODO: add details of exception error
             logger.error('MOAlamanc harvester was not successful.')
             return False
 
-    def _create_json(self, assertions, sources, variants):
+    def _create_json(self, assertions, sources, variants, fn):
         """
         Create a composite JSON file containing assertions,
         sources, and variants
@@ -43,6 +44,7 @@ class MOAlmanac(Harvester):
         :param: A list of MOA assertions
         :param: A list of MOA sources
         :param: A list of MOA variants
+        :param: File name of the harvester
         """
         composite_dict = {
             'assertions': assertions,
@@ -53,7 +55,7 @@ class MOAlmanac(Harvester):
         # Create composite json
         moa_dir = PROJECT_ROOT / 'data' / 'moa'
         moa_dir.mkdir(exist_ok=True, parents=True)
-        with open(f'{PROJECT_ROOT}/data/moa/moa_harvester.json',
+        with open(f'{PROJECT_ROOT}/data/moa/{fn}',
                   'w+') as f:
             json.dump(composite_dict, f)
             f.close()
