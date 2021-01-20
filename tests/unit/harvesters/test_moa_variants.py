@@ -15,8 +15,8 @@ def variants():
 def gata3():
     """Create a fixture for variant GATA3 p.M294K (Missense)."""
     return {
+        "id": 313,
         "feature_type": "somatic_variant",
-        "feature_id": 313,
         "gene": "GATA3",
         "chromosome": "10",
         "start_position": "8106058.0",
@@ -35,7 +35,7 @@ def gata3():
 def test_variant_gata3(variants, gata3):
     """Test moa harvester works correctly for variants."""
     for v in variants:
-        if v['feature_id'] == 313:
+        if v['id'] == 313:
             actual = v
             break
     assert actual.keys() == gata3.keys()

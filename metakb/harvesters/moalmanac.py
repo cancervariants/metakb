@@ -108,8 +108,8 @@ class MOAlmanac(Harvester):
                 variants[0]['attribute_definition'],
                 feat_def_name_to_attr_def_id)
             variant_record = {
-                'feature_type': feature_type,
-                'feature_id': variants[0]['feature']
+                'id': variants[0]['feature'],
+                'feature_type': feature_type
             }
             for variant in variants:
                 if variant['feature'] == temp:
@@ -123,8 +123,8 @@ class MOAlmanac(Harvester):
                         variant['attribute_definition'],
                         feat_def_name_to_attr_def_id)
                     variant_record = {
-                        'feature_type': feature_type,
-                        'feature_id': variant['feature']
+                        'id': variant['feature'],
+                        'feature_type': feature_type
                     }
                     v = self._harvest_variant(
                         variant, variant_record, attr_def_id_to_name)
@@ -221,7 +221,7 @@ class MOAlmanac(Harvester):
         }
 
         for v in variants:
-            if v['feature_id'] == assertion['features'][0]:
+            if v['id'] == assertion['features'][0]:
                 assertion_record.update({'variant': v})
 
         return assertion_record
