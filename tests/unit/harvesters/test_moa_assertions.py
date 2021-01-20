@@ -43,8 +43,8 @@ def assertion168():
             67
         ],
         "variant": {
+            "id": 168,
             "feature_type": "somatic_variant",
-            "feature_id": 168,
             "gene": "BRAF",
             "chromosome": "7",
             "start_position": "140453136.0",
