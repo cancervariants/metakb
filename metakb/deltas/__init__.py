@@ -1,2 +1,2 @@
 """Delta methods for harvesters."""
-from .civic import CIVICDelta  # noqa: F401
+from .delta import Delta  # noqa: F401
