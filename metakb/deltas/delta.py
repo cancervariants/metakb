@@ -6,6 +6,7 @@ from jsondiff import diff
 from datetime import date
 import pkg_resources
 from metakb.harvesters import CIViC
+from metakb.harvesters import MOAlmanac
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -51,6 +52,8 @@ class Delta:
             fn = f"{self._src}_harvester_{current_date}.json"
             if self._src == 'civic':
                 CIViC().harvest(fn=fn)
+            elif self._src == 'moa':
+                MOAlmanac().harvest(fn=fn)
 
             with open(f"{PROJECT_ROOT}/data/{self._src}/{fn}", 'r') as f:
                 updated_json = json.load(f)
