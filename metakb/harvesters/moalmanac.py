@@ -332,21 +332,3 @@ class MOAlmanac(Harvester):
             feature = '{}'.format(v['event'])
 
         return {'feature': feature.strip()}
-
-    def _get_variant(self, gene, variants):
-        """
-        Get the variants information of a given MOA gene
-
-        :param: an MOA gene
-        :param: a list of harvested MOA variants
-        :return: a list of all MOA variants associated with the given MOA gene
-        :rtype: list
-        """
-        v = []
-        feature = []
-        for variant in variants:
-            if gene in variant.values():
-                if variant['feature'] not in feature:
-                    feature.append(variant['feature'])
-                    v.append(variant)
-        return v
