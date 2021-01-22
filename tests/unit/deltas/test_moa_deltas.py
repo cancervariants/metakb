@@ -39,7 +39,8 @@ def diff():
     return {
         '_meta': {
             'metakb_version': '1.0.1',
-            'date_harvested': date.today().strftime('%Y%m%d')
+            'date_harvested': date.today().strftime('%Y%m%d'),
+            'moa_api_version': '0.2'
         },
         'assertions': {
             'DELETE': [],
