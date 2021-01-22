@@ -4,9 +4,7 @@ import json
 import logging
 from jsondiff import diff
 from datetime import date
-import pkg_resources
-from metakb.harvesters import CIViC
-from metakb.harvesters import MOAlmanac
+from metakb.harvesters import CIViC, MOAlmanac
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -68,8 +66,9 @@ class Delta:
         }
         # TODO: Is this needed?
         if self._src == 'civic':
-            delta['_meta']['civicpy_version'] = \
-                pkg_resources.get_distribution("civicpy").version
+            delta['_meta']['civicpy_version'] = '1.1.2'
+        elif self._src == 'moa':
+            delta['_meta']['moa_api_version'] = '0.2'
 
         for record_type in main_json.keys():
             delta[record_type] = {
