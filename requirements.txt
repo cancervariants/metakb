@@ -1,0 +1,6 @@
+civicpy~=1.1.2
+pandas~=1.2.0
+numpy~=1.19.5
+requests~=2.25.1
+requests-cache~=0.5.2
+jsondiff~=1.2.0
