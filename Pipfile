@@ -13,6 +13,3 @@ jsondiff = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
-
-[requires]
-python_version = "3.9"
