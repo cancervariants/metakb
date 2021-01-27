@@ -17,5 +17,3 @@ requests-cache = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
-
-[requires]

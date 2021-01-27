@@ -122,3 +122,7 @@ pytest.ini
 
 # data files
 data/*
+
+# Build files
+Pipfile.lock
+pyproject.toml
