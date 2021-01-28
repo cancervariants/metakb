@@ -1,8 +1,16 @@
-id: http://cancervariants.org/schema/metakb
+id: https://schema.cancervariants.org/metakb/
 name: metakb
+
+prefixes:
+  vrs: https://schema.cancervariants.org/vrs/
+  gks: https://schema.cancervariants.org/vod/
 
 default_prefix: vicc
 default_range: string
+
+imports:
+  - vrs:classes
+  - vod:classes
 
 types:
 
@@ -10,23 +18,101 @@ types:
     uri: xsd:string
     base: str
 
-
 classes:
 
-  clinical significance assertion:
-    description: an assertion of clinical significance
-    slots:
-      - classification
-      - has variation profile
-      - has evidence
-
-  therapeutic response assertion:
-    is_a: clinical significance assertion
-    slots:
-      - has drug profile
-
-
-slots:
+  ## Classifications
 
   classification:
-    description: a
+    description: >-
+      a codified result from assessing evidence under a classification system
+    slots:
+      - classification system
+      - classification outcome
+      - has evidence
+
+  clinical significance of variation classification:
+    description: >-
+      an assertion of clinical significance of a variation
+    is_a: classification
+    slots:
+      - has variation profile
+
+  therapeutic response from variation classification:
+    description: >-
+      an assertion of response to a therapy in presence of a variation
+    is_a: clinical significance of variation classification
+    slots:
+      - has therapy profile
+      - has disease context
+
+  prognosis from variation classification:
+    description: >-
+      an assertion of prognosis in presence of a variation
+    is_a: clinical significance of variation classification
+    slots:
+      - has disease context
+
+  diagnosis from variation classification:
+    description: >-
+      an assertion of diagnosis in presence of a variation
+    is_a: clinical significance of variation classification
+    slots:
+      - informs diagnosis
+
+  ## Variation
+
+  # Variation Profile
+
+  variation profile:
+    description: >-
+      a set of variants and the relationships between them
+    slots:
+      - has variation descriptor or variation logical set
+      - label
+      - description
+
+  variation logical set:
+    description: >-
+      logical relationships between variation concepts
+    slots:
+      - has variation descriptor or variation logical set
+      - logical operator
+
+  variation descriptor:
+    description: >-
+      a value object descriptor for VRS Variation concepts
+    is_a: vod:value object descriptor # guessing, still need to learn import syntax
+
+  # Variation imported from vrs
+
+  ## Therapies
+
+  # see https://github.com/cancervariants/therapy-normalization/blob/main/therapy/schemas.py
+
+  therapy profile:
+    description: >-
+      a set of therapies and the relationships between them
+    slots:
+      - therapy or therapy relationship set
+
+  therapy:
+    description: >-
+      a procedure or substance used in the treatment of a disease
+    slots:
+      - label
+      - id
+      - aliases
+      - other identifiers
+      - xrefs
+
+  therapy relationship set:
+    description: >-
+      relationships between variation concepts
+
+  drug:
+    is_a: therapy
+    description: >-
+      a pharmacologic substance used to treat a medical condition
+    slots:
+      - drug approval status
+      - trade names
