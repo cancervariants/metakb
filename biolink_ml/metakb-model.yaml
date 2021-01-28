@@ -1,0 +1,32 @@
+id: http://cancervariants.org/schema/metakb
+name: metakb
+
+default_prefix: vicc
+default_range: string
+
+types:
+
+  string:
+    uri: xsd:string
+    base: str
+
+
+classes:
+
+  clinical significance assertion:
+    description: an assertion of clinical significance
+    slots:
+      - classification
+      - has variation profile
+      - has evidence
+
+  therapeutic response assertion:
+    is_a: clinical significance assertion
+    slots:
+      - has drug profile
+
+
+slots:
+
+  classification:
+    description: a
