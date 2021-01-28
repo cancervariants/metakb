@@ -64,7 +64,7 @@ class Delta:
                 'date_harvested': current_date
             }
         }
-        # TODO: Is this needed?
+
         if self._src == 'civic':
             delta['_meta']['civicpy_version'] = '1.1.2'
         elif self._src == 'moa':
