@@ -14,7 +14,7 @@ class Delta:
     """A class for computing deltas."""
 
     def __init__(self, main_json, src, *args, **kwargs):
-        """Initialize the CIVICDelta class.
+        """Initialize the Delta class.
 
         :param str main_json: The path to the main composite json file.
         :param str src: The source to compute the delta on
