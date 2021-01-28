@@ -3,7 +3,7 @@ name: metakb
 
 prefixes:
   vrs: https://schema.cancervariants.org/vrs/
-  gks: https://schema.cancervariants.org/vod/
+  vod: https://schema.cancervariants.org/vod/
 
 default_prefix: vicc
 default_range: string
@@ -37,6 +37,13 @@ classes:
     slots:
       - has variation profile
 
+  ## There is a clinical actionability group SEPIO profile to check out
+  ##  has similar relationships we may wish to reuse
+
+  ## Consider SKOS for relationships (e.g. 'exact match')
+
+  ## Evaluate SEPIO assertions
+
   therapeutic response from variation classification:
     description: >-
       an assertion of response to a therapy in presence of a variation
@@ -68,6 +75,7 @@ classes:
       a set of variants and the relationships between them
     slots:
       - has variation descriptor or variation logical set
+        # LB: alternative, consider variation logical set
       - label
       - description
 
@@ -75,13 +83,28 @@ classes:
     description: >-
       logical relationships between variation concepts
     slots:
-      - has variation descriptor or variation logical set
-      - logical operator
+      - has variation descriptors or variation logical sets
+      - logical operator # AND, OR, NOT
+      # need to define constraint for NOT
 
   variation descriptor:
     description: >-
       a value object descriptor for VRS Variation concepts
     is_a: vod:value object descriptor # guessing, still need to learn import syntax
+
+  # slots:
+  #   has variation descriptor or variation logical set:
+  #     multivalued: true
+  #     range: variation descriptor | variation logical set
+
+
+  #### Example, variant 1 and variant 2 and variant 3
+  # variation profile:
+  #   variation logical set:
+  #     has variation descriptor or variation logical set:
+  #       [variation descriptor 1, variation descriptor 2, variation descriptor 3]
+  #     logical operator: 'AND'
+
 
   # Variation imported from vrs
 
