@@ -31,8 +31,8 @@ class EvidenceLevel(Enum):
     D = 'D'
 
 
-class Statement(BaseModel):
-    """A class for statements."""
+class Evidence(BaseModel):
+    """A class for evidence."""
 
     id: str
     type: StatementType
@@ -83,10 +83,10 @@ class ValueObjects:
     """A class for Value Objects."""
 
 
-class Response:
+class TherapeuticResponse:
     """A class for a Therapeutic Response."""
 
-    statements: List[Statement]
+    evidence: Evidence
     gks_descriptors: List[GKSDescriptors]
     value_objects: List[ValueObjects]
 
@@ -96,3 +96,12 @@ class XrefSystem(Enum):
 
     CLINVAR = 'ClinVar'
     CLINGEN = 'ClinGenAlleleRegistry'
+    DB_SNP = 'dbSNP'
+    NCBI = 'ncbigene'
+
+
+class NamespacePrefix(Enum):
+    """Define constraints for Namespace prefixes."""
+
+    CIVIC = 'civic'
+    NCIT = 'ncit'

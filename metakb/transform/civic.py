@@ -2,8 +2,7 @@
 from metakb import PROJECT_ROOT
 import json
 import logging
-from metakb.models.common import VariantOrigin, ClinicalSignificance, \
-    DrugInteractionType, GKSDescriptorType, XrefSystem
+import metakb.models.schemas as schemas
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
@@ -27,151 +26,160 @@ class CIViCTransform:
         """Transform CIViC harvested json to common data model."""
         data = self._extract()
         response = dict()
-        response['response'] = {'statements': list()}
-        evidence = data['evidence']
+        evidence_items = data['evidence']
         genes = data['genes']
         variants = data['variants']
-        for e in evidence:
-            if e['id'] == 3017:
-                self._add_statement(e, response)
-                self._add_gks_descriptors(e, genes, variants, response)
-                # self.add_value_objects(e, response)
+        for evidence in evidence_items:
+            if evidence['id'] == 3017:
+                self._add_evidence(evidence, variants, genes, response)
                 break
         print(response)
 
-    def _add_statement(self, e, response):
+    def _add_evidence(self, e, variants, genes, response):
+        """Add evidence to therapeutic response.
 
+        :param dict e: Harvested CIViC evidence
+        """
+        evidence = {
+            'id': f"{schemas.NamespacePrefix.CIVIC.value}:{e['name']}",
+            'type': 'evidence',  # Should this be GksTherapeuticResponse
+            'molecular_profile':
+                f"{schemas.NamespacePrefix.CIVIC.value}:VID{e['variant_id']}",
+            'disease':
+                f"{schemas.NamespacePrefix.CIVIC.value}:"
+                f"DiseaseID{e['disease']['id']}",
+            'variant_origin':
+                schemas.VariantOrigin[e['variant_origin'].upper()].value,
+            'clinical_significance': self._add_clinical_significance(e),
+            'drugs': [self._add_drug(drug) for drug in e['drugs']],
+            'evidence_level': e['evidence_level'],
+            'variant': self._add_variant(variants, e['variant_id']),
+            'gene': self._add_gene(genes, e['gene_id'])
+            # 'gene': f"{schemas.NamespacePrefix.CIVIC.value}:{e['gene_id']}"
+        }
+        response['evidence'] = evidence
+
+    def _add_clinical_significance(self, e):
+        """Return clinical significance for a given evidence item.
+
+        :param dict e: Harvested CIViC evidence
+        :return: A string giving the clinical significance for an evidence item
+        """
         clin_sig = None
         if 'clinical_significance' in e and e['clinical_significance']:
             clin_sig = e['clinical_significance']
             if clin_sig == 'Sensitivity/Response':
-                clin_sig = ClinicalSignificance.SENSITIVITY.value
+                clin_sig = schemas.ClinicalSignificance.SENSITIVITY.value
+        return clin_sig
 
-        statement = {
-            'id': f"civic:{e['name']}",
-            'type': 'GksTherapeuticResponse',
-            # Is this variant_id?
-            'molecular_profile': f"civic:VID{e['variant_id']}",
-            'therapeutic_intervention': 'therapeutic_intervention:',   # TODO
-            'disease': f"civic:DiseaseID{e['disease']['id']}",
-            'variant_origin': VariantOrigin[e['variant_origin'].upper()].value,
-            'clinical_significance': clin_sig,
-            'evidence_level': e['evidence_level'],
-            'provenance': None,  # TODO
-        }
-        response['response']['statements'].append(statement)
+    def _add_drug(self, drug):
+        """Return drug data.
 
-    def _add_gks_descriptors(self, e, genes, variants, response):
-        gks_descriptors = []  # noqa: F841
-
-        components = [self._add_component(drug) for drug in e['drugs']]
-        drug_interaction_type = \
-            DrugInteractionType[e['drug_interaction_type'].upper()].value
-
-        # Is components always len == 2?
-        label = '{} and {} {} Therapy'.format(components[0]['label'],
-                                              components[1]['label'],
-                                              drug_interaction_type.capitalize())  # noqa: E501
-
-        gks_descriptor = {
-            'id': "therapeutic_intervention:",   # TODO
-            'type': 'GksTherapeuticIntervention',
-            'label': label,
-            'components': components,
-            'drug_interaction_type': drug_interaction_type
-
-
-        }
-        gks_descriptors.append(gks_descriptor)
-        gks_descriptors.append(self._add_gene(e, genes, variants))
-        self._add_allele_descriptors(gks_descriptors, e['variant_id'],
-                                     variants, e['gene_id'])
-        response['response']['gks_descriptors'] = gks_descriptors
-
-    def _add_component(self, drug):
+        :param dict drug: A CIViC drug record
+        """
         return {
-            'id': f"ncit:{drug['id']}",
+            'id': f"{schemas.NamespacePrefix.NCIT.value}:{drug['id']}",
             'label': drug['name']
         }
 
-    def _add_value_objects(self, e, response):
-        pass
+    def _add_variant(self, variants, variant_id):
+        """Add variant data to the response.
 
-    def _add_variant(self, v, response):
-        variant = {  # noqa: F841
-            'id': f"civic:VID{v['id']}",
-            'type': 'AlleleDescriptor',  # Is this always AlleleDescriptor?
+        :param dict variants: Harvested CIViC variants
+        :param str variant_id: The variant's ID
+        :param dict response: The response object
+        :return: A dictionary containing variant data
+        """
+        v = self._get_record(variant_id, variants)
+        return {
+            'id': f"{schemas.NamespacePrefix.CIVIC.value}:VID{v['id']}",
+            'type': 'variant',  # Should this be AlleleDescriptor?
             'label': f"{v['entrez_name']} {v['name']}",
-            'value_id': None,  # TODO
-            'expansion_set': 'variation_set:',  # TODO
-            'gene': f"civic:GID{v['gene_id']}",
-            'xref': [],  # TODO
-            'alias': None
+            'gene': f"{schemas.NamespacePrefix.CIVIC.value}:GID{v['gene_id']}",
+            'hgvs_descriptions': v['hgvs_expressions'],
+            'xref': self._add_variant_xrefs(v),
+            'aliases': [alias for alias in v['variant_aliases']
+                        if not alias.startswith('RS')]
         }
 
-    def _get_record(self, record_id, record_list):
-        for r in record_list:
+    def _get_record(self, record_id, records):
+        """Get a CIViC record by ID.
+
+        :param str record_id: The ID of the record we are searching for
+        :param dict records: A dict of records for a given CIViC record type
+        """
+        for r in records:
             if r['id'] == record_id:
                 return r
 
-    def _add_gene(self, e, genes, variants):
-        g = self._get_record(e['gene_id'], genes)
+    def _add_gene(self, genes, gene_id):
+        """Add gene data to the response.
 
-        return {  # noqa: F841
-            'id': f"civic:GID{g['id']}",
-            'type': 'GeneDescriptor',
+        :param dict genes: Harvested CIViC genes
+        :param str gene_id: The gene's ID
+        :return: A dictionary containing gene data
+        """
+        g = self._get_record(gene_id, genes)
+        return {
+            'id': f"{schemas.NamespacePrefix.CIVIC.value}:GID{g['id']}",
+            'type': 'gene',  # Should this be GeneDescriptor
             'label': g['name'],
-            # 'description': g['description'],
-            'value_id': "hgnc:",  # TODO: Where do we get this value?
-            'xref': [
-                {'system': 'ncbigene', 'id': g['entrez_id']}
-            ],
-            'alias': g['aliases'],
-            'provenance': None  # TODO
+            'description': g['description'],
+            'xrefs': self._add_gene_xrefs(g),
+            'aliases': g['aliases']
         }
 
-    def _add_allele_descriptors(self, gks_descriptors, v_id, variants, g_id):
-        v = self._get_record(v_id, variants)
-        xrefs = self._add_xrefs(v)
+    def _add_gene_xrefs(self, g):
+        """Get a list of xrefs for a gene.
 
-        obj = {
-            'id': f"civic:VID{v['id']}",
-            'type': GKSDescriptorType.ALLELE_DESCRIPTOR.value,
-            'label': f"{v['entrez_name']} {v['name']}",
-            'value_id': None,  # TODO
-            'expansion_set': None,  # TODO
-            'gene': f"civic:GID{g_id}",
-            'xrefs': xrefs,
-            'aliases': v['variant_aliases'],  # TODO
-        }
-        gks_descriptors.append(obj)
-
-        for hgvs_expression in v['hgvs_expressions']:
-            gks_descriptors.append({
-                'id': "hgvs:",  # TODO
-                'type': GKSDescriptorType.ALLELE_DESCRIPTOR.value,
-                'label': hgvs_expression,
-                'value_id': None,  # TODO
-            })
-
-    def _add_xrefs(self, v):
-        xrefs = []
-        if 'clinvar_entries' in v:
-            for clinvar_entry in v['clinvar_entries']:
-                xrefs.append({
-                    'system': XrefSystem.CLINVAR.value,
-                    'id': clinvar_entry,
-                    'type': 'variation'
-                })
-        if 'allele_registry_id' in v:
-            xrefs.append({
-                'system': XrefSystem.CLINVAR.value,
-                'id': v['allele_registry_id']
-            })
-
-        # TODO: Add dbSNP
-
+        :param dict g: A CIViC gene record
+        """
+        xrefs = [self._add_xref(
+            schemas.XrefSystem.NCBI.value, g['entrez_id'])]
         return xrefs
+
+    def _add_variant_xrefs(self, v):
+        """Get a list of xrefs for a variant.
+
+        :param dict v: A CIViC variant record
+        :return: A dictionary of xrefs
+        """
+        xrefs = []
+        for xref in ['clinvar_entries', 'allele_registry_id',
+                     'variant_aliases']:
+            if xref == 'clinvar_entries':
+                for clinvar_entry in v['clinvar_entries']:
+                    xrefs.append(self._add_xref(
+                        schemas.XrefSystem.CLINVAR.value, clinvar_entry,
+                        xref_type='variation'))
+
+            elif xref == 'allele_registry_id':
+                xrefs.append(self._add_xref(schemas.XrefSystem.CLINGEN.value,
+                                            v['allele_registry_id']))
+            elif xref == 'variant_aliases':
+                dbsnp_xrefs = [item for item in v['variant_aliases']
+                               if item.startswith('RS')]
+                for dbsnp_xref in dbsnp_xrefs:
+                    xrefs.append(self._add_xref(
+                        schemas.XrefSystem.DB_SNP.value,
+                        dbsnp_xref.split('RS')[-1],
+                        xref_type='rs'))
+        return xrefs
+
+    def _add_xref(self, system, system_id, xref_type=None):
+        """Return xref data.
+
+        :param str system: The name of the system
+        :param str system_id: The system's ID for the concept
+        :param str xref_type: The type of the xref
+        """
+        xref = {
+            'system': system,
+            'id': system_id
+        }
+        if xref_type:
+            xref['type'] = xref_type
+        return xref
 
 
 CIViCTransform().tranform()
