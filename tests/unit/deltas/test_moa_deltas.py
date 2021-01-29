@@ -1,7 +1,7 @@
 """Test MOAlmanac deltas."""
 import pytest
 from metakb import PROJECT_ROOT
-from metakb.deltas import Delta
+from metakb.delta import Delta
 from datetime import date
 import json
 import os
