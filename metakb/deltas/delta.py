@@ -5,7 +5,10 @@ import logging
 from jsondiff import diff
 from datetime import date
 from metakb.harvesters import CIViC, MOAlmanac
-
+HARVESTER_CLASS = {
+    'civic': CIViC,
+    'moa': MOAlmanac
+}
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
