@@ -22,8 +22,8 @@ class Delta:
         :param str main_json: The path to the main composite json file.
         :param str src: The source to compute the delta on
         """
-        assert src.lower() in ['civic', 'pmkb', 'moa']
         self._src = src.lower()
+        assert self._src in HARVESTER_CLASS.keys()
         self._main_json = main_json
         if '_updated_json' in kwargs:
             # The path to the updated harvester composite json file.
@@ -51,16 +51,14 @@ class Delta:
         else:
             # Want to create updated harvester file
             fn = f"{self._src}_harvester_{current_date}.json"
-            HARVESTER_CLASS[self._src](fn=fn)
+            HARVESTER_CLASS[self._src]().harvest(fn=fn)
 
             with open(f"{PROJECT_ROOT}/data/{self._src}/{fn}", 'r') as f:
                 updated_json = json.load(f)
 
         delta = {
             '_meta': {
-                # TODO: Check version.
                 'metakb_version': '1.0.1',
-                # TODO: Might change. Assuming we harvest when computing delta
                 'date_harvested': current_date
             }
         }
