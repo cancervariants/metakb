@@ -51,10 +51,7 @@ class Delta:
         else:
             # Want to create updated harvester file
             fn = f"{self._src}_harvester_{current_date}.json"
-            if self._src == 'civic':
-                CIViC().harvest(fn=fn)
-            elif self._src == 'moa':
-                MOAlmanac().harvest(fn=fn)
+            HARVESTER_CLASS[self._src](fn=fn)
 
             with open(f"{PROJECT_ROOT}/data/{self._src}/{fn}", 'r') as f:
                 updated_json = json.load(f)
