@@ -18,7 +18,7 @@ def eid3017():
     return {
         "id": "civic:EID3017",
         "type": "evidence",
-        "disease": {
+        "disease_context": {
             "id": "civic:DiseaseID8",
             "label": "Lung Non-small Cell Carcinoma",
             "xrefs": [
@@ -111,7 +111,7 @@ def eid3017():
                 "VAL600GLU"
             ]
         },
-        "gene": {
+        "gene_profile": {
             "id": "civic:GID5",
             "type": "gene",
             "label": "BRAF",

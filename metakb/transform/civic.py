@@ -47,14 +47,14 @@ class CIViCTransform:
         evidence = {
             'id': f"{schemas.NamespacePrefix.CIVIC.value}:{evidence['name']}",
             'type': 'evidence',  # Should this be GksTherapeuticResponse
-            'disease': self._add_disease_context(evidence),
+            'disease_context': self._add_disease_context(evidence),
             'variant_origin': evidence['variant_origin'],
             'clinical_significance': self._add_clinical_significance(evidence),
             'evidence_level': evidence['evidence_level'],
             'therapy_profile': self._add_therapy_profile(evidence),
             'variation_profile':
                 self._add_variant(variants, evidence['variant_id']),
-            'gene': self._add_gene(genes, evidence['gene_id'])
+            'gene_profile': self._add_gene(genes, evidence['gene_id'])
         }
         if not evidence['therapy_profile']['drugs']:
             del evidence['therapy_profile']
