@@ -25,44 +25,67 @@ class CIViCTransform:
     def tranform(self):
         """Transform CIViC harvested json to common data model."""
         data = self._extract()
-        response = dict()
+        responses = dict()
         evidence_items = data['evidence']
         genes = data['genes']
         variants = data['variants']
         for evidence in evidence_items:
-            if evidence['id'] == 3017:
-                self._add_evidence(evidence, variants, genes, response)
-                break
-        print(response)
+            evidence_id = f"{schemas.NamespacePrefix.CIVIC.value}" \
+                          f":{evidence['name']}"
+            responses[evidence_id] = \
+                self._add_evidence(evidence, variants, genes)
 
-    def _add_evidence(self, e, variants, genes, response):
+    def _add_evidence(self, evidence, variants, genes):
         """Add evidence to therapeutic response.
 
-        :param dict e: Harvested CIViC evidence
+        :param dict evidence: Harvested CIViC evidence item records
+        :param dict variants: Harvested CIViC variant records
+        :param dict genes: Harvested CIViC gene records
         """
         evidence = {
-            'id': f"{schemas.NamespacePrefix.CIVIC.value}:{e['name']}",
+            'id': f"{schemas.NamespacePrefix.CIVIC.value}:{evidence['name']}",
             'type': 'evidence',  # Should this be GksTherapeuticResponse
-            'molecular_profile':
-                f"{schemas.NamespacePrefix.CIVIC.value}:VID{e['variant_id']}",
             'disease':
                 f"{schemas.NamespacePrefix.CIVIC.value}:"
-                f"DiseaseID{e['disease']['id']}",
-            'variant_origin':
-                schemas.VariantOrigin[e['variant_origin'].upper()].value,
-            'clinical_significance': self._add_clinical_significance(e),
-            'drugs': [self._add_drug(drug) for drug in e['drugs']],
-            'evidence_level': e['evidence_level'],
-            'variant': self._add_variant(variants, e['variant_id']),
-            'gene': self._add_gene(genes, e['gene_id'])
-            # 'gene': f"{schemas.NamespacePrefix.CIVIC.value}:{e['gene_id']}"
+                f"DiseaseID{evidence['disease']['id']}",
+            'variant_origin': evidence['variant_origin'],
+            'clinical_significa'
+            'nce': self._add_clinical_significance(evidence),
+            'evidence_level': evidence['evidence_level'],
+            'therapy_profile': self._add_therapy_profile(evidence),
+            'variation_profile':
+                self._add_variant(variants, evidence['variant_id']),
+            'gene': self._add_gene(genes, evidence['gene_id'])
         }
-        response['evidence'] = evidence
+        if not evidence['therapy_profile']['drugs']:
+            del evidence['therapy_profile']
+        return evidence
+
+    def _add_therapy_profile(self, evidence):
+        """Return therapy profile.
+
+        :param dict evidence: Harvested CIViC evidence item records
+        :return: A dictionary containing the therapy profile
+        """
+        therapy_profile = {
+            'label': None,
+            'drugs': [self._add_drug(drug) for drug in evidence['drugs']],
+            'drug_interaction_type': evidence['drug_interaction_type']
+        }
+        drug_labels = [drug['label'] for drug in therapy_profile['drugs']]
+        if drug_labels:
+            if len(drug_labels) == 1:
+                therapy_profile['label'] = drug_labels[0]
+            elif len(drug_labels) == 2:
+                therapy_profile['label'] = \
+                    f"{drug_labels[0]} and {drug_labels[1]} " \
+                    f"{therapy_profile['drug_interaction_type']} Therapy"
+        return therapy_profile
 
     def _add_clinical_significance(self, e):
         """Return clinical significance for a given evidence item.
 
-        :param dict e: Harvested CIViC evidence
+        :param dict e: Harvested CIViC evidence item records
         :return: A string giving the clinical significance for an evidence item
         """
         clin_sig = None
@@ -79,7 +102,9 @@ class CIViCTransform:
         """
         return {
             'id': f"{schemas.NamespacePrefix.NCIT.value}:{drug['id']}",
-            'label': drug['name']
+            'label': drug['name'],
+            'xrefs': [self._add_xref('ncit', drug['ncit_id'])],
+            'aliases': drug['aliases']
         }
 
     def _add_variant(self, variants, variant_id):
@@ -87,7 +112,6 @@ class CIViCTransform:
 
         :param dict variants: Harvested CIViC variants
         :param str variant_id: The variant's ID
-        :param dict response: The response object
         :return: A dictionary containing variant data
         """
         v = self._get_record(variant_id, variants)
@@ -97,7 +121,7 @@ class CIViCTransform:
             'label': f"{v['entrez_name']} {v['name']}",
             'gene': f"{schemas.NamespacePrefix.CIVIC.value}:GID{v['gene_id']}",
             'hgvs_descriptions': v['hgvs_expressions'],
-            'xref': self._add_variant_xrefs(v),
+            'xrefs': self._add_variant_xrefs(v),
             'aliases': [alias for alias in v['variant_aliases']
                         if not alias.startswith('RS')]
         }
