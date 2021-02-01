@@ -10,19 +10,20 @@ logger.setLevel(logging.DEBUG)
 class CIViCTransform:
     """A class for transforming CIViC to the common data model."""
 
-    def __init__(self, fn='civic_harvester.json'):
+    def __init__(self,
+                 file_path=f"{PROJECT_ROOT}/data/civic/civic_harvester.json"):
         """Initialize CIViCTransform class.
 
-        :param str fn: The file name of the composite JSON to transform.
+        :param str file_path: The file path to the composite JSON to transform.
         """
-        self._fn = fn
+        self._file_path = file_path
 
     def _extract(self):
         """Extract the CIViC composite JSON file."""
-        with open(f"{PROJECT_ROOT}/data/civic/{self._fn}", 'r') as f:
+        with open(self._file_path, 'r') as f:
             return json.load(f)
 
-    def tranform(self):
+    def transform(self):
         """Transform CIViC harvested json to common data model."""
         data = self._extract()
         responses = dict()
@@ -34,6 +35,7 @@ class CIViCTransform:
                           f":{evidence['name']}"
             responses[evidence_id] = \
                 self._add_evidence(evidence, variants, genes)
+        return responses
 
     def _add_evidence(self, evidence, variants, genes):
         """Add evidence to therapeutic response.
@@ -45,12 +47,9 @@ class CIViCTransform:
         evidence = {
             'id': f"{schemas.NamespacePrefix.CIVIC.value}:{evidence['name']}",
             'type': 'evidence',  # Should this be GksTherapeuticResponse
-            'disease':
-                f"{schemas.NamespacePrefix.CIVIC.value}:"
-                f"DiseaseID{evidence['disease']['id']}",
+            'disease': self._add_disease_context(evidence),
             'variant_origin': evidence['variant_origin'],
-            'clinical_significa'
-            'nce': self._add_clinical_significance(evidence),
+            'clinical_significance': self._add_clinical_significance(evidence),
             'evidence_level': evidence['evidence_level'],
             'therapy_profile': self._add_therapy_profile(evidence),
             'variation_profile':
@@ -60,6 +59,20 @@ class CIViCTransform:
         if not evidence['therapy_profile']['drugs']:
             del evidence['therapy_profile']
         return evidence
+
+    def _add_disease_context(self, evidence):
+        """Return disease context.
+
+        :param dict evidence: Harvested CIViC evidence item records
+        :return: A dictionary containing the disease context
+        """
+        return {
+            'id': f"{schemas.NamespacePrefix.CIVIC.value}:"
+                  f"DiseaseID{evidence['disease']['id']}",
+            'label': evidence['disease']['name'],
+            'xrefs': [self._add_xref(schemas.XrefSystem.DISEASE_ONTOLOGY.value,
+                                     evidence['disease']['doid'])]
+        }
 
     def _add_therapy_profile(self, evidence):
         """Return therapy profile.
@@ -91,8 +104,6 @@ class CIViCTransform:
         clin_sig = None
         if 'clinical_significance' in e and e['clinical_significance']:
             clin_sig = e['clinical_significance']
-            if clin_sig == 'Sensitivity/Response':
-                clin_sig = schemas.ClinicalSignificance.SENSITIVITY.value
         return clin_sig
 
     def _add_drug(self, drug):
@@ -204,6 +215,3 @@ class CIViCTransform:
         if xref_type:
             xref['type'] = xref_type
         return xref
-
-
-CIViCTransform().tranform()
