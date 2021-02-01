@@ -28,21 +28,19 @@ class CIViCTransform:
         data = self._extract()
         responses = dict()
         evidence_items = data['evidence']
-        genes = data['genes']
         variants = data['variants']
         for evidence in evidence_items:
             evidence_id = f"{schemas.NamespacePrefix.CIVIC.value}" \
                           f":{evidence['name']}"
             responses[evidence_id] = \
-                self._add_evidence(evidence, variants, genes)
+                self._add_evidence(evidence, variants)
         return responses
 
-    def _add_evidence(self, evidence, variants, genes):
+    def _add_evidence(self, evidence, variants):
         """Add evidence to therapeutic response.
 
         :param dict evidence: Harvested CIViC evidence item records
         :param dict variants: Harvested CIViC variant records
-        :param dict genes: Harvested CIViC gene records
         """
         evidence = {
             'id': f"{schemas.NamespacePrefix.CIVIC.value}:{evidence['name']}",
@@ -53,8 +51,7 @@ class CIViCTransform:
             'evidence_level': evidence['evidence_level'],
             'therapy_profile': self._add_therapy_profile(evidence),
             'variation_profile':
-                self._add_variant(variants, evidence['variant_id']),
-            'gene_profile': self._add_gene(genes, evidence['gene_id'])
+                self._add_variant(variants, evidence['variant_id'])
         }
         if not evidence['therapy_profile']['drugs']:
             del evidence['therapy_profile']
@@ -146,32 +143,6 @@ class CIViCTransform:
         for r in records:
             if r['id'] == record_id:
                 return r
-
-    def _add_gene(self, genes, gene_id):
-        """Add gene data to the response.
-
-        :param dict genes: Harvested CIViC genes
-        :param str gene_id: The gene's ID
-        :return: A dictionary containing gene data
-        """
-        g = self._get_record(gene_id, genes)
-        return {
-            'id': f"{schemas.NamespacePrefix.CIVIC.value}:GID{g['id']}",
-            'type': 'gene',  # Should this be GeneDescriptor
-            'label': g['name'],
-            'description': g['description'],
-            'xrefs': self._add_gene_xrefs(g),
-            'aliases': g['aliases']
-        }
-
-    def _add_gene_xrefs(self, g):
-        """Get a list of xrefs for a gene.
-
-        :param dict g: A CIViC gene record
-        """
-        xrefs = [self._add_xref(
-            schemas.XrefSystem.NCBI.value, g['entrez_id'])]
-        return xrefs
 
     def _add_variant_xrefs(self, v):
         """Get a list of xrefs for a variant.
