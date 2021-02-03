@@ -1,22 +1,9 @@
 """Test CIViC source"""
 import pytest
+from metakb import PROJECT_ROOT
 from metakb.harvesters.civic import CIViC
-from civicpy import civic as civicpy
-
-
-@pytest.fixture(scope='module')
-def civic():
-    """Create CIViC Harvester test fixture.."""
-    class CIViCVariants:
-
-        def __init__(self):
-            civicpy.load_cache(on_stale='ignore')
-            self.c = CIViC()
-
-        def _harvest_variant_by_id(self, variant_id):
-            variant = civicpy.get_variant_by_id(variant_id)
-            return self.c._harvest_variant(variant)
-    return CIViCVariants()
+from mock import patch
+import json
 
 
 @pytest.fixture(scope='module')
@@ -625,13 +612,16 @@ def pdgfra():
     }
 
 
-def test_variants(pdgfra, civic):
-    """Test civic harvester works correctly for variants."""
-    actual_pdgfra = civic._harvest_variant_by_id(100)
-    assert actual_pdgfra.keys() == pdgfra.keys()
-    keys = pdgfra.keys()
-    for key in keys:
-        if key == 'variant_aliases' or key == 'hgvs_expressions':
-            assert set(actual_pdgfra[key]) == set(pdgfra[key])
-        else:
-            assert actual_pdgfra[key] == pdgfra[key]
+@patch.object(CIViC, '_get_all_variants')
+def test_variants(test_get_all_variants, pdgfra):
+    """Test that CIViC harvest variants method is correct."""
+    with open(f"{PROJECT_ROOT}/tests/data/"
+              f"harvesters/civic/variants.json") as f:
+        data = json.load(f)
+    test_get_all_variants.return_value = data
+    variants = CIViC()._harvest_variants()
+    actul_pdgfra = None
+    for v in variants:
+        if v['id'] == 100:
+            actul_pdgfra = v
+    assert actul_pdgfra == pdgfra
