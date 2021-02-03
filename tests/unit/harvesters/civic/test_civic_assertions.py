@@ -1,22 +1,9 @@
 """Test CIViC source"""
 import pytest
+from metakb import PROJECT_ROOT
 from metakb.harvesters.civic import CIViC
-from civicpy import civic as civicpy
-
-
-@pytest.fixture(scope='module')
-def civic():
-    """Create CIViC Harvester test fixture.."""
-    class CIViCAssertions:
-
-        def __init__(self):
-            civicpy.load_cache(on_stale='ignore')
-            self.c = CIViC()
-
-        def _harvest_assertion_by_id(self, assertion_id):
-            assertion = civicpy.get_assertion_by_id(assertion_id)
-            return self.c._harvest_assertion(assertion)
-    return CIViCAssertions()
+from mock import patch
+import json
 
 
 @pytest.fixture(scope='module')
@@ -105,12 +92,17 @@ def aid40():
     }
 
 
-def test_assertions(aid40, civic):
-    """Test civic harvester works correctly for assertions."""
-    actual_aid40 = civic._harvest_assertion_by_id(40)
-    assert actual_aid40.keys() == aid40.keys()
-    keys = aid40.keys()
-    for key in keys:
-        # Ignore evidence_items due to largeness. Tested in others.
-        if key != 'evidence_items':
-            assert actual_aid40[key] == aid40[key]
+@patch.object(CIViC, '_get_all_assertions')
+def test_assertions(test_get_all_assertions, aid40):
+    """Test that CIViC harvest assertions method is correct."""
+    with open(f"{PROJECT_ROOT}/tests/data/"
+              f"harvesters/civic/assertions.json") as f:
+        data = json.load(f)
+    test_get_all_assertions.return_value = data
+    assertions = CIViC()._harvest_assertions()
+    c_assertion = None
+    for assertion in assertions:
+        if assertion['id'] == 40:
+            c_assertion = assertion
+    c_assertion['evidence_items'] = []
+    assert c_assertion == aid40
