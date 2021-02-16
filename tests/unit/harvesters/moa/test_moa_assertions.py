@@ -1,15 +1,9 @@
-"""Test MOAlmanac source"""
+"""Test MOAlmanac assertions"""
 import pytest
+from metakb import PROJECT_ROOT
 from metakb.harvesters.moalmanac import MOAlmanac
-
-
-@pytest.fixture(scope='module')
-def assertions():
-    """Create a list of assertions."""
-    moa = MOAlmanac()
-    variants = moa._harvest_variants()
-
-    return moa._harvest_assertions(variants)
+from mock import patch
+import json
 
 
 @pytest.fixture(scope='module')
@@ -35,7 +29,7 @@ def assertion168():
             168
         ],
         "favorable_prognosis": None,
-        "created_on": "01/16/21",
+        "created_on": "02/04/21",
         "last_updated": "2019-06-13",
         "submitted_by": "breardon@broadinstitute.org",
         "validated": True,
@@ -61,13 +55,33 @@ def assertion168():
     }
 
 
-def test_assertion_168(assertions, assertion168):
+@patch.object(MOAlmanac, '_get_all_definitions')
+@patch.object(MOAlmanac, '_get_all_variants')
+@patch.object(MOAlmanac, '_get_all_assertions')
+def test_assertion_168(test_get_all_assertions, test_get_all_variants,
+                       test_get_all_definitions, assertion168):
     """Test moa harvester works correctly for assertions."""
+    with open(f"{PROJECT_ROOT}/tests/data/"
+              f"harvesters/moa/assertions.json") as f:
+        data = json.load(f)
+    test_get_all_assertions.return_value = data
+
+    with open(f"{PROJECT_ROOT}/tests/data/"
+              f"harvesters/moa/variants.json") as f:
+        data = json.load(f)
+    test_get_all_variants.return_value = data
+
+    with open(f"{PROJECT_ROOT}/tests/data/"
+              f"harvesters/moa/definitions.json") as f:
+        data = json.load(f)
+    test_get_all_definitions.return_value = [data[0], data[1]]
+
+    variants = MOAlmanac()._harvest_variants()
+    assertions = MOAlmanac()._harvest_assertions(variants)
+
+    actual = None
     for a in assertions:
         if a['id'] == 168:
             actual = a
             break
-    assert actual.keys() == assertion168.keys()
-    keys = assertion168.keys()
-    for key in keys:
-        assert actual[key] == assertion168[key]
+    assert actual == assertion168
