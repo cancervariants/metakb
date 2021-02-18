@@ -1,0 +1,283 @@
+{
+  "id": 2997,
+  "name": "EID2997",
+  "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
+  "disease": {
+    "id": 8,
+    "name": "Lung Non-small Cell Carcinoma",
+    "display_name": "Lung Non-small Cell Carcinoma",
+    "doid": "3908",
+    "url": "http://www.disease-ontology.org/?id=DOID:3908"
+  },
+  "drugs": [{
+    "id": 146,
+    "name": "Afatinib",
+    "ncit_id": "C66940",
+    "aliases": [
+      "BIBW2992",
+      "BIBW 2992",
+      "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"
+    ]
+  }],
+  "rating": 5,
+  "evidence_level": "A",
+  "evidence_type": "Predictive",
+  "clinical_significance": "Sensitivity/Response",
+  "evidence_direction": "Supports",
+  "variant_origin": "Somatic",
+  "drug_interaction_type": null,
+  "status": "accepted",
+  "open_change_count": 0,
+  "type": "evidence",
+  "source": {
+    "id": 1725,
+    "name": "Afatinib: first global approval.",
+    "citation": "Dungo et al., 2013, Drugs",
+    "citation_id": "23982599",
+    "source_type": "PubMed",
+    "asco_abstract_id": null,
+    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23982599",
+    "open_access": null,
+    "pmc_id": null,
+    "publication_date": {
+      "year": 2013,
+      "month": 9
+    },
+    "journal": "Drugs",
+    "full_journal_title": "Drugs",
+    "status": "fully curated",
+    "is_review": false,
+    "clinical_trials": []
+  },
+  "flagged": false,
+  "variant_id": 33,
+  "phenotypes": [],
+  "updated_at": "2017-05-18T20:22:52.873Z",
+  "assertions": [{
+    "id": 6,
+    "type": "assertion",
+    "name": "AID6",
+    "summary": "EGFR L858R positive NSCLC is sensitive to afatinib.",
+    "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",
+    "gene": {
+      "name": "EGFR",
+      "id": 19
+    },
+    "variant": {
+      "name": "L858R",
+      "id": 33
+    },
+    "disease": {
+      "id": 8,
+      "name": "Lung Non-small Cell Carcinoma",
+      "display_name": "Lung Non-small Cell Carcinoma",
+      "doid": "3908",
+      "url": "http://www.disease-ontology.org/?id=DOID:3908"
+    },
+    "drugs": [{
+      "id": 146,
+      "name": "Afatinib",
+      "ncit_id": "C66940",
+      "aliases": [
+        "BIBW2992",
+        "BIBW 2992",
+        "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"
+      ]
+    }],
+    "evidence_type": "Predictive",
+    "evidence_direction": "Supports",
+    "clinical_significance": "Sensitivity/Response",
+    "evidence_item_count": 6,
+    "fda_regulatory_approval": true,
+    "status": "accepted",
+    "open_change_count": 0,
+    "pending_evidence_count": 0,
+    "flagged": false,
+    "updated_at": "2020-01-16T19:05:22.124Z"
+  }],
+  "errors": {},
+  "lifecycle_actions": {
+    "submitted": {
+      "timestamp": "2017-05-10T13:09:08.566Z",
+      "user": {
+        "id": 418,
+        "name": "Paul Roepman",
+        "last_seen_at": "2019-06-20T12:06:27.584Z",
+        "username": "PaulRoepman",
+        "role": "curator",
+        "avatar_url": "https://secure.gravatar.com/avatar/5e89a792925cb4b4e355c11a7b6c253d.png?d=identicon&r=pg&s=32",
+        "avatars": {
+          "x128": "https://secure.gravatar.com/avatar/5e89a792925cb4b4e355c11a7b6c253d.png?d=identicon&r=pg&s=128",
+          "x64": "https://secure.gravatar.com/avatar/5e89a792925cb4b4e355c11a7b6c253d.png?d=identicon&r=pg&s=64",
+          "x32": "https://secure.gravatar.com/avatar/5e89a792925cb4b4e355c11a7b6c253d.png?d=identicon&r=pg&s=32",
+          "x14": "https://secure.gravatar.com/avatar/5e89a792925cb4b4e355c11a7b6c253d.png?d=identicon&r=pg&s=14"
+        },
+        "area_of_expertise": "Clinical Scientist",
+        "orcid": "0000-0003-1566-0258",
+        "display_name": "PaulRoepman",
+        "created_at": "2017-04-04T11:32:56.753Z",
+        "url": "",
+        "twitter_handle": "",
+        "facebook_profile": "",
+        "linkedin_profile": "proepman",
+        "bio": "",
+        "country": {
+          "id": 142,
+          "iso": "NL",
+          "name": "Netherlands"
+        },
+        "featured_expert": false,
+        "accepted_license": null,
+        "signup_complete": null,
+        "organizations": [],
+        "most_recent_organization": null,
+        "conflict_of_interest": {
+          "coi_valid": "missing",
+          "details": {}
+        }
+      },
+      "organization": {}
+    },
+    "accepted": {
+      "timestamp": "2017-05-18T20:22:52.896Z",
+      "user": {
+        "id": 179,
+        "name": "Erica Barnell",
+        "last_seen_at": "2020-10-15T14:02:55.215Z",
+        "username": "EricaBarnell",
+        "role": "admin",
+        "avatar_url": "https://secure.gravatar.com/avatar/b9800d871c67538acd31728e8f509c80.png?d=identicon&r=pg&s=32",
+        "avatars": {
+          "x128": "https://secure.gravatar.com/avatar/b9800d871c67538acd31728e8f509c80.png?d=identicon&r=pg&s=128",
+          "x64": "https://secure.gravatar.com/avatar/b9800d871c67538acd31728e8f509c80.png?d=identicon&r=pg&s=64",
+          "x32": "https://secure.gravatar.com/avatar/b9800d871c67538acd31728e8f509c80.png?d=identicon&r=pg&s=32",
+          "x14": "https://secure.gravatar.com/avatar/b9800d871c67538acd31728e8f509c80.png?d=identicon&r=pg&s=14"
+        },
+        "area_of_expertise": "Research Scientist",
+        "orcid": "0000-0003-1631-1201",
+        "display_name": "EricaBarnell",
+        "created_at": "2016-07-06T14:48:11.341Z",
+        "url": "",
+        "twitter_handle": "erica.barnell",
+        "facebook_profile": "",
+        "linkedin_profile": "https://www.linkedin.com/in/erica-barnell-72b16a60",
+        "bio": "MD/PhD candidate at the Washington University School of Medicine with PhD in Molecular Genetics and Genomics. Thesis work being completed in the Griffith Lab at the McDonnell Genome Institute to advance bioinformatic tools in the precision oncology space. Co-founded and current Chief Science Officer at Geneoscopy LLC, which is a life-sciences start-up company that leverages eukaryotic biomarkers to noninvasively diagnose, assess, and treat gastrointestinal disease.",
+        "country": {
+          "id": 214,
+          "iso": "US",
+          "name": "United States"
+        },
+        "featured_expert": false,
+        "accepted_license": null,
+        "signup_complete": null,
+        "organizations": [{
+            "id": 12,
+            "name": "Washington University in Saint Louis",
+            "url": "https://wustl.edu/",
+            "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+            "profile_image": {
+              "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+              "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+              "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+              "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+              "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+            },
+            "parent": {}
+          },
+          {
+            "id": 1,
+            "name": "The McDonnell Genome Institute",
+            "url": "http://genome.wustl.edu/",
+            "description": "The McDonnell Genome Institute (MGI) is a world leader in the fast-paced, constantly changing field of genomics. A truly unique institution, we are pushing the limits of academic research by creating, testing, and implementing new approaches to the study of biology with the goal of understanding human health and disease, as well as evolution and the biology of other organisms.",
+            "profile_image": {
+              "x256": "/system/organizations/profile_images/000/000/001/x256/mgi-org.png?1592507909",
+              "x128": "/system/organizations/profile_images/000/000/001/x128/mgi-org.png?1592507909",
+              "x64": "/system/organizations/profile_images/000/000/001/x64/mgi-org.png?1592507909",
+              "x32": "/system/organizations/profile_images/000/000/001/x32/mgi-org.png?1592507909",
+              "x14": "/system/organizations/profile_images/000/000/001/x14/mgi-org.png?1592507909"
+            },
+            "parent": {
+              "id": 12,
+              "name": "Washington University in Saint Louis",
+              "url": "https://wustl.edu/",
+              "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+              "profile_image": {
+                "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+                "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+                "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+                "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+                "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+              },
+              "parent": {}
+            }
+          }
+        ],
+        "most_recent_organization": {
+          "id": 1,
+          "name": "The McDonnell Genome Institute",
+          "url": "http://genome.wustl.edu/",
+          "description": "The McDonnell Genome Institute (MGI) is a world leader in the fast-paced, constantly changing field of genomics. A truly unique institution, we are pushing the limits of academic research by creating, testing, and implementing new approaches to the study of biology with the goal of understanding human health and disease, as well as evolution and the biology of other organisms.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/001/x256/mgi-org.png?1592507909",
+            "x128": "/system/organizations/profile_images/000/000/001/x128/mgi-org.png?1592507909",
+            "x64": "/system/organizations/profile_images/000/000/001/x64/mgi-org.png?1592507909",
+            "x32": "/system/organizations/profile_images/000/000/001/x32/mgi-org.png?1592507909",
+            "x14": "/system/organizations/profile_images/000/000/001/x14/mgi-org.png?1592507909"
+          },
+          "parent": {
+            "id": 12,
+            "name": "Washington University in Saint Louis",
+            "url": "https://wustl.edu/",
+            "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+            "profile_image": {
+              "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+              "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+              "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+              "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+              "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+            },
+            "parent": {}
+          }
+        },
+        "conflict_of_interest": {
+          "coi_valid": "conflict",
+          "details": {
+            "coi_present": true,
+            "coi_statement": "Chief Science Officer, stock holder, board member, and holder of intellectual property in Geneoscopy, Inc.",
+            "created_at": "2020-10-15T14:03:25.988Z",
+            "expires_at": "2021-10-15T14:03:25.988Z"
+          }
+        }
+      },
+      "organization": {
+        "id": 1,
+        "name": "The McDonnell Genome Institute",
+        "url": "http://genome.wustl.edu/",
+        "description": "The McDonnell Genome Institute (MGI) is a world leader in the fast-paced, constantly changing field of genomics. A truly unique institution, we are pushing the limits of academic research by creating, testing, and implementing new approaches to the study of biology with the goal of understanding human health and disease, as well as evolution and the biology of other organisms.",
+        "profile_image": {
+          "x256": "/system/organizations/profile_images/000/000/001/x256/mgi-org.png?1592507909",
+          "x128": "/system/organizations/profile_images/000/000/001/x128/mgi-org.png?1592507909",
+          "x64": "/system/organizations/profile_images/000/000/001/x64/mgi-org.png?1592507909",
+          "x32": "/system/organizations/profile_images/000/000/001/x32/mgi-org.png?1592507909",
+          "x14": "/system/organizations/profile_images/000/000/001/x14/mgi-org.png?1592507909"
+        },
+        "parent": {
+          "id": 12,
+          "name": "Washington University in Saint Louis",
+          "url": "https://wustl.edu/",
+          "description": "Washington University in St. Louis’ mission is to discover and disseminate knowledge, and protect the freedom of inquiry through research, teaching and learning. Washington University creates an environment to encourage and support an ethos of wide-ranging exploration. Washington University’s faculty and staff strive to enhance the lives and livelihoods of students, the people of the greater St. Louis community, the country and the world.",
+          "profile_image": {
+            "x256": "/system/organizations/profile_images/000/000/012/x256/wustl-org.png?1592506215",
+            "x128": "/system/organizations/profile_images/000/000/012/x128/wustl-org.png?1592506215",
+            "x64": "/system/organizations/profile_images/000/000/012/x64/wustl-org.png?1592506215",
+            "x32": "/system/organizations/profile_images/000/000/012/x32/wustl-org.png?1592506215",
+            "x14": "/system/organizations/profile_images/000/000/012/x14/wustl-org.png?1592506215"
+          },
+          "parent": {}
+        }
+      }
+    }
+  },
+  "fields_with_pending_changes": {},
+  "gene_id": 19
+}
