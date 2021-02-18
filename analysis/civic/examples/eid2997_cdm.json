@@ -12,7 +12,7 @@
   }],
   "propositions": [
     {
-      "id": "proposition:001"
+      "id": "proposition:001",
       "type": "therapeutic_response_proposition",
       "vrsatile_descriptor": "civic:33",
       "therapy": "ncit:C66940",
