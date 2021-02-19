@@ -4,17 +4,23 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-ipykernel = "*"
-jupyter = "*"
 civicpy = "*"
-pytest = "*"
-pytest-cov = "*"
 pandas = "*"
 requests = "*"
 numpy = "*"
 jsondiff = "*"
 requests-cache = "*"
-mock = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
+mock = "*"
+pytest = "*"
+pre-commit = "*"
+flake8 = "*"
+flake8-docstrings = "*"
+coverage = "*"
+coveralls = "*"
+pytest-cov = "*"
+jupyterlab = "*"
+jupyter = "*"
+ipykernel = "*"
