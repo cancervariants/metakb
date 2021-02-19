@@ -2,7 +2,7 @@
 from metakb import PROJECT_ROOT
 import json
 import logging
-import metakb.models.schemas as schemas
+import metakb.schemas as schemas
 import pprint
 
 
@@ -38,9 +38,11 @@ class CIViCTransform:
             evidence_id = f"{schemas.NamespacePrefix.CIVIC.value}" \
                           f":{evidence['name']}"
             if evidence_id == 'civic:EID2997':
-                response['evidence'] = \
-                    self._add_evidence(evidence, variants)
+                response['evidence'] = self._add_evidence(evidence)
                 response['propositions'] = self._add_propositions(evidence)
+                response['variation_descriptors'] = \
+                    self._add_variation_descriptors(
+                        self._get_record(evidence['variant_id'], variants))
                 response['vrsatile_descriptors'] = \
                     self._add_vrsatile_descriptors(evidence)
                 # response['therapies'] = self._add_therapies()
@@ -52,17 +54,18 @@ class CIViCTransform:
                 break
         return responses
 
-    def _add_evidence(self, evidence, variants):
+    def _add_evidence(self, evidence):
         """Add evidence to therapeutic response.
 
         :param dict evidence: Harvested CIViC evidence item records
-        :param dict variants: Harvested CIViC variant records
         """
         evidence = {
-            'id': f"{schemas.NamespacePrefix.CIVIC.value}:{evidence['name']}",
+            'id': f"{schemas.NamespacePrefix.CIVIC.value}:"
+                  f"{evidence['name'].lower()}",
             'type': 'evidence',
             'description': evidence['description'],
-            'direction': evidence['evidence_direction'].lower(),
+            'direction':
+                self._get_evidence_direction(evidence['evidence_direction']),
             'evidence_level': f"civic.evidence_level:"
                               f"{evidence['evidence_level']}",
             'proposition': "proposition:",  # TODO
@@ -72,7 +75,22 @@ class CIViCTransform:
         }
         return [evidence]
 
+    def _get_evidence_direction(self, direction) -> str:
+        """Return the evidence direction.
+
+        :param str direction: The civic evidence_direction value
+        :return: `supports` or `does_not_support`
+        """
+        if direction == 'Supports':
+            return schemas.Direction.SUPPORTS.value
+        else:
+            return schemas.Direction.SUPPORTS.value
+
     def _add_propositions(self, evidence):
+        """Add proposition to response.
+
+        :param dict evidence: CIViC evidence item record
+        """
         propositions = list()
         for drug in evidence['drugs']:
             predicate = None
@@ -80,9 +98,9 @@ class CIViCTransform:
                 if evidence['clinical_significance'] == 'Sensitivity/Response':
                     predicate = 'predicts_sensitivity_to'
             proposition = {
-                'id': 'proposition:',  # TODO
+                '_id': 'proposition:',  # TODO
                 'type': 'therapeutic_response_proposition',
-                'vrsatile_descriptor': f"civic:{evidence['variant_id']}",
+                'vrsatile_descriptor': f"civic:vid{evidence['variant_id']}",
                 'therapy': f"ncit:{drug['ncit_id']}",
                 'disease_context': '',  # TODO
                 'predicate': predicate,
@@ -92,7 +110,28 @@ class CIViCTransform:
 
         return propositions
 
+    def _add_variation_descriptors(self, variant):
+        """Add variation descriptors to response.
+
+        :param dict variant: A CIViC variant record
+        :return:
+        """
+        variation_descriptor = {
+            'id': f"civic:vid{variant['id']}",
+            'label': variant['name'],
+            'description': variant['description'],
+            'type': 'AlleleDescriptor',
+            'value_id': 'ga4gh:',  # TODO
+            'associated_gene_symbol': variant['entrez_name'],  # TODO: Check
+            'associated_gene_descriptor': f"civic:gid{variant['gene_id']}"
+        }
+        return [variation_descriptor]
+
     def _add_evidence_sources(self, evidence):
+        """Add evidence source to response.
+
+        :param dict evidence: A CIViC evidence item record
+        """
         source_type = evidence['source']['source_type'].upper()
         if source_type in schemas.SourcePrefix.__members__:
             prefix = schemas.SourcePrefix[source_type].value
@@ -244,4 +283,4 @@ class CIViCTransform:
         return xref
 
 
-CIViCTransform().transform()
+# CIViCTransform().transform()

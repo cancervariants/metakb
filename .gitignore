@@ -124,3 +124,4 @@ pytest.ini
 data/*
 
 pyproject.toml
+Pipfile.lock

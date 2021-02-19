@@ -10,6 +10,7 @@ civicpy = "*"
 pytest = "*"
 pytest-cov = "*"
 jsondiff = "*"
+pydantic = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
