@@ -122,3 +122,5 @@ pytest.ini
 
 # data files
 data/*
+
+pyproject.toml
