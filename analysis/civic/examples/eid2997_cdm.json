@@ -8,26 +8,31 @@
     "proposition": "proposition:001",
     "evidence_sources": ["source:001"],
     "contributions": ["contribution:001"],
-    "strength": "civic.trust_rating:5_star"
+    "strength": "civic.trust_rating:5_star",
   }],
   "propositions": [
     {
       "_id": "proposition:001", <- `_` indicates this is transient, needs to be dropped at ingest
       "type": "therapeutic_response_proposition",
-      "vrsatile_descriptor": "civic:vid33",
+      "variation_descriptor": "civic:vid33",
       "therapy": "ncit:C66940",
       "disease_context": "ncit:C2926",
       "predicate": "predicts_sensitivity_to",
       "variation_origin": "somatic",
     }
   ],
-  "vrsatile_descriptors": [
+  "variation_descriptors": [
     {
       "id": "civic:vid33",
+      "label": "L858R",
+      "description": "",
       "type": "AlleleDescriptor",
-      "value_id": "ga4gh:"
+      "value_id": "ga4gh:",
+      "associated_gene_symbol": "",
+      "associated_gene_descriptor": "civic:gid19",
     }
   ],
+
   "therapies": [
 
   ],
