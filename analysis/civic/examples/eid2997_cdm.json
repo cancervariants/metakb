@@ -12,9 +12,9 @@
   }],
   "propositions": [
     {
-      "id": "proposition:001",
+      "_id": "proposition:001", <- `_` indicates this is transient, needs to be dropped at ingest
       "type": "therapeutic_response_proposition",
-      "vrsatile_descriptor": "civic:33",
+      "vrsatile_descriptor": "civic:vid33",
       "therapy": "ncit:C66940",
       "disease_context": "ncit:C2926",
       "predicate": "predicts_sensitivity_to",
@@ -23,8 +23,9 @@
   ],
   "vrsatile_descriptors": [
     {
-      "id": "civic:33",
-      
+      "id": "civic:vid33",
+      "type": "AlleleDescriptor",
+      "value_id": "ga4gh:"
     }
   ],
   "therapies": [
