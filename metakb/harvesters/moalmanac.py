@@ -31,8 +31,8 @@ class MOAlmanac(Harvester):
             self._create_json(assertions, sources, variants, fn)
             logger.info('MOAlamanc harvester was successful.')
             return True
-        except:  # noqa: E722 # TODO: add details of exception error
-            logger.error('MOAlamanc harvester was not successful.')
+        except:  # noqa: E722 # TODO: Add specific exception error
+            logger.error('MOAlamanc Harvester was not successful.')
             return False
 
     def _create_json(self, assertions, sources, variants, fn):
@@ -55,8 +55,8 @@ class MOAlmanac(Harvester):
         # Create composite json
         moa_dir = PROJECT_ROOT / 'data' / 'moa'
         moa_dir.mkdir(exist_ok=True, parents=True)
-        with open(f'{PROJECT_ROOT}/data/moa/{fn}',
-                  'w+') as f:
+
+        with open(f'{PROJECT_ROOT}/data/moa/{fn}', 'w+') as f:
             json.dump(composite_dict, f)
             f.close()
 
@@ -74,14 +74,26 @@ class MOAlmanac(Harvester):
         :return: A list of sources
         :rtype: list
         """
-        sources_list = []
+        source_list = self._get_all_sources()
+        sources = []
+
+        for source in source_list:
+            e = self._source_item(source)
+            sources.append(e)
+
+        return sources
+
+    def _get_all_sources(self):
+        """
+        Return all source records.
+
+        :return: All moa source records
+        """
         with requests_cache.disabled():
             r = requests.get('https://moalmanac.org/api/sources')
             sources = r.json()
-            for source in sources:
-                e = self._source_item(source)
-                sources_list.append(e)
-        return sources_list
+
+        return sources
 
     def _harvest_variants(self):
         """
@@ -90,47 +102,69 @@ class MOAlmanac(Harvester):
         :return: A list of variants
         :rtype: list
         """
+        attr_defs, feat_defs = self._get_all_definitions()
+        attr_def_id_to_name = self._get_attr_mapping(attr_defs)
+        feat_def_name_to_attr_def_id = self._get_feat_mapping(feat_defs)
+        variant_list = self._get_all_variants()
+
+        variants = []
+        temp = 1  # as a key to compare with feature id
+        feature_type = self._get_feature_type(
+            variant_list[0]['attribute_definition'],
+            feat_def_name_to_attr_def_id)
+        variant_record = {
+            'id': variant_list[0]['feature'],
+            'feature_type': feature_type
+        }
+        for variant in variant_list:
+            if variant['feature'] == temp:
+                v = self._harvest_variant(
+                    variant, variant_record, attr_def_id_to_name)
+                continue
+            else:
+                v.update(self._get_feature(v))
+                variants.append(v)
+                feature_type = self._get_feature_type(
+                    variant['attribute_definition'],
+                    feat_def_name_to_attr_def_id)
+                variant_record = {
+                    'id': variant['feature'],
+                    'feature_type': feature_type
+                }
+                v = self._harvest_variant(
+                    variant, variant_record, attr_def_id_to_name)
+                temp = variant['feature']
+        v.update(self._get_feature(v))
+        variants.append(v)
+
+        return variants
+
+    def _get_all_variants(self):
+        """
+        Return all variant records.
+
+        :return: All moa variant records
+        """
+        with requests_cache.disabled():
+            r = requests.get('https://moalmanac.org/api/attributes')
+            variants = r.json()
+
+        return variants
+
+    def _get_all_definitions(self):
+        """
+        Return the attribute definitions and feature definitions
+
+        :return: All moa attrbute definitions and feature difinitions
+        """
         with requests_cache.disabled():
             r = requests.get('https://moalmanac.org/api/attribute_definitions')
             attr_def = r.json()
-            attr_def_id_to_name = self._get_attr_def(attr_def)
 
             r = requests.get('https://moalmanac.org/api/feature_definitions')
             feat_defs = r.json()
-            feat_def_name_to_attr_def_id = self._get_feat_def(feat_defs)
 
-            r = requests.get('https://moalmanac.org/api/attributes')
-            variants = r.json()
-            variants_list = []
-
-            temp = 1  # as a key to compare with feature id
-            feature_type = self._get_feature_type(
-                variants[0]['attribute_definition'],
-                feat_def_name_to_attr_def_id)
-            variant_record = {
-                'id': variants[0]['feature'],
-                'feature_type': feature_type
-            }
-            for variant in variants:
-                if variant['feature'] == temp:
-                    v = self._harvest_variant(
-                        variant, variant_record, attr_def_id_to_name)
-                    continue
-                else:
-                    v.update(self._get_feature(v))
-                    variants_list.append(v)
-                    feature_type = self._get_feature_type(
-                        variant['attribute_definition'],
-                        feat_def_name_to_attr_def_id)
-                    variant_record = {
-                        'id': variant['feature'],
-                        'feature_type': feature_type
-                    }
-                    v = self._harvest_variant(
-                        variant, variant_record, attr_def_id_to_name)
-                    temp = variant['feature']
-            variants_list.append(v)
-        return variants_list
+        return attr_def, feat_defs
 
     def _harvest_assertions(self, variants):
         """
@@ -140,15 +174,25 @@ class MOAlmanac(Harvester):
         :return: A list of assertions
         :rtype: list
         """
+        assertion_list = self._get_all_assertions()
+        assertions = []
+        for assertion in assertion_list:
+            a = self._harvest_assertion(assertion, variants)
+            assertions.append(a)
+
+        return assertions
+
+    def _get_all_assertions(self):
+        """
+        Return all assertion records.
+
+        :return: All moa assertion records
+        """
         with requests_cache.disabled():
             r = requests.get('https://moalmanac.org/api/assertions')
             assertions = r.json()
-            assertions_list = []
-            for assertion in assertions:
-                a = self._harvest_assertion(assertion, variants)
-                assertions_list.append(a)
 
-        return assertions_list
+        return assertions
 
     def _source_item(self, source):
         """
@@ -226,7 +270,7 @@ class MOAlmanac(Harvester):
 
         return assertion_record
 
-    def _get_attr_def(self, attr_def):
+    def _get_attr_mapping(self, attr_def):
         """
         Get the attribute definition mapping data
 
@@ -241,7 +285,7 @@ class MOAlmanac(Harvester):
 
         return mapping
 
-    def _get_feat_def(self, feat_defs):
+    def _get_feat_mapping(self, feat_defs):
         """
         Get the feature definition mapping data
 

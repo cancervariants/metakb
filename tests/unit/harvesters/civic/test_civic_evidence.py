@@ -1,13 +1,9 @@
 """Test CIViC source"""
 import pytest
+from metakb import PROJECT_ROOT
 from metakb.harvesters.civic import CIViC
-
-
-@pytest.fixture(scope='module')
-def evidence():
-    """Create a list of evidence."""
-    c = CIViC()
-    return c._harvest_evidence()
+from mock import patch
+import json
 
 
 @pytest.fixture(scope='module')
@@ -120,13 +116,16 @@ def lnscc():
     }
 
 
-def test_evidence_json(lnscc, evidence):
-    """Test civic harvester works correctly for evidence."""
+@patch.object(CIViC, '_get_all_evidence')
+def test_evidence(test_get_all_evidence, lnscc):
+    """Test that CIViC harvest evidence method is correct."""
+    with open(f"{PROJECT_ROOT}/tests/data/"
+              f"harvesters/civic/evidence.json") as f:
+        data = json.load(f)
+    test_get_all_evidence.return_value = data
+    evidence = CIViC()._harvest_evidence()
+    evidence_item = None
     for ev in evidence:
         if ev['id'] == 3017:
-            actual = ev
-            break
-    assert actual.keys() == lnscc.keys()
-    keys = lnscc.keys()
-    for key in keys:
-        assert actual[key] == lnscc[key]
+            evidence_item = ev
+    assert evidence_item == lnscc

@@ -7,3 +7,4 @@ omit =
    docs/*
    analysis/*
    venv/*
+   metakb/harvesters/base.py

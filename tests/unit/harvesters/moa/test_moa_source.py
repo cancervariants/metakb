@@ -1,6 +1,9 @@
 """Test MOAlmanac source"""
 import pytest
+from metakb import PROJECT_ROOT
 from metakb.harvesters.moalmanac import MOAlmanac
+from mock import patch
+import json
 
 
 @pytest.fixture(scope='module')
@@ -32,13 +35,19 @@ def source66():
     }
 
 
-def test_source66(sources, source66):
+@patch.object(MOAlmanac, '_get_all_sources')
+def test_source66(test_get_all_sources, source66):
     """Test moa harvester works correctly for evidence."""
-    for e in sources:
-        if e['id'] == 66:
-            actual = e
+    with open(f"{PROJECT_ROOT}/tests/data/"
+              f"harvesters/moa/sources.json") as f:
+        data = json.load(f)
+    test_get_all_sources.return_value = data
+
+    sources = MOAlmanac()._harvest_sources()
+
+    actual = None
+    for s in sources:
+        if s['id'] == 66:
+            actual = s
             break
-    assert actual.keys() == source66.keys()
-    keys = source66.keys()
-    for key in keys:
-        assert actual[key] == source66[key]
+    assert actual == source66

@@ -1,0 +1,191 @@
+[
+  [
+		{
+        "attribute_def_id": 1, 
+        "attributes": [
+          1
+        ], 
+        "feature_definition": 1, 
+        "name": "rearrangement_type", 
+        "readable_name": "Rearrangement Type", 
+        "type": "text"
+      }, 
+      {
+        "attribute_def_id": 2, 
+        "attributes": [
+          2
+        ], 
+        "feature_definition": 1, 
+        "name": "gene1", 
+        "readable_name": "Gene 1", 
+        "type": "gene"
+      }, 
+      { 
+        "attribute_def_id": 3, 
+        "attributes": [
+        3
+        ], 
+        "feature_definition": 1, 
+        "name": "gene2", 
+        "readable_name": "Gene 2", 
+        "type": "gene"
+      }, 
+      {
+        "attribute_def_id": 4, 
+        "attributes": [
+        4
+        ], 
+        "feature_definition": 1, 
+        "name": "locus", 
+        "readable_name": "Locus", 
+        "type": "text"
+      },
+      {
+    		"attribute_def_id": 5, 
+    		"attributes": [
+      			1362
+    		], 
+    		"feature_definition": 2, 
+    		"name": "gene", 
+    		"readable_name": "Gene", 
+    		"type": "gene"
+  		}, 
+  		{
+    		"attribute_def_id": 6, 
+    		"attributes": [
+      			1363
+    		], 
+    		"feature_definition": 2, 
+    		"name": "chromosome", 
+    		"readable_name": "Chromosome", 
+    		"type": "text"
+  		}, 
+  		{
+    		"attribute_def_id": 7, 
+    		"attributes": [
+      			1364
+    		], 
+    		"feature_definition": 2, 
+   			"name": "start_position", 
+    		"readable_name": "Start Position", 
+    		"type": "integer"
+  		}, 
+  		{
+    		"attribute_def_id": 8, 
+    		"attributes": [
+      			1365
+    		], 
+    		"feature_definition": 2, 
+    		"name": "end_position", 
+    		"readable_name": "End Position", 
+    		"type": "integer"
+  		}, 
+  		{
+    		"attribute_def_id": 9, 
+    		"attributes": [
+      			1366
+    		], 
+    		"feature_definition": 2, 
+    		"name": "reference_allele", 
+    		"readable_name": "Reference Allele", 
+    		"type": "text"
+  		}, 
+  		{
+    		"attribute_def_id": 10, 
+    		"attributes": [
+      			1367
+    		], 
+    		"feature_definition": 2, 
+    		"name": "alternate_allele", 
+    		"readable_name": "Alternate Allele", 
+    		"type": "text"
+  		}, 
+  		{
+    		"attribute_def_id": 11, 
+    		"attributes": [
+      			1368
+    		], 
+    		"feature_definition": 2, 
+    		"name": "cdna_change", 
+    		"readable_name": "cDNA Change", 
+    		"type": "text"
+  		}, 
+  		{
+    		"attribute_def_id": 12, 
+    		"attributes": [
+      			1369
+    		], 
+    		"feature_definition": 2, 
+    		"name": "protein_change", 
+    		"readable_name": "Protein Change", 
+    		"type": "text"
+  		}, 
+  		{
+    		"attribute_def_id": 13, 
+    		"attributes": [
+      			1370
+    		], 
+    		"feature_definition": 2, 
+    		"name": "variant_annotation", 
+    		"readable_name": "Variant Annotation", 
+    		"type": "text"
+  		}, 
+  		{
+    		"attribute_def_id": 14, 
+    		"attributes": [
+      			1371
+    		], 
+    		"feature_definition": 2, 
+    		"name": "exon", 
+    		"readable_name": "Exon", 
+    		"type": "integer"
+  		}, 
+  		{
+    		"attribute_def_id": 15, 
+    		"attributes": [
+      			1372
+    		], 
+    		"feature_definition": 2, 
+    		"name": "rsid", 
+    		"readable_name": "Reference SNP", 
+    		"type": "text"
+  		}
+	],
+	[
+		{
+      "attribute_definitions": [
+          1, 
+          2, 
+          3, 
+          4
+      ], 
+      "feature_def_id": 1, 
+      "features": [
+        1
+      ], 
+      "name": "rearrangement", 
+      "readable_name": "Rearrangement"
+    }, 
+    {
+  		"attribute_definitions": [
+  				5, 
+  				6, 
+  				7, 
+  				8, 
+  				9, 
+  				10, 
+  				11, 
+  				12, 
+  				13, 
+  				14, 
+  				15
+    	], 
+    	"feature_def_id": 2, 
+    	"features": [
+      		168
+    	], 
+    		"name": "somatic_variant", 
+    		"readable_name": "Somatic Variant"
+  	}
+	]
+]

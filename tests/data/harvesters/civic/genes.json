@@ -1,0 +1,118 @@
+[
+    {
+        "id": 1,
+        "name": "ALK",
+        "entrez_id": 238,
+        "description": "ALK amplifications, fusions and mutations have been shown to be driving events in non-small cell lung cancer. While crizontinib has demonstrated efficacy in treating the amplification, mutations in ALK have been shown to confer resistance to current tyrosine kinase inhibitors. Second-generation TKI's have seen varied success in treating these resistant cases, and the HSP90 inhibitor 17-AAG has been shown to be cytostatic in ALK-altered cell lines.",
+        "flagged": false,
+        "_variants": [
+            {
+                "name": "CAD-ALK",
+                "id": 2769,
+                "_evidence_items": [{"status":  "submitted"}, {"status":  "submitted"}, {"status":  "submitted"}, {"status":  "submitted"}]
+            },
+            {
+                "name": "EML4-ALK e6-e19 G1269A and AMPLIFICATION",
+                "id": 3204,
+                "_evidence_items": [{"status":  "accepted"}, {"status": "accepted"}, {"status": "submitted"}, {"status": "submitted"}]
+            },
+            {
+                "name": "EML4-ALK G1202del",
+                "id": 2813,
+                "_evidence_items": [{"status":  "rejected"}]
+            },
+            {
+                "name": "EML4-ALK L1152R",
+                "id": 307,
+                "_evidence_items": [{"status":  "submitted"}, {"status": "rejected"}]
+            },
+            {
+                "name": "EML4-ALK L1198F",
+                "id": 2816,
+                "_evidence_items": [{"status":  "submitted"}, {"status":  "rejected"}, {"status":  "accepted"}]
+            }
+        ],
+        "aliases": [
+            "ALK",
+            "NBLST3",
+            "CD246"
+        ],
+        "updated_at": "2017-03-06T00:00:15.358Z",
+        "type": "gene",
+        "lifecycle_actions": {},
+        "sources": [
+            {
+                "id": 1,
+                "name": "ALK inhibitors and advanced non-small cell lung cancer (review).",
+                "citation": "Rossi et al., 2014, Int. J. Oncol.",
+                "citation_id": "24889366",
+                "source_type": "PubMed",
+                "asco_abstract_id": null,
+                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/24889366",
+                "open_access": null,
+                "pmc_id": null,
+                "publication_date": {
+                    "year": 2014,
+                    "month": 8
+                },
+                "journal": "Int. J. Oncol.",
+                "full_journal_title": "International journal of oncology",
+                "status": "fully curated",
+                "is_review": false,
+                "clinical_trials": []
+            },
+            {
+                "id": 2,
+                "name": "ALK in lung cancer: past, present, and future.",
+                "citation": "Shaw et al., 2013, J. Clin. Oncol.",
+                "citation_id": "23401436",
+                "source_type": "PubMed",
+                "asco_abstract_id": null,
+                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23401436",
+                "open_access": true,
+                "pmc_id": "PMC4209068",
+                "publication_date": {
+                    "year": 2013,
+                    "month": 3,
+                    "day": 10
+                },
+                "journal": "J. Clin. Oncol.",
+                "full_journal_title": "Journal of clinical oncology : official journal of the American Society of Clinical Oncology",
+                "status": "fully curated",
+                "is_review": false,
+                "clinical_trials": []
+            }
+        ],
+        "provisional_values": {},
+        "errors": {}
+    },
+    {
+        "id": 34321,
+        "name": "DUX4",
+        "entrez_id": 100288687,
+        "description": "",
+        "flagged": false,
+        "_variants": [
+            {
+                "name": "DUX4 FUSIONS",
+                "id": 524,
+                "_evidence_items": [{"status":  "accepted"}, {"status": "accepted"}]
+            },
+            {
+                "name": "DUX4-IGH",
+                "id": 2589,
+                "_evidence_items": [{"status":  "submitted"}]
+            }
+        ],
+        "aliases": [
+            "DUX4",
+            "DUX4L"
+        ],
+        "updated_at": "2015-09-29T16:07:57.344Z",
+        "type": "gene",
+        "lifecycle_actions": {},
+        "sources": [],
+        "provisional_values": {},
+        "errors": {}
+    }
+]
