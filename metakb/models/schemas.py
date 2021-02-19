@@ -26,3 +26,9 @@ class NamespacePrefix(Enum):
 
     CIVIC = 'civic'
     NCIT = 'ncit'
+
+
+class SourcePrefix(Enum):
+    """Define constraints for source prefixes."""
+
+    PUBMED = 'pmid'

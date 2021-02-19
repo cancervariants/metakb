@@ -3,6 +3,9 @@ from metakb import PROJECT_ROOT
 import json
 import logging
 import metakb.models.schemas as schemas
+import pprint
+
+
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
@@ -25,15 +28,28 @@ class CIViCTransform:
 
     def transform(self):
         """Transform CIViC harvested json to common data model."""
+        pp = pprint.PrettyPrinter(sort_dicts=False)
         data = self._extract()
-        responses = dict()
+        responses = list()
         evidence_items = data['evidence']
         variants = data['variants']
         for evidence in evidence_items:
+            response = dict()
             evidence_id = f"{schemas.NamespacePrefix.CIVIC.value}" \
                           f":{evidence['name']}"
-            responses[evidence_id] = \
-                self._add_evidence(evidence, variants)
+            if evidence_id == 'civic:EID2997':
+                response['evidence'] = \
+                    self._add_evidence(evidence, variants)
+                response['propositions'] = self._add_propositions(evidence)
+                response['vrsatile_descriptors'] = \
+                    self._add_vrsatile_descriptors(evidence)
+                # response['therapies'] = self._add_therapies()
+                response['evidence_sources'] = \
+                    self._add_evidence_sources(evidence)
+
+                responses.append(response)
+                pp.pprint(response)
+                break
         return responses
 
     def _add_evidence(self, evidence, variants):
@@ -44,18 +60,51 @@ class CIViCTransform:
         """
         evidence = {
             'id': f"{schemas.NamespacePrefix.CIVIC.value}:{evidence['name']}",
-            'type': 'evidence',  # Should this be GksTherapeuticResponse
-            'disease_context': self._add_disease_context(evidence),
-            'variant_origin': evidence['variant_origin'],
-            'clinical_significance': self._add_clinical_significance(evidence),
-            'evidence_level': evidence['evidence_level'],
-            'therapy_profile': self._add_therapy_profile(evidence),
-            'variation_profile':
-                self._add_variant(variants, evidence['variant_id'])
+            'type': 'evidence',
+            'description': evidence['description'],
+            'direction': evidence['evidence_direction'].lower(),
+            'evidence_level': f"civic.evidence_level:"
+                              f"{evidence['evidence_level']}",
+            'proposition': "proposition:",  # TODO
+            'evidence_sources': [],  # TODO
+            'contributions': [],  # TODO
+            'strength': f"civic.trust_rating:{evidence['rating']}_star"
         }
-        if not evidence['therapy_profile']['drugs']:
-            del evidence['therapy_profile']
-        return evidence
+        return [evidence]
+
+    def _add_propositions(self, evidence):
+        propositions = list()
+        for drug in evidence['drugs']:
+            predicate = None
+            if evidence['evidence_type'] == 'Predictive':
+                if evidence['clinical_significance'] == 'Sensitivity/Response':
+                    predicate = 'predicts_sensitivity_to'
+            proposition = {
+                'id': 'proposition:',  # TODO
+                'type': 'therapeutic_response_proposition',
+                'vrsatile_descriptor': f"civic:{evidence['variant_id']}",
+                'therapy': f"ncit:{drug['ncit_id']}",
+                'disease_context': '',  # TODO
+                'predicate': predicate,
+                'variant_origin': evidence['variant_origin'].lower()
+            }
+            propositions.append(proposition)
+
+        return propositions
+
+    def _add_evidence_sources(self, evidence):
+        source_type = evidence['source']['source_type'].upper()
+        if source_type in schemas.SourcePrefix.__members__:
+            prefix = schemas.SourcePrefix[source_type].value
+        else:
+            prefix = ''
+        source = {
+            'id': f"{prefix}:{evidence['source']['citation_id']}",
+            'label': evidence['source']['citation'],
+            'description': evidence['source']['name'],
+            'xrefs': []
+        }
+        return [source]
 
     def _add_disease_context(self, evidence):
         """Return disease context.
@@ -70,6 +119,13 @@ class CIViCTransform:
             'xrefs': [self._add_xref(schemas.XrefSystem.DISEASE_ONTOLOGY.value,
                                      evidence['disease']['doid'])]
         }
+
+    def _add_vrsatile_descriptors(self, evidence):
+        return [
+            {
+                'id': f"civic:{evidence['variant_id']}"
+            }
+        ]
 
     def _add_therapy_profile(self, evidence):
         """Return therapy profile.
@@ -186,3 +242,6 @@ class CIViCTransform:
         if xref_type:
             xref['type'] = xref_type
         return xref
+
+
+CIViCTransform().transform()
