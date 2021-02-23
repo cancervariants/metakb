@@ -2,7 +2,6 @@
 from metakb import PROJECT_ROOT
 import json
 import logging
-import metakb.schemas as schemas
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -50,8 +49,7 @@ class MOATransform:
         :return: list of evidence
         """
         evidence = [{
-            'id': f"{schemas.NamespacePrefix.MOA.value}:"
-                  f"{evidence['id']}",
+            'id': "moa:" f"{evidence['id']}",
             'type': "EvidenceLine",
             'supported_by': [],  # TODO
             'description': evidence['description'],
