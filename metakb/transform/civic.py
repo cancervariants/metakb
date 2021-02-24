@@ -4,6 +4,7 @@ import json
 import logging
 import metakb.schemas as schemas
 import pprint
+import re
 
 
 logger = logging.getLogger('metakb')
@@ -43,8 +44,6 @@ class CIViCTransform:
                 response['variation_descriptors'] = \
                     self._add_variation_descriptors(
                         self._get_record(evidence['variant_id'], variants))
-                response['vrsatile_descriptors'] = \
-                    self._add_vrsatile_descriptors(evidence)
                 # response['therapies'] = self._add_therapies()
                 response['evidence_sources'] = \
                     self._add_evidence_sources(evidence)
@@ -62,15 +61,22 @@ class CIViCTransform:
         evidence = {
             'id': f"{schemas.NamespacePrefix.CIVIC.value}:"
                   f"{evidence['name'].lower()}",
-            'type': 'evidence',
-            'description': evidence['description'],
+            'type': 'EvidenceLine',
+            'supported_by': [
+                {
+                    'type': 'StudyResult',
+                    'description': evidence['description'],
+                    'confidence':
+                        f"civic.trust_rating:{evidence['rating']}_star"
+                }
+            ],
             'direction':
                 self._get_evidence_direction(evidence['evidence_direction']),
             'evidence_level': f"civic.evidence_level:"
                               f"{evidence['evidence_level']}",
             'proposition': "proposition:",  # TODO
             'evidence_sources': [],  # TODO
-            'contributions': [],  # TODO
+            # 'contributions': [],  # TODO: After MetaKB first pass
             'strength': f"civic.trust_rating:{evidence['rating']}_star"
         }
         return [evidence]
@@ -100,9 +106,10 @@ class CIViCTransform:
             proposition = {
                 '_id': 'proposition:',  # TODO
                 'type': 'therapeutic_response_proposition',
-                'vrsatile_descriptor': f"civic:vid{evidence['variant_id']}",
+                'variation_descriptor': f"civic:vid{evidence['variant_id']}",
+                'has_originating_context': '',  # TODO: use variant norm
                 'therapy': f"ncit:{drug['ncit_id']}",
-                'disease_context': '',  # TODO
+                'disease_context': '',  # TODO: use disease norm
                 'predicate': predicate,
                 'variant_origin': evidence['variant_origin'].lower()
             }
@@ -118,14 +125,50 @@ class CIViCTransform:
         """
         variation_descriptor = {
             'id': f"civic:vid{variant['id']}",
+            'type': 'AlleleDescriptor',
             'label': variant['name'],
             'description': variant['description'],
-            'type': 'AlleleDescriptor',
-            'value_id': 'ga4gh:',  # TODO
-            'associated_gene_symbol': variant['entrez_name'],  # TODO: Check
-            'associated_gene_descriptor': f"civic:gid{variant['gene_id']}"
+            'value_id': '',  # TODO: Use variant norm
+            'value_obj': {},  # TODO: Create VRS object from variant norm
+            'gene_descriptor': f"civic:gid{variant['gene_id']}",
+            'molecule_context': 'protein',  # this might not always be protein
+            'structural_type': '',  # TODO: civicpy implement root_concept
+            'ref_allele_seq': re.split(r'\d+', variant['name'])[0],
+            'expressions': self._add_hgvs_expr(variant),
+            'xrefs': self._add_variant_xrefs(variant),
+            'alternate_labels': [v_alias for v_alias in
+                                 variant['variant_aliases'] if not
+                                 v_alias.startswith('RS')],
+            'extensions': [
+                {
+                    'representative_variation_descriptor':
+                        f"civic:vid{variant['id']}.rep",
+                    'civic_actionability_score':
+                        variant['civic_actionability_score'],
+                    'variant_groups': []  # TODO
+                }
+            ]
         }
         return [variation_descriptor]
+
+    def _add_hgvs_expr(self, variant):
+        """Return a list of hgvs expressions"""
+        hgvs_expressions = list()
+        for hgvs_expr in variant['hgvs_expressions']:
+            if ':g.' in hgvs_expr:
+                system = 'hgvs:genomic'
+            elif ':c.' in hgvs_expr:
+                system = 'hgvs:transcript'
+            else:
+                system = 'hgvs:protein'
+            hgvs_expressions.append(
+                {
+                    'type': 'Expression',
+                    'system': system,
+                    'value': hgvs_expr
+                }
+            )
+        return hgvs_expressions
 
     def _add_evidence_sources(self, evidence):
         """Add evidence source to response.
@@ -144,90 +187,6 @@ class CIViCTransform:
             'xrefs': []
         }
         return [source]
-
-    def _add_disease_context(self, evidence):
-        """Return disease context.
-
-        :param dict evidence: Harvested CIViC evidence item records
-        :return: A dictionary containing the disease context
-        """
-        return {
-            'id': f"{schemas.NamespacePrefix.CIVIC.value}:"
-                  f"DiseaseID{evidence['disease']['id']}",
-            'label': evidence['disease']['name'],
-            'xrefs': [self._add_xref(schemas.XrefSystem.DISEASE_ONTOLOGY.value,
-                                     evidence['disease']['doid'])]
-        }
-
-    def _add_vrsatile_descriptors(self, evidence):
-        return [
-            {
-                'id': f"civic:{evidence['variant_id']}"
-            }
-        ]
-
-    def _add_therapy_profile(self, evidence):
-        """Return therapy profile.
-
-        :param dict evidence: Harvested CIViC evidence item records
-        :return: A dictionary containing the therapy profile
-        """
-        therapy_profile = {
-            'label': None,
-            'drugs': [self._add_drug(drug) for drug in evidence['drugs']],
-            'drug_interaction_type': evidence['drug_interaction_type']
-        }
-        drug_labels = [drug['label'] for drug in therapy_profile['drugs']]
-        if drug_labels:
-            if len(drug_labels) == 1:
-                therapy_profile['label'] = drug_labels[0]
-            elif len(drug_labels) == 2:
-                therapy_profile['label'] = \
-                    f"{drug_labels[0]} and {drug_labels[1]} " \
-                    f"{therapy_profile['drug_interaction_type']} Therapy"
-        return therapy_profile
-
-    def _add_clinical_significance(self, e):
-        """Return clinical significance for a given evidence item.
-
-        :param dict e: Harvested CIViC evidence item records
-        :return: A string giving the clinical significance for an evidence item
-        """
-        clin_sig = None
-        if 'clinical_significance' in e and e['clinical_significance']:
-            clin_sig = e['clinical_significance']
-        return clin_sig
-
-    def _add_drug(self, drug):
-        """Return drug data.
-
-        :param dict drug: A CIViC drug record
-        """
-        return {
-            'id': f"{schemas.NamespacePrefix.NCIT.value}:{drug['id']}",
-            'label': drug['name'],
-            'xrefs': [self._add_xref('ncit', drug['ncit_id'])],
-            'aliases': drug['aliases']
-        }
-
-    def _add_variant(self, variants, variant_id):
-        """Add variant data to the response.
-
-        :param dict variants: Harvested CIViC variants
-        :param str variant_id: The variant's ID
-        :return: A dictionary containing variant data
-        """
-        v = self._get_record(variant_id, variants)
-        return {
-            'id': f"{schemas.NamespacePrefix.CIVIC.value}:VID{v['id']}",
-            'type': 'variant',  # Should this be AlleleDescriptor?
-            'label': f"{v['entrez_name']} {v['name']}",
-            'gene': f"{schemas.NamespacePrefix.CIVIC.value}:GID{v['gene_id']}",
-            'hgvs_descriptions': v['hgvs_expressions'],
-            'xrefs': self._add_variant_xrefs(v),
-            'aliases': [alias for alias in v['variant_aliases']
-                        if not alias.startswith('RS')]
-        }
 
     def _get_record(self, record_id, records):
         """Get a CIViC record by ID.
@@ -250,37 +209,19 @@ class CIViCTransform:
                      'variant_aliases']:
             if xref == 'clinvar_entries':
                 for clinvar_entry in v['clinvar_entries']:
-                    xrefs.append(self._add_xref(
-                        schemas.XrefSystem.CLINVAR.value, clinvar_entry,
-                        xref_type='variation'))
+                    xrefs.append(f"{schemas.XrefSystem.CLINVAR.value}:"
+                                 f"{clinvar_entry}")
 
             elif xref == 'allele_registry_id':
-                xrefs.append(self._add_xref(schemas.XrefSystem.CLINGEN.value,
-                                            v['allele_registry_id']))
+                xrefs.append(f"{schemas.XrefSystem.CLINGEN.value}:"
+                             f"{v['allele_registry_id']}")
             elif xref == 'variant_aliases':
                 dbsnp_xrefs = [item for item in v['variant_aliases']
                                if item.startswith('RS')]
                 for dbsnp_xref in dbsnp_xrefs:
-                    xrefs.append(self._add_xref(
-                        schemas.XrefSystem.DB_SNP.value,
-                        dbsnp_xref.split('RS')[-1],
-                        xref_type='rs'))
+                    xrefs.append(f"{schemas.XrefSystem.DB_SNP.value}:"
+                                 f"{dbsnp_xref.split('RS')[-1]}")
         return xrefs
-
-    def _add_xref(self, system, system_id, xref_type=None):
-        """Return xref data.
-
-        :param str system: The name of the system
-        :param str system_id: The system's ID for the concept
-        :param str xref_type: The type of the xref
-        """
-        xref = {
-            'system': system,
-            'id': system_id
-        }
-        if xref_type:
-            xref['type'] = xref_type
-        return xref
 
 
 # CIViCTransform().transform()

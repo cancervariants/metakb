@@ -16,11 +16,11 @@ class EvidenceLevel(Enum):
 class XrefSystem(Enum):
     """Define constraints for System in xrefs."""
 
-    CLINVAR = 'ClinVar'
-    CLINGEN = 'ClinGenAlleleRegistry'
-    DB_SNP = 'dbSNP'
+    CLINVAR = 'clinvar'
+    CLINGEN = 'caid'
+    DB_SNP = 'dbsnp'
     NCBI = 'ncbigene'
-    DISEASE_ONTOLOGY = 'DiseaseOntology'
+    DISEASE_ONTOLOGY = 'do'
 
 
 class NamespacePrefix(Enum):
