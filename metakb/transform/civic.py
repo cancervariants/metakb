@@ -3,6 +3,7 @@ from metakb import PROJECT_ROOT
 import json
 import logging
 import metakb.schemas as schemas
+from metakb.normalizers import Normalizers
 import pprint
 import re
 
@@ -21,6 +22,7 @@ class CIViCTransform:
         :param str file_path: The file path to the composite JSON to transform.
         """
         self._file_path = file_path
+        self.normalizers = Normalizers()
 
     def _extract(self):
         """Extract the CIViC composite JSON file."""
@@ -34,6 +36,7 @@ class CIViCTransform:
         responses = list()
         evidence_items = data['evidence']
         variants = data['variants']
+        genes = data['genes']
         for evidence in evidence_items:
             response = dict()
             evidence_id = f"{schemas.NamespacePrefix.CIVIC.value}" \
@@ -44,6 +47,9 @@ class CIViCTransform:
                 response['variation_descriptors'] = \
                     self._add_variation_descriptors(
                         self._get_record(evidence['variant_id'], variants))
+                response['gene_descriptors'] = \
+                    self._add_gene_descriptors(
+                        self._get_record(evidence['gene_id'], genes))
                 # response['therapies'] = self._add_therapies()
                 response['evidence_sources'] = \
                     self._add_evidence_sources(evidence)
@@ -151,6 +157,65 @@ class CIViCTransform:
         }
         return [variation_descriptor]
 
+    def _add_gene_descriptors(self, gene):
+        """Return gene descriptors"""
+        gene_normalizer_resp = self.normalizers.search('gene', gene['name'])
+        value_objs = self._get_gene_value_obj(gene_normalizer_resp)
+        gene_descriptor = {
+            'id': f"civic:gid{gene['id']}",
+            'type': 'Gene',
+            'label': gene['name'],
+            'description': gene['description'],
+            'value_ids': value_objs[0],
+            'value_objects': value_objs[1],
+            # TODO: Do we want to include variant descriptors?
+            # 'variant_descriptors':
+            #     [f"civic:vid{vid['id']}" for vid in gene['variants']],
+            'alternate_labels':
+                self._get_gene_norm_list(gene_normalizer_resp, 'aliases',
+                                         records=gene['aliases']),
+            'previous_labels': self._get_gene_norm_list(gene_normalizer_resp,
+                                                        'previous_symbols'),
+            'xrefs': self._get_gene_normalizer_xrefs(gene_normalizer_resp)
+        }
+        return [gene_descriptor]
+
+    def _get_gene_norm_list(self, response, label, records=None):
+        """Return list of records for a given label."""
+        if records is None:
+            records = []
+        for source_match in response['source_matches']:
+            for record in source_match['records']:
+                if record[label]:
+                    records += record[label]
+
+        if not records:
+            return []
+
+        return list(set(records))
+
+    def _get_gene_value_obj(self, response):
+        """Return VRS _id and location object."""
+        value_objs = []
+        value_objs_ids = []
+        for source_match in response['source_matches']:
+            for record in source_match['records']:
+                for location in record['locations']:
+                    value_objs.append(location)
+                    value_objs_ids.append(location['_id'])
+        return (value_objs_ids, value_objs)
+
+    def _get_gene_normalizer_xrefs(self, response):
+        """Return xrefs from gene normalization."""
+        xrefs = []
+        source_matches = response['source_matches']
+        for source in source_matches:
+            for record in source['records']:
+                xrefs.append(record['concept_id'])
+                for xref in record['xrefs']:
+                    xrefs.append(xref)
+        return xrefs
+
     def _add_hgvs_expr(self, variant):
         """Return a list of hgvs expressions"""
         hgvs_expressions = list()
@@ -224,4 +289,4 @@ class CIViCTransform:
         return xrefs
 
 
-# CIViCTransform().transform()
+CIViCTransform().transform()
