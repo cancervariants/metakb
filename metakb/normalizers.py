@@ -17,3 +17,13 @@ class Normalizers:
         """
         r = requests.get(f"{self.normalize_url}/{normalizer}/search?q={query}")
         return r.json()
+
+    def normalize(self, normalizer, query):
+        """Return json from normalizer normalize endpoint.
+
+        :param str normalizer: The normalizer to use (gene, therapy)
+        :param str query: The string to query
+        """
+        r = requests.get(f"{self.normalize_url}/{normalizer}"
+                         f"/normalize?q={query}")
+        return r.json()
