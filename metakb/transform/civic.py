@@ -29,6 +29,13 @@ class CIViCTransform:
         with open(self._file_path, 'r') as f:
             return json.load(f)
 
+    def _create_json(self, transformations):
+        civic_dir = PROJECT_ROOT / 'data' / 'civic' / 'transform'
+        civic_dir.mkdir(exist_ok=True, parents=True)
+
+        with open(f"{civic_dir}/civic_cdm.json", 'w+') as f:
+            json.dump(transformations, f)
+
     def transform(self):
         """Transform CIViC harvested json to common data model."""
         pp = pprint.PrettyPrinter(sort_dicts=False)
@@ -37,29 +44,71 @@ class CIViCTransform:
         evidence_items = data['evidence']
         variants = data['variants']
         genes = data['genes']
+        i = 1
         for evidence in evidence_items:
             response = dict()
             evidence_id = f"{schemas.NamespacePrefix.CIVIC.value}" \
                           f":{evidence['name']}"
             if evidence_id == 'civic:EID2997':
-                response['evidence'] = self._add_evidence(evidence)
-                response['propositions'] = self._add_propositions(evidence)
+                response['evidence'] = self._add_evidence(evidence, i)
+                response['propositions'] = self._add_propositions(evidence, i)
                 response['variation_descriptors'] = \
                     self._add_variation_descriptors(
                         self._get_record(evidence['variant_id'], variants))
                 response['gene_descriptors'] = \
                     self._add_gene_descriptors(
                         self._get_record(evidence['gene_id'], genes))
-                # response['therapies'] = self._add_therapies()
+                response['therapies'] = self._add_therapies(evidence['drugs'])
+                response['diseases'] = self._add_diseases(evidence['disease'])
                 response['evidence_sources'] = \
                     self._add_evidence_sources(evidence)
-
                 responses.append(response)
                 pp.pprint(response)
+                i += 1
                 break
         return responses
 
-    def _add_evidence(self, evidence):
+    def _add_diseases(self, disease):
+        d = {
+            'id': f"civic:did{disease['id']}",
+            'label': disease['display_name'],
+            'xrefs': [f"DOID:{disease['doid']}"]
+        }
+        return d
+
+    def _add_therapies(self, drugs):
+        """Return therapies."""
+        therapies = []
+        for drug in drugs:
+            therapy_norm_resp = \
+                self.normalizers.normalize('therapy', drug['name'])
+
+            therapy = {
+                'id': f"civic:tid{drug['id']}",
+                'type': 'Therapy',
+                'label': drug['name'],
+                'xrefs': self._get_therapy_xrefs(therapy_norm_resp, drug),
+                'aliases': therapy_norm_resp['record']['aliases'] if 'record' in therapy_norm_resp else [],  # noqa: E501
+                'trade_names': therapy_norm_resp['record']['trade_names'] if 'record' in therapy_norm_resp else []  # noqa: E501
+            }
+            therapies.append(therapy)
+
+        return therapies
+
+    def _get_therapy_xrefs(self, response, drug):
+        """Return therapy xrefs."""
+        xrefs = []
+        concept_ids = []
+        if response['record']:
+            xrefs = response['record']['xrefs']
+            concept_ids = response['record']['concept_ids']
+
+        if drug['ncit_id'] not in xrefs:
+            xrefs.append(drug['ncit_id'])
+
+        return xrefs + concept_ids
+
+    def _add_evidence(self, evidence, i):
         """Add evidence to therapeutic response.
 
         :param dict evidence: Harvested CIViC evidence item records
@@ -80,7 +129,7 @@ class CIViCTransform:
                 self._get_evidence_direction(evidence['evidence_direction']),
             'evidence_level': f"civic.evidence_level:"
                               f"{evidence['evidence_level']}",
-            'proposition': "proposition:",  # TODO
+            'proposition': f"proposition:{i:03}",  # TODO
             'evidence_sources': [],  # TODO
             # 'contributions': [],  # TODO: After MetaKB first pass
             'strength': f"civic.trust_rating:{evidence['rating']}_star"
@@ -98,7 +147,7 @@ class CIViCTransform:
         else:
             return schemas.Direction.SUPPORTS.value
 
-    def _add_propositions(self, evidence):
+    def _add_propositions(self, evidence, i):
         """Add proposition to response.
 
         :param dict evidence: CIViC evidence item record
@@ -110,7 +159,7 @@ class CIViCTransform:
                 if evidence['clinical_significance'] == 'Sensitivity/Response':
                     predicate = 'predicts_sensitivity_to'
             proposition = {
-                '_id': 'proposition:',  # TODO
+                '_id': f'proposition:{i:03}',  # TODO
                 'type': 'therapeutic_response_proposition',
                 'variation_descriptor': f"civic:vid{evidence['variant_id']}",
                 'has_originating_context': '',  # TODO: use variant norm
@@ -172,16 +221,16 @@ class CIViCTransform:
             # 'variant_descriptors':
             #     [f"civic:vid{vid['id']}" for vid in gene['variants']],
             'alternate_labels':
-                self._get_gene_norm_list(gene_normalizer_resp, 'aliases',
-                                         records=gene['aliases']),
-            'previous_labels': self._get_gene_norm_list(gene_normalizer_resp,
-                                                        'previous_symbols'),
+                self._get_search_list(gene_normalizer_resp, 'aliases',
+                                      records=gene['aliases']),
+            'previous_labels': self._get_search_list(gene_normalizer_resp,
+                                                     'previous_symbols'),
             'xrefs': self._get_gene_normalizer_xrefs(gene_normalizer_resp)
         }
         return [gene_descriptor]
 
-    def _get_gene_norm_list(self, response, label, records=None):
-        """Return list of records for a given label."""
+    def _get_search_list(self, response, label, records=None):
+        """Return list of records for a given label from search endpoint."""
         if records is None:
             records = []
         for source_match in response['source_matches']:
@@ -289,4 +338,6 @@ class CIViCTransform:
         return xrefs
 
 
-CIViCTransform().transform()
+civic = CIViCTransform()
+transformation = civic.transform()
+civic._create_json(transformation)
