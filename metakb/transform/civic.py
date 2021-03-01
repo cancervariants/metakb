@@ -92,6 +92,13 @@ class CIViCTransform:
         if disesase_norm_resp['record']:
             d['xrefs'] = disesase_norm_resp['record']['concept_ids'] + disesase_norm_resp['record']['xrefs']  # noqa: E501
             d['alternate_labels'] = disesase_norm_resp['record']['aliases']
+            d['extensions'] = [
+                {
+                    'type': 'Extension',
+                    'name': 'pediatric_disease',
+                    'value': disesase_norm_resp['record']['pediatric_disease']
+                }
+            ]
 
         else:
             d['xrefs'] = [f"DOID:{disease['doid']}"]
@@ -241,7 +248,7 @@ class CIViCTransform:
                 {
                     'type': 'Extension',
                     'name': 'variant_groups',
-                    'value': []  # TODO
+                    'value': variant['variant_groups']
                 }
             ]
         }
@@ -283,11 +290,23 @@ class CIViCTransform:
                     'name': 'previous_labels',
                     'value': self._get_search_list(gene_normalizer_resp,
                                                    'previous_symbols')
+                },
+                {
+                    'type': 'Extension',
+                    'name': 'strand',
+                    'value': self._get_search_val(gene_normalizer_resp,
+                                                  'strand')
                 }
-
             ]
         }
         return [gene_descriptor]
+
+    def _get_search_val(self, response, label):
+        for source_match in response['source_matches']:
+            for record in source_match['records']:
+                if record[label]:
+                    return record[label]
+        return None
 
     def _get_search_list(self, response, label, records=None):
         """Return list of records for a given label from search endpoint."""
