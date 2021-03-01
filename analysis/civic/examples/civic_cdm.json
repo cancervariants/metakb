@@ -11,6 +11,7 @@
                         "confidence": "civic.trust_rating:5_star"
                     }
                 ],
+                "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
                 "direction": "supports",
                 "evidence_level": "civic.evidence_level:A",
                 "proposition": "proposition:001",
@@ -23,9 +24,9 @@
                 "_id": "proposition:001",
                 "type": "therapeutic_response_proposition",
                 "variation_descriptor": "civic:vid33",
-                "has_originating_context": "",
+                "has_originating_context": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
                 "therapy": "ncit:C66940",
-                "disease_context": "",
+                "disease_context": "ncit:C2926",
                 "predicate": "predicts_sensitivity_to",
                 "variant_origin": "somatic"
             }
@@ -36,31 +37,47 @@
                 "type": "AlleleDescriptor",
                 "label": "L858R",
                 "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",
-                "value_id": "",
-                "value_obj": {},
-                "gene_descriptor": "civic:gid19",
+                "value_id": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+                "value_obj": {
+                    "_id": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+                    "location": {
+                        "interval": {
+                            "start": 857,
+                            "end": 858,
+                            "type": "SimpleInterval"
+                        },
+                        "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
+                        "type": "SequenceLocation"
+                    },
+                    "state": {
+                        "sequence": "R",
+                        "type": "SequenceState"
+                    },
+                    "type": "Allele"
+                },
+                "gene_context": "civic:gid19",
                 "molecule_context": "protein",
-                "structural_type": "",
+                "structural_type": "SO:0001060",
                 "ref_allele_seq": "L",
                 "expressions": [
                     {
                         "type": "Expression",
-                        "system": "hgvs:protein",
+                        "syntax": "hgvs:protein",
                         "value": "NP_005219.2:p.Leu858Arg"
                     },
                     {
                         "type": "Expression",
-                        "system": "hgvs:transcript",
+                        "syntax": "hgvs:transcript",
                         "value": "ENST00000275493.2:c.2573T>G"
                     },
                     {
                         "type": "Expression",
-                        "system": "hgvs:transcript",
+                        "syntax": "hgvs:transcript",
                         "value": "NM_005228.4:c.2573T>G"
                     },
                     {
                         "type": "Expression",
-                        "system": "hgvs:genomic",
+                        "syntax": "hgvs:genomic",
                         "value": "NC_000007.13:g.55259515T>G"
                     }
                 ],
@@ -76,9 +93,19 @@
                 ],
                 "extensions": [
                     {
-                        "representative_variation_descriptor": "civic:vid33.rep",
-                        "civic_actionability_score": 352.5,
-                        "variant_groups": []
+                        "type": "Extension",
+                        "name": "representative_variation_descriptor",
+                        "value": "civic:vid33.rep"
+                    },
+                    {
+                        "type": "Extension",
+                        "name": "civic_actionability_score",
+                        "value": 352.5
+                    },
+                    {
+                        "type": "Extension",
+                        "name": "variant_groups",
+                        "value": []
                     }
                 ]
             }
@@ -86,74 +113,31 @@
         "gene_descriptors": [
             {
                 "id": "civic:gid19",
-                "type": "Gene",
+                "type": "GeneDescriptor",
                 "label": "EGFR",
                 "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",
-                "value_ids": [
-                    "ga4gh:VCL.wgFi9e72ZIIJaOfLx5gaOeGrwP_IZoQ2",
-                    "ga4gh:VSL.1Ed7LC08Nz9F8t9mHqIlT0UGd8ETZ_EW",
-                    "ga4gh:VCL.wgFi9e72ZIIJaOfLx5gaOeGrwP_IZoQ2",
-                    "ga4gh:VSL.1Ed7LC08Nz9F8t9mHqIlT0UGd8ETZ_EW"
-                ],
-                "value_objects": [
-                    {
-                        "_id": "ga4gh:VCL.wgFi9e72ZIIJaOfLx5gaOeGrwP_IZoQ2",
-                        "type": "ChromosomeLocation",
-                        "species_id": "taxonomy:9606",
-                        "chr": "7",
-                        "interval": {
-                            "end": "p11.2",
-                            "start": "p11.2",
-                            "type": "CytobandInterval"
-                        }
-                    },
-                    {
-                        "_id": "ga4gh:VSL.1Ed7LC08Nz9F8t9mHqIlT0UGd8ETZ_EW",
-                        "type": "SequenceLocation",
-                        "sequence_id": "ga4gh:SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul",
-                        "interval": {
-                            "end": 55211628,
-                            "start": 55019017,
-                            "type": "SimpleInterval"
-                        }
-                    },
-                    {
-                        "_id": "ga4gh:VCL.wgFi9e72ZIIJaOfLx5gaOeGrwP_IZoQ2",
-                        "type": "ChromosomeLocation",
-                        "species_id": "taxonomy:9606",
-                        "chr": "7",
-                        "interval": {
-                            "end": "p11.2",
-                            "start": "p11.2",
-                            "type": "CytobandInterval"
-                        }
-                    },
-                    {
-                        "_id": "ga4gh:VSL.1Ed7LC08Nz9F8t9mHqIlT0UGd8ETZ_EW",
-                        "type": "SequenceLocation",
-                        "sequence_id": "ga4gh:SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul",
-                        "interval": {
-                            "end": 55211628,
-                            "start": 55019017,
-                            "type": "SimpleInterval"
-                        }
+                "value_id": "ga4gh:VCL.wgFi9e72ZIIJaOfLx5gaOeGrwP_IZoQ2",
+                "value_obj": {
+                    "_id": "ga4gh:VCL.wgFi9e72ZIIJaOfLx5gaOeGrwP_IZoQ2",
+                    "type": "ChromosomeLocation",
+                    "species_id": "taxonomy:9606",
+                    "chr": "7",
+                    "interval": {
+                        "end": "p11.2",
+                        "start": "p11.2",
+                        "type": "CytobandInterval"
                     }
-                ],
+                },
                 "alternate_labels": [
                     "ERBB1",
-                    "HER1",
-                    "mENA",
                     "NISBD2",
-                    "EGFR",
                     "PIG61",
-                    "ERBB"
-                ],
-                "previous_labels": [
-                    "ERBB"
+                    "mENA",
+                    "ERBB",
+                    "HER1",
+                    "EGFR"
                 ],
                 "xrefs": [
-                    "ncbigene:1956",
-                    "omim:131550",
                     "hgnc:3236",
                     "vega:OTTHUMG00000023661",
                     "ucsc:uc003tqk.4",
@@ -169,8 +153,21 @@
                     "omim:131550",
                     "orphanet:121311",
                     "iuphar:1797",
-                    "refseq:NM_005228",
-                    "ensembl:ENSG00000146648"
+                    "refseq:NM_005228"
+                ],
+                "extensions": [
+                    {
+                        "type": "Extension",
+                        "name": "previous_labels",
+                        "value": [
+                            "ERBB"
+                        ]
+                    },
+                    {
+                        "type": "Extension",
+                        "name": "strand",
+                        "value": null
+                    }
                 ]
             }
         ],
@@ -197,7 +194,7 @@
                     "wikidata:Q4688818",
                     "wikidata:Q47521650"
                 ],
-                "aliases": [
+                "alternate_labels": [
                     "(2E)-N-(4-(3-Chloro-4-fluoroanilino)-7-(((3S)-oxolan-3-yl)oxy)quinoxazolin-6-yl)-4-(dimethylamino)but-2-enamide",
                     "Afatinibum",
                     "Afatinib",
@@ -212,13 +209,51 @@
                 ]
             }
         ],
-        "diseases": {
-            "id": "civic:did8",
-            "label": "Lung Non-small Cell Carcinoma",
-            "xrefs": [
-                "DOID:3908"
-            ]
-        },
+        "diseases": [
+            {
+                "id": "civic:did8",
+                "label": "Lung Non-small Cell Carcinoma",
+                "xrefs": [
+                    "ncit:C2926",
+                    "mondo:0005233",
+                    "DOID:3908",
+                    "efo:0003060",
+                    "HP:0030358",
+                    "kegg.disease:05223",
+                    "oncotree:NSCLC",
+                    "icd:C34",
+                    "mesh:D002289",
+                    "umls:C0007131"
+                ],
+                "alternate_labels": [
+                    "non-small cell cancer of the lung",
+                    "Non-small cell lung cancer, NOS",
+                    "Non-Small Cell Lung Cancer",
+                    "NSCLC - Non-Small Cell Lung Cancer",
+                    "non-small cell lung carcinoma",
+                    "Non-small cell lung cancer",
+                    "non-small cell lung cancer",
+                    "non-small cell cancer of lung",
+                    "non-small cell carcinoma of lung",
+                    "non-small cell carcinoma of the lung",
+                    "NSCLC",
+                    "Non-Small Cell Carcinoma of Lung",
+                    "Non-Small Cell Carcinoma of the Lung",
+                    "Non-Small Cell Cancer of Lung",
+                    "Non-Small Cell Cancer of the Lung",
+                    "Non Small Cell Lung Cancer NOS",
+                    "Non-Small Cell Lung Carcinoma",
+                    "NSCLC - non-small cell lung cancer"
+                ],
+                "extensions": [
+                    {
+                        "type": "Extension",
+                        "name": "pediatric_disease",
+                        "value": null
+                    }
+                ]
+            }
+        ],
         "evidence_sources": [
             {
                 "id": "pmid:23982599",
