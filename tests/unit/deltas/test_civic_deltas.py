@@ -1,7 +1,7 @@
 """Test CIViC deltas."""
 import pytest
 from metakb import PROJECT_ROOT
-from metakb.deltas.civic import CIVICDelta
+from metakb.delta import Delta
 from datetime import date
 import json
 import os
@@ -14,7 +14,7 @@ UPDATED_JSON = \
 @pytest.fixture(scope='module')
 def civic():
     """Create CIViC Delta test fixture."""
-    return CIVICDelta(MAIN_JSON, _updated_json=UPDATED_JSON)
+    return Delta(MAIN_JSON, 'civic', _updated_json=UPDATED_JSON)
 
 
 @pytest.fixture(scope='module')
@@ -125,11 +125,11 @@ def delta():
 
 def test_init():
     """Test that init is correct."""
-    cd = CIVICDelta(MAIN_JSON)
+    cd = Delta(MAIN_JSON, 'civic')
     assert cd._main_json == MAIN_JSON
     assert cd._updated_json is None
 
-    cd = CIVICDelta(MAIN_JSON, _updated_json=UPDATED_JSON)
+    cd = Delta(MAIN_JSON, 'civic', _updated_json=UPDATED_JSON)
     assert cd._main_json == MAIN_JSON
     assert cd._updated_json == UPDATED_JSON
 
@@ -139,7 +139,7 @@ def test_compute_delta(civic, diff):
     assert civic.compute_delta() == diff
 
     # Test when _updated_json is not in kwargs
-    cd = CIVICDelta(MAIN_JSON)
+    cd = Delta(MAIN_JSON, 'civic')
     cd.compute_delta()
     fn = PROJECT_ROOT / 'data' / 'civic' / \
         f"civic_harvester_{date.today().strftime('%Y%m%d')}.json"
