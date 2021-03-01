@@ -46,22 +46,35 @@ class CIViCTransform:
         genes = data['genes']
         i = 1
         for evidence in evidence_items:
-            response = dict()
             evidence_id = f"{schemas.NamespacePrefix.CIVIC.value}" \
                           f":{evidence['name']}"
             if evidence_id == 'civic:EID2997':
-                response['evidence'] = self._add_evidence(evidence, i)
-                response['propositions'] = self._add_propositions(evidence, i)
-                response['variation_descriptors'] = \
-                    self._add_variation_descriptors(
-                        self._get_record(evidence['variant_id'], variants))
-                response['gene_descriptors'] = \
-                    self._add_gene_descriptors(
-                        self._get_record(evidence['gene_id'], genes))
-                response['therapies'] = self._add_therapies(evidence['drugs'])
-                response['diseases'] = self._add_diseases(evidence['disease'])
-                response['evidence_sources'] = \
-                    self._add_evidence_sources(evidence)
+                response = {
+                    'evidence': self._add_evidence(evidence, i),
+                    'propositions': self._add_propositions(evidence, i),
+                    'variation_descriptors': self._add_variation_descriptors(
+                        self._get_record(evidence['variant_id'], variants)),
+                    'gene_descriptors': self._add_gene_descriptors(
+                        self._get_record(evidence['gene_id'], genes)),
+                    'therapies': self._add_therapies(evidence['drugs']),
+                    'diseases': self._add_diseases(evidence['disease']),
+                    'evidence_sources': self._add_evidence_sources(evidence)
+                }
+
+                for variation_descriptor in response['variation_descriptors']:
+                    for proposition in response['propositions']:
+                        if variation_descriptor['id'] ==\
+                                proposition['variation_descriptor']:
+                            proposition['has_originating_context'] = \
+                                variation_descriptor['value_id']
+
+                # TODO: Fix for when there's multiple diseases and propositions
+                for disease in response['diseases']:
+                    for proposition in response['propositions']:
+                        ncit_id = ([other_id for other_id in disease['xrefs']
+                                    if other_id.startswith('ncit:C')] or [None])[0]  # noqa: E501
+                        proposition['disease_context'] = ncit_id
+
                 responses.append(response)
                 pp.pprint(response)
                 i += 1
@@ -69,12 +82,21 @@ class CIViCTransform:
         return responses
 
     def _add_diseases(self, disease):
+        disesase_norm_resp = \
+            self.normalizers.normalize('disease', f"DOID:{disease['doid']}")
         d = {
             'id': f"civic:did{disease['id']}",
-            'label': disease['display_name'],
-            'xrefs': [f"DOID:{disease['doid']}"]
+            'label': disease['display_name']
         }
-        return d
+
+        if disesase_norm_resp['record']:
+            d['xrefs'] = disesase_norm_resp['record']['concept_ids'] + disesase_norm_resp['record']['xrefs']  # noqa: E501
+            d['alternate_labels'] = disesase_norm_resp['record']['aliases']
+
+        else:
+            d['xrefs'] = [f"DOID:{disease['doid']}"]
+            d['alternate_labels'] = []
+        return [d]
 
     def _add_therapies(self, drugs):
         """Return therapies."""
@@ -88,7 +110,7 @@ class CIViCTransform:
                 'type': 'Therapy',
                 'label': drug['name'],
                 'xrefs': self._get_therapy_xrefs(therapy_norm_resp, drug),
-                'aliases': therapy_norm_resp['record']['aliases'] if 'record' in therapy_norm_resp else [],  # noqa: E501
+                'alternate_labels': therapy_norm_resp['record']['aliases'] if 'record' in therapy_norm_resp else [],  # noqa: E501
                 'trade_names': therapy_norm_resp['record']['trade_names'] if 'record' in therapy_norm_resp else []  # noqa: E501
             }
             therapies.append(therapy)
@@ -125,6 +147,7 @@ class CIViCTransform:
                         f"civic.trust_rating:{evidence['rating']}_star"
                 }
             ],
+            'description': evidence['description'],
             'direction':
                 self._get_evidence_direction(evidence['evidence_direction']),
             'evidence_level': f"civic.evidence_level:"
@@ -162,9 +185,9 @@ class CIViCTransform:
                 '_id': f'proposition:{i:03}',  # TODO
                 'type': 'therapeutic_response_proposition',
                 'variation_descriptor': f"civic:vid{evidence['variant_id']}",
-                'has_originating_context': '',  # TODO: use variant norm
+                'has_originating_context': None,
                 'therapy': f"ncit:{drug['ncit_id']}",
-                'disease_context': '',  # TODO: use disease norm
+                'disease_context': None,
                 'predicate': predicate,
                 'variant_origin': evidence['variant_origin'].lower()
             }
@@ -178,16 +201,26 @@ class CIViCTransform:
         :param dict variant: A CIViC variant record
         :return:
         """
+        # TODO: Shouldn't hardcode this. We should implement root_concept
+        #       in civicpy
+        structural_type = None
+        molecule_context = None
+        if len(variant['variant_types']) == 1:
+            so_id = variant['variant_types'][0]['so_id']
+            if so_id == 'SO:0001583':
+                structural_type = 'SO:0001060'
+                molecule_context = 'protein'
+
         variation_descriptor = {
             'id': f"civic:vid{variant['id']}",
             'type': 'AlleleDescriptor',
             'label': variant['name'],
             'description': variant['description'],
-            'value_id': '',  # TODO: Use variant norm
-            'value_obj': {},  # TODO: Create VRS object from variant norm
-            'gene_descriptor': f"civic:gid{variant['gene_id']}",
-            'molecule_context': 'protein',  # this might not always be protein
-            'structural_type': '',  # TODO: civicpy implement root_concept
+            'value_id': None,
+            'value_obj': {},
+            'gene_context': f"civic:gid{variant['gene_id']}",
+            'molecule_context': molecule_context,
+            'structural_type': structural_type,
             'ref_allele_seq': re.split(r'\d+', variant['name'])[0],
             'expressions': self._add_hgvs_expr(variant),
             'xrefs': self._add_variant_xrefs(variant),
@@ -196,36 +229,63 @@ class CIViCTransform:
                                  v_alias.startswith('RS')],
             'extensions': [
                 {
-                    'representative_variation_descriptor':
-                        f"civic:vid{variant['id']}.rep",
-                    'civic_actionability_score':
-                        variant['civic_actionability_score'],
-                    'variant_groups': []  # TODO
+                    'type': 'Extension',
+                    'name': 'representative_variation_descriptor',
+                    'value': f"civic:vid{variant['id']}.rep"
+                },
+                {
+                    'type': 'Extension',
+                    'name': 'civic_actionability_score',
+                    'value': variant['civic_actionability_score']
+                },
+                {
+                    'type': 'Extension',
+                    'name': 'variant_groups',
+                    'value': []  # TODO
                 }
             ]
         }
+
+        hgvs_protein_exprs = [expr['value'] for expr in
+                              variation_descriptor['expressions'] if ':p.'
+                              in expr['value']]
+
+        for hgvs_protein_expr in hgvs_protein_exprs:
+            # TODO: Switch to using variant /normalize
+            response = self.normalizers.tovrs(hgvs_protein_expr)
+            if response['variants']:
+                variant = response['variants'][0]
+                variation_descriptor['value_id'] = variant['_id']
+                variation_descriptor['value_obj'] = variant
+                break
+
         return [variation_descriptor]
 
     def _add_gene_descriptors(self, gene):
         """Return gene descriptors"""
-        gene_normalizer_resp = self.normalizers.search('gene', gene['name'])
+        gene_normalizer_resp = \
+            self.normalizers.search('gene', gene['name'], incl='hgnc')
         value_objs = self._get_gene_value_obj(gene_normalizer_resp)
         gene_descriptor = {
             'id': f"civic:gid{gene['id']}",
-            'type': 'Gene',
+            'type': 'GeneDescriptor',
             'label': gene['name'],
             'description': gene['description'],
-            'value_ids': value_objs[0],
-            'value_objects': value_objs[1],
-            # TODO: Do we want to include variant descriptors?
-            # 'variant_descriptors':
-            #     [f"civic:vid{vid['id']}" for vid in gene['variants']],
+            'value_id': value_objs[0],
+            'value_obj': value_objs[1],
             'alternate_labels':
                 self._get_search_list(gene_normalizer_resp, 'aliases',
                                       records=gene['aliases']),
-            'previous_labels': self._get_search_list(gene_normalizer_resp,
-                                                     'previous_symbols'),
-            'xrefs': self._get_gene_normalizer_xrefs(gene_normalizer_resp)
+            'xrefs': self._get_gene_normalizer_xrefs(gene_normalizer_resp),
+            'extensions': [
+                {
+                    'type': 'Extension',
+                    'name': 'previous_labels',
+                    'value': self._get_search_list(gene_normalizer_resp,
+                                                   'previous_symbols')
+                }
+
+            ]
         }
         return [gene_descriptor]
 
@@ -245,14 +305,15 @@ class CIViCTransform:
 
     def _get_gene_value_obj(self, response):
         """Return VRS _id and location object."""
-        value_objs = []
-        value_objs_ids = []
+        value_obj = None
+        value_obj_id = None
         for source_match in response['source_matches']:
             for record in source_match['records']:
                 for location in record['locations']:
-                    value_objs.append(location)
-                    value_objs_ids.append(location['_id'])
-        return (value_objs_ids, value_objs)
+                    value_obj = location
+                    value_obj_id = location['_id']
+                    break
+        return (value_obj_id, value_obj)
 
     def _get_gene_normalizer_xrefs(self, response):
         """Return xrefs from gene normalization."""
@@ -270,15 +331,15 @@ class CIViCTransform:
         hgvs_expressions = list()
         for hgvs_expr in variant['hgvs_expressions']:
             if ':g.' in hgvs_expr:
-                system = 'hgvs:genomic'
+                syntax = 'hgvs:genomic'
             elif ':c.' in hgvs_expr:
-                system = 'hgvs:transcript'
+                syntax = 'hgvs:transcript'
             else:
-                system = 'hgvs:protein'
+                syntax = 'hgvs:protein'
             hgvs_expressions.append(
                 {
                     'type': 'Expression',
-                    'system': system,
+                    'syntax': syntax,
                     'value': hgvs_expr
                 }
             )
@@ -292,8 +353,7 @@ class CIViCTransform:
         source_type = evidence['source']['source_type'].upper()
         if source_type in schemas.SourcePrefix.__members__:
             prefix = schemas.SourcePrefix[source_type].value
-        else:
-            prefix = ''
+
         source = {
             'id': f"{prefix}:{evidence['source']['citation_id']}",
             'label': evidence['source']['citation'],
