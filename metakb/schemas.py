@@ -1,7 +1,7 @@
 """Common data model"""
 from enum import Enum
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional, Union
 
 
 class EvidenceLevel(Enum):
@@ -86,3 +86,66 @@ class EvidenceSource(BaseModel):
     label: str
     description: str
     xrefs: List[str]
+
+
+class Extension(BaseModel):
+    """Extend descriptions with other attributes unique to a content provider. -GA4GH"""  # noqa: E501
+
+    type = 'Extension'
+    name: str
+    value: List[Union[str, dict]]
+
+
+class ValueObjectDescriptor(BaseModel):
+    """GA4GH Value Object Descriptor."""
+
+    id: str
+    type: str
+    label: Optional[str]
+    description: Optional[str]
+    value_id: Optional[str]
+    value: Optional[dict]
+    xrefs: Optional[List[str]]
+    alternate_labels: Optional[List[str]]
+    extensions: Optional[List[Extension]]
+
+
+class MoleculeContext(str, Enum):
+    """Define constraints for types of molecule context."""
+
+    GENOMIC = 'genomic'
+    TRANSCRIPT = 'transcript'
+    PROTEIN = 'protein'
+
+
+class Expression(BaseModel):
+    """Enable descriptions based on a specified nomenclature or syntax for representing an object. - GA4GH"""  # noqa: E501
+
+    type = 'Expression'
+    syntax: str
+    value: str
+    version: Optional[str]
+
+
+class GeneDescriptor(ValueObjectDescriptor):
+    """Reference GA4GH Gene Value Objects."""
+
+    type = 'GeneDescriptor'
+
+
+class Gene(BaseModel):
+    """GA4GH Gene Value Object."""
+
+    gene_id: str
+    type = "Gene"
+
+
+class VariationDescriptor(ValueObjectDescriptor):
+    """Reference GA4GH Variation Value Objects."""
+
+    type = 'VariationDescriptor'
+    molecule_context: Optional[MoleculeContext]
+    structural_type: Optional[str]
+    expressions: Optional[List[Expression]]
+    ref_allele_seq: Optional[str]
+    gene_context: Optional[Union[str, GeneDescriptor]]
