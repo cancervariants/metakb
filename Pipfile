@@ -11,6 +11,9 @@ numpy = "*"
 jsondiff = "*"
 pydantic = "*"
 requests-cache = "*"
+gene-normalizer = "*"
+thera-py = "*"
+disease-normalizer = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}

@@ -6,6 +6,11 @@ import metakb.schemas as schemas
 from metakb.normalizers import Normalizers
 import pprint
 import re
+import os
+from gene.query import Normalizer as GeneNormalizer
+# import therapy
+
+os.environ['GENE_NORM_DB_URL'] = "http://localhost:8000"
 
 
 logger = logging.getLogger('metakb')
@@ -23,6 +28,7 @@ class CIViCTransform:
         """
         self._file_path = file_path
         self.normalizers = Normalizers()
+        self.gene_normalizer = GeneNormalizer()
 
     def _extract(self):
         """Extract the CIViC composite JSON file."""
@@ -217,89 +223,94 @@ class CIViCTransform:
             if so_id == 'SO:0001583':
                 structural_type = 'SO:0001060'
                 molecule_context = 'protein'
-
-        variation_descriptor = {
-            'id': f"civic:vid{variant['id']}",
-            'type': 'AlleleDescriptor',
-            'label': variant['name'],
-            'description': variant['description'],
-            'value_id': None,
-            'value_obj': {},
-            'gene_context': f"civic:gid{variant['gene_id']}",
-            'molecule_context': molecule_context,
-            'structural_type': structural_type,
-            'ref_allele_seq': re.split(r'\d+', variant['name'])[0],
-            'expressions': self._add_hgvs_expr(variant),
-            'xrefs': self._add_variant_xrefs(variant),
-            'alternate_labels': [v_alias for v_alias in
-                                 variant['variant_aliases'] if not
-                                 v_alias.startswith('RS')],
-            'extensions': [
-                {
-                    'type': 'Extension',
-                    'name': 'representative_variation_descriptor',
-                    'value': f"civic:vid{variant['id']}.rep"
-                },
-                {
-                    'type': 'Extension',
-                    'name': 'civic_actionability_score',
-                    'value': variant['civic_actionability_score']
-                },
-                {
-                    'type': 'Extension',
-                    'name': 'variant_groups',
-                    'value': variant['variant_groups']
-                }
+        variation_descriptor = schemas.VariationDescriptor(
+            id=f"civic:vid{variant['id']}",
+            label=variant['name'],
+            description=variant['description'],
+            value_id=None,
+            value=[],
+            gene_context=f"civic:gid{variant['gene_id']}",
+            molecule_context=molecule_context,
+            structural_type=structural_type,
+            ref_allele_seq=re.split(r'\d+', variant['name'])[0],
+            expressions=self._add_hgvs_expr(variant),
+            xrefs=self._add_variant_xrefs(variant),
+            alternate_labels=[v_alias for v_alias in
+                              variant['variant_aliases'] if not
+                              v_alias.startswith('RS')],
+            extensions=[
+                schemas.Extension(
+                    name='representative_variation_descriptor',
+                    value=[f"civic:vid{variant['id']}.rep"]
+                ),
+                schemas.Extension(
+                    name='civic_actionability_score',
+                    value=[variant['civic_actionability_score']]
+                ),
+                schemas.Extension(
+                    name='variant_groups',
+                    value=variant['variant_groups']
+                )
             ]
-        }
+        )
 
-        hgvs_protein_exprs = [expr['value'] for expr in
-                              variation_descriptor['expressions'] if ':p.'
-                              in expr['value']]
+        hgvs_protein_exprs = [expr.value for expr in
+                              variation_descriptor.expressions if ':p.'
+                              in expr.value]
 
         for hgvs_protein_expr in hgvs_protein_exprs:
             # TODO: Switch to using variant /normalize
             response = self.normalizers.tovrs(hgvs_protein_expr)
             if response['variants']:
                 variant = response['variants'][0]
-                variation_descriptor['value_id'] = variant['_id']
-                variation_descriptor['value_obj'] = variant
+                variation_descriptor.value_id = variant['_id']
+                variation_descriptor.value = variant
                 break
 
-        return [variation_descriptor]
+        return [variation_descriptor.dict()]
 
     def _add_gene_descriptors(self, gene):
         """Return gene descriptors"""
-        gene_normalizer_resp = \
-            self.normalizers.search('gene', gene['name'], incl='hgnc')
-        value_objs = self._get_gene_value_obj(gene_normalizer_resp)
-        gene_descriptor = {
-            'id': f"civic:gid{gene['id']}",
-            'type': 'GeneDescriptor',
-            'label': gene['name'],
-            'description': gene['description'],
-            'value_id': value_objs[0],
-            'value_obj': value_objs[1],
-            'alternate_labels':
-                self._get_search_list(gene_normalizer_resp, 'aliases',
-                                      records=gene['aliases']),
-            'xrefs': self._get_gene_normalizer_xrefs(gene_normalizer_resp),
-            'extensions': [
-                {
-                    'type': 'Extension',
-                    'name': 'previous_labels',
-                    'value': self._get_search_list(gene_normalizer_resp,
-                                                   'previous_symbols')
-                },
-                {
-                    'type': 'Extension',
-                    'name': 'strand',
-                    'value': self._get_search_val(gene_normalizer_resp,
-                                                  'strand')
-                }
-            ]
-        }
-        return [gene_descriptor]
+        gene_normalizer_resp = self.gene_normalizer.normalize(gene['name'],
+                                                              incl='hgnc')
+        gene_normalizer_resp = gene_normalizer_resp['source_matches'][0]
+        if 'records' in gene_normalizer_resp and \
+                gene_normalizer_resp['records']:
+            gene_normalizer_resp = gene_normalizer_resp['records'][0]
+        else:
+            return []
+
+        gene_descriptor = schemas.GeneDescriptor(
+            id=f"civic:gid{gene['id']}",
+            label=gene['name'],
+            description=gene['description'],
+            value=schemas.Gene(gene_id=gene_normalizer_resp.concept_id),
+            alternate_labels=gene_normalizer_resp.aliases + [gene_normalizer_resp.label],  # noqa: E501
+            xrefs=gene_normalizer_resp.other_identifiers,
+            extensions=[]
+        )
+
+        if gene_normalizer_resp.strand:
+            gene_descriptor.extensions.append(
+                schemas.Extension(name='strand',
+                                  value=[gene_normalizer_resp.strand]))
+        if gene_normalizer_resp.previous_symbols:
+            gene_descriptor.extensions.append(
+                schemas.Extension(name='previous_symbols',
+                                  value=gene_normalizer_resp.previous_symbols))
+        if gene_normalizer_resp.xrefs:
+            gene_descriptor.extensions.append(
+                schemas.Extension(name='associated_with',
+                                  value=gene_normalizer_resp.xrefs))
+        if gene_normalizer_resp.locations:
+            loc = None
+            for location in gene_normalizer_resp.locations:
+                loc = location.dict(by_alias=True)
+                break
+            gene_descriptor.extensions.append(
+                schemas.Extension(name='chromosome_location',
+                                  value=[loc]))
+        return [gene_descriptor.dict()]
 
     def _get_search_val(self, response, label):
         for source_match in response['source_matches']:
@@ -322,29 +333,6 @@ class CIViCTransform:
 
         return list(set(records))
 
-    def _get_gene_value_obj(self, response):
-        """Return VRS _id and location object."""
-        value_obj = None
-        value_obj_id = None
-        for source_match in response['source_matches']:
-            for record in source_match['records']:
-                for location in record['locations']:
-                    value_obj = location
-                    value_obj_id = location['_id']
-                    break
-        return (value_obj_id, value_obj)
-
-    def _get_gene_normalizer_xrefs(self, response):
-        """Return xrefs from gene normalization."""
-        xrefs = []
-        source_matches = response['source_matches']
-        for source in source_matches:
-            for record in source['records']:
-                xrefs.append(record['concept_id'])
-                for xref in record['xrefs']:
-                    xrefs.append(xref)
-        return xrefs
-
     def _add_hgvs_expr(self, variant):
         """Return a list of hgvs expressions"""
         hgvs_expressions = list()
@@ -356,11 +344,7 @@ class CIViCTransform:
             else:
                 syntax = 'hgvs:protein'
             hgvs_expressions.append(
-                {
-                    'type': 'Expression',
-                    'syntax': syntax,
-                    'value': hgvs_expr
-                }
+                schemas.Expression(syntax=syntax, value=hgvs_expr)
             )
         return hgvs_expressions
 
@@ -417,6 +401,6 @@ class CIViCTransform:
         return xrefs
 
 
-civic = CIViCTransform()
-transformation = civic.transform()
-civic._create_json(transformation)
+# civic = CIViCTransform()
+# transformation = civic.transform()
+# civic._create_json(transformation)
