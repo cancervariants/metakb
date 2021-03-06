@@ -8,6 +8,9 @@ import pprint
 import re
 import os
 from gene.query import Normalizer as GeneNormalizer
+from variant.to_vrs import ToVRS
+from variant.normalize import Normalize as VariantNormalizer
+from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
 # import therapy
 
 os.environ['GENE_NORM_DB_URL'] = "http://localhost:8000"
@@ -29,6 +32,9 @@ class CIViCTransform:
         self._file_path = file_path
         self.normalizers = Normalizers()
         self.gene_normalizer = GeneNormalizer()
+        self.variant_normalizer = VariantNormalizer()
+        self.variant_to_vrs = ToVRS()
+        self.amino_acid_cache = AminoAcidCache()
 
     def _extract(self):
         """Extract the CIViC composite JSON file."""
@@ -59,20 +65,14 @@ class CIViCTransform:
                     'evidence': self._add_evidence(evidence, i),
                     'propositions': self._add_propositions(evidence, i),
                     'variation_descriptors': self._add_variation_descriptors(
-                        self._get_record(evidence['variant_id'], variants)),
+                        self._get_record(evidence['variant_id'], variants),
+                        self._get_record(evidence['gene_id'], genes)),
                     'gene_descriptors': self._add_gene_descriptors(
                         self._get_record(evidence['gene_id'], genes)),
                     'therapies': self._add_therapies(evidence['drugs']),
                     'diseases': self._add_diseases(evidence['disease']),
                     'evidence_sources': self._add_evidence_sources(evidence)
                 }
-
-                for variation_descriptor in response['variation_descriptors']:
-                    for proposition in response['propositions']:
-                        if variation_descriptor['id'] ==\
-                                proposition['variation_descriptor']:
-                            proposition['has_originating_context'] = \
-                                variation_descriptor['value_id']
 
                 # TODO: Fix for when there's multiple diseases and propositions
                 for disease in response['diseases']:
@@ -208,7 +208,7 @@ class CIViCTransform:
 
         return propositions
 
-    def _add_variation_descriptors(self, variant):
+    def _add_variation_descriptors(self, variant, gene):
         """Add variation descriptors to response.
 
         :param dict variant: A CIViC variant record
@@ -223,12 +223,20 @@ class CIViCTransform:
             if so_id == 'SO:0001583':
                 structural_type = 'SO:0001060'
                 molecule_context = 'protein'
+
+        variant_query = f"{gene['name']} {variant['name']}"
+        validations = self.variant_to_vrs.get_validations(variant_query)
+        normalized_resp = \
+            self.variant_normalizer.normalize(variant_query,
+                                              validations,
+                                              self.amino_acid_cache)
+
         variation_descriptor = schemas.VariationDescriptor(
             id=f"civic:vid{variant['id']}",
             label=variant['name'],
             description=variant['description'],
-            value_id=None,
-            value=[],
+            value_id=normalized_resp.value_id,
+            value=normalized_resp.value,
             gene_context=f"civic:gid{variant['gene_id']}",
             molecule_context=molecule_context,
             structural_type=structural_type,
@@ -253,19 +261,6 @@ class CIViCTransform:
                 )
             ]
         )
-
-        hgvs_protein_exprs = [expr.value for expr in
-                              variation_descriptor.expressions if ':p.'
-                              in expr.value]
-
-        for hgvs_protein_expr in hgvs_protein_exprs:
-            # TODO: Switch to using variant /normalize
-            response = self.normalizers.tovrs(hgvs_protein_expr)
-            if response['variants']:
-                variant = response['variants'][0]
-                variation_descriptor.value_id = variant['_id']
-                variation_descriptor.value = variant
-                break
 
         return [variation_descriptor.dict()]
 
