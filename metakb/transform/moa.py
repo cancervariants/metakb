@@ -3,8 +3,13 @@ from metakb import PROJECT_ROOT
 import os
 import json
 import logging
+import pprint
 import metakb.schemas as schemas
 from gene.query import Normalizer as GeneNormalizer
+from variant.to_vrs import ToVRS
+from variant.normalize import Normalize as VariantNormalizer
+from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
+# from disease.normalize import Normalize as DiseaseNormalizer
 
 os.environ['GENE_NORM_DB_URL'] = "http://localhost:8000"
 
@@ -24,6 +29,10 @@ class MOATransform:
         """
         self.file_path = file_path
         self.g_norm = GeneNormalizer()
+        self.variant_normalizer = VariantNormalizer()
+        self.variant_to_vrs = ToVRS()
+        self.amino_acid_cache = AminoAcidCache()
+        # self.d_norm = DiseaseNormalizer()
 
     def _extract(self):
         """Extract the MOA composite JSON file."""
@@ -44,9 +53,9 @@ class MOATransform:
         responses = []
 
         evidence_items = data['assertions']
-
+        pp = pprint.PrettyPrinter(sort_dicts=False)
         for evidence in evidence_items:
-            if evidence['id'] == 69:
+            if evidence['id'] == 69:  # somatic, ABL1 p.T315I (Missense)
                 response = {}
                 response['evidence'] = self._add_evidence(evidence)
                 response['propositions'] = self._add_propositions(evidence)
@@ -54,9 +63,11 @@ class MOATransform:
                     self._add_variation_descriptors(evidence)
                 response['gene_descriptor'] = \
                     self._add_gene_descriptors(evidence['variant'])
+                response['therapy'] = self._add_therapies(evidence)
+                response['disease'] = self._add_disease(evidence)
 
                 responses.append(response)
-
+                pp.pprint(response)
                 break
 
         return responses
@@ -140,23 +151,33 @@ class MOATransform:
                 structural_type = "SO:0001606"
                 molecule_context = 'protein'
 
-        variation_descriptor = [{
-            'id': f"moa:vid{variant['id']}",
-            'type': "AlleleDescriptor",
-            'label': variant['feature'],
-            'description': "description",  # get from var norm
-            'value_id': "value_id",  # get from var norm
-            'gene_descriptor': "gene_descriptor_id",  # get from gene norm
-            'molecule_context': molecule_context,
-            'structural_type': structural_type,
-            'ref_allele_seq': ref_allele_seq,
-            'expressions': [],
-            'xrefs': [],  # get from disease norm
-            'alternate_labels': [],  # get from disease norm
-            'extensions': [],  # TODO
-        }]
+        variant_query = f"{variant['gene']} {variant['protein_change'][2:]}"
+        validations = self.variant_to_vrs.get_validations(variant_query)
+        v_norm_resp = \
+            self.variant_normalizer.normalize(variant_query,
+                                              validations,
+                                              self.amino_acid_cache)
 
-        return variation_descriptor
+        # disease_name = evidence['disease']['oncotree_term']
+        # d_norm_resp = self.disease_normalizer.normalize(disease_name)
+
+        variation_descriptor = schemas.VariationDescriptor(
+            id=f"moa:vid{variant['id']}",
+            label=variant['feature'],
+            description=None,
+            value_id=v_norm_resp.value_id,
+            value=v_norm_resp.value,
+            gene_context="gene_descriptor_id",  # get from gene norm
+            molecule_context=molecule_context,
+            structural_type=structural_type,
+            ref_allele_seq=ref_allele_seq,
+            expressions=[],
+            # xrefs=d_norm_resp.concept_ids
+            # alternate_labels=d_norm_resp.aliases
+            extensions=[]
+        )
+
+        return [variation_descriptor.dict()]
 
     def _add_gene_descriptors(self, variant):
         """Create gene descriptors"""
@@ -166,80 +187,82 @@ class MOATransform:
         gene_descriptors = []
         if genes:
             for gene in genes:
-                gene_normalizer_resp = \
+                g_norm_resp = \
                     self.g_norm.normalize(gene, incl='HGNC')
-                value_objs = self._get_gene_value_obj(gene_normalizer_resp)
-                gene_descriptor = {
-                    'id': 'id',  # TODO
-                    'type': 'GeneDescriptor',
-                    'label': gene,
-                    'description': 'description',  # TODO
-                    'value_id': value_objs[0],
-                    'value_obj': value_objs[1],
-                    'alternate_labels':
-                        self._get_search_list(gene_normalizer_resp, 'aliases',
-                                              records=None),
-                    'xrefs': \
-                        self._get_gene_normalizer_xrefs(gene_normalizer_resp),
-                    'extensions': [
-                        {
-                            'type': 'Extension',
-                            'name': 'previous_labels',
-                            'value':
-                                self._get_search_list(gene_normalizer_resp,
-                                                      'previous_symbols')
-                        },
-                        {
-                            'type': 'Extension',
-                            'name': 'strand',
-                            'value': ''.join(
-                                    self._get_search_list(gene_normalizer_resp,
-                                                          'strand'))
-                        }
-                    ]
+                g_norm_resp = \
+                    g_norm_resp['source_matches'][0]
+                if 'records' in g_norm_resp and \
+                        g_norm_resp['records']:
+                    g_norm_resp = g_norm_resp['records'][0]
+                else:
+                    return []
 
-                }
-                gene_descriptors.append(gene_descriptor)
+                gene_descriptor = schemas.GeneDescriptor(
+                    id=f'normalize:{gene}',  # TODO
+                    label=gene,
+                    description='description',  # TODO
+                    value=schemas.Gene(gene_id=g_norm_resp.concept_id),
+                    alternate_labels=self._get_search_list(g_norm_resp,
+                                                           'aliases',
+                                                           records=None),
+                    xrefs=g_norm_resp.other_identifiers,
+                    extensions=self._get_gene_ext(g_norm_resp)
+                )
+                gene_descriptors.append(gene_descriptor.dict())
 
         return gene_descriptors
 
-    def _get_gene_value_obj(self, response):
-        """Get gene value object"""
-        value_obj = None
-        value_obj_id = None
-        for source_match in response['source_matches']:
-            for record in source_match['records']:
-                for location in record.locations:
-                    value_obj = location
-                    value_obj_id = location.id
-                    break
-        return (value_obj_id, value_obj)
+    def _get_gene_ext(self, gene_normalizer_resp):
+        """Get gene extensions"""
+        ext = []
+        for key in ['strand', 'previous_labels', 'xrefs',
+                    'locations']:
+            value = self._get_search_list(gene_normalizer_resp, key)
+            if value:
+                if key == 'xrefs':
+                    key = 'associated_with'
+                if key == 'locations':
+                    key = 'chromosome_location'
+                ext.append(schemas.Extension(name=key, value=value))
+
+        return ext
 
     def _get_search_list(self, response, key, records=None):
         """Get search list by keyword"""
-        if records is None:
-            records = []
-        for source_match in response['source_matches']:
-            for record in source_match['records']:
-                if getattr(record, key):
-                    records += getattr(record, key)
-
+        if hasattr(response, key):
+            if getattr(response, key):
+                records = getattr(response, key)
+        if key == 'locations':
+            for location in records:
+                records = [location.dict(by_alias=True)]
         if not records:
             return []
 
-        return list(set(records))
+        return records
 
-    def _get_gene_normalizer_xrefs(self, response):
-        """Return xrefs from gene normalization."""
-        xrefs = []
-        source_matches = response['source_matches']
-        for source in source_matches:
-            for record in source['records']:
-                xrefs.append(record.concept_id)
-                for xref in record.xrefs:
-                    xrefs.append(xref)
+    def _add_therapies(self, evidence):
+        """Add therapies"""
+        therapy = [{
+            'id': f"normalize:{evidence['therapy_name']}",
+            'label': evidence['therapy_name'],
+            'xrefs': [],  # TODO
+            'alternate_labels': [],  # TODO
+            'trade_names': [],  # TODO
+        }]
 
-        return xrefs
+        return therapy
+
+    def _add_disease(self, evidence):
+        """Add disease"""
+        disease = [{
+            'id': f"normalize:{evidence['disease']['oncotree_term']}",
+            'label': evidence['disease'],
+            'xrefs': [],  # TODO
+            'alternate_labels': [],  # TODO
+            'extensions': [],  # TODO
+        }]
+
+        return disease
 
 
 moa = MOATransform()
@@ -247,4 +270,9 @@ responses = moa.transform()
 # moa._create_json(responses)
 
 # g = GeneNormalizer()
-# print(g.normalize('BRAF', incl='HGNC'))
+# print(g.normalize('ABL1', incl='HGNC'))
+# tovars = ToVRS()
+# aac = AminoAcidCache()
+# validations = tovars.get_validations('ABL1 T315I')
+# v = VariantNormalizer()
+# print(v.normalize('ABL1 T315I', validations, aac))
