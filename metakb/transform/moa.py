@@ -53,7 +53,9 @@ class MOATransform:
         responses = []
 
         evidence_items = data['assertions']
+        evidence_source = data['sources']
         pp = pprint.PrettyPrinter(sort_dicts=False)
+
         for evidence in evidence_items:
             if evidence['id'] == 69:  # somatic, ABL1 p.T315I (Missense)
                 response = {}
@@ -65,6 +67,8 @@ class MOATransform:
                     self._add_gene_descriptors(evidence['variant'])
                 response['therapy'] = self._add_therapies(evidence)
                 response['disease'] = self._add_disease(evidence)
+                response['evidence_source'] = \
+                    self._add_evidence_source(evidence_source[68])
 
                 responses.append(response)
                 pp.pprint(response)
@@ -263,6 +267,21 @@ class MOATransform:
         }]
 
         return disease
+
+    def _add_evidence_source(self, source):
+        """Add evidence source"""
+        source = [{
+            'id': f"pmid:{source['pmid']}"
+                  if source['pmid']
+                  else f"normalize:{source['doi']}",
+            'label': source['citation'],
+            'description': None,
+            'doi': source['doi'],
+            'nct': source['nct'],
+            'xrefs': []
+        }]
+
+        return source
 
 
 moa = MOATransform()
