@@ -5,7 +5,7 @@ import json
 import logging
 import pprint
 import metakb.schemas as schemas
-from gene.query import Normalizer as GeneNormalizer
+from gene.query import QueryHandler as GeneNormalizer
 from variant.to_vrs import ToVRS
 from variant.normalize import Normalize as VariantNormalizer
 from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
@@ -192,7 +192,7 @@ class MOATransform:
         if genes:
             for gene in genes:
                 g_norm_resp = \
-                    self.g_norm.normalize(gene, incl='HGNC')
+                    self.g_norm.search_sources(gene, incl='HGNC')
                 g_norm_resp = \
                     g_norm_resp['source_matches'][0]
                 if 'records' in g_norm_resp and \
