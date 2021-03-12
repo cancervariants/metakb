@@ -34,6 +34,7 @@ class SourcePrefix(Enum):
     """Define constraints for source prefixes."""
 
     PUBMED = 'pmid'
+    ASCO = 'asco'
 
 
 class Predicate(str, Enum):
@@ -74,7 +75,7 @@ class Evidence(BaseModel):
 
     id: str
     description: str
-    direction: Direction
+    direction: Optional[Direction]
     evidence_level: str
     strength: str
 
@@ -93,7 +94,7 @@ class Extension(BaseModel):
 
     type = 'Extension'
     name: str
-    value: List[Union[str, dict]]
+    value: Union[str, dict, List]
 
 
 class ValueObjectDescriptor(BaseModel):
@@ -138,6 +139,20 @@ class Gene(BaseModel):
 
     gene_id: str
     type = "Gene"
+
+
+class Disease(BaseModel):
+    """Disease Value Object"""
+
+    disease_id: str
+    type = "Disease"
+
+
+class Therapy(BaseModel):
+    """Therapy Value Object"""
+
+    therapy_id: str
+    type = "Therapy"
 
 
 class VariationDescriptor(ValueObjectDescriptor):
