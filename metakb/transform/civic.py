@@ -3,18 +3,13 @@ from metakb import PROJECT_ROOT
 import json
 import logging
 import metakb.schemas as schemas
-from metakb.normalizers import Normalizers
-import pprint
 import re
-import os
-from gene.query import Normalizer as GeneNormalizer
+from gene.query import QueryHandler as GeneQueryHandler
 from variant.to_vrs import ToVRS
 from variant.normalize import Normalize as VariantNormalizer
 from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
 # import therapy
-
-os.environ['GENE_NORM_DB_URL'] = "http://localhost:8000"
-
+from disease.query import QueryHandler as DiseaseQueryHandler
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -30,9 +25,9 @@ class CIViCTransform:
         :param str file_path: The file path to the composite JSON to transform.
         """
         self._file_path = file_path
-        self.normalizers = Normalizers()
-        self.gene_normalizer = GeneNormalizer()
+        self.gene_query_handler = GeneQueryHandler()
         self.variant_normalizer = VariantNormalizer()
+        self.disease_query_handler = DiseaseQueryHandler()
         self.variant_to_vrs = ToVRS()
         self.amino_acid_cache = AminoAcidCache()
 
@@ -50,7 +45,6 @@ class CIViCTransform:
 
     def transform(self):
         """Transform CIViC harvested json to common data model."""
-        pp = pprint.PrettyPrinter(sort_dicts=False)
         data = self._extract()
         responses = list()
         evidence_items = data['evidence']
@@ -58,90 +52,30 @@ class CIViCTransform:
         genes = data['genes']
         i = 1
         for evidence in evidence_items:
-            evidence_id = f"{schemas.NamespacePrefix.CIVIC.value}" \
-                          f":{evidence['name']}"
-            if evidence_id == 'civic:EID2997':
-                response = {
-                    'evidence': self._add_evidence(evidence, i),
-                    'propositions': self._add_propositions(evidence, i),
-                    'variation_descriptors': self._add_variation_descriptors(
-                        self._get_record(evidence['variant_id'], variants),
-                        self._get_record(evidence['gene_id'], genes)),
-                    'gene_descriptors': self._add_gene_descriptors(
-                        self._get_record(evidence['gene_id'], genes)),
-                    'therapies': self._add_therapies(evidence['drugs']),
-                    'diseases': self._add_diseases(evidence['disease']),
-                    'evidence_sources': self._add_evidence_sources(evidence)
-                }
+            variation_descriptors = \
+                self._add_variation_descriptors(self._get_record(
+                    evidence['variant_id'], variants),
+                    self._get_record(evidence['gene_id'], genes))
+            disease_descriptors = \
+                self._add_disease_descriptor(evidence['disease'])
 
-                # TODO: Fix for when there's multiple diseases and propositions
-                for disease in response['diseases']:
-                    for proposition in response['propositions']:
-                        ncit_id = ([other_id for other_id in disease['xrefs']
-                                    if other_id.startswith('ncit:C')] or [None])[0]  # noqa: E501
-                        proposition['disease_context'] = ncit_id
-
-                responses.append(response)
-                pp.pprint(response)
-                i += 1
-                break
-        return responses
-
-    def _add_diseases(self, disease):
-        disesase_norm_resp = \
-            self.normalizers.normalize('disease', f"DOID:{disease['doid']}")
-        d = {
-            'id': f"civic:did{disease['id']}",
-            'label': disease['display_name']
-        }
-
-        if disesase_norm_resp['record']:
-            d['xrefs'] = disesase_norm_resp['record']['concept_ids'] + disesase_norm_resp['record']['xrefs']  # noqa: E501
-            d['alternate_labels'] = disesase_norm_resp['record']['aliases']
-            d['extensions'] = [
-                {
-                    'type': 'Extension',
-                    'name': 'pediatric_disease',
-                    'value': disesase_norm_resp['record']['pediatric_disease']
-                }
-            ]
-
-        else:
-            d['xrefs'] = [f"DOID:{disease['doid']}"]
-            d['alternate_labels'] = []
-        return [d]
-
-    def _add_therapies(self, drugs):
-        """Return therapies."""
-        therapies = []
-        for drug in drugs:
-            therapy_norm_resp = \
-                self.normalizers.normalize('therapy', drug['name'])
-
-            therapy = {
-                'id': f"civic:tid{drug['id']}",
-                'type': 'Therapy',
-                'label': drug['name'],
-                'xrefs': self._get_therapy_xrefs(therapy_norm_resp, drug),
-                'alternate_labels': therapy_norm_resp['record']['aliases'] if 'record' in therapy_norm_resp else [],  # noqa: E501
-                'trade_names': therapy_norm_resp['record']['trade_names'] if 'record' in therapy_norm_resp else []  # noqa: E501
+            response = {
+                'evidence': self._add_evidence(evidence, i),
+                'variation_descriptors': variation_descriptors,
+                'gene_descriptors': self._add_gene_descriptors(
+                    self._get_record(evidence['gene_id'], genes)),
+                'therapies':
+                    self._add_therapy_descriptors(evidence['drugs']),
+                'disease_descriptors': disease_descriptors,
+                'evidence_sources': self._add_evidence_sources(evidence),
+                'propositions':
+                    self._add_propositions(evidence, variation_descriptors,
+                                           disease_descriptors, i),
             }
-            therapies.append(therapy)
 
-        return therapies
-
-    def _get_therapy_xrefs(self, response, drug):
-        """Return therapy xrefs."""
-        xrefs = []
-        concept_ids = []
-        if response['record']:
-            xrefs = response['record']['xrefs']
-            concept_ids = response['record']['concept_ids']
-
-        if drug['ncit_id'] not in xrefs:
-            xrefs.append(drug['ncit_id'])
-
-        return xrefs + concept_ids
+            responses.append(response)
+            i += 1
+        return responses
 
     def _add_evidence(self, evidence, i):
         """Add evidence to therapeutic response.
@@ -157,7 +91,7 @@ class CIViCTransform:
                     'type': 'StudyResult',
                     'description': evidence['description'],
                     'confidence':
-                        f"civic.trust_rating:{evidence['rating']}_star"
+                        f"civic.trust_rating:{evidence['rating']}_star" if evidence['rating'] else None  # noqa: E501
                 }
             ],
             'description': evidence['description'],
@@ -165,48 +99,107 @@ class CIViCTransform:
                 self._get_evidence_direction(evidence['evidence_direction']),
             'evidence_level': f"civic.evidence_level:"
                               f"{evidence['evidence_level']}",
-            'proposition': f"proposition:{i:03}",  # TODO
+            'proposition': f"proposition:{i:03}",
             'evidence_sources': [],  # TODO
             # 'contributions': [],  # TODO: After MetaKB first pass
-            'strength': f"civic.trust_rating:{evidence['rating']}_star"
+            'strength': f"civic.trust_rating:{evidence['rating']}_star" if evidence['rating'] else None  # noqa: E501
         }
         return [evidence]
 
-    def _get_evidence_direction(self, direction) -> str:
+    def _get_evidence_direction(self, direction):
         """Return the evidence direction.
 
         :param str direction: The civic evidence_direction value
-        :return: `supports` or `does_not_support`
+        :return: `supports` or `does_not_support` or None
         """
         if direction == 'Supports':
             return schemas.Direction.SUPPORTS.value
+        elif direction == 'Does Not Support':
+            return schemas.Direction.DOES_NOT_SUPPORT
         else:
-            return schemas.Direction.SUPPORTS.value
+            # TODO: Should we support 'N/A'
+            return None
 
-    def _add_propositions(self, evidence, i):
+    def _add_propositions(self, evidence, variation_descriptors,
+                          disease_descriptors, i):
         """Add proposition to response.
 
         :param dict evidence: CIViC evidence item record
         """
+        # variant_id, therapy (ncit id), disease (ncit id)
         propositions = list()
+        variation_id = f"civic:vid{evidence['variant_id']}"
+        has_originating_context = None
+        for v in variation_descriptors:
+            if v['value_id'] and v['id'] == variation_id:
+                has_originating_context = v['value_id']
+
+        disease_context = None
+        if len(disease_descriptors) > 0:
+            disease_context = disease_descriptors[0]['value']['disease_id']
+
+        # TODO: If there is no proposition (bc drugs = []),
+        #  should we exclude the response?
         for drug in evidence['drugs']:
-            predicate = None
-            if evidence['evidence_type'] == 'Predictive':
-                if evidence['clinical_significance'] == 'Sensitivity/Response':
-                    predicate = 'predicts_sensitivity_to'
             proposition = {
-                '_id': f'proposition:{i:03}',  # TODO
+                '_id': f'proposition:{i:03}',
                 'type': 'therapeutic_response_proposition',
-                'variation_descriptor': f"civic:vid{evidence['variant_id']}",
-                'has_originating_context': None,
-                'therapy': f"ncit:{drug['ncit_id']}",
-                'disease_context': None,
-                'predicate': predicate,
-                'variant_origin': evidence['variant_origin'].lower()
+                'variation_descriptor': variation_id,
+                'has_originating_context': has_originating_context,
+                'therapy':
+                    f"ncit:{drug['ncit_id']}" if drug['ncit_id'] else None,
+                'disease_context': disease_context,
+                'predicate': self._get_predicate(evidence),
+                'variant_origin':
+                    self._get_variant_origin(evidence['variant_origin'])
             }
             propositions.append(proposition)
 
         return propositions
+
+    def _get_variant_origin(self, variant_origin):
+        """Return variant origin."""
+        if variant_origin == 'Somatic':
+            origin = schemas.VariationOrigin.SOMATIC.value
+        elif variant_origin == 'Rare Germline':
+            origin = schemas.VariationOrigin.RARE_GERMLINE.value
+        elif variant_origin == 'Common Germline':
+            origin = schemas.VariationOrigin.COMMON_GERMLINE.value
+        elif variant_origin == 'N/A':
+            origin = schemas.VariationOrigin.NOT_APPLICABLE.value
+        elif variant_origin == 'Unknown':
+            origin = schemas.VariationOrigin.UNKNOWN.value
+        else:
+            origin = None
+        return origin
+
+    def _get_predicate(self, evidence):
+        """Return predicate."""
+        predicate = None
+        if evidence['evidence_type'] == 'Predictive':
+            e_clin_sig = evidence['clinical_significance']
+            if e_clin_sig == 'Sensitivity/Response':
+                predicate = 'predicts_sensitivity_to'
+            elif e_clin_sig == 'Resistance':
+                predicate = 'predicts_resistance_to'
+            elif e_clin_sig == 'Reduced Sensitivity':
+                predicate = 'predicts_reduced_sensitivity_to'
+            elif e_clin_sig == 'Adverse Response':
+                predicate = 'predicts_adverse_response_to'
+            else:
+                # TODO: Support for other clinical_significance ?
+                #  'Resistance', 'Sensitivity/Response', 'N/A', 'Poor Outcome',
+                #  'Positive', 'Better Outcome', 'Adverse Response',
+                #  'Uncertain Significance', 'Likely Pathogenic', 'Negative',
+                #  'Loss of Function', 'Gain of Function', 'Neomorphic',
+                #  'Pathogenic', 'Dominant Negative', 'Unaltered Function',
+                #  None, 'Reduced Sensitivity', 'Unknown'
+                pass
+        else:
+            # TODO: Support for other evidence_type values ?
+            #  'Prognostic', 'Diagnostic', 'Predisposing', 'Functional'
+            pass
+        return predicate
 
     def _add_variation_descriptors(self, variant, gene):
         """Add variation descriptors to response.
@@ -225,11 +218,22 @@ class CIViCTransform:
                 molecule_context = 'protein'
 
         variant_query = f"{gene['name']} {variant['name']}"
-        validations = self.variant_to_vrs.get_validations(variant_query)
+
+        try:
+            validations = self.variant_to_vrs.get_validations(variant_query)
+        except:  # noqa: E722
+            logger.error(f"toVRS: {variant_query}")
+            return []
         normalized_resp = \
             self.variant_normalizer.normalize(variant_query,
                                               validations,
                                               self.amino_acid_cache)
+
+        if not normalized_resp:
+            # TODO: Maybe we can search on the hgvs expression??
+            logger.warning(f"{variant_query} is not yet supported in"
+                           f" Variant Normalization normalize.")
+            return []
 
         variation_descriptor = schemas.VariationDescriptor(
             id=f"civic:vid{variant['id']}",
@@ -237,7 +241,7 @@ class CIViCTransform:
             description=variant['description'],
             value_id=normalized_resp.value_id,
             value=normalized_resp.value,
-            gene_context=f"civic:gid{variant['gene_id']}",
+            gene_context=f"civic:gid{gene['id']}",
             molecule_context=molecule_context,
             structural_type=structural_type,
             ref_allele_seq=re.split(r'\d+', variant['name'])[0],
@@ -249,11 +253,11 @@ class CIViCTransform:
             extensions=[
                 schemas.Extension(
                     name='representative_variation_descriptor',
-                    value=[f"civic:vid{variant['id']}.rep"]
+                    value=f"civic:vid{variant['id']}.rep"
                 ),
                 schemas.Extension(
                     name='civic_actionability_score',
-                    value=[variant['civic_actionability_score']]
+                    value=variant['civic_actionability_score']
                 ),
                 schemas.Extension(
                     name='variant_groups',
@@ -266,67 +270,56 @@ class CIViCTransform:
 
     def _add_gene_descriptors(self, gene):
         """Return gene descriptors"""
-        gene_normalizer_resp = self.gene_normalizer.normalize(gene['name'],
-                                                              incl='hgnc')
-        gene_normalizer_resp = gene_normalizer_resp['source_matches'][0]
-        if 'records' in gene_normalizer_resp and \
-                gene_normalizer_resp['records']:
-            gene_normalizer_resp = gene_normalizer_resp['records'][0]
-        else:
-            return []
-
         gene_descriptor = schemas.GeneDescriptor(
             id=f"civic:gid{gene['id']}",
             label=gene['name'],
-            description=gene['description'],
-            value=schemas.Gene(gene_id=gene_normalizer_resp.concept_id),
-            alternate_labels=gene_normalizer_resp.aliases + [gene_normalizer_resp.label],  # noqa: E501
-            xrefs=gene_normalizer_resp.other_identifiers,
-            extensions=[]
+            description=gene['description'] if gene['description'] else None,
+            value=schemas.Gene(gene_id=f"ncbigene:{gene['entrez_id']}"),
+            alternate_labels=gene['aliases']
         )
-
-        if gene_normalizer_resp.strand:
-            gene_descriptor.extensions.append(
-                schemas.Extension(name='strand',
-                                  value=[gene_normalizer_resp.strand]))
-        if gene_normalizer_resp.previous_symbols:
-            gene_descriptor.extensions.append(
-                schemas.Extension(name='previous_symbols',
-                                  value=gene_normalizer_resp.previous_symbols))
-        if gene_normalizer_resp.xrefs:
-            gene_descriptor.extensions.append(
-                schemas.Extension(name='associated_with',
-                                  value=gene_normalizer_resp.xrefs))
-        if gene_normalizer_resp.locations:
-            loc = None
-            for location in gene_normalizer_resp.locations:
-                loc = location.dict(by_alias=True)
-                break
-            gene_descriptor.extensions.append(
-                schemas.Extension(name='chromosome_location',
-                                  value=[loc]))
         return [gene_descriptor.dict()]
 
-    def _get_search_val(self, response, label):
-        for source_match in response['source_matches']:
-            for record in source_match['records']:
-                if record[label]:
-                    return record[label]
-        return None
+    def _add_disease_descriptor(self, disease):
+        """Return disease descriptor."""
+        doid = f"doid:{disease['doid']}"
+        disease_norm_resp = self.disease_query_handler.search_groups(doid)
 
-    def _get_search_list(self, response, label, records=None):
-        """Return list of records for a given label from search endpoint."""
-        if records is None:
-            records = []
-        for source_match in response['source_matches']:
-            for record in source_match['records']:
-                if record[label]:
-                    records += record[label]
+        display_name = disease['display_name']
+        if disease_norm_resp['match_type'] == 0:
+            disease_norm_resp = \
+                self.disease_query_handler.search_groups(display_name)
 
-        if not records:
+        if disease_norm_resp['match_type'] == 0:
+            logger.warning(f"{doid}: {display_name} not found in Disease "
+                           f"Normalization normalize.")
             return []
 
-        return list(set(records))
+        disease_norm_vod = disease_norm_resp['value_object_descriptor']
+
+        disease_descriptor = schemas.ValueObjectDescriptor(
+            id=f"civic:did{disease['id']}",
+            type="DiseaseDescriptor",
+            label=display_name,
+            value=schemas.Disease(disease_id=disease_norm_vod['value']['disease_id']),  # noqa: E501
+            xrefs=disease_norm_vod['xrefs'] if 'xrefs' in disease_norm_vod else None,  # noqa: E501
+            alternate_labels=disease_norm_vod['alternate_labels'] if 'alternate_labels' in disease_norm_vod else None  # noqa: E501
+        )
+
+        return [disease_descriptor.dict()]
+
+    def _add_therapy_descriptors(self, drugs):
+        """Return therapy descriptor."""
+        # TODO: Use therapy normalizer to get more info once uploaded to pypi
+        therapies = list()
+        for drug in drugs:
+            therapies.append(schemas.ValueObjectDescriptor(
+                id=f"civic:tid{drug['id']}",
+                type="TherapyDescriptor",
+                label=drug['name'],
+                value=schemas.Therapy(therapy_id=f"ncit:{drug['id']}"),
+                alternate_labels=drug['aliases']
+            ).dict())
+        return therapies
 
     def _add_hgvs_expr(self, variant):
         """Return a list of hgvs expressions"""
@@ -351,13 +344,16 @@ class CIViCTransform:
         source_type = evidence['source']['source_type'].upper()
         if source_type in schemas.SourcePrefix.__members__:
             prefix = schemas.SourcePrefix[source_type].value
+            source = {
+                'id': f"{prefix}:{evidence['source']['citation_id']}",
+                'label': evidence['source']['citation'],
+                'description': evidence['source']['name'],
+                'xrefs': []
+            }
+        else:
+            source = None
+            logger.warning(f"{source_type} not in schemas.SourcePrefix")
 
-        source = {
-            'id': f"{prefix}:{evidence['source']['citation_id']}",
-            'label': evidence['source']['citation'],
-            'description': evidence['source']['name'],
-            'xrefs': []
-        }
         return [source]
 
     def _get_record(self, record_id, records):
@@ -396,6 +392,6 @@ class CIViCTransform:
         return xrefs
 
 
-# civic = CIViCTransform()
-# transformation = civic.transform()
-# civic._create_json(transformation)
+civic = CIViCTransform()
+transformation = civic.transform()
+civic._create_json(transformation)
