@@ -61,16 +61,15 @@ class CIViCTransform:
 
             response = {
                 'evidence': self._add_evidence(evidence, i),
+                'propositions': self._add_propositions(evidence,
+                                                       variation_descriptors,
+                                                       disease_descriptors, i),
                 'variation_descriptors': variation_descriptors,
-                'gene_descriptors': self._add_gene_descriptors(
-                    self._get_record(evidence['gene_id'], genes)),
-                'therapies':
-                    self._add_therapy_descriptors(evidence['drugs']),
+                'therapies': self._add_therapy_descriptors(
+                    evidence['drugs']),
                 'disease_descriptors': disease_descriptors,
-                'evidence_sources': self._add_evidence_sources(evidence),
-                'propositions':
-                    self._add_propositions(evidence, variation_descriptors,
-                                           disease_descriptors, i),
+                'evidence_sources': self._add_evidence_sources(
+                    evidence)
             }
 
             responses.append(response)
@@ -86,14 +85,6 @@ class CIViCTransform:
             'id': f"{schemas.NamespacePrefix.CIVIC.value}:"
                   f"{evidence['name'].lower()}",
             'type': 'EvidenceLine',
-            'supported_by': [
-                {
-                    'type': 'StudyResult',
-                    'description': evidence['description'],
-                    'confidence':
-                        f"civic.trust_rating:{evidence['rating']}_star" if evidence['rating'] else None  # noqa: E501
-                }
-            ],
             'description': evidence['description'],
             'direction':
                 self._get_evidence_direction(evidence['evidence_direction']),
@@ -102,7 +93,6 @@ class CIViCTransform:
             'proposition': f"proposition:{i:03}",
             'evidence_sources': [],  # TODO
             # 'contributions': [],  # TODO: After MetaKB first pass
-            'strength': f"civic.trust_rating:{evidence['rating']}_star" if evidence['rating'] else None  # noqa: E501
         }
         return [evidence]
 
@@ -126,8 +116,6 @@ class CIViCTransform:
 
         :param dict evidence: CIViC evidence item record
         """
-        # variant_id, therapy (ncit id), disease (ncit id)
-        propositions = list()
         variation_id = f"civic:vid{evidence['variant_id']}"
         has_originating_context = None
         for v in variation_descriptors:
@@ -138,24 +126,24 @@ class CIViCTransform:
         if len(disease_descriptors) > 0:
             disease_context = disease_descriptors[0]['value']['disease_id']
 
-        # TODO: If there is no proposition (bc drugs = []),
-        #  should we exclude the response?
+        therapies = []
         for drug in evidence['drugs']:
-            proposition = {
-                '_id': f'proposition:{i:03}',
-                'type': 'therapeutic_response_proposition',
-                'variation_descriptor': variation_id,
-                'has_originating_context': has_originating_context,
-                'therapy':
-                    f"ncit:{drug['ncit_id']}" if drug['ncit_id'] else None,
-                'disease_context': disease_context,
-                'predicate': self._get_predicate(evidence),
-                'variant_origin':
-                    self._get_variant_origin(evidence['variant_origin'])
-            }
-            propositions.append(proposition)
+            if drug['ncit_id']:
+                therapies.append(f"ncit:{drug['ncit_id']}")
 
-        return propositions
+        proposition = {
+            '_id': f'proposition:{i:03}',
+            'type': 'therapeutic_response_proposition' if therapies else None,
+            'variation_descriptor': variation_id,
+            'has_originating_context': has_originating_context,
+            'therapies': therapies,
+            'disease_context': disease_context,
+            'predicate': self._get_predicate(evidence),
+            'variant_origin':
+                self._get_variant_origin(evidence['variant_origin'])
+        }
+
+        return [proposition]
 
     def _get_variant_origin(self, variant_origin):
         """Return variant origin."""
@@ -241,7 +229,7 @@ class CIViCTransform:
             description=variant['description'],
             value_id=normalized_resp.value_id,
             value=normalized_resp.value,
-            gene_context=f"civic:gid{gene['id']}",
+            gene_context=self._add_gene_descriptor(gene),
             molecule_context=molecule_context,
             structural_type=structural_type,
             ref_allele_seq=re.split(r'\d+', variant['name'])[0],
@@ -268,7 +256,7 @@ class CIViCTransform:
 
         return [variation_descriptor.dict()]
 
-    def _add_gene_descriptors(self, gene):
+    def _add_gene_descriptor(self, gene):
         """Return gene descriptors"""
         gene_descriptor = schemas.GeneDescriptor(
             id=f"civic:gid{gene['id']}",
@@ -277,7 +265,7 @@ class CIViCTransform:
             value=schemas.Gene(gene_id=f"ncbigene:{gene['entrez_id']}"),
             alternate_labels=gene['aliases']
         )
-        return [gene_descriptor.dict()]
+        return gene_descriptor.dict()
 
     def _add_disease_descriptor(self, disease):
         """Return disease descriptor."""
