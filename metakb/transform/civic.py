@@ -91,6 +91,7 @@ class CIViCTransform:
             'evidence_level': f"civic.evidence_level:"
                               f"{evidence['evidence_level']}",
             'proposition': f"proposition:{i:03}",
+            'variation_descriptor': f"civic:vid{evidence['variant_id']}",
             'evidence_sources': [],  # TODO
             # 'contributions': [],  # TODO: After MetaKB first pass
         }
@@ -134,7 +135,6 @@ class CIViCTransform:
         proposition = {
             '_id': f'proposition:{i:03}',
             'type': 'therapeutic_response_proposition' if therapies else None,
-            'variation_descriptor': variation_id,
             'has_originating_context': has_originating_context,
             'therapies': therapies,
             'disease_context': disease_context,
