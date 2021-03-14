@@ -8,7 +8,7 @@ from gene.query import QueryHandler as GeneQueryHandler
 from variant.to_vrs import ToVRS
 from variant.normalize import Normalize as VariantNormalizer
 from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
-# import therapy
+from therapy.query import QueryHandler as TherapyQueryHandler
 from disease.query import QueryHandler as DiseaseQueryHandler
 
 logger = logging.getLogger('metakb')
@@ -28,6 +28,7 @@ class CIViCTransform:
         self.gene_query_handler = GeneQueryHandler()
         self.variant_normalizer = VariantNormalizer()
         self.disease_query_handler = DiseaseQueryHandler()
+        self.therapy_query_handler = TherapyQueryHandler()
         self.variant_to_vrs = ToVRS()
         self.amino_acid_cache = AminoAcidCache()
 
@@ -297,16 +298,41 @@ class CIViCTransform:
 
     def _add_therapy_descriptors(self, drugs):
         """Return therapy descriptor."""
-        # TODO: Use therapy normalizer to get more info once uploaded to pypi
         therapies = list()
         for drug in drugs:
-            therapies.append(schemas.ValueObjectDescriptor(
-                id=f"civic:tid{drug['id']}",
-                type="TherapyDescriptor",
-                label=drug['name'],
-                value=schemas.Therapy(therapy_id=f"ncit:{drug['id']}"),
-                alternate_labels=drug['aliases']
-            ).dict())
+            found_match = False
+            drug_ncit_id = f"ncit:{drug['id']}"
+            drug_label = drug['name']
+            drug_aliases = drug['aliases']
+            xrefs = list()
+
+            # Find highest match from therapy normalizer
+            for search_record in [drug_ncit_id, drug_label] + drug_aliases:
+                therapy_norm_resp = \
+                    self.therapy_query_handler.search_groups(search_record)
+
+                if therapy_norm_resp['match_type'] != 0:
+                    found_match = True
+                    if 'xrefs' in therapy_norm_resp['value_object_descriptor']:
+                        xrefs = [xref for xref in therapy_norm_resp['value_object_descriptor']['xrefs'] if not xref.startswith('ncit')]  # noqa: E501
+
+                    therapy_id = therapy_norm_resp['value_object_descriptor']['value']['therapy_id']  # noqa: E501
+                    if not therapy_id.startswith('ncit'):
+                        xrefs.append(therapy_id)
+                    break
+
+            if found_match:
+                therapies.append(schemas.ValueObjectDescriptor(
+                    id=f"civic:tid{drug['id']}",
+                    type="TherapyDescriptor",
+                    label=drug_label,
+                    value=schemas.Therapy(therapy_id=drug_ncit_id),
+                    alternate_labels=drug_aliases,
+                    xrefs=xrefs
+                ).dict())
+            else:
+                logger.warning(f"{drug_ncit_id}: {drug_label} had no match "
+                               f"in Therapy Normalizer.")
         return therapies
 
     def _add_hgvs_expr(self, variant):
