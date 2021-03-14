@@ -51,7 +51,11 @@ class CIViCTransform:
         evidence_items = data['evidence']
         variants = data['variants']
         genes = data['genes']
-        i = 1
+        proposition_index = 1
+        sources = {
+            'source_index': 1,
+            'sources': dict()
+        }
         for evidence in evidence_items:
             variation_descriptors = \
                 self._add_variation_descriptors(self._get_record(
@@ -59,29 +63,36 @@ class CIViCTransform:
                     self._get_record(evidence['gene_id'], genes))
             disease_descriptors = \
                 self._add_disease_descriptor(evidence['disease'])
+            evidence_sources = self._add_evidence_sources(evidence,
+                                                          sources)
 
             response = {
-                'evidence': self._add_evidence(evidence, i),
+                'evidence': self._add_evidence(evidence, proposition_index,
+                                               evidence_sources),
                 'propositions': self._add_propositions(evidence,
                                                        variation_descriptors,
-                                                       disease_descriptors, i),
+                                                       disease_descriptors,
+                                                       proposition_index),
                 'variation_descriptors': variation_descriptors,
                 'therapies': self._add_therapy_descriptors(
                     evidence['drugs']),
                 'disease_descriptors': disease_descriptors,
-                'evidence_sources': self._add_evidence_sources(
-                    evidence)
+                'evidence_sources': evidence_sources
             }
 
             responses.append(response)
-            i += 1
+            proposition_index += 1
         return responses
 
-    def _add_evidence(self, evidence, i):
+    def _add_evidence(self, evidence, proposition_index, evidence_sources):
         """Add evidence to therapeutic response.
 
         :param dict evidence: Harvested CIViC evidence item records
         """
+        if evidence_sources:
+            evidence_sources = [source['_id'] for source in evidence_sources]
+        else:
+            evidence_sources = []
         evidence = {
             'id': f"{schemas.NamespacePrefix.CIVIC.value}:"
                   f"{evidence['name'].lower()}",
@@ -91,9 +102,9 @@ class CIViCTransform:
                 self._get_evidence_direction(evidence['evidence_direction']),
             'evidence_level': f"civic.evidence_level:"
                               f"{evidence['evidence_level']}",
-            'proposition': f"proposition:{i:03}",
+            'proposition': f"proposition:{proposition_index:03}",
             'variation_descriptor': f"civic:vid{evidence['variant_id']}",
-            'evidence_sources': [],  # TODO
+            'evidence_sources': evidence_sources,
             # 'contributions': [],  # TODO: After MetaKB first pass
         }
         return [evidence]
@@ -113,7 +124,7 @@ class CIViCTransform:
             return None
 
     def _add_propositions(self, evidence, variation_descriptors,
-                          disease_descriptors, i):
+                          disease_descriptors, proposition_index):
         """Add proposition to response.
 
         :param dict evidence: CIViC evidence item record
@@ -134,7 +145,7 @@ class CIViCTransform:
                 therapies.append(f"ncit:{drug['ncit_id']}")
 
         proposition = {
-            '_id': f'proposition:{i:03}',
+            '_id': f'proposition:{proposition_index:03}',
             'type': 'therapeutic_response_proposition' if therapies else None,
             'has_originating_context': has_originating_context,
             'therapies': therapies,
@@ -350,7 +361,7 @@ class CIViCTransform:
             )
         return hgvs_expressions
 
-    def _add_evidence_sources(self, evidence):
+    def _add_evidence_sources(self, evidence, sources):
         """Add evidence source to response.
 
         :param dict evidence: A CIViC evidence item record
@@ -358,17 +369,28 @@ class CIViCTransform:
         source_type = evidence['source']['source_type'].upper()
         if source_type in schemas.SourcePrefix.__members__:
             prefix = schemas.SourcePrefix[source_type].value
-            source = {
-                'id': f"{prefix}:{evidence['source']['citation_id']}",
+            source_id = f"{prefix}:{evidence['source']['citation_id']}"
+
+            if sources['sources'].get(source_id):
+                source_index = sources['sources'].get(source_id)
+                sources['sources'] = {
+                    source_id: source_index
+                }
+            else:
+                source_index = sources.get('source_index') + 1
+
+            source = [{
+                '_id': f"source:{source_index:03}",
+                'id': source_id,
                 'label': evidence['source']['citation'],
                 'description': evidence['source']['name'],
                 'xrefs': []
-            }
+            }]
         else:
             source = None
             logger.warning(f"{source_type} not in schemas.SourcePrefix")
 
-        return [source]
+        return source
 
     def _get_record(self, record_id, records):
         """Get a CIViC record by ID.
