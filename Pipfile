@@ -12,9 +12,9 @@ jsondiff = "*"
 pydantic = "*"
 requests-cache = "*"
 gene-normalizer = "*"
-thera-py = "*"
 disease-normalizer = "*"
 variant-normalizer = "*"
+thera-py = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
