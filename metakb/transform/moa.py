@@ -5,11 +5,12 @@ import json
 import logging
 import pprint
 import metakb.schemas as schemas
-from gene.query import QueryHandler as GeneNormalizer
+from gene.query import QueryHandler as GeneQueryHandler
 from variant.to_vrs import ToVRS
 from variant.normalize import Normalize as VariantNormalizer
 from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
-# from disease.normalize import Normalize as DiseaseNormalizer
+from therapy.query import QueryHandler as TherapyQueryHandler
+from disease.query import QueryHandler as DiseaseQueryHandler
 
 os.environ['GENE_NORM_DB_URL'] = "http://localhost:8000"
 
@@ -28,11 +29,12 @@ class MOATransform:
         :param: The file path to the composite JSON file
         """
         self.file_path = file_path
-        self.g_norm = GeneNormalizer()
+        self.g_handler = GeneQueryHandler()
         self.variant_normalizer = VariantNormalizer()
         self.variant_to_vrs = ToVRS()
         self.amino_acid_cache = AminoAcidCache()
-        # self.d_norm = DiseaseNormalizer()
+        self.d_handler = DiseaseQueryHandler()
+        self.t_handler = TherapyQueryHandler()
 
     def _extract(self):
         """Extract the MOA composite JSON file."""
@@ -53,77 +55,104 @@ class MOATransform:
         responses = []
 
         evidence_items = data['assertions']
-        evidence_source = data['sources']
+        sources = data['sources']
+        variant = data['variants']  # noqa: F841
+        proposition_index = 1
+        source_index = 1
         pp = pprint.PrettyPrinter(sort_dicts=False)
 
         for evidence in evidence_items:
             if evidence['id'] == 69:  # somatic, ABL1 p.T315I (Missense)
-                response = {}
-                response['evidence'] = self._add_evidence(evidence)
-                response['propositions'] = self._add_propositions(evidence)
-                response['variation_descriptors'] = \
-                    self._add_variation_descriptors(evidence)
-                response['gene_descriptor'] = \
-                    self._add_gene_descriptors(evidence['variant'])
-                response['therapy'] = self._add_therapies(evidence)
-                response['disease'] = self._add_disease(evidence)
-                response['evidence_source'] = \
-                    self._add_evidence_source(evidence_source[68])
+                gene_descriptors = \
+                    self._get_gene_descriptors(evidence['variant'])
+                variation_descriptors = \
+                    self._get_variation_descriptors(evidence, gene_descriptors)
+                disease_descriptors = \
+                    self._get_disease_descriptors(evidence)
+                therapy_descriptors = \
+                    self._get_therapy_descriptors(evidence)
+                evidence_sources = \
+                    self._get_evidence_sources(sources[68], source_index)
+                response = {
+                    'evidence': self._get_evidence(evidence, proposition_index,
+                                                   gene_descriptors,
+                                                   disease_descriptors,
+                                                   therapy_descriptors,
+                                                   evidence_sources),
+                    'propositions': self._get_propositions(evidence,
+                                                           proposition_index,
+                                                           gene_descriptors,
+                                                           variation_descriptors,  # noqa: E501
+                                                           disease_descriptors,
+                                                           therapy_descriptors),  # noqa: E501
+                    'variation_descriptors': variation_descriptors,
+                    'gene_descriptors': gene_descriptors,
+                    'therapy_descriptors': therapy_descriptors,
+                    'disease_descriptors': disease_descriptors,
+                    'evidence_sources': evidence_sources
+                }
 
                 responses.append(response)
                 pp.pprint(response)
+                proposition_index += 1
+                source_index += 1
                 break
 
         return responses
 
-    def _add_evidence(self, evidence):
+    def _get_evidence(self, evidence, proposition_index, gene_descriptors,
+                      disease_descriptors, therapy_descriptors,
+                      evidence_sources):
         """Add evidence to therapeutic response.
 
         :param: single evidence(assertion) record from MOA
         :return: list of evidence
         """
-        evidence = [{
-            'id': f"{schemas.NamespacePrefix.MOA.value}:"
-                  f"{evidence['id']}",
-            'type': "EvidenceLine",
-            'supported_by': [
+        evidence = schemas.Evidence(
+            id=f"{schemas.NamespacePrefix.MOA.value}:"
+               f"{evidence['id']}",
+            description=evidence['description'],
+            direction=None,
+            evidence_level=f"moa.evidence_level:"
+                           f"{evidence['predictive_implication']}",
+            supported_by=[
                 {
                     'type': 'StudyResult',
                     'description': evidence['description'],
                     'confidence': None
                 }
             ],
-            'description': evidence['description'],
-            'direction': None,
-            'evidence_level': None,  # TODO
-            'proposition': "proposition",  # TODO
-            'evidence_source': ["evidence_source"],  # TODO
-            'contributions': ["contributions"]  # TODOs
-        }]
+            proposition=f"proposition:{proposition_index:03}",
+            variation_descriptor=f"moa:vid{evidence['variant']['id']}",
+            gene_descriptor=gene_descriptors[0]['id'],
+            therapy_descriptor=therapy_descriptors[0]['id'],
+            disease_descriptor=disease_descriptors[0]['id'],
+            evidence_sources=[evidence_sources[0]['id']]
+        )
 
-        return evidence
+        return [evidence.dict()]
 
-    def _add_propositions(self, evidence):
+    def _get_propositions(self, evidence, proposition_index, gene_descriptors,
+                          variation_descriptors, disease_descriptors,
+                          therapy_descriptors):
         """Add proposition to therapeutic response
 
         :param: single evidence(assertion) record from MOA
         :return: list of proposition
         """
-        proposition = [{
-            '_id': "id",  # TODO
-            'type': "therapeutic_response_proposition",
-            'variation_descriptor': f"moa:vid{evidence['variant']['id']}",
-            'has_originating_context': "has_originating_context",  # TODO
-            'therapy': "therapy",  # TODO
-            'disease_context': None,  # get from disease norm
-            'predicate':
-                self._get_predicate(evidence['clinical_significance']),
-            'variant_origin': 'somatic'
-                if evidence['variant']['feature_type'] == 'somatic_variant'
-                else 'N/A'
-        }]
+        proposition = schemas.TherapeuticResponseProposition(
+            _id=f"proposition:{proposition_index:03}",
+            type="therapeutic_response_proposition",
+            predicate=self._get_predicate(evidence['clinical_significance']),
+            variant_origin=self._get_variation_origin(evidence['variant']),
+            variation_descriptor=f"moa:vid{evidence['variant']['id']}",
+            has_originating_context=variation_descriptors[0]['value_id'],
+            gene=gene_descriptors[0]['value']['gene_id'],
+            disease_context=disease_descriptors[0]['value']['disease_id'],
+            therapy=therapy_descriptors[0]['value']['therapy_id']
+        )
 
-        return proposition
+        return [proposition.dict()]
 
     def _get_predicate(self, clinical_significance):
         """Get the predicate of this record
@@ -139,7 +168,18 @@ class MOATransform:
 
         return predicate
 
-    def _add_variation_descriptors(self, evidence):
+    def _get_variation_origin(self, variant):
+        """Get variation origin"""
+        if variant['feature_type'] == 'somatic_variant':
+            origin = schemas.VariationOrigin.SOMATIC.value
+        elif variant['feature_type'] == 'germline_variant':
+            origin = schemas.VariationOrigin.COMMON_GERMLINE.value
+        else:
+            origin = None
+
+        return origin
+
+    def _get_variation_descriptors(self, evidence, g_descriptors):
         """Add variation descriptor to therapeutic response
 
         :param: single evidence(assertion) record from MOA
@@ -171,7 +211,7 @@ class MOATransform:
             description=None,
             value_id=v_norm_resp.value_id,
             value=v_norm_resp.value,
-            gene_context="gene_descriptor_id",  # get from gene norm
+            gene_context=f"moa:{[g_des['id'] for g_des in g_descriptors]}",
             molecule_context=molecule_context,
             structural_type=structural_type,
             ref_allele_seq=ref_allele_seq,
@@ -183,7 +223,7 @@ class MOATransform:
 
         return [variation_descriptor.dict()]
 
-    def _add_gene_descriptors(self, variant):
+    def _get_gene_descriptors(self, variant):
         """Create gene descriptors"""
         genes = [value for key, value in variant.items()
                  if key.startswith('gene')]
@@ -191,13 +231,13 @@ class MOATransform:
         gene_descriptors = []
         if genes:
             for gene in genes:
-                g_norm_resp = \
-                    self.g_norm.search_sources(gene, incl='HGNC')
-                g_norm_resp = \
-                    g_norm_resp['source_matches'][0]
-                if 'records' in g_norm_resp and \
-                        g_norm_resp['records']:
-                    g_norm_resp = g_norm_resp['records'][0]
+                g_handler_resp = \
+                    self.g_handler.search_sources(gene, incl='HGNC')
+                g_handler_resp = \
+                    g_handler_resp['source_matches'][0]
+                if 'records' in g_handler_resp and \
+                        g_handler_resp['records']:
+                    g_handler_resp = g_handler_resp['records'][0]
                 else:
                     return []
 
@@ -205,12 +245,12 @@ class MOATransform:
                     id=f'normalize:{gene}',  # TODO
                     label=gene,
                     description='description',  # TODO
-                    value=schemas.Gene(gene_id=g_norm_resp.concept_id),
-                    alternate_labels=self._get_search_list(g_norm_resp,
+                    value=schemas.Gene(gene_id=g_handler_resp.concept_id),
+                    alternate_labels=self._get_search_list(g_handler_resp,
                                                            'aliases',
                                                            records=None),
-                    xrefs=g_norm_resp.other_identifiers,
-                    extensions=self._get_gene_ext(g_norm_resp)
+                    xrefs=g_handler_resp.other_identifiers,
+                    extensions=self._get_gene_ext(g_handler_resp)
                 )
                 gene_descriptors.append(gene_descriptor.dict())
 
@@ -244,54 +284,72 @@ class MOATransform:
 
         return records
 
-    def _add_therapies(self, evidence):
+    def _get_therapy_descriptors(self, evidence):
         """Add therapies"""
-        therapy = [{
-            'id': f"normalize:{evidence['therapy_name']}",
-            'label': evidence['therapy_name'],
-            'xrefs': [],  # TODO
-            'alternate_labels': [],  # TODO
-            'trade_names': [],  # TODO
-        }]
+        therapy = evidence['therapy_name']
+        t_handler_resp = self.t_handler.search_groups(therapy)
+        t_handler_vod = t_handler_resp['value_object_descriptor']
 
-        return therapy
+        therapy_descriptor = schemas.ValueObjectDescriptor(
+            id=f"normalize:{evidence['therapy_name']}",
+            type="TherapyDescriptor",
+            label=evidence['therapy_name'],
+            value=t_handler_vod['value'],
+            xrefs=t_handler_vod['xrefs'],
+            alternate_labels=t_handler_vod['alternate_labels'],
+            extensions=t_handler_vod['extensions'],
+        )
 
-    def _add_disease(self, evidence):
+        return [therapy_descriptor.dict()]
+
+    def _get_disease_descriptors(self, evidence):
         """Add disease"""
-        disease = [{
-            'id': f"normalize:{evidence['disease']['oncotree_term']}",
-            'label': evidence['disease'],
-            'xrefs': [],  # TODO
-            'alternate_labels': [],  # TODO
-            'extensions': [],  # TODO
-        }]
+        ot_code = evidence['disease']['oncotree_code']
+        disease_name = evidence['disease']['name']
+        d_handler_resp = self.d_handler.search_groups(ot_code)
+        d_handler_vod = d_handler_resp['value_object_descriptor']
 
-        return disease
+        disease_descriptor = schemas.ValueObjectDescriptor(
+            id=f"normalize:{ot_code}",
+            type="DiseaseDescriptor",
+            label=disease_name,
+            value=d_handler_vod['value'],
+            xrefs=d_handler_vod['xrefs'],
+            alternate_labels=d_handler_vod['alternate_labels'],
+            extensions=d_handler_vod['extensions']
+        )
 
-    def _add_evidence_source(self, source):
+        return [disease_descriptor.dict()]
+
+    def _get_evidence_sources(self, source, source_index):
         """Add evidence source"""
-        source = [{
-            'id': f"pmid:{source['pmid']}"
-                  if source['pmid']
-                  else f"normalize:{source['doi']}",
-            'label': source['citation'],
-            'description': None,
-            'doi': source['doi'],
-            'nct': source['nct'],
-            'xrefs': []
-        }]
+        source = schemas.EvidenceSource(
+            id=f"source:{source_index:03}",
+            source_id=f"pmid:{source['pmid']}"
+                      if source['pmid']
+                      else f"normalize:{source['doi']}",
+            label=source['citation'],
+            description=None,
+            doi=source['doi'],
+            nct=source['nct'],
+            xrefs=[]
+        )
 
-        return source
+        return [source.dict()]
 
 
 moa = MOATransform()
 responses = moa.transform()
 # moa._create_json(responses)
 
-# g = GeneNormalizer()
-# print(g.normalize('ABL1', incl='HGNC'))
+# g = GeneQueryHandler()
+# print(g.search_sources('ABL1', incl='HGNC'))
 # tovars = ToVRS()
 # aac = AminoAcidCache()
 # validations = tovars.get_validations('ABL1 T315I')
 # v = VariantNormalizer()
 # print(v.normalize('ABL1 T315I', validations, aac))
+# d = DiseaseQueryHandler()
+# print(d.search_groups("CML"))
+# t = TherapyQueryHandler()
+# print(t.search_groups("Imatinib"))
