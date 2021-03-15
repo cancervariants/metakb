@@ -68,17 +68,9 @@ class CIViCTransform:
                 self._get_variation_descriptors(self._get_record(
                     evidence['variant_id'], variants),
                     self._get_record(evidence['gene_id'], genes))
-
             if len(variation_descriptors) != 1:
                 logger.warning(f"eid{evidence['id']} does not have exactly "
                                f"one variant.")
-                continue
-
-            gene_descriptors = self._get_gene_descriptors(
-                self._get_record(evidence['gene_id'], genes))
-            if len(gene_descriptors) != 1:
-                logger.warning(f"eid{evidence['id']} does not have exactly "
-                               f"one gene.")
                 continue
 
             disease_descriptors = \
@@ -88,48 +80,43 @@ class CIViCTransform:
                                f"one disease.")
                 continue
 
-            therapy_descriptors = self._get_therapy_descriptors(
-                evidence['drugs'])
-            if len(therapy_descriptors) != 1:
+            if len(evidence['drugs']) != 1:
                 logger.warning(f"eid{evidence['id']} does not have exactly "
                                f"one therapy.")
                 continue
+            else:
+                therapy_descriptors = self._get_therapy_descriptors(
+                    evidence['drugs'][0])
 
             evidence_sources = self._get_evidence_sources(evidence,
                                                           sources)
 
-            response = {
+            responses.append({
                 'evidence': self._get_evidence(evidence, proposition_index,
                                                therapy_descriptors,
                                                disease_descriptors,
-                                               gene_descriptors,
                                                evidence_sources),
                 'propositions': self._get_propositions(evidence,
                                                        variation_descriptors,
-                                                       gene_descriptors,
                                                        disease_descriptors,
                                                        therapy_descriptors,
                                                        proposition_index),
                 'variation_descriptors': variation_descriptors,
-                'gene_descriptors': gene_descriptors,
                 'therapy_descriptors': therapy_descriptors,
                 'disease_descriptors': disease_descriptors,
                 'evidence_sources': evidence_sources
-            }
-
-            responses.append(response)
+            })
             proposition_index += 1
         return responses
 
     def _get_evidence(self, evidence, proposition_index, therapy_descriptors,
-                      disease_descriptors, gene_descriptors, evidence_sources):
+                      disease_descriptors, evidence_sources):
         """Return a list of evidence.
 
         :param dict evidence: Harvested CIViC evidence item records
         :param int proposition_index: Index for proposition
         :param list therapy_descriptors: A list of Therapy Descriptors
         :param list disease_descriptors: A list of Disease Descriptors
-        :param list gene_descriptors: A list of Gene Descriptors
         :param list evidence_sources: A list of sources for the evidence
         :return: A list of Evidence
         """
@@ -147,7 +134,6 @@ class CIViCTransform:
                            f"{evidence['evidence_level']}",
             proposition=f"proposition:{proposition_index:03}",
             variation_descriptor=f"civic:vid{evidence['variant_id']}",
-            gene_descriptor=gene_descriptors[0]['id'],
             therapy_descriptor=therapy_descriptors[0]['id'],
             disease_descriptor=disease_descriptors[0]['id'],
             evidence_sources=evidence_sources
@@ -169,13 +155,12 @@ class CIViCTransform:
             return None
 
     def _get_propositions(self, evidence, variation_descriptors,
-                          gene_descriptors, disease_descriptors,
-                          therapy_descriptors, proposition_index):
+                          disease_descriptors, therapy_descriptors,
+                          proposition_index):
         """Return a list of propositions.
 
         :param dict evidence: CIViC evidence item record
         :param list variation_descriptors: A list of Variation Descriptors
-        :param list gene_descriptors: A list of Gene Descriptors
         :param list disease_descriptors: A list of Disease Descriptors
         :param list therapy_descriptors: A list of therapy_descriptors
         :param int proposition_index: The index for the proposition
@@ -183,16 +168,27 @@ class CIViCTransform:
         """
         proposition = schemas.TherapeuticResponseProposition(
             _id=f'proposition:{proposition_index:03}',
-            type='therapeutic_response_proposition',  # TODO: Check
+            type=self._get_proposition_type(evidence['evidence_type']),
             predicate=self._get_predicate(evidence),
             variation_origin=self._get_variation_origin(evidence['variant_origin']),  # noqa: E501
             has_originating_context=variation_descriptors[0]['value_id'],
-            gene=gene_descriptors[0]['value']['gene_id'],
             disease_context=disease_descriptors[0]['value']['disease_id'],
             therapy=therapy_descriptors[0]['value']['therapy_id']
         ).dict()
 
         return [proposition]
+
+    def _get_proposition_type(self, evidence_type):
+        """Return proposition type for a given evidence_item.
+
+        :param str evidence_type: CIViC evidence type
+        :return: A string representation of the proposition type
+        """
+        if evidence_type.upper() in schemas.PropositionType.__members__.keys():
+            return schemas.PropositionType[evidence_type.upper()].value
+        else:
+            logger.warning(f"Proposition Type {evidence_type} not found"
+                           f" in schemas.")
 
     def _get_variation_origin(self, variant_origin):
         """Return variant origin.
@@ -252,15 +248,21 @@ class CIViCTransform:
         :param dict gene: A CIViC gene record
         :return: A list of Variation Descriptors
         """
-        # TODO: Shouldn't hardcode this. We should implement root_concept
-        #       in civicpy
         structural_type = None
         molecule_context = None
         if len(variant['variant_types']) == 1:
+            # TODO: Go through SO to find the molecule_context
+            #  Is there a better way to do this?
             so_id = variant['variant_types'][0]['so_id']
-            if so_id == 'SO:0001583':
+            if so_id in ['SO:0001583', 'SO:0001818']:
                 structural_type = 'SO:0001060'
                 molecule_context = 'protein'
+            elif so_id in ['SO:0001886', 'SO:0001576', 'SO:0001889']:
+                structural_type = 'SO:0001060'
+                molecule_context = 'transcript'
+            else:
+                # TODO: Genomic
+                pass
 
         variant_query = f"{gene['name']} {variant['name']}"
 
@@ -399,30 +401,25 @@ class CIViCTransform:
             ).dict()
         else:
             # TODO: Should we accept other disease_ids other than NCIt?
-            logger.warning("Could not NCIt ID using Disease Normalization "
-                           f"for {doid} or {display_name}.")
+            logger.warning("Could not find NCIt ID using Disease Normalization"
+                           f" for {doid} and {display_name}.")
             return []
 
         return [disease_descriptor]
 
-    def _get_therapy_descriptors(self, drugs):
+    def _get_therapy_descriptors(self, drug):
         """Return a list of Therapy Descriptors.
         :param dict drugs: Drugs for a given evidence_item
         :return: A list of Therapy Descriptors
         """
-        therapies = list()
-        if len(drugs) != 1:
-            return therapies
-
-        for drug in drugs:
-            therapies.append(schemas.ValueObjectDescriptor(
-                id=f"civic:tid{drug['id']}",
-                type="TherapyDescriptor",
-                label=drug['name'],
-                value=schemas.Therapy(therapy_id=f"ncit:{drug['ncit_id']}"),
-                alternate_labels=drug['aliases']
-            ).dict())
-        return therapies
+        therapies = schemas.ValueObjectDescriptor(
+            id=f"civic:tid{drug['id']}",
+            type="TherapyDescriptor",
+            label=drug['name'],
+            value=schemas.Therapy(therapy_id=f"ncit:{drug['ncit_id']}"),
+            alternate_labels=drug['aliases']
+        ).dict()
+        return [therapies]
 
     def _get_hgvs_expr(self, variant):
         """Return a list of hgvs expressions for a given variant.
