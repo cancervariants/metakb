@@ -29,6 +29,17 @@ class SourcePrefix(str, Enum):
     ASCO = 'asco'
 
 
+class PropositionType(str, Enum):
+    """Define constraints for proposition type."""
+
+    PREDICTIVE = 'therapeutic_response_proposition'
+    DIAGNOSTIC = 'diagnostic_proposition'
+    PROGNOSTIC = 'prognostic_proposition'
+    PREDISPOSING = 'predisposition_proposition'
+    FUNCTIONAL = 'functional_consequence_proposition'
+    ONCOGENIC = 'oncgenicity_proposition'
+
+
 class Predicate(str, Enum):
     """Define constraints for predicate."""
 
