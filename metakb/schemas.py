@@ -37,7 +37,7 @@ class PropositionType(str, Enum):
     PROGNOSTIC = 'prognostic_proposition'
     PREDISPOSING = 'predisposition_proposition'
     FUNCTIONAL = 'functional_consequence_proposition'
-    ONCOGENIC = 'oncgenicity_proposition'
+    ONCOGENIC = 'oncogenicity_proposition'
 
 
 class Predicate(str, Enum):
