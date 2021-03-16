@@ -19,7 +19,14 @@
                 "civic:did8",
                 "civic:did30"
             ],
-            "assertion_methods": [],
+            "assertion_methods": [
+                "assertion_method:199",
+                "assertion_method:222",
+                "assertion_method:139",
+                "assertion_method:219",
+                "assertion_method:138",
+                "assertion_method:137"
+            ],
             "type": "Assertion"
         }
     ],
@@ -178,5 +185,69 @@
             "extensions": null
         }
     ],
-    "assertion_methods": []
+    "assertion_methods": [
+        {
+            "id": "assertion_method:222",
+            "label": "Afatinib: first global approval.",
+            "url": "http://www.ncbi.nlm.nih.gov/pubmed/23982599",
+            "version": {
+                "year": 2013,
+                "month": 9
+            },
+            "reference": "Dungo et al., 2013, Drugs"
+        },
+        {
+            "id": "assertion_method:219",
+            "label": "BIBW2992, an irreversible EGFR/HER2 inhibitor highly effective in preclinical lung cancer models.",
+            "url": "http://www.ncbi.nlm.nih.gov/pubmed/18408761",
+            "version": {
+                "year": 2008,
+                "month": 8,
+                "day": 7
+            },
+            "reference": "Li et al., 2008, Oncogene"
+        },
+        {
+            "id": "assertion_method:139",
+            "label": "Afatinib versus cisplatin plus gemcitabine for first-line treatment of Asian patients with advanced non-small-cell lung cancer harbouring EGFR mutations (LUX-Lung 6): an open-label, randomised phase 3 trial.",
+            "url": "http://www.ncbi.nlm.nih.gov/pubmed/24439929",
+            "version": {
+                "year": 2014,
+                "month": 2
+            },
+            "reference": "Wu et al., 2014, Lancet Oncol."
+        },
+        {
+            "id": "assertion_method:138",
+            "label": "In vitro modeling to determine mutation specificity of EGFR tyrosine kinase inhibitors against clinically relevant EGFR mutants in non-small-cell lung cancer.",
+            "url": "http://www.ncbi.nlm.nih.gov/pubmed/26515464",
+            "version": {
+                "year": 2015,
+                "month": 11,
+                "day": 17
+            },
+            "reference": "Hirano et al., 2015, Oncotarget"
+        },
+        {
+            "id": "assertion_method:199",
+            "label": "Afatinib for patients with lung adenocarcinoma and epidermal growth factor receptor mutations (LUX-Lung 2): a phase 2 trial.",
+            "url": "http://www.ncbi.nlm.nih.gov/pubmed/22452895",
+            "version": {
+                "year": 2012,
+                "month": 5
+            },
+            "reference": "Yang et al., 2012, Lancet Oncol."
+        },
+        {
+            "id": "assertion_method:137",
+            "label": "Phase III study of afatinib or cisplatin plus pemetrexed in patients with metastatic lung adenocarcinoma with EGFR mutations.",
+            "url": "http://www.ncbi.nlm.nih.gov/pubmed/23816960",
+            "version": {
+                "year": 2013,
+                "month": 9,
+                "day": 20
+            },
+            "reference": "Sequist et al., 2013, J. Clin. Oncol."
+        }
+    ]
 }
