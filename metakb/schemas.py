@@ -40,7 +40,7 @@ class PropositionType(str, Enum):
     ONCOGENIC = 'oncogenicity_proposition'
 
 
-class Predicate(str, Enum):
+class PredictivePredicate(str, Enum):
     """Define constraints for predicate."""
 
     SENSITIVITY = 'predicts_sensitivity_to'
@@ -100,10 +100,9 @@ class TherapeuticResponseProposition(BaseModel):
 
     id: str = Field(..., alias='_id')
     type: Optional[str]
-    predicate: Optional[Predicate]
+    predicate: Optional[PredictivePredicate]
     variation_origin: Optional[VariationOrigin]
     has_originating_context: str  # vrs:Variation
-    gene: str
     disease_context: str  # vicc:Disease
     therapy: str  # Therapy value object
 
@@ -118,22 +117,21 @@ class Evidence(BaseModel):
     evidence_level: str
     proposition: str
     variation_descriptor: str
-    gene_descriptor: str
     therapy_descriptor: str
     disease_descriptor: str
-    evidence_sources: List[str]
+    assertion_methods: List[str]
     # assertion: str  TODO
     # contribution: str  TODO: After metakb first pass
 
 
-class EvidenceSource(BaseModel):
-    """Define evidence source model."""
+class AssertionMethod(BaseModel):
+    """Define model for Assertion Method."""
 
     id: str
-    source_id: str
     label: str
-    description: Optional[str]
-    xrefs: Optional[List[str]]
+    url: str
+    version: dict
+    reference: str
 
 
 class Extension(BaseModel):

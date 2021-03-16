@@ -88,14 +88,16 @@ class CIViCTransform:
                 therapy_descriptors = self._get_therapy_descriptors(
                     evidence['drugs'][0])
 
-            evidence_sources = self._get_evidence_sources(evidence,
-                                                          sources)
+            # TODO: Check if this should be coming from CIViC evidence or
+            #  assertions. Right now using evidence.
+            assertion_methods = self._get_assertion_method(evidence['source'],
+                                                           sources)
 
             responses.append({
                 'evidence': self._get_evidence(evidence, proposition_index,
                                                therapy_descriptors,
                                                disease_descriptors,
-                                               evidence_sources),
+                                               assertion_methods),
                 'propositions': self._get_propositions(evidence,
                                                        variation_descriptors,
                                                        disease_descriptors,
@@ -104,26 +106,27 @@ class CIViCTransform:
                 'variation_descriptors': variation_descriptors,
                 'therapy_descriptors': therapy_descriptors,
                 'disease_descriptors': disease_descriptors,
-                'evidence_sources': evidence_sources
+                'assertion_methods': assertion_methods
             })
             proposition_index += 1
         return responses
 
     def _get_evidence(self, evidence, proposition_index, therapy_descriptors,
-                      disease_descriptors, evidence_sources):
+                      disease_descriptors, assertion_methods):
         """Return a list of evidence.
 
         :param dict evidence: Harvested CIViC evidence item records
         :param int proposition_index: Index for proposition
         :param list therapy_descriptors: A list of Therapy Descriptors
         :param list disease_descriptors: A list of Disease Descriptors
-        :param list evidence_sources: A list of sources for the evidence
+        :param list assertion_methods: A list of assertion methods for the
+            evidence
         :return: A list of Evidence
         """
-        if evidence_sources:
-            evidence_sources = [source['id'] for source in evidence_sources]
+        if assertion_methods:
+            assertion_methods = [source['id'] for source in assertion_methods]
         else:
-            evidence_sources = []
+            assertion_methods = []
 
         evidence = schemas.Evidence(
             id=f"{schemas.NamespacePrefix.CIVIC.value}:"
@@ -136,7 +139,7 @@ class CIViCTransform:
             variation_descriptor=f"civic:vid{evidence['variant_id']}",
             therapy_descriptor=therapy_descriptors[0]['id'],
             disease_descriptor=disease_descriptors[0]['id'],
-            evidence_sources=evidence_sources
+            assertion_methods=assertion_methods
         ).dict()
         return [evidence]
 
@@ -229,15 +232,16 @@ class CIViCTransform:
         #  'Loss of Function', 'Gain of Function', 'Neomorphic',
         #  'Pathogenic', 'Dominant Negative', 'Unaltered Function',
         #  None, 'Reduced Sensitivity', 'Unknown'
-        if proposition_type == schemas.PropositionType.value:
+        if proposition_type == schemas.PropositionType.PREDICTIVE.value:
             if clinical_significance == 'Sensitivity/Response':
-                predicate = 'predicts_sensitivity_to'
+                predicate = schemas.PredictivePredicate.SENSITIVITY.value
             elif clinical_significance == 'Resistance':
-                predicate = 'predicts_resistance_to'
+                predicate = schemas.PredictivePredicate.RESISTANCE.value
             elif clinical_significance == 'Reduced Sensitivity':
-                predicate = 'predicts_reduced_sensitivity_to'
+                predicate = \
+                    schemas.PredictivePredicate.REDUCED_SENSITIVITY.value
             elif clinical_significance == 'Adverse Response':
-                predicate = 'predicts_adverse_response_to'
+                predicate = schemas.PredictivePredicate.ADVERSE_RESPONSE.value
         # TODO
         elif proposition_type == schemas.PropositionType.DIAGNOSTIC.value:
             pass
@@ -450,18 +454,18 @@ class CIViCTransform:
             )
         return hgvs_expressions
 
-    def _get_evidence_sources(self, evidence, sources):
-        """Return a list of sources for a given evidence item.
+    def _get_assertion_method(self, source, sources):
+        """Return a list of Assertion Methods for an evidence_item.
 
-        :param dict evidence: A CIViC evidence item record
+        :param dict source: An evidence_item's source
         :param dict sources: A dict containing the source_index and existing
             sources
         :return: A list of sources
         """
-        source_type = evidence['source']['source_type'].upper()
+        source_type = source['source_type'].upper()
         if source_type in schemas.SourcePrefix.__members__:
             prefix = schemas.SourcePrefix[source_type].value
-            source_id = f"{prefix}:{evidence['source']['citation_id']}"
+            source_id = f"{prefix}:{source['citation_id']}"
 
             if sources['sources'].get(source_id):
                 source_index = sources['sources'].get(source_id)
@@ -471,12 +475,12 @@ class CIViCTransform:
             else:
                 source_index = sources.get('source_index') + 1
 
-            source = [schemas.EvidenceSource(
-                id=f"source:{source_index:03}",
-                source_id=source_id,
-                label=evidence['source']['citation'],
-                description=evidence['source']['name'],
-                xrefs=[]
+            source = [schemas.AssertionMethod(
+                id=f"assertion_method:{source_index:03}",
+                label=source['name'],
+                url=source['source_url'],
+                version=source['publication_date'],
+                reference=source['citation']
             ).dict()]
         else:
             source = []
