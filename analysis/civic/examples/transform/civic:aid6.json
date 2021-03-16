@@ -6,8 +6,8 @@
             "direction": "supports",
             "evidence_level": "civic.amp_level:tier_i_-_level_a",
             "propositions": [
-                "proposition:131",
-                "proposition:130"
+                "proposition:130",
+                "proposition:131"
             ],
             "variation_descriptors": [
                 "civic:vid33"
@@ -16,8 +16,8 @@
                 "civic:tid146"
             ],
             "disease_descriptors": [
-                "civic:did30",
-                "civic:did8"
+                "civic:did8",
+                "civic:did30"
             ],
             "assertion_methods": [],
             "type": "Assertion"
