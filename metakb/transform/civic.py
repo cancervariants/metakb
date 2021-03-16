@@ -56,7 +56,7 @@ class CIViCTransform:
         assertions = data['assertions']
         variants = data['variants']
         genes = data['genes']
-        cdm_evidence_items = dict()
+        cdm_evidence_items = dict()  # EIDs that have been transformed to CDM
         props_and_assert_methods_ix = {
             'source_index': 1,  # Keep track of source index value
             'sources': dict(),  # {source_id: source_index}
@@ -67,15 +67,24 @@ class CIViCTransform:
                                  props_and_assert_methods_ix,
                                  cdm_evidence_items)
         self._transform_assertions(responses, assertions, cdm_evidence_items)
-
         return responses
 
     def _transform_evidence(self, responses, evidence_items, variants, genes,
                             props_and_assert_methods_ix, cdm_evidence_items):
-        """Transform CIViC Evidence Items to CDM."""
+        """Add transformed EIDs to the response list.
+
+        :param list responses: A list of dicts containing CDM data
+        :param list evidence_items: A list of CIViC evidence items
+        :param dict variants: A dict of CIViC variant records
+        :param dict genes: A dict of CIViC gene records
+        :param dict props_and_assert_methods_ix: A dict containing indexes for
+            propositions and assertion methods
+        :param dict cdm_evidence_items: A dict containing evidence items that
+            have been transformed to the CDM
+        """
         for evidence in evidence_items:
             # We only want to include evidence_items that have exactly one
-            # variation, disease, and therapy
+            # variation, disease, and therapy descriptor
             variation_descriptors = \
                 self._get_variation_descriptors(self._get_record(
                     evidence['variant_id'], variants),
@@ -127,17 +136,25 @@ class CIViCTransform:
                 'disease_descriptors': disease_descriptors,
                 'assertion_methods': assertion_methods
             }
-            cdm_evidence_items[f"{schemas.NamespacePrefix.CIVIC.value}:"
-                               f"{evidence['name'].lower()}"] = response
+            cdm_evidence_items[evidence['name']] = response
             responses.append(response)
 
     def _transform_assertions(self, responses, assertions, cdm_evidence_items):
-        """Transform CIViC Assertion records to CDM."""
-        for assertion in assertions:
-            eids = [f"{schemas.NamespacePrefix.CIVIC.value}:"
-                    f"{evidence['name'].lower()}" for evidence in
-                    assertion['evidence_items']]
+        """Add transformed CIViC Assertion records to response list.
 
+        :param list responses: A list of dicts containing CDM data
+        :param dict assertions: A dict of CIViC assertions
+        :param dict cdm_evidence_items: A dict containing evidence items that
+            have been transformed to the CDM
+        """
+        for assertion in assertions:
+            # Get list of CIViC EIDs from captured evidence_items
+            # that have a TR Proposition
+            eids = [cdm_evidence_items[evidence['name']] for evidence in
+                    assertion['evidence_items'] if
+                    cdm_evidence_items.get(evidence['name'])]
+
+            # Add transformed evidence item fields to corresponding list
             propositions = list()
             variation_descriptors = list()
             therapy_descriptors = list()
@@ -145,25 +162,16 @@ class CIViCTransform:
             assertion_methods = list()
 
             for eid in eids:
-                if not cdm_evidence_items.get(eid):
-                    continue
-                cdm_eid = cdm_evidence_items[eid]
-                p = cdm_eid['propositions'][0]
-                if p not in propositions:
-                    propositions.append(p)
-                v = cdm_eid['variation_descriptors'][0]
-                if v not in variation_descriptors:
-                    variation_descriptors.append(v)
-                t = cdm_eid['therapy_descriptors'][0]
-                if t not in therapy_descriptors:
-                    therapy_descriptors.append(t)
-                d = cdm_eid['disease_descriptors'][0]
-                if d not in disease_descriptors:
-                    disease_descriptors.append(d)
-                a = cdm_eid['assertion_methods'][0]
-                if a not in assertion_methods:
-                    assertion_methods.append(a)
+                self._add_to_list(eid, 'propositions', propositions)
+                self._add_to_list(eid, 'variation_descriptors',
+                                  variation_descriptors)
+                self._add_to_list(eid, 'therapy_descriptors',
+                                  therapy_descriptors)
+                self._add_to_list(eid, 'disease_descriptors',
+                                  disease_descriptors)
+                self._add_to_list(eid, 'assertion_methods', assertion_methods)
 
+            # Only care about assertion items that have all these values
             if not (propositions and variation_descriptors and therapy_descriptors and disease_descriptors):  # noqa: E501
                 continue
 
@@ -203,7 +211,7 @@ class CIViCTransform:
                f"{assertion['name'].lower()}",
             description=assertion['description'],
             direction=self._get_evidence_direction(assertion['evidence_direction']),  # noqa: E501
-            evidence_level=evidence_level,
+            evidence_level=evidence_level,  # TODO: Check this
             propositions=list({p['_id'] for p in propositions}),
             variation_descriptors=list({v['id'] for v in variation_descriptors}),  # noqa: E501
             therapy_descriptors=list({t['id'] for t in therapy_descriptors}),
@@ -225,11 +233,6 @@ class CIViCTransform:
             evidence
         :return: A list of Evidence
         """
-        if assertion_methods:
-            assertion_methods = [source['id'] for source in assertion_methods]
-        else:
-            assertion_methods = []
-
         evidence = schemas.Evidence(
             id=f"{schemas.NamespacePrefix.CIVIC.value}:"
                f"{evidence['name'].lower()}",
@@ -241,7 +244,7 @@ class CIViCTransform:
             variation_descriptor=f"civic:vid{evidence['variant_id']}",
             therapy_descriptor=therapy_descriptors[0]['id'],
             disease_descriptor=disease_descriptors[0]['id'],
-            assertion_methods=assertion_methods
+            assertion_methods=[source['id'] for source in assertion_methods]
         ).dict()
         return [evidence]
 
@@ -373,17 +376,15 @@ class CIViCTransform:
         :param dict gene: A CIViC gene record
         :return: A list of Variation Descriptors
         """
-        structural_type = None
+        structural_type = 'SO:0001060'
         molecule_context = None
         if len(variant['variant_types']) == 1:
             # TODO: Go through SO to find the molecule_context
             #  Is there a better way to do this?
             so_id = variant['variant_types'][0]['so_id']
             if so_id in ['SO:0001583', 'SO:0001818']:
-                structural_type = 'SO:0001060'
                 molecule_context = 'protein'
             elif so_id in ['SO:0001886', 'SO:0001576', 'SO:0001889']:
-                structural_type = 'SO:0001060'
                 molecule_context = 'transcript'
             else:
                 # TODO: Genomic
@@ -403,6 +404,7 @@ class CIViCTransform:
 
         if not normalized_resp:
             # TODO: Maybe we can search on the hgvs expression??
+            #  We need normalized_resp to get value or value_id
             logger.warning(f"{variant_query} is not yet supported in"
                            f" Variant Normalization normalize.")
             return []
@@ -410,7 +412,7 @@ class CIViCTransform:
         variation_descriptor = schemas.VariationDescriptor(
             id=f"civic:vid{variant['id']}",
             label=variant['name'],
-            description=variant['description'],
+            description=variant['description'] if variant['description'] else None,  # noqa: E501
             value_id=normalized_resp.value_id,
             value=normalized_resp.value,
             gene_context=f"civic:gid{gene['id']}",
@@ -450,10 +452,10 @@ class CIViCTransform:
                      'variant_aliases']:
             if xref == 'clinvar_entries':
                 for clinvar_entry in v['clinvar_entries']:
-                    xrefs.append(f"{schemas.XrefSystem.CLINVAR.value}:"
-                                 f"{clinvar_entry}")
-
-            elif xref == 'allele_registry_id':
+                    if clinvar_entry and clinvar_entry != 'N/A':
+                        xrefs.append(f"{schemas.XrefSystem.CLINVAR.value}:"
+                                     f"{clinvar_entry}")
+            elif xref == 'allele_registry_id' and v['allele_registry_id']:
                 xrefs.append(f"{schemas.XrefSystem.CLINGEN.value}:"
                              f"{v['allele_registry_id']}")
             elif xref == 'variant_aliases':
@@ -534,7 +536,7 @@ class CIViCTransform:
 
     def _get_therapy_descriptors(self, drug):
         """Return a list of Therapy Descriptors.
-        :param dict drugs: Drugs for a given evidence_item
+        :param dict drug: A drug for a given evidence_item
         :return: A list of Therapy Descriptors
         """
         therapies = schemas.ValueObjectDescriptor(
@@ -604,11 +606,22 @@ class CIViCTransform:
             if r['id'] == record_id:
                 return r
 
+    def _add_to_list(self, eid, key, list_name):
+        """Add a unique item from an evidence item to a list.
+
+        :param dict eid: Evidence Item that has been transformed to CDM
+        :param str key: The key to access in the eid
+        :param list list_name: The name of the list to
+        """
+        item = eid[key][0]
+        if item not in list_name:
+            list_name.append(item)
+
     def _set_ix(self, props_and_assert_methods_ix, dict_key, search_key):
         """Set props_and_assert_methods_ix.
 
-        :param dict props_and_assert_methods_ix: Contains source and
-            proposition indexes and values
+        :param dict props_and_assert_methods_ix: A dict containing indexes for
+            propositions and assertion methods
         :param str dict_key: 'sources' or 'propositions'
         :param Any search_key: The key to get or set
         :return: An int representing the index
