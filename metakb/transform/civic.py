@@ -288,16 +288,8 @@ class CIViCTransform:
                proposition['has_originating_context'],
                proposition['disease_context'], proposition['therapy'])
 
-        if props_and_assert_methods_ix['propositions'].get(key):
-            proposition_index = \
-                props_and_assert_methods_ix['propositions'].get(key)
-        else:
-            proposition_index = \
-                props_and_assert_methods_ix.get('proposition_index')
-            props_and_assert_methods_ix['propositions'][key] = \
-                proposition_index
-            props_and_assert_methods_ix['proposition_index'] += 1
-
+        proposition_index = self._set_ix(props_and_assert_methods_ix,
+                                         'propositions', key)
         proposition['_id'] = f"proposition:{proposition_index:03}"
 
         return [proposition]
@@ -579,15 +571,8 @@ class CIViCTransform:
         if source_type in schemas.SourcePrefix.__members__:
             prefix = schemas.SourcePrefix[source_type].value
             source_id = f"{prefix}:{source['citation_id']}"
-
-            if props_and_assert_methods_ix['sources'].get(source_id):
-                source_index = \
-                    props_and_assert_methods_ix['sources'].get(source_id)
-            else:
-                source_index = props_and_assert_methods_ix.get('source_index')
-                props_and_assert_methods_ix['sources'][source_id] = \
-                    source_index
-                props_and_assert_methods_ix['source_index'] += 1
+            source_index = self._set_ix(props_and_assert_methods_ix, 'sources',
+                                        source_id)
 
             source = [schemas.AssertionMethod(
                 id=f"assertion_method:{source_index:03}",
@@ -611,3 +596,26 @@ class CIViCTransform:
         for r in records:
             if r['id'] == record_id:
                 return r
+
+    def _set_ix(self, props_and_assert_methods_ix, dict_key, search_key):
+        """Set props_and_assert_methods_ix.
+
+        :param dict props_and_assert_methods_ix: Contains source and
+            proposition indexes and values
+        :param str dict_key: 'sources' or 'propositions'
+        :param Any search_key: The key to get or set
+        :return: An int representing the index
+        """
+        if dict_key == 'sources':
+            dict_key_ix = 'source_index'
+        elif dict_key == 'propositions':
+            dict_key_ix = 'proposition_index'
+        else:
+            raise KeyError("dict_key can only be `sources` or `propositions`.")
+        if props_and_assert_methods_ix[dict_key].get(search_key):
+            index = props_and_assert_methods_ix[dict_key].get(search_key)
+        else:
+            index = props_and_assert_methods_ix.get(dict_key_ix)
+            props_and_assert_methods_ix[dict_key][search_key] = index
+            props_and_assert_methods_ix[dict_key_ix] += 1
+        return index
