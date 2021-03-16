@@ -6,8 +6,8 @@
             "direction": "supports",
             "evidence_level": "civic.amp_level:tier_i_-_level_a",
             "propositions": [
-                "proposition:130",
-                "proposition:131"
+                "proposition:131",
+                "proposition:130"
             ],
             "variation_descriptors": [
                 "civic:vid33"
@@ -20,12 +20,12 @@
                 "civic:did30"
             ],
             "assertion_methods": [
-                "assertion_method:199",
-                "assertion_method:222",
                 "assertion_method:139",
                 "assertion_method:219",
-                "assertion_method:138",
-                "assertion_method:137"
+                "assertion_method:199",
+                "assertion_method:222",
+                "assertion_method:137",
+                "assertion_method:138"
             ],
             "type": "Assertion"
         }
