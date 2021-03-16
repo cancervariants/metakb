@@ -41,12 +41,48 @@ class PropositionType(str, Enum):
 
 
 class PredictivePredicate(str, Enum):
-    """Define constraints for predicate."""
+    """Define constraints for predictive predicate."""
 
     SENSITIVITY = 'predicts_sensitivity_to'
     RESISTANCE = 'predicts_resistance_to'
     REDUCED_SENSITIVITY = 'predicts_reduced_sensitivity_to'
     ADVERSE_RESPONSE = 'predicts_adverse_response_to'
+
+
+# TODO: Check and change values for predicates
+class DiagnosticPredicate(str, Enum):
+    """Define constraints for diagnostic predicate."""
+
+    POSITIVE = 'diagnoses_positive_to'
+    NEGATIVE = 'diagnoses_negative_to'
+
+
+class PrognosticPredicate(str, Enum):
+    """Define constraints for prognostic predicate."""
+
+    BETTER_OUTCOME = 'prognoses_better_outcome_to'
+    POOR_OUTCOME = 'prognoses_poor_outcome_to'
+    POSITIVE = 'prognoses_positive_to'
+
+
+class PredisposingPredicate(str, Enum):
+    """Define constraints for predisposing predicate."""
+
+    POSITIVE = 'predisposes_positive_to'
+    UNCERTAIN_SIGNIFICANCE = 'predisposes_uncertain_significance_to'
+    LIKELY_PATHOGENIC = 'predisposes_likely_pathogenic_to'
+    PATHOGENIC = 'predisposes_pathogenic_to'
+
+
+class FunctionalPredicate(str, Enum):
+    """Define constraints for functional predicate."""
+
+    GAIN_OF_FUNCTION = 'functions_gain_to'
+    LOSS_OF_FUNCTION = 'functions_loss_to'
+    UNALTERED_FUNCTION = 'functions_unaltered_to'
+    NEOMORPHIC = 'functions_neomorphic_to'
+    DOMINATE_NEGATIVE = 'functions_dominate_negative_to'
+    UNKNOWN = 'functions_unknown_to'
 
 
 class VariationOrigin(str, Enum):
@@ -99,7 +135,7 @@ class TherapeuticResponseProposition(BaseModel):
     """Define therapeutic Response Proposition model"""
 
     id: str = Field(..., alias='_id')
-    type: Optional[str]
+    type = PropositionType.PREDICTIVE.value
     predicate: Optional[PredictivePredicate]
     variation_origin: Optional[VariationOrigin]
     has_originating_context: str  # vrs:Variation

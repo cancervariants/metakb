@@ -10,7 +10,7 @@
             "therapy_descriptor": "civic:tid146",
             "disease_descriptor": "civic:did8",
             "assertion_methods": [
-                "assertion_method:002"
+                "assertion_method:289"
             ],
             "type": "Evidence"
         }
@@ -18,12 +18,12 @@
     "propositions": [
         {
             "id": "proposition:344",
-            "type": "therapeutic_response_proposition",
             "predicate": "predicts_sensitivity_to",
             "variation_origin": "somatic",
             "has_originating_context": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
             "disease_context": "ncit:C2926",
-            "therapy": "ncit:C66940"
+            "therapy": "ncit:C66940",
+            "type": "therapeutic_response_proposition"
         }
     ],
     "variation_descriptors": [
@@ -149,7 +149,7 @@
     ],
     "assertion_methods": [
         {
-            "id": "assertion_method:002",
+            "id": "assertion_method:289",
             "label": "Afatinib: first global approval.",
             "url": "http://www.ncbi.nlm.nih.gov/pubmed/23982599",
             "version": {
