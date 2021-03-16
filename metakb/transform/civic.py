@@ -166,10 +166,13 @@ class CIViCTransform:
         :param int proposition_index: The index for the proposition
         :return: A list of propositions.
         """
+        proposition_type = \
+            self._get_proposition_type(evidence['evidence_type'])
         proposition = schemas.TherapeuticResponseProposition(
             _id=f'proposition:{proposition_index:03}',
-            type=self._get_proposition_type(evidence['evidence_type']),
-            predicate=self._get_predicate(evidence),
+            type=proposition_type,
+            predicate=self._get_predicate(proposition_type,
+                                          evidence['clinical_significance']),
             variation_origin=self._get_variation_origin(evidence['variant_origin']),  # noqa: E501
             has_originating_context=variation_descriptors[0]['value_id'],
             disease_context=disease_descriptors[0]['value']['disease_id'],
@@ -187,8 +190,8 @@ class CIViCTransform:
         if evidence_type.upper() in schemas.PropositionType.__members__.keys():
             return schemas.PropositionType[evidence_type.upper()].value
         else:
-            logger.warning(f"Proposition Type {evidence_type} not found"
-                           f" in schemas.")
+            raise KeyError(f"Proposition Type {evidence_type} not found in "
+                           f"schemas.PropositionType")
 
     def _get_variation_origin(self, variant_origin):
         """Return variant origin.
@@ -210,34 +213,41 @@ class CIViCTransform:
             origin = None
         return origin
 
-    def _get_predicate(self, evidence):
+    def _get_predicate(self, proposition_type, clinical_significance):
         """Return predicate for an evidence item.
-        :param dict evidence: A CIViC evidence_item
+
+        :param str proposition_type: The proposition type
+        :param str clinical_significance: The evidence item's clinical
+            significance
         :return: A string representation for predicate
         """
         predicate = None
-        if evidence['evidence_type'] == 'Predictive':
-            e_clin_sig = evidence['clinical_significance']
-            if e_clin_sig == 'Sensitivity/Response':
+        # TODO: Support for other clinical_significance ?
+        #  'Resistance', 'Sensitivity/Response', 'N/A', 'Poor Outcome',
+        #  'Positive', 'Better Outcome', 'Adverse Response',
+        #  'Uncertain Significance', 'Likely Pathogenic', 'Negative',
+        #  'Loss of Function', 'Gain of Function', 'Neomorphic',
+        #  'Pathogenic', 'Dominant Negative', 'Unaltered Function',
+        #  None, 'Reduced Sensitivity', 'Unknown'
+        if proposition_type == schemas.PropositionType.value:
+            if clinical_significance == 'Sensitivity/Response':
                 predicate = 'predicts_sensitivity_to'
-            elif e_clin_sig == 'Resistance':
+            elif clinical_significance == 'Resistance':
                 predicate = 'predicts_resistance_to'
-            elif e_clin_sig == 'Reduced Sensitivity':
+            elif clinical_significance == 'Reduced Sensitivity':
                 predicate = 'predicts_reduced_sensitivity_to'
-            elif e_clin_sig == 'Adverse Response':
+            elif clinical_significance == 'Adverse Response':
                 predicate = 'predicts_adverse_response_to'
-            else:
-                # TODO: Support for other clinical_significance ?
-                #  'Resistance', 'Sensitivity/Response', 'N/A', 'Poor Outcome',
-                #  'Positive', 'Better Outcome', 'Adverse Response',
-                #  'Uncertain Significance', 'Likely Pathogenic', 'Negative',
-                #  'Loss of Function', 'Gain of Function', 'Neomorphic',
-                #  'Pathogenic', 'Dominant Negative', 'Unaltered Function',
-                #  None, 'Reduced Sensitivity', 'Unknown'
-                pass
-        else:
-            # TODO: Support for other evidence_type values ?
-            #  'Prognostic', 'Diagnostic', 'Predisposing', 'Functional'
+        # TODO
+        elif proposition_type == schemas.PropositionType.DIAGNOSTIC.value:
+            pass
+        elif proposition_type == schemas.PropositionType.PROGNOSTIC.value:
+            pass
+        elif proposition_type == schemas.PropositionType.PREDISPOSING.value:
+            pass
+        elif proposition_type == schemas.PropositionType.FUNCTIONAL.value:
+            pass
+        elif proposition_type == schemas.PropositionType.ONCOGENIC.value:
             pass
         return predicate
 
