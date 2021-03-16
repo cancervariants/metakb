@@ -93,16 +93,22 @@ class CIViCTransform:
             assertion_methods = self._get_assertion_method(evidence['source'],
                                                            sources)
 
+            propositions = self._get_propositions(evidence,
+                                                  variation_descriptors,
+                                                  disease_descriptors,
+                                                  therapy_descriptors,
+                                                  proposition_index)
+
+            # We only want therapeutic response for now
+            if not propositions:
+                continue
+
             responses.append({
                 'evidence': self._get_evidence(evidence, proposition_index,
                                                therapy_descriptors,
                                                disease_descriptors,
                                                assertion_methods),
-                'propositions': self._get_propositions(evidence,
-                                                       variation_descriptors,
-                                                       disease_descriptors,
-                                                       therapy_descriptors,
-                                                       proposition_index),
+                'propositions': propositions,
                 'variation_descriptors': variation_descriptors,
                 'therapy_descriptors': therapy_descriptors,
                 'disease_descriptors': disease_descriptors,
@@ -171,6 +177,11 @@ class CIViCTransform:
         """
         proposition_type = \
             self._get_proposition_type(evidence['evidence_type'])
+
+        # Only want TR for now
+        if proposition_type != schemas.PropositionType.PREDICTIVE.value:
+            return []
+
         proposition = schemas.TherapeuticResponseProposition(
             _id=f'proposition:{proposition_index:03}',
             type=proposition_type,
@@ -216,43 +227,37 @@ class CIViCTransform:
             origin = None
         return origin
 
-    def _get_predicate(self, proposition_type, clinical_significance):
+    def _get_predicate(self, proposition_type, clin_sig):
         """Return predicate for an evidence item.
 
         :param str proposition_type: The proposition type
-        :param str clinical_significance: The evidence item's clinical
-            significance
+        :param str clin_sig: The evidence item's clinical significance
         :return: A string representation for predicate
         """
-        predicate = None
-        # TODO: Support for other clinical_significance ?
-        #  'Resistance', 'Sensitivity/Response', 'N/A', 'Poor Outcome',
-        #  'Positive', 'Better Outcome', 'Adverse Response',
-        #  'Uncertain Significance', 'Likely Pathogenic', 'Negative',
-        #  'Loss of Function', 'Gain of Function', 'Neomorphic',
-        #  'Pathogenic', 'Dominant Negative', 'Unaltered Function',
-        #  None, 'Reduced Sensitivity', 'Unknown'
+        if clin_sig is None:
+            return None
+        else:
+            if clin_sig == 'N/A':
+                return None  # TODO: Or should we return N/A?
+            clin_sig = '_'.join(clin_sig.upper().split())
+            predicate = None
+
         if proposition_type == schemas.PropositionType.PREDICTIVE.value:
-            if clinical_significance == 'Sensitivity/Response':
+            if clin_sig == 'SENSITIVITY/RESPONSE':
                 predicate = schemas.PredictivePredicate.SENSITIVITY.value
-            elif clinical_significance == 'Resistance':
-                predicate = schemas.PredictivePredicate.RESISTANCE.value
-            elif clinical_significance == 'Reduced Sensitivity':
-                predicate = \
-                    schemas.PredictivePredicate.REDUCED_SENSITIVITY.value
-            elif clinical_significance == 'Adverse Response':
-                predicate = schemas.PredictivePredicate.ADVERSE_RESPONSE.value
-        # TODO
+            else:
+                predicate = schemas.PredictivePredicate[clin_sig].value
         elif proposition_type == schemas.PropositionType.DIAGNOSTIC.value:
-            pass
+            predicate = schemas.DiagnosticPredicate[clin_sig].value
         elif proposition_type == schemas.PropositionType.PROGNOSTIC.value:
-            pass
+            predicate = schemas.PrognosticPredicate[clin_sig].value
         elif proposition_type == schemas.PropositionType.PREDISPOSING.value:
-            pass
+            predicate = schemas.PredisposingPredicate.NOT_APPLICAPLE.value
         elif proposition_type == schemas.PropositionType.FUNCTIONAL.value:
-            pass
-        elif proposition_type == schemas.PropositionType.ONCOGENIC.value:
-            pass
+            predicate = schemas.FunctionalPredicate[clin_sig].value
+        else:
+            logger.warning(f"{proposition_type} not supported in Predicate "
+                           f"schemas.")
         return predicate
 
     def _get_variation_descriptors(self, variant, gene):
@@ -449,9 +454,10 @@ class CIViCTransform:
                 syntax = 'hgvs:transcript'
             else:
                 syntax = 'hgvs:protein'
-            hgvs_expressions.append(
-                schemas.Expression(syntax=syntax, value=hgvs_expr)
-            )
+            if hgvs_expr != 'N/A':
+                hgvs_expressions.append(
+                    schemas.Expression(syntax=syntax, value=hgvs_expr)
+                )
         return hgvs_expressions
 
     def _get_assertion_method(self, source, sources):
@@ -469,11 +475,12 @@ class CIViCTransform:
 
             if sources['sources'].get(source_id):
                 source_index = sources['sources'].get(source_id)
+            else:
+                source_index = sources.get('source_index')
                 sources['sources'] = {
                     source_id: source_index
                 }
-            else:
-                source_index = sources.get('source_index') + 1
+                sources['source_index'] += 1
 
             source = [schemas.AssertionMethod(
                 id=f"assertion_method:{source_index:03}",
