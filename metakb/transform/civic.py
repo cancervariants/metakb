@@ -142,6 +142,7 @@ class CIViCTransform:
             variation_descriptors = list()
             therapy_descriptors = list()
             disease_descriptors = list()
+            assertion_methods = list()
 
             for eid in eids:
                 if not cdm_evidence_items.get(eid):
@@ -159,6 +160,9 @@ class CIViCTransform:
                 d = cdm_eid['disease_descriptors'][0]
                 if d not in disease_descriptors:
                     disease_descriptors.append(d)
+                a = cdm_eid['assertion_methods'][0]
+                if a not in assertion_methods:
+                    assertion_methods.append(a)
 
             if not (propositions and variation_descriptors and therapy_descriptors and disease_descriptors):  # noqa: E501
                 continue
@@ -167,16 +171,18 @@ class CIViCTransform:
                 'assertion': self._get_assertion(assertion, propositions,
                                                  variation_descriptors,
                                                  therapy_descriptors,
-                                                 disease_descriptors),
+                                                 disease_descriptors,
+                                                 assertion_methods),
                 'propositions': propositions,
                 'variation_descriptors': variation_descriptors,
                 'therapy_descriptors': therapy_descriptors,
                 'disease_descriptors': disease_descriptors,
-                'assertion_methods': []
+                'assertion_methods': assertion_methods
             })
 
     def _get_assertion(self, assertion, propositions, variation_descriptors,
-                       therapy_descriptors, disease_descriptors):
+                       therapy_descriptors, disease_descriptors,
+                       assertion_methods):
         """Return a list of assertions.
 
         :param dict assertion: Harvested CIViC assertion item record
@@ -184,6 +190,7 @@ class CIViCTransform:
             propositions and assertion methods
         :param list therapy_descriptors: A list of Therapy Descriptors
         :param list disease_descriptors: A list of Disease Descriptors
+        :param list assertion_methods: A list of Assertion Methods
         :return: A list of Assertions
         """
         evidence_level = None
@@ -201,7 +208,7 @@ class CIViCTransform:
             variation_descriptors=list({v['id'] for v in variation_descriptors}),  # noqa: E501
             therapy_descriptors=list({t['id'] for t in therapy_descriptors}),
             disease_descriptors=list({d['id'] for d in disease_descriptors}),
-            assertion_methods=list()
+            assertion_methods=list({a['id'] for a in assertion_methods})
         ).dict()
         return [assertion]
 
