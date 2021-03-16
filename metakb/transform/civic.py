@@ -53,14 +53,26 @@ class CIViCTransform:
         data = self._extract()
         responses = list()
         evidence_items = data['evidence']
+        assertions = data['assertions']
         variants = data['variants']
         genes = data['genes']
-        proposition_index = 1  # Keep track of proposition index
-        sources = {
+        cdm_evidence_items = dict()
+        props_and_assert_methods_ix = {
             'source_index': 1,  # Keep track of source index value
-            'sources': dict()  # source_id: source_index
+            'sources': dict(),  # {source_id: source_index}
+            'proposition_index': 1,  # Keep track of proposition index value
+            'propositions': dict()  # {tuple: proposition_index}
         }
+        self._transform_evidence(responses, evidence_items, variants, genes,
+                                 props_and_assert_methods_ix,
+                                 cdm_evidence_items)
+        self._transform_assertions(responses, assertions, cdm_evidence_items)
 
+        return responses
+
+    def _transform_evidence(self, responses, evidence_items, variants, genes,
+                            props_and_assert_methods_ix, cdm_evidence_items):
+        """Transform CIViC Evidence Items to CDM."""
         for evidence in evidence_items:
             # We only want to include evidence_items that have exactly one
             # variation, disease, and therapy
@@ -91,20 +103,21 @@ class CIViCTransform:
             # TODO: Check if this should be coming from CIViC evidence or
             #  assertions. Right now using evidence.
             assertion_methods = self._get_assertion_method(evidence['source'],
-                                                           sources)
+                                                           props_and_assert_methods_ix)  # noqa: E501
 
             propositions = self._get_propositions(evidence,
                                                   variation_descriptors,
                                                   disease_descriptors,
                                                   therapy_descriptors,
-                                                  proposition_index)
+                                                  props_and_assert_methods_ix)
 
             # We only want therapeutic response for now
             if not propositions:
                 continue
 
-            responses.append({
-                'evidence': self._get_evidence(evidence, proposition_index,
+            response = {
+                'evidence': self._get_evidence(evidence,
+                                               propositions,
                                                therapy_descriptors,
                                                disease_descriptors,
                                                assertion_methods),
@@ -113,16 +126,92 @@ class CIViCTransform:
                 'therapy_descriptors': therapy_descriptors,
                 'disease_descriptors': disease_descriptors,
                 'assertion_methods': assertion_methods
-            })
-            proposition_index += 1
-        return responses
+            }
+            cdm_evidence_items[f"{schemas.NamespacePrefix.CIVIC.value}:"
+                               f"{evidence['name'].lower()}"] = response
+            responses.append(response)
 
-    def _get_evidence(self, evidence, proposition_index, therapy_descriptors,
-                      disease_descriptors, assertion_methods):
+    def _transform_assertions(self, responses, assertions, cdm_evidence_items):
+        """Transform CIViC Assertion records to CDM."""
+        for assertion in assertions:
+            eids = [f"{schemas.NamespacePrefix.CIVIC.value}:"
+                    f"{evidence['name'].lower()}" for evidence in
+                    assertion['evidence_items']]
+
+            propositions = list()
+            variation_descriptors = list()
+            therapy_descriptors = list()
+            disease_descriptors = list()
+
+            for eid in eids:
+                if not cdm_evidence_items.get(eid):
+                    continue
+                cdm_eid = cdm_evidence_items[eid]
+                p = cdm_eid['propositions'][0]
+                if p not in propositions:
+                    propositions.append(p)
+                v = cdm_eid['variation_descriptors'][0]
+                if v not in variation_descriptors:
+                    variation_descriptors.append(v)
+                t = cdm_eid['therapy_descriptors'][0]
+                if t not in therapy_descriptors:
+                    therapy_descriptors.append(t)
+                d = cdm_eid['disease_descriptors'][0]
+                if d not in disease_descriptors:
+                    disease_descriptors.append(d)
+
+            if not (propositions and variation_descriptors and therapy_descriptors and disease_descriptors):  # noqa: E501
+                continue
+
+            responses.append({
+                'assertion': self._get_assertion(assertion, propositions,
+                                                 variation_descriptors,
+                                                 therapy_descriptors,
+                                                 disease_descriptors),
+                'propositions': propositions,
+                'variation_descriptors': variation_descriptors,
+                'therapy_descriptors': therapy_descriptors,
+                'disease_descriptors': disease_descriptors,
+                'assertion_methods': []
+            })
+
+    def _get_assertion(self, assertion, propositions, variation_descriptors,
+                       therapy_descriptors, disease_descriptors):
+        """Return a list of assertions.
+
+        :param dict assertion: Harvested CIViC assertion item record
+        :param list propositions: A dict containing indexes for
+            propositions and assertion methods
+        :param list therapy_descriptors: A list of Therapy Descriptors
+        :param list disease_descriptors: A list of Disease Descriptors
+        :return: A list of Assertions
+        """
+        evidence_level = None
+        if assertion['amp_level']:
+            evidence_level = f"civic.amp_level:"\
+                             f"{'_'.join(assertion['amp_level'].lower().split())}"  # noqa: E501
+
+        assertion = schemas.Assertion(
+            id=f"{schemas.NamespacePrefix.CIVIC.value}:"
+               f"{assertion['name'].lower()}",
+            description=assertion['description'],
+            direction=self._get_evidence_direction(assertion['evidence_direction']),  # noqa: E501
+            evidence_level=evidence_level,
+            propositions=list({p['_id'] for p in propositions}),
+            variation_descriptors=list({v['id'] for v in variation_descriptors}),  # noqa: E501
+            therapy_descriptors=list({t['id'] for t in therapy_descriptors}),
+            disease_descriptors=list({d['id'] for d in disease_descriptors}),
+            assertion_methods=list()
+        ).dict()
+        return [assertion]
+
+    def _get_evidence(self, evidence, propositions,
+                      therapy_descriptors, disease_descriptors,
+                      assertion_methods):
         """Return a list of evidence.
 
-        :param dict evidence: Harvested CIViC evidence item records
-        :param int proposition_index: Index for proposition
+        :param dict evidence: Harvested CIViC evidence item record
+        :param list propositions: A list of propositions
         :param list therapy_descriptors: A list of Therapy Descriptors
         :param list disease_descriptors: A list of Disease Descriptors
         :param list assertion_methods: A list of assertion methods for the
@@ -141,7 +230,7 @@ class CIViCTransform:
             direction=self._get_evidence_direction(evidence['evidence_direction']),  # noqa: E501
             evidence_level=f"civic.evidence_level:"
                            f"{evidence['evidence_level']}",
-            proposition=f"proposition:{proposition_index:03}",
+            proposition=propositions[0]['_id'],
             variation_descriptor=f"civic:vid{evidence['variant_id']}",
             therapy_descriptor=therapy_descriptors[0]['id'],
             disease_descriptor=disease_descriptors[0]['id'],
@@ -165,14 +254,15 @@ class CIViCTransform:
 
     def _get_propositions(self, evidence, variation_descriptors,
                           disease_descriptors, therapy_descriptors,
-                          proposition_index):
+                          props_and_assert_methods_ix):
         """Return a list of propositions.
 
         :param dict evidence: CIViC evidence item record
         :param list variation_descriptors: A list of Variation Descriptors
         :param list disease_descriptors: A list of Disease Descriptors
         :param list therapy_descriptors: A list of therapy_descriptors
-        :param int proposition_index: The index for the proposition
+        :param dict props_and_assert_methods_ix: A dict containing indexes for
+            propositions and assertion methods
         :return: A list of propositions.
         """
         proposition_type = \
@@ -183,7 +273,7 @@ class CIViCTransform:
             return []
 
         proposition = schemas.TherapeuticResponseProposition(
-            _id=f'proposition:{proposition_index:03}',
+            _id="",
             type=proposition_type,
             predicate=self._get_predicate(proposition_type,
                                           evidence['clinical_significance']),
@@ -191,7 +281,24 @@ class CIViCTransform:
             has_originating_context=variation_descriptors[0]['value_id'],
             disease_context=disease_descriptors[0]['value']['disease_id'],
             therapy=therapy_descriptors[0]['value']['therapy_id']
-        ).dict()
+        ).dict(by_alias=True)
+
+        key = (proposition['type'], proposition['predicate'],
+               proposition['variation_origin'],
+               proposition['has_originating_context'],
+               proposition['disease_context'], proposition['therapy'])
+
+        if props_and_assert_methods_ix['propositions'].get(key):
+            proposition_index = \
+                props_and_assert_methods_ix['propositions'].get(key)
+        else:
+            proposition_index = \
+                props_and_assert_methods_ix.get('proposition_index')
+            props_and_assert_methods_ix['propositions'][key] = \
+                proposition_index
+            props_and_assert_methods_ix['proposition_index'] += 1
+
+        proposition['_id'] = f"proposition:{proposition_index:03}"
 
         return [proposition]
 
@@ -460,12 +567,12 @@ class CIViCTransform:
                 )
         return hgvs_expressions
 
-    def _get_assertion_method(self, source, sources):
+    def _get_assertion_method(self, source, props_and_assert_methods_ix):
         """Return a list of Assertion Methods for an evidence_item.
 
         :param dict source: An evidence_item's source
-        :param dict sources: A dict containing the source_index and existing
-            sources
+        :param dict props_and_assert_methods_ix: A dict containing indexes for
+            propositions and assertion methods
         :return: A list of sources
         """
         source_type = source['source_type'].upper()
@@ -473,14 +580,14 @@ class CIViCTransform:
             prefix = schemas.SourcePrefix[source_type].value
             source_id = f"{prefix}:{source['citation_id']}"
 
-            if sources['sources'].get(source_id):
-                source_index = sources['sources'].get(source_id)
+            if props_and_assert_methods_ix['sources'].get(source_id):
+                source_index = \
+                    props_and_assert_methods_ix['sources'].get(source_id)
             else:
-                source_index = sources.get('source_index')
-                sources['sources'] = {
-                    source_id: source_index
-                }
-                sources['source_index'] += 1
+                source_index = props_and_assert_methods_ix.get('source_index')
+                props_and_assert_methods_ix['sources'][source_id] = \
+                    source_index
+                props_and_assert_methods_ix['source_index'] += 1
 
             source = [schemas.AssertionMethod(
                 id=f"assertion_method:{source_index:03}",

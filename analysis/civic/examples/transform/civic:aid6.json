@@ -1,18 +1,26 @@
 {
-    "evidence": [
+    "assertion": [
         {
-            "id": "civic:eid2997",
-            "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
+            "id": "civic:aid6",
+            "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",
             "direction": "supports",
-            "evidence_level": "civic.evidence_level:A",
-            "proposition": "proposition:131",
-            "variation_descriptor": "civic:vid33",
-            "therapy_descriptor": "civic:tid146",
-            "disease_descriptor": "civic:did8",
-            "assertion_methods": [
-                "assertion_method:222"
+            "evidence_level": "civic.amp_level:tier_i_-_level_a",
+            "propositions": [
+                "proposition:131",
+                "proposition:130"
             ],
-            "type": "Evidence"
+            "variation_descriptors": [
+                "civic:vid33"
+            ],
+            "therapy_descriptors": [
+                "civic:tid146"
+            ],
+            "disease_descriptors": [
+                "civic:did30",
+                "civic:did8"
+            ],
+            "assertion_methods": [],
+            "type": "Assertion"
         }
     ],
     "propositions": [
@@ -22,6 +30,15 @@
             "variation_origin": "somatic",
             "has_originating_context": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
             "disease_context": "ncit:C2926",
+            "therapy": "ncit:C66940",
+            "type": "therapeutic_response_proposition"
+        },
+        {
+            "_id": "proposition:130",
+            "predicate": "predicts_sensitivity_to",
+            "variation_origin": "somatic",
+            "has_originating_context": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+            "disease_context": "ncit:C3512",
             "therapy": "ncit:C66940",
             "type": "therapeutic_response_proposition"
         }
@@ -145,18 +162,21 @@
             "xrefs": null,
             "alternate_labels": null,
             "extensions": null
+        },
+        {
+            "id": "civic:did30",
+            "type": "DiseaseDescriptor",
+            "label": "Lung Adenocarcinoma",
+            "description": null,
+            "value_id": null,
+            "value": {
+                "disease_id": "ncit:C3512",
+                "type": "Disease"
+            },
+            "xrefs": null,
+            "alternate_labels": null,
+            "extensions": null
         }
     ],
-    "assertion_methods": [
-        {
-            "id": "assertion_method:222",
-            "label": "Afatinib: first global approval.",
-            "url": "http://www.ncbi.nlm.nih.gov/pubmed/23982599",
-            "version": {
-                "year": 2013,
-                "month": 9
-            },
-            "reference": "Dungo et al., 2013, Drugs"
-        }
-    ]
+    "assertion_methods": []
 }

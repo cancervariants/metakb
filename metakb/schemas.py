@@ -143,6 +143,21 @@ class TherapeuticResponseProposition(BaseModel):
     therapy: str  # Therapy value object
 
 
+class Assertion(BaseModel):
+    """Define assertion model."""
+
+    id: str
+    type = 'Assertion'
+    description: str
+    direction: Optional[Direction]
+    evidence_level: str
+    propositions: List[str]
+    variation_descriptors: List[str]
+    therapy_descriptors: List[str]
+    disease_descriptors: List[str]
+    assertion_methods: Optional[List[str]]
+
+
 class Evidence(BaseModel):
     """Define evidence model."""
 
