@@ -26,7 +26,7 @@ def create_evidence_examples(data):
             if g['id'] == gene_id:
                 gene = g
 
-        with open(f"{PROJECT_ROOT}/analysis/civic/examples/"
+        with open(f"{PROJECT_ROOT}/analysis/civic/examples/harvester/"
                   f"{evidence_item['name']}.json", 'w+') as f:
             example = {
                 'EVIDENCE': evidence_item,
@@ -36,8 +36,6 @@ def create_evidence_examples(data):
             }
 
             json.dump(example, f)
-            print(f"Created JSON for evidence: {evidence_item['name']}")
-            f.close()
 
 
 def create_variant_examples(data):
@@ -55,8 +53,6 @@ def create_variant_examples(data):
                   f"{variant['name'].lower()}.json", 'w+') as f:
             variant['evidence_items'] = variant['evidence_items'][0]
             f.write(json.dumps(variant))
-            print(f"Created JSON for variant: {variant['name']}")
-            f.close()
 
 
 if __name__ == '__main__':

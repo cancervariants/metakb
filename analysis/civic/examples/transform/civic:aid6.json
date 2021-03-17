@@ -1,0 +1,77 @@
+{
+    "assertion": [
+        {
+            "id": "civic:aid6",
+            "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",
+            "direction": "supports",
+            "assertion_level": "civic.amp_level:tier_i_-_level_a",
+            "proposition": "proposition:131",
+            "assertion_methods": [
+                "assertion_method:2",
+                "assertion_method:3"
+            ],
+            "evidence": [
+                "civic:eid2997",
+                "civic:eid2629",
+                "civic:eid982",
+                "civic:eid968",
+                "civic:eid883",
+                "civic:eid879"
+            ],
+            "document": "document:523",
+            "type": "Assertion"
+        }
+    ],
+    "propositions": [
+        {
+            "_id": "proposition:131",
+            "predicate": "predicts_sensitivity_to",
+            "variation_origin": "somatic",
+            "has_originating_context": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+            "disease_context": "ncit:C2926",
+            "therapy": "ncit:C66940",
+            "type": "therapeutic_response_proposition"
+        }
+    ],
+    "evidence": [
+        "civic:eid2997",
+        "civic:eid2629",
+        "civic:eid982",
+        "civic:eid968",
+        "civic:eid883",
+        "civic:eid879"
+    ],
+    "assertion_methods": [
+        {
+            "id": "assertion_method:2",
+            "label": "Standards and Guidelines for the Interpretation and Reporting of Sequence Variants in Cancer: A Joint Consensus Recommendation of the Association for Molecular Pathology, American Society of Clinical Oncology, and College of American Pathologists",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/27993330/",
+            "version": {
+                "year": 2017,
+                "month": 1,
+                "day": null
+            },
+            "reference": "Li MM, Datto M, Duncavage EJ, et al."
+        },
+        {
+            "id": "assertion_method:3",
+            "label": "Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/25741868/",
+            "version": {
+                "year": 2015,
+                "month": 5,
+                "day": null
+            },
+            "reference": "Richards S, Aziz N, Bale S, et al."
+        }
+    ],
+    "documents": [
+        {
+            "id": "document:523",
+            "document_id": null,
+            "label": "Non-Small Cell Lung Cancer",
+            "description": "NCCN Guideline Version: 3.2018",
+            "xrefs": null
+        }
+    ]
+}

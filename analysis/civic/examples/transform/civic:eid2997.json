@@ -1,0 +1,171 @@
+{
+    "evidence": [
+        {
+            "id": "civic:eid2997",
+            "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
+            "direction": "supports",
+            "evidence_level": "civic.evidence_level:A",
+            "proposition": "proposition:131",
+            "variation_descriptor": "civic:vid33",
+            "therapy_descriptor": "civic:tid146",
+            "disease_descriptor": "civic:did8",
+            "assertion_method": "assertion_method:1",
+            "document": "document:222",
+            "type": "Evidence"
+        }
+    ],
+    "propositions": [
+        {
+            "_id": "proposition:131",
+            "predicate": "predicts_sensitivity_to",
+            "variation_origin": "somatic",
+            "has_originating_context": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+            "disease_context": "ncit:C2926",
+            "therapy": "ncit:C66940",
+            "type": "therapeutic_response_proposition"
+        }
+    ],
+    "variation_descriptors": [
+        {
+            "id": "civic:vid33",
+            "type": "VariationDescriptor",
+            "label": "L858R",
+            "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",
+            "value_id": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+            "value": {
+                "location": {
+                    "interval": {
+                        "end": 858,
+                        "start": 857,
+                        "type": "SimpleInterval"
+                    },
+                    "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
+                    "type": "SequenceLocation"
+                },
+                "state": {
+                    "sequence": "R",
+                    "type": "SequenceState"
+                },
+                "type": "Allele"
+            },
+            "xrefs": [
+                "clinvar:376280",
+                "clinvar:376282",
+                "clinvar:16609",
+                "caid:CA126713",
+                "dbsnp:121434568"
+            ],
+            "alternate_labels": [
+                "LEU858ARG"
+            ],
+            "extensions": [
+                {
+                    "name": "representative_variation_descriptor",
+                    "value": "civic:vid33.rep",
+                    "type": "Extension"
+                },
+                {
+                    "name": "civic_actionability_score",
+                    "value": "352.5",
+                    "type": "Extension"
+                },
+                {
+                    "name": "variant_groups",
+                    "value": {},
+                    "type": "Extension"
+                }
+            ],
+            "molecule_context": "protein",
+            "structural_type": "SO:0001060",
+            "expressions": [
+                {
+                    "syntax": "hgvs:protein",
+                    "value": "NP_005219.2:p.Leu858Arg",
+                    "version": null,
+                    "type": "Expression"
+                },
+                {
+                    "syntax": "hgvs:transcript",
+                    "value": "ENST00000275493.2:c.2573T>G",
+                    "version": null,
+                    "type": "Expression"
+                },
+                {
+                    "syntax": "hgvs:transcript",
+                    "value": "NM_005228.4:c.2573T>G",
+                    "version": null,
+                    "type": "Expression"
+                },
+                {
+                    "syntax": "hgvs:genomic",
+                    "value": "NC_000007.13:g.55259515T>G",
+                    "version": null,
+                    "type": "Expression"
+                }
+            ],
+            "ref_allele_seq": "L",
+            "gene_context": "civic:gid19",
+            "location_descriptor": null,
+            "sequence_descriptor": null,
+            "allelic_state": null
+        }
+    ],
+    "therapy_descriptors": [
+        {
+            "id": "civic:tid146",
+            "type": "TherapyDescriptor",
+            "label": "Afatinib",
+            "description": null,
+            "value_id": null,
+            "value": {
+                "therapy_id": "ncit:C66940",
+                "type": "Therapy"
+            },
+            "xrefs": null,
+            "alternate_labels": [
+                "BIBW2992",
+                "BIBW 2992",
+                "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"
+            ],
+            "extensions": null
+        }
+    ],
+    "disease_descriptors": [
+        {
+            "id": "civic:did8",
+            "type": "DiseaseDescriptor",
+            "label": "Lung Non-small Cell Carcinoma",
+            "description": null,
+            "value_id": null,
+            "value": {
+                "disease_id": "ncit:C2926",
+                "type": "Disease"
+            },
+            "xrefs": null,
+            "alternate_labels": null,
+            "extensions": null
+        }
+    ],
+    "assertion_methods": [
+        {
+            "id": "assertion_method:1",
+            "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+            "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",
+            "version": {
+                "year": 2019,
+                "month": 11,
+                "day": 29
+            },
+            "reference": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."
+        }
+    ],
+    "documents": [
+        {
+            "id": "document:222",
+            "document_id": "pmid:23982599",
+            "label": "Dungo et al., 2013, Drugs",
+            "description": "Afatinib: first global approval.",
+            "xrefs": []
+        }
+    ]
+}
