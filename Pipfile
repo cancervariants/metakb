@@ -10,8 +10,9 @@ requests = "*"
 numpy = "*"
 jsondiff = "*"
 requests-cache = "*"
-variant-normalizer = "*"
+gene-normalizer = "*"
 disease-normalizer = "*"
+variant-normalizer = "*"
 thera-py = "*"
 
 [dev-packages]
