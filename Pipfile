@@ -10,6 +10,9 @@ requests = "*"
 numpy = "*"
 jsondiff = "*"
 requests-cache = "*"
+variant-normalizer = "*"
+disease-normalizer = "*"
+thera-py = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
