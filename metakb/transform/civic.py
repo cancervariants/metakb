@@ -8,7 +8,7 @@ from gene.query import QueryHandler as GeneQueryHandler
 from variant.to_vrs import ToVRS
 from variant.normalize import Normalize as VariantNormalizer
 from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
-# from therapy.query import QueryHandler as TherapyQueryHandler
+from therapy.query import QueryHandler as TherapyQueryHandler
 from disease.query import QueryHandler as DiseaseQueryHandler
 
 logger = logging.getLogger('metakb')
@@ -28,7 +28,7 @@ class CIViCTransform:
         self.gene_query_handler = GeneQueryHandler()
         self.variant_normalizer = VariantNormalizer()
         self.disease_query_handler = DiseaseQueryHandler()
-        # self.therapy_query_handler = TherapyQueryHandler()
+        self.therapy_query_handler = TherapyQueryHandler()
         self.variant_to_vrs = ToVRS()
         self.amino_acid_cache = AminoAcidCache()
 
@@ -57,89 +57,80 @@ class CIViCTransform:
         variants = data['variants']
         genes = data['genes']
         cdm_evidence_items = dict()  # EIDs that have been transformed to CDM
-        props_and_assert_methods_ix = {
-            'source_index': 1,  # Keep track of source index value
-            'sources': dict(),  # {source_id: source_index}
+        propositions_documents_ix = {
+            'document_index': 1,  # Keep track of document index value
+            'documents': dict(),  # {document_id: document_index}
             'proposition_index': 1,  # Keep track of proposition index value
             'propositions': dict()  # {tuple: proposition_index}
         }
         self._transform_evidence(responses, evidence_items, variants, genes,
-                                 props_and_assert_methods_ix,
+                                 propositions_documents_ix,
                                  cdm_evidence_items)
-        self._transform_assertions(responses, assertions, cdm_evidence_items)
+        self._transform_assertions(responses, assertions, variants, genes,
+                                   cdm_evidence_items,
+                                   propositions_documents_ix)
         return responses
 
     def _transform_evidence(self, responses, evidence_items, variants, genes,
-                            props_and_assert_methods_ix, cdm_evidence_items):
+                            propositions_documents_ix, cdm_evidence_items):
         """Add transformed EIDs to the response list.
 
         :param list responses: A list of dicts containing CDM data
         :param list evidence_items: A list of CIViC evidence items
         :param dict variants: A dict of CIViC variant records
         :param dict genes: A dict of CIViC gene records
-        :param dict props_and_assert_methods_ix: A dict containing indexes for
+        :param dict propositions_documents_ix: A dict containing indexes for
             propositions and assertion methods
         :param dict cdm_evidence_items: A dict containing evidence items that
             have been transformed to the CDM
         """
         for evidence in evidence_items:
-            # We only want to include evidence_items that have exactly one
-            # variation, disease, and therapy descriptor
-            variation_descriptors = \
-                self._get_variation_descriptors(self._get_record(
-                    evidence['variant_id'], variants),
-                    self._get_record(evidence['gene_id'], genes))
-            if len(variation_descriptors) != 1:
-                logger.warning(f"eid{evidence['id']} does not have exactly "
-                               f"one variant.")
-                continue
-
-            disease_descriptors = \
-                self._get_disease_descriptors(evidence['disease'])
-            if len(disease_descriptors) != 1:
-                logger.warning(f"eid{evidence['id']} does not have exactly "
-                               f"one disease.")
-                continue
-
-            if len(evidence['drugs']) != 1:
-                logger.warning(f"eid{evidence['id']} does not have exactly "
-                               f"one therapy.")
+            descriptors = self._get_descriptors(evidence, genes, variants)
+            if not descriptors:
                 continue
             else:
-                therapy_descriptors = self._get_therapy_descriptors(
-                    evidence['drugs'][0])
-
-            # TODO: Check if this should be coming from CIViC evidence or
-            #  assertions. Right now using evidence.
-            assertion_methods = self._get_assertion_method(evidence['source'],
-                                                           props_and_assert_methods_ix)  # noqa: E501
+                therapy_descriptors, variation_descriptors, disease_descriptors = descriptors  # noqa: E501
 
             propositions = self._get_propositions(evidence,
                                                   variation_descriptors,
                                                   disease_descriptors,
                                                   therapy_descriptors,
-                                                  props_and_assert_methods_ix)
+                                                  propositions_documents_ix)
 
             # We only want therapeutic response for now
             if not propositions:
                 continue
+
+            documents = self._get_evidence_document(evidence['source'],
+                                                    propositions_documents_ix)
+
+            assertion_methods = [schemas.AssertionMethod(
+                id='assertion_method:1',
+                label='Standard operating procedure for curation and clinical interpretation of variants in cancer',  # noqa: E501
+                url='https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x',  # noqa: E501
+                version=schemas.Date(year=2019, month=11, day=29),
+                reference='Danos, A.M., Krysiak, K., Barnell, E.K. et al.'
+            ).dict()]
 
             response = {
                 'evidence': self._get_evidence(evidence,
                                                propositions,
                                                therapy_descriptors,
                                                disease_descriptors,
-                                               assertion_methods),
+                                               assertion_methods,
+                                               documents),
                 'propositions': propositions,
                 'variation_descriptors': variation_descriptors,
                 'therapy_descriptors': therapy_descriptors,
                 'disease_descriptors': disease_descriptors,
-                'assertion_methods': assertion_methods
+                'assertion_methods': assertion_methods,
+                'documents': documents
             }
             cdm_evidence_items[evidence['name']] = response
             responses.append(response)
 
-    def _transform_assertions(self, responses, assertions, cdm_evidence_items):
+    def _transform_assertions(self, responses, assertions, variants, genes,
+                              cdm_evidence_items, propositions_documents_ix):
         """Add transformed CIViC Assertion records to response list.
 
         :param list responses: A list of dicts containing CDM data
@@ -150,79 +141,69 @@ class CIViCTransform:
         for assertion in assertions:
             # Get list of CIViC EIDs from captured evidence_items
             # that have a TR Proposition
-            eids = [cdm_evidence_items[evidence['name']] for evidence in
+            eids = [f"{schemas.NamespacePrefix.CIVIC.value}:"
+                    f"{evidence['name'].lower()}" for evidence in
                     assertion['evidence_items'] if
                     cdm_evidence_items.get(evidence['name'])]
 
-            # Add transformed evidence item fields to corresponding list
-            propositions = list()
-            variation_descriptors = list()
-            therapy_descriptors = list()
-            disease_descriptors = list()
-            assertion_methods = list()
-
-            for eid in eids:
-                self._add_to_list(eid, 'propositions', propositions)
-                self._add_to_list(eid, 'variation_descriptors',
-                                  variation_descriptors)
-                self._add_to_list(eid, 'therapy_descriptors',
-                                  therapy_descriptors)
-                self._add_to_list(eid, 'disease_descriptors',
-                                  disease_descriptors)
-                self._add_to_list(eid, 'assertion_methods', assertion_methods)
-
-            # Only care about assertion items that have all these values
-            if not (propositions and variation_descriptors and therapy_descriptors and disease_descriptors):  # noqa: E501
+            descriptors = self._get_descriptors(assertion, genes, variants,
+                                                is_evidence=False)
+            if not descriptors:
                 continue
+            else:
+                therapy_descriptors, variation_descriptors, disease_descriptors = descriptors  # noqa: E501
+
+            propositions = self._get_propositions(assertion,
+                                                  variation_descriptors,
+                                                  disease_descriptors,
+                                                  therapy_descriptors,
+                                                  propositions_documents_ix)
+
+            if not propositions:
+                continue
+
+            assertion_methods = [
+                schemas.AssertionMethod(
+                    id='assertion_method:2',
+                    label='Standards and Guidelines for the Interpretation '
+                          'and Reporting of Sequence Variants in Cancer: A '
+                          'Joint Consensus Recommendation of the Association '
+                          'for Molecular Pathology, American Society of '
+                          'Clinical Oncology, and College of American '
+                          'Pathologists',
+                    url='https://pubmed.ncbi.nlm.nih.gov/27993330/',
+                    version=schemas.Date(year=2017, month=1),
+                    reference='Li MM, Datto M, Duncavage EJ, et al.'
+                ).dict(),
+                schemas.AssertionMethod(
+                    id='assertion_method:3',
+                    label='Standards and guidelines for the interpretation of'
+                          ' sequence variants: a joint consensus '
+                          'recommendation of the American College of Medical '
+                          'Genetics and Genomics and the Association for '
+                          'Molecular Pathology',
+                    url='https://pubmed.ncbi.nlm.nih.gov/25741868/',
+                    version=schemas.Date(year=2015, month=5),
+                    reference='Richards S, Aziz N, Bale S, et al.'
+                ).dict()
+            ]
+
+            documents = self._get_assertion_document(assertion,
+                                                     propositions_documents_ix)
 
             responses.append({
                 'assertion': self._get_assertion(assertion, propositions,
-                                                 variation_descriptors,
-                                                 therapy_descriptors,
-                                                 disease_descriptors,
-                                                 assertion_methods),
+                                                 eids, assertion_methods,
+                                                 documents),
                 'propositions': propositions,
-                'variation_descriptors': variation_descriptors,
-                'therapy_descriptors': therapy_descriptors,
-                'disease_descriptors': disease_descriptors,
-                'assertion_methods': assertion_methods
+                'evidence': eids,
+                'assertion_methods': assertion_methods,
+                'documents': documents
             })
-
-    def _get_assertion(self, assertion, propositions, variation_descriptors,
-                       therapy_descriptors, disease_descriptors,
-                       assertion_methods):
-        """Return a list of assertions.
-
-        :param dict assertion: Harvested CIViC assertion item record
-        :param list propositions: A dict containing indexes for
-            propositions and assertion methods
-        :param list therapy_descriptors: A list of Therapy Descriptors
-        :param list disease_descriptors: A list of Disease Descriptors
-        :param list assertion_methods: A list of Assertion Methods
-        :return: A list of Assertions
-        """
-        evidence_level = None
-        if assertion['amp_level']:
-            evidence_level = f"civic.amp_level:"\
-                             f"{'_'.join(assertion['amp_level'].lower().split())}"  # noqa: E501
-
-        assertion = schemas.Assertion(
-            id=f"{schemas.NamespacePrefix.CIVIC.value}:"
-               f"{assertion['name'].lower()}",
-            description=assertion['description'],
-            direction=self._get_evidence_direction(assertion['evidence_direction']),  # noqa: E501
-            evidence_level=evidence_level,  # TODO: Check this
-            propositions=list({p['_id'] for p in propositions}),
-            variation_descriptors=list({v['id'] for v in variation_descriptors}),  # noqa: E501
-            therapy_descriptors=list({t['id'] for t in therapy_descriptors}),
-            disease_descriptors=list({d['id'] for d in disease_descriptors}),
-            assertion_methods=list({a['id'] for a in assertion_methods})
-        ).dict()
-        return [assertion]
 
     def _get_evidence(self, evidence, propositions,
                       therapy_descriptors, disease_descriptors,
-                      assertion_methods):
+                      assertion_methods, documents):
         """Return a list of evidence.
 
         :param dict evidence: Harvested CIViC evidence item record
@@ -244,9 +225,72 @@ class CIViCTransform:
             variation_descriptor=f"civic:vid{evidence['variant_id']}",
             therapy_descriptor=therapy_descriptors[0]['id'],
             disease_descriptor=disease_descriptors[0]['id'],
-            assertion_method=assertion_methods[0]['id']
+            assertion_method=assertion_methods[0]['id'],
+            document=documents[0]['id']
         ).dict()
         return [evidence]
+
+    def _get_assertion(self, assertion, propositions, eids, assertion_methods,
+                       documents):
+        """Return a list of assertions.
+
+        :param dict assertion: Harvested CIViC assertion item record
+        :param list propositions: A dict containing indexes for
+            propositions and assertion methods
+        :param list eids:
+        :return: A list of Assertions
+        """
+        assertion_level = None
+        if assertion['amp_level']:
+            assertion_level = f"civic.amp_level:"\
+                              f"{'_'.join(assertion['amp_level'].lower().split())}"  # noqa: E501
+
+        assertion = schemas.Assertion(
+            id=f"{schemas.NamespacePrefix.CIVIC.value}:"
+               f"{assertion['name'].lower()}",
+            description=assertion['description'],
+            direction=self._get_evidence_direction(assertion['evidence_direction']),  # noqa: E501
+            assertion_level=assertion_level,
+            proposition=propositions[0]['_id'],
+            assertion_methods=[a['id'] for a in assertion_methods],
+            document=documents[0]['id'],
+            evidence=eids
+        ).dict()
+        return [assertion]
+
+    def _get_descriptors(self, record, genes, variants, is_evidence=True):
+        if len(record['drugs']) != 1:
+            logger.warning(f"{record['name']} does not have exactly "
+                           f"one therapy.")
+            return None
+        else:
+            therapy_descriptors = self._get_therapy_descriptors(
+                record['drugs'][0])
+
+        if is_evidence:
+            variation_descriptors = \
+                self._get_variation_descriptors(self._get_record(
+                    record['variant_id'], variants),
+                    self._get_record(record['gene_id'], genes))
+        else:
+            variation_descriptors = self._get_variation_descriptors(
+                self._get_record(record['variant']['id'], variants),
+                self._get_record(record['gene']['id'], genes)
+            )
+
+        if len(variation_descriptors) != 1:
+            logger.warning(f"{record['name']} does not have exactly "
+                           f"one variant.")
+            return None
+
+        disease_descriptors = \
+            self._get_disease_descriptors(record['disease'])
+        if len(disease_descriptors) != 1:
+            logger.warning(f"{record['name']} does not have exactly "
+                           f"one disease.")
+            return None
+
+        return therapy_descriptors, variation_descriptors, disease_descriptors
 
     def _get_evidence_direction(self, direction):
         """Return the evidence direction.
@@ -264,14 +308,14 @@ class CIViCTransform:
 
     def _get_propositions(self, evidence, variation_descriptors,
                           disease_descriptors, therapy_descriptors,
-                          props_and_assert_methods_ix):
+                          propositions_documents_ix):
         """Return a list of propositions.
 
         :param dict evidence: CIViC evidence item record
         :param list variation_descriptors: A list of Variation Descriptors
         :param list disease_descriptors: A list of Disease Descriptors
         :param list therapy_descriptors: A list of therapy_descriptors
-        :param dict props_and_assert_methods_ix: A dict containing indexes for
+        :param dict propositions_documents_ix: A dict containing indexes for
             propositions and assertion methods
         :return: A list of propositions.
         """
@@ -298,7 +342,7 @@ class CIViCTransform:
                proposition['has_originating_context'],
                proposition['disease_context'], proposition['therapy'])
 
-        proposition_index = self._set_ix(props_and_assert_methods_ix,
+        proposition_index = self._set_ix(propositions_documents_ix,
                                          'propositions', key)
         proposition['_id'] = f"proposition:{proposition_index:03}"
 
@@ -376,19 +420,11 @@ class CIViCTransform:
         :param dict gene: A CIViC gene record
         :return: A list of Variation Descriptors
         """
+        # For now, everything that we're able to normalize is as the protein
+        # level. Will change this once variant normalizer can normalize
+        # other types of variants other than just protein substitution
         structural_type = 'SO:0001060'
-        molecule_context = None
-        if len(variant['variant_types']) == 1:
-            # TODO: Go through SO to find the molecule_context
-            #  Is there a better way to do this?
-            so_id = variant['variant_types'][0]['so_id']
-            if so_id in ['SO:0001583', 'SO:0001818']:
-                molecule_context = 'protein'
-            elif so_id in ['SO:0001886', 'SO:0001576', 'SO:0001889']:
-                molecule_context = 'transcript'
-            else:
-                # TODO: Genomic
-                pass
+        molecule_context = 'protein'
 
         variant_query = f"{gene['name']} {variant['name']}"
 
@@ -568,33 +604,44 @@ class CIViCTransform:
                 )
         return hgvs_expressions
 
-    def _get_assertion_method(self, source, props_and_assert_methods_ix):
-        """Return a list of Assertion Methods for an evidence_item.
-
-        :param dict source: An evidence_item's source
-        :param dict props_and_assert_methods_ix: A dict containing indexes for
-            propositions and assertion methods
-        :return: A list of sources
-        """
+    def _get_evidence_document(self, source, propositions_documents_ix):
+        document = None
         source_type = source['source_type'].upper()
         if source_type in schemas.SourcePrefix.__members__:
             prefix = schemas.SourcePrefix[source_type].value
-            source_id = f"{prefix}:{source['citation_id']}"
-            source_index = self._set_ix(props_and_assert_methods_ix, 'sources',
-                                        source_id)
+            document_id = f"{prefix}:{source['citation_id']}"
+            document_ix = self._set_ix(propositions_documents_ix, 'documents',
+                                       document_id)
+            xrefs = []
+            if source['asco_abstract_id']:
+                xrefs.append(f"asco.abstract:{source['asco_abstract_id']}")
+            if source['pmc_id']:
+                xrefs.append(f"pmc:{source['pmc_id']}")
 
-            source = [schemas.AssertionMethod(
-                id=f"assertion_method:{source_index:03}",
-                label=source['name'],
-                url=source['source_url'],
-                version=source['publication_date'],
-                reference=source['citation']
-            ).dict()]
+            document = schemas.Document(
+                id=f"document:{document_ix:03}",
+                document_id=document_id,
+                label=source['citation'],
+                description=source['name'],
+                xrefs=xrefs
+            ).dict()
         else:
-            source = []
-            logger.warning(f"{source_type} not in schemas.SourcePrefix")
+            logger.warning(f"{source_type} not in schemas.SourcePrefix.")
+        return [document]
 
-        return source
+    def _get_assertion_document(self, assertion, propositions_documents_ix):
+        label = assertion['nccn_guideline']
+        version = assertion['nccn_guideline_version']
+        document_id = '_'.join((label + version).split())
+        document_ix = self._set_ix(propositions_documents_ix, 'documents',
+                                   document_id)
+        document = schemas.Document(
+            id=f"document:{document_ix:03}",
+            document_id=None,
+            label=label,
+            description=f"NCCN Guideline Version: {version}"
+        ).dict()
+        return [document]
 
     def _get_record(self, record_id, records):
         """Get a CIViC record by ID.
@@ -617,25 +664,26 @@ class CIViCTransform:
         if item not in list_name:
             list_name.append(item)
 
-    def _set_ix(self, props_and_assert_methods_ix, dict_key, search_key):
-        """Set props_and_assert_methods_ix.
+    def _set_ix(self, propositions_documents_ix, dict_key, search_key):
+        """Set propositions_documents_ix.
 
-        :param dict props_and_assert_methods_ix: A dict containing indexes for
+        :param dict propositions_documents_ix: A dict containing indexes for
             propositions and assertion methods
         :param str dict_key: 'sources' or 'propositions'
         :param Any search_key: The key to get or set
         :return: An int representing the index
         """
-        if dict_key == 'sources':
-            dict_key_ix = 'source_index'
+        if dict_key == 'documents':
+            dict_key_ix = 'document_index'
         elif dict_key == 'propositions':
             dict_key_ix = 'proposition_index'
         else:
-            raise KeyError("dict_key can only be `sources` or `propositions`.")
-        if props_and_assert_methods_ix[dict_key].get(search_key):
-            index = props_and_assert_methods_ix[dict_key].get(search_key)
+            raise KeyError("dict_key can only be `documents` or "
+                           "`propositions`.")
+        if propositions_documents_ix[dict_key].get(search_key):
+            index = propositions_documents_ix[dict_key].get(search_key)
         else:
-            index = props_and_assert_methods_ix.get(dict_key_ix)
-            props_and_assert_methods_ix[dict_key][search_key] = index
-            props_and_assert_methods_ix[dict_key_ix] += 1
+            index = propositions_documents_ix.get(dict_key_ix)
+            propositions_documents_ix[dict_key][search_key] = index
+            propositions_documents_ix[dict_key_ix] += 1
         return index

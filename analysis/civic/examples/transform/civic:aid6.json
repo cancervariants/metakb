@@ -4,29 +4,21 @@
             "id": "civic:aid6",
             "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",
             "direction": "supports",
-            "evidence_level": "civic.amp_level:tier_i_-_level_a",
-            "propositions": [
-                "proposition:131",
-                "proposition:130"
-            ],
-            "variation_descriptors": [
-                "civic:vid33"
-            ],
-            "therapy_descriptors": [
-                "civic:tid146"
-            ],
-            "disease_descriptors": [
-                "civic:did8",
-                "civic:did30"
-            ],
+            "assertion_level": "civic.amp_level:tier_i_-_level_a",
+            "proposition": "proposition:131",
             "assertion_methods": [
-                "assertion_method:139",
-                "assertion_method:219",
-                "assertion_method:199",
-                "assertion_method:222",
-                "assertion_method:137",
-                "assertion_method:138"
+                "assertion_method:2",
+                "assertion_method:3"
             ],
+            "evidence": [
+                "civic:eid2997",
+                "civic:eid2629",
+                "civic:eid982",
+                "civic:eid968",
+                "civic:eid883",
+                "civic:eid879"
+            ],
+            "document": "document:523",
             "type": "Assertion"
         }
     ],
@@ -39,215 +31,47 @@
             "disease_context": "ncit:C2926",
             "therapy": "ncit:C66940",
             "type": "therapeutic_response_proposition"
-        },
-        {
-            "_id": "proposition:130",
-            "predicate": "predicts_sensitivity_to",
-            "variation_origin": "somatic",
-            "has_originating_context": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
-            "disease_context": "ncit:C3512",
-            "therapy": "ncit:C66940",
-            "type": "therapeutic_response_proposition"
         }
     ],
-    "variation_descriptors": [
-        {
-            "id": "civic:vid33",
-            "type": "VariationDescriptor",
-            "label": "L858R",
-            "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",
-            "value_id": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
-            "value": {
-                "location": {
-                    "interval": {
-                        "end": 858,
-                        "start": 857,
-                        "type": "SimpleInterval"
-                    },
-                    "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
-                    "type": "SequenceLocation"
-                },
-                "state": {
-                    "sequence": "R",
-                    "type": "SequenceState"
-                },
-                "type": "Allele"
-            },
-            "xrefs": [
-                "clinvar:376280",
-                "clinvar:376282",
-                "clinvar:16609",
-                "caid:CA126713",
-                "dbsnp:121434568"
-            ],
-            "alternate_labels": [
-                "LEU858ARG"
-            ],
-            "extensions": [
-                {
-                    "name": "representative_variation_descriptor",
-                    "value": "civic:vid33.rep",
-                    "type": "Extension"
-                },
-                {
-                    "name": "civic_actionability_score",
-                    "value": "352.5",
-                    "type": "Extension"
-                },
-                {
-                    "name": "variant_groups",
-                    "value": {},
-                    "type": "Extension"
-                }
-            ],
-            "molecule_context": "protein",
-            "structural_type": "SO:0001060",
-            "expressions": [
-                {
-                    "syntax": "hgvs:protein",
-                    "value": "NP_005219.2:p.Leu858Arg",
-                    "version": null,
-                    "type": "Expression"
-                },
-                {
-                    "syntax": "hgvs:transcript",
-                    "value": "ENST00000275493.2:c.2573T>G",
-                    "version": null,
-                    "type": "Expression"
-                },
-                {
-                    "syntax": "hgvs:transcript",
-                    "value": "NM_005228.4:c.2573T>G",
-                    "version": null,
-                    "type": "Expression"
-                },
-                {
-                    "syntax": "hgvs:genomic",
-                    "value": "NC_000007.13:g.55259515T>G",
-                    "version": null,
-                    "type": "Expression"
-                }
-            ],
-            "ref_allele_seq": "L",
-            "gene_context": "civic:gid19",
-            "location_descriptor": null,
-            "sequence_descriptor": null,
-            "allelic_state": null
-        }
-    ],
-    "therapy_descriptors": [
-        {
-            "id": "civic:tid146",
-            "type": "TherapyDescriptor",
-            "label": "Afatinib",
-            "description": null,
-            "value_id": null,
-            "value": {
-                "therapy_id": "ncit:C66940",
-                "type": "Therapy"
-            },
-            "xrefs": null,
-            "alternate_labels": [
-                "BIBW2992",
-                "BIBW 2992",
-                "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"
-            ],
-            "extensions": null
-        }
-    ],
-    "disease_descriptors": [
-        {
-            "id": "civic:did8",
-            "type": "DiseaseDescriptor",
-            "label": "Lung Non-small Cell Carcinoma",
-            "description": null,
-            "value_id": null,
-            "value": {
-                "disease_id": "ncit:C2926",
-                "type": "Disease"
-            },
-            "xrefs": null,
-            "alternate_labels": null,
-            "extensions": null
-        },
-        {
-            "id": "civic:did30",
-            "type": "DiseaseDescriptor",
-            "label": "Lung Adenocarcinoma",
-            "description": null,
-            "value_id": null,
-            "value": {
-                "disease_id": "ncit:C3512",
-                "type": "Disease"
-            },
-            "xrefs": null,
-            "alternate_labels": null,
-            "extensions": null
-        }
+    "evidence": [
+        "civic:eid2997",
+        "civic:eid2629",
+        "civic:eid982",
+        "civic:eid968",
+        "civic:eid883",
+        "civic:eid879"
     ],
     "assertion_methods": [
         {
-            "id": "assertion_method:222",
-            "label": "Afatinib: first global approval.",
-            "url": "http://www.ncbi.nlm.nih.gov/pubmed/23982599",
+            "id": "assertion_method:2",
+            "label": "Standards and Guidelines for the Interpretation and Reporting of Sequence Variants in Cancer: A Joint Consensus Recommendation of the Association for Molecular Pathology, American Society of Clinical Oncology, and College of American Pathologists",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/27993330/",
             "version": {
-                "year": 2013,
-                "month": 9
+                "year": 2017,
+                "month": 1,
+                "day": null
             },
-            "reference": "Dungo et al., 2013, Drugs"
+            "reference": "Li MM, Datto M, Duncavage EJ, et al."
         },
         {
-            "id": "assertion_method:219",
-            "label": "BIBW2992, an irreversible EGFR/HER2 inhibitor highly effective in preclinical lung cancer models.",
-            "url": "http://www.ncbi.nlm.nih.gov/pubmed/18408761",
-            "version": {
-                "year": 2008,
-                "month": 8,
-                "day": 7
-            },
-            "reference": "Li et al., 2008, Oncogene"
-        },
-        {
-            "id": "assertion_method:139",
-            "label": "Afatinib versus cisplatin plus gemcitabine for first-line treatment of Asian patients with advanced non-small-cell lung cancer harbouring EGFR mutations (LUX-Lung 6): an open-label, randomised phase 3 trial.",
-            "url": "http://www.ncbi.nlm.nih.gov/pubmed/24439929",
-            "version": {
-                "year": 2014,
-                "month": 2
-            },
-            "reference": "Wu et al., 2014, Lancet Oncol."
-        },
-        {
-            "id": "assertion_method:138",
-            "label": "In vitro modeling to determine mutation specificity of EGFR tyrosine kinase inhibitors against clinically relevant EGFR mutants in non-small-cell lung cancer.",
-            "url": "http://www.ncbi.nlm.nih.gov/pubmed/26515464",
+            "id": "assertion_method:3",
+            "label": "Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/25741868/",
             "version": {
                 "year": 2015,
-                "month": 11,
-                "day": 17
+                "month": 5,
+                "day": null
             },
-            "reference": "Hirano et al., 2015, Oncotarget"
-        },
+            "reference": "Richards S, Aziz N, Bale S, et al."
+        }
+    ],
+    "documents": [
         {
-            "id": "assertion_method:199",
-            "label": "Afatinib for patients with lung adenocarcinoma and epidermal growth factor receptor mutations (LUX-Lung 2): a phase 2 trial.",
-            "url": "http://www.ncbi.nlm.nih.gov/pubmed/22452895",
-            "version": {
-                "year": 2012,
-                "month": 5
-            },
-            "reference": "Yang et al., 2012, Lancet Oncol."
-        },
-        {
-            "id": "assertion_method:137",
-            "label": "Phase III study of afatinib or cisplatin plus pemetrexed in patients with metastatic lung adenocarcinoma with EGFR mutations.",
-            "url": "http://www.ncbi.nlm.nih.gov/pubmed/23816960",
-            "version": {
-                "year": 2013,
-                "month": 9,
-                "day": 20
-            },
-            "reference": "Sequist et al., 2013, J. Clin. Oncol."
+            "id": "document:523",
+            "document_id": null,
+            "label": "Non-Small Cell Lung Cancer",
+            "description": "NCCN Guideline Version: 3.2018",
+            "xrefs": null
         }
     ]
 }

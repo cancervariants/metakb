@@ -150,12 +150,11 @@ class Assertion(BaseModel):
     type = 'Assertion'
     description: str
     direction: Optional[Direction]
-    evidence_level: str
-    propositions: List[str]
-    variation_descriptors: List[str]
-    therapy_descriptors: List[str]
-    disease_descriptors: List[str]
+    assertion_level: str
+    proposition: str
     assertion_methods: List[str]
+    evidence: List[str]
+    document: str
     # contributions: List[str]
 
 
@@ -172,7 +171,26 @@ class Evidence(BaseModel):
     therapy_descriptor: str
     disease_descriptor: str
     assertion_method: str
+    document: str
     # contribution: str  TODO: After metakb first pass
+
+
+class Document(BaseModel):
+    """Define model for Document."""
+
+    id: str
+    document_id: Optional[str]
+    label: str
+    description: str
+    xrefs: Optional[List[str]]
+
+
+class Date(BaseModel):
+    """Define model for date."""
+
+    year: Optional[int]
+    month: Optional[int]
+    day: Optional[int]
 
 
 class AssertionMethod(BaseModel):
@@ -181,7 +199,7 @@ class AssertionMethod(BaseModel):
     id: str
     label: str
     url: str
-    version: dict
+    version: Date
     reference: str
 
 
