@@ -617,7 +617,7 @@ class CIViCTransform:
                 syntax = 'hgvs:protein'
             if hgvs_expr != 'N/A':
                 hgvs_expressions.append(
-                    schemas.Expression(syntax=syntax, value=hgvs_expr)
+                    schemas.Expression(syntax=syntax, value=hgvs_expr).dict()
                 )
         return hgvs_expressions
 
