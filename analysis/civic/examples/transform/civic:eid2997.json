@@ -9,9 +9,7 @@
             "variation_descriptor": "civic:vid33",
             "therapy_descriptor": "civic:tid146",
             "disease_descriptor": "civic:did8",
-            "assertion_methods": [
-                "assertion_method:222"
-            ],
+            "assertion_method": "assertion_method:222",
             "type": "Evidence"
         }
     ],

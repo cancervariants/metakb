@@ -8,7 +8,7 @@ from gene.query import QueryHandler as GeneQueryHandler
 from variant.to_vrs import ToVRS
 from variant.normalize import Normalize as VariantNormalizer
 from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
-from therapy.query import QueryHandler as TherapyQueryHandler
+# from therapy.query import QueryHandler as TherapyQueryHandler
 from disease.query import QueryHandler as DiseaseQueryHandler
 
 logger = logging.getLogger('metakb')
@@ -28,7 +28,7 @@ class CIViCTransform:
         self.gene_query_handler = GeneQueryHandler()
         self.variant_normalizer = VariantNormalizer()
         self.disease_query_handler = DiseaseQueryHandler()
-        self.therapy_query_handler = TherapyQueryHandler()
+        # self.therapy_query_handler = TherapyQueryHandler()
         self.variant_to_vrs = ToVRS()
         self.amino_acid_cache = AminoAcidCache()
 
@@ -244,7 +244,7 @@ class CIViCTransform:
             variation_descriptor=f"civic:vid{evidence['variant_id']}",
             therapy_descriptor=therapy_descriptors[0]['id'],
             disease_descriptor=disease_descriptors[0]['id'],
-            assertion_methods=[source['id'] for source in assertion_methods]
+            assertion_method=assertion_methods[0]['id']
         ).dict()
         return [evidence]
 
