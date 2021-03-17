@@ -126,3 +126,6 @@ data/*
 # Build files
 Pipfile.lock
 pyproject.toml
+
+# DynamoDB
+dynamodb_local_latest/

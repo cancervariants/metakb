@@ -1,0 +1,97 @@
+{
+  "evidence": [{
+    "id": "civic:eid2997",
+    "type": "EvidenceLine",
+    "supported_by": [
+      {
+        "type": "StudyResult",
+        "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
+        "confidence": "civic.trust_rating:5_star",
+      }
+    ],
+    "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
+    "direction": "supports",
+    "evidence_level":"civic.evidence_level:A",
+    "proposition": "proposition:001",
+    "evidence_sources": ["source:001"],
+    "contributions": ["contribution:001"],
+  }],
+  "propositions": [
+    {
+      "_id": "proposition:001",
+      "type": "therapeutic_response_proposition",
+      "variation_descriptor": "civic:vid33",
+      "has_originating_context": "ga4gh:VA.xxxxxx", <- TODO: create VRS object digest
+      "therapy": "ncit:C66940",
+      "disease_context": "ncit:C2926",
+      "predicate": "predicts_sensitivity_to",
+      "variation_origin": "somatic",
+    }
+  ],
+  "variation_descriptors": [
+    {
+      "id": "civic:vid33",
+      "type": "AlleleDescriptor",
+      "label": "L858R",
+      "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",
+      "value_id": "ga4gh:VA.xxxxxx", <- TODO: create VRS object digest
+      "value_obj": {}, <- TODO: create VRS object
+      "gene_descriptor": "civic:gid19",
+      "molecule_context": "protein",
+      "structural_type": "SO:0001606",
+      "ref_allele_seq": "L",
+      "expressions": [
+        {
+          "type": "Expression",
+          "system": "hgvs:protein",
+          "value": "NP_005219.2:p.Leu858Arg",
+        },
+        {
+          "type": "Expression",
+          "system": "hgvs:protein",
+          "value": "NP_005219.2:p.Leu858Arg",
+        },
+      ],
+      "xrefs": [
+        "clinvar:376280",
+        "clinvar:376282",
+        "clinvar:16609",
+        "caid:CA126713",
+        "dbsnp:rs121434568"
+      ],
+      "alternate_labels":[
+        "Leu858Arg"
+      ],
+      "extensions": [
+        "representative_variation_descriptor": "civic:vid33.rep",
+        "civic_actionability_score": "349.5",
+        "variant_groups": [],
+      ]
+    }
+  ],
+  "gene_descriptors": [
+    {
+
+    }
+  ],
+  "therapies": [
+
+  ],
+  "diseases": [
+
+  ],
+  "evidence_sources": [
+    {
+      "id": "pmid:23982599",
+      "label": "Dungo et al., 2013, Drugs",
+      "description": "Afatinib: first global approval.",
+      "xrefs": []
+    }
+  ],
+  "contributions": [
+
+  ],
+  "agents": [
+
+  ]
+}
