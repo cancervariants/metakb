@@ -79,8 +79,8 @@ class CIViCTransform:
         :param list evidence_items: A list of CIViC evidence items
         :param dict variants: A dict of CIViC variant records
         :param dict genes: A dict of CIViC gene records
-        :param dict propositions_documents_ix: A dict containing indexes for
-            propositions and assertion methods
+        :param dict propositions_documents_ix: Keeps track of proposition and
+            document indexes
         :param dict cdm_evidence_items: A dict containing evidence items that
             have been transformed to the CDM
         """
@@ -91,11 +91,11 @@ class CIViCTransform:
             else:
                 therapy_descriptors, variation_descriptors, disease_descriptors = descriptors  # noqa: E501
 
-            propositions = self._get_propositions(evidence,
-                                                  variation_descriptors,
-                                                  disease_descriptors,
-                                                  therapy_descriptors,
-                                                  propositions_documents_ix)
+            propositions = \
+                self._get_tr_propositions(evidence, variation_descriptors,
+                                          disease_descriptors,
+                                          therapy_descriptors,
+                                          propositions_documents_ix)
 
             # We only want therapeutic response for now
             if not propositions:
@@ -153,11 +153,11 @@ class CIViCTransform:
             else:
                 therapy_descriptors, variation_descriptors, disease_descriptors = descriptors  # noqa: E501
 
-            propositions = self._get_propositions(assertion,
-                                                  variation_descriptors,
-                                                  disease_descriptors,
-                                                  therapy_descriptors,
-                                                  propositions_documents_ix)
+            propositions = \
+                self._get_tr_propositions(assertion, variation_descriptors,
+                                          disease_descriptors,
+                                          therapy_descriptors,
+                                          propositions_documents_ix)
 
             if not propositions:
                 continue
@@ -218,7 +218,8 @@ class CIViCTransform:
             id=f"{schemas.NamespacePrefix.CIVIC.value}:"
                f"{evidence['name'].lower()}",
             description=evidence['description'],
-            direction=self._get_evidence_direction(evidence['evidence_direction']),  # noqa: E501
+            direction=self._get_evidence_direction(
+                evidence['evidence_direction']),
             evidence_level=f"civic.evidence_level:"
                            f"{evidence['evidence_level']}",
             proposition=propositions[0]['_id'],
@@ -259,6 +260,13 @@ class CIViCTransform:
         return [assertion]
 
     def _get_descriptors(self, record, genes, variants, is_evidence=True):
+        """Return tuple of descriptors if one exists for each type.
+
+        :param dict record: A CIViC EID or AID
+        :param dict genes: CIViC gene records
+        :param dict variants: CIViC variant records
+        :param bool is_evidence: `True` if EID. `False` if AID.
+        """
         if len(record['drugs']) != 1:
             logger.warning(f"{record['name']} does not have exactly "
                            f"one therapy.")
@@ -303,21 +311,20 @@ class CIViCTransform:
         elif direction == 'Does Not Support':
             return schemas.Direction.DOES_NOT_SUPPORT
         else:
-            # TODO: Should we support 'N/A'
             return None
 
-    def _get_propositions(self, evidence, variation_descriptors,
-                          disease_descriptors, therapy_descriptors,
-                          propositions_documents_ix):
+    def _get_tr_propositions(self, evidence, variation_descriptors,
+                             disease_descriptors, therapy_descriptors,
+                             propositions_documents_ix):
         """Return a list of propositions.
 
         :param dict evidence: CIViC evidence item record
         :param list variation_descriptors: A list of Variation Descriptors
         :param list disease_descriptors: A list of Disease Descriptors
         :param list therapy_descriptors: A list of therapy_descriptors
-        :param dict propositions_documents_ix: A dict containing indexes for
-            propositions and assertion methods
-        :return: A list of propositions.
+        :param dict propositions_documents_ix: Keeps track of proposition and
+            document indexes
+        :return: A list of therapeutic propositions.
         """
         proposition_type = \
             self._get_proposition_type(evidence['evidence_type'])
@@ -331,7 +338,8 @@ class CIViCTransform:
             type=proposition_type,
             predicate=self._get_predicate(proposition_type,
                                           evidence['clinical_significance']),
-            variation_origin=self._get_variation_origin(evidence['variant_origin']),  # noqa: E501
+            variation_origin=self._get_variation_origin(
+                evidence['variant_origin']),
             has_originating_context=variation_descriptors[0]['value_id'],
             disease_context=disease_descriptors[0]['value']['disease_id'],
             therapy=therapy_descriptors[0]['value']['therapy_id']
@@ -391,7 +399,7 @@ class CIViCTransform:
             return None
         else:
             if clin_sig == 'N/A':
-                return None  # TODO: Or should we return N/A?
+                return None
             clin_sig = '_'.join(clin_sig.upper().split())
             predicate = None
 
@@ -420,42 +428,50 @@ class CIViCTransform:
         :param dict gene: A CIViC gene record
         :return: A list of Variation Descriptors
         """
-        # For now, everything that we're able to normalize is as the protein
-        # level. Will change this once variant normalizer can normalize
-        # other types of variants other than just protein substitution
-        structural_type = 'SO:0001060'
-        molecule_context = 'protein'
-
+        # Find all possible queries to test against variant-normalizer
         variant_query = f"{gene['name']} {variant['name']}"
+        hgvs_exprs = self._get_hgvs_expr(variant)
+        hgvs_exprs_query = list()
+        for expr in hgvs_exprs:
+            if 'protein' in expr['syntax']:
+                hgvs_exprs_query.append(expr)
 
-        try:
-            validations = self.variant_to_vrs.get_validations(variant_query)
-        except:  # noqa: E722
-            logger.error(f"toVRS: {variant_query}")
-            return []
-        normalized_resp = \
-            self.variant_normalizer.normalize(variant_query,
-                                              validations,
-                                              self.amino_acid_cache)
+        variant_norm_resp = None
+        for query in [variant_query] + hgvs_exprs_query:
+            try:
+                validations = self.variant_to_vrs.get_validations(
+                    variant_query)
+            except:  # noqa: E722
+                logger.error(f"toVRS does not support: {variant_query}")
+                return []
 
-        if not normalized_resp:
-            # TODO: Maybe we can search on the hgvs expression??
-            #  We need normalized_resp to get value or value_id
+            variant_norm_resp = \
+                self.variant_normalizer.normalize(query, validations,
+                                                  self.amino_acid_cache)
+            if variant_norm_resp:
+                break
+
+        if not variant_norm_resp:
             logger.warning(f"{variant_query} is not yet supported in"
                            f" Variant Normalization normalize.")
             return []
 
+        # For now, everything that we're able to normalize is as the protein
+        # level. Will change this once variant normalizer can normalize
+        # other types of variants other than just protein substitution
+        # So molecule_context = protein and structural_type is always
+        # SO:0001060
         variation_descriptor = schemas.VariationDescriptor(
             id=f"civic:vid{variant['id']}",
             label=variant['name'],
             description=variant['description'] if variant['description'] else None,  # noqa: E501
-            value_id=normalized_resp.value_id,
-            value=normalized_resp.value,
+            value_id=variant_norm_resp.value_id,
+            value=variant_norm_resp.value,
             gene_context=f"civic:gid{gene['id']}",
-            molecule_context=molecule_context,
-            structural_type=structural_type,
+            molecule_context='protein',
+            structural_type='SO:0001060',
             ref_allele_seq=re.split(r'\d+', variant['name'])[0],
-            expressions=self._get_hgvs_expr(variant),
+            expressions=hgvs_exprs,
             xrefs=self._get_variant_xrefs(variant),
             alternate_labels=[v_alias for v_alias in
                               variant['variant_aliases'] if not
@@ -540,15 +556,16 @@ class CIViCTransform:
             return []
 
         doid = f"doid:{disease['doid']}"
-        disease_norm_resp = self.disease_query_handler.search_groups(doid)
-
         display_name = disease['display_name']
-        if disease_norm_resp['match_type'] == 0:
-            disease_norm_resp = \
-                self.disease_query_handler.search_groups(display_name)
+        disease_norm_resp = None
 
-        if disease_norm_resp['match_type'] == 0:
-            logger.warning(f"{doid}: {display_name} not found in Disease "
+        for query in [doid, display_name]:
+            disease_norm_resp = self.disease_query_handler.search_groups(query)
+            if disease_norm_resp['match_type'] != 0:
+                break
+
+        if not disease_norm_resp:
+            logger.warning(f"{doid} and {display_name} not found in Disease "
                            f"Normalization normalize.")
             return []
 
@@ -605,6 +622,12 @@ class CIViCTransform:
         return hgvs_expressions
 
     def _get_evidence_document(self, source, propositions_documents_ix):
+        """Get an Evidence Item's source document.
+
+        :param dict source: An evidence item's source
+        :param propositions_documents_ix: Keeps track of proposition and
+            document indexes
+        """
         document = None
         source_type = source['source_type'].upper()
         if source_type in schemas.SourcePrefix.__members__:
@@ -630,6 +653,12 @@ class CIViCTransform:
         return [document]
 
     def _get_assertion_document(self, assertion, propositions_documents_ix):
+        """Get an Assertion's source document.
+
+        :param dict assertion: A CIViC Assertion
+        :param propositions_documents_ix: Keeps track of proposition and
+            document indexes
+        """
         label = assertion['nccn_guideline']
         version = assertion['nccn_guideline_version']
         document_id = '_'.join((label + version).split())
@@ -667,8 +696,8 @@ class CIViCTransform:
     def _set_ix(self, propositions_documents_ix, dict_key, search_key):
         """Set propositions_documents_ix.
 
-        :param dict propositions_documents_ix: A dict containing indexes for
-            propositions and assertion methods
+        :param dict propositions_documents_ix: Keeps track of proposition and
+            document indexes
         :param str dict_key: 'sources' or 'propositions'
         :param Any search_key: The key to get or set
         :return: An int representing the index
