@@ -155,7 +155,8 @@ class Assertion(BaseModel):
     variation_descriptors: List[str]
     therapy_descriptors: List[str]
     disease_descriptors: List[str]
-    assertion_methods: Optional[List[str]]
+    assertion_methods: List[str]
+    # contributions: List[str]
 
 
 class Evidence(BaseModel):
@@ -170,8 +171,7 @@ class Evidence(BaseModel):
     variation_descriptor: str
     therapy_descriptor: str
     disease_descriptor: str
-    assertion_methods: List[str]
-    # assertion: str  TODO
+    assertion_method: str
     # contribution: str  TODO: After metakb first pass
 
 
