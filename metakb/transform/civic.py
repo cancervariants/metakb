@@ -101,6 +101,9 @@ class CIViCTransform:
             if not propositions:
                 continue
 
+            gene_descriptors = self._get_gene_descriptors(
+                self._get_record(evidence['gene_id'], genes))
+
             documents = self._get_evidence_document(evidence['source'],
                                                     propositions_documents_ix)
 
@@ -121,6 +124,7 @@ class CIViCTransform:
                                                documents),
                 'propositions': propositions,
                 'variation_descriptors': variation_descriptors,
+                'gene_descriptors': gene_descriptors,
                 'therapy_descriptors': therapy_descriptors,
                 'disease_descriptors': disease_descriptors,
                 'assertion_methods': assertion_methods,
@@ -459,11 +463,6 @@ class CIViCTransform:
                            f" Variant Normalization normalize.")
             return []
 
-        # TODO: CURIE or Gene Descriptor?
-        gene_context = self._get_gene_descriptors(gene)
-        if not gene_context:
-            gene_context = f"civic:gid{gene['id']}"
-
         # For now, everything that we're able to normalize is as the protein
         # level. Will change this once variant normalizer can normalize
         # other types of variants other than just protein substitution
@@ -475,7 +474,7 @@ class CIViCTransform:
             description=variant['description'] if variant['description'] else None,  # noqa: E501
             value_id=variant_norm_resp.value_id,
             value=variant_norm_resp.value,
-            gene_context=gene_context,
+            gene_context=f"civic:gid{gene['id']}",
             molecule_context='protein',
             structural_type='SO:0001060',
             ref_allele_seq=re.split(r'\d+', variant['name'])[0],
@@ -546,15 +545,15 @@ class CIViCTransform:
                     break
 
         if found_match:
-            gene_descriptor = schemas.GeneDescriptor(
+            gene_descriptor = [schemas.GeneDescriptor(
                 id=f"civic:gid{gene['id']}",
                 label=gene['name'],
                 description=gene['description'] if gene['description'] else None,  # noqa: E501
                 value=schemas.Gene(gene_id=gene_norm_resp['source_matches'][0]['records'][0].concept_id),  # noqa: E501
                 alternate_labels=gene['aliases']
-            ).dict()
+            ).dict()]
         else:
-            gene_descriptor = None
+            gene_descriptor = []
 
         return gene_descriptor
 

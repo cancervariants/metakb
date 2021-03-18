@@ -3,6 +3,7 @@ import pytest
 from metakb.transform.civic import CIViCTransform
 from metakb import PROJECT_ROOT
 import json
+import os
 
 
 @pytest.fixture(scope='module')
@@ -131,32 +132,7 @@ def eid2997():
                     }
                 ],
                 "ref_allele_seq": "L",
-                "gene_context": {
-                    "id": "civic:gid19",
-                    "type": "GeneDescriptor",
-                    "label": "EGFR",
-                    "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \n"  # noqa:E501
-                                   "Overproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
-                    "value_id": None,
-                    "value": {
-                        "type": "Gene",
-                        "gene_id": "hgnc:3236"
-                    },
-                    "xrefs": None,
-                    "alternate_labels": [
-                        "EGFR",
-                        "mENA",
-                        "PIG61",
-                        "ERBB1",
-                        "ERBB",
-                        "NISBD2",
-                        "HER1"
-                    ],
-                    "extensions": None
-                },
-                "location_descriptor": None,
-                "sequence_descriptor": None,
-                "allelic_state": None
+                "gene_context": "civic:gid19"
             }
         ],
         "therapy_descriptors": [
@@ -192,6 +168,31 @@ def eid2997():
                 },
                 "xrefs": None,
                 "alternate_labels": None,
+                "extensions": None
+            }
+        ],
+        "gene_descriptors": [
+            {
+                "id": "civic:gid19",
+                "type": "GeneDescriptor",
+                "label": "EGFR",
+                "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \n"  # noqa:E501
+                               "Overproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
+                "value_id": None,
+                "value": {
+                    "type": "Gene",
+                    "gene_id": "hgnc:3236"
+                },
+                "xrefs": None,
+                "alternate_labels": [
+                    "EGFR",
+                    "mENA",
+                    "PIG61",
+                    "ERBB1",
+                    "ERBB",
+                    "NISBD2",
+                    "HER1"
+                ],
                 "extensions": None
             }
         ],
@@ -299,6 +300,14 @@ def assert_same_keys_list_items(actual, test):
         assert item in test
 
 
+def assert_non_lists(actual, test):
+    """Check assertions for non list types."""
+    if isinstance(actual, dict):
+        assertions(test, actual)
+    else:
+        assert test == actual
+
+
 def assertions(test_data, actual_data):
     """Assert that test and actual data are the same."""
     if isinstance(actual_data, dict):
@@ -309,33 +318,29 @@ def assertions(test_data, actual_data):
                     assert set(test_data[key]) == set(actual_data[key])
                 except:  # noqa: E722
                     assertions(test_data[key], actual_data[key])
-            elif isinstance(actual_data[key], dict):
-                assertions(test_data[key], actual_data[key])
             else:
-                assert test_data[key] == actual_data[key]
+                assert_non_lists(actual_data[key], test_data[key])
     elif isinstance(actual_data, list):
         assert_same_keys_list_items(actual_data, test_data)
         for item in actual_data:
             if isinstance(item, list):
                 assert set(test_data) == set(actual_data)
-            elif isinstance(actual_data, dict):
-                assertions(test_data, actual_data)
             else:
-                assert test_data == actual_data
+                assert_non_lists(actual_data, test_data)
 
 
 def test_eid2997(data, eid2997):
     """Test that transform is correct for EID2997."""
     eid2997_data = None
-    evidence = 'evidence'
     for item in data:
-        if evidence in list(item.keys())[0]:
+        if 'evidence' in list(item.keys())[0]:
             eid2997_data = item
             break
 
-    for key in [evidence, 'propositions', 'variation_descriptors',
-                'therapy_descriptors', 'disease_descriptors',
-                'assertion_methods', 'documents']:
+    eid2997_data_keys = eid2997_data.keys()
+
+    for key in eid2997.keys():
+        assert key in eid2997_data_keys
         assert len(eid2997_data[key]) == len(eid2997[key])
         assertions(eid2997_data[key][0], eid2997[key][0])
 
@@ -343,12 +348,16 @@ def test_eid2997(data, eid2997):
 def test_aid6(data, aid6):
     """Test that transform is correct for AID6."""
     aid6_data = None
-    assertion = 'assertion'
     for item in data:
-        if assertion in list(item.keys())[0]:
+        if 'assertion' in list(item.keys())[0]:
             aid6_data = item
             break
 
-    for key in [assertion, 'propositions', 'assertion_methods', 'documents']:
+    aid_data_keys = aid6_data.keys()
+
+    for key in aid6.keys():
+        assert key in aid_data_keys
         assert len(aid6_data[key]) == len(aid6[key])
         assertions(aid6_data[key][0], aid6[key][0])
+
+    os.remove(f"{PROJECT_ROOT}/tests/data/transform/civic_cdm.json")

@@ -264,6 +264,3 @@ class VariationDescriptor(ValueObjectDescriptor):
     expressions: Optional[List[Expression]]
     ref_allele_seq: Optional[str]
     gene_context: Optional[Union[str, GeneDescriptor]]
-    location_descriptor: Optional[LocationDescriptor]
-    sequence_descriptor: Optional[SequenceDescriptor]
-    allelic_state: Optional[str]
