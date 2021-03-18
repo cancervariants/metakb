@@ -1,5 +1,5 @@
 """Common data model"""
-from enum import Enum
+from enum import Enum, IntEnum
 from pydantic import BaseModel
 from pydantic.fields import Field
 from typing import List, Optional, Union
@@ -141,6 +141,14 @@ class TherapeuticResponseProposition(BaseModel):
     has_originating_context: str  # vrs:Variation
     disease_context: str  # vicc:Disease
     therapy: str  # Therapy value object
+
+
+class AssertionMethodID(IntEnum):
+    """Create constraints for AssertionMethod ids for harvested sources."""
+
+    CIVIC_EID_SOP = 1
+    CIVIC_AID_AMP_ASCO_CAP = 2
+    CIVIC_AID_ACMG = 3
 
 
 class Assertion(BaseModel):
