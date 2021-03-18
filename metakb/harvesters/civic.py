@@ -289,11 +289,8 @@ class CIViC(Harvester):
             'id': evidence_item['id'],
             'name': evidence_item['name'],
             'description': evidence_item['description'],
-            'disease': self._disease(self._get_dict(evidence_item)),
-            'drugs': [
-                self._drug(self._get_dict(drug))
-                for drug in evidence_item['drugs']
-            ],
+            'disease': evidence_item['disease'],
+            'drugs': evidence_item['drugs'],
             'rating': evidence_item['rating'],
             'evidence_level': evidence_item['evidence_level'],
             'evidence_type': evidence_item['evidence_type'],
@@ -307,7 +304,7 @@ class CIViC(Harvester):
             'status': evidence_item['status'],
             # TODO: Add open_change_count
             'type': evidence_item['type'],
-            'source': self._source(evidence_item),
+            'source': evidence_item['source'],
             'variant_id': evidence_item['variant_id'],
             # TODO: Find variant w phenotypes
             'phenotypes': []
@@ -449,21 +446,6 @@ class CIViC(Harvester):
             'status': source['status'],
             'is_review': source['is_review'],
             'clinical_trials': [ct for ct in source['clinical_trials']]
-        }
-
-    def _disease(self, evidence_item):
-        """Get an evidence item's disease data.
-
-        :param Evidence evidence_item: A CIViC Evidence record
-        :return: A dictionary containing disease data
-        """
-        disease = self._get_dict(evidence_item['disease'])
-        return {
-            'id': disease['id'],
-            'name': disease['name'],
-            'display_name': disease['display_name'],
-            'doid': disease['doid'],
-            'url': disease['url']
         }
 
     def _drug(self, drug):
