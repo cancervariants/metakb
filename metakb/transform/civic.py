@@ -108,7 +108,8 @@ class CIViCTransform:
                                                     propositions_documents_ix)
 
             assertion_methods = [schemas.AssertionMethod(
-                id='assertion_method:001',
+                id=f'assertion_method:'
+                   f'{schemas.AssertionMethodID.CIVIC_EID_SOP:03}',
                 label='Standard operating procedure for curation and clinical interpretation of variants in cancer',  # noqa: E501
                 url='https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x',  # noqa: E501
                 version=schemas.Date(year=2019, month=11, day=29),
@@ -168,7 +169,8 @@ class CIViCTransform:
 
             assertion_methods = [
                 schemas.AssertionMethod(
-                    id='assertion_method:002',
+                    id=f'assertion_method:'
+                       f'{schemas.AssertionMethodID.CIVIC_AID_AMP_ASCO_CAP.value:03}',  # noqa: E501
                     label='Standards and Guidelines for the Interpretation '
                           'and Reporting of Sequence Variants in Cancer: A '
                           'Joint Consensus Recommendation of the Association '
@@ -180,7 +182,8 @@ class CIViCTransform:
                     reference='Li MM, Datto M, Duncavage EJ, et al.'
                 ).dict(),
                 schemas.AssertionMethod(
-                    id='assertion_method:003',
+                    id=f'assertion_method:'
+                       f'{schemas.AssertionMethodID.CIVIC_AID_ACMG.value:03}',
                     label='Standards and guidelines for the interpretation of'
                           ' sequence variants: a joint consensus '
                           'recommendation of the American College of Medical '
