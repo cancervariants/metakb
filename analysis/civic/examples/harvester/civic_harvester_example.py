@@ -49,7 +49,7 @@ def create_variant_examples(data):
             variants.append(data['variants'][i])
 
     for variant in variants:
-        with open(f"{PROJECT_ROOT}/analysis/civic/examples/"
+        with open(f"{PROJECT_ROOT}/analysis/civic/examples/harvester/"
                   f"{variant['name'].lower()}.json", 'w+') as f:
             variant['evidence_items'] = variant['evidence_items'][0]
             f.write(json.dumps(variant))
@@ -61,7 +61,8 @@ if __name__ == '__main__':
     with open(f'{PROJECT_ROOT}/data/civic/civic_harvester.json', 'r') as f:
         civic_data = json.load(f)
 
-    civic_ex_dir = PROJECT_ROOT / 'analysis' / 'civic' / 'examples'
+    civic_ex_dir =\
+        PROJECT_ROOT / 'analysis' / 'civic' / 'examples' / 'harvester'
     civic_ex_dir.mkdir(exist_ok=True, parents=True)
 
     create_evidence_examples(civic_data)
