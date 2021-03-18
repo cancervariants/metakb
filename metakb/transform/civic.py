@@ -105,7 +105,7 @@ class CIViCTransform:
                                                     propositions_documents_ix)
 
             assertion_methods = [schemas.AssertionMethod(
-                id='assertion_method:1',
+                id='assertion_method:001',
                 label='Standard operating procedure for curation and clinical interpretation of variants in cancer',  # noqa: E501
                 url='https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x',  # noqa: E501
                 version=schemas.Date(year=2019, month=11, day=29),
@@ -164,7 +164,7 @@ class CIViCTransform:
 
             assertion_methods = [
                 schemas.AssertionMethod(
-                    id='assertion_method:2',
+                    id='assertion_method:002',
                     label='Standards and Guidelines for the Interpretation '
                           'and Reporting of Sequence Variants in Cancer: A '
                           'Joint Consensus Recommendation of the Association '
@@ -176,7 +176,7 @@ class CIViCTransform:
                     reference='Li MM, Datto M, Duncavage EJ, et al.'
                 ).dict(),
                 schemas.AssertionMethod(
-                    id='assertion_method:3',
+                    id='assertion_method:003',
                     label='Standards and guidelines for the interpretation of'
                           ' sequence variants: a joint consensus '
                           'recommendation of the American College of Medical '
@@ -274,6 +274,11 @@ class CIViCTransform:
         else:
             therapy_descriptors = self._get_therapy_descriptors(
                 record['drugs'][0])
+
+            # Might not be able to find NCIt therapy ID
+            # Log captured in _get_therapy_descriptors
+            if len(therapy_descriptors) != 1:
+                return None
 
         if is_evidence:
             variation_descriptors = \
@@ -431,19 +436,17 @@ class CIViCTransform:
         # Find all possible queries to test against variant-normalizer
         variant_query = f"{gene['name']} {variant['name']}"
         hgvs_exprs = self._get_hgvs_expr(variant)
-        hgvs_exprs_query = list()
+        hgvs_exprs_queries = list()
         for expr in hgvs_exprs:
             if 'protein' in expr['syntax']:
-                hgvs_exprs_query.append(expr)
+                hgvs_exprs_queries.append(expr)
 
         variant_norm_resp = None
-        for query in [variant_query] + hgvs_exprs_query:
-            try:
-                validations = self.variant_to_vrs.get_validations(
-                    variant_query)
-            except:  # noqa: E722
-                logger.error(f"toVRS does not support: {variant_query}")
-                return []
+        for query in [variant_query] + hgvs_exprs_queries:
+            if not query:
+                continue
+            validations = self.variant_to_vrs.get_validations(
+                variant_query)
 
             variant_norm_resp = \
                 self.variant_normalizer.normalize(query, validations,
@@ -456,6 +459,11 @@ class CIViCTransform:
                            f" Variant Normalization normalize.")
             return []
 
+        # TODO: CURIE or Gene Descriptor?
+        gene_context = self._get_gene_descriptors(gene)
+        if not gene_context:
+            gene_context = f"civic:gid{gene['id']}"
+
         # For now, everything that we're able to normalize is as the protein
         # level. Will change this once variant normalizer can normalize
         # other types of variants other than just protein substitution
@@ -467,7 +475,7 @@ class CIViCTransform:
             description=variant['description'] if variant['description'] else None,  # noqa: E501
             value_id=variant_norm_resp.value_id,
             value=variant_norm_resp.value,
-            gene_context=f"civic:gid{gene['id']}",
+            gene_context=gene_context,
             molecule_context='protein',
             structural_type='SO:0001060',
             ref_allele_seq=re.split(r'\d+', variant['name'])[0],
@@ -519,13 +527,17 @@ class CIViCTransform:
         return xrefs
 
     def _get_gene_descriptors(self, gene):
-        """Return a list of Gene Descriptors.
+        """Return a Gene Descriptor.
 
         :param dict gene: A CIViC gene record
-        :return A list of Gene Descriptor
+        :return A Gene Descriptor
         """
         found_match = False
+        gene_norm_resp = None
         for query_str in [f"ncbigene:{gene['entrez_id']}", gene['name']] + gene['aliases']:  # noqa: E501
+            if not query_str:
+                continue
+
             gene_norm_resp = \
                 self.gene_query_handler.search_sources(query_str, incl="hgnc")
             if gene_norm_resp['source_matches']:
@@ -534,15 +546,15 @@ class CIViCTransform:
                     break
 
         if found_match:
-            gene_descriptor = [schemas.GeneDescriptor(
+            gene_descriptor = schemas.GeneDescriptor(
                 id=f"civic:gid{gene['id']}",
                 label=gene['name'],
                 description=gene['description'] if gene['description'] else None,  # noqa: E501
                 value=schemas.Gene(gene_id=gene_norm_resp['source_matches'][0]['records'][0].concept_id),  # noqa: E501
                 alternate_labels=gene['aliases']
-            ).dict()]
+            ).dict()
         else:
-            gene_descriptor = []
+            gene_descriptor = None
 
         return gene_descriptor
 
@@ -560,11 +572,14 @@ class CIViCTransform:
         disease_norm_resp = None
 
         for query in [doid, display_name]:
+            if not query:
+                continue
+
             disease_norm_resp = self.disease_query_handler.search_groups(query)
             if disease_norm_resp['match_type'] != 0:
                 break
 
-        if not disease_norm_resp:
+        if not disease_norm_resp or disease_norm_resp['match_type'] == 0:
             logger.warning(f"{doid} and {display_name} not found in Disease "
                            f"Normalization normalize.")
             return []
@@ -592,13 +607,46 @@ class CIViCTransform:
         :param dict drug: A drug for a given evidence_item
         :return: A list of Therapy Descriptors
         """
-        therapies = schemas.ValueObjectDescriptor(
-            id=f"civic:tid{drug['id']}",
-            type="TherapyDescriptor",
-            label=drug['name'],
-            value=schemas.Therapy(therapy_id=f"ncit:{drug['ncit_id']}"),
-            alternate_labels=drug['aliases']
-        ).dict()
+        label = drug['name']
+        ncit_id = f"ncit:{drug['ncit_id']}"
+        therapy_norm_resp = None
+
+        for query in [ncit_id, label]:
+            if not query:
+                continue
+
+            therapy_norm_resp = self.therapy_query_handler.search_groups(query)
+            if therapy_norm_resp['match_type'] != 0:
+                break
+
+        if not therapy_norm_resp or therapy_norm_resp['match_type'] == 0:
+            logger.warning(f"{ncit_id} and {label} not found in Therapy "
+                           f"Normalization normalize.")
+            return []
+
+        therapy_norm_resp = therapy_norm_resp['value_object_descriptor']
+
+        therapy_norm_id = \
+            therapy_norm_resp['value']['therapy_id']
+
+        # TODO: RxNorm is highest priority, but in example listed NCIt?
+        if not therapy_norm_id.startswith('ncit'):
+            therapy_norm_id = None
+            if 'xrefs' in therapy_norm_resp:
+                for other_id in therapy_norm_resp['xrefs']:
+                    if other_id.startswith('ncit:'):
+                        therapy_norm_id = other_id
+
+        if therapy_norm_id:
+            therapies = schemas.ValueObjectDescriptor(
+                id=f"civic:tid{drug['id']}",
+                type="TherapyDescriptor",
+                label=label,
+                value=schemas.Therapy(therapy_id=therapy_norm_id),
+                alternate_labels=drug['aliases']
+            ).dict()
+        else:
+            return []
         return [therapies]
 
     def _get_hgvs_expr(self, variant):
