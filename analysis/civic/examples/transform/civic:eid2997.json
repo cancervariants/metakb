@@ -104,31 +104,31 @@
                 }
             ],
             "ref_allele_seq": "L",
-            "gene_context": {
-                "id": "civic:gid19",
-                "type": "GeneDescriptor",
-                "label": "EGFR",
-                "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",
-                "value_id": null,
-                "value": {
-                    "gene_id": "hgnc:3236",
-                    "type": "Gene"
-                },
-                "xrefs": null,
-                "alternate_labels": [
-                    "EGFR",
-                    "mENA",
-                    "PIG61",
-                    "NISBD2",
-                    "HER1",
-                    "ERBB1",
-                    "ERBB"
-                ],
-                "extensions": null
+            "gene_context": "civic:gid19"
+        }
+    ],
+    "gene_descriptors": [
+        {
+            "id": "civic:gid19",
+            "type": "GeneDescriptor",
+            "label": "EGFR",
+            "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",
+            "value_id": null,
+            "value": {
+                "gene_id": "hgnc:3236",
+                "type": "Gene"
             },
-            "location_descriptor": null,
-            "sequence_descriptor": null,
-            "allelic_state": null
+            "xrefs": null,
+            "alternate_labels": [
+                "EGFR",
+                "mENA",
+                "PIG61",
+                "NISBD2",
+                "HER1",
+                "ERBB1",
+                "ERBB"
+            ],
+            "extensions": null
         }
     ],
     "therapy_descriptors": [
