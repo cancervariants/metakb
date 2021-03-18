@@ -238,6 +238,7 @@ class GeneDescriptor(ValueObjectDescriptor):
     """Reference GA4GH Gene Value Objects."""
 
     type = 'GeneDescriptor'
+    value: Gene
 
 
 class SequenceDescriptor(ValueObjectDescriptor):
