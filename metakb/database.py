@@ -71,9 +71,6 @@ class Graph:
             and Values/Descriptors for Gene, Disease, Therapy, and Variation
         """
         with self.driver.session() as session:
-            for proposition in data.get('propositions', []):
-                session.write_transaction(self._add_therapeutic_response,
-                                          proposition)
             for method in data.get('assertion_methods', []):
                 session.write_transaction(self._add_assertion_method, method)
             for descr in data.get('therapy_descriptors', []):
@@ -85,29 +82,11 @@ class Graph:
             for var_descr in data.get('variation_descriptors', []):
                 session.write_transaction(self._add_variant_descriptor,
                                           var_descr)
+            for proposition in data.get('propositions', []):
+                session.write_transaction(self._add_therapeutic_response,
+                                          proposition)
             for ev in data.get('evidence', []):
                 session.write_transaction(self._add_evidence, ev)
-
-    @staticmethod
-    def _add_therapeutic_response(tx, ther_response: Dict):
-        """Add Therapeutic Response object to DB.
-        :param Dict ther_response: TherapeuticResponse object as dict
-        """
-        nonnull_values = [f'{key}:"{ther_response[key]}"' for key
-                          in ('_id', 'predicate', 'variation_origin')
-                          if ther_response[key]]
-        values_joined = ', '.join(nonnull_values)
-        query = f"""
-        MERGE (n:TherapeuticResponse:Proposition
-            {{ {values_joined} }});
-        """
-        try:
-            tx.run(query, **ther_response)
-        except ServiceUnavailable as exception:
-            logging.error(f"Failed to add TherapeuticResponse object\n"
-                          f"Query: {query}\nTherapeuticResponse: "
-                          f"{ther_response}")
-            raise exception
 
     @staticmethod
     def _add_assertion_method(tx, assertion_method: Dict):
@@ -197,6 +176,36 @@ class Graph:
         except ServiceUnavailable as exception:
             logging.error(f"Failed to add Variant Descriptor object\nQuery: "
                           f"{query}\nDescriptor: {descriptor}")
+            raise exception
+
+    @staticmethod
+    def _add_therapeutic_response(tx, ther_response: Dict):
+        """Add Therapeutic Response object to DB.
+        :param Dict ther_response: TherapeuticResponse object as dict
+        """
+        nonnull_values = [f'{key}:"{ther_response[key]}"' for key
+                          in ('_id', 'predicate', 'variation_origin')
+                          if ther_response[key]]
+        values_joined = ', '.join(nonnull_values)
+        query = f"""
+        MERGE (response:TherapeuticResponse:Proposition
+            {{ {values_joined} }})
+        MERGE (disease:Disease {{id:$disease_context}})
+        MERGE (therapy:Therapy {{id:$therapy}})
+        MERGE (variation:Variation {{id:$has_originating_context}})
+        MERGE (response) -[:HAS_SUBJECT]-> (variation)
+        MERGE (variation) -[:IS_SUBJECT_OF]-> (response)
+        MERGE (response) -[:HAS_OBJECT]-> (therapy)
+        MERGE (therapy) -[:IS_OBJECT_OF]-> (response)
+        MERGE (response) -[:HAS_OBJECT_QUALIFIER]-> (disease)
+        MERGE (disease) -[:IS_OBJECT_QUALIFIER_OF]-> (response)
+        """
+        try:
+            tx.run(query, **ther_response)
+        except ServiceUnavailable as exception:
+            logging.error(f"Failed to add TherapeuticResponse object\n"
+                          f"Query: {query}\nTherapeuticResponse: "
+                          f"{ther_response}")
             raise exception
 
     @staticmethod
