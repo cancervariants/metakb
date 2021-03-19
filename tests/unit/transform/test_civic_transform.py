@@ -37,7 +37,7 @@ def eid2997():
                 "variation_descriptor": "civic:vid33",
                 "therapy_descriptor": "civic:tid146",
                 "disease_descriptor": "civic:did8",
-                "assertion_method": "assertion_method:001",
+                "method": "method:001",
                 "document": "document:001",
                 "type": "Evidence"
             }
@@ -191,9 +191,9 @@ def eid2997():
                 "extensions": None
             }
         ],
-        "assertion_methods": [
+        "methods": [
             {
-                "id": "assertion_method:001",
+                "id": "method:001",
                 "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
                 "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
                 "version": {
@@ -227,9 +227,9 @@ def aid6():
                 "direction": "supports",
                 "assertion_level": "civic.amp_level:tier_i_-_level_a",
                 "proposition": "proposition:001",
-                "assertion_methods": [
-                    "assertion_method:002",
-                    "assertion_method:003"
+                "methods": [
+                    "method:002",
+                    "method:003"
                 ],
                 "evidence": [
                     "civic:eid2997"
@@ -252,9 +252,9 @@ def aid6():
         "evidence": [
             "civic:eid2997"
         ],
-        "assertion_methods": [
+        "methods": [
             {
-                "id": "assertion_method:002",
+                "id": "method:002",
                 "label": "Standards and Guidelines for the Interpretation and Reporting of Sequence Variants in Cancer: A Joint Consensus Recommendation of the Association for Molecular Pathology, American Society of Clinical Oncology, and College of American Pathologists",  # noqa: E501
                 "url": "https://pubmed.ncbi.nlm.nih.gov/27993330/",
                 "version": {
@@ -265,7 +265,7 @@ def aid6():
                 "reference": "Li MM, Datto M, Duncavage EJ, et al."
             },
             {
-                "id": "assertion_method:003",
+                "id": "method:003",
                 "label": "Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology",  # noqa: E501
                 "url": "https://pubmed.ncbi.nlm.nih.gov/25741868/",
                 "version": {
