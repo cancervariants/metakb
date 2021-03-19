@@ -13,14 +13,20 @@ class Graph:
     """Manage requests to graph datastore.
 
     TODO
+    * Docstrings
+    * Need to add (currently excluding):
+       * Expressions in Variation Descriptors
+       * Extensions in any Descriptors (json serialize?)
+          * including Variant Groups
+       * any Assertion objects
     * format the long constaints string better
-    * how to do VOD extensions -- JSON?
     * do any current serialized values need to be searchable?
     * refactor add_transformed_data()
     * do evidence line/assertion need specific methods?
     * handle other types of propositions?
-    * refactor the ugly descriptor query formation trick
+    * refactor the ugly key/value property string
     * can Labels be retrieved as part of the query?
+    * handle prime (') symbols in strings -- skipping for now (see whitelist)
     """
 
     def __init__(self, uri: str, credentials: Tuple[str, str]):
@@ -87,11 +93,13 @@ class Graph:
         """Add Therapeutic Response object to DB.
         :param Dict ther_response: TherapeuticResponse object as dict
         """
-        query = """
+        nonnull_values = [f'{key}:"{ther_response[key]}"' for key
+                          in ('_id', 'predicate', 'variation_origin')
+                          if ther_response[key]]
+        values_joined = ', '.join(nonnull_values)
+        query = f"""
         MERGE (n:TherapeuticResponse:Proposition
-            {id:$_id, type:$type,
-             predicate:$predicate,
-             variation_origin:$variation_origin});
+            {{ {values_joined} }});
         """
         try:
             tx.run(query, **ther_response)
@@ -104,10 +112,10 @@ class Graph:
     @staticmethod
     def _add_assertion_method(tx, assertion_method: Dict):
         """Add Assertion Method object to DB."""
-        assertion_method['version'] = json.dumps(assertion_method['version'])
+        assertion_method['version'] = "20091210"
         query = """
         MERGE (n:AssertionMethod {id:$id, label:$label, url:$url,
-                                  version:$version, reference: $reference});
+            version:$version, reference: $reference});
         """
         try:
             tx.run(query, **assertion_method)
@@ -163,18 +171,24 @@ class Graph:
             json.dumps(descriptor['value']['location'])
         descriptor['expressions'] = [json.dumps(e)
                                      for e in descriptor['expressions']]
+        properties = ""
+        for key in ('id', 'label', 'description', 'xrefs', 'alternate_labels',
+                    'structural_type',
+                    # 'expressions',
+                    'ref_allele_seq'):
+            value = descriptor.get(key)
+            if value:
+                properties += f'{key}:"{value}", '
+        if properties:
+            properties = properties[:-2]
 
         query = f"""
         MERGE (descr:VariationDescriptor
-            {{id:$id, label:$label, description:$description, xrefs:$xrefs,
-              alternate_labels:$alternate_labels,
-              molecule_context:$molecule_context,
-              structural_type:$structural_type, expressions:$expressions,
-              ref_allele_seq:$ref_allele_seq}})
+            {{ {properties} }})
         MERGE (value:{value_type}:Variation
             {{state:$value_state,
               location:$value_location}})
-        MERGE (gene_context:GeneDescriptor {{id:$gene_context}})
+        MERGE (gene_context:GeneDescriptor {{id:$gene_context}} )
         MERGE (descr) -[:DESCRIBES]-> (value)
         MERGE (descr) -[:HAS_GENE] -> (gene_context);
         """
@@ -206,16 +220,20 @@ class Graph:
 
         :param Dict evidence: Evidence object
         """
-        query = """
-        MERGE (ev:Evidence {id:$id, description:$description,
-                            direction:$direction,
-                            evidence_level:$evidence_level})
-        MERGE (prop:Proposition {id:$proposition})
-        MERGE (var:VariationDescriptor {id:$variation_descriptor})
-        MERGE (ther:TherapyDescriptor {id:$therapy_descriptor})
-        MERGE (dis:DiseaseDescriptor {id:$disease_descriptor})
-        MERGE (method:AssertionMethod {id:$assertion_method})
-        MERGE (doc:Document {id:$document})
+        nonnull_values = [f'{key}:"{evidence[key]}"' for key
+                          in ('id', 'description', 'direction',
+                              'evidence_level')
+                          if evidence[key]]
+        values_joined = ', '.join(nonnull_values)
+
+        query = f"""
+        MERGE (ev:Evidence {{ {values_joined} }})
+        MERGE (prop:Proposition {{_id:$proposition}})
+        MERGE (var:VariationDescriptor {{id:$variation_descriptor}})
+        MERGE (ther:TherapyDescriptor {{id:$therapy_descriptor}})
+        MERGE (dis:DiseaseDescriptor {{id:$disease_descriptor}})
+        MERGE (method:AssertionMethod {{id:$assertion_method}})
+        MERGE (doc:Document {{id:$document}})
         MERGE (ev) -[:SUPPORTS]-> (prop)
         MERGE (ev) -[:HAS_VARIANT]-> (var)
         MERGE (ev) -[:HAS_THERAPY]-> (ther)
