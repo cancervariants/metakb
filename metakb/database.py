@@ -109,15 +109,15 @@ class Graph:
         descr_type = descriptor['type']
         if descr_type == 'TherapyDescriptor':
             value_type = 'Therapy'
-            value_id_name = 'therapy_id'
+            value_id_name = 'id'
             value_id = descriptor['value']['therapy_id']
         elif descr_type == 'DiseaseDescriptor':
             value_type = 'Disease'
-            value_id_name = 'disease_id'
+            value_id_name = 'id'
             value_id = descriptor['value']['disease_id']
         elif descr_type == 'GeneDescriptor':
             value_type = 'Gene'
-            value_id_name = 'gene_id'
+            value_id_name = 'id'
             value_id = descriptor['value']['gene_id']
         properties = ""
         for key in ('id', 'label', 'description', 'xrefs', 'alternate_labels'):
