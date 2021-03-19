@@ -38,6 +38,7 @@ class PropositionType(str, Enum):
     PREDISPOSING = 'predisposition_proposition'
     FUNCTIONAL = 'functional_consequence_proposition'
     ONCOGENIC = 'oncogenicity_proposition'
+    PATHOGENIC = 'pathogenicity_proposition'
 
 
 class PredictivePredicate(str, Enum):
@@ -45,53 +46,45 @@ class PredictivePredicate(str, Enum):
 
     SENSITIVITY = 'predicts_sensitivity_to'
     RESISTANCE = 'predicts_resistance_to'
-    REDUCED_SENSITIVITY = 'predicts_reduced_sensitivity_to'
-    ADVERSE_RESPONSE = 'predicts_adverse_response_to'
 
 
-# TODO: Check and change values for predicates
 class DiagnosticPredicate(str, Enum):
     """Define constraints for diagnostic predicate."""
 
-    POSITIVE = 'diagnoses_positive_to'
-    NEGATIVE = 'diagnoses_negative_to'
+    POSITIVE = 'is_diagnostic_inclusion_criterion_for'
+    NEGATIVE = 'is_diagnostic_exclusion_criterion_for'
 
 
 class PrognosticPredicate(str, Enum):
     """Define constraints for prognostic predicate."""
 
-    BETTER_OUTCOME = 'prognoses_better_outcome_to'
-    POOR_OUTCOME = 'prognoses_poor_outcome_to'
-    POSITIVE = 'prognoses_positive_to'
+    BETTER_OUTCOME = 'is_prognostic_of_better_outcome_for'
+    POOR_OUTCOME = 'is_prognostic_of_worse_outcome_for'
 
 
-class PredisposingPredicate(str, Enum):
-    """Define constraints for predisposing predicate."""
+class PathogenicPredicate(str, Enum):
+    """Define constraints for the pathogenicity predicate."""
 
-    POSITIVE = 'predisposes_positive_to'
-    UNCERTAIN_SIGNIFICANCE = 'predisposes_uncertain_significance_to'
-    LIKELY_PATHOGENIC = 'predisposes_likely_pathogenic_to'
-    PATHOGENIC = 'predisposes_pathogenic_to'
+    UNCERTAIN_SIGNIFICANCE = 'is_of_uncertain_significance_for'
+    PATHOGENIC = 'is_pathogenic_for'
+    BENIGN = 'is_benign_for'
 
 
 class FunctionalPredicate(str, Enum):
     """Define constraints for functional predicate."""
 
-    GAIN_OF_FUNCTION = 'functions_gain_to'
-    LOSS_OF_FUNCTION = 'functions_loss_to'
-    UNALTERED_FUNCTION = 'functions_unaltered_to'
-    NEOMORPHIC = 'functions_neomorphic_to'
-    DOMINATE_NEGATIVE = 'functions_dominate_negative_to'
-    UNKNOWN = 'functions_unknown_to'
+    GAIN_OF_FUNCTION = 'causes_gain_of_function_of'
+    LOSS_OF_FUNCTION = 'causes_loss_of_function_of'
+    UNALTERED_FUNCTION = 'does_not_change_function_of'
+    NEOMORPHIC = 'causes_neomorphic_function_of'
+    DOMINATE_NEGATIVE = 'causes_dominant_negative_function_of'
 
 
 class VariationOrigin(str, Enum):
     """Define constraints for variant origin."""
 
     SOMATIC = 'somatic'
-    RARE_GERMLINE = 'rare_germline'
-    COMMON_GERMLINE = 'common_germline'
-    UNKNOWN = 'unknown'
+    GERMLINE = 'germline'
     NOT_APPLICABLE = 'N/A'
 
 
@@ -143,8 +136,8 @@ class TherapeuticResponseProposition(BaseModel):
     therapy: str  # Therapy value object
 
 
-class AssertionMethodID(IntEnum):
-    """Create constraints for AssertionMethod ids for harvested sources."""
+class MethodID(IntEnum):
+    """Create AssertionMethod id constants for harvested sources."""
 
     CIVIC_EID_SOP = 1
     CIVIC_AID_AMP_ASCO_CAP = 2
@@ -160,7 +153,7 @@ class Assertion(BaseModel):
     direction: Optional[Direction]
     assertion_level: str
     proposition: str
-    assertion_methods: List[str]
+    methods: List[str]
     evidence: List[str]
     document: str
     # contributions: List[str]
@@ -178,7 +171,7 @@ class Evidence(BaseModel):
     variation_descriptor: str
     therapy_descriptor: str
     disease_descriptor: str
-    assertion_method: str
+    method: str
     document: str
     # contribution: str  TODO: After metakb first pass
 
@@ -187,22 +180,22 @@ class Document(BaseModel):
     """Define model for Document."""
 
     id: str
-    document_id: Optional[str]
+    document_id: str
     label: str
-    description: str
+    description: Optional[str]
     xrefs: Optional[List[str]]
 
 
 class Date(BaseModel):
     """Define model for date."""
 
-    year: Optional[int]
+    year: int
     month: Optional[int]
     day: Optional[int]
 
 
-class AssertionMethod(BaseModel):
-    """Define model for Assertion Method."""
+class Method(BaseModel):
+    """Define model for methods used in evidence curation and classifications."""  # noqa: E501
 
     id: str
     label: str
