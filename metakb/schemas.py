@@ -39,7 +39,7 @@ class PropositionType(str, Enum):
     FUNCTIONAL = 'functional_consequence_proposition'
     ONCOGENIC = 'oncogenicity_proposition'
     PATHOGENIC = 'pathogenicity_proposition'
-    
+
 
 class PredictivePredicate(str, Enum):
     """Define constraints for predictive predicate."""
@@ -48,7 +48,6 @@ class PredictivePredicate(str, Enum):
     RESISTANCE = 'predicts_resistance_to'
 
 
-# TODO: Check and change values for predicates
 class DiagnosticPredicate(str, Enum):
     """Define constraints for diagnostic predicate."""
 
@@ -137,8 +136,8 @@ class TherapeuticResponseProposition(BaseModel):
     therapy: str  # Therapy value object
 
 
-class AssertionMethodID(IntEnum):
-    """Create constraints for AssertionMethod ids for harvested sources."""
+class MethodID(IntEnum):
+    """Create AssertionMethod id constants for harvested sources."""
 
     CIVIC_EID_SOP = 1
     CIVIC_AID_AMP_ASCO_CAP = 2
@@ -154,7 +153,7 @@ class Assertion(BaseModel):
     direction: Optional[Direction]
     assertion_level: str
     proposition: str
-    assertion_methods: List[str]
+    methods: List[str]
     evidence: List[str]
     document: str
     # contributions: List[str]
@@ -172,7 +171,7 @@ class Evidence(BaseModel):
     variation_descriptor: str
     therapy_descriptor: str
     disease_descriptor: str
-    assertion_method: str
+    method: str
     document: str
     # contribution: str  TODO: After metakb first pass
 
@@ -190,13 +189,13 @@ class Document(BaseModel):
 class Date(BaseModel):
     """Define model for date."""
 
-    year: Optional[int]
+    year: int
     month: Optional[int]
     day: Optional[int]
 
 
 class Method(BaseModel):
-    """Define model for methods used in evidence curation and classifications."""
+    """Define model for methods used in evidence curation and classifications."""  # noqa: E501
 
     id: str
     label: str
