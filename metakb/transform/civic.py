@@ -107,9 +107,9 @@ class CIViCTransform:
             documents = self._get_evidence_document(evidence['source'],
                                                     propositions_documents_ix)
 
-            assertion_methods = [schemas.AssertionMethod(
-                id=f'assertion_method:'
-                   f'{schemas.AssertionMethodID.CIVIC_EID_SOP:03}',
+            methods = [schemas.Method(
+                id=f'method:'
+                   f'{schemas.MethodID.CIVIC_EID_SOP:03}',
                 label='Standard operating procedure for curation and clinical interpretation of variants in cancer',  # noqa: E501
                 url='https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x',  # noqa: E501
                 version=schemas.Date(year=2019, month=11, day=29),
@@ -121,14 +121,14 @@ class CIViCTransform:
                                                propositions,
                                                therapy_descriptors,
                                                disease_descriptors,
-                                               assertion_methods,
+                                               methods,
                                                documents),
                 'propositions': propositions,
                 'variation_descriptors': variation_descriptors,
                 'gene_descriptors': gene_descriptors,
                 'therapy_descriptors': therapy_descriptors,
                 'disease_descriptors': disease_descriptors,
-                'assertion_methods': assertion_methods,
+                'methods': methods,
                 'documents': documents
             }
             cdm_evidence_items[evidence['name']] = response
@@ -142,6 +142,8 @@ class CIViCTransform:
         :param dict assertions: A dict of CIViC assertions
         :param dict cdm_evidence_items: A dict containing evidence items that
             have been transformed to the CDM
+        :param dict propositions_documents_ix: Keeps track of proposition and
+            document indexes
         """
         for assertion in assertions:
             # Get list of CIViC EIDs from captured evidence_items
@@ -167,10 +169,10 @@ class CIViCTransform:
             if not propositions:
                 continue
 
-            assertion_methods = [
-                schemas.AssertionMethod(
-                    id=f'assertion_method:'
-                       f'{schemas.AssertionMethodID.CIVIC_AID_AMP_ASCO_CAP.value:03}',  # noqa: E501
+            methods = [
+                schemas.Method(
+                    id=f'method:'
+                       f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP.value:03}',  # noqa: E501
                     label='Standards and Guidelines for the Interpretation '
                           'and Reporting of Sequence Variants in Cancer: A '
                           'Joint Consensus Recommendation of the Association '
@@ -181,9 +183,9 @@ class CIViCTransform:
                     version=schemas.Date(year=2017, month=1),
                     reference='Li MM, Datto M, Duncavage EJ, et al.'
                 ).dict(),
-                schemas.AssertionMethod(
-                    id=f'assertion_method:'
-                       f'{schemas.AssertionMethodID.CIVIC_AID_ACMG.value:03}',
+                schemas.Method(
+                    id=f'method:'
+                       f'{schemas.MethodID.CIVIC_AID_ACMG.value:03}',
                     label='Standards and guidelines for the interpretation of'
                           ' sequence variants: a joint consensus '
                           'recommendation of the American College of Medical '
@@ -200,25 +202,26 @@ class CIViCTransform:
 
             responses.append({
                 'assertion': self._get_assertion(assertion, propositions,
-                                                 eids, assertion_methods,
+                                                 eids, methods,
                                                  documents),
                 'propositions': propositions,
                 'evidence': eids,
-                'assertion_methods': assertion_methods,
+                'methods': methods,
                 'documents': documents
             })
 
     def _get_evidence(self, evidence, propositions,
                       therapy_descriptors, disease_descriptors,
-                      assertion_methods, documents):
+                      methods, documents):
         """Return a list of evidence.
 
         :param dict evidence: Harvested CIViC evidence item record
         :param list propositions: A list of propositions
         :param list therapy_descriptors: A list of Therapy Descriptors
         :param list disease_descriptors: A list of Disease Descriptors
-        :param list assertion_methods: A list of assertion methods for the
+        :param list methods: A list of assertion methods for the
             evidence
+        :param list documents: A list of source documents for an EID
         :return: A list of Evidence
         """
         evidence = schemas.Evidence(
@@ -233,19 +236,21 @@ class CIViCTransform:
             variation_descriptor=f"civic:vid{evidence['variant_id']}",
             therapy_descriptor=therapy_descriptors[0]['id'],
             disease_descriptor=disease_descriptors[0]['id'],
-            assertion_method=assertion_methods[0]['id'],
+            method=methods[0]['id'],
             document=documents[0]['id']
         ).dict()
         return [evidence]
 
-    def _get_assertion(self, assertion, propositions, eids, assertion_methods,
+    def _get_assertion(self, assertion, propositions, eids, methods,
                        documents):
         """Return a list of assertions.
 
         :param dict assertion: Harvested CIViC assertion item record
         :param list propositions: A dict containing indexes for
             propositions and assertion methods
-        :param list eids:
+        :param list eids: EIDs found in AID
+        :param list methods: AID methods for curation and classifications
+        :param documents: Document sources for a given AID
         :return: A list of Assertions
         """
         assertion_level = None
@@ -260,7 +265,7 @@ class CIViCTransform:
             direction=self._get_evidence_direction(assertion['evidence_direction']),  # noqa: E501
             assertion_level=assertion_level,
             proposition=propositions[0]['_id'],
-            assertion_methods=[a['id'] for a in assertion_methods],
+            methods=[a['id'] for a in methods],
             document=documents[0]['id'],
             evidence=eids
         ).dict()
@@ -325,12 +330,12 @@ class CIViCTransform:
         else:
             return None
 
-    def _get_tr_propositions(self, evidence, variation_descriptors,
+    def _get_tr_propositions(self, record, variation_descriptors,
                              disease_descriptors, therapy_descriptors,
                              propositions_documents_ix):
         """Return a list of propositions.
 
-        :param dict evidence: CIViC evidence item record
+        :param dict record: CIViC EID or AID
         :param list variation_descriptors: A list of Variation Descriptors
         :param list disease_descriptors: A list of Disease Descriptors
         :param list therapy_descriptors: A list of therapy_descriptors
@@ -339,46 +344,61 @@ class CIViCTransform:
         :return: A list of therapeutic propositions.
         """
         proposition_type = \
-            self._get_proposition_type(evidence['evidence_type'])
+            self._get_proposition_type(record['evidence_type'])
 
         # Only want TR for now
         if proposition_type != schemas.PropositionType.PREDICTIVE.value:
             return []
 
+        predicate = self._get_predicate(proposition_type,
+                                        record['clinical_significance'])
+
+        # Don't support TR that has  `None`, 'N/A', or 'Unknown' predicate
+        if not predicate:
+            return []
+
         proposition = schemas.TherapeuticResponseProposition(
             _id="",
             type=proposition_type,
-            predicate=self._get_predicate(proposition_type,
-                                          evidence['clinical_significance']),
+            predicate=predicate,
             variation_origin=self._get_variation_origin(
-                evidence['variant_origin']),
+                record['variant_origin']),
             has_originating_context=variation_descriptors[0]['value_id'],
             disease_context=disease_descriptors[0]['value']['disease_id'],
             therapy=therapy_descriptors[0]['value']['therapy_id']
         ).dict(by_alias=True)
 
+        # Get corresponding id for proposition
         key = (proposition['type'], proposition['predicate'],
                proposition['variation_origin'],
                proposition['has_originating_context'],
                proposition['disease_context'], proposition['therapy'])
-
         proposition_index = self._set_ix(propositions_documents_ix,
                                          'propositions', key)
         proposition['_id'] = f"proposition:{proposition_index:03}"
 
         return [proposition]
 
-    def _get_proposition_type(self, evidence_type):
-        """Return proposition type for a given evidence_item.
+    def _get_proposition_type(self, evidence_type, is_evidence=True):
+        """Return proposition type for a given EID or AID.
 
         :param str evidence_type: CIViC evidence type
+        :param bool is_evidence: `True` if EID. `False` if AID.
         :return: A string representation of the proposition type
         """
-        if evidence_type.upper() in schemas.PropositionType.__members__.keys():
-            return schemas.PropositionType[evidence_type.upper()].value
+        evidence_type = evidence_type.upper()
+        if evidence_type in schemas.PropositionType.__members__.keys():
+            if evidence_type == 'PREDISPOSING':
+                if is_evidence:
+                    proposition_type = schemas.PropositionType.PREDISPOSING
+                else:
+                    proposition_type = schemas.PropositionType.PATHOGENIC
+            else:
+                proposition_type = schemas.PropositionType[evidence_type]
         else:
             raise KeyError(f"Proposition Type {evidence_type} not found in "
                            f"schemas.PropositionType")
+        return proposition_type.value
 
     def _get_variation_origin(self, variant_origin):
         """Return variant origin.
@@ -388,14 +408,10 @@ class CIViCTransform:
         """
         if variant_origin == 'Somatic':
             origin = schemas.VariationOrigin.SOMATIC.value
-        elif variant_origin == 'Rare Germline':
-            origin = schemas.VariationOrigin.RARE_GERMLINE.value
-        elif variant_origin == 'Common Germline':
-            origin = schemas.VariationOrigin.COMMON_GERMLINE.value
+        elif variant_origin in ['Rare Germline', 'Common Germline']:
+            origin = schemas.VariationOrigin.GERMLINE.value
         elif variant_origin == 'N/A':
             origin = schemas.VariationOrigin.NOT_APPLICABLE.value
-        elif variant_origin == 'Unknown':
-            origin = schemas.VariationOrigin.UNKNOWN.value
         else:
             origin = None
         return origin
@@ -407,27 +423,33 @@ class CIViCTransform:
         :param str clin_sig: The evidence item's clinical significance
         :return: A string representation for predicate
         """
-        if clin_sig is None:
+        if clin_sig is None or clin_sig.upper() in ['N/A', 'UNKNOWN']:
             return None
-        else:
-            if clin_sig == 'N/A':
-                return None
-            clin_sig = '_'.join(clin_sig.upper().split())
-            predicate = None
+
+        clin_sig = '_'.join(clin_sig.upper().split())
+        predicate = None
 
         if proposition_type == schemas.PropositionType.PREDICTIVE.value:
             if clin_sig == 'SENSITIVITY/RESPONSE':
                 predicate = schemas.PredictivePredicate.SENSITIVITY.value
-            else:
-                predicate = schemas.PredictivePredicate[clin_sig].value
+            elif clin_sig == 'RESISTANCE':
+                predicate = schemas.PredictivePredicate.RESISTANCE.value
         elif proposition_type == schemas.PropositionType.DIAGNOSTIC.value:
             predicate = schemas.DiagnosticPredicate[clin_sig].value
         elif proposition_type == schemas.PropositionType.PROGNOSTIC.value:
-            predicate = schemas.PrognosticPredicate[clin_sig].value
-        elif proposition_type == schemas.PropositionType.PREDISPOSING.value:
-            predicate = schemas.PredisposingPredicate.NOT_APPLICAPLE.value
+            if clin_sig == 'POSITIVE':
+                predicate = schemas.PrognosticPredicate.BETTER_OUTCOME.value
+            else:
+                predicate = schemas.PrognosticPredicate[clin_sig].value
         elif proposition_type == schemas.PropositionType.FUNCTIONAL.value:
             predicate = schemas.FunctionalPredicate[clin_sig].value
+        elif proposition_type == schemas.PropositionType.ONCOGENIC.value:
+            # TODO: There are currently no Oncogenic types in CIViC harvester
+            #  Look into why this is
+            pass
+        elif proposition_type == schemas.PropositionType.PATHOGENIC.value:
+            if clin_sig in ['PATHOGENIC', 'LIKELY_PATHOGENIC']:
+                predicate = schemas.PathogenicPredicate.PATHOGENIC.value
         else:
             logger.warning(f"{proposition_type} not supported in Predicate "
                            f"schemas.")
@@ -694,7 +716,7 @@ class CIViCTransform:
         return hgvs_expressions
 
     def _get_evidence_document(self, source, propositions_documents_ix):
-        """Get an Evidence Item's source document.
+        """Get an EID's source document.
 
         :param dict source: An evidence item's source
         :param propositions_documents_ix: Keeps track of proposition and
@@ -725,7 +747,7 @@ class CIViCTransform:
         return [document]
 
     def _get_assertion_document(self, assertion, propositions_documents_ix):
-        """Get an Assertion's source document.
+        """Get an AID's source document.
 
         :param dict assertion: A CIViC Assertion
         :param propositions_documents_ix: Keeps track of proposition and
@@ -738,9 +760,9 @@ class CIViCTransform:
                                    document_id)
         document = schemas.Document(
             id=f"document:{document_ix:03}",
-            document_id=None,
-            label=label,
-            description=f"NCCN Guideline Version: {version}"
+            document_id="https://www.nccn.org/professionals/"
+                        "physician_gls/default.aspx",
+            label=f"NCCN Guidelines: {label} version {version}"
         ).dict()
         return [document]
 
@@ -766,7 +788,7 @@ class CIViCTransform:
             list_name.append(item)
 
     def _set_ix(self, propositions_documents_ix, dict_key, search_key):
-        """Set propositions_documents_ix.
+        """Set indexes for documents or propositions.
 
         :param dict propositions_documents_ix: Keeps track of proposition and
             document indexes
