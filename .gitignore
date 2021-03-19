@@ -122,6 +122,7 @@ pytest.ini
 
 # data files
 data/*
+analysis/graph/civic_cdm_updated.json
 
 # Build files
 Pipfile.lock
