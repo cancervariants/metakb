@@ -67,8 +67,9 @@ class Graph:
 
     def add_transformed_data(self, data: Dict):
         """Add set of data formatted per Common Data Model to DB.
-        :param Dict data: contains Evidence, Proposition, Assertion Methods,
-            and Values/Descriptors for Gene, Disease, Therapy, and Variation
+        :param Dict data: contains key/value pairs for data objects to add
+            to DB, including Assertions, Therapies, Diseases, Genes,
+            Variations, Propositions, and Evidence
         """
         with self.driver.session() as session:
             for method in data.get('assertion_methods', []):
@@ -90,8 +91,11 @@ class Graph:
 
     @staticmethod
     def _add_assertion_method(tx, assertion_method: Dict):
-        """Add Assertion Method object to DB."""
-        assertion_method['version'] = "20091210"
+        """Add Assertion Method object to DB.
+        :param Dict assertion_method: must include `id`, `label`, `url`,
+            `version`, and `reference` values.
+        """
+        assertion_method['version'] = json.dumps(assertion_method['version'])
         query = """
         MERGE (n:AssertionMethod {id:$id, label:$label, url:$url,
             version:$version, reference: $reference});
@@ -105,7 +109,10 @@ class Graph:
 
     @staticmethod
     def _add_descriptor(tx, descriptor: Dict):
-        """Add descriptor object to DB."""
+        """Add gene, therapy, or disease descriptor object to DB.
+        :param Dict descriptor: must contain a `value` field with `type`
+            and `<type>_id` fields
+        """
         descr_type = descriptor['type']
         if descr_type == 'TherapyDescriptor':
             value_type = 'Therapy'
@@ -137,7 +144,8 @@ class Graph:
     @staticmethod
     def _add_variant_descriptor(tx, descriptor: Dict):
         """Add variant descriptor object to DB.
-        TODO: evaluate using APOC functions
+        :param Dict descriptor: must include a `value_id` field and a `value`
+            object containing `type`, `state`, and `location` objects.
         """
         value_type = descriptor['value']['type']
         descriptor['value_state'] = json.dumps(descriptor['value']['state'])
@@ -174,7 +182,8 @@ class Graph:
     @staticmethod
     def _add_therapeutic_response(tx, ther_response: Dict):
         """Add Therapeutic Response object to DB.
-        :param Dict ther_response: TherapeuticResponse object as dict
+        :param Dict ther_response: must include `disease_context`, `therapy`,
+            and `has_originating_context` fields.
         """
         nonnull_values = [f'{key}:"{ther_response[key]}"' for key
                           in ('_id', 'predicate', 'variation_origin')
@@ -203,7 +212,10 @@ class Graph:
 
     @staticmethod
     def _add_document(tx, document: Dict):
-        """Add Document object to DB."""
+        """Add Document object to DB.
+        :param Dict document: must include `id`, `document_id`, `label`,
+            `description`, and `xrefs` fields.
+        """
         query = """
         MERGE (n:Document {id:$id, document_id:$document_id, label:$label,
                            description:$description, xrefs:$xrefs});
@@ -219,8 +231,9 @@ class Graph:
     @staticmethod
     def _add_evidence(tx, evidence: Dict):
         """Add evidence object to DB.
-
-        :param Dict evidence: Evidence object
+        :param Dict evidence: must include `proposition`,
+            `variation_descriptor`, `therapy_descriptor`, `disease_descriptor`,
+            `assertion_method`, and `document` fields.
         """
         nonnull_values = [f'{key}:"{evidence[key]}"' for key
                           in ('id', 'description', 'direction',
