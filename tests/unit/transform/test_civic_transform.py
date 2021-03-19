@@ -96,11 +96,6 @@ def eid2997():
                         "name": "civic_actionability_score",
                         "value": "352.5",
                         "type": "Extension"
-                    },
-                    {
-                        "name": "variant_groups",
-                        "value": {},
-                        "type": "Extension"
                     }
                 ],
                 "molecule_context": "protein",
