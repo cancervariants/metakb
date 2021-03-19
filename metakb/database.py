@@ -19,6 +19,8 @@ class Graph:
     * refactor add_transformed_data()
     * do evidence line/assertion need specific methods?
     * handle other types of propositions?
+    * refactor the ugly descriptor query formation trick
+    * can Labels be retrieved as part of the query?
     """
 
     def __init__(self, uri: str, credentials: Tuple[str, str]):
@@ -29,13 +31,13 @@ class Graph:
         """
         self.driver = GraphDatabase.driver(uri, auth=credentials)
         with self.driver.session() as session:
-            session.writ_transaction(self._create_constraints)
+            session.write_transaction(self._create_constraints)
 
     def close(self):
         """Close Neo4j driver."""
         self.driver.close()
 
-    def wipe(self):
+    def clear(self):
         """Debugging helper - wipe out DB."""
         def delete_all(tx):
             tx.run("MATCH (n) DETACH DELETE n;")
@@ -86,9 +88,10 @@ class Graph:
         :param Dict ther_response: TherapeuticResponse object as dict
         """
         query = """
-        MERGE (n:TherapeuticResponse {id:$_id, type:$type,
-                                      predicate:$predicate,
-                                      variation_origin:$variation_origin});
+        MERGE (n:TherapeuticResponse:Proposition
+            {id:$_id, type:$type,
+             predicate:$predicate,
+             variation_origin:$variation_origin});
         """
         try:
             tx.run(query, **ther_response)
@@ -118,7 +121,6 @@ class Graph:
         """Add descriptor object to DB."""
         descr_type = descriptor['type']
         if descr_type == 'TherapyDescriptor':
-            print(descriptor)
             value_type = 'Therapy'
             value_id_name = 'therapy_id'
             value_id = descriptor['value']['therapy_id']
@@ -137,7 +139,6 @@ class Graph:
                 properties += f'{key}:"{value}", '
         if properties:
             properties = properties[:-2]
-        print(properties)
 
         try:
             query = f'''
@@ -156,22 +157,24 @@ class Graph:
         """Add variant descriptor object to DB.
         TODO: evaluate using APOC functions
         """
-        descriptor['value_type'] = 'Allele'
-        descriptor['value_state'] = json.dumps(descriptor['state'])
-        descriptor['value_location'] = json.dumps(descriptor['location'])
+        value_type = 'Allele'
+        descriptor['value_state'] = json.dumps(descriptor['value']['state'])
+        descriptor['value_location'] = \
+            json.dumps(descriptor['value']['location'])
         descriptor['expressions'] = [json.dumps(e)
                                      for e in descriptor['expressions']]
 
-        query = """
+        query = f"""
         MERGE (descr:VariationDescriptor
-            {id:$id, label:$label, description:$description, xrefs:$xrefs,
-             alternate_labels:$alternate_labels,
-             molecule_context:$molecule_context,
-             structural_type:$structural_type, expressions:$expressions,
-             ref_allele_seq:$ref_allele_seq})
-        MERGE (value:$value_type {state:$value_state,
-                                  location:$value_location})
-        MATCH (gene_context:GeneDescriptor {id:$gene_context}})
+            {{id:$id, label:$label, description:$description, xrefs:$xrefs,
+              alternate_labels:$alternate_labels,
+              molecule_context:$molecule_context,
+              structural_type:$structural_type, expressions:$expressions,
+              ref_allele_seq:$ref_allele_seq}})
+        MERGE (value:{value_type}:Variation
+            {{state:$value_state,
+              location:$value_location}})
+        MERGE (gene_context:GeneDescriptor {{id:$gene_context}})
         MERGE (descr) -[:DESCRIBES]-> (value)
         MERGE (descr) -[:HAS_GENE] -> (gene_context);
         """
@@ -207,12 +210,12 @@ class Graph:
         MERGE (ev:Evidence {id:$id, description:$description,
                             direction:$direction,
                             evidence_level:$evidence_level})
-        MATCH (prop:Proposition {_id:$proposition})
-        MATCH (var:VariationDescriptor {id:$variation_descriptor})
-        MATCH (ther:TherapyDescriptor {id:$therapy_descriptor})
-        MATCH (dis:DiseaseDescriptor {id:$disease_descriptor})
-        MATCH (method:AssertionMethod {id:$assertion_method})
-        MATCH (doc:Document {id:$document})
+        MERGE (prop:Proposition {id:$proposition})
+        MERGE (var:VariationDescriptor {id:$variation_descriptor})
+        MERGE (ther:TherapyDescriptor {id:$therapy_descriptor})
+        MERGE (dis:DiseaseDescriptor {id:$disease_descriptor})
+        MERGE (method:AssertionMethod {id:$assertion_method})
+        MERGE (doc:Document {id:$document})
         MERGE (ev) -[:SUPPORTS]-> (prop)
         MERGE (ev) -[:HAS_VARIANT]-> (var)
         MERGE (ev) -[:HAS_THERAPY]-> (ther)
