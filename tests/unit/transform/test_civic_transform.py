@@ -279,9 +279,11 @@ def aid6():
         "documents": [
             {
                 "id": "document:002",
-                "document_id": None,
-                "label": "Non-Small Cell Lung Cancer",
-                "description": "NCCN Guideline Version: 3.2018",
+                "document_id": "https://www.nccn.org/professionals/"
+                               "physician_gls/default.aspx",
+                "label": "NCCN Guidelines: Non-Small Cell "
+                         "Lung Cancer version 3.2018",
+                "description": None,
                 "xrefs": None
             }
         ]

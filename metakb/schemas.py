@@ -187,9 +187,9 @@ class Document(BaseModel):
     """Define model for Document."""
 
     id: str
-    document_id: Optional[str]
+    document_id: str
     label: str
-    description: str
+    description: Optional[str]
     xrefs: Optional[List[str]]
 
 
