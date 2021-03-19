@@ -738,9 +738,9 @@ class CIViCTransform:
                                    document_id)
         document = schemas.Document(
             id=f"document:{document_ix:03}",
-            document_id=None,
-            label=label,
-            description=f"NCCN Guideline Version: {version}"
+            document_id="https://www.nccn.org/professionals/"
+                        "physician_gls/default.aspx",
+            label=f"NCCN Guidelines: {label} version {version}"
         ).dict()
         return [document]
 
