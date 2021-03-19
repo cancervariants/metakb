@@ -24,9 +24,9 @@ class Graph:
     * refactor add_transformed_data()
     * do evidence line/assertion need specific methods?
     * handle other types of propositions?
-    * refactor the ugly key/value property string
     * can Labels be retrieved as part of the query?
     * handle prime (') symbols in strings -- skipping for now (see whitelist)
+    * Verify correct value_ID for variation objects
     """
 
     def __init__(self, uri: str, credentials: Tuple[str, str]):
@@ -109,28 +109,23 @@ class Graph:
         descr_type = descriptor['type']
         if descr_type == 'TherapyDescriptor':
             value_type = 'Therapy'
-            value_id_name = 'therapy_id'
             value_id = descriptor['value']['therapy_id']
         elif descr_type == 'DiseaseDescriptor':
             value_type = 'Disease'
-            value_id_name = 'disease_id'
             value_id = descriptor['value']['disease_id']
         elif descr_type == 'GeneDescriptor':
             value_type = 'Gene'
-            value_id_name = 'gene_id'
             value_id = descriptor['value']['gene_id']
-        properties = ""
-        for key in ('id', 'label', 'description', 'xrefs', 'alternate_labels'):
-            value = descriptor.get(key)
-            if value:
-                properties += f'{key}:"{value}", '
-        if properties:
-            properties = properties[:-2]
+        nonnull_values = [f'{key}:"{descriptor[key]}"' for key
+                          in ('id', 'label', 'description', 'xrefs',
+                              'alternate_labels')
+                          if descriptor[key]]
+        values_joined = ', '.join(nonnull_values)
 
         try:
             query = f'''
-            MERGE (descr:{descr_type} {{ {properties} }})
-            MERGE (value:{value_type} {{ {value_id_name}: "{value_id}" }})
+            MERGE (descr:{descr_type} {{ {values_joined} }})
+            MERGE (value:{value_type} {{ id: "{value_id}" }})
             MERGE (descr) -[:DESCRIBES]-> (value)
             '''
             tx.run(query)
@@ -150,20 +145,17 @@ class Graph:
             json.dumps(descriptor['value']['location'])
         descriptor['expressions'] = [json.dumps(e)
                                      for e in descriptor['expressions']]
-        properties = ""
-        for key in ('id', 'label', 'description', 'xrefs', 'alternate_labels',
-                    'structural_type',
-                    # 'expressions',
-                    'ref_allele_seq'):
-            value = descriptor.get(key)
-            if value:
-                properties += f'{key}:"{value}", '
-        if properties:
-            properties = properties[:-2]
+        nonnull_values = [f'{key}:"{descriptor[key]}"' for key
+                          in ('id', 'label', 'description', 'xrefs',
+                              'alternate_labels', 'structural_type',
+                              # 'expressions',
+                              'ref_allele_seq')
+                          if descriptor[key]]
+        values_joined = ', '.join(nonnull_values)
 
         query = f"""
         MERGE (descr:VariationDescriptor
-            {{ {properties} }})
+            {{ {values_joined} }})
         MERGE (value:{value_type}:Variation
             {{state:$value_state,
               location:$value_location}})
