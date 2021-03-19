@@ -486,22 +486,44 @@ class CIViCTransform:
             alternate_labels=[v_alias for v_alias in
                               variant['variant_aliases'] if not
                               v_alias.startswith('RS')],
-            extensions=[
-                schemas.Extension(
-                    name='representative_variation_descriptor',
-                    value=f"civic:vid{variant['id']}.rep"
-                ),
-                schemas.Extension(
-                    name='civic_actionability_score',
-                    value=variant['civic_actionability_score']
-                ),
-                schemas.Extension(
-                    name='variant_groups',
-                    value=variant['variant_groups']
-                )
-            ]
+            extensions=self._get_variant_extensions(variant)
         ).dict()
         return [variation_descriptor]
+
+    def _get_variant_extensions(self, variant):
+        """Return a list of extensions for a variant.
+
+        :param dict variant: A CIViC variant record
+        :return: A list of extensions
+        """
+        extensions = [
+            schemas.Extension(
+                name='representative_variation_descriptor',
+                value=f"civic:vid{variant['id']}.rep"
+            ).dict(),
+            schemas.Extension(
+                name='civic_actionability_score',
+                value=variant['civic_actionability_score']
+            ).dict()
+        ]
+
+        variant_groups = variant['variant_groups']
+        if variant_groups:
+            v_groups = list()
+            for v_group in variant_groups:
+                v_groups.append({
+                    'id': f"civic:vgid{v_group['id']}",
+                    'label': v_group['name'],
+                    'description': v_group['description'],
+                    'variants':
+                        [f"civic:vid{v['id']}" for v in v_group['variants']],
+                    'type': 'variant_group'
+                })
+            extensions.append(schemas.Extension(
+                name='variant_groups',
+                value=v_groups
+            ))
+        return extensions
 
     def _get_variant_xrefs(self, v):
         """Return a list of xrefs for a variant.
