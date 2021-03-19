@@ -139,7 +139,7 @@ class Graph:
         """Add variant descriptor object to DB.
         TODO: evaluate using APOC functions
         """
-        value_type = 'Allele'
+        value_type = descriptor['value']['type']
         descriptor['value_state'] = json.dumps(descriptor['value']['state'])
         descriptor['value_location'] = \
             json.dumps(descriptor['value']['location'])
@@ -157,7 +157,8 @@ class Graph:
         MERGE (descr:VariationDescriptor
             {{ {values_joined} }})
         MERGE (value:{value_type}:Variation
-            {{state:$value_state,
+            {{id:$value_id,
+              state:$value_state,
               location:$value_location}})
         MERGE (gene_context:GeneDescriptor {{id:$gene_context}} )
         MERGE (descr) -[:DESCRIBES]-> (value)
@@ -228,14 +229,14 @@ class Graph:
         values_joined = ', '.join(nonnull_values)
 
         query = f"""
-        MERGE (ev:Evidence {{ {values_joined} }})
+        MERGE (ev:Evidence:Statement {{ {values_joined} }})
         MERGE (prop:Proposition {{_id:$proposition}})
         MERGE (var:VariationDescriptor {{id:$variation_descriptor}})
         MERGE (ther:TherapyDescriptor {{id:$therapy_descriptor}})
         MERGE (dis:DiseaseDescriptor {{id:$disease_descriptor}})
         MERGE (method:AssertionMethod {{id:$assertion_method}})
         MERGE (doc:Document {{id:$document}})
-        MERGE (ev) -[:SUPPORTS]-> (prop)
+        MERGE (ev) -[:DEFINED_BY]-> (prop)
         MERGE (ev) -[:HAS_VARIANT]-> (var)
         MERGE (ev) -[:HAS_THERAPY]-> (ther)
         MERGE (ev) -[:HAS_DISEASE]-> (dis)
