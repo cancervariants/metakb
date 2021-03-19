@@ -13,7 +13,6 @@ class Graph:
     """Manage requests to graph datastore.
 
     TODO
-    * Docstrings
     * Need to add (currently excluding):
        * Expressions in Variation Descriptors
        * Extensions in any Descriptors (json serialize?)
@@ -127,6 +126,11 @@ class Graph:
                           in ('id', 'label', 'description', 'xrefs',
                               'alternate_labels')
                           if descriptor[key]]
+        extensions = descriptor.get('extensions')
+        if extensions:
+            for ext in extensions:
+                value = json.dumps(ext['value'])
+                nonnull_values.append(f'{ext["name"]}:"{value}"')
         values_joined = ', '.join(nonnull_values)
 
         try:
@@ -147,6 +151,7 @@ class Graph:
         :param Dict descriptor: must include a `value_id` field and a `value`
             object containing `type`, `state`, and `location` objects.
         """
+        # build properties
         value_type = descriptor['value']['type']
         descriptor['value_state'] = json.dumps(descriptor['value']['state'])
         descriptor['value_location'] = \
@@ -159,6 +164,16 @@ class Graph:
                               # 'expressions',
                               'ref_allele_seq')
                           if descriptor[key]]
+        variant_groups = None
+        extensions = descriptor.get('extensions')
+        if extensions:
+            for ext in extensions:
+                name = ext['name']
+                if name == 'variant_groups':
+                    variant_groups = ext['value']
+                else:
+                    value = json.dumps(ext['value'])
+                    nonnull_values.append(f'{name}:{value}')
         values_joined = ', '.join(nonnull_values)
 
         query = f"""
@@ -178,6 +193,22 @@ class Graph:
             logging.error(f"Failed to add Variant Descriptor object\nQuery: "
                           f"{query}\nDescriptor: {descriptor}")
             raise exception
+        if variant_groups:
+            for grp in variant_groups:
+                query = f"""
+                MERGE (grp:VariantGroup {{id:$id, label:$label,
+                                         description:$description}})
+                MERGE (var:VariationDescriptor {{ {values_joined} }})
+                MERGE (var) -[:IN_VARIANT_GROUP]-> (grp)
+                """
+                try:
+                    tx.run(query, value_id=descriptor['value_id'],
+                           id=grp['id'], label=grp['label'],
+                           description=grp['description'])
+                except ServiceUnavailable as exception:
+                    logging.error(f"Failed to add Variant Descriptor object\n"
+                                  f"Query: {query}\nDescriptor: {descriptor}")
+                    raise exception
 
     @staticmethod
     def _add_therapeutic_response(tx, ther_response: Dict):
