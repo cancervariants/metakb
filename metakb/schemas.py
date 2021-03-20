@@ -20,6 +20,7 @@ class NamespacePrefix(str, Enum):
 
     CIVIC = 'civic'
     NCIT = 'ncit'
+    MOA = 'moa'
 
 
 class SourcePrefix(str, Enum):
@@ -131,9 +132,9 @@ class TherapeuticResponseProposition(BaseModel):
     type = PropositionType.PREDICTIVE.value
     predicate: Optional[PredictivePredicate]
     variation_origin: Optional[VariationOrigin]
-    has_originating_context: str  # vrs:Variation
-    disease_context: str  # vicc:Disease
-    therapy: str  # Therapy value object
+    has_originating_context: Optional[str]  # vrs:Variation
+    disease_context: Optional[str]  # vicc:Disease
+    therapy: Optional[str]  # Therapy value object
 
 
 class MethodID(IntEnum):
@@ -142,6 +143,7 @@ class MethodID(IntEnum):
     CIVIC_EID_SOP = 1
     CIVIC_AID_AMP_ASCO_CAP = 2
     CIVIC_AID_ACMG = 3
+    MOA_EID_BIORXIV = 4
 
 
 class Assertion(BaseModel):
@@ -164,13 +166,13 @@ class Evidence(BaseModel):
 
     id: str
     type = 'Evidence'
-    description: str
+    description: Optional[str]
     direction: Optional[Direction]
     evidence_level: str
     proposition: str
     variation_descriptor: str
-    therapy_descriptor: str
-    disease_descriptor: str
+    therapy_descriptor: Optional[str]
+    disease_descriptor: Optional[str]
     method: str
     document: str
     # contribution: str  TODO: After metakb first pass
