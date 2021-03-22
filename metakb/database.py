@@ -13,20 +13,11 @@ class Graph:
     """Manage requests to graph datastore.
 
     TODO
-    * Docstrings
     * Need to add (currently excluding):
-       * Expressions in Variation Descriptors
-       * Extensions in any Descriptors (json serialize?)
-          * including Variant Groups
        * any Assertion objects
-    * format the long constaints string better
-    * do any current serialized values need to be searchable?
-    * refactor add_transformed_data()
     * do evidence line/assertion need specific methods?
     * handle other types of propositions?
-    * can Labels be retrieved as part of the query?
-    * handle prime (') symbols in strings -- skipping for now (see whitelist)
-    * Verify correct value_ID for variation objects
+    * handling variant groups correctly?
     """
 
     def __init__(self, uri: str, credentials: Tuple[str, str]):
@@ -51,6 +42,21 @@ class Graph:
             session.write_transaction(delete_all)
 
     @staticmethod
+    def json_to_string(obj: Dict):
+        """Sanitize tricky characters in values and dump JSON-like object
+        into a single string or array compatible with Neo4j property
+        constraints.
+        :param Dict obj: JSON-like object to convert
+        :return: String containing dumped object
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def string_to_json(obj: str):
+        """Convert dumped String back into JSON-like object."""
+        raise NotImplementedError
+
+    @staticmethod
     def _create_constraints(tx):
         """Create unique property constraints for ID values"""
         try:
@@ -67,8 +73,9 @@ class Graph:
 
     def add_transformed_data(self, data: Dict):
         """Add set of data formatted per Common Data Model to DB.
-        :param Dict data: contains Evidence, Proposition, Assertion Methods,
-            and Values/Descriptors for Gene, Disease, Therapy, and Variation
+        :param Dict data: contains key/value pairs for data objects to add
+            to DB, including Assertions, Therapies, Diseases, Genes,
+            Variations, Propositions, and Evidence
         """
         with self.driver.session() as session:
             for method in data.get('assertion_methods', []):
@@ -90,8 +97,11 @@ class Graph:
 
     @staticmethod
     def _add_assertion_method(tx, assertion_method: Dict):
-        """Add Assertion Method object to DB."""
-        assertion_method['version'] = "20091210"
+        """Add Assertion Method object to DB.
+        :param Dict assertion_method: must include `id`, `label`, `url`,
+            `version`, and `reference` values.
+        """
+        assertion_method['version'] = json.dumps(assertion_method['version'])
         query = """
         MERGE (n:AssertionMethod {id:$id, label:$label, url:$url,
             version:$version, reference: $reference});
@@ -105,60 +115,93 @@ class Graph:
 
     @staticmethod
     def _add_descriptor(tx, descriptor: Dict):
-        """Add descriptor object to DB."""
+        """Add gene, therapy, or disease descriptor object to DB.
+        :param Dict descriptor: must contain a `value` field with `type`
+            and `<type>_id` fields
+        """
         descr_type = descriptor['type']
         if descr_type == 'TherapyDescriptor':
             value_type = 'Therapy'
-            value_id = descriptor['value']['therapy_id']
+            descriptor['value_id'] = descriptor['value']['therapy_id']
         elif descr_type == 'DiseaseDescriptor':
             value_type = 'Disease'
-            value_id = descriptor['value']['disease_id']
+            descriptor['value_id'] = descriptor['value']['disease_id']
         elif descr_type == 'GeneDescriptor':
             value_type = 'Gene'
-            value_id = descriptor['value']['gene_id']
-        nonnull_values = [f'{key}:"{descriptor[key]}"' for key
-                          in ('id', 'label', 'description', 'xrefs',
-                              'alternate_labels')
-                          if descriptor[key]]
-        values_joined = ', '.join(nonnull_values)
+            descriptor['value_id'] = descriptor['value']['gene_id']
 
+        nonnull_keys = [f"{key}:${key}"
+                        for key in ('id', 'label', 'description', 'xrefs',
+                                    'alternate_labels')
+                        if descriptor[key]]
+        descriptor_keys = ', '.join(nonnull_keys)
+
+        query = f'''
+        MERGE (descr:{descr_type} {{ {descriptor_keys} }})
+        MERGE (value:{value_type} {{ id:$value_id }})
+        MERGE (descr) -[:DESCRIBES]-> (value)
+        '''
         try:
-            query = f'''
-            MERGE (descr:{descr_type} {{ {values_joined} }})
-            MERGE (value:{value_type} {{ id: "{value_id}" }})
-            MERGE (descr) -[:DESCRIBES]-> (value)
-            '''
-            tx.run(query)
+            tx.run(query, **descriptor)
         except ServiceUnavailable as exception:
             logging.error(f"Failed to add Descriptor object\nQuery: {query}\n"
                           f"Descriptor: {descriptor}")
             raise exception
 
     @staticmethod
-    def _add_variant_descriptor(tx, descriptor: Dict):
+    def _add_variant_descriptor(tx, descriptor_in: Dict):
         """Add variant descriptor object to DB.
-        TODO: evaluate using APOC functions
+        :param Dict descriptor_in: must include a `value_id` field and a
+            `value` object containing `type`, `state`, and `location` objects.
         """
-        value_type = 'Allele'
+        descriptor = descriptor_in.copy()
+
+        # prepare value properties
+        value_type = descriptor['value']['type']
         descriptor['value_state'] = json.dumps(descriptor['value']['state'])
-        descriptor['value_location'] = \
-            json.dumps(descriptor['value']['location'])
-        descriptor['expressions'] = [json.dumps(e)
-                                     for e in descriptor['expressions']]
-        nonnull_values = [f'{key}:"{descriptor[key]}"' for key
-                          in ('id', 'label', 'description', 'xrefs',
-                              'alternate_labels', 'structural_type',
-                              # 'expressions',
-                              'ref_allele_seq')
-                          if descriptor[key]]
-        values_joined = ', '.join(nonnull_values)
+        location = descriptor['value']['location']
+        descriptor['value_location_type'] = location['type']
+        descriptor['value_location_sequence_id'] = location['sequence_id']
+        descriptor['value_location_interval_start'] = \
+            location['interval']['start']
+        descriptor['value_location_interval_end'] = location['interval']['end']
+        descriptor['value_location_interval_type'] = \
+            location['interval']['type']
+
+        # prepare descriptor properties
+        descriptor['expressions'] = json.dumps(descriptor['expressions'])
+        nonnull_keys = [f"{key}:${key}"
+                        for key in ('id', 'label', 'description', 'xrefs',
+                                    'alternate_labels', 'structural_type',
+                                    'expressions', 'ref_allele_seq')
+                        if descriptor[key]]
+
+        # handle extensions
+        variant_groups = None
+        extensions = descriptor.get('extensions')
+        if extensions:
+            for ext in extensions:
+                name = ext['name']
+                if name == 'variant_groups':
+                    variant_groups = ext['value']
+                else:
+                    descriptor[name] = json.dumps(ext['value'])
+                    nonnull_keys.append(f"{name}:${name}")
+
+        descriptor_keys = ', '.join(nonnull_keys)
 
         query = f"""
         MERGE (descr:VariationDescriptor
-            {{ {values_joined} }})
+            {{ {descriptor_keys} }})
         MERGE (value:{value_type}:Variation
-            {{state:$value_state,
-              location:$value_location}})
+            {{id:$value_id,
+              state:$value_state,
+              location_type:$value_location_type,
+              location_sequence_id:$value_location_sequence_id,
+              location_interval_start:$value_location_interval_start,
+              location_interval_end:$value_location_interval_end,
+              location_interval_type:$value_location_interval_type
+              }})
         MERGE (gene_context:GeneDescriptor {{id:$gene_context}} )
         MERGE (descr) -[:DESCRIBES]-> (value)
         MERGE (descr) -[:HAS_GENE] -> (gene_context);
@@ -169,19 +212,41 @@ class Graph:
             logging.error(f"Failed to add Variant Descriptor object\nQuery: "
                           f"{query}\nDescriptor: {descriptor}")
             raise exception
+        if variant_groups:
+            for grp in variant_groups:
+                params = descriptor.copy()
+                params['group_id'] = grp['id']
+                params['group_label'] = grp['label']
+                params['group_description'] = grp['description']
+
+                query = f"""
+                MERGE (grp:VariantGroup {{id:$group_id, label:$group_label,
+                                         description:$group_description}})
+                MERGE (var:VariationDescriptor {{ {descriptor_keys} }})
+                MERGE (var) -[:IN_VARIANT_GROUP]-> (grp)
+                """
+                try:
+                    tx.run(query, **params)
+                except ServiceUnavailable as exception:
+                    logging.error(f"Failed to add Variant Descriptor object\n"
+                                  f"Query: {query}\nDescriptor: {descriptor}")
+                    raise exception
 
     @staticmethod
     def _add_therapeutic_response(tx, ther_response: Dict):
         """Add Therapeutic Response object to DB.
-        :param Dict ther_response: TherapeuticResponse object as dict
+        :param Dict ther_response: must include `disease_context`, `therapy`,
+            and `has_originating_context` fields.
         """
-        nonnull_values = [f'{key}:"{ther_response[key]}"' for key
-                          in ('_id', 'predicate', 'variation_origin')
-                          if ther_response[key]]
-        values_joined = ', '.join(nonnull_values)
+        ther_response['id'] = ther_response['_id']
+        nonnull_keys = [f"{key}:${key}"
+                        for key in ('id', 'predicate', 'variation_origin')
+                        if ther_response[key]]
+        formatted_keys = ', '.join(nonnull_keys)
+
         query = f"""
         MERGE (response:TherapeuticResponse:Proposition
-            {{ {values_joined} }})
+            {{ {formatted_keys} }})
         MERGE (disease:Disease {{id:$disease_context}})
         MERGE (therapy:Therapy {{id:$therapy}})
         MERGE (variation:Variation {{id:$has_originating_context}})
@@ -202,7 +267,10 @@ class Graph:
 
     @staticmethod
     def _add_document(tx, document: Dict):
-        """Add Document object to DB."""
+        """Add Document object to DB.
+        :param Dict document: must include `id`, `document_id`, `label`,
+            `description`, and `xrefs` fields.
+        """
         query = """
         MERGE (n:Document {id:$id, document_id:$document_id, label:$label,
                            description:$description, xrefs:$xrefs});
@@ -218,24 +286,25 @@ class Graph:
     @staticmethod
     def _add_evidence(tx, evidence: Dict):
         """Add evidence object to DB.
-
-        :param Dict evidence: Evidence object
+        :param Dict evidence: must include `proposition`,
+            `variation_descriptor`, `therapy_descriptor`, `disease_descriptor`,
+            `assertion_method`, and `document` fields.
         """
-        nonnull_values = [f'{key}:"{evidence[key]}"' for key
-                          in ('id', 'description', 'direction',
-                              'evidence_level')
-                          if evidence[key]]
-        values_joined = ', '.join(nonnull_values)
+        nonnull_keys = [f"{key}:${key}" for key
+                        in ('id', 'description', 'direction',
+                            'evidence_level')
+                        if evidence[key]]
+        formatted_keys = ', '.join(nonnull_keys)
 
         query = f"""
-        MERGE (ev:Evidence {{ {values_joined} }})
+        MERGE (ev:Evidence:Statement {{ {formatted_keys} }})
         MERGE (prop:Proposition {{_id:$proposition}})
         MERGE (var:VariationDescriptor {{id:$variation_descriptor}})
         MERGE (ther:TherapyDescriptor {{id:$therapy_descriptor}})
         MERGE (dis:DiseaseDescriptor {{id:$disease_descriptor}})
         MERGE (method:AssertionMethod {{id:$assertion_method}})
         MERGE (doc:Document {{id:$document}})
-        MERGE (ev) -[:SUPPORTS]-> (prop)
+        MERGE (ev) -[:DEFINED_BY]-> (prop)
         MERGE (ev) -[:HAS_VARIANT]-> (var)
         MERGE (ev) -[:HAS_THERAPY]-> (ther)
         MERGE (ev) -[:HAS_DISEASE]-> (dis)
