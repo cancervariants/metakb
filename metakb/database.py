@@ -313,7 +313,7 @@ class Graph:
 
         query = f"""
         MERGE (ev:Statement {{ {formatted_keys} }})
-        MERGE (prop:Proposition {{_id:$proposition}})
+        MERGE (prop:Proposition {{id:$proposition}})
         MERGE (var:VariationDescriptor {{id:$variation_descriptor}})
         MERGE (ther:TherapyDescriptor {{id:$therapy_descriptor}})
         MERGE (dis:DiseaseDescriptor {{id:$disease_descriptor}})
