@@ -15,8 +15,6 @@ class Graph:
     TODO
     * Need to add (currently excluding):
        * Expressions in Variation Descriptors
-       * Extensions in any Descriptors (json serialize?)
-          * including Variant Groups
        * any Assertion objects
     * format the long constaints string better
     * do any current serialized values need to be searchable?
@@ -48,6 +46,21 @@ class Graph:
             tx.run("MATCH (n) DETACH DELETE n;")
         with self.driver.session() as session:
             session.write_transaction(delete_all)
+
+    @staticmethod
+    def json_to_string(obj: Dict):
+        """Sanitize tricky characters in values and dump JSON-like object
+        into a single string or array compatible with Neo4j property
+        constraints.
+        :param Dict obj: JSON-like object to convert
+        :return: String containing dumped object
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def string_to_json(obj: str):
+        """Convert dumped String back into JSON-like object."""
+        raise NotImplementedError
 
     @staticmethod
     def _create_constraints(tx):
@@ -146,24 +159,34 @@ class Graph:
             raise exception
 
     @staticmethod
-    def _add_variant_descriptor(tx, descriptor: Dict):
+    def _add_variant_descriptor(tx, descriptor_in: Dict):
         """Add variant descriptor object to DB.
-        :param Dict descriptor: must include a `value_id` field and a `value`
-            object containing `type`, `state`, and `location` objects.
+        :param Dict descriptor_in: must include a `value_id` field and a
+            `value` object containing `type`, `state`, and `location` objects.
         """
-        # build properties
+        descriptor = descriptor_in.copy()
+
+        # prepare value properties
         value_type = descriptor['value']['type']
         descriptor['value_state'] = json.dumps(descriptor['value']['state'])
-        descriptor['value_location'] = \
-            json.dumps(descriptor['value']['location'])
-        descriptor['expressions'] = [json.dumps(e)
-                                     for e in descriptor['expressions']]
-        nonnull_values = [f'{key}:"{descriptor[key]}"' for key
-                          in ('id', 'label', 'description', 'xrefs',
-                              'alternate_labels', 'structural_type',
-                              # 'expressions',
-                              'ref_allele_seq')
-                          if descriptor[key]]
+        location = descriptor['value']['location']
+        descriptor['value_location_type'] = location['type']
+        descriptor['value_location_sequence_id'] = location['sequence_id']
+        descriptor['value_location_interval_start'] = \
+            location['interval']['start']
+        descriptor['value_location_interval_end'] = location['interval']['end']
+        descriptor['value_location_interval_type'] = \
+            location['interval']['type']
+
+        # prepare descriptor properties
+        descriptor['expressions'] = json.dumps(descriptor['expressions'])
+        nonnull_keys = [f"{key}:${key}"
+                        for key in ('id', 'label', 'description', 'xrefs',
+                                    'alternate_labels', 'structural_type',
+                                    'expressions', 'ref_allele_seq')
+                        if descriptor[key]]
+
+        # handle extensions
         variant_groups = None
         extensions = descriptor.get('extensions')
         if extensions:
@@ -172,17 +195,23 @@ class Graph:
                 if name == 'variant_groups':
                     variant_groups = ext['value']
                 else:
-                    value = json.dumps(ext['value'])
-                    nonnull_values.append(f'{name}:{value}')
-        values_joined = ', '.join(nonnull_values)
+                    descriptor[name] = json.dumps(ext['value'])
+                    nonnull_keys.append(f"{name}:${name}")
+
+        descriptor_keys = ', '.join(nonnull_keys)
 
         query = f"""
         MERGE (descr:VariationDescriptor
-            {{ {values_joined} }})
+            {{ {descriptor_keys} }})
         MERGE (value:{value_type}:Variation
             {{id:$value_id,
               state:$value_state,
-              location:$value_location}})
+              location_type:$value_location_type,
+              location_sequence_id:$value_location_sequence_id,
+              location_interval_start:$value_location_interval_start,
+              location_interval_end:$value_location_interval_end,
+              location_interval_type:$value_location_interval_type
+              }})
         MERGE (gene_context:GeneDescriptor {{id:$gene_context}} )
         MERGE (descr) -[:DESCRIBES]-> (value)
         MERGE (descr) -[:HAS_GENE] -> (gene_context);
@@ -195,10 +224,15 @@ class Graph:
             raise exception
         if variant_groups:
             for grp in variant_groups:
+                params = descriptor.copy()
+                params['group_id'] = grp['id']
+                params['group_label'] = grp['label']
+                params['group_description'] = grp['description']
+
                 query = f"""
-                MERGE (grp:VariantGroup {{id:$id, label:$label,
-                                         description:$description}})
-                MERGE (var:VariationDescriptor {{ {values_joined} }})
+                MERGE (grp:VariantGroup {{id:$group_id, label:$group_label,
+                                         description:$group_description}})
+                MERGE (var:VariationDescriptor {{ {descriptor_keys} }})
                 MERGE (var) -[:IN_VARIANT_GROUP]-> (grp)
                 """
                 try:
