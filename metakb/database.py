@@ -14,16 +14,10 @@ class Graph:
 
     TODO
     * Need to add (currently excluding):
-       * Expressions in Variation Descriptors
        * any Assertion objects
-    * format the long constaints string better
-    * do any current serialized values need to be searchable?
-    * refactor add_transformed_data()
     * do evidence line/assertion need specific methods?
     * handle other types of propositions?
-    * can Labels be retrieved as part of the query?
-    * handle prime (') symbols in strings -- skipping for now (see whitelist)
-    * Verify correct value_ID for variation objects
+    * handling variant groups correctly?
     """
 
     def __init__(self, uri: str, credentials: Tuple[str, str]):
@@ -128,31 +122,27 @@ class Graph:
         descr_type = descriptor['type']
         if descr_type == 'TherapyDescriptor':
             value_type = 'Therapy'
-            value_id = descriptor['value']['therapy_id']
+            descriptor['value_id'] = descriptor['value']['therapy_id']
         elif descr_type == 'DiseaseDescriptor':
             value_type = 'Disease'
-            value_id = descriptor['value']['disease_id']
+            descriptor['value_id'] = descriptor['value']['disease_id']
         elif descr_type == 'GeneDescriptor':
             value_type = 'Gene'
-            value_id = descriptor['value']['gene_id']
-        nonnull_values = [f'{key}:"{descriptor[key]}"' for key
-                          in ('id', 'label', 'description', 'xrefs',
-                              'alternate_labels')
-                          if descriptor[key]]
-        extensions = descriptor.get('extensions')
-        if extensions:
-            for ext in extensions:
-                value = json.dumps(ext['value'])
-                nonnull_values.append(f'{ext["name"]}:"{value}"')
-        values_joined = ', '.join(nonnull_values)
+            descriptor['value_id'] = descriptor['value']['gene_id']
 
+        nonnull_keys = [f"{key}:${key}"
+                        for key in ('id', 'label', 'description', 'xrefs',
+                                    'alternate_labels')
+                        if descriptor[key]]
+        descriptor_keys = ', '.join(nonnull_keys)
+
+        query = f'''
+        MERGE (descr:{descr_type} {{ {descriptor_keys} }})
+        MERGE (value:{value_type} {{ id:$value_id }})
+        MERGE (descr) -[:DESCRIBES]-> (value)
+        '''
         try:
-            query = f'''
-            MERGE (descr:{descr_type} {{ {values_joined} }})
-            MERGE (value:{value_type} {{ id: "{value_id}" }})
-            MERGE (descr) -[:DESCRIBES]-> (value)
-            '''
-            tx.run(query)
+            tx.run(query, **descriptor)
         except ServiceUnavailable as exception:
             logging.error(f"Failed to add Descriptor object\nQuery: {query}\n"
                           f"Descriptor: {descriptor}")
@@ -236,9 +226,7 @@ class Graph:
                 MERGE (var) -[:IN_VARIANT_GROUP]-> (grp)
                 """
                 try:
-                    tx.run(query, value_id=descriptor['value_id'],
-                           id=grp['id'], label=grp['label'],
-                           description=grp['description'])
+                    tx.run(query, **params)
                 except ServiceUnavailable as exception:
                     logging.error(f"Failed to add Variant Descriptor object\n"
                                   f"Query: {query}\nDescriptor: {descriptor}")
@@ -250,13 +238,15 @@ class Graph:
         :param Dict ther_response: must include `disease_context`, `therapy`,
             and `has_originating_context` fields.
         """
-        nonnull_values = [f'{key}:"{ther_response[key]}"' for key
-                          in ('_id', 'predicate', 'variation_origin')
-                          if ther_response[key]]
-        values_joined = ', '.join(nonnull_values)
+        ther_response['id'] = ther_response['_id']
+        nonnull_keys = [f"{key}:${key}"
+                        for key in ('id', 'predicate', 'variation_origin')
+                        if ther_response[key]]
+        formatted_keys = ', '.join(nonnull_keys)
+
         query = f"""
         MERGE (response:TherapeuticResponse:Proposition
-            {{ {values_joined} }})
+            {{ {formatted_keys} }})
         MERGE (disease:Disease {{id:$disease_context}})
         MERGE (therapy:Therapy {{id:$therapy}})
         MERGE (variation:Variation {{id:$has_originating_context}})
@@ -300,14 +290,14 @@ class Graph:
             `variation_descriptor`, `therapy_descriptor`, `disease_descriptor`,
             `assertion_method`, and `document` fields.
         """
-        nonnull_values = [f'{key}:"{evidence[key]}"' for key
-                          in ('id', 'description', 'direction',
-                              'evidence_level')
-                          if evidence[key]]
-        values_joined = ', '.join(nonnull_values)
+        nonnull_keys = [f"{key}:${key}" for key
+                        in ('id', 'description', 'direction',
+                            'evidence_level')
+                        if evidence[key]]
+        formatted_keys = ', '.join(nonnull_keys)
 
         query = f"""
-        MERGE (ev:Evidence:Statement {{ {values_joined} }})
+        MERGE (ev:Evidence:Statement {{ {formatted_keys} }})
         MERGE (prop:Proposition {{_id:$proposition}})
         MERGE (var:VariationDescriptor {{id:$variation_descriptor}})
         MERGE (ther:TherapyDescriptor {{id:$therapy_descriptor}})
