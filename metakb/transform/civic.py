@@ -181,7 +181,8 @@ class CIViCTransform:
                              f"{record['evidence_level']}"
         else:
             evidence_level = None
-            # TODO: Do ACMG level
+            # TODO: Do ACMG level after first pass since we only currently
+            #  support Predictive
             if record['amp_level']:
                 evidence_level = \
                     f"civic.amp_level:" \
@@ -779,6 +780,7 @@ class CIViCTransform:
                 xrefs=[]
             ).dict())
 
+        # TODO: Check this after first pass
         # ACMG Codes
         if assertion['acmg_codes']:
             for acmg_code in assertion['acmg_codes']:
