@@ -166,7 +166,7 @@ class SupportEvidence(BaseModel):
 
     id: str
     support_evidence_id: str
-    label: Optional[str]
+    label: str
     description: Optional[str]
     xrefs: Optional[List[str]]
 
