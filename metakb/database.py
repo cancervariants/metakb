@@ -10,15 +10,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class Graph:
-    """Manage requests to graph datastore.
-
-    TODO
-    * Need to add (currently excluding):
-       * any Assertion objects
-    * do evidence line/assertion need specific methods?
-    * handle other types of propositions?
-    * handling variant groups correctly?
-    """
+    """Manage requests to graph datastore."""
 
     def __init__(self, uri: str, credentials: Tuple[str, str]):
         """Initialize Graph driver instance.
