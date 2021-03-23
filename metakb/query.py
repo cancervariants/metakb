@@ -1,6 +1,7 @@
 """Module for queries."""
 from neo4j import GraphDatabase
 import logging
+import json
 
 
 logger = logging.getLogger('metakb')
@@ -34,6 +35,8 @@ class Query:
         if query == '':
             return response
 
+        query = query.strip()
+
         # Try searching on value IDs first
         propositions, statements = \
             self.find_propositions_and_statements_from_value(query)
@@ -41,6 +44,16 @@ class Query:
             response['statements'] = \
                 self.get_statement_response(statements, propositions)
             return response
+
+        # Try Descriptors
+        statements = self.find_statements_from_descriptor(query)
+        propositions = self.find_propositions_from_descriptor(query)
+        if propositions and statements:
+            response['statements'] = self.get_statement_response(statements,
+                                                                 propositions)
+
+        # Try StatementIDs
+
         return response
 
     def get_statement_response(self, statements, propositions):
@@ -64,7 +77,7 @@ class Query:
                             'id': se['support_evidence_id'],
                             'label': se['label'],
                             'description': se['description'],
-                            'xrefs': se['xrefs']
+                            'xrefs': se['xrefs'] if se['xrefs'] else []
                         })
 
                     result = {
@@ -81,7 +94,7 @@ class Query:
                         'method': {
                             'label': response['m']['label'],
                             'url': response['m']['url'],
-                            'version': response['m']['version'],
+                            'version': json.loads(response['m']['version']),
                             'reference': response['m']['reference']
                         },
                         'support_evidence': support_evidence
@@ -148,7 +161,10 @@ class Query:
     def find_statements_from_descriptor(self, query):
         """Find Statement nodes from a descriptor query."""
         with self.driver.session() as session:
-            node_label, node_id = self.find_descriptor(query)
+            descriptor = self.find_descriptor(query)
+            if not descriptor:
+                return []
+            node_label, node_id = descriptor
             statement_nodes = session.read_transaction(
                 self._find_and_return_statements_from_descriptor,
                 node_id, node_label
@@ -169,7 +185,10 @@ class Query:
     def find_propositions_from_descriptor(self, query):
         """Find TR propositions from a descriptor query."""
         with self.driver.session() as session:
-            node_label, node_id = self.find_descriptor(query)
+            descriptor = self.find_descriptor(query)
+            if not descriptor:
+                return []
+            node_label, node_id = descriptor
             tr_nodes = session.read_transaction(
                 self._find_and_return_propositions_from_descriptor,
                 node_label, node_id
@@ -196,7 +215,7 @@ class Query:
         if node:
             node_label, *_ = node.labels
             # Possible values in a VOD
-            if node_label in ['Therapy', 'Disease', 'Variation']:
+            if node_label in ['Therapy', 'Disease', 'Allele']:
                 node_id = node.get('id')
                 with self.driver.session() as session:
                     propositions = session.read_transaction(

@@ -1,8 +1,11 @@
 """Main application for FastAPI."""
 from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
+from metakb.query import Query as QueryHandler
 
-app = FastAPI(docs_url='api/v2', openapi_url='api/v2/openapi.json')
+app = FastAPI(docs_url='/api/v2', openapi_url='/api/v2/openapi.json')
+query = QueryHandler(uri="bolt://localhost:7687",
+                     credentials=("neo4j", "admin"))
 
 
 def custom_openapi():
@@ -36,9 +39,9 @@ q_description = ""
 @app.get('/api/v2/search',
          summary=search_summary,
          operation_id="getQueryResponse",
-         response_desceription=search_response_description,
+         response_description=search_response_description,
          # response_model=,
          description=search_description)
 def search(q: str = Query(..., description=q_description)):
     """Search endpoint"""
-    pass
+    return query.search(q)
