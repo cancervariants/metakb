@@ -34,21 +34,6 @@ class Graph:
             session.write_transaction(delete_all)
 
     @staticmethod
-    def json_to_string(obj: Dict):
-        """Sanitize tricky characters in values and dump JSON-like object
-        into a single string or array compatible with Neo4j property
-        constraints.
-        :param Dict obj: JSON-like object to convert
-        :return: String containing dumped object
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def string_to_json(obj: str):
-        """Convert dumped String back into JSON-like object."""
-        raise NotImplementedError
-
-    @staticmethod
     def _create_constraints(tx):
         """Create unique property constraints for ID values"""
         try:
