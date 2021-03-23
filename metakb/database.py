@@ -243,7 +243,8 @@ class Graph:
         """
         ther_response['id'] = ther_response['_id']
         nonnull_keys = [f"{key}:${key}"
-                        for key in ('id', 'predicate', 'variation_origin')
+                        for key in ('id', 'type',
+                                    'predicate', 'variation_origin')
                         if ther_response[key]]
         formatted_keys = ', '.join(nonnull_keys)
 
@@ -297,7 +298,7 @@ class Graph:
             `support_evidence` fields.
         """
         nonnull_keys = [f"{key}:${key}" for key
-                        in ('id', 'description', 'direction',
+                        in ('id', 'type', 'description', 'direction',
                             'evidence_level')
                         if statement[key]]
         formatted_keys = ', '.join(nonnull_keys)
