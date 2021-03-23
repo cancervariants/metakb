@@ -28,15 +28,122 @@ class Query:
         #  Search by HGVS
         response = {
             'query': query,
-            'propositions': [],
             'statements': []
         }
 
         if query == '':
             return response
 
-        query = query.lower()
+        # Try searching on value IDs first
+        propositions, statements = \
+            self.find_propositions_and_statements_from_value(query)
+        if propositions and statements:
+            response['statements'] = \
+                self.get_statement_response(statements, propositions)
+            return response
         return response
+
+    def get_statement_response(self, statements, propositions):
+        """Return a list of statement data from Statement nodes."""
+        statements_response = list()
+        propositions = self.get_propositions_response(propositions)
+        for s in statements:
+            with self.driver.session() as session:
+                responses = session.read_transaction(
+                    self._find_and_return_statement_response,
+                    s.get('id')
+                )
+                for response in responses:
+                    support_evidence = list()
+                    se_list = session.read_transaction(
+                        self._find_and_return_support_evidence,
+                        s.get('id')
+                    )
+                    for se in se_list:
+                        support_evidence.append({
+                            'id': se['support_evidence_id'],
+                            'label': se['label'],
+                            'description': se['description'],
+                            'xrefs': se['xrefs']
+                        })
+
+                    result = {
+                        'id': s.get('id'),
+                        'type': s.get('type'),
+                        'description': s.get('description'),
+                        'direction': s.get('direction'),
+                        'evidence_level': s.get('evidence_level'),
+                        'proposition': propositions.get(response['tr_id'],
+                                                        None),
+                        'variation_descriptor': response['vid'],
+                        'therapy_descriptor': response['tid'],
+                        'disease_descriptor': response['did'],
+                        'method': {
+                            'label': response['m']['label'],
+                            'url': response['m']['url'],
+                            'version': response['m']['version'],
+                            'reference': response['m']['reference']
+                        },
+                        'support_evidence': support_evidence
+                    }
+                    statements_response.append(result)
+        return statements_response
+
+    @staticmethod
+    def _find_and_return_support_evidence(tx, statement_id):
+        query = (
+            "MATCH (s:Statement)-[:CITES]->(se:SupportEvidence) "
+            f"WHERE s.id = '{statement_id}' "
+            "RETURN se"
+        )
+        return [se[0] for se in tx.run(query)]
+
+    @staticmethod
+    def _find_and_return_statement_response(tx, statement_id):
+        query = (
+            "MATCH (s) "
+            f"WHERE s.id = '{statement_id}' "
+            "MATCH (s)-[r1]->(td:TherapyDescriptor) "
+            "MATCH (s)-[r2]->(vd:VariationDescriptor) "
+            "MATCH (s)-[r3]->(dd:DiseaseDescriptor) "
+            "MATCH (s)-[r4]->(m:Method) "
+            "MATCH (s)-[r6]->(tr:TherapeuticResponse) "
+            "RETURN td.id AS tid, vd.id AS vid, dd.id AS did, m,"
+            " tr.id AS tr_id"
+        )
+        return [r for r in tx.run(query)]
+
+    def get_propositions_response(self, propositions):
+        """Return a list of proposition data from Proposition nodes."""
+        propositions_response = dict()
+        for p in propositions:
+            with self.driver.session() as session:
+                value_ids = session.read_transaction(
+                    self._find_and_return_proposition_response,
+                    p.get('id')
+                )
+                propositions_response[p.get('id')] = {
+                    'type': p.get('type'),
+                    'predicate': p.get('predicate'),
+                    'variation_origin': p.get('variation_origin'),
+                    'subject': value_ids['subject'],
+                    'object_qualifier': value_ids['object_qualifier'],
+                    'object': value_ids['object']
+                }
+        return propositions_response
+
+    @staticmethod
+    def _find_and_return_proposition_response(tx, proposition_id):
+        """Return value ids from a proposition."""
+        query = (
+            f"MATCH (n) "
+            f"WHERE n.id = '{proposition_id}' "
+            "MATCH (n) -[r1]-> (t:Therapy) "
+            "MATCH (n) -[r2]-> (v:Variation) "
+            "MATCH (n) -[r3]-> (d:Disease) "
+            "RETURN t.id AS object, v.id AS subject, d.id AS object_qualifier"
+        )
+        return tx.run(query).single()
 
     def find_statements_from_descriptor(self, query):
         """Find Statement nodes from a descriptor query."""
@@ -55,9 +162,9 @@ class Query:
         query = (
             f"MATCH (d:{descriptor_label})<-[r]-(s:Statement) "
             f"WHERE d.id =~ '(?i){descriptor_id}' "
-            "RETURN s"
+            "RETURN DISTINCT s"
         )
-        return {s[0] for s in tx.run(query)}
+        return [s[0] for s in tx.run(query)]
 
     def find_propositions_from_descriptor(self, query):
         """Find TR propositions from a descriptor query."""
@@ -76,9 +183,9 @@ class Query:
         query = (
             f"MATCH (d:{descriptor_label})-[r1]->(n)-[r2]->(tr:TherapeuticResponse) "  # noqa: #501
             f"WHERE d.id = '{descriptor_id}' "
-            "RETURN tr"
+            "RETURN DISTINCT tr"
         )
-        return {tr[0] for tr in tx.run(query)}
+        return [tr[0] for tr in tx.run(query)]
 
     def find_propositions_and_statements_from_value(self, query):
         """Find Propositions and Statements from a value in a VOD."""
@@ -101,9 +208,6 @@ class Query:
                         node_label, node_id
                     )
 
-        if not propositions and not statements:
-            return None
-
         return propositions, statements
 
     @staticmethod
@@ -112,9 +216,9 @@ class Query:
         query = (
             f"MATCH (value:{value_label})<-[r1]-(descriptor)<-[r2]-(s:Statement) "  # noqa: E501
             f"WHERE value.id = '{value_id}' "
-            "RETURN s"
+            "RETURN DISTINCT s"
         )
-        return {s[0] for s in tx.run(query)}
+        return [s[0] for s in tx.run(query)]
 
     @staticmethod
     def _find_and_return_propositions_from_value(tx, value_label, value_id):
@@ -122,9 +226,9 @@ class Query:
         query = (
             f"MATCH (value:{value_label})-[r]->(tr:TherapeuticResponse) "
             f"WHERE value.id = '{value_id}' "
-            "RETURN tr"
+            "RETURN DISTINCT tr"
         )
-        return {tr[0] for tr in tx.run(query)}
+        return [tr[0] for tr in tx.run(query)]
 
     def find_descriptor(self, query):
         """Find a descriptor node from query."""
