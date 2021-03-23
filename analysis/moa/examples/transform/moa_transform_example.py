@@ -8,11 +8,10 @@ def create_moa_example(moa_data):
     """Create MOA transform examples from list of evidence items."""
     evidence_items = 'moa:69'
     for response in moa_data:
-        if 'evidence' in list(response.keys())[0]:
-            if response['evidence'][0]['id'] == evidence_items:
-                with open(f"{PROJECT_ROOT}/analysis/moa/examples/transform/"
-                          f"{response['evidence'][0]['id']}.json", 'w+') as f:
-                    json.dump(response, f)
+        if response['statements'][0]['id'] == evidence_items:
+            with open(f"{PROJECT_ROOT}/analysis/moa/examples/transform/"
+                      f"{response['statements'][0]['id']}.json", 'w+') as f:
+                json.dump(response, f)
 
 
 if __name__ == '__main__':
