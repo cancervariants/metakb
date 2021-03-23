@@ -132,9 +132,9 @@ class TherapeuticResponseProposition(BaseModel):
     type = PropositionType.PREDICTIVE.value
     predicate: Optional[PredictivePredicate]
     variation_origin: Optional[VariationOrigin]
-    has_originating_context: Optional[str]  # vrs:Variation
-    disease_context: Optional[str]  # vicc:Disease
-    therapy: Optional[str]  # Therapy value object
+    subject: Optional[str]  # vrs:Variation
+    object_qualifier: Optional[str]  # vicc:Disease
+    object: Optional[str]  # Therapy value object
 
 
 class MethodID(IntEnum):
@@ -146,27 +146,12 @@ class MethodID(IntEnum):
     MOA_EID_BIORXIV = 4
 
 
-class Assertion(BaseModel):
-    """Define assertion model."""
+class Statement(BaseModel):
+    """Define statement model."""
 
     id: str
-    type = 'Assertion'
+    type = 'Statement'
     description: str
-    direction: Optional[Direction]
-    assertion_level: str
-    proposition: str
-    methods: List[str]
-    evidence: List[str]
-    document: str
-    # contributions: List[str]
-
-
-class Evidence(BaseModel):
-    """Define evidence model."""
-
-    id: str
-    type = 'Evidence'
-    description: Optional[str]
     direction: Optional[Direction]
     evidence_level: str
     proposition: str
@@ -174,15 +159,15 @@ class Evidence(BaseModel):
     therapy_descriptor: Optional[str]
     disease_descriptor: Optional[str]
     method: str
-    document: str
+    support_evidence: List[str]
     # contribution: str  TODO: After metakb first pass
 
 
-class Document(BaseModel):
-    """Define model for Document."""
+class SupportEvidence(BaseModel):
+    """Define model for Source."""
 
     id: str
-    document_id: str
+    support_evidence_id: str
     label: str
     description: Optional[str]
     xrefs: Optional[List[str]]
@@ -267,3 +252,16 @@ class VariationDescriptor(ValueObjectDescriptor):
     expressions: Optional[List[Expression]]
     ref_allele_seq: Optional[str]
     gene_context: Optional[Union[str, GeneDescriptor]]
+
+
+class Response(BaseModel):
+    """Define the Response Model."""
+
+    statements: List[Statement]
+    propositions: List[TherapeuticResponseProposition]
+    variation_descriptors: List[VariationDescriptor]
+    gene_descriptors: List[GeneDescriptor]
+    therapy_descriptors: List[ValueObjectDescriptor]
+    disease_descriptors: List[ValueObjectDescriptor]
+    methods: List[Method]
+    support_evidence: List[SupportEvidence]
