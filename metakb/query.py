@@ -23,101 +23,141 @@ class Query:
 
         :param str query: The query to search on
         """
+        # TODO:
+        #  Search by ID
+        #  Search by HGVS
         response = {
             'query': query,
-            'matches': []
+            'propositions': [],
+            'statements': []
         }
 
         if query == '':
             return response
 
         query = query.lower()
+        return response
 
-    def find_evidence_from_propositions(self, propositions):
-        """Find evidence items that support propositions.
-
-        :param list propositions: TR records
-        """
-        propositions_ids = [tr[0].get('_id') for tr in propositions]
-        evidence_items = list()
+    def find_statements_from_descriptor(self, query):
+        """Find Statement nodes from a descriptor query."""
         with self.driver.session() as session:
-            for proposition_id in propositions_ids:
-                evidence_items.append(session.read_transaction(
-                    self._find_and_return_evidence_from_proposition_id,
-                    proposition_id))
-            return evidence_items
+            node_label, node_id = self.find_descriptor(query)
+            statement_nodes = session.read_transaction(
+                self._find_and_return_statements_from_descriptor,
+                node_id, node_label
+            )
+            return statement_nodes
 
     @staticmethod
-    def _find_and_return_evidence_from_proposition_id(tx, proposition_id):
+    def _find_and_return_statements_from_descriptor(tx, descriptor_id,
+                                                    descriptor_label):
+        """Return statement matches from a given Descriptor ID."""
         query = (
-            "MATCH (e:Evidence)-[:SUPPORTS]->(tr:TherapeuticResponse) "
-            f"WHERE tr._id =~ '(?i){proposition_id}' "
-            "RETURN e"
-        )
-        return ([e for e in tx.run(query)] or [None])[0]
-
-    def find_propositions_from_id(self, query):
-        """Try to find proposition from query.
-
-        :param str query: The ID to search
-        :return: A list of propositions
-        """
-        node = self.find_node_by_id(query)
-        if not node:
-            return []
-        else:
-            node = node[0]
-        label, *_ = node.labels
-        node_id = node.get('id')
-
-        relationship = \
-            self.find_relationship('TherapeuticResponse', label).get('type')
-
-        tr_nodes = self.get_node_from_relationship(
-            'TherapeuticResponse', label, node_id, relationship)
-        return tr_nodes
-
-    def find_evidence_by_label(self, query):
-        """Descriptor label"""
-        nodes = self.find_node_by_label(query)
-        if not nodes:
-            return []
-
-        evidence_items = list()
-
-        for node in nodes:
-            node = node[0]
-            label, *_ = node.labels
-            node_id = node.get('id')
-            r = self.find_relationship('Evidence', label).get('type')
-            e = self.find_evidence_from_descriptor(node_id, label, r)
-            evidence_items += e
-
-        return evidence_items
-
-    def find_evidence_from_descriptor(self, descriptor_id, descriptor_label,
-                                      relationship):
-        """Find evidence items for a given descriptor"""
-        with self.driver.session() as session:
-            evidence_items = session.read_transaction(
-                self._find_and_return_evidence_from_descriptor,
-                descriptor_id, descriptor_label, relationship)
-            return evidence_items
-
-    @staticmethod
-    def _find_and_return_evidence_from_descriptor(tx, descriptor_id,
-                                                  descriptor_label,
-                                                  relationship):
-        """Return evidence matches from descriptor."""
-        query = (
-            f"MATCH (d:{descriptor_label})<-[:{relationship}]-(e:Evidence) "
+            f"MATCH (d:{descriptor_label})<-[r]-(s:Statement) "
             f"WHERE d.id =~ '(?i){descriptor_id}' "
-            "RETURN e"
+            "RETURN s"
         )
-        return [e[0] for e in tx.run(query)]
+        return {s[0] for s in tx.run(query)}
+
+    def find_propositions_from_descriptor(self, query):
+        """Find TR propositions from a descriptor query."""
+        with self.driver.session() as session:
+            node_label, node_id = self.find_descriptor(query)
+            tr_nodes = session.read_transaction(
+                self._find_and_return_propositions_from_descriptor,
+                node_label, node_id
+            )
+            return tr_nodes
+
+    @staticmethod
+    def _find_and_return_propositions_from_descriptor(tx, descriptor_label,
+                                                      descriptor_id):
+        """Return TR propositions from Descriptor ID."""
+        query = (
+            f"MATCH (d:{descriptor_label})-[r1]->(n)-[r2]->(tr:TherapeuticResponse) "  # noqa: #501
+            f"WHERE d.id = '{descriptor_id}' "
+            "RETURN tr"
+        )
+        return {tr[0] for tr in tx.run(query)}
+
+    def find_propositions_and_statements_from_value(self, query):
+        """Find Propositions and Statements from a value in a VOD."""
+        node = self.find_node_by_id(query)
+        propositions = None
+        statements = None
+
+        if node:
+            node_label, *_ = node.labels
+            # Possible values in a VOD
+            if node_label in ['Therapy', 'Disease', 'Variation']:
+                node_id = node.get('id')
+                with self.driver.session() as session:
+                    propositions = session.read_transaction(
+                        self._find_and_return_propositions_from_value,
+                        node_label, node_id
+                    )
+                    statements = session.read_transaction(
+                        self._find_and_return_statements_from_value,
+                        node_label, node_id
+                    )
+
+        if not propositions and not statements:
+            return None
+
+        return propositions, statements
+
+    @staticmethod
+    def _find_and_return_statements_from_value(tx, value_label, value_id):
+        """Return Statement nodes from a value ID."""
+        query = (
+            f"MATCH (value:{value_label})<-[r1]-(descriptor)<-[r2]-(s:Statement) "  # noqa: E501
+            f"WHERE value.id = '{value_id}' "
+            "RETURN s"
+        )
+        return {s[0] for s in tx.run(query)}
+
+    @staticmethod
+    def _find_and_return_propositions_from_value(tx, value_label, value_id):
+        """Return Proposition nodes from a value ID."""
+        query = (
+            f"MATCH (value:{value_label})-[r]->(tr:TherapeuticResponse) "
+            f"WHERE value.id = '{value_id}' "
+            "RETURN tr"
+        )
+        return {tr[0] for tr in tx.run(query)}
+
+    def find_descriptor(self, query):
+        """Find a descriptor node from query."""
+        # Search on ID, Label, Alt Label, Xrefs
+        for node in [self.find_node_by_id(query),
+                     self.find_node_by_label(query),
+                     self.find_node_from_list('alternate_labels', query),
+                     self.find_node_from_list('xrefs', query)]:
+            if node:
+                node_label, *_ = node.labels
+                if 'Descriptor' in node_label:
+                    return node_label, node.get('id')
+        return None
+
+    def find_node_by_id(self, node_id):
+        """Return a node by ID if ID exists."""
+        with self.driver.session() as session:
+            node = session.read_transaction(self._find_and_return_node_by_id,
+                                            node_id)
+            return node
+
+    @staticmethod
+    def _find_and_return_node_by_id(tx, node_id):
+        """Return node by id."""
+        query = (
+            "MATCH (n) "
+            f"WHERE n.id =~ '(?i){node_id}' "
+            "RETURN n"
+        )
+        return (tx.run(query).single() or [None])[0]
 
     def find_node_by_label(self, label):
-        """Find descriptor node by label."""
+        """Find node by label."""
         with self.driver.session() as session:
             node = \
                 session.read_transaction(self._find_and_return_node_by_label,
@@ -126,63 +166,29 @@ class Query:
 
     @staticmethod
     def _find_and_return_node_by_label(tx, label):
-        """Find Descriptors by label."""
+        """Return a single node by label."""
         # TODO: MOA stores VID labels as GENE p.VARIANT (TYPE)
         query = (
             "MATCH (n) "
             f"WHERE n.label =~ '(?i){label}' "
             "RETURN n"
         )
-        return [n for n in tx.run(query)]
+        return (tx.run(query).single() or [None])[0]
 
-    def find_node_by_id(self, node_id):
-        """Find a node by ID."""
-        with self.driver.session() as session:
-            node = session.read_transaction(self._find_and_return_node_by_id,
-                                            node_id)
-            return node
-
-    @staticmethod
-    def _find_and_return_node_by_id(tx, node_id):
-        query = (
-            "MATCH (n) "
-            f"WHERE n.id =~ '(?i){node_id}' "
-            "RETURN n"
-        )
-        return ([n for n in tx.run(query)] or [None])[0]
-
-    def find_relationship(self, node1_label, node2_label):
-        """Find relationship from node1 to node2."""
-        with self.driver.session() as session:
-            relationship = \
-                session.read_transaction(self._find_and_return_relationship,
-                                         node1_label, node2_label)
-            return relationship
-
-    @staticmethod
-    def _find_and_return_relationship(tx, node1_label, node2_label):
-        """Return relationship for two nodes."""
-        query = (
-            f"MATCH (n1:{node1_label})-[r]->(n2:{node2_label}) "
-            "RETURN type(r) as type"
-        )
-        return ({r for r in tx.run(query)} or {None}).pop()
-
-    def get_node_from_relationship(self, node1_label, node2_label, value_id,
-                                   relationship):
-        """Return relationship for two nodes."""
+    def find_node_from_list(self, list_name, query):
+        """If query is in a node's list, return that node."""
         with self.driver.session() as session:
             node = session.read_transaction(
-                self._find_and_return_node_from_relationship,
-                node1_label, node2_label, value_id, relationship)
+                self._find_and_return_node_from_list, list_name, query
+            )
             return node
 
     @staticmethod
-    def _find_and_return_node_from_relationship(tx, node1_label, node2_label,
-                                                value_id, relationship):
+    def _find_and_return_node_from_list(tx, list_name, query):
+        """Return node that contains query in its list."""
         query = (
-            f"MATCH (n1:{node1_label})-[:{relationship}]->(n2:{node2_label}) "
-            f"WHERE n2.id =~ '(?i){value_id}' "
-            "RETURN n1"
+            "MATCH (n) "
+            f"WHERE ANY (query IN n.{list_name} WHERE query =~ '(?i){query}') "  # noqa: #501
+            "RETURN n"
         )
-        return [n for n in tx.run(query)]
+        return (tx.run(query).single() or [None])[0]
