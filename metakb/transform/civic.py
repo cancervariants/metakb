@@ -479,7 +479,7 @@ class CIViCTransform:
             extensions.append(schemas.Extension(
                 name='variant_groups',
                 value=v_groups
-            ))
+            ).dict())
         return extensions
 
     def _get_variant_xrefs(self, v):
@@ -664,7 +664,7 @@ class CIViCTransform:
                    f'{schemas.MethodID.CIVIC_EID_SOP:03}',
                 label='Standard operating procedure for curation and clinical interpretation of variants in cancer',  # noqa: E501
                 url='https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x',  # noqa: E501
-                version=schemas.Date(year=2019, month=11, day=29),
+                version=schemas.Date(year=2019, month=11, day=29).dict(),
                 reference='Danos, A.M., Krysiak, K., Barnell, E.K. et al.'
             ).dict()]
         else:
@@ -680,7 +680,7 @@ class CIViCTransform:
                               'Clinical Oncology, and College of American '
                               'Pathologists',
                         url='https://pubmed.ncbi.nlm.nih.gov/27993330/',
-                        version=schemas.Date(year=2017, month=1),
+                        version=schemas.Date(year=2017, month=1).dict(),
                         reference='Li MM, Datto M, Duncavage EJ, et al.'
                     ).dict()
                 ]
@@ -696,7 +696,7 @@ class CIViCTransform:
                               ' Genomics and the Association for '
                               'Molecular Pathology',
                         url='https://pubmed.ncbi.nlm.nih.gov/25741868/',
-                        version=schemas.Date(year=2015, month=5),
+                        version=schemas.Date(year=2015, month=5).dict(),
                         reference='Richards S, Aziz N, Bale S, et al.'
                     ).dict()
                 ]
