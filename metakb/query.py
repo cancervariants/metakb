@@ -25,7 +25,7 @@ class Query:
         :param str query: The query to search on
         """
         # TODO:
-        #  Search by ID
+        #  Search by ID (HGNC ID?)
         #  Search by HGVS
         response = {
             'query': query,
@@ -51,6 +51,15 @@ class Query:
         if propositions and statements:
             response['statements'] = self.get_statement_response(statements,
                                                                  propositions)
+            return response
+
+        # Try Gene Symbol + Variant
+        statements = self.find_statements_from_variation_descriptor(query)
+        propositions = self.find_propositions_from_variation_descriptor(query)
+        if propositions and statements:
+            response['statements'] = self.get_statement_response(statements,
+                                                                 propositions)
+            return response
 
         # Try StatementIDs
 
@@ -315,3 +324,83 @@ class Query:
             "RETURN n"
         )
         return (tx.run(query).single() or [None])[0]
+
+    def find_statements_from_variation_descriptor(self, query):
+        """Find statements for a variation descriptor."""
+        with self.driver.session() as session:
+            vd = self.find_variation_descriptor(query)
+            if not vd:
+                return []
+            node_label, node_id = vd
+            statement_nodes = session.read_transaction(
+                self._find_and_return_statements_from_descriptor,
+                node_id, node_label
+            )
+            return statement_nodes
+
+    def find_propositions_from_variation_descriptor(self, query):
+        """Find propositions for a variation descriptor."""
+        with self.driver.session() as session:
+            vd = self.find_variation_descriptor(query)
+            if not vd:
+                return []
+            node_label, node_id = vd
+            tr_nodes = session.read_transaction(
+                self._find_and_return_propositions_from_descriptor,
+                node_label, node_id
+            )
+            return tr_nodes
+
+    def find_variation_descriptor(self, query):
+        """Find variation descriptor from GeneSymbol+Variant."""
+        query = query.split()
+        if len(query) != 2:
+            return None
+        gene_symbol, variant = query
+
+        # Check Gene First
+        gene_node_id = None
+        for node in [self.find_node_by_label(gene_symbol),
+                     self.find_node_from_list('alternate_labels', gene_symbol)
+                     ]:
+            if node:
+                gene_node_label, *_ = node.labels
+                if gene_node_label == 'GeneDescriptor':
+                    gene_node_id = node.get('id')
+                    break
+
+        if not gene_node_label and not gene_node_id:
+            return None
+
+        # Check Variant Now
+        variant_node_id = None
+        for node in [self.find_node_by_label(variant),
+                     self.find_node_from_list('alternate_labels', variant)]:
+            if node:
+                variant_node_label, *_ = node.labels
+                if variant_node_label == 'VariationDescriptor':
+                    variant_node_id = node.get('id')
+                    break
+
+        # print(variant_node_id, variant_node_label)
+        if not variant_node_label and not variant_node_id:
+            return None
+
+        with self.driver.session() as session:
+            relationship_exists = session.read_transaction(
+                self._check_gene_variant_relationship,
+                gene_node_id, variant_node_id
+            )
+            if not relationship_exists:
+                return None
+
+        return variant_node_label, variant_node_id
+
+    @staticmethod
+    def _check_gene_variant_relationship(tx, gene_id, variant_id):
+        query = (
+            "MATCH (g:GeneDescriptor {id: $gene_id}), (v:VariationDescriptor {id: $variant_id} ) "  # noqa:E 501
+            "RETURN EXISTS ((v)-[:HAS_GENE]->(g))"
+        )
+        return tx.run(query, gene_id=gene_id,
+                      variant_id=variant_id).single()[0]
