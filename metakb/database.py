@@ -85,7 +85,7 @@ class Graph:
             for ev in data.get('support_evidence'):
                 session.write_transaction(self._add_support_evidence, ev)
             for proposition in data.get('propositions', []):
-                session.write_transaction(self._add_therapeutic_response,
+                session.write_transaction(self._add_proposition,
                                           proposition)
             for ev in data.get('statements', []):
                 session.write_transaction(self._add_statement, ev)
@@ -228,19 +228,26 @@ class Graph:
                     raise exception
 
     @staticmethod
-    def _add_therapeutic_response(tx, ther_response: Dict):
-        """Add Therapeutic Response object to DB.
-        :param Dict ther_response: must include `disease_context`, `therapy`,
+    def _add_proposition(tx, proposition: Dict):
+        """Add Proposition object to DB.
+        :param Dict proposition: must include `disease_context`, `therapy`,
             and `has_originating_context` fields.
         """
-        ther_response['id'] = ther_response['_id']
+        proposition['id'] = proposition['_id']
         nonnull_keys = [f"{key}:${key}"
-                        for key in ('id', 'predicate', 'variation_origin')
-                        if ther_response[key]]
+                        for key in ('id', 'predicate', 'variation_origin',
+                                    'type')
+                        if proposition[key]]
         formatted_keys = ', '.join(nonnull_keys)
 
+        prop_type = proposition.get('type')
+        if prop_type == "therapeutic_response_proposition":
+            prop_label = ":TherapeuticResponse"
+        else:
+            prop_label = ""
+
         query = f"""
-        MERGE (response:TherapeuticResponse:Proposition
+        MERGE (response{prop_label}:Proposition
             {{ {formatted_keys} }})
         MERGE (disease:Disease {{id:$object_qualifier}})
         MERGE (therapy:Therapy {{id:$object}})
@@ -253,11 +260,10 @@ class Graph:
         MERGE (disease) -[:IS_OBJECT_QUALIFIER_OF]-> (response)
         """
         try:
-            tx.run(query, **ther_response)
+            tx.run(query, **proposition)
         except ServiceUnavailable as exception:
-            logging.error(f"Failed to add TherapeuticResponse object\n"
-                          f"Query: {query}\nTherapeuticResponse: "
-                          f"{ther_response}")
+            logging.error(f"Failed to add Proposition object\n"
+                          f"Query: {query}\nProposition: {proposition}")
             raise exception
 
     @staticmethod
