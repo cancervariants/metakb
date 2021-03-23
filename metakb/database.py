@@ -215,10 +215,10 @@ class Graph:
                 params['group_description'] = grp['description']
 
                 query = f"""
-                MERGE (grp:VariantGroup {{id:$group_id, label:$group_label,
-                                         description:$group_description}})
+                MERGE (grp:VariationGroup {{id:$group_id, label:$group_label,
+                                            description:$group_description}})
                 MERGE (var:VariationDescriptor {{ {descriptor_keys} }})
-                MERGE (var) -[:IN_VARIANT_GROUP]-> (grp)
+                MERGE (var) -[:IN_VARIATION_GROUP]-> (grp)
                 """
                 try:
                     tx.run(query, **params)
@@ -312,7 +312,7 @@ class Graph:
         MERGE (method:Method {{id:$method}})
         {match_line}
         MERGE (ev) -[:DEFINED_BY]-> (prop)
-        MERGE (ev) -[:HAS_VARIANT]-> (var)
+        MERGE (ev) -[:HAS_VARIATION]-> (var)
         MERGE (ev) -[:HAS_THERAPY]-> (ther)
         MERGE (ev) -[:HAS_DISEASE]-> (dis)
         MERGE (ev) -[:USES_METHOD]-> (method)
