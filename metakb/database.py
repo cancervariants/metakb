@@ -60,13 +60,14 @@ class Graph:
     def _create_constraints(tx):
         """Create unique property constraints for ID values"""
         try:
-            tx.run("CREATE CONSTRAINT gene_id_constraint IF NOT EXISTS ON (n:Gene) ASSERT n.gene_id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT disease_id_constraint IF NOT EXISTS ON (n:Disease) ASSERT n.disease_id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT therapy_id_constraint IF NOT EXISTS ON (n:Therapy) ASSERT n.therapy_id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT gene_id_constraint IF NOT EXISTS ON (n:Gene) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT disease_id_constraint IF NOT EXISTS ON (n:Disease) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT therapy_id_constraint IF NOT EXISTS ON (n:Therapy) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT vod_id_constraint IF NOT EXISTS ON (n:ValueObjectDescriptor) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT proposition_id_constraint IF NOT EXISTS ON (n:Proposition) ASSERT n._id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT evidence_id_constraint IF NOT EXISTS ON (n:Evidence) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT assertionmethod_id_constraint IF NOT EXISTS ON (n:AssertionMethod) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT proposition_id_constraint IF NOT EXISTS ON (n:Proposition) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT support_evidence_id_constraint IF NOT EXISTS ON (n:SupportEvidence) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT statement_id_constraint IF NOT EXISTS ON (n:Statement) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT method_id_constraint IF NOT EXISTS ON (n:Method) ASSERT n.id IS UNIQUE;")  # noqa: E501
         except ServiceUnavailable as exception:
             logging.error("Failed to generate ID property constraints.")
             raise exception
@@ -78,8 +79,8 @@ class Graph:
             Variations, Propositions, and Evidence
         """
         with self.driver.session() as session:
-            for method in data.get('assertion_methods', []):
-                session.write_transaction(self._add_assertion_method, method)
+            for method in data.get('methods', []):
+                session.write_transaction(self._add_method, method)
             for descr in data.get('therapy_descriptors', []):
                 session.write_transaction(self._add_descriptor, descr)
             for descr in data.get('disease_descriptors', []):
@@ -87,30 +88,32 @@ class Graph:
             for descr in data.get('gene_descriptors', []):
                 session.write_transaction(self._add_descriptor, descr)
             for var_descr in data.get('variation_descriptors', []):
-                session.write_transaction(self._add_variant_descriptor,
+                session.write_transaction(self._add_variation_descriptor,
                                           var_descr)
+            for ev in data.get('support_evidence'):
+                session.write_transaction(self._add_support_evidence, ev)
             for proposition in data.get('propositions', []):
                 session.write_transaction(self._add_therapeutic_response,
                                           proposition)
-            for ev in data.get('evidence', []):
-                session.write_transaction(self._add_evidence, ev)
+            for ev in data.get('statements', []):
+                session.write_transaction(self._add_statement, ev)
 
     @staticmethod
-    def _add_assertion_method(tx, assertion_method: Dict):
-        """Add Assertion Method object to DB.
-        :param Dict assertion_method: must include `id`, `label`, `url`,
+    def _add_method(tx, method: Dict):
+        """Add Method object to DB.
+        :param Dict method: must include `id`, `label`, `url`,
             `version`, and `reference` values.
         """
-        assertion_method['version'] = json.dumps(assertion_method['version'])
+        method['version'] = json.dumps(method['version'])
         query = """
-        MERGE (n:AssertionMethod {id:$id, label:$label, url:$url,
+        MERGE (n:Method {id:$id, label:$label, url:$url,
             version:$version, reference: $reference});
         """
         try:
-            tx.run(query, **assertion_method)
+            tx.run(query, **method)
         except ServiceUnavailable as exception:
-            logging.error(f"Failed to add AssertionMethod object\nQuery: "
-                          f"{query}\nAssertionMethod: {assertion_method}")
+            logging.error(f"Failed to add Method object\nQuery: "
+                          f"{query}\nAssertionMethod: {method}")
             raise exception
 
     @staticmethod
@@ -149,7 +152,7 @@ class Graph:
             raise exception
 
     @staticmethod
-    def _add_variant_descriptor(tx, descriptor_in: Dict):
+    def _add_variation_descriptor(tx, descriptor_in: Dict):
         """Add variant descriptor object to DB.
         :param Dict descriptor_in: must include a `value_id` field and a
             `value` object containing `type`, `state`, and `location` objects.
@@ -247,9 +250,9 @@ class Graph:
         query = f"""
         MERGE (response:TherapeuticResponse:Proposition
             {{ {formatted_keys} }})
-        MERGE (disease:Disease {{id:$disease_context}})
-        MERGE (therapy:Therapy {{id:$therapy}})
-        MERGE (variation:Variation {{id:$has_originating_context}})
+        MERGE (disease:Disease {{id:$object_qualifier}})
+        MERGE (therapy:Therapy {{id:$object}})
+        MERGE (variation:Variation {{id:$subject}})
         MERGE (response) -[:HAS_SUBJECT]-> (variation)
         MERGE (variation) -[:IS_SUBJECT_OF]-> (response)
         MERGE (response) -[:HAS_OBJECT]-> (therapy)
@@ -266,54 +269,67 @@ class Graph:
             raise exception
 
     @staticmethod
-    def _add_document(tx, document: Dict):
-        """Add Document object to DB.
-        :param Dict document: must include `id`, `document_id`, `label`,
-            `description`, and `xrefs` fields.
+    def _add_support_evidence(tx, support_evidence: Dict):
+        """Add SupportEvidence object to DB.
+        :param Dict support_evidence: must include `id` field.
         """
-        query = """
-        MERGE (n:Document {id:$id, document_id:$document_id, label:$label,
-                           description:$description, xrefs:$xrefs});
+        nonnull_keys = [f"{key}:${key}"
+                        for key in ('id', 'support_evidence_id', 'label',
+                                    'description', 'xrefs')
+                        if support_evidence[key]]
+        formatted_keys = ', '.join(nonnull_keys)
+        query = f"""
+        MERGE (n:SupportEvidence {{ {formatted_keys} }});
         """
         try:
-            tx.run(query, **document)
+            tx.run(query, **support_evidence)
         except ServiceUnavailable as exception:
             logging.error(f"Failed to add Document object\n"
                           f"Query: {query}\nDocument: "
-                          f"{document}")
+                          f"{support_evidence}")
             raise exception
 
     @staticmethod
-    def _add_evidence(tx, evidence: Dict):
-        """Add evidence object to DB.
-        :param Dict evidence: must include `proposition`,
-            `variation_descriptor`, `therapy_descriptor`, `disease_descriptor`,
-            `assertion_method`, and `document` fields.
+    def _add_statement(tx, statement: Dict):
+        """Add Statement object to DB.
+        :param Dict statement: must include `id`, `variation_descriptor`,
+            `therapy_descriptor`, `disease_descriptor`, `method`, and
+            `support_evidence` fields.
         """
         nonnull_keys = [f"{key}:${key}" for key
                         in ('id', 'description', 'direction',
                             'evidence_level')
-                        if evidence[key]]
+                        if statement[key]]
         formatted_keys = ', '.join(nonnull_keys)
+        match_line = ""
+        rel_line = ""
+        support_evidence = statement.get('support_evidence', [])
+        if support_evidence:
+            for i, ev in enumerate(support_evidence):
+                name = f"doc_{i}"
+                statement[name] = ev
+                match_line += f"MERGE ({name}:SupportEvidence {{ id:${name} }})\n"  # noqa: E501
+                rel_line += f"MERGE (ev) -[:CITES]-> ({name})\n"
 
         query = f"""
-        MERGE (ev:Evidence:Statement {{ {formatted_keys} }})
-        MERGE (prop:Proposition {{_id:$proposition}})
+        MERGE (ev:Statement {{ {formatted_keys} }})
+        MERGE (prop:Proposition {{id:$proposition}})
         MERGE (var:VariationDescriptor {{id:$variation_descriptor}})
         MERGE (ther:TherapyDescriptor {{id:$therapy_descriptor}})
         MERGE (dis:DiseaseDescriptor {{id:$disease_descriptor}})
-        MERGE (method:AssertionMethod {{id:$assertion_method}})
-        MERGE (doc:Document {{id:$document}})
+        MERGE (method:Method {{id:$method}})
+        {match_line}
         MERGE (ev) -[:DEFINED_BY]-> (prop)
         MERGE (ev) -[:HAS_VARIANT]-> (var)
         MERGE (ev) -[:HAS_THERAPY]-> (ther)
         MERGE (ev) -[:HAS_DISEASE]-> (dis)
         MERGE (ev) -[:USES_METHOD]-> (method)
-        MERGE (ev) -[:CITES]-> (doc)
+        {rel_line}
         """
+
         try:
-            tx.run(query, **evidence)
+            tx.run(query, **statement)
         except ServiceUnavailable as exception:
             logging.error(f"Failed to add Evidence object\n"
-                          f"Query: {query}\nEvidence: {evidence}")
+                          f"Query: {query}\nEvidence: {statement}")
             raise exception
