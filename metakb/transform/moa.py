@@ -52,83 +52,85 @@ class MOATransform:
         """
         data = self._extract()
         responses = []
-        cdm_evidence_items = {}
+        cdm_evidence_items = {}  # EIDs that have been transformed to CDM
 
         evidence_items = data['assertions']
         sources = data['sources']
         variants = data['variants']
-        propositions_documents_ix = {
-            'document_index': 1,  # Keep track of document index value
-            'documents': dict(),  # {document_id: document_index}
-            'proposition_index': 1,  # Keep track of proposition index value
-            'propositions': dict()  # {tuple: proposition_index}
+        propositions_support_evidence_ix = {
+            # Keep track of support_evidence index value
+            'support_evidence_index': 1,
+            # {support_evidence_id: support_evidence_index}
+            'support_evidence': dict(),
+            # Keep track of proposition index value
+            'proposition_index': 1,
+            # {tuple: proposition_index}
+            'propositions': dict()
         }
-        self._transform_evidence(responses, evidence_items, variants, sources,
-                                 propositions_documents_ix,
-                                 cdm_evidence_items)
+
+        # Transform MOA EIDs
+        self._transform_statements(responses, evidence_items, variants,
+                                   sources, propositions_support_evidence_ix,
+                                   cdm_evidence_items)
 
         return responses
 
-    def _transform_evidence(self, responses, evidence_items, variants, sources,
-                            propositions_documents_ix, cdm_evidence_items):
+    def _transform_statements(self, responses, records, variants,
+                              sources, propositions_support_evidence_ix,
+                              cdm_evidence_items):
         """Add transformed EIDs to the response list.
 
-        :param: A list of dicts containing CDM data
+        :param: A list of dicts containing EIDs
         :param: A list of MOA evidence items
         :param: A dict of MOA variant records
         :param: A dict of MOA source records
-        :param: Keeps track of proposition and document indexes
+        :param: Keeps track of proposition and support_evidence indexes
         :param: A dict containing evidence items that have been
             transformed to the CDM
         """
-        for evidence in evidence_items:
+        for record in records:
             gene_descriptors = self._get_gene_descriptors(
-                self._get_record(evidence['variant']['id'], variants))
+                self._get_record(record['variant']['id'], variants))
             descriptors = \
-                self._get_descriptors(evidence, variants, gene_descriptors)
+                self._get_descriptors(record, variants, gene_descriptors)
             if not descriptors:
                 continue
             else:
                 therapy_descriptors, variation_descriptors, disease_descriptors = descriptors  # noqa: E501
 
             propositions = \
-                self._get_tr_propositions(evidence, variation_descriptors,
+                self._get_tr_propositions(record, variation_descriptors,
                                           disease_descriptors,
                                           therapy_descriptors,
-                                          propositions_documents_ix)
+                                          propositions_support_evidence_ix)
 
             # We only want therapeutic response for now
             if not propositions:
                 continue
 
-            documents = self._get_evidence_document(
-                self._get_record(evidence['source_ids'][0], sources),
-                propositions_documents_ix)
+            support_evidence = self._get_support_evidence(
+                self._get_record(record['source_ids'][0], sources),
+                propositions_support_evidence_ix)
 
-            methods = [schemas.Method(
-                id=f'method:'
-                   f'{schemas.MethodID.MOA_EID_BIORXIV:03}',
-                label='Clinical interpretation of integrative molecular profiles to guide precision cancer medicine',  # noqa:E501
-                url='https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1',  # noqa:E501
-                version=schemas.Date(year=2020, month=9, day=22),
-                reference='Reardon, B., Moore, N.D., Moore, N. et al.'
-            ).dict()]
+            methods = self._get_method()
+            statements = self._get_statement(record, propositions,
+                                             variation_descriptors,
+                                             therapy_descriptors,
+                                             disease_descriptors,
+                                             methods, support_evidence)
 
-            response = {
-                'evidence': self._get_evidence(evidence, propositions,
-                                               therapy_descriptors,
-                                               disease_descriptors,
-                                               methods, documents),
-                'propositions': propositions,
-                'variation_descriptors': variation_descriptors,
-                'gene_descriptors': gene_descriptors,
-                'therapy_descriptors': therapy_descriptors,
-                'disease_descriptors': disease_descriptors,
-                'methods': methods,
-                'documents': documents
-            }
+            response = schemas.Response(
+                statements=statements,
+                propositions=propositions,
+                variation_descriptors=variation_descriptors,
+                gene_descriptors=gene_descriptors,
+                therapy_descriptors=therapy_descriptors,
+                disease_descriptors=disease_descriptors,
+                methods=methods,
+                support_evidence=support_evidence
+            ).dict(by_alias=True)
 
-            cdm_evidence_items[f"EID{evidence['id']}"] = response
+            cdm_evidence_items[f"EID{record['id']}"] = response
             responses.append(response)
 
     def _get_descriptors(self, record, variants, gene_descriptors):
@@ -148,56 +150,57 @@ class MOATransform:
 
         return therapy_descriptors, variation_descriptors, disease_descriptors
 
-    def _get_evidence(self, evidence, propositions, therapy_descriptors,
-                      disease_descriptors, methods, documents):
-        """Return a list of evidence.
-
-        :param: Harvested MOA evidence item record
-        :param: A list of propositions
-        :param: A list of Therapy Descriptors
-        :param: A list of Disease Descriptors
-        :param: A list of assertion methods for the evidence
-        :param: A list of source documents for an EID
-        :return: A list of Evidence
+    def _get_statement(self, record, propositions, variant_descriptors,
+                       therapy_descriptors, disease_descriptors,
+                       methods, support_evidence):
+        """Get a statement for an EID.
+        :param dict record: A MOA EID record
+        :param list propositions: Propositions for the record
+        :param list variant_descriptors: Variant Descriptors for the record
+        :param list therapy_descriptors: Therapy Descriptors for the record
+        :param list disease_descriptors: Disease Descriptors for the record
+        :param list methods: Assertion methods for the record
+        :param list support_evidence: Supporting evidence for the rcord
+        :return: A list of statement
         """
         therapy_descriptor = therapy_descriptors[0]['id'] \
             if therapy_descriptors else None
         disease_descriptor = disease_descriptors[0]['id'] \
             if disease_descriptors else None
 
-        evidence = schemas.Evidence(
+        statement = schemas.Statement(
             id=f"{schemas.NamespacePrefix.MOA.value}:"
-               f"{evidence['id']}",
-            description=evidence['description'],
+               f"{record['id']}",
+            description=record['description'],
             evidence_level=f"moa.evidence_level:"
-                           f"{evidence['predictive_implication']}",
+                           f"{record['predictive_implication']}",
             proposition=propositions[0]['_id'],
-            variation_descriptor=f"moa:vid{evidence['variant']['id']}",
+            variation_descriptor=variant_descriptors[0]['id'],
             therapy_descriptor=therapy_descriptor,
             disease_descriptor=disease_descriptor,
             method=methods[0]['id'],
-            document=documents[0]['id']
+            support_evidence=[se['id'] for se in support_evidence]
         ).dict()
 
-        return [evidence]
+        return [statement]
 
-    def _get_tr_propositions(self, evidence, variation_descriptors,
+    def _get_tr_propositions(self, record, variation_descriptors,
                              disease_descriptors, therapy_descriptors,
-                             propositions_documents_ix):
+                             propositions_support_evidence_ix):
         """Return a list of propositions.
 
         :param: MOA EID
         :param: A list of Variation Descriptors
         :param: A list of Disease Descriptors
         :param: A list of therapy_descriptors
-        :param: Keeps track of proposition and document indexes
+        :param: Keeps track of proposition and support_evidence indexes
         :return: A list of therapeutic propositions.
         """
-        disease_context = disease_descriptors[0]['value']['disease_id'] \
+        object_qualifier = disease_descriptors[0]['value']['disease_id'] \
             if disease_descriptors else None
         therapy = therapy_descriptors[0]['value']['therapy_id'] \
             if therapy_descriptors else None
-        predicate = self._get_predicate(evidence['clinical_significance'])
+        predicate = self._get_predicate(record['clinical_significance'])
 
         # Don't support TR that has  `None`, 'N/A', or 'Unknown' predicate
         if not predicate:
@@ -207,19 +210,21 @@ class MOATransform:
             _id="",
             type="therapeutic_response_proposition",
             predicate=predicate,
-            variant_origin=self._get_variation_origin(evidence['variant']),
-            has_originating_context=variation_descriptors[0]['value_id'],
-            disease_context=disease_context,
-            therapy=therapy
+            variant_origin=self._get_variation_origin(record['variant']),
+            subject=variation_descriptors[0]['value_id'],
+            object_qualifier=object_qualifier,
+            object=therapy
         ).dict(by_alias=True)
 
         # Get corresponding id for proposition
-        key = (proposition['type'], proposition['predicate'],
+        key = (proposition['type'],
+               proposition['predicate'],
                proposition['variation_origin'],
-               proposition['has_originating_context'],
-               proposition['disease_context'], proposition['therapy'])
+               proposition['subject'],
+               proposition['object_qualifier'],
+               proposition['object'])
 
-        proposition_index = self._set_ix(propositions_documents_ix,
+        proposition_index = self._set_ix(propositions_support_evidence_ix,
                                          'propositions', key)
         proposition['_id'] = f"proposition:{proposition_index:03}"
 
@@ -331,28 +336,45 @@ class MOATransform:
 
         return gene_descriptors
 
-    def _get_evidence_document(self, source, propositions_documents_ix):
-        """Get an EID's source document.
+    def _get_support_evidence(self, source, propositions_support_evidence_ix):
+        """Get an EID's support evidence.
 
         :param: An evidence source
-        :param: Keeps track of proposition and document indexes
+        :param: Keeps track of proposition and support_evidence indexes
         """
-        document = None
+        support_evidence = None
         if source['pmid']:
-            document_id = f"pmid:{source['pmid']}"
+            support_evidence_id = f"pmid:{source['pmid']}"
         else:
-            document_id = source['url']
+            support_evidence_id = source['url']
 
-        document_ix = self._set_ix(propositions_documents_ix, 'documents',
-                                   document_id)
+        support_evidence_ix = self._set_ix(propositions_support_evidence_ix,
+                                           'support_evidence',
+                                           support_evidence_id)
 
-        document = schemas.Document(
-            id=f"document:{document_ix:03}",
-            document_id=document_id,
+        support_evidence = schemas.SupportEvidence(
+            id=f"support_evidence:{support_evidence_ix:03}",
+            support_evidence_id=support_evidence_id,
             label=source['citation']
         ).dict()
 
-        return [document]
+        return [support_evidence]
+
+    def _get_method(self):
+        """Get methods for a given record.
+
+        :return: A list of methods
+        """
+        methods = [schemas.Method(
+            id=f'method:'
+               f'{schemas.MethodID.MOA_EID_BIORXIV:03}',
+            label='Clinical interpretation of integrative molecular profiles to guide precision cancer medicine',  # noqa:E501
+            url='https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1',  # noqa:E501
+            version=schemas.Date(year=2020, month=9, day=22),
+            reference='Reardon, B., Moore, N.D., Moore, N. et al.'
+        ).dict()]
+
+        return methods
 
     def _get_therapy_descriptors(self, evidence):
         """Add therapies"""
@@ -440,26 +462,26 @@ class MOATransform:
             if r['id'] == record_id:
                 return r
 
-    def _set_ix(self, propositions_documents_ix, dict_key, search_key):
-        """Set propositions_documents_ix.
+    def _set_ix(self, propositions_support_evidence_ix, dict_key, search_key):
+        """Set indexes for support_evidence or propositions.
 
-        :param dict propositions_documents_ix: Keeps track of proposition and
-            document indexes
+        :param dict propositions_support_evidence_ix: Keeps track of
+            proposition and support_evidence indexes
         :param str dict_key: 'sources' or 'propositions'
         :param Any search_key: The key to get or set
         :return: An int representing the index
         """
-        if dict_key == 'documents':
-            dict_key_ix = 'document_index'
+        if dict_key == 'support_evidence':
+            dict_key_ix = 'support_evidence_index'
         elif dict_key == 'propositions':
             dict_key_ix = 'proposition_index'
         else:
-            raise KeyError("dict_key can only be `documents` or "
+            raise KeyError("dict_key can only be `support_evidence` or "
                            "`propositions`.")
-        if propositions_documents_ix[dict_key].get(search_key):
-            index = propositions_documents_ix[dict_key].get(search_key)
+        if propositions_support_evidence_ix[dict_key].get(search_key):
+            index = propositions_support_evidence_ix[dict_key].get(search_key)
         else:
-            index = propositions_documents_ix.get(dict_key_ix)
-            propositions_documents_ix[dict_key][search_key] = index
-            propositions_documents_ix[dict_key_ix] += 1
+            index = propositions_support_evidence_ix.get(dict_key_ix)
+            propositions_support_evidence_ix[dict_key][search_key] = index
+            propositions_support_evidence_ix[dict_key_ix] += 1
         return index
