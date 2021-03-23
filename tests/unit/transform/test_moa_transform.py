@@ -27,7 +27,7 @@ def data():
 def asst69():
     """Create assertion69 test fixture."""
     return {
-        "evidence": [
+        "statements": [
             {
                 "id": "moa:69",
                 "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
@@ -38,8 +38,8 @@ def asst69():
                 "therapy_descriptor": "normalize:Imatinib",
                 "disease_descriptor": "normalize:CML",
                 "method": "method:004",
-                "document": "document:001",
-                "type": "Evidence"
+                "support_evidence": ["support_evidence:016"],
+                "type": "Statement"
             }
         ],
         "propositions": [
@@ -47,9 +47,9 @@ def asst69():
                 "_id": "proposition:001",
                 "predicate": "predicts_resistance_to",
                 "variation_origin": None,
-                "has_originating_context": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",  # noqa: E501
-                "disease_context": "ncit:C3174",
-                "therapy": "ncit:C62035",
+                "subject": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",  # noqa: E501
+                "object_qualifier": "ncit:C3174",
+                "object": "ncit:C62035",
                 "type": "therapeutic_response_proposition"
             }
         ],
@@ -147,10 +147,10 @@ def asst69():
                 "reference": "Reardon, B., Moore, N.D., Moore, N. et al."
             }
         ],
-        "documents": [
+        "support_evidence": [
             {
-                "id": "document:001",
-                "document_id": "pmid:11423618",
+                "id": "support_evidence:001",
+                "support_evidence_id": "pmid:11423618",
                 "label": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501
                 "description": None,
                 "xrefs": None
@@ -192,7 +192,7 @@ def test_asst69(data, asst69):
     """Test that transform is correct for assertion69."""
     asst69_data = None
     for item in data:
-        if 'evidence' in list(item.keys())[0]:
+        if item['statements'][0]['id'] == "moa:69":
             asst69_data = item
             break
 
@@ -201,6 +201,7 @@ def test_asst69(data, asst69):
     for key in asst69.keys():
         assert key in asst69_data_keys
         assert len(asst69_data[key]) == len(asst69[key])
+        print(asst69_data[key][0], asst69[key][0])
         assertions(asst69_data[key][0], asst69[key][0])
 
     os.remove(f"{PROJECT_ROOT}/tests/data/transform/moa_cdm.json")
