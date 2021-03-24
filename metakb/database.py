@@ -154,12 +154,21 @@ class Graph:
             location['interval']['type']
 
         # prepare descriptor properties
-        descriptor['expressions'] = json.dumps(descriptor['expressions'])
+        for expression in descriptor['expressions']:
+            syntax = expression['syntax'].split(':')[1]
+            key = f"expressions_{syntax}"
+            if key in descriptor:
+                descriptor[key].append(expression['value'])
+            else:
+                descriptor[key] = [expression['value']]
         nonnull_keys = [f"{key}:${key}"
                         for key in ('id', 'label', 'description', 'xrefs',
                                     'alternate_labels', 'structural_type',
-                                    'expressions', 'ref_allele_seq')
-                        if descriptor[key]]
+                                    'expressions_transcript',
+                                    'expressions_genomic',
+                                    'expressions_protein',
+                                    'ref_allele_seq')
+                        if descriptor.get(key)]
 
         # handle extensions
         variant_groups = None
