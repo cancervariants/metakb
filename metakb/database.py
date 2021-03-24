@@ -40,7 +40,12 @@ class Graph:
             tx.run("CREATE CONSTRAINT gene_id_constraint IF NOT EXISTS ON (n:Gene) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT disease_id_constraint IF NOT EXISTS ON (n:Disease) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT therapy_id_constraint IF NOT EXISTS ON (n:Therapy) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT vod_id_constraint IF NOT EXISTS ON (n:ValueObjectDescriptor) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT variation_id_constraint IF NOT EXISTS ON (n:Variation) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT gene_desc_id_constraint IF NOT EXISTS ON (n:GeneDescriptor) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT therapy_desc_id_constraint IF NOT EXISTS ON (n:TherapyDescriptor) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT disease_desc_id_constraint IF NOT EXISTS ON (n:DiseaseDescriptor) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT variation_desc_id_constraint IF NOT EXISTS ON (n:VariationDescriptor) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT variation_grp_id_constraint IF NOT EXISTS ON (n:VariationGroup) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT proposition_id_constraint IF NOT EXISTS ON (n:Proposition) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT support_evidence_id_constraint IF NOT EXISTS ON (n:SupportEvidence) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT statement_id_constraint IF NOT EXISTS ON (n:Statement) ASSERT n.id IS UNIQUE;")  # noqa: E501
@@ -149,12 +154,21 @@ class Graph:
             location['interval']['type']
 
         # prepare descriptor properties
-        descriptor['expressions'] = json.dumps(descriptor['expressions'])
+        for expression in descriptor['expressions']:
+            syntax = expression['syntax'].split(':')[1]
+            key = f"expressions_{syntax}"
+            if key in descriptor:
+                descriptor[key].append(expression['value'])
+            else:
+                descriptor[key] = [expression['value']]
         nonnull_keys = [f"{key}:${key}"
                         for key in ('id', 'label', 'description', 'xrefs',
                                     'alternate_labels', 'structural_type',
-                                    'expressions', 'ref_allele_seq')
-                        if descriptor[key]]
+                                    'expressions_transcript',
+                                    'expressions_genomic',
+                                    'expressions_protein',
+                                    'ref_allele_seq')
+                        if descriptor.get(key)]
 
         # handle extensions
         variant_groups = None
