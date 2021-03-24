@@ -25,8 +25,10 @@ class Query:
         :param str query: The query to search on
         """
         # TODO:
-        #  Search by ID (HGNC ID?)
-        #  Search by HGVS
+        #  Search ID (HGNC ID?)
+        #  Search HGVS
+        #  Search Gene Descriptor???
+        #  Search sequence_id, start, stop?
         response = {
             'query': query,
             'statements': []
@@ -37,7 +39,14 @@ class Query:
 
         query = query.strip()
 
-        # Try searching on value IDs first
+        # Try Statement IDs
+        proposition, statement = self.find_statement_and_proposition(query)
+        if proposition and statement:
+            response['statements'] = self.get_statement_response([statement],
+                                                                 [proposition])
+            return response
+
+        # Try searching on value IDs
         propositions, statements = \
             self.find_propositions_and_statements_from_value(query)
         if propositions and statements:
@@ -60,8 +69,6 @@ class Query:
             response['statements'] = self.get_statement_response(statements,
                                                                  propositions)
             return response
-
-        # Try StatementIDs
 
         return response
 
@@ -404,3 +411,30 @@ class Query:
         )
         return tx.run(query, gene_id=gene_id,
                       variant_id=variant_id).single()[0]
+
+    def find_statement_and_proposition(self, query):
+        """Find statement by its ID and return it and its proposition."""
+        node = self.find_node_by_id(query)
+        statement = None
+        proposition = None
+        if node:
+            node_label, *_ = node.labels
+            if node_label == 'Statement':
+                node_id = node.get('id')
+                statement = node
+                with self.driver.session() as session:
+                    proposition = session.read_transaction(
+                        self._find_and_return_statement_proposition,
+                        node_id
+                    )
+        return proposition, statement
+
+    @staticmethod
+    def _find_and_return_statement_proposition(tx, statement_id):
+        """Return a statement's proposition."""
+        query = (
+            "MATCH (s:Statement)-[:DEFINED_BY]->(p:Proposition) "
+            f"WHERE s.id = '{statement_id}' "
+            "RETURN p"
+        )
+        return (tx.run(query).single() or [None])[0]
