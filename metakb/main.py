@@ -1,7 +1,7 @@
 """Main application for FastAPI."""
 from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
-from metakb.query import Query as QueryHandler
+from metakb.query import QueryHandler
 
 app = FastAPI(docs_url='/api/v2', openapi_url='/api/v2/openapi.json')
 query = QueryHandler(uri="bolt://localhost:7687",

@@ -10,7 +10,7 @@ logger.setLevel(logging.DEBUG)
 DESCRIPTORS = ['TherapyDescriptor', 'DiseaseDescriptor', 'VariationDescriptor']
 
 
-class Query:
+class QueryHandler:
     """Class for handling queries."""
 
     def __init__(self, uri, credentials):
@@ -27,9 +27,8 @@ class Query:
         :param str query: The query to search on
         """
         # TODO:
-        #  Search ID (HGNC ID?)
-        #  Search Gene Descriptor???
-        #  Search sequence_id, start, stop?
+        #  Search Gene Descriptor??? HGNC ID?
+        #  Search start, stop?
         response = {
             'query': query,
             'statements': []
