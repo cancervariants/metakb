@@ -26,7 +26,6 @@ class Query:
         """
         # TODO:
         #  Search ID (HGNC ID?)
-        #  Search HGVS
         #  Search Gene Descriptor???
         #  Search sequence_id, start, stop?
         response = {
@@ -62,7 +61,7 @@ class Query:
                                                                  propositions)
             return response
 
-        # Try Gene Symbol + Variant
+        # Try HGVS expressions, Gene Symbol + Variant
         statements = self.find_statements_from_variation_descriptor(query)
         propositions = self.find_propositions_from_variation_descriptor(query)
         if propositions and statements:
@@ -274,7 +273,7 @@ class Query:
                      self.find_node_from_list('xrefs', query)]:
             if node:
                 node_label, *_ = node.labels
-                if 'Descriptor' in node_label:
+                if 'Descriptor' == node_label:
                     return node_label, node.get('id')
         return None
 
@@ -359,7 +358,16 @@ class Query:
             return tr_nodes
 
     def find_variation_descriptor(self, query):
-        """Find variation descriptor from GeneSymbol+Variant."""
+        """Find variation descriptor from HGVS expr or GeneSymbol+Variant."""
+        # Try search on HGVS string first
+        for node in [self.find_node_from_list('expressions_transcript', query),
+                     self.find_node_from_list('expressions_protein', query),
+                     self.find_node_from_list('expressions_genomic', query)]:
+            if node:
+                node_label, *_ = node.labels
+                if 'VariationDescriptor' == node_label:
+                    return node_label, node.get('id')
+
         query = query.split()
         if len(query) != 2:
             return None
@@ -389,7 +397,6 @@ class Query:
                     variant_node_id = node.get('id')
                     break
 
-        # print(variant_node_id, variant_node_label)
         if not variant_node_label and not variant_node_id:
             return None
 
