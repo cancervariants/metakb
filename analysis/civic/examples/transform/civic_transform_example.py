@@ -6,19 +6,17 @@ from metakb import PROJECT_ROOT
 
 def create_civic_example(civic_data):
     """Create CIViC transform examples from list of evidence items."""
-    evidence_items = ['civic:eid2997']
+    evidence_items = ['civic:eid2997', 'civic:eid32']
     assertions = ['civic:aid6']
     for response in civic_data:
-        if 'evidence' in list(response.keys())[0]:
-            if response['evidence'][0]['id'] in evidence_items:
-                with open(f"{PROJECT_ROOT}/analysis/civic/examples/transform/"
-                          f"{response['evidence'][0]['id']}.json", 'w+') as f1:
-                    json.dump(response, f1)
-        if 'assertion' in list(response.keys())[0]:
-            if response['assertion'][0]['id'] in assertions:
-                with open(f"{PROJECT_ROOT}/analysis/civic/examples/transform/"
-                          f"{response['assertion'][0]['id']}.json", 'w+') as f2:  # noqa: E501
-                    json.dump(response, f2)
+        if response['statements'][0]['id'] in evidence_items:
+            with open(f"{PROJECT_ROOT}/analysis/civic/examples/transform/"
+                      f"{response['statements'][0]['id']}.json", 'w+') as f1:
+                json.dump(response, f1)
+        if response['statements'][0]['id'] in assertions:
+            with open(f"{PROJECT_ROOT}/analysis/civic/examples/transform/"
+                      f"{response['statements'][0]['id']}.json", 'w+') as f2:  # noqa: E501
+                json.dump(response, f2)
 
 
 if __name__ == '__main__':
