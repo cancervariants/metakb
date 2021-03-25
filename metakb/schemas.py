@@ -30,6 +30,14 @@ class SourcePrefix(str, Enum):
     ASCO = 'asco'
 
 
+class NormalizerPrefix(str, Enum):
+    """Define contraints for normalizer prefixes."""
+
+    GENE = 'gene'
+    DISEASE = 'disease'
+    THERAPY = 'therapy'
+
+
 class PropositionType(str, Enum):
     """Define constraints for proposition type."""
 
