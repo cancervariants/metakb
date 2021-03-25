@@ -27,8 +27,8 @@ class QueryHandler:
         :param str query: The query to search on
         """
         # TODO:
-        #  Search Gene Descriptor??? HGNC ID?
-        #  Search start, stop?
+        #  Search Gene Descriptor, HGNC ID
+        #  Use normalizers to return normalized label/id
         response = {
             'query': query,
             'statements': []
@@ -266,7 +266,7 @@ class QueryHandler:
         """Return a list of statement nodes from a Descriptor node."""
         query = (
             f"MATCH (d:{descriptor_label})<-[r]-(s:Statement) "
-            f"WHERE d.id =~ '(?i){descriptor_id}' "
+            f"WHERE toLower(d.id) = toLower('{descriptor_id}') "
             "RETURN DISTINCT s"
         )
         return [s[0] for s in tx.run(query)]
@@ -446,7 +446,7 @@ class QueryHandler:
         """Return a node by id."""
         query = (
             "MATCH (n) "
-            f"WHERE n.id =~ '(?i){node_id}' "
+            f"WHERE toLower(n.id) = toLower('{node_id}') "
             "RETURN n"
         )
         return (tx.run(query).single() or [None])[0]
@@ -465,7 +465,7 @@ class QueryHandler:
         # TODO: MOA stores VID labels as GENE p.VARIANT (TYPE)
         query = (
             "MATCH (n) "
-            f"WHERE n.label =~ '(?i){label}' "
+            f"WHERE toLower(n.label) = toLower('{label}') "
             "RETURN DISTINCT n"
         )
         return [n[0] for n in tx.run(query)]
@@ -488,7 +488,7 @@ class QueryHandler:
         """Return node that contains query in its list."""
         query = (
             "MATCH (n) "
-            f"WHERE ANY (query IN n.{list_name} WHERE query =~ '(?i){query}') "  # noqa: #501
+            f"WHERE ANY (query IN n.{list_name} WHERE toLower(query) = toLower('{query}')) "  # noqa: #501
             "RETURN DISTINCT n"
         )
         return [n[0] for n in tx.run(query)]
