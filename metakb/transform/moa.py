@@ -9,6 +9,7 @@ from variant.normalize import Normalize as VariantNormalizer
 from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
 from therapy.query import QueryHandler as TherapyQueryHandler
 from disease.query import QueryHandler as DiseaseQueryHandler
+from urllib.parse import quote
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -325,8 +326,8 @@ class MOATransform:
 
                 if found_match:
                     gene_descriptor = schemas.GeneDescriptor(
-                        id=f"normalizer.{schemas.NormalizerPrefix.GENE.value}."
-                           f"{schemas.NamespacePrefix.MOA.value}:{gene}",
+                        id=quote(f"normalize.{schemas.NormalizerPrefix.GENE.value}."  # noqa: E501
+                                 f"{schemas.NamespacePrefix.MOA.value}:{gene}"),  # noqa: E501
                         label=gene,
                         value=schemas.Gene(gene_id=gene_norm_resp['records'][0].concept_id),  # noqa: E501
                     ).dict()
@@ -406,9 +407,7 @@ class MOATransform:
 
         if therapy_norm_id:
             therapy_descriptor = schemas.ValueObjectDescriptor(
-                id=f"normalizer.{schemas.NormalizerPrefix.THERAPY.value}."
-                   f"{schemas.NamespacePrefix.MOA.value}"
-                   f":{evidence['therapy_name']}",
+                id=t_handler_resp['id'],
                 type="TherapyDescriptor",
                 label=therapy,
                 value=schemas.Therapy(therapy_id=therapy_norm_id)
@@ -437,13 +436,12 @@ class MOATransform:
                            f"Disease Normalization normalize.")
             return []
 
-        disease_norm_id = \
-            d_handler_resp['value_object_descriptor']['value']['disease_id']
+        d_handler_resp = d_handler_resp['value_object_descriptor']
+        disease_norm_id = d_handler_resp['value']['disease_id']
 
         if disease_norm_id.startswith('ncit:'):
             disease_descriptor = schemas.ValueObjectDescriptor(
-                id=f"normalizer.{schemas.NormalizerPrefix.DISEASE.value}."
-                   f"{schemas.NamespacePrefix.MOA.value}:{ot_code}",
+                id=d_handler_resp['id'],
                 type="DiseaseDescriptor",
                 label=disease_name,
                 value=schemas.Disease(disease_id=disease_norm_id),

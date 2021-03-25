@@ -35,8 +35,8 @@ def asst69():
                 "evidence_level": "moa.evidence_level:Preclinical",
                 "proposition": "proposition:001",
                 "variation_descriptor": "moa:vid69",
-                "therapy_descriptor": "normalizer.therapy.moa:Imatinib",
-                "disease_descriptor": "normalizer.disease.moa:CML",
+                "therapy_descriptor": "normalize.therapy:Imatinib",
+                "disease_descriptor": "normalize.disease:CML",
                 "method": "method:004",
                 "support_evidence": ["support_evidence:016"],
                 "type": "Statement"
@@ -83,12 +83,12 @@ def asst69():
                 "structural_type": "SO:0001606",
                 "expressions": None,
                 "ref_allele_seq": "T",
-                "gene_context": "moa:['normalizer.gene.moa:ABL1']"
+                "gene_context": "moa:['normalize.gene.moa%3AABL1']"
             }
         ],
         "gene_descriptors": [
             {
-                "id": "normalizer.gene.moa:ABL1",
+                "id": "normalize.gene.moa%3AABL1",
                 "type": "GeneDescriptor",
                 "label": "ABL1",
                 "description": None,
@@ -104,7 +104,7 @@ def asst69():
         ],
         "therapy_descriptors": [
             {
-                "id": "normalizer.therapy.moa:Imatinib",
+                "id": "normalize.therapy:Imatinib",
                 "type": "TherapyDescriptor",
                 "label": "Imatinib",
                 "description": None,
@@ -120,7 +120,7 @@ def asst69():
         ],
         "disease_descriptors": [
             {
-                "id": "normalizer.disease.moa:CML",
+                "id": "normalize.disease:CML",
                 "type": "DiseaseDescriptor",
                 "label": "Chronic Myelogenous Leukemia",
                 "description": None,
