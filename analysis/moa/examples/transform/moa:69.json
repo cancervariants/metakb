@@ -60,7 +60,7 @@
 	], 
 	"gene_descriptors": [
 		{
-			"id": "normalize:ABL1", 
+			"id": "normalizer.gene.moa:ABL1", 
 			"type": "GeneDescriptor", 
 			"label": "ABL1", 
 			"description": null, 
@@ -76,7 +76,7 @@
 	], 
 	"therapy_descriptors": [
 		{
-			"id": "normalize:Imatinib", 
+			"id": "normalizer.therapy.moa:Imatinib", 
 			"type": "TherapyDescriptor", 
 			"label": "Imatinib", 
 			"description": null, 
@@ -92,7 +92,7 @@
 	], 
 	"disease_descriptors": [
 		{
-			"id": "normalize:CML", 
+			"id": "normalizer.disease.moa:CML", 
 			"type": "DiseaseDescriptor", 
 			"label": "Chronic Myelogenous Leukemia", 
 			"description": null, 

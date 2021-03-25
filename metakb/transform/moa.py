@@ -325,7 +325,8 @@ class MOATransform:
 
                 if found_match:
                     gene_descriptor = schemas.GeneDescriptor(
-                        id=f'normalize:{gene}',
+                        id=f"normalizer.{schemas.NormalizerPrefix.GENE.value}."
+                           f"{schemas.NamespacePrefix.MOA.value}:{gene}",
                         label=gene,
                         value=schemas.Gene(gene_id=gene_norm_resp['records'][0].concept_id),  # noqa: E501
                     ).dict()
@@ -405,7 +406,9 @@ class MOATransform:
 
         if therapy_norm_id:
             therapy_descriptor = schemas.ValueObjectDescriptor(
-                id=f"normalize:{evidence['therapy_name']}",
+                id=f"normalizer.{schemas.NormalizerPrefix.THERAPY.value}."
+                   f"{schemas.NamespacePrefix.MOA.value}"
+                   f":{evidence['therapy_name']}",
                 type="TherapyDescriptor",
                 label=therapy,
                 value=schemas.Therapy(therapy_id=therapy_norm_id)
@@ -439,7 +442,8 @@ class MOATransform:
 
         if disease_norm_id.startswith('ncit:'):
             disease_descriptor = schemas.ValueObjectDescriptor(
-                id=f"normalize:{ot_code}",
+                id=f"normalizer.{schemas.NormalizerPrefix.DISEASE.value}."
+                   f"{schemas.NamespacePrefix.MOA.value}:{ot_code}",
                 type="DiseaseDescriptor",
                 label=disease_name,
                 value=schemas.Disease(disease_id=disease_norm_id),
