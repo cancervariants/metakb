@@ -4,6 +4,7 @@ from neo4j.exceptions import ServiceUnavailable
 from typing import Tuple, Dict
 import logging
 import json
+from pathlib import Path
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -32,6 +33,21 @@ class Graph:
             tx.run("MATCH (n) DETACH DELETE n;")
         with self.driver.session() as session:
             session.write_transaction(delete_all)
+
+    def load_from_json(self, infile_path: Path):
+        """Load evidence into DB from given JSON file.
+        :param Path infile_path: path to file formatted as array of successive
+            collections of evidence, disease/therapy/gene/variation objects,
+            statements, etc
+        """
+        logger.info(f"Loading data from {infile_path}")
+        with open(infile_path, 'r') as f:
+            items = json.load(f)
+            loaded_count = 0
+            for item in items:
+                self.add_transformed_data(item)
+                loaded_count += 1
+        logger.info(f"Successfully loaded {loaded_count} statements.")
 
     @staticmethod
     def _create_constraints(tx):
