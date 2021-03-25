@@ -17,6 +17,7 @@ variant-normalizer = "*"
 thera-py = "*"
 neo4j = "*"
 ipykernel = "*"
+click = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
