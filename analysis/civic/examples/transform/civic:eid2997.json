@@ -5,18 +5,18 @@
             "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
             "direction": "supports",
             "evidence_level": "civic.evidence_level:A",
-            "proposition": "proposition:125",
+            "proposition": "proposition:124",
             "variation_descriptor": "civic:vid33",
             "therapy_descriptor": "civic:tid146",
             "disease_descriptor": "civic:did8",
-            "assertion_method": "assertion_method:001",
-            "document": "document:213",
+            "method": "method:001",
+            "document": "document:211",
             "type": "Evidence"
         }
     ],
     "propositions": [
         {
-            "_id": "proposition:125",
+            "_id": "proposition:124",
             "predicate": "predicts_sensitivity_to",
             "variation_origin": "somatic",
             "has_originating_context": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
@@ -67,11 +67,6 @@
                 {
                     "name": "civic_actionability_score",
                     "value": "352.5",
-                    "type": "Extension"
-                },
-                {
-                    "name": "variant_groups",
-                    "value": {},
                     "type": "Extension"
                 }
             ],
@@ -167,9 +162,9 @@
             "extensions": null
         }
     ],
-    "assertion_methods": [
+    "methods": [
         {
-            "id": "assertion_method:001",
+            "id": "method:001",
             "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
             "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",
             "version": {
@@ -182,7 +177,7 @@
     ],
     "documents": [
         {
-            "id": "document:213",
+            "id": "document:211",
             "document_id": "pmid:23982599",
             "label": "Dungo et al., 2013, Drugs",
             "description": "Afatinib: first global approval.",
