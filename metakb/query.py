@@ -80,8 +80,13 @@ class QueryHandler:
         if variation_norm_resp:
             normalized_variation = variation_norm_resp.value_id
         if not normalized_variation:
-            warnings.append(f'variant-normalizer could not normalize '
-                            f'{variation}.')
+            # Check if VRS object
+            lower_variation = variation.lower()
+            if lower_variation.startswith('ga4gh:va.') or lower_variation.startswith('ga4gh:sq.'):  # noqa: E501
+                normalized_variation = variation
+            else:
+                warnings.append(f'variant-normalizer could not normalize '
+                                f'{variation}.')
         return normalized_variation
 
     def get_normalized_gene(self, gene, warnings):
@@ -174,8 +179,13 @@ class QueryHandler:
             query += "MATCH (p:Proposition)<-[:IS_OBJECT_OF]-" \
                      "(t:Therapy {id:$t_id}) "
         if normalized_variation:
-            query += "MATCH (p:Proposition)<-[:IS_SUBJECT_OF]-" \
-                     "(a:Allele {id:$v_id}) "
+            lower_normalized_variation = normalized_variation.lower()
+            query += "MATCH (p:Proposition)<-[:IS_SUBJECT_OF]-(a:Allele "
+            if lower_normalized_variation.startswith('ga4gh:sq.'):
+                # Sequence ID
+                query += "{location_sequence_id: $v_id}) "
+            else:
+                query += "{id:$v_id}) "
         if normalized_disease:
             query += "MATCH (p:Proposition)<-[:IS_OBJECT_QUALIFIER_OF]-" \
                      "(d:Disease {id:$d_id}) "
