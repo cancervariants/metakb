@@ -13,8 +13,6 @@ import json
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
-DESCRIPTORS = ['TherapyDescriptor', 'DiseaseDescriptor', 'VariationDescriptor']
-
 
 class QueryHandler:
     """Class for handling queries."""
@@ -93,7 +91,7 @@ class QueryHandler:
         normalized_gene = None
         if gene_norm_resp['source_matches']:
             if gene_norm_resp['source_matches'][0]['match_type'] != 0:
-                normalized_gene = gene_norm_resp['source_matches'][0]['records'][0].concpet_id  # noqa: E501
+                normalized_gene = gene_norm_resp['source_matches'][0]['records'][0].concept_id  # noqa: E501
         if not normalized_gene:
             warnings.append(f'gene-normalizer could not normalize {gene}.')
         return normalized_gene
@@ -101,7 +99,7 @@ class QueryHandler:
     def search(self, variation='', disease='', therapy='', gene=''):
         """Return response for query search."""
         # TODO:
-        # Search: Gene, Variation ID
+        #  Search: Variation ID
         response = {
             'variation': None,
             'disease': None,
@@ -137,16 +135,20 @@ class QueryHandler:
                                               response['warnings'])
         else:
             normalized_variation = None
+        if gene:
+            response['gene'] = gene
+            normalized_gene = self.get_normalized_gene(gene,
+                                                       response['warnings'])
+        else:
+            normalized_gene = None
 
-        if not (normalized_variation or normalized_disease or normalized_therapy):  # noqa: E501
+        if not (normalized_variation or normalized_disease or normalized_therapy or normalized_gene):  # noqa: E501
             return response
-
-        # TODO: Gene
 
         with self.driver.session() as session:
             proposition_nodes = session.read_transaction(
                 self._get_propositions, normalized_therapy,
-                normalized_variation, normalized_disease
+                normalized_variation, normalized_disease, normalized_gene
             )
             statement_nodes = list()
             for p_node in proposition_nodes:
@@ -166,19 +168,28 @@ class QueryHandler:
 
     @staticmethod
     def _get_propositions(tx, normalized_therapy, normalized_variation,
-                          normalized_disease):
+                          normalized_disease, normalized_gene):
         query = ""
         if normalized_therapy:
-            query += "MATCH (p:Proposition)<-[]->(t:Therapy {id:$t_id}) "
+            query += "MATCH (p:Proposition)<-[:IS_OBJECT_OF]-" \
+                     "(t:Therapy {id:$t_id}) "
         if normalized_variation:
-            query += "MATCH (p:Proposition)<-[]->(a:Allele {id:$v_id}) "
+            query += "MATCH (p:Proposition)<-[:IS_SUBJECT_OF]-" \
+                     "(a:Allele {id:$v_id}) "
         if normalized_disease:
-            query += "MATCH (p:Proposition)<-[]->(d:Disease {id:$d_id}) "
+            query += "MATCH (p:Proposition)<-[:IS_OBJECT_QUALIFIER_OF]-" \
+                     "(d:Disease {id:$d_id}) "
+        if normalized_gene:
+            query += "MATCH (g:Gene {id:$g_id})<-[:DESCRIBES]-" \
+                     "(gd:GeneDescriptor)<-[:HAS_GENE]-" \
+                     "(vd:VariationDescriptor)-[:DESCRIBES]->(v:Allele)-" \
+                     "[:IS_SUBJECT_OF]->(p:Proposition) "
         query += "RETURN DISTINCT p"
 
         return [p[0] for p in tx.run(query, t_id=normalized_therapy,
                                      v_id=normalized_variation,
-                                     d_id=normalized_disease)]
+                                     d_id=normalized_disease,
+                                     g_id=normalized_gene)]
 
     @staticmethod
     def _get_statements_from_proposition(tx, proposition_id):
