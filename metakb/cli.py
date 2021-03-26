@@ -14,6 +14,9 @@ from disease.schemas import SourceName as DiseaseSources
 from therapy.database import Database as TherapyDatabase
 from therapy import ACCEPTED_SOURCES as TherapySources
 from therapy import SOURCES as TherapySourceLookup
+from disease.cli import CLI as DiseaseCLI
+from therapy.cli import CLI as TherapyCLI
+from gene.cli import CLI as GeneCLI
 from gene.database import Database as GeneDatabase
 
 
@@ -27,8 +30,8 @@ class CLI:
     @click.command()
     @click.option(
         '--db_url',
-        help=('URL endpoint for the application database. Can also be given '
-              'via environment variable METAKB_DB_URL.')
+        help=('URL endpoint for the application database. Can also be '
+              'provided via environment variable METAKB_DB_URL.')
     )
     @click.option(
         '--db_username',
@@ -94,6 +97,18 @@ class CLI:
                 print("\nNormalizers fully initialized.")
             click.get_current_context().exit()
 
+        if initialize:
+            TherapyCLI.update_normalizer_db(['--db_url', normalizer_db_url,
+                                             '--normalizer',
+                                             'chemidplus rxnorm wikidata ncit',
+                                             '--update_merged'
+                                             ])
+            DiseaseCLI.update_normalizer_db(['--db_url', normalizer_db_url,
+                                             '--update_all',
+                                             '--update_merged'])
+            GeneCLI.update_normalizer_db(['--db_url', normalizer_db_url,
+                                          '--normalizer', 'hgnc'])
+
         if not db_url:
             if 'METAKB_DB_URL' in environ.keys():
                 db_url = environ['METAKB_DB_URL']
@@ -111,20 +126,27 @@ class CLI:
                 CLI()._help_msg('Must provide password for DB.')
 
         # harvest
+        click.echo("Harvesting resource data...")
         civic_harvester = CIViC()
         harvest_successful = civic_harvester.harvest()
         if not harvest_successful:
             click.get_current_context().exit()
+        else:
+            click.echo("Harvest successful.")
 
         # transform
+        click.echo("Transforming harvested data...")
         civic_transform = CIViCTransform()
         civic_transform._create_json(civic_transform.transform())
+        click.echo("Transform successful.")
 
         # upload
+        click.echo("Uploading to DB...")
         g = Graph(uri=db_url, credentials=(db_username, db_password))
+        g.clear()
         g.load_from_json(PROJECT_ROOT / 'data' / 'civic' / 'transform' / 'civic_cdm.json')  # noqa: E501
-
         g.close()
+        click.echo("DB upload successful.")
 
     def _help_msg(self, msg: str = ""):
         """Handle invalid user input.
