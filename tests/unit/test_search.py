@@ -234,10 +234,10 @@ def test_civic_eid2997(query_handler, civic_eid2997):
     """Test search on CIViC Evidence Item 2997."""
     statement_id = 'civic:eid2997'
 
-    # # Test search by Subject
-    # s = return_statement(query_handler,
-    #                      variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')
-    # assertions(civic_eid2997, s)
+    # Test search by Subject
+    s = return_statement(query_handler, statement_id,
+                         variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')
+    assertions(civic_eid2997, s)
 
     # Test search by Object
     s = return_statement(query_handler, statement_id, therapy='ncit:C66940')
@@ -265,11 +265,11 @@ def test_civic_eid2997(query_handler, civic_eid2997):
     s = return_statement(query_handler, statement_id, variation='EGFR L858R')
     assertions(civic_eid2997, s)
 
-    # # Sequence ID
-    # s = return_statement(query_handler,
-    #                      'ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE',
-    #                      statement_id)
-    # assertions(civic_eid2997, s)
+    # Sequence ID
+    s = return_statement(query_handler, statement_id,
+                         variation='ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE'
+                         )
+    assertions(civic_eid2997, s)
 
     # Alt Label
     # s = return_statement(query_handler, statement_id,
@@ -302,11 +302,10 @@ def test_civic_eid1409(query_handler, civic_eid1409):
     statement_id = 'civic:eid1409'
 
     # Test search by Subject
-    # s = return_statement(query_handler, statement_id,
-    #                      variation =
-    #                      'ga4gh:VA.u6sKlz0mMQvARmrlnt0Aksz6EbSkmL8z',
-    #                      )
-    # assertions(civic_eid1409, s)
+    s = return_statement(query_handler, statement_id,
+                         variation='ga4gh:VA.mJbjSsW541oOsOtBoX36Mppr6hMjbjFr',
+                         )
+    assertions(civic_eid1409, s)
 
     # Test search by Object
     s = return_statement(query_handler, statement_id, therapy='ncit:C64768')
@@ -336,10 +335,10 @@ def test_civic_eid1409(query_handler, civic_eid1409):
     # assertions(civic_eid1409, s)
 
     # Sequence ID
-    # s = return_statement(query_handler, statement_id,
-    #                      variation='ga4gh:SQ.ZJwurRo2HLY018wghYjDKSfIlEH0Y8At'
-    #                      )
-    # assertions(civic_eid1409, s)
+    s = return_statement(query_handler, statement_id,
+                         variation='ga4gh:SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y'
+                         )
+    assertions(civic_eid1409, s)
 
     # # Alt Label
     # s = return_statement(query_handler, statement_id,
@@ -372,9 +371,9 @@ def test_civic_aid6(query_handler, civic_aid6):
     statement_id = 'civic:aid6'
 
     # Test search by Subject
-    # s = return_statement(query_handler, statement_id,
-    #                      variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')
-    # assertions(civic_aid6, s)
+    s = return_statement(query_handler, statement_id,
+                         variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')
+    assertions(civic_aid6, s)
 
     # Test search by Object
     s = return_statement(query_handler, statement_id, therapy='ncit:C66940')
@@ -402,10 +401,10 @@ def test_civic_aid6(query_handler, civic_aid6):
     # s = return_statement(query_handler, statement_id, variation='EGFR L858R')
     # assertions(civic_aid6, s)
 
-    # # Sequence ID
-    # s = return_statement(query_handler, statement_id,
-    #                      variation='ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE')
-    # assertions(civic_aid6, s)
+    # Sequence ID
+    s = return_statement(query_handler, statement_id,
+                         variation='ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE')
+    assertions(civic_aid6, s)
 
     # Alt Label
     # s = return_statement(query_handler, statement_id,
@@ -433,10 +432,10 @@ def test_civic_aid6(query_handler, civic_aid6):
 
 def test_no_matches(query_handler):
     """Test invalid query matches."""
-    # # GA instead of VA
-    # response = query_handler.search('ga4gh:GA.WyOqFMhc8a'
-    #                                 'OnMFgdY0uM7nSLNqxVPAiR')
-    # assert response['statements'] == []
+    # GA instead of VA
+    response = query_handler.search('ga4gh:GA.WyOqFMhc8a'
+                                    'OnMFgdY0uM7nSLNqxVPAiR')
+    assert response['statements'] == []
 
     # Invalid ID
     response = \
