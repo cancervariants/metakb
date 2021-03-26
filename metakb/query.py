@@ -324,6 +324,12 @@ class QueryHandler:
         descriptors = self.find_gene_symbol_and_variant_name(query)
         for label_and_id in descriptors:
             descriptor_labels_and_ids.add((label_and_id[0], label_and_id[1]))
+
+        # Try Gene Descriptor fields to get Variation Descriptor
+        descriptors = self.find_variation_descriptor_from_gene(query)
+        for label_and_id in descriptors:
+            descriptor_labels_and_ids.add((label_and_id[0], label_and_id[1]))
+
         return list(descriptor_labels_and_ids)
 
     def add_descriptors_labels_and_ids(self, descriptor_labels_and_ids,
@@ -422,13 +428,83 @@ class QueryHandler:
         """
         labels_and_ids = set()
         for nodes in [self.find_node_by_label(query),
-                      self.find_node_from_list('alternate_labels', query)]:
+                      self.find_node_from_list('alternate_labels', query),
+                      self.find_node_from_list('xrefs', query)]:
             for node in nodes:
                 node_label, node_id = \
                     self.get_label_and_id(node, node_label_matches)
                 if node_label and node_id:
                     labels_and_ids.add((node_label, node_id))
         return labels_and_ids
+
+    def find_variation_descriptor_from_gene(self, query):
+        """Find a variation descriptor from gene data."""
+        variation_descriptors = set()
+        gene_node = self.find_node_by_id(query)
+        gene_node_labels_and_ids = set()
+
+        # Try Gene Descriptor ID
+        if gene_node:
+            labels_ids = self.get_label_and_id(gene_node,
+                                               ['GeneDescriptor'])
+            if labels_ids[0] and labels_ids[1]:
+                # Gene Descriptor
+                gene_node_labels_and_ids.add(labels_ids)
+            else:
+                # Try Gene Value ID
+                labels_ids = self.get_label_and_id(gene_node, ['Gene'])
+                if labels_ids[0] and labels_ids[1]:
+                    with self.driver.session() as session:
+                        # Get Gene Descriptor Nodes
+                        gds = session.read_transaction(
+                            self._find_gene_descriptors_from_gene,
+                            labels_ids[1]
+                        )
+                        # Add Gene Descriptor Label and IDs
+                        for gd in gds:
+                            gd_label_id = \
+                                self.get_label_and_id(gd, ['GeneDescriptor'])
+                            if gd_label_id[0] and gd_label_id[1]:
+                                gene_node_labels_and_ids.add(gd_label_id)
+
+        # Try Gene Descriptor Fields
+        if not gene_node_labels_and_ids:
+            gene_node_labels_and_ids = \
+                self.check_gene_or_variant(query, ['GeneDescriptor'])
+
+        if not gene_node_labels_and_ids:
+            return variation_descriptors
+
+        with self.driver.session() as session:
+            for gd in gene_node_labels_and_ids:
+                vds = session.read_transaction(
+                    self._find_variation_descriptors_from_gene_descriptor,
+                    gd[1]
+                )
+                for vd in vds:
+                    variation_descriptors.add(('VariationDescriptor',
+                                               vd.get('id')))
+
+        return variation_descriptors
+
+    @staticmethod
+    def _find_gene_descriptors_from_gene(tx, gene_id):
+        query = (
+            "MATCH (g:Gene)<-[:DESCRIBES]-(gd:GeneDescriptor) "  # noqa: E501
+            f"WHERE toLower(g.id) = toLower('{gene_id}') "
+            "RETURN gd"
+        )
+        return [gd[0] for gd in tx.run(query)]
+
+    @staticmethod
+    def _find_variation_descriptors_from_gene_descriptor(tx,
+                                                         gene_descriptor_id):
+        query = (
+            "MATCH (gd:GeneDescriptor)<-[:HAS_GENE]-(vd:VariationDescriptor) "
+            f"WHERE toLower(gd.id) = toLower('{gene_descriptor_id}') "
+            "RETURN vd"
+        )
+        return [vd[0] for vd in tx.run(query)]
 
     def find_node_by_id(self, node_id):
         """Find a node by its ID.

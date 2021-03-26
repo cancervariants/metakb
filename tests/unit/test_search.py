@@ -109,6 +109,7 @@ def civic_aid6():
         "id": "civic:aid6",
         "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",  # noqa: E501
         "evidence_level": "civic.amp_level:tier_i_-_level_a",
+        "direction": "supports",
         "proposition": {
             "predicate": "predicts_sensitivity_to",
             "variation_origin": "somatic",
@@ -252,6 +253,23 @@ def test_civic_eid2997(query_handler, civic_eid2997):
     s = return_statement(query_handler, 'ncit:C2926', statement_id)
     assertions(civic_eid2997, s)
 
+    # Test search by Gene Descriptor
+    # ID
+    s = return_statement(query_handler, 'civic:gid19', statement_id)
+    assertions(civic_eid2997, s)
+
+    # HGNC ID
+    s = return_statement(query_handler, 'hgnc:3236', statement_id)
+    assertions(civic_eid2997, s)
+
+    # Label
+    s = return_statement(query_handler, 'EGFR', statement_id)
+    assertions(civic_eid2997, s)
+
+    # Alt label
+    s = return_statement(query_handler, 'ERBB1', statement_id)
+    assertions(civic_eid2997, s)
+
     # Test search by Variation Descriptor
     # ID
     s = return_statement(query_handler, 'civic:vid33', statement_id)
@@ -330,6 +348,23 @@ def test_civic_eid1409(query_handler, civic_eid1409):
 
     # Test search by Object Qualifier
     s = return_statement(query_handler, 'ncit:C3510', statement_id)
+    assertions(civic_eid1409, s)
+
+    # Test search by Gene Descriptor
+    # ID
+    s = return_statement(query_handler, 'civic:gid5', statement_id)
+    assertions(civic_eid1409, s)
+
+    # HGNC ID
+    s = return_statement(query_handler, 'hgnc:1097', statement_id)
+    assertions(civic_eid1409, s)
+
+    # Label
+    s = return_statement(query_handler, 'BRAF', statement_id)
+    assertions(civic_eid1409, s)
+
+    # Alt label
+    s = return_statement(query_handler, 'NS7', statement_id)
     assertions(civic_eid1409, s)
 
     # Test search by Variation Descriptor
@@ -412,6 +447,23 @@ def test_civic_aid6(query_handler, civic_aid6):
 
     # Test search by Object Qualifier
     s = return_statement(query_handler, 'ncit:C2926', statement_id)
+    assertions(civic_aid6, s)
+
+    # Test search by Gene Descriptor
+    # ID
+    s = return_statement(query_handler, 'civic:gid19', statement_id)
+    assertions(civic_aid6, s)
+
+    # HGNC ID
+    s = return_statement(query_handler, 'hgnc:3236', statement_id)
+    assertions(civic_aid6, s)
+
+    # Label
+    s = return_statement(query_handler, 'EGFR', statement_id)
+    assertions(civic_aid6, s)
+
+    # Alt label
+    s = return_statement(query_handler, 'ERBB1', statement_id)
     assertions(civic_aid6, s)
 
     # Test search by Variation Descriptor
