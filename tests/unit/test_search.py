@@ -247,18 +247,18 @@ def test_civic_eid2997(query_handler, civic_eid2997):
     s = return_statement(query_handler, statement_id, disease='ncit:C2926')
     assertions(civic_eid2997, s)
 
-    # # Test search by Gene Descriptor
-    # # HGNC ID
-    # s = return_statement(query_handler, statement_id, 'hgnc:3236')
-    # assertions(civic_eid2997, s)
-    #
-    # # Label
-    # s = return_statement(query_handler, statement_id, 'EGFR')
-    # assertions(civic_eid2997, s)
-    #
-    # # Alt label
-    # s = return_statement(query_handler, statement_id, 'ERBB1')
-    # assertions(civic_eid2997, s)
+    # Test search by Gene Descriptor
+    # HGNC ID
+    s = return_statement(query_handler, statement_id, gene='hgnc:3236')
+    assertions(civic_eid2997, s)
+
+    # Label
+    s = return_statement(query_handler, statement_id, gene='EGFR')
+    assertions(civic_eid2997, s)
+
+    # Alt label
+    s = return_statement(query_handler, statement_id, gene='ERBB1')
+    assertions(civic_eid2997, s)
 
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
@@ -316,17 +316,18 @@ def test_civic_eid1409(query_handler, civic_eid1409):
     s = return_statement(query_handler, statement_id, disease='ncit:C3510')
     assertions(civic_eid1409, s)
 
-    # # Test search by Gene Descriptor
-    # # HGNC ID
-    # s = return_statement(query_handler, statement_id, 'hgnc:1097')
-    # assertions(civic_eid1409, s)
-    #
-    # # Label
-    # s = return_statement(query_handler, statement_id, 'BRAF')
-    # assertions(civic_eid1409, s)
-    #
+    # Test search by Gene Descriptor
+    # HGNC ID
+    s = return_statement(query_handler, statement_id, gene='hgnc:1097')
+    assertions(civic_eid1409, s)
+
+    # Label
+    s = return_statement(query_handler, statement_id, gene='BRAF')
+    assertions(civic_eid1409, s)
+
+    # TODO: Not found in gene normalizer
     # # Alt label
-    # s = return_statement(query_handler, statement_id, 'NS7')
+    # s = return_statement(query_handler, statement_id, gene='NS7')
     # assertions(civic_eid1409, s)
 
     # Test search by Variation Descriptor
@@ -384,17 +385,17 @@ def test_civic_aid6(query_handler, civic_aid6):
     assertions(civic_aid6, s)
 
     # Test search by Gene Descriptor
-    # # HGNC ID
-    # s = return_statement(query_handler, statement_id, 'hgnc:3236')
-    # assertions(civic_aid6, s)
-    #
-    # # Label
-    # s = return_statement(query_handler, statement_id, 'EGFR')
-    # assertions(civic_aid6, s)
-    #
-    # # Alt label
-    # s = return_statement(query_handler, statement_id, 'ERBB1')
-    # assertions(civic_aid6, s)
+    # HGNC ID
+    s = return_statement(query_handler, statement_id, gene='hgnc:3236')
+    assertions(civic_aid6, s)
+
+    # Label
+    s = return_statement(query_handler, statement_id, gene='EGFR')
+    assertions(civic_aid6, s)
+
+    # Alt label
+    s = return_statement(query_handler, statement_id, gene='ERBB1')
+    assertions(civic_aid6, s)
 
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
