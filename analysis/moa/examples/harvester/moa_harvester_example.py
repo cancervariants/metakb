@@ -42,7 +42,7 @@ def create_variant_examples(data):
     variants_ids = [1, 147, 550, 699]
     variants = []
     for i in range(len(data['variants'])):
-        if data['variants'][i]['feature_id'] in variants_ids:
+        if data['variants'][i]['id'] in variants_ids:
             variants.append(data['variants'][i])
     for variant in variants:
         with open(f"{PROJECT_ROOT}/analysis/moa/examples/"
