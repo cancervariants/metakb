@@ -1,5 +1,11 @@
 """Module for queries."""
 from neo4j import GraphDatabase
+from gene.query import QueryHandler as GeneQueryHandler
+from variant.to_vrs import ToVRS
+from variant.normalize import Normalize as VariantNormalizer
+from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
+from therapy.query import QueryHandler as TherapyQueryHandler
+from disease.query import QueryHandler as DiseaseQueryHandler
 import logging
 import json
 
@@ -20,37 +26,167 @@ class QueryHandler:
         :param Tuple[str,str] credentials: [username, password]
         """
         self.driver = GraphDatabase.driver(uri, auth=credentials)
+        self.gene_query_handler = GeneQueryHandler()
+        self.variant_normalizer = VariantNormalizer()
+        self.disease_query_handler = DiseaseQueryHandler()
+        self.therapy_query_handler = TherapyQueryHandler()
+        self.variant_to_vrs = ToVRS()
+        self.amino_acid_cache = AminoAcidCache()
 
-    def search(self, query):
-        """Return response for query search.
+    def get_normalized_therapy(self, therapy, warnings):
+        """Return normalized therapy concept."""
+        therapy_norm_resp = \
+            self.therapy_query_handler.search_groups(therapy)
 
-        :param str query: The query to search on
-        """
+        normalized_therapy = None
+        if therapy_norm_resp['match_type'] != 0:
+            therapy_norm_resp = therapy_norm_resp[
+                'value_object_descriptor']
+            therapy_norm_id = therapy_norm_resp['value']['therapy_id']
+            if not therapy_norm_id.startswith('ncit'):
+                therapy_norm_id = None
+                if 'xrefs' in therapy_norm_resp:
+                    for other_id in therapy_norm_resp['xrefs']:
+                        if other_id.startswith('ncit:'):
+                            therapy_norm_id = other_id
+
+            if therapy_norm_id:
+                normalized_therapy = therapy_norm_id
+        if not normalized_therapy:
+            warnings.append(f'therapy-normalizer could not '
+                            f'normalize {therapy}.')
+        return normalized_therapy
+
+    def get_normalized_disease(self, disease, warnings):
+        """Return normalized disease concept."""
+        disease_norm_response = \
+            self.disease_query_handler.search_groups(disease)
+        normalized_disease = None
+        if disease_norm_response['match_type'] != 0:
+            normalized_disease = disease_norm_response['value_object_descriptor']['value']['disease_id']  # noqa: E501
+            if not normalized_disease.startswith('ncit:'):
+                normalized_disease = None
+
+        if not normalized_disease:
+            warnings.append(f'disease-normalizer could not normalize '
+                            f'{disease}.')
+        return normalized_disease
+
+    def get_normalized_variation(self, variation, warnings):
+        """Return normalized variation concept."""
+        validations = self.variant_to_vrs.get_validations(variation)
+        variation_norm_resp =\
+            self.variant_normalizer.normalize(variation, validations,
+                                              self.amino_acid_cache)
+        normalized_variation = None
+        if variation_norm_resp:
+            normalized_variation = variation_norm_resp.value_id
+        if not normalized_variation:
+            warnings.append(f'variant-normalizer could not normalize '
+                            f'{variation}.')
+        return normalized_variation
+
+    def get_normalized_gene(self, gene, warnings):
+        """Return normalized gene concept."""
+        gene_norm_resp = self.gene_query_handler.search_sources(gene,
+                                                                incl='hgnc')
+        normalized_gene = None
+        if gene_norm_resp['source_matches']:
+            if gene_norm_resp['source_matches'][0]['match_type'] != 0:
+                normalized_gene = gene_norm_resp['source_matches'][0]['records'][0].concpet_id  # noqa: E501
+        if not normalized_gene:
+            warnings.append(f'gene-normalizer could not normalize {gene}.')
+        return normalized_gene
+
+    def search(self, variation='', disease='', therapy='', gene=''):
+        """Return response for query search."""
         # TODO:
-        #  Search Gene Descriptor, HGNC ID
-        #  Use normalizers to return normalized label/id
+        # Search: Gene, Variation ID
         response = {
-            'query': query,
+            'variation': None,
+            'disease': None,
+            'therapy': None,
+            'gene': None,
+            'warnings': [],
             'statements': []
         }
 
-        if query == '':
+        if not (variation or disease or therapy or gene):
+            response['warnings'].append('No parameters were entered.')
             return response
 
-        query = query.strip()
+        # Find normalized terms
+        if therapy:
+            response['therapy'] = therapy
+            normalized_therapy = \
+                self.get_normalized_therapy(therapy.strip(),
+                                            response['warnings'])
+        else:
+            normalized_therapy = None
+        if disease:
+            response['disease'] = disease
+            normalized_disease = \
+                self.get_normalized_disease(disease.strip(),
+                                            response['warnings'])
+        else:
+            normalized_disease = None
+        if variation:
+            response['variation'] = variation
+            normalized_variation = \
+                self.get_normalized_variation(variation,
+                                              response['warnings'])
+        else:
+            normalized_variation = None
 
-        # Try Statement ID, Value IDs (object, subject, object_qualifier),
-        # Descriptor fields (ID, label, alternate_labels, xrefs),
-        # Variation Descriptor (HGVS Expressions, GeneSymbol + Variant Name)
-        for ps in [self.find_statement_and_proposition(query),
-                   self.find_propositions_and_statements_from_value(query),
-                   self.find_statements_and_propositions_from_descriptors(query)]:  # noqa: E501
-            propositions, statements = ps
-            if propositions and statements:
-                response['statements'] = \
-                    self.get_statement_response(statements, propositions)
-                return response
+        if not (normalized_variation or normalized_disease or normalized_therapy):  # noqa: E501
+            return response
+
+        # TODO: Gene
+
+        with self.driver.session() as session:
+            proposition_nodes = session.read_transaction(
+                self._get_propositions, normalized_therapy,
+                normalized_variation, normalized_disease
+            )
+            statement_nodes = list()
+            for p_node in proposition_nodes:
+                statements = session.read_transaction(
+                    self._get_statements_from_proposition, p_node.get('id')
+                )
+                for s in statements:
+                    if s not in statement_nodes:
+                        statement_nodes.append(s)
+
+            if proposition_nodes and statement_nodes:
+                response['statements'] =\
+                    self.get_statement_response(statement_nodes,
+                                                proposition_nodes)
+
         return response
+
+    @staticmethod
+    def _get_propositions(tx, normalized_therapy, normalized_variation,
+                          normalized_disease):
+        query = ""
+        if normalized_therapy:
+            query += "MATCH (p:Proposition)<-[]->(t:Therapy {id:$t_id}) "
+        if normalized_variation:
+            query += "MATCH (p:Proposition)<-[]->(a:Allele {id:$v_id}) "
+        if normalized_disease:
+            query += "MATCH (p:Proposition)<-[]->(d:Disease {id:$d_id}) "
+        query += "RETURN DISTINCT p"
+
+        return [p[0] for p in tx.run(query, t_id=normalized_therapy,
+                                     v_id=normalized_variation,
+                                     d_id=normalized_disease)]
+
+    @staticmethod
+    def _get_statements_from_proposition(tx, proposition_id):
+        query = (
+            "MATCH (p:Proposition {id: $proposition_id})<-[:DEFINED_BY]-(s:Statement) "  # noqa: E501
+            "RETURN DISTINCT s"
+        )
+        return [s[0] for s in tx.run(query, proposition_id=proposition_id)]
 
     def get_statement_response(self, statements, propositions):
         """Return a list of statements from Statement and Proposition nodes.
@@ -160,426 +296,3 @@ class QueryHandler:
             "RETURN se"
         )
         return [se[0] for se in tx.run(query)]
-
-    def find_statement_and_proposition(self, query):
-        """Find statement by ID with its proposition.
-
-        :param str query: The query to search on
-        :return: A tuple ([PropositionNode], [StatementNode])
-        """
-        node = self.find_node_by_id(query)
-        statement = None
-        proposition = None
-        if node:
-            node_label, node_id = self.get_label_and_id(node, ['Statement'])
-            if node_label and node_id:
-                statement = [node]
-                with self.driver.session() as session:
-                    proposition = [session.read_transaction(
-                        self._find_and_return_statement_proposition,
-                        node_id
-                    )]
-        return proposition, statement
-
-    @staticmethod
-    def _find_and_return_statement_proposition(tx, statement_id):
-        """Return a statement's proposition."""
-        query = (
-            "MATCH (s:Statement)-[:DEFINED_BY]->(p:Proposition) "
-            f"WHERE s.id = '{statement_id}' "
-            "RETURN p"
-        )
-        return (tx.run(query).single() or [None])[0]
-
-    def find_propositions_and_statements_from_value(self, query):
-        """Find Propositions and Statements from a value in a VOD.
-
-        :param str query: The query to search on
-        :return: A tuple (List[PropositionNodes], List[StatementNodes])
-        """
-        node = self.find_node_by_id(query)
-        propositions = None
-        statements = None
-
-        if node:
-            node_label, node_id = \
-                self.get_label_and_id(node, ['Therapy', 'Disease', 'Allele',
-                                             'Variation'])
-            if node_label and node_id:
-                with self.driver.session() as session:
-                    propositions = session.read_transaction(
-                        self._find_and_return_propositions_from_value,
-                        node_label, node_id
-                    )
-                    statements = session.read_transaction(
-                        self._find_and_return_statements_from_value,
-                        node_label, node_id
-                    )
-
-        return propositions, statements
-
-    @staticmethod
-    def _find_and_return_statements_from_value(tx, value_label, value_id):
-        """Return a list of Statement nodes from a value ID."""
-        query = (
-            f"MATCH (value:{value_label})<-[r1]-(descriptor)<-[r2]-(s:Statement) "  # noqa: E501
-            f"WHERE value.id = '{value_id}' "
-            "RETURN DISTINCT s"
-        )
-        return [s[0] for s in tx.run(query)]
-
-    @staticmethod
-    def _find_and_return_propositions_from_value(tx, value_label, value_id):
-        """Return a list of Proposition nodes from a value ID."""
-        query = (
-            f"MATCH (value:{value_label})-[r]->(tr:TherapeuticResponse) "
-            f"WHERE value.id = '{value_id}' "
-            "RETURN DISTINCT tr"
-        )
-        return [tr[0] for tr in tx.run(query)]
-
-    def find_statements_and_propositions_from_descriptors(self, query):
-        """Find Statement and Proposition Nodes that for descriptors.
-
-        :param str query: The query to search on
-        :return: A tuple (List[Proposition Nodes], List[Statement Nodes])
-        """
-        statements = list()
-        propositions = list()
-        with self.driver.session() as session:
-            descriptors = self.find_descriptors(query)
-            for descriptor in descriptors:
-                d_label, d_id = descriptor
-                statements += session.read_transaction(
-                    self._find_and_return_statements_from_descriptor,
-                    d_label, d_id
-                )
-                propositions += session.read_transaction(
-                    self._find_and_return_propositions_from_descriptor,
-                    d_label, d_id
-                )
-        return propositions, statements
-
-    @staticmethod
-    def _find_and_return_statements_from_descriptor(tx, descriptor_label,
-                                                    descriptor_id):
-        """Return a list of statement nodes from a Descriptor node."""
-        query = (
-            f"MATCH (d:{descriptor_label})<-[r]-(s:Statement) "
-            f"WHERE toLower(d.id) = toLower('{descriptor_id}') "
-            "RETURN DISTINCT s"
-        )
-        return [s[0] for s in tx.run(query)]
-
-    @staticmethod
-    def _find_and_return_propositions_from_descriptor(tx, descriptor_label,
-                                                      descriptor_id):
-        """Return TR propositions from Descriptor ID."""
-        query = (
-            f"MATCH (d:{descriptor_label})-[r1]->(n)-[r2]->(tr:TherapeuticResponse) "  # noqa: #501
-            f"WHERE d.id = '{descriptor_id}' "
-            "RETURN DISTINCT tr"
-        )
-        return [tr[0] for tr in tx.run(query)]
-
-    def find_descriptors(self, query):
-        """Find Descriptors for a given query.
-
-        :param str query: The query to search on
-        :return: A list of tuples containing (Descriptor Label, Descriptor ID)
-        """
-        # Search on ID --> 1 Descriptor
-        descriptor_labels_and_ids = set()
-        descriptor = self.find_node_by_id(query)
-        if descriptor:
-            d_label, d_id = \
-                self.get_label_and_id(descriptor, DESCRIPTORS)
-
-            if d_label and d_id:
-                descriptor_labels_and_ids.add((d_label, d_id))
-                return list(descriptor_labels_and_ids)
-
-        # Search on Label, Alt Label, Xrefs --> N Descriptors
-        self.add_descriptors_labels_and_ids(
-            descriptor_labels_and_ids,
-            [self.find_node_by_label(query),
-             self.find_node_from_list('alternate_labels', query),
-             self.find_node_from_list('xrefs', query)],
-            DESCRIPTORS
-        )
-
-        # Specific to Variant Descriptors
-
-        # Search on HGVS expression and Sequence ID --> N Descriptors
-        self.add_descriptors_labels_and_ids(
-            descriptor_labels_and_ids,
-            [self.find_node_from_list('expressions_transcript', query),
-             self.find_node_from_list('expressions_protein', query),
-             self.find_node_from_list('expressions_genomic', query),
-             self.find_variation_descriptors_from_sequence_id(query)],
-            ['VariationDescriptor']
-        )
-
-        # Search on Gene Symbol + Variant Name
-        descriptors = self.find_gene_symbol_and_variant_name(query)
-        for label_and_id in descriptors:
-            descriptor_labels_and_ids.add((label_and_id[0], label_and_id[1]))
-
-        # Try Gene Descriptor fields to get Variation Descriptor
-        descriptors = self.find_variation_descriptor_from_gene(query)
-        for label_and_id in descriptors:
-            descriptor_labels_and_ids.add((label_and_id[0], label_and_id[1]))
-
-        return list(descriptor_labels_and_ids)
-
-    def add_descriptors_labels_and_ids(self, descriptor_labels_and_ids,
-                                       method_list, descriptor_label_matches):
-        """Add tuple (label, id) to descriptor list.
-
-        :param set descriptor_labels_and_ids: Contains tuples
-            (Descriptor Node Label, Descriptor Node ID)
-        :param list method_list: Methods to get the descriptors
-        :param list descriptor_label_matches: Valid descriptor node labels
-        """
-        for descriptors in method_list:
-            for descriptor in descriptors:
-                d_label, d_id = self.get_label_and_id(descriptor,
-                                                      descriptor_label_matches)
-                if d_label and d_id:
-                    descriptor_labels_and_ids.add((d_label, d_id))
-
-    def find_variation_descriptors_from_sequence_id(self, query):
-        """Find variation descriptors from a location sequence id.
-
-        :param str query: The query to search on
-        :return: A list of Variation Descriptor Nodes
-        """
-        with self.driver.session() as session:
-            vds = session.read_transaction(
-                self._find_variation_descriptors_from_sequence_id,
-                query
-            )
-            return vds
-
-    @staticmethod
-    def _find_variation_descriptors_from_sequence_id(tx, sequence_id):
-        """Find variation descriptor nodes given sequence id."""
-        query = (
-            "MATCH (a:Allele)<-[:DESCRIBES]-(vd:VariationDescriptor) "
-            f"WHERE a.location_sequence_id = '{sequence_id}' "
-            "RETURN DISTINCT vd"
-        )
-        return [vd[0] for vd in tx.run(query)]
-
-    def find_gene_symbol_and_variant_name(self, query):
-        """Find variation descriptors from GeneSymbol+Variant.
-
-        :param str query: The query to search on
-        :return: A list of tuples
-            (VariationDescriptorLabel, VariationDescriptor ID)
-        """
-        variation_descriptors = set()
-        query = query.split()
-        if len(query) != 2:
-            return variation_descriptors
-        gene_symbol, variant = query
-
-        # Check Gene
-        gene_node_labels_and_ids = \
-            self.check_gene_or_variant(gene_symbol, ['GeneDescriptor'])
-        if not gene_node_labels_and_ids:
-            return variation_descriptors
-
-        # Check Variant
-        variant_node_labels_and_ids = \
-            self.check_gene_or_variant(variant, ['VariationDescriptor'])
-        if not variant_node_labels_and_ids:
-            return variation_descriptors
-
-        # Check Gene and Variant Relationship Exists
-        with self.driver.session() as session:
-            for v in variant_node_labels_and_ids:
-                for g in gene_node_labels_and_ids:
-                    relationship_exists = session.read_transaction(
-                        self._check_gene_variant_relationship,
-                        g[1], v[1]
-                    )
-                    if relationship_exists:
-                        variation_descriptors.add(v)
-
-        return variation_descriptors
-
-    @staticmethod
-    def _check_gene_variant_relationship(tx, gene_id, variant_id):
-        """Return whether a variant has a gene."""
-        query = (
-            "MATCH (g:GeneDescriptor {id: $gene_id}), (v:VariationDescriptor {id: $variant_id} ) "  # noqa:E 501
-            "RETURN EXISTS ((v)-[:HAS_GENE]->(g))"
-        )
-        return tx.run(query, gene_id=gene_id,
-                      variant_id=variant_id).single()[0]
-
-    def check_gene_or_variant(self, query, node_label_matches):
-        """Check if query is a Gene or Variant and return label and id.
-
-        :param str query: The query to search on
-        :param list node_label_matches: Valid node labels that the node can be
-        :return: A tuple (node label, node id)
-        """
-        labels_and_ids = set()
-        for nodes in [self.find_node_by_label(query),
-                      self.find_node_from_list('alternate_labels', query),
-                      self.find_node_from_list('xrefs', query)]:
-            for node in nodes:
-                node_label, node_id = \
-                    self.get_label_and_id(node, node_label_matches)
-                if node_label and node_id:
-                    labels_and_ids.add((node_label, node_id))
-        return labels_and_ids
-
-    def find_variation_descriptor_from_gene(self, query):
-        """Find a variation descriptor from gene data."""
-        variation_descriptors = set()
-        gene_node = self.find_node_by_id(query)
-        gene_node_labels_and_ids = set()
-
-        # Try Gene Descriptor ID
-        if gene_node:
-            labels_ids = self.get_label_and_id(gene_node,
-                                               ['GeneDescriptor'])
-            if labels_ids[0] and labels_ids[1]:
-                # Gene Descriptor
-                gene_node_labels_and_ids.add(labels_ids)
-            else:
-                # Try Gene Value ID
-                labels_ids = self.get_label_and_id(gene_node, ['Gene'])
-                if labels_ids[0] and labels_ids[1]:
-                    with self.driver.session() as session:
-                        # Get Gene Descriptor Nodes
-                        gds = session.read_transaction(
-                            self._find_gene_descriptors_from_gene,
-                            labels_ids[1]
-                        )
-                        # Add Gene Descriptor Label and IDs
-                        for gd in gds:
-                            gd_label_id = \
-                                self.get_label_and_id(gd, ['GeneDescriptor'])
-                            if gd_label_id[0] and gd_label_id[1]:
-                                gene_node_labels_and_ids.add(gd_label_id)
-
-        # Try Gene Descriptor Fields
-        if not gene_node_labels_and_ids:
-            gene_node_labels_and_ids = \
-                self.check_gene_or_variant(query, ['GeneDescriptor'])
-
-        if not gene_node_labels_and_ids:
-            return variation_descriptors
-
-        with self.driver.session() as session:
-            for gd in gene_node_labels_and_ids:
-                vds = session.read_transaction(
-                    self._find_variation_descriptors_from_gene_descriptor,
-                    gd[1]
-                )
-                for vd in vds:
-                    variation_descriptors.add(('VariationDescriptor',
-                                               vd.get('id')))
-
-        return variation_descriptors
-
-    @staticmethod
-    def _find_gene_descriptors_from_gene(tx, gene_id):
-        query = (
-            "MATCH (g:Gene)<-[:DESCRIBES]-(gd:GeneDescriptor) "  # noqa: E501
-            f"WHERE toLower(g.id) = toLower('{gene_id}') "
-            "RETURN gd"
-        )
-        return [gd[0] for gd in tx.run(query)]
-
-    @staticmethod
-    def _find_variation_descriptors_from_gene_descriptor(tx,
-                                                         gene_descriptor_id):
-        query = (
-            "MATCH (gd:GeneDescriptor)<-[:HAS_GENE]-(vd:VariationDescriptor) "
-            f"WHERE toLower(gd.id) = toLower('{gene_descriptor_id}') "
-            "RETURN vd"
-        )
-        return [vd[0] for vd in tx.run(query)]
-
-    def find_node_by_id(self, node_id):
-        """Find a node by its ID.
-
-        :param str node_id: The node ID to search for
-        :return: A Node from the neo4j database
-        """
-        with self.driver.session() as session:
-            node = session.read_transaction(self._find_and_return_node_by_id,
-                                            node_id)
-            return node
-
-    @staticmethod
-    def _find_and_return_node_by_id(tx, node_id):
-        """Return a node by id."""
-        query = (
-            "MATCH (n) "
-            f"WHERE toLower(n.id) = toLower('{node_id}') "
-            "RETURN n"
-        )
-        return (tx.run(query).single() or [None])[0]
-
-    def find_node_by_label(self, label):
-        """Find node by label."""
-        with self.driver.session() as session:
-            node = \
-                session.read_transaction(self._find_and_return_node_by_label,
-                                         label)
-            return node
-
-    @staticmethod
-    def _find_and_return_node_by_label(tx, label):
-        """Return a nodes by label."""
-        # TODO: MOA stores VID labels as GENE p.VARIANT (TYPE)
-        query = (
-            "MATCH (n) "
-            f"WHERE toLower(n.label) = toLower('{label}') "
-            "RETURN DISTINCT n"
-        )
-        return [n[0] for n in tx.run(query)]
-
-    def find_node_from_list(self, list_name, query):
-        """Find a node if a query exists in a Node's list.
-
-        :param str list_name: The name of the Node's list to find the value
-        :param str query: The string to find in the Node's list
-        :return: A Node from the neo4j database.
-        """
-        with self.driver.session() as session:
-            node = session.read_transaction(
-                self._find_and_return_node_from_list, list_name, query
-            )
-            return node
-
-    @staticmethod
-    def _find_and_return_node_from_list(tx, list_name, query):
-        """Return node that contains query in its list."""
-        query = (
-            "MATCH (n) "
-            f"WHERE ANY (query IN n.{list_name} WHERE toLower(query) = toLower('{query}')) "  # noqa: #501
-            "RETURN DISTINCT n"
-        )
-        return [n[0] for n in tx.run(query)]
-
-    def get_label_and_id(self, node, node_label_matches):
-        """Get node label and ID.
-
-        :param Node node: The node from the neo4j database
-        :param list node_label_matches: Valid node labels that the node can be
-        :return: A tuple (node label, node id)
-        """
-        node_label, *_ = node.labels
-        node_id = None
-
-        if node_label in node_label_matches:
-            node_id = node.get('id')
-
-        return node_label, node_id
