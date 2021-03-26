@@ -5,8 +5,8 @@ to graph datastore.
 import click
 from os import environ
 from metakb.database import Graph
-from metakb.harvesters import CIViC
-from metakb.transform import CIViCTransform
+from metakb.harvesters import CIViC, MOAlmanac
+from metakb.transform import CIViCTransform, MOATransform
 import logging
 from metakb import PROJECT_ROOT
 from disease.database import Database as DiseaseDatabase
@@ -128,8 +128,11 @@ class CLI:
         # harvest
         click.echo("Harvesting resource data...")
         civic_harvester = CIViC()
-        harvest_successful = civic_harvester.harvest()
-        if not harvest_successful:
+        civic_harvest_successful = civic_harvester.harvest()
+        moa_harvester = MOAlmanac()
+        moa_harvest_successful = moa_harvester.harvest()
+        if not civic_harvest_successful and moa_harvest_successful:
+            click.echo("Harvest failed.")
             click.get_current_context().exit()
         else:
             click.echo("Harvest successful.")
@@ -138,6 +141,8 @@ class CLI:
         click.echo("Transforming harvested data...")
         civic_transform = CIViCTransform()
         civic_transform._create_json(civic_transform.transform())
+        moa_transform = MOATransform()
+        moa_transform._create_json(moa_transform.transform())
         click.echo("Transform successful.")
 
         # upload
@@ -145,6 +150,7 @@ class CLI:
         g = Graph(uri=db_url, credentials=(db_username, db_password))
         g.clear()
         g.load_from_json(PROJECT_ROOT / 'data' / 'civic' / 'transform' / 'civic_cdm.json')  # noqa: E501
+        g.load_from_json(PROJECT_ROOT / 'data' / 'moa' / 'transform' / 'moa_cdm.json')  # noqa: E501
         g.close()
         click.echo("DB upload successful.")
 
