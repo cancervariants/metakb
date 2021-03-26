@@ -290,12 +290,14 @@ class MOATransform:
             vod_value_id = None
             vod_value = None
 
+        gene_context = g_descriptors[0]['id'] if g_descriptors else None
+
         variation_descriptor = schemas.VariationDescriptor(
             id=f"moa:vid{variant['id']}",
             label=variant['feature'],
             value_id=vod_value_id,
             value=vod_value,
-            gene_context=f"moa:{[g_des['id'] for g_des in g_descriptors]}",
+            gene_context=f"moa:{gene_context}",
             molecule_context=molecule_context,
             structural_type=structural_type,
             ref_allele_seq=ref_allele_seq,
@@ -326,8 +328,8 @@ class MOATransform:
 
                 if found_match:
                     gene_descriptor = schemas.GeneDescriptor(
-                        id=quote(f"normalize.{schemas.NormalizerPrefix.GENE.value}."  # noqa: E501
-                                 f"{schemas.NamespacePrefix.MOA.value}:{gene}"),  # noqa: E501
+                        id=f"normalize.{schemas.NormalizerPrefix.GENE.value}."
+                           f"{schemas.NamespacePrefix.MOA.value}:{quote(gene)}",  # noqa: E501
                         label=gene,
                         value=schemas.Gene(gene_id=gene_norm_resp['records'][0].concept_id),  # noqa: E501
                     ).dict()

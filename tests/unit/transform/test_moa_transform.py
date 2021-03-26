@@ -83,12 +83,12 @@ def asst69():
                 "structural_type": "SO:0001606",
                 "expressions": None,
                 "ref_allele_seq": "T",
-                "gene_context": "moa:['normalize.gene.moa%3AABL1']"
+                "gene_context": "moa:normalize.gene.moa:ABL1"
             }
         ],
         "gene_descriptors": [
             {
-                "id": "normalize.gene.moa%3AABL1",
+                "id": "normalize.gene.moa:ABL1",
                 "type": "GeneDescriptor",
                 "label": "ABL1",
                 "description": None,
