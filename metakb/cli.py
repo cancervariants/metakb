@@ -53,8 +53,9 @@ class CLI:
         '--normalizer_db_url',
         help=('URL endpoint of normalizer database.')
     )
-    def update_metakb_db(db_url, db_username, db_password, check_normalizers,
-                         initialize, normalizer_db_url=''):
+    def update_metakb_db(db_url, db_username, db_password,
+                         check_normalizers=False, initialize=False,
+                         normalizer_db_url=''):
         """Receive parsed args and initiate update if valid."""
         uninitialized_srcs = []
         if check_normalizers:
