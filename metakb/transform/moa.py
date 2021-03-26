@@ -297,7 +297,7 @@ class MOATransform:
             label=variant['feature'],
             value_id=vod_value_id,
             value=vod_value,
-            gene_context=f"moa:{gene_context}",
+            gene_context=gene_context,
             molecule_context=molecule_context,
             structural_type=structural_type,
             ref_allele_seq=ref_allele_seq,

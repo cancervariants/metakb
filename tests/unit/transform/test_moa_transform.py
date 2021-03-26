@@ -83,7 +83,7 @@ def asst69():
                 "structural_type": "SO:0001606",
                 "expressions": None,
                 "ref_allele_seq": "T",
-                "gene_context": "moa:normalize.gene.moa:ABL1"
+                "gene_context": "normalize.gene.moa:ABL1"
             }
         ],
         "gene_descriptors": [
