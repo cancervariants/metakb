@@ -5,20 +5,20 @@
             "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
             "direction": "supports",
             "evidence_level": "civic.evidence_level:A",
-            "proposition": "proposition:124",
+            "proposition": "proposition:148",
             "variation_descriptor": "civic:vid33",
             "therapy_descriptor": "civic:tid146",
             "disease_descriptor": "civic:did8",
             "method": "method:001",
             "support_evidence": [
-                "support_evidence:211"
+                "support_evidence:235"
             ],
             "type": "Statement"
         }
     ],
     "propositions": [
         {
-            "_id": "proposition:124",
+            "_id": "proposition:148",
             "predicate": "predicts_sensitivity_to",
             "variation_origin": "somatic",
             "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
@@ -179,7 +179,7 @@
     ],
     "support_evidence": [
         {
-            "id": "support_evidence:211",
+            "id": "support_evidence:235",
             "support_evidence_id": "pmid:23982599",
             "label": "Dungo et al., 2013, Drugs",
             "description": "Afatinib: first global approval.",

@@ -2,6 +2,7 @@
 from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
 from metakb.query import QueryHandler
+from typing import Optional
 
 app = FastAPI(docs_url='/api/v2', openapi_url='/api/v2/openapi.json')
 query = QueryHandler(uri="bolt://localhost:7687",
@@ -42,6 +43,9 @@ q_description = ""
          response_description=search_response_description,
          # response_model=,
          description=search_description)
-def search(q: str = Query(..., description=q_description)):
+def search(variation: Optional[str] = Query(None, description=q_description),
+           disease: Optional[str] = Query(None),
+           therapy: Optional[str] = Query(None),
+           gene: Optional[str] = Query(None)):
     """Search endpoint"""
-    return query.search(q)
+    return query.search(variation, disease, therapy, gene)
