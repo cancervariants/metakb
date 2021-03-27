@@ -2,6 +2,8 @@
 from metakb.query import QueryHandler
 import pytest
 
+# TODO: Commented out tests to be fixed after first pass
+
 
 @pytest.fixture(scope='module')
 def query_handler():
@@ -430,6 +432,49 @@ def test_civic_aid6(query_handler, civic_aid6):
     assertions(civic_aid6, s)
 
 
+def test_multiple_parameters(query_handler):
+    """Test that multiple parameter searches work correctly."""
+    # Test no match
+    response = query_handler.search(variation=' braf v600e', gene='egfr',
+                                    disease='cancer', therapy='cisplatin')
+    assert response['statements'] == []
+
+    # Test EID2997 queries
+    object_qualifier = 'ncit:C2926'
+    subject = 'ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR'
+    object = 'ncit:C66940'
+    response = query_handler.search(
+        variation='NP_005219.2:p.Leu858Arg',
+        disease='NSCLC',
+        therapy='Afatinib'
+    )
+    for s in response['statements']:
+        assert s['proposition']['object_qualifier'] == object_qualifier
+        assert s['proposition']['subject'] == subject
+        assert s['proposition']['object'] == object
+
+    # Wrong gene
+    response = query_handler.search(
+        variation='NP_005219.2:p.Leu858Arg',
+        disease='NSCLC',
+        therapy='Afatinib',
+        gene='braf'
+    )
+    assert response['statements'] == []
+
+    # Test eid1409 queries
+    object_qualifier = 'ncit:C3510'
+    subject = 'ga4gh:VA.mJbjSsW541oOsOtBoX36Mppr6hMjbjFr'
+    response = query_handler.search(
+        variation='ga4gh:VA.mJbjSsW541oOsOtBoX36Mppr6hMjbjFr',
+        disease='malignant trunk melanoma'
+    )
+    for s in response['statements']:
+        assert s['proposition']['object_qualifier'] == object_qualifier
+        assert s['proposition']['subject'] == subject
+        assert s['proposition']['object']
+
+
 def test_no_matches(query_handler):
     """Test invalid query matches."""
     # GA instead of VA
@@ -444,4 +489,13 @@ def test_no_matches(query_handler):
 
     # Empty query
     response = query_handler.search(disease='')
+    assert response['statements'] == []
+
+    response = query_handler.search(gene='', therapy='', variation='',
+                                    disease='')
+    assert response['statements'] == []
+    assert response['warnings'] == ['No parameters were entered.']
+
+    # Invalid variation
+    response = query_handler.search(variation='v600e')
     assert response['statements'] == []
