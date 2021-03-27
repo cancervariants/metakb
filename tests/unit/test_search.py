@@ -439,6 +439,9 @@ def test_multiple_parameters(query_handler):
                                     disease='cancer', therapy='cisplatin')
     assert response['statements'] == []
 
+    response = query_handler.search(therapy='cisplatin', disease='4dfadfafas')
+    assert response['statements'] == []
+
     # Test EID2997 queries
     object_qualifier = 'ncit:C2926'
     subject = 'ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR'
