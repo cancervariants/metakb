@@ -18,7 +18,7 @@ class QueryHandler:
     """Class for handling queries."""
 
     def __init__(self, uri, credentials):
-        """Initialize neo4j driver.
+        """Initialize neo4j driver and the VICC normalizers.
 
         :param str uri: Address of neo4j database
         :param Tuple[str,str] credentials: [username, password]
@@ -32,7 +32,11 @@ class QueryHandler:
         self.amino_acid_cache = AminoAcidCache()
 
     def get_normalized_therapy(self, therapy, warnings):
-        """Return normalized therapy concept."""
+        """Get normalized therapy concept.
+
+        :param str therapy: Therapy query
+        :param list warnings: A list of warnings for the search query
+        """
         therapy_norm_resp = \
             self.therapy_query_handler.search_groups(therapy)
 
@@ -56,7 +60,11 @@ class QueryHandler:
         return normalized_therapy
 
     def get_normalized_disease(self, disease, warnings):
-        """Return normalized disease concept."""
+        """Get normalized disease concept.
+
+        :param str disease: Disease query
+        :param list warnings: A list of warnings for the search query
+        """
         disease_norm_response = \
             self.disease_query_handler.search_groups(disease)
         normalized_disease = None
@@ -71,7 +79,11 @@ class QueryHandler:
         return normalized_disease
 
     def get_normalized_variation(self, variation, warnings):
-        """Return normalized variation concept."""
+        """Get normalized variation concept.
+
+        :param str variation: Variation query
+        :param list warnings: A list of warnings for the search query
+        """
         validations = self.variant_to_vrs.get_validations(variation)
         variation_norm_resp =\
             self.variant_normalizer.normalize(variation, validations,
@@ -90,7 +102,11 @@ class QueryHandler:
         return normalized_variation
 
     def get_normalized_gene(self, gene, warnings):
-        """Return normalized gene concept."""
+        """Get normalized gene concept.
+
+        :param str gene: Gene query
+        :param list warnings: A list of warnings for the search query.
+        """
         gene_norm_resp = self.gene_query_handler.search_sources(gene,
                                                                 incl='hgnc')
         normalized_gene = None
@@ -101,24 +117,18 @@ class QueryHandler:
             warnings.append(f'gene-normalizer could not normalize {gene}.')
         return normalized_gene
 
-    def search(self, variation='', disease='', therapy='', gene=''):
-        """Return response for query search."""
-        # TODO:
-        #  Search: Variation ID
-        response = {
-            'variation': None,
-            'disease': None,
-            'therapy': None,
-            'gene': None,
-            'warnings': [],
-            'statements': []
-        }
+    def get_normalized_terms(self, variation, disease, therapy, gene,
+                             response):
+        """Find normalized terms for queried concepts.
 
-        if not (variation or disease or therapy or gene):
-            response['warnings'].append('No parameters were entered.')
-            return response
-
-        # Find normalized terms
+        :param str variation: Variation query
+        :param str disease: Disease query
+        :param str therapy: Therapy query
+        :param str gene: Gene query
+        :param dict response: The search response
+        :return: A tuple containing the normalized concepts if it exists
+        """
+        # Find normalized terms using VICC normalizers
         if therapy:
             response['therapy'] = therapy
             normalized_therapy = \
@@ -146,8 +156,44 @@ class QueryHandler:
                                                        response['warnings'])
         else:
             normalized_gene = None
+        return normalized_variation, normalized_disease, normalized_therapy, normalized_gene  # noqa: E501
 
+    def search(self, variation='', disease='', therapy='', gene=''):
+        """Get statements and propositions from queried concepts.
+
+        :param str variation: Variation query
+        :param str disease: Disease query
+        :param str therapy: Therapy query
+        :param str gene: Gene query
+        """
+        response = {
+            'variation': None,
+            'disease': None,
+            'therapy': None,
+            'gene': None,
+            'warnings': [],
+            'statements': []
+        }
+
+        if not (variation or disease or therapy or gene):
+            response['warnings'].append('No parameters were entered.')
+            return response
+
+        (normalized_variation, normalized_disease,
+         normalized_therapy, normalized_gene) = \
+            self.get_normalized_terms(variation, disease,
+                                      therapy, gene, response)
+
+        # No matches found due to null normalized concepts
         if not (normalized_variation or normalized_disease or normalized_therapy or normalized_gene):  # noqa: E501
+            return response
+
+        # Need to make sure that each concept that was
+        # queried returned a normalized concept
+        if (variation and not normalized_variation) or \
+                (therapy and not normalized_therapy) or \
+                (disease and not normalized_disease) or \
+                (gene and not normalized_gene):
             return response
 
         with self.driver.session() as session:
@@ -168,12 +214,17 @@ class QueryHandler:
                 response['statements'] =\
                     self.get_statement_response(statement_nodes,
                                                 proposition_nodes)
+            else:
+                response['warnings'].append('Could not find statements '
+                                            'associated with the queried'
+                                            ' concepts.')
 
         return response
 
     @staticmethod
     def _get_propositions(tx, normalized_therapy, normalized_variation,
                           normalized_disease, normalized_gene):
+        """Get propositions that contain normalized concepts queried."""
         query = ""
         if normalized_therapy:
             query += "MATCH (p:Proposition)<-[:IS_OBJECT_OF]-" \
@@ -203,6 +254,7 @@ class QueryHandler:
 
     @staticmethod
     def _get_statements_from_proposition(tx, proposition_id):
+        """Get statements that are defined by a proposition."""
         query = (
             "MATCH (p:Proposition {id: $proposition_id})<-[:DEFINED_BY]-(s:Statement) "  # noqa: E501
             "RETURN DISTINCT s"
