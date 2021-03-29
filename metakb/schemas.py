@@ -149,7 +149,7 @@ class MethodID(IntEnum):
     CIVIC_EID_SOP = 1
     CIVIC_AID_AMP_ASCO_CAP = 2
     CIVIC_AID_ACMG = 3
-    MOA_EID_BIORXIV = 4
+    MOA_ASSERTION_BIORXIV = 4
 
 
 class Statement(BaseModel):
