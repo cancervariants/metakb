@@ -149,6 +149,21 @@ class MOATransform:
         disease_descriptors = \
             self._get_disease_descriptors(record)
 
+        if len(therapy_descriptors) != 1:
+            logger.warning(f"Therapy {record['therapy_name']} "
+                           f"could not be found from therapy normalizer.")
+            return None
+
+        if len(variation_descriptors) != 1:
+            logger.warning(f"Variant {record['variant']['feature']} "
+                           f"could not be found from variant normalizer.")
+            return None
+
+        if len(disease_descriptors) != 1:
+            logger.warning(f"Disease {record['disease']['name']}"
+                           f" could not be found from disease normalizer.")
+            return None
+
         return therapy_descriptors, variation_descriptors, disease_descriptors
 
     def _get_statement(self, record, propositions, variant_descriptors,
