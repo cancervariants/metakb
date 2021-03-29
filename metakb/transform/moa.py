@@ -290,17 +290,23 @@ class MOATransform:
                 structural_type = "SO:0001606"
                 molecule_context = 'protein'
 
+        v_norm_resp = None
         # For now, the normalizer only support a.a substitution
         if g_descriptors and 'protein_change' in variant and variant['protein_change']:  # noqa: E501
             gene = g_descriptors[0]['label']
-            variant_query = f"{gene} {variant['protein_change'][2:]}"
-            validations = self.variant_to_vrs.get_validations(variant_query)
-            v_norm_resp = \
-                self.variant_normalizer.normalize(variant_query,
-                                                  validations,
-                                                  self.amino_acid_cache)
+            query = f"{gene} {variant['protein_change'][2:]}"
+            try:
+                validations = self.variant_to_vrs.get_validations(query)
+                v_norm_resp = \
+                    self.variant_normalizer.normalize(query,
+                                                      validations,
+                                                      self.amino_acid_cache)
+            except:  # noqa: E722
+                logger.warning(f"{query} not supported in variant-normalizer.")
 
         if not v_norm_resp:
+            logger.warn(f"variant-normalizer does not support "
+                        f"moa:vid{variant['id']}.")
             return []
 
         gene_context = g_descriptors[0]['id'] if g_descriptors else None
