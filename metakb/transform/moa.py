@@ -53,9 +53,9 @@ class MOATransform:
         """
         data = self._extract()
         responses = []
-        cdm_evidence_items = {}  # EIDs that have been transformed to CDM
+        cdm_assertions = {}  # assertions that have been transformed to CDM
 
-        evidence_items = data['assertions']
+        assertions = data['assertions']
         sources = data['sources']
         variants = data['variants']
         propositions_support_evidence_ix = {
@@ -69,24 +69,24 @@ class MOATransform:
             'propositions': dict()
         }
 
-        # Transform MOA EIDs
-        self._transform_statements(responses, evidence_items, variants,
+        # Transform MOA assertions
+        self._transform_statements(responses, assertions, variants,
                                    sources, propositions_support_evidence_ix,
-                                   cdm_evidence_items)
+                                   cdm_assertions)
 
         return responses
 
     def _transform_statements(self, responses, records, variants,
                               sources, propositions_support_evidence_ix,
-                              cdm_evidence_items):
-        """Add transformed EIDs to the response list.
+                              cdm_assertions):
+        """Add transformed assertions to the response list.
 
-        :param: A list of dicts containing EIDs
-        :param: A list of MOA evidence items
+        :param: A list of dicts containing assertions
+        :param: A list of MOA assertion records
         :param: A dict of MOA variant records
         :param: A dict of MOA source records
         :param: Keeps track of proposition and support_evidence indexes
-        :param: A dict containing evidence items that have been
+        :param: A dict containing assertions that have been
             transformed to the CDM
         """
         for record in records:
@@ -131,13 +131,13 @@ class MOATransform:
                 support_evidence=support_evidence
             ).dict(by_alias=True)
 
-            cdm_evidence_items[f"EID{record['id']}"] = response
+            cdm_assertions[f"assertion_{record['id']}"] = response
             responses.append(response)
 
     def _get_descriptors(self, record, variants, gene_descriptors):
         """Return tuple of descriptors if one exists for each type.
 
-        :param: A MOA EID
+        :param: A MOA assertion
         :param: MOA variant records
         :param: The corresponding gene descriptors
         :return: Descriptors
@@ -151,17 +151,17 @@ class MOATransform:
 
         if len(therapy_descriptors) != 1:
             logger.warning(f"Therapy {record['therapy_name']} "
-                           f"could not be found from therapy normalizer.")
+                           f"could not be found in therapy normalizer.")
             return None
 
         if len(variation_descriptors) != 1:
             logger.warning(f"Variant {record['variant']['feature']} "
-                           f"could not be found from variant normalizer.")
+                           f"could not be found in variant normalizer.")
             return None
 
         if len(disease_descriptors) != 1:
             logger.warning(f"Disease {record['disease']['name']}"
-                           f" could not be found from disease normalizer.")
+                           f" could not be found in disease normalizer.")
             return None
 
         return therapy_descriptors, variation_descriptors, disease_descriptors
@@ -169,8 +169,8 @@ class MOATransform:
     def _get_statement(self, record, propositions, variant_descriptors,
                        therapy_descriptors, disease_descriptors,
                        methods, support_evidence):
-        """Get a statement for an EID.
-        :param dict record: A MOA EID record
+        """Get a statement for an assertion.
+        :param dict record: A MOA assertion record
         :param list propositions: Propositions for the record
         :param list variant_descriptors: Variant Descriptors for the record
         :param list therapy_descriptors: Therapy Descriptors for the record
@@ -205,7 +205,7 @@ class MOATransform:
                              propositions_support_evidence_ix):
         """Return a list of propositions.
 
-        :param: MOA EID
+        :param: MOA assertion
         :param: A list of Variation Descriptors
         :param: A list of Disease Descriptors
         :param: A list of therapy_descriptors
@@ -278,7 +278,7 @@ class MOATransform:
     def _get_variation_descriptors(self, variant, g_descriptors):
         """Add variation descriptor to therapeutic response
 
-        :param: single evidence(assertion) record from MOA
+        :param: single assertion record from MOA
         :return: list of variation descriptor
         """
         ref_allele_seq = variant['protein_change'][2] \
@@ -356,7 +356,7 @@ class MOATransform:
         return gene_descriptors
 
     def _get_support_evidence(self, source, propositions_support_evidence_ix):
-        """Get an EID's support evidence.
+        """Get an assertion's support evidence.
 
         :param: An evidence source
         :param: Keeps track of proposition and support_evidence indexes
@@ -386,7 +386,7 @@ class MOATransform:
         """
         methods = [schemas.Method(
             id=f'method:'
-               f'{schemas.MethodID.MOA_EID_BIORXIV:03}',
+               f'{schemas.MethodID.MOA_ASSERTION_BIORXIV:03}',
             label='Clinical interpretation of integrative molecular profiles to guide precision cancer medicine',  # noqa:E501
             url='https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1',  # noqa:E501
             version=schemas.Date(year=2020, month=9, day=22),
@@ -395,9 +395,13 @@ class MOATransform:
 
         return methods
 
-    def _get_therapy_descriptors(self, evidence):
-        """Add therapies"""
-        therapy = evidence['therapy_name']
+    def _get_therapy_descriptors(self, assertion):
+        """Return a list of Therapy Descriptors.
+
+        :param: an MOA assertion record
+        :return: A list of Therapy Descriptors
+        """
+        therapy = assertion['therapy_name']
         t_handler_resp = None
 
         if not therapy:
@@ -434,10 +438,14 @@ class MOATransform:
 
         return [therapy_descriptor]
 
-    def _get_disease_descriptors(self, evidence):
-        """Add disease"""
-        ot_code = evidence['disease']['oncotree_code']
-        disease_name = evidence['disease']['name']
+    def _get_disease_descriptors(self, assertion):
+        """Return A list of Disease Descriptors.
+
+        :param: an MOA assertion record
+        :return: A list of Therapy Descriptors
+        """
+        ot_code = assertion['disease']['oncotree_code']
+        disease_name = assertion['disease']['name']
         d_handler_resp = None
 
         for query in [ot_code, disease_name]:
