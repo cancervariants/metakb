@@ -59,7 +59,9 @@ class CLI:
     def update_metakb_db(db_url, db_username, db_password,
                          check_normalizers=False, initialize=False,
                          normalizer_db_url=''):
-        """Receive parsed args and initiate update if valid."""
+        """Execute data harvest and transformation from resources and upload
+        to graph datastore.
+        """
         uninitialized_srcs = []
         if check_normalizers:
             click.echo("Checking Disease Normalizer...")
