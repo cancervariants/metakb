@@ -6,6 +6,8 @@ from variant.normalize import Normalize as VariantNormalizer
 from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
 from therapy.query import QueryHandler as TherapyQueryHandler
 from disease.query import QueryHandler as DiseaseQueryHandler
+from metakb.schemas import SearchService, StatementResponse, \
+    SupportEvidenceResponse, MethodResponse, PropositionResponse
 import logging
 import json
 
@@ -177,16 +179,12 @@ class QueryHandler:
 
         if not (variation or disease or therapy or gene):
             response['warnings'].append('No parameters were entered.')
-            return response
+            return SearchService(**response).dict()
 
         (normalized_variation, normalized_disease,
          normalized_therapy, normalized_gene) = \
             self.get_normalized_terms(variation, disease,
                                       therapy, gene, response)
-
-        # No matches found due to null normalized concepts
-        if not (normalized_variation or normalized_disease or normalized_therapy or normalized_gene):  # noqa: E501
-            return response
 
         # Need to make sure that each concept that was
         # queried returned a normalized concept
@@ -194,7 +192,7 @@ class QueryHandler:
                 (therapy and not normalized_therapy) or \
                 (disease and not normalized_disease) or \
                 (gene and not normalized_gene):
-            return response
+            return SearchService(**response).dict()
 
         with self.driver.session() as session:
             proposition_nodes = session.read_transaction(
@@ -219,7 +217,7 @@ class QueryHandler:
                                             'associated with the queried'
                                             ' concepts.')
 
-        return response
+        return SearchService(**response).dict()
 
     @staticmethod
     def _get_propositions(tx, normalized_therapy, normalized_variation,
@@ -280,33 +278,31 @@ class QueryHandler:
                     self._find_and_return_support_evidence, statement_id)
 
                 for se in se_list:
-                    support_evidence.append({
-                        'id': se['support_evidence_id'],
-                        'label': se['label'],
-                        'description': se['description'],
-                        'xrefs': se['xrefs'] if se['xrefs'] else []
-                    })
-
-                result = {
-                    'id': statement_id,
-                    'type': s.get('type'),
-                    'description': s.get('description'),
-                    'direction': s.get('direction'),
-                    'evidence_level': s.get('evidence_level'),
-                    'proposition': propositions.get(response['tr_id'],
-                                                    None),
-                    'variation_descriptor': response['vid'],
-                    'therapy_descriptor': response['tid'],
-                    'disease_descriptor': response['did'],
-                    'method': {
-                        'label': response['m']['label'],
-                        'url': response['m']['url'],
-                        'version': json.loads(response['m']['version']),
-                        'reference': response['m']['reference']
-                    },
-                    'support_evidence': support_evidence
-                }
-                statements_response.append(result)
+                    support_evidence.append(SupportEvidenceResponse(
+                        id=se['support_evidence_id'],
+                        label=se['label'],
+                        description=se['description'],
+                        xrefs=se['xrefs'] if se['xrefs'] else []
+                    ).dict())
+                statements_response.append(StatementResponse(
+                    id=statement_id,
+                    type=s.get('type'),
+                    description=s.get('description'),
+                    direction=s.get('direction'),
+                    evidence_level=s.get('evidence_level'),
+                    proposition=propositions.get(response['tr_id'],
+                                                 None),
+                    variation_descriptor=response['vid'],
+                    therapy_descriptor=response['tid'],
+                    disease_descriptor=response['did'],
+                    method=MethodResponse(
+                        label=response['m']['label'],
+                        url=response['m']['url'],
+                        version=json.loads(response['m']['version']),
+                        reference=response['m']['reference']
+                    ).dict(),
+                    support_evidence=support_evidence
+                ).dict())
         return statements_response
 
     @staticmethod
@@ -333,18 +329,18 @@ class QueryHandler:
         propositions_response = dict()
         for p in propositions:
             with self.driver.session() as session:
+                p_id = p.get('id')
                 value_ids = session.read_transaction(
-                    self._find_and_return_proposition_response,
-                    p.get('id')
+                    self._find_and_return_proposition_response, p_id
                 )
-                propositions_response[p.get('id')] = {
-                    'type': p.get('type'),
-                    'predicate': p.get('predicate'),
-                    'variation_origin': p.get('variation_origin'),
-                    'subject': value_ids['subject'],
-                    'object_qualifier': value_ids['object_qualifier'],
-                    'object': value_ids['object']
-                }
+                propositions_response[p_id] = PropositionResponse(
+                    type=p.get('type'),
+                    predicate=p.get('predicate'),
+                    variation_origin=p.get('variation_origin'),
+                    subject=value_ids['subject'],
+                    object_qualifier=value_ids['object_qualifier'],
+                    object=value_ids['object']
+                ).dict()
         return propositions_response
 
     @staticmethod

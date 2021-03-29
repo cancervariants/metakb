@@ -348,6 +348,37 @@ class SupportEvidenceResponse(BaseModel):
             }
 
 
+class PropositionResponse(BaseModel):
+    """Define Proposition Response for Search Endpoint."""
+
+    type: str
+    predicate: str
+    variation_origin: Optional[VariationOrigin]
+    subject: str
+    object_qualifier: str
+    object: str
+
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['PropositionResponse']) -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "type": "therapeutic_response_proposition",
+                "predicate": "predicts_sensitivity_to",
+                "variation_origin": "somatic",
+                "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+                "object_qualifier": "ncit:C2926",
+                "object": "ncit:C66940"
+            }
+
+
 class StatementResponse(BaseModel):
     """Define Statement Response for Search Endpoint."""
 
@@ -356,7 +387,7 @@ class StatementResponse(BaseModel):
     description: str
     direction: Optional[Direction]
     evidence_level: str
-    proposition: dict
+    proposition: PropositionResponse
     variation_descriptor: str
     therapy_descriptor: str
     disease_descriptor: str
