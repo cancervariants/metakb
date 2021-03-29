@@ -1,5 +1,5 @@
 {
-    "evidence": [
+    "statements": [
         {
             "id": "civic:eid32",
             "description": "Ba/F3 cells expressing the RANBP2-ALK fusion containing an F1174L mutation were more resistant to crizotinib treatment than Ba/F3 cells expressing RANBP2-ALK without this mutation.",
@@ -10,8 +10,10 @@
             "therapy_descriptor": "civic:tid12",
             "disease_descriptor": "civic:did12",
             "method": "method:001",
-            "document": "document:001",
-            "type": "Evidence"
+            "support_evidence": [
+                "support_evidence:001"
+            ],
+            "type": "Statement"
         }
     ],
     "propositions": [
@@ -19,9 +21,9 @@
             "_id": "proposition:001",
             "predicate": "predicts_resistance_to",
             "variation_origin": "somatic",
-            "has_originating_context": "ga4gh:VA.jsA2x1gE1kYjr4XNY_8hJvxW_iZRrBbC",
-            "disease_context": "ncit:C6481",
-            "therapy": "ncit:C74061",
+            "subject": "ga4gh:VA.jsA2x1gE1kYjr4XNY_8hJvxW_iZRrBbC",
+            "object_qualifier": "ncit:C6481",
+            "object": "ncit:C74061",
             "type": "therapeutic_response_proposition"
         }
     ],
@@ -190,10 +192,10 @@
             "reference": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."
         }
     ],
-    "documents": [
+    "support_evidence": [
         {
-            "id": "document:001",
-            "document_id": "pmid:21030459",
+            "id": "support_evidence:001",
+            "support_evidence_id": "pmid:21030459",
             "label": "Sasaki et al., 2010, Cancer Res.",
             "description": "The neuroblastoma-associated F1174L ALK mutation causes resistance to an ALK kinase inhibitor in ALK-translocated cancers.",
             "xrefs": [
