@@ -299,13 +299,8 @@ class MOATransform:
                 self.variant_normalizer.normalize(variant_query,
                                                   validations,
                                                   self.amino_acid_cache)
-            vod_value_id = v_norm_resp.value_id if v_norm_resp else None
-            vod_value = v_norm_resp.value if v_norm_resp else None
-        else:
-            vod_value_id = None
-            vod_value = None
 
-        if not vod_value_id and not vod_value:
+        if not v_norm_resp:
             return []
 
         gene_context = g_descriptors[0]['id'] if g_descriptors else None
@@ -313,8 +308,8 @@ class MOATransform:
         variation_descriptor = schemas.VariationDescriptor(
             id=f"moa:vid{variant['id']}",
             label=variant['feature'],
-            value_id=vod_value_id,
-            value=vod_value,
+            value_id=v_norm_resp.value_id,
+            value=v_norm_resp.value,
             gene_context=gene_context,
             molecule_context=molecule_context,
             structural_type=structural_type,
