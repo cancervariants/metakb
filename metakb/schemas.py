@@ -141,9 +141,6 @@ class TherapeuticResponseProposition(BaseModel):
     subject: str  # vrs:Variation
     object_qualifier: str  # vicc:Disease
     object: str  # Therapy value object
-    # subject: Optional[str]  # vrs:Variation
-    # object_qualifier: Optional[str]  # vicc:Disease
-    # object: Optional[str]  # Therapy value object
 
 
 class MethodID(IntEnum):
