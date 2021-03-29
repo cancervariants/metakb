@@ -149,7 +149,7 @@ class MethodID(IntEnum):
     CIVIC_EID_SOP = 1
     CIVIC_AID_AMP_ASCO_CAP = 2
     CIVIC_AID_ACMG = 3
-    MOA_EID_BIORXIV = 4
+    MOA_ASSERTION_BIORXIV = 4
 
 
 class Statement(BaseModel):
@@ -162,8 +162,8 @@ class Statement(BaseModel):
     evidence_level: str
     proposition: str
     variation_descriptor: str
-    therapy_descriptor: Optional[str]
-    disease_descriptor: Optional[str]
+    therapy_descriptor: str
+    disease_descriptor: str
     method: str
     support_evidence: List[str]
     # contribution: str  TODO: After metakb first pass
