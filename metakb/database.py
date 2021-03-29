@@ -180,6 +180,7 @@ class Graph:
         nonnull_keys = [f"{key}:${key}"
                         for key in ('id', 'label', 'description', 'xrefs',
                                     'alternate_labels', 'structural_type',
+                                    'molecule_context',
                                     'expressions_transcript',
                                     'expressions_genomic',
                                     'expressions_protein',
