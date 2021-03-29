@@ -70,7 +70,6 @@ class CLI:
                 )
                 if not response.get('Item'):
                     uninitialized_srcs.append(f"Disease: {src}")
-            click.echo("Disease Normalizer checks complete.")
             click.echo("Checking Therapy Normalizer...")
             therapy_db = TherapyDatabase(db_url=normalizer_db_url)
             for src in {TherapySourceLookup[src] for src in TherapySources}:
@@ -79,7 +78,6 @@ class CLI:
                 )
                 if not response.get('Item'):
                     uninitialized_srcs.append(f"Therapy: {src}")
-            click.echo("Therapy Normalizer checks complete.")
             click.echo("Checking Gene Normalizer...")
             gene_db = GeneDatabase(db_url=normalizer_db_url)
             response = gene_db.metadata.get_item(
@@ -87,7 +85,6 @@ class CLI:
             )
             if not response.get('Item'):
                 uninitialized_srcs.append("Gene: HGNC")
-            click.echo("Gene Normalizer checks complete.")
             if uninitialized_srcs:
                 print("\nNormalizater initialization incomplete:")
                 print("---------------------------------------")
@@ -98,14 +95,17 @@ class CLI:
             click.get_current_context().exit()
 
         if initialize:
+            click.echo("Updating Therapy Normalizer...")
             TherapyCLI.update_normalizer_db(['--db_url', normalizer_db_url,
                                              '--normalizer',
                                              'chemidplus rxnorm wikidata ncit',
                                              '--update_merged'
                                              ])
+            click.echo("Updating Disease Normalizer...")
             DiseaseCLI.update_normalizer_db(['--db_url', normalizer_db_url,
                                              '--update_all',
                                              '--update_merged'])
+            click.echo("Updating Gene Normalizer...")
             GeneCLI.update_normalizer_db(['--db_url', normalizer_db_url,
                                           '--normalizer', 'hgnc'])
 
