@@ -2,6 +2,7 @@
 from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
 from metakb.query import QueryHandler
+from metakb.schemas import SearchService
 from typing import Optional
 
 app = FastAPI(docs_url='/api/v2', openapi_url='/api/v2/openapi.json')
@@ -31,21 +32,27 @@ def custom_openapi():
 
 
 app.openapi = custom_openapi
-search_summary = ""
-search_response_description = ""
-search_description = ""
-q_description = ""
+search_summary = ("Given variation, disease, therapy, and/or gene, "
+                  "return associated statements and propositions.")
+search_response_description = "A response to a validly-formed query."
+search_description = ("Return statements and propositions associated"
+                      " to the queried concepts.")
+v_description = "Variation to search"
+d_description = "Disease to search"
+t_description = "Therapy to search"
+g_description = "Gene to search"
 
 
 @app.get('/api/v2/search',
          summary=search_summary,
          operation_id="getQueryResponse",
          response_description=search_response_description,
-         # response_model=,
-         description=search_description)
-def search(variation: Optional[str] = Query(None, description=q_description),
-           disease: Optional[str] = Query(None),
-           therapy: Optional[str] = Query(None),
-           gene: Optional[str] = Query(None)):
+         response_model=SearchService,
+         description=search_description,
+         response_model_exclude_none=True)
+def search(variation: Optional[str] = Query(None, description=v_description),
+           disease: Optional[str] = Query(None, description=d_description),
+           therapy: Optional[str] = Query(None, description=t_description),
+           gene: Optional[str] = Query(None, description=g_description)):
     """Search endpoint"""
     return query.search(variation, disease, therapy, gene)
