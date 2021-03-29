@@ -2,7 +2,7 @@
 from enum import Enum, IntEnum
 from pydantic import BaseModel
 from pydantic.fields import Field
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any, Type
 
 
 class XrefSystem(str, Enum):
@@ -162,8 +162,8 @@ class Statement(BaseModel):
     evidence_level: str
     proposition: str
     variation_descriptor: str
-    therapy_descriptor: Optional[str]
-    disease_descriptor: Optional[str]
+    therapy_descriptor: str
+    disease_descriptor: str
     method: str
     support_evidence: List[str]
     # contribution: str  TODO: After metakb first pass
@@ -185,6 +185,23 @@ class Date(BaseModel):
     year: int
     month: Optional[int]
     day: Optional[int]
+
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['StatementResponse']) -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "year": 2019,
+                "month": 11,
+                "day": 29
+            }
 
 
 class Method(BaseModel):
@@ -271,3 +288,192 @@ class Response(BaseModel):
     disease_descriptors: List[ValueObjectDescriptor]
     methods: List[Method]
     support_evidence: List[SupportEvidence]
+
+
+class MethodResponse(BaseModel):
+    """Define Method Response for Search Endpoint."""
+
+    label: str
+    url: str
+    version: Date
+    reference: str
+
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['MethodResponse']) -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
+                "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
+                "version": {
+                    "year": 2019,
+                    "month": 11,
+                    "day": 29
+                },
+                "reference": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."  # noqa: E501
+            }
+
+
+class SupportEvidenceResponse(BaseModel):
+    """Define Support Evidence Response for Search Endpoint."""
+
+    id: str
+    label: str
+    description: Optional[str]
+    xrefs: Optional[List[str]]
+
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['SupportEvidenceResponse']) -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "id": "pmid:23982599",
+                "label": "Dungo et al., 2013, Drugs",
+                "description": "Afatinib: first global approval.",
+                "xrefs": []
+            }
+
+
+class StatementResponse(BaseModel):
+    """Define Statement Response for Search Endpoint."""
+
+    id: str
+    type = 'Statement'
+    description: str
+    direction: Optional[Direction]
+    evidence_level: str
+    proposition: dict
+    variation_descriptor: str
+    therapy_descriptor: str
+    disease_descriptor: str
+    method: MethodResponse
+    support_evidence: List[SupportEvidenceResponse]
+
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['StatementResponse']) -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "id": "civic:eid2997",
+                "type": "Statement",
+                "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
+                "direction": "supports",
+                "evidence_level": "civic.evidence_level:A",
+                "proposition": {
+                    "type": "therapeutic_response_proposition",
+                    "predicate": "predicts_sensitivity_to",
+                    "variation_origin": "somatic",
+                    "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",  # noqa: E501
+                    "object_qualifier": "ncit:C2926",
+                    "object": "ncit:C66940"
+                },
+                "variation_descriptor": "civic:vid33",
+                "therapy_descriptor": "civic:tid146",
+                "disease_descriptor": "civic:did8",
+                "method": {
+                    "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
+                    "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
+                    "version": {
+                        "year": 2019,
+                        "month": 11,
+                        "day": 29
+                    },
+                    "reference": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."  # noqa: E501
+                },
+                "support_evidence": [
+                    {
+                        "id": "pmid:23982599",
+                        "label": "Dungo et al., 2013, Drugs",
+                        "description": "Afatinib: first global approval.",  # noqa: E501
+                        "xrefs": []
+                    }
+                ]
+            }
+
+
+class SearchService(BaseModel):
+    """Define model for Search Endpoint Response."""
+
+    variation: Optional[str]
+    disease: Optional[str]
+    therapy: Optional[str]
+    gene: Optional[str]
+    warnings: Optional[List[str]]
+    statements: Optional[List[StatementResponse]]
+
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['SearchService']) -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "variation": "NP_005219.2:p.Leu858Arg",
+                "disease": "Lung Non-small Cell Carcinoma",
+                "therapy": "Afatinib",
+                "warnings": [],
+                "statements": [
+                    {
+                        "id": "civic:eid2997",
+                        "type": "Statement",
+                        "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
+                        "direction": "supports",
+                        "evidence_level": "civic.evidence_level:A",
+                        "proposition": {
+                            "type": "therapeutic_response_proposition",
+                            "predicate": "predicts_sensitivity_to",
+                            "variation_origin": "somatic",
+                            "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",  # noqa: E501
+                            "object_qualifier": "ncit:C2926",
+                            "object": "ncit:C66940"
+                        },
+                        "variation_descriptor": "civic:vid33",
+                        "therapy_descriptor": "civic:tid146",
+                        "disease_descriptor": "civic:did8",
+                        "method": {
+                            "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
+                            "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
+                            "version": {
+                                "year": 2019,
+                                "month": 11,
+                                "day": 29
+                            },
+                            "reference": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."  # noqa: E501
+                        },
+                        "support_evidence": [
+                            {
+                                "id": "pmid:23982599",
+                                "label": "Dungo et al., 2013, Drugs",
+                                "description": "Afatinib: first global approval.",  # noqa: E501
+                                "xrefs": []
+                            }
+                        ]
+                    }
+                ]
+            }
