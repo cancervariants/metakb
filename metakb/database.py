@@ -188,15 +188,15 @@ class Graph:
             else:
                 descriptor[key] = [expression['value']]
 
-        nonnull_keys = _create_keys_string(descriptor,
-                                           ('id', 'label', 'description',
-                                            'xrefs', 'alternate_labels',
-                                            'structural_type',
-                                            'molecule_context',
-                                            'expressions_transcript',
-                                            'expressions_genomic',
-                                            'expressions_protein',
-                                            'ref_allele_seq'))
+        nonnull_keys = [_create_keys_string(descriptor,
+                                            ('id', 'label', 'description',
+                                             'xrefs', 'alternate_labels',
+                                             'structural_type',
+                                             'molecule_context',
+                                             'expressions_transcript',
+                                             'expressions_genomic',
+                                             'expressions_protein',
+                                             'ref_allele_seq'))]
 
         # handle extensions
         variant_groups = None
