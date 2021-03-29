@@ -403,24 +403,25 @@ class CIViCTransform:
         hgvs_exprs_queries = list()
         for expr in hgvs_exprs:
             if 'protein' in expr['syntax']:
-                hgvs_exprs_queries.append(expr)
+                hgvs_exprs_queries.append(expr['value'])
 
         variant_norm_resp = None
-        for query in [variant_query] + hgvs_exprs_queries:
+        for query in hgvs_exprs_queries + [variant_query]:
             if not query:
                 continue
-            validations = self.variant_to_vrs.get_validations(
-                variant_query)
-
-            variant_norm_resp = \
-                self.variant_normalizer.normalize(query, validations,
-                                                  self.amino_acid_cache)
+            try:
+                validations = self.variant_to_vrs.get_validations(query)
+                variant_norm_resp = \
+                    self.variant_normalizer.normalize(query, validations,
+                                                      self.amino_acid_cache)
+            except:  # noqa: E722
+                logger.warning(f"{query} not supported in variant-normalizer.")
             if variant_norm_resp:
                 break
 
         if not variant_norm_resp:
-            logger.warning(f"{variant_query} is not yet supported in"
-                           f" Variant Normalization normalize.")
+            logger.warn(f"variant-normalizer does not support "
+                        f"civic:vid{variant['id']}.")
             return []
 
         # For now, everything that we're able to normalize is as the protein
