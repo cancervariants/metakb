@@ -138,9 +138,9 @@ class TherapeuticResponseProposition(BaseModel):
     type = PropositionType.PREDICTIVE.value
     predicate: Optional[PredictivePredicate]
     variation_origin: Optional[VariationOrigin]
-    subject: Optional[str]  # vrs:Variation
-    object_qualifier: Optional[str]  # vicc:Disease
-    object: Optional[str]  # Therapy value object
+    subject: str  # vrs:Variation
+    object_qualifier: str  # vicc:Disease
+    object: str  # Therapy value object
 
 
 class MethodID(IntEnum):
@@ -153,7 +153,7 @@ class MethodID(IntEnum):
 
 
 class Statement(BaseModel):
-    """Define statement model."""
+    """Define Statement model."""
 
     id: str
     type = 'Statement'
