@@ -16,7 +16,7 @@ from therapy import ACCEPTED_SOURCES as TherapySources
 from therapy import SOURCES as TherapySourceLookup
 from disease.cli import CLI as DiseaseCLI
 from therapy.cli import CLI as TherapyCLI
-from gene.cli import CLI as GeneCLI
+from gene import cli as GeneCLI
 from gene.database import Database as GeneDatabase
 
 
