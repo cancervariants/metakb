@@ -17,7 +17,7 @@ def _create_keys_string(entity, keys) -> str:
     :return: formatted String for use in Cypher query
     """
     nonnull_keys = [f"{key}:${key}"
-                    for key in keys if entity[key]]
+                    for key in keys if entity.get(key)]
     keys_string = ', '.join(nonnull_keys)
     return keys_string
 
