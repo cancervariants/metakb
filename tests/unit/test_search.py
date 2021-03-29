@@ -203,7 +203,9 @@ def assertions(test_data, actual_data):
     if isinstance(actual_data, dict):
         assert_same_keys_list_items(actual_data.keys(), test_data.keys())
         for key in actual_data.keys():
-            if isinstance(actual_data[key], list):
+            if key == 'support_evidence':
+                assert_same_keys_list_items(actual_data[key], test_data[key])
+            elif isinstance(actual_data[key], list):
                 try:
                     assert set(test_data[key]) == set(actual_data[key])
                 except:  # noqa: E722
