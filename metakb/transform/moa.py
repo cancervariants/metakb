@@ -305,6 +305,9 @@ class MOATransform:
             vod_value_id = None
             vod_value = None
 
+        if not vod_value_id and not vod_value:
+            return []
+
         gene_context = g_descriptors[0]['id'] if g_descriptors else None
 
         variation_descriptor = schemas.VariationDescriptor(
