@@ -7,7 +7,7 @@ import json
 g = Graph(uri="bolt://localhost:7687", credentials=("neo4j", "admin"))
 g.clear()
 
-fpath = PROJECT_ROOT / 'analysis' / 'graph' / 'civic_cdm_v3.json'
+fpath = PROJECT_ROOT / 'analysis' / 'graph' / 'civic_cdm_latest.json'
 with open(fpath, 'r') as f:
     items = json.load(f)
 
