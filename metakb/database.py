@@ -10,6 +10,18 @@ logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
 
+def _create_keys_string(entity, keys) -> str:
+    """Create formatted string for requested keys if non-null in entity.
+    :param Dict entity: entity to check against, eg a Disease or Statement
+    :param Tuple keys: key names to check
+    :return: formatted String for use in Cypher query
+    """
+    nonnull_keys = [f"{key}:${key}"
+                    for key in keys if entity[key]]
+    keys_string = ', '.join(nonnull_keys)
+    return keys_string
+
+
 class Graph:
     """Manage requests to graph datastore."""
 
@@ -131,14 +143,12 @@ class Graph:
             value_type = 'Gene'
             descriptor['value_id'] = descriptor['value']['gene_id']
 
-        nonnull_keys = [f"{key}:${key}"
-                        for key in ('id', 'label', 'description', 'xrefs',
-                                    'alternate_labels')
-                        if descriptor[key]]
-        descriptor_keys = ', '.join(nonnull_keys)
+        descr_keys = _create_keys_string(descriptor, ('id', 'label',
+                                                      'description', 'xrefs',
+                                                      'alternate_labels'))
 
         query = f'''
-        MERGE (descr:{descr_type} {{ {descriptor_keys} }})
+        MERGE (descr:{descr_type} {{ {descr_keys} }})
         MERGE (value:{value_type} {{ id:$value_id }})
         MERGE (descr) -[:DESCRIBES]-> (value)
         '''
@@ -177,15 +187,16 @@ class Graph:
                 descriptor[key].append(expression['value'])
             else:
                 descriptor[key] = [expression['value']]
-        nonnull_keys = [f"{key}:${key}"
-                        for key in ('id', 'label', 'description', 'xrefs',
-                                    'alternate_labels', 'structural_type',
-                                    'molecule_context',
-                                    'expressions_transcript',
-                                    'expressions_genomic',
-                                    'expressions_protein',
-                                    'ref_allele_seq')
-                        if descriptor.get(key)]
+
+        nonnull_keys = _create_keys_string(descriptor,
+                                           ('id', 'label', 'description',
+                                            'xrefs', 'alternate_labels',
+                                            'structural_type',
+                                            'molecule_context',
+                                            'expressions_transcript',
+                                            'expressions_genomic',
+                                            'expressions_protein',
+                                            'ref_allele_seq'))
 
         # handle extensions
         variant_groups = None
@@ -250,12 +261,10 @@ class Graph:
             and `has_originating_context` fields.
         """
         proposition['id'] = proposition['_id']
-        nonnull_keys = [f"{key}:${key}"
-                        for key in ('id', 'predicate', 'variation_origin',
-                                    'type')
-                        if proposition[key]]
-        formatted_keys = ', '.join(nonnull_keys)
 
+        formatted_keys = _create_keys_string(proposition, ('id', 'predicate',
+                                                           'variation_origin',
+                                                           'type'))
         prop_type = proposition.get('type')
         if prop_type == "therapeutic_response_proposition":
             prop_label = ":TherapeuticResponse"
@@ -287,11 +296,10 @@ class Graph:
         """Add SupportEvidence object to DB.
         :param Dict support_evidence: must include `id` field.
         """
-        nonnull_keys = [f"{key}:${key}"
-                        for key in ('id', 'support_evidence_id', 'label',
-                                    'description', 'xrefs')
-                        if support_evidence[key]]
-        formatted_keys = ', '.join(nonnull_keys)
+        formatted_keys = _create_keys_string(support_evidence,
+                                             ('id', 'label',
+                                              'support_evidence_id', 'xrefs',
+                                              'description'))
         query = f"""
         MERGE (n:SupportEvidence {{ {formatted_keys} }});
         """
@@ -310,11 +318,9 @@ class Graph:
             `therapy_descriptor`, `disease_descriptor`, `method`, and
             `support_evidence` fields.
         """
-        nonnull_keys = [f"{key}:${key}" for key
-                        in ('id', 'description', 'direction',
-                            'evidence_level')
-                        if statement[key]]
-        formatted_keys = ', '.join(nonnull_keys)
+        formatted_keys = _create_keys_string(statement, ('id', 'description',
+                                                         'direction',
+                                                         'evidence_level'))
         match_line = ""
         rel_line = ""
         support_evidence = statement.get('support_evidence', [])
