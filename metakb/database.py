@@ -180,13 +180,15 @@ class Graph:
             location['interval']['type']
 
         # prepare descriptor properties
-        for expression in descriptor['expressions']:
-            syntax = expression['syntax'].split(':')[1]
-            key = f"expressions_{syntax}"
-            if key in descriptor:
-                descriptor[key].append(expression['value'])
-            else:
-                descriptor[key] = [expression['value']]
+        expressions = descriptor.get('expressions')
+        if expressions:
+            for expression in expressions:
+                syntax = expression['syntax'].split(':')[1]
+                key = f"expressions_{syntax}"
+                if key in descriptor:
+                    descriptor[key].append(expression['value'])
+                else:
+                    descriptor[key] = [expression['value']]
 
         nonnull_keys = [_create_keys_string(descriptor,
                                             ('id', 'label', 'description',
