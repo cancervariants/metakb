@@ -231,20 +231,6 @@ def aid6():
     return {
         "statements": [
             {
-                "id": "civic:eid2997",
-                "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
-                "direction": "supports",
-                "evidence_level": "civic.evidence_level:A",
-                "proposition": "proposition:001",
-                "variation_origin": "somatic",
-                "variation_descriptor": "civic:vid33",
-                "therapy_descriptor": "civic:tid146",
-                "disease_descriptor": "civic:did8",
-                "method": "method:001",
-                "supported_by": ["pmid:23982599"],
-                "type": "Statement"
-            },
-            {
                 "id": "civic:aid6",
                 "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",  # noqa: E501
                 "direction": "supports",
@@ -256,6 +242,20 @@ def aid6():
                 "disease_descriptor": "civic:did8",
                 "method": "method:002",
                 "supported_by": ["document:001", "civic:eid2997"],
+                "type": "Statement"
+            },
+            {
+                "id": "civic:eid2997",
+                "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
+                "direction": "supports",
+                "evidence_level": "civic.evidence_level:A",
+                "proposition": "proposition:001",
+                "variation_origin": "somatic",
+                "variation_descriptor": "civic:vid33",
+                "therapy_descriptor": "civic:tid146",
+                "disease_descriptor": "civic:did8",
+                "method": "method:001",
+                "supported_by": ["pmid:23982599"],
                 "type": "Statement"
             }
         ],
@@ -418,6 +418,17 @@ def aid6():
         ],
         "methods": [
             {
+                "id": "method:001",
+                "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
+                "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
+                "version": {
+                    "year": 2019,
+                    "month": 11,
+                    "day": 29
+                },
+                "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."
+            },
+            {
                 "id": "method:002",
                 "label": "Standards and Guidelines for the Interpretation and Reporting of Sequence Variants in Cancer: A Joint Consensus Recommendation of the Association for Molecular Pathology, American Society of Clinical Oncology, and College of American Pathologists",  # noqa: E501
                 "url": "https://pubmed.ncbi.nlm.nih.gov/27993330/",
@@ -437,6 +448,13 @@ def aid6():
                 "label": "NCCN Guidelines: Non-Small Cell "
                          "Lung Cancer version 3.2018",
                 "description": None,
+                "xrefs": []
+            },
+            {
+                "id": "pmid:23982599",
+                "document_id": None,
+                "label": "Dungo et al., 2013, Drugs",
+                "description": "Afatinib: first global approval.",
                 "xrefs": []
             }
         ]
@@ -499,16 +517,18 @@ def test_aid6(data, aid6):
     """Test that transform is correct for AID6."""
     aid6_data = None
     for item in data:
-        for statement in item['statements']:
-            if statement['id'] == "civic:aid6":
-                aid6_data = item
-                break
+        if item['statements'][0]['id'] == 'civic:aid6':
+            aid6_data = item
+            break
 
     aid_data_keys = aid6_data.keys()
 
     for key in aid6.keys():
         assert key in aid_data_keys
         assert len(aid6_data[key]) == len(aid6[key])
-        assertions(aid6_data[key][0], aid6[key][0])
+        if key in ['statements', 'methods', 'documents']:
+            assert_same_keys_list_items(aid6[key], aid6_data[key])
+        else:
+            assertions(aid6_data[key][0], aid6[key][0])
 
     os.remove(f"{PROJECT_ROOT}/tests/data/transform/civic_cdm.json")

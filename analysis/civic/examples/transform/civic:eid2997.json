@@ -12,7 +12,7 @@
             "disease_descriptor": "civic:did8",
             "method": "method:001",
             "supported_by": [
-                "document:235"
+                "pmid:23982599"
             ],
             "type": "Statement"
         }
@@ -188,8 +188,8 @@
     ],
     "documents": [
         {
-            "id": "document:235",
-            "document_id": "pmid:23982599",
+            "id": "pmid:23982599",
+            "document_id": null,
             "label": "Dungo et al., 2013, Drugs",
             "description": "Afatinib: first global approval.",
             "xrefs": []
