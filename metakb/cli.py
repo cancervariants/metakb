@@ -101,8 +101,7 @@ class CLI:
             TherapyCLI.update_normalizer_db(['--db_url', normalizer_db_url,
                                              '--normalizer',
                                              'chemidplus rxnorm wikidata ncit',
-                                             '--update_merged'
-                                             ])
+                                             '--update_merged'])
             click.echo("Updating Disease Normalizer...")
             DiseaseCLI.update_normalizer_db(['--db_url', normalizer_db_url,
                                              '--update_all',
@@ -128,40 +127,40 @@ class CLI:
                 CLI()._help_msg('Must provide password for DB.')
 
         # harvest
-        click.echo("Harvesting resource data...")
-        civic_harvester = CIViC()
-        civic_harvest_successful = civic_harvester.harvest()
+        logger.info("Harvesting resource data...")
         moa_harvester = MOAlmanac()
         moa_harvest_successful = moa_harvester.harvest()
+        civic_harvester = CIViC()
+        civic_harvest_successful = civic_harvester.harvest()
         if not civic_harvest_successful and moa_harvest_successful:
-            click.echo("Harvest failed.")
+            logger.info("Harvest failed.")
             click.get_current_context().exit()
         else:
-            click.echo("Harvest successful.")
+            logger.info("Harvest successful.")
 
         # transform
-        click.echo("Transforming harvested data...")
-        civic_transform = CIViCTransform()
-        civic_transform._create_json(civic_transform.transform())
+        logger.info("Transforming harvested data...")
         moa_transform = MOATransform()
         moa_transform._create_json(moa_transform.transform())
-        click.echo("Transform successful.")
+        civic_transform = CIViCTransform()
+        civic_transform._create_json(civic_transform.transform())
+        logger.info("Transform successful.")
 
         # upload
-        click.echo("Uploading to DB...")
+        logger.info("Uploading to DB...")
         g = Graph(uri=db_url, credentials=(db_username, db_password))
         g.clear()
-        g.load_from_json(PROJECT_ROOT / 'data' / 'civic' / 'transform' / 'civic_cdm.json')  # noqa: E501
         g.load_from_json(PROJECT_ROOT / 'data' / 'moa' / 'transform' / 'moa_cdm.json')  # noqa: E501
+        g.load_from_json(PROJECT_ROOT / 'data' / 'civic' / 'transform' / 'civic_cdm.json')  # noqa: E501
         g.close()
-        click.echo("DB upload successful.")
+        logger.info("DB upload successful.")
 
     def _help_msg(self, msg: str = ""):
         """Handle invalid user input.
         :param str msg: Error message to display to user.
         """
         ctx = click.get_current_context()
-        click.echo(msg)
+        logger.fatal(msg)
         click.echo(ctx.get_help())
         ctx.exit()
 
