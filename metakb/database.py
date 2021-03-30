@@ -130,7 +130,8 @@ class Graph:
     def _add_descriptor(tx, descriptor: Dict):
         """Add gene, therapy, or disease descriptor object to DB.
         :param Dict descriptor: must contain a `value` field with `type`
-            and `<type>_id` fields
+            and `<type>_id` fields. `type` field must be one of
+            {'TherapyDescriptor', 'DiseaseDescriptor', 'GeneDescriptor'}
         """
         descr_type = descriptor['type']
         if descr_type == 'TherapyDescriptor':
@@ -142,6 +143,8 @@ class Graph:
         elif descr_type == 'GeneDescriptor':
             value_type = 'Gene'
             descriptor['value_id'] = descriptor['value']['gene_id']
+        else:
+            raise TypeError(f"Invalid Descriptor type: {descr_type}")
 
         descr_keys = _create_keys_string(descriptor, ('id', 'label',
                                                       'description', 'xrefs',
