@@ -140,18 +140,20 @@ class CLI:
 
         # transform
         logger.info("Transforming harvested data...")
-        moa_transform = MOATransform()
-        moa_transform._create_json(moa_transform.transform())
         civic_transform = CIViCTransform()
-        civic_transform._create_json(civic_transform.transform())
+        civic_items, civic_indices = civic_transform.transform()
+        civic_transform._create_json(civic_items)
+        moa_transform = MOATransform()
+        moa_items, _ = moa_transform.transform(civic_indices)
+        moa_transform._create_json(moa_items)
         logger.info("Transform successful.")
 
         # upload
         logger.info("Uploading to DB...")
         g = Graph(uri=db_url, credentials=(db_username, db_password))
         g.clear()
-        g.load_from_json(PROJECT_ROOT / 'data' / 'moa' / 'transform' / 'moa_cdm.json')  # noqa: E501
         g.load_from_json(PROJECT_ROOT / 'data' / 'civic' / 'transform' / 'civic_cdm.json')  # noqa: E501
+        g.load_from_json(PROJECT_ROOT / 'data' / 'moa' / 'transform' / 'moa_cdm.json')  # noqa: E501
         g.close()
         logger.info("DB upload successful.")
 
