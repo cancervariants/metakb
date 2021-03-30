@@ -130,7 +130,8 @@ class Graph:
     def _add_descriptor(tx, descriptor: Dict):
         """Add gene, therapy, or disease descriptor object to DB.
         :param Dict descriptor: must contain a `value` field with `type`
-            and `<type>_id` fields
+            and `<type>_id` fields. `type` field must be one of
+            {'TherapyDescriptor', 'DiseaseDescriptor', 'GeneDescriptor'}
         """
         descr_type = descriptor['type']
         if descr_type == 'TherapyDescriptor':
@@ -142,6 +143,8 @@ class Graph:
         elif descr_type == 'GeneDescriptor':
             value_type = 'Gene'
             descriptor['value_id'] = descriptor['value']['gene_id']
+        else:
+            raise TypeError(f"Invalid Descriptor type: {descr_type}")
 
         descr_keys = _create_keys_string(descriptor, ('id', 'label',
                                                       'description', 'xrefs',
@@ -180,13 +183,15 @@ class Graph:
             location['interval']['type']
 
         # prepare descriptor properties
-        for expression in descriptor['expressions']:
-            syntax = expression['syntax'].split(':')[1]
-            key = f"expressions_{syntax}"
-            if key in descriptor:
-                descriptor[key].append(expression['value'])
-            else:
-                descriptor[key] = [expression['value']]
+        expressions = descriptor.get('expressions')
+        if expressions:
+            for expression in expressions:
+                syntax = expression['syntax'].split(':')[1]
+                key = f"expressions_{syntax}"
+                if key in descriptor:
+                    descriptor[key].append(expression['value'])
+                else:
+                    descriptor[key] = [expression['value']]
 
         nonnull_keys = [_create_keys_string(descriptor,
                                             ('id', 'label', 'description',
@@ -296,20 +301,31 @@ class Graph:
         """Add SupportEvidence object to DB.
         :param Dict support_evidence: must include `id` field.
         """
-        formatted_keys = _create_keys_string(support_evidence,
-                                             ('id', 'label',
-                                              'support_evidence_id', 'xrefs',
-                                              'description'))
-        query = f"""
-        MERGE (n:SupportEvidence {{ {formatted_keys} }});
-        """
         try:
-            tx.run(query, **support_evidence)
+            query = "MATCH (n:SupportEvidence {id:$id}) RETURN n"
+            result = tx.run(query, **support_evidence)
         except ServiceUnavailable as exception:
-            logging.error(f"Failed to add Document object\n"
+            logging.error(f"Failed to read Document object\n"
                           f"Query: {query}\nDocument: "
                           f"{support_evidence}")
             raise exception
+
+        if not result:
+            formatted_keys = _create_keys_string(support_evidence,
+                                                 ('id', 'label',
+                                                  'support_evidence_id',
+                                                  'xrefs',
+                                                  'description'))
+            query = f"""
+            MERGE (n:SupportEvidence {{ {formatted_keys} }});
+            """
+            try:
+                tx.run(query, **support_evidence)
+            except ServiceUnavailable as exception:
+                logging.error(f"Failed to add Document object\n"
+                              f"Query: {query}\nDocument: "
+                              f"{support_evidence}")
+                raise exception
 
     @staticmethod
     def _add_statement(tx, statement: Dict):
