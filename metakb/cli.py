@@ -50,11 +50,11 @@ class CLI:
     @click.option(
         '--initialize',
         is_flag=True,
-        help=('Initialize all normalizer data repositories.')
+        help='Initialize all normalizer data repositories.'
     )
     @click.option(
         '--normalizer_db_url',
-        help=('URL endpoint of normalizer database.')
+        help='URL endpoint of normalizer database.'
     )
     def update_metakb_db(db_url, db_username, db_password,
                          check_normalizers=False, initialize=False,
