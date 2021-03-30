@@ -45,7 +45,7 @@ class CIViCTransform:
         with open(f"{civic_dir}/civic_cdm.json", 'w+') as f:
             json.dump(transformations, f)
 
-    def transform(self):
+    def transform(self, propositions_support_evidence_ix=None):
         """Transform CIViC harvested json to common data model.
 
         :return: A list of dictionaries containing transformations to CDM.
@@ -57,16 +57,17 @@ class CIViCTransform:
         variants = data['variants']
         genes = data['genes']
         cdm_evidence_items = dict()  # EIDs that have been transformed to CDM
-        propositions_support_evidence_ix = {
-            # Keep track of support_evidence index value
-            'support_evidence_index': 1,
-            # {support_evidence_id: support_evidence_index}
-            'support_evidence': dict(),
-            # Keep track of proposition index value
-            'proposition_index': 1,
-            # {tuple: proposition_index}
-            'propositions': dict()
-        }
+        if not propositions_support_evidence_ix:
+            propositions_support_evidence_ix = {
+                # Keep track of support_evidence index value
+                'support_evidence_index': 1,
+                # {support_evidence_id: support_evidence_index}
+                'support_evidence': dict(),
+                # Keep track of proposition index value
+                'proposition_index': 1,
+                # {tuple: proposition_index}
+                'propositions': dict()
+            }
 
         # Transform CIViC EIDs, then transform CIViC AIDs
         self._transform_statements(responses, evidence_items, variants, genes,
@@ -76,7 +77,7 @@ class CIViCTransform:
                                    propositions_support_evidence_ix,
                                    cdm_evidence_items, is_evidence=False)
 
-        return responses
+        return (responses, propositions_support_evidence_ix)
 
     def _transform_statements(self, responses, records, variants, genes,
                               propositions_support_evidence_ix,
