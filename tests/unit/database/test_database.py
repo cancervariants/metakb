@@ -27,10 +27,10 @@ def test_gene_rules(graph):
             # labeling is correct
             assert set(values.labels) == {'Gene'}
 
-            # only described by one GeneDescriptor
+            # only described by one or two GeneDescriptors
             d_query = "MATCH (:Gene {id:$gene_id}) <-[:DESCRIBES]- (:GeneDescriptor) RETURN count(*)"  # noqa: E501
             described_by = s.run(d_query, gene_id=gene_id)
-            assert described_by.value()[0] == 1
+            assert described_by.value()[0] in (1, 2)
 
 
 def test_gene_descriptor_rules(graph):
