@@ -197,25 +197,21 @@
                 {
                     "syntax": "hgvs:protein",
                     "value": "NP_005219.2:p.Leu858Arg",
-                    "version": null,
                     "type": "Expression"
                 },
                 {
                     "syntax": "hgvs:transcript",
                     "value": "ENST00000275493.2:c.2573T>G",
-                    "version": null,
                     "type": "Expression"
                 },
                 {
                     "syntax": "hgvs:transcript",
                     "value": "NM_005228.4:c.2573T>G",
-                    "version": null,
                     "type": "Expression"
                 },
                 {
                     "syntax": "hgvs:genomic",
                     "value": "NC_000007.13:g.55259515T>G",
-                    "version": null,
                     "type": "Expression"
                 }
             ],
@@ -229,12 +225,10 @@
             "type": "GeneDescriptor",
             "label": "EGFR",
             "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",
-            "value_id": null,
             "value": {
                 "id": "hgnc:3236",
                 "type": "Gene"
             },
-            "xrefs": null,
             "alternate_labels": [
                 "EGFR",
                 "mENA",
@@ -243,8 +237,7 @@
                 "HER1",
                 "ERBB1",
                 "ERBB"
-            ],
-            "extensions": null
+            ]
         }
     ],
     "therapy_descriptors": [
@@ -252,19 +245,15 @@
             "id": "civic:tid146",
             "type": "TherapyDescriptor",
             "label": "Afatinib",
-            "description": null,
-            "value_id": null,
             "value": {
                 "id": "ncit:C66940",
                 "type": "Drug"
             },
-            "xrefs": null,
             "alternate_labels": [
                 "BIBW2992",
                 "BIBW 2992",
                 "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"
-            ],
-            "extensions": null
+            ]
         }
     ],
     "disease_descriptors": [
@@ -272,29 +261,19 @@
             "id": "civic:did8",
             "type": "DiseaseDescriptor",
             "label": "Lung Non-small Cell Carcinoma",
-            "description": null,
-            "value_id": null,
             "value": {
                 "id": "ncit:C2926",
                 "type": "Disease"
-            },
-            "xrefs": null,
-            "alternate_labels": null,
-            "extensions": null
+            }
         },
         {
             "id": "civic:did30",
             "type": "DiseaseDescriptor",
             "label": "Lung Adenocarcinoma",
-            "description": null,
-            "value_id": null,
             "value": {
                 "id": "ncit:C3512",
                 "type": "Disease"
-            },
-            "xrefs": null,
-            "alternate_labels": null,
-            "extensions": null
+            }
         }
     ],
     "methods": [
@@ -304,8 +283,7 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/27993330/",
             "version": {
                 "year": 2017,
-                "month": 1,
-                "day": null
+                "month": 1
             },
             "authors": "Li MM, Datto M, Duncavage EJ, et al."
         },
@@ -325,20 +303,15 @@
         {
             "id": "document:001",
             "document_id": "https://www.nccn.org/professionals/physician_gls/default.aspx",
-            "label": "NCCN Guidelines: Non-Small Cell Lung Cancer version 3.2018",
-            "description": null,
-            "xrefs": []
+            "label": "NCCN Guidelines: Non-Small Cell Lung Cancer version 3.2018"
         },
         {
             "id": "pmid:23982599",
-            "document_id": null,
             "label": "Dungo et al., 2013, Drugs",
-            "description": "Afatinib: first global approval.",
-            "xrefs": []
+            "description": "Afatinib: first global approval."
         },
         {
             "id": "pmid:18408761",
-            "document_id": null,
             "label": "Li et al., 2008, Oncogene",
             "description": "BIBW2992, an irreversible EGFR/HER2 inhibitor highly effective in preclinical lung cancer models.",
             "xrefs": [
@@ -347,14 +320,11 @@
         },
         {
             "id": "pmid:24439929",
-            "document_id": null,
             "label": "Wu et al., 2014, Lancet Oncol.",
-            "description": "Afatinib versus cisplatin plus gemcitabine for first-line treatment of Asian patients with advanced non-small-cell lung cancer harbouring EGFR mutations (LUX-Lung 6): an open-label, randomised phase 3 trial.",
-            "xrefs": []
+            "description": "Afatinib versus cisplatin plus gemcitabine for first-line treatment of Asian patients with advanced non-small-cell lung cancer harbouring EGFR mutations (LUX-Lung 6): an open-label, randomised phase 3 trial."
         },
         {
             "id": "pmid:26515464",
-            "document_id": null,
             "label": "Hirano et al., 2015, Oncotarget",
             "description": "In vitro modeling to determine mutation specificity of EGFR tyrosine kinase inhibitors against clinically relevant EGFR mutants in non-small-cell lung cancer.",
             "xrefs": [
@@ -363,17 +333,13 @@
         },
         {
             "id": "pmid:22452895",
-            "document_id": null,
             "label": "Yang et al., 2012, Lancet Oncol.",
-            "description": "Afatinib for patients with lung adenocarcinoma and epidermal growth factor receptor mutations (LUX-Lung 2): a phase 2 trial.",
-            "xrefs": []
+            "description": "Afatinib for patients with lung adenocarcinoma and epidermal growth factor receptor mutations (LUX-Lung 2): a phase 2 trial."
         },
         {
             "id": "pmid:23816960",
-            "document_id": null,
             "label": "Sequist et al., 2013, J. Clin. Oncol.",
-            "description": "Phase III study of afatinib or cisplatin plus pemetrexed in patients with metastatic lung adenocarcinoma with EGFR mutations.",
-            "xrefs": []
+            "description": "Phase III study of afatinib or cisplatin plus pemetrexed in patients with metastatic lung adenocarcinoma with EGFR mutations."
         }
     ]
 }

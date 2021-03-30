@@ -152,7 +152,7 @@ class CIViCTransform:
                 disease_descriptors=disease_descriptors,
                 methods=methods,
                 documents=documents
-            ).dict()
+            ).dict(exclude_none=True)
 
             if is_evidence:
                 cdm_evidence_items[record['name']] = response
@@ -226,7 +226,7 @@ class CIViCTransform:
             disease_descriptor=disease_descriptors[0]['id'],
             method=methods[0]['id'],
             supported_by=[se['id'] for se in documents]
-        ).dict()
+        ).dict(exclude_none=True)
         return [statement]
 
     def _get_descriptors(self, record, genes, variants, is_evidence=True):
@@ -322,7 +322,7 @@ class CIViCTransform:
             subject=variation_descriptors[0]['value_id'],
             object_qualifier=disease_descriptors[0]['value']['id'],
             object=therapy_descriptors[0]['value']['id']
-        ).dict()
+        ).dict(exclude_none=True)
 
         # Get corresponding id for proposition
         key = (proposition['type'],
@@ -467,7 +467,7 @@ class CIViCTransform:
                               variant['variant_aliases'] if not
                               v_alias.startswith('RS')],
             extensions=self._get_variant_extensions(variant)
-        ).dict()
+        ).dict(exclude_none=True)
         return [variation_descriptor]
 
     def _get_variant_extensions(self, variant):
@@ -481,11 +481,11 @@ class CIViCTransform:
                 name='civic_representative_coordinate',
                 value={k: v for k, v in variant['coordinates'].items()
                        if v is not None}
-            ).dict(),
+            ).dict(exclude_none=True),
             schemas.Extension(
                 name='civic_actionability_score',
                 value=variant['civic_actionability_score']
-            ).dict()
+            ).dict(exclude_none=True)
         ]
 
         variant_groups = variant['variant_groups']
@@ -496,14 +496,12 @@ class CIViCTransform:
                     'id': f"civic:vgid{v_group['id']}",
                     'label': v_group['name'],
                     'description': v_group['description'],
-                    'variants':
-                        [f"civic:vid{v['id']}" for v in v_group['variants']],
                     'type': 'variant_group'
                 })
             extensions.append(schemas.Extension(
-                name='variant_groups',
+                name='variant_group',
                 value=v_groups
-            ).dict())
+            ).dict(exclude_none=True))
         return extensions
 
     def _get_variant_xrefs(self, v):
@@ -557,7 +555,7 @@ class CIViCTransform:
                 description=gene['description'] if gene['description'] else None,  # noqa: E501
                 value=schemas.Gene(id=gene_norm_resp['source_matches'][0]['records'][0].concept_id),  # noqa: E501
                 alternate_labels=gene['aliases']
-            ).dict()]
+            ).dict(exclude_none=True)]
         else:
             gene_descriptor = []
 
@@ -598,7 +596,7 @@ class CIViCTransform:
                 type="DiseaseDescriptor",
                 label=display_name,
                 value=schemas.Disease(id=disease_norm_id),
-            ).dict()
+            ).dict(exclude_none=True)
         else:
             # TODO: Should we accept other disease_ids other than NCIt?
             logger.warning("Could not find NCIt ID using Disease Normalization"
@@ -649,7 +647,7 @@ class CIViCTransform:
                 label=label,
                 value=schemas.Drug(id=therapy_norm_id),
                 alternate_labels=drug['aliases']
-            ).dict()
+            ).dict(exclude_none=True)
         else:
             return []
         return [therapies]
@@ -670,7 +668,8 @@ class CIViCTransform:
                 syntax = 'hgvs:protein'
             if hgvs_expr != 'N/A':
                 hgvs_expressions.append(
-                    schemas.Expression(syntax=syntax, value=hgvs_expr).dict()
+                    schemas.Expression(syntax=syntax,
+                                       value=hgvs_expr).dict(exclude_none=True)
                 )
         return hgvs_expressions
 
@@ -704,7 +703,8 @@ class CIViCTransform:
                               'Clinical Oncology, and College of American '
                               'Pathologists',
                         url='https://pubmed.ncbi.nlm.nih.gov/27993330/',
-                        version=schemas.Date(year=2017, month=1).dict(),
+                        version=schemas.Date(year=2017,
+                                             month=1).dict(exclude_none=True),
                         authors='Li MM, Datto M, Duncavage EJ, et al.'
                     ).dict()
                 ]
@@ -720,7 +720,8 @@ class CIViCTransform:
                               ' Genomics and the Association for '
                               'Molecular Pathology',
                         url='https://pubmed.ncbi.nlm.nih.gov/25741868/',
-                        version=schemas.Date(year=2015, month=5).dict(),
+                        version=schemas.Date(year=2015,
+                                             month=5).dict(exclude_none=True),
                         authors='Richards S, Aziz N, Bale S, et al.'
                     ).dict()
                 ]
@@ -748,8 +749,8 @@ class CIViCTransform:
                 id=document_id,
                 label=source['citation'],
                 description=source['name'],
-                xrefs=xrefs
-            ).dict()
+                xrefs=xrefs if xrefs else None
+            ).dict(exclude_none=True)
         else:
             logger.warning(f"{source_type} not in schemas.SourcePrefix.")
         return [documents]
@@ -774,9 +775,8 @@ class CIViCTransform:
             id=f"document:{document_ix:03}",
             document_id="https://www.nccn.org/professionals/"
                         "physician_gls/default.aspx",
-            label=f"NCCN Guidelines: {label} version {version}",
-            xrefs=[]
-        ).dict())
+            label=f"NCCN Guidelines: {label} version {version}"
+        ).dict(exclude_none=True))
 
         # TODO: Check this after first pass
         # ACMG Codes
@@ -786,9 +786,8 @@ class CIViCTransform:
                 documents.append(schemas.Document(
                     id=document_id,
                     label=acmg_code['code'],
-                    description=acmg_code['description'],
-                    xrefs=[]
-                ).dict())
+                    description=acmg_code['description']
+                ).dict(exclude_none=True))
 
         return documents
 

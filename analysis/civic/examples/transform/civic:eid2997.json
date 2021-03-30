@@ -87,25 +87,21 @@
                 {
                     "syntax": "hgvs:protein",
                     "value": "NP_005219.2:p.Leu858Arg",
-                    "version": null,
                     "type": "Expression"
                 },
                 {
                     "syntax": "hgvs:transcript",
                     "value": "ENST00000275493.2:c.2573T>G",
-                    "version": null,
                     "type": "Expression"
                 },
                 {
                     "syntax": "hgvs:transcript",
                     "value": "NM_005228.4:c.2573T>G",
-                    "version": null,
                     "type": "Expression"
                 },
                 {
                     "syntax": "hgvs:genomic",
                     "value": "NC_000007.13:g.55259515T>G",
-                    "version": null,
                     "type": "Expression"
                 }
             ],
@@ -119,12 +115,10 @@
             "type": "GeneDescriptor",
             "label": "EGFR",
             "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",
-            "value_id": null,
             "value": {
                 "id": "hgnc:3236",
                 "type": "Gene"
             },
-            "xrefs": null,
             "alternate_labels": [
                 "EGFR",
                 "mENA",
@@ -133,8 +127,7 @@
                 "HER1",
                 "ERBB1",
                 "ERBB"
-            ],
-            "extensions": null
+            ]
         }
     ],
     "therapy_descriptors": [
@@ -142,19 +135,15 @@
             "id": "civic:tid146",
             "type": "TherapyDescriptor",
             "label": "Afatinib",
-            "description": null,
-            "value_id": null,
             "value": {
                 "id": "ncit:C66940",
                 "type": "Drug"
             },
-            "xrefs": null,
             "alternate_labels": [
                 "BIBW2992",
                 "BIBW 2992",
                 "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"
-            ],
-            "extensions": null
+            ]
         }
     ],
     "disease_descriptors": [
@@ -162,15 +151,10 @@
             "id": "civic:did8",
             "type": "DiseaseDescriptor",
             "label": "Lung Non-small Cell Carcinoma",
-            "description": null,
-            "value_id": null,
             "value": {
                 "id": "ncit:C2926",
                 "type": "Disease"
-            },
-            "xrefs": null,
-            "alternate_labels": null,
-            "extensions": null
+            }
         }
     ],
     "methods": [
@@ -189,10 +173,8 @@
     "documents": [
         {
             "id": "pmid:23982599",
-            "document_id": null,
             "label": "Dungo et al., 2013, Drugs",
-            "description": "Afatinib: first global approval.",
-            "xrefs": []
+            "description": "Afatinib: first global approval."
         }
     ]
 }
