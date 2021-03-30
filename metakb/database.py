@@ -298,20 +298,31 @@ class Graph:
         """Add SupportEvidence object to DB.
         :param Dict support_evidence: must include `id` field.
         """
-        formatted_keys = _create_keys_string(support_evidence,
-                                             ('id', 'label',
-                                              'support_evidence_id', 'xrefs',
-                                              'description'))
-        query = f"""
-        MERGE (n:SupportEvidence {{ {formatted_keys} }});
-        """
         try:
-            tx.run(query, **support_evidence)
+            query = "MATCH (n:SupportEvidence {id:$id}) RETURN n"
+            result = tx.run(query, **support_evidence)
         except ServiceUnavailable as exception:
-            logging.error(f"Failed to add Document object\n"
+            logging.error(f"Failed to read Document object\n"
                           f"Query: {query}\nDocument: "
                           f"{support_evidence}")
             raise exception
+
+        if not result:
+            formatted_keys = _create_keys_string(support_evidence,
+                                                 ('id', 'label',
+                                                  'support_evidence_id',
+                                                  'xrefs',
+                                                  'description'))
+            query = f"""
+            MERGE (n:SupportEvidence {{ {formatted_keys} }});
+            """
+            try:
+                tx.run(query, **support_evidence)
+            except ServiceUnavailable as exception:
+                logging.error(f"Failed to add Document object\n"
+                              f"Query: {query}\nDocument: "
+                              f"{support_evidence}")
+                raise exception
 
     @staticmethod
     def _add_statement(tx, statement: Dict):
