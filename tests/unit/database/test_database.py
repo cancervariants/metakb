@@ -27,10 +27,10 @@ def test_gene_rules(graph):
             # labeling is correct
             assert set(values.labels) == {'Gene'}
 
-            # only described by one GeneDescriptor
+            # only described by one or two GeneDescriptors
             d_query = "MATCH (:Gene {id:$gene_id}) <-[:DESCRIBES]- (:GeneDescriptor) RETURN count(*)"  # noqa: E501
             described_by = s.run(d_query, gene_id=gene_id)
-            assert described_by.value()[0] == 1
+            assert described_by.value()[0] in (1, 2)
 
 
 def test_gene_descriptor_rules(graph):
@@ -116,10 +116,11 @@ def test_variation_descriptor_rules(graph):
             gene_descrs = s.run(gene_query, descr_id=descr_id)
             assert gene_descrs.value()[0] == 1
 
-            # in either 0 or 1 VariationGroups
+            # in <= 2 VariationGroups.
+            # This number could change (represents the known max, not a rule)
             grp_query = "MATCH (:VariationDescriptor {id:$descr_id}) -[:IN_VARIATION_GROUP]-> (:VariationGroup) RETURN count(*)"  # noqa: E501
             grp = s.run(grp_query, descr_id=descr_id)
-            assert grp.value()[0] <= 1
+            assert grp.value()[0] <= 2
 
             # used by at least 1 Statement
             statement_query = "MATCH (:VariationDescriptor {id:$descr_id}) <-[:HAS_VARIATION]- (:Statement) RETURN count(*)"  # noqa: E501
