@@ -11,13 +11,13 @@ import logging
 from metakb import PROJECT_ROOT
 from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
+from disease.cli import CLI as DiseaseCLI
 from therapy.database import Database as TherapyDatabase
 from therapy import ACCEPTED_SOURCES as TherapySources
 from therapy import SOURCES as TherapySourceLookup
-from disease.cli import CLI as DiseaseCLI
 from therapy.cli import CLI as TherapyCLI
-from gene import cli as GeneCLI
 from gene.database import Database as GeneDatabase
+from gene.cli import CLI as GeneCLI
 
 
 logger = logging.getLogger('metakb')
