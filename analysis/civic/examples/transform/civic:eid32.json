@@ -6,21 +6,21 @@
             "direction": "supports",
             "evidence_level": "civic.evidence_level:D",
             "proposition": "proposition:001",
+            "variation_origin": "somatic",
             "variation_descriptor": "civic:vid8",
             "therapy_descriptor": "civic:tid12",
             "disease_descriptor": "civic:did12",
             "method": "method:001",
-            "support_evidence": [
-                "support_evidence:001"
+            "supported_by": [
+                "pmid:21030459"
             ],
             "type": "Statement"
         }
     ],
     "propositions": [
         {
-            "_id": "proposition:001",
+            "id": "proposition:001",
             "predicate": "predicts_resistance_to",
-            "variation_origin": "somatic",
             "subject": "ga4gh:VA.jsA2x1gE1kYjr4XNY_8hJvxW_iZRrBbC",
             "object_qualifier": "ncit:C6481",
             "object": "ncit:C74061",
@@ -60,8 +60,17 @@
             ],
             "extensions": [
                 {
-                    "name": "representative_variation_descriptor",
-                    "value": "civic:vid8.rep",
+                    "name": "civic_representative_coordinate",
+                    "value": {
+                        "chromosome": "2",
+                        "start": 29443695,
+                        "stop": 29443695,
+                        "reference_bases": "G",
+                        "variant_bases": "T",
+                        "representative_transcript": "ENST00000389048.3",
+                        "ensembl_version": 75,
+                        "reference_build": "GRCh37"
+                    },
                     "type": "Extension"
                 },
                 {
@@ -70,18 +79,12 @@
                     "type": "Extension"
                 },
                 {
-                    "name": "variant_groups",
+                    "name": "variant_group",
                     "value": [
                         {
                             "id": "civic:vgid3",
                             "label": "Crizotinib Resistance",
                             "description": "The ALK oncogene has long been considered a driving factor in non-small cell lung cancer (NSCLC). The targeted tyrosine kinase inhibitor criztonib has shown to be effective in ALK-mutant NSCLC. However, in patients that have shown acquired resistance to crizotinib, missense mutations in the tyrosine kinase domain have shown to drive this resistance. ",
-                            "variants": [
-                                "civic:vid6",
-                                "civic:vid7",
-                                "civic:vid8",
-                                "civic:vid172"
-                            ],
                             "type": "variant_group"
                         }
                     ],
@@ -94,25 +97,21 @@
                 {
                     "syntax": "hgvs:transcript",
                     "value": "ENST00000389048.3:c.3522C>A",
-                    "version": null,
                     "type": "Expression"
                 },
                 {
                     "syntax": "hgvs:genomic",
                     "value": "NC_000002.11:g.29443695G>T",
-                    "version": null,
                     "type": "Expression"
                 },
                 {
                     "syntax": "hgvs:protein",
                     "value": "NP_004295.2:p.Phe1174Leu",
-                    "version": null,
                     "type": "Expression"
                 },
                 {
                     "syntax": "hgvs:transcript",
                     "value": "NM_004304.4:c.3522C>A",
-                    "version": null,
                     "type": "Expression"
                 }
             ],
@@ -126,18 +125,15 @@
             "type": "GeneDescriptor",
             "label": "ALK",
             "description": "ALK amplifications, fusions and mutations have been shown to be driving events in non-small cell lung cancer. While crizontinib has demonstrated efficacy in treating the amplification, mutations in ALK have been shown to confer resistance to current tyrosine kinase inhibitors. Second-generation TKI's have seen varied success in treating these resistant cases, and the HSP90 inhibitor 17-AAG has been shown to be cytostatic in ALK-altered cell lines.",
-            "value_id": null,
             "value": {
-                "gene_id": "hgnc:427",
+                "id": "hgnc:427",
                 "type": "Gene"
             },
-            "xrefs": null,
             "alternate_labels": [
                 "ALK",
                 "NBLST3",
                 "CD246"
-            ],
-            "extensions": null
+            ]
         }
     ],
     "therapy_descriptors": [
@@ -145,13 +141,10 @@
             "id": "civic:tid12",
             "type": "TherapyDescriptor",
             "label": "Crizotinib",
-            "description": null,
-            "value_id": null,
             "value": {
-                "therapy_id": "ncit:C74061",
-                "type": "Therapy"
+                "id": "ncit:C74061",
+                "type": "Drug"
             },
-            "xrefs": null,
             "alternate_labels": [
                 "Xalkori",
                 "PF-2341066",
@@ -159,8 +152,7 @@
                 "MET Tyrosine Kinase Inhibitor PF-02341066",
                 "2-Pyridinamine, 3-((1R)-1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(4-Piperidinyl)-1H-Pyrazol-4-yl)-",
                 "(R)-3-(1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(Piperidin-4-Yl)-1h-Pyrazol-4-Yl)Pyridin-2-Amine"
-            ],
-            "extensions": null
+            ]
         }
     ],
     "disease_descriptors": [
@@ -168,15 +160,10 @@
             "id": "civic:did12",
             "type": "DiseaseDescriptor",
             "label": "Inflammatory Myofibroblastic Tumor",
-            "description": null,
-            "value_id": null,
             "value": {
-                "disease_id": "ncit:C6481",
+                "id": "ncit:C6481",
                 "type": "Disease"
-            },
-            "xrefs": null,
-            "alternate_labels": null,
-            "extensions": null
+            }
         }
     ],
     "methods": [
@@ -189,13 +176,12 @@
                 "month": 11,
                 "day": 29
             },
-            "reference": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."
+            "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."
         }
     ],
-    "support_evidence": [
+    "documents": [
         {
-            "id": "support_evidence:001",
-            "support_evidence_id": "pmid:21030459",
+            "id": "pmid:21030459",
             "label": "Sasaki et al., 2010, Cancer Res.",
             "description": "The neuroblastoma-associated F1174L ALK mutation causes resistance to an ALK kinase inhibitor in ALK-translocated cancers.",
             "xrefs": [
