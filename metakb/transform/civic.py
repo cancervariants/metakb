@@ -57,11 +57,12 @@ class CIViCTransform:
         variants = data['variants']
         genes = data['genes']
         cdm_evidence_items = dict()  # EIDs that have been transformed to CDM
-        propositions_support_evidence_ix = {
-            # Keep track of support_evidence index value
-            'support_evidence_index': 1,
-            # {support_evidence_id: support_evidence_index}
-            'support_evidence': dict(),
+        cdm_statements = dict()  # Statements that have been transformed to CDM
+        propositions_documents_ix = {
+            # Keep track of documents index value
+            'document_index': 1,
+            # {document_id: document_index}
+            'documents': dict(),
             # Keep track of proposition index value
             'proposition_index': 1,
             # {tuple: proposition_index}
@@ -70,27 +71,31 @@ class CIViCTransform:
 
         # Transform CIViC EIDs, then transform CIViC AIDs
         self._transform_statements(responses, evidence_items, variants, genes,
-                                   propositions_support_evidence_ix,
-                                   cdm_evidence_items)
+                                   propositions_documents_ix,
+                                   cdm_evidence_items, cdm_statements)
         self._transform_statements(responses, assertions, variants, genes,
-                                   propositions_support_evidence_ix,
-                                   cdm_evidence_items, is_evidence=False)
+                                   propositions_documents_ix,
+                                   cdm_evidence_items, cdm_statements,
+                                   is_evidence=False)
 
         return responses
 
     def _transform_statements(self, responses, records, variants, genes,
-                              propositions_support_evidence_ix,
-                              cdm_evidence_items, is_evidence=True):
+                              propositions_documents_ix,
+                              cdm_evidence_items, cdm_statements,
+                              is_evidence=True):
         """Add transformed CIViC EIDs and AIDs to response list.
 
         :param list responses: A list of dicts containing CDM data
         :param list records: A list of dicts containing EIDs or AIDs
         :param dict variants: CIViC variant records
         :param dict genes: CIViC gene records
-        :param dict propositions_support_evidence_ix: Keeps track of
-            proposition and support_evidence indexes
+        :param dict propositions_documents_ix: Keeps track of
+            proposition and documents indexes
         :param dict cdm_evidence_items: A dict containing evidence items that
             have been transformed to the CDM
+        :param dict cdm_statements: A dict containing statements that have
+            been transformed to the CDM
         :param bool is_evidence: `True` if records are CIViC evidence_items.
             `False` if records are CIViC assertions.
         """
@@ -110,7 +115,7 @@ class CIViCTransform:
                 self._get_tr_propositions(record, variation_descriptors,
                                           disease_descriptors,
                                           therapy_descriptors,
-                                          propositions_support_evidence_ix)
+                                          propositions_documents_ix)
 
             # We only want therapeutic response for now
             if not propositions:
@@ -119,15 +124,14 @@ class CIViCTransform:
             if is_evidence:
                 gene_descriptors = self._get_gene_descriptors(
                     self._get_record(record['gene_id'], genes))
-                support_evidence = \
-                    self._get_eid_support_evidence(
-                        record['source'], propositions_support_evidence_ix)
+                documents = self._get_eid_documents(record['source'])
                 methods = self._get_method(record)
                 statements = self._get_statement(record, propositions,
                                                  variation_descriptors,
                                                  therapy_descriptors,
                                                  disease_descriptors, methods,
-                                                 support_evidence)
+                                                 documents,
+                                                 cdm_statements)
             else:
                 gene_descriptors = self._get_gene_descriptors(
                     self._get_record(record['gene']['id'], genes)
@@ -136,17 +140,17 @@ class CIViCTransform:
                         f"{evidence['name'].lower()}" for evidence in
                         record['evidence_items'] if
                         cdm_evidence_items.get(evidence['name'])]
-                support_evidence = \
-                    self._get_aid_support_evidence(
-                        record, propositions_support_evidence_ix,
-                        cdm_evidence_items, eids)
+                documents = \
+                    self._get_aid_documents(record, propositions_documents_ix)
                 methods = self._get_method(record, is_evidence=False)
                 statements = self._get_statement(record, propositions,
                                                  variation_descriptors,
                                                  therapy_descriptors,
                                                  disease_descriptors, methods,
-                                                 support_evidence,
-                                                 is_evidence=False)
+                                                 documents,
+                                                 cdm_statements,
+                                                 is_evidence=False, eids=eids)
+
             response = schemas.Response(
                 statements=statements,
                 propositions=propositions,
@@ -155,15 +159,17 @@ class CIViCTransform:
                 therapy_descriptors=therapy_descriptors,
                 disease_descriptors=disease_descriptors,
                 methods=methods,
-                support_evidence=support_evidence
-            ).dict(by_alias=True)
+                documents=documents
+            ).dict()
+
             if is_evidence:
                 cdm_evidence_items[record['name']] = response
             responses.append(response)
 
     def _get_statement(self, record, propositions, variant_descriptors,
                        therapy_descriptors, disease_descriptors,
-                       methods, support_evidence, is_evidence=True):
+                       methods, documents, cdm_statements,
+                       is_evidence=True, eids=None):
         """Get a statement for an EID or AID.
 
         :param dict record: A CIViC EID or AID record
@@ -172,9 +178,13 @@ class CIViCTransform:
         :param list therapy_descriptors: Therapy Descriptors for the record
         :param list disease_descriptors: Disease Descriptors for the record
         :param list methods: Assertion methods for the record
-        :param list support_evidence: Supporting evidence for the rcord
+        :param list documents: Documents for the record
+        :param dict cdm_statements: A dict containing statements that have
+            been transformed to the CDM
         :param bool is_evidence: `True` if record is a CIViC EID.
             `False` if record is a CIViC AID.
+        :param list eids: EIDs found in AID
+        :return: A list of Statements
         """
         if is_evidence:
             evidence_level = f"civic.evidence_level:" \
@@ -184,10 +194,22 @@ class CIViCTransform:
             # TODO: Do ACMG level after first pass since we only currently
             #  support Predictive
             if record['amp_level']:
-                evidence_level = \
-                    f"civic.amp_level:" \
-                    f"{'_'.join(record['amp_level'].lower().split())}"
-
+                if record['amp_level'] == 'Not Applicable':
+                    evidence_level = None
+                else:
+                    tier, level = record['amp_level'].split(' - ')
+                    tier = tier.split()[1]
+                    if tier == 'I':
+                        tier = 1
+                    elif tier == 'II':
+                        tier = 2
+                    elif tier == 'III':
+                        tier = 3
+                    elif tier == 'IV':
+                        tier = 4
+                    evidence_level = f"amp_asco_cap_2017_level:" \
+                                     f"{tier}{level.split()[1]}"
+        record_statements = list()
         statement = schemas.Statement(
             id=f"{schemas.NamespacePrefix.CIVIC.value}:"
                f"{record['name'].lower()}",
@@ -195,14 +217,25 @@ class CIViCTransform:
             direction=self._get_evidence_direction(
                 record['evidence_direction']),
             evidence_level=evidence_level,
-            proposition=propositions[0]['_id'],
+            proposition=propositions[0]['id'],
+            variation_origin=self._get_variation_origin(
+                record['variant_origin']),
             variation_descriptor=variant_descriptors[0]['id'],
             therapy_descriptor=therapy_descriptors[0]['id'],
             disease_descriptor=disease_descriptors[0]['id'],
             method=methods[0]['id'],
-            support_evidence=[se['id'] for se in support_evidence]
+            supported_by=[se['id'] for se in documents]
         ).dict()
-        return [statement]
+        if is_evidence:
+            cdm_statements[record['name']] = statement
+        else:
+            if eids:
+                for eid in eids:
+                    record_statements += \
+                        [cdm_statements[eid.split(':')[1].upper()]]
+                statement['supported_by'] += eids
+        record_statements.append(statement)
+        return record_statements
 
     def _get_descriptors(self, record, genes, variants, is_evidence=True):
         """Return tuple of descriptors if one exists for each type.
@@ -259,21 +292,21 @@ class CIViCTransform:
         if direction == 'Supports':
             return schemas.Direction.SUPPORTS.value
         elif direction == 'Does Not Support':
-            return schemas.Direction.DOES_NOT_SUPPORT
+            return schemas.Direction.DOES_NOT_SUPPORT.value
         else:
             return None
 
     def _get_tr_propositions(self, record, variation_descriptors,
                              disease_descriptors, therapy_descriptors,
-                             propositions_support_evidence_ix):
+                             propositions_documents_ix):
         """Return a list of propositions.
 
         :param dict record: CIViC EID or AID
         :param list variation_descriptors: A list of Variation Descriptors
         :param list disease_descriptors: A list of Disease Descriptors
         :param list therapy_descriptors: A list of therapy_descriptors
-        :param dict propositions_support_evidence_ix: Keeps track of
-            proposition and support_evidence indexes
+        :param dict propositions_documents_ix: Keeps track of
+            proposition and documents indexes
         :return: A list of therapeutic propositions.
         """
         proposition_type = \
@@ -291,26 +324,23 @@ class CIViCTransform:
             return []
 
         proposition = schemas.TherapeuticResponseProposition(
-            _id="",
+            id="",
             type=proposition_type,
             predicate=predicate,
-            variation_origin=self._get_variation_origin(
-                record['variant_origin']),
             subject=variation_descriptors[0]['value_id'],
-            object_qualifier=disease_descriptors[0]['value']['disease_id'],
-            object=therapy_descriptors[0]['value']['therapy_id']
-        ).dict(by_alias=True)
+            object_qualifier=disease_descriptors[0]['value']['id'],
+            object=therapy_descriptors[0]['value']['id']
+        ).dict()
 
         # Get corresponding id for proposition
         key = (proposition['type'],
                proposition['predicate'],
-               proposition['variation_origin'],
                proposition['subject'],
                proposition['object_qualifier'],
                proposition['object'])
-        proposition_index = self._set_ix(propositions_support_evidence_ix,
+        proposition_index = self._set_ix(propositions_documents_ix,
                                          'propositions', key)
-        proposition['_id'] = f"proposition:{proposition_index:03}"
+        proposition['id'] = f"proposition:{proposition_index:03}"
 
         return [proposition]
 
@@ -456,8 +486,9 @@ class CIViCTransform:
         """
         extensions = [
             schemas.Extension(
-                name='representative_variation_descriptor',
-                value=f"civic:vid{variant['id']}.rep"
+                name='civic_representative_coordinate',
+                value={k: v for k, v in variant['coordinates'].items()
+                       if v is not None}
             ).dict(),
             schemas.Extension(
                 name='civic_actionability_score',
@@ -532,7 +563,7 @@ class CIViCTransform:
                 id=f"civic:gid{gene['id']}",
                 label=gene['name'],
                 description=gene['description'] if gene['description'] else None,  # noqa: E501
-                value=schemas.Gene(gene_id=gene_norm_resp['source_matches'][0]['records'][0].concept_id),  # noqa: E501
+                value=schemas.Gene(id=gene_norm_resp['source_matches'][0]['records'][0].concept_id),  # noqa: E501
                 alternate_labels=gene['aliases']
             ).dict()]
         else:
@@ -574,7 +605,7 @@ class CIViCTransform:
                 id=f"civic:did{disease['id']}",
                 type="DiseaseDescriptor",
                 label=display_name,
-                value=schemas.Disease(disease_id=disease_norm_id),
+                value=schemas.Disease(id=disease_norm_id),
             ).dict()
         else:
             # TODO: Should we accept other disease_ids other than NCIt?
@@ -624,7 +655,7 @@ class CIViCTransform:
                 id=f"civic:tid{drug['id']}",
                 type="TherapyDescriptor",
                 label=label,
-                value=schemas.Therapy(therapy_id=therapy_norm_id),
+                value=schemas.Drug(id=therapy_norm_id),
                 alternate_labels=drug['aliases']
             ).dict()
         else:
@@ -666,7 +697,7 @@ class CIViCTransform:
                 label='Standard operating procedure for curation and clinical interpretation of variants in cancer',  # noqa: E501
                 url='https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x',  # noqa: E501
                 version=schemas.Date(year=2019, month=11, day=29).dict(),
-                reference='Danos, A.M., Krysiak, K., Barnell, E.K. et al.'
+                authors='Danos, A.M., Krysiak, K., Barnell, E.K. et al.'
             ).dict()]
         else:
             if record['amp_level'] and not record['acmg_codes']:
@@ -682,7 +713,7 @@ class CIViCTransform:
                               'Pathologists',
                         url='https://pubmed.ncbi.nlm.nih.gov/27993330/',
                         version=schemas.Date(year=2017, month=1).dict(),
-                        reference='Li MM, Datto M, Duncavage EJ, et al.'
+                        authors='Li MM, Datto M, Duncavage EJ, et al.'
                     ).dict()
                 ]
             elif not record['amp_level'] and record['acmg_codes']:
@@ -698,106 +729,76 @@ class CIViCTransform:
                               'Molecular Pathology',
                         url='https://pubmed.ncbi.nlm.nih.gov/25741868/',
                         version=schemas.Date(year=2015, month=5).dict(),
-                        reference='Richards S, Aziz N, Bale S, et al.'
+                        authors='Richards S, Aziz N, Bale S, et al.'
                     ).dict()
                 ]
             else:
                 methods = []
         return methods
 
-    def _get_eid_support_evidence(self, source,
-                                  propositions_support_evidence_ix):
-        """Get an EID's support evidence.
+    def _get_eid_documents(self, source):
+        """Get an EID's documents.
 
         :param dict source: An evidence item's source
-        :param propositions_support_evidence_ix: Keeps track of proposition and
-            support_evidence indexes
         """
-        support_evidence = None
+        documents = None
         source_type = source['source_type'].upper()
         if source_type in schemas.SourcePrefix.__members__:
             prefix = schemas.SourcePrefix[source_type].value
-            support_evidence_id = f"{prefix}:{source['citation_id']}"
-            support_evidence_ix = \
-                self._set_ix(propositions_support_evidence_ix,
-                             'support_evidence', support_evidence_id)
+            document_id = f"{prefix}:{source['citation_id']}"
             xrefs = []
             if source['asco_abstract_id']:
                 xrefs.append(f"asco.abstract:{source['asco_abstract_id']}")
             if source['pmc_id']:
                 xrefs.append(f"pmc:{source['pmc_id']}")
 
-            support_evidence = schemas.SupportEvidence(
-                id=f"support_evidence:{support_evidence_ix:03}",
-                support_evidence_id=support_evidence_id,
+            documents = schemas.Document(
+                id=document_id,
                 label=source['citation'],
                 description=source['name'],
                 xrefs=xrefs
             ).dict()
         else:
             logger.warning(f"{source_type} not in schemas.SourcePrefix.")
-        return [support_evidence]
+        return [documents]
 
-    def _get_aid_support_evidence(self, assertion,
-                                  propositions_support_evidence_ix,
-                                  cdm_evidence_items, eids):
-        """Get an AID's support evidence.
+    def _get_aid_documents(self, assertion, propositions_documents_ix):
+        """Get an AID's documents.
 
         :param dict assertion: A CIViC Assertion
-        :param propositions_support_evidence_ix: Keeps track of proposition and
-            support_evidence indexes
-        :param dict cdm_evidence_items: A dict containing evidence items that
-            have been transformed to the CDM
-        :param list eids: EIDs found in AID
+        :param propositions_documents_ix: Keeps track of proposition and
+            documents indexes
+        :return: A list of AID documents
         """
         # NCCN Guidlines
         label = assertion['nccn_guideline']
         version = assertion['nccn_guideline_version']
-        support_evidence_id = '_'.join((label + version).split())
-        support_evidence_ix = \
-            self._set_ix(propositions_support_evidence_ix, 'support_evidence',
-                         support_evidence_id)
-        support_evidence = list()
-        support_evidence.append(schemas.SupportEvidence(
-            id=f"support_evidence:{support_evidence_ix:03}",
-            support_evidence_id="https://www.nccn.org/professionals/"
-                                "physician_gls/default.aspx",
+        document_id = '_'.join((label + version).split())
+        document_ix = \
+            self._set_ix(propositions_documents_ix, 'documents',
+                         document_id)
+        documents = list()
+        documents.append(schemas.Document(
+            id=f"document:{document_ix:03}",
+            document_id="https://www.nccn.org/professionals/"
+                        "physician_gls/default.aspx",
             label=f"NCCN Guidelines: {label} version {version}",
             xrefs=[]
         ).dict())
-
-        # EIDs
-        for eid in eids:
-            support_evidence_id = eid
-            support_evidence_ix = \
-                self._set_ix(propositions_support_evidence_ix,
-                             'support_evidence', support_evidence_id)
-            label = support_evidence_id.split(':')[-1].upper()
-            support_evidence.append(schemas.SupportEvidence(
-                id=f"support_evidence:{support_evidence_ix:03}",
-                support_evidence_id=support_evidence_id,
-                label=label,
-                description=cdm_evidence_items[label]['statements'][0]['description'],  # noqa: E501
-                xrefs=[]
-            ).dict())
 
         # TODO: Check this after first pass
         # ACMG Codes
         if assertion['acmg_codes']:
             for acmg_code in assertion['acmg_codes']:
-                support_evidence_id = f"acmg:{acmg_code['code']}"
-                support_evidence_ix = \
-                    self._set_ix(propositions_support_evidence_ix,
-                                 'support_evidence', support_evidence_id)
-                support_evidence.append(schemas.SupportEvidence(
-                    id=f"support_evidence:{support_evidence_ix:03}",
-                    support_evidence_id=support_evidence_id,
+                document_id = f"acmg:{acmg_code['code']}"
+                documents.append(schemas.Document(
+                    id=document_id,
                     label=acmg_code['code'],
                     description=acmg_code['description'],
                     xrefs=[]
-                ))
+                ).dict())
 
-        return support_evidence
+        return documents
 
     def _get_record(self, record_id, records):
         """Get a CIViC record by ID.
@@ -820,26 +821,26 @@ class CIViCTransform:
         if item not in list_name:
             list_name.append(item)
 
-    def _set_ix(self, propositions_support_evidence_ix, dict_key, search_key):
-        """Set indexes for support_evidence or propositions.
+    def _set_ix(self, propositions_documents_ix, dict_key, search_key):
+        """Set indexes for documents or propositions.
 
-        :param dict propositions_support_evidence_ix: Keeps track of
-            proposition and support_evidence indexes
+        :param dict propositions_documents_ix: Keeps track of
+            proposition and documents indexes
         :param str dict_key: 'sources' or 'propositions'
         :param Any search_key: The key to get or set
         :return: An int representing the index
         """
-        if dict_key == 'support_evidence':
-            dict_key_ix = 'support_evidence_index'
+        if dict_key == 'documents':
+            dict_key_ix = 'document_index'
         elif dict_key == 'propositions':
             dict_key_ix = 'proposition_index'
         else:
-            raise KeyError("dict_key can only be `support_evidence` or "
+            raise KeyError("dict_key can only be `documents` or "
                            "`propositions`.")
-        if propositions_support_evidence_ix[dict_key].get(search_key):
-            index = propositions_support_evidence_ix[dict_key].get(search_key)
+        if propositions_documents_ix[dict_key].get(search_key):
+            index = propositions_documents_ix[dict_key].get(search_key)
         else:
-            index = propositions_support_evidence_ix.get(dict_key_ix)
-            propositions_support_evidence_ix[dict_key][search_key] = index
-            propositions_support_evidence_ix[dict_key_ix] += 1
+            index = propositions_documents_ix.get(dict_key_ix)
+            propositions_documents_ix[dict_key][search_key] = index
+            propositions_documents_ix[dict_key_ix] += 1
         return index
