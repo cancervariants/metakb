@@ -131,7 +131,7 @@ class MOATransform:
                 support_evidence=support_evidence
             ).dict(by_alias=True)
 
-            cdm_assertions[f"assertion_{record['id']}"] = response
+            cdm_assertions[f"moa:assertion_{record['id']}"] = response
             responses.append(response)
 
     def _get_descriptors(self, record, variants, gene_descriptors):
@@ -212,10 +212,6 @@ class MOATransform:
         :param: Keeps track of proposition and support_evidence indexes
         :return: A list of therapeutic propositions.
         """
-        object_qualifier = disease_descriptors[0]['value']['disease_id'] \
-            if disease_descriptors else None
-        therapy = therapy_descriptors[0]['value']['therapy_id'] \
-            if therapy_descriptors else None
         predicate = self._get_predicate(record['clinical_significance'])
 
         # Don't support TR that has  `None`, 'N/A', or 'Unknown' predicate
@@ -228,8 +224,8 @@ class MOATransform:
             predicate=predicate,
             variant_origin=self._get_variation_origin(record['variant']),
             subject=variation_descriptors[0]['value_id'],
-            object_qualifier=object_qualifier,
-            object=therapy
+            object_qualifier=disease_descriptors[0]['value']['disease_id'],
+            object=therapy_descriptors[0]['value']['therapy_id']
         ).dict(by_alias=True)
 
         # Get corresponding id for proposition
@@ -366,7 +362,7 @@ class MOATransform:
         :param: Keeps track of proposition and support_evidence indexes
         """
         support_evidence = None
-        if source['pmid']:
+        if source['pmid'] != "None":
             support_evidence_id = f"pmid:{source['pmid']}"
         else:
             support_evidence_id = source['url']
