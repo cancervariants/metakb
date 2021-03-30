@@ -57,7 +57,6 @@ class CIViCTransform:
         variants = data['variants']
         genes = data['genes']
         cdm_evidence_items = dict()  # EIDs that have been transformed to CDM
-        cdm_statements = dict()  # Statements that have been transformed to CDM
         propositions_documents_ix = {
             # Keep track of documents index value
             'document_index': 1,
@@ -72,18 +71,16 @@ class CIViCTransform:
         # Transform CIViC EIDs, then transform CIViC AIDs
         self._transform_statements(responses, evidence_items, variants, genes,
                                    propositions_documents_ix,
-                                   cdm_evidence_items, cdm_statements)
+                                   cdm_evidence_items)
         self._transform_statements(responses, assertions, variants, genes,
                                    propositions_documents_ix,
-                                   cdm_evidence_items, cdm_statements,
-                                   is_evidence=False)
+                                   cdm_evidence_items, is_evidence=False)
 
         return responses
 
     def _transform_statements(self, responses, records, variants, genes,
                               propositions_documents_ix,
-                              cdm_evidence_items, cdm_statements,
-                              is_evidence=True):
+                              cdm_evidence_items, is_evidence=True):
         """Add transformed CIViC EIDs and AIDs to response list.
 
         :param list responses: A list of dicts containing CDM data
@@ -94,8 +91,6 @@ class CIViCTransform:
             proposition and documents indexes
         :param dict cdm_evidence_items: A dict containing evidence items that
             have been transformed to the CDM
-        :param dict cdm_statements: A dict containing statements that have
-            been transformed to the CDM
         :param bool is_evidence: `True` if records are CIViC evidence_items.
             `False` if records are CIViC assertions.
         """
@@ -130,8 +125,7 @@ class CIViCTransform:
                                                  variation_descriptors,
                                                  therapy_descriptors,
                                                  disease_descriptors, methods,
-                                                 documents,
-                                                 cdm_statements)
+                                                 documents)
             else:
                 gene_descriptors = self._get_gene_descriptors(
                     self._get_record(record['gene']['id'], genes)
@@ -147,9 +141,7 @@ class CIViCTransform:
                                                  variation_descriptors,
                                                  therapy_descriptors,
                                                  disease_descriptors, methods,
-                                                 documents,
-                                                 cdm_statements,
-                                                 is_evidence=False, eids=eids)
+                                                 documents, is_evidence=False)
 
             response = schemas.Response(
                 statements=statements,
@@ -164,12 +156,24 @@ class CIViCTransform:
 
             if is_evidence:
                 cdm_evidence_items[record['name']] = response
+            else:
+                if eids:
+                    response['statements'][0]['supported_by'] += eids
+                    for eid in eids:
+                        resp = cdm_evidence_items[eid.split(':')[1].upper()]
+                        for key in ['statements', 'propositions',
+                                    'variation_descriptors',
+                                    'gene_descriptors',
+                                    'therapy_descriptors',
+                                    'disease_descriptors',
+                                    'methods', 'documents']:
+                            if resp[key][0] not in response[key]:
+                                response[key] += [resp[key][0]]
             responses.append(response)
 
     def _get_statement(self, record, propositions, variant_descriptors,
                        therapy_descriptors, disease_descriptors,
-                       methods, documents, cdm_statements,
-                       is_evidence=True, eids=None):
+                       methods, documents, is_evidence=True):
         """Get a statement for an EID or AID.
 
         :param dict record: A CIViC EID or AID record
@@ -179,11 +183,8 @@ class CIViCTransform:
         :param list disease_descriptors: Disease Descriptors for the record
         :param list methods: Assertion methods for the record
         :param list documents: Documents for the record
-        :param dict cdm_statements: A dict containing statements that have
-            been transformed to the CDM
         :param bool is_evidence: `True` if record is a CIViC EID.
             `False` if record is a CIViC AID.
-        :param list eids: EIDs found in AID
         :return: A list of Statements
         """
         if is_evidence:
@@ -209,7 +210,7 @@ class CIViCTransform:
                         tier = 4
                     evidence_level = f"amp_asco_cap_2017_level:" \
                                      f"{tier}{level.split()[1]}"
-        record_statements = list()
+
         statement = schemas.Statement(
             id=f"{schemas.NamespacePrefix.CIVIC.value}:"
                f"{record['name'].lower()}",
@@ -226,16 +227,7 @@ class CIViCTransform:
             method=methods[0]['id'],
             supported_by=[se['id'] for se in documents]
         ).dict()
-        if is_evidence:
-            cdm_statements[record['name']] = statement
-        else:
-            if eids:
-                for eid in eids:
-                    record_statements += \
-                        [cdm_statements[eid.split(':')[1].upper()]]
-                statement['supported_by'] += eids
-        record_statements.append(statement)
-        return record_statements
+        return [statement]
 
     def _get_descriptors(self, record, genes, variants, is_evidence=True):
         """Return tuple of descriptors if one exists for each type.

@@ -1,1 +1,215 @@
-{"statements": [{"id": "civic:eid32", "description": "Ba/F3 cells expressing the RANBP2-ALK fusion containing an F1174L mutation were more resistant to crizotinib treatment than Ba/F3 cells expressing RANBP2-ALK without this mutation.", "direction": "supports", "evidence_level": "civic.evidence_level:D", "proposition": "proposition:001", "variation_origin": "somatic", "variation_descriptor": "civic:vid8", "therapy_descriptor": "civic:tid12", "disease_descriptor": "civic:did12", "method": "method:001", "supported_by": ["document:001"], "type": "Statement"}], "propositions": [{"id": "proposition:001", "predicate": "predicts_resistance_to", "subject": "ga4gh:VA.jsA2x1gE1kYjr4XNY_8hJvxW_iZRrBbC", "object_qualifier": "ncit:C6481", "object": "ncit:C74061", "type": "therapeutic_response_proposition"}], "variation_descriptors": [{"id": "civic:vid8", "type": "VariationDescriptor", "label": "F1174L", "description": "ALK F1174L has been observed as recurrent in neuroblastoma, non-small cell lung cancer (NSCLC), and other cancer types. Neuroblastoma cells containing this mutation have shown resistance to low doses of criztonib. However, increased dosage can overcome this resistance in cell lines studies. TAE684 has also proven effective in both NSCLC and neuroblastoma F1174L containing cells.", "value_id": "ga4gh:VA.jsA2x1gE1kYjr4XNY_8hJvxW_iZRrBbC", "value": {"location": {"interval": {"end": 1174, "start": 1173, "type": "SimpleInterval"}, "sequence_id": "ga4gh:SQ.q9CnK-HKWh9eqhOi8FlzR7M0pCmUrWPs", "type": "SequenceLocation"}, "state": {"sequence": "L", "type": "SequenceState"}, "type": "Allele"}, "xrefs": ["clinvar:217851", "caid:CA279586", "dbsnp:863225281"], "alternate_labels": ["PHE1174LEU"], "extensions": [{"name": "civic_representative_coordinate", "value": {"chromosome": "2", "start": 29443695, "stop": 29443695, "reference_bases": "G", "variant_bases": "T", "representative_transcript": "ENST00000389048.3", "ensembl_version": 75, "reference_build": "GRCh37"}, "type": "Extension"}, {"name": "civic_actionability_score", "value": "33.5", "type": "Extension"}, {"name": "variant_groups", "value": [{"id": "civic:vgid3", "label": "Crizotinib Resistance", "description": "The ALK oncogene has long been considered a driving factor in non-small cell lung cancer (NSCLC). The targeted tyrosine kinase inhibitor criztonib has shown to be effective in ALK-mutant NSCLC. However, in patients that have shown acquired resistance to crizotinib, missense mutations in the tyrosine kinase domain have shown to drive this resistance. ", "variants": ["civic:vid6", "civic:vid7", "civic:vid8", "civic:vid172"], "type": "variant_group"}], "type": "Extension"}], "molecule_context": "protein", "structural_type": "SO:0001060", "expressions": [{"syntax": "hgvs:transcript", "value": "ENST00000389048.3:c.3522C>A", "version": null, "type": "Expression"}, {"syntax": "hgvs:genomic", "value": "NC_000002.11:g.29443695G>T", "version": null, "type": "Expression"}, {"syntax": "hgvs:protein", "value": "NP_004295.2:p.Phe1174Leu", "version": null, "type": "Expression"}, {"syntax": "hgvs:transcript", "value": "NM_004304.4:c.3522C>A", "version": null, "type": "Expression"}], "ref_allele_seq": "F", "gene_context": "civic:gid1"}], "gene_descriptors": [{"id": "civic:gid1", "type": "GeneDescriptor", "label": "ALK", "description": "ALK amplifications, fusions and mutations have been shown to be driving events in non-small cell lung cancer. While crizontinib has demonstrated efficacy in treating the amplification, mutations in ALK have been shown to confer resistance to current tyrosine kinase inhibitors. Second-generation TKI's have seen varied success in treating these resistant cases, and the HSP90 inhibitor 17-AAG has been shown to be cytostatic in ALK-altered cell lines.", "value_id": null, "value": {"id": "hgnc:427", "type": "Gene"}, "xrefs": null, "alternate_labels": ["ALK", "NBLST3", "CD246"], "extensions": null}], "therapy_descriptors": [{"id": "civic:tid12", "type": "TherapyDescriptor", "label": "Crizotinib", "description": null, "value_id": null, "value": {"id": "ncit:C74061", "type": "Drug"}, "xrefs": null, "alternate_labels": ["Xalkori", "PF-2341066", "PF-02341066", "MET Tyrosine Kinase Inhibitor PF-02341066", "2-Pyridinamine, 3-((1R)-1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(4-Piperidinyl)-1H-Pyrazol-4-yl)-", "(R)-3-(1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(Piperidin-4-Yl)-1h-Pyrazol-4-Yl)Pyridin-2-Amine"], "extensions": null}], "disease_descriptors": [{"id": "civic:did12", "type": "DiseaseDescriptor", "label": "Inflammatory Myofibroblastic Tumor", "description": null, "value_id": null, "value": {"id": "ncit:C6481", "type": "Disease"}, "xrefs": null, "alternate_labels": null, "extensions": null}], "methods": [{"id": "method:001", "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer", "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x", "version": {"year": 2019, "month": 11, "day": 29}, "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."}], "documents": [{"id": "document:001", "document_id": "pmid:21030459", "label": "Sasaki et al., 2010, Cancer Res.", "description": "The neuroblastoma-associated F1174L ALK mutation causes resistance to an ALK kinase inhibitor in ALK-translocated cancers.", "xrefs": ["pmc:PMC3045808"]}]}
+{
+    "statements": [
+        {
+            "id": "civic:eid32",
+            "description": "Ba/F3 cells expressing the RANBP2-ALK fusion containing an F1174L mutation were more resistant to crizotinib treatment than Ba/F3 cells expressing RANBP2-ALK without this mutation.",
+            "direction": "supports",
+            "evidence_level": "civic.evidence_level:D",
+            "proposition": "proposition:001",
+            "variation_origin": "somatic",
+            "variation_descriptor": "civic:vid8",
+            "therapy_descriptor": "civic:tid12",
+            "disease_descriptor": "civic:did12",
+            "method": "method:001",
+            "supported_by": [
+                "pmid:21030459"
+            ],
+            "type": "Statement"
+        }
+    ],
+    "propositions": [
+        {
+            "id": "proposition:001",
+            "predicate": "predicts_resistance_to",
+            "subject": "ga4gh:VA.jsA2x1gE1kYjr4XNY_8hJvxW_iZRrBbC",
+            "object_qualifier": "ncit:C6481",
+            "object": "ncit:C74061",
+            "type": "therapeutic_response_proposition"
+        }
+    ],
+    "variation_descriptors": [
+        {
+            "id": "civic:vid8",
+            "type": "VariationDescriptor",
+            "label": "F1174L",
+            "description": "ALK F1174L has been observed as recurrent in neuroblastoma, non-small cell lung cancer (NSCLC), and other cancer types. Neuroblastoma cells containing this mutation have shown resistance to low doses of criztonib. However, increased dosage can overcome this resistance in cell lines studies. TAE684 has also proven effective in both NSCLC and neuroblastoma F1174L containing cells.",
+            "value_id": "ga4gh:VA.jsA2x1gE1kYjr4XNY_8hJvxW_iZRrBbC",
+            "value": {
+                "location": {
+                    "interval": {
+                        "end": 1174,
+                        "start": 1173,
+                        "type": "SimpleInterval"
+                    },
+                    "sequence_id": "ga4gh:SQ.q9CnK-HKWh9eqhOi8FlzR7M0pCmUrWPs",
+                    "type": "SequenceLocation"
+                },
+                "state": {
+                    "sequence": "L",
+                    "type": "SequenceState"
+                },
+                "type": "Allele"
+            },
+            "xrefs": [
+                "clinvar:217851",
+                "caid:CA279586",
+                "dbsnp:863225281"
+            ],
+            "alternate_labels": [
+                "PHE1174LEU"
+            ],
+            "extensions": [
+                {
+                    "name": "civic_representative_coordinate",
+                    "value": {
+                        "chromosome": "2",
+                        "start": 29443695,
+                        "stop": 29443695,
+                        "reference_bases": "G",
+                        "variant_bases": "T",
+                        "representative_transcript": "ENST00000389048.3",
+                        "ensembl_version": 75,
+                        "reference_build": "GRCh37"
+                    },
+                    "type": "Extension"
+                },
+                {
+                    "name": "civic_actionability_score",
+                    "value": "33.5",
+                    "type": "Extension"
+                },
+                {
+                    "name": "variant_groups",
+                    "value": [
+                        {
+                            "id": "civic:vgid3",
+                            "label": "Crizotinib Resistance",
+                            "description": "The ALK oncogene has long been considered a driving factor in non-small cell lung cancer (NSCLC). The targeted tyrosine kinase inhibitor criztonib has shown to be effective in ALK-mutant NSCLC. However, in patients that have shown acquired resistance to crizotinib, missense mutations in the tyrosine kinase domain have shown to drive this resistance. ",
+                            "variants": [
+                                "civic:vid6",
+                                "civic:vid7",
+                                "civic:vid8",
+                                "civic:vid172"
+                            ],
+                            "type": "variant_group"
+                        }
+                    ],
+                    "type": "Extension"
+                }
+            ],
+            "molecule_context": "protein",
+            "structural_type": "SO:0001060",
+            "expressions": [
+                {
+                    "syntax": "hgvs:transcript",
+                    "value": "ENST00000389048.3:c.3522C>A",
+                    "version": null,
+                    "type": "Expression"
+                },
+                {
+                    "syntax": "hgvs:genomic",
+                    "value": "NC_000002.11:g.29443695G>T",
+                    "version": null,
+                    "type": "Expression"
+                },
+                {
+                    "syntax": "hgvs:protein",
+                    "value": "NP_004295.2:p.Phe1174Leu",
+                    "version": null,
+                    "type": "Expression"
+                },
+                {
+                    "syntax": "hgvs:transcript",
+                    "value": "NM_004304.4:c.3522C>A",
+                    "version": null,
+                    "type": "Expression"
+                }
+            ],
+            "ref_allele_seq": "F",
+            "gene_context": "civic:gid1"
+        }
+    ],
+    "gene_descriptors": [
+        {
+            "id": "civic:gid1",
+            "type": "GeneDescriptor",
+            "label": "ALK",
+            "description": "ALK amplifications, fusions and mutations have been shown to be driving events in non-small cell lung cancer. While crizontinib has demonstrated efficacy in treating the amplification, mutations in ALK have been shown to confer resistance to current tyrosine kinase inhibitors. Second-generation TKI's have seen varied success in treating these resistant cases, and the HSP90 inhibitor 17-AAG has been shown to be cytostatic in ALK-altered cell lines.",
+            "value_id": null,
+            "value": {
+                "id": "hgnc:427",
+                "type": "Gene"
+            },
+            "xrefs": null,
+            "alternate_labels": [
+                "ALK",
+                "NBLST3",
+                "CD246"
+            ],
+            "extensions": null
+        }
+    ],
+    "therapy_descriptors": [
+        {
+            "id": "civic:tid12",
+            "type": "TherapyDescriptor",
+            "label": "Crizotinib",
+            "description": null,
+            "value_id": null,
+            "value": {
+                "id": "ncit:C74061",
+                "type": "Drug"
+            },
+            "xrefs": null,
+            "alternate_labels": [
+                "Xalkori",
+                "PF-2341066",
+                "PF-02341066",
+                "MET Tyrosine Kinase Inhibitor PF-02341066",
+                "2-Pyridinamine, 3-((1R)-1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(4-Piperidinyl)-1H-Pyrazol-4-yl)-",
+                "(R)-3-(1-(2,6-Dichloro-3-Fluorophenyl)Ethoxy)-5-(1-(Piperidin-4-Yl)-1h-Pyrazol-4-Yl)Pyridin-2-Amine"
+            ],
+            "extensions": null
+        }
+    ],
+    "disease_descriptors": [
+        {
+            "id": "civic:did12",
+            "type": "DiseaseDescriptor",
+            "label": "Inflammatory Myofibroblastic Tumor",
+            "description": null,
+            "value_id": null,
+            "value": {
+                "id": "ncit:C6481",
+                "type": "Disease"
+            },
+            "xrefs": null,
+            "alternate_labels": null,
+            "extensions": null
+        }
+    ],
+    "methods": [
+        {
+            "id": "method:001",
+            "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+            "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",
+            "version": {
+                "year": 2019,
+                "month": 11,
+                "day": 29
+            },
+            "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."
+        }
+    ],
+    "documents": [
+        {
+            "id": "pmid:21030459",
+            "document_id": null,
+            "label": "Sasaki et al., 2010, Cancer Res.",
+            "description": "The neuroblastoma-associated F1174L ALK mutation causes resistance to an ALK kinase inhibitor in ALK-translocated cancers.",
+            "xrefs": [
+                "pmc:PMC3045808"
+            ]
+        }
+    ]
+}
