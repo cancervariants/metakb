@@ -46,7 +46,7 @@ class MOATransform:
         with open(f"{moa_dir}/moa_cdm.json", 'w+') as f:
             json.dump(transformations, f)
 
-    def transform(self):
+    def transform(self, propositions_support_evidence_ix=None):
         """Transform MOA harvested JSON to common date model
 
         :return: A list of dictinaries containing transformations to CDM.
@@ -58,23 +58,24 @@ class MOATransform:
         assertions = data['assertions']
         sources = data['sources']
         variants = data['variants']
-        propositions_support_evidence_ix = {
-            # Keep track of support_evidence index value
-            'support_evidence_index': 1,
-            # {support_evidence_id: support_evidence_index}
-            'support_evidence': dict(),
-            # Keep track of proposition index value
-            'proposition_index': 1,
-            # {tuple: proposition_index}
-            'propositions': dict()
-        }
+        if not propositions_support_evidence_ix:
+            propositions_support_evidence_ix = {
+                # Keep track of support_evidence index value
+                'support_evidence_index': 1,
+                # {support_evidence_id: support_evidence_index}
+                'support_evidence': dict(),
+                # Keep track of proposition index value
+                'proposition_index': 1,
+                # {tuple: proposition_index}
+                'propositions': dict()
+            }
 
         # Transform MOA assertions
         self._transform_statements(responses, assertions, variants,
                                    sources, propositions_support_evidence_ix,
                                    cdm_assertions)
 
-        return responses
+        return (responses, propositions_support_evidence_ix)
 
     def _transform_statements(self, responses, records, variants,
                               sources, propositions_support_evidence_ix,
@@ -366,7 +367,7 @@ class MOATransform:
         :param: Keeps track of proposition and support_evidence indexes
         """
         support_evidence = None
-        if source['pmid']:
+        if source['pmid'] and source['pmid'] != "None":
             support_evidence_id = f"pmid:{source['pmid']}"
         else:
             support_evidence_id = source['url']
