@@ -1,7 +1,6 @@
 """Common data model"""
 from enum import Enum, IntEnum
 from pydantic import BaseModel
-from pydantic.fields import Field
 from typing import List, Optional, Union
 
 
@@ -110,34 +109,43 @@ class MoleculeContext(str, Enum):
     PROTEIN = 'protein'
 
 
-class Gene(BaseModel):
+class ValueObject(BaseModel):
+    """Define model for value object."""
+
+    id: str
+    type: str
+
+
+class Gene(ValueObject):
     """GA4GH Gene Value Object."""
 
-    gene_id: str
     type = "Gene"
 
 
-class Disease(BaseModel):
+class Disease(ValueObject):
     """Disease Value Object"""
 
-    disease_id: str
     type = "Disease"
 
 
-class Therapy(BaseModel):
-    """Therapy Value Object"""
+class Therapy(ValueObject):
+    """A procedure or substance used in the treatment of a disease."""
 
-    therapy_id: str
     type = "Therapy"
+
+
+class Drug(Therapy):
+    """A pharmacologic substance used to treat a medical condition."""
+
+    type = "Drug"
 
 
 class TherapeuticResponseProposition(BaseModel):
     """Define therapeutic Response Proposition model"""
 
-    id: str = Field(..., alias='_id')
+    id: str
     type = PropositionType.PREDICTIVE.value
     predicate: Optional[PredictivePredicate]
-    variation_origin: Optional[VariationOrigin]
     subject: str  # vrs:Variation
     object_qualifier: str  # vicc:Disease
     object: str  # Therapy value object
@@ -161,19 +169,20 @@ class Statement(BaseModel):
     direction: Optional[Direction]
     evidence_level: str
     proposition: str
+    variation_origin: Optional[VariationOrigin]
     variation_descriptor: str
     therapy_descriptor: str
     disease_descriptor: str
     method: str
-    support_evidence: List[str]
+    supported_by: List[str]
     # contribution: str  TODO: After metakb first pass
 
 
-class SupportEvidence(BaseModel):
+class Document(BaseModel):
     """Define model for Source."""
 
     id: str
-    support_evidence_id: str
+    document_id: Optional[str]
     label: str
     description: Optional[str]
     xrefs: Optional[List[str]]
@@ -194,7 +203,7 @@ class Method(BaseModel):
     label: str
     url: str
     version: Date
-    reference: str
+    authors: str
 
 
 class Extension(BaseModel):
@@ -270,4 +279,4 @@ class Response(BaseModel):
     therapy_descriptors: List[ValueObjectDescriptor]
     disease_descriptors: List[ValueObjectDescriptor]
     methods: List[Method]
-    support_evidence: List[SupportEvidence]
+    documents: List[Document]
