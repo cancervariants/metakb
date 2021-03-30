@@ -34,19 +34,19 @@ def eid2997():
                 "direction": "supports",
                 "evidence_level": "civic.evidence_level:A",
                 "proposition": "proposition:001",
+                "variation_origin": "somatic",
                 "variation_descriptor": "civic:vid33",
                 "therapy_descriptor": "civic:tid146",
                 "disease_descriptor": "civic:did8",
                 "method": "method:001",
-                "support_evidence": ["support_evidence:001"],
+                "supported_by": ["pmid:23982599"],
                 "type": "Statement"
             }
         ],
         "propositions": [
             {
-                "_id": "proposition:001",
+                "id": "proposition:001",
                 "predicate": "predicts_sensitivity_to",
-                "variation_origin": "somatic",
                 "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
                 "object_qualifier": "ncit:C2926",
                 "object": "ncit:C66940",
@@ -88,8 +88,17 @@ def eid2997():
                 ],
                 "extensions": [
                     {
-                        "name": "representative_variation_descriptor",
-                        "value": "civic:vid33.rep",
+                        "name": "civic_representative_coordinate",
+                        "value": {
+                            "chromosome": "7",
+                            "start": 55259515,
+                            "stop": 55259515,
+                            "reference_bases": "T",
+                            "variant_bases": "G",
+                            "representative_transcript": "ENST00000275493.2",
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        },
                         "type": "Extension"
                     },
                     {
@@ -138,8 +147,8 @@ def eid2997():
                 "description": None,
                 "value_id": None,
                 "value": {
-                    "therapy_id": "ncit:C66940",
-                    "type": "Therapy"
+                    "id": "ncit:C66940",
+                    "type": "Drug"
                 },
                 "xrefs": None,
                 "alternate_labels": [
@@ -158,7 +167,7 @@ def eid2997():
                 "description": None,
                 "value_id": None,
                 "value": {
-                    "disease_id": "ncit:C2926",
+                    "id": "ncit:C2926",
                     "type": "Disease"
                 },
                 "xrefs": None,
@@ -176,7 +185,7 @@ def eid2997():
                 "value_id": None,
                 "value": {
                     "type": "Gene",
-                    "gene_id": "hgnc:3236"
+                    "id": "hgnc:3236"
                 },
                 "xrefs": None,
                 "alternate_labels": [
@@ -201,13 +210,13 @@ def eid2997():
                     "month": 11,
                     "day": 29
                 },
-                "reference": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."
+                "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."
             }
         ],
-        "support_evidence": [
+        "documents": [
             {
-                "id": "support_evidence:001",
-                "support_evidence_id": "pmid:23982599",
+                "id": "pmid:23982599",
+                "document_id": None,
                 "label": "Dungo et al., 2013, Drugs",
                 "description": "Afatinib: first global approval.",
                 "xrefs": []
@@ -222,25 +231,38 @@ def aid6():
     return {
         "statements": [
             {
+                "id": "civic:eid2997",
+                "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
+                "direction": "supports",
+                "evidence_level": "civic.evidence_level:A",
+                "proposition": "proposition:001",
+                "variation_origin": "somatic",
+                "variation_descriptor": "civic:vid33",
+                "therapy_descriptor": "civic:tid146",
+                "disease_descriptor": "civic:did8",
+                "method": "method:001",
+                "supported_by": ["pmid:23982599"],
+                "type": "Statement"
+            },
+            {
                 "id": "civic:aid6",
                 "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",  # noqa: E501
                 "direction": "supports",
-                "evidence_level": "civic.amp_level:tier_i_-_level_a",
+                "evidence_level": "amp_asco_cap_2017_level:1A",
                 "proposition": "proposition:001",
+                "variation_origin": "somatic",
                 "variation_descriptor": "civic:vid33",
                 "therapy_descriptor": "civic:tid146",
                 "disease_descriptor": "civic:did8",
                 "method": "method:002",
-                "support_evidence": ["support_evidence:002",
-                                     "support_evidence:003"],
+                "supported_by": ["document:001", "civic:eid2997"],
                 "type": "Statement"
             }
         ],
         "propositions": [
             {
-                "_id": "proposition:001",
+                "id": "proposition:001",
                 "predicate": "predicts_sensitivity_to",
-                "variation_origin": "somatic",
                 "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",  # noqa: E501
                 "object_qualifier": "ncit:C2926",
                 "object": "ncit:C66940",
@@ -282,8 +304,17 @@ def aid6():
                 ],
                 "extensions": [
                     {
-                        "name": "representative_variation_descriptor",
-                        "value": "civic:vid33.rep",
+                        "name": "civic_representative_coordinate",
+                        "value": {
+                            "chromosome": "7",
+                            "start": 55259515,
+                            "stop": 55259515,
+                            "reference_bases": "T",
+                            "variant_bases": "G",
+                            "representative_transcript": "ENST00000275493.2",
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        },
                         "type": "Extension"
                     },
                     {
@@ -332,8 +363,8 @@ def aid6():
                 "description": None,
                 "value_id": None,
                 "value": {
-                    "therapy_id": "ncit:C66940",
-                    "type": "Therapy"
+                    "id": "ncit:C66940",
+                    "type": "Drug"
                 },
                 "xrefs": None,
                 "alternate_labels": [
@@ -352,7 +383,7 @@ def aid6():
                 "description": None,
                 "value_id": None,
                 "value": {
-                    "disease_id": "ncit:C2926",
+                    "id": "ncit:C2926",
                     "type": "Disease"
                 },
                 "xrefs": None,
@@ -370,7 +401,7 @@ def aid6():
                 "value_id": None,
                 "value": {
                     "type": "Gene",
-                    "gene_id": "hgnc:3236"
+                    "id": "hgnc:3236"
                 },
                 "xrefs": None,
                 "alternate_labels": [
@@ -395,24 +426,17 @@ def aid6():
                     "month": 1,
                     "day": None
                 },
-                "reference": "Li MM, Datto M, Duncavage EJ, et al."
+                "authors": "Li MM, Datto M, Duncavage EJ, et al."
             }
         ],
-        "support_evidence": [
+        "documents": [
             {
-                "id": "support_evidence:002",
-                "support_evidence_id": "https://www.nccn.org/professionals/"
-                                       "physician_gls/default.aspx",
+                "id": "document:001",
+                "document_id": "https://www.nccn.org/professionals/"
+                               "physician_gls/default.aspx",
                 "label": "NCCN Guidelines: Non-Small Cell "
                          "Lung Cancer version 3.2018",
                 "description": None,
-                "xrefs": []
-            },
-            {
-                "id": "support_evidence:003",
-                "support_evidence_id": "civic:eid2997",
-                "label": "EID2997",
-                "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
                 "xrefs": []
             }
         ]
@@ -475,9 +499,10 @@ def test_aid6(data, aid6):
     """Test that transform is correct for AID6."""
     aid6_data = None
     for item in data:
-        if item['statements'][0]['id'] == "civic:aid6":
-            aid6_data = item
-            break
+        for statement in item['statements']:
+            if statement['id'] == "civic:aid6":
+                aid6_data = item
+                break
 
     aid_data_keys = aid6_data.keys()
 
