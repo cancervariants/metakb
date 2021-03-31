@@ -75,7 +75,7 @@ class Graph:
             tx.run("CREATE CONSTRAINT variation_desc_id_constraint IF NOT EXISTS ON (n:VariationDescriptor) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT variation_grp_id_constraint IF NOT EXISTS ON (n:VariationGroup) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT proposition_id_constraint IF NOT EXISTS ON (n:Proposition) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT support_evidence_id_constraint IF NOT EXISTS ON (n:SupportEvidence) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT document_id_constraint IF NOT EXISTS ON (n:Document) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT statement_id_constraint IF NOT EXISTS ON (n:Statement) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT method_id_constraint IF NOT EXISTS ON (n:Method) ASSERT n.id IS UNIQUE;")  # noqa: E501
         except ServiceUnavailable as exception:
@@ -100,8 +100,8 @@ class Graph:
             for var_descr in data.get('variation_descriptors', []):
                 session.write_transaction(self._add_variation_descriptor,
                                           var_descr)
-            for ev in data.get('support_evidence'):
-                session.write_transaction(self._add_support_evidence, ev)
+            for doc in data.get('documents'):
+                session.write_transaction(self._add_document, doc)
             for proposition in data.get('propositions', []):
                 session.write_transaction(self._add_proposition,
                                           proposition)
@@ -112,12 +112,12 @@ class Graph:
     def _add_method(tx, method: Dict):
         """Add Method object to DB.
         :param Dict method: must include `id`, `label`, `url`,
-            `version`, and `reference` values.
+            `version`, and `authors` values.
         """
         method['version'] = json.dumps(method['version'])
         query = """
         MERGE (n:Method {id:$id, label:$label, url:$url,
-            version:$version, reference: $reference});
+            version:$version, authors: $authors});
         """
         try:
             tx.run(query, **method)
@@ -136,13 +136,13 @@ class Graph:
         descr_type = descriptor['type']
         if descr_type == 'TherapyDescriptor':
             value_type = 'Therapy'
-            descriptor['value_id'] = descriptor['value']['therapy_id']
+            descriptor['value_id'] = descriptor['value']['id']
         elif descr_type == 'DiseaseDescriptor':
             value_type = 'Disease'
-            descriptor['value_id'] = descriptor['value']['disease_id']
+            descriptor['value_id'] = descriptor['value']['id']
         elif descr_type == 'GeneDescriptor':
             value_type = 'Gene'
-            descriptor['value_id'] = descriptor['value']['gene_id']
+            descriptor['value_id'] = descriptor['value']['id']
         else:
             raise TypeError(f"Invalid Descriptor type: {descr_type}")
 
@@ -265,10 +265,9 @@ class Graph:
         :param Dict proposition: must include `disease_context`, `therapy`,
             and `has_originating_context` fields.
         """
-        proposition['id'] = proposition['_id']
+        proposition['id'] = proposition['id']
 
         formatted_keys = _create_keys_string(proposition, ('id', 'predicate',
-                                                           'variation_origin',
                                                            'type'))
         prop_type = proposition.get('type')
         if prop_type == "therapeutic_response_proposition":
@@ -297,34 +296,34 @@ class Graph:
             raise exception
 
     @staticmethod
-    def _add_support_evidence(tx, support_evidence: Dict):
-        """Add SupportEvidence object to DB.
-        :param Dict support_evidence: must include `id` field.
+    def _add_document(tx, document: Dict):
+        """Add Document object to DB.
+        :param Dict document: must include `id` field.
         """
         try:
-            query = "MATCH (n:SupportEvidence {id:$id}) RETURN n"
-            result = tx.run(query, **support_evidence)
+            query = "MATCH (n:Document {id:$id}) RETURN n"
+            result = tx.run(query, **document)
         except ServiceUnavailable as exception:
             logging.error(f"Failed to read Document object\n"
                           f"Query: {query}\nDocument: "
-                          f"{support_evidence}")
+                          f"{document}")
             raise exception
 
-        if not result:
-            formatted_keys = _create_keys_string(support_evidence,
+        if not result.single():
+            formatted_keys = _create_keys_string(document,
                                                  ('id', 'label',
-                                                  'support_evidence_id',
+                                                  'document_id',
                                                   'xrefs',
                                                   'description'))
             query = f"""
-            MERGE (n:SupportEvidence {{ {formatted_keys} }});
+            MERGE (n:Document {{ {formatted_keys} }});
             """
             try:
-                tx.run(query, **support_evidence)
+                tx.run(query, **document)
             except ServiceUnavailable as exception:
                 logging.error(f"Failed to add Document object\n"
                               f"Query: {query}\nDocument: "
-                              f"{support_evidence}")
+                              f"{document}")
                 raise exception
 
     @staticmethod
@@ -332,19 +331,20 @@ class Graph:
         """Add Statement object to DB.
         :param Dict statement: must include `id`, `variation_descriptor`,
             `therapy_descriptor`, `disease_descriptor`, `method`, and
-            `support_evidence` fields.
+            `supported_by` fields.
         """
         formatted_keys = _create_keys_string(statement, ('id', 'description',
                                                          'direction',
+                                                         'variation_origin',
                                                          'evidence_level'))
         match_line = ""
         rel_line = ""
-        support_evidence = statement.get('support_evidence', [])
-        if support_evidence:
-            for i, ev in enumerate(support_evidence):
+        supported_by = statement.get('supported_by', [])
+        if supported_by:
+            for i, ev in enumerate(supported_by):
                 name = f"doc_{i}"
                 statement[name] = ev
-                match_line += f"MERGE ({name}:SupportEvidence {{ id:${name} }})\n"  # noqa: E501
+                match_line += f"MERGE ({name} {{ id:${name} }})\n"  # noqa: E501
                 rel_line += f"MERGE (ev) -[:CITES]-> ({name})\n"
 
         query = f"""
