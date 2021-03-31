@@ -149,7 +149,7 @@ def assertions(test_data, actual_data):
                 assert_non_lists(actual_data, test_data)
 
 
-def return_statement_and_propositions(query_handler, statement_id, **kwargs):
+def return_statement_and_proposition(query_handler, statement_id, **kwargs):
     """Return the statement given ID if it exists."""
     response = query_handler.search(**kwargs)
     statements = response['statements']
@@ -182,83 +182,83 @@ def test_civic_eid2997(query_handler, civic_eid2997, eid2997_proposition):
     statement_id = 'civic:eid2997'
 
     # Test search by Subject
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')  # noqa: E501
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')  # noqa: E501
     assertions(civic_eid2997, s)
     assertions(eid2997_proposition, p)
 
     # Test search by Object
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             therapy='ncit:C66940')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            therapy='ncit:C66940')
     assertions(civic_eid2997, s)
     assertions(eid2997_proposition, p)
 
     # Test search by Object Qualifier
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             disease='ncit:C2926')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            disease='ncit:C2926')
     assertions(civic_eid2997, s)
     assertions(eid2997_proposition, p)
 
     # Test search by Gene Descriptor
     # HGNC ID
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             gene='hgnc:3236')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            gene='hgnc:3236')
     assertions(civic_eid2997, s)
     assertions(eid2997_proposition, p)
 
     # Label
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             gene='EGFR')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            gene='EGFR')
     assertions(civic_eid2997, s)
     assertions(eid2997_proposition, p)
 
     # Alt label
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             gene='ERBB1')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            gene='ERBB1')
     assertions(civic_eid2997, s)
     assertions(eid2997_proposition, p)
 
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             variation='EGFR L858R')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            variation='EGFR L858R')
     assertions(civic_eid2997, s)
     assertions(eid2997_proposition, p)
 
     # Sequence ID
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             variation='ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE')  # noqa: E501
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            variation='ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE')  # noqa: E501
     assertions(civic_eid2997, s)
     assertions(eid2997_proposition, p)
 
     # Alt Label
-    # s, p = return_statement_and_propositions(query_handler, statement_id,
+    # s, p = return_statement_and_proposition(query_handler, statement_id,
     # variation='egfr Leu858ARG')
     # assertions(civic_eid2997, s)
 
     # HGVS Expression
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             variation='NP_005219.2:p.Leu858Arg')  # noqa: E501
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            variation='NP_005219.2:p.Leu858Arg')  # noqa: E501
     assertions(civic_eid2997, s)
     assertions(eid2997_proposition, p)
 
     # Test search by Therapy Descriptor
     # Label
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             therapy='Afatinib')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            therapy='Afatinib')
     assertions(civic_eid2997, s)
     assertions(eid2997_proposition, p)
 
     # Alt Label
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             therapy='BIBW2992')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            therapy='BIBW2992')
     assertions(civic_eid2997, s)
     assertions(eid2997_proposition, p)
 
     # Test search by Disease Descriptor
     # Label
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             disease='Lung Non-small Cell Carcinoma')  # noqa: E501
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            disease='Lung Non-small Cell Carcinoma')  # noqa: E501
     assertions(civic_eid2997, s)
     assertions(eid2997_proposition, p)
 
@@ -268,73 +268,73 @@ def test_civic_eid1409(query_handler, civic_eid1409):
     statement_id = 'civic:eid1409'
 
     # Test search by Subject
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             variation='ga4gh:VA.mJbjSsW541oOsOtBoX36Mppr6hMjbjFr')  # noqa: E501
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            variation='ga4gh:VA.mJbjSsW541oOsOtBoX36Mppr6hMjbjFr')  # noqa: E501
     assertions(civic_eid1409, s)
 
     # Test search by Object
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             therapy='ncit:C64768')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            therapy='ncit:C64768')
     assertions(civic_eid1409, s)
 
     # Test search by Object Qualifier
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             disease='ncit:C3510')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            disease='ncit:C3510')
     assertions(civic_eid1409, s)
 
     # Test search by Gene Descriptor
     # HGNC ID
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             gene='hgnc:1097')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            gene='hgnc:1097')
     assertions(civic_eid1409, s)
 
     # Label
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             gene='BRAF')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            gene='BRAF')
     assertions(civic_eid1409, s)
 
     # TODO: Not found in gene normalizer
     # # Alt label
-    # s, p = return_statement_and_propositions(query_handler,
+    # s, p = return_statement_and_proposition(query_handler,
     # statement_id, gene='NS7')
     # assertions(civic_eid1409, s)
 
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
-    # s, p = return_statement_and_propositions(query_handler, statement_id,
+    # s, p = return_statement_and_proposition(query_handler, statement_id,
     # variation='BRAF V600E')
     # assertions(civic_eid1409, s)
 
     # Sequence ID
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             variation='ga4gh:SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y')  # noqa: E501
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            variation='ga4gh:SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y')  # noqa: E501
     assertions(civic_eid1409, s)
 
     # # Alt Label
-    # s, p = return_statement_and_propositions(query_handler, statement_id,
+    # s, p = return_statement_and_proposition(query_handler, statement_id,
     # variation='braf val600glu')
     # assertions(civic_eid1409, s)
 
     # HGVS Expression
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             variation='NP_004324.2:p.Val600Glu')  # noqa: E501
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            variation='NP_004324.2:p.Val600Glu')  # noqa: E501
     assertions(civic_eid1409, s)
 
     # Test search by Therapy Descriptor
     # Label
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             therapy='Vemurafenib')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            therapy='Vemurafenib')
     assertions(civic_eid1409, s)
 
     # # Alt Label
-    # s, p = return_statement_and_propositions(query_handler,
+    # s, p = return_statement_and_proposition(query_handler,
     #                      'BRAF(V600E) Kinase Inhibitor RO5185426',
     #                      statement_id)
     # assertions(civic_eid1409, s)
 
     # Label
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             disease='Skin Melanoma')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            disease='Skin Melanoma')
     assertions(civic_eid1409, s)
 
 
@@ -343,70 +343,70 @@ def test_civic_aid6(query_handler, civic_aid6):
     statement_id = 'civic:aid6'
 
     # Test search by Subject
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')  # noqa: E501
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')  # noqa: E501
     assertions(civic_aid6, s)
 
     # Test search by Object
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             therapy='ncit:C66940')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            therapy='ncit:C66940')
     assertions(civic_aid6, s)
 
     # Test search by Object Qualifier
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             disease='ncit:C2926')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            disease='ncit:C2926')
     assertions(civic_aid6, s)
 
     # Test search by Gene Descriptor
     # HGNC ID
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             gene='hgnc:3236')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            gene='hgnc:3236')
     assertions(civic_aid6, s)
 
     # Label
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             gene='EGFR')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            gene='EGFR')
     assertions(civic_aid6, s)
 
     # Alt label
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             gene='ERBB1')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            gene='ERBB1')
     assertions(civic_aid6, s)
 
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
-    # s, p = return_statement_and_propositions(query_handler, statement_id,
+    # s, p = return_statement_and_proposition(query_handler, statement_id,
     # variation='EGFR L858R')
     # assertions(civic_aid6, s)
 
     # Sequence ID
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             variation='ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE')  # noqa: E501
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            variation='ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE')  # noqa: E501
     assertions(civic_aid6, s)
 
     # Alt Label
-    # s, p = return_statement_and_propositions(query_handler, statement_id,
+    # s, p = return_statement_and_proposition(query_handler, statement_id,
     # variation='egfr leu858arg')
     # assertions(civic_aid6, s)
 
     # HGVS Expression
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             variation='NP_005219.2:p.leu858arg')  # Noqa: E501
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            variation='NP_005219.2:p.leu858arg')  # Noqa: E501
     assertions(civic_aid6, s)
 
     # Label
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             therapy='afatinib')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            therapy='afatinib')
     assertions(civic_aid6, s)
 
     # Alt Label
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             therapy='BIBW 2992')
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            therapy='BIBW 2992')
     assertions(civic_aid6, s)
 
     # Label
-    s, p = return_statement_and_propositions(query_handler, statement_id,
-                                             disease='Lung Non-small Cell Carcinoma    ')  # noqa: E501
+    s, p = return_statement_and_proposition(query_handler, statement_id,
+                                            disease='Lung Non-small Cell Carcinoma    ')  # noqa: E501
     assertions(civic_aid6, s)
 
 
