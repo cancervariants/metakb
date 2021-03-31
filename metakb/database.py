@@ -10,6 +10,18 @@ logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
 
+def _create_keys_string(entity, keys) -> str:
+    """Create formatted string for requested keys if non-null in entity.
+    :param Dict entity: entity to check against, eg a Disease or Statement
+    :param Tuple keys: key names to check
+    :return: formatted String for use in Cypher query
+    """
+    nonnull_keys = [f"{key}:${key}"
+                    for key in keys if entity.get(key)]
+    keys_string = ', '.join(nonnull_keys)
+    return keys_string
+
+
 class Graph:
     """Manage requests to graph datastore."""
 
@@ -63,7 +75,7 @@ class Graph:
             tx.run("CREATE CONSTRAINT variation_desc_id_constraint IF NOT EXISTS ON (n:VariationDescriptor) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT variation_grp_id_constraint IF NOT EXISTS ON (n:VariationGroup) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT proposition_id_constraint IF NOT EXISTS ON (n:Proposition) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT support_evidence_id_constraint IF NOT EXISTS ON (n:SupportEvidence) ASSERT n.id IS UNIQUE;")  # noqa: E501
+            tx.run("CREATE CONSTRAINT document_id_constraint IF NOT EXISTS ON (n:Document) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT statement_id_constraint IF NOT EXISTS ON (n:Statement) ASSERT n.id IS UNIQUE;")  # noqa: E501
             tx.run("CREATE CONSTRAINT method_id_constraint IF NOT EXISTS ON (n:Method) ASSERT n.id IS UNIQUE;")  # noqa: E501
         except ServiceUnavailable as exception:
@@ -88,8 +100,8 @@ class Graph:
             for var_descr in data.get('variation_descriptors', []):
                 session.write_transaction(self._add_variation_descriptor,
                                           var_descr)
-            for ev in data.get('support_evidence'):
-                session.write_transaction(self._add_support_evidence, ev)
+            for doc in data.get('documents'):
+                session.write_transaction(self._add_document, doc)
             for proposition in data.get('propositions', []):
                 session.write_transaction(self._add_proposition,
                                           proposition)
@@ -100,12 +112,12 @@ class Graph:
     def _add_method(tx, method: Dict):
         """Add Method object to DB.
         :param Dict method: must include `id`, `label`, `url`,
-            `version`, and `reference` values.
+            `version`, and `authors` values.
         """
         method['version'] = json.dumps(method['version'])
         query = """
         MERGE (n:Method {id:$id, label:$label, url:$url,
-            version:$version, reference: $reference});
+            version:$version, authors: $authors});
         """
         try:
             tx.run(query, **method)
@@ -118,27 +130,28 @@ class Graph:
     def _add_descriptor(tx, descriptor: Dict):
         """Add gene, therapy, or disease descriptor object to DB.
         :param Dict descriptor: must contain a `value` field with `type`
-            and `<type>_id` fields
+            and `<type>_id` fields. `type` field must be one of
+            {'TherapyDescriptor', 'DiseaseDescriptor', 'GeneDescriptor'}
         """
         descr_type = descriptor['type']
         if descr_type == 'TherapyDescriptor':
             value_type = 'Therapy'
-            descriptor['value_id'] = descriptor['value']['therapy_id']
+            descriptor['value_id'] = descriptor['value']['id']
         elif descr_type == 'DiseaseDescriptor':
             value_type = 'Disease'
-            descriptor['value_id'] = descriptor['value']['disease_id']
+            descriptor['value_id'] = descriptor['value']['id']
         elif descr_type == 'GeneDescriptor':
             value_type = 'Gene'
-            descriptor['value_id'] = descriptor['value']['gene_id']
+            descriptor['value_id'] = descriptor['value']['id']
+        else:
+            raise TypeError(f"Invalid Descriptor type: {descr_type}")
 
-        nonnull_keys = [f"{key}:${key}"
-                        for key in ('id', 'label', 'description', 'xrefs',
-                                    'alternate_labels')
-                        if descriptor[key]]
-        descriptor_keys = ', '.join(nonnull_keys)
+        descr_keys = _create_keys_string(descriptor, ('id', 'label',
+                                                      'description', 'xrefs',
+                                                      'alternate_labels'))
 
         query = f'''
-        MERGE (descr:{descr_type} {{ {descriptor_keys} }})
+        MERGE (descr:{descr_type} {{ {descr_keys} }})
         MERGE (value:{value_type} {{ id:$value_id }})
         MERGE (descr) -[:DESCRIBES]-> (value)
         '''
@@ -170,21 +183,25 @@ class Graph:
             location['interval']['type']
 
         # prepare descriptor properties
-        for expression in descriptor['expressions']:
-            syntax = expression['syntax'].split(':')[1]
-            key = f"expressions_{syntax}"
-            if key in descriptor:
-                descriptor[key].append(expression['value'])
-            else:
-                descriptor[key] = [expression['value']]
-        nonnull_keys = [f"{key}:${key}"
-                        for key in ('id', 'label', 'description', 'xrefs',
-                                    'alternate_labels', 'structural_type',
-                                    'expressions_transcript',
-                                    'expressions_genomic',
-                                    'expressions_protein',
-                                    'ref_allele_seq')
-                        if descriptor.get(key)]
+        expressions = descriptor.get('expressions')
+        if expressions:
+            for expression in expressions:
+                syntax = expression['syntax'].split(':')[1]
+                key = f"expressions_{syntax}"
+                if key in descriptor:
+                    descriptor[key].append(expression['value'])
+                else:
+                    descriptor[key] = [expression['value']]
+
+        nonnull_keys = [_create_keys_string(descriptor,
+                                            ('id', 'label', 'description',
+                                             'xrefs', 'alternate_labels',
+                                             'structural_type',
+                                             'molecule_context',
+                                             'expressions_transcript',
+                                             'expressions_genomic',
+                                             'expressions_protein',
+                                             'ref_allele_seq'))]
 
         # handle extensions
         variant_groups = None
@@ -248,13 +265,11 @@ class Graph:
         :param Dict proposition: must include `disease_context`, `therapy`,
             and `has_originating_context` fields.
         """
-        proposition['id'] = proposition['_id']
-        nonnull_keys = [f"{key}:${key}"
-                        for key in ('id', 'predicate', 'variation_origin',
-                                    'type')
-                        if proposition[key]]
-        formatted_keys = ', '.join(nonnull_keys)
+        proposition['id'] = proposition['id']
 
+        formatted_keys = _create_keys_string(proposition, ('id', 'predicate',
+                                                           'variation_origin',
+                                                           'type'))
         prop_type = proposition.get('type')
         if prop_type == "therapeutic_response_proposition":
             prop_label = ":TherapeuticResponse"
@@ -282,46 +297,54 @@ class Graph:
             raise exception
 
     @staticmethod
-    def _add_support_evidence(tx, support_evidence: Dict):
-        """Add SupportEvidence object to DB.
-        :param Dict support_evidence: must include `id` field.
-        """
-        nonnull_keys = [f"{key}:${key}"
-                        for key in ('id', 'support_evidence_id', 'label',
-                                    'description', 'xrefs')
-                        if support_evidence[key]]
-        formatted_keys = ', '.join(nonnull_keys)
-        query = f"""
-        MERGE (n:SupportEvidence {{ {formatted_keys} }});
+    def _add_document(tx, document: Dict):
+        """Add Document object to DB.
+        :param Dict document: must include `id` field.
         """
         try:
-            tx.run(query, **support_evidence)
+            query = "MATCH (n:Document {id:$id}) RETURN n"
+            result = tx.run(query, **document)
         except ServiceUnavailable as exception:
-            logging.error(f"Failed to add Document object\n"
+            logging.error(f"Failed to read Document object\n"
                           f"Query: {query}\nDocument: "
-                          f"{support_evidence}")
+                          f"{document}")
             raise exception
+
+        if not result.single():
+            formatted_keys = _create_keys_string(document,
+                                                 ('id', 'label',
+                                                  'document_id',
+                                                  'xrefs',
+                                                  'description'))
+            query = f"""
+            MERGE (n:Document {{ {formatted_keys} }});
+            """
+            try:
+                tx.run(query, **document)
+            except ServiceUnavailable as exception:
+                logging.error(f"Failed to add Document object\n"
+                              f"Query: {query}\nDocument: "
+                              f"{document}")
+                raise exception
 
     @staticmethod
     def _add_statement(tx, statement: Dict):
         """Add Statement object to DB.
         :param Dict statement: must include `id`, `variation_descriptor`,
             `therapy_descriptor`, `disease_descriptor`, `method`, and
-            `support_evidence` fields.
+            `supported_by` fields.
         """
-        nonnull_keys = [f"{key}:${key}" for key
-                        in ('id', 'type', 'description', 'direction',
-                            'evidence_level')
-                        if statement[key]]
-        formatted_keys = ', '.join(nonnull_keys)
+        formatted_keys = _create_keys_string(statement, ('id', 'description',
+                                                         'direction',
+                                                         'evidence_level'))
         match_line = ""
         rel_line = ""
-        support_evidence = statement.get('support_evidence', [])
-        if support_evidence:
-            for i, ev in enumerate(support_evidence):
+        supported_by = statement.get('supported_by', [])
+        if supported_by:
+            for i, ev in enumerate(supported_by):
                 name = f"doc_{i}"
                 statement[name] = ev
-                match_line += f"MERGE ({name}:SupportEvidence {{ id:${name} }})\n"  # noqa: E501
+                match_line += f"MERGE ({name} {{ id:${name} }})\n"  # noqa: E501
                 rel_line += f"MERGE (ev) -[:CITES]-> ({name})\n"
 
         query = f"""
