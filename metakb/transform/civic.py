@@ -62,10 +62,10 @@ class CIViCTransform:
         cdm_evidence_items = dict()  # EIDs that have been transformed to CDM
         if not propositions_documents_ix:
             propositions_documents_ix = {
-                # Keep track of support_evidence index value
-                'support_evidence_index': 1,
-                # {support_evidence_id: support_evidence_index}
-                'support_evidence': dict(),
+                # Keep track of documents index value
+                'document_index': 1,
+                # {document_id: document_index}
+                'documents': dict(),
                 # Keep track of proposition index value
                 'proposition_index': 1,
                 # {tuple: proposition_index}
