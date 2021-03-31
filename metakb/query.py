@@ -7,9 +7,8 @@ from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
 from therapy.query import QueryHandler as TherapyQueryHandler
 from disease.query import QueryHandler as DiseaseQueryHandler
 from metakb.schemas import SearchService, StatementResponse, \
-    SupportEvidenceResponse, MethodResponse, PropositionResponse
+    TherapeuticResponseProposition
 import logging
-import json
 
 
 logger = logging.getLogger('metakb')
@@ -132,52 +131,58 @@ class QueryHandler:
         """
         # Find normalized terms using VICC normalizers
         if therapy:
-            response['therapy'] = therapy
+            response['query']['therapy'] = therapy
             normalized_therapy = \
                 self.get_normalized_therapy(therapy.strip(),
                                             response['warnings'])
         else:
             normalized_therapy = None
         if disease:
-            response['disease'] = disease
+            response['query']['disease'] = disease
             normalized_disease = \
                 self.get_normalized_disease(disease.strip(),
                                             response['warnings'])
         else:
             normalized_disease = None
         if variation:
-            response['variation'] = variation
+            response['query']['variation'] = variation
             normalized_variation = \
                 self.get_normalized_variation(variation,
                                               response['warnings'])
         else:
             normalized_variation = None
         if gene:
-            response['gene'] = gene
+            response['query']['gene'] = gene
             normalized_gene = self.get_normalized_gene(gene,
                                                        response['warnings'])
         else:
             normalized_gene = None
         return normalized_variation, normalized_disease, normalized_therapy, normalized_gene  # noqa: E501
 
-    def search(self, variation='', disease='', therapy='', gene=''):
+    def search(self, variation='', disease='', therapy='', gene='',
+               statement_id=''):
         """Get statements and propositions from queried concepts.
 
         :param str variation: Variation query
         :param str disease: Disease query
         :param str therapy: Therapy query
         :param str gene: Gene query
+        :param str statement_id: Statement ID query
         """
         response = {
-            'variation': None,
-            'disease': None,
-            'therapy': None,
-            'gene': None,
+            'query': {
+                'variation': None,
+                'disease': None,
+                'therapy': None,
+                'gene': None,
+                'statement_id': None
+            },
             'warnings': [],
-            'statements': []
+            'statements': [],
+            'propositions': []
         }
 
-        if not (variation or disease or therapy or gene):
+        if not (variation or disease or therapy or gene or statement_id):
             response['warnings'].append('No parameters were entered.')
             return SearchService(**response).dict()
 
@@ -186,32 +191,57 @@ class QueryHandler:
             self.get_normalized_terms(variation, disease,
                                       therapy, gene, response)
 
+        # Check that the statement_id actually exists
+        valid_statement_id = None
+        if statement_id:
+            response['query']['statement_id'] = statement_id
+            with self.driver.session() as session:
+                statement = session.read_transaction(
+                    self._get_statement_by_id, statement_id
+                )
+                if statement:
+                    valid_statement_id = statement.get('id')
+                else:
+                    response['warnings'].append(f"Statement: {statement_id} "
+                                                f"does not exist.")
+
         # Need to make sure that each concept that was
         # queried returned a normalized concept
         if (variation and not normalized_variation) or \
                 (therapy and not normalized_therapy) or \
                 (disease and not normalized_disease) or \
-                (gene and not normalized_gene):
+                (gene and not normalized_gene) or \
+                (statement_id and not valid_statement_id):
             return SearchService(**response).dict()
 
         with self.driver.session() as session:
             proposition_nodes = session.read_transaction(
                 self._get_propositions, normalized_therapy,
-                normalized_variation, normalized_disease, normalized_gene
+                normalized_variation, normalized_disease, normalized_gene,
+                valid_statement_id
             )
-            statement_nodes = list()
-            for p_node in proposition_nodes:
-                statements = session.read_transaction(
-                    self._get_statements_from_proposition, p_node.get('id')
-                )
-                for s in statements:
-                    if s not in statement_nodes:
-                        statement_nodes.append(s)
+
+            # If statement ID isn't specified, get all statements
+            # related to a proposition
+            if not valid_statement_id:
+                statement_nodes = list()
+                for p_node in proposition_nodes:
+                    statements = session.read_transaction(
+                        self._get_statements_from_proposition, p_node.get('id')
+                    )
+                    for s in statements:
+                        if s not in statement_nodes:
+                            statement_nodes.append(s)
+            else:
+                statement_nodes = [statement]
+                # TODO: Fix for when a statement has statements in
+                #  `supported_by` such as CIViC AID6
 
             if proposition_nodes and statement_nodes:
                 response['statements'] =\
-                    self.get_statement_response(statement_nodes,
-                                                proposition_nodes)
+                    self.get_statement_response(statement_nodes)
+                response['propositions'] = \
+                    self.get_propositions_response(proposition_nodes)
             else:
                 response['warnings'].append('Could not find statements '
                                             'associated with the queried'
@@ -220,10 +250,24 @@ class QueryHandler:
         return SearchService(**response).dict()
 
     @staticmethod
+    def _get_statement_by_id(tx, statement_id):
+        """Get a Statement node by ID."""
+        query = (
+            "MATCH (s:Statement) "
+            f"WHERE toLower(s.id) = toLower('{statement_id}') "
+            "RETURN s"
+        )
+        return (tx.run(query).single() or [None])[0]
+
+    @staticmethod
     def _get_propositions(tx, normalized_therapy, normalized_variation,
-                          normalized_disease, normalized_gene):
+                          normalized_disease, normalized_gene,
+                          valid_statement_id):
         """Get propositions that contain normalized concepts queried."""
         query = ""
+        if valid_statement_id:
+            query += "MATCH (s:Statement {id:$s_id})-[:DEFINED_BY]->" \
+                     "(p:Proposition) "
         if normalized_therapy:
             query += "MATCH (p:Proposition)<-[:IS_OBJECT_OF]-" \
                      "(t:Therapy {id:$t_id}) "
@@ -248,7 +292,8 @@ class QueryHandler:
         return [p[0] for p in tx.run(query, t_id=normalized_therapy,
                                      v_id=normalized_variation,
                                      d_id=normalized_disease,
-                                     g_id=normalized_gene)]
+                                     g_id=normalized_gene,
+                                     s_id=valid_statement_id)]
 
     @staticmethod
     def _get_statements_from_proposition(tx, proposition_id):
@@ -259,7 +304,7 @@ class QueryHandler:
         )
         return [s[0] for s in tx.run(query, proposition_id=proposition_id)]
 
-    def get_statement_response(self, statements, propositions):
+    def get_statement_response(self, statements):
         """Return a list of statements from Statement and Proposition nodes.
 
         :param list statements: A list of Statement Nodes
@@ -267,41 +312,25 @@ class QueryHandler:
         :return: A list of dicts containing statement response output
         """
         statements_response = list()
-        propositions = self.get_propositions_response(propositions)
         for s in statements:
             with self.driver.session() as session:
                 statement_id = s.get('id')
                 response = session.read_transaction(
                     self._find_and_return_statement_response, statement_id)
-                support_evidence = list()
                 se_list = session.read_transaction(
                     self._find_and_return_support_evidence, statement_id)
-
-                for se in se_list:
-                    support_evidence.append(SupportEvidenceResponse(
-                        id=se['support_evidence_id'],
-                        label=se['label'],
-                        description=se['description'],
-                        xrefs=se['xrefs'] if se['xrefs'] else []
-                    ).dict())
                 statements_response.append(StatementResponse(
                     id=statement_id,
                     type=s.get('type'),
                     description=s.get('description'),
                     direction=s.get('direction'),
                     evidence_level=s.get('evidence_level'),
-                    proposition=propositions.get(response['tr_id'],
-                                                 None),
+                    proposition=response['tr_id'],
                     variation_descriptor=response['vid'],
                     therapy_descriptor=response['tid'],
                     disease_descriptor=response['did'],
-                    method=MethodResponse(
-                        label=response['m']['label'],
-                        url=response['m']['url'],
-                        version=json.loads(response['m']['version']),
-                        reference=response['m']['reference']
-                    ).dict(),
-                    support_evidence=support_evidence
+                    method=response['m']['id'],
+                    supported_by=[se['support_evidence_id'] for se in se_list]
                 ).dict())
         return statements_response
 
@@ -326,14 +355,15 @@ class QueryHandler:
 
         :param list propositions: A list of Proposition Nodes
         """
-        propositions_response = dict()
+        propositions_response = list()
         for p in propositions:
             with self.driver.session() as session:
                 p_id = p.get('id')
                 value_ids = session.read_transaction(
                     self._find_and_return_proposition_response, p_id
                 )
-                propositions_response[p_id] = PropositionResponse(
+                proposition = TherapeuticResponseProposition(
+                    id=p.get('id'),
                     type=p.get('type'),
                     predicate=p.get('predicate'),
                     variation_origin=p.get('variation_origin'),
@@ -341,6 +371,8 @@ class QueryHandler:
                     object_qualifier=value_ids['object_qualifier'],
                     object=value_ids['object']
                 ).dict()
+                if proposition not in propositions_response:
+                    propositions_response.append(proposition)
         return propositions_response
 
     @staticmethod
