@@ -234,8 +234,23 @@ class QueryHandler:
                             statement_nodes.append(s)
             else:
                 statement_nodes = [statement]
-                # TODO: Fix for when a statement has statements in
-                #  `supported_by` such as CIViC AID6
+
+                # Add statements found in `supported_by`
+                # Then add their associated propositions
+                supported_by_statements = session.read_transaction(
+                    self._find_and_return_supported_by, valid_statement_id,
+                    only_statement=True
+                )
+                for s in supported_by_statements:
+                    if s not in statement_nodes:
+                        statement_nodes.append(s)
+                        proposition = session.read_transaction(
+                            self._find_and_return_propositions_from_statement,
+                            s.get('id')
+                        )
+                        if proposition and proposition \
+                                not in proposition_nodes:
+                            proposition_nodes.append(proposition)
 
             if proposition_nodes and statement_nodes:
                 response['statements'] =\
@@ -308,7 +323,6 @@ class QueryHandler:
         """Return a list of statements from Statement and Proposition nodes.
 
         :param list statements: A list of Statement Nodes
-        :param list propositions: A list of Proposition Nodes
         :return: A list of dicts containing statement response output
         """
         statements_response = list()
@@ -388,11 +402,29 @@ class QueryHandler:
         return tx.run(query).single()
 
     @staticmethod
-    def _find_and_return_supported_by(tx, statement_id):
-        """Statement and Document Nodes that support a given Statement."""
+    def _find_and_return_supported_by(tx, statement_id, only_statement=False):
+        """Statement and Document Nodes that support a given Statement.
+
+        :param bool only_statement: `True` if only match on Statement,
+            `False` if match on both Statement and Document
+        """
+        if not only_statement:
+            match = "MATCH (s:Statement)-[:CITES]->(sb) "
+        else:
+            match = "MATCH (s:Statement)-[:CITES]->(sb:Statement) "
         query = (
-            "MATCH (s:Statement)-[:CITES]->(sb) "
+            f"{match}"
             f"WHERE s.id = '{statement_id}' "
             "RETURN sb"
         )
         return [se[0] for se in tx.run(query)]
+
+    @staticmethod
+    def _find_and_return_propositions_from_statement(tx, statement_id):
+        """Find propositions from a given statement."""
+        query = (
+            "MATCH (p:Proposition)<-[:DEFINED_BY]-(s:Statement) "
+            f"WHERE toLower(s.id) = toLower('{statement_id}') "
+            "RETURN p"
+        )
+        return (tx.run(query).single() or [None])[0]

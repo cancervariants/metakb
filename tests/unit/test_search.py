@@ -463,6 +463,23 @@ def test_multiple_parameters(query_handler):
     )
     assert_no_match(response)
 
+    # CIViC EID2997
+    response = query_handler.search(
+        statement_id='civiC:eid2997',
+        variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR'
+    )
+    assert len(response['statements']) == 1
+    assert len(response['propositions']) == 1
+
+    # CIViC AID6
+    response = query_handler.search(
+        statement_id='CIViC:AID6',
+        variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR',
+        disease='ncit:C2926'
+    )
+    assert len(response['statements']) > 1
+    assert len(response['propositions']) > 1
+
 
 def test_no_matches(query_handler):
     """Test invalid query matches."""
