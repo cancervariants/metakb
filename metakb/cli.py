@@ -170,19 +170,29 @@ class CLI:
 
         if init_therapy:
             click.echo("Updating Therapy Normalizer...")
-            TherapyCLI.update_normalizer_db(['--db_url', db_url,
-                                             '--normalizer',
-                                             'chemidplus rxnorm wikidata ncit',
-                                             '--update_merged'])
+            args = ['--db_url', db_url, '--normalizer',
+                    'chemidplus rxnorm wikidata ncit', '--update_merged']
+            try:
+                TherapyCLI.update_normalizer_db(args)
+            except SystemExit as e:
+                if e.code != 0:
+                    raise e
         if init_disease:
             click.echo("Updating Disease Normalizer...")
-            DiseaseCLI.update_normalizer_db(['--db_url', db_url,
-                                             '--update_all',
-                                             '--update_merged'])
+            args = ['--db_url', db_url, '--update_all', '--update_merged']
+            try:
+                DiseaseCLI.update_normalizer_db(args)
+            except SystemExit as e:
+                if e.code != 0:
+                    raise e
         if init_gene:
             click.echo("Updating Gene Normalizer...")
-            GeneCLI.update_normalizer_db(['--db_url', db_url,
-                                          '--normalizer', 'hgnc'])
+            args = ['--db_url', db_url, '--normalizer', 'hgnc']
+            try:
+                GeneCLI.update_normalizer_db(args)
+            except SystemExit as e:
+                if e.code != 0:
+                    raise e
         print("Normalizer initialization complete.")
 
     def _check_db_param(self, param: str, name: str) -> str:
