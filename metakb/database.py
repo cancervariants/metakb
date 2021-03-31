@@ -209,7 +209,7 @@ class Graph:
         if extensions:
             for ext in extensions:
                 name = ext['name']
-                if name == 'variant_groups':
+                if name == 'variant_group':
                     variant_groups = ext['value']
                 else:
                     descriptor[name] = json.dumps(ext['value'])
@@ -265,8 +265,6 @@ class Graph:
         :param Dict proposition: must include `disease_context`, `therapy`,
             and `has_originating_context` fields.
         """
-        proposition['id'] = proposition['id']
-
         formatted_keys = _create_keys_string(proposition, ('id', 'predicate',
                                                            'type'))
         prop_type = proposition.get('type')
