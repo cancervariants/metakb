@@ -307,6 +307,7 @@ class StatementResponse(BaseModel):
     description: str
     direction: Optional[Direction]
     evidence_level: str
+    variation_origin: Optional[VariationOrigin]
     proposition: str
     variation_descriptor: str
     therapy_descriptor: str
