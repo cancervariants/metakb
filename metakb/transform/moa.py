@@ -186,7 +186,7 @@ class MOATransform:
             evidence_level=f"moa.evidence_level:"
                            f"{record['predictive_implication']}",
             proposition=propositions[0]['id'],
-            variant_origin=self._get_variation_origin(record['variant']),
+            variation_origin=self._get_variation_origin(record['variant']),
             variation_descriptor=variant_descriptors[0]['id'],
             therapy_descriptor=therapy_descriptor,
             disease_descriptor=disease_descriptor,
@@ -310,9 +310,36 @@ class MOATransform:
             molecule_context=molecule_context,
             structural_type=structural_type,
             ref_allele_seq=ref_allele_seq,
+            extensions=self._get_variant_extensions(variant)
         ).dict(exclude_none=True)
 
         return [variation_descriptor]
+
+    def _get_variant_extensions(self, variant):
+        """Return a list of extensions for a variant.
+
+        :param dict variant: A MOA variant record
+        :return: A list of extensions
+        """
+        coordinate = ['chromosome', 'start_position', 'end_position',
+                      'reference_allele', 'alternate_allele',
+                      'cdna_change', 'protein_change', 'exon']
+
+        extensions = [
+            schemas.Extension(
+                name='moa_representative_coordinate',
+                value={c: variant[c] for c in coordinate}
+            ).dict(by_alias=True, exclude_none=True)
+        ]
+
+        if variant['rsid']:
+            extensions.append(
+                schemas.Extension(
+                    name='moa_rsid',
+                    value=variant['rsid']
+                ).dict(exclude_none=True)
+            )
+        return extensions
 
     def _get_gene_descriptors(self, variant):
         """Return a Gene Descriptor.
@@ -361,9 +388,16 @@ class MOATransform:
         else:
             documents_id = source['url']
 
+        xrefs = []
+        if source['doi']:
+            xrefs.append(f"doi:{source['doi']}")
+        if source['nct'] != "None":
+            xrefs.append(f"nct:{source['nct']}")
+
         documents = schemas.Document(
             id=documents_id,
-            label=source['citation']
+            label=source['citation'],
+            xrefs=xrefs if xrefs else None
         ).dict(exclude_none=True)
 
         return [documents]
@@ -496,10 +530,3 @@ class MOATransform:
             propositions_ix[dict_key][search_key] = index
             propositions_ix[dict_key_ix] += 1
         return index
-
-
-"""tovars = ToVRS()
-aac = AminoAcidCache()
-validations = tovars.get_validations('ABL1 T315I')
-v = VariantNormalizer()
-print(v.normalize('ABL1 T315I', validations, aac))"""
