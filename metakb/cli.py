@@ -116,8 +116,14 @@ class CLI:
         logger.info("Uploading to DB...")
         g = Graph(uri=db_url, credentials=(db_username, db_password))
         g.clear()
-        g.load_from_json(PROJECT_ROOT / 'data' / 'civic' / 'transform' / 'civic_cdm.json')  # noqa: E501
-        # g.load_from_json(PROJECT_ROOT / 'data' / 'moa' / 'transform' / 'moa_cdm.json')  # noqa: E501
+        civic_path = PROJECT_ROOT / 'data' / 'civic' / 'transform' / 'civic_cdm.json'  # noqa: E501
+        moa_path = PROJECT_ROOT / 'data' / 'moa' / 'transform' / 'moa_cdm.json'
+        for path in (civic_path, moa_path):
+            try:
+                g.load_from_json(path)
+            except FileNotFoundError:
+                logger.fatal(f'Could not locate transformed JSON at {path}')
+                raise FileNotFoundError
         g.close()
         logger.info("DB upload successful.")
 
