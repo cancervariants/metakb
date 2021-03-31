@@ -30,16 +30,18 @@ class CLI:
     @click.command()
     @click.option(
         '--db_url',
-        help=('URL endpoint for the application database. Can also be '
+        help=('URL endpoint for the application Neo4j database. Can also be '
               'provided via environment variable METAKB_DB_URL.')
     )
     @click.option(
         '--db_username',
-        help='Username to provide to application database.'
+        help=('Username to provide to application database. Can also be '
+              'provided via environment variable METAKB_DB_USERNAME.')
     )
     @click.option(
         '--db_password',
-        help='Password to provide to application database.'
+        help=('Password to provide to application database. Can also be '
+              'provided via environment variable METAKB_DB_PASSWORD.')
     )
     @click.option(
         '--check_normalizers',
@@ -54,7 +56,7 @@ class CLI:
     )
     @click.option(
         '--normalizer_db_url',
-        help='URL endpoint of normalizer database.'
+        help='URL endpoint of normalizer DynamoDB database.'
     )
     def update_metakb_db(db_url, db_username, db_password,
                          check_normalizers=False, initialize=False,
@@ -96,20 +98,6 @@ class CLI:
                 print("\nNormalizers fully initialized.")
             click.get_current_context().exit()
 
-        if initialize:
-            click.echo("Updating Therapy Normalizer...")
-            TherapyCLI.update_normalizer_db(['--db_url', normalizer_db_url,
-                                             '--normalizer',
-                                             'chemidplus rxnorm wikidata ncit',
-                                             '--update_merged'])
-            click.echo("Updating Disease Normalizer...")
-            DiseaseCLI.update_normalizer_db(['--db_url', normalizer_db_url,
-                                             '--update_all',
-                                             '--update_merged'])
-            click.echo("Updating Gene Normalizer...")
-            GeneCLI.update_normalizer_db(['--db_url', normalizer_db_url,
-                                          '--normalizer', 'hgnc'])
-
         if not db_url:
             if 'METAKB_DB_URL' in environ.keys():
                 db_url = environ['METAKB_DB_URL']
@@ -126,17 +114,32 @@ class CLI:
             else:
                 CLI()._help_msg('Must provide password for DB.')
 
+        if initialize:
+            click.echo("Updating Therapy Normalizer...")
+            TherapyCLI.update_normalizer_db(['--db_url', normalizer_db_url,
+                                             '--normalizer',
+                                             'chemidplus rxnorm wikidata ncit',
+                                             '--update_merged'])
+            click.echo("Updating Disease Normalizer...")
+            DiseaseCLI.update_normalizer_db(['--db_url', normalizer_db_url,
+                                             '--update_all',
+                                             '--update_merged'])
+            click.echo("Updating Gene Normalizer...")
+            GeneCLI.update_normalizer_db(['--db_url', normalizer_db_url,
+                                          '--normalizer', 'hgnc'])
+
         # harvest
         logger.info("Harvesting resource data...")
-        moa_harvester = MOAlmanac()
-        moa_harvest_successful = moa_harvester.harvest()
         civic_harvester = CIViC()
         civic_harvest_successful = civic_harvester.harvest()
-        if not civic_harvest_successful and moa_harvest_successful:
-            logger.info("Harvest failed.")
+        if not civic_harvest_successful:
+            logger.info("CIViC harvest failed.")
             click.get_current_context().exit()
-        else:
-            logger.info("Harvest successful.")
+        moa_harvester = MOAlmanac()
+        moa_harvest_successful = moa_harvester.harvest()
+        if not moa_harvest_successful:
+            logger.info("MOAlmanac harvest failed.")
+            click.get_current_context().exit()
 
         # transform
         logger.info("Transforming harvested data...")
