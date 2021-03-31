@@ -322,7 +322,7 @@ class MOATransform:
             schemas.Extension(
                 name='moa_representative_coordinate',
                 value={c: variant[c] for c in coordinate}
-            ).dict(by_alias=True, exclude_none=True)
+            ).dict(exclude_none=True)
         ]
 
         if variant['rsid']:
