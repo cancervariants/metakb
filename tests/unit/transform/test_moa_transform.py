@@ -31,23 +31,24 @@ def asst69():
             {
                 "id": "moa:69",
                 "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
-                "direction": None,
                 "evidence_level": "moa.evidence_level:Preclinical",
                 "proposition": "proposition:001",
+                "variation_origin": "somatic",
                 "variation_descriptor": "moa:vid69",
-                "therapy_descriptor": "normalize.therapy:Imatinib",
-                "disease_descriptor": "normalize.disease:CML",
+                "therapy_descriptor": "moa.normalize.therapy:Imatinib",
+                "disease_descriptor": "moa.normalize.disease:CML",
                 "method": "method:004",
-                "support_evidence": ["support_evidence:016"],
+                "supported_by": [
+                    "pmid:11423618"
+                ],
                 "type": "Statement"
             }
         ],
         "propositions": [
             {
-                "_id": "proposition:001",
+                "id": "proposition:001",
                 "predicate": "predicts_resistance_to",
-                "variation_origin": None,
-                "subject": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",  # noqa: E501
+                "subject": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",
                 "object_qualifier": "ncit:C3174",
                 "object": "ncit:C62035",
                 "type": "therapeutic_response_proposition"
@@ -58,7 +59,6 @@ def asst69():
                 "id": "moa:vid69",
                 "type": "VariationDescriptor",
                 "label": "ABL1 p.T315I (Missense)",
-                "description": None,
                 "value_id": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",
                 "value": {
                     "location": {
@@ -76,62 +76,59 @@ def asst69():
                     },
                     "type": "Allele"
                 },
-                "xrefs": None,
-                "alternate_labels": None,
-                "extensions": None,
+                "extensions": [
+                    {
+                        "name": "moa_representative_coordinate",
+                        "value": {
+                            "chromosome": "9",
+                            "start_position": "133747580.0",
+                            "end_position": "133747580.0",
+                            "reference_allele": "C",
+                            "alternate_allele": "T",
+                            "cdna_change": "c.944C>T",
+                            "protein_change": "p.T315I",
+                            "exon": "5.0"
+                        },
+                        "type": "Extension"
+                    }
+                ],
                 "molecule_context": "protein",
                 "structural_type": "SO:0001606",
-                "expressions": None,
                 "ref_allele_seq": "T",
-                "gene_context": "normalize.gene.moa:ABL1"
+                "gene_context": "gene.normalize.moa:ABL1"
             }
         ],
         "gene_descriptors": [
             {
-                "id": "normalize.gene.moa:ABL1",
+                "id": "gene.normalize.moa:ABL1",
                 "type": "GeneDescriptor",
                 "label": "ABL1",
-                "description": None,
-                "value_id": None,
                 "value": {
-                    "gene_id": "hgnc:76",
+                    "id": "hgnc:76",
                     "type": "Gene"
-                },
-                "xrefs": None,
-                "alternate_labels": None,
-                "extensions": None
+                }
             }
         ],
         "therapy_descriptors": [
             {
-                "id": "normalize.therapy:Imatinib",
+                "id": "moa.normalize.therapy:Imatinib",
                 "type": "TherapyDescriptor",
                 "label": "Imatinib",
-                "description": None,
-                "value_id": None,
                 "value": {
-                    "therapy_id": "ncit:C62035",
-                    "type": "Therapy"
-                },
-                "xrefs": None,
-                "alternate_labels": None,
-                "extensions": None
+                    "id": "ncit:C62035",
+                    "type": "Drug"
+                }
             }
         ],
         "disease_descriptors": [
             {
-                "id": "normalize.disease:CML",
+                "id": "moa.normalize.disease:CML",
                 "type": "DiseaseDescriptor",
                 "label": "Chronic Myelogenous Leukemia",
-                "description": None,
-                "value_id": None,
                 "value": {
-                    "disease_id": "ncit:C3174",
+                    "id": "ncit:C3174",
                     "type": "Disease"
-                },
-                "xrefs": None,
-                "alternate_labels": None,
-                "extensions": None
+                }
             }
         ],
         "methods": [
@@ -144,16 +141,16 @@ def asst69():
                     "month": 9,
                     "day": 22
                 },
-                "reference": "Reardon, B., Moore, N.D., Moore, N. et al."
+                "authors": "Reardon, B., Moore, N.D., Moore, N. et al."
             }
         ],
-        "support_evidence": [
+        "documents": [
             {
-                "id": "support_evidence:001",
-                "support_evidence_id": "pmid:11423618",
+                "id": "pmid:11423618",
                 "label": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501
-                "description": None,
-                "xrefs": None
+                "xrefs": [
+                    "doi:10.1126/science.1062538"
+                ]
             }
         ]
     }
