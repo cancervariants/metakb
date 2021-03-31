@@ -209,7 +209,7 @@ class Graph:
         if extensions:
             for ext in extensions:
                 name = ext['name']
-                if name == 'variant_groups':
+                if name == 'variant_group':
                     variant_groups = ext['value']
                 else:
                     descriptor[name] = json.dumps(ext['value'])
@@ -265,8 +265,6 @@ class Graph:
         :param Dict proposition: must include `disease_context`, `therapy`,
             and `has_originating_context` fields.
         """
-        proposition['id'] = proposition['id']
-
         formatted_keys = _create_keys_string(proposition, ('id', 'predicate',
                                                            'type'))
         prop_type = proposition.get('type')
@@ -335,8 +333,8 @@ class Graph:
         """
         formatted_keys = _create_keys_string(statement, ('id', 'description',
                                                          'direction',
-                                                         'evidence_level',
-                                                         'variation_origin'))
+                                                         'variation_origin',
+                                                         'evidence_level'))
         match_line = ""
         rel_line = ""
         supported_by = statement.get('supported_by', [])
@@ -344,7 +342,7 @@ class Graph:
             for i, ev in enumerate(supported_by):
                 name = f"doc_{i}"
                 statement[name] = ev
-                match_line += f"MERGE ({name} {{ id:${name} }})\n"  # noqa: E501
+                match_line += f"MERGE ({name} {{ id:${name} }})\n"
                 rel_line += f"MERGE (ev) -[:CITES]-> ({name})\n"
 
         query = f"""
