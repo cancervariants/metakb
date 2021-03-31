@@ -100,8 +100,8 @@ class Graph:
             for var_descr in data.get('variation_descriptors', []):
                 session.write_transaction(self._add_variation_descriptor,
                                           var_descr)
-            for ev in data.get('documents'):
-                session.write_transaction(self._add_document, ev)
+            for doc in data.get('documents'):
+                session.write_transaction(self._add_document, doc)
             for proposition in data.get('propositions', []):
                 session.write_transaction(self._add_proposition,
                                           proposition)
@@ -310,7 +310,7 @@ class Graph:
                           f"{document}")
             raise exception
 
-        if not result:
+        if not result.single():
             formatted_keys = _create_keys_string(document,
                                                  ('id', 'label',
                                                   'document_id',
