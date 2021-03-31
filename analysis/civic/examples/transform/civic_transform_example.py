@@ -9,14 +9,16 @@ def create_civic_example(civic_data):
     evidence_items = ['civic:eid2997', 'civic:eid32']
     assertions = ['civic:aid6']
     for response in civic_data:
-        if response['statements'][0]['id'] in evidence_items:
-            with open(f"{PROJECT_ROOT}/analysis/civic/examples/transform/"
-                      f"{response['statements'][0]['id']}.json", 'w+') as f1:
-                json.dump(response, f1)
-        if response['statements'][0]['id'] in assertions:
-            with open(f"{PROJECT_ROOT}/analysis/civic/examples/transform/"
-                      f"{response['statements'][0]['id']}.json", 'w+') as f2:  # noqa: E501
-                json.dump(response, f2)
+        statements = response['statements']
+        for s in statements:
+            if s['id'] in evidence_items and len(statements) == 1:
+                with open(f"{PROJECT_ROOT}/analysis/civic/examples/transform/"
+                          f"{s['id']}.json", 'w+') as f1:
+                    json.dump(response, f1)
+            if s['id'] in assertions:
+                with open(f"{PROJECT_ROOT}/analysis/civic/examples/transform/"
+                          f"{s['id']}.json", 'w+') as f2:  # noqa: E501
+                    json.dump(response, f2)
 
 
 if __name__ == '__main__':

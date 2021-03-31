@@ -11,7 +11,7 @@ numpy = "*"
 jsondiff = "*"
 pydantic = "*"
 requests-cache = "*"
-gene-normalizer = "*"
+gene-normalizer = "0.1.3"
 disease-normalizer = "*"
 variant-normalizer = "*"
 thera-py = "*"
@@ -19,6 +19,7 @@ neo4j = "*"
 ipykernel = "*"
 uvicorn = "*"
 fastapi = "*"
+click = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
