@@ -344,7 +344,7 @@ class Graph:
             for i, ev in enumerate(supported_by):
                 name = f"doc_{i}"
                 statement[name] = ev
-                match_line += f"MERGE ({name} {{ id:${name} }})\n"  # noqa: E501
+                match_line += f"MERGE ({name} {{ id:${name} }})\n"
                 rel_line += f"MERGE (ev) -[:CITES]-> ({name})\n"
 
         query = f"""
