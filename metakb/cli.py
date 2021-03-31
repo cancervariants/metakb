@@ -44,89 +44,39 @@ class CLI:
               'provided via environment variable METAKB_DB_PASSWORD.')
     )
     @click.option(
-        '--check_normalizers',
+        '--initialize_normalizers',
+        '-i',
         is_flag=True,
-        help=('Check normalizer data repositories and exit if not '
-              'initialized.')
+        default=False,
+        help='Check normalizer databases and initialize if necessary.'
     )
     @click.option(
-        '--initialize',
+        '--force_initialize_normalizers',
+        '-f',
         is_flag=True,
-        help='Initialize all normalizer data repositories.'
+        default=False,
+        help=('Initialize all normalizer data repositories. Overrides '
+              '--initialize_normalizers if both are selected.')
     )
     @click.option(
         '--normalizer_db_url',
         help='URL endpoint of normalizer DynamoDB database.'
     )
     def update_metakb_db(db_url, db_username, db_password,
-                         check_normalizers=False, initialize=False,
+                         initialize_normalizers,
+                         force_initialize_normalizers,
                          normalizer_db_url=''):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
         """
-        uninitialized_srcs = []
-        if check_normalizers:
-            click.echo("Checking Disease Normalizer...")
-            disease_db = DiseaseDatabase(db_url=normalizer_db_url)
-            for src in [v.value for v in DiseaseSources]:
-                response = disease_db.metadata.get_item(
-                    Key={'src_name': src}
-                )
-                if not response.get('Item'):
-                    uninitialized_srcs.append(f"Disease: {src}")
-            click.echo("Checking Therapy Normalizer...")
-            therapy_db = TherapyDatabase(db_url=normalizer_db_url)
-            for src in {TherapySourceLookup[src] for src in TherapySources}:
-                response = therapy_db.metadata.get_item(
-                    Key={'src_name': src}
-                )
-                if not response.get('Item'):
-                    uninitialized_srcs.append(f"Therapy: {src}")
-            click.echo("Checking Gene Normalizer...")
-            gene_db = GeneDatabase(db_url=normalizer_db_url)
-            response = gene_db.metadata.get_item(
-                Key={'src_name': 'HGNC'}
-            )
-            if not response.get('Item'):
-                uninitialized_srcs.append("Gene: HGNC")
-            if uninitialized_srcs:
-                print("\nNormalizater initialization incomplete:")
-                print("---------------------------------------")
-                for src in uninitialized_srcs:
-                    print(src)
-            else:
-                print("\nNormalizers fully initialized.")
-            click.get_current_context().exit()
+        db_url = CLI()._check_db_param(db_url, 'URL')
+        db_username = CLI()._check_db_param(db_username, 'username')
+        db_password = CLI()._check_db_param(db_password, 'password')
 
-        if not db_url:
-            if 'METAKB_DB_URL' in environ.keys():
-                db_url = environ['METAKB_DB_URL']
-            else:
-                CLI()._help_msg('Must provide database URL.')
-        if not db_username:
-            if 'METAKB_DB_USERNAME' in environ.keys():
-                db_username = environ['METAKB_DB_USERNAME']
-            else:
-                CLI()._help_msg('Must provide username for DB.')
-        if not db_password:
-            if 'METAKB_DB_PASSWORD' in environ.keys():
-                db_password = environ['METAKB_DB_PASSWORD']
-            else:
-                CLI()._help_msg('Must provide password for DB.')
-
-        if initialize:
-            click.echo("Updating Therapy Normalizer...")
-            TherapyCLI.update_normalizer_db(['--db_url', normalizer_db_url,
-                                             '--normalizer',
-                                             'chemidplus rxnorm wikidata ncit',
-                                             '--update_merged'])
-            click.echo("Updating Disease Normalizer...")
-            DiseaseCLI.update_normalizer_db(['--db_url', normalizer_db_url,
-                                             '--update_all',
-                                             '--update_merged'])
-            click.echo("Updating Gene Normalizer...")
-            GeneCLI.update_normalizer_db(['--db_url', normalizer_db_url,
-                                          '--normalizer', 'hgnc'])
+        if initialize_normalizers or force_initialize_normalizers:
+            CLI()._handle_initialize(initialize_normalizers,
+                                     force_initialize_normalizers,
+                                     normalizer_db_url)
 
         # harvest
         logger.info("Harvesting resource data...")
@@ -160,12 +110,84 @@ class CLI:
         g.close()
         logger.info("DB upload successful.")
 
+    def _handle_initialize(self, initialize, force_initialize, db_url):
+        """Handle initialization of normalizer data.
+        :param bool initialize: if true, check whether normalizer data is
+            initialized and call initialization routines if not
+        :param bool force_initialize: call initialize routines for all
+            normalizers
+        :param str db_url: URL endpoint for normalizer DynamoDB database
+        """
+        if force_initialize:
+            print('force initialize')
+            init_disease = init_therapy = init_gene = True
+        elif initialize:
+            init_disease = init_therapy = init_gene = False
+
+            click.echo("Checking Disease Normalizer...")
+            disease_db = DiseaseDatabase(db_url=db_url)
+            for src in [v.value for v in DiseaseSources]:
+                response = disease_db.metadata.get_item(
+                    Key={'src_name': src}
+                )
+                if not response.get('Item'):
+                    init_disease = True
+                    break
+
+            click.echo("Checking Therapy Normalizer...")
+            therapy_db = TherapyDatabase(db_url=db_url)
+            for src in {TherapySourceLookup[src] for src in TherapySources}:
+                response = therapy_db.metadata.get_item(
+                    Key={'src_name': src}
+                )
+                if not response.get('Item'):
+                    init_therapy = True
+                    break
+
+            click.echo("Checking Gene Normalizer...")
+            gene_db = GeneDatabase(db_url=db_url)
+            response = gene_db.metadata.get_item(
+                Key={'src_name': 'HGNC'}
+            )
+            if not response.get('Item'):
+                init_gene = True
+
+        if init_therapy:
+            click.echo("Updating Therapy Normalizer...")
+            TherapyCLI.update_normalizer_db(['--db_url', db_url,
+                                             '--normalizer',
+                                             'chemidplus rxnorm wikidata ncit',
+                                             '--update_merged'])
+        if init_disease:
+            click.echo("Updating Disease Normalizer...")
+            DiseaseCLI.update_normalizer_db(['--db_url', db_url,
+                                             '--update_all',
+                                             '--update_merged'])
+        if init_gene:
+            click.echo("Updating Gene Normalizer...")
+            GeneCLI.update_normalizer_db(['--db_url', db_url,
+                                          '--normalizer', 'hgnc'])
+        print("Normalizer initialization complete.")
+
+    def _check_db_param(self, param: str, name: str) -> str:
+        """Check for MetaKB database parameter.
+        :param str param: value of parameter as received from command line
+        :param str name: name of parameter
+        :return: parameter value, or exit with error message if unavailable
+        """
+        if not param:
+            env_var_name = f'METAKB_DB_{name.upper()}'
+            if env_var_name in environ.keys():
+                return environ[env_var_name]
+            else:
+                CLI()._help_msg(f'Must provide {name} for DB.')
+
     def _help_msg(self, msg: str = ""):
         """Handle invalid user input.
         :param str msg: Error message to display to user.
         """
         ctx = click.get_current_context()
-        logger.fatal(msg)
+        logger.fatal(f'Error: {msg}')
         click.echo(ctx.get_help())
         ctx.exit()
 
