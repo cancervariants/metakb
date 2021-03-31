@@ -138,22 +138,20 @@ class MOATransform:
         :return: Descriptors
         """
         therapy_descriptors = self._get_therapy_descriptors(record)
-        variation_descriptors = self._get_variation_descriptors(
-            self._get_record(record['variant']['id'], variants),
-            gene_descriptors)
-        disease_descriptors = \
-            self._get_disease_descriptors(record)
-
         if len(therapy_descriptors) != 1:
             logger.warning(f"Therapy {record['therapy_name']} "
                            f"could not be found in therapy normalizer.")
             return None
 
+        variation_descriptors = self._get_variation_descriptors(
+            self._get_record(record['variant']['id'], variants),
+            gene_descriptors)
         if len(variation_descriptors) != 1:
             logger.warning(f"Variant {record['variant']['feature']} "
                            f"could not be found in variant normalizer.")
             return None
 
+        disease_descriptors = self._get_disease_descriptors(record)
         if len(disease_descriptors) != 1:
             logger.warning(f"Disease {record['disease']['name']}"
                            f" could not be found in disease normalizer.")
@@ -165,6 +163,7 @@ class MOATransform:
                        therapy_descriptors, disease_descriptors,
                        methods, documents):
         """Get a statement for an assertion.
+
         :param dict record: A MOA assertion record
         :param list propositions: Propositions for the record
         :param list variant_descriptors: Variant Descriptors for the record
@@ -174,22 +173,16 @@ class MOATransform:
         :param list documents: Supporting evidence for the rcord
         :return: A list of statement
         """
-        therapy_descriptor = therapy_descriptors[0]['id'] \
-            if therapy_descriptors else None
-        disease_descriptor = disease_descriptors[0]['id'] \
-            if disease_descriptors else None
-
         statement = schemas.Statement(
-            id=f"{schemas.NamespacePrefix.MOA.value}:"
-               f"{record['id']}",
+            id=f"{schemas.NamespacePrefix.MOA.value}:aid{record['id']}",
             description=record['description'],
             evidence_level=f"moa.evidence_level:"
                            f"{record['predictive_implication']}",
             proposition=propositions[0]['id'],
             variation_origin=self._get_variation_origin(record['variant']),
             variation_descriptor=variant_descriptors[0]['id'],
-            therapy_descriptor=therapy_descriptor,
-            disease_descriptor=disease_descriptor,
+            therapy_descriptor=therapy_descriptors[0]['id'],
+            disease_descriptor=disease_descriptors[0]['id'],
             method=methods[0]['id'],
             supported_by=[se['id'] for se in documents]
         ).dict(exclude_none=True)
