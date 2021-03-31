@@ -62,10 +62,10 @@ class CIViCTransform:
         cdm_evidence_items = dict()  # EIDs that have been transformed to CDM
         if not propositions_documents_ix:
             propositions_documents_ix = {
-                # Keep track of support_evidence index value
-                'support_evidence_index': 1,
-                # {support_evidence_id: support_evidence_index}
-                'support_evidence': dict(),
+                # Keep track of documents index value
+                'document_index': 1,
+                # {document_id: document_index}
+                'documents': dict(),
                 # Keep track of proposition index value
                 'proposition_index': 1,
                 # {tuple: proposition_index}
@@ -804,17 +804,6 @@ class CIViCTransform:
         for r in records:
             if r['id'] == record_id:
                 return r
-
-    def _add_to_list(self, eid, key, list_name):
-        """Add a unique item from an evidence item to a list.
-
-        :param dict eid: Evidence Item that has been transformed to CDM
-        :param str key: The key to access in the eid
-        :param list list_name: The name of the list to
-        """
-        item = eid[key][0]
-        if item not in list_name:
-            list_name.append(item)
 
     def _set_ix(self, propositions_documents_ix, dict_key, search_key):
         """Set indexes for documents or propositions.
