@@ -268,7 +268,6 @@ class Graph:
         proposition['id'] = proposition['id']
 
         formatted_keys = _create_keys_string(proposition, ('id', 'predicate',
-                                                           'variation_origin',
                                                            'type'))
         prop_type = proposition.get('type')
         if prop_type == "therapeutic_response_proposition":
@@ -336,7 +335,8 @@ class Graph:
         """
         formatted_keys = _create_keys_string(statement, ('id', 'description',
                                                          'direction',
-                                                         'evidence_level'))
+                                                         'evidence_level',
+                                                         'variation_origin'))
         match_line = ""
         rel_line = ""
         supported_by = statement.get('supported_by', [])

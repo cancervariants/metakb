@@ -318,19 +318,19 @@ class QueryHandler:
                 response = session.read_transaction(
                     self._find_and_return_statement_response, statement_id)
                 se_list = session.read_transaction(
-                    self._find_and_return_support_evidence, statement_id)
+                    self._find_and_return_supported_by, statement_id)
                 statements_response.append(StatementResponse(
                     id=statement_id,
-                    type=s.get('type'),
                     description=s.get('description'),
                     direction=s.get('direction'),
                     evidence_level=s.get('evidence_level'),
+                    variation_origin=s.get('variation_origin'),
                     proposition=response['tr_id'],
                     variation_descriptor=response['vid'],
                     therapy_descriptor=response['tid'],
                     disease_descriptor=response['did'],
                     method=response['m']['id'],
-                    supported_by=[se['support_evidence_id'] for se in se_list]
+                    supported_by=[se['id'] for se in se_list]
                 ).dict())
         return statements_response
 
@@ -366,7 +366,6 @@ class QueryHandler:
                     id=p.get('id'),
                     type=p.get('type'),
                     predicate=p.get('predicate'),
-                    variation_origin=p.get('variation_origin'),
                     subject=value_ids['subject'],
                     object_qualifier=value_ids['object_qualifier'],
                     object=value_ids['object']
@@ -389,11 +388,11 @@ class QueryHandler:
         return tx.run(query).single()
 
     @staticmethod
-    def _find_and_return_support_evidence(tx, statement_id):
-        """Return a list of SupportEvidence Nodes for a given Statement."""
+    def _find_and_return_supported_by(tx, statement_id):
+        """Statement and Document Nodes that support a given Statement."""
         query = (
-            "MATCH (s:Statement)-[:CITES]->(se:SupportEvidence) "
+            "MATCH (s:Statement)-[:CITES]->(sb) "
             f"WHERE s.id = '{statement_id}' "
-            "RETURN se"
+            "RETURN sb"
         )
         return [se[0] for se in tx.run(query)]
