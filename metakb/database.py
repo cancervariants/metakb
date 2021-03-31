@@ -101,7 +101,7 @@ class Graph:
                 session.write_transaction(self._add_variation_descriptor,
                                           var_descr)
             for ev in data.get('documents'):
-                session.write_transaction(self._documents, ev)
+                session.write_transaction(self._add_document, ev)
             for proposition in data.get('propositions', []):
                 session.write_transaction(self._add_proposition,
                                           proposition)
@@ -265,7 +265,7 @@ class Graph:
         :param Dict proposition: must include `disease_context`, `therapy`,
             and `has_originating_context` fields.
         """
-        proposition['id'] = proposition['_id']
+        proposition['id'] = proposition['id']
 
         formatted_keys = _create_keys_string(proposition, ('id', 'predicate',
                                                            'variation_origin',
