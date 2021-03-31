@@ -6,8 +6,7 @@ from metakb.schemas import SearchService
 from typing import Optional
 
 app = FastAPI(docs_url='/api/v2', openapi_url='/api/v2/openapi.json')
-query = QueryHandler(uri="bolt://localhost:7687",
-                     credentials=("neo4j", "admin"))
+query = QueryHandler()
 
 
 def custom_openapi():
@@ -16,7 +15,7 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="The VICC Meta-Knowledgebase",
-        version="2.0",
+        version="2.0.0-alpha.1",
         description="A search interface for cancer variant interpretations"
                     " assembled by aggregating and harmonizing across multiple"
                     " cancer variant interpretation knowledgebases.",
@@ -37,9 +36,9 @@ search_summary = ("Given variation, disease, therapy, and/or gene, "
 search_response_description = "A response to a validly-formed query."
 search_description = ("Return statements and propositions associated"
                       " to the queried concepts.")
-v_description = "Variation to search"
-d_description = "Disease to search"
-t_description = "Therapy to search"
+v_description = "Variation (subject) to search"
+d_description = "Disease (object qualifier) to search"
+t_description = "Therapy (object) to search"
 g_description = "Gene to search"
 s_description = "Statement ID to search"
 
