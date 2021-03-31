@@ -248,25 +248,20 @@ class QueryHandler:
                     for s in statements:
                         if s not in statement_nodes:
                             statement_nodes.append(s)
+                            self.add_proposition_and_statement_nodes(session,
+                                                                     s.get('id'),  # noqa: E501
+                                                                     proposition_nodes,  # noqa: E501
+                                                                     statement_nodes)  # noqa: E501
+
             else:
                 statement_nodes = [statement]
 
                 # Add statements found in `supported_by`
                 # Then add their associated propositions
-                supported_by_statements = session.read_transaction(
-                    self._find_and_return_supported_by, valid_statement_id,
-                    only_statement=True
-                )
-                for s in supported_by_statements:
-                    if s not in statement_nodes:
-                        statement_nodes.append(s)
-                        proposition = session.read_transaction(
-                            self._find_and_return_propositions_from_statement,
-                            s.get('id')
-                        )
-                        if proposition and proposition \
-                                not in proposition_nodes:
-                            proposition_nodes.append(proposition)
+                self.add_proposition_and_statement_nodes(session,
+                                                         valid_statement_id,
+                                                         proposition_nodes,
+                                                         statement_nodes)
 
             if proposition_nodes and statement_nodes:
                 response['statements'] =\
@@ -277,8 +272,28 @@ class QueryHandler:
                 response['warnings'].append('Could not find statements '
                                             'associated with the queried'
                                             ' concepts.')
-
         return SearchService(**response).dict()
+
+    def add_proposition_and_statement_nodes(self, session, statement_id,
+                                            proposition_nodes,
+                                            statement_nodes):
+        """Get propositions and statements from supported_by."""
+        # Add statements found in `supported_by`
+        # Then add their associated propositions
+        supported_by_statements = session.read_transaction(
+            self._find_and_return_supported_by, statement_id,
+            only_statement=True
+        )
+        for s in supported_by_statements:
+            if s not in statement_nodes:
+                statement_nodes.append(s)
+                proposition = session.read_transaction(
+                    self._find_and_return_propositions_from_statement,
+                    s.get('id')
+                )
+                if proposition and proposition \
+                        not in proposition_nodes:
+                    proposition_nodes.append(proposition)
 
     @staticmethod
     def _get_statement_by_id(tx, statement_id):
