@@ -41,6 +41,7 @@ v_description = "Variation to search"
 d_description = "Disease to search"
 t_description = "Therapy to search"
 g_description = "Gene to search"
+s_description = "Statement ID to search"
 
 
 @app.get('/api/v2/search',
@@ -53,6 +54,8 @@ g_description = "Gene to search"
 def search(variation: Optional[str] = Query(None, description=v_description),
            disease: Optional[str] = Query(None, description=d_description),
            therapy: Optional[str] = Query(None, description=t_description),
-           gene: Optional[str] = Query(None, description=g_description)):
+           gene: Optional[str] = Query(None, description=g_description),
+           statement_id: Optional[str] = Query(None, description=s_description)
+           ):
     """Search endpoint"""
-    return query.search(variation, disease, therapy, gene)
+    return query.search(variation, disease, therapy, gene, statement_id)

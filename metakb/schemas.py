@@ -1,7 +1,6 @@
 """Common data model"""
 from enum import Enum, IntEnum
 from pydantic import BaseModel
-from pydantic.fields import Field
 from typing import List, Optional, Union, Dict, Any, Type
 
 
@@ -134,7 +133,7 @@ class Therapy(BaseModel):
 class TherapeuticResponseProposition(BaseModel):
     """Define therapeutic Response Proposition model"""
 
-    id: str = Field(..., alias='_id')
+    id: str
     type = PropositionType.PREDICTIVE.value
     predicate: Optional[PredictivePredicate]
     variation_origin: Optional[VariationOrigin]
@@ -290,95 +289,6 @@ class Response(BaseModel):
     support_evidence: List[SupportEvidence]
 
 
-class MethodResponse(BaseModel):
-    """Define Method Response for Search Endpoint."""
-
-    label: str
-    url: str
-    version: Date
-    reference: str
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['MethodResponse']) -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
-                "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
-                "version": {
-                    "year": 2019,
-                    "month": 11,
-                    "day": 29
-                },
-                "reference": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."  # noqa: E501
-            }
-
-
-class SupportEvidenceResponse(BaseModel):
-    """Define Support Evidence Response for Search Endpoint."""
-
-    id: str
-    label: str
-    description: Optional[str]
-    xrefs: Optional[List[str]]
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['SupportEvidenceResponse']) -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "id": "pmid:23982599",
-                "label": "Dungo et al., 2013, Drugs",
-                "description": "Afatinib: first global approval.",
-                "xrefs": []
-            }
-
-
-class PropositionResponse(BaseModel):
-    """Define Proposition Response for Search Endpoint."""
-
-    type: str
-    predicate: str
-    variation_origin: Optional[VariationOrigin]
-    subject: str
-    object_qualifier: str
-    object: str
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['PropositionResponse']) -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "type": "therapeutic_response_proposition",
-                "predicate": "predicts_sensitivity_to",
-                "variation_origin": "somatic",
-                "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
-                "object_qualifier": "ncit:C2926",
-                "object": "ncit:C66940"
-            }
-
-
 class StatementResponse(BaseModel):
     """Define Statement Response for Search Endpoint."""
 
@@ -387,12 +297,12 @@ class StatementResponse(BaseModel):
     description: str
     direction: Optional[Direction]
     evidence_level: str
-    proposition: PropositionResponse
+    proposition: str
     variation_descriptor: str
     therapy_descriptor: str
     disease_descriptor: str
-    method: MethodResponse
-    support_evidence: List[SupportEvidenceResponse]
+    method: str
+    supported_by: List[str]
 
     class Config:
         """Configure examples."""
@@ -443,15 +353,23 @@ class StatementResponse(BaseModel):
             }
 
 
-class SearchService(BaseModel):
-    """Define model for Search Endpoint Response."""
+class SearchQuery(BaseModel):
+    """Queries for the Search Endpoint."""
 
     variation: Optional[str]
     disease: Optional[str]
     therapy: Optional[str]
     gene: Optional[str]
+    statement_id: Optional[str]
+
+
+class SearchService(BaseModel):
+    """Define model for Search Endpoint Response."""
+
+    query: SearchQuery
     warnings: Optional[List[str]]
     statements: Optional[List[StatementResponse]]
+    propositions: Optional[List[TherapeuticResponseProposition]]
 
     class Config:
         """Configure examples."""
