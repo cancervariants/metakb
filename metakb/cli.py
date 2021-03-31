@@ -60,12 +60,22 @@ class CLI:
     )
     @click.option(
         '--normalizer_db_url',
+        default='',
         help='URL endpoint of normalizer DynamoDB database.'
+    )
+    @click.option(
+        '--load_transformed',
+        '-l',
+        is_flag=True,
+        default=False,
+        help=('Load from existing resource transform documents instead of'
+              ' initiating new harvest and transformation procedures.')
     )
     def update_metakb_db(db_url, db_username, db_password,
                          initialize_normalizers,
                          force_initialize_normalizers,
-                         normalizer_db_url=''):
+                         normalizer_db_url,
+                         load_transformed):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
         """
@@ -73,40 +83,41 @@ class CLI:
         db_username = CLI()._check_db_param(db_username, 'username')
         db_password = CLI()._check_db_param(db_password, 'password')
 
-        if initialize_normalizers or force_initialize_normalizers:
-            CLI()._handle_initialize(initialize_normalizers,
-                                     force_initialize_normalizers,
-                                     normalizer_db_url)
+        if not load_transformed:
+            if initialize_normalizers or force_initialize_normalizers:
+                CLI()._handle_initialize(initialize_normalizers,
+                                         force_initialize_normalizers,
+                                         normalizer_db_url)
 
-        # harvest
-        logger.info("Harvesting resource data...")
-        civic_harvester = CIViC()
-        civic_harvest_successful = civic_harvester.harvest()
-        if not civic_harvest_successful:
-            logger.info("CIViC harvest failed.")
-            click.get_current_context().exit()
-        moa_harvester = MOAlmanac()
-        moa_harvest_successful = moa_harvester.harvest()
-        if not moa_harvest_successful:
-            logger.info("MOAlmanac harvest failed.")
-            click.get_current_context().exit()
+            # harvest
+            logger.info("Harvesting resource data...")
+            civic_harvester = CIViC()
+            civic_harvest_successful = civic_harvester.harvest()
+            if not civic_harvest_successful:
+                logger.info("CIViC harvest failed.")
+                click.get_current_context().exit()
+            moa_harvester = MOAlmanac()
+            moa_harvest_successful = moa_harvester.harvest()
+            if not moa_harvest_successful:
+                logger.info("MOAlmanac harvest failed.")
+                click.get_current_context().exit()
 
-        # transform
-        logger.info("Transforming harvested data...")
-        civic_transform = CIViCTransform()
-        civic_items, civic_indices = civic_transform.transform()
-        civic_transform._create_json(civic_items)
-        moa_transform = MOATransform()
-        moa_items, _ = moa_transform.transform(civic_indices)
-        moa_transform._create_json(moa_items)
-        logger.info("Transform successful.")
+            # transform
+            logger.info("Transforming harvested data...")
+            civic_transform = CIViCTransform()
+            civic_items, civic_indices = civic_transform.transform()
+            civic_transform._create_json(civic_items)
+            moa_transform = MOATransform()
+            moa_items, _ = moa_transform.transform(civic_indices)
+            moa_transform._create_json(moa_items)
+            logger.info("Transform successful.")
 
         # upload
         logger.info("Uploading to DB...")
         g = Graph(uri=db_url, credentials=(db_username, db_password))
         g.clear()
         g.load_from_json(PROJECT_ROOT / 'data' / 'civic' / 'transform' / 'civic_cdm.json')  # noqa: E501
-        g.load_from_json(PROJECT_ROOT / 'data' / 'moa' / 'transform' / 'moa_cdm.json')  # noqa: E501
+        # g.load_from_json(PROJECT_ROOT / 'data' / 'moa' / 'transform' / 'moa_cdm.json')  # noqa: E501
         g.close()
         logger.info("DB upload successful.")
 
@@ -119,7 +130,6 @@ class CLI:
         :param str db_url: URL endpoint for normalizer DynamoDB database
         """
         if force_initialize:
-            print('force initialize')
             init_disease = init_therapy = init_gene = True
         elif initialize:
             init_disease = init_therapy = init_gene = False
