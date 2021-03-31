@@ -9,6 +9,7 @@ from disease.query import QueryHandler as DiseaseQueryHandler
 from metakb.schemas import SearchService, StatementResponse, \
     TherapeuticResponseProposition
 import logging
+from os import environ
 
 
 logger = logging.getLogger('metakb')
@@ -18,13 +19,18 @@ logger.setLevel(logging.DEBUG)
 class QueryHandler:
     """Class for handling queries."""
 
-    def __init__(self, uri, credentials):
-        """Initialize neo4j driver and the VICC normalizers.
-
-        :param str uri: Address of neo4j database
-        :param Tuple[str,str] credentials: [username, password]
-        """
-        self.driver = GraphDatabase.driver(uri, auth=credentials)
+    def __init__(self):
+        """Initialize neo4j driver and the VICC normalizers."""
+        if 'METAKB_DB_URL' in environ and 'METAKB_DB_USERNAME' in environ and 'METAKB_DB_PASSWORD' in environ:  # noqa: E501
+            uri = environ['METAKB_DB_URL']
+            username = environ['METAKB_DB_USERNAME']
+            password = environ['METAKB_DB_PASSWORD']
+        else:
+            # Local
+            uri = "bolt://localhost:7687"
+            username = "neo4j"
+            password = "admin"
+        self.driver = GraphDatabase.driver(uri, auth=(username, password))
         self.gene_query_handler = GeneQueryHandler()
         self.variant_normalizer = VariantNormalizer()
         self.disease_query_handler = DiseaseQueryHandler()
@@ -37,6 +43,8 @@ class QueryHandler:
 
         :param str therapy: Therapy query
         :param list warnings: A list of warnings for the search query
+        :return: A normalized therapy concept string if concept exists in
+            thera-py, else `None`
         """
         therapy_norm_resp = \
             self.therapy_query_handler.search_groups(therapy)
@@ -65,6 +73,8 @@ class QueryHandler:
 
         :param str disease: Disease query
         :param list warnings: A list of warnings for the search query
+        :return: A normalized disease concept string if concept exists in
+            disease-normalizer, else `None`
         """
         disease_norm_response = \
             self.disease_query_handler.search_groups(disease)
@@ -84,6 +94,8 @@ class QueryHandler:
 
         :param str variation: Variation query
         :param list warnings: A list of warnings for the search query
+        :return: A normalized variant concept string if concept exists in
+            variant-normalizer, else `None`
         """
         validations = self.variant_to_vrs.get_validations(variation)
         variation_norm_resp =\
@@ -107,6 +119,8 @@ class QueryHandler:
 
         :param str gene: Gene query
         :param list warnings: A list of warnings for the search query.
+        :return: A normalized gene concept string if concept exists in
+            gene-normalizer, else `None`
         """
         gene_norm_resp = self.gene_query_handler.search_sources(gene,
                                                                 incl='hgnc')
@@ -122,9 +136,9 @@ class QueryHandler:
                              response):
         """Find normalized terms for queried concepts.
 
-        :param str variation: Variation query
-        :param str disease: Disease query
-        :param str therapy: Therapy query
+        :param str variation: Variation (subject) query
+        :param str disease: Disease (object_qualifier) query
+        :param str therapy: Therapy (object) query
         :param str gene: Gene query
         :param dict response: The search response
         :return: A tuple containing the normalized concepts if it exists
@@ -168,6 +182,8 @@ class QueryHandler:
         :param str therapy: Therapy query
         :param str gene: Gene query
         :param str statement_id: Statement ID query
+        :return: A dictionary containing the statements and propositions
+            with relationships to the queried concepts
         """
         response = {
             'query': {
@@ -368,6 +384,7 @@ class QueryHandler:
         """Return a list of propositions from Proposition nodes.
 
         :param list propositions: A list of Proposition Nodes
+        :return: A list of Propositions
         """
         propositions_response = list()
         for p in propositions:

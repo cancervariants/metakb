@@ -13,8 +13,7 @@ def query_handler():
     class QueryGetter:
 
         def __init__(self):
-            self.query_handler = QueryHandler(uri="bolt://localhost:7687",
-                                              credentials=("neo4j", "admin"))
+            self.query_handler = QueryHandler()
 
         def search(self, variation='', disease='', therapy='', gene='',
                    statement_id=''):
