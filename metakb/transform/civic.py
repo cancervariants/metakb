@@ -48,7 +48,10 @@ class CIViCTransform:
     def transform(self, propositions_documents_ix=None):
         """Transform CIViC harvested json to common data model.
 
-        :return: A list of dictionaries containing transformations to CDM.
+        :param Dict propositions_documents_ix: tracking data to properly
+            index SupportEvidence
+        :return: A list of dictionaries containing transformations to CDM,
+            and an updated propositions_documents_ix object
         """
         data = self._extract()
         responses = list()
