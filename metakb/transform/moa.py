@@ -58,11 +58,7 @@ class MOATransform:
         assertions = data['assertions']
         sources = data['sources']
         variants = data['variants']
-        propositions_support_evidence_ix = {
-            # Keep track of support_evidence index value
-            'support_evidence_index': 1,
-            # {support_evidence_id: support_evidence_index}
-            'support_evidence': dict(),
+        propositions_ix = {
             # Keep track of proposition index value
             'proposition_index': 1,
             # {tuple: proposition_index}
@@ -71,13 +67,13 @@ class MOATransform:
 
         # Transform MOA assertions
         self._transform_statements(responses, assertions, variants,
-                                   sources, propositions_support_evidence_ix,
+                                   sources, propositions_ix,
                                    cdm_assertions)
 
         return responses
 
     def _transform_statements(self, responses, records, variants,
-                              sources, propositions_support_evidence_ix,
+                              sources, propositions_ix,
                               cdm_assertions):
         """Add transformed assertions to the response list.
 
@@ -103,22 +99,21 @@ class MOATransform:
                 self._get_tr_propositions(record, variation_descriptors,
                                           disease_descriptors,
                                           therapy_descriptors,
-                                          propositions_support_evidence_ix)
+                                          propositions_ix)
 
             # We only want therapeutic response for now
             if not propositions:
                 continue
 
-            support_evidence = self._get_support_evidence(
-                self._get_record(record['source_ids'][0], sources),
-                propositions_support_evidence_ix)
+            documents = self._get_documents(
+                self._get_record(record['source_ids'][0], sources))
 
             methods = self._get_method()
             statements = self._get_statement(record, propositions,
                                              variation_descriptors,
                                              therapy_descriptors,
                                              disease_descriptors,
-                                             methods, support_evidence)
+                                             methods, documents)
 
             response = schemas.Response(
                 statements=statements,
@@ -128,8 +123,8 @@ class MOATransform:
                 therapy_descriptors=therapy_descriptors,
                 disease_descriptors=disease_descriptors,
                 methods=methods,
-                support_evidence=support_evidence
-            ).dict(by_alias=True)
+                documents=documents
+            ).dict(exclude_none=True)
 
             cdm_assertions[f"moa:assertion_{record['id']}"] = response
             responses.append(response)
@@ -168,7 +163,7 @@ class MOATransform:
 
     def _get_statement(self, record, propositions, variant_descriptors,
                        therapy_descriptors, disease_descriptors,
-                       methods, support_evidence):
+                       methods, documents):
         """Get a statement for an assertion.
         :param dict record: A MOA assertion record
         :param list propositions: Propositions for the record
@@ -176,7 +171,7 @@ class MOATransform:
         :param list therapy_descriptors: Therapy Descriptors for the record
         :param list disease_descriptors: Disease Descriptors for the record
         :param list methods: Assertion methods for the record
-        :param list support_evidence: Supporting evidence for the rcord
+        :param list documents: Supporting evidence for the rcord
         :return: A list of statement
         """
         therapy_descriptor = therapy_descriptors[0]['id'] \
@@ -190,19 +185,20 @@ class MOATransform:
             description=record['description'],
             evidence_level=f"moa.evidence_level:"
                            f"{record['predictive_implication']}",
-            proposition=propositions[0]['_id'],
+            proposition=propositions[0]['id'],
+            variant_origin=self._get_variation_origin(record['variant']),
             variation_descriptor=variant_descriptors[0]['id'],
             therapy_descriptor=therapy_descriptor,
             disease_descriptor=disease_descriptor,
             method=methods[0]['id'],
-            support_evidence=[se['id'] for se in support_evidence]
-        ).dict()
+            supported_by=[se['id'] for se in documents]
+        ).dict(exclude_none=True)
 
         return [statement]
 
     def _get_tr_propositions(self, record, variation_descriptors,
                              disease_descriptors, therapy_descriptors,
-                             propositions_support_evidence_ix):
+                             propositions_ix):
         """Return a list of propositions.
 
         :param: MOA assertion
@@ -219,26 +215,24 @@ class MOATransform:
             return []
 
         proposition = schemas.TherapeuticResponseProposition(
-            _id="",
+            id="",
             type="therapeutic_response_proposition",
             predicate=predicate,
-            variant_origin=self._get_variation_origin(record['variant']),
             subject=variation_descriptors[0]['value_id'],
-            object_qualifier=disease_descriptors[0]['value']['disease_id'],
-            object=therapy_descriptors[0]['value']['therapy_id']
-        ).dict(by_alias=True)
+            object_qualifier=disease_descriptors[0]['value']['id'],
+            object=therapy_descriptors[0]['value']['id']
+        ).dict(exclude_none=True)
 
         # Get corresponding id for proposition
         key = (proposition['type'],
                proposition['predicate'],
-               proposition['variation_origin'],
                proposition['subject'],
                proposition['object_qualifier'],
                proposition['object'])
 
-        proposition_index = self._set_ix(propositions_support_evidence_ix,
+        proposition_index = self._set_ix(propositions_ix,
                                          'propositions', key)
-        proposition['_id'] = f"proposition:{proposition_index:03}"
+        proposition['id'] = f"proposition:{proposition_index:03}"
 
         return [proposition]
 
@@ -316,7 +310,7 @@ class MOATransform:
             molecule_context=molecule_context,
             structural_type=structural_type,
             ref_allele_seq=ref_allele_seq,
-        ).dict()
+        ).dict(exclude_none=True)
 
         return [variation_descriptor]
 
@@ -343,11 +337,11 @@ class MOATransform:
 
                 if found_match:
                     gene_descriptor = schemas.GeneDescriptor(
-                        id=f"normalize.{schemas.NormalizerPrefix.GENE.value}."
+                        id=f"{schemas.NormalizerPrefix.GENE.value}.normalize."
                            f"{schemas.NamespacePrefix.MOA.value}:{quote(gene)}",  # noqa: E501
                         label=gene,
-                        value=schemas.Gene(gene_id=gene_norm_resp['records'][0].concept_id),  # noqa: E501
-                    ).dict()
+                        value=schemas.Gene(id=gene_norm_resp['records'][0].concept_id),  # noqa: E501
+                    ).dict(exclude_none=True)
                 else:
                     gene_descriptor = {}
 
@@ -355,29 +349,24 @@ class MOATransform:
 
         return gene_descriptors
 
-    def _get_support_evidence(self, source, propositions_support_evidence_ix):
-        """Get an assertion's support evidence.
+    def _get_documents(self, source):
+        """Get an assertion's documents.
 
         :param: An evidence source
-        :param: Keeps track of proposition and support_evidence indexes
+        :param: Keeps track of proposition and documents indexes
         """
-        support_evidence = None
+        documents = None
         if source['pmid'] != "None":
-            support_evidence_id = f"pmid:{source['pmid']}"
+            documents_id = f"pmid:{source['pmid']}"
         else:
-            support_evidence_id = source['url']
+            documents_id = source['url']
 
-        support_evidence_ix = self._set_ix(propositions_support_evidence_ix,
-                                           'support_evidence',
-                                           support_evidence_id)
-
-        support_evidence = schemas.SupportEvidence(
-            id=f"support_evidence:{support_evidence_ix:03}",
-            support_evidence_id=support_evidence_id,
+        documents = schemas.Document(
+            id=documents_id,
             label=source['citation']
-        ).dict()
+        ).dict(exclude_none=True)
 
-        return [support_evidence]
+        return [documents]
 
     def _get_method(self):
         """Get methods for a given record.
@@ -390,7 +379,7 @@ class MOATransform:
             label='Clinical interpretation of integrative molecular profiles to guide precision cancer medicine',  # noqa:E501
             url='https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1',  # noqa:E501
             version=schemas.Date(year=2020, month=9, day=22),
-            reference='Reardon, B., Moore, N.D., Moore, N. et al.'
+            authors='Reardon, B., Moore, N.D., Moore, N. et al.'
         ).dict()]
 
         return methods
@@ -428,11 +417,12 @@ class MOATransform:
 
         if therapy_norm_id:
             therapy_descriptor = schemas.ValueObjectDescriptor(
-                id=t_handler_resp['id'],
+                id=f"{schemas.NamespacePrefix.MOA.value}."
+                   f"{t_handler_resp['id']}",
                 type="TherapyDescriptor",
                 label=therapy,
-                value=schemas.Therapy(therapy_id=therapy_norm_id)
-            ).dict()
+                value=schemas.Drug(id=therapy_norm_id)
+            ).dict(exclude_none=True)
         else:
             return []
 
@@ -466,11 +456,12 @@ class MOATransform:
 
         if disease_norm_id.startswith('ncit:'):
             disease_descriptor = schemas.ValueObjectDescriptor(
-                id=d_handler_resp['id'],
+                id=f"{schemas.NamespacePrefix.MOA.value}."
+                   f"{d_handler_resp['id']}",
                 type="DiseaseDescriptor",
                 label=disease_name,
-                value=schemas.Disease(disease_id=disease_norm_id),
-            ).dict()
+                value=schemas.Disease(id=disease_norm_id),
+            ).dict(exclude_none=True)
         else:
             # TODO: Should we accept other disease_ids other than NCIt?
             logger.warning("Could not find NCIt ID using Disease Normalization"
@@ -489,26 +480,26 @@ class MOATransform:
             if r['id'] == record_id:
                 return r
 
-    def _set_ix(self, propositions_support_evidence_ix, dict_key, search_key):
-        """Set indexes for support_evidence or propositions.
+    def _set_ix(self, propositions_ix, dict_key, search_key):
+        """Set indexes for propositions.
 
-        :param dict propositions_support_evidence_ix: Keeps track of
-            proposition and support_evidence indexes
-        :param str dict_key: 'sources' or 'propositions'
+        :param dict propositions_ix: Keeps track of proposition indexes
+        :param str dict_key: 'propositions'
         :param Any search_key: The key to get or set
         :return: An int representing the index
         """
-        if dict_key == 'support_evidence':
-            dict_key_ix = 'support_evidence_index'
-        elif dict_key == 'propositions':
-            dict_key_ix = 'proposition_index'
+        dict_key_ix = 'proposition_index'
+        if propositions_ix[dict_key].get(search_key):
+            index = propositions_ix[dict_key].get(search_key)
         else:
-            raise KeyError("dict_key can only be `support_evidence` or "
-                           "`propositions`.")
-        if propositions_support_evidence_ix[dict_key].get(search_key):
-            index = propositions_support_evidence_ix[dict_key].get(search_key)
-        else:
-            index = propositions_support_evidence_ix.get(dict_key_ix)
-            propositions_support_evidence_ix[dict_key][search_key] = index
-            propositions_support_evidence_ix[dict_key_ix] += 1
+            index = propositions_ix.get(dict_key_ix)
+            propositions_ix[dict_key][search_key] = index
+            propositions_ix[dict_key_ix] += 1
         return index
+
+
+"""tovars = ToVRS()
+aac = AminoAcidCache()
+validations = tovars.get_validations('ABL1 T315I')
+v = VariantNormalizer()
+print(v.normalize('ABL1 T315I', validations, aac))"""
