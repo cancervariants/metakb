@@ -478,15 +478,29 @@ def test_multiple_parameters(query_handler):
     )
     assert len(response['statements']) > 1
     assert len(response['propositions']) > 1
-    statements = list()
+    civic_aid6_supported_by_statements = list()
     for s in response['statements']:
         if s['id'] == 'civic:aid6':
             statement = s
         else:
-            statements.append(s['id'])
+            civic_aid6_supported_by_statements.append(s['id'])
     supported_by_statements = \
         [s for s in statement['supported_by'] if s.startswith('civic:eid')]
-    assert set(statements) == set(supported_by_statements)
+    assert set(civic_aid6_supported_by_statements) == \
+           set(supported_by_statements)
+
+    response = query_handler.search(
+        disease='ncit:C2926',
+        variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR'
+    )
+    statement_ids = list()
+    for s in response['statements']:
+        if s['id'] == 'civic:aid6':
+            pass
+        else:
+            statement_ids.append(s['id'])
+    for aid6_statement in civic_aid6_supported_by_statements:
+        assert aid6_statement in statement_ids
 
 
 def test_no_matches(query_handler):

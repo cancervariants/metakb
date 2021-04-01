@@ -227,9 +227,9 @@ class QueryHandler:
             valid_statement_id
         )
 
-        # If statement ID isn't specified, get all statements
-        # related to a proposition
         if not valid_statement_id:
+            # If statement ID isn't specified, get all statements
+            # related to a proposition
             statement_nodes = list()
             for p_node in proposition_nodes:
                 statements = session.read_transaction(
@@ -239,14 +239,15 @@ class QueryHandler:
                     if s not in statement_nodes:
                         statement_nodes.append(s)
         else:
+            # Given Statement ID
             statement_nodes = [statement]
 
-            # Add statements found in `supported_by`
-            # Then add their associated propositions
-            self.add_proposition_and_statement_nodes(session,
-                                                     valid_statement_id,
-                                                     proposition_nodes,
-                                                     statement_nodes)
+        # Add statements found in `supported_by` to statement_nodes
+        # Then add the associated proposition to proposition_nodes
+        for s in statement_nodes:
+            self.add_proposition_and_statement_nodes(
+                session, s.get('id'), proposition_nodes, statement_nodes
+            )
 
         if proposition_nodes and statement_nodes:
             response['statements'] =\
@@ -263,9 +264,7 @@ class QueryHandler:
     def add_proposition_and_statement_nodes(self, session, statement_id,
                                             proposition_nodes,
                                             statement_nodes):
-        """Get propositions and statements from supported_by."""
-        # Add statements found in `supported_by`
-        # Then add their associated propositions
+        """Get statements found in `supported_by` and their propositions."""
         supported_by_statements = session.read_transaction(
             self._find_and_return_supported_by, statement_id,
             only_statement=True
