@@ -10,8 +10,6 @@ The intent of the project is to leverage the collective knowledge of the dispara
 
 ### Prerequisites
 
-What things you need to install the software and how to install them:
-
 * A newer version of Python 3, preferably 3.6 or greater. To confirm on your system, run:
 
 ```
@@ -128,7 +126,7 @@ python3 -m pytest
 
 Code style is managed by [flake8](https://github.com/PyCQA/flake8) and checked prior to commit.
 
-```sh
+```
 see .flake8
 
 ```
