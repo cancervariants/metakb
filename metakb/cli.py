@@ -30,13 +30,11 @@ class CLI:
     @click.command()
     @click.option(
         '--db_url',
-        default='bolt://localhost:7687',
         help=('URL endpoint for the application Neo4j database. Can also be '
               'provided via environment variable METAKB_DB_URL.')
     )
     @click.option(
         '--db_username',
-        default='neo4j',
         help=('Username to provide to application database. Can also be '
               'provided via environment variable METAKB_DB_USERNAME.')
     )
@@ -62,8 +60,9 @@ class CLI:
     )
     @click.option(
         '--normalizer_db_url',
-        default='',
-        help='URL endpoint of normalizer DynamoDB database.'
+        default='http://localhost:8000',
+        help=('URL endpoint of normalizer DynamoDB database. Set to '
+              '`http://localhost:8000` by default.')
     )
     @click.option(
         '--load_transformed',
