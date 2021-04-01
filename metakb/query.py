@@ -1,5 +1,4 @@
 """Module for queries."""
-from neo4j import GraphDatabase
 from gene.query import QueryHandler as GeneQueryHandler
 from variant.to_vrs import ToVRS
 from variant.normalize import Normalize as VariantNormalizer
@@ -9,7 +8,7 @@ from disease.query import QueryHandler as DiseaseQueryHandler
 from metakb.schemas import SearchService, StatementResponse, \
     TherapeuticResponseProposition
 import logging
-from os import environ
+from metakb.database import Graph
 
 
 logger = logging.getLogger('metakb')
@@ -21,16 +20,7 @@ class QueryHandler:
 
     def __init__(self):
         """Initialize neo4j driver and the VICC normalizers."""
-        if 'METAKB_DB_URL' in environ and 'METAKB_DB_USERNAME' in environ and 'METAKB_DB_PASSWORD' in environ:  # noqa: E501
-            uri = environ['METAKB_DB_URL']
-            username = environ['METAKB_DB_USERNAME']
-            password = environ['METAKB_DB_PASSWORD']
-        else:
-            # Local
-            uri = "bolt://localhost:7687"
-            username = "neo4j"
-            password = "admin"
-        self.driver = GraphDatabase.driver(uri, auth=(username, password))
+        self.driver = Graph().driver
         self.gene_query_handler = GeneQueryHandler()
         self.variant_normalizer = VariantNormalizer()
         self.disease_query_handler = DiseaseQueryHandler()
@@ -230,48 +220,44 @@ class QueryHandler:
                 (statement_id and not valid_statement_id):
             return SearchService(**response).dict()
 
-        with self.driver.session() as session:
-            proposition_nodes = session.read_transaction(
-                self._get_propositions, normalized_therapy,
-                normalized_variation, normalized_disease, normalized_gene,
-                valid_statement_id
-            )
+        session = self.driver.session()
+        proposition_nodes = session.read_transaction(
+            self._get_propositions, normalized_therapy,
+            normalized_variation, normalized_disease, normalized_gene,
+            valid_statement_id
+        )
 
-            # If statement ID isn't specified, get all statements
-            # related to a proposition
-            if not valid_statement_id:
-                statement_nodes = list()
-                for p_node in proposition_nodes:
-                    statements = session.read_transaction(
-                        self._get_statements_from_proposition, p_node.get('id')
-                    )
-                    for s in statements:
-                        if s not in statement_nodes:
-                            statement_nodes.append(s)
-                            self.add_proposition_and_statement_nodes(session,
-                                                                     s.get('id'),  # noqa: E501
-                                                                     proposition_nodes,  # noqa: E501
-                                                                     statement_nodes)  # noqa: E501
+        # If statement ID isn't specified, get all statements
+        # related to a proposition
+        if not valid_statement_id:
+            statement_nodes = list()
+            for p_node in proposition_nodes:
+                statements = session.read_transaction(
+                    self._get_statements_from_proposition, p_node.get('id')
+                )
+                for s in statements:
+                    if s not in statement_nodes:
+                        statement_nodes.append(s)
+        else:
+            statement_nodes = [statement]
 
-            else:
-                statement_nodes = [statement]
+            # Add statements found in `supported_by`
+            # Then add their associated propositions
+            self.add_proposition_and_statement_nodes(session,
+                                                     valid_statement_id,
+                                                     proposition_nodes,
+                                                     statement_nodes)
 
-                # Add statements found in `supported_by`
-                # Then add their associated propositions
-                self.add_proposition_and_statement_nodes(session,
-                                                         valid_statement_id,
-                                                         proposition_nodes,
-                                                         statement_nodes)
-
-            if proposition_nodes and statement_nodes:
-                response['statements'] =\
-                    self.get_statement_response(statement_nodes)
-                response['propositions'] = \
-                    self.get_propositions_response(proposition_nodes)
-            else:
-                response['warnings'].append('Could not find statements '
-                                            'associated with the queried'
-                                            ' concepts.')
+        if proposition_nodes and statement_nodes:
+            response['statements'] =\
+                self.get_statement_response(statement_nodes)
+            response['propositions'] = \
+                self.get_propositions_response(proposition_nodes)
+        else:
+            response['warnings'].append('Could not find statements '
+                                        'associated with the queried'
+                                        ' concepts.')
+        session.close()
         return SearchService(**response).dict()
 
     def add_proposition_and_statement_nodes(self, session, statement_id,
