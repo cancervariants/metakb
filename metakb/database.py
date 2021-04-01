@@ -5,6 +5,7 @@ from typing import Tuple, Dict
 import logging
 import json
 from pathlib import Path
+from os import environ
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -25,12 +26,20 @@ def _create_keys_string(entity, keys) -> str:
 class Graph:
     """Manage requests to graph datastore."""
 
-    def __init__(self, uri: str, credentials: Tuple[str, str]):
+    def __init__(self, uri: str = '', credentials: Tuple[str, str] = ('', '')):
         """Initialize Graph driver instance.
         :param str uri: address of Neo4j DB
         :param Tuple[str, str] credentials: tuple containing username and
             password
         """
+        if 'METAKB_DB_URL' in environ and 'METAKB_DB_USERNAME' in environ and 'METAKB_DB_PASSWORD' in environ:  # noqa: E501
+            uri = environ['METAKB_DB_URL']
+            credentials = (environ['METAKB_DB_USERNAME'],
+                           environ['METAKB_DB_PASSWORD'])
+        elif not (uri and credentials[0] and credentials[1]):
+            # Local
+            uri = "bolt://localhost:7687"
+            credentials = ("neo4j", "admin")
         self.driver = GraphDatabase.driver(uri, auth=credentials)
         with self.driver.session() as session:
             session.write_transaction(self._create_constraints)

@@ -478,6 +478,15 @@ def test_multiple_parameters(query_handler):
     )
     assert len(response['statements']) > 1
     assert len(response['propositions']) > 1
+    statements = list()
+    for s in response['statements']:
+        if s['id'] == 'civic:aid6':
+            statement = s
+        else:
+            statements.append(s['id'])
+    supported_by_statements = \
+        [s for s in statement['supported_by'] if s.startswith('civic:eid')]
+    assert set(statements) == set(supported_by_statements)
 
 
 def test_no_matches(query_handler):
