@@ -30,11 +30,13 @@ class CLI:
     @click.command()
     @click.option(
         '--db_url',
+        default='bolt://localhost:7687',
         help=('URL endpoint for the application Neo4j database. Can also be '
               'provided via environment variable METAKB_DB_URL.')
     )
     @click.option(
         '--db_username',
+        default='neo4j',
         help=('Username to provide to application database. Can also be '
               'provided via environment variable METAKB_DB_USERNAME.')
     )
