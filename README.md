@@ -12,26 +12,38 @@ The intent of the project is to leverage the collective knowledge of the dispara
 
 What things you need to install the software and how to install them:
 
-* python3
+* A newer version of Python 3, preferably 3.6 or greater. To confirm on your system, run:
 
 ```
 python3 --version
-Python 3.7.1
+```
+
+* [Pipenv](https://pipenv.pypa.io/en/latest/), for package management.
+
+```
+pip3 install --user pipenv
 ```
 
 ### Installing
 
-Install requirements
+
+Once Pipenv is installed, clone the repo and install the package requirements into a Pipenv environment:
 
 ```
-pip3 install -r requirements.txt
+git clone https://github.com/cancervariants/metakb
+cd metakb
+pipenv lock
+pipenv sync
 ```
 
-Install requirements-dev
+If you intend to provide development support, install the development dependencies:
 
 ```
-pip3 install -r requirements-dev.txt
+pipenv lock --dev
+pipenv sync
 ```
+
+TODO CIViCPy installation instructions
 
 ### Setting up Neo4j
 
@@ -44,14 +56,62 @@ Once you have opened Neo4j desktop, use the "New" button in the upper-left regio
 The graph will initially be empty, but once you have successfully loaded data, Neo4j Desktop provides an interface for exploring and visualizing relationships within the graph. To access it, click the blue "Open" button. The prompt at the top of this window processes [Cypher queries](https://neo4j.com/docs/cypher-refcard/current/); to start, try `MATCH (n:DiseaseDescriptor {label:"Leukemia"}) RETURN n`. Toggles on the left-hand edge of the results pane let you select graph, tabular, or textual output.
 
 
+### Setting up normalizers
+
+The MetaKB calls a number of normalizer libraries to transform resource data and resolve incoming search queries. These will be installed as part of the package requirements, but require additional setup.
+
+First, [download and install Amazon's DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html). Once installed, in a separate terminal instance, navigate to its source directory and run the following to start the database instance:
+
+```
+java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb
+```
+
+Next, navigate to the `site-packages` directory of your virtual environment. Assuming Pipenv is installed to your user directory, this should be something like:
+
+```
+cd ~/.local/share/virtualenvs/metakb-<various characters>/python3.7/site-packages/  # replace <various characters>
+```
+
+Next, initialize the [Variant Normalizer](https://github.com/cancervariants/variant-normalization).
+
+```
+cd variant/  # starting from the site-packages dir of your virtual environment's Python instance
+mkdir -p data/seqrepo
+curl ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/tsv/non_alt_loci_set.txt > data/gene_symbols.txt
+seqrepo --root-directory data/seqrepo pull
+chmod -R u+w data/seqrepo/<DATE>  # replace <DATE>
+ln -s data/seqrepo/<DATE> latest  # replace <DATE>
+cd ../../  # return to site-packages
+```
+
+The MetaKB can acquire all other needed normalizer data, except for that of [OMIM](https://www.omim.org/downloads), which must be manually placed:
+
+```
+cd disease/  # starting from the site-packages dir of your virtual environment's Python instance
+mkdir -p data/omim
+cp ~/YOUR/PATH/TO/mimTitles.txt data/omim/omim_<date>.tsv  # replace <date> with date of data acquisition formatted as YYYYMMDD
+```
+
 ### Loading data
 
-[Future releases](https://github.com/cancervariants/metakb/pull/63) will include basic command-line tools to trigger data harvest, transformation, and load procedures, but in the meantime, we provide a simple script to load an existing resource CDM file (i.e. the JSON output of the MetaKB `transform` routines). After changing the second value of the tuple on line 7 to the password you selected for your Neo4j database, and changing the path on line 10 to the location of your target CDM file, run the following from the project root directory:
+Once Neo4j and DynamoDB instances are both active, and necessary normalizer data has been placed, run the MetaKB CLI with the `--initialize_normalizers` flag to acquire all other necessary normalizer source data, and execute harvest, transform, and load operations into the graph datastore.
+
+In the MetaKB project root, run the following:
 
 ```
-python3 analysis/graph/db_helper.py
+pipenv shell
+python3 -m metakb.cli --db_url=bolt://localhost:7687 --db_username=neo4j --db_password=<neo4j-password-here> --initialize_normalizers
 ```
 
+### Starting the server
+
+Once data has been loaded successfully, use the following to start service on localhost port 8000:
+
+```
+uvicorn metakb.main:app --reload
+```
+
+Navigate to [http://localhost:8000/api/v2](http://localhost:8000/api/v2) in your browser to enter queries.
 
 ## Running tests
 
