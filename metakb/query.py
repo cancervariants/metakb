@@ -242,13 +242,6 @@ class QueryHandler:
             # Given Statement ID
             statement_nodes = [statement]
 
-        # Add statements found in `supported_by` to statement_nodes
-        # Then add the associated proposition to proposition_nodes
-        for s in statement_nodes:
-            self.add_proposition_and_statement_nodes(
-                session, s.get('id'), proposition_nodes, statement_nodes
-            )
-
         if proposition_nodes and statement_nodes:
             response['statements'] =\
                 self.get_statement_response(statement_nodes)
@@ -260,25 +253,6 @@ class QueryHandler:
                                         ' concepts.')
         session.close()
         return SearchService(**response).dict()
-
-    def add_proposition_and_statement_nodes(self, session, statement_id,
-                                            proposition_nodes,
-                                            statement_nodes):
-        """Get statements found in `supported_by` and their propositions."""
-        supported_by_statements = session.read_transaction(
-            self._find_and_return_supported_by, statement_id,
-            only_statement=True
-        )
-        for s in supported_by_statements:
-            if s not in statement_nodes:
-                statement_nodes.append(s)
-                proposition = session.read_transaction(
-                    self._find_and_return_propositions_from_statement,
-                    s.get('id')
-                )
-                if proposition and proposition \
-                        not in proposition_nodes:
-                    proposition_nodes.append(proposition)
 
     @staticmethod
     def _get_statement_by_id(tx, statement_id):
