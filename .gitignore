@@ -131,3 +131,6 @@ pyproject.toml
 
 # DynamoDB
 dynamodb_local_latest/
+
+# Zip
+*.zip
