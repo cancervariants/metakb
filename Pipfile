@@ -20,6 +20,10 @@ ipykernel = "*"
 uvicorn = "*"
 fastapi = "*"
 click = "*"
+uvloop = "*"
+websockets = "*"
+httptools = "*"
+typing-extensions = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
