@@ -184,8 +184,9 @@ class QueryHandler:
                 'statement_id': None
             },
             'warnings': [],
-            'statements': [],
-            'propositions': []
+            'matches': [],  # A list of Statement and Propositions that match
+            'statements': [],  # All Statements
+            'propositions': []  # All propositions
         }
 
         if not (variation or disease or therapy or gene or statement_id):
@@ -232,18 +233,38 @@ class QueryHandler:
             # related to a proposition
             statement_nodes = list()
             for p_node in proposition_nodes:
+                p_id = p_node.get('id')
+                if p_id not in response['matches']:
+                    response['matches'].append(p_id)
                 statements = session.read_transaction(
-                    self._get_statements_from_proposition, p_node.get('id')
+                    self._get_statements_from_proposition, p_id
                 )
                 for s in statements:
                     if s not in statement_nodes:
                         statement_nodes.append(s)
+                        s_id = s.get('id')
+                        if s_id not in response['matches']:
+                            response['matches'].append(s_id)
         else:
             # Given Statement ID
             statement_nodes = [statement]
+            s_id = statement.get('id')
+            response['matches'].append(s_id)
+
+            for p in proposition_nodes:
+                p_id = p.get('id')
+                if p_id not in response['matches']:
+                    response['matches'].append(p_id)
+
+        # Add statements found in `supported_by` to statement_nodes
+        # Then add the associated proposition to proposition_nodes
+        for s in statement_nodes:
+            self.add_proposition_and_statement_nodes(
+                session, s.get('id'), proposition_nodes, statement_nodes
+            )
 
         if proposition_nodes and statement_nodes:
-            response['statements'] =\
+            response['statements'] = \
                 self.get_statement_response(statement_nodes)
             response['propositions'] = \
                 self.get_propositions_response(proposition_nodes)
@@ -253,6 +274,25 @@ class QueryHandler:
                                         ' concepts.')
         session.close()
         return SearchService(**response).dict()
+
+    def add_proposition_and_statement_nodes(self, session, statement_id,
+                                            proposition_nodes,
+                                            statement_nodes):
+        """Get statements found in `supported_by` and their propositions."""
+        supported_by_statements = session.read_transaction(
+            self._find_and_return_supported_by, statement_id,
+            only_statement=True
+        )
+        for s in supported_by_statements:
+            if s not in statement_nodes:
+                statement_nodes.append(s)
+                proposition = session.read_transaction(
+                    self._find_and_return_propositions_from_statement,
+                    s.get('id')
+                )
+                if proposition and proposition \
+                        not in proposition_nodes:
+                    proposition_nodes.append(proposition)
 
     @staticmethod
     def _get_statement_by_id(tx, statement_id):
