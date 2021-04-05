@@ -60,8 +60,9 @@ class CLI:
     )
     @click.option(
         '--normalizer_db_url',
-        default='',
-        help='URL endpoint of normalizer DynamoDB database.'
+        default='http://localhost:8000',
+        help=('URL endpoint of normalizer DynamoDB database. Set to '
+              '`http://localhost:8000` by default.')
     )
     @click.option(
         '--load_transformed',
