@@ -207,7 +207,13 @@ class CLI:
             if env_var_name in environ.keys():
                 return environ[env_var_name]
             else:
-                CLI()._help_msg(f'Must provide {name} for DB.')
+                # Default is local
+                if name == 'URL':
+                    return "bolt://localhost:7687"
+                elif name == 'username':
+                    return 'neo4j'
+                else:
+                    return 'admin'
 
     def _help_msg(self, msg: str = ""):
         """Handle invalid user input.
