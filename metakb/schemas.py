@@ -150,6 +150,27 @@ class TherapeuticResponseProposition(BaseModel):
     object_qualifier: str  # vicc:Disease
     object: str  # Therapy value object
 
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['TherapeuticResponseProposition']) \
+                -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "id": "proposition:109",
+                "predicate": "predicts_sensitivity_to",
+                "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+                "object_qualifier": "ncit:C2926",
+                "object": "ncit:C66940",
+                "type": "therapeutic_response_proposition"
+            }
+
 
 class MethodID(IntEnum):
     """Create AssertionMethod id constants for harvested sources."""
@@ -328,39 +349,19 @@ class StatementResponse(BaseModel):
                 prop.pop('title', None)
             schema['example'] = {
                 "id": "civic:eid2997",
-                "type": "Statement",
                 "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
                 "direction": "supports",
                 "evidence_level": "civic.evidence_level:A",
-                "proposition": {
-                    "type": "therapeutic_response_proposition",
-                    "predicate": "predicts_sensitivity_to",
-                    "variation_origin": "somatic",
-                    "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",  # noqa: E501
-                    "object_qualifier": "ncit:C2926",
-                    "object": "ncit:C66940"
-                },
+                "variation_origin": "somatic",
+                "proposition": "proposition:109",
                 "variation_descriptor": "civic:vid33",
                 "therapy_descriptor": "civic:tid146",
                 "disease_descriptor": "civic:did8",
-                "method": {
-                    "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
-                    "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
-                    "version": {
-                        "year": 2019,
-                        "month": 11,
-                        "day": 29
-                    },
-                    "reference": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."  # noqa: E501
-                },
-                "support_evidence": [
-                    {
-                        "id": "pmid:23982599",
-                        "label": "Dungo et al., 2013, Drugs",
-                        "description": "Afatinib: first global approval.",  # noqa: E501
-                        "xrefs": []
-                    }
-                ]
+                "method": "method:001",
+                "supported_by": [
+                    "pmid:23982599"
+                ],
+                "type": "Statement"
             }
 
 
@@ -373,12 +374,31 @@ class SearchQuery(BaseModel):
     gene: Optional[str]
     statement_id: Optional[str]
 
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['SearchQuery']) -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "variation": "NP_005219.2:p.Leu858Arg",
+                "disease": "Lung Non-small Cell Carcinoma",
+                "therapy": "Afatinib",
+                "statement_id": "civic:eid2997"
+            }
+
 
 class SearchService(BaseModel):
     """Define model for Search Endpoint Response."""
 
     query: SearchQuery
     warnings: Optional[List[str]]
+    matches: Optional[List[str]]
     statements: Optional[List[StatementResponse]]
     propositions: Optional[List[TherapeuticResponseProposition]]
 
@@ -394,46 +414,43 @@ class SearchService(BaseModel):
             for prop in schema.get('properties', {}).values():
                 prop.pop('title', None)
             schema['example'] = {
-                "variation": "NP_005219.2:p.Leu858Arg",
-                "disease": "Lung Non-small Cell Carcinoma",
-                "therapy": "Afatinib",
+                "query": {
+                    "variation": "NP_005219.2:p.Leu858Arg",
+                    "disease": "Lung Non-small Cell Carcinoma",
+                    "therapy": "Afatinib",
+                    "statement_id": "civic:eid2997"
+                },
                 "warnings": [],
+                "matches": [
+                    "civic:eid2997",
+                    "proposition:109"
+                ],
                 "statements": [
                     {
                         "id": "civic:eid2997",
-                        "type": "Statement",
                         "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
                         "direction": "supports",
                         "evidence_level": "civic.evidence_level:A",
-                        "proposition": {
-                            "type": "therapeutic_response_proposition",
-                            "predicate": "predicts_sensitivity_to",
-                            "variation_origin": "somatic",
-                            "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",  # noqa: E501
-                            "object_qualifier": "ncit:C2926",
-                            "object": "ncit:C66940"
-                        },
+                        "variation_origin": "somatic",
+                        "proposition": "proposition:109",
                         "variation_descriptor": "civic:vid33",
                         "therapy_descriptor": "civic:tid146",
                         "disease_descriptor": "civic:did8",
-                        "method": {
-                            "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
-                            "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
-                            "version": {
-                                "year": 2019,
-                                "month": 11,
-                                "day": 29
-                            },
-                            "reference": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."  # noqa: E501
-                        },
-                        "support_evidence": [
-                            {
-                                "id": "pmid:23982599",
-                                "label": "Dungo et al., 2013, Drugs",
-                                "description": "Afatinib: first global approval.",  # noqa: E501
-                                "xrefs": []
-                            }
-                        ]
+                        "method": "method:001",
+                        "supported_by": [
+                            "pmid:23982599"
+                        ],
+                        "type": "Statement"
+                    }
+                ],
+                "propositions": [
+                    {
+                        "id": "proposition:109",
+                        "predicate": "predicts_sensitivity_to",
+                        "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+                        "object_qualifier": "ncit:C2926",
+                        "object": "ncit:C66940",
+                        "type": "therapeutic_response_proposition"
                     }
                 ]
             }
