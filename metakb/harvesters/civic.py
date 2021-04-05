@@ -457,13 +457,16 @@ class CIViC(Harvester):
         :return: A dictionary containing disease data
         """
         disease = self._get_dict(evidence_item['disease'])
-        return {
-            'id': disease['id'],
-            'name': disease['name'],
-            'display_name': disease['display_name'],
-            'doid': disease['doid'],
-            'url': disease['url']
-        }
+        if not disease:
+            return None
+        else:
+            return {
+                'id': disease['id'],
+                'name': disease['name'],
+                'display_name': disease['display_name'],
+                'doid': disease['doid'],
+                'url': disease['url']
+            }
 
     def _drug(self, drug):
         """Get drug data.
