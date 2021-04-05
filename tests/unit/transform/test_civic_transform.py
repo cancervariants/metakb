@@ -11,7 +11,7 @@ def data():
     """Create a CIViC Transform test fixture."""
     c = CIViCTransform(file_path=f"{PROJECT_ROOT}/tests/data/"
                                  f"transform/civic_harvester.json")
-    transformations = c.transform()
+    transformations = c.transform()[0]
 
     fn = f"{PROJECT_ROOT}/tests/data/transform/civic_cdm.json"
 

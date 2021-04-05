@@ -122,7 +122,10 @@ def assert_non_lists(actual, test):
     if isinstance(actual, dict):
         assertions(test, actual)
     else:
-        assert test == actual
+        if test.startswith('proposition:'):
+            assert actual.startswith('proposition:')
+        else:
+            assert test == actual
 
 
 def assertions(test_data, actual_data):
@@ -138,7 +141,11 @@ def assertions(test_data, actual_data):
                 except:  # noqa: E722
                     assertions(test_data[key], actual_data[key])
             else:
-                assert_non_lists(actual_data[key], test_data[key])
+                if key == 'proposition':
+                    assert test_data[key].startswith('proposition:')
+                    assert actual_data[key].startswith('proposition:')
+                else:
+                    assert_non_lists(actual_data[key], test_data[key])
     elif isinstance(actual_data, list):
         assert_same_keys_list_items(actual_data, test_data)
         for item in actual_data:
