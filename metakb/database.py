@@ -6,6 +6,10 @@ import logging
 import json
 from pathlib import Path
 from os import environ
+import boto3
+import base64
+from botocore.exceptions import ClientError
+import ast
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -32,7 +36,11 @@ class Graph:
         :param Tuple[str, str] credentials: tuple containing username and
             password
         """
-        if 'METAKB_DB_URL' in environ and 'METAKB_DB_USERNAME' in environ and 'METAKB_DB_PASSWORD' in environ:  # noqa: E501
+        if 'METAKB_NORM_EB_PROD' in environ:
+            secret = ast.literal_eval(self.get_secret())
+            uri = f"bolt://{secret['host']}:{secret['port']}"
+            credentials = (secret['username'], secret['password'])
+        elif 'METAKB_DB_URL' in environ and 'METAKB_DB_USERNAME' in environ and 'METAKB_DB_PASSWORD' in environ:  # noqa: E501
             uri = environ['METAKB_DB_URL']
             credentials = (environ['METAKB_DB_USERNAME'],
                            environ['METAKB_DB_PASSWORD'])
@@ -376,3 +384,51 @@ class Graph:
             logging.error(f"Failed to add Evidence object\n"
                           f"Query: {query}\nEvidence: {statement}")
             raise exception
+
+    @staticmethod
+    def get_secret():
+        """Get secrets for MetaKB instances."""
+        secret_name = environ['METAKB_DB_PASSWORD']
+        region_name = "us-east-2"
+
+        # Create a Secrets Manager client
+        session = boto3.session.Session()
+        client = session.client(
+            service_name='secretsmanager',
+            region_name=region_name
+        )
+
+        try:
+            get_secret_value_response = client.get_secret_value(
+                SecretId=secret_name
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'DecryptionFailureException':
+                # Secrets Manager can't decrypt the protected
+                # secret text using the provided KMS key.
+                raise e
+            elif e.response['Error']['Code'] == \
+                    'InternalServiceErrorException':
+                # An error occurred on the server side.
+                raise e
+            elif e.response['Error']['Code'] == 'InvalidParameterException':
+                # You provided an invalid value for a parameter.
+                raise e
+            elif e.response['Error']['Code'] == 'InvalidRequestException':
+                # You provided a parameter value that is not valid for
+                # the current state of the resource.
+                raise e
+            elif e.response['Error']['Code'] == 'ResourceNotFoundException':
+                # We can't find the resource that you asked for.
+                raise e
+        else:
+            # Decrypts secret using the associated KMS CMK.
+            # Depending on whether the secret is a string or binary,
+            # one of these fields will be populated.
+            if 'SecretString' in get_secret_value_response:
+                secret = get_secret_value_response['SecretString']
+                return secret
+            else:
+                decoded_binary_secret = base64.b64decode(
+                    get_secret_value_response['SecretBinary'])
+                return decoded_binary_secret
