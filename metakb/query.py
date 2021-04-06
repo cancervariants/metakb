@@ -184,7 +184,10 @@ class QueryHandler:
                 'statement_id': None
             },
             'warnings': [],
-            'matches': [],  # A list of Statement and Propositions that match
+            'matches': {
+                "statements": [],
+                "propositions": []
+            },
             'statements': [],  # All Statements
             'propositions': []  # All propositions
         }
@@ -234,8 +237,8 @@ class QueryHandler:
             statement_nodes = list()
             for p_node in proposition_nodes:
                 p_id = p_node.get('id')
-                if p_id not in response['matches']:
-                    response['matches'].append(p_id)
+                if p_id not in response['matches']['propositions']:
+                    response['matches']['propositions'].append(p_id)
                 statements = session.read_transaction(
                     self._get_statements_from_proposition, p_id
                 )
@@ -243,18 +246,18 @@ class QueryHandler:
                     if s not in statement_nodes:
                         statement_nodes.append(s)
                         s_id = s.get('id')
-                        if s_id not in response['matches']:
-                            response['matches'].append(s_id)
+                        if s_id not in response['matches']['statements']:
+                            response['matches']['statements'].append(s_id)
         else:
             # Given Statement ID
             statement_nodes = [statement]
             s_id = statement.get('id')
-            response['matches'].append(s_id)
+            response['matches']['statements'].append(s_id)
 
             for p in proposition_nodes:
                 p_id = p.get('id')
-                if p_id not in response['matches']:
-                    response['matches'].append(p_id)
+                if p_id not in response['matches']['propositions']:
+                    response['matches']['propositions'].append(p_id)
 
         # Add statements found in `supported_by` to statement_nodes
         # Then add the associated proposition to proposition_nodes
