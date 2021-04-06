@@ -393,12 +393,35 @@ class SearchQuery(BaseModel):
             }
 
 
+class Matches(BaseModel):
+    """Statements and Propositions that match the queried parameters."""
+
+    statements: Optional[List[str]]
+    propositions: Optional[List[str]]
+
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['Matches']) -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "statements": ["civic:eid2997"],
+                "propositions": ["proposition:109"]
+            }
+
+
 class SearchService(BaseModel):
     """Define model for Search Endpoint Response."""
 
     query: SearchQuery
     warnings: Optional[List[str]]
-    matches: Optional[List[str]]
+    matches: Matches
     statements: Optional[List[StatementResponse]]
     propositions: Optional[List[TherapeuticResponseProposition]]
 
@@ -421,10 +444,10 @@ class SearchService(BaseModel):
                     "statement_id": "civic:eid2997"
                 },
                 "warnings": [],
-                "matches": [
-                    "civic:eid2997",
-                    "proposition:109"
-                ],
+                "matches": {
+                    "statements": ["civic:eid2997"],
+                    "propositions": ["proposition:109"]
+                },
                 "statements": [
                     {
                         "id": "civic:eid2997",
