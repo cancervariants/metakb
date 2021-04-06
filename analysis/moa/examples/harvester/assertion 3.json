@@ -20,8 +20,8 @@
 		"validated": true, 
 		"source_ids": [2], 
 		"variant": {
+			"id": 3, 
 			"feature_type": "rearrangement", 
-			"feature_id": 3, 
 			"rearrangement_type": "Fusion", 
 			"gene1": "BCR", 
 			"gene2": "ABL1", 
@@ -40,8 +40,8 @@
 		"citation": "Bristol-Myers Squibb Company. Sprycel (dasatinib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2018/021986s021lbl.pdf. Revised December 2018. Accessed November 12, 2020."
 	}, 
 	"VARIANTS": {
+		"id": 3, 
 		"feature_type": "rearrangement", 
-		"feature_id": 3, 
 		"rearrangement_type": "Fusion", 
 		"gene1": "BCR", 
 		"gene2": "ABL1", 

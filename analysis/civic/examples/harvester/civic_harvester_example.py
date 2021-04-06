@@ -26,7 +26,7 @@ def create_evidence_examples(data):
             if g['id'] == gene_id:
                 gene = g
 
-        with open(f"{PROJECT_ROOT}/analysis/civic/examples/"
+        with open(f"{PROJECT_ROOT}/analysis/civic/examples/harvester/"
                   f"{evidence_item['name']}.json", 'w+') as f:
             example = {
                 'EVIDENCE': evidence_item,
@@ -36,8 +36,6 @@ def create_evidence_examples(data):
             }
 
             json.dump(example, f)
-            print(f"Created JSON for evidence: {evidence_item['name']}")
-            f.close()
 
 
 def create_variant_examples(data):
@@ -51,12 +49,10 @@ def create_variant_examples(data):
             variants.append(data['variants'][i])
 
     for variant in variants:
-        with open(f"{PROJECT_ROOT}/analysis/civic/examples/"
+        with open(f"{PROJECT_ROOT}/analysis/civic/examples/harvester/"
                   f"{variant['name'].lower()}.json", 'w+') as f:
             variant['evidence_items'] = variant['evidence_items'][0]
             f.write(json.dumps(variant))
-            print(f"Created JSON for variant: {variant['name']}")
-            f.close()
 
 
 if __name__ == '__main__':
@@ -65,7 +61,8 @@ if __name__ == '__main__':
     with open(f'{PROJECT_ROOT}/data/civic/civic_harvester.json', 'r') as f:
         civic_data = json.load(f)
 
-    civic_ex_dir = PROJECT_ROOT / 'analysis' / 'civic' / 'examples'
+    civic_ex_dir =\
+        PROJECT_ROOT / 'analysis' / 'civic' / 'examples' / 'harvester'
     civic_ex_dir.mkdir(exist_ok=True, parents=True)
 
     create_evidence_examples(civic_data)

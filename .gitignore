@@ -122,7 +122,15 @@ pytest.ini
 
 # data files
 data/*
+analysis/graph/*.json
+analysis/graph/*.ipynb
 
 # Build files
 Pipfile.lock
 pyproject.toml
+
+# DynamoDB
+dynamodb_local_latest/
+
+# Zip
+*.zip

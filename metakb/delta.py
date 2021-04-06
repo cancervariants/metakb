@@ -52,7 +52,6 @@ class Delta:
             # Want to create updated harvester file
             fn = f"{self._src}_harvester_{current_date}.json"
             HARVESTER_CLASS[self._src]().harvest(fn=fn)
-
             with open(f"{PROJECT_ROOT}/data/{self._src}/{fn}", 'r') as f:
                 updated_json = json.load(f)
 
