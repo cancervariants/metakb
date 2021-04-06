@@ -20,8 +20,8 @@
 		"validated": true, 
 		"source_ids": [3], 
 		"variant": {
+			"id": 5, 
 			"feature_type": "rearrangement", 
-			"feature_id": 5, 
 			"rearrangement_type": "Fusion", 
 			"gene1": "BCR", 
 			"gene2": "ABL1", 
@@ -40,8 +40,8 @@
 		"citation": "Novartis Pharmaceuticals Corporation. Gleevec (imatinib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/021588s056s057lbl.pdf. Revised August 2020. Accessed November 12, 2020."
 	}, 
 	"VARIANTS": {
+		"id": 5, 
 		"feature_type": "rearrangement", 
-		"feature_id": 5, 
 		"rearrangement_type": "Fusion", 
 		"gene1": "BCR", 
 		"gene2": "ABL1", 

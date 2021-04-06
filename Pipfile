@@ -9,7 +9,14 @@ pandas = "*"
 requests = "*"
 numpy = "*"
 jsondiff = "*"
+pydantic = "*"
 requests-cache = "*"
+gene-normalizer = "*"
+disease-normalizer = "*"
+variant-normalizer = "*"
+thera-py = "*"
+neo4j = "*"
+ipykernel = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}

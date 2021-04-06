@@ -1,6 +1,6 @@
 {
+	"id": 550, 
 	"feature_type": "somatic_variant", 
-	"feature_id": 550, 
 	"gene": "TP53", 
 	"chromosome": null, 
 	"start_position": null, 

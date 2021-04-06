@@ -453,7 +453,6 @@ class CIViC(Harvester):
 
     def _disease(self, evidence_item):
         """Get an evidence item's disease data.
-
         :param Evidence evidence_item: A CIViC Evidence record
         :return: A dictionary containing disease data
         """

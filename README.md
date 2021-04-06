@@ -33,10 +33,27 @@ Install requirements-dev
 pip3 install -r requirements-dev.txt
 ```
 
+### Setting up Neo4j
 
-> TODO End with an example of getting some data out of the system or using it for a little demo
+The MetaKB uses [Neo4j](https://neo4j.com/) for its database backend. To run a local MetaKB instance, you'll need to run a Neo4j database instance as well. The easiest way to do this is from Neo4j Desktop.
 
-## Running the tests
+First, follow the [desktop setup instructions](https://neo4j.com/developer/neo4j-desktop) to download, install, and open Neo4j Desktop for the first time.
+
+Once you have opened Neo4j desktop, use the "New" button in the upper-left region of the window to create a new project. Within that project, click the "Add" button in the upper-right region of the window and select "Local DBMS". The name of the DBMS doesn't matter, but the password will be used later to connect the database to MetaKB (we have been using "admin" by default). Click "Create". Then, click the row within the project screen corresponding to your newly-created DBMS, and click the green "Start" button to start the database service.
+
+The graph will initially be empty, but once you have successfully loaded data, Neo4j Desktop provides an interface for exploring and visualizing relationships within the graph. To access it, click the blue "Open" button. The prompt at the top of this window processes [Cypher queries](https://neo4j.com/docs/cypher-refcard/current/); to start, try `MATCH (n:DiseaseDescriptor {label:"Leukemia"}) RETURN n`. Toggles on the left-hand edge of the results pane let you select graph, tabular, or textual output.
+
+
+### Loading data
+
+[Future releases](https://github.com/cancervariants/metakb/pull/63) will include basic command-line tools to trigger data harvest, transformation, and load procedures, but in the meantime, we provide a simple script to load an existing resource CDM file (i.e. the JSON output of the MetaKB `transform` routines). After changing the second value of the tuple on line 7 to the password you selected for your Neo4j database, and changing the path on line 10 to the location of your target CDM file, run the following from the project root directory:
+
+```
+python3 analysis/graph/db_helper.py
+```
+
+
+## Running tests
 
 ### Unit tests
 
