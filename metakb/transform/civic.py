@@ -20,7 +20,7 @@ class CIViCTransform:
 
     def __init__(self,
                  file_path=f"{PROJECT_ROOT}/data/civic/civic_harvester.json"):
-        """Initialize CIViCTransform class.
+        """Initialize VICC normalizers and class attributes.
 
         :param str file_path: The file path to the harvested json to transform.
         """
@@ -31,27 +31,47 @@ class CIViCTransform:
         self.therapy_query_handler = TherapyQueryHandler()
         self.variant_to_vrs = ToVRS()
         self.amino_acid_cache = AminoAcidCache()
+        self.statements = list()
+        self.propositions = list()
+        self.variation_descriptors = list()
+        self.gene_descriptors = list()
+        self.therapy_descriptors = list()
+        self.disease_descriptors = list()
+        self.methods = list()
+        self.documents = list()
 
     def _extract(self):
         """Extract the CIViC harvested data file."""
         with open(self._file_path, 'r') as f:
             return json.load(f)
 
-    def _create_json(self, transformations):
-        """Create a JSON for the transformed CIViC data."""
-        civic_dir = PROJECT_ROOT / 'data' / 'civic' / 'transform'
+    def _create_json(self,
+                     civic_dir=PROJECT_ROOT / 'data' / 'civic' / 'transform',
+                     fn='civic_cdm.json'):
+        """Create a composite JSON for the transformed CIViC data.
+
+        :param Path civic_dir: The civic transform data directory
+        :param str fn: The file name for the transformed data
+        """
         civic_dir.mkdir(exist_ok=True, parents=True)
 
-        with open(f"{civic_dir}/civic_cdm.json", 'w+') as f:
-            json.dump(transformations, f)
+        composite_dict = {
+            'statements': self.statements,
+            'propositions': self.propositions,
+            'variation_descriptors': self.variation_descriptors,
+            'gene_descriptors': self.gene_descriptors,
+            'therapy_descriptors': self.therapy_descriptors,
+            'disease_descriptors': self.disease_descriptors,
+            'methods': self.methods,
+            'documents': self.documents
+        }
+
+        with open(f"{civic_dir}/{fn}", 'w+') as f:
+            json.dump(composite_dict, f)
 
     def transform(self):
-        """Transform CIViC harvested json to common data model.
-
-        :return: A list of dictionaries containing transformations to CDM.
-        """
+        """Transform CIViC harvested json to common data model."""
         data = self._extract()
-        responses = list()
         evidence_items = data['evidence']
         assertions = data['assertions']
         variants = data['variants']
@@ -69,21 +89,18 @@ class CIViCTransform:
         }
 
         # Transform CIViC EIDs, then transform CIViC AIDs
-        self._transform_statements(responses, evidence_items, variants, genes,
+        self._transform_statements(evidence_items, variants, genes,
                                    propositions_documents_ix,
                                    cdm_evidence_items)
-        self._transform_statements(responses, assertions, variants, genes,
+        self._transform_statements(assertions, variants, genes,
                                    propositions_documents_ix,
                                    cdm_evidence_items, is_evidence=False)
 
-        return responses
-
-    def _transform_statements(self, responses, records, variants, genes,
+    def _transform_statements(self, records, variants, genes,
                               propositions_documents_ix,
                               cdm_evidence_items, is_evidence=True):
         """Add transformed CIViC EIDs and AIDs to response list.
 
-        :param list responses: A list of dicts containing CDM data
         :param list records: A list of dicts containing EIDs or AIDs
         :param dict variants: CIViC variant records
         :param dict genes: CIViC gene records
@@ -169,7 +186,16 @@ class CIViCTransform:
                                     'methods', 'documents']:
                             if resp[key][0] not in response[key]:
                                 response[key] += [resp[key][0]]
-            responses.append(response)
+
+            for field in ['statements', 'propositions',
+                          'variation_descriptors', 'gene_descriptors',
+                          'therapy_descriptors', 'disease_descriptors',
+                          'methods', 'documents']:
+                attr = getattr(self, field)
+                var = response[field]
+                for el in var:
+                    if el not in attr:
+                        attr.append(el)
 
     def _get_statement(self, record, propositions, variant_descriptors,
                        therapy_descriptors, disease_descriptors,
@@ -535,8 +561,9 @@ class CIViCTransform:
         :param dict gene: A CIViC gene record
         :return A Gene Descriptor
         """
-        found_match = False
-        gene_norm_resp = None
+        highest_match = 0
+        normalized_gene_id = None
+
         for query_str in [f"ncbigene:{gene['entrez_id']}", gene['name']] + gene['aliases']:  # noqa: E501
             if not query_str:
                 continue
@@ -544,16 +571,17 @@ class CIViCTransform:
             gene_norm_resp = \
                 self.gene_query_handler.search_sources(query_str, incl="hgnc")
             if gene_norm_resp['source_matches']:
-                if gene_norm_resp['source_matches'][0]['match_type'] != 0:
-                    found_match = True
-                    break
+                gene_norm_resp = gene_norm_resp['source_matches'][0]
+                if gene_norm_resp['match_type'] > highest_match:  # noqa: E501
+                    highest_match = gene_norm_resp['match_type']
+                    normalized_gene_id = gene_norm_resp['records'][0].concept_id  # noqa: E501
 
-        if found_match:
+        if highest_match != 0:
             gene_descriptor = [schemas.GeneDescriptor(
                 id=f"civic:gid{gene['id']}",
                 label=gene['name'],
                 description=gene['description'] if gene['description'] else None,  # noqa: E501
-                value=schemas.Gene(id=gene_norm_resp['source_matches'][0]['records'][0].concept_id),  # noqa: E501
+                value=schemas.Gene(id=normalized_gene_id),  # noqa: E501
                 alternate_labels=gene['aliases']
             ).dict(exclude_none=True)]
         else:
@@ -572,37 +600,34 @@ class CIViCTransform:
 
         doid = f"doid:{disease['doid']}"
         display_name = disease['display_name']
-        disease_norm_resp = None
+        highest_match = 0
+        normalized_disease_id = None
 
         for query in [doid, display_name]:
             if not query:
                 continue
 
             disease_norm_resp = self.disease_query_handler.search_groups(query)
-            if disease_norm_resp['match_type'] != 0:
-                break
+            # TODO: Should we accept other disease_ids other than NCIt?
+            if disease_norm_resp['match_type'] > highest_match:
+                disease_norm_id = \
+                    disease_norm_resp['value_object_descriptor']['value'][
+                        'disease_id']
+                if disease_norm_id.startswith('ncit'):
+                    highest_match = disease_norm_resp['match_type']
+                    normalized_disease_id = disease_norm_id
 
-        if not disease_norm_resp or disease_norm_resp['match_type'] == 0:
+        if highest_match == 0:
             logger.warning(f"{doid} and {display_name} not found in Disease "
                            f"Normalization normalize.")
             return []
 
-        disease_norm_id = \
-            disease_norm_resp['value_object_descriptor']['value']['disease_id']
-
-        if disease_norm_id.startswith('ncit:'):
-            disease_descriptor = schemas.ValueObjectDescriptor(
-                id=f"civic:did{disease['id']}",
-                type="DiseaseDescriptor",
-                label=display_name,
-                value=schemas.Disease(id=disease_norm_id),
-            ).dict(exclude_none=True)
-        else:
-            # TODO: Should we accept other disease_ids other than NCIt?
-            logger.warning("Could not find NCIt ID using Disease Normalization"
-                           f" for {doid} and {display_name}.")
-            return []
-
+        disease_descriptor = schemas.ValueObjectDescriptor(
+            id=f"civic:did{disease['id']}",
+            type="DiseaseDescriptor",
+            label=display_name,
+            value=schemas.Disease(id=normalized_disease_id),
+        ).dict(exclude_none=True)
         return [disease_descriptor]
 
     def _get_therapy_descriptors(self, drug):
@@ -612,44 +637,39 @@ class CIViCTransform:
         """
         label = drug['name']
         ncit_id = f"ncit:{drug['ncit_id']}"
-        therapy_norm_resp = None
+        highest_match = 0
+        normalized_therapy_id = None
 
         for query in [ncit_id, label]:
             if not query:
                 continue
 
             therapy_norm_resp = self.therapy_query_handler.search_groups(query)
-            if therapy_norm_resp['match_type'] != 0:
-                break
+            if therapy_norm_resp['match_type'] > highest_match:
+                therapy_norm_id = therapy_norm_resp['value_object_descriptor']['value']['therapy_id']  # noqa: E501
+                # TODO: RxNorm is highest priority, but in example listed NCIt?
+                if not therapy_norm_id.startswith('ncit'):
+                    therapy_norm_id = None
+                    if 'xrefs' in therapy_norm_resp:
+                        for other_id in therapy_norm_resp['xrefs']:
+                            if other_id.startswith('ncit:'):
+                                therapy_norm_id = other_id
+                if therapy_norm_id:
+                    highest_match = therapy_norm_resp['match_type']
+                    normalized_therapy_id = therapy_norm_id
 
-        if not therapy_norm_resp or therapy_norm_resp['match_type'] == 0:
+        if highest_match == 0:
             logger.warning(f"{ncit_id} and {label} not found in Therapy "
                            f"Normalization normalize.")
             return []
 
-        therapy_norm_resp = therapy_norm_resp['value_object_descriptor']
-
-        therapy_norm_id = \
-            therapy_norm_resp['value']['therapy_id']
-
-        # TODO: RxNorm is highest priority, but in example listed NCIt?
-        if not therapy_norm_id.startswith('ncit'):
-            therapy_norm_id = None
-            if 'xrefs' in therapy_norm_resp:
-                for other_id in therapy_norm_resp['xrefs']:
-                    if other_id.startswith('ncit:'):
-                        therapy_norm_id = other_id
-
-        if therapy_norm_id:
-            therapies = schemas.ValueObjectDescriptor(
-                id=f"civic:tid{drug['id']}",
-                type="TherapyDescriptor",
-                label=label,
-                value=schemas.Drug(id=therapy_norm_id),
-                alternate_labels=drug['aliases']
-            ).dict(exclude_none=True)
-        else:
-            return []
+        therapies = schemas.ValueObjectDescriptor(
+            id=f"civic:tid{drug['id']}",
+            type="TherapyDescriptor",
+            label=label,
+            value=schemas.Drug(id=normalized_therapy_id),
+            alternate_labels=drug['aliases']
+        ).dict(exclude_none=True)
         return [therapies]
 
     def _get_hgvs_expr(self, variant):
@@ -800,17 +820,6 @@ class CIViCTransform:
         for r in records:
             if r['id'] == record_id:
                 return r
-
-    def _add_to_list(self, eid, key, list_name):
-        """Add a unique item from an evidence item to a list.
-
-        :param dict eid: Evidence Item that has been transformed to CDM
-        :param str key: The key to access in the eid
-        :param list list_name: The name of the list to
-        """
-        item = eid[key][0]
-        if item not in list_name:
-            list_name.append(item)
 
     def _set_ix(self, propositions_documents_ix, dict_key, search_key):
         """Set indexes for documents or propositions.
