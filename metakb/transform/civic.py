@@ -572,16 +572,19 @@ class CIViCTransform:
                 self.gene_query_handler.search_sources(query_str, incl="hgnc")
             if gene_norm_resp['source_matches']:
                 gene_norm_resp = gene_norm_resp['source_matches'][0]
-                if gene_norm_resp['match_type'] > highest_match:  # noqa: E501
+                if gene_norm_resp['match_type'] > highest_match:
+                    normalized_gene_id = \
+                        gene_norm_resp['records'][0].concept_id
                     highest_match = gene_norm_resp['match_type']
-                    normalized_gene_id = gene_norm_resp['records'][0].concept_id  # noqa: E501
+                    if highest_match == 100:
+                        break
 
         if highest_match != 0:
             gene_descriptor = [schemas.GeneDescriptor(
                 id=f"civic:gid{gene['id']}",
                 label=gene['name'],
                 description=gene['description'] if gene['description'] else None,  # noqa: E501
-                value=schemas.Gene(id=normalized_gene_id),  # noqa: E501
+                value=schemas.Gene(id=normalized_gene_id),
                 alternate_labels=gene['aliases']
             ).dict(exclude_none=True)]
         else:
@@ -608,14 +611,12 @@ class CIViCTransform:
                 continue
 
             disease_norm_resp = self.disease_query_handler.search_groups(query)
-            # TODO: Should we accept other disease_ids other than NCIt?
             if disease_norm_resp['match_type'] > highest_match:
-                disease_norm_id = \
-                    disease_norm_resp['value_object_descriptor']['value'][
-                        'disease_id']
-                if disease_norm_id.startswith('ncit'):
-                    highest_match = disease_norm_resp['match_type']
-                    normalized_disease_id = disease_norm_id
+                highest_match = disease_norm_resp['match_type']
+                normalized_disease_id = \
+                    disease_norm_resp['value_object_descriptor']['value']['disease_id']  # noqa: E501
+                if highest_match == 100:
+                    break
 
         if highest_match == 0:
             logger.warning(f"{doid} and {display_name} not found in Disease "
@@ -646,17 +647,10 @@ class CIViCTransform:
 
             therapy_norm_resp = self.therapy_query_handler.search_groups(query)
             if therapy_norm_resp['match_type'] > highest_match:
-                therapy_norm_id = therapy_norm_resp['value_object_descriptor']['value']['therapy_id']  # noqa: E501
-                # TODO: RxNorm is highest priority, but in example listed NCIt?
-                if not therapy_norm_id.startswith('ncit'):
-                    therapy_norm_id = None
-                    if 'xrefs' in therapy_norm_resp:
-                        for other_id in therapy_norm_resp['xrefs']:
-                            if other_id.startswith('ncit:'):
-                                therapy_norm_id = other_id
-                if therapy_norm_id:
-                    highest_match = therapy_norm_resp['match_type']
-                    normalized_therapy_id = therapy_norm_id
+                highest_match = therapy_norm_resp['match_type']
+                normalized_therapy_id = therapy_norm_resp['value_object_descriptor']['value']['therapy_id']  # noqa: E501
+                if highest_match == 100:
+                    break
 
         if highest_match == 0:
             logger.warning(f"{ncit_id} and {label} not found in Therapy "
