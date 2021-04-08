@@ -16,44 +16,59 @@ def create_civic_example(civic_data):
         'methods': [],
         'documents': []
     }
-    supported_by_statement_ids = list()
+    supported_by_statement_ids = set()
     for s in civic_data['statements']:
         if s['id'] == 'civic:aid6':
             supported_by_statement_ids = \
-                [s for s in s['supported_by'] if s.startswith('civic:eid')]
-            supported_by_statement_ids += s['id']
+                {s for s in s['supported_by'] if s.startswith('civic:eid')}
+            supported_by_statement_ids.add(s['id'])
             break
 
+    proposition_ids = set()
+    vids = set()
+    tids = set()
+    dids = set()
+    gids = set()
+    methods = set()
+    documents = set()
     for s in civic_data['statements']:
         if s['id'] in supported_by_statement_ids:
             ex['statements'].append(s)
+            proposition_ids.add(s['proposition'])
+            vids.add(s['variation_descriptor'])
+            tids.add(s['therapy_descriptor'])
+            dids.add(s['disease_descriptor'])
+            methods.add(s['method'])
+            documents.update({d for d in s['supported_by'] if
+                             not d.startswith('civic:eid')})
 
     for p in civic_data['propositions']:
-        if p['subject'] == 'ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR' and p['object_qualifier'] == 'ncit:C2926' and p['object'] == 'ncit:C66940':  # noqa: E501
+        if p['id'] in proposition_ids:
             ex['propositions'].append(p)
-            break
 
     for v in civic_data['variation_descriptors']:
-        if v['id'] == 'civic:vid33':
+        if v['id'] in vids:
             ex['variation_descriptors'].append(v)
-            break
+            gids.add(v['gene_context'])
 
     for t in civic_data['therapy_descriptors']:
-        if t['id'] == 'civic:tid146':
+        if t['id'] in tids:
             ex['therapy_descriptors'].append(t)
-            break
+
+    for d in civic_data['disease_descriptors']:
+        if d['id'] in dids:
+            ex['disease_descriptors'].append(d)
 
     for g in civic_data['gene_descriptors']:
-        if g['id'] == 'civic:gid19':
+        if g['id'] in gids:
             ex['gene_descriptors'].append(g)
-            break
 
     for m in civic_data['methods']:
-        if m['id'] in ['method:001', 'method:002']:
+        if m['id'] in methods:
             ex['methods'].append(m)
 
     for d in civic_data['documents']:
-        if d['id'] in ['pmid:23982599', 'document:001']:
+        if d['id'] in documents:
             ex['documents'].append(d)
 
     with open(f"{PROJECT_ROOT}/analysis/civic/examples/transform/"
