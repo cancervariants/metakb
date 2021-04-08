@@ -62,7 +62,7 @@ def propositions():
             "predicate": "predicts_sensitivity_to",
             "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
             "object_qualifier": "ncit:C2926",
-            "object": "ncit:C66940",
+            "object": "rxcui:1430438",
             "type": "therapeutic_response_proposition"
         }
     ]
@@ -164,7 +164,7 @@ def therapy_descriptors():
             "type": "TherapyDescriptor",
             "label": "Afatinib",
             "value": {
-                "id": "ncit:C66940",
+                "id": "rxcui:1430438",
                 "type": "Drug"
             },
             "alternate_labels": [
