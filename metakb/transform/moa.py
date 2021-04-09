@@ -21,7 +21,7 @@ class MOATransform:
     def __init__(self,
                  file_path=f"{PROJECT_ROOT}/data/moa/moa_harvester.json"):
         """
-        Initialize MOATransform class
+        Initialize VICC normalizers and class attributes
 
         :param: The file path to the harvested json to transform
         """
@@ -32,27 +32,48 @@ class MOATransform:
         self.amino_acid_cache = AminoAcidCache()
         self.disease_query_handler = DiseaseQueryHandler()
         self.therapy_query_handler = TherapyQueryHandler()
+        self.statements = list()
+        self.propositions = list()
+        self.variation_descriptors = list()
+        self.gene_descriptors = list()
+        self.therapy_descriptors = list()
+        self.disease_descriptors = list()
+        self.methods = list()
+        self.documents = list()
 
     def _extract(self):
         """Extract the MOA harvested data file."""
         with open(self.file_path, 'r') as f:
             return json.load(f)
 
-    def _create_json(self, transformations):
-        """Create a JSON for the transformed MOA data."""
-        moa_dir = PROJECT_ROOT / 'data' / 'moa' / 'transform'
+    def _create_json(self,
+                     moa_dir=PROJECT_ROOT / 'data' / 'moa' / 'transform',
+                     fn='moa_cdm.json'):
+        """Create a composite JSON for the transformed MOA data.
+
+        :param path moa_dir: The moa transform data directory
+        :param str fn: The file name for the transformed data
+        """
+        print(moa_dir)
         moa_dir.mkdir(exist_ok=True, parents=True)
 
-        with open(f"{moa_dir}/moa_cdm.json", 'w+') as f:
-            json.dump(transformations, f)
+        composite_dict = {
+            'statements': self.statements,
+            'propositions': self.propositions,
+            'variation_descriptors': self.variation_descriptors,
+            'gene_descriptors': self.gene_descriptors,
+            'therapy_descriptors': self.therapy_descriptors,
+            'disease_descriptors': self.disease_descriptors,
+            'methods': self.methods,
+            'documents': self.documents
+        }
+
+        with open(f"{moa_dir}/{fn}", 'w+') as f:
+            json.dump(composite_dict, f)
 
     def transform(self):
-        """Transform MOA harvested JSON to common date model
-
-        :return: A list of dictinaries containing transformations to CDM.
-        """
+        """Transform MOA harvested JSON to common date model."""
         data = self._extract()
-        responses = []
         cdm_assertions = {}  # assertions that have been transformed to CDM
 
         assertions = data['assertions']
@@ -66,18 +87,13 @@ class MOATransform:
         }
 
         # Transform MOA assertions
-        self._transform_statements(responses, assertions, variants,
-                                   sources, propositions_ix,
-                                   cdm_assertions)
+        self._transform_statements(assertions, variants, sources,
+                                   propositions_ix, cdm_assertions)
 
-        return responses
-
-    def _transform_statements(self, responses, records, variants,
-                              sources, propositions_ix,
-                              cdm_assertions):
+    def _transform_statements(self, records, variants, sources,
+                              propositions_ix, cdm_assertions):
         """Add transformed assertions to the response list.
 
-        :param: A list of dicts containing assertions
         :param: A list of MOA assertion records
         :param: A dict of MOA variant records
         :param: A dict of MOA source records
@@ -127,15 +143,24 @@ class MOATransform:
             ).dict(exclude_none=True)
 
             cdm_assertions[f"moa:assertion_{record['id']}"] = response
-            responses.append(response)
+
+            for field in ['statements', 'propositions',
+                          'variation_descriptors', 'gene_descriptors',
+                          'therapy_descriptors', 'disease_descriptors',
+                          'methods', 'documents']:
+                attr = getattr(self, field)
+                var = response[field]
+                for el in var:
+                    if el not in attr:
+                        attr.append(el)
 
     def _get_descriptors(self, record, variants, gene_descriptors):
         """Return tuple of descriptors if one exists for each type.
 
-        :param: A MOA assertion
+        :param: A MOA assertion record
         :param: MOA variant records
         :param: The corresponding gene descriptors
-        :return: Descriptors
+        :return: a tuple Descriptors
         """
         therapy_descriptors = self._get_therapy_descriptors(record)
         if len(therapy_descriptors) != 1:
@@ -357,12 +382,14 @@ class MOATransform:
 
                 if found_match:
                     gene_descriptor = schemas.GeneDescriptor(
-                        id=f"{schemas.NormalizerPrefix.GENE.value}.normalize."
-                           f"{schemas.NamespacePrefix.MOA.value}:{quote(gene)}",  # noqa: E501
+                        id=f"{schemas.NamespacePrefix.MOA.value}.normalize."
+                           f"{schemas.NormalizerPrefix.GENE.value}:{quote(gene)}",  # noqa: E501
                         label=gene,
                         value=schemas.Gene(id=gene_norm_resp['records'][0].concept_id),  # noqa: E501
                     ).dict(exclude_none=True)
                 else:
+                    logger.warning(f"{gene} not found in Gene "
+                                   f"Normalization normalize.")
                     gene_descriptor = {}
 
                 gene_descriptors.append(gene_descriptor)
@@ -417,38 +444,29 @@ class MOATransform:
         :param: an MOA assertion record
         :return: A list of Therapy Descriptors
         """
-        therapy = assertion['therapy_name']
-        t_handler_resp = None
+        label = assertion['therapy_name']
 
-        if not therapy:
+        if not label:
             return []
-        t_handler_resp = self.therapy_query_handler.search_groups(therapy)
+        therapy_norm_resp = self.therapy_query_handler.search_groups(label)
 
-        if not t_handler_resp or t_handler_resp['match_type'] == 0:
-            logger.warning(f"{therapy} not found in Therapy "
+        if therapy_norm_resp['match_type'] == 0:
+            logger.warning(f"{label} not found in Therapy "
                            f"Normalization normalize.")
             return []
 
-        t_handler_resp = t_handler_resp['value_object_descriptor']
+        therapy_norm_resp = therapy_norm_resp['value_object_descriptor']
 
-        therapy_norm_id = \
-            t_handler_resp['value']['therapy_id']
+        normalized_therapy_id = \
+            therapy_norm_resp['value']['therapy_id']
 
-        # TODO: RxNorm is highest priority, but in example listed NCIt?
-        if not therapy_norm_id.startswith('ncit'):
-            therapy_norm_id = None
-            if 'xrefs' in t_handler_resp:
-                for other_id in t_handler_resp['xrefs']:
-                    if other_id.startswith('ncit:'):
-                        therapy_norm_id = other_id
-
-        if therapy_norm_id:
+        if normalized_therapy_id:
             therapy_descriptor = schemas.ValueObjectDescriptor(
                 id=f"{schemas.NamespacePrefix.MOA.value}."
-                   f"{t_handler_resp['id']}",
+                   f"{therapy_norm_resp['id']}",
                 type="TherapyDescriptor",
-                label=therapy,
-                value=schemas.Drug(id=therapy_norm_id)
+                label=label,
+                value=schemas.Drug(id=normalized_therapy_id)
             ).dict(exclude_none=True)
         else:
             return []
@@ -463,37 +481,34 @@ class MOATransform:
         """
         ot_code = assertion['disease']['oncotree_code']
         disease_name = assertion['disease']['name']
-        d_handler_resp = None
+        highest_match = 0
+        disease_norm_resp = None
 
         for query in [ot_code, disease_name]:
             if not query:
                 continue
 
-            d_handler_resp = self.disease_query_handler.search_groups(query)
-            if d_handler_resp['match_type'] != 0:
-                break
+            disease_norm_resp_cand = self.disease_query_handler.search_groups(query)  # noqa: E501
+            if disease_norm_resp_cand['match_type'] > highest_match:
+                disease_norm_resp = disease_norm_resp_cand
+                highest_match = disease_norm_resp['match_type']
+                normalized_disease_id = \
+                    disease_norm_resp['value_object_descriptor']['value']['disease_id']  # noqa: E501
+                if highest_match == 100:
+                    break
 
-        if not d_handler_resp or d_handler_resp['match_type'] == 0:
+        if highest_match == 0:
             logger.warning(f"{ot_code} and {disease_name} not found in "
                            f"Disease Normalization normalize.")
             return []
 
-        d_handler_resp = d_handler_resp['value_object_descriptor']
-        disease_norm_id = d_handler_resp['value']['disease_id']
-
-        if disease_norm_id.startswith('ncit:'):
-            disease_descriptor = schemas.ValueObjectDescriptor(
-                id=f"{schemas.NamespacePrefix.MOA.value}."
-                   f"{d_handler_resp['id']}",
-                type="DiseaseDescriptor",
-                label=disease_name,
-                value=schemas.Disease(id=disease_norm_id),
-            ).dict(exclude_none=True)
-        else:
-            # TODO: Should we accept other disease_ids other than NCIt?
-            logger.warning("Could not find NCIt ID using Disease Normalization"
-                           f" for {ot_code} and {disease_name}.")
-            return []
+        disease_descriptor = schemas.ValueObjectDescriptor(
+            id=f"{schemas.NamespacePrefix.MOA.value}."
+               f"{disease_norm_resp['value_object_descriptor']['id']}",
+            type="DiseaseDescriptor",
+            label=disease_name,
+            value=schemas.Disease(id=normalized_disease_id),
+        ).dict(exclude_none=True)
 
         return [disease_descriptor]
 
