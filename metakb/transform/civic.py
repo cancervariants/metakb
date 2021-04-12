@@ -423,7 +423,11 @@ class CIViCTransform:
         :param dict gene: A CIViC gene record
         :return: A list of Variation Descriptors
         """
-        # Find all possible queries to test against variant-normalizer
+        # First try seeing if Variant Normalizer can find the MANE transcript
+        normalizer_responses = list()
+        variant_norm_resp = self._get_variant_norm_resp(
+            [variant['allele_registry_id']], normalizer_responses)
+
         variant_query = f"{gene['name']} {variant['name']}"
         hgvs_exprs = self._get_hgvs_expr(variant)
         hgvs_exprs_queries = list()
@@ -431,23 +435,21 @@ class CIViCTransform:
             if 'protein' in expr['syntax']:
                 hgvs_exprs_queries.append(expr['value'])
 
-        variant_norm_resp = None
-        for query in hgvs_exprs_queries + [variant_query]:
-            if not query:
-                continue
-            try:
-                validations = self.variant_to_vrs.get_validations(query)
-                variant_norm_resp = \
-                    self.variant_normalizer.normalize(query, validations,
-                                                      self.amino_acid_cache)
-            except:  # noqa: E722
-                logger.warning(f"{query} not supported in variant-normalizer.")
-            if variant_norm_resp:
-                break
+        if not variant_norm_resp:
+            variant_norm_resp = self._get_variant_norm_resp(
+                hgvs_exprs_queries + [variant_query], normalizer_responses
+            )
 
         if not variant_norm_resp:
-            logger.warn(f"variant-normalizer does not support "
-                        f"civic:vid{variant['id']}.")
+            logger.warning("Variant Normalizer unable to find MANE transcript "
+                           f"for civic:vid{variant['id']} : {variant_query}")
+
+        # Couldn't find MANE transcript
+        if not variant_norm_resp and len(normalizer_responses) > 0:
+            variant_norm_resp = normalizer_responses[0]
+        elif not variant_norm_resp and len(normalizer_responses) == 0:
+            logger.warning("Variant Normalizer does not support: "
+                           f"civic:vid{variant['id']}")
             return []
 
         # For now, everything that we're able to normalize is as the protein
@@ -473,6 +475,34 @@ class CIViCTransform:
             extensions=self._get_variant_extensions(variant)
         ).dict(exclude_none=True)
         return [variation_descriptor]
+
+    def _get_variant_norm_resp(self, queries, normalizer_responses):
+        """Return variant-normalizer's response for a list of queries.
+
+        :param list queries: Possible query strings to try to normalize
+        :param list normalizer_responses: A list to store normalizer_responses
+            which are used in the event that a MANE transcript cannot be found
+        :return: variant-normalizer normalize response
+        """
+        variant_norm_resp = None
+        for query in queries:
+            if not query:
+                continue
+
+            try:
+                validations = self.variant_to_vrs.get_validations(query)
+                variant_norm_resp = \
+                    self.variant_normalizer.normalize(query, validations,
+                                                      self.amino_acid_cache)
+
+                if variant_norm_resp:
+                    normalizer_responses.append(variant_norm_resp)
+                    if not self.variant_normalizer.warnings:
+                        break
+            except:  # noqa: E722
+                logger.warning("Variant Normalizer unable to normalize: "
+                               f"{query}")
+        return variant_norm_resp
 
     def _get_variant_extensions(self, variant):
         """Return a list of extensions for a variant.
