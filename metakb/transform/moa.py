@@ -197,11 +197,13 @@ class MOATransform:
         :param list documents: Supporting evidence for the rcord
         :return: A list of statement
         """
+        evidence_level = record['predictive_implication'].strip().replace(' ', '_')  # noqa: E501
+
         statement = schemas.Statement(
             id=f"{schemas.NamespacePrefix.MOA.value}:aid{record['id']}",
             description=record['description'],
             evidence_level=f"moa.evidence_level:"
-                           f"{record['predictive_implication']}",
+                           f"{evidence_level}",
             proposition=propositions[0]['id'],
             variation_origin=self._get_variation_origin(record['variant']),
             variation_descriptor=variant_descriptors[0]['id'],
