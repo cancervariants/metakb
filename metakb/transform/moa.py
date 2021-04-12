@@ -54,7 +54,6 @@ class MOATransform:
         :param path moa_dir: The moa transform data directory
         :param str fn: The file name for the transformed data
         """
-        print(moa_dir)
         moa_dir.mkdir(exist_ok=True, parents=True)
 
         composite_dict = {
