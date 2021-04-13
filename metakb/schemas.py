@@ -14,6 +14,20 @@ class XrefSystem(str, Enum):
     DISEASE_ONTOLOGY = 'do'
 
 
+class HarvesterSourceName(str, Enum):
+    """Define string constraints for harvester sources MetaKB uses."""
+
+    CIVIC = 'CIViC'
+    MOA = 'MOAlmanac'
+
+
+class TransformSourceName(str, Enum):
+    """Define string constraints for transform sources MetaKB uses."""
+
+    CIVIC = 'CIViCTransform'
+    # MOA = 'MOAlmanacTransform'
+
+
 class NamespacePrefix(str, Enum):
     """Define constraints for Namespace prefixes."""
 

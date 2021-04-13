@@ -15,3 +15,14 @@ if 'METAKB_NORM_EB_PROD' in environ:
     environ['GENE_NORM_EB_PROD'] = "true"
     environ['THERAPY_NORM_EB_PROD'] = "true"
     environ['DISEASE_NORM_EB_PROD'] = "true"
+
+
+from metakb.schemas import HarvesterSourceName, TransformSourceName  # noqa: E402, E501
+
+# Get harvester source's class name from string
+# {'civic': CIViC, 'moa': MOAlmanac}
+HARVESTER_SOURCE_CLASS = {s.value.lower(): eval(s.value) for s in HarvesterSourceName.__members__.values()}  # noqa: E501
+
+# Get tranform source's class name from string
+# {'civic': CIViCTransform, 'moa': MOAlmanacTransform}
+TRANSFORM_SOURCE_CLASS = {s.value.lower(): eval(s.value) for s in TransformSourceName.__members__.values()}  # noqa: E501
