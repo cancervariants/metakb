@@ -23,7 +23,7 @@ def create_civic_example(civic_data):
 
 if __name__ == '__main__':
     civic = CIViCTransform()
-    transformation = civic.transform()
+    transformation = civic.transform()[0]
     civic._create_json(transformation)
     with open(f"{PROJECT_ROOT}/data/civic/transform/civic_cdm.json", 'r') as f:
         civic_data = json.load(f)
