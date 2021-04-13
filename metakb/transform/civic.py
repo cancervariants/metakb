@@ -80,7 +80,7 @@ class CIViCTransform:
                                    propositions_documents_ix,
                                    cdm_evidence_items, is_evidence=False)
 
-        return (responses, propositions_documents_ix)
+        return responses, propositions_documents_ix
 
     def _transform_statements(self, responses, records, variants, genes,
                               propositions_documents_ix,
