@@ -162,7 +162,8 @@ def return_response(query_handler, statement_id, **kwargs):
     propositions = response['propositions']
     assert len(statements) != 0
     assert len(propositions) != 0
-    assert len(response['matches']) != 0
+    assert len(response['matches']['statements']) != 0
+    assert len(response['matches']['propositions']) != 0
     s = None
     for statement in statements:
         if statement['id'] == statement_id:
@@ -417,7 +418,7 @@ def test_multiple_parameters(query_handler):
         therapy='Afatinib'
     )
     for p in response['propositions']:
-        if p['id'] in response['matches']:
+        if p['id'] in response['matches']['propositions']:
             assert p['object_qualifier'] == object_qualifier
             assert p['subject'] == subject
             assert p['object'] == object
@@ -439,7 +440,7 @@ def test_multiple_parameters(query_handler):
         disease='malignant trunk melanoma'
     )
     for p in response['propositions']:
-        if p['id'] in response['matches']:
+        if p['id'] in response['matches']['propositions']:
             assert p['object_qualifier'] == object_qualifier
             assert p['subject'] == subject
             assert p['object']
@@ -459,7 +460,8 @@ def test_multiple_parameters(query_handler):
     )
     assert len(response['statements']) == 1
     assert len(response['propositions']) == 1
-    assert len(response['matches']) == 2
+    assert len(response['matches']['statements']) == 1
+    assert len(response['matches']['propositions']) == 1
 
     # CIViC AID6
     response = query_handler.search(
@@ -469,7 +471,8 @@ def test_multiple_parameters(query_handler):
     )
     assert len(response['statements']) > 1
     assert len(response['propositions']) > 1
-    assert len(response['matches']) == 2
+    assert len(response['matches']['statements']) == 1
+    assert len(response['matches']['propositions']) == 1
 
     civic_aid6_supported_by_statements = list()
     for s in response['statements']:
@@ -494,7 +497,8 @@ def test_multiple_parameters(query_handler):
             statement_ids.append(s['id'])
     for aid6_statement in civic_aid6_supported_by_statements:
         assert aid6_statement in statement_ids
-    assert len(response['matches']) > 2
+    assert len(response['matches']['statements']) > 1
+    assert len(response['matches']['propositions']) > 1
 
 
 def test_no_matches(query_handler):
