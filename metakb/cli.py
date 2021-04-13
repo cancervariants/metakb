@@ -4,9 +4,11 @@ to graph datastore.
 """
 import click
 from os import environ
-from metakb.database import Graph
 import logging
-from metakb import PROJECT_ROOT, HARVESTER_SOURCE_CLASS, TRANSFORM_SOURCE_CLASS
+from metakb.database import Graph
+from metakb import PROJECT_ROOT
+from metakb.harvesters import CIViC, MOAlmanac  # noqa: F401
+from metakb.transform import CIViCTransform, MOATransform
 from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
 from disease.cli import CLI as DiseaseCLI
@@ -110,8 +112,12 @@ class CLI:
     @staticmethod
     def _harvest_sources():
         logger.info("Harvesting resource data...")
-        for class_str, class_name in \
-                HARVESTER_SOURCE_CLASS.__members__.items():
+        # TODO: Switch to using constant
+        harvester_sources = {
+            'civic': CIViC,
+            #  'moa': MOAlmanac  # TODO: Uncomment once API is fixed
+        }
+        for class_str, class_name in harvester_sources.items():
             source = class_name()
             source_successful = source.harvest()
             if not source_successful:
@@ -122,8 +128,12 @@ class CLI:
     def _transform_sources():
         logger.info("Transforming harvested data...")
         source_indices = None
-        for class_str, class_name in \
-                TRANSFORM_SOURCE_CLASS.__members__.items():
+        # TODO: Switch to using constant
+        transform_sources = {
+            'civic': CIViCTransform,
+            'moa': MOATransform
+        }
+        for class_str, class_name in transform_sources.items():
             source = class_name()
             source_indices = source.transform(source_indices)
             source._create_json()
@@ -195,7 +205,7 @@ class CLI:
             except SystemExit as e:
                 if e.code != 0:
                     raise e
-        print("Normalizer initialization complete.")
+        click.echo("Normalizer initialization complete.")
 
     @staticmethod
     def _check_db_param(param: str, name: str) -> str:
