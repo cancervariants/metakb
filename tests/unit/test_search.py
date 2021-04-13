@@ -52,7 +52,7 @@ def eid2997_proposition():
         "predicate": "predicts_sensitivity_to",
         "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
         "object_qualifier": "ncit:C2926",
-        "object": "ncit:C66940",
+        "object": "rxcui:1430438",
         "type": "therapeutic_response_proposition"
     }
 
@@ -63,9 +63,9 @@ def eid1409_proposition():
     return {
         "id": "proposition:701",
         "predicate": "predicts_sensitivity_to",
-        "subject": "ga4gh:VA.mJbjSsW541oOsOtBoX36Mppr6hMjbjFr",
+        "subject": "ga4gh:VA.9dA0egRAIfVFDL1sdU1VP7HsBcG0-DtE",
         "object_qualifier": "ncit:C3510",
-        "object": "ncit:C64768",
+        "object": "rxcui:1147220",
         "type": "therapeutic_response_proposition"
     }
 
@@ -196,7 +196,8 @@ def test_civic_eid2997(query_handler, civic_eid2997, eid2997_proposition):
     assertions(eid2997_proposition, p)
 
     # Test search by Object
-    s, p = return_response(query_handler, statement_id, therapy='ncit:C66940')
+    s, p = return_response(query_handler, statement_id,
+                           therapy='rxcui:1430438')
     assertions(civic_eid2997, s)
     assertions(eid2997_proposition, p)
 
@@ -234,9 +235,9 @@ def test_civic_eid2997(query_handler, civic_eid2997, eid2997_proposition):
     assertions(eid2997_proposition, p)
 
     # Alt Label
-    # s, p = return_response(query_handler, statement_id,
-    # variation='egfr Leu858ARG')
-    # assertions(civic_eid2997, s)
+    s, p = return_response(query_handler, statement_id,
+                           variation='egfr Leu858ARG')
+    assertions(civic_eid2997, s)
 
     # HGVS Expression
     s, p = return_response(query_handler, statement_id,
@@ -269,7 +270,7 @@ def test_civic_eid1409(query_handler, civic_eid1409):
 
     # Test search by Subject
     s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:VA.mJbjSsW541oOsOtBoX36Mppr6hMjbjFr')  # noqa: E501
+                           variation='ga4gh:VA.9dA0egRAIfVFDL1sdU1VP7HsBcG0-DtE')  # noqa: E501
     assertions(civic_eid1409, s)
 
     # Test search by Object
@@ -297,19 +298,19 @@ def test_civic_eid1409(query_handler, civic_eid1409):
 
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
-    # s, p = return_response(query_handler, statement_id,
-    # variation='BRAF V600E')
-    # assertions(civic_eid1409, s)
+    s, p = return_response(query_handler, statement_id,
+                           variation='BRAF V600E')
+    assertions(civic_eid1409, s)
 
     # Sequence ID
     s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y')  # noqa: E501
+                           variation='ga4gh:SQ.WaAJ_cXXn9YpMNfhcq9lnzIvaB9ALawo')  # noqa: E501
     assertions(civic_eid1409, s)
 
     # # Alt Label
-    # s, p = return_response(query_handler, statement_id,
-    # variation='braf val600glu')
-    # assertions(civic_eid1409, s)
+    s, p = return_response(query_handler, statement_id,
+                           variation='braf val600glu')
+    assertions(civic_eid1409, s)
 
     # HGVS Expression
     s, p = return_response(query_handler, statement_id,
@@ -322,10 +323,9 @@ def test_civic_eid1409(query_handler, civic_eid1409):
     assertions(civic_eid1409, s)
 
     # # Alt Label
-    # s, p = return_response(query_handler,
-    #                      'BRAF(V600E) Kinase Inhibitor RO5185426',
-    #                      statement_id)
-    # assertions(civic_eid1409, s)
+    s, p = return_response(query_handler, statement_id,
+                           therapy='BRAF(V600E) Kinase Inhibitor RO5185426')
+    assertions(civic_eid1409, s)
 
     # Label
     s, p = return_response(query_handler, statement_id,
@@ -343,7 +343,8 @@ def test_civic_aid6(query_handler, civic_aid6):
     assertions(civic_aid6, s)
 
     # Test search by Object
-    s, p = return_response(query_handler, statement_id, therapy='ncit:C66940')
+    s, p = return_response(query_handler, statement_id,
+                           therapy='rxcui:1430438')
     assertions(civic_aid6, s)
 
     # Test search by Object Qualifier
@@ -365,9 +366,8 @@ def test_civic_aid6(query_handler, civic_aid6):
 
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
-    # s, p = return_response(query_handler, statement_id,
-    # variation='EGFR L858R')
-    # assertions(civic_aid6, s)
+    s, p = return_response(query_handler, statement_id, variation='EGFR L858R')
+    assertions(civic_aid6, s)
 
     # Sequence ID
     s, p = return_response(query_handler, statement_id,
@@ -375,9 +375,9 @@ def test_civic_aid6(query_handler, civic_aid6):
     assertions(civic_aid6, s)
 
     # Alt Label
-    # s, p = return_response(query_handler, statement_id,
-    # variation='egfr leu858arg')
-    # assertions(civic_aid6, s)
+    s, p = return_response(query_handler, statement_id,
+                           variation='egfr leu858arg')
+    assertions(civic_aid6, s)
 
     # HGVS Expression
     s, p = return_response(query_handler, statement_id,
@@ -411,7 +411,7 @@ def test_multiple_parameters(query_handler):
     # Test EID2997 queries
     object_qualifier = 'ncit:C2926'
     subject = 'ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR'
-    object = 'ncit:C66940'
+    object = 'rxcui:1430438'
     response = query_handler.search(
         variation='NP_005219.2:p.Leu858Arg',
         disease='NSCLC',
@@ -434,7 +434,7 @@ def test_multiple_parameters(query_handler):
 
     # Test eid1409 queries
     object_qualifier = 'ncit:C3510'
-    subject = 'ga4gh:VA.mJbjSsW541oOsOtBoX36Mppr6hMjbjFr'
+    subject = 'ga4gh:VA.9dA0egRAIfVFDL1sdU1VP7HsBcG0-DtE'
     response = query_handler.search(
         variation=subject,
         disease='malignant trunk melanoma'
