@@ -121,7 +121,7 @@ class MOATransform:
                 continue
 
             documents = self._get_documents(
-                self._get_record(record['source_ids'][0], sources))
+                self._get_record(record['source_ids'], sources))
 
             methods = self._get_method()
             statements = self._get_statement(record, propositions,

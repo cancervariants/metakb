@@ -1,0 +1,65 @@
+{
+    "ASSERTIONS": {
+        "id": 600,
+        "context": "Metastatic castration resistant prostate cancer",
+        "description": "The U.S. Food and Drug Administration (FDA) granted approval to olaparib for adult patients with deleterious or suspected deleterous germline or somatic homologous recombination repair (HRR) gene-mutated metastatic castration-resistant prostate cancer (mCRPC), who have progressed following prior treatment with enzalutamide or abiraterone.",
+        "disease": {
+            "name": "Prostate Adenocarcinoma",
+            "oncotree_code": "PRAD",
+            "oncotree_term": "Prostate Adenocarcinoma"
+        },
+        "therapy_name": "Olaparib",
+        "therapy_type": "Targeted therapy",
+        "clinical_significance": "sensitivity",
+        "predictive_implication": "FDA-Approved",
+        "favorable_prognosis": null,
+        "created_on": "03/31/21",
+        "last_updated": "2020-10-22",
+        "submitted_by": "breardon@broadinstitute.org",
+        "validated": true,
+        "source_ids": 53,
+        "variant": {
+            "id": 582,
+            "alternate_allele": null,
+            "cdna_change": null,
+            "chromosome": null,
+            "end_position": null,
+            "exon": null,
+            "feature_type": "germline_variant",
+            "gene": "BRCA1",
+            "pathogenic": "1.0",
+            "protein_change": null,
+            "reference_allele": null,
+            "rsid": null,
+            "start_position": null,
+            "variant_annotation": null,
+            "feature": "BRCA1 (Pathogenic)"
+        }
+    },
+    "SOURCES": {
+        "id": 53,
+        "type": "FDA",
+        "doi": null,
+        "nct": "None",
+        "pmid": "None",
+        "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/208558s014lbl.pdf",
+        "citation": "AstraZeneca Pharmaceuticals, LP. Lynparza (olaparib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/208558s014lbl.pdf. Revised May 2020. Accessed 22 October, 2020."
+    },
+    "VARIANTS": {
+        "id": 582,
+        "alternate_allele": null,
+        "cdna_change": null,
+        "chromosome": null,
+        "end_position": null,
+        "exon": null,
+        "feature_type": "germline_variant",
+        "gene": "BRCA1",
+        "pathogenic": "1.0",
+        "protein_change": null,
+        "reference_allele": null,
+        "rsid": null,
+        "start_position": null,
+        "variant_annotation": null,
+        "feature": "BRCA1 (Pathogenic)"
+    }
+}
