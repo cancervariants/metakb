@@ -1,5 +1,5 @@
 """A module for the Molecular Oncology Almanac harvester"""
-from base import Harvester
+from .base import Harvester
 from metakb import PROJECT_ROOT
 import requests
 import requests_cache
@@ -27,8 +27,8 @@ class MOAlmanac(Harvester):
         try:
             assertion_resp = self._get_all_assertions()
             sources = self._harvest_sources(assertion_resp)
-            variants = self._harvest_variants(assertion_resp)
-            assertions = self._harvest_assertions(assertion_resp, variants)
+            variants, variants_list = self._harvest_variants()
+            assertions = self._harvest_assertions(assertion_resp, variants_list)  # noqa: E501
             self._create_json(assertions, sources, variants, fn)
             logger.info('MOAlamanc harvester was successful.')
             return True
@@ -68,16 +68,17 @@ class MOAlmanac(Harvester):
                 f.write(json.dumps(composite_dict[d]))
                 f.close()
 
-    def _harvest_sources(self, assertions):
+    def _harvest_sources(self, assertion_resp):
         """
         Harvest all MOA sources
 
+        :param: A list of MOA assertion records
         :return: A list of sources
         :rtype: list
         """
         sources = []
 
-        for assertion in assertions:
+        for assertion in assertion_resp:
             source = assertion['sources'][0]
             s = self._source_item(source)
             if s not in sources:
@@ -85,32 +86,34 @@ class MOAlmanac(Harvester):
 
         return sources
 
-    def _harvest_variants(self, assertions):
+    def _harvest_variants(self):
         """
         Harvest all MOA variants
 
         :return: A list of variants
         :rtype: list
         """
+        variants_list = self._get_all_variants()
         variants = []
-        for assertion in assertions:
-            v = self._harvest_variant(assertion)
-            if v not in variants:
-                variants.append(v)
 
-        return variants
+        for variant in variants_list:
+            v = self._harvest_variant(variant)
+            variants.append(v)
 
-    def _harvest_assertions(self, assertions, variants):
+        return variants, variants_list
+
+    def _harvest_assertions(self, assertion_resp, variants_list):
         """
         Harvest all MOA assertions
 
-        :param: A list of harvested MOA variants
+        :param: A list of MOA assertion records
+        :param: A list of MOA variant records
         :return: A list of assertions
         :rtype: list
         """
         assertions = []
-        for assertion in assertions:
-            a = self._harvest_assertion(assertion, variants)
+        for assertion in assertion_resp:
+            a = self._harvest_assertion(assertion, variants_list)
             assertions.append(a)
 
         return assertions
@@ -126,6 +129,18 @@ class MOAlmanac(Harvester):
             assertions = r.json()
 
         return assertions
+
+    def _get_all_variants(self):
+        """
+        Return all variant records
+
+        :return: All moa variant records
+        """
+        with requests_cache.disabled():
+            r = requests.get('https://moalmanac.org/api/features')
+            variants = r.json()
+
+        return variants
 
     def _source_item(self, source):
         """
@@ -146,33 +161,29 @@ class MOAlmanac(Harvester):
         }
         return source_record
 
-    def _harvest_variant(self, assertion):
+    def _harvest_variant(self, variant):
         """
         Harvest an individual MOA variant record.
 
         :param: A MOA variant record
-        :param: a dictionry of pre-constructed variant_record
-        :param: a dictionry of attribute definition
         :return: A dictionary containing MOA variant data
         :rtype: dict
         """
         variant_record = {
-            'id': assertion['assertion_id']
+            'id': variant['feature_id']
         }
-        attributes = assertion['features'][0]['attributes'][0]
 
-        for attr in attributes:
-            variant_record.update({attr: attributes[attr]})
+        variant_record.update({k: v for k, v in variant['attributes'][0].items()})  # noqa: E501
         variant_record.update(self._get_feature(variant_record))
 
         return variant_record
 
-    def _harvest_assertion(self, assertion, variants):
+    def _harvest_assertion(self, assertion, variants_list):
         """
         Harvest an individual MOA assertion record
 
         :param: a MOA assertion record
-        :param: a list of harvested MOA variants
+        :param: a list of MOA variant records
         :return: A dictionary containing MOA assertion data
         :rtype: dict
         """
@@ -191,7 +202,6 @@ class MOAlmanac(Harvester):
                 assertion['therapy_resistance'],
                 assertion['therapy_sensitivity']),
             'predictive_implication': assertion["predictive_implication"],
-            'feature_ids': assertion['assertion_id'],
             'favorable_prognosis': assertion['favorable_prognosis'],
             'created_on': assertion['created_on'],
             'last_updated': assertion['last_updated'],
@@ -200,9 +210,9 @@ class MOAlmanac(Harvester):
             'source_ids': assertion['sources'][0]['source_id']
         }
 
-        for v in variants:
-            if v['id'] == assertion_record['features_ids']:
-                assertion_record.update({'variant': v})
+        for v in variants_list:
+            if v['attributes'][0] == assertion['features'][0]['attributes'][0]:
+                assertion_record.update({'variant': self._harvest_variant(v)})
 
         return assertion_record
 

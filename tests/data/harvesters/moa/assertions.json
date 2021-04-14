@@ -2,19 +2,46 @@
 	{
 		"assertion_id": 168, 
 		"context": null, 
-		"created_on": "02/04/21", 
+		"created_on": "03/31/21", 
 		"description": "Administration of bevacizumab in a dabrafenib-resistant cell line counteracted the tumor growth stimulating effect of administering dabrafenib post-resistance.", 
 		"disease": "Melanoma", 
 		"favorable_prognosis": null, 
 		"features": [
-			168
+			{
+				"attributes": [
+					{
+						"alternate_allele": "T", 
+						"cdna_change": "c.1799T>A", 
+						"chromosome": "7", 
+						"end_position": "140453136.0", 
+						"exon": "15.0", 
+						"feature_type": "somatic_variant", 
+						"gene": "BRAF", 
+						"protein_change": "p.V600E", 
+						"reference_allele": "A", 
+						"rsid": "rs113488022", 
+						"start_position": "140453136.0", 
+						"variant_annotation": "Missense"
+					}
+				], 
+				"feature_id": 168, 
+				"feature_type": "somatic_variant"
+			}
 		], 
 		"last_updated": "2019-06-13", 
 		"oncotree_code": "MEL", 
 		"oncotree_term": "Melanoma", 
 		"predictive_implication": "Preclinical", 
 		"sources": [
-			67
+			{
+				"citation": "Caporali S, Alvino E, Lacal PM, et al. Targeting the PI3K/AKT/mTOR pathway overcomes the stimulating effect of dabrafenib on the invasive behavior of melanoma cells with acquired resistance to the BRAF inhibitor. Int J Oncol. 2016;49(3):1164-74.", 
+				"doi": "10.3892/ijo.2016.3594", 
+				"nct": "None", 
+				"pmid": 27572939, 
+				"source_id": 67, 
+				"source_type": "Journal", 
+				"url": "https://doi.org/10.3892/ijo.2016.3594"
+			}
 		], 
 		"submitted_by": "breardon@broadinstitute.org", 
 		"therapy_name": "Bevacizumab", 
@@ -23,5 +50,57 @@
 		"therapy_strategy": "VEGF/VEGFR inhibition", 
 		"therapy_type": "Targeted therapy", 
 		"validated": true
-	}
+	},
+	{
+		"assertion_id": 166, 
+		"context": null, 
+		"created_on": "03/31/21", 
+		"description": "The combination of ipilimumab and vemurafenib in a sequencing strategy showed limited efficacy in a phase II study.", 
+		"disease": "Melanoma", 
+		"favorable_prognosis": null, 
+		"features": [
+			{
+				"attributes": [
+					{
+						"alternate_allele": "T", 
+						"cdna_change": "c.1799T>A", 
+						"chromosome": "7", 
+						"end_position": "140453136.0", 
+						"exon": "15.0", 
+						"feature_type": "somatic_variant", 
+						"gene": "BRAF", 
+						"protein_change": "p.V600E", 
+						"reference_allele": "A", 
+						"rsid": "rs113488022", 
+						"start_position": "140453136.0", 
+						"variant_annotation": "Missense"
+					}
+				], 
+				"feature_id": 166, 
+				"feature_type": "somatic_variant"
+			}
+		], 
+		"last_updated": "2019-06-13", 
+		"oncotree_code": "MEL", 
+		"oncotree_term": "Melanoma", 
+		"predictive_implication": "Clinical trial", 
+		"sources": [
+			{
+				"citation": "Amin A, Lawson DH, Salama AK, et al. Phase II study of vemurafenib followed by ipilimumab in patients with previously untreated BRAF-mutated metastatic melanoma. J Immunother Cancer. 2016;4:44.", 
+				"doi": "10.1186/s40425-016-0148-7", 
+				"nct": "NCT01673854", 
+				"pmid": 27532019, 
+				"source_id": 66, 
+				"source_type": "Journal", 
+				"url": "https://doi.org/10.1186/s40425-016-0148-7"
+			}
+		], 
+		"submitted_by": "breardon@broadinstitute.org", 
+		"therapy_name": "Ipilimumab + Vemurafenib", 
+		"therapy_resistance": null, 
+		"therapy_sensitivity": true, 
+		"therapy_strategy": "CTLA-4 inhibition + B-RAF inhibition", 
+		"therapy_type": "Combination therapy", 
+		"validated": true
+		}
 ]
