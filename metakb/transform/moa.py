@@ -459,7 +459,7 @@ class MOATransform:
         therapy_norm_resp = therapy_norm_resp['value_object_descriptor']
 
         normalized_therapy_id = \
-            therapy_norm_resp['value']['therapy_id']
+            therapy_norm_resp['value']['id']
 
         if normalized_therapy_id:
             therapy_descriptor = schemas.ValueObjectDescriptor(
