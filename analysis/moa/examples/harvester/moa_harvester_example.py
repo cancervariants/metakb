@@ -22,7 +22,7 @@ def create_assertion_examples(data):
             if v['id'] == feature_id:
                 variant = v
 
-        with open(f"{PROJECT_ROOT}/analysis/moa/examples/"
+        with open(f"{PROJECT_ROOT}/analysis/moa/examples/harvester/"
                   f"assertion {assertion['id']}.json", 'w+') as f:
             example = {
                 'ASSERTIONS': assertion,
@@ -45,7 +45,7 @@ def create_variant_examples(data):
         if data['variants'][i]['id'] in variants_ids:
             variants.append(data['variants'][i])
     for variant in variants:
-        with open(f"{PROJECT_ROOT}/analysis/moa/examples/"
+        with open(f"{PROJECT_ROOT}/analysis/moa/examples/harvester/"
                   f"{variant['feature'].lower()}.json", 'w+') as f:
             f.write(json.dumps(variant))
             print(f"Created JSON for variant: {variant['feature']}")
