@@ -7,26 +7,26 @@ import json
 def create_assertion_examples(data):
     """Create five MOAlmanac assertion examples."""
     assertions = []
-    for i in range(5):
+    for i in [0, 69, 599, 699, 759]:
         if data['assertions'][i]['source_ids']:
             assertions.append(data['assertions'][i])
 
     for assertion in assertions:
-        source_id = assertion['source_ids'][0]
+        source_id = assertion['source_ids']
         for s in data['sources']:
             if s['id'] == source_id:
-                source_item = s
+                source = s
 
-        feature_id = assertion['feature_ids'][0]
+        feature_id = assertion['variant']['id']
         for v in data['variants']:
-            if v['feature_id'] == feature_id:
+            if v['id'] == feature_id:
                 variant = v
 
         with open(f"{PROJECT_ROOT}/analysis/moa/examples/"
                   f"assertion {assertion['id']}.json", 'w+') as f:
             example = {
                 'ASSERTIONS': assertion,
-                'SOURCES': source_item,
+                'SOURCES': source,
                 'VARIANTS': variant
             }
 
@@ -39,7 +39,7 @@ def create_variant_examples(data):
     """Create variant examples for BRAF600E, BCR-ABL Variant,
     TP53 (Nonsense), and EGFR Amplification.
     """
-    variants_ids = [1, 147, 550, 699]
+    variants_ids = [1, 147, 551, 701]
     variants = []
     for i in range(len(data['variants'])):
         if data['variants'][i]['id'] in variants_ids:
