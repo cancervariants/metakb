@@ -8,7 +8,7 @@
             "variation_origin": "somatic",
             "variation_descriptor": "moa:vid69",
             "therapy_descriptor": "moa.normalize.therapy:Imatinib",
-            "disease_descriptor": "moa.normalize.disease:CML",
+            "disease_descriptor": "moa.normalize.disease:Chronic%20Myelogenous%20Leukemia",
             "method": "method:004",
             "supported_by": [
                 "pmid:11423618"
@@ -22,7 +22,7 @@
             "predicate": "predicts_resistance_to",
             "subject": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",
             "object_qualifier": "ncit:C3174",
-            "object": "ncit:C62035",
+            "object": "rxcui:282388",
             "type": "therapeutic_response_proposition"
         }
     ],
@@ -67,12 +67,12 @@
             "molecule_context": "protein",
             "structural_type": "SO:0001606",
             "ref_allele_seq": "T",
-            "gene_context": "gene.normalize.moa:ABL1"
+            "gene_context": "moa.normalize.gene:ABL1"
         }
     ],
     "gene_descriptors": [
         {
-            "id": "gene.normalize.moa:ABL1",
+            "id": "moa.normalize.gene:ABL1",
             "type": "GeneDescriptor",
             "label": "ABL1",
             "value": {
@@ -87,14 +87,14 @@
             "type": "TherapyDescriptor",
             "label": "Imatinib",
             "value": {
-                "id": "ncit:C62035",
+                "id": "rxcui:282388",
                 "type": "Drug"
             }
         }
     ],
     "disease_descriptors": [
         {
-            "id": "moa.normalize.disease:CML",
+            "id": "moa.normalize.disease:Chronic%20Myelogenous%20Leukemia",
             "type": "DiseaseDescriptor",
             "label": "Chronic Myelogenous Leukemia",
             "value": {

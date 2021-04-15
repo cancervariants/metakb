@@ -39,24 +39,16 @@ class QueryHandler:
         therapy_norm_resp = \
             self.therapy_query_handler.search_groups(therapy)
 
-        normalized_therapy = None
+        therapy_norm_id = None
         if therapy_norm_resp['match_type'] != 0:
             therapy_norm_resp = therapy_norm_resp[
                 'value_object_descriptor']
             therapy_norm_id = therapy_norm_resp['value']['therapy_id']
-            if not therapy_norm_id.startswith('ncit'):
-                therapy_norm_id = None
-                if 'xrefs' in therapy_norm_resp:
-                    for other_id in therapy_norm_resp['xrefs']:
-                        if other_id.startswith('ncit:'):
-                            therapy_norm_id = other_id
 
-            if therapy_norm_id:
-                normalized_therapy = therapy_norm_id
-        if not normalized_therapy:
+        if not therapy_norm_id:
             warnings.append(f'therapy-normalizer could not '
                             f'normalize {therapy}.')
-        return normalized_therapy
+        return therapy_norm_id
 
     def get_normalized_disease(self, disease, warnings):
         """Get normalized disease concept.
@@ -71,8 +63,6 @@ class QueryHandler:
         normalized_disease = None
         if disease_norm_response['match_type'] != 0:
             normalized_disease = disease_norm_response['value_object_descriptor']['value']['disease_id']  # noqa: E501
-            if not normalized_disease.startswith('ncit:'):
-                normalized_disease = None
 
         if not normalized_disease:
             warnings.append(f'disease-normalizer could not normalize '
