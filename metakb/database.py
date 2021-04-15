@@ -72,11 +72,7 @@ class Graph:
         logger.info(f"Loading data from {infile_path}")
         with open(infile_path, 'r') as f:
             items = json.load(f)
-            loaded_count = 0
-            for item in items:
-                self.add_transformed_data(item)
-                loaded_count += 1
-        logger.info(f"Successfully loaded {loaded_count} statements.")
+            self.add_transformed_data(items)
 
     @staticmethod
     def _create_constraints(tx):
@@ -106,6 +102,7 @@ class Graph:
             Variations, Propositions, and Evidence
         """
         with self.driver.session() as session:
+            loaded_count = 0
             for method in data.get('methods', []):
                 session.write_transaction(self._add_method, method)
             for descr in data.get('therapy_descriptors', []):
@@ -123,7 +120,9 @@ class Graph:
                 session.write_transaction(self._add_proposition,
                                           proposition)
             for ev in data.get('statements', []):
+                loaded_count += 1
                 session.write_transaction(self._add_statement, ev)
+            logger.info(f"Successfully loaded {loaded_count} statements.")
 
     @staticmethod
     def _add_method(tx, method: Dict):
