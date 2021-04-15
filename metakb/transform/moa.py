@@ -70,8 +70,13 @@ class MOATransform:
         with open(f"{moa_dir}/{fn}", 'w+') as f:
             json.dump(composite_dict, f)
 
-    def transform(self):
-        """Transform MOA harvested JSON to common date model."""
+    def transform(self, propositions_ix=None):
+        """Transform MOA harvested JSON to common date model.
+
+        :param Dict propositions_ix: tracking data to properly
+            index SupportEvidence
+        :return: An updated propositions_ix object
+        """
         data = self._extract()
         cdm_assertions = {}  # assertions that have been transformed to CDM
 
@@ -88,6 +93,7 @@ class MOATransform:
         # Transform MOA assertions
         self._transform_statements(assertions, variants, sources,
                                    propositions_ix, cdm_assertions)
+        return propositions_ix
 
     def _transform_statements(self, records, variants, sources,
                               propositions_ix, cdm_assertions):

@@ -4,11 +4,11 @@ to graph datastore.
 """
 import click
 from os import environ
-from metakb.database import Graph
-from metakb.harvesters import CIViC, MOAlmanac
-from metakb.transform import CIViCTransform, MOATransform
 import logging
+from metakb.database import Graph
 from metakb import PROJECT_ROOT
+from metakb.harvesters import CIViC, MOAlmanac  # noqa: F401
+from metakb.transform import CIViCTransform, MOATransform
 from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
 from disease.cli import CLI as DiseaseCLI
@@ -27,6 +27,7 @@ logger.setLevel(logging.DEBUG)
 class CLI:
     """Update database."""
 
+    @staticmethod
     @click.command()
     @click.option(
         '--db_url',
@@ -90,28 +91,8 @@ class CLI:
                                          force_initialize_normalizers,
                                          normalizer_db_url)
 
-            # harvest
-            logger.info("Harvesting resource data...")
-            civic_harvester = CIViC()
-            civic_harvest_successful = civic_harvester.harvest()
-            if not civic_harvest_successful:
-                logger.info("CIViC harvest failed.")
-                click.get_current_context().exit()
-            moa_harvester = MOAlmanac()
-            moa_harvest_successful = moa_harvester.harvest()
-            if not moa_harvest_successful:
-                logger.info("MOAlmanac harvest failed.")
-                click.get_current_context().exit()
-
-            # transform
-            logger.info("Transforming harvested data...")
-            civic_transform = CIViCTransform()
-            civic_items, civic_indices = civic_transform.transform()
-            civic_transform._create_json(civic_items)
-            moa_transform = MOATransform()
-            moa_items, _ = moa_transform.transform(civic_indices)
-            moa_transform._create_json(moa_items)
-            logger.info("Transform successful.")
+            CLI()._harvest_sources()
+            CLI()._transform_sources()
 
         # upload
         logger.info("Uploading to DB...")
@@ -128,7 +109,37 @@ class CLI:
         g.close()
         logger.info("DB upload successful.")
 
-    def _handle_initialize(self, initialize, force_initialize, db_url):
+    @staticmethod
+    def _harvest_sources():
+        logger.info("Harvesting resource data...")
+        # TODO: Switch to using constant
+        harvester_sources = {
+            'civic': CIViC,
+            #  'moa': MOAlmanac  # TODO: Uncomment once API is fixed
+        }
+        for class_str, class_name in harvester_sources.items():
+            source = class_name()
+            source_successful = source.harvest()
+            if not source_successful:
+                logger.info(f'{class_str} harvest failed.')
+                click.get_current_context().exit()
+
+    @staticmethod
+    def _transform_sources():
+        logger.info("Transforming harvested data...")
+        source_indices = None
+        # TODO: Switch to using constant
+        transform_sources = {
+            'civic': CIViCTransform,
+            'moa': MOATransform
+        }
+        for class_str, class_name in transform_sources.items():
+            source = class_name()
+            source_indices = source.transform(source_indices)
+            source._create_json()
+
+    @staticmethod
+    def _handle_initialize(initialize, force_initialize, db_url):
         """Handle initialization of normalizer data.
         :param bool initialize: if true, check whether normalizer data is
             initialized and call initialization routines if not
@@ -194,9 +205,10 @@ class CLI:
             except SystemExit as e:
                 if e.code != 0:
                     raise e
-        print("Normalizer initialization complete.")
+        click.echo("Normalizer initialization complete.")
 
-    def _check_db_param(self, param: str, name: str) -> str:
+    @staticmethod
+    def _check_db_param(param: str, name: str) -> str:
         """Check for MetaKB database parameter.
         :param str param: value of parameter as received from command line
         :param str name: name of parameter
@@ -215,7 +227,8 @@ class CLI:
                 else:
                     return 'admin'
 
-    def _help_msg(self, msg: str = ""):
+    @staticmethod
+    def _help_msg(msg: str = ""):
         """Handle invalid user input.
         :param str msg: Error message to display to user.
         """

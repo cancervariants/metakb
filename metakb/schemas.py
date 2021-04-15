@@ -438,7 +438,7 @@ class SearchService(BaseModel):
                 prop.pop('title', None)
             schema['example'] = {
                 "query": {
-                    "variation": "NP_005219.2:p.Leu858Arg",
+                    "variation": "EGFR L858R",
                     "disease": "Lung Non-small Cell Carcinoma",
                     "therapy": "Afatinib",
                     "statement_id": "civic:eid2997"
