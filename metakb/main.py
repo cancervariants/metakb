@@ -41,6 +41,7 @@ d_description = "Disease (object qualifier) to search"
 t_description = "Therapy (object) to search"
 g_description = "Gene to search"
 s_description = "Statement ID to search"
+detail_description = "Whether or not to display all value object descriptors."
 
 
 @app.get('/api/v2/search',
@@ -54,7 +55,9 @@ def search(variation: Optional[str] = Query(None, description=v_description),
            disease: Optional[str] = Query(None, description=d_description),
            therapy: Optional[str] = Query(None, description=t_description),
            gene: Optional[str] = Query(None, description=g_description),
-           statement_id: Optional[str] = Query(None, description=s_description)
+           statement_id: Optional[str] = Query(None, description=s_description),  # noqa: E501
+           detail: Optional[bool] = Query(False, description=detail_description)  # noqa: E501
            ):
     """Search endpoint"""
-    return query.search(variation, disease, therapy, gene, statement_id)
+    return query.search(variation, disease, therapy, gene, statement_id,
+                        detail)
