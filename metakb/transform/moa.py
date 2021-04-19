@@ -83,12 +83,13 @@ class MOATransform:
         assertions = data['assertions']
         sources = data['sources']
         variants = data['variants']
-        propositions_ix = {
-            # Keep track of proposition index value
-            'proposition_index': 1,
-            # {tuple: proposition_index}
-            'propositions': dict()
-        }
+        if not propositions_ix:
+            propositions_ix = {
+                # Keep track of proposition index value
+                'proposition_index': 1,
+                # {tuple: proposition_index}
+                'propositions': dict()
+            }
 
         # Transform MOA assertions
         self._transform_statements(assertions, variants, sources,
