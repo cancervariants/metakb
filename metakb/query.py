@@ -154,7 +154,7 @@ class QueryHandler:
         return normalized_variation, normalized_disease, normalized_therapy, normalized_gene  # noqa: E501
 
     def search(self, variation='', disease='', therapy='', gene='',
-               statement_id=''):
+               statement_id='', document_id=''):
         """Get statements and propositions from queried concepts.
 
         :param str variation: Variation query
@@ -171,7 +171,8 @@ class QueryHandler:
                 'disease': None,
                 'therapy': None,
                 'gene': None,
-                'statement_id': None
+                'statement_id': None,
+                'document_id': None
             },
             'warnings': [],
             'matches': {
@@ -182,7 +183,7 @@ class QueryHandler:
             'propositions': []  # All propositions
         }
 
-        if not (variation or disease or therapy or gene or statement_id):
+        if not (variation or disease or therapy or gene or statement_id or document_id):  # noqa: E501
             response['warnings'].append('No parameters were entered.')
             return SearchService(**response).dict()
 
@@ -205,32 +206,44 @@ class QueryHandler:
                     response['warnings'].append(f"Statement: {statement_id} "
                                                 f"does not exist.")
 
+        # Check that the document_id actually exists
+        valid_document_id = None
+        if document_id:
+            response['query']['document_id'] = document_id
+            with self.driver.session() as session:
+                document = session.read_transaction(
+                    self._get_document_by_id, document_id
+                )
+                if document:
+                    valid_document_id = document.get('id')
+                else:
+                    response['warnings'].append(f"Document: {document_id} "
+                                                f"does not exist.")
+
         # Need to make sure that each concept that was
         # queried returned a normalized concept
         if (variation and not normalized_variation) or \
                 (therapy and not normalized_therapy) or \
                 (disease and not normalized_disease) or \
                 (gene and not normalized_gene) or \
-                (statement_id and not valid_statement_id):
+                (statement_id and not valid_statement_id) or \
+                (document_id and not valid_document_id):
             return SearchService(**response).dict()
 
         session = self.driver.session()
         proposition_nodes = session.read_transaction(
             self._get_propositions, normalized_therapy,
             normalized_variation, normalized_disease, normalized_gene,
-            valid_statement_id
+            valid_statement_id, valid_document_id
         )
 
         if not valid_statement_id:
             # If statement ID isn't specified, get all statements
             # related to a proposition
             statement_nodes = list()
-            for p_node in proposition_nodes:
-                p_id = p_node.get('id')
-                if p_id not in response['matches']['propositions']:
-                    response['matches']['propositions'].append(p_id)
+            if valid_document_id:
                 statements = session.read_transaction(
-                    self._get_statements_from_proposition, p_id
+                    self._get_statements_from_document, valid_document_id  # noqa: E501
                 )
                 for s in statements:
                     if s not in statement_nodes:
@@ -238,6 +251,22 @@ class QueryHandler:
                         s_id = s.get('id')
                         if s_id not in response['matches']['statements']:
                             response['matches']['statements'].append(s_id)
+
+            else:
+                for p_node in proposition_nodes:
+                    p_id = p_node.get('id')
+                    if p_id not in response['matches']['propositions']:
+                        response['matches']['propositions'].append(p_id)
+                    statements = session.read_transaction(
+                        self._get_statements_from_proposition, p_id
+                    )
+
+                    for s in statements:
+                        if s not in statement_nodes:
+                            statement_nodes.append(s)
+                            s_id = s.get('id')
+                            if s_id not in response['matches']['statements']:
+                                response['matches']['statements'].append(s_id)
         else:
             # Given Statement ID
             statement_nodes = [statement]
@@ -298,9 +327,18 @@ class QueryHandler:
         return (tx.run(query).single() or [None])[0]
 
     @staticmethod
+    def _get_document_by_id(tx, document_id):
+        query = (
+            "MATCH (doc: Document) "
+            f"WHERE toLower(doc.id) = toLower('{document_id}') "
+            "RETURN doc"
+        )
+        return (tx.run(query).single() or [None])[0]
+
+    @staticmethod
     def _get_propositions(tx, normalized_therapy, normalized_variation,
                           normalized_disease, normalized_gene,
-                          valid_statement_id):
+                          valid_statement_id, valid_document_id):
         """Get propositions that contain normalized concepts queried."""
         query = ""
         if valid_statement_id:
@@ -325,13 +363,17 @@ class QueryHandler:
                      "(gd:GeneDescriptor)<-[:HAS_GENE]-" \
                      "(vd:VariationDescriptor)-[:DESCRIBES]->(v:Allele)-" \
                      "[:IS_SUBJECT_OF]->(p:Proposition) "
+        if valid_document_id:
+            query += "MATCH (doc:Document {id:$doc_id})<-[:CITES]-" \
+                     "(s:Statement)-[:DEFINED_BY]->(p:Proposition) "
         query += "RETURN DISTINCT p"
 
         return [p[0] for p in tx.run(query, t_id=normalized_therapy,
                                      v_id=normalized_variation,
                                      d_id=normalized_disease,
                                      g_id=normalized_gene,
-                                     s_id=valid_statement_id)]
+                                     s_id=valid_statement_id,
+                                     doc_id=valid_document_id)]
 
     @staticmethod
     def _get_statements_from_proposition(tx, proposition_id):
@@ -341,6 +383,15 @@ class QueryHandler:
             "RETURN DISTINCT s"
         )
         return [s[0] for s in tx.run(query, proposition_id=proposition_id)]
+
+    @staticmethod
+    def _get_statements_from_document(tx, document_id):
+        """Get statements that are supported by a document"""
+        query = (
+            "MATCH (d:Document {id: $document_id})<-[:CITES]-(s:Statement) "
+            "RETURN DISTINCT s"
+        )
+        return [s[0] for s in tx.run(query, document_id=document_id)]
 
     def get_statement_response(self, statements):
         """Return a list of statements from Statement and Proposition nodes.
@@ -452,3 +503,8 @@ class QueryHandler:
             "RETURN p"
         )
         return (tx.run(query).single() or [None])[0]
+
+# res = QueryHandler().search(statement_id='civic:eid2997', gene='hgnc:3236')
+# res = QueryHandler().search(statement_id='civic:eid2997', document_id='pmid:23982599')  # noqa: E501
+# res = QueryHandler().search(document_id='pmid:27760149')
+# print(res)
