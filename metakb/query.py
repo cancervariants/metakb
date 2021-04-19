@@ -6,9 +6,11 @@ from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
 from therapy.query import QueryHandler as TherapyQueryHandler
 from disease.query import QueryHandler as DiseaseQueryHandler
 from metakb.schemas import SearchService, StatementResponse, \
-    TherapeuticResponseProposition
+    TherapeuticResponseProposition, VariationDescriptor,\
+    ValueObjectDescriptor, GeneDescriptor, Drug, Disease, Gene
 import logging
 from metakb.database import Graph
+import json
 
 
 logger = logging.getLogger('metakb')
@@ -154,7 +156,7 @@ class QueryHandler:
         return normalized_variation, normalized_disease, normalized_therapy, normalized_gene  # noqa: E501
 
     def search(self, variation='', disease='', therapy='', gene='',
-               statement_id=''):
+               statement_id='', detail=False):
         """Get statements and propositions from queried concepts.
 
         :param str variation: Variation query
@@ -162,6 +164,8 @@ class QueryHandler:
         :param str therapy: Therapy query
         :param str gene: Gene query
         :param str statement_id: Statement ID query
+        :param bool detail: Whether or not to display all value object
+            descriptors
         :return: A dictionary containing the statements and propositions
             with relationships to the queried concepts
         """
@@ -171,7 +175,8 @@ class QueryHandler:
                 'disease': None,
                 'therapy': None,
                 'gene': None,
-                'statement_id': None
+                'statement_id': None,
+                'detail': detail
             },
             'warnings': [],
             'matches': {
@@ -179,7 +184,13 @@ class QueryHandler:
                 "propositions": []
             },
             'statements': [],  # All Statements
-            'propositions': []  # All propositions
+            'propositions': [],  # All propositions
+            'variation_descriptors': [],
+            'gene_descriptors': [],
+            'therapy_descriptors': [],
+            'disease_descriptors': [],
+            'methods': [],
+            'documents': []
         }
 
         if not (variation or disease or therapy or gene or statement_id):
@@ -265,8 +276,216 @@ class QueryHandler:
             response['warnings'].append('Could not find statements '
                                         'associated with the queried'
                                         ' concepts.')
+
+        if detail:
+            for s in response['statements']:
+                with self.driver.session() as session:
+                    self._add_variation_descriptors(
+                        response, session.read_transaction(
+                            self._find_node_by_id, s['variation_descriptor']
+                        )
+                    )
+                    self._add_therapy_descriptors(
+                        response, session.read_transaction(
+                            self._find_node_by_id, s['therapy_descriptor']
+                        )
+                    )
+
+                    self._add_disease_descriptors(
+                        response, session.read_transaction(
+                            self._find_node_by_id, s['disease_descriptor']
+                        )
+                    )
+
         session.close()
         return SearchService(**response).dict()
+
+    def _add_variation_descriptors(self, response, variation_descriptor):
+        """Add variation descriptors to response."""
+        keys = variation_descriptor.keys()
+        vd_params = {
+            'id': variation_descriptor.get('id'),
+            'label': variation_descriptor.get('label'),
+            'description': variation_descriptor.get('description'),
+            'value_id': None,
+            'value': None,
+            'gene_context': None,
+            'molecule_context': variation_descriptor.get('molecule_context'),
+            'structural_type': variation_descriptor.get('structural_type'),
+            'ref_allele_seq': variation_descriptor.get('ref_allele_seq'),
+            'expressions': [],
+            'xrefs': variation_descriptor.get('xrefs'),
+            'alternate_labels': variation_descriptor.get('alternate_labels'),
+            'extensions': []
+        }
+
+        # Get Gene Descriptor / gene constext
+        with self.driver.session() as session:
+            gene_descriptor = session.read_transaction(
+                self._get_variation_descriptors_gene, vd_params['id']
+            )
+            vd_params['gene_context'] = gene_descriptor.get('id')
+            gene_value_object = session.read_transaction(
+                self._find_descriptor_value_object, vd_params['gene_context']
+            )
+            self._add_gene_descriptors(gene_descriptor, gene_value_object,
+                                       response)
+
+        # Get Variation Descriptor Extensions
+        for key in ['expressions_genomic', 'expressions_protein',
+                    'expressions_transcript']:
+            if key in keys:
+                for value in variation_descriptor.get(key):
+                    vd_params['expressions'].append(
+                        {
+                            'syntax': f"hgvs:{key.split('_')[-1]}",
+                            'value': value,
+                            'type': 'Expression'
+                        }
+                    )
+        # Get Variation Descriptor Expressions
+        # CIViC
+        if vd_params['id'].startswith('civic:vid'):
+            if 'civic_representative_coordinate' in keys:
+                vd_params['extensions'].append({
+                    'name': 'civic_representative_coordinate',
+                    'value': json.loads(
+                        variation_descriptor.get(
+                            'civic_representative_coordinate'
+                        )
+                    ),
+                    'type': 'Extension'
+                })
+            if 'civic_actionability_score' in keys:
+                vd_params['extensions'].append({
+                    'name': 'civic_actionability_score',
+                    'value': json.loads(
+                        variation_descriptor.get('civic_actionability_score')
+                    ),
+                    'type': 'Extension'
+                })
+        elif vd_params['id'].startswith('moa:vid'):
+            if 'moa_representative_coordinate' in keys:
+                vd_params['extensions'].append({
+                    'name': 'moa_representative_coordinate',
+                    'value': json.loads(
+                        variation_descriptor.get(
+                            'moa_representative_coordinate'
+                        )
+                    ),
+                    'type': 'Extension'
+                })
+            if 'moa_rsid' in keys:
+                vd_params['extensions'].append({
+                    'name': 'moa_rsid',
+                    'value': json.loads(variation_descriptor.get('moa_rsid')),
+                    'type': 'Extension'
+                })
+
+        with self.driver.session() as session:
+            value_object = session.read_transaction(
+                self._find_descriptor_value_object, vd_params['id']
+            )
+            vd_params['value_id'] = value_object.get('id')
+            vd_params['value'] = {
+                'location': {
+                    'interval': {
+                        'end': value_object.get('location_interval_end'),
+                        'start': value_object.get('location_interval_start'),
+                        'type': value_object.get('location_interval_type')
+                    },
+                    'sequence_id': value_object.get('location_sequence_id'),
+                    'type': value_object.get('location_type')
+                },
+                'state': json.loads(value_object.get('state')),
+                'type': 'Allele'
+            }
+
+        vd = VariationDescriptor(**vd_params).dict()
+        if vd not in response['variation_descriptors']:
+            response['variation_descriptors'].append(vd)
+
+    @staticmethod
+    def _get_variation_descriptors_gene(tx, vid):
+        query = (
+            "MATCH (vd)-[HAS_GENE]->(gd) "
+            f"WHERE vd.id = '{vid}' "
+            "RETURN gd"
+        )
+        return tx.run(query).single()[0]
+
+    def _add_gene_descriptors(self, gene_descriptor, gene_value_object,
+                              response):
+        """Add gene descriptors to response."""
+        gd_params = {
+            'id': gene_descriptor.get('id'),
+            'type': 'GeneDescriptor',
+            'label': gene_descriptor.get('label'),
+            'description': gene_descriptor.get('description'),
+            'value': Gene(id=gene_value_object.get('id')).dict(),
+            'alternate_labels': gene_descriptor.get('alternate_labels')
+        }
+
+        gd = GeneDescriptor(**gd_params).dict()
+        if gd not in response['gene_descriptors']:
+            response['gene_descriptors'].append(gd)
+
+    def _add_therapy_descriptors(self, response, therapy_descriptor):
+        """Add therapy descriptors to response."""
+        td_params = {
+            'id': therapy_descriptor.get('id'),
+            'type': 'TherapyDescriptor',
+            'label': therapy_descriptor.get('label'),
+            'value': None,
+            'alternate_labels': therapy_descriptor.get('alternate_labels')
+        }
+
+        with self.driver.session() as session:
+            value_object = session.read_transaction(
+                self._find_descriptor_value_object, td_params['id']
+            )
+            td_params['value'] = Drug(id=value_object.get('id')).dict()
+
+        td = ValueObjectDescriptor(**td_params).dict()
+        if td not in response['therapy_descriptors']:
+            response['therapy_descriptors'].append(td)
+
+    def _add_disease_descriptors(self, response, disease_descriptor):
+        """Add disease descriptors to response."""
+        dd_params = {
+            'id': disease_descriptor.get('id'),
+            'type': 'DiseaseDescriptor',
+            'label': disease_descriptor.get('label'),
+            'value': None
+        }
+
+        with self.driver.session() as session:
+            value_object = session.read_transaction(
+                self._find_descriptor_value_object, dd_params['id']
+            )
+            dd_params['value'] = Disease(id=value_object.get('id')).dict()
+
+        dd = ValueObjectDescriptor(**dd_params).dict()
+        if dd not in response['disease_descriptors']:
+            response['disease_descriptors'].append(dd)
+
+    @staticmethod
+    def _find_node_by_id(tx, node_id):
+        query = (
+            "MATCH (n) "
+            f"WHERE n.id = '{node_id}' "
+            "RETURN n"
+        )
+        return tx.run(query).single()[0]
+
+    @staticmethod
+    def _find_descriptor_value_object(tx, descriptor_id):
+        query = (
+            "MATCH (d)-[:DESCRIBES]->(v)"
+            f"WHERE d.id = '{descriptor_id}' "
+            "RETURN v"
+        )
+        return tx.run(query).single()[0]
 
     def add_proposition_and_statement_nodes(self, session, statement_id,
                                             proposition_nodes,

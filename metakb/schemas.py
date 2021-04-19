@@ -424,6 +424,12 @@ class SearchService(BaseModel):
     matches: Matches
     statements: Optional[List[StatementResponse]]
     propositions: Optional[List[TherapeuticResponseProposition]]
+    variation_descriptors: Optional[List[VariationDescriptor]]
+    gene_descriptors: Optional[List[GeneDescriptor]]
+    therapy_descriptors: Optional[List[ValueObjectDescriptor]]
+    disease_descriptors: Optional[List[ValueObjectDescriptor]]
+    methods: Optional[List[Method]]
+    documents: Optional[List[Document]]
 
     class Config:
         """Configure examples."""
