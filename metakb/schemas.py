@@ -373,6 +373,7 @@ class SearchQuery(BaseModel):
     therapy: Optional[str]
     gene: Optional[str]
     statement_id: Optional[str]
+    node_id: Optional[str]
 
     class Config:
         """Configure examples."""
