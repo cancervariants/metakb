@@ -210,11 +210,6 @@ class QueryHandler:
         # Check that the method_id actually exists
         valid_node_id = None
         if node_id:
-            if 'civic' not in node_id and 'moa' not in node_id:
-                response['warnings'].append('Must include source name: '
-                                            'civic / moa')
-                return SearchService(**response).dict()
-
             response['query']['node_id'] = node_id
             with self.driver.session() as session:
                 node = session.read_transaction(
@@ -394,16 +389,22 @@ class QueryHandler:
             query += "MATCH (vd:VariationDescriptor {id:$id})<-" \
                      "[:HAS_VARIATION]-(s:Statement)-" \
                      "[:DEFINED_BY]->(p:Proposition) "
-        if any(node_id in valid_node_id for node_id in ['tid', 'therapy']):
-            query += "MATCH (td:TherapyDescriptor {id:$id})<-[:HAS_THERAPY]" \
-                     "-(s:Statement)-[:DEFINED_BY]->(p:Proposition) "
-        if any(node_id in valid_node_id for node_id in ['did', 'disease']):
-            query += "MATCH (dd:DiseaseDescriptor {id:$id})<-[:HAS_DISEASE]" \
-                     "-(s:Statement)-[:DEFINED_BY]->(p:Proposition) "
-        if any(node_id in valid_node_id for node_id in ['gid', 'gene']):
-            query += "MATCH (gd:GeneDescriptor {id: $id})<-[:HAS_GENE]" \
-                     "-(vd:VariationDescriptor)<-[:HAS_VARIATION]" \
-                     "-(s:Statement)-[:DEFINED_BY]->(p:Proposition) "
+        if any(_id in valid_node_id for _id in ['tid', 'therapy']):
+            query += "MATCH (td:TherapyDescriptor {id:$id})<-[:HAS_THERAPY]-" \
+                     "(s:Statement)-[:DEFINED_BY]->(p:Proposition) "
+        if any(_id in valid_node_id for _id in ['did', 'disease']):
+            query += "MATCH (dd:DiseaseDescriptor {id:$id})<-[:HAS_DISEASE]-" \
+                     "(s:Statement)-[:DEFINED_BY]->(p:Proposition) "
+        if any(_id in valid_node_id for _id in ['gid', 'gene']):
+            query += "MATCH (gd:GeneDescriptor {id: $id})<-[:HAS_GENE]-" \
+                     "(vd:VariationDescriptor)<-[:HAS_VARIATION]-" \
+                     "(s:Statement)-[:DEFINED_BY]->(p:Proposition) "
+        # TODO: if the document_id is url
+        # TODO: if more evidence sources
+        if any(_id in valid_node_id for _id in ['pmid', 'asco', 'document']):
+            query += "MATCH (doc:Document {id: $id})<-[:CITES]-" \
+                     "(s:Statement)-[:DEFINED_BY]->(p:Proposition) "
+
         query += "RETURN DISTINCT p"
 
         return [p[0] for p in tx.run(query, id=valid_node_id)]
@@ -415,15 +416,20 @@ class QueryHandler:
         if 'vid' in valid_node_id:
             query += "MATCH (vd:VariationDescriptor {id:$id})<-" \
                      "[:HAS_VARIATION]-(s:Statement) "
-        if any(node_id in valid_node_id for node_id in ['tid', 'therapy']):
+        if any(_id in valid_node_id for _id in ['tid', 'therapy']):
             query += "MATCH (td:TherapyDescriptor {id:$id})<-[:HAS_THERAPY]-" \
                      "(s:Statement) "
-        if any(node_id in valid_node_id for node_id in ['did', 'disease']):
+        if any(_id in valid_node_id for _id in ['did', 'disease']):
             query += "MATCH (dd:DiseaseDescriptor {id:$id})<-[:HAS_DISEASE]-" \
                      "(s:Statement) "
-        if any(node_id in valid_node_id for node_id in ['gid', 'gene']):
+        if any(_id in valid_node_id for _id in ['gid', 'gene']):
             query += "MATCH (gd:GeneDescriptor {id: $id})<-[:HAS_GENE]-" \
                      "(vd:VariationDescriptor)<-[:HAS_VARIATION]-" \
+                     "(s:Statement) "
+        # TODO: if the document_id is url
+        # TODO: if more evidence sources
+        if any(_id in valid_node_id for _id in ['pmid', 'asco', 'document']):
+            query += "MATCH (doc:Document {id: $id})<-[:CITES]-" \
                      "(s:Statement) "
         query += "RETURN DISTINCT s"
 
