@@ -41,7 +41,7 @@ d_description = "Disease (object qualifier) to search"
 t_description = "Therapy (object) to search"
 g_description = "Gene to search"
 s_description = "Statement ID to search"
-detail_description = "Whether or not to display all value object descriptors."
+detail_description = "Display all descriptors, methods, and documents."
 
 
 @app.get('/api/v2/search',
