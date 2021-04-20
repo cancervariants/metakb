@@ -166,8 +166,8 @@ class QueryHandler:
         :param str therapy: Therapy query
         :param str gene: Gene query
         :param str statement_id: Statement ID query
-        :param bool detail: Whether or not to display all value object
-            descriptors
+        :param bool detail: Whether or not to display all descriptors,
+        methods, and documents
         :return: A dictionary containing the statements and propositions
             with relationships to the queried concepts
         """
