@@ -356,7 +356,7 @@ class QueryHandler:
             self._add_gene_descriptor(gene_descriptor, gene_value_object,
                                       response)
 
-        # Get Variation Descriptor Extensions
+        # Get Variation Descriptor Expressions
         for key in ['expressions_genomic', 'expressions_protein',
                     'expressions_transcript']:
             if key in keys:
@@ -368,7 +368,7 @@ class QueryHandler:
                             'type': 'Expression'
                         }
                     )
-        # Get Variation Descriptor Expressions
+        # Get Variation Descriptor Extensions
         if vd_params['id'].startswith('civic:vid'):
             if 'civic_representative_coordinate' in keys:
                 vd_params['extensions'].append({
