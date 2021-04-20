@@ -7,10 +7,12 @@ from therapy.query import QueryHandler as TherapyQueryHandler
 from disease.query import QueryHandler as DiseaseQueryHandler
 from metakb.schemas import SearchService, StatementResponse, \
     TherapeuticResponseProposition, VariationDescriptor,\
-    ValueObjectDescriptor, GeneDescriptor, Drug, Disease, Gene
+    ValueObjectDescriptor, GeneDescriptor, Drug, Disease, Gene, Method, \
+    Document
 import logging
 from metakb.database import Graph
 import json
+from json.decoder import JSONDecodeError
 
 
 logger = logging.getLogger('metakb')
@@ -45,7 +47,7 @@ class QueryHandler:
         if therapy_norm_resp['match_type'] != 0:
             therapy_norm_resp = therapy_norm_resp[
                 'value_object_descriptor']
-            therapy_norm_id = therapy_norm_resp['value']['therapy_id']
+            therapy_norm_id = therapy_norm_resp['value']['id']
 
         if not therapy_norm_id:
             warnings.append(f'therapy-normalizer could not '
@@ -279,29 +281,52 @@ class QueryHandler:
 
         if detail:
             for s in response['statements']:
-                with self.driver.session() as session:
-                    self._add_variation_descriptors(
-                        response, session.read_transaction(
-                            self._find_node_by_id, s['variation_descriptor']
-                        )
+                self._add_variation_descriptor(
+                    response, session.read_transaction(
+                        self._find_node_by_id, s['variation_descriptor']
                     )
-                    self._add_therapy_descriptors(
-                        response, session.read_transaction(
-                            self._find_node_by_id, s['therapy_descriptor']
-                        )
+                )
+                self._add_therapy_descriptor(
+                    response, session.read_transaction(
+                        self._find_node_by_id, s['therapy_descriptor']
                     )
+                )
 
-                    self._add_disease_descriptors(
+                self._add_disease_descriptor(
+                    response, session.read_transaction(
+                        self._find_node_by_id, s['disease_descriptor']
+                    )
+                )
+
+                self._add_method(
+                    response, session.read_transaction(
+                        self._find_node_by_id, s['method']
+                    )
+                )
+
+                for sb_id in s['supported_by']:
+                    self._add_document(
                         response, session.read_transaction(
-                            self._find_node_by_id, s['disease_descriptor']
+                            self._find_node_by_id, sb_id
                         )
                     )
+        else:
+            response['variation_descriptors'] = None
+            response['gene_descriptors'] = None
+            response['disease_descriptors'] = None
+            response['therapy_descriptors'] = None
+            response['methods'] = None
+            response['documents'] = None
 
         session.close()
-        return SearchService(**response).dict()
+        return SearchService(**response).dict(exclude_none=True)
 
-    def _add_variation_descriptors(self, response, variation_descriptor):
-        """Add variation descriptors to response."""
+    def _add_variation_descriptor(self, response, variation_descriptor):
+        """Add variation descriptor to response.
+
+        :param dict response: The search response
+        :param Node variation_descriptor: Variation Descriptor Node
+        """
         keys = variation_descriptor.keys()
         vd_params = {
             'id': variation_descriptor.get('id'),
@@ -319,7 +344,7 @@ class QueryHandler:
             'extensions': []
         }
 
-        # Get Gene Descriptor / gene constext
+        # Get Gene Descriptor / gene context
         with self.driver.session() as session:
             gene_descriptor = session.read_transaction(
                 self._get_variation_descriptors_gene, vd_params['id']
@@ -328,8 +353,8 @@ class QueryHandler:
             gene_value_object = session.read_transaction(
                 self._find_descriptor_value_object, vd_params['gene_context']
             )
-            self._add_gene_descriptors(gene_descriptor, gene_value_object,
-                                       response)
+            self._add_gene_descriptor(gene_descriptor, gene_value_object,
+                                      response)
 
         # Get Variation Descriptor Extensions
         for key in ['expressions_genomic', 'expressions_protein',
@@ -344,7 +369,6 @@ class QueryHandler:
                         }
                     )
         # Get Variation Descriptor Expressions
-        # CIViC
         if vd_params['id'].startswith('civic:vid'):
             if 'civic_representative_coordinate' in keys:
                 vd_params['extensions'].append({
@@ -407,16 +431,22 @@ class QueryHandler:
 
     @staticmethod
     def _get_variation_descriptors_gene(tx, vid):
+        """Get a Variation Descriptor's Gene Descriptor."""
         query = (
-            "MATCH (vd)-[HAS_GENE]->(gd) "
-            f"WHERE vd.id = '{vid}' "
+            "MATCH (vd:VariationDescriptor)-[:HAS_GENE]->(gd:GeneDescriptor) "
+            f"WHERE toLower(vd.id) = toLower('{vid}') "
             "RETURN gd"
         )
         return tx.run(query).single()[0]
 
-    def _add_gene_descriptors(self, gene_descriptor, gene_value_object,
-                              response):
-        """Add gene descriptors to response."""
+    def _add_gene_descriptor(self, gene_descriptor, gene_value_object,
+                             response):
+        """Add gene descriptor to response.
+
+        :param Node gene_descriptor: Gene Descriptor Node
+        :param Node gene_value_object: Gene Node
+        :param dict response: The search response
+        """
         gd_params = {
             'id': gene_descriptor.get('id'),
             'type': 'GeneDescriptor',
@@ -430,8 +460,12 @@ class QueryHandler:
         if gd not in response['gene_descriptors']:
             response['gene_descriptors'].append(gd)
 
-    def _add_therapy_descriptors(self, response, therapy_descriptor):
-        """Add therapy descriptors to response."""
+    def _add_therapy_descriptor(self, response, therapy_descriptor):
+        """Add therapy descriptor to response.
+
+        :param dict response: The search response
+        :param Node therapy_descriptor: Therapy Descriptor Node
+        """
         td_params = {
             'id': therapy_descriptor.get('id'),
             'type': 'TherapyDescriptor',
@@ -450,8 +484,12 @@ class QueryHandler:
         if td not in response['therapy_descriptors']:
             response['therapy_descriptors'].append(td)
 
-    def _add_disease_descriptors(self, response, disease_descriptor):
-        """Add disease descriptors to response."""
+    def _add_disease_descriptor(self, response, disease_descriptor):
+        """Add disease descriptor to response.
+
+        :param dict response: The search response
+        :param Node disease_descriptor: Disease Descriptor Node
+        """
         dd_params = {
             'id': disease_descriptor.get('id'),
             'type': 'DiseaseDescriptor',
@@ -469,20 +507,57 @@ class QueryHandler:
         if dd not in response['disease_descriptors']:
             response['disease_descriptors'].append(dd)
 
+    def _add_method(self, response, method):
+        """Add method to response.
+
+        :param dict response: The search response
+        :param Node method: Method Node
+        """
+        params = dict()
+        for key in method.keys():
+            try:
+                params[key] = json.loads(method.get(key))
+            except JSONDecodeError:
+                params[key] = method.get(key)
+
+        m = Method(**params).dict()
+        if m not in response['methods']:
+            response['methods'].append(m)
+
+    def _add_document(self, response, document):
+        """Add document to response.
+
+        :param dict response: The search response
+        :param Node document: Document Node
+        """
+        label, *_ = document.labels
+        if label != 'Document':
+            return
+
+        params = dict()
+        for key in document.keys():
+            params[key] = document.get(key)
+
+        d = Document(**params).dict()
+        if d not in response['documents']:
+            response['documents'].append(d)
+
     @staticmethod
     def _find_node_by_id(tx, node_id):
+        """Find a node by its ID."""
         query = (
             "MATCH (n) "
-            f"WHERE n.id = '{node_id}' "
+            f"WHERE toLower(n.id) = toLower('{node_id}') "
             "RETURN n"
         )
         return tx.run(query).single()[0]
 
     @staticmethod
     def _find_descriptor_value_object(tx, descriptor_id):
+        """Find a Descriptor's value object."""
         query = (
             "MATCH (d)-[:DESCRIBES]->(v)"
-            f"WHERE d.id = '{descriptor_id}' "
+            f"WHERE toLower(d.id) = toLower('{descriptor_id}') "
             "RETURN v"
         )
         return tx.run(query).single()[0]
