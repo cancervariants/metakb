@@ -43,7 +43,7 @@ class QueryHandler:
         if therapy_norm_resp['match_type'] != 0:
             therapy_norm_resp = therapy_norm_resp[
                 'value_object_descriptor']
-            therapy_norm_id = therapy_norm_resp['value']['therapy_id']
+            therapy_norm_id = therapy_norm_resp['value']['id']
 
         if not therapy_norm_id:
             warnings.append(f'therapy-normalizer could not '
@@ -154,7 +154,7 @@ class QueryHandler:
         return normalized_variation, normalized_disease, normalized_therapy, normalized_gene  # noqa: E501
 
     def search(self, variation='', disease='', therapy='', gene='',
-               statement_id='', document_id=''):
+               statement_id='', node_id=''):
         """Get statements and propositions from queried concepts.
 
         :param str variation: Variation query
@@ -162,6 +162,7 @@ class QueryHandler:
         :param str therapy: Therapy query
         :param str gene: Gene query
         :param str statement_id: Statement ID query
+        :param str node_id: Node ID query
         :return: A dictionary containing the statements and propositions
             with relationships to the queried concepts
         """
@@ -172,7 +173,7 @@ class QueryHandler:
                 'therapy': None,
                 'gene': None,
                 'statement_id': None,
-                'document_id': None
+                'node_id': None
             },
             'warnings': [],
             'matches': {
@@ -183,7 +184,7 @@ class QueryHandler:
             'propositions': []  # All propositions
         }
 
-        if not (variation or disease or therapy or gene or statement_id or document_id):  # noqa: E501
+        if not (variation or disease or therapy or gene or statement_id or node_id):  # noqa: E501
             response['warnings'].append('No parameters were entered.')
             return SearchService(**response).dict()
 
@@ -206,18 +207,23 @@ class QueryHandler:
                     response['warnings'].append(f"Statement: {statement_id} "
                                                 f"does not exist.")
 
-        # Check that the document_id actually exists
-        valid_document_id = None
-        if document_id:
-            response['query']['document_id'] = document_id
+        # Check that the method_id actually exists
+        valid_node_id = None
+        if node_id:
+            if 'civic' not in node_id and 'moa' not in node_id:
+                response['warnings'].append('Must include source name: '
+                                            'civic / moa')
+                return SearchService(**response).dict()
+
+            response['query']['node_id'] = node_id
             with self.driver.session() as session:
-                document = session.read_transaction(
-                    self._get_document_by_id, document_id
+                node = session.read_transaction(
+                    self._get_node_by_id, node_id
                 )
-                if document:
-                    valid_document_id = document.get('id')
+                if node:
+                    valid_node_id = node.get('id')
                 else:
-                    response['warnings'].append(f"Document: {document_id} "
+                    response['warnings'].append(f"Node: {node_id} "
                                                 f"does not exist.")
 
         # Need to make sure that each concept that was
@@ -227,46 +233,44 @@ class QueryHandler:
                 (disease and not normalized_disease) or \
                 (gene and not normalized_gene) or \
                 (statement_id and not valid_statement_id) or \
-                (document_id and not valid_document_id):
+                (node_id and not valid_node_id):
             return SearchService(**response).dict()
 
         session = self.driver.session()
-        proposition_nodes = session.read_transaction(
-            self._get_propositions, normalized_therapy,
-            normalized_variation, normalized_disease, normalized_gene,
-            valid_statement_id, valid_document_id
-        )
+        if valid_node_id:
+            proposition_nodes = session.read_transaction(
+                self._get_propositions_from_node_id, valid_node_id
+            )
+        else:
+            proposition_nodes = session.read_transaction(
+                self._get_propositions_from_norm_id, normalized_therapy,
+                normalized_variation, normalized_disease, normalized_gene,
+                valid_statement_id
+            )
 
         if not valid_statement_id:
             # If statement ID isn't specified, get all statements
-            # related to a proposition
+            # related to a proposition, or a given node id
             statement_nodes = list()
-            if valid_document_id:
-                statements = session.read_transaction(
-                    self._get_statements_from_document, valid_document_id  # noqa: E501
-                )
+            for p_node in proposition_nodes:
+                p_id = p_node.get('id')
+                if p_id not in response['matches']['propositions']:
+                    response['matches']['propositions'].append(p_id)
+                if valid_node_id:
+                    statements = session.read_transaction(
+                        self._get_statements_from_node_id, valid_node_id
+                    )
+                else:
+                    statements = session.read_transaction(
+                        self._get_statements_from_proposition, p_id
+                    )
                 for s in statements:
-                    if s not in statement_nodes:
+                    statement_id_list = [sn.id for sn in statement_nodes]
+                    if s.id not in statement_id_list:
                         statement_nodes.append(s)
                         s_id = s.get('id')
                         if s_id not in response['matches']['statements']:
                             response['matches']['statements'].append(s_id)
-
-            else:
-                for p_node in proposition_nodes:
-                    p_id = p_node.get('id')
-                    if p_id not in response['matches']['propositions']:
-                        response['matches']['propositions'].append(p_id)
-                    statements = session.read_transaction(
-                        self._get_statements_from_proposition, p_id
-                    )
-
-                    for s in statements:
-                        if s not in statement_nodes:
-                            statement_nodes.append(s)
-                            s_id = s.get('id')
-                            if s_id not in response['matches']['statements']:
-                                response['matches']['statements'].append(s_id)
         else:
             # Given Statement ID
             statement_nodes = [statement]
@@ -336,9 +340,21 @@ class QueryHandler:
         return (tx.run(query).single() or [None])[0]
 
     @staticmethod
-    def _get_propositions(tx, normalized_therapy, normalized_variation,
-                          normalized_disease, normalized_gene,
-                          valid_statement_id, valid_document_id):
+    def _get_node_by_id(tx, node_id):
+        query = (
+            f"MATCH (n) "
+            f"WHERE toLower(n.id) = toLower('{node_id}') "
+            "RETURN n"
+        )
+
+        return (tx.run(query).single() or [None])[0]
+
+    @staticmethod
+    def _get_propositions_from_norm_id(tx, normalized_therapy,
+                                       normalized_variation,
+                                       normalized_disease,
+                                       normalized_gene,
+                                       valid_statement_id):
         """Get propositions that contain normalized concepts queried."""
         query = ""
         if valid_statement_id:
@@ -363,17 +379,55 @@ class QueryHandler:
                      "(gd:GeneDescriptor)<-[:HAS_GENE]-" \
                      "(vd:VariationDescriptor)-[:DESCRIBES]->(v:Allele)-" \
                      "[:IS_SUBJECT_OF]->(p:Proposition) "
-        if valid_document_id:
-            query += "MATCH (doc:Document {id:$doc_id})<-[:CITES]-" \
-                     "(s:Statement)-[:DEFINED_BY]->(p:Proposition) "
         query += "RETURN DISTINCT p"
-
         return [p[0] for p in tx.run(query, t_id=normalized_therapy,
                                      v_id=normalized_variation,
                                      d_id=normalized_disease,
                                      g_id=normalized_gene,
-                                     s_id=valid_statement_id,
-                                     doc_id=valid_document_id)]
+                                     s_id=valid_statement_id)]
+
+    @staticmethod
+    def _get_propositions_from_node_id(tx, valid_node_id):
+        """Get propositions that contain the node queried."""
+        query = ""
+        if 'vid' in valid_node_id:
+            query += "MATCH (vd:VariationDescriptor {id:$id})<-" \
+                     "[:HAS_VARIATION]-(s:Statement)-" \
+                     "[:DEFINED_BY]->(p:Proposition) "
+        if any(node_id in valid_node_id for node_id in ['tid', 'therapy']):
+            query += "MATCH (td:TherapyDescriptor {id:$id})<-[:HAS_THERAPY]" \
+                     "-(s:Statement)-[:DEFINED_BY]->(p:Proposition) "
+        if any(node_id in valid_node_id for node_id in ['did', 'disease']):
+            query += "MATCH (dd:DiseaseDescriptor {id:$id})<-[:HAS_DISEASE]" \
+                     "-(s:Statement)-[:DEFINED_BY]->(p:Proposition) "
+        if any(node_id in valid_node_id for node_id in ['gid', 'gene']):
+            query += "MATCH (gd:GeneDescriptor {id: $id})<-[:HAS_GENE]" \
+                     "-(vd:VariationDescriptor)<-[:HAS_VARIATION]" \
+                     "-(s:Statement)-[:DEFINED_BY]->(p:Proposition) "
+        query += "RETURN DISTINCT p"
+
+        return [p[0] for p in tx.run(query, id=valid_node_id)]
+
+    @staticmethod
+    def _get_statements_from_node_id(tx, valid_node_id):
+        """Get statements that contain the node queried"""
+        query = ""
+        if 'vid' in valid_node_id:
+            query += "MATCH (vd:VariationDescriptor {id:$id})<-" \
+                     "[:HAS_VARIATION]-(s:Statement) "
+        if any(node_id in valid_node_id for node_id in ['tid', 'therapy']):
+            query += "MATCH (td:TherapyDescriptor {id:$id})<-[:HAS_THERAPY]-" \
+                     "(s:Statement) "
+        if any(node_id in valid_node_id for node_id in ['did', 'disease']):
+            query += "MATCH (dd:DiseaseDescriptor {id:$id})<-[:HAS_DISEASE]-" \
+                     "(s:Statement) "
+        if any(node_id in valid_node_id for node_id in ['gid', 'gene']):
+            query += "MATCH (gd:GeneDescriptor {id: $id})<-[:HAS_GENE]-" \
+                     "(vd:VariationDescriptor)<-[:HAS_VARIATION]-" \
+                     "(s:Statement) "
+        query += "RETURN DISTINCT s"
+
+        return [s[0] for s in tx.run(query, id=valid_node_id)]
 
     @staticmethod
     def _get_statements_from_proposition(tx, proposition_id):
@@ -383,15 +437,6 @@ class QueryHandler:
             "RETURN DISTINCT s"
         )
         return [s[0] for s in tx.run(query, proposition_id=proposition_id)]
-
-    @staticmethod
-    def _get_statements_from_document(tx, document_id):
-        """Get statements that are supported by a document"""
-        query = (
-            "MATCH (d:Document {id: $document_id})<-[:CITES]-(s:Statement) "
-            "RETURN DISTINCT s"
-        )
-        return [s[0] for s in tx.run(query, document_id=document_id)]
 
     def get_statement_response(self, statements):
         """Return a list of statements from Statement and Proposition nodes.
@@ -503,8 +548,3 @@ class QueryHandler:
             "RETURN p"
         )
         return (tx.run(query).single() or [None])[0]
-
-# res = QueryHandler().search(statement_id='civic:eid2997', gene='hgnc:3236')
-# res = QueryHandler().search(statement_id='civic:eid2997', document_id='pmid:23982599')  # noqa: E501
-# res = QueryHandler().search(document_id='pmid:27760149')
-# print(res)
