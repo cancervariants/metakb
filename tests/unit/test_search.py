@@ -533,29 +533,49 @@ def assert_keys_for_detail_true(response_keys, response, is_evidence=True):
             assert len(response[field]) > 1
 
 
-def assert_same_ids(response):
-    """Assert that IDs match in response items."""
-    statement = response['statements'][0]
-    proposition = response['propositions'][0]
-    vd = response['variation_descriptors'][0]
-    gd = response['gene_descriptors'][0]
-    td = response['therapy_descriptors'][0]
-    dd = response['disease_descriptors'][0]
-    method = response['methods'][0]
-    document = response['documents'][0]
+def assert_response_items(response, statement, proposition,
+                          variation_descriptor, gene_descriptor,
+                          therapy_descriptor, disease_descriptor, method,
+                          document):
+    """Check that search response match expected values."""
+    assert_keys_for_detail_true(response.keys(), response)
 
-    assert statement['proposition'] == proposition['id']
-    assert statement['variation_descriptor'] == vd['id']
-    assert statement['therapy_descriptor'] == td['id']
-    assert statement['disease_descriptor'] == dd['id']
-    assert statement['method'] == method['id']
-    assert statement['supported_by'][0] == document['id']
+    response_statement = response['statements'][0]
+    response_proposition = response['propositions'][0]
+    response_variation_descriptor = response['variation_descriptors'][0]
+    response_gene_descriptor = response['gene_descriptors'][0]
+    response_therapy_descriptor = response['therapy_descriptors'][0]
+    response_disease_descriptor = response['disease_descriptors'][0]
+    response_method = response['methods'][0]
+    response_document = response['documents'][0]
 
-    assert proposition['subject'] == vd['value_id']
-    assert proposition['object_qualifier'] == dd['value']['id']
-    assert proposition['object'] == td['value']['id']
+    assertions(statement, response_statement)
+    assertions(proposition, response_proposition)
+    assertions(variation_descriptor, response_variation_descriptor)
+    assertions(gene_descriptor, response_gene_descriptor)
+    assertions(therapy_descriptor, response_therapy_descriptor)
+    assertions(disease_descriptor, response_disease_descriptor)
+    assertions(method, response_method)
+    assertions(document, response_document)
 
-    assert vd['gene_context'] == gd['id']
+    # Assert that IDs match in response items
+    assert response_statement['proposition'] == response_proposition['id']
+    assert response_statement['variation_descriptor'] == \
+           response_variation_descriptor['id']
+    assert response_statement['therapy_descriptor'] == \
+           response_therapy_descriptor['id']
+    assert response_statement['disease_descriptor'] == \
+           response_disease_descriptor['id']
+    assert response_statement['method'] == response_method['id']
+    assert response_statement['supported_by'][0] == response_document['id']
+
+    assert proposition['subject'] == response_variation_descriptor['value_id']
+    assert proposition['object_qualifier'] == \
+           response_disease_descriptor['value']['id']
+    assert proposition['object'] == response_therapy_descriptor['value']['id']
+
+    assert response_variation_descriptor['gene_context'] == \
+           response_gene_descriptor['id']
 
 
 def test_civic_eid2997(query_handler, civic_eid2997, eid2997_proposition):
@@ -883,15 +903,9 @@ def test_civic_detail_flag(query_handler, civic_eid2997, eid2997_proposition,
 
     response = query_handler.search(statement_id='civic:eid2997', detail=True)
     assert_keys_for_detail_true(response.keys(), response)
-    assertions(civic_eid2997, response['statements'][0])
-    assertions(eid2997_proposition, response['propositions'][0])
-    assertions(civic_vid33, response['variation_descriptors'][0])
-    assertions(civic_gid19, response['gene_descriptors'][0])
-    assertions(civic_tid146, response['therapy_descriptors'][0])
-    assertions(civic_did8, response['disease_descriptors'][0])
-    assertions(method001, response['methods'][0])
-    assertions(eid2997_document, response['documents'][0])
-    assert_same_ids(response)
+    assert_response_items(response, civic_eid2997, eid2997_proposition,
+                          civic_vid33, civic_gid19, civic_tid146, civic_did8,
+                          method001, eid2997_document)
 
 
 def test_moa_detail_flag(query_handler, moa_aid69, aid69_proposition,
@@ -904,16 +918,10 @@ def test_moa_detail_flag(query_handler, moa_aid69, aid69_proposition,
 
     response = query_handler.search(statement_id='moa:aid69', detail=True)
     assert_keys_for_detail_true(response.keys(), response)
-    assertions(moa_aid69, response['statements'][0])
-    assertions(aid69_proposition, response['propositions'][0])
-    assertions(moa_vid69, response['variation_descriptors'][0])
-    assertions(moa_abl1, response['gene_descriptors'][0])
-    assertions(moa_imatinib, response['therapy_descriptors'][0])
-    assertions(moa_chronic_myelogenous_leukemia,
-               response['disease_descriptors'][0])
-    assertions(method004, response['methods'][0])
-    assertions(moa_aid69_document, response['documents'][0])
-    assert_same_ids(response)
+    assert_response_items(response, moa_aid69, aid69_proposition,
+                          moa_vid69, moa_abl1, moa_imatinib,
+                          moa_chronic_myelogenous_leukemia,
+                          method004, moa_aid69_document)
 
 
 def test_no_matches(query_handler):
