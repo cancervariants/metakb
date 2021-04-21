@@ -487,3 +487,159 @@ class SearchService(BaseModel):
                     }
                 ]
             }
+
+
+class SearchID(BaseModel):
+    """Queries for the Search by ID Endpoint."""
+
+    node_id: Optional[str]
+
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['SearchID']) -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "node_id": "civic:vid33"
+            }
+
+
+class SearchIDService(BaseModel):
+    """Define model for Search by ID Endpoint Response."""
+
+    query: SearchID
+    warnings: Optional[List[str]]
+    variation_descriptors: Optional[dict]
+    gene_descriptors: Optional[dict]
+    therapy_descriptors: Optional[dict]
+    disease_descriptors: Optional[dict]
+    documents: Optional[dict]
+
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['SearchIDService']) -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "query": {
+                    "node_id": "civic:vid33"
+                },
+                "warnings": [],
+                "matches": {
+                    "node": "civic:vid33"
+                },
+                "variation_descriptors": [
+                    {
+                        "id": "civic:vid33",
+                        "type": "VariationDescriptor",
+                        "label": "L858R",
+                        "description": "EGFR L858R has long been recognized "
+                                       "as a functionally significant "
+                                       "mutation in cancer, and is one of "
+                                       "he most prevalent single mutations in"
+                                       " lung cancer. Best described in "
+                                       "non-small cell lung cancer (NSCLC), "
+                                       "the mutation seems to confer "
+                                       "sensitivity to first and second "
+                                       "generation TKI's like gefitinib and"
+                                       " neratinib. NSCLC patients with this"
+                                       " mutation treated with TKI's show "
+                                       "increased overall and "
+                                       "progression-free survival, as "
+                                       "compared to chemotherapy alone. "
+                                       "Third generation TKI's are currently"
+                                       " in clinical trials that specifically"
+                                       " focus on mutant forms of EGFR, a few"
+                                       " of which have shown efficacy in "
+                                       "treating patients that failed to "
+                                       "respond to earlier generation "
+                                       "TKI therapies.",
+                        "value_id": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",  # noqa: E501
+                        "value": {
+                            "location": {
+                                "interval": {
+                                    "end": 858,
+                                    "start": 857,
+                                    "type": "SimpleInterval"
+                                },
+                                "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",  # noqa: E501
+                                "type": "SequenceLocation"
+                            },
+                            "state": {
+                                "sequence": "R",
+                                "type": "SequenceState"
+                            },
+                            "type": "Allele"
+                        },
+                        "xrefs": [
+                            "clinvar:376280",
+                            "clinvar:16609",
+                            "clinvar:376282",
+                            "caid:CA126713",
+                            "dbsnp:121434568"
+                        ],
+                        "alternate_labels": [
+                            "LEU858ARG"
+                        ],
+                        "extensions": [
+                            {
+                                "name": "civic_representative_coordinate",
+                                "value": {
+                                    "chromosome": "7",
+                                    "start": 55259515,
+                                    "stop": 55259515,
+                                    "reference_bases": "T",
+                                    "variant_bases": "G",
+                                    "representative_transcript": "ENST00000275493.2",  # noqa: E501
+                                    "ensembl_version": 75,
+                                    "reference_build": "GRCh37"
+                                },
+                                "type": "Extension"
+                            },
+                            {
+                                "name": "civic_actionability_score",
+                                "value": "375",
+                                "type": "Extension"
+                            }
+                        ],
+                        "molecule_context": "protein",
+                        "structural_type": "SO:0001060",
+                        "expressions": [
+                            {
+                                "syntax": "hgvs:genomic",
+                                "value": "NC_000007.13:g.55259515T>G",
+                                "type": "Expression"
+                            },
+                            {
+                                "syntax": "hgvs:protein",
+                                "value": "NP_005219.2:p.Leu858Arg",
+                                "type": "Expression"
+                            },
+                            {
+                                "syntax": "hgvs:transcript",
+                                "value": "NM_005228.4:c.2573T>G",
+                                "type": "Expression"
+                            },
+                            {
+                                "syntax": "hgvs:transcript",
+                                "value": "ENST00000275493.2:c.2573T>G",
+                                "type": "Expression"
+                            }
+                        ],
+                        "ref_allele_seq": "L",
+                        "gene_context": "civic:gid19"
+                    }
+                ]
+            }

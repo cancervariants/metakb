@@ -2,7 +2,7 @@
 from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
 from metakb.query import QueryHandler
-from metakb.schemas import SearchService
+from metakb.schemas import SearchService, SearchIDService
 from typing import Optional
 
 app = FastAPI(docs_url='/api/v2', openapi_url='/api/v2/openapi.json')
@@ -61,3 +61,20 @@ def search(variation: Optional[str] = Query(None, description=v_description),
     """Search endpoint"""
     return query.search(variation, disease, therapy, gene, statement_id,
                         detail)
+
+
+id_query_desc = ("Given Meta-KB node id, return the node content.")
+id_search_description = ("Return node of the queried node id.")
+id_description = "Node ID to search"
+
+
+@app.get('/api/v2/search/id',
+         summary=id_query_desc,
+         operation_id="getIDResponse",
+         response_description=search_response_description,
+         response_model=SearchIDService,
+         description=id_search_description,
+         response_model_exclude_none=True)
+def search_by_id(node_id: Optional[str] = Query(None, description=id_description)):  # noqa: E501
+    """Search by ID endpoint"""
+    return query.search_by_id(node_id)
