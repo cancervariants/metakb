@@ -258,7 +258,7 @@ class MOAlmanac(Harvester):
         elif feature_type == 'copy_number':
             feature = '{} {}'.format(v['gene'], v['direction'])
         elif feature_type == 'microsatellite_stability':
-            feature = '{}'.format(v['status'])
+            feature = '{}'.format(v.get('status'))
         elif feature_type == 'mutational_signature':
             csn = v['cosmic_signature_number']
             feature = 'COSMIC Signature {}'.format(csn)
