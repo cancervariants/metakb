@@ -2,6 +2,7 @@
 from enum import Enum, IntEnum
 from pydantic import BaseModel
 from typing import List, Optional, Union, Dict, Any, Type
+from pydantic.types import StrictBool
 
 
 class XrefSystem(str, Enum):
@@ -373,7 +374,7 @@ class SearchQuery(BaseModel):
     therapy: Optional[str]
     gene: Optional[str]
     statement_id: Optional[str]
-    node_id: Optional[str]
+    detail: StrictBool
 
     class Config:
         """Configure examples."""
@@ -390,7 +391,8 @@ class SearchQuery(BaseModel):
                 "variation": "NP_005219.2:p.Leu858Arg",
                 "disease": "Lung Non-small Cell Carcinoma",
                 "therapy": "Afatinib",
-                "statement_id": "civic:eid2997"
+                "statement_id": "civic:eid2997",
+                "detail": False
             }
 
 
@@ -425,6 +427,12 @@ class SearchService(BaseModel):
     matches: Matches
     statements: Optional[List[StatementResponse]]
     propositions: Optional[List[TherapeuticResponseProposition]]
+    variation_descriptors: Optional[List[VariationDescriptor]]
+    gene_descriptors: Optional[List[GeneDescriptor]]
+    therapy_descriptors: Optional[List[ValueObjectDescriptor]]
+    disease_descriptors: Optional[List[ValueObjectDescriptor]]
+    methods: Optional[List[Method]]
+    documents: Optional[List[Document]]
 
     class Config:
         """Configure examples."""
@@ -442,7 +450,8 @@ class SearchService(BaseModel):
                     "variation": "EGFR L858R",
                     "disease": "Lung Non-small Cell Carcinoma",
                     "therapy": "Afatinib",
-                    "statement_id": "civic:eid2997"
+                    "statement_id": "civic:eid2997",
+                    "detail": False
                 },
                 "warnings": [],
                 "matches": {
