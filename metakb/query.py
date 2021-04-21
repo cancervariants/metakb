@@ -246,11 +246,10 @@ class QueryHandler:
                     self._get_statements_from_proposition, p_id
                 )
                 for s in statements:
-                    if s not in statement_nodes:
-                        statement_nodes.append(s)
-                        s_id = s.get('id')
-                        if s_id not in response['matches']['statements']:
-                            response['matches']['statements'].append(s_id)
+                    statement_nodes.append(s)
+                    s_id = s.get('id')
+                    if s_id not in response['matches']['statements']:
+                        response['matches']['statements'].append(s_id)
         else:
             # Given Statement ID
             statement_nodes = [statement]
