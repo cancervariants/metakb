@@ -610,7 +610,7 @@ class SearchIDService(BaseModel):
                             },
                             {
                                 "name": "civic_actionability_score",
-                                "value": "375",
+                                "value": "352.5",
                                 "type": "Extension"
                             }
                         ],
