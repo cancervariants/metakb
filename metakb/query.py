@@ -428,7 +428,7 @@ class QueryHandler:
 
         vd = VariationDescriptor(**vd_params).dict()
         if by_id:
-            response['variation_descriptors'] = vd
+            response['variation_descriptor'] = vd
         else:
             if vd not in response['variation_descriptors']:
                 response['variation_descriptors'].append(vd)
@@ -462,7 +462,7 @@ class QueryHandler:
 
         gd = GeneDescriptor(**gd_params).dict()
         if by_id:
-            response['gene_descriptors'] = gd
+            response['gene_descriptor'] = gd
         else:
             if gd not in response['gene_descriptors']:
                 response['gene_descriptors'].append(gd)
@@ -490,7 +490,7 @@ class QueryHandler:
 
         td = ValueObjectDescriptor(**td_params).dict()
         if by_id:
-            response['therapy_descriptors'] = td
+            response['therapy_descriptor'] = td
         else:
             if td not in response['therapy_descriptors']:
                 response['therapy_descriptors'].append(td)
@@ -517,12 +517,12 @@ class QueryHandler:
 
         dd = ValueObjectDescriptor(**dd_params).dict()
         if by_id:
-            response['disease_descriptors'] = dd
+            response['disease_descriptor'] = dd
         else:
             if dd not in response['disease_descriptors']:
                 response['disease_descriptors'].append(dd)
 
-    def _add_method(self, response, method):
+    def _add_method(self, response, method, by_id=False):
         """Add method to response.
 
         :param dict response: The search response
@@ -536,8 +536,11 @@ class QueryHandler:
                 params[key] = method.get(key)
 
         m = Method(**params).dict()
-        if m not in response['methods']:
-            response['methods'].append(m)
+        if by_id:
+            response['method'] = m
+        else:
+            if m not in response['methods']:
+                response['methods'].append(m)
 
     def _add_document(self, response, document, by_id=False):
         """Add document to response.
@@ -555,7 +558,7 @@ class QueryHandler:
 
         d = Document(**params).dict()
         if by_id:
-            response['documents'] = d
+            response['document'] = d
         else:
             if d not in response['documents']:
                 response['documents'].append(d)
@@ -568,7 +571,7 @@ class QueryHandler:
             f"WHERE toLower(n.id) = toLower('{node_id}') "
             "RETURN n"
         )
-        return tx.run(query).single()[0]
+        return (tx.run(query).single() or [None])[0]
 
     @staticmethod
     def _find_descriptor_value_object(tx, descriptor_id):
@@ -772,9 +775,7 @@ class QueryHandler:
         :return: A dictionary containing the node content
         """
         response = {
-            'query': {
-                'node_id': None
-            },
+            'query': None,
             'warnings': []
         }
 
@@ -782,7 +783,7 @@ class QueryHandler:
             response['warnings'].append("No parameters were entered.")
         else:
             valid_node_id = None
-            response['query']['node_id'] = node_id
+            response['query'] = node_id
             with self.driver.session() as session:
                 node = session.read_transaction(
                     self._find_node_by_id, node_id
@@ -806,6 +807,8 @@ class QueryHandler:
         # TODO: if there's more sources, and if the document id is url
         elif any(_id in valid_node_id for _id in ['pmid', 'asco', 'document']):
             self._add_document(response, node, by_id=True)
+        elif 'method' in valid_node_id:
+            self._add_method(response, node, by_id=True)
 
         session.close()
         return SearchIDService(**response).dict(exclude_none=True)
