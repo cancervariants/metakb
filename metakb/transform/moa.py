@@ -501,7 +501,7 @@ class MOATransform:
                 disease_norm_resp = disease_norm_resp_cand
                 highest_match = disease_norm_resp['match_type']
                 normalized_disease_id = \
-                    disease_norm_resp['value_object_descriptor']['value']['disease_id']  # noqa: E501
+                    disease_norm_resp['value_object_descriptor']['value']['id']  # noqa: E501
                 if highest_match == 100:
                     break
 
