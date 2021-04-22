@@ -66,7 +66,7 @@ class QueryHandler:
             self.disease_query_handler.search_groups(disease)
         normalized_disease = None
         if disease_norm_response['match_type'] != 0:
-            normalized_disease = disease_norm_response['value_object_descriptor']['value']['disease_id']  # noqa: E501
+            normalized_disease = disease_norm_response['value_object_descriptor']['value']['id']  # noqa: E501
 
         if not normalized_disease:
             warnings.append(f'disease-normalizer could not normalize '
@@ -344,13 +344,13 @@ class QueryHandler:
             'extensions': []
         }
 
-        if not by_id:
-            # Get Gene Descriptor / gene context
-            with self.driver.session() as session:
-                gene_descriptor = session.read_transaction(
-                    self._get_variation_descriptors_gene, vd_params['id']
-                )
-                vd_params['gene_context'] = gene_descriptor.get('id')
+        # Get Gene Descriptor / gene context
+        with self.driver.session() as session:
+            gene_descriptor = session.read_transaction(
+                self._get_variation_descriptors_gene, vd_params['id']
+            )
+            vd_params['gene_context'] = gene_descriptor.get('id')
+            if not by_id:
                 gene_value_object = session.read_transaction(
                     self._find_descriptor_value_object, vd_params['gene_context']  # noqa: E501
                 )

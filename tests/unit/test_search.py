@@ -1,6 +1,7 @@
 """Test the MetaKB search method."""
 from metakb.query import QueryHandler
 import pytest
+import collections
 
 # TODO:
 #  Commented out tests to be fixed after first pass
@@ -22,6 +23,11 @@ def query_handler():
                                                  therapy=therapy, gene=gene,
                                                  statement_id=statement_id,
                                                  detail=detail)
+            return response
+
+        def search_by_id(self, node_id=''):
+            response = self.query_handler.search_by_id(node_id=node_id)
+
             return response
     return QueryGetter()
 
@@ -434,8 +440,12 @@ def moa_aid69_document():
 def assert_same_keys_list_items(actual, test):
     """Assert that keys in a dict are same or items in list are same."""
     assert len(list(actual)) == len(list(test))
-    for item in list(actual):
-        assert item in test
+    if isinstance(actual, collections.abc.KeysView):
+        for item in list(actual):
+            assert item in test
+    else:
+        for i in range(len(list(actual))):
+            assertions(test[i], actual[i])
 
 
 def assert_non_lists(actual, test):
@@ -460,10 +470,13 @@ def assertions(test_data, actual_data):
             if key == 'supported_by':
                 assert_same_keys_list_items(actual_data[key], test_data[key])
             elif isinstance(actual_data[key], list):
-                try:
-                    assert set(actual_data[key]) == set(test_data[key])
-                except:  # noqa: E722
+                if key == 'extensions' or key == 'expressions':
                     assertions(test_data[key], actual_data[key])
+                else:
+                    try:
+                        assert set(actual_data[key]) == set(test_data[key])
+                    except:  # noqa: E722
+                        assertions(test_data[key], actual_data[key])
             else:
                 if key == 'proposition':
                     assert test_data[key].startswith('proposition:')
@@ -948,3 +961,51 @@ def test_no_matches(query_handler):
     # Invalid variation
     response = query_handler.search(variation='v600e')
     assert_no_match(response)
+
+
+def test_civic_id_search(query_handler, civic_vid33, civic_gid19,
+                         civic_tid146, civic_did8, eid2997_document):
+    """Test search on civic node id"""
+    res = query_handler.search_by_id(node_id='civic:vid33')
+    res = res['variation_descriptors']
+    assertions(civic_vid33, res)
+
+    res = query_handler.search_by_id(node_id='civic:gid19')
+    res = res['gene_descriptors']
+    assertions(civic_gid19, res)
+
+    res = query_handler.search_by_id(node_id='civic_tid146')
+    res = res['therapy_descriptors']
+    assertions(civic_tid146, res)
+
+    res = query_handler.search_by_id(node_id='civic_did8')
+    res = res['disease_descriptors']
+    assertions(civic_did8, res)
+
+    res = query_handler.search_by_id(node_id='civic_did8')
+    res = res['documents']
+    assertions(eid2997_document, res)
+
+
+def test_moa_id_search(query_handler, moa_vid69, moa_abl1, moa_imatinib,
+                       moa_chronic_myelogenous_leukemia, moa_aid69_document):
+    """Test search on moa node id"""
+    res = query_handler.search_by_id(node_id='moa:vid69')
+    res = res['variation_descriptors']
+    assertions(moa_vid69, res)
+
+    res = query_handler.search_by_id(node_id='moa.normalize.gene:ABL1')
+    res = res['gene_descriptors']
+    assertions(moa_abl1, res)
+
+    res = query_handler.search_by_id(node_id='moa.normalize.therapy:Imatinib')
+    res = res['therapy_descriptors']
+    assertions(moa_imatinib, res)
+
+    res = query_handler.search_by_id(node_id='moa.normalize.disease:Chronic%20Myelogenous%20Leukemia')  # noqa: E501
+    res = res['disease_descriptors']
+    assertions(moa_chronic_myelogenous_leukemia, res)
+
+    res = query_handler.search_by_id(node_id='pmid:11423618')
+    res = res['documents']
+    assertions(moa_aid69_document, res)

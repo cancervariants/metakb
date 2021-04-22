@@ -515,11 +515,11 @@ class SearchIDService(BaseModel):
 
     query: SearchID
     warnings: Optional[List[str]]
-    variation_descriptors: Optional[dict]
-    gene_descriptors: Optional[dict]
-    therapy_descriptors: Optional[dict]
-    disease_descriptors: Optional[dict]
-    documents: Optional[dict]
+    variation_descriptors: Optional[VariationDescriptor]
+    gene_descriptors: Optional[GeneDescriptor]
+    therapy_descriptors: Optional[ValueObjectDescriptor]
+    disease_descriptors: Optional[ValueObjectDescriptor]
+    documents: Optional[Document]
 
     class Config:
         """Configure examples."""
