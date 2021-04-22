@@ -766,7 +766,7 @@ class QueryHandler:
         return (tx.run(query).single() or [None])[0]
 
     def search_by_id(self, node_id):
-        """Get node information and propositions from queried concepts.
+        """Get node information from queried concepts.
 
         :param str node_id: node_id
         :return: A dictionary containing the node content
@@ -803,6 +803,7 @@ class QueryHandler:
             self._add_disease_descriptor(response, node, by_id=True)
         elif any(node_id in valid_node_id for node_id in ['gid', 'gene']):
             self._add_gene_descriptor(node, self._get_gene_value_object(node), response, by_id=True)  # noqa: E501
+        # TODO: if there's more sources, and if the document id is url
         elif any(_id in valid_node_id for _id in ['pmid', 'asco', 'document']):
             self._add_document(response, node, by_id=True)
 
