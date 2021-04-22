@@ -964,48 +964,58 @@ def test_no_matches(query_handler):
 
 
 def test_civic_id_search(query_handler, civic_vid33, civic_gid19,
-                         civic_tid146, civic_did8, eid2997_document):
+                         civic_tid146, civic_did8,
+                         eid2997_document, method001):
     """Test search on civic node id"""
     res = query_handler.search_by_id(node_id='civic:vid33')
-    res = res['variation_descriptors']
+    res = res['variation_descriptor']
     assertions(civic_vid33, res)
 
     res = query_handler.search_by_id(node_id='civic:gid19')
-    res = res['gene_descriptors']
+    res = res['gene_descriptor']
     assertions(civic_gid19, res)
 
-    res = query_handler.search_by_id(node_id='civic_tid146')
-    res = res['therapy_descriptors']
+    res = query_handler.search_by_id(node_id='civic:tid146')
+    res = res['therapy_descriptor']
     assertions(civic_tid146, res)
 
-    res = query_handler.search_by_id(node_id='civic_did8')
-    res = res['disease_descriptors']
+    res = query_handler.search_by_id(node_id='civic:did8')
+    res = res['disease_descriptor']
     assertions(civic_did8, res)
 
-    res = query_handler.search_by_id(node_id='civic_did8')
-    res = res['documents']
+    res = query_handler.search_by_id(node_id='pmid:23982599')
+    res = res['document']
     assertions(eid2997_document, res)
+
+    res = query_handler.search_by_id(node_id='method:001')
+    res = res['method']
+    assertions(method001, res)
 
 
 def test_moa_id_search(query_handler, moa_vid69, moa_abl1, moa_imatinib,
-                       moa_chronic_myelogenous_leukemia, moa_aid69_document):
+                       moa_chronic_myelogenous_leukemia,
+                       moa_aid69_document, method004):
     """Test search on moa node id"""
     res = query_handler.search_by_id(node_id='moa:vid69')
-    res = res['variation_descriptors']
+    res = res['variation_descriptor']
     assertions(moa_vid69, res)
 
     res = query_handler.search_by_id(node_id='moa.normalize.gene:ABL1')
-    res = res['gene_descriptors']
+    res = res['gene_descriptor']
     assertions(moa_abl1, res)
 
     res = query_handler.search_by_id(node_id='moa.normalize.therapy:Imatinib')
-    res = res['therapy_descriptors']
+    res = res['therapy_descriptor']
     assertions(moa_imatinib, res)
 
     res = query_handler.search_by_id(node_id='moa.normalize.disease:Chronic%20Myelogenous%20Leukemia')  # noqa: E501
-    res = res['disease_descriptors']
+    res = res['disease_descriptor']
     assertions(moa_chronic_myelogenous_leukemia, res)
 
     res = query_handler.search_by_id(node_id='pmid:11423618')
-    res = res['documents']
+    res = res['document']
     assertions(moa_aid69_document, res)
+
+    res = query_handler.search_by_id(node_id='method:004')
+    res = res['method']
+    assertions(method004, res)

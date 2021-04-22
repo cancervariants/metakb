@@ -489,37 +489,17 @@ class SearchService(BaseModel):
             }
 
 
-class SearchID(BaseModel):
-    """Queries for the Search by ID Endpoint."""
-
-    node_id: Optional[str]
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['SearchID']) -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "node_id": "civic:vid33"
-            }
-
-
 class SearchIDService(BaseModel):
     """Define model for Search by ID Endpoint Response."""
 
-    query: SearchID
+    query: str
     warnings: Optional[List[str]]
-    variation_descriptors: Optional[VariationDescriptor]
-    gene_descriptors: Optional[GeneDescriptor]
-    therapy_descriptors: Optional[ValueObjectDescriptor]
-    disease_descriptors: Optional[ValueObjectDescriptor]
-    documents: Optional[Document]
+    variation_descriptor: Optional[VariationDescriptor]
+    gene_descriptor: Optional[GeneDescriptor]
+    therapy_descriptor: Optional[ValueObjectDescriptor]
+    disease_descriptor: Optional[ValueObjectDescriptor]
+    document: Optional[Document]
+    method: Optional[Method]
 
     class Config:
         """Configure examples."""
