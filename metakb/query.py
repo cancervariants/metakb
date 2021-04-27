@@ -13,6 +13,7 @@ import logging
 from metakb.database import Graph
 import json
 from json.decoder import JSONDecodeError
+from urllib.parse import quote
 
 
 logger = logging.getLogger('metakb')
@@ -774,6 +775,10 @@ class QueryHandler:
         :param str node_id: node_id
         :return: A dictionary containing the node content
         """
+        node_id = node_id.strip()
+        if '%' not in node_id:
+            concept_name = quote(node_id.split(":", 1)[1])
+            node_id = node_id.split(":", 1)[0] + ":" + concept_name
         response = {
             'query': None,
             'warnings': []
