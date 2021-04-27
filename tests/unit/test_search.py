@@ -1012,10 +1012,14 @@ def test_moa_id_search(query_handler, moa_vid69, moa_abl1, moa_imatinib,
     res = res['disease_descriptor']
     assertions(moa_chronic_myelogenous_leukemia, res)
 
+    res = query_handler.search_by_id(node_id='moa.normalize.disease:oncotree:CML')  # noqa: E501
+    res = res['disease_descriptor']
+    assertions(moa_chronic_myelogenous_leukemia, res)
+
     res = query_handler.search_by_id(node_id='pmid:11423618')
     res = res['document']
     assertions(moa_aid69_document, res)
 
-    res = query_handler.search_by_id(node_id='method:004')
+    res = query_handler.search_by_id(node_id=' method:004 ')
     res = res['method']
     assertions(method004, res)
