@@ -63,8 +63,8 @@ def search(variation: Optional[str] = Query(None, description=v_description),
                         detail)
 
 
-id_query_desc = ("Given Meta-KB descriptor_id, document_id, "
-                 "method_id return the node content.")
+id_query_desc = ("Given Meta-KB statement_id, proposition_id, descriptor_id,"
+                 " document_id, or method_id return the node content.")
 id_search_description = ("Return node of the queried node id.")
 id_description = "Node ID to search"
 

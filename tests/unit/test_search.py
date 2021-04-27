@@ -42,7 +42,7 @@ def civic_eid2997():
         "direction": "supports",
         "variation_origin": "somatic",
         "evidence_level": "civic.evidence_level:A",
-        "proposition": "proposition:148",
+        "proposition": "proposition:152",
         "variation_descriptor": "civic:vid33",
         "therapy_descriptor": "civic:tid146",
         "disease_descriptor": "civic:did8",
@@ -55,7 +55,7 @@ def civic_eid2997():
 def eid2997_proposition():
     """Create a test fixture for EID2997 proposition."""
     return {
-        "id": "proposition:148",
+        "id": "proposition:152",
         "predicate": "predicts_sensitivity_to",
         "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
         "object_qualifier": "ncit:C2926",
@@ -116,7 +116,7 @@ def civic_vid33():
             },
             {
                 "name": "civic_actionability_score",
-                "value": "375",
+                "value": "352.5",
                 "type": "Extension"
             }
         ],
@@ -135,12 +135,12 @@ def civic_vid33():
             },
             {
                 "syntax": "hgvs:transcript",
-                "value": "NM_005228.4:c.2573T>G",
+                "value": "ENST00000275493.2:c.2573T>G",
                 "type": "Expression"
             },
             {
                 "syntax": "hgvs:transcript",
-                "value": "ENST00000275493.2:c.2573T>G",
+                "value": "NM_005228.4:c.2573T>G",
                 "type": "Expression"
             }
         ],
@@ -162,7 +162,6 @@ def civic_gid19():
             "type": "Gene"
         },
         "alternate_labels": [
-            "ERRP",
             "EGFR",
             "mENA",
             "PIG61",
@@ -293,7 +292,7 @@ def moa_aid69():
         "id": "moa:aid69",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
         "evidence_level": "moa.evidence_level:Preclinical",
-        "proposition": "proposition:001",
+        "proposition": "proposition:858",
         "variation_origin": "somatic",
         "variation_descriptor": "moa:vid69",
         "therapy_descriptor": "moa.normalize.therapy:Imatinib",
@@ -310,7 +309,7 @@ def moa_aid69():
 def aid69_proposition():
     """Create a test fixture for MOA AID69 proposition."""
     return {
-        "id": "proposition:001",
+        "id": "proposition:858",
         "predicate": "predicts_resistance_to",
         "subject": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",
         "object_qualifier": "ncit:C3174",
@@ -963,63 +962,82 @@ def test_no_matches(query_handler):
     assert_no_match(response)
 
 
-def test_civic_id_search(query_handler, civic_vid33, civic_gid19,
-                         civic_tid146, civic_did8,
+def test_civic_id_search(query_handler, civic_eid2997, eid2997_proposition,
+                         civic_vid33, civic_gid19, civic_tid146, civic_did8,
                          eid2997_document, method001):
     """Test search on civic node id"""
-    res = query_handler.search_by_id(node_id='civic:vid33')
+    res = query_handler.search_by_id('civic:eid2997')
+    res = res['statement']
+    assertions(civic_eid2997, res)
+
+    res = query_handler.search_by_id('proposition:152')
+    res = res['proposition']
+    assertions(eid2997_proposition, res)
+
+    res = query_handler.search_by_id('civic:vid33')
     res = res['variation_descriptor']
     assertions(civic_vid33, res)
 
-    res = query_handler.search_by_id(node_id='civic:gid19')
+    res = query_handler.search_by_id('civic:gid19')
     res = res['gene_descriptor']
     assertions(civic_gid19, res)
 
-    res = query_handler.search_by_id(node_id='civic:tid146')
+    res = query_handler.search_by_id('civic:tid146')
     res = res['therapy_descriptor']
     assertions(civic_tid146, res)
 
-    res = query_handler.search_by_id(node_id='civic:did8')
+    res = query_handler.search_by_id('civic:did8')
     res = res['disease_descriptor']
     assertions(civic_did8, res)
 
-    res = query_handler.search_by_id(node_id='pmid:23982599')
+    res = query_handler.search_by_id('pmid:23982599')
     res = res['document']
     assertions(eid2997_document, res)
 
-    res = query_handler.search_by_id(node_id='method:001')
+    res = query_handler.search_by_id('method:001')
     res = res['method']
     assertions(method001, res)
 
 
-def test_moa_id_search(query_handler, moa_vid69, moa_abl1, moa_imatinib,
+def test_moa_id_search(query_handler, moa_aid69, aid69_proposition,
+                       moa_vid69, moa_abl1, moa_imatinib,
                        moa_chronic_myelogenous_leukemia,
                        moa_aid69_document, method004):
     """Test search on moa node id"""
-    res = query_handler.search_by_id(node_id='moa:vid69')
+    res = query_handler.search_by_id('moa:aid69')
+    res = res['statement']
+    assertions(moa_aid69, res)
+
+    res = query_handler.search_by_id('proposition:858')
+    print(res)
+    res = res['proposition']
+    print(res)
+    assertions(aid69_proposition, res)
+
+    res = query_handler.search_by_id('moa:vid69')
     res = res['variation_descriptor']
     assertions(moa_vid69, res)
 
-    res = query_handler.search_by_id(node_id='moa.normalize.gene:ABL1')
+    res = query_handler.search_by_id('moa.normalize.gene:ABL1')
     res = res['gene_descriptor']
     assertions(moa_abl1, res)
 
-    res = query_handler.search_by_id(node_id='moa.normalize.therapy:Imatinib')
+    res = query_handler.search_by_id('moa.normalize.therapy:Imatinib')
     res = res['therapy_descriptor']
     assertions(moa_imatinib, res)
 
-    res = query_handler.search_by_id(node_id='moa.normalize.disease:oncotree%3ACML')  # noqa: E501
+    res = query_handler.search_by_id('moa.normalize.disease:oncotree%3ACML')  # noqa: E501
     res = res['disease_descriptor']
     assertions(moa_chronic_myelogenous_leukemia, res)
 
-    res = query_handler.search_by_id(node_id='moa.normalize.disease:oncotree:CML')  # noqa: E501
+    res = query_handler.search_by_id('moa.normalize.disease:oncotree:CML')  # noqa: E501
     res = res['disease_descriptor']
     assertions(moa_chronic_myelogenous_leukemia, res)
 
-    res = query_handler.search_by_id(node_id='pmid:11423618')
+    res = query_handler.search_by_id('pmid:11423618')
     res = res['document']
     assertions(moa_aid69_document, res)
 
-    res = query_handler.search_by_id(node_id=' method:004 ')
+    res = query_handler.search_by_id(' method:004 ')
     res = res['method']
     assertions(method004, res)
