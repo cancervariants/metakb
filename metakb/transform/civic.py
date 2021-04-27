@@ -561,12 +561,15 @@ class CIViCTransform:
         if variant_groups:
             v_groups = list()
             for v_group in variant_groups:
-                v_groups.append({
+                params = {
                     'id': f"civic:vgid{v_group['id']}",
                     'label': v_group['name'],
                     'description': v_group['description'],
                     'type': 'variant_group'
-                })
+                }
+                if v_group['description'] == '':
+                    del params['description']
+                v_groups.append(params)
             extensions.append(schemas.Extension(
                 name='variant_group',
                 value=v_groups
