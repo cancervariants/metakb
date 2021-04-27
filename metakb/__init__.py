@@ -1,6 +1,7 @@
 """The MetaKB package."""
 from pathlib import Path
 import logging
+from os import environ
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 logging.basicConfig(
@@ -9,10 +10,8 @@ logging.basicConfig(
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
-
-class FileDownloadException(Exception):
-    """Exception class for handling failed downloads of source files."""
-
-    def __init__(self, *args, **kwargs):
-        """Initialize exception."""
-        super().__init__(*args, **kwargs)
+if 'METAKB_NORM_EB_PROD' in environ:
+    environ['VARIANT_NORM_EB_PROD'] = "true"
+    environ['GENE_NORM_EB_PROD'] = "true"
+    environ['THERAPY_NORM_EB_PROD'] = "true"
+    environ['DISEASE_NORM_EB_PROD'] = "true"
