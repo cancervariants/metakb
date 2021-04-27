@@ -125,19 +125,20 @@ class CIViCTransform:
             else:
                 descriptors = self._get_descriptors(record, genes, variants)
 
-            if not descriptors:
-                continue
+            therapy_descriptors, variation_descriptors, disease_descriptors = descriptors  # noqa: E501
+
+            td_len = len(therapy_descriptors)
+            vd_len = len(variation_descriptors)
+            dd_len = len(disease_descriptors)
+
+            if (td_len == 1 or td_len == 0) and vd_len == 1 and dd_len == 1:
+                # Therapeutic Response Propositions
+                # 1 variant, 1 drug, 1 disease
+                propositions = self._get_propositions(
+                    record, variation_descriptors, disease_descriptors,
+                    therapy_descriptors, propositions_documents_ix
+                )
             else:
-                therapy_descriptors, variation_descriptors, disease_descriptors = descriptors  # noqa: E501
-
-            propositions = \
-                self._get_tr_propositions(record, variation_descriptors,
-                                          disease_descriptors,
-                                          therapy_descriptors,
-                                          propositions_documents_ix)
-
-            # We only want therapeutic response for now
-            if not propositions:
                 continue
 
             if is_evidence:
@@ -255,7 +256,7 @@ class CIViCTransform:
             variation_origin=self._get_variation_origin(
                 record['variant_origin']),
             variation_descriptor=variant_descriptors[0]['id'],
-            therapy_descriptor=therapy_descriptors[0]['id'],
+            therapy_descriptor=therapy_descriptors[0]['id'] if therapy_descriptors else None,  # noqa: E501
             disease_descriptor=disease_descriptors[0]['id'],
             method=methods[0]['id'],
             supported_by=[se['id'] for se in documents]
@@ -270,18 +271,13 @@ class CIViCTransform:
         :param dict variants: CIViC variant records
         :param bool is_evidence: `True` if EID. `False` if AID.
         """
+        therapy_descriptors = list()
         if len(record['drugs']) != 1:
             logger.warning(f"{record['name']} does not have exactly "
                            f"one therapy.")
-            return None
         else:
             therapy_descriptors = self._get_therapy_descriptors(
                 record['drugs'][0])
-
-            # Might not be able to find NCIt therapy ID
-            # Log captured in _get_therapy_descriptors
-            if len(therapy_descriptors) != 1:
-                return None
 
         if is_evidence:
             variation_descriptors = \
@@ -297,14 +293,12 @@ class CIViCTransform:
         if len(variation_descriptors) != 1:
             logger.warning(f"{record['name']} does not have exactly "
                            f"one variant.")
-            return None
 
         disease_descriptors = \
             self._get_disease_descriptors(record['disease'])
         if len(disease_descriptors) != 1:
             logger.warning(f"{record['name']} does not have exactly "
                            f"one disease.")
-            return None
 
         return therapy_descriptors, variation_descriptors, disease_descriptors
 
@@ -321,9 +315,9 @@ class CIViCTransform:
         else:
             return None
 
-    def _get_tr_propositions(self, record, variation_descriptors,
-                             disease_descriptors, therapy_descriptors,
-                             propositions_documents_ix):
+    def _get_propositions(self, record, variation_descriptors,
+                          disease_descriptors, therapy_descriptors,
+                          propositions_documents_ix):
         """Return a list of propositions.
 
         :param dict record: CIViC EID or AID
@@ -334,11 +328,13 @@ class CIViCTransform:
             proposition and documents indexes
         :return: A list of therapeutic propositions.
         """
+        supported_propositions = [schemas.PropositionType.PREDICTIVE.value,
+                                  schemas.PropositionType.PROGNOSTIC.value]
         proposition_type = \
             self._get_proposition_type(record['evidence_type'])
 
-        # Only want TR for now
-        if proposition_type != schemas.PropositionType.PREDICTIVE.value:
+        # Only want supported propositions for now
+        if proposition_type not in supported_propositions:
             return []
 
         predicate = self._get_predicate(proposition_type,
@@ -348,21 +344,31 @@ class CIViCTransform:
         if not predicate:
             return []
 
-        proposition = schemas.TherapeuticResponseProposition(
-            id="",
-            type=proposition_type,
-            predicate=predicate,
-            subject=variation_descriptors[0]['value_id'],
-            object_qualifier=disease_descriptors[0]['value']['id'],
-            object=therapy_descriptors[0]['value']['id']
-        ).dict(exclude_none=True)
+        params = {
+            'id': '',
+            'type': proposition_type,
+            'predicate': predicate,
+            'subject': variation_descriptors[0]['value_id'],
+            'object_qualifier': disease_descriptors[0]['value']['id']
+        }
+
+        if proposition_type == schemas.PropositionType.PROGNOSTIC.value:
+            proposition = \
+                schemas.PrognosticProposition(**params).dict(exclude_none=True)
+        elif proposition_type == schemas.PropositionType.PREDICTIVE.value:
+            params['object'] = therapy_descriptors[0]['value']['id']
+            proposition =\
+                schemas.TherapeuticResponseProposition(**params).dict(
+                    exclude_none=True
+                )
 
         # Get corresponding id for proposition
         key = (proposition['type'],
                proposition['predicate'],
                proposition['subject'],
-               proposition['object_qualifier'],
-               proposition['object'])
+               proposition['object_qualifier'])
+        if proposition_type == schemas.PropositionType.PREDICTIVE.value:
+            key = key + (proposition['object'],)
         proposition_index = self._set_ix(propositions_documents_ix,
                                          'propositions', key)
         proposition['id'] = f"proposition:{proposition_index:03}"
@@ -651,7 +657,7 @@ class CIViCTransform:
             if disease_norm_resp['match_type'] > highest_match:
                 highest_match = disease_norm_resp['match_type']
                 normalized_disease_id = \
-                    disease_norm_resp['value_object_descriptor']['value']['disease_id']  # noqa: E501
+                    disease_norm_resp['value_object_descriptor']['value']['id']  # noqa: E501
                 if highest_match == 100:
                     break
 
