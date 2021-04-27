@@ -804,7 +804,7 @@ class QueryHandler:
         label, *_ = node.labels
         if label == 'Statement':
             self._add_statement(response, node)
-        elif label == 'Proposition':
+        elif label == 'Proposition' or label == 'TherapeuticResponse':
             self._add_proposition(response, node)
         elif label == 'VariationDescriptor':
             self._add_variation_descriptor(response, node, by_id=True)
