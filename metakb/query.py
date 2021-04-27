@@ -801,18 +801,22 @@ class QueryHandler:
         if node_id and not valid_node_id:
             return SearchIDService(**response).dict()
 
-        if 'vid' in valid_node_id:
+        label, *_ = node.labels
+        if label == 'Statement':
+            self._add_statement(response, node)
+        elif label == 'Proposition':
+            self._add_proposition(response, node)
+        elif label == 'VariationDescriptor':
             self._add_variation_descriptor(response, node, by_id=True)
-        elif any(node_id in valid_node_id for node_id in ['tid', 'therapy']):
+        elif label == 'TherapyDescriptor':
             self._add_therapy_descriptor(response, node, by_id=True)
-        elif any(node_id in valid_node_id for node_id in ['did', 'disease']):
+        elif label == 'DiseaseDescriptor':
             self._add_disease_descriptor(response, node, by_id=True)
-        elif any(node_id in valid_node_id for node_id in ['gid', 'gene']):
+        elif label == 'GeneDescriptor':
             self._add_gene_descriptor(node, self._get_gene_value_object(node), response, by_id=True)  # noqa: E501
-        # TODO: if there's more sources, and if the document id is url
-        elif any(_id in valid_node_id for _id in ['pmid', 'asco', 'document']):
+        elif label == 'Document':
             self._add_document(response, node, by_id=True)
-        elif 'method' in valid_node_id:
+        elif label == 'Method':
             self._add_method(response, node, by_id=True)
 
         session.close()
@@ -829,3 +833,49 @@ class QueryHandler:
                 self._find_descriptor_value_object, node.get('id')
             )
         return gene_value_object
+
+    def _add_statement(self, response, node):
+        """Add statement to response
+
+        :param dict response: The search response
+        :param node: The searched node
+        """
+        with self.driver.session() as session:
+            statement_id = node.get('id')
+            resp = session.read_transaction(
+                self._find_and_return_statement_response, statement_id)
+            se_list = session.read_transaction(
+                self._find_and_return_supported_by, statement_id)
+            response['statement'] = StatementResponse(
+                id=statement_id,
+                description=node.get('description'),
+                direction=node.get('direction'),
+                evidence_level=node.get('evidence_level'),
+                variation_origin=node.get('variation_origin'),
+                proposition=resp['tr_id'],
+                variation_descriptor=resp['vid'],
+                therapy_descriptor=resp['tid'],
+                disease_descriptor=resp['did'],
+                method=resp['m']['id'],
+                supported_by=[se['id'] for se in se_list]
+            ).dict()
+
+    def _add_proposition(self, response, node):
+        """Add proposition to response
+
+        :param dict response: The search response
+        :param node: The searched node
+        """
+        with self.driver.session() as session:
+            p_id = node.get('id')
+            value_ids = session.read_transaction(
+                self._find_and_return_proposition_response, p_id
+            )
+            response['proposition'] = TherapeuticResponseProposition(
+                id=p_id,
+                type=node.get('type'),
+                predicate=node.get('predicate'),
+                subject=value_ids['subject'],
+                object_qualifier=value_ids['object_qualifier'],
+                object=value_ids['object']
+            ).dict()

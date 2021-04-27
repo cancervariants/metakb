@@ -494,6 +494,8 @@ class SearchIDService(BaseModel):
 
     query: str
     warnings: Optional[List[str]]
+    statement: Optional[StatementResponse]
+    proposition: Optional[TherapeuticResponseProposition]
     variation_descriptor: Optional[VariationDescriptor]
     gene_descriptor: Optional[GeneDescriptor]
     therapy_descriptor: Optional[ValueObjectDescriptor]
