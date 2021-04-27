@@ -141,14 +141,23 @@ class Drug(Therapy):
     type = "Drug"
 
 
-class TherapeuticResponseProposition(BaseModel):
-    """Define therapeutic Response Proposition model"""
+class Proposition(BaseModel):
+    """Define Proposition model."""
 
     id: str
-    type = PropositionType.PREDICTIVE.value
-    predicate: Optional[PredictivePredicate]
+    type: str
+    predicate: Optional[Union[PredictivePredicate, DiagnosticPredicate,
+                        PrognosticPredicate, PathogenicPredicate,
+                        FunctionalPredicate]]
     subject: str  # vrs:Variation
     object_qualifier: str  # vicc:Disease
+
+
+class TherapeuticResponseProposition(Proposition):
+    """Define therapeutic Response Proposition model"""
+
+    type = PropositionType.PREDICTIVE.value
+    predicate: Optional[PredictivePredicate]
     object: str  # Therapy value object
 
     class Config:
@@ -173,6 +182,13 @@ class TherapeuticResponseProposition(BaseModel):
             }
 
 
+class PrognosticProposition(Proposition):
+    """Defines the Prognostic Proposition model."""
+
+    type = PropositionType.PROGNOSTIC.value
+    predicate: Optional[PrognosticPredicate]
+
+
 class MethodID(IntEnum):
     """Create AssertionMethod id constants for harvested sources."""
 
@@ -193,7 +209,7 @@ class Statement(BaseModel):
     proposition: str
     variation_origin: Optional[VariationOrigin]
     variation_descriptor: str
-    therapy_descriptor: str
+    therapy_descriptor: Optional[str]
     disease_descriptor: str
     method: str
     supported_by: List[str]
@@ -312,10 +328,11 @@ class Response(BaseModel):
     """Define the Response Model."""
 
     statements: List[Statement]
-    propositions: List[TherapeuticResponseProposition]
+    propositions: List[Union[TherapeuticResponseProposition,
+                             PrognosticProposition]]
     variation_descriptors: List[VariationDescriptor]
     gene_descriptors: List[GeneDescriptor]
-    therapy_descriptors: List[ValueObjectDescriptor]
+    therapy_descriptors: Optional[List[ValueObjectDescriptor]]
     disease_descriptors: List[ValueObjectDescriptor]
     methods: List[Method]
     documents: List[Document]
