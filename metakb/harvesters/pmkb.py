@@ -29,9 +29,9 @@ class PMKB(Harvester):
             gene_ids, disease_ids = self._load_ids()
             genes, variants = self._process_variants(gene_ids)
             statements = self._process_interps(gene_ids, disease_ids, variants)
-            self._create_json(genes, variants, statements)
+            self._create_json(statements, genes, variants, fn)
 
-        except:  # noqa: E722
+        except NotImplementedError:  # noqa: E722
             logger.info("PMKB Harvester was not successful.")
             return False
 
@@ -45,8 +45,8 @@ class PMKB(Harvester):
                 not list(self.pmkb_dir.glob('pmkb_interps_*.csv')):
             self._download_data()
 
-        if not self.pmkb_dir.glob('pmkb_id_index_*.json'):
-            self._build_item_indexes()
+        if not list(self.pmkb_dir.glob('pmkb_id_index_*.json')):
+            self._build_id_index()
 
     def _download_data(self):
         """Retrieve PMKB data from remote host."""
@@ -118,13 +118,12 @@ class PMKB(Harvester):
             json.dump([genes, diseases], outfile)
         logging.info("PMKB gene and disease IDs retrieved.")
 
-    @staticmethod
-    def _load_ids():
+    def _load_ids(self):
         """Load disease and gene IDs from index file.
         :return: Dicts keying gene and disease names to PMKB IDs.
         """
-        pmkb_dir = PROJECT_ROOT / 'data' / 'pmkb'
-        path = sorted(list(pmkb_dir.glob('pmkb_id_index_*.json')), reverse=True)[0]  # noqa: E501
+        pattern = 'pmkb_id_index_*.json'
+        path = sorted(list(self.pmkb_dir.glob(pattern)))[-1]
         with open(path, 'r') as file:
             gene_ids, disease_ids = json.load(file)
         return gene_ids, disease_ids
@@ -134,8 +133,8 @@ class PMKB(Harvester):
         :param Dict gene_ids: Dict keying gene names to PMKB ID numbers
         :return: Dicts keying gene and variant names (string) to data objects
         """
-        pattern = self.pmkb_dir / 'pmkb_variants_*.csv'
-        variants_path = sorted(list(PROJECT_ROOT.glob(pattern)), reverse=True)[0]  # noqa: E501
+        pattern = 'pmkb_variants_*.csv'
+        variants_path = sorted(list(self.pmkb_dir.glob(pattern)))[-1]
         variants_file = open(variants_path, 'r')
         reader = csv.DictReader(variants_file)
         genes = {}
@@ -188,13 +187,11 @@ class PMKB(Harvester):
             diseases.
         """
         statements = []
-        genes = []
-        diseases = []
 
         pattern = 'data/pmkb/pmkb_interps_*.csv'
         interp_path = sorted(list(PROJECT_ROOT.glob(pattern)), reverse=True)[0]
         interp_file = open(interp_path, 'r')
-        interps = csv.DictReader()
+        interps = csv.DictReader(interp_file)
         for interp in interps:
             interp_id = interp['PMKB URL'].split('/')[-1]
 
@@ -210,12 +207,18 @@ class PMKB(Harvester):
             count = 0
             for interp_descr in set(interp['Interpretations'].split('|')):
                 for disease in set(interp['Tumor Type(s)'].split('|')):
+                    if not disease:
+                        continue
+
                     disease_id = disease_ids.get(disease)
                     if not disease_id:
                         logger.error(f"Could not retrieve ID for disease: {disease}")  # noqa: E501
                         continue
 
                     for variant in set(interp['Variant(s)'].split('|')):
+                        if not variant:
+                            continue
+
                         variant_data = variants.get(variant)
                         if not variant_data:
                             logger.error(f"Could not retrieve data for variant: {variant}")  # noqa: E501
@@ -237,13 +240,15 @@ class PMKB(Harvester):
                             "evidence_items": interp_ev
                         })
                         count += 1
-                    diseases.append(disease)
-            genes.append(interp['Gene'])
 
         interp_file.close()
-        return statements, set(genes), set(diseases)
+        return statements
 
-    def _create_json(self, genes, variants, statements):
+    def _create_json(self, statements, genes, variants, filename):
+        statements_path = self.pmkb_dir / 'statements.json'
+        with open(statements_path, 'w') as outfile:
+            json.dump(statements, outfile)
+
         gene_path = self.pmkb_dir / 'genes.json'
         with open(gene_path, 'w') as outfile:
             json.dump(genes, outfile)
@@ -252,6 +257,6 @@ class PMKB(Harvester):
         with open(var_path, 'w') as outfile:
             json.dump(variants, outfile)
 
-        statements_path = self.pmkb_dir / 'statements.json'
-        with open(statements_path, 'w') as outfile:
-            json.dump(statements, outfile)
+        composite_path = self.pmkb_dir / filename
+        with open(composite_path, 'w') as outfile:
+            json.dump([statements, genes, variants], outfile)
