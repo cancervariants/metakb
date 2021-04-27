@@ -13,6 +13,7 @@ pandas = "*"
 requests = "*"
 numpy = "*"
 jsondiff = "*"
+bs4 = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
