@@ -1009,9 +1009,7 @@ def test_moa_id_search(query_handler, moa_aid69, aid69_proposition,
     assertions(moa_aid69, res)
 
     res = query_handler.search_by_id('proposition:858')
-    print(res)
     res = res['proposition']
-    print(res)
     assertions(aid69_proposition, res)
 
     res = query_handler.search_by_id('moa:vid69')
