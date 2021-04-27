@@ -297,7 +297,7 @@ def moa_aid69():
         "variation_origin": "somatic",
         "variation_descriptor": "moa:vid69",
         "therapy_descriptor": "moa.normalize.therapy:Imatinib",
-        "disease_descriptor": "moa.normalize.disease:Chronic%20Myelogenous%20Leukemia",  # noqa: E501
+        "disease_descriptor": "moa.normalize.disease:oncotree%3ACML",
         "method": "method:004",
         "supported_by": [
             "pmid:11423618"
@@ -399,7 +399,7 @@ def moa_imatinib():
 def moa_chronic_myelogenous_leukemia():
     """Create test fixture for MOA Chronic Myelogenous Leukemia Descriptor."""
     return {
-        "id": "moa.normalize.disease:Chronic%20Myelogenous%20Leukemia",
+        "id": "moa.normalize.disease:oncotree%3ACML",
         "type": "DiseaseDescriptor",
         "label": "Chronic Myelogenous Leukemia",
         "value": {
@@ -1008,7 +1008,7 @@ def test_moa_id_search(query_handler, moa_vid69, moa_abl1, moa_imatinib,
     res = res['therapy_descriptor']
     assertions(moa_imatinib, res)
 
-    res = query_handler.search_by_id(node_id='moa.normalize.disease:Chronic%20Myelogenous%20Leukemia')  # noqa: E501
+    res = query_handler.search_by_id(node_id='moa.normalize.disease:oncotree%3ACML')  # noqa: E501
     res = res['disease_descriptor']
     assertions(moa_chronic_myelogenous_leukemia, res)
 
