@@ -1,214 +1,257 @@
-"""PMKB harvester"""
-import logging
+"""Harvester for PMKB."""
 from .base import Harvester
-from metakb import PROJECT_ROOT, FileDownloadException
+from metakb import PROJECT_ROOT
+import logging
 import requests
-import re
-from typing import List
-import pandas as pd
-import numpy as np
+from datetime import datetime
+import csv
+import bs4
 import json
-from pathlib import Path
 
-
-logger = logging.getLogger('Harvesters')
+logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
 
 class PMKB(Harvester):
-    """Harvester class for Weill Cornell PMKB"""
+    """Class for harvesting from PMKB."""
 
-    def __init__(self):
-        """Set up harvester object"""
-        self.assertions = []
+    def harvest(self, fn='pmkb_harvester.json'):
+        """Retrieve and store all interpretations, genes, variants, tumor
+        types, and evidence in composite and individual JSON files.
 
-    def harvest(self, data_dir: Path = PROJECT_ROOT / 'data' / 'pmkb') -> bool:
-        """Harvest PMKB source. Retrieve and store genes, variants, and
-        interpretations.
-
-        :param pathlib.Path data_dir: path to local PMKB data source directory
-        :return: `True` if successful, `False` otherwise.
-        :rtype: bool
+        :param string fn: file name of composite JSON document
+        :return: bool True if operation is successful, False otherwise
         """
         try:
-            data = self._load_dataframe(data_dir)
+            self.pmkb_dir = PROJECT_ROOT / 'data' / 'pmkb'
+            self._check_files()
+            gene_ids, disease_ids = self._load_ids()
+            genes, variants = self._process_variants(gene_ids)
+            statements = self._process_interps(gene_ids, disease_ids, variants)
+            self._create_json(genes, variants, statements)
 
-            variants = self._build_variants(data)
-            (evidence, self.assertions) = self._build_ev_and_assertions(data)
-
-            self._create_json(evidence, variants, self.assertions)
         except:  # noqa: E722
-            logger.error('PMKB harvester failed.')
+            logger.info("PMKB Harvester was not successful.")
             return False
-        logger.info('PMKB Harvester was successful.')
-        return True
 
-    def _load_dataframe(self, data_dir: Path) -> pd.DataFrame:
-        """Load source file and perform necessary transformations to build
-        workable DataFrame object.
-
-        :param pathlib.Path data_dir: path to local PMKB data source directory
-        :return: formatted DataFrame with PMKB data
-        :rtype: pd.DataFrame
+    def _check_files(self):
+        """Check PMKB data directory for requisite files and call download
+        methods if needed.
         """
-        self._data_dir = data_dir
-        self._data_dir.mkdir(exist_ok=True, parents=True)
-        files = [f for f in self._data_dir.iterdir()
-                 if f.name.startswith('PMKB_Interpretations_Complete')]
-        if not files:
-            self._download_csv()
-            files = [f for f in self._data_dir.iterdir()
-                     if f.name.startswith('PMKB_Interpretations_Complete')]
-        newest_filename = sorted(files, reverse=True)[0]   # get most recent
-        infile = open(newest_filename, 'r')
-        data = pd.read_csv(infile, na_filter=False)
-        data.columns = ['gene', 'tumor_types', 'tissue_types', 'variants',
-                        'tier', 'interpretation', 'citations']
-        for col in ['variants', 'tumor_types', 'tissue_types', 'citations']:
-            data[col] = data[col].apply(lambda r: r.split('|'))
-            data[col] = data[col].apply(lambda r: [i.strip() for i in r])
-        for col in ['gene', 'interpretation']:
-            data[col] = data[col].apply(lambda r: r.strip())
-        return data
+        self.pmkb_dir.mkdir(exist_ok=True, parents=True)
 
-    def _download_csv(self):
-        """Download source data from PMKB server. Doesn't return anything,
-        but saves file in the location designated by the instance's data_dir
-        attribute.
-        """
-        PMKB_URL = "https://pmkb.weill.cornell.edu/therapies/downloadCSV.csv"
-        logger.info("Downloading PMKB source CSV...")
-        response = requests.get(PMKB_URL, stream=True)
-        if response.status_code == 200:
-            fname = ''
-            if "Content-Disposition" in response.headers.keys():
-                fname = re.findall("filename=(.+)",
-                                   response.headers["Content-Disposition"])[0]
-                fname = fname.strip('\"')
-            else:
-                fname = PMKB_URL.split("/")[-1]
-            with open(self._data_dir / fname, 'wb') as f:
-                f.write(response.content)
-            logger.info("PMKB source CSV download successful.")
+        if not list(self.pmkb_dir.glob('pmkb_variants_*.csv')) and \
+                not list(self.pmkb_dir.glob('pmkb_interps_*.csv')):
+            self._download_data()
+
+        if not self.pmkb_dir.glob('pmkb_id_index_*.json'):
+            self._build_item_indexes()
+
+    def _download_data(self):
+        """Retrieve PMKB data from remote host."""
+        logging.info("Downloading PMKB source data...")
+        self.pmkb_dir.mkdir(exist_ok=True, parents=True)
+        version = datetime.now().strftime('%Y%m%d')
+
+        response_interps = requests.get('http://pmkb.org/therapies/download.csv')  # noqa: E501
+        if response_interps.status_code == 200:
+            fname = self.pmkb_dir / f'pmkb_interps_{version}.csv'
+            with open(fname, 'wb') as f:
+                f.write(response_interps.content)
         else:
-            logger.error(f"PMKB source download failed with status code: {response.status_code}")  # noqa: E501
-            raise FileDownloadException("PMKB source download failed")
+            msg = 'PMKB interpretations CSV download failed.'
+            logger.error(msg)
+            raise requests.exceptions.RequestException(msg)
 
-    def _build_variants(self, data: pd.DataFrame) -> List:
-        """Build list of variants.
+        response_variants = requests.get('http://pmkb.org/variants/download.csv')  # noqa: E501
+        if response_variants.status_code == 200:
+            fname = self.pmkb_dir / f'pmkb_variants_{version}.csv'
+            with open(fname, 'wb') as f:
+                f.write(response_variants.content)
+        else:
+            msg = 'PMKB interpretations CSV download failed.'
+            logger.error(msg)
+            raise requests.exceptions.RequestException(msg)
+        logging.info("PMKB source data downloads complete.")
 
-        :param pd.DataFrame data: PMKB input data formatted as a Pandas
-            DataFrame.
-        :return: completed List of variant items.
-        :rtype: List
+    def _build_id_index(self):
+        """Construct index keying gene and disease names to PMKB IDs. Saves
+        to `PROJECT_ROOT/data/pmkb/pmkb_id_inex_YYYYMMDD.json` where YYYYMMDD
+        is the current date.
         """
-        # break assertions out into rows for each included variant
-        var_df = pd.DataFrame(
-            {
-                col: np.repeat(data[col].values, data['variants'].str.len())
-                for col in data.columns.drop('variants')
-            }).assign(**{
-                'variants': np.concatenate(data['variants'].values)
-            })
-        var_df['variants'].replace('', np.nan, inplace=True)
-        # some rows don't provide variants - drop those
-        var_df.dropna(subset=['variants'], inplace=True)
-        # create DF that groups variants with all associated assertions
-        vars_grouped = var_df.groupby('variants')
+        logging.info("Retrieving PMKB gene and disease IDs...")
+        genes = {}
+        diseases = {}
 
-        variants = list()
-        for (variant, group) in vars_grouped:
-            gene = group['gene'].iloc[0]
-            variants.append({
-                'type': 'variant',
-                'name': variant,
-                'gene': gene,
-                'evidence': {
-                    'type': 'evidence',
-                    # flatten citation lists and reduce to unique cites
-                    'sources': list(group['citations'].apply(pd.Series)
-                                    .stack().reset_index(drop=True).unique())
-                },
-                'assertions': [
-                    {
-                        'type': 'assertion',
-                        'description': row['interpretation'],
-                        'tumor_types': row['tumor_types'],
-                        'tissue_types': row['tissue_types'],
-                        'tier': row['tier'],
-                        'gene': gene,
-                    }
-                    for _, row in group.iterrows()
-                ]
-            })
-        return variants
+        # get gene IDs
+        r = requests.get('https://pmkb.org/genes/')
+        if r.status_code == 200:
+            soup = bs4.BeautifulSoup(r.content, features='lxml')
+        else:
+            logger.error(f'PMKB gene index scraping failed with HTTP status'
+                         f' code {r.status_code}')
+            raise requests.exceptions.RequestException
+        gene_table = soup.find('table', {'id': 'genetable'}).tbody
+        for row in gene_table.children:
+            gene_id = int(row.attrs['data-link'].split('/')[-1])
+            gene_name = row.td.text
+            genes[gene_name] = gene_id
 
-    def _build_ev_and_assertions(self, data: pd.DataFrame) -> (List, List):
-        """Build list of evidence and assertions.
+        # get disease IDs
+        r = requests.get('https://pmkb.weill.cornell.edu/tumors')
+        if r.status_code == 200:
+            soup = bs4.BeautifulSoup(r.content, features='lxml')
+        else:
+            logger.error(f'PMKB disease index scraping failed with HTTP status'
+                         f' code {r.status_code}')
+            raise requests.exceptions.RequestException
+        disease_table = soup.find('table', {'id': 'tumortable'}).tbody
+        for row in disease_table.children:
+            disease_id = int(row.attrs['data-link'].split('/')[-1])
+            disease_name = row.td.text
+            diseases[disease_name] = disease_id
 
-        :param pd.DataFrame data: PMKB input data formatted as a Pandas
-            DataFrame.
-        :return: completed Lists of evidence and assertion items
-        :rtype: (List, List)
+        today = datetime.now().strftime('%Y%m%d')
+        fname = self.pmkb_dir / f'pmkb_id_index_{today}.json'
+        with open(fname, 'w') as outfile:
+            json.dump([genes, diseases], outfile)
+        logging.info("PMKB gene and disease IDs retrieved.")
+
+    @staticmethod
+    def _load_ids():
+        """Load disease and gene IDs from index file.
+        :return: Dicts keying gene and disease names to PMKB IDs.
         """
-        evidence = list()
-        assertions = list()
-        for _, row in data.iterrows():
-            evidence.append({
-                'type': 'evidence',
-                'assertions': [
-                    {
-                        'type': 'assertion',
-                        'description': row['interpretation'],
-                        'gene': {
-                            'name': row['gene']
-                        },
-                        'variants': [
-                            {'name': v} for v in row['variants']
-                        ],
-                        'tier': row['tier'],
-                        'tumor_types': row['tumor_types'],
-                        'tissue_types': row['tissue_types']
-                    }
-                ],
-                'source': {
-                    'citations': row['citations']
+        pmkb_dir = PROJECT_ROOT / 'data' / 'pmkb'
+        path = sorted(list(pmkb_dir.glob('pmkb_id_index_*.json')), reverse=True)[0]  # noqa: E501
+        with open(path, 'r') as file:
+            gene_ids, disease_ids = json.load(file)
+        return gene_ids, disease_ids
+
+    def _process_variants(self, gene_ids):
+        """Process PMKB variants.
+        :param Dict gene_ids: Dict keying gene names to PMKB ID numbers
+        :return: Dicts keying gene and variant names (string) to data objects
+        """
+        pattern = self.pmkb_dir / 'pmkb_variants_*.csv'
+        variants_path = sorted(list(PROJECT_ROOT.glob(pattern)), reverse=True)[0]  # noqa: E501
+        variants_file = open(variants_path, 'r')
+        reader = csv.DictReader(variants_file)
+        genes = {}
+        variants = {}
+
+        for variant in reader:
+            name = variant['Description']
+            if name in variants:
+                logger.error(f"Multiple records for variant: {name}")
+                continue
+            variant_id = variant['PMKB URL'].split('/')[-1]
+
+            gene = variant['Gene']
+            gene_id = gene_ids.get(gene)
+            if not gene_id:
+                logger.error(f"Could not retrieve ID for gene: {gene}")
+                continue
+            if gene not in genes:
+                genes[gene] = {
+                    "id": gene_id,
+                    "name": gene,
+                    "variants": [{
+                        "name": name,
+                        "id": variant_id
+                    }]
                 }
-            })
-            assertions.append({
-                'type': 'assertion',
-                'gene': {
-                    'name': row['gene']
+
+            variants[name] = {
+                "name": name,
+                "gene": {
+                    "name": gene,
+                    "id": gene_id
                 },
-                'description': row['interpretation'],
-                'tier': row['tier'],
-                'tumor_types': row['tumor_types'],
-                'tissue_types': row['tissue_types'],
-                'variants': [
-                    {'name': v} for v in row['variants']
-                ],
-                'citations': row['citations']
-            })
-        return (evidence, assertions)
+                "id": variant_id,
+                "origin": variant['Germline/Somatic'],
+                "variation_type": variant['Variant'],
+                "dna_change": variant['DNA Change'],
+                "amino_acid_change": variant['Amino Acid Change'],
+                "ensembl_id": variant['Transcript ID (GRCh37/hg19)'],
+                "cosmic_id": variant['COSMIC ID'],
+            }
 
-    def _create_json(self, evidence: List, variants: List, assertions: List):
-        """Create and write composite JSON file and aggregate JSON files for
-        each object type.
+        variants_file.close()
+        return genes, variants
 
-        :param List evidence: List of evidence objects
-        :param List variants: List of variants
-        :param List assertions: List of assertions
+    def _process_interps(self, gene_ids, disease_ids, variants):
+        """Process interpretations.
+
+        :return: list of Statement objects, and set of included genes and
+            diseases.
         """
-        composite_dict = {
-            'evidence': evidence,
-            'variants': variants,
-            'assertions': assertions
-        }
-        data_dir = PROJECT_ROOT / 'data' / 'pmkb'
-        with open(data_dir / 'pmkb_harvester.json', 'w+') as f:
-            json.dump(composite_dict, f, indent=2)
+        statements = []
+        genes = []
+        diseases = []
 
-        for data in ['evidence', 'variants', 'assertions']:
-            with open(data_dir / f"{data}.json", 'w+') as f:
-                json.dump(composite_dict[data], f, indent=2)
+        pattern = 'data/pmkb/pmkb_interps_*.csv'
+        interp_path = sorted(list(PROJECT_ROOT.glob(pattern)), reverse=True)[0]
+        interp_file = open(interp_path, 'r')
+        interps = csv.DictReader()
+        for interp in interps:
+            interp_id = interp['PMKB URL'].split('/')[-1]
+
+            interp_gene = interp['Gene']
+            interp_gene_id = gene_ids.get(interp_gene)
+            if not interp_gene_id:
+                logger.error(f"Could not retrieve ID for gene: {interp_gene}")
+                continue
+
+            interp_ev = interp['Citations'].split('|')
+            interp_tissue_types = interp['Tissue Type(s)'].split('|')
+
+            count = 0
+            for interp_descr in set(interp['Interpretations'].split('|')):
+                for disease in set(interp['Tumor Type(s)'].split('|')):
+                    disease_id = disease_ids.get(disease)
+                    if not disease_id:
+                        logger.error(f"Could not retrieve ID for disease: {disease}")  # noqa: E501
+                        continue
+
+                    for variant in set(interp['Variant(s)'].split('|')):
+                        variant_data = variants.get(variant)
+                        if not variant_data:
+                            logger.error(f"Could not retrieve data for variant: {variant}")  # noqa: E501
+                            continue
+
+                        statements.append({
+                            "id": f"{interp_id}-{count}",
+                            "description": interp_descr,
+                            "gene": {
+                                "name": interp_gene,
+                                "id": interp_gene_id,
+                            },
+                            "variant": variant_data,
+                            "disease": {
+                                "name": disease,
+                                "id": disease_id,
+                            },
+                            "tissue_types": interp_tissue_types,
+                            "evidence_items": interp_ev
+                        })
+                        count += 1
+                    diseases.append(disease)
+            genes.append(interp['Gene'])
+
+        interp_file.close()
+        return statements, set(genes), set(diseases)
+
+    def _create_json(self, genes, variants, statements):
+        gene_path = self.pmkb_dir / 'genes.json'
+        with open(gene_path, 'w') as outfile:
+            json.dump(genes, outfile)
+
+        var_path = self.pmkb_dir / 'variants.json'
+        with open(var_path, 'w') as outfile:
+            json.dump(variants, outfile)
+
+        statements_path = self.pmkb_dir / 'statements.json'
+        with open(statements_path, 'w') as outfile:
+            json.dump(statements, outfile)
