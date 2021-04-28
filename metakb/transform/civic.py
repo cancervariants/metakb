@@ -650,6 +650,9 @@ class CIViCTransform:
         :param dict disease: A CIViC disease record
         :return: A list of Disease Descriptors.
         """
+        if not disease:
+            return []
+
         if not disease['doid']:
             logger.warning(f"CIViC {disease['id']} has null DOID.")
             return []
