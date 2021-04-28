@@ -161,6 +161,11 @@ class PMKB(Harvester):
                         "id": variant_id
                     }]
                 }
+            else:
+                genes[gene]['variants'].append({
+                    "name": name,
+                    "id": variant_id
+                })
 
             variants[name] = {
                 "name": name,
