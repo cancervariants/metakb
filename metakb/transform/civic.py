@@ -141,6 +141,10 @@ class CIViCTransform:
             else:
                 continue
 
+            # Only support Therapeutic Response and Prognostic
+            if not propositions:
+                continue
+
             if is_evidence:
                 gene_descriptors = self._get_gene_descriptors(
                     self._get_record(record['gene_id'], genes))
@@ -356,6 +360,9 @@ class CIViCTransform:
             proposition = \
                 schemas.PrognosticProposition(**params).dict(exclude_none=True)
         elif proposition_type == schemas.PropositionType.PREDICTIVE.value:
+            # TR must have exactly one therapy descriptor
+            if len(therapy_descriptors) != 1:
+                return []
             params['object'] = therapy_descriptors[0]['value']['id']
             proposition =\
                 schemas.TherapeuticResponseProposition(**params).dict(
