@@ -276,10 +276,7 @@ class CIViCTransform:
         :param bool is_evidence: `True` if EID. `False` if AID.
         """
         therapy_descriptors = list()
-        if len(record['drugs']) != 1:
-            logger.warning(f"{record['name']} does not have exactly "
-                           f"one therapy.")
-        else:
+        if len(record['drugs']) == 1:
             therapy_descriptors = self._get_therapy_descriptors(
                 record['drugs'][0])
 
@@ -294,15 +291,8 @@ class CIViCTransform:
                 self._get_record(record['gene']['id'], genes)
             )
 
-        if len(variation_descriptors) != 1:
-            logger.warning(f"{record['name']} does not have exactly "
-                           f"one variant.")
-
         disease_descriptors = \
             self._get_disease_descriptors(record['disease'])
-        if len(disease_descriptors) != 1:
-            logger.warning(f"{record['name']} does not have exactly "
-                           f"one disease.")
 
         return therapy_descriptors, variation_descriptors, disease_descriptors
 
@@ -473,8 +463,15 @@ class CIViCTransform:
         variant_query = f"{gene['name']} {variant['name']}"
         hgvs_exprs = self._get_hgvs_expr(variant)
         hgvs_exprs_queries = list()
+        if 'c.' in variant_query:
+            is_transcript = True
+        else:
+            is_transcript = False
+
         for expr in hgvs_exprs:
-            if 'protein' in expr['syntax']:
+            if 'protein' in expr['syntax'] and not is_transcript:
+                hgvs_exprs_queries.append(expr['value'])
+            elif 'transcript' in expr['syntax'] and is_transcript:
                 hgvs_exprs_queries.append(expr['value'])
 
         if not variant_norm_resp:
