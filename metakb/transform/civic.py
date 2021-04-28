@@ -145,6 +145,7 @@ class CIViCTransform:
             if not propositions:
                 continue
 
+            eids = None
             if is_evidence:
                 gene_descriptors = self._get_gene_descriptors(
                     self._get_record(record['gene_id'], genes))
@@ -183,6 +184,13 @@ class CIViCTransform:
                 documents=documents
             ).dict(exclude_none=True)
 
+            fields = ['statements', 'propositions', 'variation_descriptors',
+                      'gene_descriptors', 'disease_descriptors', 'methods',
+                      'documents']
+
+            if therapy_descriptors:
+                fields += ['therapy_descriptors']
+
             if is_evidence:
                 cdm_evidence_items[record['name']] = response
             else:
@@ -190,19 +198,11 @@ class CIViCTransform:
                     response['statements'][0]['supported_by'] += eids
                     for eid in eids:
                         resp = cdm_evidence_items[eid.split(':')[1].upper()]
-                        for key in ['statements', 'propositions',
-                                    'variation_descriptors',
-                                    'gene_descriptors',
-                                    'therapy_descriptors',
-                                    'disease_descriptors',
-                                    'methods', 'documents']:
+                        for key in fields:
                             if resp[key][0] not in response[key]:
                                 response[key] += [resp[key][0]]
 
-            for field in ['statements', 'propositions',
-                          'variation_descriptors', 'gene_descriptors',
-                          'therapy_descriptors', 'disease_descriptors',
-                          'methods', 'documents']:
+            for field in fields:
                 attr = getattr(self, field)
                 var = response[field]
                 for el in var:
