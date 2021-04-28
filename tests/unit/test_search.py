@@ -1,7 +1,6 @@
 """Test the MetaKB search method."""
 from metakb.query import QueryHandler
 import pytest
-import collections
 
 # TODO:
 #  Commented out tests to be fixed after first pass
@@ -162,6 +161,7 @@ def civic_gid19():
             "type": "Gene"
         },
         "alternate_labels": [
+            "ERRP",
             "EGFR",
             "mENA",
             "PIG61",
@@ -439,12 +439,8 @@ def moa_aid69_document():
 def assert_same_keys_list_items(actual, test):
     """Assert that keys in a dict are same or items in list are same."""
     assert len(list(actual)) == len(list(test))
-    if isinstance(actual, collections.abc.KeysView):
-        for item in list(actual):
-            assert item in test
-    else:
-        for i in range(len(list(actual))):
-            assertions(test[i], actual[i])
+    for item in list(actual):
+        assert item in test
 
 
 def assert_non_lists(actual, test):
@@ -475,30 +471,20 @@ def assertions(test_data, actual_data):
     if isinstance(actual_data, dict):
         assert_same_keys_list_items(actual_data.keys(), test_data.keys())
         for key in actual_data.keys():
-            if key == 'supported_by':
+            if isinstance(actual_data[key], list):
                 assert_same_keys_list_items(actual_data[key], test_data[key])
-            elif isinstance(actual_data[key], list):
-                if key == 'extensions' or key == 'expressions':
-                    assertions(test_data[key], actual_data[key])
-                else:
-                    try:
-                        assert set(actual_data[key]) == set(test_data[key])
-                    except:  # noqa: E722
-                        assertions(test_data[key], actual_data[key])
-            elif actual_data[key] == "civic_actionability_score":
-                assert assert_data_type(actual_data['value'])
-                break
             else:
                 if key == 'proposition':
                     assert test_data[key].startswith('proposition:')
                     assert actual_data[key].startswith('proposition:')
+                elif key == 'civic_actionability_score':
+                    assert assert_data_type(actual_data['value'])
                 else:
                     assert_non_lists(actual_data[key], test_data[key])
     elif isinstance(actual_data, list):
         assert_same_keys_list_items(actual_data, test_data)
-        for item in actual_data:
-            if isinstance(item, list):
-                assert set(actual_data) == set(test_data)
+        if not isinstance(actual_data, list):
+            assert_non_lists(actual_data, test_data)
 
 
 def return_response(query_handler, statement_id, **kwargs):
@@ -572,16 +558,16 @@ def assert_response_items(response, statement, proposition,
     response_document = response['documents'][0]
 
     assertions(statement, response_statement)
-    assert_same_keys_list_items(proposition.keys(), response_proposition.keys())  # noqa: E501
+    assertions(proposition, response_proposition)
     assertions(variation_descriptor, response_variation_descriptor)
     assertions(gene_descriptor, response_gene_descriptor)
     assertions(therapy_descriptor, response_therapy_descriptor)
     assertions(disease_descriptor, response_disease_descriptor)
     assertions(method, response_method)
-    assert_same_keys_list_items(document.keys(), response_document.keys())
+    assertions(document, response_document)
 
     # Assert that IDs match in response items
-    # assert response_statement['proposition'] == response_proposition['id']
+    assert response_statement['proposition'] == response_proposition['id']
     assert response_statement['variation_descriptor'] == \
            response_variation_descriptor['id']
     assert response_statement['therapy_descriptor'] == \
@@ -589,7 +575,7 @@ def assert_response_items(response, statement, proposition,
     assert response_statement['disease_descriptor'] == \
            response_disease_descriptor['id']
     assert response_statement['method'] == response_method['id']
-    # assert response_statement['supported_by'][0] == response_document['id']
+    assert response_statement['supported_by'][0] == response_document['id']
 
     assert proposition['subject'] == response_variation_descriptor['value_id']
     assert proposition['object_qualifier'] == \
@@ -1034,11 +1020,11 @@ def test_moa_id_search(query_handler, moa_aid69, aid69_proposition,
     res = res['therapy_descriptor']
     assertions(moa_imatinib, res)
 
-    res = query_handler.search_by_id('moa.normalize.disease:oncotree%3ACML')  # noqa: E501
+    res = query_handler.search_by_id('moa.normalize.disease:oncotree%3ACML')
     res = res['disease_descriptor']
     assertions(moa_chronic_myelogenous_leukemia, res)
 
-    res = query_handler.search_by_id('moa.normalize.disease:oncotree:CML')  # noqa: E501
+    res = query_handler.search_by_id('moa.normalize.disease:oncotree:CML')
     res = res['disease_descriptor']
     assertions(moa_chronic_myelogenous_leukemia, res)
 
