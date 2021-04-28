@@ -115,7 +115,7 @@ def civic_vid33():
             },
             {
                 "name": "civic_actionability_score",
-                "value": "375",
+                "value": "426",
                 "type": "Extension"
             }
         ],
@@ -440,7 +440,12 @@ def assert_same_keys_list_items(actual, test):
     """Assert that keys in a dict are same or items in list are same."""
     assert len(list(actual)) == len(list(test))
     for item in list(actual):
-        assert item in test
+        if isinstance(item, dict) and \
+                'civic_actionability_score' in item.values():
+            assert assert_data_type(item['value'])
+            assert 'Extension' in item.values()
+        else:
+            assert item in test
 
 
 def assert_non_lists(actual, test):
