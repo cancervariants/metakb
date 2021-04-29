@@ -25,8 +25,8 @@ class PMKB(Harvester):
         try:
             self.pmkb_dir = PROJECT_ROOT / 'data' / 'pmkb'
             self._check_files()
-            variants = self._process_variants()
-            statements = self._process_interps(variants)
+            variants = self._get_all_variants()
+            statements = self._get_all_interpretations(variants)
             self._create_json(statements, variants, fn)
 
         except NotImplementedError:  # noqa: E722
@@ -70,7 +70,7 @@ class PMKB(Harvester):
             raise requests.exceptions.RequestException(msg)
         logging.info("PMKB source data downloads complete.")
 
-    def _process_variants(self):
+    def _get_all_variants(self):
         """Process PMKB variants.
         :return: Dict keying variant names (string) to data objects
         """
@@ -112,11 +112,10 @@ class PMKB(Harvester):
         variants_file.close()
         return variants
 
-    def _process_interps(self, variants):
+    def _get_all_interpretations(self, variants):
         """Process interpretations.
-
+        :param dict variants: dictionary keying variant names to full data
         :return: list of Statement objects
-            diseases.
         """
         statements = []
 
@@ -163,14 +162,21 @@ class PMKB(Harvester):
         return statements
 
     def _create_json(self, statements, variants, filename):
+        """Export data to JSON.
+        :param List statements: list of Statement objects
+        :param Dict variants: Dictionary where values are Variant objects
+        :param str filename: name of composite output file
+        """
+        variants_list = [v for k, v in variants.items()]
+
         statements_path = self.pmkb_dir / 'statements.json'
         with open(statements_path, 'w') as outfile:
             json.dump(statements, outfile)
 
         var_path = self.pmkb_dir / 'variants.json'
         with open(var_path, 'w') as outfile:
-            json.dump(variants, outfile)
+            json.dump(variants_list, outfile)
 
         composite_path = self.pmkb_dir / filename
         with open(composite_path, 'w') as outfile:
-            json.dump([statements, variants], outfile)
+            json.dump([statements, variants_list], outfile)
