@@ -455,10 +455,7 @@ class CIViCTransform:
         :param dict gene: A CIViC gene record
         :return: A list of Variation Descriptors
         """
-        # First try seeing if Variant Normalizer can find the MANE transcript
         normalizer_responses = list()
-        variant_norm_resp = self._get_variant_norm_resp(
-            [variant['allele_registry_id']], normalizer_responses)
 
         variant_query = f"{gene['name']} {variant['name']}"
         hgvs_exprs = self._get_hgvs_expr(variant)
@@ -474,10 +471,9 @@ class CIViCTransform:
             elif 'transcript' in expr['syntax'] and is_transcript:
                 hgvs_exprs_queries.append(expr['value'])
 
-        if not variant_norm_resp:
-            variant_norm_resp = self._get_variant_norm_resp(
-                hgvs_exprs_queries + [variant_query], normalizer_responses
-            )
+        variant_norm_resp = self._get_variant_norm_resp(
+            hgvs_exprs_queries + [variant_query], normalizer_responses
+        )
 
         if not variant_norm_resp:
             logger.warning("Variant Normalizer unable to find MANE transcript "
@@ -591,7 +587,8 @@ class CIViCTransform:
                      'variant_aliases']:
             if xref == 'clinvar_entries':
                 for clinvar_entry in v['clinvar_entries']:
-                    if clinvar_entry and clinvar_entry != 'N/A':
+                    if clinvar_entry and clinvar_entry not in ['N/A',
+                                                               "NONE FOUND"]:
                         xrefs.append(f"{schemas.XrefSystem.CLINVAR.value}:"
                                      f"{clinvar_entry}")
             elif xref == 'allele_registry_id' and v['allele_registry_id']:
