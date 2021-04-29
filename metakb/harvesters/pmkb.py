@@ -154,7 +154,7 @@ class PMKB(Harvester):
                 "variant": variant_data,
                 "disease": {
                     "name": interp_diseases.pop(),
-                    "tissue_types": set(interp['Tissue Type(s)'].split('|'))
+                    "tissue_types": interp['Tissue Type(s)'].split('|')
                 },
                 "evidence_items": interp_ev
             })
