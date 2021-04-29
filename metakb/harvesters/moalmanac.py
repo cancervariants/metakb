@@ -9,7 +9,6 @@ import logging
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
 
 
 class MOAlmanac(Harvester):
