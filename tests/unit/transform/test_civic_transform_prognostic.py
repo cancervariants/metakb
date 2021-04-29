@@ -37,6 +37,19 @@ def statements():
             "method": "method:001",
             "supported_by": ["pmid:16384925"],
             "type": "Statement"
+        },
+        {
+            "id": "civic:eid1756",
+            "description": "Study of 1817 PCa cases and 2026 cancer free controls to clarify the association of (MTHFR)c.677C>T  (and c.1298A>C ) of pancreatic cancer risk in a population of Han Chinese in Shanghai.  Results indicated a lower risk for the heterozygous CT genotype and homozygous TT genotype carriers of (MTHFR)c.677C>T  which had a significantly lower risk of developing pancreatic cancer compared with the wild-type CC genotype.",  # noqa: E501
+            "direction": "supports",
+            "evidence_level": "civic.evidence_level:B",
+            "proposition": "proposition:002",
+            "variation_origin": "germline",
+            "variation_descriptor": "civic:vid258",
+            "disease_descriptor": "civic:did556",
+            "method": "method:001",
+            "supported_by": ["pmid:27819322"],
+            "type": "Statement"
         }
     ]
 
@@ -50,6 +63,13 @@ def propositions():
             "predicate": "is_prognostic_of_worse_outcome_for",
             "subject": "ga4gh:VA.EGLm8XWH3V17-VZw7vEygPmy4wHQ8mCf",
             "object_qualifier": "ncit:C3171",
+            "type": "prognostic_proposition"
+        },
+        {
+            "id": "proposition:002",
+            "predicate": "is_prognostic_of_better_outcome_for",
+            "subject": "ga4gh:VA.V5IUMLhaM8Oo-oAClUZqb-gDPaIzIi-A",
+            "object_qualifier": "ncit:C9005",
             "type": "prognostic_proposition"
         }
     ]
@@ -72,7 +92,7 @@ def variation_descriptors():
                         "start": 815,
                         "type": "SimpleInterval"
                     },
-                    "sequence_id": "ga4gh:SQ.TcMVFj5kDODDWpiy1d_1-3_gOf4BYaAB",  # noqa: E501
+                    "sequence_id": "ga4gh:SQ.TcMVFj5kDODDWpiy1d_1-3_gOf4BYaAB",
                     "type": "SequenceLocation"
                 },
                 "state": {
@@ -147,6 +167,84 @@ def variation_descriptors():
             ],
             "ref_allele_seq": "D",
             "gene_context": "civic:gid29"
+        },
+        {
+            "id": "civic:vid258",
+            "type": "VariationDescriptor",
+            "label": "A222V",
+            "value_id": "ga4gh:VA.V5IUMLhaM8Oo-oAClUZqb-gDPaIzIi-A",
+            "value": {
+                "location": {
+                    "interval": {
+                        "end": 222,
+                        "start": 221,
+                        "type": "SimpleInterval"
+                    },
+                    "sequence_id": "ga4gh:SQ.4RSETawLfMkNpQBPepa7Uf9ItHAEJUde",
+                    "type": "SequenceLocation"
+                },
+                "state": {
+                    "sequence": "V",
+                    "type": "SequenceState"
+                },
+                "type": "Allele"
+            },
+            "xrefs": [
+                "clinvar:3520",
+                "caid:CA170990",
+                "dbsnp:1801133"
+            ],
+            "alternate_labels": [
+                "C677T",
+                "ALA222VAL"
+            ],
+            "extensions": [
+                {
+                    "name": "civic_representative_coordinate",
+                    "value": {
+                        "chromosome": "1",
+                        "start": 11856378,
+                        "stop": 11856378,
+                        "reference_bases": "G",
+                        "variant_bases": "A",
+                        "representative_transcript": "ENST00000376592.1",
+                        "ensembl_version": 75,
+                        "reference_build": "GRCh37"
+                    },
+                    "type": "Extension"
+                },
+                {
+                    "name": "civic_actionability_score",
+                    "value": "55",
+                    "type": "Extension"
+                }
+            ],
+            "molecule_context": "protein",
+            "structural_type": "SO:0001060",
+            "expressions": [
+                {
+                    "syntax": "hgvs:transcript",
+                    "value": "NM_005957.4:c.665C>T",
+                    "type": "Expression"
+                },
+                {
+                    "syntax": "hgvs:protein",
+                    "value": "NP_005948.3:p.Ala222Val",
+                    "type": "Expression"
+                },
+                {
+                    "syntax": "hgvs:transcript",
+                    "value": "ENST00000376592.1:c.665G>A",
+                    "type": "Expression"
+                },
+                {
+                    "syntax": "hgvs:genomic",
+                    "value": "NC_000001.10:g.11856378G>A",
+                    "type": "Expression"
+                }
+            ],
+            "ref_allele_seq": "A",
+            "gene_context": "civic:gid3672"
         }
     ]
 
@@ -161,6 +259,15 @@ def disease_descriptors():
             "label": "Acute Myeloid Leukemia",
             "value": {
                 "id": "ncit:C3171",
+                "type": "Disease"
+            }
+        },
+        {
+            "id": "civic:did556",
+            "type": "DiseaseDescriptor",
+            "label": "Pancreatic Cancer",
+            "value": {
+                "id": "ncit:C9005",
                 "type": "Disease"
             }
         }
@@ -187,6 +294,18 @@ def gene_descriptors():
                 "PBT",
                 "CD117",
                 "C-Kit"
+            ]
+        },
+        {
+            "id": "civic:gid3672",
+            "type": "GeneDescriptor",
+            "label": "MTHFR",
+            "value": {
+                "id": "hgnc:7436",
+                "type": "Gene"
+            },
+            "alternate_labels": [
+                "MTHFR"
             ]
         }
     ]
@@ -219,6 +338,12 @@ def documents():
             "id": "pmid:16384925",
             "label": "Cairoli et al., 2006, Blood",
             "description": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study."  # noqa: E501
+        },
+        {
+            "id": "pmid:27819322",
+            "label": "Wu et al., 2016, Sci Rep",
+            "description": "MTHFR c.677C>T Inhibits Cell Proliferation and Decreases Prostate Cancer Susceptibility in the Han Chinese Population in Shanghai.",  # noqa: E501
+            "xrefs": ["pmc:PMC5098242"]
         }
     ]
 
