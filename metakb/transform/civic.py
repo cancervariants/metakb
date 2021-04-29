@@ -444,7 +444,7 @@ class CIViCTransform:
             if not variant_norm_resp:
                 logger.warning(
                     "Variant Normalizer unable to find MANE transcript "
-                    "for civic:vid{variant['id']} : {variant_query}"
+                    f"for civic:vid{variant['id']} : {variant_query}"
                 )
 
             # Couldn't find MANE transcript
