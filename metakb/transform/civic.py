@@ -467,6 +467,35 @@ class CIViCTransform:
         normalizer_responses = list()
         variant_query = f"{gene['name']} {variant['name']}"
         hgvs_exprs = self._get_hgvs_expr(variant)
+
+        # TODO: Remove as more get implemented in variant normalizer
+        #  Filtering to speed up transformation
+        vname_lower = variant['name'].lower()
+
+        if vname_lower.endswith('fs') or vname_lower.endswith('del') or '-' in vname_lower or '/' in vname_lower:  # noqa: E501
+            self.invalid_ids.append(variant_id)
+            logger.warning("Variant Normalizer does not support "
+                           f"{variant_id}: {variant_query}")
+            return []
+
+        unable_to_normalize = {
+            'mutation', 'amplification', 'exon', 'overexpression',
+            'frameshift', 'promoter', 'deletion',
+            'expression', 'duplication', 'copy', 'underexpression'
+            'number', 'variation', 'repeat', 'rearrangement', 'activation',
+            'expression', 'mislocalization', 'translocation', 'wild', 'type',
+            'polymorphism', 'frame', 'shift', 'loss', 'function', 'levels',
+            'inactivation', 'snp', 'fusion', 'dup', 'truncation', 'insertion',
+            'homozygosity', 'gain',
+        }
+
+        if set(vname_lower.split()) & unable_to_normalize:
+            if not hgvs_exprs:
+                self.invalid_ids.append(variant_id)
+                logger.warning("Variant Normalizer does not support "
+                               f"{variant_id}: {variant_query}")
+                return []
+
         hgvs_exprs_queries = list()
         if 'c.' in variant_query:
             is_transcript = True
@@ -491,7 +520,7 @@ class CIViCTransform:
         if not variant_norm_resp and len(normalizer_responses) > 0:
             variant_norm_resp = normalizer_responses[0]
         elif not variant_norm_resp and len(normalizer_responses) == 0:
-            logger.warning("Variant Normalizer does not support: "
+            logger.warning("Variant Normalizer unable to normalize: "
                            f"civic:vid{variant['id']}")
             self.invalid_ids.append(variant_id)
             return []
