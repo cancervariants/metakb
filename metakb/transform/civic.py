@@ -122,6 +122,9 @@ class CIViCTransform:
             `False` if records are CIViC assertions.
         """
         for record in records:
+            if record['evidence_type'] not in ['Predictive', 'Prognostic']:
+                continue
+
             if not is_evidence:
                 descriptors = self._get_descriptors(record, genes, variants,
                                                     is_evidence=False)
