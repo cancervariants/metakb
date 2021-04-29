@@ -5,7 +5,6 @@ import logging
 import requests
 from datetime import datetime
 import csv
-import bs4
 import json
 
 logger = logging.getLogger('metakb')
@@ -26,10 +25,9 @@ class PMKB(Harvester):
         try:
             self.pmkb_dir = PROJECT_ROOT / 'data' / 'pmkb'
             self._check_files()
-            gene_ids, disease_ids = self._load_ids()
-            genes, variants = self._process_variants(gene_ids)
-            statements = self._process_interps(gene_ids, disease_ids, variants)
-            self._create_json(statements, genes, variants, fn)
+            variants = self._process_variants()
+            statements = self._process_interps(variants)
+            self._create_json(statements, variants, fn)
 
         except NotImplementedError:  # noqa: E722
             logger.info("PMKB Harvester was not successful.")
@@ -44,9 +42,6 @@ class PMKB(Harvester):
         if not list(self.pmkb_dir.glob('pmkb_variants_*.csv')) and \
                 not list(self.pmkb_dir.glob('pmkb_interps_*.csv')):
             self._download_data()
-
-        if not list(self.pmkb_dir.glob('pmkb_id_index_*.json')):
-            self._build_id_index()
 
     def _download_data(self):
         """Retrieve PMKB data from remote host."""
@@ -75,69 +70,14 @@ class PMKB(Harvester):
             raise requests.exceptions.RequestException(msg)
         logging.info("PMKB source data downloads complete.")
 
-    def _build_id_index(self):
-        """Construct index keying gene and disease names to PMKB IDs. Saves
-        to `PROJECT_ROOT/data/pmkb/pmkb_id_inex_YYYYMMDD.json` where YYYYMMDD
-        is the current date.
-        """
-        logging.info("Retrieving PMKB gene and disease IDs...")
-        genes = {}
-        diseases = {}
-
-        # get gene IDs
-        r = requests.get('https://pmkb.org/genes/')
-        if r.status_code == 200:
-            soup = bs4.BeautifulSoup(r.content, features='lxml')
-        else:
-            logger.error(f'PMKB gene index scraping failed with HTTP status'
-                         f' code {r.status_code}')
-            raise requests.exceptions.RequestException
-        gene_table = soup.find('table', {'id': 'genetable'}).tbody
-        for row in gene_table.children:
-            gene_id = int(row.attrs['data-link'].split('/')[-1])
-            gene_name = row.td.text
-            genes[gene_name] = gene_id
-
-        # get disease IDs
-        r = requests.get('https://pmkb.weill.cornell.edu/tumors')
-        if r.status_code == 200:
-            soup = bs4.BeautifulSoup(r.content, features='lxml')
-        else:
-            logger.error(f'PMKB disease index scraping failed with HTTP status'
-                         f' code {r.status_code}')
-            raise requests.exceptions.RequestException
-        disease_table = soup.find('table', {'id': 'tumortable'}).tbody
-        for row in disease_table.children:
-            disease_id = int(row.attrs['data-link'].split('/')[-1])
-            disease_name = row.td.text
-            diseases[disease_name] = disease_id
-
-        today = datetime.now().strftime('%Y%m%d')
-        fname = self.pmkb_dir / f'pmkb_id_index_{today}.json'
-        with open(fname, 'w') as outfile:
-            json.dump([genes, diseases], outfile)
-        logging.info("PMKB gene and disease IDs retrieved.")
-
-    def _load_ids(self):
-        """Load disease and gene IDs from index file.
-        :return: Dicts keying gene and disease names to PMKB IDs.
-        """
-        pattern = 'pmkb_id_index_*.json'
-        path = sorted(list(self.pmkb_dir.glob(pattern)))[-1]
-        with open(path, 'r') as file:
-            gene_ids, disease_ids = json.load(file)
-        return gene_ids, disease_ids
-
-    def _process_variants(self, gene_ids):
+    def _process_variants(self):
         """Process PMKB variants.
-        :param Dict gene_ids: Dict keying gene names to PMKB ID numbers
-        :return: Dicts keying gene and variant names (string) to data objects
+        :return: Dict keying variant names (string) to data objects
         """
         pattern = 'pmkb_variants_*.csv'
         variants_path = sorted(list(self.pmkb_dir.glob(pattern)))[-1]
         variants_file = open(variants_path, 'r')
         reader = csv.DictReader(variants_file)
-        genes = {}
         variants = {}
 
         for variant in reader:
@@ -147,31 +87,10 @@ class PMKB(Harvester):
                 continue
             variant_id = variant['PMKB URL'].split('/')[-1]
 
-            gene = variant['Gene']
-            gene_id = gene_ids.get(gene)
-            if not gene_id:
-                logger.error(f"Could not retrieve ID for gene: {gene}")
-                continue
-            if gene not in genes:
-                genes[gene] = {
-                    "id": gene_id,
-                    "name": gene,
-                    "variants": [{
-                        "name": name,
-                        "id": variant_id
-                    }]
-                }
-            else:
-                genes[gene]['variants'].append({
-                    "name": name,
-                    "id": variant_id
-                })
-
-            variants[name] = {
+            variant_object = {
                 "name": name,
                 "gene": {
-                    "name": gene,
-                    "id": gene_id
+                    "name": variant['Gene'],
                 },
                 "id": variant_id,
                 "origin": variant['Germline/Somatic'],
@@ -180,15 +99,23 @@ class PMKB(Harvester):
                 "amino_acid_change": variant['Amino Acid Change'],
                 "ensembl_id": variant['Transcript ID (GRCh37/hg19)'],
                 "cosmic_id": variant['COSMIC ID'],
+                "chromosome": variant['Chromosome'],
+                "arm_cytoband": variant['Arm/Cytoband'],
+                "partner_gene": variant['Partner Gene'],
+                "codons": variant['Codons'],
+                "exons": variant['Exons'],
+                "coordinates": variant['Genomic Coordinates (GRCh37/hg19)'],
             }
 
-        variants_file.close()
-        return genes, variants
+            variants[name] = variant_object
 
-    def _process_interps(self, gene_ids, disease_ids, variants):
+        variants_file.close()
+        return variants
+
+    def _process_interps(self, variants):
         """Process interpretations.
 
-        :return: list of Statement objects, and set of included genes and
+        :return: list of Statement objects
             diseases.
         """
         statements = []
@@ -201,62 +128,44 @@ class PMKB(Harvester):
             interp_id = interp['PMKB URL'].split('/')[-1]
 
             interp_gene = interp['Gene']
-            interp_gene_id = gene_ids.get(interp_gene)
-            if not interp_gene_id:
-                logger.error(f"Could not retrieve ID for gene: {interp_gene}")
-                continue
 
             interp_ev = interp['Citations'].split('|')
-            interp_tissue_types = interp['Tissue Type(s)'].split('|')
 
-            count = 0
-            for interp_descr in set(interp['Interpretations'].split('|')):
-                for disease in set(interp['Tumor Type(s)'].split('|')):
-                    if not disease:
-                        continue
+            interp_diseases = set(interp['Tumor Type(s)'].split('|'))
+            interp_variants = set(interp['Variant(s)'].split('|'))
+            if len(interp_diseases) > 1 or len(interp_variants) > 1:
+                continue  # skip multiple diseases/variants for this pass
 
-                    disease_id = disease_ids.get(disease)
-                    if not disease_id:
-                        logger.error(f"Could not retrieve ID for disease: {disease}")  # noqa: E501
-                        continue
+            variant = interp_variants.pop()
+            if not variant:
+                continue
 
-                    for variant in set(interp['Variant(s)'].split('|')):
-                        if not variant:
-                            continue
+            variant_data = variants.get(variant)
+            if not variant_data:
+                logger.error(f"Could not retrieve data for variant: {variant}")
+                continue
 
-                        variant_data = variants.get(variant)
-                        if not variant_data:
-                            logger.error(f"Could not retrieve data for variant: {variant}")  # noqa: E501
-                            continue
-
-                        statements.append({
-                            "id": f"{interp_id}-{count}",
-                            "description": interp_descr,
-                            "gene": {
-                                "name": interp_gene,
-                                "id": interp_gene_id,
-                            },
-                            "variant": variant_data,
-                            "disease": {
-                                "name": disease,
-                                "id": disease_id,
-                            },
-                            "tissue_types": interp_tissue_types,
-                            "evidence_items": interp_ev
-                        })
-                        count += 1
+            statements.append({
+                "id": interp_id,
+                "description": interp['Interpretations'],
+                "gene": {
+                    "name": interp_gene,
+                },
+                "variant": variant_data,
+                "disease": {
+                    "name": interp_diseases.pop(),
+                    "tissue_types": set(interp['Tissue Type(s)'].split('|'))
+                },
+                "evidence_items": interp_ev
+            })
 
         interp_file.close()
         return statements
 
-    def _create_json(self, statements, genes, variants, filename):
+    def _create_json(self, statements, variants, filename):
         statements_path = self.pmkb_dir / 'statements.json'
         with open(statements_path, 'w') as outfile:
             json.dump(statements, outfile)
-
-        gene_path = self.pmkb_dir / 'genes.json'
-        with open(gene_path, 'w') as outfile:
-            json.dump(genes, outfile)
 
         var_path = self.pmkb_dir / 'variants.json'
         with open(var_path, 'w') as outfile:
@@ -264,4 +173,4 @@ class PMKB(Harvester):
 
         composite_path = self.pmkb_dir / filename
         with open(composite_path, 'w') as outfile:
-            json.dump([statements, genes, variants], outfile)
+            json.dump([statements, variants], outfile)
