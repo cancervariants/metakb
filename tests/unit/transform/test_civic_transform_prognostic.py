@@ -141,8 +141,7 @@ def variation_descriptors():
                     "type": "Extension"
                 }
             ],
-            "molecule_context": "protein",
-            "structural_type": "SO:0001060",
+            "structural_type": "SO:0001583",
             "expressions": [
                 {
                     "syntax": "hgvs:transcript",
@@ -165,7 +164,6 @@ def variation_descriptors():
                     "type": "Expression"
                 }
             ],
-            "ref_allele_seq": "D",
             "gene_context": "civic:gid29"
         },
         {
@@ -219,8 +217,7 @@ def variation_descriptors():
                     "type": "Extension"
                 }
             ],
-            "molecule_context": "protein",
-            "structural_type": "SO:0001060",
+            "structural_type": "SO:0001583",
             "expressions": [
                 {
                     "syntax": "hgvs:transcript",
@@ -243,7 +240,6 @@ def variation_descriptors():
                     "type": "Expression"
                 }
             ],
-            "ref_allele_seq": "A",
             "gene_context": "civic:gid3672"
         }
     ]
@@ -325,8 +321,27 @@ def methods():
                 "day": 29
             },
             "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."
+        },
+        {
+            "id": "method:002",
+            "label": "Standards and Guidelines for the Interpretation and Reporting of Sequence Variants in Cancer: A Joint Consensus Recommendation of the Association for Molecular Pathology, American Society of Clinical Oncology, and College of American Pathologists",  # noqa: E501
+            "url": "https://pubmed.ncbi.nlm.nih.gov/27993330/",
+            "version": {
+                "year": 2017,
+                "month": 1
+            },
+            "authors": "Li MM, Datto M, Duncavage EJ, et al."
+        },
+        {
+            "id": "method:003",
+            "label": "Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology",  # noqa: E501
+            "url": "https://pubmed.ncbi.nlm.nih.gov/25741868/",
+            "version": {
+                "year": 2015,
+                "month": 5
+            },
+            "authors": "Richards S, Aziz N, Bale S, et al."
         }
-
     ]
 
 

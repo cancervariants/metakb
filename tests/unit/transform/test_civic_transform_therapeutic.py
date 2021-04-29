@@ -50,7 +50,9 @@ def statements():
             "therapy_descriptor": "civic:tid146",
             "disease_descriptor": "civic:did8",
             "method": "method:002",
-            "supported_by": ["document:001", "civic:eid2997"],
+            "supported_by": ["document:001", "civic:eid2997", "civic:eid2629",
+                             "civic:eid982", "civic:eid968", "civic:eid883",
+                             "civic:eid879"],
             "type": "Statement"
         }
     ]
@@ -128,8 +130,7 @@ def variation_descriptors():
                     "type": "Extension"
                 }
             ],
-            "molecule_context": "protein",
-            "structural_type": "SO:0001060",
+            "structural_type": "SO:0001583",
             "expressions": [
                 {
                     "syntax": "hgvs:protein",
@@ -152,7 +153,6 @@ def variation_descriptors():
                     "type": "Expression"
                 }
             ],
-            "ref_allele_seq": "L",
             "gene_context": "civic:gid19"
         }
     ]
@@ -246,6 +246,16 @@ def methods():
                 "month": 1
             },
             "authors": "Li MM, Datto M, Duncavage EJ, et al."
+        },
+        {
+            "id": "method:003",
+            "label": "Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology",  # noqa: E501
+            "url": "https://pubmed.ncbi.nlm.nih.gov/25741868/",
+            "version": {
+                "year": 2015,
+                "month": 5
+            },
+            "authors": "Richards S, Aziz N, Bale S, et al."
         }
     ]
 
