@@ -31,6 +31,7 @@ class CIViCTransform:
         self.therapy_query_handler = TherapyQueryHandler()
         self.variant_to_vrs = ToVRS()
         self.amino_acid_cache = AminoAcidCache()
+        # TODO: Just use dictionary rather than a lot of lists?
         self.statements = list()
         self.propositions = list()
         self.variation_descriptors = list()
@@ -39,6 +40,8 @@ class CIViCTransform:
         self.disease_descriptors = list()
         self.methods = list()
         self.documents = list()
+        self.valid_ids = dict()
+        self.invalid_ids = list()
 
     def _extract(self):
         """Extract the CIViC harvested data file."""
@@ -455,8 +458,13 @@ class CIViCTransform:
         :param dict gene: A CIViC gene record
         :return: A list of Variation Descriptors
         """
-        normalizer_responses = list()
+        variant_id = f"civic:vid{variant['id']}"
+        if variant_id in self.valid_ids.keys():
+            return [self.valid_ids[variant_id]]
+        elif variant_id in self.invalid_ids:
+            return []
 
+        normalizer_responses = list()
         variant_query = f"{gene['name']} {variant['name']}"
         hgvs_exprs = self._get_hgvs_expr(variant)
         hgvs_exprs_queries = list()
@@ -485,6 +493,7 @@ class CIViCTransform:
         elif not variant_norm_resp and len(normalizer_responses) == 0:
             logger.warning("Variant Normalizer does not support: "
                            f"civic:vid{variant['id']}")
+            self.invalid_ids.append(variant_id)
             return []
 
         # For now, everything that we're able to normalize is as the protein
@@ -493,7 +502,7 @@ class CIViCTransform:
         # So molecule_context = protein and structural_type is always
         # SO:0001060
         variation_descriptor = schemas.VariationDescriptor(
-            id=f"civic:vid{variant['id']}",
+            id=variant_id,
             label=variant['name'],
             description=variant['description'] if variant['description'] else None,  # noqa: E501
             value_id=variant_norm_resp.value_id,
@@ -509,6 +518,7 @@ class CIViCTransform:
                               v_alias.startswith('RS')],
             extensions=self._get_variant_extensions(variant)
         ).dict(exclude_none=True)
+        self.valid_ids[variant_id] = variation_descriptor
         return [variation_descriptor]
 
     def _get_variant_norm_resp(self, queries, normalizer_responses):
@@ -608,6 +618,11 @@ class CIViCTransform:
         :param dict gene: A CIViC gene record
         :return A Gene Descriptor
         """
+        gene_id = f"civic:gid{gene['id']}"
+        if gene_id in self.valid_ids.keys():
+            return [self.valid_ids[gene_id]]
+        elif gene_id in self.invalid_ids:
+            return []
         highest_match = 0
         normalized_gene_id = None
 
@@ -627,17 +642,19 @@ class CIViCTransform:
                         break
 
         if highest_match != 0:
-            gene_descriptor = [schemas.GeneDescriptor(
-                id=f"civic:gid{gene['id']}",
+            gene_descriptor = schemas.GeneDescriptor(
+                id=gene_id,
                 label=gene['name'],
                 description=gene['description'] if gene['description'] else None,  # noqa: E501
                 value=schemas.Gene(id=normalized_gene_id),
                 alternate_labels=gene['aliases']
-            ).dict(exclude_none=True)]
+            ).dict(exclude_none=True)
+            self.valid_ids[gene_id] = gene_descriptor
         else:
+            self.invalid_ids.append(gene_id)
             gene_descriptor = []
 
-        return gene_descriptor
+        return [gene_descriptor]
 
     def _get_disease_descriptors(self, disease):
         """Return A list of Disease Descriptors.
@@ -647,8 +664,16 @@ class CIViCTransform:
         if not disease:
             return []
 
+        disease_id = f"civic:did{disease['id']}"
+        if disease_id in self.valid_ids.keys():
+            return [self.valid_ids[disease_id]]
+        elif disease_id in self.invalid_ids:
+            return []
+
+        # TODO: Is there a reason why we're not searching on display name?
         if not disease['doid']:
             logger.warning(f"CIViC {disease['id']} has null DOID.")
+            self.invalid_ids.append(disease_id)
             return []
 
         doid = f"doid:{disease['doid']}"
@@ -671,14 +696,16 @@ class CIViCTransform:
         if highest_match == 0:
             logger.warning(f"{doid} and {display_name} not found in Disease "
                            f"Normalization normalize.")
+            self.invalid_ids.append(disease_id)
             return []
 
         disease_descriptor = schemas.ValueObjectDescriptor(
-            id=f"civic:did{disease['id']}",
+            id=disease_id,
             type="DiseaseDescriptor",
             label=display_name,
             value=schemas.Disease(id=normalized_disease_id),
         ).dict(exclude_none=True)
+        self.valid_ids[disease_id] = disease_descriptor
         return [disease_descriptor]
 
     def _get_therapy_descriptors(self, drug):
@@ -686,6 +713,12 @@ class CIViCTransform:
         :param dict drug: A drug for a given evidence_item
         :return: A list of Therapy Descriptors
         """
+        therapy_id = f"civic:tid{drug['id']}"
+        if therapy_id in self.valid_ids.keys():
+            return [self.valid_ids[therapy_id]]
+        elif therapy_id in self.invalid_ids:
+            return []
+
         label = drug['name']
         ncit_id = f"ncit:{drug['ncit_id']}"
         highest_match = 0
@@ -705,15 +738,17 @@ class CIViCTransform:
         if highest_match == 0:
             logger.warning(f"{ncit_id} and {label} not found in Therapy "
                            f"Normalization normalize.")
+            self.invalid_ids.append(therapy_id)
             return []
 
         therapies = schemas.ValueObjectDescriptor(
-            id=f"civic:tid{drug['id']}",
+            id=therapy_id,
             type="TherapyDescriptor",
             label=label,
             value=schemas.Drug(id=normalized_therapy_id),
             alternate_labels=drug['aliases']
         ).dict(exclude_none=True)
+        self.valid_ids[therapy_id] = therapies
         return [therapies]
 
     def _get_hgvs_expr(self, variant):
