@@ -488,6 +488,8 @@ class MOATransform:
         :return: A list of Therapy Descriptors
         """
         ot_code = assertion['disease']['oncotree_code']
+        if ot_code:
+            ot_code = f"oncotree:{ot_code}"
         disease_name = assertion['disease']['name']
         highest_match = 0
         disease_norm_resp = None
@@ -501,7 +503,7 @@ class MOATransform:
                 disease_norm_resp = disease_norm_resp_cand
                 highest_match = disease_norm_resp['match_type']
                 normalized_disease_id = \
-                    disease_norm_resp['value_object_descriptor']['value']['disease_id']  # noqa: E501
+                    disease_norm_resp['value_object_descriptor']['value']['id']  # noqa: E501
                 if highest_match == 100:
                     break
 

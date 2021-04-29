@@ -30,10 +30,10 @@ class MOAlmanac(Harvester):
             variants, variants_list = self._harvest_variants()
             assertions = self._harvest_assertions(assertion_resp, variants_list)  # noqa: E501
             self._create_json(assertions, sources, variants, fn)
-            logger.info('MOAlamanc harvester was successful.')
+            logger.info('MOAlmanac harvester was successful.')
             return True
         except:  # noqa: E722 # TODO: Add specific exception error
-            logger.error('MOAlamanc Harvester was not successful.')
+            logger.error('MOAlmanac Harvester was not successful.')
             return False
 
     def _create_json(self, assertions, sources, variants, fn):
@@ -258,7 +258,7 @@ class MOAlmanac(Harvester):
         elif feature_type == 'copy_number':
             feature = '{} {}'.format(v['gene'], v['direction'])
         elif feature_type == 'microsatellite_stability':
-            feature = '{}'.format(v['status'])
+            feature = '{}'.format(v.get('status'))
         elif feature_type == 'mutational_signature':
             csn = v['cosmic_signature_number']
             feature = 'COSMIC Signature {}'.format(csn)
