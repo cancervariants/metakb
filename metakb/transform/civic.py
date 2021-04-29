@@ -96,7 +96,14 @@ class CIViCTransform:
                 'propositions': dict()
             }
 
-        self._add_variation_descriptors(variants)
+        # Filter Variant IDs for Prognostic and Predictive evidence
+        supported_evidence_types = ['Prognostic', 'Predictive']
+        vids = {e['variant_id'] for e in evidence_items
+                if e['evidence_type'] in supported_evidence_types}
+        vids |= {a['variant']['id'] for a in assertions
+                 if a['evidence_type'] in supported_evidence_types}
+
+        self._add_variation_descriptors(variants, vids)
         self._add_gene_descriptors(genes)
         self._add_methods()
         self._transform_evidence_and_assertions(evidence_items,
@@ -388,12 +395,15 @@ class CIViCTransform:
                            f"schemas.")
         return predicate
 
-    def _add_variation_descriptors(self, variants) -> None:
+    def _add_variation_descriptors(self, variants, vids) -> None:
         """Add Variation Descriptors to dict of transformations.
 
         :param list variants: CIViC variants
+        :param set vids: Candidate CIViC Variant IDs
         """
         for variant in variants:
+            if variant['id'] not in vids:
+                continue
             variant_id = f"civic:vid{variant['id']}"
             normalizer_responses = list()
             variant_query = f"{variant['entrez_name']} {variant['name']}"
