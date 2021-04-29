@@ -1,5 +1,5 @@
 """A module for to transform CIViC."""
-from typing import Optional
+from typing import Optional, Dict, List
 
 from metakb import PROJECT_ROOT
 import json
@@ -20,7 +20,8 @@ class CIViCTransform:
     """A class for transforming CIViC to the common data model."""
 
     def __init__(self,
-                 file_path=f"{PROJECT_ROOT}/data/civic/civic_harvester.json"):
+                 file_path=f"{PROJECT_ROOT}/data/civic"
+                           f"/civic_harvester.json") -> None:
         """Initialize VICC normalizers and class attributes.
 
         :param str file_path: The file path to the harvested json to transform.
@@ -54,14 +55,14 @@ class CIViCTransform:
             'disease_descriptors': list()
         }
 
-    def _extract(self):
+    def _extract(self) -> Dict[str, list]:
         """Extract the CIViC harvested data file."""
         with open(self._file_path, 'r') as f:
             return json.load(f)
 
     def _create_json(self,
                      civic_dir=PROJECT_ROOT / 'data' / 'civic' / 'transform',
-                     fn='civic_cdm.json'):
+                     fn='civic_cdm.json') -> None:
         """Create a composite JSON for the transformed CIViC data.
 
         :param Path civic_dir: The civic transform data directory
@@ -71,11 +72,11 @@ class CIViCTransform:
         with open(f"{civic_dir}/{fn}", 'w+') as f:
             json.dump(self.transformed, f)
 
-    def transform(self, propositions_documents_ix=None):
+    def transform(self, propositions_documents_ix=None) -> Dict[str, dict]:
         """Transform CIViC harvested json to common data model.
 
-        :param Dict propositions_documents_ix: tracking data to properly
-            index SupportEvidence
+        :param Dict propositions_documents_ix: Indexes for propositions and
+            documents
         :return: An updated propositions_documents_ix object
         """
         data = self._extract()
@@ -98,48 +99,61 @@ class CIViCTransform:
         self._add_variation_descriptors(variants)
         self._add_gene_descriptors(genes)
         self._add_methods()
-        self._add_statements_for_evidence(evidence_items,
-                                          propositions_documents_ix)
-        self._add_statements_for_assertions(assertions,
-                                            propositions_documents_ix)
-
+        self._transform_evidence_and_assertions(evidence_items,
+                                                propositions_documents_ix)
+        self._transform_evidence_and_assertions(assertions,
+                                                propositions_documents_ix,
+                                                is_evidence=False)
         return propositions_documents_ix
 
-    def _add_statements_for_evidence(self, evidence_items,
-                                     propositions_documents_ix):
-        for e in evidence_items:
-            if e['evidence_type'] not in ['Predictive', 'Prognostic']:
+    def _transform_evidence_and_assertions(self, records,
+                                           propositions_documents_ix,
+                                           is_evidence=True) -> None:
+        """Transform statements, propositions, descriptors, and documents
+        from CIViC evidence items and assertions.
+
+        :param list records: CIViC Evidence Items or Assertions
+        :param dict propositions_documents_ix: Indexes for propositions and
+            documents
+        :param bool is_evidence: `True` if records are evidence items.
+            `False` if records are assertions.
+        """
+        for r in records:
+            if r['evidence_type'] not in ['Predictive', 'Prognostic']:
                 continue
 
-            if not e['disease']:
+            if not r['disease']:
                 continue
 
-            if e['evidence_type'] == 'Predictive':
-                if len(e['drugs']) != 1:
+            if r['evidence_type'] == 'Predictive':
+                if len(r['drugs']) != 1:
                     continue
                 else:
-                    therapy_id = f"civic:tid{e['drugs'][0]['id']}"
+                    therapy_id = f"civic:tid{r['drugs'][0]['id']}"
                     therapy_descriptor = \
-                        self._add_therapy_descriptor(therapy_id, e)
+                        self._add_therapy_descriptor(therapy_id, r)
                     if not therapy_descriptor:
                         continue
             else:
                 therapy_id = None
                 therapy_descriptor = None
 
-            disease_id = f"civic:did{e['disease']['id']}"
-            disease_descriptor = self._add_disease_descriptor(disease_id, e)
+            disease_id = f"civic:did{r['disease']['id']}"
+            disease_descriptor = self._add_disease_descriptor(disease_id, r)
             if not disease_descriptor:
                 continue
 
-            variant_id = f"civic:vid{e['variant_id']}"
+            if is_evidence:
+                variant_id = f"civic:vid{r['variant_id']}"
+            else:
+                variant_id = f"civic:vid{r['variant']['id']}"
             variation_descriptor = \
                 self.valid_ids['variation_descriptors'].get(variant_id)
             if not variation_descriptor:
                 continue
 
             proposition = self._get_proposition(
-                e, variation_descriptor, disease_descriptor,
+                r, variation_descriptor, disease_descriptor,
                 therapy_descriptor, propositions_documents_ix
             )
 
@@ -150,106 +164,53 @@ class CIViCTransform:
             if proposition not in self.transformed['propositions']:
                 self.transformed['propositions'].append(proposition)
 
-            document = self._get_eid_document(e['source'])
-            if document not in self.transformed['documents']:
-                self.transformed['documents'].append(document)
+            if is_evidence:
+                # Evidence items's method and evidence level
+                method = f'method:{schemas.MethodID.CIVIC_EID_SOP:03}'
+                evidence_level = f"civic.evidence_level:{r['evidence_level']}"
 
-            statement = schemas.Statement(
-                id=f"{schemas.NamespacePrefix.CIVIC.value}:"
-                   f"{e['name'].lower()}",
-                description=e['description'],
-                direction=self._get_evidence_direction(
-                    e['evidence_direction']),
-                evidence_level=f"civic.evidence_level:{e['evidence_level']}",
-                proposition=proposition['id'],
-                variation_origin=self._get_variation_origin(
-                    e['variant_origin']),
-                variation_descriptor=variant_id,
-                therapy_descriptor=therapy_id,
-                disease_descriptor=disease_id,
-                method=f'method:{schemas.MethodID.CIVIC_EID_SOP:03}',
-                supported_by=[document['id']]
-            ).dict(exclude_none=True)
-
-            self.transformed['statements'].append(statement)
-
-    def _add_statements_for_assertions(self, assertions,
-                                       propositions_documents_ix):
-        for a in assertions:
-            if a['evidence_type'] not in ['Predictive', 'Prognostic']:
-                continue
-
-            if not a['disease']:
-                continue
-
-            if a['evidence_type'] == 'Predictive':
-                if len(a['drugs']) != 1:
-                    continue
+                # Supported by evidence for evidence item
+                document = self._get_eid_document(r['source'])
+                if document not in self.transformed['documents']:
+                    self.transformed['documents'].append(document)
+                supported_by = [document['id']]
+            else:
+                # Assertion's method
+                if r['amp_level'] and not r['acmg_codes']:
+                    method = \
+                        f'method:' \
+                        f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP.value:03}'
+                elif not r['amp_level'] and r['acmg_codes']:
+                    method = f'method:' \
+                             f'{schemas.MethodID.CIVIC_AID_ACMG.value:03}'
                 else:
-                    therapy_id = f"civic:tid{a['drugs'][0]['id']}"
-                    therapy_descriptor = \
-                        self._add_therapy_descriptor(therapy_id, a)
-                    if not therapy_descriptor:
-                        continue
-            else:
-                therapy_id = None
-                therapy_descriptor = None
+                    logger.warning(f"Unable to get method for {r['name']}")
+                    method = None
 
-            disease_id = f"civic:did{a['disease']['id']}"
-            disease_descriptor = self._add_disease_descriptor(disease_id, a)
-            if not disease_descriptor:
-                continue
+                # assertion's evidence level
+                evidence_level = self._get_assertion_evidence_level(r)
 
-            variant_id = f"civic:vid{a['variant']['id']}"
-            variation_descriptor = \
-                self.valid_ids['variation_descriptors'].get(variant_id)
-            if not variation_descriptor:
-                continue
-
-            proposition = self._get_proposition(
-                a, variation_descriptor, disease_descriptor,
-                therapy_descriptor, propositions_documents_ix
-            )
-
-            # Only support Therapeutic Response and Prognostic
-            if not proposition:
-                continue
-
-            if proposition not in self.transformed['propositions']:
-                self.transformed['propositions'].append(proposition)
-
-            if a['amp_level'] and not a['acmg_codes']:
-                method = \
-                    f'method:' \
-                    f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP.value:03}'
-            elif not a['amp_level'] and a['acmg_codes']:
-                method = f'method:' \
-                         f'{schemas.MethodID.CIVIC_AID_ACMG.value:03}'
-            else:
-                logger.warning(f"Unable to get method for {a['name']}")
-                method = None
-
-            supported_by = list()
-            documents = \
-                self._get_aid_documents(a, propositions_documents_ix)
-            for d in documents:
-                if d not in self.transformed['documents']:
-                    self.transformed['documents'].append(d)
-                supported_by.append(d['id'])
-
-            for evidence_item in a['evidence_items']:
-                supported_by.append(f"civic:eid{evidence_item['id']}")
+                # Supported by evidence for assertion
+                supported_by = list()
+                documents = \
+                    self._get_aid_document(r, propositions_documents_ix)
+                for d in documents:
+                    if d not in self.transformed['documents']:
+                        self.transformed['documents'].append(d)
+                    supported_by.append(d['id'])
+                for evidence_item in r['evidence_items']:
+                    supported_by.append(f"civic:eid{evidence_item['id']}")
 
             statement = schemas.Statement(
                 id=f"{schemas.NamespacePrefix.CIVIC.value}:"
-                   f"{a['name'].lower()}",
-                description=a['description'],
+                   f"{r['name'].lower()}",
+                description=r['description'],
                 direction=self._get_evidence_direction(
-                    a['evidence_direction']),
-                evidence_level=self._get_assertion_evidence_level(a),
+                    r['evidence_direction']),
+                evidence_level=evidence_level,
                 proposition=proposition['id'],
                 variation_origin=self._get_variation_origin(
-                    a['variant_origin']),
+                    r['variant_origin']),
                 variation_descriptor=variant_id,
                 therapy_descriptor=therapy_id,
                 disease_descriptor=disease_id,
@@ -258,7 +219,7 @@ class CIViCTransform:
             ).dict(exclude_none=True)
             self.transformed['statements'].append(statement)
 
-    def _get_evidence_direction(self, direction):
+    def _get_evidence_direction(self, direction) -> Optional[str]:
         """Return the evidence direction.
 
         :param str direction: The civic evidence_direction value
@@ -271,7 +232,12 @@ class CIViCTransform:
         else:
             return None
 
-    def _get_assertion_evidence_level(self, assertion):
+    def _get_assertion_evidence_level(self, assertion) -> Optional[str]:
+        """Return evidence_level for CIViC assertion.
+
+        :param dict assertion: CIViC Assertion
+        :return: CIViC assertion evidence_level
+        """
         evidence_level = None
         # TODO: CHECK
         if assertion['amp_level']:
@@ -295,7 +261,16 @@ class CIViCTransform:
     def _get_proposition(self, record, variation_descriptor,
                          disease_descriptor, therapy_descriptor,
                          propositions_documents_ix) -> Optional[dict]:
-        """Return a list of propositions."""
+        """Return a proposition for a record.
+
+        :param dict record: CIViC EID or AID
+        :param dict variation_descriptor: The record's variation descriptor
+        :param dict disease_descriptor: The record's disease descriptor
+        :param dict therapy_descriptor: The record's therapy descriptor
+        :param dict propositions_documents_ix: Indexes for propositions and
+            documents
+        :return: A proposition
+        """
         proposition_type = \
             self._get_proposition_type(record['evidence_type'])
 
@@ -337,12 +312,12 @@ class CIViCTransform:
 
         return proposition
 
-    def _get_proposition_type(self, evidence_type, is_evidence=True):
+    def _get_proposition_type(self, evidence_type, is_evidence=True) -> str:
         """Return proposition type for a given EID or AID.
 
         :param str evidence_type: CIViC evidence type
         :param bool is_evidence: `True` if EID. `False` if AID.
-        :return: A string representation of the proposition type
+        :return: Proposition's type
         """
         evidence_type = evidence_type.upper()
         if evidence_type in schemas.PropositionType.__members__.keys():
@@ -358,11 +333,11 @@ class CIViCTransform:
                            f"schemas.PropositionType")
         return proposition_type.value
 
-    def _get_variation_origin(self, variant_origin):
+    def _get_variation_origin(self, variant_origin) -> Optional[str]:
         """Return variant origin.
 
         :param str variant_origin: CIViC variant origin
-        :return: A str representation of variation origin
+        :return: Variation origin
         """
         if variant_origin == 'Somatic':
             origin = schemas.VariationOrigin.SOMATIC.value
@@ -374,12 +349,12 @@ class CIViCTransform:
             origin = None
         return origin
 
-    def _get_predicate(self, proposition_type, clin_sig):
+    def _get_predicate(self, proposition_type, clin_sig) -> Optional[str]:
         """Return predicate for an evidence item.
 
         :param str proposition_type: The proposition type
         :param str clin_sig: The evidence item's clinical significance
-        :return: A string representation for predicate
+        :return: Predicate for proposition
         """
         if clin_sig is None or clin_sig.upper() in ['N/A', 'UNKNOWN']:
             return None
@@ -413,12 +388,10 @@ class CIViCTransform:
                            f"schemas.")
         return predicate
 
-    def _add_variation_descriptors(self, variants):
-        """Return a list of Variation Descriptors.
+    def _add_variation_descriptors(self, variants) -> None:
+        """Add Variation Descriptors to dict of transformations.
 
-        :param dict variant: A CIViC variant record
-        :param dict gene: A CIViC gene record
-        :return: A list of Variation Descriptors
+        :param list variants: CIViC variants
         """
         for variant in variants:
             variant_id = f"civic:vid{variant['id']}"
@@ -508,7 +481,8 @@ class CIViCTransform:
                 variation_descriptor
             )
 
-    def _get_variant_norm_resp(self, queries, normalizer_responses):
+    def _get_variant_norm_resp(self, queries, normalizer_responses)\
+            -> Optional[dict]:
         """Return variant-normalizer's response for a list of queries.
 
         :param list queries: Possible query strings to try to normalize
@@ -536,7 +510,7 @@ class CIViCTransform:
                                f"{query}")
         return variant_norm_resp
 
-    def _get_variant_extensions(self, variant):
+    def _get_variant_extensions(self, variant) -> list:
         """Return a list of extensions for a variant.
 
         :param dict variant: A CIViC variant record
@@ -573,7 +547,7 @@ class CIViCTransform:
             ).dict(exclude_none=True))
         return extensions
 
-    def _get_variant_xrefs(self, v):
+    def _get_variant_xrefs(self, v) -> Optional[List[str]]:
         """Return a list of xrefs for a variant.
 
         :param dict v: A CIViC variant record
@@ -599,11 +573,11 @@ class CIViCTransform:
                                  f"{dbsnp_xref.split('RS')[-1]}")
         return xrefs
 
-    def _get_hgvs_expr(self, variant):
+    def _get_hgvs_expr(self, variant) -> Optional[List[Dict[str, str]]]:
         """Return a list of hgvs expressions for a given variant.
 
         :param dict variant: A CIViC variant record
-        :return a list of hgvs expressions
+        :return: A list of hgvs expressions
         """
         hgvs_expressions = list()
         for hgvs_expr in variant['hgvs_expressions']:
@@ -620,11 +594,10 @@ class CIViCTransform:
                 )
         return hgvs_expressions
 
-    def _add_gene_descriptors(self, genes):
-        """Return a Gene Descriptor.
+    def _add_gene_descriptors(self, genes) -> None:
+        """Add Gene Descriptors to dict of transformations.
 
-        :param dict gene: A CIViC gene record
-        :return A Gene Descriptor
+        :param list genes: CIViC genes
         """
         for gene in genes:
             gene_id = f"civic:gid{gene['id']}"
@@ -657,7 +630,14 @@ class CIViCTransform:
                 ).dict(exclude_none=True)
                 self.transformed['gene_descriptors'].append(gene_descriptor)
 
-    def _add_disease_descriptor(self, disease_id, record):
+    def _add_disease_descriptor(self, disease_id, record) \
+            -> Optional[schemas.ValueObjectDescriptor]:
+        """Add disease ID to list of valid or invalid transformations.
+
+        :param str disease_id: The CIViC ID for the disease
+        :param dict record: CIViC AID or EID
+        :return: A disease descriptor
+        """
         disease_descriptor = \
             self.valid_ids['disease_descriptors'].get(disease_id)
         if disease_descriptor:
@@ -674,10 +654,12 @@ class CIViCTransform:
                     self.invalid_ids['disease_descriptors'].append(disease_id)
             return disease_descriptor
 
-    def _get_disease_descriptors(self, disease):
-        """Return A list of Disease Descriptors.
+    def _get_disease_descriptors(self, disease) \
+            -> Optional[schemas.ValueObjectDescriptor]:
+        """Get a disease descriptor.
+
         :param dict disease: A CIViC disease record
-        :return: A list of Disease Descriptors.
+        :return: A Disease Descriptor
         """
         if not disease:
             return None
@@ -719,7 +701,14 @@ class CIViCTransform:
         ).dict(exclude_none=True)
         return disease_descriptor
 
-    def _add_therapy_descriptor(self, therapy_id, record):
+    def _add_therapy_descriptor(self, therapy_id, record)\
+            -> Optional[schemas.ValueObjectDescriptor]:
+        """Add therapy ID to list of valid or invalid transformations.
+
+        :param str therapy_id: The CIViC ID for the drug
+        :param dict record: CIViC AID or EID
+        :return: A therapy descriptor
+        """
         therapy_descriptor = \
             self.valid_ids['therapy_descriptors'].get(therapy_id)
         if therapy_descriptor:
@@ -736,10 +725,12 @@ class CIViCTransform:
                     self.invalid_ids['therapy_descriptors'].append(therapy_id)
             return therapy_descriptor
 
-    def _get_therapy_descriptor(self, drug):
-        """Return a list of Therapy Descriptors.
-        :param dict drug: A drug for a given evidence_item
-        :return: A list of Therapy Descriptors
+    def _get_therapy_descriptor(self, drug) \
+            -> Optional[schemas.ValueObjectDescriptor]:
+        """Get a therapy descriptor.
+
+        :param dict drug: A CIViC drug record
+        :return: A Therapy Descriptor
         """
         therapy_id = f"civic:tid{drug['id']}"
         label = drug['name']
@@ -772,8 +763,8 @@ class CIViCTransform:
         ).dict(exclude_none=True)
         return therapy_descriptor
 
-    def _add_methods(self):
-        """Get methods."""
+    def _add_methods(self) -> None:
+        """Add methods to list of transformations."""
         self.transformed['methods'] = [
             schemas.Method(
                 id=f'method:'
@@ -816,12 +807,13 @@ class CIViCTransform:
             ).dict(exclude_none=True)
         ]
 
-    def _get_eid_document(self, source):
-        """Get an EID's documents.
+    def _get_eid_document(self, source) -> Optional[schemas.Document]:
+        """Get an EID's document.
 
         :param dict source: An evidence item's source
+        :return: Document for EID
         """
-        documents = None
+        document = None
         source_type = source['source_type'].upper()
         if source_type in schemas.SourcePrefix.__members__:
             prefix = schemas.SourcePrefix[source_type].value
@@ -832,7 +824,7 @@ class CIViCTransform:
             if source['pmc_id']:
                 xrefs.append(f"pmc:{source['pmc_id']}")
 
-            documents = schemas.Document(
+            document = schemas.Document(
                 id=document_id,
                 label=source['citation'],
                 description=source['name'],
@@ -840,9 +832,10 @@ class CIViCTransform:
             ).dict(exclude_none=True)
         else:
             logger.warning(f"{source_type} not in schemas.SourcePrefix.")
-        return documents
+        return document
 
-    def _get_aid_documents(self, assertion, propositions_documents_ix):
+    def _get_aid_document(self, assertion, propositions_documents_ix) \
+            -> List[schemas.Document]:
         """Get an AID's documents.
 
         :param dict assertion: A CIViC Assertion
@@ -878,7 +871,7 @@ class CIViCTransform:
 
         return documents
 
-    def _set_ix(self, propositions_documents_ix, dict_key, search_key):
+    def _set_ix(self, propositions_documents_ix, dict_key, search_key) -> int:
         """Set indexes for documents or propositions.
 
         :param dict propositions_documents_ix: Keeps track of
