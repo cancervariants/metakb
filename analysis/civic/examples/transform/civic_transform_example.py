@@ -2,8 +2,6 @@
 import json
 from metakb.transform import CIViCTransform
 from metakb import PROJECT_ROOT
-from timeit import default_timer as timer
-import click
 
 
 def create_civic_example(civic_data):
@@ -79,14 +77,10 @@ def create_civic_example(civic_data):
 
 
 if __name__ == '__main__':
-    start = timer()
     civic = CIViCTransform()
     civic.transform()
-    end = timer()
-    total_time = end - start
-    click.echo(f"finished in {total_time:.5f}")
     civic._create_json()
-    # with open(f"{PROJECT_ROOT}/data/civic/transform/civic_cdm.json",
-    #           'r') as f:
-    #     civic_data = json.load(f)
-    # create_civic_example(civic_data)
+    with open(f"{PROJECT_ROOT}/data/civic/transform/civic_cdm.json",
+              'r') as f:
+        civic_data = json.load(f)
+    create_civic_example(civic_data)
