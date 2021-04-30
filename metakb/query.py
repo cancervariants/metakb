@@ -775,31 +775,35 @@ class QueryHandler:
         :param str node_id: node_id
         :return: A dictionary containing the node content
         """
-        node_id = node_id.strip()
-        if '%' not in node_id:
-            concept_name = quote(node_id.split(":", 1)[1])
-            node_id = node_id.split(":", 1)[0] + ":" + concept_name
+        valid_node_id = None
         response = {
-            'query': None,
+            'query': node_id,
             'warnings': []
         }
 
         if not node_id:
             response['warnings'].append("No parameters were entered.")
+        elif node_id.strip() == '':
+            response['warnings'].append("Cannot enter empty string.")
         else:
-            valid_node_id = None
-            response['query'] = node_id
+            node_id = node_id.strip()
             with self.driver.session() as session:
                 node = session.read_transaction(
                     self._find_node_by_id, node_id
                 )
                 if node:
                     valid_node_id = node.get('id')
+                    if '%' not in valid_node_id:
+                        concept_name = quote(valid_node_id.split(":", 1)[1])
+                        valid_node_id = \
+                            f"{valid_node_id.split(':', 1)[0]}" \
+                            f":{concept_name}"
                 else:
                     response['warnings'].append(f"Node: {node_id} "
                                                 f"does not exist.")
-        if node_id and not valid_node_id:
-            return SearchIDService(**response).dict()
+        if (not node_id and not valid_node_id) or \
+                (node_id and not valid_node_id):
+            return SearchIDService(**response).dict(exclude_none=True)
 
         label, *_ = node.labels
         if label == 'Statement':
