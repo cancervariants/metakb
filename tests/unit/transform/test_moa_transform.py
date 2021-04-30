@@ -34,7 +34,7 @@ def asst69_statements():
             "variation_origin": "somatic",
             "variation_descriptor": "moa:vid69",
             "therapy_descriptor": "moa.normalize.therapy:Imatinib",
-            "disease_descriptor": "moa.normalize.disease:Chronic%20Myelogenous%20Leukemia",  # noqa: E501
+            "disease_descriptor": "moa.normalize.disease:oncotree%3ACML",  # noqa: E501
             "method": "method:004",
             "supported_by": [
                 "pmid:11423618"
@@ -145,7 +145,7 @@ def asst69_disease_descriptors():
     """Create assertion69 disease_descriptors test fixture."""
     return [
         {
-            "id": "moa.normalize.disease:Chronic%20Myelogenous%20Leukemia",
+            "id": "moa.normalize.disease:oncotree%3ACML",
             "type": "DiseaseDescriptor",
             "label": "Chronic Myelogenous Leukemia",
             "value": {
