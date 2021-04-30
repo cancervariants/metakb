@@ -414,19 +414,20 @@ class CIViCTransform:
             vname_lower = variant['name'].lower()
 
             if vname_lower.endswith('fs') or vname_lower.endswith('del') or '-' in vname_lower or '/' in vname_lower:  # noqa: E501
-                logger.warning("Variant Normalizer does not support "
-                               f"{variant_id}: {variant_query}")
-                continue
+                if not hgvs_exprs:
+                    logger.warning("Variant Normalizer does not support "
+                                   f"{variant_id}: {variant_query}")
+                    continue
 
             unable_to_normalize = {
                 'mutation', 'amplification', 'exon', 'overexpression',
                 'frameshift', 'promoter', 'deletion', 'type', 'insertion',
-                'expression', 'duplication', 'copy', 'underexpression'
+                'expression', 'duplication', 'copy', 'underexpression',
                 'number', 'variation', 'repeat', 'rearrangement', 'activation',
                 'expression', 'mislocalization', 'translocation', 'wild',
                 'polymorphism', 'frame', 'shift', 'loss', 'function', 'levels',
                 'inactivation', 'snp', 'fusion', 'dup', 'truncation',
-                'homozygosity', 'gain',
+                'homozygosity', 'gain', 'phosphorylation',
             }
 
             if set(vname_lower.split()) & unable_to_normalize:
