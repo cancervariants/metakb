@@ -452,14 +452,16 @@ class CIViCTransform:
             # Order based on type of variant we think it is in order to
             # give corresponding value_id/value.
             if 'c.' in variant_query:
-                hgvs_exprs_queries = \
-                    transcript_queries + protein_queries + genomic_queries
+                queries = \
+                    transcript_queries + genomic_queries + [variant_query] + \
+                    protein_queries
             else:
-                hgvs_exprs_queries = \
-                    protein_queries + genomic_queries + transcript_queries
+                queries = \
+                    protein_queries + genomic_queries + \
+                    [variant_query] + transcript_queries
 
             variant_norm_resp = self._get_variant_norm_resp(
-                [variant_query] + hgvs_exprs_queries, normalizer_responses
+                queries, normalizer_responses
             )
 
             if not variant_norm_resp:
