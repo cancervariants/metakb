@@ -293,12 +293,6 @@ class MOATransform:
         ref_allele_seq = variant['protein_change'][2] \
             if 'protein_change' in variant and variant['protein_change'] else None  # noqa: E501
 
-        structural_type, molecule_context = None, None
-        if 'variant_annotation' in variant:
-            if variant['variant_annotation'] == 'Missense':
-                structural_type = "SO:0001606"
-                molecule_context = 'protein'
-
         v_norm_resp = None
         # For now, the normalizer only support a.a substitution
         if g_descriptors and 'protein_change' in variant and variant['protein_change']:  # noqa: E501
@@ -326,8 +320,6 @@ class MOATransform:
             value_id=v_norm_resp.value_id,
             value=v_norm_resp.value,
             gene_context=gene_context,
-            molecule_context=molecule_context,
-            structural_type=structural_type,
             ref_allele_seq=ref_allele_seq,
             extensions=self._get_variant_extensions(variant)
         ).dict(exclude_none=True)
@@ -496,7 +488,7 @@ class MOATransform:
                 disease_norm_resp = disease_norm_resp_cand
                 highest_match = disease_norm_resp['match_type']
                 normalized_disease_id = \
-                    disease_norm_resp['value_object_descriptor']['value']['disease_id']  # noqa: E501
+                    disease_norm_resp['value_object_descriptor']['value']['id']  # noqa: E501
                 if highest_match == 100:
                     break
 
