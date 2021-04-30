@@ -435,20 +435,30 @@ class CIViCTransform:
                                    f"{variant_id}: {variant_query}")
                     continue
 
-            hgvs_exprs_queries = list()
-            if 'c.' in variant_query:
-                is_transcript = True
-            else:
-                is_transcript = False
-
+            # If c. in variant name, this indicates transcript
+            # Otherwise it indicates protein or genomic
+            transcript_queries = list()
+            genomic_queries = list()
+            protein_queries = list()
             for expr in hgvs_exprs:
-                if 'protein' in expr['syntax'] and not is_transcript:
-                    hgvs_exprs_queries.append(expr['value'])
-                elif 'transcript' in expr['syntax'] and is_transcript:
-                    hgvs_exprs_queries.append(expr['value'])
+                if 'protein' in expr['syntax']:
+                    protein_queries.append(expr['value'])
+                elif 'genomic' in expr['syntax']:
+                    genomic_queries.append(expr['value'])
+                else:
+                    transcript_queries.append(expr['value'])
+
+            # Order based on type of variant we think it is in order to
+            # give corresponding value_id/value.
+            if 'c.' in variant_query:
+                hgvs_exprs_queries = \
+                    transcript_queries + protein_queries + genomic_queries
+            else:
+                hgvs_exprs_queries = \
+                    protein_queries + genomic_queries + transcript_queries
 
             variant_norm_resp = self._get_variant_norm_resp(
-                hgvs_exprs_queries + [variant_query], normalizer_responses
+                [variant_query] + hgvs_exprs_queries, normalizer_responses
             )
 
             if not variant_norm_resp:
