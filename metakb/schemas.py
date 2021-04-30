@@ -19,6 +19,7 @@ class NamespacePrefix(str, Enum):
 
     CIVIC = 'civic'
     NCIT = 'ncit'
+    MOA = 'moa'
 
 
 class SourcePrefix(str, Enum):
@@ -26,6 +27,12 @@ class SourcePrefix(str, Enum):
 
     PUBMED = 'pmid'
     ASCO = 'asco'
+
+
+class NormalizerPrefix(str, Enum):
+    """Define contraints for normalizer prefixes."""
+
+    GENE = 'gene'
 
 
 class PropositionType(str, Enum):
@@ -150,6 +157,7 @@ class MethodID(IntEnum):
     CIVIC_EID_SOP = 1
     CIVIC_AID_AMP_ASCO_CAP = 2
     CIVIC_AID_ACMG = 3
+    MOA_ASSERTION_BIORXIV = 4
 
 
 class Statement(BaseModel):

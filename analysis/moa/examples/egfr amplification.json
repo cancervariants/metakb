@@ -1,8 +1,0 @@
-{
-	"feature_type": "copy_number", 
-	"feature_id": 699, 
-	"direction": "Amplification", 
-	"gene": "EGFR", 
-	"cytoband": null, 
-	"feature": "EGFR Amplification"
-}

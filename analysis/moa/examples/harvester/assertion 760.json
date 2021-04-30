@@ -1,0 +1,45 @@
+{
+    "ASSERTIONS": {
+        "id": 760,
+        "context": null,
+        "description": "Signature 10 is related to mutant pole, which may suggest sensitivity to immunotherapy. ",
+        "disease": {
+            "name": null,
+            "oncotree_code": null,
+            "oncotree_term": null
+        },
+        "therapy_name": "Pembrolizumab",
+        "therapy_type": "Immunotherapy",
+        "clinical_significance": "sensitivity",
+        "predictive_implication": "Inferential",
+        "favorable_prognosis": null,
+        "created_on": "03/31/21",
+        "last_updated": "2019-02-04",
+        "submitted_by": "breardon@broadinstitute.org",
+        "validated": true,
+        "source_ids": 150,
+        "variant": {
+            "id": 760,
+            "cosmic_signature_number": "10",
+            "cosmic_signature_version": "2",
+            "feature_type": "mutational_signature",
+            "feature": "COSMIC Signature 10"
+        }
+    },
+    "SOURCES": {
+        "id": 150,
+        "type": "Journal",
+        "doi": "10.1056/NEJMoa1500596",
+        "nct": "NCT01876511",
+        "pmid": 26028255,
+        "url": "https://doi.org/10.1056/NEJMoa1500596",
+        "citation": "Le DT, Uram JN, Wang H, et al. PD-1 Blockade in Tumors with Mismatch-Repair Deficiency. N Engl J Med. 2015;372(26):2509-20."
+    },
+    "VARIANTS": {
+        "id": 760,
+        "cosmic_signature_number": "10",
+        "cosmic_signature_version": "2",
+        "feature_type": "mutational_signature",
+        "feature": "COSMIC Signature 10"
+    }
+}

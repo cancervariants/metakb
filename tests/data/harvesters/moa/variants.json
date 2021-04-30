@@ -1,92 +1,22 @@
 [
     {
-        "attribute_definition": 1, 
-        "attribute_id": 1, 
-        "feature": 1, 
-        "value": "Fusion"
-    }, 
-    {
-        "attribute_definition": 2, 
-        "attribute_id": 2, 
-        "feature": 1, 
-        "value": "BCR"
-    }, 
-    {
-        "attribute_definition": 3, 
-        "attribute_id": 3, 
-        "feature": 1, 
-        "value": "ABL1"
-    }, 
-    {
-        "attribute_definition": 4, 
-        "attribute_id": 4, 
-        "feature": 1, 
-        "value": null
-    },
-    {
-        "attribute_definition": 5, 
-        "attribute_id": 1362, 
-        "feature": 168, 
-        "value": "BRAF"
-    }, 
-    {
-        "attribute_definition": 6, 
-        "attribute_id": 1363, 
-        "feature": 168, 
-        "value": "7"
-    }, 
-    {
-        "attribute_definition": 7, 
-        "attribute_id": 1364, 
-        "feature": 168, 
-        "value": "140453136.0"
-    }, 
-    {
-        "attribute_definition": 8, 
-        "attribute_id": 1365, 
-        "feature": 168, 
-        "value": "140453136.0"
-    }, 
-    {
-        "attribute_definition": 9, 
-        "attribute_id": 1366, 
-        "feature": 168, 
-        "value": "A"
-    },
-    {
-        "attribute_definition": 10, 
-        "attribute_id": 1367, 
-        "feature": 168, 
-        "value": "T"
-    }, 
-    {
-        "attribute_definition": 11, 
-        "attribute_id": 1368, 
-        "feature": 168, 
-        "value": "c.1799T>A"
-    }, 
-    {
-        "attribute_definition": 12, 
-        "attribute_id": 1369, 
-        "feature": 168, 
-        "value": "p.V600E"
-    }, 
-    {
-        "attribute_definition": 13, 
-        "attribute_id": 1370, 
-        "feature": 168, 
-        "value": "Missense"
-    }, 
-    {
-        "attribute_definition": 14, 
-        "attribute_id": 1371, 
-        "feature": 168, 
-        "value": "15.0"
-    }, 
-    {
-        "attribute_definition": 15, 
-        "attribute_id": 1372, 
-        "feature": 168, 
-        "value": "rs113488022"
+        "attributes": [
+            {
+                "alternate_allele": "T", 
+                "cdna_change": "c.1799T>A", 
+                "chromosome": "7", 
+                "end_position": "140453136.0", 
+                "exon": "15.0", 
+                "feature_type": "somatic_variant", 
+                "gene": "BRAF", 
+                "protein_change": "p.V600E", 
+                "reference_allele": "A", 
+                "rsid": "rs113488022", 
+                "start_position": "140453136.0", 
+                "variant_annotation": "Missense"
+            }
+        ], 
+        "feature_id": 147, 
+        "feature_type": "somatic_variant"
     }
 ]

@@ -1,9 +1,0 @@
-{
-	"feature_type": "rearrangement", 
-	"feature_id": 1, 
-	"rearrangement_type": "Fusion", 
-	"gene1": "BCR", 
-	"gene2": "ABL1", 
-	"locus": null, 
-	"feature": "BCR--ABL1 Fusion"
-}
