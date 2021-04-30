@@ -787,17 +787,17 @@ class QueryHandler:
             response['warnings'].append("Cannot enter empty string.")
         else:
             node_id = node_id.strip()
+            if '%' not in node_id and ':' in node_id:
+                concept_name = quote(node_id.split(":", 1)[1])
+                node_id = \
+                    f"{node_id.split(':', 1)[0]}" \
+                    f":{concept_name}"
             with self.driver.session() as session:
                 node = session.read_transaction(
                     self._find_node_by_id, node_id
                 )
                 if node:
                     valid_node_id = node.get('id')
-                    if '%' not in valid_node_id:
-                        concept_name = quote(valid_node_id.split(":", 1)[1])
-                        valid_node_id = \
-                            f"{valid_node_id.split(':', 1)[0]}" \
-                            f":{concept_name}"
                 else:
                     response['warnings'].append(f"Node: {node_id} "
                                                 f"does not exist.")
