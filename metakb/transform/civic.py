@@ -97,7 +97,7 @@ class CIViCTransform:
             }
 
         # Filter Variant IDs for Prognostic and Predictive evidence
-        supported_evidence_types = ['Prognostic', 'Predictive']
+        supported_evidence_types = ['Prognostic', 'Predictive', 'Diagnostic']
         vids = {e['variant_id'] for e in evidence_items
                 if e['evidence_type'] in supported_evidence_types}
         vids |= {a['variant']['id'] for a in assertions
@@ -126,7 +126,8 @@ class CIViCTransform:
             `False` if records are assertions.
         """
         for r in records:
-            if r['evidence_type'] not in ['Predictive', 'Prognostic']:
+            if r['evidence_type'] not in ['Predictive', 'Prognostic',
+                                          'Diagnostic']:
                 continue
 
             if not r['disease']:
@@ -311,6 +312,10 @@ class CIViCTransform:
                 schemas.TherapeuticResponseProposition(**params).dict(
                     exclude_none=True
                 )
+        elif proposition_type == schemas.PropositionType.DIAGNOSTIC.value:
+            proposition = \
+                schemas.DiagnosticcProposition(**params).dict(
+                    exclude_none=True)
 
         # Get corresponding id for proposition
         key = (proposition['type'],
@@ -873,19 +878,21 @@ class CIViCTransform:
         :return: A list of AID documents
         """
         # NCCN Guidlines
+        documents = list()
         label = assertion['nccn_guideline']
         version = assertion['nccn_guideline_version']
-        document_id = '_'.join((label + version).split())
-        document_ix = \
-            self._set_ix(propositions_documents_ix, 'documents',
-                         document_id)
-        documents = list()
-        documents.append(schemas.Document(
-            id=f"document:{document_ix:03}",
-            document_id="https://www.nccn.org/professionals/"
-                        "physician_gls/default.aspx",
-            label=f"NCCN Guidelines: {label} version {version}"
-        ).dict(exclude_none=True))
+        if label and version:
+            document_id = '_'.join((label + version).split())
+            document_ix = \
+                self._set_ix(propositions_documents_ix, 'documents',
+                             document_id)
+            documents = list()
+            documents.append(schemas.Document(
+                id=f"document:{document_ix:03}",
+                document_id="https://www.nccn.org/professionals/"
+                            "physician_gls/default.aspx",
+                label=f"NCCN Guidelines: {label} version {version}"
+            ).dict(exclude_none=True))
 
         # TODO: Check this after first pass
         # ACMG Codes
