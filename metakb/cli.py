@@ -119,7 +119,7 @@ class CLI:
         # TODO: Switch to using constant
         harvester_sources = {
             'civic': CIViC,
-            #  'moa': MOAlmanac  # TODO: Uncomment once API is fixed
+            'moa': MOAlmanac
         }
         for class_str, class_name in harvester_sources.items():
             click.echo(f"Harvesting {class_str}...")

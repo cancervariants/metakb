@@ -6,7 +6,7 @@
             "evidence_level": "moa.evidence_level:Clinical_evidence",
             "proposition": "proposition:060",
             "variation_origin": "somatic",
-            "variation_descriptor": "moa:vid186",
+            "variation_descriptor": "moa:vid147",
             "therapy_descriptor": "moa.normalize.therapy:Vemurafenib",
             "disease_descriptor": "moa.normalize.disease:Pancreatic%20Adenocarcinoma",
             "method": "method:004",
@@ -28,7 +28,7 @@
     ],
     "variation_descriptors": [
         {
-            "id": "moa:vid186",
+            "id": "moa:vid147",
             "type": "VariationDescriptor",
             "label": "BRAF p.V600E (Missense)",
             "value_id": "ga4gh:VA.u6sKlz0mMQvARmrlnt0Aksz6EbSkmL8z",
