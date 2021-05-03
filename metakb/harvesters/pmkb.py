@@ -6,6 +6,12 @@ import requests
 from datetime import datetime
 import csv
 import json
+from ftplib import FTP
+import gzip
+import shutil
+from os import remove
+import pandas as pd
+import re
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -43,6 +49,9 @@ class PMKB(Harvester):
                 not list(self.pmkb_dir.glob('pmkb_interps_*.csv')):
             self._download_data()
 
+        if not list(self.pmkb_dir.glob('pmkb_ids_*.csv')):
+            self._download_pmid_index()
+
     def _download_data(self):
         """Retrieve PMKB data from remote host."""
         logging.info("Downloading PMKB source data...")
@@ -69,6 +78,30 @@ class PMKB(Harvester):
             logger.error(msg)
             raise requests.exceptions.RequestException(msg)
         logging.info("PMKB source data downloads complete.")
+
+    # TODO remove unneeded columns?
+    def _download_pmid_index(self):
+        """Acquire PubMed IDs file from NIH."""
+        logger.info('Downloading PMID data...')
+        gzname = 'PMC-ids.csv.gz'
+        gzpath = self.pmkb_dir / gzname
+        try:
+            with FTP('ftp.ncbi.nlm.nih.gov') as ftp:
+                ftp.login()
+                logger.debug('FTP login successful.')
+                ftp.cwd('pub/pmc/')
+                with open(gzpath, 'wb') as fp:
+                    ftp.retrbinary(f'RETR {gzname}', fp.write)
+            logger.info('Downloaded PMID source file.')
+        except TimeoutError:
+            logger.error('Connection to NIH FTP server timed out.')
+        today = datetime.now().strftime('%Y%m%d')
+        with gzip.open(gzpath, 'rb') as f_in:
+            with open(self.pmkb_dir / f'pm_ids_{today}.csv', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        remove(gzpath)
+
+        logger.info('Finished downloading PMID data')
 
     def _get_all_variants(self):
         """Process PMKB variants.
@@ -118,9 +151,10 @@ class PMKB(Harvester):
         :return: list of Statement objects
         """
         statements = []
+        self.pmids = pd.read_csv(list(self.pmkb_dir.glob('pm_ids_*.csv'))[-1])
 
         pattern = 'data/pmkb/pmkb_interps_*.csv'
-        interp_path = sorted(list(PROJECT_ROOT.glob(pattern)), reverse=True)[0]
+        interp_path = sorted(list(PROJECT_ROOT.glob(pattern)))[-1]
         interp_file = open(interp_path, 'r')
         interps = csv.DictReader(interp_file)
         for interp in interps:
@@ -132,8 +166,11 @@ class PMKB(Harvester):
 
             interp_diseases = set(interp['Tumor Type(s)'].split('|'))
             interp_variants = set(interp['Variant(s)'].split('|'))
-            if len(interp_diseases) > 1 or len(interp_variants) > 1:
-                continue  # skip multiple diseases/variants for this pass
+            interp_tissues = set(interp['Tissue Type(s)'].split('|'))
+            if len(interp_diseases) > 1 or len(interp_variants) > 1 or \
+                    len(interp_tissues) > 1:
+                # skip multiple diseases/variants/tissues for this pass
+                continue
 
             variant = interp_variants.pop()
             if not variant:
@@ -144,22 +181,51 @@ class PMKB(Harvester):
                 logger.error(f"Could not retrieve data for variant: {variant}")
                 continue
 
+            for cite in interp['Citations'].split('|'):
+                self._get_pmid(cite)
+
             statements.append({
                 "id": interp_id,
                 "description": interp['Interpretations'],
                 "gene": {
                     "name": interp_gene,
                 },
-                "variant": variant_data,
+                "variant": {
+                    "name": variant_data['name'],
+                    "id": variant_data['id'],
+                },
                 "disease": {
                     "name": interp_diseases.pop(),
-                    "tissue_types": interp['Tissue Type(s)'].split('|')
+                    "tissue_type": interp_tissues.pop(),
                 },
                 "evidence_items": interp_ev
             })
 
         interp_file.close()
         return statements
+
+    def _get_pmid(self, cite):
+        """Get PubMed ID from citation.
+        :param str cite: free text citation
+        :return: PMID as str if lookup is successful, empty string otherwise
+        """
+        pattern = re.compile('(.+\.) (.+\.) ([A-Za-z ]+) ([0-9]+);([0-9]+)\(([0-9]+)\):([0-9]+)')  # noqa: E501 W605
+        match = re.match(pattern, cite)
+        if not match:
+            return ""
+        groups = match.groups()
+        if len(groups) < 7:
+            return ""
+        _, _, title, year, vol, issue, pg = groups
+        row = self.pmids[
+            (self.pmids['Journal Title'] == title) &  # noqa: W504
+            (self.pmids['Year'] == year) &  # noqa: W504
+            (self.pmids['Volume'] == vol) &  # noqa: W504
+            (self.pmids['Issue'] == issue) &  # noqa: W504
+            (self.pmids['Page'] == pg)
+        ]
+        if len(row) == 1:
+            return str(int(row['PMID'].iloc[0]))
 
     def _create_json(self, statements, variants, filename):
         """Export data to JSON.
