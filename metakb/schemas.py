@@ -189,6 +189,13 @@ class PrognosticProposition(Proposition):
     predicate: Optional[PrognosticPredicate]
 
 
+class DiagnosticcProposition(Proposition):
+    """Defines the Diagnostic Proposition model."""
+
+    type = PropositionType.DIAGNOSTIC.value
+    predicate: Optional[DiagnosticPredicate]
+
+
 class MethodID(IntEnum):
     """Create AssertionMethod id constants for harvested sources."""
 
