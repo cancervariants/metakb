@@ -8,11 +8,12 @@ from disease.query import QueryHandler as DiseaseQueryHandler
 from metakb.schemas import SearchService, StatementResponse, \
     TherapeuticResponseProposition, VariationDescriptor,\
     ValueObjectDescriptor, GeneDescriptor, Drug, Disease, Gene, Method, \
-    Document
+    Document, SearchIDService
 import logging
 from metakb.database import Graph
 import json
 from json.decoder import JSONDecodeError
+from urllib.parse import quote
 
 
 logger = logging.getLogger('metakb')
@@ -66,7 +67,7 @@ class QueryHandler:
             self.disease_query_handler.search_groups(disease)
         normalized_disease = None
         if disease_norm_response['match_type'] != 0:
-            normalized_disease = disease_norm_response['value_object_descriptor']['value']['disease_id']  # noqa: E501
+            normalized_disease = disease_norm_response['value_object_descriptor']['value']['id']  # noqa: E501
 
         if not normalized_disease:
             warnings.append(f'disease-normalizer could not normalize '
@@ -320,7 +321,8 @@ class QueryHandler:
         session.close()
         return SearchService(**response).dict(exclude_none=True)
 
-    def _add_variation_descriptor(self, response, variation_descriptor):
+    def _add_variation_descriptor(self, response, variation_descriptor,
+                                  by_id=False):
         """Add variation descriptor to response.
 
         :param dict response: The search response
@@ -349,11 +351,12 @@ class QueryHandler:
                 self._get_variation_descriptors_gene, vd_params['id']
             )
             vd_params['gene_context'] = gene_descriptor.get('id')
-            gene_value_object = session.read_transaction(
-                self._find_descriptor_value_object, vd_params['gene_context']
-            )
-            self._add_gene_descriptor(gene_descriptor, gene_value_object,
-                                      response)
+            if not by_id:
+                gene_value_object = session.read_transaction(
+                    self._find_descriptor_value_object, vd_params['gene_context']  # noqa: E501
+                )
+                self._add_gene_descriptor(gene_descriptor, gene_value_object,
+                                          response)
 
         # Get Variation Descriptor Expressions
         for key in ['expressions_genomic', 'expressions_protein',
@@ -425,8 +428,11 @@ class QueryHandler:
             }
 
         vd = VariationDescriptor(**vd_params).dict()
-        if vd not in response['variation_descriptors']:
-            response['variation_descriptors'].append(vd)
+        if by_id:
+            response['variation_descriptor'] = vd
+        else:
+            if vd not in response['variation_descriptors']:
+                response['variation_descriptors'].append(vd)
 
     @staticmethod
     def _get_variation_descriptors_gene(tx, vid):
@@ -439,7 +445,7 @@ class QueryHandler:
         return tx.run(query).single()[0]
 
     def _add_gene_descriptor(self, gene_descriptor, gene_value_object,
-                             response):
+                             response, by_id=False):
         """Add gene descriptor to response.
 
         :param Node gene_descriptor: Gene Descriptor Node
@@ -456,10 +462,14 @@ class QueryHandler:
         }
 
         gd = GeneDescriptor(**gd_params).dict()
-        if gd not in response['gene_descriptors']:
-            response['gene_descriptors'].append(gd)
+        if by_id:
+            response['gene_descriptor'] = gd
+        else:
+            if gd not in response['gene_descriptors']:
+                response['gene_descriptors'].append(gd)
 
-    def _add_therapy_descriptor(self, response, therapy_descriptor):
+    def _add_therapy_descriptor(self, response, therapy_descriptor,
+                                by_id=False):
         """Add therapy descriptor to response.
 
         :param dict response: The search response
@@ -480,10 +490,14 @@ class QueryHandler:
             td_params['value'] = Drug(id=value_object.get('id')).dict()
 
         td = ValueObjectDescriptor(**td_params).dict()
-        if td not in response['therapy_descriptors']:
-            response['therapy_descriptors'].append(td)
+        if by_id:
+            response['therapy_descriptor'] = td
+        else:
+            if td not in response['therapy_descriptors']:
+                response['therapy_descriptors'].append(td)
 
-    def _add_disease_descriptor(self, response, disease_descriptor):
+    def _add_disease_descriptor(self, response, disease_descriptor,
+                                by_id=False):
         """Add disease descriptor to response.
 
         :param dict response: The search response
@@ -503,10 +517,13 @@ class QueryHandler:
             dd_params['value'] = Disease(id=value_object.get('id')).dict()
 
         dd = ValueObjectDescriptor(**dd_params).dict()
-        if dd not in response['disease_descriptors']:
-            response['disease_descriptors'].append(dd)
+        if by_id:
+            response['disease_descriptor'] = dd
+        else:
+            if dd not in response['disease_descriptors']:
+                response['disease_descriptors'].append(dd)
 
-    def _add_method(self, response, method):
+    def _add_method(self, response, method, by_id=False):
         """Add method to response.
 
         :param dict response: The search response
@@ -520,10 +537,13 @@ class QueryHandler:
                 params[key] = method.get(key)
 
         m = Method(**params).dict()
-        if m not in response['methods']:
-            response['methods'].append(m)
+        if by_id:
+            response['method'] = m
+        else:
+            if m not in response['methods']:
+                response['methods'].append(m)
 
-    def _add_document(self, response, document):
+    def _add_document(self, response, document, by_id=False):
         """Add document to response.
 
         :param dict response: The search response
@@ -538,8 +558,11 @@ class QueryHandler:
             params[key] = document.get(key)
 
         d = Document(**params).dict()
-        if d not in response['documents']:
-            response['documents'].append(d)
+        if by_id:
+            response['document'] = d
+        else:
+            if d not in response['documents']:
+                response['documents'].append(d)
 
     @staticmethod
     def _find_node_by_id(tx, node_id):
@@ -549,7 +572,7 @@ class QueryHandler:
             f"WHERE toLower(n.id) = toLower('{node_id}') "
             "RETURN n"
         )
-        return tx.run(query).single()[0]
+        return (tx.run(query).single() or [None])[0]
 
     @staticmethod
     def _find_descriptor_value_object(tx, descriptor_id):
@@ -745,3 +768,118 @@ class QueryHandler:
             "RETURN p"
         )
         return (tx.run(query).single() or [None])[0]
+
+    def search_by_id(self, node_id):
+        """Get node information from queried concepts.
+
+        :param str node_id: node_id
+        :return: A dictionary containing the node content
+        """
+        valid_node_id = None
+        response = {
+            'query': node_id,
+            'warnings': []
+        }
+
+        if not node_id:
+            response['warnings'].append("No parameters were entered.")
+        elif node_id.strip() == '':
+            response['warnings'].append("Cannot enter empty string.")
+        else:
+            node_id = node_id.strip()
+            if '%' not in node_id and ':' in node_id:
+                concept_name = quote(node_id.split(":", 1)[1])
+                node_id = \
+                    f"{node_id.split(':', 1)[0]}" \
+                    f":{concept_name}"
+            with self.driver.session() as session:
+                node = session.read_transaction(
+                    self._find_node_by_id, node_id
+                )
+                if node:
+                    valid_node_id = node.get('id')
+                else:
+                    response['warnings'].append(f"Node: {node_id} "
+                                                f"does not exist.")
+        if (not node_id and not valid_node_id) or \
+                (node_id and not valid_node_id):
+            return SearchIDService(**response).dict(exclude_none=True)
+
+        label, *_ = node.labels
+        if label == 'Statement':
+            self._add_statement(response, node)
+        elif label == 'Proposition' or label == 'TherapeuticResponse':
+            self._add_proposition(response, node)
+        elif label == 'VariationDescriptor':
+            self._add_variation_descriptor(response, node, by_id=True)
+        elif label == 'TherapyDescriptor':
+            self._add_therapy_descriptor(response, node, by_id=True)
+        elif label == 'DiseaseDescriptor':
+            self._add_disease_descriptor(response, node, by_id=True)
+        elif label == 'GeneDescriptor':
+            self._add_gene_descriptor(node, self._get_gene_value_object(node), response, by_id=True)  # noqa: E501
+        elif label == 'Document':
+            self._add_document(response, node, by_id=True)
+        elif label == 'Method':
+            self._add_method(response, node, by_id=True)
+
+        session.close()
+        return SearchIDService(**response).dict(exclude_none=True)
+
+    def _get_gene_value_object(self, node):
+        """Get gene value object from gene descriptor object
+
+        :param descriptor object node: gene descriptor object
+        :return: gene value object
+        """
+        with self.driver.session() as session:
+            gene_value_object = session.read_transaction(
+                self._find_descriptor_value_object, node.get('id')
+            )
+        return gene_value_object
+
+    def _add_statement(self, response, node):
+        """Add statement to response
+
+        :param dict response: The search response
+        :param node: The searched node
+        """
+        with self.driver.session() as session:
+            statement_id = node.get('id')
+            resp = session.read_transaction(
+                self._find_and_return_statement_response, statement_id)
+            se_list = session.read_transaction(
+                self._find_and_return_supported_by, statement_id)
+            response['statement'] = StatementResponse(
+                id=statement_id,
+                description=node.get('description'),
+                direction=node.get('direction'),
+                evidence_level=node.get('evidence_level'),
+                variation_origin=node.get('variation_origin'),
+                proposition=resp['tr_id'],
+                variation_descriptor=resp['vid'],
+                therapy_descriptor=resp['tid'],
+                disease_descriptor=resp['did'],
+                method=resp['m']['id'],
+                supported_by=[se['id'] for se in se_list]
+            ).dict()
+
+    def _add_proposition(self, response, node):
+        """Add proposition to response
+
+        :param dict response: The search response
+        :param node: The searched node
+        """
+        with self.driver.session() as session:
+            p_id = node.get('id')
+            value_ids = session.read_transaction(
+                self._find_and_return_proposition_response, p_id
+            )
+            response['proposition'] = TherapeuticResponseProposition(
+                id=p_id,
+                type=node.get('type'),
+                predicate=node.get('predicate'),
+                subject=value_ids['subject'],
+                object_qualifier=value_ids['object_qualifier'],
+                object=value_ids['object']
+            ).dict()
