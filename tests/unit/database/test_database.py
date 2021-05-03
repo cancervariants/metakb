@@ -54,10 +54,10 @@ def test_gene_descriptor_rules(graph):
             genes = s.run(descr_query, descr_id=descr_id)
             assert genes.value()[0] == 1
 
-            # described by 1 or more VariationDescriptor
-            var_query = "MATCH (:GeneDescriptor {id:$descr_id}) <-[:HAS_GENE]- (:VariationDescriptor) RETURN count(*)"  # noqa: E501
-            var_descrs = s.run(var_query, descr_id=descr_id)
-            assert var_descrs.value()[0] >= 1
+            # described by 1 or more GenenDescriptor
+            gene_query = "MATCH (:GeneDescriptor {id:$descr_id}) <-[:HAS_GENE]- (:VariationDescriptor) RETURN count(*)"  # noqa: E501
+            gene_descrs = s.run(gene_query, descr_id=descr_id)
+            assert gene_descrs.value()[0] >= 1
 
 
 def test_variation_rules(graph):
@@ -173,10 +173,10 @@ def test_statement_rules(graph):
             disease = s.run(query, s_id=s_id)
             assert disease.value()[0] == 1
 
-            # Statement has 1 TherapyDescriptor
+            # Statement has 0 or 1 TherapyDescriptor
             query = "MATCH (:Statement {id:$s_id}) -[:HAS_THERAPY]-> (:TherapyDescriptor) RETURN count(*)"  # noqa: E501
             therapy = s.run(query, s_id=s_id)
-            assert therapy.value()[0] == 1
+            assert therapy.value()[0] in [0, 1]
 
             # Statement defines 1 Proposition
             query = "MATCH (:Statement {id:$s_id}) -[:DEFINED_BY]-> (:Proposition) RETURN count(*)"  # noqa: E501
@@ -207,7 +207,10 @@ def test_proposition_rules(graph):
             assert p_id not in ids
             ids.add(p_id)
             # labeling is correct
-            assert set(values.labels) == {'Proposition', 'TherapeuticResponse'}
+            assert set(values.labels) in [
+                {'Proposition', 'TherapeuticResponse'},
+                {'Proposition', 'Prognostic'}
+            ]
 
             # Proposition is defined by 1 or more Statements
             query = "MATCH (:Proposition {id:$p_id}) <-[:DEFINED_BY]- (:Statement) RETURN count(*)"  # noqa: E501
@@ -222,12 +225,15 @@ def test_proposition_rules(graph):
             variations_out = {v[0] for v in s.run(query, p_id=p_id).values()}
             assert variations_in == variations_out
 
-            # Proposition-Therapy relationships >= 1 and match
             query = "MATCH (:Proposition {id:$p_id}) -[:HAS_OBJECT]-> (v:Therapy) RETURN v.id"  # noqa: E501
             therapies_in = {v[0] for v in s.run(query, p_id=p_id).values()}
-            assert len(therapies_in) >= 1
+            if 'TherapeuticResponse' in values.labels:
+                assert len(therapies_in) >= 1
+            elif 'Prognostic' in values.labels:
+                assert len(therapies_in) == 0
             query = "MATCH (:Proposition {id:$p_id}) <-[:IS_OBJECT_OF]- (v:Therapy) RETURN v.id"  # noqa: E501
-            therapies_out = {v[0] for v in s.run(query, p_id=p_id).values()}
+            therapies_out = {v[0] for v in s.run(query,
+                                                 p_id=p_id).values()}
             assert therapies_in == therapies_out
 
             # Proposition-Disease relationships >= 1 and match
