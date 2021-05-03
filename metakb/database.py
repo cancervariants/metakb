@@ -1,7 +1,7 @@
 """Graph database for storing harvested data."""
 from neo4j import GraphDatabase
 from neo4j.exceptions import ServiceUnavailable, ConstraintError
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, Set
 import logging
 import json
 from pathlib import Path
@@ -101,7 +101,7 @@ class Graph:
             to DB, including Assertions, Therapies, Diseases, Genes,
             Variations, Propositions, and Evidence
         """
-        added_ids = list()  # Used to keep track of IDs that are in statements
+        added_ids = set()  # Used to keep track of IDs that are in statements
         with self.driver.session() as session:
             loaded_count = 0
             for ev in data.get('statements', []):
@@ -110,12 +110,13 @@ class Graph:
                 if var_descr['id'] in added_ids:
                     gc = var_descr['gene_context']
                     if gc and gc not in added_ids:
-                        added_ids.append(gc)
+                        added_ids.add(gc)
             for method in data.get('methods', []):
                 try:
                     session.write_transaction(self._add_method, method,
                                               added_ids)
                 except ConstraintError:
+                    logger.warning(f"{method['id']} exists already.")
                     continue
             for descriptor in ['therapy_descriptors', 'disease_descriptors',
                                'gene_descriptors']:
@@ -125,36 +126,43 @@ class Graph:
                             self._add_descriptor, d, added_ids
                         )
                     except ConstraintError:
+                        logger.warning(f"{d['id']} exists already.")
                         continue
             for var_descr in data.get('variation_descriptors', []):
                 try:
                     session.write_transaction(self._add_variation_descriptor,
                                               var_descr, added_ids)
                 except ConstraintError:
+                    logger.warning(f"{var_descr['id']} exists already.")
                     continue
             for doc in data.get('documents'):
                 try:
                     session.write_transaction(self._add_document, doc)
                 except ConstraintError:
+                    logger.warning(f"{doc['id']} exists already.")
                     continue
             for proposition in data.get('propositions', []):
                 try:
                     session.write_transaction(self._add_proposition,
                                               proposition)
                 except ConstraintError:
+                    logger.warning(f"{proposition['id']} exists already.")
                     continue
-            for ev in data.get('statements', []):
+            for s in data.get('statements', []):
                 loaded_count += 1
-                session.write_transaction(self._add_statement, ev,
-                                          added_ids)
+                try:
+                    session.write_transaction(self._add_statement, s,
+                                              added_ids)
+                except ConstraintError:
+                    logger.warning(f"{s['id']} exists already.")
             logger.info(f"Successfully loaded {loaded_count} statements.")
 
     @staticmethod
-    def _add_method(tx, method: Dict, added_ids: List[str]):
+    def _add_method(tx, method: Dict, added_ids: Set[str]):
         """Add Method object to DB.
         :param Dict method: must include `id`, `label`, `url`,
             `version`, and `authors` values.
-        :param list added_ids: IDs found in statements
+        :param set added_ids: IDs found in statements
         """
         method['version'] = json.dumps(method['version'])
         query = """
@@ -170,12 +178,12 @@ class Graph:
                 raise exception
 
     @staticmethod
-    def _add_descriptor(tx, descriptor: Dict, added_ids: List[str]):
+    def _add_descriptor(tx, descriptor: Dict, added_ids: Set[str]):
         """Add gene, therapy, or disease descriptor object to DB.
         :param Dict descriptor: must contain a `value` field with `type`
             and `<type>_id` fields. `type` field must be one of
             {'TherapyDescriptor', 'DiseaseDescriptor', 'GeneDescriptor'}
-        :param list added_ids: IDs found in statements
+        :param set added_ids: IDs found in statements
         """
         if descriptor['id'] not in added_ids:
             return
@@ -210,16 +218,16 @@ class Graph:
 
     @staticmethod
     def _add_variation_descriptor(tx, descriptor_in: Dict,
-                                  added_ids: List[str]):
+                                  added_ids: Set[str]):
         """Add variant descriptor object to DB.
         :param Dict descriptor_in: must include a `value_id` field and a
             `value` object containing `type`, `state`, and `location` objects.
-        :param list added_ids: IDs found in statements
+        :param set added_ids: IDs found in statements
         """
         descriptor = descriptor_in.copy()
 
         if descriptor['id'] in added_ids:
-            added_ids.append(descriptor['gene_context'])
+            added_ids.add(descriptor['gene_context'])
         else:
             return
 
@@ -386,22 +394,22 @@ class Graph:
         """Add descriptors and method IDs to list of added_ids.
 
         :param Node statement: Statement node
-        :param list added_ids: IDs found in statements
+        :param set added_ids: IDs found in statements
         """
         for node_id in [statement.get('therapy_descriptor'),
                         statement.get('variation_descriptor'),
                         statement.get('disease_descriptor'),
                         statement.get('method')]:
             if node_id not in added_ids:
-                added_ids.append(node_id)
+                added_ids.add(node_id)
 
     @staticmethod
-    def _add_statement(tx, statement: Dict, added_ids: List[str]):
+    def _add_statement(tx, statement: Dict, added_ids: Set[str]):
         """Add Statement object to DB.
         :param Dict statement: must include `id`, `variation_descriptor`,
             `therapy_descriptor`, `disease_descriptor`, `method`, and
             `supported_by` fields.
-        :param list added_ids: IDs found in statements
+        :param set added_ids: IDs found in statements
         """
         formatted_keys = _create_keys_string(statement, ('id', 'description',
                                                          'direction',
@@ -422,7 +430,7 @@ class Graph:
             therapy_descriptor = \
                 f"MERGE (ther:TherapyDescriptor {{id:$therapy_descriptor}})"  # noqa: F541, E501
             therapy_obj = f"MERGE (ev) -[:HAS_THERAPY]-> (ther)"  # noqa: F541
-            added_ids.append(td)
+            added_ids.add(td)
         else:
             therapy_descriptor, therapy_obj = "", ""
 
