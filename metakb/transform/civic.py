@@ -141,6 +141,9 @@ class CIViCTransform:
                         self._add_therapy_descriptor(therapy_id, r)
                     if not therapy_descriptor:
                         continue
+
+                    if therapy_descriptor not in self.transformed['therapy_descriptors']:  # noqa: E501
+                        self.transformed['therapy_descriptors'].append(therapy_descriptor)  # noqa: E501
             else:
                 therapy_id = None
                 therapy_descriptor = None
@@ -149,6 +152,9 @@ class CIViCTransform:
             disease_descriptor = self._add_disease_descriptor(disease_id, r)
             if not disease_descriptor:
                 continue
+
+            if disease_descriptor not in self.transformed['disease_descriptors']:  # noqa: E501
+                self.transformed['disease_descriptors'].append(disease_descriptor)  # noqa: E501
 
             if is_evidence:
                 variant_id = f"civic:vid{r['variant_id']}"
@@ -414,19 +420,20 @@ class CIViCTransform:
             vname_lower = variant['name'].lower()
 
             if vname_lower.endswith('fs') or vname_lower.endswith('del') or '-' in vname_lower or '/' in vname_lower:  # noqa: E501
-                logger.warning("Variant Normalizer does not support "
-                               f"{variant_id}: {variant_query}")
-                continue
+                if not hgvs_exprs:
+                    logger.warning("Variant Normalizer does not support "
+                                   f"{variant_id}: {variant_query}")
+                    continue
 
             unable_to_normalize = {
                 'mutation', 'amplification', 'exon', 'overexpression',
                 'frameshift', 'promoter', 'deletion', 'type', 'insertion',
-                'expression', 'duplication', 'copy', 'underexpression'
+                'expression', 'duplication', 'copy', 'underexpression',
                 'number', 'variation', 'repeat', 'rearrangement', 'activation',
                 'expression', 'mislocalization', 'translocation', 'wild',
                 'polymorphism', 'frame', 'shift', 'loss', 'function', 'levels',
                 'inactivation', 'snp', 'fusion', 'dup', 'truncation',
-                'homozygosity', 'gain',
+                'homozygosity', 'gain', 'phosphorylation',
             }
 
             if set(vname_lower.split()) & unable_to_normalize:
@@ -435,20 +442,32 @@ class CIViCTransform:
                                    f"{variant_id}: {variant_query}")
                     continue
 
-            hgvs_exprs_queries = list()
-            if 'c.' in variant_query:
-                is_transcript = True
-            else:
-                is_transcript = False
-
+            # If c. in variant name, this indicates transcript
+            # Otherwise it indicates protein or genomic
+            transcript_queries = list()
+            genomic_queries = list()
+            protein_queries = list()
             for expr in hgvs_exprs:
-                if 'protein' in expr['syntax'] and not is_transcript:
-                    hgvs_exprs_queries.append(expr['value'])
-                elif 'transcript' in expr['syntax'] and is_transcript:
-                    hgvs_exprs_queries.append(expr['value'])
+                if 'protein' in expr['syntax']:
+                    protein_queries.append(expr['value'])
+                elif 'genomic' in expr['syntax']:
+                    genomic_queries.append(expr['value'])
+                else:
+                    transcript_queries.append(expr['value'])
+
+            # Order based on type of variant we think it is in order to
+            # give corresponding value_id/value.
+            if 'c.' in variant_query:
+                queries = \
+                    transcript_queries + genomic_queries + [variant_query] + \
+                    protein_queries
+            else:
+                queries = \
+                    protein_queries + genomic_queries + \
+                    [variant_query] + transcript_queries
 
             variant_norm_resp = self._get_variant_norm_resp(
-                hgvs_exprs_queries + [variant_query], normalizer_responses
+                queries, normalizer_responses
             )
 
             if not variant_norm_resp:
