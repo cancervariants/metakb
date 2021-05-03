@@ -365,7 +365,7 @@ class CIViCTransform:
                proposition['object'])
         proposition_index = self._set_ix(propositions_documents_ix,
                                          'propositions', key)
-        proposition['id'] = f"proposition:{proposition_index:03}"
+        proposition['id'] = f"proposition:{proposition_index}"
 
         return [proposition]
 
