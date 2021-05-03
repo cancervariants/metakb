@@ -109,7 +109,7 @@ class Graph:
             for var_descr in data.get('variation_descriptors', []):
                 if var_descr['id'] in added_ids:
                     gc = var_descr['gene_context']
-                    if gc and gc not in added_ids:
+                    if gc:
                         added_ids.add(gc)
             for method in data.get('methods', []):
                 try:
@@ -226,9 +226,7 @@ class Graph:
         """
         descriptor = descriptor_in.copy()
 
-        if descriptor['id'] in added_ids:
-            added_ids.add(descriptor['gene_context'])
-        else:
+        if descriptor['id'] not in added_ids:
             return
 
         # prepare value properties
@@ -400,7 +398,7 @@ class Graph:
                         statement.get('variation_descriptor'),
                         statement.get('disease_descriptor'),
                         statement.get('method')]:
-            if node_id not in added_ids:
+            if node_id:
                 added_ids.add(node_id)
 
     @staticmethod
