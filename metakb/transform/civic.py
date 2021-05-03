@@ -141,6 +141,9 @@ class CIViCTransform:
                         self._add_therapy_descriptor(therapy_id, r)
                     if not therapy_descriptor:
                         continue
+
+                    if therapy_descriptor not in self.transformed['therapy_descriptors']:  # noqa: E501
+                        self.transformed['therapy_descriptors'].append(therapy_descriptor)  # noqa: E501
             else:
                 therapy_id = None
                 therapy_descriptor = None
@@ -149,6 +152,9 @@ class CIViCTransform:
             disease_descriptor = self._add_disease_descriptor(disease_id, r)
             if not disease_descriptor:
                 continue
+
+            if disease_descriptor not in self.transformed['disease_descriptors']:  # noqa: E501
+                self.transformed['disease_descriptors'].append(disease_descriptor)  # noqa: E501
 
             if is_evidence:
                 variant_id = f"civic:vid{r['variant_id']}"
