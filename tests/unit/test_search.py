@@ -516,9 +516,15 @@ def return_response(query_handler, statement_id, **kwargs):
 
 
 def assert_no_match(response):
-    """No match assertions for queried concepts."""
+    """No match assertions for queried concepts in search."""
     assert response['statements'] == []
     assert response['propositions'] == []
+    assert len(response['warnings']) > 0
+
+
+def assert_no_match_id(response):
+    """No match assertions for search by id."""
+    assert len(response.keys()) == 2
     assert len(response['warnings']) > 0
 
 
@@ -961,6 +967,18 @@ def test_no_matches(query_handler):
     # Invalid variation
     response = query_handler.search(variation='v600e')
     assert_no_match(response)
+
+    response = query_handler.search_by_id('')
+    assert_no_match_id(response)
+
+    response = query_handler.search_by_id(' ')
+    assert_no_match_id(response)
+
+    response = query_handler.search_by_id('aid6')
+    assert_no_match_id(response)
+
+    response = query_handler.search_by_id('civc:aid6')
+    assert_no_match_id(response)
 
 
 def test_civic_id_search(query_handler, civic_eid2997, eid2997_proposition,
