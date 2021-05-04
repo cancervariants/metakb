@@ -80,6 +80,7 @@ if __name__ == '__main__':
     civic = CIViCTransform()
     civic.transform()
     civic._create_json()
-    with open(f"{PROJECT_ROOT}/data/civic/transform/civic_cdm.json", 'r') as f:
+    with open(f"{PROJECT_ROOT}/data/civic/transform/civic_cdm.json",
+              'r') as f:
         civic_data = json.load(f)
     create_civic_example(civic_data)

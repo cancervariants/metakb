@@ -7,7 +7,7 @@ from os import environ
 import logging
 from metakb.database import Graph
 from metakb import PROJECT_ROOT
-from metakb.harvesters import CIViC, MOAlmanac  # noqa: F401
+from metakb.harvesters import CIViC, MOAlmanac
 from metakb.transform import CIViCTransform, MOATransform
 from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
@@ -18,6 +18,7 @@ from therapy import SOURCES as TherapySourceLookup
 from therapy.cli import CLI as TherapyCLI
 from gene.database import Database as GeneDatabase
 from gene.cli import CLI as GeneCLI
+from timeit import default_timer as timer
 
 
 logger = logging.getLogger('metakb')
@@ -95,6 +96,7 @@ class CLI:
             CLI()._transform_sources()
 
         # upload
+        start = timer()
         logger.info("Uploading to DB...")
         g = Graph(uri=db_url, credentials=(db_username, db_password))
         g.clear()
@@ -107,6 +109,8 @@ class CLI:
                 logger.fatal(f'Could not locate transformed JSON at {path}')
                 raise FileNotFoundError
         g.close()
+        end = timer()
+        click.echo(f"DB loaded in {(end-start):.5f} s.")
         logger.info("DB upload successful.")
 
     @staticmethod
@@ -118,11 +122,15 @@ class CLI:
             'moa': MOAlmanac
         }
         for class_str, class_name in harvester_sources.items():
+            click.echo(f"Harvesting {class_str}...")
+            start = timer()
             source = class_name()
             source_successful = source.harvest()
+            end = timer()
             if not source_successful:
                 logger.info(f'{class_str} harvest failed.')
                 click.get_current_context().exit()
+            click.echo(f"{class_str} harvest finished in {(end-start):.5f} s.")
 
     @staticmethod
     def _transform_sources():
@@ -134,8 +142,13 @@ class CLI:
             'moa': MOATransform
         }
         for class_str, class_name in transform_sources.items():
+            click.echo(f"Transforming {class_str}...")
+            start = timer()
             source = class_name()
             source_indices = source.transform(source_indices)
+            end = timer()
+            click.echo(
+                f"{class_str} transform finished in {(end - start):.5f} s.")
             source._create_json()
 
     @staticmethod

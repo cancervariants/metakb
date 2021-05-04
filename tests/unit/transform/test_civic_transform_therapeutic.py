@@ -1,4 +1,4 @@
-"""Test CIViC Transformation to common data model"""
+"""Test CIViC Transformation to common data model for Therapeutic Response."""
 import pytest
 from metakb.transform.civic import CIViCTransform
 from metakb import PROJECT_ROOT
@@ -10,10 +10,13 @@ import os
 def data():
     """Create a CIViC Transform test fixture."""
     c = CIViCTransform(file_path=f"{PROJECT_ROOT}/tests/data/"
-                                 f"transform/civic_harvester.json")
+                                 f"transform/therapeutic/civic_harvester.json")
     c.transform()
-    c._create_json(civic_dir=PROJECT_ROOT / 'tests' / 'data' / 'transform')
-    with open(f"{PROJECT_ROOT}/tests/data/transform/civic_cdm.json", 'r') as f:
+    c._create_json(
+        civic_dir=PROJECT_ROOT / 'tests' / 'data' / 'transform' / 'therapeutic'
+    )
+    with open(f"{PROJECT_ROOT}/tests/data/transform/"
+              f"therapeutic/civic_cdm.json", 'r') as f:
         data = json.load(f)
     return data
 
@@ -47,7 +50,9 @@ def statements():
             "therapy_descriptor": "civic:tid146",
             "disease_descriptor": "civic:did8",
             "method": "method:002",
-            "supported_by": ["document:001", "civic:eid2997"],
+            "supported_by": ["document:001", "civic:eid2997", "civic:eid2629",
+                             "civic:eid982", "civic:eid968", "civic:eid883",
+                             "civic:eid879"],
             "type": "Statement"
         }
     ]
@@ -125,8 +130,7 @@ def variation_descriptors():
                     "type": "Extension"
                 }
             ],
-            "molecule_context": "protein",
-            "structural_type": "SO:0001060",
+            "structural_type": "SO:0001583",
             "expressions": [
                 {
                     "syntax": "hgvs:protein",
@@ -149,7 +153,6 @@ def variation_descriptors():
                     "type": "Expression"
                 }
             ],
-            "ref_allele_seq": "L",
             "gene_context": "civic:gid19"
         }
     ]
@@ -243,6 +246,16 @@ def methods():
                 "month": 1
             },
             "authors": "Li MM, Datto M, Duncavage EJ, et al."
+        },
+        {
+            "id": "method:003",
+            "label": "Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology",  # noqa: E501
+            "url": "https://pubmed.ncbi.nlm.nih.gov/25741868/",
+            "version": {
+                "year": 2015,
+                "month": 5
+            },
+            "authors": "Richards S, Aziz N, Bale S, et al."
         }
     ]
 
@@ -271,7 +284,7 @@ def assert_non_lists(actual, test):
     if isinstance(actual, dict):
         assertions(test, actual)
     else:
-        assert test == actual
+        assert actual == test
 
 
 def assertions(test_data, actual_data):
@@ -280,7 +293,7 @@ def assertions(test_data, actual_data):
         for key in actual_data.keys():
             if isinstance(actual_data[key], list):
                 try:
-                    assert set(test_data[key]) == set(actual_data[key])
+                    assert set(actual_data[key]) == set(test_data[key])
                 except:  # noqa: E722
                     assertions(test_data[key], actual_data[key])
             else:
@@ -288,7 +301,7 @@ def assertions(test_data, actual_data):
     elif isinstance(actual_data, list):
         for item in actual_data:
             if isinstance(item, list):
-                assert set(test_data) == set(actual_data)
+                assert set(actual_data) == set(test_data)
             else:
                 assert_non_lists(actual_data, test_data)
 
@@ -306,4 +319,5 @@ def test_civic_cdm(data, statements, propositions, variation_descriptors,
     assertions(methods, data['methods'])
     assertions(documents, data['documents'])
 
-    os.remove(f"{PROJECT_ROOT}/tests/data/transform/civic_cdm.json")
+    os.remove(f"{PROJECT_ROOT}/tests/data/transform/therapeutic/"
+              f"civic_cdm.json")
