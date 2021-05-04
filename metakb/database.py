@@ -98,7 +98,7 @@ class Graph:
     def add_transformed_data(self, data: Dict):
         """Add set of data formatted per Common Data Model to DB.
         :param Dict data: contains key/value pairs for data objects to add
-            to DB, including Assertions, Therapies, Diseases, Genes,
+            to DB, including Statements, Therapies, Diseases, Genes,
             Variations, Propositions, and Evidence
         """
         with self.driver.session() as session:
