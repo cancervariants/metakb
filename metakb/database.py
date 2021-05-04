@@ -325,10 +325,14 @@ class Graph:
             prop_label = ":TherapeuticResponse"
             therapy_obj = f"MERGE (therapy:Therapy {{id:$object}})"  # noqa: F541, E501
             therapy_rel = f"MERGE (response) -[:HAS_OBJECT]-> (therapy)"  # noqa: F541, E501
-        elif prop_type == "prognostic_proposition":
-            prop_label, therapy_obj, therapy_rel = ":Prognostic", "", ""
         else:
-            prop_label, therapy_obj, therapy_rel = "", "", ""
+            therapy_obj, therapy_rel = "", ""
+            if prop_type == "prognostic_proposition":
+                prop_label = ":Prognostic"
+            elif prop_type == "diagnostic_proposition":
+                prop_label = ":Diagnostic"
+            else:
+                prop_label = ""
 
         query = f"""
         MERGE (response{prop_label}:Proposition
