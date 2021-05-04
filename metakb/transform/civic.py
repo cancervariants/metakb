@@ -96,7 +96,8 @@ class CIViCTransform:
                 'propositions': dict()
             }
 
-        # Filter Variant IDs for Prognostic and Predictive evidence
+        # Filter Variant IDs for
+        # Prognostic, Predictive, and Diagnostic evidence
         supported_evidence_types = ['Prognostic', 'Predictive', 'Diagnostic']
         vids = {e['variant_id'] for e in evidence_items
                 if e['evidence_type'] in supported_evidence_types}
@@ -126,12 +127,20 @@ class CIViCTransform:
             `False` if records are assertions.
         """
         for r in records:
-            if r['evidence_type'] not in ['Predictive', 'Prognostic',
-                                          'Diagnostic']:
+            # Omit entries that are not in an accepted state
+            if r['status'] != 'accepted':
+                logger.warning(f"civic:{r['name'].lower()} has status:"
+                               f" {r['status']}")
                 continue
 
-            if not r['disease']:
+            if r['evidence_type'] not in ['Predictive', 'Prognostic',
+                                          'Diagnostic']:
+
                 continue
+            else:
+                # Functional Evidence types do not have a disease
+                if not r['disease']:
+                    continue
 
             if r['evidence_type'] == 'Predictive':
                 if len(r['drugs']) != 1:
@@ -198,8 +207,10 @@ class CIViCTransform:
                     method = f'method:' \
                              f'{schemas.MethodID.CIVIC_AID_ACMG.value:03}'
                 else:
-                    logger.warning(f"Unable to get method for {r['name']}")
-                    method = None
+                    # Statements are required to have a method
+                    logger.warning(f"Unable to get method for "
+                                   f"civic:{r['name'].lower()}")
+                    continue
 
                 # assertion's evidence level
                 evidence_level = self._get_assertion_evidence_level(r)
@@ -402,8 +413,8 @@ class CIViCTransform:
             if clin_sig in ['PATHOGENIC', 'LIKELY_PATHOGENIC']:
                 predicate = schemas.PathogenicPredicate.PATHOGENIC.value
         else:
-            logger.warning(f"{proposition_type} not supported in Predicate "
-                           f"schemas.")
+            logger.warning(f"CIViC proposition type: {proposition_type} "
+                           f"not supported in Predicate schemas")
         return predicate
 
     def _add_variation_descriptors(self, variants, vids) -> None:
@@ -486,7 +497,8 @@ class CIViCTransform:
                 variant_norm_resp = normalizer_responses[0]
             elif not variant_norm_resp and len(normalizer_responses) == 0:
                 logger.warning("Variant Normalizer unable to normalize: "
-                               f"civic:vid{variant['id']}")
+                               f"civic:vid{variant['id']} using queries "
+                               f"{queries}")
                 continue
 
             if variant['variant_types']:
@@ -637,8 +649,10 @@ class CIViCTransform:
             gene_id = f"civic:gid{gene['id']}"
             highest_match = 0
             normalized_gene_id = None
+            queries = [f"ncbigene:{gene['entrez_id']}",
+                       gene['name']] + gene['aliases']
 
-            for query_str in [f"ncbigene:{gene['entrez_id']}", gene['name']] + gene['aliases']:  # noqa: E501
+            for query_str in queries:
                 if not query_str:
                     continue
 
@@ -663,6 +677,9 @@ class CIViCTransform:
                     alternate_labels=gene['aliases']
                 ).dict(exclude_none=True)
                 self.transformed['gene_descriptors'].append(gene_descriptor)
+            else:
+                logger.warning(f"Gene Normalizer unable to normalize {gene_id}"
+                               f"using queries: {queries}")
 
     def _add_disease_descriptor(self, disease_id, record) \
             -> Optional[schemas.ValueObjectDescriptor]:
@@ -699,14 +716,15 @@ class CIViCTransform:
             return None
 
         disease_id = f"civic:did{disease['id']}"
+        display_name = disease['display_name']
 
         # TODO: Is there a reason why we're not searching on display name?
         if not disease['doid']:
-            logger.warning(f"CIViC {disease['id']} has null DOID.")
+            logger.warning(f"civic:{disease['id']} ({display_name}) "
+                           f"has null DOID")
             return None
 
         doid = f"doid:{disease['doid']}"
-        display_name = disease['display_name']
         highest_match = 0
         normalized_disease_id = None
 
@@ -723,8 +741,9 @@ class CIViCTransform:
                     break
 
         if highest_match == 0:
-            logger.warning(f"{doid} and {display_name} not found in Disease "
-                           f"Normalization normalize.")
+            logger.warning(f"Disease Normalizer unable to normalize: "
+                           f"{disease_id} using queries "
+                           f"{doid} and {display_name}")
             return None
 
         disease_descriptor = schemas.ValueObjectDescriptor(
@@ -784,8 +803,8 @@ class CIViCTransform:
                     break
 
         if highest_match == 0:
-            logger.warning(f"{ncit_id} and {label} not found in Therapy "
-                           f"Normalization normalize.")
+            logger.warning(f"Therapy Normalizer unable to normalize: "
+                           f"using queries {ncit_id} and {label}")
             return None
 
         therapy_descriptor = schemas.ValueObjectDescriptor(
@@ -865,7 +884,7 @@ class CIViCTransform:
                 xrefs=xrefs if xrefs else None
             ).dict(exclude_none=True)
         else:
-            logger.warning(f"{source_type} not in schemas.SourcePrefix.")
+            logger.warning(f"{source_type} not in schemas.SourcePrefix")
         return document
 
     def _get_aid_document(self, assertion, propositions_documents_ix) \
