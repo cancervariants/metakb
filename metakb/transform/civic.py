@@ -325,7 +325,7 @@ class CIViCTransform:
                 )
         elif proposition_type == schemas.PropositionType.DIAGNOSTIC.value:
             proposition = \
-                schemas.DiagnosticcProposition(**params).dict(
+                schemas.DiagnosticProposition(**params).dict(
                     exclude_none=True)
 
         # Get corresponding id for proposition
