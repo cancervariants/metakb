@@ -13,6 +13,8 @@ class XrefSystem(str, Enum):
     DB_SNP = 'dbsnp'
     NCBI = 'ncbigene'
     DISEASE_ONTOLOGY = 'do'
+    ENSEMBL = 'ensembl'
+    COSMIC = 'cosmic'
 
 
 class NamespacePrefix(str, Enum):
@@ -21,6 +23,7 @@ class NamespacePrefix(str, Enum):
     CIVIC = 'civic'
     NCIT = 'ncit'
     MOA = 'moa'
+    PMKB = 'pmkb'
 
 
 class SourcePrefix(str, Enum):
@@ -180,6 +183,7 @@ class MethodID(IntEnum):
     CIVIC_AID_AMP_ASCO_CAP = 2
     CIVIC_AID_ACMG = 3
     MOA_ASSERTION_BIORXIV = 4
+    PMKB = 5
 
 
 class Statement(BaseModel):
