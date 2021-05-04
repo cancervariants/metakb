@@ -720,8 +720,7 @@ class CIViCTransform:
 
         # TODO: Is there a reason why we're not searching on display name?
         if not disease['doid']:
-            logger.warning(f"civic:{disease['id']} ({display_name}) "
-                           f"has null DOID")
+            logger.warning(f"{disease_id} ({display_name}) has null DOID")
             return None
 
         doid = f"doid:{disease['doid']}"
