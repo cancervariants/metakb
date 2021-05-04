@@ -189,7 +189,7 @@ class PrognosticProposition(Proposition):
     predicate: Optional[PrognosticPredicate]
 
 
-class DiagnosticcProposition(Proposition):
+class DiagnosticProposition(Proposition):
     """Defines the Diagnostic Proposition model."""
 
     type = PropositionType.DIAGNOSTIC.value
