@@ -356,7 +356,7 @@ class StatementResponse(BaseModel):
     variation_origin: Optional[VariationOrigin]
     proposition: str
     variation_descriptor: str
-    therapy_descriptor: str
+    therapy_descriptor: Optional[str]
     disease_descriptor: str
     method: str
     supported_by: List[str]
@@ -450,7 +450,9 @@ class SearchService(BaseModel):
     warnings: Optional[List[str]]
     matches: Matches
     statements: Optional[List[StatementResponse]]
-    propositions: Optional[List[TherapeuticResponseProposition]]
+    propositions: Optional[List[Union[TherapeuticResponseProposition,
+                                      DiagnosticProposition,
+                                      PrognosticProposition]]]
     variation_descriptors: Optional[List[VariationDescriptor]]
     gene_descriptors: Optional[List[GeneDescriptor]]
     therapy_descriptors: Optional[List[ValueObjectDescriptor]]
