@@ -7,8 +7,8 @@ from os import environ
 import logging
 from metakb.database import Graph
 from metakb import PROJECT_ROOT
-from metakb.harvesters import CIViC, MOAlmanac  # noqa: F401
-from metakb.transform import CIViCTransform, MOATransform  # noqa: F401
+from metakb.harvesters import CIViC, MOAlmanac
+from metakb.transform import CIViCTransform, MOATransform
 from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
 from disease.cli import CLI as DiseaseCLI
@@ -139,7 +139,7 @@ class CLI:
         # TODO: Switch to using constant
         transform_sources = {
             'civic': CIViCTransform,
-            # 'moa': MOATransform
+            'moa': MOATransform
         }
         for class_str, class_name in transform_sources.items():
             click.echo(f"Transforming {class_str}...")
