@@ -209,7 +209,8 @@ def test_proposition_rules(graph):
             # labeling is correct
             assert set(values.labels) in [
                 {'Proposition', 'TherapeuticResponse'},
-                {'Proposition', 'Prognostic'}
+                {'Proposition', 'Prognostic'},
+                {'Proposition', 'Diagnostic'}
             ]
 
             # Proposition is defined by 1 or more Statements
@@ -229,7 +230,7 @@ def test_proposition_rules(graph):
             therapies_in = {v[0] for v in s.run(query, p_id=p_id).values()}
             if 'TherapeuticResponse' in values.labels:
                 assert len(therapies_in) >= 1
-            elif 'Prognostic' in values.labels:
+            else:
                 assert len(therapies_in) == 0
             query = "MATCH (:Proposition {id:$p_id}) <-[:IS_OBJECT_OF]- (v:Therapy) RETURN v.id"  # noqa: E501
             therapies_out = {v[0] for v in s.run(query,
