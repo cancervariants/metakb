@@ -28,9 +28,8 @@ class PMKB(Harvester):
             variants = self._get_all_variants()
             statements = self._get_all_interpretations(variants)
             self._create_json(statements, variants, fn)
-
         except NotImplementedError:  # noqa: E722
-            logger.info("PMKB Harvester was not successful.")
+            logger.error("PMKB Harvester was not successful.")
             return False
 
     def _check_files(self):
@@ -42,9 +41,6 @@ class PMKB(Harvester):
         if not list(self.pmkb_dir.glob('pmkb_variants_*.csv')) and \
                 not list(self.pmkb_dir.glob('pmkb_interps_*.csv')):
             self._download_data()
-
-        if not list(self.pmkb_dir.glob('pmkb_ids_*.csv')):
-            self._download_pmid_index()
 
     def _download_data(self):
         """Retrieve PMKB data from remote host."""
@@ -107,63 +103,72 @@ class PMKB(Harvester):
                 "partner_gene": variant['Partner Gene'],
                 "codons": variant['Codons'],
                 "exons": variant['Exons'],
-                "coordinates": variant['Genomic Coordinates (GRCh37/hg19)'],
             }
-
+            coords = variant['Genomic Coordinates (GRCh37/hg19)']
+            if coords:
+                variant_object['coordinates'] = coords.split(', ')
+            else:
+                variant_object['coordinates'] = []
             variants[name] = variant_object
 
         variants_file.close()
         return variants
 
     def _get_all_interpretations(self, variants):
-        """Process interpretations.
+        """Read interpretations and build harvested Statement objects.
         :param dict variants: dictionary keying variant names to full data
         :return: list of Statement objects
         """
         statements = []
 
         pattern = 'data/pmkb/pmkb_interps_*.csv'
-        interp_path = sorted(list(PROJECT_ROOT.glob(pattern)))[-1]
-        interp_file = open(interp_path, 'r')
-        interps = csv.DictReader(interp_file)
-        for interp in interps:
+        interp_file_path = sorted(list(PROJECT_ROOT.glob(pattern)))[-1]
+        interp_file = open(interp_file_path, 'r')
+        interps_reader = csv.DictReader(interp_file)
+        for interp in interps_reader:
             interp_id = interp['PMKB URL'].split('/')[-1]
-
             interp_gene = interp['Gene']
 
-            interp_diseases = set(interp['Tumor Type(s)'].split('|'))
-            interp_variants = set(interp['Variant(s)'].split('|'))
-            interp_tissues = set(interp['Tissue Type(s)'].split('|'))
-            if len(interp_diseases) > 1 or len(interp_variants) > 1 or \
-                    len(interp_tissues) > 1:
-                # skip multiple diseases/variants/tissues for this pass
+            descriptions = interp['Interpretations'].split('|')
+            if len(descriptions) != 1:
+                logger.warning(f"Interpretation ID#{interp_id} does not have "
+                               f"exactly 1 description.")
                 continue
 
-            variant = interp_variants.pop()
-            if not variant:
-                continue
-
-            variant_data = variants.get(variant)
-            if not variant_data:
-                logger.error(f"Could not retrieve data for variant: {variant}")
-                continue
-
-            statements.append({
+            statement = {
                 "id": interp_id,
-                "description": interp['Interpretations'],
+                "description": descriptions[0],
                 "gene": {
-                    "name": interp_gene,
+                    "name": interp_gene
                 },
-                "variant": {
+                "evidence_items": interp['Citations'].split('|'),
+                "pmkb_evidence_tier": interp['Tier'],
+                "variants": [],
+                "diseases": list(set(interp['Tumor Type(s)'].split('|'))),
+                "tissue_types": list(set(interp['Tissue Type(s)'].split('|')))
+            }
+
+            interp_variants = set(interp['Variant(s)'].split('|'))
+            for interp_variant in interp_variants:
+                variant_data = variants.get(interp_variant)
+                if not variant_data:
+                    logger.error(f"Could not retrieve data for variant: "
+                                 f"{interp_variant}")
+                    continue
+                statement['variants'].append({
                     "name": variant_data['name'],
-                    "id": variant_data['id'],
-                },
-                "disease": {
-                    "name": interp_diseases.pop(),
-                    "tissue_type": interp_tissues.pop(),
-                },
-                "evidence_items": interp['Citations'].split('|')
-            })
+                    "id": variant_data['id']
+                })
+
+            valid_statement = True
+            for field in ('variants', 'diseases', 'evidence_items'):
+                if not statement[field]:
+                    print(interp)
+                    logger.warning(f"Interpretation ID#{interp_id} has no "
+                                   f"valid {field} values.")
+                    valid_statement = False
+            if valid_statement:
+                statements.append(statement)
 
         interp_file.close()
         return statements
@@ -174,7 +179,7 @@ class PMKB(Harvester):
         :param Dict variants: Dictionary where values are Variant objects
         :param str filename: name of composite output file
         """
-        variants_list = [v for k, v in variants.items()]
+        variants_list = list(variants.values())
 
         statements_path = self.pmkb_dir / 'statements.json'
         with open(statements_path, 'w') as outfile:
