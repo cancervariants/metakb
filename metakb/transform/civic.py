@@ -718,16 +718,16 @@ class CIViCTransform:
         disease_id = f"civic:did{disease['id']}"
         display_name = disease['display_name']
 
-        # TODO: Is there a reason why we're not searching on display name?
         if not disease['doid']:
             logger.warning(f"{disease_id} ({display_name}) has null DOID")
-            return None
+            queries = [display_name]
+        else:
+            queries = [f"doid:{disease['doid']}", display_name]
 
-        doid = f"doid:{disease['doid']}"
         highest_match = 0
         normalized_disease_id = None
 
-        for query in [doid, display_name]:
+        for query in queries:
             if not query:
                 continue
 
@@ -741,8 +741,7 @@ class CIViCTransform:
 
         if highest_match == 0:
             logger.warning(f"Disease Normalizer unable to normalize: "
-                           f"{disease_id} using queries "
-                           f"{doid} and {display_name}")
+                           f"{disease_id} using queries {queries}")
             return None
 
         disease_descriptor = schemas.ValueObjectDescriptor(
