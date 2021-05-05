@@ -18,11 +18,15 @@ class PMKBTransform:
     """A class for transforming PMKB data into Common Data Model objects."""
 
     def __init__(self,
-                 file_path=f"{PROJECT_ROOT}/data/pmkb/pmkb_harvester.json"):
+                 file_path=f"{PROJECT_ROOT}/data/pmkb/pmkb_harvester.json",
+                 audit=False):
         """Initiate normalizer services and get data location.
         :param str file_path: location of harvested PMKB json file
+        :param bool audit: if True, save lists of gene, variant, and disease
+            terms that fail to normalize
         """
         self._file_path = file_path
+        self.audit = audit
         self.gene_normalizer = GeneNormalizer()
         self.therapy_normalizer = TherapyNormalizer()
         self.disease_normalizer = DiseaseNormalizer()
@@ -40,14 +44,9 @@ class PMKBTransform:
             'documents': {},  # cite -> Document
         }
         self.invalid_keys = {
-            'variation_descriptors': {},  # label -> VOD
-            'gene_descriptors': {},  # symbol -> VOD
-            'therapy_descriptor': None,  # single therapy VOD once initialized
-            'disease_descriptors': {},  # (label, tissue type) -> VOD
-            'statements': [],  # List of Statements
-            'propositions': {},  # key -> Proposition
-            'method': None,  # single Method once initialized
-            'documents': {},  # cite -> Document
+            'variants': set(),
+            'genes': set(),
+            'diseases': set(),
         }
 
     def _extract(self):
@@ -77,6 +76,16 @@ class PMKBTransform:
         pmkb_dir.mkdir(exist_ok=True, parents=True)
         with open(pmkb_dir / fn, 'w+') as f:
             json.dump(output, f)
+
+        if self.audit:
+            data_dir = PROJECT_ROOT / 'data' / 'pmkb'
+            with open(data_dir / 'invalid_variants.json', 'wb') as f:
+                json.dump(list(self.invalid_keys['variants']), f)
+            with open(data_dir / 'invalid_genes.json', 'wb') as f:
+                json.dump(list(self.invalid_keys['genes']), f)
+            with open(data_dir / 'invalid_diseases.json', 'wb') as f:
+                json.dump([[d, t] for d, t in self.invalid_keys['diseases']],
+                          f)
 
     def transform(self, propositions_documents_ix=None):
         """Transform PMKB harvested json to common data model.
@@ -137,7 +146,7 @@ class PMKBTransform:
         :return: Tuple containing Lists of therapy, disease, gene, and
             variant descriptors (we expect each to be len == 1)
         """
-        # enforce length restrictions
+        # enforce quantity restrictions
         diseases = statement['diseases']
         tissue_types = statement['tissue_types']
         variant_ids = [variant['id'] for variant in statement['variants']]
@@ -187,6 +196,9 @@ class PMKBTransform:
         :return: List (len == 1) containing VOD of best normalized match, or
             empty List if normalization fails
         """
+        invalid_keys = self.invalid_keys['diseases']
+        if (disease, tissue_type) in invalid_keys:
+            return []
         vod = self.transformed['disease_descriptors'].get((disease,
                                                            tissue_type))
         if vod:
@@ -208,6 +220,7 @@ class PMKBTransform:
         if highest_id is None:
             logger.warning(f"Disease normalization of {disease} and "
                            f"{concat_label} failed.")
+            invalid_keys.add((disease, tissue_type))
             return []
 
         vod = schemas.ValueObjectDescriptor(
@@ -227,6 +240,9 @@ class PMKBTransform:
             empty list if normalization fails
         """
         symbol = variant['gene']['name']
+        invalid_keys = self.invalid_keys['genes']
+        if symbol in invalid_keys:
+            return []
 
         gene_descriptors = self.transformed['gene_descriptors']
         vod = gene_descriptors.get(symbol)
@@ -237,6 +253,7 @@ class PMKBTransform:
         match = response['source_matches'][0]
         if match['match_type'] == 0:
             logger.warning(f"Gene normalization of {symbol} failed.")
+            invalid_keys.add(symbol)
             return []
 
         normalized_id = match['records'][0].concept_id
@@ -261,6 +278,9 @@ class PMKBTransform:
             empty list if normalization fails
         """
         label = variant['name']
+        invalid_keys = self.invalid_keys['variants']
+        if label in invalid_keys:
+            return []
         vod = self.transformed['variation_descriptors'].get(label)
         if vod:
             return [vod]
@@ -271,6 +291,7 @@ class PMKBTransform:
         # if not response or response.warnings:  # more specific check?
         if not response:
             logger.warning(f"Variant normalization of {label} failed.")
+            invalid_keys.add(label)
             return []
 
         vod = schemas.ValueObjectDescriptor(
