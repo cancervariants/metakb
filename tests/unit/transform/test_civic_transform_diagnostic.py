@@ -3,7 +3,9 @@ import pytest
 from metakb.transform.civic import CIViCTransform
 from metakb import PROJECT_ROOT
 import json
-import os
+
+TRANSFORMED_FILE = f"{PROJECT_ROOT}/tests/data/transform/" \
+                   f"diagnostic/civic_cdm.json"
 
 
 @pytest.fixture(scope='module')
@@ -15,8 +17,7 @@ def data():
     c._create_json(
         civic_dir=PROJECT_ROOT / 'tests' / 'data' / 'transform' / 'diagnostic'
     )
-    with open(f"{PROJECT_ROOT}/tests/data/transform/"
-              f"diagnostic/civic_cdm.json", 'r') as f:
+    with open(TRANSFORMED_FILE, 'r') as f:
         data = json.load(f)
     return data
 
@@ -61,43 +62,17 @@ def documents(pmid_15146165, pmid_18073307):
     return [pmid_15146165, pmid_18073307]
 
 
-def assert_non_lists(actual, test):
-    """Check assertions for non list types."""
-    if isinstance(actual, dict):
-        assertions(test, actual)
-    else:
-        assert actual == test
-
-
-def assertions(test_data, actual_data):
-    """Assert that test and actual data are the same."""
-    if isinstance(actual_data, dict):
-        for key in actual_data.keys():
-            if isinstance(actual_data[key], list):
-                try:
-                    assert set(actual_data[key]) == set(test_data[key])
-                except:  # noqa: E722
-                    assertions(test_data[key], actual_data[key])
-            else:
-                assert_non_lists(actual_data[key], test_data[key])
-    elif isinstance(actual_data, list):
-        for item in actual_data:
-            if isinstance(item, list):
-                assert set(actual_data) == set(test_data)
-            else:
-                assert_non_lists(actual_data, test_data)
-
-
 def test_civic_cdm(data, statements, propositions, variation_descriptors,
-                   gene_descriptors, disease_descriptors, civic_methods,
-                   documents):
+                   gene_descriptors, disease_descriptors,
+                   civic_methods, documents, check_statement,
+                   check_proposition, check_variation_descriptor,
+                   check_descriptor, check_document, check_method,
+                   check_transformed_cdm):
     """Test that civic transform works correctly."""
-    assertions(statements, data['statements'])
-    assertions(propositions, data['propositions'])
-    assertions(variation_descriptors, data['variation_descriptors'])
-    assertions(gene_descriptors, data['gene_descriptors'])
-    assertions(disease_descriptors, data['disease_descriptors'])
-    assertions(civic_methods, data['methods'])
-    assertions(documents, data['documents'])
-
-    os.remove(f"{PROJECT_ROOT}/tests/data/transform/diagnostic/civic_cdm.json")
+    check_transformed_cdm(
+        data, statements, propositions, variation_descriptors,
+        gene_descriptors, disease_descriptors, None,
+        civic_methods, documents, check_statement, check_proposition,
+        check_variation_descriptor, check_descriptor, check_document,
+        check_method, TRANSFORMED_FILE
+    )

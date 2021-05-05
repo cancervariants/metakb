@@ -3,7 +3,9 @@ import pytest
 from metakb.transform.moa import MOATransform
 from metakb import PROJECT_ROOT
 import json
-import os
+
+
+TRANSFORMED_FILE = f"{PROJECT_ROOT}/tests/data/transform/moa_cdm.json"
 
 
 @pytest.fixture(scope='module')
@@ -13,7 +15,7 @@ def data():
                                  f"transform/moa_harvester.json")
     moa.transform()
     moa._create_json(moa_dir=PROJECT_ROOT / 'tests' / 'data' / 'transform')
-    with open(f"{PROJECT_ROOT}/tests/data/transform/moa_cdm.json", 'r') as f:
+    with open(TRANSFORMED_FILE, 'r') as f:
         data = json.load(f)
     return data
 
@@ -66,45 +68,19 @@ def asst69_documents(pmid_11423618):
     return[pmid_11423618]
 
 
-def assert_non_lists(actual, test):
-    """Check assertions for non list types."""
-    if isinstance(actual, dict):
-        assertions(test, actual)
-    else:
-        assert test == actual
-
-
-def assertions(test_data, actual_data):
-    """Assert that test and actual data are the same."""
-    if isinstance(actual_data, dict):
-        for key in actual_data.keys():
-            if isinstance(actual_data[key], list):
-                try:
-                    assert set(test_data[key]) == set(actual_data[key])
-                except:  # noqa: E722
-                    assertions(test_data[key], actual_data[key])
-            else:
-                assert_non_lists(actual_data[key], test_data[key])
-    elif isinstance(actual_data, list):
-        for item in actual_data:
-            if isinstance(item, list):
-                assert set(test_data) == set(actual_data)
-            else:
-                assert_non_lists(actual_data, test_data)
-
-
 def test_moa_cdm(data, asst69_statements, asst69_propositions,
                  asst69_variation_descriptors, asst69_gene_descriptors,
-                 asst69_therapy_descriptors, asst69_disease_descriptors,
-                 asst69_methods, asst69_documents):
+                 asst69_disease_descriptors, asst69_therapy_descriptors,
+                 asst69_methods, asst69_documents, check_statement,
+                 check_proposition, check_variation_descriptor,
+                 check_descriptor, check_document, check_method,
+                 check_transformed_cdm):
     """Test that moa transform works correctly."""
-    assertions(asst69_statements, data['statements'])
-    assertions(asst69_propositions, data['propositions'])
-    assertions(asst69_variation_descriptors, data['variation_descriptors'])
-    assertions(asst69_gene_descriptors, data['gene_descriptors'])
-    assertions(asst69_therapy_descriptors, data['therapy_descriptors'])
-    assertions(asst69_disease_descriptors, data['disease_descriptors'])
-    assertions(asst69_methods, data['methods'])
-    assertions(asst69_documents, data['documents'])
-
-    os.remove(f"{PROJECT_ROOT}/tests/data/transform/moa_cdm.json")
+    check_transformed_cdm(
+        data, asst69_statements, asst69_propositions,
+        asst69_variation_descriptors, asst69_gene_descriptors,
+        asst69_disease_descriptors, asst69_therapy_descriptors, asst69_methods,
+        asst69_documents, check_statement, check_proposition,
+        check_variation_descriptor, check_descriptor, check_document,
+        check_method, TRANSFORMED_FILE
+    )

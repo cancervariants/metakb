@@ -31,106 +31,6 @@ def query_handler():
     return QueryGetter()
 
 
-def check_statement(actual, test):
-    """Check that statements are match."""
-    assert actual.keys() == test.keys()
-    assert actual['id'] == test['id']
-    assert actual['description'] == test['description']
-    if 'direction' in test.keys():
-        # MOA doesn't have direction?
-        assert actual['direction'] == test['direction']
-    assert actual['evidence_level'] == test['evidence_level']
-    assert actual['proposition'].startswith('proposition:')
-    assert actual['variation_origin'] == test['variation_origin']
-    assert actual['variation_descriptor'] == test['variation_descriptor']
-    if 'therapy_descriptor' not in test.keys():
-        assert 'therapy_descriptor' not in actual.keys()
-    else:
-        assert actual['therapy_descriptor'] == test['therapy_descriptor']
-    assert actual['disease_descriptor'] == test['disease_descriptor']
-    assert actual['method'] == test['method']
-    assert set(actual['supported_by']) == set(test['supported_by'])
-    assert actual['type'] == test['type']
-
-
-def check_proposition(actual, test):
-    """Check that propositions match."""
-    assert actual.keys() == test.keys()
-    assert actual['id'].startswith('proposition:')
-    assert actual['type'] == test['type']
-    if test['type'] == 'therapeutic_response_proposition':
-        assert actual['object'] == test['object']
-    else:
-        assert 'object' not in actual.keys()
-    assert actual['predicate'] == test['predicate']
-    assert actual['subject'] == test['subject']
-    assert actual['object_qualifier'] == test['object_qualifier']
-
-
-def check_variation_descriptor(actual, test):
-    """Check that variation descriptors match."""
-    actual_keys = actual.keys()
-    test_keys = test.keys()
-    assert actual_keys == test_keys
-    for key in test_keys:
-        if key in ['id', 'type', 'label', 'description', 'value_id',
-                   'structural_type', 'ref_seq_allele', 'gene_context']:
-            assert actual[key] == test[key]
-        elif key in ['xrefs', 'alternate_labels']:
-            assert set(actual[key]) == set(test[key])
-        elif key == 'value':
-            assert actual['value'] == test['value']
-        elif key == 'extensions':
-            assert len(actual) == len(test)
-            for test_extension in test['extensions']:
-                for actual_extension in actual['extensions']:
-                    if test_extension['name'] == actual_extension['name']:
-                        if test_extension['name'] != \
-                                'civic_actionability_score':
-                            assert actual_extension == test_extension
-                        else:
-                            try:
-                                float(actual_extension['value'])
-                            except ValueError:
-                                assert False
-                            else:
-                                assert True
-        elif key == 'expressions':
-            assert len(actual['expressions']) == len(test['expressions'])
-            for expression in test['expressions']:
-                assert expression in actual['expressions']
-
-
-def check_descriptor(actual, test):
-    """Check that gene, therapy, and disease descriptors match."""
-    actual_keys = actual.keys()
-    test_keys = test.keys()
-    assert actual_keys == test_keys
-    for key in test_keys:
-        if key in ['id', 'type', 'label', 'description', 'value']:
-            assert actual[key] == test[key]
-        elif key == 'alternate_labels':
-            assert set(actual[key]) == set(test[key])
-
-
-def check_method(actual, test):
-    """Check that methods match."""
-    assert actual == test
-
-
-def check_document(actual, test):
-    """Check taht documents match."""
-    actual_keys = actual.keys()
-    test_keys = test.keys()
-    assert actual_keys == test_keys
-    for key in test_keys:
-        assert key in actual_keys
-        if key == 'xrefs':
-            assert set(actual[key]) == set(test[key])
-        else:
-            assert actual == test
-
-
 def return_response(query_handler, statement_id, **kwargs):
     """Return the statement given ID if it exists."""
     response = query_handler.search(**kwargs)
@@ -197,7 +97,11 @@ def assert_keys_for_detail_true(response_keys, response, is_evidence=True,
 def assert_response_items(response, statement, proposition,
                           variation_descriptor, gene_descriptor,
                           disease_descriptor, method,
-                          document, therapy_descriptor):
+                          document, therapy_descriptor,
+                          check_statement, check_proposition,
+                          check_variation_descriptor,
+                          check_descriptor, check_method, check_document
+                          ):
     """Check that search response match expected values."""
     if therapy_descriptor:
         assert_keys_for_detail_true(response.keys(), response)
@@ -217,8 +121,6 @@ def assert_response_items(response, statement, proposition,
     response_method = response['methods'][0]
     response_document = response['documents'][0]
 
-    check_statement(response_statement, statement)
-    check_proposition(response_proposition, proposition)
     check_statement(response_statement, statement)
     check_proposition(response_proposition, proposition)
     check_variation_descriptor(response_variation_descriptor,
@@ -254,7 +156,8 @@ def assert_response_items(response, statement, proposition,
 
 
 def test_civic_eid2997(query_handler, civic_eid2997_statement,
-                       civic_eid2997_proposition):
+                       civic_eid2997_proposition, check_statement,
+                       check_proposition):
     """Test search on CIViC Evidence Item 2997."""
     statement_id = 'civic:eid2997'
 
@@ -334,7 +237,8 @@ def test_civic_eid2997(query_handler, civic_eid2997_statement,
     check_proposition(p, civic_eid2997_proposition)
 
 
-def test_civic_eid1409_statement(query_handler, civic_eid1409_statement):
+def test_civic_eid1409_statement(query_handler, civic_eid1409_statement,
+                                 check_statement):
     """Test search on CIViC Evidence Item 1409."""
     statement_id = 'civic:eid1409'
 
@@ -403,7 +307,7 @@ def test_civic_eid1409_statement(query_handler, civic_eid1409_statement):
     check_statement(s, civic_eid1409_statement)
 
 
-def test_civic_aid6(query_handler, civic_aid6_statement):
+def test_civic_aid6(query_handler, civic_aid6_statement, check_statement):
     """Test search on CIViC Evidence Item 6."""
     statement_id = 'civic:aid6'
 
@@ -576,7 +480,11 @@ def test_civic_detail_flag_therapeutic(query_handler,
                                        civic_eid2997_proposition, civic_vid33,
                                        civic_gid19, civic_did8,
                                        method001, pmid_23982599,
-                                       civic_tid146):
+                                       civic_tid146, check_statement,
+                                       check_proposition,
+                                       check_variation_descriptor,
+                                       check_descriptor, check_method,
+                                       check_document):
     """Test that detail flag works correctly for CIViC Therapeutic Response."""
     response = query_handler.search(statement_id='civic:eid2997', detail=False)
     assert_keys_for_detail_false(response.keys())
@@ -586,13 +494,21 @@ def test_civic_detail_flag_therapeutic(query_handler,
     assert_response_items(response, civic_eid2997_statement,
                           civic_eid2997_proposition,
                           civic_vid33, civic_gid19, civic_did8,
-                          method001, pmid_23982599, civic_tid146)
+                          method001, pmid_23982599, civic_tid146,
+                          check_statement, check_proposition,
+                          check_variation_descriptor,
+                          check_descriptor, check_method, check_document
+                          )
 
 
 def test_civic_detail_flag_diagnostic(query_handler, civic_eid2_statement,
                                       civic_eid2_proposition, civic_vid99,
                                       civic_did2, civic_gid38, method001,
-                                      pmid_15146165):
+                                      pmid_15146165, check_statement,
+                                      check_proposition,
+                                      check_variation_descriptor,
+                                      check_descriptor, check_method,
+                                      check_document):
     """Test that detail flag works correctly for CIViC Diagnostic Response."""
     response = query_handler.search(statement_id='civic:eid2', detail=False)
     assert_keys_for_detail_false(response.keys())
@@ -602,13 +518,19 @@ def test_civic_detail_flag_diagnostic(query_handler, civic_eid2_statement,
     assert_response_items(response, civic_eid2_statement,
                           civic_eid2_proposition,
                           civic_vid99, civic_gid38, civic_did2,
-                          method001, pmid_15146165, None)
+                          method001, pmid_15146165, None, check_statement,
+                          check_proposition, check_variation_descriptor,
+                          check_descriptor, check_method, check_document)
 
 
 def test_civic_detail_flag_prognostic(query_handler, civic_eid26_statement,
                                       civic_eid26_proposition, civic_vid65,
                                       civic_did3, civic_gid29, method001,
-                                      pmid_16384925):
+                                      pmid_16384925, check_statement,
+                                      check_proposition,
+                                      check_variation_descriptor,
+                                      check_descriptor, check_method,
+                                      check_document):
     """Test that detail flag works correctly for CIViC Prognostic Response."""
     response = query_handler.search(statement_id='civic:eid26', detail=False)
     assert_keys_for_detail_false(response.keys())
@@ -618,14 +540,18 @@ def test_civic_detail_flag_prognostic(query_handler, civic_eid26_statement,
     assert_response_items(response, civic_eid26_statement,
                           civic_eid26_proposition,
                           civic_vid65, civic_gid29, civic_did3,
-                          method001, pmid_16384925, None)
+                          method001, pmid_16384925, None, check_statement,
+                          check_proposition, check_variation_descriptor,
+                          check_descriptor, check_method, check_document)
 
 
 def test_moa_detail_flag(query_handler, moa_aid69_statement,
                          moa_aid69_proposition,
                          moa_vid69, moa_abl1, moa_imatinib,
                          moa_chronic_myelogenous_leukemia, method004,
-                         pmid_11423618):
+                         pmid_11423618, check_statement, check_proposition,
+                         check_variation_descriptor, check_descriptor,
+                         check_method, check_document):
     """Test that detail flag works correctly for MOA."""
     response = query_handler.search(statement_id='moa:aid69', detail=False)
     assert_keys_for_detail_false(response.keys())
@@ -636,7 +562,9 @@ def test_moa_detail_flag(query_handler, moa_aid69_statement,
     assert_response_items(response, moa_aid69_statement, moa_aid69_proposition,
                           moa_vid69, moa_abl1,
                           moa_chronic_myelogenous_leukemia, method004,
-                          pmid_11423618, moa_imatinib)
+                          pmid_11423618, moa_imatinib, check_statement,
+                          check_proposition, check_variation_descriptor,
+                          check_descriptor, check_method, check_document)
 
 
 def test_no_matches(query_handler):
@@ -679,7 +607,9 @@ def test_no_matches(query_handler):
 
 def test_civic_id_search(query_handler, civic_eid2997_statement,
                          civic_vid33, civic_gid19, civic_tid146, civic_did8,
-                         pmid_23982599, method001):
+                         pmid_23982599, method001, check_statement,
+                         check_variation_descriptor, check_descriptor,
+                         check_method, check_document):
     """Test search on civic node id"""
     res = query_handler.search_by_id('civic:eid2997')
     check_statement(res['statement'], civic_eid2997_statement)
@@ -704,9 +634,10 @@ def test_civic_id_search(query_handler, civic_eid2997_statement,
 
 
 def test_moa_id_search(query_handler, moa_aid69_statement,
-                       moa_vid69, moa_abl1,
-                       moa_imatinib, moa_chronic_myelogenous_leukemia,
-                       pmid_11423618, method004):
+                       moa_vid69, moa_abl1, moa_imatinib,
+                       moa_chronic_myelogenous_leukemia, pmid_11423618,
+                       method004, check_statement, check_variation_descriptor,
+                       check_descriptor, check_method, check_document):
     """Test search on moa node id"""
     res = query_handler.search_by_id('moa:aid69')
     check_statement(res['statement'], moa_aid69_statement)
