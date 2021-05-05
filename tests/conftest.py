@@ -1133,8 +1133,6 @@ def moa_vid69():
                 "type": "Extension"
             }
         ],
-        "molecule_context": "protein",
-        "structural_type": "SO:0001606",
         "ref_allele_seq": "T",
         "gene_context": "moa.normalize.gene:ABL1"
     }
