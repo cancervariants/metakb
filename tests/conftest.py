@@ -1,5 +1,6 @@
 """Module for pytest fixtures."""
 import pytest
+import os
 
 
 @pytest.fixture(scope='module')
@@ -1259,3 +1260,174 @@ def pmid_11423618():
             "doi:10.1126/science.1062538"
         ]
     }
+
+
+@pytest.fixture(scope='module')
+def check_statement():
+    """Create a test fixture to compare statements."""
+    def check_statement(actual, test):
+        """Check that statements are match."""
+        assert actual.keys() == test.keys()
+        assert actual['id'] == test['id']
+        assert actual['description'] == test['description']
+        if 'direction' in test.keys():
+            # MOA doesn't have direction?
+            assert actual['direction'] == test['direction']
+        assert actual['evidence_level'] == test['evidence_level']
+        assert actual['proposition'].startswith('proposition:')
+        assert actual['variation_origin'] == test['variation_origin']
+        assert actual['variation_descriptor'] == test['variation_descriptor']
+        if 'therapy_descriptor' not in test.keys():
+            assert 'therapy_descriptor' not in actual.keys()
+        else:
+            assert actual['therapy_descriptor'] == test['therapy_descriptor']
+        assert actual['disease_descriptor'] == test['disease_descriptor']
+        assert actual['method'] == test['method']
+        assert set(actual['supported_by']) == set(test['supported_by'])
+        assert actual['type'] == test['type']
+    return check_statement
+
+
+@pytest.fixture(scope='module')
+def check_proposition():
+    """Create a test fixture to compare propositions."""
+    def check_proposition(actual, test):
+        """Check that propositions match."""
+        assert actual.keys() == test.keys()
+        assert actual['id'].startswith('proposition:')
+        assert actual['type'] == test['type']
+        if test['type'] == 'therapeutic_response_proposition':
+            assert actual['object'] == test['object']
+        else:
+            assert 'object' not in actual.keys()
+        assert actual['predicate'] == test['predicate']
+        assert actual['subject'] == test['subject']
+        assert actual['object_qualifier'] == test['object_qualifier']
+    return check_proposition
+
+
+@pytest.fixture(scope='module')
+def check_variation_descriptor():
+    """Create a test fixture to compare variation descriptors."""
+    def check_variation_descriptor(actual, test):
+        """Check that variation descriptors match."""
+        actual_keys = actual.keys()
+        test_keys = test.keys()
+        assert actual_keys == test_keys
+        for key in test_keys:
+            if key in ['id', 'type', 'label', 'description', 'value_id',
+                       'structural_type', 'ref_seq_allele', 'gene_context']:
+                assert actual[key] == test[key]
+            elif key in ['xrefs', 'alternate_labels']:
+                assert set(actual[key]) == set(test[key])
+            elif key == 'value':
+                assert actual['value'] == test['value']
+            elif key == 'extensions':
+                assert len(actual) == len(test)
+                for test_extension in test['extensions']:
+                    for actual_extension in actual['extensions']:
+                        if test_extension['name'] == actual_extension['name']:
+                            if test_extension['name'] != \
+                                    'civic_actionability_score':
+                                assert actual_extension == test_extension
+                            else:
+                                try:
+                                    float(actual_extension['value'])
+                                except ValueError:
+                                    assert False
+                                else:
+                                    assert True
+            elif key == 'expressions':
+                assert len(actual['expressions']) == len(test['expressions'])
+                for expression in test['expressions']:
+                    assert expression in actual['expressions']
+    return check_variation_descriptor
+
+
+@pytest.fixture(scope='module')
+def check_descriptor():
+    """Test fixture to compare gene, therapy, and disease descriptors."""
+    def check_descriptor(actual, test):
+        """Check that gene, therapy, and disease descriptors match."""
+        actual_keys = actual.keys()
+        test_keys = test.keys()
+        assert actual_keys == test_keys
+        for key in test_keys:
+            if key in ['id', 'type', 'label', 'description', 'value']:
+                assert actual[key] == test[key]
+            elif key == 'alternate_labels':
+                assert set(actual[key]) == set(test[key])
+    return check_descriptor
+
+
+@pytest.fixture(scope='module')
+def check_method():
+    """Create a test fixture to compare methods."""
+    def check_method(actual, test):
+        """Check that methods match."""
+        assert actual == test
+    return check_method
+
+
+@pytest.fixture(scope='module')
+def check_document():
+    """Create a test fixture to compare documents."""
+    def check_document(actual, test):
+        """Check that documents match."""
+        actual_keys = actual.keys()
+        test_keys = test.keys()
+        assert actual_keys == test_keys
+        for key in test_keys:
+            assert key in actual_keys
+            if key == 'xrefs':
+                assert set(actual[key]) == set(test[key])
+            else:
+                assert actual == test
+    return check_document
+
+
+@pytest.fixture(scope='module')
+def check_transformed_cdm():
+    """Test fixture to compare CDM transformations."""
+    def check_transformed_cdm(data, statements, propositions,
+                              variation_descriptors, gene_descriptors,
+                              disease_descriptors, therapy_descriptors,
+                              civic_methods, documents, check_statement,
+                              check_proposition, check_variation_descriptor,
+                              check_descriptor, check_document, check_method,
+                              transformed_file):
+        """Test that transform to CDM works correctly."""
+        tests = (
+            (data['statements'], statements, check_statement),
+            (data['propositions'], propositions, check_proposition),
+            (data['variation_descriptors'], variation_descriptors,
+             check_variation_descriptor),
+            (data['gene_descriptors'], gene_descriptors, check_descriptor),
+            (data['disease_descriptors'], disease_descriptors,
+             check_descriptor),
+            (data['methods'], civic_methods, check_method),
+            (data['documents'], documents, check_document)
+        )
+
+        if therapy_descriptors:
+            tests += (data['therapy_descriptors'], therapy_descriptors,
+                      check_descriptor),
+
+        for t in tests:
+            actual_data = t[0]
+            test_data = t[1]
+            test_fixture = t[2]
+
+            assert len(actual_data) == len(test_data)
+            for test in test_data:
+                test_id = test['id']
+                checked_id = None
+                for actual in actual_data:
+                    actual_id = actual['id']
+                    if test_id == actual_id:
+                        checked_id = actual_id
+                        test_fixture(actual, test)
+                assert checked_id == test_id
+
+        os.remove(transformed_file)
+    return check_transformed_cdm
