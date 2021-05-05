@@ -19,174 +19,51 @@ def data():
 
 
 @pytest.fixture(scope='module')
-def asst69_statements():
+def asst69_statements(moa_aid69_statement):
     """Create assertion69 statements test fixture."""
-    return [
-        {
-            "id": "moa:aid69",
-            "description": "T315I mutant ABL1 in p210 BCR-ABL cells "
-                           "resulted in retained high levels of "
-                           "phosphotyrosine at increasing concentrations "
-                           "of inhibitor STI-571, whereas wildtype "
-                           "appropriately received inhibition.",
-            "evidence_level": "moa.evidence_level:Preclinical",
-            "proposition": "proposition:001",
-            "variation_origin": "somatic",
-            "variation_descriptor": "moa:vid69",
-            "therapy_descriptor": "moa.normalize.therapy:Imatinib",
-            "disease_descriptor": "moa.normalize.disease:oncotree%3ACML",  # noqa: E501
-            "method": "method:004",
-            "supported_by": [
-                "pmid:11423618"
-            ],
-            "type": "Statement"
-        }
-    ]
+    return [moa_aid69_statement]
 
 
 @pytest.fixture(scope='module')
-def asst69_propositions():
+def asst69_propositions(moa_aid69_proposition):
     """Create assertion69 propositions test fixture."""
-    return [
-        {
-            "id": "proposition:001",
-            "predicate": "predicts_resistance_to",
-            "subject": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",
-            "object_qualifier": "ncit:C3174",
-            "object": "rxcui:282388",
-            "type": "therapeutic_response_proposition"
-        }
-    ]
+    return [moa_aid69_proposition]
 
 
 @pytest.fixture(scope='module')
-def asst69_variation_descriptors():
+def asst69_variation_descriptors(moa_vid69):
     """Create assertion69 variation_descriptors test fixture."""
-    return [
-        {
-            "id": "moa:vid69",
-            "type": "VariationDescriptor",
-            "label": "ABL1 p.T315I (Missense)",
-            "value_id": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",
-            "value": {
-                "location": {
-                    "interval": {
-                        "end": 315,
-                        "start": 314,
-                        "type": "SimpleInterval"
-                    },
-                    "sequence_id": "ga4gh:SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg",
-                    "type": "SequenceLocation"
-                },
-                "state": {
-                    "sequence": "I",
-                    "type": "SequenceState"
-                },
-                "type": "Allele"
-            },
-            "extensions": [
-                {
-                    "name": "moa_representative_coordinate",
-                    "value": {
-                        "chromosome": "9",
-                        "start_position": "133747580.0",
-                        "end_position": "133747580.0",
-                        "reference_allele": "C",
-                        "alternate_allele": "T",
-                        "cdna_change": "c.944C>T",
-                        "protein_change": "p.T315I",
-                        "exon": "5.0"
-                    },
-                    "type": "Extension"
-                }
-            ],
-            "molecule_context": "protein",
-            "structural_type": "SO:0001606",
-            "ref_allele_seq": "T",
-            "gene_context": "moa.normalize.gene:ABL1"
-        }
-    ]
+    return [moa_vid69]
 
 
 @pytest.fixture(scope='module')
-def asst69_gene_descriptors():
+def asst69_gene_descriptors(moa_abl1):
     """Create assertion69 gene_descriptors test fixture."""
-    return [
-        {
-            "id": "moa.normalize.gene:ABL1",
-            "type": "GeneDescriptor",
-            "label": "ABL1",
-            "value": {
-                "id": "hgnc:76",
-                "type": "Gene"
-            }
-        }
-    ]
+    return [moa_abl1]
 
 
 @pytest.fixture(scope='module')
-def asst69_therapy_descriptors():
+def asst69_therapy_descriptors(moa_imatinib):
     """Create assertion69 therapy_descriptors test fixture."""
-    return [
-        {
-            "id": "moa.normalize.therapy:Imatinib",
-            "type": "TherapyDescriptor",
-            "label": "Imatinib",
-            "value": {
-                "id": "rxcui:282388",
-                "type": "Drug"
-            }
-        }
-    ]
+    return [moa_imatinib]
 
 
 @pytest.fixture(scope='module')
-def asst69_disease_descriptors():
+def asst69_disease_descriptors(moa_chronic_myelogenous_leukemia):
     """Create assertion69 disease_descriptors test fixture."""
-    return [
-        {
-            "id": "moa.normalize.disease:oncotree%3ACML",
-            "type": "DiseaseDescriptor",
-            "label": "Chronic Myelogenous Leukemia",
-            "value": {
-                "id": "ncit:C3174",
-                "type": "Disease"
-            }
-        }
-    ]
+    return [moa_chronic_myelogenous_leukemia]
 
 
 @pytest.fixture(scope='module')
-def asst69_methods():
+def asst69_methods(method004):
     """Create assertion69 methods test fixture."""
-    return[
-        {
-            "id": "method:004",
-            "label": "Clinical interpretation of integrative molecular "
-                     "profiles to guide precision cancer medicine",
-            "url": "https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1",  # noqa: E501
-            "version": {
-                "year": 2020,
-                "month": 9,
-                "day": 22
-            },
-            "authors": "Reardon, B., Moore, N.D., Moore, N. et al."
-        }
-    ]
+    return[method004]
 
 
 @pytest.fixture(scope='module')
-def asst69_documents():
+def asst69_documents(pmid_11423618):
     """Create assertion69 documents test fixture."""
-    return[
-        {
-            "id": "pmid:11423618",
-            "label": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501
-            "xrefs": [
-                "doi:10.1126/science.1062538"
-            ]
-        }
-    ]
+    return[pmid_11423618]
 
 
 def assert_non_lists(actual, test):
