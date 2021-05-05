@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Delta",
+    "description": "A Confluent Kafka Python Delta computed from VICC Meta-KB",
+    "type": "object",
+    "properties": {
+        "_meta": {
+            "description": "meta data for computed delta",
+            "type": "object"
+        },
+        "assertions": {
+            "description": "assertion delta",
+            "type": "object"
+        },
+        "variants": {
+            "description": "variant delta",
+            "type": "object"
+        },
+        "sources": {
+            "description": "source delta",
+            "type": "object"
+        }
+    },
+    "required": ["_meta", "assertions", "variants"]
+}
