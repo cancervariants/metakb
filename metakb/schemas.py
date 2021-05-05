@@ -231,6 +231,7 @@ class Document(BaseModel):
     label: str
     description: Optional[str]
     xrefs: Optional[List[str]]
+    # type = 'Document'
 
 
 class Date(BaseModel):
@@ -266,6 +267,7 @@ class Method(BaseModel):
     url: str
     version: Date
     authors: str
+    # type = 'Method'
 
 
 class Extension(BaseModel):
@@ -623,8 +625,7 @@ class SearchIDService(BaseModel):
                                 "type": "Extension"
                             }
                         ],
-                        "molecule_context": "protein",
-                        "structural_type": "SO:0001060",
+                        "structural_type": "SO:0001583",
                         "expressions": [
                             {
                                 "syntax": "hgvs:genomic",
@@ -647,7 +648,6 @@ class SearchIDService(BaseModel):
                                 "type": "Expression"
                             }
                         ],
-                        "ref_allele_seq": "L",
                         "gene_context": "civic:gid19"
                     }
                 ]

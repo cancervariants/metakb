@@ -7,6 +7,7 @@ def civic_eid2997_statement():
     """Create CIVIC EID2997 Statement test fixture."""
     return {
         "id": "civic:eid2997",
+        "type": "Statement",
         "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:A",
@@ -16,8 +17,7 @@ def civic_eid2997_statement():
         "therapy_descriptor": "civic:tid146",
         "disease_descriptor": "civic:did8",
         "method": "method:001",
-        "supported_by": ["pmid:23982599"],
-        "type": "Statement",
+        "supported_by": ["pmid:23982599"]
     }
 
 
@@ -242,6 +242,7 @@ def civic_eid2_statement():
     """Create a test fixture for CIViC EID2 statement."""
     return {
         "id": "civic:eid2",
+        "type": "Statement",
         "description": "GIST tumors harboring PDGFRA D842V mutation are more likely to be benign than malignant.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
@@ -250,8 +251,7 @@ def civic_eid2_statement():
         "variation_descriptor": "civic:vid99",
         "disease_descriptor": "civic:did2",
         "method": "method:001",
-        "supported_by": ["pmid:15146165"],
-        "type": "Statement"
+        "supported_by": ["pmid:15146165"]
     }
 
 
@@ -279,8 +279,8 @@ def civic_vid99():
         "value": {
             "location": {
                 "interval": {
-                    "end": 842,
                     "start": 841,
+                    "end": 842,
                     "type": "SimpleInterval"
                 },
                 "sequence_id": "ga4gh:SQ.XpQn9sZLGv_GU3uiWO7YHq9-_alGjrVX",

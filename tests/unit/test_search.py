@@ -31,60 +31,104 @@ def query_handler():
     return QueryGetter()
 
 
-def assert_same_keys_list_items(actual, test):
-    """Assert that keys in a dict are same or items in list are same."""
-    assert len(list(actual)) == len(list(test))
-    for item in list(actual):
-        if isinstance(item, dict) and \
-                'civic_actionability_score' in item.values():
-            assert assert_data_type(item['value'])
-            assert 'Extension' in item.values()
-        else:
-            assert item in test
-
-
-def assert_non_lists(actual, test):
-    """Check assertions for non list types."""
-    if isinstance(actual, dict):
-        assertions(test, actual)
+def check_statement(actual, test):
+    """Check that statements are match."""
+    assert actual.keys() == test.keys()
+    assert actual['id'] == test['id']
+    assert actual['description'] == test['description']
+    if 'direction' in test.keys():
+        # MOA doesn't have direction?
+        assert actual['direction'] == test['direction']
+    assert actual['evidence_level'] == test['evidence_level']
+    assert actual['proposition'].startswith('proposition:')
+    assert actual['variation_origin'] == test['variation_origin']
+    assert actual['variation_descriptor'] == test['variation_descriptor']
+    if 'therapy_descriptor' not in test.keys():
+        assert 'therapy_descriptor' not in actual.keys()
     else:
-        if isinstance(actual, str):
-            if test.startswith('proposition:'):
-                assert actual.startswith('proposition:')
-            else:
-                assert actual == test
+        assert actual['therapy_descriptor'] == test['therapy_descriptor']
+    assert actual['disease_descriptor'] == test['disease_descriptor']
+    assert actual['method'] == test['method']
+    assert set(actual['supported_by']) == set(test['supported_by'])
+    assert actual['type'] == test['type']
+
+
+def check_proposition(actual, test):
+    """Check that propositions match."""
+    assert actual.keys() == test.keys()
+    assert actual['id'].startswith('proposition:')
+    assert actual['type'] == test['type']
+    if test['type'] == 'therapeutic_response_proposition':
+        assert actual['object'] == test['object']
+    else:
+        assert 'object' not in actual.keys()
+    assert actual['predicate'] == test['predicate']
+    assert actual['subject'] == test['subject']
+    assert actual['object_qualifier'] == test['object_qualifier']
+
+
+def check_variation_descriptor(actual, test):
+    """Check that variation descriptors match."""
+    actual_keys = actual.keys()
+    test_keys = test.keys()
+    assert actual_keys == test_keys
+    for key in test_keys:
+        if key in ['id', 'type', 'label', 'description', 'value_id',
+                   'structural_type', 'ref_seq_allele', 'gene_context']:
+            assert actual[key] == test[key]
+        elif key in ['xrefs', 'alternate_labels']:
+            assert set(actual[key]) == set(test[key])
+        elif key == 'value':
+            assert actual['value'] == test['value']
+        elif key == 'extensions':
+            assert len(actual) == len(test)
+            for test_extension in test['extensions']:
+                for actual_extension in actual['extensions']:
+                    if test_extension['name'] == actual_extension['name']:
+                        if test_extension['name'] != \
+                                'civic_actionability_score':
+                            assert actual_extension == test_extension
+                        else:
+                            try:
+                                float(actual_extension['value'])
+                            except ValueError:
+                                assert False
+                            else:
+                                assert True
+        elif key == 'expressions':
+            assert len(actual['expressions']) == len(test['expressions'])
+            for expression in test['expressions']:
+                assert expression in actual['expressions']
+
+
+def check_descriptor(actual, test):
+    """Check that gene, therapy, and disease descriptors match."""
+    actual_keys = actual.keys()
+    test_keys = test.keys()
+    assert actual_keys == test_keys
+    for key in test_keys:
+        if key in ['id', 'type', 'label', 'description', 'value']:
+            assert actual[key] == test[key]
+        elif key == 'alternate_labels':
+            assert set(actual[key]) == set(test[key])
+
+
+def check_method(actual, test):
+    """Check that methods match."""
+    assert actual == test
+
+
+def check_document(actual, test):
+    """Check taht documents match."""
+    actual_keys = actual.keys()
+    test_keys = test.keys()
+    assert actual_keys == test_keys
+    for key in test_keys:
+        assert key in actual_keys
+        if key == 'xrefs':
+            assert set(actual[key]) == set(test[key])
         else:
             assert actual == test
-
-
-def assert_data_type(num):
-    """Check data type for the data"""
-    try:
-        float(num)
-    except ValueError:
-        return False
-    return True
-
-
-def assertions(test_data, actual_data):
-    """Assert that test and actual data are the same."""
-    if isinstance(actual_data, dict):
-        assert_same_keys_list_items(actual_data.keys(), test_data.keys())
-        for key in actual_data.keys():
-            if isinstance(actual_data[key], list):
-                assert_same_keys_list_items(actual_data[key], test_data[key])
-            else:
-                if key == 'proposition':
-                    assert test_data[key].startswith('proposition:')
-                    assert actual_data[key].startswith('proposition:')
-                elif key == 'civic_actionability_score':
-                    assert assert_data_type(actual_data['value'])
-                else:
-                    assert_non_lists(actual_data[key], test_data[key])
-    elif isinstance(actual_data, list):
-        assert_same_keys_list_items(actual_data, test_data)
-        if not isinstance(actual_data, list):
-            assert_non_lists(actual_data, test_data)
 
 
 def return_response(query_handler, statement_id, **kwargs):
@@ -173,15 +217,18 @@ def assert_response_items(response, statement, proposition,
     response_method = response['methods'][0]
     response_document = response['documents'][0]
 
-    assertions(statement, response_statement)
-    assertions(proposition, response_proposition)
-    assertions(variation_descriptor, response_variation_descriptor)
-    assertions(gene_descriptor, response_gene_descriptor)
+    check_statement(response_statement, statement)
+    check_proposition(response_proposition, proposition)
+    check_statement(response_statement, statement)
+    check_proposition(response_proposition, proposition)
+    check_variation_descriptor(response_variation_descriptor,
+                               variation_descriptor)
+    check_descriptor(gene_descriptor, response_gene_descriptor)
+    check_descriptor(disease_descriptor, response_disease_descriptor)
     if therapy_descriptor:
-        assertions(therapy_descriptor, response_therapy_descriptor)
-    assertions(disease_descriptor, response_disease_descriptor)
-    assertions(method, response_method)
-    assertions(document, response_document)
+        check_descriptor(therapy_descriptor, response_therapy_descriptor)
+    check_method(response_method, method)
+    check_document(response_document, document)
 
     # Assert that IDs match in response items
     assert response_statement['proposition'] == response_proposition['id']
@@ -214,76 +261,77 @@ def test_civic_eid2997(query_handler, civic_eid2997_statement,
     # Test search by Subject
     s, p = return_response(query_handler, statement_id,
                            variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')  # noqa: E501
-    assertions(civic_eid2997_statement, s)
-    assert_same_keys_list_items(civic_eid2997_proposition.keys(), p.keys())
+    check_statement(s, civic_eid2997_statement)
+    check_proposition(p, civic_eid2997_proposition)
 
     # Test search by Object
     s, p = return_response(query_handler, statement_id,
                            therapy='rxcui:1430438')
-    assertions(civic_eid2997_statement, s)
-    assert_same_keys_list_items(civic_eid2997_proposition.keys(), p.keys())
+    check_statement(s, civic_eid2997_statement)
+    check_proposition(p, civic_eid2997_proposition)
 
     # Test search by Object Qualifier
     s, p = return_response(query_handler, statement_id, disease='ncit:C2926')
-    assertions(civic_eid2997_statement, s)
-    assert_same_keys_list_items(civic_eid2997_proposition.keys(), p.keys())
+    check_statement(s, civic_eid2997_statement)
+    check_proposition(p, civic_eid2997_proposition)
 
     # Test search by Gene Descriptor
     # HGNC ID
     s, p = return_response(query_handler, statement_id, gene='hgnc:3236')
-    assertions(civic_eid2997_statement, s)
-    assert_same_keys_list_items(civic_eid2997_proposition.keys(), p.keys())
+    check_statement(s, civic_eid2997_statement)
+    check_proposition(p, civic_eid2997_proposition)
 
     # Label
     s, p = return_response(query_handler, statement_id, gene='EGFR')
-    assertions(civic_eid2997_statement, s)
-    assert_same_keys_list_items(civic_eid2997_proposition.keys(), p.keys())
+    check_statement(s, civic_eid2997_statement)
+    check_proposition(p, civic_eid2997_proposition)
 
     # Alt label
     s, p = return_response(query_handler, statement_id, gene='ERBB1')
-    assertions(civic_eid2997_statement, s)
-    assert_same_keys_list_items(civic_eid2997_proposition.keys(), p.keys())
+    check_statement(s, civic_eid2997_statement)
+    check_proposition(p, civic_eid2997_proposition)
 
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
     s, p = return_response(query_handler, statement_id, variation='EGFR L858R')
-    assertions(civic_eid2997_statement, s)
-    assert_same_keys_list_items(civic_eid2997_proposition.keys(), p.keys())
+    check_statement(s, civic_eid2997_statement)
+    check_proposition(p, civic_eid2997_proposition)
 
     # Sequence ID
     s, p = return_response(query_handler, statement_id,
                            variation='ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE')  # noqa: E501
-    assertions(civic_eid2997_statement, s)
-    assert_same_keys_list_items(civic_eid2997_proposition.keys(), p.keys())
+    check_statement(s, civic_eid2997_statement)
+    check_proposition(p, civic_eid2997_proposition)
 
     # Alt Label
     s, p = return_response(query_handler, statement_id,
                            variation='egfr Leu858ARG')
-    assertions(civic_eid2997_statement, s)
+    check_statement(s, civic_eid2997_statement)
+    check_proposition(p, civic_eid2997_proposition)
 
     # HGVS Expression
     s, p = return_response(query_handler, statement_id,
                            variation='NP_005219.2:p.Leu858Arg')  # noqa: E501
-    assertions(civic_eid2997_statement, s)
-    assert_same_keys_list_items(civic_eid2997_proposition.keys(), p.keys())
+    check_statement(s, civic_eid2997_statement)
+    check_proposition(p, civic_eid2997_proposition)
 
     # Test search by Therapy Descriptor
     # Label
     s, p = return_response(query_handler, statement_id, therapy='Afatinib')
-    assertions(civic_eid2997_statement, s)
-    assert_same_keys_list_items(civic_eid2997_proposition.keys(), p.keys())
+    check_statement(s, civic_eid2997_statement)
+    check_proposition(p, civic_eid2997_proposition)
 
     # Alt Label
     s, p = return_response(query_handler, statement_id, therapy='BIBW2992')
-    assertions(civic_eid2997_statement, s)
-    assert_same_keys_list_items(civic_eid2997_proposition.keys(), p.keys())
+    check_statement(s, civic_eid2997_statement)
+    check_proposition(p, civic_eid2997_proposition)
 
     # Test search by Disease Descriptor
     # Label
     s, p = return_response(query_handler, statement_id,
                            disease='Lung Non-small Cell Carcinoma')  # noqa: E501
-    assertions(civic_eid2997_statement, s)
-    assert_same_keys_list_items(civic_eid2997_proposition.keys(), p.keys())
+    check_statement(s, civic_eid2997_statement)
+    check_proposition(p, civic_eid2997_proposition)
 
 
 def test_civic_eid1409_statement(query_handler, civic_eid1409_statement):
@@ -293,24 +341,24 @@ def test_civic_eid1409_statement(query_handler, civic_eid1409_statement):
     # Test search by Subject
     s, p = return_response(query_handler, statement_id,
                            variation='ga4gh:VA.9dA0egRAIfVFDL1sdU1VP7HsBcG0-DtE')  # noqa: E501
-    assertions(civic_eid1409_statement, s)
+    check_statement(s, civic_eid1409_statement)
 
     # Test search by Object
     s, p = return_response(query_handler, statement_id, therapy='ncit:C64768')
-    assertions(civic_eid1409_statement, s)
+    check_statement(s, civic_eid1409_statement)
 
     # Test search by Object Qualifier
     s, p = return_response(query_handler, statement_id, disease='ncit:C3510')
-    assertions(civic_eid1409_statement, s)
+    check_statement(s, civic_eid1409_statement)
 
     # Test search by Gene Descriptor
     # HGNC ID
     s, p = return_response(query_handler, statement_id, gene='hgnc:1097')
-    assertions(civic_eid1409_statement, s)
+    check_statement(s, civic_eid1409_statement)
 
     # Label
     s, p = return_response(query_handler, statement_id, gene='BRAF')
-    assertions(civic_eid1409_statement, s)
+    check_statement(s, civic_eid1409_statement)
 
     # TODO: Not found in gene normalizer
     # # Alt label
@@ -322,37 +370,37 @@ def test_civic_eid1409_statement(query_handler, civic_eid1409_statement):
     # Gene Symbol + Variant Name
     s, p = return_response(query_handler, statement_id,
                            variation='BRAF V600E')
-    assertions(civic_eid1409_statement, s)
+    check_statement(s, civic_eid1409_statement)
 
     # Sequence ID
     s, p = return_response(query_handler, statement_id,
                            variation='ga4gh:SQ.WaAJ_cXXn9YpMNfhcq9lnzIvaB9ALawo')  # noqa: E501
-    assertions(civic_eid1409_statement, s)
+    check_statement(s, civic_eid1409_statement)
 
     # # Alt Label
     s, p = return_response(query_handler, statement_id,
                            variation='braf val600glu')
-    assertions(civic_eid1409_statement, s)
+    check_statement(s, civic_eid1409_statement)
 
     # HGVS Expression
     s, p = return_response(query_handler, statement_id,
                            variation='NP_004324.2:p.Val600Glu')  # noqa: E501
-    assertions(civic_eid1409_statement, s)
+    check_statement(s, civic_eid1409_statement)
 
     # Test search by Therapy Descriptor
     # Label
     s, p = return_response(query_handler, statement_id, therapy='Vemurafenib')
-    assertions(civic_eid1409_statement, s)
+    check_statement(s, civic_eid1409_statement)
 
     # # Alt Label
     s, p = return_response(query_handler, statement_id,
                            therapy='BRAF(V600E) Kinase Inhibitor RO5185426')
-    assertions(civic_eid1409_statement, s)
+    check_statement(s, civic_eid1409_statement)
 
     # Label
     s, p = return_response(query_handler, statement_id,
                            disease='Skin Melanoma')
-    assertions(civic_eid1409_statement, s)
+    check_statement(s, civic_eid1409_statement)
 
 
 def test_civic_aid6(query_handler, civic_aid6_statement):
@@ -362,62 +410,62 @@ def test_civic_aid6(query_handler, civic_aid6_statement):
     # Test search by Subject
     s, p = return_response(query_handler, statement_id,
                            variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')  # noqa: E501
-    assertions(civic_aid6_statement, s)
+    check_statement(s, civic_aid6_statement)
 
     # Test search by Object
     s, p = return_response(query_handler, statement_id,
                            therapy='rxcui:1430438')
-    assertions(civic_aid6_statement, s)
+    check_statement(s, civic_aid6_statement)
 
     # Test search by Object Qualifier
     s, p = return_response(query_handler, statement_id, disease='ncit:C2926')
-    assertions(civic_aid6_statement, s)
+    check_statement(s, civic_aid6_statement)
 
     # Test search by Gene Descriptor
     # HGNC ID
     s, p = return_response(query_handler, statement_id, gene='hgnc:3236')
-    assertions(civic_aid6_statement, s)
+    check_statement(s, civic_aid6_statement)
 
     # Label
     s, p = return_response(query_handler, statement_id, gene='EGFR')
-    assertions(civic_aid6_statement, s)
+    check_statement(s, civic_aid6_statement)
 
     # Alt label
     s, p = return_response(query_handler, statement_id, gene='ERBB1')
-    assertions(civic_aid6_statement, s)
+    check_statement(s, civic_aid6_statement)
 
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
     s, p = return_response(query_handler, statement_id, variation='EGFR L858R')
-    assertions(civic_aid6_statement, s)
+    check_statement(s, civic_aid6_statement)
 
     # Sequence ID
     s, p = return_response(query_handler, statement_id,
                            variation='ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE')  # noqa: E501
-    assertions(civic_aid6_statement, s)
+    check_statement(s, civic_aid6_statement)
 
     # Alt Label
     s, p = return_response(query_handler, statement_id,
                            variation='egfr leu858arg')
-    assertions(civic_aid6_statement, s)
+    check_statement(s, civic_aid6_statement)
 
     # HGVS Expression
     s, p = return_response(query_handler, statement_id,
                            variation='NP_005219.2:p.leu858arg')  # Noqa: E501
-    assertions(civic_aid6_statement, s)
+    check_statement(s, civic_aid6_statement)
 
     # Label
     s, p = return_response(query_handler, statement_id, therapy='afatinib')
-    assertions(civic_aid6_statement, s)
+    check_statement(s, civic_aid6_statement)
 
     # Alt Label
     s, p = return_response(query_handler, statement_id, therapy='BIBW 2992')
-    assertions(civic_aid6_statement, s)
+    check_statement(s, civic_aid6_statement)
 
     # Label
     s, p = return_response(query_handler, statement_id,
                            disease='Lung Non-small Cell Carcinoma    ')  # noqa: E501
-    assertions(civic_aid6_statement, s)
+    check_statement(s, civic_aid6_statement)
 
 
 def test_multiple_parameters(query_handler):
@@ -553,7 +601,7 @@ def test_civic_detail_flag_diagnostic(query_handler, civic_eid2_statement,
     assert_keys_for_detail_true(response.keys(), response, tr_response=False)
     assert_response_items(response, civic_eid2_statement,
                           civic_eid2_proposition,
-                          civic_vid99, civic_did2, civic_gid38,
+                          civic_vid99, civic_gid38, civic_did2,
                           method001, pmid_15146165, None)
 
 
@@ -569,7 +617,7 @@ def test_civic_detail_flag_prognostic(query_handler, civic_eid26_statement,
     assert_keys_for_detail_true(response.keys(), response, tr_response=False)
     assert_response_items(response, civic_eid26_statement,
                           civic_eid26_proposition,
-                          civic_vid65, civic_did3, civic_gid29,
+                          civic_vid65, civic_gid29, civic_did3,
                           method001, pmid_16384925, None)
 
 
@@ -634,32 +682,25 @@ def test_civic_id_search(query_handler, civic_eid2997_statement,
                          pmid_23982599, method001):
     """Test search on civic node id"""
     res = query_handler.search_by_id('civic:eid2997')
-    res = res['statement']
-    assertions(civic_eid2997_statement, res)
+    check_statement(res['statement'], civic_eid2997_statement)
 
     res = query_handler.search_by_id('civic:vid33')
-    res = res['variation_descriptor']
-    assertions(civic_vid33, res)
+    check_variation_descriptor(res['variation_descriptor'], civic_vid33)
 
     res = query_handler.search_by_id('civic:gid19')
-    res = res['gene_descriptor']
-    assertions(civic_gid19, res)
+    check_descriptor(res['gene_descriptor'], civic_gid19)
 
     res = query_handler.search_by_id('civic:tid146')
-    res = res['therapy_descriptor']
-    assertions(civic_tid146, res)
+    check_descriptor(res['therapy_descriptor'], civic_tid146)
 
     res = query_handler.search_by_id('civic:did8')
-    res = res['disease_descriptor']
-    assertions(civic_did8, res)
+    check_descriptor(res['disease_descriptor'], civic_did8)
 
     res = query_handler.search_by_id('pmid:23982599')
-    res = res['document']
-    assert_same_keys_list_items(pmid_23982599.keys(), res.keys())
+    check_document(res['document'], pmid_23982599)
 
     res = query_handler.search_by_id('method:001')
-    res = res['method']
-    assertions(method001, res)
+    check_method(res['method'], method001)
 
 
 def test_moa_id_search(query_handler, moa_aid69_statement,
@@ -668,34 +709,28 @@ def test_moa_id_search(query_handler, moa_aid69_statement,
                        pmid_11423618, method004):
     """Test search on moa node id"""
     res = query_handler.search_by_id('moa:aid69')
-    res = res['statement']
-    assertions(moa_aid69_statement, res)
+    check_statement(res['statement'], moa_aid69_statement)
 
     res = query_handler.search_by_id('moa:vid69')
-    res = res['variation_descriptor']
     moa_vid69['expressions'] = []
-    assertions(moa_vid69, res)
+    check_variation_descriptor(res['variation_descriptor'], moa_vid69)
 
     res = query_handler.search_by_id('moa.normalize.gene:ABL1')
-    res = res['gene_descriptor']
-    assertions(moa_abl1, res)
+    check_descriptor(res['gene_descriptor'], moa_abl1)
 
     res = query_handler.search_by_id('moa.normalize.therapy:Imatinib')
-    res = res['therapy_descriptor']
-    assertions(moa_imatinib, res)
+    check_descriptor(res['therapy_descriptor'], moa_imatinib)
 
     res = query_handler.search_by_id('moa.normalize.disease:oncotree%3ACML')
-    res = res['disease_descriptor']
-    assertions(moa_chronic_myelogenous_leukemia, res)
+    check_descriptor(res['disease_descriptor'],
+                     moa_chronic_myelogenous_leukemia)
 
     res = query_handler.search_by_id('moa.normalize.disease:oncotree:CML')
-    res = res['disease_descriptor']
-    assertions(moa_chronic_myelogenous_leukemia, res)
+    check_descriptor(res['disease_descriptor'],
+                     moa_chronic_myelogenous_leukemia)
 
     res = query_handler.search_by_id('pmid:11423618')
-    res = res['document']
-    assert_same_keys_list_items(pmid_11423618.keys(), res.keys())
+    check_document(res['document'], pmid_11423618)
 
     res = query_handler.search_by_id(' method:004 ')
-    res = res['method']
-    assertions(method004, res)
+    check_method(res['method'], method004)
