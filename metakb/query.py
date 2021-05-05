@@ -677,31 +677,26 @@ class QueryHandler:
     @staticmethod
     def _find_and_return_statement_response(tx, statement_id):
         """Return IDs and method related to a Statement."""
-        query = (
-            "MATCH (s:Statement) "
-            f"WHERE s.id = '{statement_id}' "
-            "MATCH (s)-[r1]->(td:TherapyDescriptor) "
-            "MATCH (s)-[r2]->(vd:VariationDescriptor) "
-            "MATCH (s)-[r3]->(dd:DiseaseDescriptor) "
-            "MATCH (s)-[r4]->(m:Method) "
-            "MATCH (s)-[r6]->(p:Proposition) "
-            "RETURN td.id AS tid, vd.id AS vid, dd.id AS did, m,"
-            " p.id AS p_id"
+        queries = (
+            ("MATCH (s)-[r1]->(td:TherapyDescriptor) ", "td.id AS tid,"),
+            ("", "")
         )
-        result = tx.run(query).single()
-        if result:
-            return result
-        else:
+        for q in queries:
             query = (
                 "MATCH (s:Statement) "
                 f"WHERE s.id = '{statement_id}' "
+                f"{q[0]}"
                 "MATCH (s)-[r2]->(vd:VariationDescriptor) "
                 "MATCH (s)-[r3]->(dd:DiseaseDescriptor) "
                 "MATCH (s)-[r4]->(m:Method) "
                 "MATCH (s)-[r6]->(p:Proposition) "
-                "RETURN vd.id AS vid, dd.id AS did, m, p.id AS p_id"
+                f"RETURN {q[1]} vd.id AS vid, dd.id AS did, m,"
+                " p.id AS p_id"
             )
-            return tx.run(query).single()
+            result = tx.run(query).single()
+            if result:
+                return result
+        return None
 
     def get_propositions_response(self, propositions):
         """Return a list of propositions from Proposition nodes.
@@ -719,26 +714,22 @@ class QueryHandler:
     @staticmethod
     def _find_and_return_proposition_response(tx, proposition_id):
         """Return value ids from a proposition."""
-        query = (
-            f"MATCH (n) "
-            f"WHERE n.id = '{proposition_id}' "
-            "MATCH (n) -[r1]-> (t:Therapy) "
-            "MATCH (n) -[r2]-> (v:Variation) "
-            "MATCH (n) -[r3]-> (d:Disease) "
-            "RETURN t.id AS object, v.id AS subject, d.id AS object_qualifier"
+        queries = (
+            ("MATCH (n) -[r1]-> (t:Therapy) ", "t.id AS object,"), ("", "")
         )
-        result = tx.run(query).single()
-        if result:
-            return result
-        else:
+        for q in queries:
             query = (
                 f"MATCH (n) "
                 f"WHERE n.id = '{proposition_id}' "
+                f"{q[0]}"
                 "MATCH (n) -[r2]-> (v:Variation) "
                 "MATCH (n) -[r3]-> (d:Disease) "
-                "RETURN v.id AS subject, d.id AS object_qualifier"
+                f"RETURN {q[1]} v.id AS subject, d.id AS object_qualifier"
             )
-            return tx.run(query).single()
+            result = tx.run(query).single()
+            if result:
+                return result
+        return None
 
     @staticmethod
     def _find_and_return_supported_by(tx, statement_id, only_statement=False):
@@ -809,8 +800,8 @@ class QueryHandler:
             statement = self._get_statement(node)
             if statement:
                 response["statement"] = statement
-        elif label == 'Proposition' or label in ['TherapeuticResponse',
-                                                 'Prognostic', 'Diagnostic']:
+        elif label in ['Proposition', 'TherapeuticResponse',
+                       'Prognostic', 'Diagnostic']:
             proposition = self._get_proposition(node)
             if proposition:
                 response["proposition"] = proposition
