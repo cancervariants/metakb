@@ -54,7 +54,7 @@ def test_gene_descriptor_rules(graph):
             genes = s.run(descr_query, descr_id=descr_id)
             assert genes.value()[0] == 1
 
-            # described by 1 or more GenenDescriptor
+            # described by 1 or more GeneDescriptor
             gene_query = "MATCH (:GeneDescriptor {id:$descr_id}) <-[:HAS_GENE]- (:VariationDescriptor) RETURN count(*)"  # noqa: E501
             gene_descrs = s.run(gene_query, descr_id=descr_id)
             assert gene_descrs.value()[0] >= 1
