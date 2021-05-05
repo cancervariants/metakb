@@ -181,6 +181,7 @@ def pmid_23982599():
     """Create test fixture for CIViC EID2997 document."""
     return {
         "id": "pmid:23982599",
+        "type": "Document",
         "label": "Dungo et al., 2013, Drugs",
         "description": "Afatinib: first global approval."
     }
@@ -234,7 +235,8 @@ def civic_aid6_document():
         "document_id": "https://www.nccn.org/professionals/"
                        "physician_gls/default.aspx",
         "label": "NCCN Guidelines: Non-Small Cell "
-                 "Lung Cancer version 3.2018"
+                 "Lung Cancer version 3.2018",
+        "type": "Document"
     }
 
 
@@ -1025,6 +1027,7 @@ def pmid_15146165():
     return {
         "id": "pmid:15146165",
         "label": "Lasota et al., 2004, Lab. Invest.",
+        "type": "Document",
         "description": "A great majority of GISTs with PDGFRA mutations represent gastric tumors of low or no malignant potential."  # noqa: E501
     }
 
@@ -1033,6 +1036,7 @@ def pmid_15146165():
 def pmid_18073307():
     """Create a test fixture for PMID 18073307."""
     return {
+        "type": "Document",
         "id": "pmid:18073307",
         "label": "Elisei et al., 2008, J. Clin. Endocrinol. Metab.",
         "description": "Prognostic significance of somatic RET oncogene mutations in sporadic medullary thyroid cancer: a 10-year follow-up study."  # noqa: E501
@@ -1045,7 +1049,8 @@ def pmid_16384925():
     return {
         "id": "pmid:16384925",
         "label": "Cairoli et al., 2006, Blood",
-        "description": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study."  # noqa: E501
+        "description": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study.",  # noqa: E501
+        "type": "Document"
     }
 
 
@@ -1053,6 +1058,7 @@ def pmid_16384925():
 def pmid_27819322():
     """Create a test fixture for PMID 27819322."""
     return {
+        "type": "Document",
         "id": "pmid:27819322",
         "label": "Wu et al., 2016, Sci Rep",
         "description": "MTHFR c.677C>T Inhibits Cell Proliferation and Decreases Prostate Cancer Susceptibility in the Han Chinese Population in Shanghai.",  # noqa: E501
@@ -1192,7 +1198,8 @@ def method001():
             "month": 11,
             "day": 29
         },
-        "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."
+        "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al.",
+        "type": "Method"
     }
 
 
@@ -1201,6 +1208,7 @@ def method002():
     """Create test fixture for method:002."""
     return {
         "id": "method:002",
+        "type": "Method",
         "label": "Standards and Guidelines for the Interpretation and Reporting of Sequence Variants in Cancer: A Joint Consensus Recommendation of the Association for Molecular Pathology, American Society of Clinical Oncology, and College of American Pathologists",  # noqa: E501
         "url": "https://pubmed.ncbi.nlm.nih.gov/27993330/",
         "version": {
@@ -1222,6 +1230,7 @@ def method003():
             "year": 2015,
             "month": 5
         },
+        "type": "Method",
         "authors": "Richards S, Aziz N, Bale S, et al."
     }
 
@@ -1233,6 +1242,7 @@ def method004():
         "id": "method:004",
         "label": "Clinical interpretation of integrative molecular profiles to guide precision cancer medicine",  # noqa: E501
         "url": "https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1",
+        "type": "Method",
         "version": {
             "year": 2020,
             "month": 9,
@@ -1256,7 +1266,8 @@ def pmid_11423618():
         "label": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501
         "xrefs": [
             "doi:10.1126/science.1062538"
-        ]
+        ],
+        "type": "Document"
     }
 
 

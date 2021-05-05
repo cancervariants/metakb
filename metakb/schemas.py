@@ -231,7 +231,7 @@ class Document(BaseModel):
     label: str
     description: Optional[str]
     xrefs: Optional[List[str]]
-    # type = 'Document'
+    type = 'Document'
 
 
 class Date(BaseModel):
@@ -267,7 +267,7 @@ class Method(BaseModel):
     url: str
     version: Date
     authors: str
-    # type = 'Method'
+    type = 'Method'
 
 
 class Extension(BaseModel):
