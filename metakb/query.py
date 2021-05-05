@@ -332,8 +332,9 @@ class QueryHandler:
         :param Node variation_descriptor: Variation Descriptor Node
         """
         keys = variation_descriptor.keys()
+        vid = variation_descriptor.get('id')
         vd_params = {
-            'id': variation_descriptor.get('id'),
+            'id': vid,
             'label': variation_descriptor.get('label'),
             'description': variation_descriptor.get('description'),
             'value_id': None,
@@ -393,6 +394,29 @@ class QueryHandler:
                     ),
                     'type': 'Extension'
                 })
+            with self.driver.session() as session:
+                variant_group = session.read_transaction(
+                    self._get_variation_group, vid
+                )
+                if variant_group:
+                    variant_group = variant_group[0]
+                    vg = {
+                        'name': 'variant_group',
+                        'value': [
+                            {
+                                'id': variant_group.get('id'),
+                                'label': variant_group.get('label'),
+                                'description':
+                                    variant_group.get('description'),
+                                'type': 'variant_group'
+                            }
+                        ],
+                        'type': 'Extension'
+                    }
+                    for v in vg['value']:
+                        if not v['description']:
+                            del v['description']
+                    vd_params['extensions'].append(vg)
         elif vd_params['id'].startswith('moa:vid'):
             if 'moa_representative_coordinate' in keys:
                 vd_params['extensions'].append({
@@ -436,6 +460,16 @@ class QueryHandler:
         else:
             if vd not in response['variation_descriptors']:
                 response['variation_descriptors'].append(vd)
+
+    @staticmethod
+    def _get_variation_group(tx, vid):
+        """Get a variation descriptor's variation group."""
+        query = (
+            "MATCH (vd:VariationDescriptor)-[:IN_VARIATION_GROUP]->(vg:VariationGroup) "  # noqa: E501
+            f"WHERE toLower(vd.id) = toLower('{vid}') "
+            "RETURN vg"
+        )
+        return tx.run(query).single()
 
     @staticmethod
     def _get_variation_descriptors_gene(tx, vid):

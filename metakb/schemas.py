@@ -271,9 +271,9 @@ class Method(BaseModel):
 class Extension(BaseModel):
     """Extend descriptions with other attributes unique to a content provider. -GA4GH"""  # noqa: E501
 
-    type = 'Extension'
     name: str
     value: Union[str, dict, List]
+    type = 'Extension'
 
 
 class Expression(BaseModel):
@@ -327,6 +327,7 @@ class VariationDescriptor(ValueObjectDescriptor):
     molecule_context: Optional[MoleculeContext]
     structural_type: Optional[str]
     expressions: Optional[List[Expression]]
+    extensions: Optional[List[Extension]]
     ref_allele_seq: Optional[str]
     gene_context: Optional[Union[str, GeneDescriptor]]
 
