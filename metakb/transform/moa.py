@@ -437,7 +437,7 @@ class MOATransform:
         """
         methods = [schemas.Method(
             id=f'method:'
-               f'{schemas.MethodID.MOA_ASSERTION_BIORXIV:03}',
+               f'{schemas.MethodID.MOA_ASSERTION_BIORXIV}',
             label='Clinical interpretation of integrative molecular profiles to guide precision cancer medicine',  # noqa:E501
             url='https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1',  # noqa:E501
             version=schemas.Date(year=2020, month=9, day=22),

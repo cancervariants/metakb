@@ -92,7 +92,7 @@ class PMKB(Harvester):
                     "name": variant['Gene'],
                 },
                 "id": variant_id,
-                "origin": variant['Germline/Somatic'],
+                "origin": variant['Germline/Somatic'].lower(),
                 "variation_type": variant['Variant'],
                 "dna_change": variant['DNA Change'],
                 "amino_acid_change": variant['Amino Acid Change'],
@@ -150,8 +150,11 @@ class PMKB(Harvester):
 
             interp_variants = set(interp['Variant(s)'].split('|'))
             for interp_variant in interp_variants:
+                if not interp_variant:
+                    continue  # will log below
                 variant_data = variants.get(interp_variant)
                 if not variant_data:
+                    # variant not found in Variants data
                     logger.error(f"Could not retrieve data for variant: "
                                  f"{interp_variant}")
                     continue
@@ -159,11 +162,13 @@ class PMKB(Harvester):
                     "name": variant_data['name'],
                     "id": variant_data['id']
                 })
+                origin = variant_data.get('origin')
+                if origin and 'origin' not in statement:
+                    statement['origin'] = origin
 
             valid_statement = True
             for field in ('variants', 'diseases', 'evidence_items'):
                 if not statement[field]:
-                    print(interp)
                     logger.warning(f"Interpretation ID#{interp_id} has no "
                                    f"valid {field} values.")
                     valid_statement = False
@@ -191,4 +196,5 @@ class PMKB(Harvester):
 
         composite_path = self.pmkb_dir / filename
         with open(composite_path, 'w') as outfile:
-            json.dump([statements, variants_list], outfile)
+            json.dump({'statements': statements, 'variants': variants_list},
+                      outfile)

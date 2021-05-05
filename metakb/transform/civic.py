@@ -179,7 +179,7 @@ class CIViCTransform:
 
             if is_evidence:
                 # Evidence items's method and evidence level
-                method = f'method:{schemas.MethodID.CIVIC_EID_SOP:03}'
+                method = f'method:{schemas.MethodID.CIVIC_EID_SOP}'
                 evidence_level = f"civic.evidence_level:{r['evidence_level']}"
 
                 # Supported by evidence for evidence item
@@ -192,10 +192,10 @@ class CIViCTransform:
                 if r['amp_level'] and not r['acmg_codes']:
                     method = \
                         f'method:' \
-                        f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP.value:03}'
+                        f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP.value}'
                 elif not r['amp_level'] and r['acmg_codes']:
                     method = f'method:' \
-                             f'{schemas.MethodID.CIVIC_AID_ACMG.value:03}'
+                             f'{schemas.MethodID.CIVIC_AID_ACMG.value}'
                 else:
                     logger.warning(f"Unable to get method for {r['name']}")
                     method = None
@@ -797,7 +797,7 @@ class CIViCTransform:
         self.transformed['methods'] = [
             schemas.Method(
                 id=f'method:'
-                   f'{schemas.MethodID.CIVIC_EID_SOP:03}',
+                   f'{schemas.MethodID.CIVIC_EID_SOP}',
                 label='Standard operating procedure for curation and clinical'
                       ' interpretation of variants in cancer',
                 url='https://genomemedicine.biomedcentral.com/articles/'
@@ -807,7 +807,7 @@ class CIViCTransform:
             ).dict(exclude_none=True),
             schemas.Method(
                 id=f'method:'
-                   f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP.value:03}',
+                   f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP.value}',
                 label='Standards and Guidelines for the '
                       'Interpretation and Reporting of Sequence '
                       'Variants in Cancer: A Joint Consensus '
@@ -822,7 +822,7 @@ class CIViCTransform:
             ).dict(exclude_none=True),
             schemas.Method(
                 id=f'method:'
-                   f'{schemas.MethodID.CIVIC_AID_ACMG.value:03}',
+                   f'{schemas.MethodID.CIVIC_AID_ACMG.value}',
                 label='Standards and guidelines for the '
                       'interpretation of sequence variants: a '
                       'joint consensus recommendation of the '
@@ -881,7 +881,7 @@ class CIViCTransform:
                          document_id)
         documents = list()
         documents.append(schemas.Document(
-            id=f"document:{document_ix:03}",
+            id=f"document:{document_ix}",
             document_id="https://www.nccn.org/professionals/"
                         "physician_gls/default.aspx",
             label=f"NCCN Guidelines: {label} version {version}"
