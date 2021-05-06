@@ -1,10 +1,5 @@
 """Module for queries."""
-from gene.query import QueryHandler as GeneQueryHandler
-from variant.to_vrs import ToVRS
-from variant.normalize import Normalize as VariantNormalizer
-from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
-from therapy.query import QueryHandler as TherapyQueryHandler
-from disease.query import QueryHandler as DiseaseQueryHandler
+from metakb.normalizers import VICCNormalizers
 from metakb.schemas import SearchService, StatementResponse, \
     TherapeuticResponseProposition, VariationDescriptor,\
     ValueObjectDescriptor, GeneDescriptor, Drug, Disease, Gene, Method, \
@@ -26,12 +21,7 @@ class QueryHandler:
     def __init__(self):
         """Initialize neo4j driver and the VICC normalizers."""
         self.driver = Graph().driver
-        self.gene_query_handler = GeneQueryHandler()
-        self.variant_normalizer = VariantNormalizer()
-        self.disease_query_handler = DiseaseQueryHandler()
-        self.therapy_query_handler = TherapyQueryHandler()
-        self.variant_to_vrs = ToVRS()
-        self.amino_acid_cache = AminoAcidCache()
+        self.vicc_normalizers = VICCNormalizers()
 
     def get_normalized_therapy(self, therapy, warnings):
         """Get normalized therapy concept.
@@ -41,19 +31,13 @@ class QueryHandler:
         :return: A normalized therapy concept string if concept exists in
             thera-py, else `None`
         """
-        therapy_norm_resp = \
-            self.therapy_query_handler.search_groups(therapy)
+        _, normalized_therapy_id = \
+            self.vicc_normalizers.normalize_therapy([therapy])
 
-        therapy_norm_id = None
-        if therapy_norm_resp['match_type'] != 0:
-            therapy_norm_resp = therapy_norm_resp[
-                'value_object_descriptor']
-            therapy_norm_id = therapy_norm_resp['value']['id']
-
-        if not therapy_norm_id:
-            warnings.append(f'therapy-normalizer could not '
-                            f'normalize {therapy}.')
-        return therapy_norm_id
+        if not normalized_therapy_id:
+            warnings.append(f'Therapy Normalizer unable to normalize: '
+                            f'{therapy}')
+        return normalized_therapy_id
 
     def get_normalized_disease(self, disease, warnings):
         """Get normalized disease concept.
@@ -63,16 +47,13 @@ class QueryHandler:
         :return: A normalized disease concept string if concept exists in
             disease-normalizer, else `None`
         """
-        disease_norm_response = \
-            self.disease_query_handler.search_groups(disease)
-        normalized_disease = None
-        if disease_norm_response['match_type'] != 0:
-            normalized_disease = disease_norm_response['value_object_descriptor']['value']['id']  # noqa: E501
+        _, normalized_disease_id = \
+            self.vicc_normalizers.normalize_disease([disease])
 
-        if not normalized_disease:
-            warnings.append(f'disease-normalizer could not normalize '
-                            f'{disease}.')
-        return normalized_disease
+        if not normalized_disease_id:
+            warnings.append(f'Disease Normalizer unable to normalize: '
+                            f'{disease}')
+        return normalized_disease_id
 
     def get_normalized_variation(self, variation, warnings):
         """Get normalized variation concept.
@@ -82,21 +63,19 @@ class QueryHandler:
         :return: A normalized variant concept string if concept exists in
             variant-normalizer, else `None`
         """
-        validations = self.variant_to_vrs.get_validations(variation)
-        variation_norm_resp =\
-            self.variant_normalizer.normalize(variation, validations,
-                                              self.amino_acid_cache)
+        variant_norm_resp = \
+            self.vicc_normalizers.normalize_variant([variation])
         normalized_variation = None
-        if variation_norm_resp:
-            normalized_variation = variation_norm_resp.value_id
+        if variant_norm_resp:
+            normalized_variation = variant_norm_resp.value_id
         if not normalized_variation:
             # Check if VRS object
             lower_variation = variation.lower()
             if lower_variation.startswith('ga4gh:va.') or lower_variation.startswith('ga4gh:sq.'):  # noqa: E501
                 normalized_variation = variation
             else:
-                warnings.append(f'variant-normalizer could not normalize '
-                                f'{variation}.')
+                warnings.append(f'Variant Normalizer unable to normalize: '
+                                f'{variation}')
         return normalized_variation
 
     def get_normalized_gene(self, gene, warnings):
@@ -107,15 +86,10 @@ class QueryHandler:
         :return: A normalized gene concept string if concept exists in
             gene-normalizer, else `None`
         """
-        gene_norm_resp = self.gene_query_handler.search_sources(gene,
-                                                                incl='hgnc')
-        normalized_gene = None
-        if gene_norm_resp['source_matches']:
-            if gene_norm_resp['source_matches'][0]['match_type'] != 0:
-                normalized_gene = gene_norm_resp['source_matches'][0]['records'][0].concept_id  # noqa: E501
-        if not normalized_gene:
-            warnings.append(f'gene-normalizer could not normalize {gene}.')
-        return normalized_gene
+        _, normalized_gene_id = self.vicc_normalizers.normalize_gene([gene])
+        if not normalized_gene_id:
+            warnings.append(f'Gene Normalizer unable to normalize: {gene}')
+        return normalized_gene_id
 
     def get_normalized_terms(self, variation, disease, therapy, gene,
                              response):
