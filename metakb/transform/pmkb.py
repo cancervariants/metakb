@@ -1,11 +1,6 @@
 """Transform PMKB data into Common Data Model objects."""
 from metakb import PROJECT_ROOT
-from gene.query import QueryHandler as GeneNormalizer
-from therapy.query import QueryHandler as TherapyNormalizer
-from disease.query import QueryHandler as DiseaseNormalizer
-from variant.normalize import Normalize as VariantNormalizer
-from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
-from variant.to_vrs import ToVRS
+from metakb.normalizers import VICCNormalizers
 import metakb.schemas as schemas
 import logging
 import json
@@ -27,12 +22,7 @@ class PMKBTransform:
         """
         self._file_path = file_path
         self.audit = audit
-        self.gene_normalizer = GeneNormalizer()
-        self.therapy_normalizer = TherapyNormalizer()
-        self.disease_normalizer = DiseaseNormalizer()
-        self.variant_normalizer = VariantNormalizer()
-        self.variant_to_vrs = ToVRS()
-        self.amino_acid_cache = AminoAcidCache()
+        self.vicc_normalizers = VICCNormalizers()
         self.transformed = {
             'variation_descriptors': {},  # label -> VOD
             'gene_descriptors': {},  # symbol -> VOD
@@ -176,17 +166,18 @@ class PMKBTransform:
         ncit:C49236.
         :return: List containing Therapeutic Procedure VOD.
         """
-        if not self.transformed['therapy_descriptor']:
-            response = self.therapy_normalizer.search_groups('ncit:C49236')
-            vod = schemas.ValueObjectDescriptor(
-                id="pmkb.normalize.therapy:ncit%3AC49236",
-                type="TherapyDescriptor",
-                value=response['value_object_descriptor']['value']
-            ).dict(exclude_none=True)
-            self.transformed['therapy_descriptor'] = vod
+        vod = self.transformed['therapy_descriptor']
+        if vod:
             return [vod]
-        else:
-            return [self.transformed['therapy_descriptor']]
+
+        response, _ = self.vicc_normalizers.normalize_therapy(['ncit:C49236'])  # noqa: E501
+        vod = schemas.ValueObjectDescriptor(
+            id="pmkb.normalize.therapy:ncit%3AC49236",
+            type="TherapyDescriptor",
+            value=response['value_object_descriptor']['value']
+        ).dict(exclude_none=True)
+        self.transformed['therapy_descriptor'] = vod
+        return [vod]
 
     def _get_disease_descriptors(self, disease, tissue_types):
         """Get Disease Descriptors for given disease. Tries disease label
@@ -205,11 +196,12 @@ class PMKBTransform:
         if vod:
             return [vod]
 
-        response = self.disease_normalizer.search_groups(disease)
-        if response['match_type'] == 0:
+        response = self.vicc_normalizers.normalize_disease([disease])
+        if not response or not response[0] or response[0]['match_type'] == 0:
             logger.warning(f"Disease normalization of {disease} failed.")
             invalid_keys.add(disease)
             return []
+        response = response[0]
         vod = schemas.ValueObjectDescriptor(
             id=f"pmkb.normalize.disease:{disease}",
             type="DiseaseDescriptor",
@@ -245,14 +237,13 @@ class PMKBTransform:
         if vod:
             return [vod]
 
-        response = self.gene_normalizer.search_sources(symbol, incl='hgnc')
-        match = response['source_matches'][0]
-        if match['match_type'] == 0:
+        response, _ = self.vicc_normalizers.normalize_gene([symbol])
+        if not response:
             logger.warning(f"Gene normalization of {symbol} failed.")
             invalid_keys.add(symbol)
             return []
 
-        normalized_id = match['records'][0].concept_id
+        normalized_id = response['records'][0].concept_id
 
         vod = schemas.ValueObjectDescriptor(
             id=f"pmkb.normalize.gene:{symbol}",
@@ -281,9 +272,7 @@ class PMKBTransform:
         if vod:
             return [vod]
 
-        validations = self.variant_to_vrs.get_validations(label)
-        response = self.variant_normalizer.normalize(label, validations,
-                                                     self.amino_acid_cache)
+        response = self.vicc_normalizers.normalize_variant([label])
         if not response:
             logger.warning(f"Variant normalization of {label} failed.")
             invalid_keys.add(label)
@@ -310,10 +299,12 @@ class PMKBTransform:
         if ens_id:
             assoc_with.append(f'{schemas.XrefSystem.ENSEMBL.value}:{ens_id}')
         if assoc_with:
-            vod['extensions'] = schemas.Extension(
-                name="associated_with",
-                value=assoc_with
-            ).dict()
+            vod['extensions'] = [
+                schemas.Extension(
+                    name="associated_with",
+                    value=assoc_with
+                ).dict()
+            ]
 
         self.transformed['variation_descriptors'][label] = vod
         return [vod]
