@@ -313,7 +313,7 @@ class PMKBTransform:
             vod['extensions'] = schemas.Extension(
                 name="associated_with",
                 value=assoc_with
-            )
+            ).dict()
 
         self.transformed['variation_descriptors'][label] = vod
         return [vod]
@@ -333,7 +333,7 @@ class PMKBTransform:
                 version=schemas.Date(year=2016,
                                      month=5).dict(exclude_none=True)
             ).dict()
-            self.transformed['methods'] = method
+            self.transformed['method'] = method
         return [method]
 
     def _get_tr_proposition(self, v_descriptors, t_descriptors,
