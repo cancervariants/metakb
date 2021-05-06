@@ -231,6 +231,7 @@ class Document(BaseModel):
     label: str
     description: Optional[str]
     xrefs: Optional[List[str]]
+    type = 'Document'
 
 
 class Date(BaseModel):
@@ -266,14 +267,15 @@ class Method(BaseModel):
     url: str
     version: Date
     authors: str
+    type = 'Method'
 
 
 class Extension(BaseModel):
     """Extend descriptions with other attributes unique to a content provider. -GA4GH"""  # noqa: E501
 
-    type = 'Extension'
     name: str
     value: Union[str, dict, List]
+    type = 'Extension'
 
 
 class Expression(BaseModel):
@@ -327,6 +329,7 @@ class VariationDescriptor(ValueObjectDescriptor):
     molecule_context: Optional[MoleculeContext]
     structural_type: Optional[str]
     expressions: Optional[List[Expression]]
+    extensions: Optional[List[Extension]]
     ref_allele_seq: Optional[str]
     gene_context: Optional[Union[str, GeneDescriptor]]
 
@@ -356,7 +359,7 @@ class StatementResponse(BaseModel):
     variation_origin: Optional[VariationOrigin]
     proposition: str
     variation_descriptor: str
-    therapy_descriptor: str
+    therapy_descriptor: Optional[str]
     disease_descriptor: str
     method: str
     supported_by: List[str]
@@ -450,7 +453,9 @@ class SearchService(BaseModel):
     warnings: Optional[List[str]]
     matches: Matches
     statements: Optional[List[StatementResponse]]
-    propositions: Optional[List[TherapeuticResponseProposition]]
+    propositions: Optional[List[Union[TherapeuticResponseProposition,
+                                      DiagnosticProposition,
+                                      PrognosticProposition]]]
     variation_descriptors: Optional[List[VariationDescriptor]]
     gene_descriptors: Optional[List[GeneDescriptor]]
     therapy_descriptors: Optional[List[ValueObjectDescriptor]]
@@ -620,8 +625,7 @@ class SearchIDService(BaseModel):
                                 "type": "Extension"
                             }
                         ],
-                        "molecule_context": "protein",
-                        "structural_type": "SO:0001060",
+                        "structural_type": "SO:0001583",
                         "expressions": [
                             {
                                 "syntax": "hgvs:genomic",
@@ -644,7 +648,6 @@ class SearchIDService(BaseModel):
                                 "type": "Expression"
                             }
                         ],
-                        "ref_allele_seq": "L",
                         "gene_context": "civic:gid19"
                     }
                 ]
