@@ -7,8 +7,8 @@ from os import environ
 import logging
 from metakb.database import Graph
 from metakb import PROJECT_ROOT
-from metakb.harvesters import CIViC, MOAlmanac
-from metakb.transform import CIViCTransform, MOATransform
+from metakb.harvesters import CIViC, MOAlmanac, PMKB
+from metakb.transform import CIViCTransform, MOATransform, PMKBTransform
 from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
 from disease.cli import CLI as DiseaseCLI
@@ -102,7 +102,8 @@ class CLI:
         g.clear()
         civic_path = PROJECT_ROOT / 'data' / 'civic' / 'transform' / 'civic_cdm.json'  # noqa: E501
         moa_path = PROJECT_ROOT / 'data' / 'moa' / 'transform' / 'moa_cdm.json'
-        for path in (civic_path, moa_path):
+        pmkb_path = PROJECT_ROOT / 'data' / 'pmkb' / 'transform' / 'pmkb_cdm.json'  # noqa: E501
+        for path in (civic_path, moa_path, pmkb_path):
             try:
                 g.load_from_json(path)
             except FileNotFoundError:
@@ -119,7 +120,8 @@ class CLI:
         # TODO: Switch to using constant
         harvester_sources = {
             'civic': CIViC,
-            'moa': MOAlmanac
+            'moa': MOAlmanac,
+            'pmkb': PMKB
         }
         for class_str, class_name in harvester_sources.items():
             click.echo(f"Harvesting {class_str}...")
@@ -139,7 +141,8 @@ class CLI:
         # TODO: Switch to using constant
         transform_sources = {
             'civic': CIViCTransform,
-            'moa': MOATransform
+            'moa': MOATransform,
+            'pmkb': PMKBTransform
         }
         for class_str, class_name in transform_sources.items():
             click.echo(f"Transforming {class_str}...")
