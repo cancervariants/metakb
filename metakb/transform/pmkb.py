@@ -167,7 +167,8 @@ class PMKBTransform:
         d_descriptors = self._get_disease_descriptors(diseases[0],
                                                       tissue_types)
         g_descriptors = self._get_gene_descriptors(variant)
-        v_descriptors = self._get_variant_descriptors(statement, variant)
+        v_descriptors = self._get_variant_descriptors(statement, variant,
+                                                      g_descriptors[0]['id'])
         return t_descriptors, d_descriptors, g_descriptors, v_descriptors
 
     def _get_therapy_descriptors(self):
@@ -213,7 +214,7 @@ class PMKBTransform:
             id=f"pmkb.normalize.disease:{disease}",
             type="DiseaseDescriptor",
             label=disease,
-            value=schemas.Disease(id=response['value_object_descriptor']['id'])
+            value=schemas.Disease(id=response['value_object_descriptor']['value']['id'])  # noqa: E501
         ).dict(exclude_none=True)
 
         if tissue_types:
@@ -263,10 +264,11 @@ class PMKBTransform:
         gene_descriptors[symbol] = vod
         return [vod]
 
-    def _get_variant_descriptors(self, statement, variant):
+    def _get_variant_descriptors(self, statement, variant, gene_id):
         """Fetch variant descriptors.
         :param Dict statement: PMKB statement object
         :param Dict variant: PMKB variant object
+        :param str gene_id: identifier for gene_context field
         :return: List (len == 1) containing VOD of normalized match, or
             empty list if normalization fails
         """
@@ -288,7 +290,7 @@ class PMKBTransform:
             return []
 
         vod = schemas.ValueObjectDescriptor(
-            id=f"pmkb.normalize.variant:{label}",
+            id=f"pmkb.variant:{variant['id']}",
             type="VariationDescriptor",
             label=label,
             value_id=response.value_id,
