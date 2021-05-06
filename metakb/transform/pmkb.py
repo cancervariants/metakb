@@ -289,7 +289,7 @@ class PMKBTransform:
             invalid_keys.add(label)
             return []
 
-        vod = schemas.ValueObjectDescriptor(
+        vod = schemas.VariationDescriptor(
             id=f"pmkb.variant:{variant['id']}",
             type="VariationDescriptor",
             label=label,
@@ -301,16 +301,19 @@ class PMKBTransform:
             ref_allele_seq=response.ref_allele_seq,
         ).dict(exclude_none=True)
 
-        xrefs = []
+        # TODO extensions?
+        assoc_with = []
         cosmic_id = variant.get('cosmic_id')
         if cosmic_id:
-            xrefs.append(f'{schemas.XrefSystem.COSMIC.value}:{cosmic_id}')
+            assoc_with.append(f'{schemas.XrefSystem.COSMIC.value}:{cosmic_id}')
         ens_id = variant.get('ensembl_id')
         if ens_id:
-            xrefs.append(f'{schemas.XrefSystem.ENSEMBL.value}:{ens_id}')
-        if xrefs:
-            vod['xrefs'] = xrefs
-        # add other pmkb descriptive data as extension?
+            assoc_with.append(f'{schemas.XrefSystem.ENSEMBL.value}:{ens_id}')
+        if assoc_with:
+            vod['extensions'] = schemas.Extension(
+                name="associated_with",
+                value=assoc_with
+            )
 
         self.transformed['variation_descriptors'][label] = vod
         return [vod]
