@@ -79,13 +79,13 @@ class PMKBTransform:
 
         if self.audit:
             data_dir = PROJECT_ROOT / 'data' / 'pmkb'
-            with open(data_dir / 'invalid_variants.json', 'wb') as f:
-                json.dump(list(self.invalid_keys['variants']), f)
-            with open(data_dir / 'invalid_genes.json', 'wb') as f:
-                json.dump(list(self.invalid_keys['genes']), f)
-            with open(data_dir / 'invalid_diseases.json', 'wb') as f:
-                json.dump([[d, t] for d, t in self.invalid_keys['diseases']],
-                          f)
+            output = {
+                'variants': list(self.invalid_keys['variants']),
+                'genes': list(self.invalid_keys['genes']),
+                'diseases': [[d, t] for d, t in self.invalid_keys['diseases']]
+            }
+            with open(data_dir / 'invalid_keys.json', 'w') as f:
+                json.dump(output, f)
 
     def transform(self, propositions_documents_ix=None):
         """Transform PMKB harvested json to common data model.
@@ -151,7 +151,6 @@ class PMKBTransform:
         tissue_types = statement['tissue_types']
         variant_ids = [variant['id'] for variant in statement['variants']]
         for field, values in (('disease', diseases),
-                              ('tissue type', tissue_types),
                               ('variant', variant_ids)):
             if len(values) != 1:
                 logger.warning(f"PMKB statement {statement['id']} does not "
@@ -166,7 +165,7 @@ class PMKBTransform:
                            f"{statement['id']}")
         t_descriptors = self._get_therapy_descriptors()
         d_descriptors = self._get_disease_descriptors(diseases[0],
-                                                      tissue_types[0])
+                                                      tissue_types)
         g_descriptors = self._get_gene_descriptors(variant)
         v_descriptors = self._get_variant_descriptors(statement, variant)
         return t_descriptors, d_descriptors, g_descriptors, v_descriptors
@@ -188,49 +187,45 @@ class PMKBTransform:
         else:
             return [self.transformed['therapy_descriptor']]
 
-    def _get_disease_descriptors(self, disease, tissue_type):
+    def _get_disease_descriptors(self, disease, tissue_types):
         """Get Disease Descriptors for given disease. Tries disease label
         concatenated with tissue type first, then disease label alone.
         :param str disease: PMKB disease name
-        :param str tissue_type: type of tissue specified by record
+        :param List tissue_types: types of tissue (str) specified by record
         :return: List (len == 1) containing VOD of best normalized match, or
             empty List if normalization fails
         """
         invalid_keys = self.invalid_keys['diseases']
-        if (disease, tissue_type) in invalid_keys:
+        if disease in invalid_keys:
             return []
-        vod = self.transformed['disease_descriptors'].get((disease,
-                                                           tissue_type))
+
+        disease_descriptors = self.transformed['disease_descriptors']
+        vod = disease_descriptors.get(disease)
         if vod:
             return [vod]
 
-        concat_label = f'{tissue_type} {disease}'
-        highest_match = 0
-        highest_id = None
-        highest_label = None
-        for query in concat_label, disease:
-            response = self.disease_normalizer.search_groups(query)
-            if response['match_type'] > highest_match:
-                highest_match = response['match_type']
-                highest_label = query
-                highest_id = response['value_object_descriptor']['value']['id']
-                if highest_match == 100:
-                    break
-
-        if highest_id is None:
-            logger.warning(f"Disease normalization of {disease} and "
-                           f"{concat_label} failed.")
-            invalid_keys.add((disease, tissue_type))
+        response = self.disease_normalizer.search_groups(disease)
+        if response['match_type'] == 0:
+            logger.warning(f"Disease normalization of {disease} failed.")
+            invalid_keys.add(disease)
             return []
-
         vod = schemas.ValueObjectDescriptor(
-            id=f"pmkb.normalize.disease:{highest_label}",
+            id=f"pmkb.normalize.disease:{disease}",
             type="DiseaseDescriptor",
-            label=highest_label,
-            value=schemas.Disease(id=highest_id)
+            label=disease,
+            value=schemas.Disease(id=response['value_object_descriptor']['id'])
         ).dict(exclude_none=True)
-        self.transformed['disease_descriptors'][(disease, tissue_type)] = vod
 
+        if tissue_types:
+            vod['extensions'] = [
+                {
+                    "type": "Extension",
+                    "name": "tissue_types",
+                    "value": tissue_types
+                }
+            ]
+
+        self.transformed['disease_descriptors'][disease] = vod
         return [vod]
 
     def _get_gene_descriptors(self, variant):
@@ -268,8 +263,6 @@ class PMKBTransform:
         gene_descriptors[symbol] = vod
         return [vod]
 
-    # TODO checks on variation type
-    # TODO how to handle various types (eg indel) labels
     def _get_variant_descriptors(self, statement, variant):
         """Fetch variant descriptors.
         :param Dict statement: PMKB statement object
@@ -281,14 +274,14 @@ class PMKBTransform:
         invalid_keys = self.invalid_keys['variants']
         if label in invalid_keys:
             return []
+
         vod = self.transformed['variation_descriptors'].get(label)
         if vod:
             return [vod]
+
         validations = self.variant_to_vrs.get_validations(label)
         response = self.variant_normalizer.normalize(label, validations,
                                                      self.amino_acid_cache)
-        # print(response)
-        # if not response or response.warnings:  # more specific check?
         if not response:
             logger.warning(f"Variant normalization of {label} failed.")
             invalid_keys.add(label)
@@ -305,6 +298,7 @@ class PMKBTransform:
             structural_type=response.structural_type,
             ref_allele_seq=response.ref_allele_seq,
         ).dict(exclude_none=True)
+
         xrefs = []
         cosmic_id = variant.get('cosmic_id')
         if cosmic_id:
