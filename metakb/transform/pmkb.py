@@ -82,7 +82,7 @@ class PMKBTransform:
             output = {
                 'variants': list(self.invalid_keys['variants']),
                 'genes': list(self.invalid_keys['genes']),
-                'diseases': [[d, t] for d, t in self.invalid_keys['diseases']]
+                'diseases': list(self.invalid_keys['diseases'])
             }
             with open(data_dir / 'invalid_keys.json', 'w') as f:
                 json.dump(output, f)
@@ -412,7 +412,6 @@ class PMKBTransform:
             description=statement['description'],
             evidence_level=statement['pmkb_evidence_tier'],
             proposition=proposition['id'],
-            # variation_origin=statement['variation_origin'],
             variation_descriptor=v_descriptor['id'],
             therapy_descriptor=t_descriptors[0]['id'],
             disease_descriptor=d_descriptors[0]['id'],
