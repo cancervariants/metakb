@@ -122,7 +122,9 @@ class CLI:
             'moa': MOAlmanac
         }
         for class_str, class_name in harvester_sources.items():
-            click.echo(f"Harvesting {class_str}...")
+            harvest_start = f"Harvesting {class_str}..."
+            click.echo(harvest_start)
+            logger.info(harvest_start)
             start = timer()
             source = class_name()
             source_successful = source.harvest()
@@ -130,7 +132,10 @@ class CLI:
             if not source_successful:
                 logger.info(f'{class_str} harvest failed.')
                 click.get_current_context().exit()
-            click.echo(f"{class_str} harvest finished in {(end-start):.5f} s.")
+            harvest_finish = \
+                f"{class_str} harvest finished in {(end-start):.5f} s."
+            click.echo(harvest_finish)
+            logger.info(harvest_finish)
 
     @staticmethod
     def _transform_sources():
@@ -142,13 +147,17 @@ class CLI:
             'moa': MOATransform
         }
         for class_str, class_name in transform_sources.items():
-            click.echo(f"Transforming {class_str}...")
+            transform_start = f"Transforming {class_str}..."
+            click.echo(transform_start)
+            logger.info(transform_start)
             start = timer()
             source = class_name()
             source_indices = source.transform(source_indices)
             end = timer()
-            click.echo(
-                f"{class_str} transform finished in {(end - start):.5f} s.")
+            transform_end = \
+                f"{class_str} transform finished in {(end - start):.5f} s."
+            click.echo(transform_end)
+            logger.info(transform_end)
             source._create_json()
 
     @staticmethod

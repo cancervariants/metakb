@@ -8,7 +8,7 @@ from disease.query import QueryHandler as DiseaseQueryHandler
 from metakb.schemas import SearchService, StatementResponse, \
     TherapeuticResponseProposition, VariationDescriptor,\
     ValueObjectDescriptor, GeneDescriptor, Drug, Disease, Gene, Method, \
-    Document, SearchIDService
+    Document, SearchIDService, DiagnosticProposition, PrognosticProposition
 import logging
 from metakb.database import Graph
 import json
@@ -286,11 +286,14 @@ class QueryHandler:
                         self._find_node_by_id, s['variation_descriptor']
                     )
                 )
-                self._add_therapy_descriptor(
-                    response, session.read_transaction(
-                        self._find_node_by_id, s['therapy_descriptor']
+                if 'therapy_descriptor' in s.keys():
+                    self._add_therapy_descriptor(
+                        response, session.read_transaction(
+                            self._find_node_by_id, s['therapy_descriptor']
+                        )
                     )
-                )
+                else:
+                    response['therapy_descriptor'] = None
 
                 self._add_disease_descriptor(
                     response, session.read_transaction(
@@ -329,8 +332,9 @@ class QueryHandler:
         :param Node variation_descriptor: Variation Descriptor Node
         """
         keys = variation_descriptor.keys()
+        vid = variation_descriptor.get('id')
         vd_params = {
-            'id': variation_descriptor.get('id'),
+            'id': vid,
             'label': variation_descriptor.get('label'),
             'description': variation_descriptor.get('description'),
             'value_id': None,
@@ -390,6 +394,29 @@ class QueryHandler:
                     ),
                     'type': 'Extension'
                 })
+            with self.driver.session() as session:
+                variant_group = session.read_transaction(
+                    self._get_variation_group, vid
+                )
+                if variant_group:
+                    variant_group = variant_group[0]
+                    vg = {
+                        'name': 'variant_group',
+                        'value': [
+                            {
+                                'id': variant_group.get('id'),
+                                'label': variant_group.get('label'),
+                                'description':
+                                    variant_group.get('description'),
+                                'type': 'variant_group'
+                            }
+                        ],
+                        'type': 'Extension'
+                    }
+                    for v in vg['value']:
+                        if not v['description']:
+                            del v['description']
+                    vd_params['extensions'].append(vg)
         elif vd_params['id'].startswith('moa:vid'):
             if 'moa_representative_coordinate' in keys:
                 vd_params['extensions'].append({
@@ -433,6 +460,16 @@ class QueryHandler:
         else:
             if vd not in response['variation_descriptors']:
                 response['variation_descriptors'].append(vd)
+
+    @staticmethod
+    def _get_variation_group(tx, vid):
+        """Get a variation descriptor's variation group."""
+        query = (
+            "MATCH (vd:VariationDescriptor)-[:IN_VARIATION_GROUP]->(vg:VariationGroup) "  # noqa: E501
+            f"WHERE toLower(vd.id) = toLower('{vid}') "
+            "RETURN vg"
+        )
+        return tx.run(query).single()
 
     @staticmethod
     def _get_variation_descriptors_gene(tx, vid):
@@ -666,42 +703,34 @@ class QueryHandler:
         """
         statements_response = list()
         for s in statements:
-            with self.driver.session() as session:
-                statement_id = s.get('id')
-                response = session.read_transaction(
-                    self._find_and_return_statement_response, statement_id)
-                se_list = session.read_transaction(
-                    self._find_and_return_supported_by, statement_id)
-                statements_response.append(StatementResponse(
-                    id=statement_id,
-                    description=s.get('description'),
-                    direction=s.get('direction'),
-                    evidence_level=s.get('evidence_level'),
-                    variation_origin=s.get('variation_origin'),
-                    proposition=response['tr_id'],
-                    variation_descriptor=response['vid'],
-                    therapy_descriptor=response['tid'],
-                    disease_descriptor=response['did'],
-                    method=response['m']['id'],
-                    supported_by=[se['id'] for se in se_list]
-                ).dict())
+            statements_response.append(
+                self._get_statement(s)
+            )
         return statements_response
 
     @staticmethod
     def _find_and_return_statement_response(tx, statement_id):
         """Return IDs and method related to a Statement."""
-        query = (
-            "MATCH (s) "
-            f"WHERE s.id = '{statement_id}' "
-            "MATCH (s)-[r1]->(td:TherapyDescriptor) "
-            "MATCH (s)-[r2]->(vd:VariationDescriptor) "
-            "MATCH (s)-[r3]->(dd:DiseaseDescriptor) "
-            "MATCH (s)-[r4]->(m:Method) "
-            "MATCH (s)-[r6]->(tr:TherapeuticResponse) "
-            "RETURN td.id AS tid, vd.id AS vid, dd.id AS did, m,"
-            " tr.id AS tr_id"
+        queries = (
+            ("MATCH (s)-[r1]->(td:TherapyDescriptor) ", "td.id AS tid,"),
+            ("", "")
         )
-        return tx.run(query).single()
+        for q in queries:
+            query = (
+                "MATCH (s:Statement) "
+                f"WHERE s.id = '{statement_id}' "
+                f"{q[0]}"
+                "MATCH (s)-[r2]->(vd:VariationDescriptor) "
+                "MATCH (s)-[r3]->(dd:DiseaseDescriptor) "
+                "MATCH (s)-[r4]->(m:Method) "
+                "MATCH (s)-[r6]->(p:Proposition) "
+                f"RETURN {q[1]} vd.id AS vid, dd.id AS did, m,"
+                " p.id AS p_id"
+            )
+            result = tx.run(query).single()
+            if result:
+                return result
+        return None
 
     def get_propositions_response(self, propositions):
         """Return a list of propositions from Proposition nodes.
@@ -711,35 +740,30 @@ class QueryHandler:
         """
         propositions_response = list()
         for p in propositions:
-            with self.driver.session() as session:
-                p_id = p.get('id')
-                value_ids = session.read_transaction(
-                    self._find_and_return_proposition_response, p_id
-                )
-                proposition = TherapeuticResponseProposition(
-                    id=p.get('id'),
-                    type=p.get('type'),
-                    predicate=p.get('predicate'),
-                    subject=value_ids['subject'],
-                    object_qualifier=value_ids['object_qualifier'],
-                    object=value_ids['object']
-                ).dict()
-                if proposition not in propositions_response:
-                    propositions_response.append(proposition)
+            proposition = self._get_proposition(p)
+            if proposition and proposition not in propositions_response:
+                propositions_response.append(proposition)
         return propositions_response
 
     @staticmethod
     def _find_and_return_proposition_response(tx, proposition_id):
         """Return value ids from a proposition."""
-        query = (
-            f"MATCH (n) "
-            f"WHERE n.id = '{proposition_id}' "
-            "MATCH (n) -[r1]-> (t:Therapy) "
-            "MATCH (n) -[r2]-> (v:Variation) "
-            "MATCH (n) -[r3]-> (d:Disease) "
-            "RETURN t.id AS object, v.id AS subject, d.id AS object_qualifier"
+        queries = (
+            ("MATCH (n) -[r1]-> (t:Therapy) ", "t.id AS object,"), ("", "")
         )
-        return tx.run(query).single()
+        for q in queries:
+            query = (
+                f"MATCH (n) "
+                f"WHERE n.id = '{proposition_id}' "
+                f"{q[0]}"
+                "MATCH (n) -[r2]-> (v:Variation) "
+                "MATCH (n) -[r3]-> (d:Disease) "
+                f"RETURN {q[1]} v.id AS subject, d.id AS object_qualifier"
+            )
+            result = tx.run(query).single()
+            if result:
+                return result
+        return None
 
     @staticmethod
     def _find_and_return_supported_by(tx, statement_id, only_statement=False):
@@ -807,9 +831,14 @@ class QueryHandler:
 
         label, *_ = node.labels
         if label == 'Statement':
-            self._add_statement(response, node)
-        elif label == 'Proposition' or label == 'TherapeuticResponse':
-            self._add_proposition(response, node)
+            statement = self._get_statement(node)
+            if statement:
+                response["statement"] = statement
+        elif label in ['Proposition', 'TherapeuticResponse',
+                       'Prognostic', 'Diagnostic']:
+            proposition = self._get_proposition(node)
+            if proposition:
+                response["proposition"] = proposition
         elif label == 'VariationDescriptor':
             self._add_variation_descriptor(response, node, by_id=True)
         elif label == 'TherapyDescriptor':
@@ -838,48 +867,59 @@ class QueryHandler:
             )
         return gene_value_object
 
-    def _add_statement(self, response, node):
-        """Add statement to response
+    def _get_proposition(self, p):
+        """Return a proposition.
 
-        :param dict response: The search response
-        :param node: The searched node
+        :param Node p: Proposition Node
+        :return: A proposition
         """
         with self.driver.session() as session:
-            statement_id = node.get('id')
-            resp = session.read_transaction(
-                self._find_and_return_statement_response, statement_id)
-            se_list = session.read_transaction(
-                self._find_and_return_supported_by, statement_id)
-            response['statement'] = StatementResponse(
-                id=statement_id,
-                description=node.get('description'),
-                direction=node.get('direction'),
-                evidence_level=node.get('evidence_level'),
-                variation_origin=node.get('variation_origin'),
-                proposition=resp['tr_id'],
-                variation_descriptor=resp['vid'],
-                therapy_descriptor=resp['tid'],
-                disease_descriptor=resp['did'],
-                method=resp['m']['id'],
-                supported_by=[se['id'] for se in se_list]
-            ).dict()
-
-    def _add_proposition(self, response, node):
-        """Add proposition to response
-
-        :param dict response: The search response
-        :param node: The searched node
-        """
-        with self.driver.session() as session:
-            p_id = node.get('id')
+            p_id = p.get('id')
+            p_type = p.get('type')
+            proposition = None
             value_ids = session.read_transaction(
                 self._find_and_return_proposition_response, p_id
             )
-            response['proposition'] = TherapeuticResponseProposition(
-                id=p_id,
-                type=node.get('type'),
-                predicate=node.get('predicate'),
-                subject=value_ids['subject'],
-                object_qualifier=value_ids['object_qualifier'],
-                object=value_ids['object']
-            ).dict()
+            params = {
+                "id": p_id,
+                "type": p_type,
+                "predicate": p.get("predicate"),
+                "subject": value_ids["subject"],
+                "object_qualifier": value_ids["object_qualifier"]
+            }
+            if p_type == "therapeutic_response_proposition":
+                params["object"] = value_ids["object"]
+                proposition = \
+                    TherapeuticResponseProposition(**params).dict()
+            elif p_type == "prognostic_proposition":
+                proposition = PrognosticProposition(**params).dict()
+            elif p_type == "diagnostic_proposition":
+                proposition = DiagnosticProposition(**params).dict()
+            return proposition
+
+    def _get_statement(self, s):
+        """Return a statement.
+
+        :param Node s: Statement Node
+        """
+        with self.driver.session() as session:
+            statement_id = s.get('id')
+            response = session.read_transaction(
+                self._find_and_return_statement_response, statement_id)
+            se_list = session.read_transaction(
+                self._find_and_return_supported_by, statement_id)
+
+            statement = StatementResponse(
+                id=statement_id,
+                description=s.get('description'),
+                direction=s.get('direction'),
+                evidence_level=s.get('evidence_level'),
+                variation_origin=s.get('variation_origin'),
+                proposition=response['p_id'],
+                variation_descriptor=response['vid'],
+                therapy_descriptor=response['tid'] if 'tid' in response.keys() else None,  # noqa: E501
+                disease_descriptor=response['did'],
+                method=response['m']['id'],
+                supported_by=[se['id'] for se in se_list]
+            ).dict(exclude_none=True)
+            return statement
