@@ -155,7 +155,8 @@ class PMKBTransform:
                               ('therapy', therapies)):
             if len(values) != 1:
                 logger.warning(f"PMKB statement {statement['id']} does not "
-                               f"have exactly 1 {field}: {values}.")
+                               f"have exactly 1 {field}: "
+                               f"{values if len(values) < 6 else '<truncated>'}.")  # noqa: E501
                 return [], [], [], []
 
         # get descriptors
@@ -196,7 +197,7 @@ class PMKBTransform:
             id=f"pmkb.normalize.therapy:{therapy}",
             type="TherapyDescriptor",
             label=therapy,
-            value=schemas.Therapy(id=response['value_object_descriptor']['value']['id'])  # noqa: E501
+            value=schemas.Drug(id=response['value_object_descriptor']['value']['id'])  # noqa: E501
         ).dict(exclude_none=True)
 
         self.transformed['therapy_descriptors'][therapy] = vod
@@ -307,7 +308,7 @@ class PMKBTransform:
             label=label,
             value_id=response.value_id,
             value=response.value,
-            gene_context=f"pmkb.gene:{variant['gene']['name']}",
+            gene_context=gene_id,
             molecule_context=response.molecule_context,
             structural_type=response.structural_type,
             ref_allele_seq=response.ref_allele_seq,
@@ -360,7 +361,7 @@ class PMKBTransform:
             proposition and document indices
         :return: Therapeutic Response proposition (dict).
         """
-        prop_type = "therapeutic_response"
+        prop_type = schemas.PropositionType.PREDICTIVE.value
         prop_predicate = "predicts_resistance_to"
         prop_subject = v_descriptors[0]['value_id']
         prop_object_q = d_descriptors[0]['value']['id']
@@ -375,7 +376,6 @@ class PMKBTransform:
         prop_id = self._set_ix(propositions_documents_ix, 'propositions', key)
         proposition = schemas.TherapeuticResponseProposition(
             id=f"proposition:{prop_id}",
-            type=prop_type,
             predicate=prop_predicate,
             subject=prop_subject,
             object_qualifier=prop_object_q,
