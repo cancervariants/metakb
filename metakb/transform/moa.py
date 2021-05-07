@@ -3,12 +3,7 @@ from metakb import PROJECT_ROOT
 import json
 import logging
 import metakb.schemas as schemas
-from gene.query import QueryHandler as GeneQueryHandler
-from variant.to_vrs import ToVRS
-from variant.normalize import Normalize as VariantNormalizer
-from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
-from therapy.query import QueryHandler as TherapyQueryHandler
-from disease.query import QueryHandler as DiseaseQueryHandler
+from metakb.normalizers import VICCNormalizers
 from urllib.parse import quote
 
 logger = logging.getLogger('metakb')
@@ -26,12 +21,7 @@ class MOATransform:
         :param: The file path to the harvested json to transform
         """
         self.file_path = file_path
-        self.gene_query_handler = GeneQueryHandler()
-        self.variant_normalizer = VariantNormalizer()
-        self.variant_to_vrs = ToVRS()
-        self.amino_acid_cache = AminoAcidCache()
-        self.disease_query_handler = DiseaseQueryHandler()
-        self.therapy_query_handler = TherapyQueryHandler()
+        self.vicc_normalizers = VICCNormalizers()
         self.statements = list()
         self.propositions = list()
         self.variation_descriptors = list()
@@ -305,18 +295,11 @@ class MOATransform:
         if g_descriptors and 'protein_change' in variant and variant['protein_change']:  # noqa: E501
             gene = g_descriptors[0]['label']
             query = f"{gene} {variant['protein_change'][2:]}"
-            try:
-                validations = self.variant_to_vrs.get_validations(query)
-                v_norm_resp = \
-                    self.variant_normalizer.normalize(query,
-                                                      validations,
-                                                      self.amino_acid_cache)
-            except:  # noqa: E722
-                logger.warning(f"{query} not supported in variant-normalizer.")
+            v_norm_resp = self.vicc_normalizers.normalize_variant([query])
 
         if not v_norm_resp:
-            logger.warn(f"variant-normalizer does not support "
-                        f"moa:vid{variant['id']}.")
+            logger.warning(f"Variant Normalizer unable to normalize: "
+                           f"moa:vid{variant['id']}.")
             return []
 
         gene_context = g_descriptors[0]['id'] if g_descriptors else None
@@ -372,24 +355,18 @@ class MOATransform:
         gene_descriptors = []  # for fusion protein, we would include both genes  # noqa: E501
         if genes:
             for gene in genes:
-                found_match = False
-                gene_norm_resp = \
-                    self.gene_query_handler.search_sources(gene, incl='HGNC')
-                if gene_norm_resp['source_matches']:
-                    if gene_norm_resp['source_matches'][0]['match_type'] != 0:
-                        found_match = True
-                gene_norm_resp = gene_norm_resp['source_matches'][0]
-
-                if found_match:
+                _, normalized_gene_id = \
+                    self.vicc_normalizers.normalize_gene([gene])
+                if normalized_gene_id:
                     gene_descriptor = schemas.GeneDescriptor(
                         id=f"{schemas.NamespacePrefix.MOA.value}.normalize."
                            f"{schemas.NormalizerPrefix.GENE.value}:{quote(gene)}",  # noqa: E501
                         label=gene,
-                        value=schemas.Gene(id=gene_norm_resp['records'][0].concept_id),  # noqa: E501
+                        value=schemas.Gene(id=normalized_gene_id),
                     ).dict(exclude_none=True)
                 else:
-                    logger.warning(f"{gene} not found in Gene "
-                                   f"Normalization normalize.")
+                    logger.warning(f"Gene Normalizer unable to "
+                                   f"normalize: {gene}")
                     gene_descriptor = {}
 
                 gene_descriptors.append(gene_descriptor)
@@ -402,7 +379,6 @@ class MOATransform:
         :param: An evidence source
         :param: Keeps track of proposition and documents indexes
         """
-        documents = None
         if source['pmid'] != "None":
             documents_id = f"pmid:{source['pmid']}"
         else:
@@ -448,22 +424,18 @@ class MOATransform:
 
         if not label:
             return []
-        therapy_norm_resp = self.therapy_query_handler.search_groups(label)
 
-        if therapy_norm_resp['match_type'] == 0:
-            logger.warning(f"{label} not found in Therapy "
-                           f"Normalization normalize.")
+        therapy_norm_resp, normalized_therapy_id = \
+            self.vicc_normalizers.normalize_therapy([label])
+
+        if not normalized_therapy_id:
+            logger.warning(f"Therapy Normalizer unable to normalize: {label}")
             return []
-
-        therapy_norm_resp = therapy_norm_resp['value_object_descriptor']
-
-        normalized_therapy_id = \
-            therapy_norm_resp['value']['id']
 
         if normalized_therapy_id:
             therapy_descriptor = schemas.ValueObjectDescriptor(
                 id=f"{schemas.NamespacePrefix.MOA.value}."
-                   f"{therapy_norm_resp['id']}",
+                   f"{therapy_norm_resp['value_object_descriptor']['id']}",
                 type="TherapyDescriptor",
                 label=label,
                 value=schemas.Drug(id=normalized_therapy_id)
@@ -483,25 +455,13 @@ class MOATransform:
         if ot_code:
             ot_code = f"oncotree:{ot_code}"
         disease_name = assertion['disease']['name']
-        highest_match = 0
-        disease_norm_resp = None
 
-        for query in [ot_code, disease_name]:
-            if not query:
-                continue
+        disease_norm_resp, normalized_disease_id = \
+            self.vicc_normalizers.normalize_disease([ot_code, disease_name])
 
-            disease_norm_resp_cand = self.disease_query_handler.search_groups(query)  # noqa: E501
-            if disease_norm_resp_cand['match_type'] > highest_match:
-                disease_norm_resp = disease_norm_resp_cand
-                highest_match = disease_norm_resp['match_type']
-                normalized_disease_id = \
-                    disease_norm_resp['value_object_descriptor']['value']['id']  # noqa: E501
-                if highest_match == 100:
-                    break
-
-        if highest_match == 0:
-            logger.warning(f"{ot_code} and {disease_name} not found in "
-                           f"Disease Normalization normalize.")
+        if not normalized_disease_id:
+            logger.warning(f"Disease Normalize unable to normalize: "
+                           f"{ot_code} and {disease_name}")
             return []
 
         disease_descriptor = schemas.ValueObjectDescriptor(
