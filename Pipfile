@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 civicpy = "*"
+pytest = "*"
+pytest-cov = "*"
 pandas = "*"
 requests = "*"
 numpy = "*"
@@ -14,7 +16,6 @@ requests-cache = "*"
 gene-normalizer = "*"
 disease-normalizer = "*"
 variant-normalizer = "*"
-thera-py = "*"
 neo4j = "*"
 ipykernel = "*"
 uvicorn = "*"
@@ -26,6 +27,7 @@ httptools = "*"
 typing-extensions = "*"
 boto3 = "*"
 botocore = "*"
+thera-py = ">=0.2.17"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
