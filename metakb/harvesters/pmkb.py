@@ -28,8 +28,9 @@ class PMKB(Harvester):
             variants = self._get_all_variants()
             statements = self._get_all_interpretations(variants)
             self._create_json(statements, variants, fn)
-        except NotImplementedError:  # noqa: E722
-            logger.error("PMKB Harvester was not successful.")
+            return True
+        except Exception as e:  # noqa: E722
+            logger.error(f"PMKB Harvester was not successful: {e}")
             return False
 
     def _check_files(self):
