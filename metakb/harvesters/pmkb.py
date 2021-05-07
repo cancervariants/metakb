@@ -137,7 +137,6 @@ class PMKB(Harvester):
 
             statement = {
                 "id": interp_id,
-                "description": descriptions[0],
                 "gene": {
                     "name": interp_gene
                 },
@@ -145,8 +144,19 @@ class PMKB(Harvester):
                 "pmkb_evidence_tier": interp['Tier'],
                 "variants": [],
                 "diseases": list(set(interp['Tumor Type(s)'].split('|'))),
-                "tissue_types": list(set(interp['Tissue Type(s)'].split('|')))
             }
+
+            tissue_types = list(set(interp['Tissue Type(s)'].split('|')))
+            description = descriptions[0].strip().replace('\n', ' ')
+            words = description.split(' ')
+            if tissue_types == ['Unknown']:
+                statement['therapies'] = words
+                statement['description'] = ''
+                statement['tissue_types'] = []
+            else:
+                statement['therapies'] = ['therapeutic procedure']
+                statement['description'] = description
+                statement['tissue_types'] = tissue_types
 
             interp_variants = set(interp['Variant(s)'].split('|'))
             for interp_variant in interp_variants:

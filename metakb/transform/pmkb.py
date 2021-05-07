@@ -26,7 +26,7 @@ class PMKBTransform:
         self.transformed = {
             'variation_descriptors': {},  # label -> VOD
             'gene_descriptors': {},  # symbol -> VOD
-            'therapy_descriptor': None,  # single therapy VOD once initialized
+            'therapy_descriptors': {},  # label -> VOD
             'disease_descriptors': {},  # (label, tissue type) -> VOD
             'statements': [],  # List of Statements
             'propositions': {},  # key -> Proposition
@@ -37,6 +37,7 @@ class PMKBTransform:
             'variants': set(),
             'genes': set(),
             'diseases': set(),
+            'therapies': set()
         }
 
     def _extract(self):
@@ -55,10 +56,18 @@ class PMKBTransform:
         output = {
             "statements": self.transformed['statements'],
             "propositions": list(self.transformed['propositions'].values()),
-            "variation_descriptors": list(self.transformed['variation_descriptors'].values()),  # noqa: E501
-            "gene_descriptors": list(self.transformed['gene_descriptors'].values()),  # noqa: E501
-            "therapy_descriptors": [self.transformed['therapy_descriptor']],
-            "disease_descriptors": list(self.transformed['disease_descriptors'].values()),  # noqa: E501
+            "variation_descriptors": list(
+                self.transformed['variation_descriptors'].values()
+            ),
+            "gene_descriptors": list(
+                self.transformed['gene_descriptors'].values()
+            ),
+            "therapy_descriptors": list(
+                self.transformed['therapy_descriptors'].values()
+            ),
+            "disease_descriptors": list(
+                self.transformed['disease_descriptors'].values()
+            ),
             "methods": [self.transformed['method']],
             "documents": list(self.transformed['documents'].values())
         }
@@ -140,8 +149,10 @@ class PMKBTransform:
         diseases = statement['diseases']
         tissue_types = statement['tissue_types']
         variant_ids = [variant['id'] for variant in statement['variants']]
+        therapies = statement['therapies']
         for field, values in (('disease', diseases),
-                              ('variant', variant_ids)):
+                              ('variant', variant_ids),
+                              ('therapy', therapies)):
             if len(values) != 1:
                 logger.warning(f"PMKB statement {statement['id']} does not "
                                f"have exactly 1 {field}: {values}.")
@@ -153,7 +164,7 @@ class PMKBTransform:
             logger.warning(f"Could not retrieve variant for variant ID "
                            f"{variant_ids[0]} in statement ID "
                            f"{statement['id']}")
-        t_descriptors = self._get_therapy_descriptors()
+        t_descriptors = self._get_therapy_descriptors(therapies[0])
         d_descriptors = self._get_disease_descriptors(diseases[0],
                                                       tissue_types)
         g_descriptors = self._get_gene_descriptors(variant)
@@ -161,22 +172,34 @@ class PMKBTransform:
                                                       g_descriptors[0]['id'])
         return t_descriptors, d_descriptors, g_descriptors, v_descriptors
 
-    def _get_therapy_descriptors(self):
-        """Get therapy descriptors. All PMKB statements only have 1, value
-        ncit:C49236.
+    def _get_therapy_descriptors(self, therapy):
+        """Get therapy descriptors. Most PMKB statements have value
+        ncit:C49236, but we try to grab some from the description.
+        :param str therapy: label of a drug
         :return: List containing Therapeutic Procedure VOD.
         """
-        vod = self.transformed['therapy_descriptor']
+        invalid_keys = self.invalid_keys['therapies']
+        if therapy in invalid_keys:
+            return []
+
+        vod = self.transformed['therapy_descriptors'].get(therapy)
         if vod:
             return [vod]
 
-        response, _ = self.vicc_normalizers.normalize_therapy(['ncit:C49236'])  # noqa: E501
+        response = self.vicc_normalizers.normalize_therapy([therapy])
+        if not response or not response[0] or response[0]['match_type'] == 0:
+            logger.warning(f"Therapy normalization of {therapy} failed.")
+            invalid_keys.add(therapy)
+            return []
+        response = response[0]
         vod = schemas.ValueObjectDescriptor(
-            id="pmkb.normalize.therapy:ncit%3AC49236",
+            id=f"pmkb.normalize.therapy:{therapy}",
             type="TherapyDescriptor",
-            value=response['value_object_descriptor']['value']
+            label=therapy,
+            value=schemas.Therapy(id=response['value_object_descriptor']['value']['id'])  # noqa: E501
         ).dict(exclude_none=True)
-        self.transformed['therapy_descriptor'] = vod
+
+        self.transformed['therapy_descriptors'][therapy] = vod
         return [vod]
 
     def _get_disease_descriptors(self, disease, tissue_types):
