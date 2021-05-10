@@ -134,3 +134,6 @@ dynamodb_local_latest/
 
 # Zip
 *.zip
+
+# analysis output
+analysis/graph/*.txt
