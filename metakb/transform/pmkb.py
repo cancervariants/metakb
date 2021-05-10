@@ -93,7 +93,7 @@ class PMKBTransform:
         :return: Updated propositions_documents_ix object
         """
         data = self._extract()
-        statements = data['statements']
+        interpretations = data['interpretations']
         variants = {v['id']: v for v in data['variants']}
         if not propositions_documents_ix:
             propositions_documents_ix = {
@@ -111,8 +111,8 @@ class PMKBTransform:
         gene_index = {}
         disease_index = {}
         method = self._get_methods()[0]
-        for pmkb_statement in statements:
-            descriptors = self._get_descriptors(pmkb_statement, variants,
+        for interpretation in interpretations:
+            descriptors = self._get_descriptors(interpretation, variants,
                                                 gene_index, disease_index)
             if not all(descriptors):
                 continue
@@ -123,21 +123,22 @@ class PMKBTransform:
                                                    d_descriptors,
                                                    propositions_documents_ix)
 
-            documents = self._get_documents(pmkb_statement,
+            documents = self._get_documents(interpretation,
                                             propositions_documents_ix)
 
-            cdm_statement = self._get_statement(pmkb_statement, proposition,
-                                                v_descriptors, t_descriptors,
-                                                d_descriptors, method,
-                                                documents)
-            self.transformed['statements'].append(cdm_statement)
+            statement = self._get_statement(interpretation, proposition,
+                                            v_descriptors, t_descriptors,
+                                            d_descriptors, method,
+                                            documents)
+            self.transformed['statements'].append(statement)
 
         self._create_json()
         return propositions_documents_ix
 
-    def _get_descriptors(self, statement, variants, gene_index, disease_index):
-        """Get Descriptor objects given statement and associated data.
-        :param Dict statement: PMKB interpretation formatted as a statement
+    def _get_descriptors(self, interpretation, variants, gene_index,
+                         disease_index):
+        """Get Descriptor objects given interpretation and associated data.
+        :param Dict interpretation: PMKB interpretation
         :param Dict variants: Keys are variant labels and values are all
             harvested variant objects
         :param Dict gene_index: lookup gene ID from symbol
@@ -146,16 +147,16 @@ class PMKBTransform:
             variant descriptors (we expect each to be len == 1)
         """
         # enforce quantity restrictions
-        diseases = statement['diseases']
-        tissue_types = statement['tissue_types']
-        variant_ids = [variant['id'] for variant in statement['variants']]
-        therapies = statement['therapies']
+        diseases = interpretation['diseases']
+        tissue_types = interpretation['tissue_types']
+        variant_ids = [variant['id'] for variant in interpretation['variants']]
+        therapies = interpretation['therapies']
         for field, values in (('disease', diseases),
                               ('variant', variant_ids),
                               ('therapy', therapies)):
             if len(values) != 1:
-                logger.warning(f"PMKB statement {statement['id']} does not "
-                               f"have exactly 1 {field}: "
+                logger.warning(f"PMKB interpretation {interpretation['id']} "
+                               f"does not have exactly 1 {field}: "
                                f"{values if len(values) < 6 else '<truncated>'}.")  # noqa: E501
                 return [], [], [], []
 
@@ -163,19 +164,19 @@ class PMKBTransform:
         variant = variants.get(variant_ids[0])
         if not variant:
             logger.warning(f"Could not retrieve variant for variant ID "
-                           f"{variant_ids[0]} in statement ID "
-                           f"{statement['id']}")
+                           f"{variant_ids[0]} in interpretation ID "
+                           f"{interpretation['id']}")
         t_descriptors = self._get_therapy_descriptors(therapies[0])
         d_descriptors = self._get_disease_descriptors(diseases[0],
                                                       tissue_types)
         g_descriptors = self._get_gene_descriptors(variant)
-        v_descriptors = self._get_variant_descriptors(statement, variant,
+        v_descriptors = self._get_variant_descriptors(variant,
                                                       g_descriptors[0]['id'])
         return t_descriptors, d_descriptors, g_descriptors, v_descriptors
 
     def _get_therapy_descriptors(self, therapy):
-        """Get therapy descriptors. Most PMKB statements have value
-        ncit:C49236, but we try to grab some from the description.
+        """Get therapy descriptors. Most PMKB interpretations have value
+        ncit:C49236, but we first try to grab some from the description.
         :param str therapy: label of a drug
         :return: List containing Therapeutic Procedure VOD.
         """
@@ -279,9 +280,8 @@ class PMKBTransform:
         gene_descriptors[symbol] = vod
         return [vod]
 
-    def _get_variant_descriptors(self, statement, variant, gene_id):
+    def _get_variant_descriptors(self, variant, gene_id):
         """Fetch variant descriptors.
-        :param Dict statement: PMKB statement object
         :param Dict variant: PMKB variant object
         :param str gene_id: identifier for gene_context field
         :return: List (len == 1) containing VOD of normalized match, or
@@ -385,16 +385,16 @@ class PMKBTransform:
         self.transformed['propositions'][key] = proposition
         return proposition
 
-    def _get_documents(self, record, propositions_documents_ix):
-        """Get Document objects from statement.
-        :param Dict record: PMKB interpretation, formatted as a statement
+    def _get_documents(self, interpretation, propositions_documents_ix):
+        """Get Document objects from interpretation.
+        :param Dict interpretation: PMKB interpretation
         :param Dict propositions_documents_ix: Keeps track of
             proposition and document indices
         :return: List of Document objects
         """
         docs = self.transformed['documents']
         cites = []
-        for cite in record['evidence_items']:
+        for cite in interpretation['evidence_items']:
             doc = docs.get(cite)
             if doc:
                 cites.append(doc)
@@ -409,10 +409,10 @@ class PMKBTransform:
             cites.append(doc)
         return cites
 
-    def _get_statement(self, statement, proposition, v_descriptors,
+    def _get_statement(self, interpretation, proposition, v_descriptors,
                        t_descriptors, d_descriptors, method, documents):
         """Construct Statement object. All descriptor objects should be len 1.
-        :param Dict statement: harvested Statement from PMKB
+        :param Dict interpretation: harvested interpretation from PMKB
         :param Dict proposition: transformed Proposition
         :param List v_descriptors: Variation Descriptors connected to this
             Statement
@@ -427,9 +427,9 @@ class PMKBTransform:
         """
         v_descriptor = v_descriptors[0]
         statement = schemas.Statement(
-            id=f"{schemas.NamespacePrefix.PMKB.value}:{statement['id']}",
-            description=statement['description'],
-            evidence_level=statement['pmkb_evidence_tier'],
+            id=f"{schemas.NamespacePrefix.PMKB.value}:{interpretation['id']}",
+            description=interpretation['description'],
+            evidence_level=interpretation['pmkb_evidence_tier'],
             proposition=proposition['id'],
             variation_descriptor=v_descriptor['id'],
             therapy_descriptor=t_descriptors[0]['id'],
@@ -437,7 +437,7 @@ class PMKBTransform:
             method=method['id'],
             supported_by=[d['id'] for d in documents],
         ).dict(exclude_none=True)
-        origin = v_descriptor.get('origin')
+        origin = v_descriptor.get('origin').lower()
         if origin:
             statement['variation_origin'] = origin
 

@@ -26,8 +26,8 @@ class PMKB(Harvester):
             self.pmkb_dir = PROJECT_ROOT / 'data' / 'pmkb'
             self._check_files()
             variants = self._get_all_variants()
-            statements = self._get_all_interpretations(variants)
-            self._create_json(statements, variants, fn)
+            interpretations = self._get_all_interpretations(variants)
+            self._create_json(interpretations, variants, fn)
             return True
         except Exception as e:  # noqa: E722
             logger.error(f"PMKB Harvester was not successful: {e}")
@@ -93,7 +93,7 @@ class PMKB(Harvester):
                     "name": variant['Gene'],
                 },
                 "id": variant_id,
-                "origin": variant['Germline/Somatic'].lower(),
+                "origin": variant['Germline/Somatic'],
                 "variation_type": variant['Variant'],
                 "dna_change": variant['DNA Change'],
                 "amino_acid_change": variant['Amino Acid Change'],
@@ -116,11 +116,11 @@ class PMKB(Harvester):
         return variants
 
     def _get_all_interpretations(self, variants):
-        """Read interpretations and build harvested Statement objects.
+        """Read interpretations and build harvested Interpretation objects.
         :param dict variants: dictionary keying variant names to full data
-        :return: list of Statement objects
+        :return: list of Interpretation objects
         """
-        statements = []
+        interps_out = []
 
         pattern = 'data/pmkb/pmkb_interps_*.csv'
         interp_file_path = sorted(list(PROJECT_ROOT.glob(pattern)))[-1]
@@ -136,7 +136,7 @@ class PMKB(Harvester):
                                f"exactly 1 description.")
                 continue
 
-            statement = {
+            interp_out = {
                 "id": interp_id,
                 "gene": {
                     "name": interp_gene
@@ -151,13 +151,13 @@ class PMKB(Harvester):
             description = descriptions[0].strip().replace('\n', ' ')
             words = description.split(' ')
             if tissue_types == ['Unknown']:
-                statement['therapies'] = words
-                statement['description'] = ''
-                statement['tissue_types'] = []
+                interp_out['therapies'] = words
+                interp_out['description'] = ''
+                interp_out['tissue_types'] = []
             else:
-                statement['therapies'] = ['therapeutic procedure']
-                statement['description'] = description
-                statement['tissue_types'] = tissue_types
+                interp_out['therapies'] = ['therapeutic procedure']
+                interp_out['description'] = description
+                interp_out['tissue_types'] = tissue_types
 
             interp_variants = set(interp['Variant(s)'].split('|'))
             for interp_variant in interp_variants:
@@ -169,37 +169,37 @@ class PMKB(Harvester):
                     logger.error(f"Could not retrieve data for variant: "
                                  f"{interp_variant}")
                     continue
-                statement['variants'].append({
+                interp_out['variants'].append({
                     "name": variant_data['name'],
                     "id": variant_data['id']
                 })
                 origin = variant_data.get('origin')
-                if origin and 'origin' not in statement:
-                    statement['origin'] = origin
+                if origin and 'origin' not in interp_out:
+                    interp_out['origin'] = origin
 
             valid_statement = True
             for field in ('variants', 'diseases', 'evidence_items'):
-                if not statement[field]:
+                if not interp_out[field]:
                     logger.warning(f"Interpretation ID#{interp_id} has no "
                                    f"valid {field} values.")
                     valid_statement = False
             if valid_statement:
-                statements.append(statement)
+                interps_out.append(interp_out)
 
         interp_file.close()
-        return statements
+        return interps_out
 
-    def _create_json(self, statements, variants, filename):
+    def _create_json(self, interpretations, variants, filename):
         """Export data to JSON.
-        :param List statements: list of Statement objects
+        :param List interpretations: list of Interpretation objects
         :param Dict variants: Dictionary where values are Variant objects
         :param str filename: name of composite output file
         """
         variants_list = list(variants.values())
 
-        statements_path = self.pmkb_dir / 'statements.json'
-        with open(statements_path, 'w') as outfile:
-            json.dump(statements, outfile)
+        interpretations_path = self.pmkb_dir / 'interpretations.json'
+        with open(interpretations_path, 'w') as outfile:
+            json.dump(interpretations, outfile)
 
         var_path = self.pmkb_dir / 'variants.json'
         with open(var_path, 'w') as outfile:
@@ -207,5 +207,6 @@ class PMKB(Harvester):
 
         composite_path = self.pmkb_dir / filename
         with open(composite_path, 'w') as outfile:
-            json.dump({'statements': statements, 'variants': variants_list},
+            json.dump({'interpretations': interpretations,
+                       'variants': variants_list},
                       outfile)
