@@ -438,10 +438,9 @@ class PMKBTransform:
             method=method['id'],
             supported_by=[d['id'] for d in documents],
         ).dict(exclude_none=True)
-        origin = v_descriptor.get('origin').lower()
+        origin = v_descriptor.get('origin')
         if origin:
-            statement['variation_origin'] = origin
-
+            statement['variation_origin'] = origin.lower()
         return statement
 
     def _set_ix(self, propositions_documents_ix, dict_key, search_key):
