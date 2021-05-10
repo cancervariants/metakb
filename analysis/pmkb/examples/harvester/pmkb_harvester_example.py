@@ -2,16 +2,16 @@
 import json
 from metakb.harvesters import PMKB
 from metakb import PROJECT_ROOT
-from random import choice
 
 
 def create_interpretation_examples(interpretations, output_dir):
     """Create some PMKB interp examples."""
-    for _ in range(3):
-        interp = choice(interpretations)
-        filename = output_dir / f"{interp['description'][:10].strip()}.json"
-        with open(filename, 'w+') as f:
-            f.write(json.dumps(interp))
+    ids = ('318', '238', '2146')
+    for interp in interpretations:
+        if interp['id'] in ids:
+            filename = output_dir / f"{interp['description'][:10].strip()}.json"  # noqa: E501
+            with open(filename, 'w+') as f:
+                f.write(json.dumps(interp))
 
 
 def create_variant_examples(variants, output_dir):
