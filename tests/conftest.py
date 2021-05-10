@@ -139,6 +139,9 @@ def civic_gid19():
             "HER1",
             "ERBB1",
             "ERBB"
+        ],
+        "xrefs": [
+            "ncbigene:1956"
         ]
     }
 
@@ -158,6 +161,9 @@ def civic_tid146():
             "BIBW2992",
             "BIBW 2992",
             "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"  # noqa: E501
+        ],
+        "xrefs": [
+            "ncit:C66940"
         ]
     }
 
@@ -172,7 +178,10 @@ def civic_did8():
         "value": {
             "id": "ncit:C2926",
             "type": "Disease"
-        }
+        },
+        "xrefs": [
+            "DOID:3908"
+        ]
     }
 
 
@@ -373,7 +382,10 @@ def civic_did2():
         "value": {
             "id": "ncit:C3868",
             "type": "Disease"
-        }
+        },
+        "xrefs": [
+            "DOID:9253"
+        ]
     }
 
 
@@ -394,6 +406,9 @@ def civic_gid38():
             "PDGFR2",
             "PDGFR-2",
             "CD140A"
+        ],
+        "xrefs": [
+            "ncbigene:5156"
         ]
     }
 
@@ -531,7 +546,10 @@ def civic_did15():
         "value": {
             "id": "ncit:C3879",
             "type": "Disease"
-        }
+        },
+        "xrefs": [
+            "DOID:3973"
+        ]
     }
 
 
@@ -557,6 +575,9 @@ def civic_gid42():
             "HSCR1",
             "CDHR16",
             "CDHF12"
+        ],
+        "xrefs": [
+            "ncbigene:5979"
         ]
     }
 
@@ -692,7 +713,10 @@ def civic_did2950():
         "value": {
             "id": "DOID:0080684",
             "type": "Disease"
-        }
+        },
+        "xrefs": [
+            "DOID:0080684"
+        ]
     }
 
 
@@ -716,6 +740,9 @@ def civic_gid154():
             "ACVRLK2",
             "ACVR1A",
             "ACTRI"
+        ],
+        "xrefs": [
+            "ncbigene:90"
         ]
     }
 
@@ -852,7 +879,10 @@ def civic_did3():
         "value": {
             "id": "ncit:C3171",
             "type": "Disease"
-        }
+        },
+        "xrefs": [
+            "DOID:9119"
+        ]
     }
 
 
@@ -875,6 +905,9 @@ def civic_gid29():
             "PBT",
             "CD117",
             "C-Kit"
+        ],
+        "xrefs": [
+            "ncbigene:3815"
         ]
     }
 
@@ -1000,7 +1033,10 @@ def civic_did556():
         "value": {
             "id": "ncit:C9005",
             "type": "Disease"
-        }
+        },
+        "xrefs": [
+            "DOID:1793"
+        ]
     }
 
 
@@ -1017,6 +1053,9 @@ def civic_gid3672():
         },
         "alternate_labels": [
             "MTHFR"
+        ],
+        "xrefs": [
+            "ncbigene:4524"
         ]
     }
 
@@ -1364,7 +1403,7 @@ def check_descriptor():
         for key in test_keys:
             if key in ['id', 'type', 'label', 'description', 'value']:
                 assert actual[key] == test[key]
-            elif key == 'alternate_labels':
+            elif key in ['alternate_labels', 'xrefs']:
                 assert set(actual[key]) == set(test[key])
     return check_descriptor
 
