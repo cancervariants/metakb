@@ -1,16 +1,10 @@
 """A module for to transform CIViC."""
 from typing import Optional, Dict, List
-
 from metakb import PROJECT_ROOT
 import json
 import logging
 import metakb.schemas as schemas
-from gene.query import QueryHandler as GeneQueryHandler
-from variant.to_vrs import ToVRS
-from variant.normalize import Normalize as VariantNormalizer
-from variant.tokenizers.caches.amino_acid_cache import AminoAcidCache
-from therapy.query import QueryHandler as TherapyQueryHandler
-from disease.query import QueryHandler as DiseaseQueryHandler
+from metakb.normalizers import VICCNormalizers
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -27,12 +21,7 @@ class CIViCTransform:
         :param str file_path: The file path to the harvested json to transform.
         """
         self._file_path = file_path
-        self.gene_query_handler = GeneQueryHandler()
-        self.variant_normalizer = VariantNormalizer()
-        self.disease_query_handler = DiseaseQueryHandler()
-        self.therapy_query_handler = TherapyQueryHandler()
-        self.variant_to_vrs = ToVRS()
-        self.amino_acid_cache = AminoAcidCache()
+        self.vicc_normalizers = VICCNormalizers()
         self.transformed = {
             'statements': list(),
             'propositions': list(),
@@ -482,7 +471,7 @@ class CIViCTransform:
                     protein_queries + genomic_queries + \
                     [variant_query] + transcript_queries
 
-            variant_norm_resp = self._get_variant_norm_resp(
+            variant_norm_resp = self.vicc_normalizers.normalize_variant(
                 queries, normalizer_responses
             )
 
@@ -526,35 +515,6 @@ class CIViCTransform:
             self.transformed['variation_descriptors'].append(
                 variation_descriptor
             )
-
-    def _get_variant_norm_resp(self, queries, normalizer_responses)\
-            -> Optional[dict]:
-        """Return variant-normalizer's response for a list of queries.
-
-        :param list queries: Possible query strings to try to normalize
-        :param list normalizer_responses: A list to store normalizer_responses
-            which are used in the event that a MANE transcript cannot be found
-        :return: variant-normalizer normalize response
-        """
-        variant_norm_resp = None
-        for query in queries:
-            if not query:
-                continue
-
-            try:
-                validations = self.variant_to_vrs.get_validations(query)
-                variant_norm_resp = \
-                    self.variant_normalizer.normalize(query, validations,
-                                                      self.amino_acid_cache)
-
-                if variant_norm_resp:
-                    normalizer_responses.append(variant_norm_resp)
-                    if not self.variant_normalizer.warnings:
-                        break
-            except:  # noqa: E722
-                logger.warning("Variant Normalizer unable to normalize: "
-                               f"{query}")
-        return variant_norm_resp
 
     def _get_variant_extensions(self, variant) -> list:
         """Return a list of extensions for a variant.
@@ -647,28 +607,13 @@ class CIViCTransform:
         """
         for gene in genes:
             gene_id = f"civic:gid{gene['id']}"
-            highest_match = 0
-            normalized_gene_id = None
             queries = [f"ncbigene:{gene['entrez_id']}",
                        gene['name']] + gene['aliases']
 
-            for query_str in queries:
-                if not query_str:
-                    continue
+            _, normalized_gene_id = \
+                self.vicc_normalizers.normalize_gene(queries)
 
-                gene_norm_resp = \
-                    self.gene_query_handler.search_sources(query_str,
-                                                           incl="hgnc")
-                if gene_norm_resp['source_matches']:
-                    gene_norm_resp = gene_norm_resp['source_matches'][0]
-                    if gene_norm_resp['match_type'] > highest_match:
-                        normalized_gene_id = \
-                            gene_norm_resp['records'][0].concept_id
-                        highest_match = gene_norm_resp['match_type']
-                        if highest_match == 100:
-                            break
-
-            if highest_match != 0:
+            if normalized_gene_id:
                 gene_descriptor = schemas.GeneDescriptor(
                     id=gene_id,
                     label=gene['name'],
@@ -724,22 +669,10 @@ class CIViCTransform:
         else:
             queries = [f"doid:{disease['doid']}", display_name]
 
-        highest_match = 0
-        normalized_disease_id = None
+        _, normalized_disease_id = \
+            self.vicc_normalizers.normalize_disease(queries)
 
-        for query in queries:
-            if not query:
-                continue
-
-            disease_norm_resp = self.disease_query_handler.search_groups(query)
-            if disease_norm_resp['match_type'] > highest_match:
-                highest_match = disease_norm_resp['match_type']
-                normalized_disease_id = \
-                    disease_norm_resp['value_object_descriptor']['value']['id']  # noqa: E501
-                if highest_match == 100:
-                    break
-
-        if highest_match == 0:
+        if not normalized_disease_id:
             logger.warning(f"Disease Normalizer unable to normalize: "
                            f"{disease_id} using queries {queries}")
             return None
@@ -786,21 +719,12 @@ class CIViCTransform:
         therapy_id = f"civic:tid{drug['id']}"
         label = drug['name']
         ncit_id = f"ncit:{drug['ncit_id']}"
-        highest_match = 0
-        normalized_therapy_id = None
+        queries = [ncit_id, label]
 
-        for query in [ncit_id, label]:
-            if not query:
-                continue
+        _, normalized_therapy_id = \
+            self.vicc_normalizers.normalize_therapy(queries)
 
-            therapy_norm_resp = self.therapy_query_handler.search_groups(query)
-            if therapy_norm_resp['match_type'] > highest_match:
-                highest_match = therapy_norm_resp['match_type']
-                normalized_therapy_id = therapy_norm_resp['value_object_descriptor']['value']['id']  # noqa: E501
-                if highest_match == 100:
-                    break
-
-        if highest_match == 0:
+        if not normalized_therapy_id:
             logger.warning(f"Therapy Normalizer unable to normalize: "
                            f"using queries {ncit_id} and {label}")
             return None
