@@ -4,6 +4,7 @@ from metakb.normalizers import VICCNormalizers
 import metakb.schemas as schemas
 import logging
 import json
+from urllib.parse import quote
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -195,7 +196,7 @@ class PMKBTransform:
             return []
         response = response[0]
         vod = schemas.ValueObjectDescriptor(
-            id=f"pmkb.normalize.therapy:{therapy}",
+            id=f"pmkb.normalize.therapy:{quote(therapy)}",
             type="TherapyDescriptor",
             label=therapy,
             value=schemas.Drug(id=response['value_object_descriptor']['value']['id'])  # noqa: E501
@@ -228,7 +229,7 @@ class PMKBTransform:
             return []
         response = response[0]
         vod = schemas.ValueObjectDescriptor(
-            id=f"pmkb.normalize.disease:{disease}",
+            id=f"pmkb.normalize.disease:{quote(disease)}",
             type="DiseaseDescriptor",
             label=disease,
             value=schemas.Disease(id=response['value_object_descriptor']['value']['id'])  # noqa: E501
@@ -271,7 +272,7 @@ class PMKBTransform:
         normalized_id = response['records'][0].concept_id
 
         vod = schemas.ValueObjectDescriptor(
-            id=f"pmkb.normalize.gene:{symbol}",
+            id=f"pmkb.normalize.gene:{quote(symbol)}",
             type="GeneDescriptor",
             label=symbol,
             value=schemas.Gene(id=normalized_id)
