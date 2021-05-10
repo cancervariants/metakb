@@ -272,7 +272,7 @@ class PMKBTransform:
         normalized_id = response['records'][0].concept_id
 
         vod = schemas.ValueObjectDescriptor(
-            id=f"pmkb.normalize.gene:{quote(symbol)}",
+            id=f"pmkb.normalize.gene:{symbol}",
             type="GeneDescriptor",
             label=symbol,
             value=schemas.Gene(id=normalized_id)
