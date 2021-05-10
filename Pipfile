@@ -5,8 +5,6 @@ name = "pypi"
 
 [packages]
 civicpy = "*"
-pytest = "*"
-pytest-cov = "*"
 pandas = "*"
 requests = "*"
 numpy = "*"
