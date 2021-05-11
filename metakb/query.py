@@ -469,7 +469,8 @@ class QueryHandler:
             'label': gene_descriptor.get('label'),
             'description': gene_descriptor.get('description'),
             'value': Gene(id=gene_value_object.get('id')).dict(),
-            'alternate_labels': gene_descriptor.get('alternate_labels')
+            'alternate_labels': gene_descriptor.get('alternate_labels'),
+            'xrefs': gene_descriptor.get('xrefs')
         }
 
         gd = GeneDescriptor(**gd_params).dict()
@@ -491,7 +492,8 @@ class QueryHandler:
             'type': 'TherapyDescriptor',
             'label': therapy_descriptor.get('label'),
             'value': None,
-            'alternate_labels': therapy_descriptor.get('alternate_labels')
+            'alternate_labels': therapy_descriptor.get('alternate_labels'),
+            'xrefs': therapy_descriptor.get('xrefs')
         }
 
         with self.driver.session() as session:
@@ -518,7 +520,8 @@ class QueryHandler:
             'id': disease_descriptor.get('id'),
             'type': 'DiseaseDescriptor',
             'label': disease_descriptor.get('label'),
-            'value': None
+            'value': None,
+            'xrefs': disease_descriptor.get('xrefs')
         }
 
         with self.driver.session() as session:
