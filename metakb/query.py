@@ -281,12 +281,23 @@ class QueryHandler:
                     )
                 )
 
+                # Sometimes CIViC AIDs have supported by statements
+                # that we aren't able to transform
+                sb_not_found = set()
                 for sb_id in s['supported_by']:
-                    self._add_document(
-                        response, session.read_transaction(
-                            self._find_node_by_id, sb_id
+                    try:
+                        self._add_document(
+                            response, session.read_transaction(
+                                self._find_node_by_id, sb_id
+                            )
                         )
-                    )
+                    except ValueError:
+                        sb_not_found.add(sb_id)
+                if sb_not_found:
+                    response['warnings'].append(f"Supported by evidence not "
+                                                f"yet  supported in MetaKB: "
+                                                f"{sb_not_found} for "
+                                                f"{s['id']}")
         else:
             response['variation_descriptors'] = None
             response['gene_descriptors'] = None
