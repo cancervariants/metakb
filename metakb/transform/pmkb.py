@@ -8,6 +8,7 @@ from urllib.parse import quote
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler())
 
 
 class PMKBTransform:
@@ -191,6 +192,7 @@ class PMKBTransform:
 
         response = self.vicc_normalizers.normalize_therapy([therapy])
         if not response or not response[0] or response[0]['match_type'] == 0:
+            print(therapy)
             logger.warning(f"Therapy normalization of {therapy} failed.")
             invalid_keys.add(therapy)
             return []

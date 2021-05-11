@@ -151,9 +151,14 @@ class PMKB(Harvester):
             description = descriptions[0].strip().replace('\n', ' ')
             words = description.split(' ')
             if tissue_types == ['Unknown']:
-                interp_out['therapies'] = words
-                interp_out['description'] = ''
-                interp_out['tissue_types'] = []
+                if len(words) == 1:
+                    interp_out['therapies'] = words
+                    interp_out['description'] = ''
+                    interp_out['tissue_types'] = []
+                else:
+                    interp_out['therapies'] = ['therapeutic procedure']
+                    interp_out['description'] = description
+                    interp_out['tissue_types'] = []  # retain unknown?
             else:
                 interp_out['therapies'] = ['therapeutic procedure']
                 interp_out['description'] = description
