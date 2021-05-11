@@ -155,6 +155,29 @@ def assert_response_items(response, statement, proposition,
            response_gene_descriptor['id']
 
 
+def assert_general_search_queries(response):
+    """Check for general search queries."""
+    assert response['matches']
+    assert len(response['matches']['statements']) > 0
+    assert len(response['matches']['propositions']) > 0
+    assert len(response['statements']) > 0
+    assert len(response['propositions']) > 0
+    assert len(response['methods']) > 0
+    assert len(response['documents']) > 0
+
+
+def test_general_search_queries(query_handler):
+    """Test that queries do not return errors."""
+    response = query_handler.search(variation='braf v600e', detail=True)
+    assert_general_search_queries(response)
+
+    response = query_handler.search(variation='egfr l858r', detail=True)
+    assert_general_search_queries(response)
+
+    response = query_handler.search(disease='cancer', detail=True)
+    assert_general_search_queries(response)
+
+
 def test_civic_eid2997(query_handler, civic_eid2997_statement,
                        civic_eid2997_proposition, check_statement,
                        check_proposition):
