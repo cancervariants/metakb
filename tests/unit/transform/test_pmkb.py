@@ -23,15 +23,16 @@ def data():
 def test_pmkb_cdm(data,
                   pmkb_statement_113, pmkb_proposition,
                   pmkb_vod_adenocarcinoma, pmkb_vod_variant_217,
-                  pmkb_vod_ctnnb1, pmkb_vod_therapy, pmkb_method,
-                  pmkb_documents, check_statement, check_proposition,
+                  pmkb_vod_ctnnb1, pmkb_vod_therapeutic_procedure, pmkb_method,
+                  pmkb_docs, check_statement, check_proposition,
                   check_variation_descriptor, check_descriptor, check_document,
                   check_method, check_transformed_cdm):
     """Check PMKB transformation output."""
     check_transformed_cdm(data, [pmkb_statement_113], [pmkb_proposition],
                           [pmkb_vod_variant_217], [pmkb_vod_ctnnb1],
-                          [pmkb_vod_adenocarcinoma], [pmkb_vod_therapy],
-                          [pmkb_method], pmkb_documents, check_statement,
+                          [pmkb_vod_adenocarcinoma],
+                          [pmkb_vod_therapeutic_procedure], [pmkb_method],
+                          pmkb_docs, check_statement,
                           check_proposition, check_variation_descriptor,
                           check_descriptor, check_document,
                           check_method, TRANSFORMED_FILE)

@@ -1275,7 +1275,7 @@ def pmid_11423618():
 def pmkb_statement_113():
     """Create fixture for PMKB statement 113"""
     return {
-        "id": "pmkb:113",
+        "id": "pmkb.statement:113",
         "description": "CTNNB1 encodes the protein b-catenin, a transcriptional activator involved in the WNT signaling pathway. Somatic gain-of-function mutations in CTNNB1 result in aberrant accumulation of the b-catenin protein and are prevalent in a wide range of solid tumors, including endometrial carcinoma, ovarian carcinoma, hepatocellular carcinoma, and colorectal carcinoma, among others. Genetic alterations in CTNNB1 have been identified in 4% of non-small cell lung cancers. The CTNNB1 S45P mutation is likely oncogenic, but no real progress has been made in targeting oncogenic mutant forms of CTNNB1 in lung cancer. However, CTNNB1 mutation-positive cancers are presumed to be resistant to pharmacologic inhibition of upstream components of the WNT pathway, instead requiring direct inhibition of b-catenin function. In one study pharmacological inhibition of b-catenin suppressed EGFR-L858R/T790M mutated lung tumor and genetic deletion of the b-catenin gene dramatically reduced lung tumor formation in transgenic mice, suggesting that b-catenin plays an essential role in lung tumorigenesis and that targeting the b-catenin pathway may provide novel strategies to prevent lung cancer development or overcome resistance to EGFR TKIs. These results should be interpreted in the clinical context.",  # noqa: E501
         "evidence_level": "2",
         "proposition": "proposition:1",
@@ -1295,6 +1295,7 @@ def pmkb_statement_113():
             "document:9",
             "document:10"
         ],
+        "variation_origin": "somatic",
         "type": "Statement"
     }
 
@@ -1412,6 +1413,16 @@ def pmkb_docs():
     """Create fixture for PMKB documents associated w/ PMKB statement 217."""
     return [
         {
+            "id": "document:1",
+            "label": "Cancer Genome Atlas Research Network, Kandoth C, Schultz N, Cherniack AD,",  # noqa: E501
+            "type": "Document"
+        },
+        {
+            "id": "document:2",
+            "label": "Akbani R, Liu Y, Shen H, Robertson AG, Pashtan I, Shen R, Benz CC, Yau C, Laird PW, Ding L, Zhang W, Mills GB, Kucherlapati R, Mardis ER, Levine DA. Integrated genomic characterization of endometrial carcinoma. Nature. 2013 May 2;497(7447):67-73.",  # noqa: E501
+            "type": "Document"
+        },
+        {
             "id": "document:3",
             "label": "Cancer Genome Atlas Network. Comprehensive molecular characterization of human colon and rectal cancer. Nature. 2012 Jul 18;487(7407):330-7.",  # noqa: E501
             "type": "Document"
@@ -1449,16 +1460,6 @@ def pmkb_docs():
         {
             "id": "document:10",
             "label": "Nakayama S, Sng N, Carretero J, et al. b-catenin contributes to lung tumor development induced by EGFR mutations. Cancer Res. 2014;74 (20):5891-902.",  # noqa: E501
-            "type": "Document"
-        },
-        {
-            "id": "document:11",
-            "label": "Cancer Genome Atlas Research Network. Comprehensive genomic characterization of squamous cell lung cancers. Nature 2012;489(7417):519-25",  # noqa: E501
-            "type": "Document"
-        },
-        {
-            "id": "document:12",
-            "label": "Hill VK, et al. The genetics of melanoma: recent advances. Annu Rev Genomics Hum Genet 2013;14():257-79",  # noqa: E501
             "type": "Document"
         }
     ]
