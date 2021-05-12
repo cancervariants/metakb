@@ -9,7 +9,6 @@ import json
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
 
 
 class PMKB(Harvester):
