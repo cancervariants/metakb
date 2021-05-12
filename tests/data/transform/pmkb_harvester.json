@@ -1,0 +1,55 @@
+{
+  "interpretations": [
+    {
+      "id": "113",
+      "gene": {
+        "name": "CTNNB1"
+      },
+      "evidence_items": [
+        "Cancer Genome Atlas Research Network, Kandoth C, Schultz N, Cherniack AD,",
+        "Akbani R, Liu Y, Shen H, Robertson AG, Pashtan I, Shen R, Benz CC, Yau C, Laird PW, Ding L, Zhang W, Mills GB, Kucherlapati R, Mardis ER, Levine DA. Integrated genomic characterization of endometrial carcinoma. Nature. 2013 May 2;497(7447):67-73.",
+        "Cancer Genome Atlas Network. Comprehensive molecular characterization of human colon and rectal cancer. Nature. 2012 Jul 18;487(7407):330-7.",
+        "Kan Z, Zheng H, Liu X, Li S, Barber TD, Gong Z, Gao H, Hao K, Willard MD, Xu",
+        "J, Hauptschein R, Rejto PA, Fernandez J, Wang G, Zhang Q, Wang B, Chen R, Wang J,Lee NP, Zhou W, Lin Z, Peng Z, Yi K, Chen S, Li L, Fan X, Yang J, Ye R, Ju J,Wang K, Estrella H, Deng S, Wei P, Qiu M, Wulur IH, Liu J, Ehsani ME, Zhang C,Loboda A, Sung WK, Aggarwal A, Poon RT, Fan ST, Wang J, Hardwick J, Reinhard C,Dai H, Li Y, Luk JM, Mao M. Whole-genome sequencing identifies recurrent mutations in hepatocellular carcinoma. Genome Res. 2013 Sep;23(9):1422-33.",
+        "Clevers H, Nusse R. Wnt/b-catenin signaling and disease. Cell. 2012 Jun 8;149(6):1192-205.",
+        "Greulich. The Genomics of Lung Adenocarcinoma: Opportunities for Targeted Therapies. Genes & Cancer 1(12) 1200--1210.",
+        "NGS sequencing of 240 NSCLC cases treated at MSKCC with anti-PD-(L)1 based therapy using the MSK-IMPACT assay.",
+        "Austinat M, Dunsch R, Wittekind C, Tannapfel A, Gebhardt R, Gaunitz F. Correlation between beta-catenin mutations and expression of Wnt-signaling target genes in hepatocellular carcinoma. Mol Cancer. 2008 Feb 18;7:21.",
+        "Nakayama S, Sng N, Carretero J, et al. b-catenin contributes to lung tumor development induced by EGFR mutations. Cancer Res. 2014;74 (20):5891-902."
+      ],
+      "pmkb_evidence_tier": "2",
+      "variants": [
+        {
+          "name": "CTNNB1 S45P",
+          "id": "217"
+        }
+      ],
+      "diseases": ["Adenocarcinoma"],
+      "therapies": ["therapeutic procedure"],
+      "description": "CTNNB1 encodes the protein b-catenin, a transcriptional activator involved in the WNT signaling pathway. Somatic gain-of-function mutations in CTNNB1 result in aberrant accumulation of the b-catenin protein and are prevalent in a wide range of solid tumors, including endometrial carcinoma, ovarian carcinoma, hepatocellular carcinoma, and colorectal carcinoma, among others. Genetic alterations in CTNNB1 have been identified in 4% of non-small cell lung cancers. The CTNNB1 S45P mutation is likely oncogenic, but no real progress has been made in targeting oncogenic mutant forms of CTNNB1 in lung cancer. However, CTNNB1 mutation-positive cancers are presumed to be resistant to pharmacologic inhibition of upstream components of the WNT pathway, instead requiring direct inhibition of b-catenin function. In one study pharmacological inhibition of b-catenin suppressed EGFR-L858R/T790M mutated lung tumor and genetic deletion of the b-catenin gene dramatically reduced lung tumor formation in transgenic mice, suggesting that b-catenin plays an essential role in lung tumorigenesis and that targeting the b-catenin pathway may provide novel strategies to prevent lung cancer development or overcome resistance to EGFR TKIs. These results should be interpreted in the clinical context.",
+      "tissue_types": ["Lung"],
+      "origin": "Somatic"
+    }
+  ],
+  "variants": [
+    {
+      "name": "CTNNB1 S45P",
+      "gene": {
+        "name": "CTNNB1"
+      },
+      "id": "217",
+      "origin": "Somatic",
+      "variation_type": "missense",
+      "dna_change": "",
+      "amino_acid_change": "S45P",
+      "ensembl_id": "ENST00000349496",
+      "cosmic_id": "",
+      "chromosome": "",
+      "arm_cytoband": "",
+      "partner_gene": "",
+      "codons": "45",
+      "exons": "3",
+      "coordinates": []
+    }
+  ]
+}
