@@ -47,8 +47,9 @@ class Consumer():
             else:
                 delta = msg.value()
                 if delta is not None:
-                    print(f"Consumed record with key {msg.key()} and "
-                          f"delta for {msg.value()._meta}")
+                    print(f"Consumed record with key {msg.key()}")
+                    for key in delta.__dict__.keys():
+                        print(f"{key}: {delta.__dict__[key]} \n")
         except KeyboardInterrupt:
             break
         except SerializationError as e:
@@ -57,5 +58,3 @@ class Consumer():
             pass
 
     consumer.close()
-
-# a = Consumer()

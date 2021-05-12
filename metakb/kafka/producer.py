@@ -86,5 +86,3 @@ class Producer():
     producer.flush()
 
     print(f"{delivered_records} messages were produced to topic {topic}!")
-
-# a = Producer()
