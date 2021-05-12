@@ -1,13 +1,13 @@
-"""A module for confluent kafka"""
+"""A module for producing confluent kafka message"""
 from confluent_kafka import SerializingProducer
 from confluent_kafka.serialization import StringSerializer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.json_schema import JSONSerializer
 
+from metakb import PROJECT_ROOT
 import ccloud_lib
 from uuid import uuid4
 from datetime import date
-from metakb import PROJECT_ROOT
 import json
 import logging
 
@@ -22,7 +22,7 @@ delta_dir = PROJECT_ROOT / 'data'
 schema_dir = PROJECT_ROOT / 'metakb' / 'kafka' / 'schema.json'
 
 
-class Kafka():
+class Producer():
     """A Kafka class to produce delta message"""
 
     args = ccloud_lib.parse_args()
@@ -63,11 +63,13 @@ class Kafka():
             print("Failed to deliver message: {}".format(err))
         else:
             delivered_records += 1
-            print(f"Produced record to topic {msg.topic()} "
-                  f"partition [{msg.partition()}] @ offset {msg.offset()}")
+            print(f"Produced record {msg.key()}: {msg.value()} to "
+                  f"topic {msg.topic()} partition [{msg.partition()}]"
+                  f" @ offset {msg.offset()}")
 
     resource = args.resource
-    delta_dir = delta_dir / f"{resource}" / f'{resource}_deltas_{today}.json'
+    # delta_dir = delta_dir / f"{resource}" / f'{resource}_deltas_{today}.json'
+    delta_dir = delta_dir / f"{resource}" / f'{resource}_deltas_test.json'
     with open(delta_dir, 'r') as f2:
         delta_data = json.load(f2)
 
@@ -85,4 +87,4 @@ class Kafka():
 
     print(f"{delivered_records} messages were produced to topic {topic}!")
 
-# a = Kafka()
+# a = Producer()
