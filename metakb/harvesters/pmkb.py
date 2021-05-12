@@ -69,19 +69,27 @@ class PMKB(Harvester):
             raise requests.exceptions.RequestException(msg)
         logging.info("PMKB source data downloads complete.")
 
-    def _get_all_variants(self):
-        """Process PMKB variants.
-        :return: Dict keying variant names (string) to data objects
+    def _load_variants_file(self):
+        """Open variants CSV and provide data.
+        :return: List of Dicts corresponding to rows in variants CSV
         """
         pattern = 'pmkb_variants_*.csv'
         variants_path = sorted(list(self.pmkb_dir.glob(pattern)))[-1]
         variants_file = open(variants_path, 'r')
-        reader = csv.DictReader(variants_file)
-        variants = {}
+        variants = list(csv.DictReader(variants_file))
+        variants_file.close()
+        return variants
 
-        for variant in reader:
+    def _get_all_variants(self):
+        """Process PMKB variants.
+        :return: Dict keying variant names (string) to data objects
+        """
+        variants_in = self._load_variants_file()
+        variants_out = {}
+
+        for variant in variants_in:
             name = variant['Description']
-            if name in variants:
+            if name in variants_out:
                 logger.error(f"Multiple records for variant: {name}")
                 continue
             variant_id = variant['PMKB URL'].split('/')[-1]
@@ -109,10 +117,17 @@ class PMKB(Harvester):
                 variant_object['coordinates'] = coords.split(', ')
             else:
                 variant_object['coordinates'] = []
-            variants[name] = variant_object
+            variants_out[name] = variant_object
 
-        variants_file.close()
-        return variants
+        return variants_out
+
+    def _load_interpretations_file(self):
+        pattern = 'data/pmkb/pmkb_interps_*.csv'
+        interp_file_path = sorted(list(PROJECT_ROOT.glob(pattern)))[-1]
+        interp_file = open(interp_file_path, 'r')
+        interps = list(csv.DictReader(interp_file))
+        interp_file.close()
+        return interps
 
     def _get_all_interpretations(self, variants):
         """Read interpretations and build harvested Interpretation objects.
@@ -120,12 +135,9 @@ class PMKB(Harvester):
         :return: list of Interpretation objects
         """
         interps_out = []
+        interps_in = self._load_interpretations_file()
 
-        pattern = 'data/pmkb/pmkb_interps_*.csv'
-        interp_file_path = sorted(list(PROJECT_ROOT.glob(pattern)))[-1]
-        interp_file = open(interp_file_path, 'r')
-        interps_reader = csv.DictReader(interp_file)
-        for interp in interps_reader:
+        for interp in interps_in:
             interp_id = interp['PMKB URL'].split('/')[-1]
             interp_gene = interp['Gene']
 
@@ -190,7 +202,6 @@ class PMKB(Harvester):
             if valid_statement:
                 interps_out.append(interp_out)
 
-        interp_file.close()
         return interps_out
 
     def _create_json(self, interpretations, variants, filename):
