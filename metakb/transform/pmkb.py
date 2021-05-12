@@ -8,7 +8,6 @@ from urllib.parse import quote
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
 
 
 class PMKBTransform:
@@ -430,7 +429,7 @@ class PMKBTransform:
         """
         v_descriptor = v_descriptors[0]
         statement = schemas.Statement(
-            id=f"{schemas.NamespacePrefix.PMKB.value}:{interpretation['id']}",
+            id=f"{schemas.NamespacePrefix.PMKB.value}.statement:{interpretation['id']}",  # noqa: E501
             description=interpretation['description'],
             evidence_level=interpretation['pmkb_evidence_tier'],
             proposition=proposition['id'],
