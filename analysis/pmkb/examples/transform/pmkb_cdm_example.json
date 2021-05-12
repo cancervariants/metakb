@@ -1,1 +1,182 @@
-{"statements": [{"id": "pmkb:113", "description": "CTNNB1 encodes the protein b-catenin, a transcriptional activator involved in the WNT signaling pathway. Somatic gain-of-function mutations in CTNNB1 result in aberrant accumulation of the b-catenin protein and are prevalent in a wide range of solid tumors, including endometrial carcinoma, ovarian carcinoma, hepatocellular carcinoma, and colorectal carcinoma, among others. Genetic alterations in CTNNB1 have been identified in 4% of non-small cell lung cancers. The CTNNB1 S45P mutation is likely oncogenic, but no real progress has been made in targeting oncogenic mutant forms of CTNNB1 in lung cancer. However, CTNNB1 mutation-positive cancers are presumed to be resistant to pharmacologic inhibition of upstream components of the WNT pathway, instead requiring direct inhibition of b-catenin function. In one study pharmacological inhibition of b-catenin suppressed EGFR-L858R/T790M mutated lung tumor and genetic deletion of the b-catenin gene dramatically reduced lung tumor formation in transgenic mice, suggesting that b-catenin plays an essential role in lung tumorigenesis and that targeting the b-catenin pathway may provide novel strategies to prevent lung cancer development or overcome resistance to EGFR TKIs. These results should be interpreted in the clinical context.", "evidence_level": "2", "proposition": "proposition:1", "variation_descriptor": "pmkb.variant:217", "therapy_descriptor": "pmkb.normalize.therapy:therapeutic%20procedure", "disease_descriptor": "pmkb.normalize.disease:Adenocarcinoma", "method": "method:5", "supported_by": ["document:1", "document:2", "document:3", "document:4", "document:5", "document:6", "document:7", "document:8", "document:9", "document:10"], "type": "Statement"}], "variation_descriptors": [{"id": "pmkb.variant:217", "type": "VariationDescriptor", "label": "CTNNB1 S45P", "value_id": "ga4gh:VA.6CgLeqGUIVF2XLiMwOpy142d2_iBTt7V", "value": {"location": {"interval": {"end": 45, "start": 44, "type": "SimpleInterval"}, "sequence_id": "ga4gh:SQ.FhMJAgGb9jn2O4_xxRn3C1JNlL0MKKsM", "type": "SequenceLocation"}, "state": {"sequence": "P", "type": "SequenceState"}, "type": "Allele"}, "molecule_context": "protein", "structural_type": "SO:0001606", "ref_allele_seq": "S", "gene_context": "pmkb.normalize.gene:CTNNB1", "extensions": [{"name": "associated_with", "value": ["ensembl:ENST00000349496"], "type": "Extension"}]}], "disease_descriptors": [{"id": "pmkb.normalize.disease:Adenocarcinoma", "type": "DiseaseDescriptor", "label": "Adenocarcinoma", "value": {"id": "ncit:C2852", "type": "Disease"}, "extensions": [{"type": "Extension", "name": "tissue_types", "value": ["Lung"]}]}], "therapy_descriptors": [{"id": "pmkb.normalize.therapy:therapeutic%20procedure", "type": "TherapyDescriptor", "label": "therapeutic procedure", "value": {"id": "ncit:C49236", "type": "Drug"}}], "gene_descriptors": [{"id": "pmkb.normalize.gene:CTNNB1", "type": "GeneDescriptor", "label": "CTNNB1", "value": {"id": "hgnc:2514", "type": "Gene"}}], "methods": [{"id": "method:5", "label": "The cancer precision medicine knowledge base for structured clinical-grade mutations and interpretations", "url": "https://academic.oup.com/jamia/article/24/3/513/2418181", "version": {"year": 2016, "month": 5, "day": null}, "authors": "Huang et al.", "type": "Method"}], "documents": [{"id": "document:3", "label": "Cancer Genome Atlas Network. Comprehensive molecular characterization of human colon and rectal cancer. Nature. 2012 Jul 18;487(7407):330-7.", "type": "Document"}, {"id": "document:4", "label": "Kan Z, Zheng H, Liu X, Li S, Barber TD, Gong Z, Gao H, Hao K, Willard MD, Xu", "type": "Document"}, {"id": "document:5", "label": "J, Hauptschein R, Rejto PA, Fernandez J, Wang G, Zhang Q, Wang B, Chen R, Wang J,Lee NP, Zhou W, Lin Z, Peng Z, Yi K, Chen S, Li L, Fan X, Yang J, Ye R, Ju J,Wang K, Estrella H, Deng S, Wei P, Qiu M, Wulur IH, Liu J, Ehsani ME, Zhang C,Loboda A, Sung WK, Aggarwal A, Poon RT, Fan ST, Wang J, Hardwick J, Reinhard C,Dai H, Li Y, Luk JM, Mao M. Whole-genome sequencing identifies recurrent mutations in hepatocellular carcinoma. Genome Res. 2013 Sep;23(9):1422-33.", "type": "Document"}, {"id": "document:6", "label": "Clevers H, Nusse R. Wnt/b-catenin signaling and disease. Cell. 2012 Jun 8;149(6):1192-205.", "type": "Document"}, {"id": "document:7", "label": "Greulich. The Genomics of Lung Adenocarcinoma: Opportunities for Targeted Therapies. Genes & Cancer 1(12) 1200--1210.", "type": "Document"}, {"id": "document:8", "label": "NGS sequencing of 240 NSCLC cases treated at MSKCC with anti-PD-(L)1 based therapy using the MSK-IMPACT assay.", "type": "Document"}, {"id": "document:9", "label": "Austinat M, Dunsch R, Wittekind C, Tannapfel A, Gebhardt R, Gaunitz F. Correlation between beta-catenin mutations and expression of Wnt-signaling target genes in hepatocellular carcinoma. Mol Cancer. 2008 Feb 18;7:21.", "type": "Document"}, {"id": "document:10", "label": "Nakayama S, Sng N, Carretero J, et al. b-catenin contributes to lung tumor development induced by EGFR mutations. Cancer Res. 2014;74 (20):5891-902.", "type": "Document"}, {"id": "document:11", "label": "Cancer Genome Atlas Research Network. Comprehensive genomic characterization of squamous cell lung cancers. Nature 2012;489(7417):519-25", "type": "Document"}, {"id": "document:12", "label": "Hill VK, et al. The genetics of melanoma: recent advances. Annu Rev Genomics Hum Genet 2013;14():257-79", "type": "Document"}]}
+{
+    "statements": [
+        {
+            "id": "pmkb.statement:113",
+            "description": "CTNNB1 encodes the protein b-catenin, a transcriptional activator involved in the WNT signaling pathway. Somatic gain-of-function mutations in CTNNB1 result in aberrant accumulation of the b-catenin protein and are prevalent in a wide range of solid tumors, including endometrial carcinoma, ovarian carcinoma, hepatocellular carcinoma, and colorectal carcinoma, among others. Genetic alterations in CTNNB1 have been identified in 4% of non-small cell lung cancers. The CTNNB1 S45P mutation is likely oncogenic, but no real progress has been made in targeting oncogenic mutant forms of CTNNB1 in lung cancer. However, CTNNB1 mutation-positive cancers are presumed to be resistant to pharmacologic inhibition of upstream components of the WNT pathway, instead requiring direct inhibition of b-catenin function. In one study pharmacological inhibition of b-catenin suppressed EGFR-L858R/T790M mutated lung tumor and genetic deletion of the b-catenin gene dramatically reduced lung tumor formation in transgenic mice, suggesting that b-catenin plays an essential role in lung tumorigenesis and that targeting the b-catenin pathway may provide novel strategies to prevent lung cancer development or overcome resistance to EGFR TKIs. These results should be interpreted in the clinical context.",
+            "evidence_level": "2",
+            "proposition": "proposition:1",
+            "variation_descriptor": "pmkb.variant:217",
+            "therapy_descriptor": "pmkb.normalize.therapy:therapeutic%20procedure",
+            "disease_descriptor": "pmkb.normalize.disease:Adenocarcinoma",
+            "method": "method:5",
+            "supported_by": [
+                "document:1",
+                "document:2",
+                "document:3",
+                "document:4",
+                "document:5",
+                "document:6",
+                "document:7",
+                "document:8",
+                "document:9",
+                "document:10"
+            ],
+            "type": "Statement"
+        }
+    ],
+    "propositions": [
+        {
+            "id": "proposition:1",
+            "type": "therapeutic_response_proposition",
+            "predicate": "predicts_resistance_to",
+            "subject": "ga4gh:VA.6CgLeqGUIVF2XLiMwOpy142d2_iBTt7V",
+            "object_qualifier": "ncit:C2852",
+            "object": "ncit:C49236"
+        }
+    ],
+    "variation_descriptors": [
+        {
+            "id": "pmkb.variant:217",
+            "type": "VariationDescriptor",
+            "label": "CTNNB1 S45P",
+            "value_id": "ga4gh:VA.6CgLeqGUIVF2XLiMwOpy142d2_iBTt7V",
+            "value": {
+                "location": {
+                    "interval": {
+                        "end": 45,
+                        "start": 44,
+                        "type": "SimpleInterval"
+                    },
+                    "sequence_id": "ga4gh:SQ.FhMJAgGb9jn2O4_xxRn3C1JNlL0MKKsM",
+                    "type": "SequenceLocation"
+                },
+                "state": {
+                    "sequence": "P",
+                    "type": "SequenceState"
+                },
+                "type": "Allele"
+            },
+            "molecule_context": "protein",
+            "structural_type": "SO:0001606",
+            "ref_allele_seq": "S",
+            "gene_context": "pmkb.normalize.gene:CTNNB1",
+            "extensions": [
+                {
+                    "name": "associated_with",
+                    "value": [
+                        "ensembl:ENST00000349496"
+                    ],
+                    "type": "Extension"
+                }
+            ]
+        }
+    ],
+    "disease_descriptors": [
+        {
+            "id": "pmkb.normalize.disease:Adenocarcinoma",
+            "type": "DiseaseDescriptor",
+            "label": "Adenocarcinoma",
+            "value": {
+                "id": "ncit:C2852",
+                "type": "Disease"
+            },
+            "extensions": [
+                {
+                    "type": "Extension",
+                    "name": "tissue_types",
+                    "value": [
+                        "Lung"
+                    ]
+                }
+            ]
+        }
+    ],
+    "therapy_descriptors": [
+        {
+            "id": "pmkb.normalize.therapy:therapeutic%20procedure",
+            "type": "TherapyDescriptor",
+            "label": "therapeutic procedure",
+            "value": {
+                "id": "ncit:C49236",
+                "type": "Drug"
+            }
+        }
+    ],
+    "gene_descriptors": [
+        {
+            "id": "pmkb.normalize.gene:CTNNB1",
+            "type": "GeneDescriptor",
+            "label": "CTNNB1",
+            "value": {
+                "id": "hgnc:2514",
+                "type": "Gene"
+            }
+        }
+    ],
+    "methods": [
+        {
+            "id": "method:5",
+            "label": "The cancer precision medicine knowledge base for structured clinical-grade mutations and interpretations",
+            "url": "https://academic.oup.com/jamia/article/24/3/513/2418181",
+            "version": {
+                "year": 2016,
+                "month": 5,
+                "day": null
+            },
+            "authors": "Huang et al.",
+            "type": "Method"
+        }
+    ],
+    "documents": [
+        {
+            "id": "document:3",
+            "label": "Cancer Genome Atlas Network. Comprehensive molecular characterization of human colon and rectal cancer. Nature. 2012 Jul 18;487(7407):330-7.",
+            "type": "Document"
+        },
+        {
+            "id": "document:4",
+            "label": "Kan Z, Zheng H, Liu X, Li S, Barber TD, Gong Z, Gao H, Hao K, Willard MD, Xu",
+            "type": "Document"
+        },
+        {
+            "id": "document:5",
+            "label": "J, Hauptschein R, Rejto PA, Fernandez J, Wang G, Zhang Q, Wang B, Chen R, Wang J,Lee NP, Zhou W, Lin Z, Peng Z, Yi K, Chen S, Li L, Fan X, Yang J, Ye R, Ju J,Wang K, Estrella H, Deng S, Wei P, Qiu M, Wulur IH, Liu J, Ehsani ME, Zhang C,Loboda A, Sung WK, Aggarwal A, Poon RT, Fan ST, Wang J, Hardwick J, Reinhard C,Dai H, Li Y, Luk JM, Mao M. Whole-genome sequencing identifies recurrent mutations in hepatocellular carcinoma. Genome Res. 2013 Sep;23(9):1422-33.",
+            "type": "Document"
+        },
+        {
+            "id": "document:6",
+            "label": "Clevers H, Nusse R. Wnt/b-catenin signaling and disease. Cell. 2012 Jun 8;149(6):1192-205.",
+            "type": "Document"
+        },
+        {
+            "id": "document:7",
+            "label": "Greulich. The Genomics of Lung Adenocarcinoma: Opportunities for Targeted Therapies. Genes & Cancer 1(12) 1200--1210.",
+            "type": "Document"
+        },
+        {
+            "id": "document:8",
+            "label": "NGS sequencing of 240 NSCLC cases treated at MSKCC with anti-PD-(L)1 based therapy using the MSK-IMPACT assay.",
+            "type": "Document"
+        },
+        {
+            "id": "document:9",
+            "label": "Austinat M, Dunsch R, Wittekind C, Tannapfel A, Gebhardt R, Gaunitz F. Correlation between beta-catenin mutations and expression of Wnt-signaling target genes in hepatocellular carcinoma. Mol Cancer. 2008 Feb 18;7:21.",
+            "type": "Document"
+        },
+        {
+            "id": "document:10",
+            "label": "Nakayama S, Sng N, Carretero J, et al. b-catenin contributes to lung tumor development induced by EGFR mutations. Cancer Res. 2014;74 (20):5891-902.",
+            "type": "Document"
+        },
+        {
+            "id": "document:11",
+            "label": "Cancer Genome Atlas Research Network. Comprehensive genomic characterization of squamous cell lung cancers. Nature 2012;489(7417):519-25",
+            "type": "Document"
+        },
+        {
+            "id": "document:12",
+            "label": "Hill VK, et al. The genetics of melanoma: recent advances. Annu Rev Genomics Hum Genet 2013;14():257-79",
+            "type": "Document"
+        }
+    ]
+}

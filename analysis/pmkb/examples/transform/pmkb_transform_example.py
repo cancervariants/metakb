@@ -13,7 +13,7 @@ def create_pmkb_example(pmkb_data):
     ex = {}
 
     for statement in pmkb_data['statements']:
-        if statement['id'] == 'pmkb:113':
+        if statement['id'] == 'pmkb.statement:113':
             ex['statements'] = [statement]
             break
 
@@ -69,7 +69,7 @@ def create_pmkb_example(pmkb_data):
 
     file_path = PROJECT_ROOT / 'analysis' / 'pmkb' / 'examples' / 'transform' / 'pmkb_cdm_example.json'  # noqa: E501
     with open(file_path, 'w+') as f2:
-        json.dump(ex, f2)
+        json.dump(ex, f2, indent=2)
 
 
 if __name__ == '__main__':
