@@ -6,7 +6,6 @@ import logging
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
 
 
 def create_pmkb_example(pmkb_data):
