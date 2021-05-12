@@ -19,7 +19,10 @@ def create_pmkb_example(pmkb_data):
             break
 
     for proposition in pmkb_data['propositions']:
-        if proposition['id'] == 'proposition:740':
+        if proposition['subject'] == \
+                'ga4gh:VA.6CgLeqGUIVF2XLiMwOpy142d2_iBTt7V' and \
+                proposition['object_qualifier'] == 'ncit:C2852' and \
+                proposition['object'] == 'ncit:C49236':
             ex['propositions'] = [proposition]
             break
 
