@@ -1,0 +1,47 @@
+{
+    "ASSERTIONS": {
+        "id": 700,
+        "context": null,
+        "description": "CRKL amplification was observed in an EGFR inhibitor resistant tumor after researchers observed that cells from gefitinib-sensitive cell line (HCC827) overexpressing CRKL became resistant to gefitinib relative to controls.",
+        "disease": {
+            "name": "Non-Small Cell Lung Cancer",
+            "oncotree_code": "NSCLC",
+            "oncotree_term": "Non-Small Cell Lung Cancer"
+        },
+        "therapy_name": "Gefitinib",
+        "therapy_type": "Targeted therapy",
+        "clinical_significance": "resistance",
+        "predictive_implication": "Clinical evidence",
+        "favorable_prognosis": null,
+        "created_on": "03/31/21",
+        "last_updated": "2017-11-03",
+        "submitted_by": "breardon@broadinstitute.org",
+        "validated": true,
+        "source_ids": 200,
+        "variant": {
+            "id": 700,
+            "cytoband": "22q11.21",
+            "direction": "Amplification",
+            "feature_type": "copy_number",
+            "gene": "CRKL",
+            "feature": "CRKL Amplification"
+        }
+    },
+    "SOURCES": {
+        "id": 200,
+        "type": "Journal",
+        "doi": "10.1158/2159-8290.CD-11-0046",
+        "nct": "None",
+        "pmid": 22586683,
+        "url": "https://doi.org/10.1158/2159-8290.CD-11-0046",
+        "citation": "Cheung HW, Du J, Boehm JS, et al. Amplification of CRKL induces transformation and epidermal growth factor receptor inhibitor resistance in human non-small cell lung cancers. Cancer Discov. 2011;1(7):608-25."
+    },
+    "VARIANTS": {
+        "id": 700,
+        "cytoband": "22q11.21",
+        "direction": "Amplification",
+        "feature_type": "copy_number",
+        "gene": "CRKL",
+        "feature": "CRKL Amplification"
+    }
+}
