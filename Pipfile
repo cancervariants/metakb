@@ -13,7 +13,7 @@ pydantic = "*"
 requests-cache = "*"
 gene-normalizer = "*"
 disease-normalizer = "*"
-variant-normalizer = "*"
+variant-normalizer = ">=0.2.1"
 neo4j = "*"
 ipykernel = "*"
 uvicorn = "*"
@@ -25,7 +25,7 @@ httptools = "*"
 typing-extensions = "*"
 boto3 = "*"
 botocore = "*"
-thera-py = ">=0.2.17"
+thera-py = ">=0.2.20"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
