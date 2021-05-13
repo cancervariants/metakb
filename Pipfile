@@ -5,7 +5,6 @@ name = "pypi"
 
 [packages]
 civicpy = "*"
-pandas = "*"
 requests = "*"
 numpy = "*"
 jsondiff = "*"
