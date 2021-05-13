@@ -38,6 +38,16 @@ class Delta(object):
                     genes=delta.genes, variants=delta.variants,
                     sources=delta.sources, evidence=delta.evidence)
 
+    @staticmethod
+    def from_dict(obj, ctx):
+        """Return object to Delta instance"""
+        if obj is None:
+            return None
+
+        return Delta(_meta=obj['_meta'], assertions=obj['assertions'],
+                     genes=obj['genes'], variants=obj['variants'],
+                     sources=obj['sources'], evidence=obj['evidence'])
+
 
 def parse_args():
     """Parse command line arguments"""
@@ -61,7 +71,7 @@ def parse_args():
     required.add_argument('-r',
                           dest="resource",
                           help="Knowledgebase resource name",
-                          requred=True)
+                          required=False)
 
     args = parser.parse_args()
 
