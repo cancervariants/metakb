@@ -14,15 +14,17 @@ logger.setLevel(logging.DEBUG)
 class PMKB(Harvester):
     """Class for harvesting from PMKB."""
 
-    def harvest(self, fn='pmkb_harvester.json'):
+    def harvest(self, fn='pmkb_harvester.json',
+                data_path=PROJECT_ROOT / 'data' / 'pmkb'):
         """Retrieve and store all interpretations, genes, variants, tumor
         types, and evidence in composite and individual JSON files.
 
         :param string fn: file name of composite JSON document
+        :param Path data_path: path to PMKB data directory
         :return: bool True if operation is successful, False otherwise
         """
         try:
-            self.pmkb_dir = PROJECT_ROOT / 'data' / 'pmkb'
+            self.pmkb_dir = data_path
             self._check_files()
             variants = self._get_all_variants()
             interpretations = self._get_all_interpretations(variants)
@@ -71,6 +73,7 @@ class PMKB(Harvester):
 
     def _load_variants_file(self):
         """Open variants CSV and provide data.
+
         :return: List of Dicts corresponding to rows in variants CSV
         """
         pattern = 'pmkb_variants_*.csv'
@@ -123,8 +126,12 @@ class PMKB(Harvester):
         return variants_out
 
     def _load_interpretations_file(self):
-        pattern = 'data/pmkb/pmkb_interps_*.csv'
-        interp_file_path = sorted(list(PROJECT_ROOT.glob(pattern)))[-1]
+        """Get interps data from file.
+
+        :return: List of Dicts keying column names to row attributes.
+        """
+        pattern = 'pmkb_interps_*.csv'
+        interp_file_path = sorted(list(self.pmkb_dir.glob(pattern)))[-1]
         interp_file = open(interp_file_path, 'r')
         interps = list(csv.DictReader(interp_file))
         interp_file.close()
