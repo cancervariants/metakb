@@ -26,6 +26,8 @@ httptools = "*"
 typing-extensions = "*"
 boto3 = "*"
 botocore = "*"
+certifi = "*"
+confluent-kafka = {extras = ["avro", "json", "protobuf"], version = "*"}
 
 [dev-packages]
 metakb = {editable = true, path = "."}
