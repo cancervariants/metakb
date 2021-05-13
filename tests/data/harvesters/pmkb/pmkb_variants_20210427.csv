@@ -1,0 +1,4 @@
+Description,Gene,Variant,Chromosome,Arm/Cytoband,Partner Gene,Amino Acid Change,DNA Change,Transcript ID (GRCh37/hg19),Transcript Ensembl URL,Codons,Exons,Genomic Coordinates (GRCh37/hg19),COSMIC ID,COSMIC URL,Germline/Somatic,PMKB URL
+CSF3R T618I,CSF3R,missense,,,,T618I,"",ENST00000373103,http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000373103,618,"","",,"",Somatic,https://pmkb.org/variants/422
+CSF3R any nonsense,CSF3R,nonsense,,,,,,ENST00000373103,http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000373103,,,,,"",Somatic,https://pmkb.org/variants/423
+CSF3R any frameshift,CSF3R,frameshift,,,,,,ENST00000373103,http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000373103,,,,,"",Somatic,https://pmkb.org/variants/424
