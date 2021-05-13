@@ -82,6 +82,7 @@ class PMKB(Harvester):
 
     def _get_all_variants(self):
         """Process PMKB variants.
+
         :return: Dict keying variant names (string) to data objects
         """
         variants_in = self._load_variants_file()
@@ -131,6 +132,7 @@ class PMKB(Harvester):
 
     def _get_all_interpretations(self, variants):
         """Read interpretations and build harvested Interpretation objects.
+
         :param dict variants: dictionary keying variant names to full data
         :return: list of Interpretation objects
         """
@@ -206,6 +208,7 @@ class PMKB(Harvester):
 
     def _create_json(self, interpretations, variants, filename):
         """Export data to JSON.
+
         :param List interpretations: list of Interpretation objects
         :param Dict variants: Dictionary where values are Variant objects
         :param str filename: name of composite output file

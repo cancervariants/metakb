@@ -17,6 +17,7 @@ class PMKBTransform:
                  file_path=f"{PROJECT_ROOT}/data/pmkb/pmkb_harvester.json",
                  audit=False):
         """Initiate normalizer services and get data location.
+
         :param str file_path: location of harvested PMKB json file
         :param bool audit: if True, save lists of gene, variant, and disease
             terms that fail to normalize
@@ -89,6 +90,7 @@ class PMKBTransform:
 
     def transform(self, propositions_documents_ix=None):
         """Transform PMKB harvested json to common data model.
+
         :param Dict propositions_documents_ix: tracking data to properly
             index SupportEvidence and Propositions
         :return: Updated propositions_documents_ix object
@@ -139,6 +141,7 @@ class PMKBTransform:
     def _get_descriptors(self, interpretation, variants, gene_index,
                          disease_index):
         """Get Descriptor objects given interpretation and associated data.
+
         :param Dict interpretation: PMKB interpretation
         :param Dict variants: Keys are variant labels and values are all
             harvested variant objects
@@ -178,6 +181,7 @@ class PMKBTransform:
     def _get_therapy_descriptors(self, therapy):
         """Get therapy descriptors. Most PMKB interpretations have value
         ncit:C49236, but we first try to grab some from the description.
+
         :param str therapy: label of a drug
         :return: List containing Therapeutic Procedure VOD.
         """
@@ -209,6 +213,7 @@ class PMKBTransform:
     def _get_disease_descriptors(self, disease, tissue_types):
         """Get Disease Descriptors for given disease. Tries disease label
         concatenated with tissue type first, then disease label alone.
+
         :param str disease: PMKB disease name
         :param List tissue_types: types of tissue (str) specified by record
         :return: List (len == 1) containing VOD of best normalized match, or
@@ -250,6 +255,7 @@ class PMKBTransform:
 
     def _get_gene_descriptors(self, variant):
         """Fetch gene descriptors.
+
         :param Dict variant: harvested PMKB variant object
         :return: List (len == 1) containing VOD of normalized match, or
             empty list if normalization fails
@@ -284,6 +290,7 @@ class PMKBTransform:
 
     def _get_variant_descriptors(self, variant, gene_id):
         """Fetch variant descriptors.
+
         :param Dict variant: PMKB variant object
         :param str gene_id: identifier for gene_context field
         :return: List (len == 1) containing VOD of normalized match, or
@@ -337,6 +344,7 @@ class PMKBTransform:
 
     def _get_methods(self):
         """Build Method object for PMKB.
+
         :return: List (len == 1) containing the PMKB method object, as a dict.
         """
         method = self.transformed['method']
@@ -356,6 +364,7 @@ class PMKBTransform:
     def _get_tr_proposition(self, v_descriptors, t_descriptors,
                             d_descriptors, propositions_documents_ix):
         """Return a proposition. All descriptor inputs should be len == 1.
+
         :param List v_descriptors: List of VariationDescriptors
         :param List t_descriptors: List of TherapyDescriptors
         :param List d_descriptors: List of DiseaseDescriptors
@@ -389,6 +398,7 @@ class PMKBTransform:
 
     def _get_documents(self, interpretation, propositions_documents_ix):
         """Get Document objects from interpretation.
+
         :param Dict interpretation: PMKB interpretation
         :param Dict propositions_documents_ix: Keeps track of
             proposition and document indices
@@ -414,6 +424,7 @@ class PMKBTransform:
     def _get_statement(self, interpretation, proposition, v_descriptors,
                        t_descriptors, d_descriptors, method, documents):
         """Construct Statement object. All descriptor objects should be len 1.
+
         :param Dict interpretation: harvested interpretation from PMKB
         :param Dict proposition: transformed Proposition
         :param List v_descriptors: Variation Descriptors connected to this
