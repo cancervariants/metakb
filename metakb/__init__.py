@@ -10,6 +10,10 @@ logging.basicConfig(
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
+
+version = "1.0.1"
+
+
 if 'METAKB_NORM_EB_PROD' in environ:
     environ['VARIANT_NORM_EB_PROD'] = "true"
     environ['GENE_NORM_EB_PROD'] = "true"

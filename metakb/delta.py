@@ -1,13 +1,14 @@
 """A module for computing deltas."""
-from metakb import PROJECT_ROOT
+from metakb import PROJECT_ROOT, version
 import json
 import logging
 from jsondiff import diff
 from datetime import date
-from metakb.harvesters import CIViC, MOAlmanac
+from metakb.harvesters import CIViC, MOAlmanac, PMKB
 HARVESTER_CLASS = {
     'civic': CIViC,
-    'moa': MOAlmanac
+    'moa': MOAlmanac,
+    'pmkb': PMKB,
 }
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -57,7 +58,7 @@ class Delta:
 
         delta = {
             '_meta': {
-                'metakb_version': '1.0.1',
+                'metakb_version': version,
                 'date_harvested': current_date
             }
         }
@@ -66,6 +67,8 @@ class Delta:
             delta['_meta']['civicpy_version'] = '1.1.2'
         elif self._src == 'moa':
             delta['_meta']['moa_api_version'] = '0.2'
+        elif self._src == 'pmkb':
+            delta['_meta']['pmkb_version'] = '1.0'
 
         for record_type in main_json.keys():
             delta[record_type] = {
