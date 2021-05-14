@@ -16,8 +16,8 @@ class PMKB(Harvester):
 
     def harvest(self, fn='pmkb_harvester.json',
                 data_path=PROJECT_ROOT / 'data' / 'pmkb'):
-        """Retrieve and store all interpretations, genes, variants, tumor
-        types, and evidence in composite and individual JSON files.
+        """Retrieve and store all interpretations and variants in composite
+        and individual JSON files.
 
         :param string fn: file name of composite JSON document
         :param Path data_path: path to PMKB data directory
