@@ -281,12 +281,23 @@ class QueryHandler:
                     )
                 )
 
+                # Sometimes CIViC AIDs have supported by statements
+                # that we aren't able to transform
+                sb_not_found = set()
                 for sb_id in s['supported_by']:
-                    self._add_document(
-                        response, session.read_transaction(
-                            self._find_node_by_id, sb_id
+                    try:
+                        self._add_document(
+                            response, session.read_transaction(
+                                self._find_node_by_id, sb_id
+                            )
                         )
-                    )
+                    except ValueError:
+                        sb_not_found.add(sb_id)
+                if sb_not_found:
+                    response['warnings'].append(f"Supported by evidence not "
+                                                f"yet  supported in MetaKB: "
+                                                f"{sb_not_found} for "
+                                                f"{s['id']}")
         else:
             response['variation_descriptors'] = None
             response['gene_descriptors'] = None
@@ -469,7 +480,8 @@ class QueryHandler:
             'label': gene_descriptor.get('label'),
             'description': gene_descriptor.get('description'),
             'value': Gene(id=gene_value_object.get('id')).dict(),
-            'alternate_labels': gene_descriptor.get('alternate_labels')
+            'alternate_labels': gene_descriptor.get('alternate_labels'),
+            'xrefs': gene_descriptor.get('xrefs')
         }
 
         gd = GeneDescriptor(**gd_params).dict()
@@ -491,7 +503,8 @@ class QueryHandler:
             'type': 'TherapyDescriptor',
             'label': therapy_descriptor.get('label'),
             'value': None,
-            'alternate_labels': therapy_descriptor.get('alternate_labels')
+            'alternate_labels': therapy_descriptor.get('alternate_labels'),
+            'xrefs': therapy_descriptor.get('xrefs')
         }
 
         with self.driver.session() as session:
@@ -518,7 +531,8 @@ class QueryHandler:
             'id': disease_descriptor.get('id'),
             'type': 'DiseaseDescriptor',
             'label': disease_descriptor.get('label'),
-            'value': None
+            'value': None,
+            'xrefs': disease_descriptor.get('xrefs')
         }
 
         with self.driver.session() as session:

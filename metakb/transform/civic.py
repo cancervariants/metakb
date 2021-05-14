@@ -607,8 +607,8 @@ class CIViCTransform:
         """
         for gene in genes:
             gene_id = f"civic:gid{gene['id']}"
-            queries = [f"ncbigene:{gene['entrez_id']}",
-                       gene['name']] + gene['aliases']
+            ncbigene = f"ncbigene:{gene['entrez_id']}"
+            queries = [ncbigene, gene['name']] + gene['aliases']
 
             _, normalized_gene_id = \
                 self.vicc_normalizers.normalize_gene(queries)
@@ -619,7 +619,8 @@ class CIViCTransform:
                     label=gene['name'],
                     description=gene['description'] if gene['description'] else None,  # noqa: E501
                     value=schemas.Gene(id=normalized_gene_id),
-                    alternate_labels=gene['aliases']
+                    alternate_labels=gene['aliases'],
+                    xrefs=[ncbigene]
                 ).dict(exclude_none=True)
                 self.transformed['gene_descriptors'].append(gene_descriptor)
             else:
@@ -662,12 +663,16 @@ class CIViCTransform:
 
         disease_id = f"civic:did{disease['id']}"
         display_name = disease['display_name']
+        doid = disease['doid']
 
-        if not disease['doid']:
+        if not doid:
             logger.warning(f"{disease_id} ({display_name}) has null DOID")
             queries = [display_name]
+            xrefs = []
         else:
-            queries = [f"doid:{disease['doid']}", display_name]
+            doid = f"DOID:{disease['doid']}"
+            queries = [doid, display_name]
+            xrefs = [doid]
 
         _, normalized_disease_id = \
             self.vicc_normalizers.normalize_disease(queries)
@@ -682,6 +687,7 @@ class CIViCTransform:
             type="DiseaseDescriptor",
             label=display_name,
             value=schemas.Disease(id=normalized_disease_id),
+            xrefs=xrefs if xrefs else None
         ).dict(exclude_none=True)
         return disease_descriptor
 
@@ -734,7 +740,8 @@ class CIViCTransform:
             type="TherapyDescriptor",
             label=label,
             value=schemas.Drug(id=normalized_therapy_id),
-            alternate_labels=drug['aliases']
+            alternate_labels=drug['aliases'],
+            xrefs=[ncit_id]
         ).dict(exclude_none=True)
         return therapy_descriptor
 
