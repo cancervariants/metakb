@@ -197,7 +197,7 @@ class MOATransform:
         evidence_level = record['predictive_implication'].strip().replace(' ', '_')  # noqa: E501
 
         statement = schemas.Statement(
-            id=f"{schemas.NamespacePrefix.MOA.value}:aid{record['id']}",
+            id=f"{schemas.NamespacePrefix.MOA.value}.assertion:{record['id']}",
             description=record['description'],
             evidence_level=f"moa.evidence_level:"
                            f"{evidence_level}",
@@ -299,13 +299,13 @@ class MOATransform:
 
         if not v_norm_resp:
             logger.warning(f"Variant Normalizer unable to normalize: "
-                           f"moa:vid{variant['id']}.")
+                           f"moa.variant:{variant['id']}.")
             return []
 
         gene_context = g_descriptors[0]['id'] if g_descriptors else None
 
         variation_descriptor = schemas.VariationDescriptor(
-            id=f"moa:vid{variant['id']}",
+            id=f"moa.variant:{variant['id']}",
             label=variant['feature'],
             value_id=v_norm_resp.value_id,
             value=v_norm_resp.value,
