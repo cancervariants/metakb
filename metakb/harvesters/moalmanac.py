@@ -1,9 +1,7 @@
 """A module for the Molecular Oncology Almanac harvester"""
 from .base import Harvester
-from metakb import PROJECT_ROOT
 import requests
 import requests_cache
-import json
 import logging
 
 
@@ -27,45 +25,21 @@ class MOAlmanac(Harvester):
             assertion_resp = self._get_all_assertions()
             sources = self._harvest_sources(assertion_resp)
             variants, variants_list = self._harvest_variants()
-            assertions = self._harvest_assertions(assertion_resp, variants_list)  # noqa: E501
-            self._create_json(assertions, sources, variants, fn)
-            logger.info('MOAlmanac harvester was successful.')
-            return True
-        except:  # noqa: E722 # TODO: Add specific exception error
-            logger.error('MOAlmanac Harvester was not successful.')
+            assertions = \
+                self._harvest_assertions(assertion_resp, variants_list)
+            json_created = self.create_json(
+                fn, 'moa', assertions=assertions,
+                sources=sources, variants=variants
+            )
+            if not json_created:
+                logger.error("MOAlmanac Harvester was not successful.")
+                return False
+        except Exception as e:  # noqa: E722
+            logger.error(f'MOAlmanac Harvester was not successful: {e}')
             return False
-
-    def _create_json(self, assertions, sources, variants, fn):
-        """
-        Create a composite JSON file containing assertions,
-        sources, and variants
-        and individual JSON files for each level of MOA record.
-
-        :param: A list of MOA assertions
-        :param: A list of MOA sources
-        :param: A list of MOA variants
-        :param: File name of the harvester
-        """
-        composite_dict = {
-            'assertions': assertions,
-            'sources': sources,
-            'variants': variants,
-        }
-
-        # Create composite json
-        moa_dir = PROJECT_ROOT / 'data' / 'moa'
-        moa_dir.mkdir(exist_ok=True, parents=True)
-
-        with open(f'{PROJECT_ROOT}/data/moa/{fn}', 'w+') as f:
-            json.dump(composite_dict, f)
-            f.close()
-
-        # Create individual json for assertions, sources, variants
-        data = ['assertions', 'sources', 'variants']
-        for d in data:
-            with open(f'{PROJECT_ROOT}/data/moa/{d}.json', 'w+') as f:
-                f.write(json.dumps(composite_dict[d]))
-                f.close()
+        else:
+            logger.info('MOAlmanac Harvester was successful.')
+            return True
 
     def _harvest_sources(self, assertion_resp):
         """
