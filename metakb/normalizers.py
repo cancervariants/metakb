@@ -1,6 +1,5 @@
 """Module for VICC normalizers."""
 from typing import Optional, Tuple
-
 from gene.query import QueryHandler as GeneQueryHandler
 from variant.to_vrs import ToVRS
 from variant.normalize import Normalize as VariantNormalizer
