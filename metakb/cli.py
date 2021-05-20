@@ -8,7 +8,6 @@ import logging
 from metakb.database import Graph
 from metakb import PROJECT_ROOT
 from metakb.harvesters import CIViC, MOAlmanac
-from metakb.transform import CIViCTransform, MOATransform
 from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
 from disease.cli import CLI as DiseaseCLI
@@ -86,11 +85,15 @@ class CLI:
         db_username = CLI()._check_db_param(db_username, 'username')
         db_password = CLI()._check_db_param(db_password, 'password')
 
+        if normalizer_db_url:
+            for env_var_name in ['VARIANT_NORM_DB_URL', 'GENE_NORM_DB_URL',
+                                 'THERAPY_NORM_DB_URL', 'DISEASE_NORM_DB_URL']:
+                environ[env_var_name] = normalizer_db_url
+
         if not load_transformed:
             if initialize_normalizers or force_initialize_normalizers:
                 CLI()._handle_initialize(initialize_normalizers,
-                                         force_initialize_normalizers,
-                                         normalizer_db_url)
+                                         force_initialize_normalizers)
 
             CLI()._harvest_sources()
             CLI()._transform_sources()
@@ -139,6 +142,7 @@ class CLI:
 
     @staticmethod
     def _transform_sources():
+        from metakb.transform import CIViCTransform, MOATransform
         logger.info("Transforming harvested data...")
         source_indices = None
         # TODO: Switch to using constant
@@ -161,13 +165,12 @@ class CLI:
             source._create_json()
 
     @staticmethod
-    def _handle_initialize(initialize, force_initialize, db_url):
+    def _handle_initialize(initialize, force_initialize):
         """Handle initialization of normalizer data.
         :param bool initialize: if true, check whether normalizer data is
             initialized and call initialization routines if not
         :param bool force_initialize: call initialize routines for all
             normalizers
-        :param str db_url: URL endpoint for normalizer DynamoDB database
         """
         if force_initialize:
             init_disease = init_therapy = init_gene = True
@@ -175,7 +178,7 @@ class CLI:
             init_disease = init_therapy = init_gene = False
 
             click.echo("Checking Disease Normalizer...")
-            disease_db = DiseaseDatabase(db_url=db_url)
+            disease_db = DiseaseDatabase()
             for src in [v.value for v in DiseaseSources]:
                 response = disease_db.metadata.get_item(
                     Key={'src_name': src}
@@ -185,7 +188,7 @@ class CLI:
                     break
 
             click.echo("Checking Therapy Normalizer...")
-            therapy_db = TherapyDatabase(db_url=db_url)
+            therapy_db = TherapyDatabase()
             for src in {TherapySourceLookup[src] for src in TherapySources}:
                 response = therapy_db.metadata.get_item(
                     Key={'src_name': src}
@@ -195,7 +198,7 @@ class CLI:
                     break
 
             click.echo("Checking Gene Normalizer...")
-            gene_db = GeneDatabase(db_url=db_url)
+            gene_db = GeneDatabase()
             response = gene_db.metadata.get_item(
                 Key={'src_name': 'HGNC'}
             )
@@ -204,8 +207,8 @@ class CLI:
 
         if init_therapy:
             click.echo("Updating Therapy Normalizer...")
-            args = ['--db_url', db_url, '--normalizer',
-                    'chemidplus rxnorm wikidata ncit', '--update_merged']
+            args = ['--normalizer', 'chemidplus rxnorm wikidata ncit',
+                    '--update_merged']
             try:
                 TherapyCLI.update_normalizer_db(args)
             except SystemExit as e:
@@ -213,7 +216,7 @@ class CLI:
                     raise e
         if init_disease:
             click.echo("Updating Disease Normalizer...")
-            args = ['--db_url', db_url, '--update_all', '--update_merged']
+            args = ['--update_all', '--update_merged']
             try:
                 DiseaseCLI.update_normalizer_db(args)
             except SystemExit as e:
@@ -221,7 +224,7 @@ class CLI:
                     raise e
         if init_gene:
             click.echo("Updating Gene Normalizer...")
-            args = ['--db_url', db_url, '--normalizer', 'hgnc']
+            args = ['--normalizer', 'hgnc']
             try:
                 GeneCLI.update_normalizer_db(args)
             except SystemExit as e:
