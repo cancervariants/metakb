@@ -6,7 +6,7 @@ from os import environ
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 logging.basicConfig(
     filename='metakb.log',
-    format='[%(asctime)s] %(levelname)s : %(message)s')
+    format='[%(asctime)s] - %(name)s - %(levelname)s : %(message)s')
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
