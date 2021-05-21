@@ -1,27 +1,27 @@
 """A module for to transform CIViC."""
+from .base import Transform
 from typing import Optional, Dict, List
 from metakb import PROJECT_ROOT
 import json
 import logging
 import metakb.schemas as schemas
-from metakb.normalizers import VICCNormalizers
+
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
 
-class CIViCTransform:
+class CIViCTransform(Transform):
     """A class for transforming CIViC to the common data model."""
 
     def __init__(self,
                  file_path=f"{PROJECT_ROOT}/data/civic"
                            f"/civic_harvester.json") -> None:
-        """Initialize VICC normalizers and class attributes.
+        """Initialize CIViC Transform class.
 
         :param str file_path: The file path to the harvested json to transform.
         """
-        self._file_path = file_path
-        self.vicc_normalizers = VICCNormalizers()
+        super().__init__(file_path)
         self.transformed = {
             'statements': list(),
             'propositions': list(),
@@ -44,11 +44,6 @@ class CIViCTransform:
             'disease_descriptors': list()
         }
 
-    def _extract(self) -> Dict[str, list]:
-        """Extract the CIViC harvested data file."""
-        with open(self._file_path, 'r') as f:
-            return json.load(f)
-
     def _create_json(self,
                      civic_dir=PROJECT_ROOT / 'data' / 'civic' / 'transform',
                      fn='civic_cdm.json') -> None:
@@ -68,7 +63,7 @@ class CIViCTransform:
             documents
         :return: An updated propositions_documents_ix object
         """
-        data = self._extract()
+        data = self.extract_harvester()
         evidence_items = data['evidence']
         assertions = data['assertions']
         variants = data['variants']
@@ -857,27 +852,3 @@ class CIViCTransform:
                 ).dict(exclude_none=True))
 
         return documents
-
-    def _set_ix(self, propositions_documents_ix, dict_key, search_key) -> int:
-        """Set indexes for documents or propositions.
-
-        :param dict propositions_documents_ix: Keeps track of
-            proposition and documents indexes
-        :param str dict_key: 'sources' or 'propositions'
-        :param Any search_key: The key to get or set
-        :return: An int representing the index
-        """
-        if dict_key == 'documents':
-            dict_key_ix = 'document_index'
-        elif dict_key == 'propositions':
-            dict_key_ix = 'proposition_index'
-        else:
-            raise KeyError("dict_key can only be `documents` or "
-                           "`propositions`.")
-        if propositions_documents_ix[dict_key].get(search_key):
-            index = propositions_documents_ix[dict_key].get(search_key)
-        else:
-            index = propositions_documents_ix.get(dict_key_ix)
-            propositions_documents_ix[dict_key][search_key] = index
-            propositions_documents_ix[dict_key_ix] += 1
-        return index

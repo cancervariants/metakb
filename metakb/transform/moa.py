@@ -3,14 +3,14 @@ from metakb import PROJECT_ROOT
 import json
 import logging
 import metakb.schemas as schemas
-from metakb.normalizers import VICCNormalizers
+from .base import Transform
 from urllib.parse import quote
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
 
-class MOATransform:
+class MOATransform(Transform):
     """A class for transforming MOA resources to common data model."""
 
     def __init__(self,
@@ -20,8 +20,7 @@ class MOATransform:
 
         :param: The file path to the harvested json to transform
         """
-        self.file_path = file_path
-        self.vicc_normalizers = VICCNormalizers()
+        super().__init__(file_path)
         self.statements = list()
         self.propositions = list()
         self.variation_descriptors = list()
@@ -30,11 +29,6 @@ class MOATransform:
         self.disease_descriptors = list()
         self.methods = list()
         self.documents = list()
-
-    def _extract(self):
-        """Extract the MOA harvested data file."""
-        with open(self.file_path, 'r') as f:
-            return json.load(f)
 
     def _create_json(self,
                      moa_dir=PROJECT_ROOT / 'data' / 'moa' / 'transform',
@@ -67,7 +61,7 @@ class MOATransform:
             index SupportEvidence
         :return: An updated propositions_ix object
         """
-        data = self._extract()
+        data = self.extract_harvester()
         cdm_assertions = {}  # assertions that have been transformed to CDM
 
         assertions = data['assertions']
@@ -483,20 +477,3 @@ class MOATransform:
         for r in records:
             if r['id'] == record_id:
                 return r
-
-    def _set_ix(self, propositions_ix, dict_key, search_key):
-        """Set indexes for propositions.
-
-        :param dict propositions_ix: Keeps track of proposition indexes
-        :param str dict_key: 'propositions'
-        :param Any search_key: The key to get or set
-        :return: An int representing the index
-        """
-        dict_key_ix = 'proposition_index'
-        if propositions_ix[dict_key].get(search_key):
-            index = propositions_ix[dict_key].get(search_key)
-        else:
-            index = propositions_ix.get(dict_key_ix)
-            propositions_ix[dict_key][search_key] = index
-            propositions_ix[dict_key_ix] += 1
-        return index
