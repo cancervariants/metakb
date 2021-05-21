@@ -191,7 +191,7 @@ class MOATransform(Transform):
         evidence_level = record['predictive_implication'].strip().replace(' ', '_')  # noqa: E501
 
         statement = schemas.Statement(
-            id=f"{schemas.NamespacePrefix.MOA.value}.assertion:{record['id']}",
+            id=f"{schemas.SourceName.MOA.value}.assertion:{record['id']}",
             description=record['description'],
             evidence_level=f"moa.evidence_level:"
                            f"{evidence_level}",
@@ -353,7 +353,7 @@ class MOATransform(Transform):
                     self.vicc_normalizers.normalize_gene([gene])
                 if normalized_gene_id:
                     gene_descriptor = schemas.GeneDescriptor(
-                        id=f"{schemas.NamespacePrefix.MOA.value}.normalize."
+                        id=f"{schemas.SourceName.MOA.value}.normalize."
                            f"{schemas.NormalizerPrefix.GENE.value}:{quote(gene)}",  # noqa: E501
                         label=gene,
                         value=schemas.Gene(id=normalized_gene_id),
@@ -428,7 +428,7 @@ class MOATransform(Transform):
 
         if normalized_therapy_id:
             therapy_descriptor = schemas.ValueObjectDescriptor(
-                id=f"{schemas.NamespacePrefix.MOA.value}."
+                id=f"{schemas.SourceName.MOA.value}."
                    f"{therapy_norm_resp['value_object_descriptor']['id']}",
                 type="TherapyDescriptor",
                 label=label,
@@ -459,7 +459,7 @@ class MOATransform(Transform):
             return []
 
         disease_descriptor = schemas.ValueObjectDescriptor(
-            id=f"{schemas.NamespacePrefix.MOA.value}."
+            id=f"{schemas.SourceName.MOA.value}."
                f"{disease_norm_resp['value_object_descriptor']['id']}",
             type="DiseaseDescriptor",
             label=disease_name,
