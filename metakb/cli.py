@@ -207,7 +207,8 @@ class CLI:
 
         if init_therapy:
             click.echo("Updating Therapy Normalizer...")
-            args = ['--normalizer', 'chemidplus rxnorm wikidata ncit drugbank',
+            args = ['--normalizer',
+                    'hemonc chemidplus rxnorm wikidata ncit drugbank',
                     '--update_merged']
             try:
                 TherapyCLI.update_normalizer_db(args)
