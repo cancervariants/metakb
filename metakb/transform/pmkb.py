@@ -169,7 +169,7 @@ class PMKBTransform:
         if not variant:
             logger.warning(f"Could not retrieve variant for variant ID "
                            f"{variant_ids[0]} in interpretation ID "
-                           f"{interpretation['id']}")
+                           f"{interpretation['id']} for PMKB.")
         t_descriptors = self._get_therapy_descriptors(therapies[0])
         d_descriptors = self._get_disease_descriptors(diseases[0],
                                                       tissue_types)
@@ -195,8 +195,8 @@ class PMKBTransform:
 
         response = self.vicc_normalizers.normalize_therapy([therapy])
         if not response or not response[0] or response[0]['match_type'] == 0:
-            print(therapy)
-            logger.warning(f"Therapy normalization of {therapy} failed.")
+            logger.warning(f"Therapy normalization of {therapy} failed for "
+                           f"PMKB.")
             invalid_keys.add(therapy)
             return []
         response = response[0]
@@ -230,7 +230,8 @@ class PMKBTransform:
 
         response = self.vicc_normalizers.normalize_disease([disease])
         if not response or not response[0] or response[0]['match_type'] == 0:
-            logger.warning(f"Disease normalization of {disease} failed.")
+            logger.warning(f"Disease normalization of {disease} failed for "
+                           f"PMKB.")
             invalid_keys.add(disease)
             return []
         response = response[0]
@@ -272,7 +273,7 @@ class PMKBTransform:
 
         response, _ = self.vicc_normalizers.normalize_gene([symbol])
         if not response:
-            logger.warning(f"Gene normalization of {symbol} failed.")
+            logger.warning(f"Gene normalization of {symbol} failed for PMKB.")
             invalid_keys.add(symbol)
             return []
 
@@ -307,7 +308,8 @@ class PMKBTransform:
 
         response = self.vicc_normalizers.normalize_variant([label])
         if not response:
-            logger.warning(f"Variant normalization of {label} failed.")
+            logger.warning(f"Variant normalization of {label} failed for "
+                           f"PMKB.")
             invalid_keys.add(label)
             return []
 
