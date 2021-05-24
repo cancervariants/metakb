@@ -50,25 +50,17 @@ class PMKB(Harvester):
         self.pmkb_dir.mkdir(exist_ok=True, parents=True)
         version = datetime.now().strftime('%Y%m%d')
 
-        response_interps = requests.get('http://pmkb.org/therapies/download.csv')  # noqa: E501
-        if response_interps.status_code == 200:
-            fname = self.pmkb_dir / f'pmkb_interps_{version}.csv'
-            with open(fname, 'wb') as f:
-                f.write(response_interps.content)
-        else:
-            msg = 'PMKB interpretations CSV download failed.'
-            logger.error(msg)
-            raise requests.exceptions.RequestException(msg)
-
-        response_variants = requests.get('http://pmkb.org/variants/download.csv')  # noqa: E501
-        if response_variants.status_code == 200:
-            fname = self.pmkb_dir / f'pmkb_variants_{version}.csv'
-            with open(fname, 'wb') as f:
-                f.write(response_variants.content)
-        else:
-            msg = 'PMKB interpretations CSV download failed.'
-            logger.error(msg)
-            raise requests.exceptions.RequestException(msg)
+        for pmkb_type in [('therapies', 'interps'), ('variants', 'variants')]:
+            url = f'http://pmkb.org/{pmkb_type[0]}/download.csv'
+            response = requests.get(url)
+            if response.status_code == 200:
+                fname = self.pmkb_dir / f'pmkb_{pmkb_type[1]}_{version}.csv'
+                with open(fname, 'wb') as f:
+                    f.write(response.content)
+            else:
+                msg = f'PMKB failed to download CSV from {url}'
+                logger.error(msg)
+                raise requests.exceptions.RequestException(msg)
         logging.info("PMKB source data downloads complete.")
 
     def _load_variants_file(self):
