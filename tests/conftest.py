@@ -1363,9 +1363,6 @@ def pmkb_vod_variant_217():
             },
             "type": "Allele"
         },
-        "molecule_context": "protein",
-        "structural_type": "SO:0001606",
-        "ref_allele_seq": "S",
         "gene_context": "pmkb.normalize.gene:CTNNB1",
         "extensions": [
             {

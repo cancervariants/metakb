@@ -320,9 +320,6 @@ class PMKBTransform:
             value_id=response.value_id,
             value=response.value,
             gene_context=gene_id,
-            molecule_context=response.molecule_context,
-            structural_type=response.structural_type,
-            ref_allele_seq=response.ref_allele_seq,
         ).dict(exclude_none=True)
 
         # TODO extensions?
