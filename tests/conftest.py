@@ -1316,7 +1316,7 @@ def pmkb_statement_113():
     return {
         "id": "pmkb.statement:113",
         "description": "CTNNB1 encodes the protein b-catenin, a transcriptional activator involved in the WNT signaling pathway. Somatic gain-of-function mutations in CTNNB1 result in aberrant accumulation of the b-catenin protein and are prevalent in a wide range of solid tumors, including endometrial carcinoma, ovarian carcinoma, hepatocellular carcinoma, and colorectal carcinoma, among others. Genetic alterations in CTNNB1 have been identified in 4% of non-small cell lung cancers. The CTNNB1 S45P mutation is likely oncogenic, but no real progress has been made in targeting oncogenic mutant forms of CTNNB1 in lung cancer. However, CTNNB1 mutation-positive cancers are presumed to be resistant to pharmacologic inhibition of upstream components of the WNT pathway, instead requiring direct inhibition of b-catenin function. In one study pharmacological inhibition of b-catenin suppressed EGFR-L858R/T790M mutated lung tumor and genetic deletion of the b-catenin gene dramatically reduced lung tumor formation in transgenic mice, suggesting that b-catenin plays an essential role in lung tumorigenesis and that targeting the b-catenin pathway may provide novel strategies to prevent lung cancer development or overcome resistance to EGFR TKIs. These results should be interpreted in the clinical context.",  # noqa: E501
-        "evidence_level": "2",
+        "evidence_level": "pmkb.evidence_tier:2",
         "proposition": "proposition:1",
         "variation_descriptor": "pmkb.variant:217",
         "therapy_descriptor": "pmkb.normalize.therapy:therapeutic%20procedure",

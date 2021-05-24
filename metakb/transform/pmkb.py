@@ -441,10 +441,11 @@ class PMKBTransform:
         :return: transformed Statement object
         """
         v_descriptor = v_descriptors[0]
+        ev_level = f"pmkb.evidence_tier:{interpretation['pmkb_evidence_tier']}"
         statement = schemas.Statement(
             id=f"{schemas.NamespacePrefix.PMKB.value}.statement:{interpretation['id']}",  # noqa: E501
             description=interpretation['description'],
-            evidence_level=interpretation['pmkb_evidence_tier'],
+            evidence_level=ev_level,
             proposition=proposition['id'],
             variation_descriptor=v_descriptor['id'],
             therapy_descriptor=t_descriptors[0]['id'],
