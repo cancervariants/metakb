@@ -260,7 +260,7 @@ class PMKBTransform:
         :return: List (len == 1) containing VOD of normalized match, or
             empty list if normalization fails
         """
-        symbol = variant['gene']['name']
+        symbol = variant['gene']
         invalid_keys = self.invalid_keys['genes']
         if symbol in invalid_keys:
             return []

@@ -18,9 +18,7 @@ def pmkb_variants():
     return {
         "CSF3R T618I": {
             "name": "CSF3R T618I",
-            "gene": {
-                "name": "CSF3R"
-            },
+            "gene": "CSF3R",
             "id": "422",
             "origin": "Somatic",
             "variation_type": "missense",
@@ -37,9 +35,7 @@ def pmkb_variants():
         },
         "CSF3R any nonsense": {
             "name": "CSF3R any nonsense",
-            "gene": {
-                "name": "CSF3R"
-            },
+            "gene": "CSF3R",
             "id": "423",
             "origin": "Somatic",
             "variation_type": "nonsense",
@@ -56,9 +52,7 @@ def pmkb_variants():
         },
         "CSF3R any frameshift": {
             "name": "CSF3R any frameshift",
-            "gene": {
-                "name": "CSF3R"
-            },
+            "gene": "CSF3R",
             "id": "424",
             "origin": "Somatic",
             "variation_type": "frameshift",

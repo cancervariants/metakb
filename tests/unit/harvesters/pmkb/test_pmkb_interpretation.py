@@ -19,9 +19,7 @@ def pmkb_variants():
     return {
         "CSF3R T618I": {
             "name": "CSF3R T618I",
-            "gene": {
-                "name": "CSF3R"
-            },
+            "gene": "CSF3R",
             "id": "422",
             "origin": "Somatic",
             "variation_type": "missense",
@@ -38,9 +36,7 @@ def pmkb_variants():
         },
         "CSF3R any nonsense": {
             "name": "CSF3R any nonsense",
-            "gene": {
-                "name": "CSF3R"
-            },
+            "gene": "CSF3R",
             "id": "423",
             "origin": "Somatic",
             "variation_type": "nonsense",
@@ -57,9 +53,7 @@ def pmkb_variants():
         },
         "CSF3R any frameshift": {
             "name": "CSF3R any frameshift",
-            "gene": {
-                "name": "CSF3R"
-            },
+            "gene": "CSF3R",
             "id": "424",
             "origin": "Somatic",
             "variation_type": "frameshift",
@@ -82,9 +76,7 @@ def pmkb_interp_1():
     """Return test fixture for PMKB interpretation ID 1."""
     return {
         "id": "1",
-        "gene": {
-            "name": "CSF3R"
-        },
+        "gene": "CSF3R",
         "evidence_items": [
             "Pardanani A, et al. CSF3R T618I is a highly prevalent and specific mutation in chronic neutrophilic leukemia. Leukemia 2013;27(9):1870-3",  # noqa: E501
             "Maxson JE, et al. Oncogenic CSF3R mutations in chronic neutrophilic leukemia and atypical CML. N Engl J Med 2013;368(19):1781-90",  # noqa: E501
@@ -126,7 +118,7 @@ def test_interp_1(pmkb_harvester, pmkb_interp_1, pmkb_variants):
     """Test harvesting of PMKB interpretation."""
     interp = pmkb_harvester._get_all_interpretations(pmkb_variants)[0]
     assert interp['id'] == pmkb_interp_1['id']
-    assert interp['gene']['name'] == pmkb_interp_1['gene']['name']
+    assert interp['gene'] == pmkb_interp_1['gene']
     assert set(interp['evidence_items']) == \
         set(pmkb_interp_1['evidence_items'])
     assert interp['pmkb_evidence_tier'] == pmkb_interp_1['pmkb_evidence_tier']

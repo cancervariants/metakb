@@ -92,9 +92,7 @@ class PMKB(Harvester):
 
             variant_object = {
                 "name": name,
-                "gene": {
-                    "name": variant['Gene'],
-                },
+                "gene": variant['Gene'],
                 "id": variant_id,
                 "origin": variant['Germline/Somatic'],
                 "variation_type": variant['Variant'],
@@ -140,7 +138,6 @@ class PMKB(Harvester):
 
         for interp in interps_in:
             interp_id = interp['PMKB URL'].split('/')[-1]
-            interp_gene = interp['Gene']
 
             descriptions = interp['Interpretations'].split('|')
             if len(descriptions) != 1:
@@ -150,9 +147,7 @@ class PMKB(Harvester):
 
             interp_out = {
                 "id": interp_id,
-                "gene": {
-                    "name": interp_gene
-                },
+                "gene": interp['Gene'],
                 "evidence_items": interp['Citations'].split('|'),
                 "pmkb_evidence_tier": interp['Tier'],
                 "variants": [],

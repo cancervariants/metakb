@@ -2,9 +2,7 @@
   "interpretations": [
     {
       "id": "113",
-      "gene": {
-        "name": "CTNNB1"
-      },
+      "gene": "CTNNB1",
       "evidence_items": [
         "Cancer Genome Atlas Research Network, Kandoth C, Schultz N, Cherniack AD,",
         "Akbani R, Liu Y, Shen H, Robertson AG, Pashtan I, Shen R, Benz CC, Yau C, Laird PW, Ding L, Zhang W, Mills GB, Kucherlapati R, Mardis ER, Levine DA. Integrated genomic characterization of endometrial carcinoma. Nature. 2013 May 2;497(7447):67-73.",
@@ -34,9 +32,7 @@
   "variants": [
     {
       "name": "CTNNB1 S45P",
-      "gene": {
-        "name": "CTNNB1"
-      },
+      "gene": "CTNNB1",
       "id": "217",
       "origin": "Somatic",
       "variation_type": "missense",
