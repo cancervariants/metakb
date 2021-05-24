@@ -86,7 +86,7 @@ class PMKB(Harvester):
         for variant in variants_in:
             name = variant['Description']
             if name in variants_out:
-                logger.error(f"Multiple records for variant: {name}")
+                logger.warning(f"Multiple records for variant: {name}")
                 continue
             variant_id = variant['PMKB URL'].split('/')[-1]
 
