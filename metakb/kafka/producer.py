@@ -67,7 +67,7 @@ class Producer():
                   f"topic {msg.topic()} partition [{msg.partition()}]"
                   f" @ offset {msg.offset()}")
 
-    resource = args.resource
+    resource = args.resource_name
     # delta_dir = delta_dir / f"{resource}" / f'{resource}_deltas_{today}.json'
     delta_dir = delta_dir / f"{resource}" / f'{resource}_deltas_test.json'
     with open(delta_dir, 'r') as f2:
