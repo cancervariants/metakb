@@ -52,7 +52,7 @@ class Delta(object):
 def parse_args():
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(description="Confluent Python Client \
-                                     example to produce messages \
+                                     to produce Meta_KB Delta messages \
                                      to Confluent Cloud")
     parser._action_groups.pop()
     required = parser.add_argument_group('required arguments')
@@ -69,7 +69,7 @@ def parse_args():
                           help="Schema Registry (http(s)://host[:port]",
                           required=True)
     required.add_argument('-r',
-                          dest="resource",
+                          dest="resource_name",
                           help="Knowledgebase resource name",
                           required=False)
 

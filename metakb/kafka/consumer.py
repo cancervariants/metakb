@@ -47,7 +47,7 @@ class Consumer():
             else:
                 delta = msg.value()
                 if delta is not None:
-                    print(f"Consumed record with key {msg.key()}")
+                    print(f"Consumed record with key_id {msg.key()}")
                     for key in delta.__dict__.keys():
                         print(f"{key}: {delta.__dict__[key]} \n")
         except KeyboardInterrupt:
