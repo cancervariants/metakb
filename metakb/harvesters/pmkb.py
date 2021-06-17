@@ -205,17 +205,14 @@ class PMKB(Harvester):
         :param str filename: name of composite output file
         """
         variants_list = list(variants.values())
+        composite_dict = {
+            'interpretations': interpretations,
+            'variants': variants
+        }
 
-        interpretations_path = self.pmkb_dir / 'interpretations.json'
-        with open(interpretations_path, 'w') as outfile:
-            json.dump(interpretations, outfile)
-
-        var_path = self.pmkb_dir / 'variants.json'
-        with open(var_path, 'w') as outfile:
-            json.dump(variants_list, outfile)
-
-        composite_path = self.pmkb_dir / filename
-        with open(composite_path, 'w') as outfile:
-            json.dump({'interpretations': interpretations,
-                       'variants': variants_list},
-                      outfile)
+        for data in (('interpretations', interpretations),
+                     ('variants', variants_list),
+                     (filename, composite_dict)):
+            f_path = self.pmkb_dir / f'{data[0]}.json'
+            with open(f_path, 'w') as outfile:
+                json.dump(data[1], outfile)
