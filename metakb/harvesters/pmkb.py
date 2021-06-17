@@ -178,16 +178,13 @@ class PMKB(Harvester):
                 variant_data = variants.get(interp_variant)
                 if not variant_data:
                     # variant not found in Variants data
-                    logger.error(f"Could not retrieve data for variant: "
-                                 f"{interp_variant}")
+                    logger.warning(f"Could not retrieve data for variant: "
+                                   f"{interp_variant}")
                     continue
                 interp_out['variants'].append({
                     "name": variant_data['name'],
                     "id": variant_data['id']
                 })
-                origin = variant_data.get('origin')
-                if origin and 'origin' not in interp_out:
-                    interp_out['origin'] = origin
 
             valid_statement = True
             for field in ('variants', 'diseases', 'evidence_items'):

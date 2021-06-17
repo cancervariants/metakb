@@ -100,14 +100,10 @@ class PMKBTransform:
         variants = {v['id']: v for v in data['variants']}
         if not propositions_documents_ix:
             propositions_documents_ix = {
-                # Keep track of documents index value
-                'document_index': 1,
-                # {document_id: document_index}
-                'documents': dict(),
-                # Keep track of proposition index value
-                'proposition_index': 1,
-                # {tuple: proposition_index}
-                'propositions': dict()
+                'document_index': 1,  # Keep track of documents index value
+                'documents': dict(),  # {document_id: document_index}
+                'proposition_index': 1,  # track proposition index value
+                'propositions': dict()  # {tuple: proposition_index}
             }
 
         # build lookups for artificial IDs
@@ -129,7 +125,8 @@ class PMKBTransform:
             statement = self._get_statement(interpretation, proposition,
                                             v_descriptors, t_descriptors,
                                             d_descriptors, method,
-                                            documents)
+                                            documents,
+                                            variants)
             self.transformed['statements'].append(statement)
 
         self._create_json()
@@ -362,6 +359,8 @@ class PMKBTransform:
         :param List d_descriptors: List of DiseaseDescriptors
         :param Dict propositions_documents_ix: Keeps track of
             proposition and document indices
+        :param Dict variants: Keys are variant labels and values are all
+            harvested variant objects
         :return: Therapeutic Response proposition (dict).
         """
         prop_type = schemas.PropositionType.PREDICTIVE.value
@@ -414,7 +413,8 @@ class PMKBTransform:
         return cites
 
     def _get_statement(self, interpretation, proposition, v_descriptors,
-                       t_descriptors, d_descriptors, method, documents):
+                       t_descriptors, d_descriptors, method, documents,
+                       variants):
         """Construct Statement object. All descriptor objects should be len 1.
 
         :param Dict interpretation: harvested interpretation from PMKB
@@ -428,6 +428,8 @@ class PMKBTransform:
         :param Dict method: Method used in the interpretation
         :param List documents: list of Document objects supporting this
             Statement
+        :param Dict variants: Keys are variant labels and values are all
+            harvested variant objects
         :return: transformed Statement object
         """
         v_descriptor = v_descriptors[0]
@@ -443,7 +445,8 @@ class PMKBTransform:
             method=method['id'],
             supported_by=[d['id'] for d in documents],
         ).dict(exclude_none=True)
-        origin = interpretation.get('origin')
+        variant_retrieve = v_descriptor['id'].split(':')[1]
+        origin = variants.get(variant_retrieve, {}).get('origin')
         if origin:
             statement['variation_origin'] = origin.lower()
         return statement
