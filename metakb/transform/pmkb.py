@@ -111,12 +111,9 @@ class PMKBTransform:
             }
 
         # build lookups for artificial IDs
-        gene_index = {}
-        disease_index = {}
         method = self._get_methods()[0]
         for interpretation in interpretations:
-            descriptors = self._get_descriptors(interpretation, variants,
-                                                gene_index, disease_index)
+            descriptors = self._get_descriptors(interpretation, variants)
             if not all(descriptors):
                 continue
 
@@ -138,15 +135,12 @@ class PMKBTransform:
         self._create_json()
         return propositions_documents_ix
 
-    def _get_descriptors(self, interpretation, variants, gene_index,
-                         disease_index):
+    def _get_descriptors(self, interpretation, variants):
         """Get Descriptor objects given interpretation and associated data.
 
         :param Dict interpretation: PMKB interpretation
         :param Dict variants: Keys are variant labels and values are all
             harvested variant objects
-        :param Dict gene_index: lookup gene ID from symbol
-        :param Dict disease_index: lookup disease ID from label
         :return: Tuple containing Lists of therapy, disease, gene, and
             variant descriptors (we expect each to be len == 1)
         """
@@ -322,7 +316,6 @@ class PMKBTransform:
             gene_context=gene_id,
         ).dict(exclude_none=True)
 
-        # TODO extensions?
         assoc_with = []
         cosmic_id = variant.get('cosmic_id')
         if cosmic_id:
