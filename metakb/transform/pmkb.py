@@ -323,7 +323,7 @@ class PMKBTransform:
         if assoc_with:
             vod['extensions'] = [
                 schemas.Extension(
-                    name="associated_with",
+                    name="xrefs",
                     value=assoc_with
                 ).dict()
             ]
