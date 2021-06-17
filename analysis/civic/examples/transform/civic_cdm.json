@@ -10,7 +10,7 @@
             "variation_descriptor": "civic:vid33",
             "therapy_descriptor": "civic:tid146",
             "disease_descriptor": "civic:did30",
-            "method": "method:001",
+            "method": "method:1",
             "supported_by": [
                 "pmid:23816960"
             ],
@@ -26,7 +26,7 @@
             "variation_descriptor": "civic:vid33",
             "therapy_descriptor": "civic:tid146",
             "disease_descriptor": "civic:did30",
-            "method": "method:001",
+            "method": "method:1",
             "supported_by": [
                 "pmid:22452895"
             ],
@@ -42,7 +42,7 @@
             "variation_descriptor": "civic:vid33",
             "therapy_descriptor": "civic:tid146",
             "disease_descriptor": "civic:did8",
-            "method": "method:001",
+            "method": "method:1",
             "supported_by": [
                 "pmid:26515464"
             ],
@@ -58,7 +58,7 @@
             "variation_descriptor": "civic:vid33",
             "therapy_descriptor": "civic:tid146",
             "disease_descriptor": "civic:did30",
-            "method": "method:001",
+            "method": "method:1",
             "supported_by": [
                 "pmid:24439929"
             ],
@@ -74,7 +74,7 @@
             "variation_descriptor": "civic:vid33",
             "therapy_descriptor": "civic:tid146",
             "disease_descriptor": "civic:did8",
-            "method": "method:001",
+            "method": "method:1",
             "supported_by": [
                 "pmid:18408761"
             ],
@@ -90,7 +90,7 @@
             "variation_descriptor": "civic:vid33",
             "therapy_descriptor": "civic:tid146",
             "disease_descriptor": "civic:did8",
-            "method": "method:001",
+            "method": "method:1",
             "supported_by": [
                 "pmid:23982599"
             ],
@@ -106,7 +106,7 @@
             "variation_descriptor": "civic:vid33",
             "therapy_descriptor": "civic:tid146",
             "disease_descriptor": "civic:did8",
-            "method": "method:002",
+            "method": "method:2",
             "supported_by": [
                 "document:001",
                 "civic:eid2997",
@@ -279,7 +279,7 @@
     ],
     "methods": [
         {
-            "id": "method:001",
+            "id": "method:1",
             "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
             "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",
             "version": {
@@ -290,7 +290,7 @@
             "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."
         },
         {
-            "id": "method:002",
+            "id": "method:2",
             "label": "Standards and Guidelines for the Interpretation and Reporting of Sequence Variants in Cancer: A Joint Consensus Recommendation of the Association for Molecular Pathology, American Society of Clinical Oncology, and College of American Pathologists",
             "url": "https://pubmed.ncbi.nlm.nih.gov/27993330/",
             "version": {
