@@ -63,24 +63,24 @@ class PMKB(Harvester):
                 raise requests.exceptions.RequestException(msg)
         logging.info("PMKB source data downloads complete.")
 
-    def _load_variants_file(self):
-        """Open variants CSV and provide data.
+    def _load_data_file(self, fn):
+        """Get source data from input file.
 
-        :return: List of Dicts corresponding to rows in variants CSV
+        :param str fn: File to load. Must be one of {`interps`, `variants`}
+        :return: List of Dicts keying column names to row attributes.
         """
-        pattern = 'pmkb_variants_*.csv'
-        variants_path = sorted(list(self.pmkb_dir.glob(pattern)))[-1]
-        variants_file = open(variants_path, 'r')
-        variants = list(csv.DictReader(variants_file))
-        variants_file.close()
-        return variants
+        pattern = f'pmkb_{fn}_*.csv'
+        file_path = sorted(list(self.pmkb_dir.glob(pattern)))[-1]
+        with open(file_path, 'r') as f:
+            data = list(csv.DictReader(f))
+        return data
 
     def _get_all_variants(self):
         """Process PMKB variants.
 
         :return: Dict keying variant names (string) to data objects
         """
-        variants_in = self._load_variants_file()
+        variants_in = self._load_data_file('variants')
         variants_out = {}
 
         for variant in variants_in:
@@ -115,18 +115,6 @@ class PMKB(Harvester):
 
         return variants_out
 
-    def _load_interpretations_file(self):
-        """Get interps data from file.
-
-        :return: List of Dicts keying column names to row attributes.
-        """
-        pattern = 'pmkb_interps_*.csv'
-        interp_file_path = sorted(list(self.pmkb_dir.glob(pattern)))[-1]
-        interp_file = open(interp_file_path, 'r')
-        interps = list(csv.DictReader(interp_file))
-        interp_file.close()
-        return interps
-
     def _get_all_interpretations(self, variants):
         """Read interpretations and build harvested Interpretation objects.
 
@@ -134,7 +122,7 @@ class PMKB(Harvester):
         :return: list of Interpretation objects
         """
         interps_out = []
-        interps_in = self._load_interpretations_file()
+        interps_in = self._load_data_file('interps')
 
         for interp in interps_in:
             interp_id = interp['PMKB URL'].split('/')[-1]
