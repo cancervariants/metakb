@@ -111,6 +111,12 @@ class PMKB(Harvester):
                 variant_object['coordinates'] = coords.split(', ')
             else:
                 variant_object['coordinates'] = []
+
+            for url in ('Transcript Ensembl URL', 'COSMIC URL', 'PMKB URL'):
+                url_value = variant.get(url)
+                if url_value:
+                    variant_object[url.replace(' ', '_').lower()] = url_value
+
             variants_out[name] = variant_object
 
         return variants_out
@@ -125,7 +131,8 @@ class PMKB(Harvester):
         interps_in = self._load_data_file('interps')
 
         for interp in interps_in:
-            interp_id = interp['PMKB URL'].split('/')[-1]
+            pmkb_url = interp['PMKB URL']
+            interp_id = pmkb_url.split('/')[-1]
 
             descriptions = interp['Interpretations'].split('|')
             if len(descriptions) != 1:
@@ -173,6 +180,8 @@ class PMKB(Harvester):
                     "name": variant_data['name'],
                     "id": variant_data['id']
                 })
+
+            interp_out['pmkb_url'] = pmkb_url
 
             valid_statement = True
             for field in ('variants', 'diseases', 'evidence_items'):
