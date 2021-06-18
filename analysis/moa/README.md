@@ -5,7 +5,8 @@ This script would run MOAlmanac Harvester and output the example files in a JSON
 
 ## `Getting Started`
 ```
-python3 moa_harvester_example.py
+python3 analysis/moa/examples/harvester/moa_harvester_example.py
+python3 analysis/moa/examples/transform/moa_transform_example.py
 ```
 
 ## `Example Files Generated` 

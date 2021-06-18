@@ -9,7 +9,7 @@
             "variation_descriptor": "moa:vid69",
             "therapy_descriptor": "moa.normalize.therapy:Imatinib",
             "disease_descriptor": "moa.normalize.disease:Chronic%20Myelogenous%20Leukemia",
-            "method": "method:004",
+            "method": "method:4",
             "supported_by": [
                 "pmid:11423618"
             ],
@@ -105,7 +105,7 @@
     ],
     "methods": [
         {
-            "id": "method:004",
+            "id": "method:4",
             "label": "Clinical interpretation of integrative molecular profiles to guide precision cancer medicine",
             "url": "https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1",
             "version": {
