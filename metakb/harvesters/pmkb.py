@@ -14,7 +14,7 @@ logger.setLevel(logging.DEBUG)
 class PMKB(Harvester):
     """Class for harvesting from PMKB."""
 
-    def harvest(self, fn='pmkb_harvester.json',
+    def harvest(self, fn='pmkb_harvester',
                 data_path=PROJECT_ROOT / 'data' / 'pmkb'):
         """Retrieve and store all interpretations and variants in composite
         and individual JSON files.
