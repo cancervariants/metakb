@@ -158,11 +158,11 @@ class PMKB(Harvester):
                     interp_out['description'] = ''
                     interp_out['tissue_types'] = []
                 else:
-                    interp_out['therapies'] = ['therapeutic procedure']
+                    interp_out['therapies'] = ['']
                     interp_out['description'] = description
                     interp_out['tissue_types'] = []  # retain unknown?
             else:
-                interp_out['therapies'] = ['therapeutic procedure']
+                interp_out['therapies'] = ['']
                 interp_out['description'] = description
                 interp_out['tissue_types'] = tissue_types
 

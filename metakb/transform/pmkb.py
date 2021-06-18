@@ -176,6 +176,9 @@ class PMKBTransform:
         :param str therapy: label of a drug
         :return: List containing Therapeutic Procedure VOD.
         """
+        if therapy == '':
+            therapy = 'therapeutic procedure'
+
         invalid_keys = self.invalid_keys['therapies']
         if therapy in invalid_keys:
             return []
