@@ -204,12 +204,13 @@ class PMKB(Harvester):
         variants_list = list(variants.values())
         composite_dict = {
             'interpretations': interpretations,
-            'variants': variants
+            'variants': variants_list
         }
 
-        for data in (('interpretations', interpretations),
-                     ('variants', variants_list),
-                     (filename, composite_dict)):
-            f_path = self.pmkb_dir / f'{data[0]}.json'
+        filename = filename.split('.json')[0]
+        for fname, data in (('interpretations', interpretations),
+                            ('variants', variants_list),
+                            (filename, composite_dict)):
+            f_path = self.pmkb_dir / f'{fname}.json'
             with open(f_path, 'w') as outfile:
-                json.dump(data[1], outfile)
+                json.dump(data, outfile)
