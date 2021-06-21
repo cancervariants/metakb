@@ -6,9 +6,11 @@ from metakb import PROJECT_ROOT
 
 def create_interpretation_examples(interpretations, output_dir):
     """Create some PMKB interp examples."""
-    ids = ('318', '238', '2146')
+    descr1 = 'CDKN2A gene functions as an important tumor suppressor via induction of cell growth arrest and senescence. Majority of the CDKN2A'  # noqa: E501
+    descr2 = 'SMAD4 is tumor suppressor gene and it encodes an intracellular mediator in the transforming growth factor b (TGF b) signal transduction'  # noqa: E501
     for interp in interpretations:
-        if interp['id'] in ids:
+        if interp['description'].startswith(descr1) or \
+                interp['description'].startswith(descr2):
             filename = output_dir / f"{interp['description'][:10].strip()}.json"  # noqa: E501
             with open(filename, 'w+') as f:
                 f.write(json.dumps(interp))

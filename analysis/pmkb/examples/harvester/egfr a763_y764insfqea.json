@@ -1,1 +1,22 @@
-{"name": "EGFR A763_Y764insFQEA", "gene": "EGFR", "id": "529", "origin": "Somatic", "variation_type": "insertion", "dna_change": "2290_2291ins12", "amino_acid_change": "A763_Y764insFQEA", "ensembl_id": "ENST00000275493", "cosmic_id": "26720", "chromosome": "", "arm_cytoband": "", "partner_gene": "", "codons": "763-764", "exons": "20", "coordinates": ["7:55248992-55248993"]}
+{
+    "name": "EGFR A763_Y764insFQEA",
+    "gene": "EGFR",
+    "id": "529",
+    "origin": "Somatic",
+    "variation_type": "insertion",
+    "dna_change": "2290_2291ins12",
+    "amino_acid_change": "A763_Y764insFQEA",
+    "ensembl_id": "ENST00000275493",
+    "cosmic_id": "26720",
+    "chromosome": "",
+    "arm_cytoband": "",
+    "partner_gene": "",
+    "codons": "763-764",
+    "exons": "20",
+    "coordinates": [
+        "7:55248992-55248993"
+    ],
+    "transcript_ensembl_url": "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000275493",
+    "cosmic_url": "http://cancer.sanger.ac.uk/cosmic/mutation/overview?id=26720",
+    "pmkb_url": "https://pmkb.org/variants/529"
+}

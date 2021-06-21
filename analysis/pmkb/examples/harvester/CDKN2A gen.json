@@ -1,1 +1,30 @@
-{"id": "318", "gene": "CDKN2A", "evidence_items": ["Hill VK, et al. The genetics of melanoma: recent advances. Annu Rev Genomics Hum Genet 2013;14():257-79", "Hodis E, et al. A landscape of driver mutations in melanoma. Cell 2012;150(2):251-63", "Shain AH, et al. Exome sequencing of desmoplastic melanoma identifies recurrent NFKBIE promoter mutations and diverse activating mutations in the MAPK pathway. Nat Genet 2015;47(10):1194-9"], "pmkb_evidence_tier": "2", "variants": [{"name": "CDKN2A copy number loss", "id": "396"}], "diseases": ["Melanoma"], "therapies": ["therapeutic procedure"], "description": "CDKN2A gene functions as an important tumor suppressor via induction of cell growth arrest and senescence. Majority of the CDKN2A mutations result in loss or decreased binding to CDK4/6 leading to uncontrolled cell growth through inactivation of Rb and p53 pathways. CDKN2A is the major high-risk susceptibility gene identified in melanoma. Somatic mutations of CDKN2A are reported in up to 19% and 20% of cutaneous and desmoplastic melanoma, respectively. Germline mutations have been reported in ~20-40% of families with melanoma. Correlation with other clinical and lab findings is necessary.", "tissue_types": ["Skin"]}
+{
+    "id": "2132",
+    "gene": "CDKN2A",
+    "evidence_items": [
+        "Cancer Genome Atlas Research Network. Comprehensive genomic characterization of squamous cell lung cancers. Nature. 2012 Sep 27;489(7417):519-25.",
+        "Pacifico A, Leone G. Role of p53 and CDKN2A Inactivation in Human Squamous Cell Carcinomas. Journal of Biomedicine and Biotechnology. 2007;2007:43418.",
+        "The Cancer Genome Atlas Network. Comprehensive genomic characterization of head and neck squamous cell carcinomas. Nature. 2015;517(7536):576-582.",
+        "Uniprot.org",
+        "Parry D, Peters G. Temperature-sensitive mutants of p16CDKN2 associated with familial melanoma. Molecular and Cellular Biology. 1996;16(7):3844-3852.",
+        "Pan Q, Sathe A, Black PC, et al. CDK4/6 Inhibitors in Cancer Therapy: A Novel Treatment Strategy for Bladder Cancer. Bladder Cancer (Amsterdam, Netherlands). 2017;3(2):79-88."
+    ],
+    "pmkb_evidence_tier": "2",
+    "variants": [
+        {
+            "name": "CDKN2A codon(s) 58 frameshift",
+            "id": "2828"
+        }
+    ],
+    "diseases": [
+        "Squamous Cell Carcinoma"
+    ],
+    "therapies": [
+        ""
+    ],
+    "description": "CDKN2A gene functions as an important tumor suppressor via induction of cell growth arrest and senescence. Majority of the CDKN2A mutations result in loss or decreased binding to CDK4/6 leading to uncontrolled cell growth through inactivation of RB and p53 pathways. CDKN2A alterations have been reported as frequent mutations in squamous cell carcinomas of different primary sites including the  lung, head and neck, and skin. CDKN2A R58* results in a premature truncation and confers a loss of function to the CDKN2A protein as demonstrated by loss of CDK binding. CDKN2A/CDKN2B loss may be associated with increased sensitivity to CDK4/6 inhibitors. The efficacy and toxicity profiles of these inhibitors in the context of a variety of cancer types are currently under evaluation in clinical trials. The clinical significance of the loss of one copy of CDKN2A remains to be fully elucidated in squamous cell carcinoma of the bladder. These results should be interpreted in the clinicopathologic context.",
+    "tissue_types": [
+        "Bladder"
+    ],
+    "pmkb_url": "https://pmkb.org/therapies/2132"
+}

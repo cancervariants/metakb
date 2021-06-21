@@ -1,1 +1,22 @@
-{"name": "BRAF V600E", "gene": "BRAF", "id": "112", "origin": "Somatic", "variation_type": "missense", "dna_change": "1799T>A", "amino_acid_change": "V600E", "ensembl_id": "ENST00000288602", "cosmic_id": "476", "chromosome": "", "arm_cytoband": "", "partner_gene": "", "codons": "600", "exons": "15", "coordinates": ["7:140453136-140453136"]}
+{
+    "name": "BRAF V600E",
+    "gene": "BRAF",
+    "id": "112",
+    "origin": "Somatic",
+    "variation_type": "missense",
+    "dna_change": "1799T>A",
+    "amino_acid_change": "V600E",
+    "ensembl_id": "ENST00000288602",
+    "cosmic_id": "476",
+    "chromosome": "",
+    "arm_cytoband": "",
+    "partner_gene": "",
+    "codons": "600",
+    "exons": "15",
+    "coordinates": [
+        "7:140453136-140453136"
+    ],
+    "transcript_ensembl_url": "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000288602",
+    "cosmic_url": "http://cancer.sanger.ac.uk/cosmic/mutation/overview?id=476",
+    "pmkb_url": "https://pmkb.org/variants/112"
+}
