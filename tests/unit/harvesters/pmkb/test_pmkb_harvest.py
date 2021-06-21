@@ -6,7 +6,6 @@ import os
 
 def test_harvest():
     """Test PMKB harvest method."""
-    assert not PMKB().harvest(fn='')
     fn = 'test_pmkb_harvester.json'
     assert PMKB().harvest(fn=fn)
     file_path = PROJECT_ROOT / 'data' / 'pmkb' / fn

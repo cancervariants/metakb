@@ -31,7 +31,9 @@ def pmkb_variants():
             "partner_gene": "",
             "codons": "618",
             "exons": "",
-            "coordinates": []
+            "coordinates": [],
+            'pmkb_url': 'https://pmkb.org/variants/422',
+            'transcript_ensembl_url': 'http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000373103'  # noqa: E501
         },
         "CSF3R any nonsense": {
             "name": "CSF3R any nonsense",
@@ -48,7 +50,9 @@ def pmkb_variants():
             "partner_gene": "",
             "codons": "",
             "exons": "",
-            "coordinates": []
+            "coordinates": [],
+            'pmkb_url': 'https://pmkb.org/variants/423',
+            'transcript_ensembl_url': 'http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000373103',  # noqa: E501
         },
         "CSF3R any frameshift": {
             "name": "CSF3R any frameshift",
@@ -65,7 +69,9 @@ def pmkb_variants():
             "partner_gene": "",
             "codons": "",
             "exons": "",
-            "coordinates": []
+            "coordinates": [],
+            'pmkb_url': 'https://pmkb.org/variants/424',
+            'transcript_ensembl_url': 'http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000373103',  # noqa: E501
         },
     }
 

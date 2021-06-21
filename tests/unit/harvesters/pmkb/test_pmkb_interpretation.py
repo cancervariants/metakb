@@ -32,7 +32,9 @@ def pmkb_variants():
             "partner_gene": "",
             "codons": "618",
             "exons": "",
-            "coordinates": []
+            "coordinates": [],
+            "pmkb_url": "https://pmkb.org/variants/422",
+            'transcript_ensembl_url': 'http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000373103'  # noqa: E501
         },
         "CSF3R any nonsense": {
             "name": "CSF3R any nonsense",
@@ -103,14 +105,13 @@ def pmkb_interp_1():
             "Chronic Neutrophilic Leukemia"
         ],
         "therapies": [
-            "therapeutic procedure"
+            ""
         ],
         "description": "The activating missense membrane-proximal mutation in CSF3R (p.T618I) has been reported to occur in approximately 83% of cases of chronic neutrophilic leukemia; some reports indicate this mutation may be present in cases of atypical chronic myeloid leukemia as well.   The CS3R T618I mutation has been associated with response to JAK2 inhibitors but not dasatinib.  A germline activating CSF3R mutation (p. T617N) has been described in autosomal dominant hereditary neutrophilia associated with splenomegaly and increased circulating CD34-positive myeloid progenitors.  Nonsense and/or frameshift somatic mutations truncating the cytoplasmic domain of CSF3R have been described in approximately 40% of patients with severe congenital neutropenia and in the context of mutations in other genes may be associated with progression to acute myeloid leukemia.  These activating truncating mutations have also been found in patients with chronic neutrophilic leukemia or atypical chronic myeloid leukemia. Some of these cytoplasmic truncating mutations have been associated with responses to dasatinib but not JAK2 inhibitors.",  # noqa: E501
         "tissue_types": [
             "Bone Marrow",
             "Blood"
         ],
-        "origin": "Somatic"
     }
 
 
@@ -128,4 +129,3 @@ def test_interp_1(pmkb_harvester, pmkb_interp_1, pmkb_variants):
     assert set(interp['therapies']) == set(pmkb_interp_1['therapies'])
     assert interp['description'] == pmkb_interp_1['description']
     assert set(interp['tissue_types']) == set(pmkb_interp_1['tissue_types'])
-    assert interp['origin'] == pmkb_interp_1['origin']
