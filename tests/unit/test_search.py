@@ -166,6 +166,15 @@ def assert_general_search_queries(response):
     assert len(response['documents']) > 0
 
 
+def test_search_id(query_handler):
+    """Test that search id method works correctly."""
+    resp = query_handler.search_by_id('proposition:001')
+    assert resp['proposition']
+    assert not resp['warnings']
+    assert query_handler.search_by_id('proposition:1')['warnings']
+    assert query_handler.search_by_id('proposition:0')['warnings']
+
+
 def test_general_search_queries(query_handler):
     """Test that queries do not return errors."""
     response = query_handler.search(variation='braf v600e', detail=True)
