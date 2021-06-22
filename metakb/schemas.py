@@ -339,7 +339,8 @@ class Response(BaseModel):
 
     statements: List[Statement]
     propositions: List[Union[TherapeuticResponseProposition,
-                             PrognosticProposition]]
+                             PrognosticProposition,
+                             DiagnosticProposition]]
     variation_descriptors: List[VariationDescriptor]
     gene_descriptors: List[GeneDescriptor]
     therapy_descriptors: Optional[List[ValueObjectDescriptor]]
@@ -524,7 +525,9 @@ class SearchIDService(BaseModel):
     query: str
     warnings: Optional[List[str]]
     statement: Optional[StatementResponse]
-    proposition: Optional[TherapeuticResponseProposition]
+    proposition: Optional[Union[TherapeuticResponseProposition,
+                                DiagnosticProposition,
+                                PrognosticProposition]]
     variation_descriptor: Optional[VariationDescriptor]
     gene_descriptor: Optional[GeneDescriptor]
     therapy_descriptor: Optional[ValueObjectDescriptor]
