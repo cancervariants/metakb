@@ -205,8 +205,7 @@ class PMKBTransform:
         return [vod]
 
     def _get_disease_descriptors(self, disease, tissue_types):
-        """Get Disease Descriptors for given disease. Tries disease label
-        concatenated with tissue type first, then disease label alone.
+        """Get Disease Descriptors for given disease.
 
         :param str disease: PMKB disease name
         :param List tissue_types: types of tissue (str) specified by record
