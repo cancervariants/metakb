@@ -19,7 +19,7 @@ python3 analysis/pmkb/examples/transform/pmkb_transform_example.py
 
 * 29% of interpretations fail to normalize (at least in part) due to multiple given diseases. 20% fail (at least in part) due to multiple given variants.
 
-* Interpretations include disease(s) and tissue type(s). We went back and forth on whether to try including tissue within the disease term to normalize (for disease "carcinoma" and tissue type "lung", it does make sense to make "lung carcinoma" the object qualifier of the proposition) but the combination of multiple diseases and multiple tissue types raised more questions in the short term, so we ultimately include tissue types as an Extension within the disease descriptor object, and drop any interpretation with multiple diseases. It'd be nice to resolve both of these issues in a more satisfactory way in the long term.
+* Interpretations include disease(s) and tissue type(s). We went back and forth on whether to try including tissue within the disease term to normalize (for disease "carcinoma" and tissue type "lung", it does make sense to make "lung carcinoma" the object qualifier of the proposition) but the combination of multiple diseases and multiple tissue types raised more questions in the short term. We currently include tissue types as an Extension within the disease descriptor object, and drop any interpretation with multiple diseases (example: [here](https://github.com/cancervariants/metakb/blob/964922105d603b064548386d6c5d7da1fa9320c3/analysis/pmkb/examples/transform/pmkb_cdm_example.json#L72)).  It'd be nice to resolve both of these issues in a more satisfactory way in the long term.
 
 ## Explanation of fields
 
