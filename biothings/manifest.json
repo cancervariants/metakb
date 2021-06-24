@@ -1,0 +1,12 @@
+{
+    "version": "1.0",
+    "requires" : [""],
+    "dumper" : {
+        "data_url" : ["https://metakb-biothings.s3.amazonaws.com/moa_cdm.json"],
+        "uncompress" : false
+    },
+    "uploader" : {
+        "parser" : "parser:load_cdm",
+        "on_duplicates" : "error"
+    }
+}
