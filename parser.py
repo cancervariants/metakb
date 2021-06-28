@@ -65,7 +65,6 @@ def load_cdm(data_folder):
 
     for _id, docs in results.items():
         doc = {"_id": _id, "cdm": docs}
-        doc = json.dumps(doc)
         yield doc
 
 # a = load_cdm("/Users/jiachenliu/Documents/GitHub/metakb/data/moa/transform")
