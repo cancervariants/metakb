@@ -8,7 +8,7 @@ import json
 
 def load_cdm(data_folder):
     """Load cdm"""
-    infile = os.path.join(data_folder, "moa_cdm.json")
+    infile = os.path.join(data_folder, "moa_cdmtest.json")
     assert os.path.exists(infile)
     with open(infile, "r") as f:
         data = json.load(f)
