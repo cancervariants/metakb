@@ -13,7 +13,7 @@ def load_cdm(data_folder):
     with open(infile, "r") as f:
         data = json.load(f)
 
-    results = {}
+    # results = {}
     proposition = None
     var_des = None
     t_des = None
@@ -61,10 +61,7 @@ def load_cdm(data_folder):
         for d in data["documents"]:
             if d["id"] == doc:
                 record["documents"] = d
-        results.setdefault(_id, []).append(record)
-
-    for _id, docs in results.items():
-        doc = {"_id": _id, "cdm": docs}
+        doc = {"_id": _id, "cdm": record}
+        # print(doc)
         yield doc
-
 # a = load_cdm("/Users/jiachenliu/Documents/GitHub/metakb/data/moa/transform")
