@@ -1,8 +1,8 @@
 {
     "version": "1.0",
     "dumper" : {
-        "data_url" : ["https://metakb-biothings.s3.amazonaws.com/moa_cdmtest.json"],
-        "uncompress" : false
+        "data_url" : ["https://metakb-biothings.s3.amazonaws.com/moa_cdm.zip"],
+        "uncompress" : true
     },
     "uploader" : {
         "parser" : "parser:load_cdm",
