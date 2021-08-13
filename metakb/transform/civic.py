@@ -113,9 +113,9 @@ class CIViCTransform(Transform):
         for r in records:
             name_lower = r['name'].lower()
             if name_lower.startswith('eid'):
-                civic_id = name_lower.replace('eid', 'civic.evidence_item:')
+                civic_id = name_lower.replace('eid', 'civic.eid:')
             else:
-                civic_id = name_lower.replace('aid', 'civic.assertion:')
+                civic_id = name_lower.replace('aid', 'civic.aid:')
 
             # Omit entries that are not in an accepted state
             if r['status'] != 'accepted':
@@ -134,7 +134,7 @@ class CIViCTransform(Transform):
                 if len(r['drugs']) != 1:
                     continue
                 else:
-                    therapy_id = f"civic.therapy:{r['drugs'][0]['id']}"
+                    therapy_id = f"civic.tid:{r['drugs'][0]['id']}"
                     therapy_descriptor = \
                         self._add_therapy_descriptor(therapy_id, r)
                     if not therapy_descriptor:
@@ -146,7 +146,7 @@ class CIViCTransform(Transform):
                 therapy_id = None
                 therapy_descriptor = None
 
-            disease_id = f"civic.disease:{r['disease']['id']}"
+            disease_id = f"civic.did:{r['disease']['id']}"
             disease_descriptor = self._add_disease_descriptor(disease_id, r)
             if not disease_descriptor:
                 continue
@@ -155,9 +155,9 @@ class CIViCTransform(Transform):
                 self.transformed['disease_descriptors'].append(disease_descriptor)  # noqa: E501
 
             if is_evidence:
-                variant_id = f"civic.variant:{r['variant_id']}"
+                variant_id = f"civic.vid:{r['variant_id']}"
             else:
-                variant_id = f"civic.variant:{r['variant']['id']}"
+                variant_id = f"civic.vid:{r['variant']['id']}"
             variation_descriptor = \
                 self.valid_ids['variation_descriptors'].get(variant_id)
             if not variation_descriptor:
@@ -211,7 +211,7 @@ class CIViCTransform(Transform):
                         self.transformed['documents'].append(d)
                     supported_by.append(d['id'])
                 for evidence_item in r['evidence_items']:
-                    supported_by.append(f"civic.evidence_item:"
+                    supported_by.append(f"civic.eid:"
                                         f"{evidence_item['id']}")
 
             statement = schemas.Statement(
@@ -413,7 +413,7 @@ class CIViCTransform(Transform):
         for variant in variants:
             if variant['id'] not in vids:
                 continue
-            variant_id = f"civic.variant:{variant['id']}"
+            variant_id = f"civic.vid:{variant['id']}"
             normalizer_responses = list()
             variant_query = f"{variant['entrez_name']} {variant['name']}"
             hgvs_exprs = self._get_hgvs_expr(variant)
@@ -476,7 +476,7 @@ class CIViCTransform(Transform):
             if not variant_norm_resp:
                 logger.warning(
                     "Variant Normalizer unable to find MANE transcript "
-                    f"for civic.variant:{variant['id']} : {variant_query}"
+                    f"for civic.vid:{variant['id']} : {variant_query}"
                 )
 
             # Couldn't find MANE transcript
@@ -484,7 +484,7 @@ class CIViCTransform(Transform):
                 variant_norm_resp = normalizer_responses[0]
             elif not variant_norm_resp and len(normalizer_responses) == 0:
                 logger.warning("Variant Normalizer unable to normalize: "
-                               f"civic.variant:{variant['id']} using queries "
+                               f"civic.vid:{variant['id']} using queries "
                                f"{queries}")
                 continue
 
@@ -499,7 +499,7 @@ class CIViCTransform(Transform):
                 description=variant['description'] if variant['description'] else None,  # noqa: E501
                 value_id=variant_norm_resp.value_id,
                 value=variant_norm_resp.value,
-                gene_context=f"civic.gene:{variant['gene_id']}",
+                gene_context=f"civic.gid:{variant['gene_id']}",
                 structural_type=structural_type,
                 expressions=hgvs_exprs,
                 xrefs=self._get_variant_xrefs(variant),
@@ -537,7 +537,7 @@ class CIViCTransform(Transform):
             v_groups = list()
             for v_group in variant_groups:
                 params = {
-                    'id': f"civic.variant_group:{v_group['id']}",
+                    'id': f"civic.vgid:{v_group['id']}",
                     'label': v_group['name'],
                     'description': v_group['description'],
                     'type': 'variant_group'
@@ -604,7 +604,7 @@ class CIViCTransform(Transform):
         :param list genes: CIViC genes
         """
         for gene in genes:
-            gene_id = f"civic.gene:{gene['id']}"
+            gene_id = f"civic.gid:{gene['id']}"
             ncbigene = f"ncbigene:{gene['entrez_id']}"
             queries = [ncbigene, gene['name']] + gene['aliases']
 
@@ -659,7 +659,7 @@ class CIViCTransform(Transform):
         if not disease:
             return None
 
-        disease_id = f"civic.disease:{disease['id']}"
+        disease_id = f"civic.did:{disease['id']}"
         display_name = disease['display_name']
         doid = disease['doid']
 
@@ -720,7 +720,7 @@ class CIViCTransform(Transform):
         :param dict drug: A CIViC drug record
         :return: A Therapy Descriptor
         """
-        therapy_id = f"civic.therapy:{drug['id']}"
+        therapy_id = f"civic.tid:{drug['id']}"
         label = drug['name']
         ncit_id = f"ncit:{drug['ncit_id']}"
         queries = [ncit_id, label]
