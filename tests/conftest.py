@@ -7,16 +7,16 @@ import os
 def civic_eid2997_statement():
     """Create CIVIC EID2997 Statement test fixture."""
     return {
-        "id": "civic.evidence_item:2997",
+        "id": "civic.eid:2997",
         "type": "Statement",
         "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:A",
         "proposition": "proposition:001",
         "variation_origin": "somatic",
-        "variation_descriptor": "civic.variant:33",
-        "therapy_descriptor": "civic.therapy:146",
-        "disease_descriptor": "civic.disease:8",
+        "variation_descriptor": "civic.vid:33",
+        "therapy_descriptor": "civic.tid:146",
+        "disease_descriptor": "civic.did:8",
         "method": "method:001",
         "supported_by": ["pmid:23982599"]
     }
@@ -39,7 +39,7 @@ def civic_eid2997_proposition():
 def civic_vid33():
     """Create a test fixture for CIViC VID33."""
     return {
-        "id": "civic.variant:33",
+        "id": "civic.vid:33",
         "type": "VariationDescriptor",
         "label": "L858R",
         "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
@@ -114,7 +114,7 @@ def civic_vid33():
                 "type": "Expression"
             }
         ],
-        "gene_context": "civic.gene:19"
+        "gene_context": "civic.gid:19"
     }
 
 
@@ -122,7 +122,7 @@ def civic_vid33():
 def civic_gid19():
     """Create test fixture for CIViC GID19."""
     return {
-        "id": "civic.gene:19",
+        "id": "civic.gid:19",
         "type": "GeneDescriptor",
         "label": "EGFR",
         "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
@@ -150,7 +150,7 @@ def civic_gid19():
 def civic_tid146():
     """Create test fixture for CIViC TID146."""
     return {
-        "id": "civic.therapy:146",
+        "id": "civic.tid:146",
         "type": "TherapyDescriptor",
         "label": "Afatinib",
         "value": {
@@ -172,7 +172,7 @@ def civic_tid146():
 def civic_did8():
     """Create test fixture for CIViC DID8."""
     return {
-        "id": "civic.disease:8",
+        "id": "civic.did:8",
         "type": "DiseaseDescriptor",
         "label": "Lung Non-small Cell Carcinoma",
         "value": {
@@ -200,15 +200,15 @@ def pmid_23982599():
 def civic_eid1409_statement():
     """Create test fixture for CIViC Evidence 1406."""
     return {
-        "id": "civic.evidence_item:1409",
+        "id": "civic.eid:1409",
         "description": "Phase 3 randomized clinical trial comparing vemurafenib with dacarbazine in 675 patients with previously untreated, metastatic melanoma with the BRAF V600E mutation. At 6 months, overall survival was 84% (95% confidence interval [CI], 78 to 89) in the vemurafenib group and 64% (95% CI, 56 to 73) in the dacarbazine group. A relative reduction of 63% in the risk of death and of 74% in the risk of either death or disease progression was observed with vemurafenib as compared with dacarbazine (P<0.001 for both comparisons).",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:A",
         "proposition": "proposition:701",
         "variation_origin": "somatic",
-        "variation_descriptor": "civic.variant:12",
-        "therapy_descriptor": "civic.therapy:4",
-        "disease_descriptor": "civic.disease:206",
+        "variation_descriptor": "civic.vid:12",
+        "therapy_descriptor": "civic.tid:4",
+        "disease_descriptor": "civic.did:206",
         "method": "method:001",
         "supported_by": ["pmid:21639808"],
         "type": "Statement"
@@ -219,21 +219,21 @@ def civic_eid1409_statement():
 def civic_aid6_statement():
     """Create CIViC AID 6 test fixture."""
     return {
-        "id": "civic.assertion:6",
+        "id": "civic.aid:6",
         "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "amp_asco_cap_2017_level:1A",
         "proposition": "proposition:001",
         "variation_origin": "somatic",
-        "variation_descriptor": "civic.variant:33",
-        "therapy_descriptor": "civic.therapy:146",
-        "disease_descriptor": "civic.disease:8",
+        "variation_descriptor": "civic.vid:33",
+        "therapy_descriptor": "civic.tid:146",
+        "disease_descriptor": "civic.did:8",
         "method": "method:002",
         "supported_by": [
-            "document:001", "civic.evidence_item:2997",
-            "civic.evidence_item:2629", "civic.evidence_item:982",
-            "civic.evidence_item:968", "civic.evidence_item:883",
-            "civic.evidence_item:879"
+            "document:001", "civic.eid:2997",
+            "civic.eid:2629", "civic.eid:982",
+            "civic.eid:968", "civic.eid:883",
+            "civic.eid:879"
         ],
         "type": "Statement"
     }
@@ -256,15 +256,15 @@ def civic_aid6_document():
 def civic_eid2_statement():
     """Create a test fixture for CIViC EID2 statement."""
     return {
-        "id": "civic.evidence_item:2",
+        "id": "civic.eid:2",
         "type": "Statement",
         "description": "GIST tumors harboring PDGFRA D842V mutation are more likely to be benign than malignant.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
         "proposition": "proposition:001",
         "variation_origin": "somatic",
-        "variation_descriptor": "civic.variant:99",
-        "disease_descriptor": "civic.disease:2",
+        "variation_descriptor": "civic.vid:99",
+        "disease_descriptor": "civic.did:2",
         "method": "method:001",
         "supported_by": ["pmid:15146165"]
     }
@@ -286,7 +286,7 @@ def civic_eid2_proposition():
 def civic_vid99():
     """Create a test fixture for CIViC VID99."""
     return {
-        "id": "civic.variant:99",
+        "id": "civic.vid:99",
         "type": "VariationDescriptor",
         "label": "D842V",
         "description": "PDGFRA D842 mutations are characterized broadly as imatinib resistance mutations. This is most well characterized in gastrointestinal stromal tumors, but other cell lines containing these mutations have been shown to be resistant as well. Exogenous expression of the A842V mutation resulted in constitutive tyrosine phosphorylation of PDGFRA in the absence of ligand in 293T cells and cytokine-independent proliferation of the IL-3-dependent Ba/F3 cell line, both evidence that this is an activating mutation. In imatinib resistant cell lines, a number of other therapeutics have demonstrated efficacy. These include; crenolanib, sirolimus, and midostaurin (PKC412).",  # noqa: E501
@@ -339,7 +339,7 @@ def civic_vid99():
                 "name": "variant_group",
                 "value": [
                     {
-                        "id": "civic.variant_group:1",
+                        "id": "civic.vgid:1",
                         "label": "Imatinib Resistance",
                         "description": "While imatinib has shown to be incredibly successful in treating philadelphia chromosome positive CML, patients that have shown primary or secondary resistance to the drug have been observed to harbor T315I and E255K ABL kinase domain mutations. These mutations, among others, have been observed both in primary refractory disease and acquired resistance. In gastrointestinal stromal tumors (GIST), PDGFRA 842 mutations have also been shown to confer resistance to imatinib. ",  # noqa: E501
                         'type': 'variant_group'
@@ -371,7 +371,7 @@ def civic_vid99():
                 "type": "Expression"
             }
         ],
-        "gene_context": "civic.gene:38"
+        "gene_context": "civic.gid:38"
     }
 
 
@@ -379,7 +379,7 @@ def civic_vid99():
 def civic_did2():
     """Create a test fixture for CIViC DID2."""
     return {
-        "id": "civic.disease:2",
+        "id": "civic.did:2",
         "type": "DiseaseDescriptor",
         "label": "Gastrointestinal Stromal Tumor",
         "value": {
@@ -396,7 +396,7 @@ def civic_did2():
 def civic_gid38():
     """Create a test fixture for CIViC GID38."""
     return {
-        "id": "civic.gene:38",
+        "id": "civic.gid:38",
         "type": "GeneDescriptor",
         "label": "PDGFRA",
         "description": "Commonly mutated in GI tract tumors, PDGFR family genes (mutually exclusive to KIT mutations) are a hallmark of gastrointestinal stromal tumors. Gene fusions involving the PDGFRA kinase domain are highly correlated with eosinophilia, and the WHO classifies myeloid and lymphoid neoplasms with these characteristics as a distinct disorder. Mutations in the 842 region of PDGFRA have been often found to confer resistance to the tyrosine kinase inhibitor, imatinib.",  # noqa: E501
@@ -420,14 +420,14 @@ def civic_gid38():
 def civic_eid74_statement():
     """Create a test fixture for CIViC EID74 statement."""
     return {
-        "id": "civic.evidence_item:74",
+        "id": "civic.eid:74",
         "description": "In patients with medullary carcinoma, the presence of RET M918T mutation is associated with increased probability of lymph node metastases.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
         "proposition": "proposition:002",
         "variation_origin": "somatic",
-        "variation_descriptor": "civic.variant:113",
-        "disease_descriptor": "civic.disease:15",
+        "variation_descriptor": "civic.vid:113",
+        "disease_descriptor": "civic.did:15",
         "method": "method:001",
         "supported_by": ["pmid:18073307"],
         "type": "Statement"
@@ -450,7 +450,7 @@ def civic_eid74_proposition():
 def civic_vid113():
     """Create a test fixture for CIViC VID113."""
     return {
-        "id": "civic.variant:113",
+        "id": "civic.vid:113",
         "type": "VariationDescriptor",
         "label": "M918T",
         "description": "RET M819T is the most common somatically acquired mutation in medullary thyroid cancer (MTC). While there currently are no RET-specific inhibiting agents, promiscuous kinase inhibitors have seen some success in treating RET overactivity. Data suggests however, that the M918T mutation may lead to drug resistance, especially against the VEGFR-inhibitor motesanib. It has also been suggested that RET M819T leads to more aggressive MTC with a poorer prognosis.",  # noqa: E501
@@ -503,7 +503,7 @@ def civic_vid113():
                 "name": "variant_group",
                 "value": [
                     {
-                        "id": "civic.variant_group:6",
+                        "id": "civic.vgid:6",
                         "label": "Motesanib Resistance",
                         "description": "RET activation is a common oncogenic marker of medullary thyroid carcinoma. Treatment of these patients with the targeted therapeutic motesanib has shown to be effective. However, the missense mutations C634W and M918T have shown to confer motesanib resistance in cell lines. ",  # noqa: E501
                         'type': 'variant_group'
@@ -535,7 +535,7 @@ def civic_vid113():
                 "type": "Expression"
             }
         ],
-        "gene_context": "civic.gene:42"
+        "gene_context": "civic.gid:42"
     }
 
 
@@ -543,7 +543,7 @@ def civic_vid113():
 def civic_did15():
     """Create test fixture for CIViC DID15."""
     return {
-        "id": "civic.disease:15",
+        "id": "civic.did:15",
         "type": "DiseaseDescriptor",
         "label": "Thyroid Gland Medullary Carcinoma",
         "value": {
@@ -560,7 +560,7 @@ def civic_did15():
 def civic_gid42():
     """Create test fixture for CIViC GID42."""
     return {
-        "id": "civic.gene:42",
+        "id": "civic.gid:42",
         "type": "GeneDescriptor",
         "label": "RET",
         "description": "RET mutations and the RET fusion RET-PTC lead to activation of this tyrosine kinase receptor and are associated with thyroid cancers. RET point mutations are the most common mutations identified in medullary thyroid cancer (MTC) with germline and somatic mutations in RET associated with hereditary and sporadic forms, respectively. The most common somatic form mutation is M918T (exon 16) and a variety of other mutations effecting exons 10, 11 and 15 have been described. The prognostic significance of these mutations have been hotly debated in the field, however, data suggests that some RET mutation may confer drug resistence. No RET-specific agents are currently clinically available but several promiscuous kinase inhibitors that target RET, among others, have been approved for MTC treatment.",  # noqa: E501
@@ -589,17 +589,17 @@ def civic_gid42():
 def civic_aid9_statement():
     """Create a test fixture for CIViC AID9 statement."""
     return {
-        "id": "civic.assertion:9",
+        "id": "civic.aid:9",
         "description": "ACVR1 G328V mutations occur within the kinase domain, leading to activation of downstream signaling. Exclusively seen in high-grade pediatric gliomas, supporting diagnosis of diffuse intrinsic pontine glioma.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "amp_asco_cap_2017_level:2C",
         "proposition": "proposition:003",
         "variation_origin": "somatic",
-        "variation_descriptor": "civic.variant:1686",
-        "disease_descriptor": "civic.disease:2950",
+        "variation_descriptor": "civic.vid:1686",
+        "disease_descriptor": "civic.did:2950",
         "method": "method:002",
-        "supported_by": ["civic.evidence_item:4846",
-                         "civic.evidence_item:6955"],
+        "supported_by": ["civic.eid:4846",
+                         "civic.eid:6955"],
         "type": "Statement"
     }
 
@@ -620,7 +620,7 @@ def civic_aid9_proposition():
 def civic_vid1686():
     """Create a test fixture for CIViC VID1686."""
     return {
-        "id": "civic.variant:1686",
+        "id": "civic.vid:1686",
         "type": "VariationDescriptor",
         "label": "G328V",
         "value_id": "ga4gh:VA.twWuxZk0p0Vn3NSkp0kwD1VgfNN2fvDm",
@@ -672,7 +672,7 @@ def civic_vid1686():
                 "name": "variant_group",
                 "value": [
                     {
-                        "id": "civic.variant_group:23",
+                        "id": "civic.vgid:23",
                         "label": "ACVR1 kinase domain mutation",
                         'type': 'variant_group'
                     }
@@ -703,7 +703,7 @@ def civic_vid1686():
                 "type": "Expression"
             }
         ],
-        "gene_context": "civic.gene:154"
+        "gene_context": "civic.gid:154"
     }
 
 
@@ -711,7 +711,7 @@ def civic_vid1686():
 def civic_did2950():
     """Create a test fixture for CIViC DID2950."""
     return {
-        "id": "civic.disease:2950",
+        "id": "civic.did:2950",
         "type": "DiseaseDescriptor",
         "label": "Diffuse Midline Glioma, H3 K27M-mutant",
         "value": {
@@ -728,7 +728,7 @@ def civic_did2950():
 def civic_gid154():
     """Create a test fixture for CIViC GID154."""
     return {
-        "id": "civic.gene:154",
+        "id": "civic.gid:154",
         "type": "GeneDescriptor",
         "label": "ACVR1",
         "value": {
@@ -755,14 +755,14 @@ def civic_gid154():
 def civic_eid26_statement():
     """Create a test fixture for CIViC EID26 statement."""
     return {
-        "id": "civic.evidence_item:26",
+        "id": "civic.eid:26",
         "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
         "proposition": "proposition:001",
         "variation_origin": "somatic",
-        "variation_descriptor": "civic.variant:65",
-        "disease_descriptor": "civic.disease:3",
+        "variation_descriptor": "civic.vid:65",
+        "disease_descriptor": "civic.did:3",
         "method": "method:001",
         "supported_by": ["pmid:16384925"],
         "type": "Statement"
@@ -785,7 +785,7 @@ def civic_eid26_proposition():
 def civic_vid65():
     """Create a test fixture for CIViC VID65."""
     return {
-        "id": "civic.variant:65",
+        "id": "civic.vid:65",
         "type": "VariationDescriptor",
         "label": "D816V",
         "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",  # noqa: E501
@@ -838,7 +838,7 @@ def civic_vid65():
                 "name": "variant_group",
                 "value": [
                     {
-                        "id": "civic.variant_group:2",
+                        "id": "civic.vgid:2",
                         "label": "KIT Exon 17",
                         'type': 'variant_group'
                     }
@@ -869,7 +869,7 @@ def civic_vid65():
                 "type": "Expression"
             }
         ],
-        "gene_context": "civic.gene:29"
+        "gene_context": "civic.gid:29"
     }
 
 
@@ -877,7 +877,7 @@ def civic_vid65():
 def civic_did3():
     """Create test fixture for CIViC DID3."""
     return {
-        "id": "civic.disease:3",
+        "id": "civic.did:3",
         "type": "DiseaseDescriptor",
         "label": "Acute Myeloid Leukemia",
         "value": {
@@ -894,7 +894,7 @@ def civic_did3():
 def civic_gid29():
     """Create test fixture for CIViC GID29."""
     return {
-        "id": "civic.gene:29",
+        "id": "civic.gid:29",
         "type": "GeneDescriptor",
         "label": "KIT",
         "description": "c-KIT activation has been shown to have oncogenic activity in gastrointestinal stromal tumors (GISTs), melanomas, lung cancer, and other tumor types. The targeted therapeutics nilotinib and sunitinib have shown efficacy in treating KIT overactive patients, and are in late-stage trials in melanoma and GIST. KIT overactivity can be the result of many genomic events from genomic amplification to overexpression to missense mutations. Missense mutations have been shown to be key players in mediating clinical response and acquired resistance in patients being treated with these targeted therapeutics.",  # noqa: E501
@@ -920,14 +920,14 @@ def civic_gid29():
 def civic_eid1756_statement():
     """Create test fixture for CIViC EID1756 statement."""
     return {
-        "id": "civic.evidence_item:1756",
+        "id": "civic.eid:1756",
         "description": "Study of 1817 PCa cases and 2026 cancer free controls to clarify the association of (MTHFR)c.677C>T  (and c.1298A>C ) of pancreatic cancer risk in a population of Han Chinese in Shanghai.  Results indicated a lower risk for the heterozygous CT genotype and homozygous TT genotype carriers of (MTHFR)c.677C>T  which had a significantly lower risk of developing pancreatic cancer compared with the wild-type CC genotype.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
         "proposition": "proposition:002",
         "variation_origin": "germline",
-        "variation_descriptor": "civic.variant:258",
-        "disease_descriptor": "civic.disease:556",
+        "variation_descriptor": "civic.vid:258",
+        "disease_descriptor": "civic.did:556",
         "method": "method:001",
         "supported_by": ["pmid:27819322"],
         "type": "Statement"
@@ -950,7 +950,7 @@ def civic_eid1756_proposition():
 def civic_vid258():
     """Create a test fixture for CIViC VID258."""
     return {
-        "id": "civic.variant:258",
+        "id": "civic.vid:258",
         "type": "VariationDescriptor",
         "label": "A222V",
         "value_id": "ga4gh:VA.V5IUMLhaM8Oo-oAClUZqb-gDPaIzIi-A",
@@ -1023,7 +1023,7 @@ def civic_vid258():
                 "type": "Expression"
             }
         ],
-        "gene_context": "civic.gene:3672"
+        "gene_context": "civic.gid:3672"
     }
 
 
@@ -1031,7 +1031,7 @@ def civic_vid258():
 def civic_did556():
     """Create a test fixture for CIViC DID556."""
     return {
-        "id": "civic.disease:556",
+        "id": "civic.did:556",
         "type": "DiseaseDescriptor",
         "label": "Pancreatic Cancer",
         "value": {
@@ -1048,7 +1048,7 @@ def civic_did556():
 def civic_gid3672():
     """Create test fixture for CIViC GID3672."""
     return {
-        "id": "civic.gene:3672",
+        "id": "civic.gid:3672",
         "type": "GeneDescriptor",
         "label": "MTHFR",
         "value": {
