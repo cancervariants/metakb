@@ -1,22 +1,6 @@
 """Module for VICC normalizers."""
 from typing import Optional, Tuple
-from ga4gh.vrs.dataproxy import SeqRepoDataProxy
-from variation.classifiers.classify import Classify
-from variation.data_sources.mane_transcript_mappings import \
-    MANETranscriptMappings
-from variation.data_sources.seq_repo_access import SeqRepoAccess
-from variation.data_sources.transcript_mappings import TranscriptMappings
-from variation.data_sources.uta import UTA
-from variation.mane_transcript import MANETranscript
-from variation.to_vrs import ToVRS
-from variation.tokenizers.caches.amino_acid_cache import AminoAcidCache
-from variation.tokenizers.caches.gene_symbol_cache import GeneSymbolCache
-from variation.tokenizers.gene_symbol import GeneSymbol
-from variation.tokenizers.tokenize import Tokenize
-from ga4gh.vrs.extras.translator import Translator
-from variation.translators.translate import Translate
-from variation.validators.validate import Validate
-from variation.normalize import Normalize as VariationNormalizer
+from variation.query import QueryHandler as VariationQueryHandler
 from therapy.query import QueryHandler as TherapyQueryHandler
 from disease.query import QueryHandler as DiseaseQueryHandler
 from gene.query import QueryHandler as GeneQueryHandler
@@ -32,46 +16,11 @@ class VICCNormalizers:
     def __init__(self):
         """Initialize the VICC Normalizers."""
         self.gene_query_handler = GeneQueryHandler()
-        self.seqrepo_access = SeqRepoAccess()
-        self.uta = UTA()
-        self.variation_normalizer = VariationNormalizer(
-            self.seqrepo_access, self.uta
-        )
+        self.variation_normalizer = VariationQueryHandler()
         self.disease_query_handler = DiseaseQueryHandler()
         self.therapy_query_handler = TherapyQueryHandler()
-        self.variation_to_vrs = self._initialize_variation()
-        self.amino_acid_cache = AminoAcidCache()
 
-    def _initialize_variation(self) -> ToVRS:
-        """Initialize variation toVRS.
-
-        :return: toVRS instance
-        """
-        tokenizer = Tokenize()
-        classifier = Classify()
-        transcript_mappings = TranscriptMappings()
-        gene_symbol = GeneSymbol(GeneSymbolCache())
-        amino_acid_cache = AminoAcidCache()
-        mane_transcript_mappings = MANETranscriptMappings()
-        dp = SeqRepoDataProxy(self.seqrepo_access.seq_repo_client)
-        tlr = Translator(data_proxy=dp)
-        mane_transcript = MANETranscript(
-            self.seqrepo_access, transcript_mappings, mane_transcript_mappings,
-            self.uta
-        )
-        validator = Validate(
-            self.seqrepo_access, transcript_mappings, gene_symbol,
-            mane_transcript, self.uta, dp, tlr, amino_acid_cache
-        )
-        translator = Translate()
-
-        return ToVRS(
-            tokenizer, classifier, self.seqrepo_access, transcript_mappings,
-            gene_symbol, amino_acid_cache, self.uta, mane_transcript_mappings,
-            mane_transcript, validator, translator
-        )
-
-    def normalize_variant(self, queries, normalizer_responses=None)\
+    def normalize_variation(self, queries, normalizer_responses=None)\
             -> Optional[dict]:
         """Normalize variation queries.
 
@@ -86,24 +35,17 @@ class VICCNormalizers:
                 continue
 
             try:
-                validations, warnings = \
-                    self.variation_to_vrs.get_validations(
-                        query, normalize_endpoint=True
-                    )
-                variation_norm_resp = self.variation_normalizer.normalize(
-                    query, validations, warnings
-                )
-
+                variation_norm_resp = \
+                    self.variation_normalizer.normalize(query)
                 if variation_norm_resp:
-                    del variation_norm_resp.value.id
                     if normalizer_responses:
                         normalizer_responses.append(variation_norm_resp)
-                    if not self.variation_normalizer.warnings:
+                    if not self.variation_normalizer.normalize_handler.warnings:  # noqa: E501
                         break
             except:  # noqa: E722
                 logger.warning("Variation Normalizer does not support: "
                                f"{query}")
-        return variation_norm_resp
+        return variation_norm_resp.dict(exclude_none=True)
 
     def normalize_gene(self, queries) -> Tuple[Optional[dict], Optional[str]]:
         """Normalize gene queries

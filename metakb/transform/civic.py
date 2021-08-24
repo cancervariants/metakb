@@ -469,20 +469,20 @@ class CIViCTransform(Transform):
                     protein_queries + genomic_queries + \
                     [variant_query] + transcript_queries
 
-            variant_norm_resp = self.vicc_normalizers.normalize_variant(
+            variation_norm_resp = self.vicc_normalizers.normalize_variation(
                 queries, normalizer_responses
             )
 
-            if not variant_norm_resp:
+            if not variation_norm_resp:
                 logger.warning(
                     "Variant Normalizer unable to find MANE transcript "
                     f"for civic.vid:{variant['id']} : {variant_query}"
                 )
 
             # Couldn't find MANE transcript
-            if not variant_norm_resp and len(normalizer_responses) > 0:
-                variant_norm_resp = normalizer_responses[0]
-            elif not variant_norm_resp and len(normalizer_responses) == 0:
+            if not variation_norm_resp and len(normalizer_responses) > 0:
+                variation_norm_resp = normalizer_responses[0]
+            elif not variation_norm_resp and len(normalizer_responses) == 0:
                 logger.warning("Variant Normalizer unable to normalize: "
                                f"civic.vid:{variant['id']} using queries "
                                f"{queries}")
@@ -497,8 +497,8 @@ class CIViCTransform(Transform):
                 id=variant_id,
                 label=variant['name'],
                 description=variant['description'] if variant['description'] else None,  # noqa: E501
-                value_id=variant_norm_resp.value_id,
-                value=variant_norm_resp.value,
+                value_id=variation_norm_resp['value_id'],
+                value=variation_norm_resp['value'],
                 gene_context=f"civic.gid:{variant['gene_id']}",
                 structural_type=structural_type,
                 expressions=hgvs_exprs,
