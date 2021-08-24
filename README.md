@@ -70,17 +70,8 @@ Next, navigate to the `site-packages` directory of your virtual environment. Ass
 cd ~/.local/share/virtualenvs/metakb-<various characters>/python3.7/site-packages/  # replace <various characters>
 ```
 
-Next, initialize the [Variant Normalizer](https://github.com/cancervariants/variant-normalization).
+Next, initialize the [Variation Normalizer](https://github.com/cancervariants/variation-normalization) by following the instructions in the [README](https://github.com/cancervariants/variation-normalization#installation).
 
-```sh
-cd variant/  # starting from the site-packages dir of your virtual environment's Python instance
-mkdir -p data/seqrepo
-curl ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/tsv/non_alt_loci_set.txt > data/gene_symbols.txt
-seqrepo --root-directory data/seqrepo pull
-chmod -R u+w data/seqrepo/<DATE>  # replace <DATE>
-ln -s data/seqrepo/<DATE> latest  # replace <DATE>
-cd ../../  # return to site-packages
-```
 
 The MetaKB can acquire all other needed normalizer data, except for that of [OMIM](https://www.omim.org/downloads), which must be manually placed:
 
