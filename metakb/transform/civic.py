@@ -537,7 +537,7 @@ class CIViCTransform(Transform):
             v_groups = list()
             for v_group in variant_groups:
                 params = {
-                    'id': f"civic.vgid:{v_group['id']}",
+                    'id': f"civic.variant_group:{v_group['id']}",
                     'label': v_group['name'],
                     'description': v_group['description'],
                     'type': 'variant_group'

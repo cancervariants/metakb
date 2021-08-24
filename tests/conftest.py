@@ -339,7 +339,7 @@ def civic_vid99():
                 "name": "variant_group",
                 "value": [
                     {
-                        "id": "civic.vgid:1",
+                        "id": "civic.variant_group:1",
                         "label": "Imatinib Resistance",
                         "description": "While imatinib has shown to be incredibly successful in treating philadelphia chromosome positive CML, patients that have shown primary or secondary resistance to the drug have been observed to harbor T315I and E255K ABL kinase domain mutations. These mutations, among others, have been observed both in primary refractory disease and acquired resistance. In gastrointestinal stromal tumors (GIST), PDGFRA 842 mutations have also been shown to confer resistance to imatinib. ",  # noqa: E501
                         'type': 'variant_group'
@@ -503,7 +503,7 @@ def civic_vid113():
                 "name": "variant_group",
                 "value": [
                     {
-                        "id": "civic.vgid:6",
+                        "id": "civic.variant_group:6",
                         "label": "Motesanib Resistance",
                         "description": "RET activation is a common oncogenic marker of medullary thyroid carcinoma. Treatment of these patients with the targeted therapeutic motesanib has shown to be effective. However, the missense mutations C634W and M918T have shown to confer motesanib resistance in cell lines. ",  # noqa: E501
                         'type': 'variant_group'
@@ -672,7 +672,7 @@ def civic_vid1686():
                 "name": "variant_group",
                 "value": [
                     {
-                        "id": "civic.vgid:23",
+                        "id": "civic.variant_group:23",
                         "label": "ACVR1 kinase domain mutation",
                         'type': 'variant_group'
                     }
@@ -838,7 +838,7 @@ def civic_vid65():
                 "name": "variant_group",
                 "value": [
                     {
-                        "id": "civic.vgid:2",
+                        "id": "civic.variant_group:2",
                         "label": "KIT Exon 17",
                         'type': 'variant_group'
                     }
