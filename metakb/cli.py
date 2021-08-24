@@ -87,7 +87,7 @@ class CLI:
         db_password = CLI()._check_db_param(db_password, 'password')
 
         if normalizer_db_url:
-            for env_var_name in ['VARIANT_NORM_DB_URL', 'GENE_NORM_DB_URL',
+            for env_var_name in ['VARIATION_NORM_DB_URL', 'GENE_NORM_DB_URL',
                                  'THERAPY_NORM_DB_URL', 'DISEASE_NORM_DB_URL']:
                 environ[env_var_name] = normalizer_db_url
 
