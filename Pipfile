@@ -25,7 +25,7 @@ httptools = "*"
 typing-extensions = "*"
 boto3 = "*"
 botocore = "*"
-variation-normalizer = "*"
+variation-normalizer = ">=0.2.9"
 
 [dev-packages]
 metakb = {editable = true, path = "."}

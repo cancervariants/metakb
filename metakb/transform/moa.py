@@ -289,7 +289,7 @@ class MOATransform(Transform):
         if g_descriptors and 'protein_change' in variant and variant['protein_change']:  # noqa: E501
             gene = g_descriptors[0]['label']
             query = f"{gene} {variant['protein_change'][2:]}"
-            v_norm_resp = self.vicc_normalizers.normalize_variant([query])
+            v_norm_resp = self.vicc_normalizers.normalize_variation([query])
 
         if not v_norm_resp:
             logger.warning(f"Variant Normalizer unable to normalize: "
@@ -301,8 +301,8 @@ class MOATransform(Transform):
         variation_descriptor = schemas.VariationDescriptor(
             id=f"moa.variant:{variant['id']}",
             label=variant['feature'],
-            value_id=v_norm_resp.value_id,
-            value=v_norm_resp.value,
+            value_id=v_norm_resp['value_id'],
+            value=v_norm_resp['value'],
             gene_context=gene_context,
             ref_allele_seq=ref_allele_seq,
             extensions=self._get_variant_extensions(variant)
