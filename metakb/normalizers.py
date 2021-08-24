@@ -29,7 +29,6 @@ class VICCNormalizers:
             which are used in the event that a MANE transcript cannot be found
         :return: A normalized variation
         """
-        variation_norm_resp = None
         for query in queries:
             if not query:
                 continue
@@ -38,14 +37,15 @@ class VICCNormalizers:
                 variation_norm_resp = \
                     self.variation_normalizer.normalize(query)
                 if variation_norm_resp:
-                    if normalizer_responses:
+                    if normalizer_responses and \
+                            variation_norm_resp.value.type != 'Text':
                         normalizer_responses.append(variation_norm_resp)
                     if not self.variation_normalizer.normalize_handler.warnings:  # noqa: E501
-                        break
+                        return variation_norm_resp.dict(exclude_none=True)
             except:  # noqa: E722
                 logger.warning("Variation Normalizer does not support: "
                                f"{query}")
-        return variation_norm_resp.dict(exclude_none=True)
+        return None
 
     def normalize_gene(self, queries) -> Tuple[Optional[dict], Optional[str]]:
         """Normalize gene queries
