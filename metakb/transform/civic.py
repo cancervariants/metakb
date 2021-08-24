@@ -475,7 +475,7 @@ class CIViCTransform(Transform):
 
             if not variation_norm_resp:
                 logger.warning(
-                    "Variant Normalizer unable to find MANE transcript "
+                    "Variation Normalizer unable to find MANE transcript "
                     f"for civic.vid:{variant['id']} : {variant_query}"
                 )
 
@@ -483,7 +483,7 @@ class CIViCTransform(Transform):
             if not variation_norm_resp and len(normalizer_responses) > 0:
                 variation_norm_resp = normalizer_responses[0]
             elif not variation_norm_resp and len(normalizer_responses) == 0:
-                logger.warning("Variant Normalizer unable to normalize: "
+                logger.warning("Variation Normalizer unable to normalize: "
                                f"civic.vid:{variant['id']} using queries "
                                f"{queries}")
                 continue
