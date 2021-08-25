@@ -64,10 +64,10 @@ class QueryHandler:
             variant-normalizer, else `None`
         """
         variant_norm_resp = \
-            self.vicc_normalizers.normalize_variant([variation])
+            self.vicc_normalizers.normalize_variation([variation])
         normalized_variation = None
         if variant_norm_resp:
-            normalized_variation = variant_norm_resp.value_id
+            normalized_variation = variant_norm_resp['value_id']
         if not normalized_variation:
             # Check if VRS object
             lower_variation = variation.lower()

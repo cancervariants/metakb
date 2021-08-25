@@ -1,27 +1,27 @@
 """A module for to transform CIViC."""
+from .base import Transform
 from typing import Optional, Dict, List
 from metakb import PROJECT_ROOT
 import json
 import logging
 import metakb.schemas as schemas
-from metakb.normalizers import VICCNormalizers
+
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
 
-class CIViCTransform:
+class CIViCTransform(Transform):
     """A class for transforming CIViC to the common data model."""
 
     def __init__(self,
                  file_path=f"{PROJECT_ROOT}/data/civic"
                            f"/civic_harvester.json") -> None:
-        """Initialize VICC normalizers and class attributes.
+        """Initialize CIViC Transform class.
 
         :param str file_path: The file path to the harvested json to transform.
         """
-        self._file_path = file_path
-        self.vicc_normalizers = VICCNormalizers()
+        super().__init__(file_path)
         self.transformed = {
             'statements': list(),
             'propositions': list(),
@@ -44,11 +44,6 @@ class CIViCTransform:
             'disease_descriptors': list()
         }
 
-    def _extract(self) -> Dict[str, list]:
-        """Extract the CIViC harvested data file."""
-        with open(self._file_path, 'r') as f:
-            return json.load(f)
-
     def _create_json(self,
                      civic_dir=PROJECT_ROOT / 'data' / 'civic' / 'transform',
                      fn='civic_cdm.json') -> None:
@@ -68,7 +63,7 @@ class CIViCTransform:
             documents
         :return: An updated propositions_documents_ix object
         """
-        data = self._extract()
+        data = self.extract_harvester()
         evidence_items = data['evidence']
         assertions = data['assertions']
         variants = data['variants']
@@ -116,15 +111,19 @@ class CIViCTransform:
             `False` if records are assertions.
         """
         for r in records:
+            name_lower = r['name'].lower()
+            if name_lower.startswith('eid'):
+                civic_id = name_lower.replace('eid', 'civic.eid:')
+            else:
+                civic_id = name_lower.replace('aid', 'civic.aid:')
+
             # Omit entries that are not in an accepted state
             if r['status'] != 'accepted':
-                logger.warning(f"civic:{r['name'].lower()} has status:"
-                               f" {r['status']}")
+                logger.warning(f"{civic_id} has status: {r['status']}")
                 continue
 
             if r['evidence_type'] not in ['Predictive', 'Prognostic',
                                           'Diagnostic']:
-
                 continue
             else:
                 # Functional Evidence types do not have a disease
@@ -135,7 +134,7 @@ class CIViCTransform:
                 if len(r['drugs']) != 1:
                     continue
                 else:
-                    therapy_id = f"civic:tid{r['drugs'][0]['id']}"
+                    therapy_id = f"civic.tid:{r['drugs'][0]['id']}"
                     therapy_descriptor = \
                         self._add_therapy_descriptor(therapy_id, r)
                     if not therapy_descriptor:
@@ -147,7 +146,7 @@ class CIViCTransform:
                 therapy_id = None
                 therapy_descriptor = None
 
-            disease_id = f"civic:did{r['disease']['id']}"
+            disease_id = f"civic.did:{r['disease']['id']}"
             disease_descriptor = self._add_disease_descriptor(disease_id, r)
             if not disease_descriptor:
                 continue
@@ -156,9 +155,9 @@ class CIViCTransform:
                 self.transformed['disease_descriptors'].append(disease_descriptor)  # noqa: E501
 
             if is_evidence:
-                variant_id = f"civic:vid{r['variant_id']}"
+                variant_id = f"civic.vid:{r['variant_id']}"
             else:
-                variant_id = f"civic:vid{r['variant']['id']}"
+                variant_id = f"civic.vid:{r['variant']['id']}"
             variation_descriptor = \
                 self.valid_ids['variation_descriptors'].get(variant_id)
             if not variation_descriptor:
@@ -197,8 +196,7 @@ class CIViCTransform:
                              f'{schemas.MethodID.CIVIC_AID_ACMG.value:03}'
                 else:
                     # Statements are required to have a method
-                    logger.warning(f"Unable to get method for "
-                                   f"civic:{r['name'].lower()}")
+                    logger.warning(f"Unable to get method for {civic_id}")
                     continue
 
                 # assertion's evidence level
@@ -213,11 +211,11 @@ class CIViCTransform:
                         self.transformed['documents'].append(d)
                     supported_by.append(d['id'])
                 for evidence_item in r['evidence_items']:
-                    supported_by.append(f"civic:eid{evidence_item['id']}")
+                    supported_by.append(f"civic.eid:"
+                                        f"{evidence_item['id']}")
 
             statement = schemas.Statement(
-                id=f"{schemas.NamespacePrefix.CIVIC.value}:"
-                   f"{r['name'].lower()}",
+                id=civic_id,
                 description=r['description'],
                 direction=self._get_evidence_direction(
                     r['evidence_direction']),
@@ -415,7 +413,7 @@ class CIViCTransform:
         for variant in variants:
             if variant['id'] not in vids:
                 continue
-            variant_id = f"civic:vid{variant['id']}"
+            variant_id = f"civic.vid:{variant['id']}"
             normalizer_responses = list()
             variant_query = f"{variant['entrez_name']} {variant['name']}"
             hgvs_exprs = self._get_hgvs_expr(variant)
@@ -471,22 +469,22 @@ class CIViCTransform:
                     protein_queries + genomic_queries + \
                     [variant_query] + transcript_queries
 
-            variant_norm_resp = self.vicc_normalizers.normalize_variant(
+            variation_norm_resp = self.vicc_normalizers.normalize_variation(
                 queries, normalizer_responses
             )
 
-            if not variant_norm_resp:
+            if not variation_norm_resp:
                 logger.warning(
-                    "Variant Normalizer unable to find MANE transcript "
-                    f"for civic:vid{variant['id']} : {variant_query}"
+                    "Variation Normalizer unable to find MANE transcript "
+                    f"for civic.vid:{variant['id']} : {variant_query}"
                 )
 
             # Couldn't find MANE transcript
-            if not variant_norm_resp and len(normalizer_responses) > 0:
-                variant_norm_resp = normalizer_responses[0]
-            elif not variant_norm_resp and len(normalizer_responses) == 0:
-                logger.warning("Variant Normalizer unable to normalize: "
-                               f"civic:vid{variant['id']} using queries "
+            if not variation_norm_resp and len(normalizer_responses) > 0:
+                variation_norm_resp = normalizer_responses[0]
+            elif not variation_norm_resp and len(normalizer_responses) == 0:
+                logger.warning("Variation Normalizer unable to normalize: "
+                               f"civic.vid:{variant['id']} using queries "
                                f"{queries}")
                 continue
 
@@ -499,9 +497,9 @@ class CIViCTransform:
                 id=variant_id,
                 label=variant['name'],
                 description=variant['description'] if variant['description'] else None,  # noqa: E501
-                value_id=variant_norm_resp.value_id,
-                value=variant_norm_resp.value,
-                gene_context=f"civic:gid{variant['gene_id']}",
+                value_id=variation_norm_resp['value_id'],
+                value=variation_norm_resp['value'],
+                gene_context=f"civic.gid:{variant['gene_id']}",
                 structural_type=structural_type,
                 expressions=hgvs_exprs,
                 xrefs=self._get_variant_xrefs(variant),
@@ -539,7 +537,7 @@ class CIViCTransform:
             v_groups = list()
             for v_group in variant_groups:
                 params = {
-                    'id': f"civic:vgid{v_group['id']}",
+                    'id': f"civic.variant_group:{v_group['id']}",
                     'label': v_group['name'],
                     'description': v_group['description'],
                     'type': 'variant_group'
@@ -606,7 +604,7 @@ class CIViCTransform:
         :param list genes: CIViC genes
         """
         for gene in genes:
-            gene_id = f"civic:gid{gene['id']}"
+            gene_id = f"civic.gid:{gene['id']}"
             ncbigene = f"ncbigene:{gene['entrez_id']}"
             queries = [ncbigene, gene['name']] + gene['aliases']
 
@@ -661,7 +659,7 @@ class CIViCTransform:
         if not disease:
             return None
 
-        disease_id = f"civic:did{disease['id']}"
+        disease_id = f"civic.did:{disease['id']}"
         display_name = disease['display_name']
         doid = disease['doid']
 
@@ -722,7 +720,7 @@ class CIViCTransform:
         :param dict drug: A CIViC drug record
         :return: A Therapy Descriptor
         """
-        therapy_id = f"civic:tid{drug['id']}"
+        therapy_id = f"civic.tid:{drug['id']}"
         label = drug['name']
         ncit_id = f"ncit:{drug['ncit_id']}"
         queries = [ncit_id, label]
@@ -854,27 +852,3 @@ class CIViCTransform:
                 ).dict(exclude_none=True))
 
         return documents
-
-    def _set_ix(self, propositions_documents_ix, dict_key, search_key) -> int:
-        """Set indexes for documents or propositions.
-
-        :param dict propositions_documents_ix: Keeps track of
-            proposition and documents indexes
-        :param str dict_key: 'sources' or 'propositions'
-        :param Any search_key: The key to get or set
-        :return: An int representing the index
-        """
-        if dict_key == 'documents':
-            dict_key_ix = 'document_index'
-        elif dict_key == 'propositions':
-            dict_key_ix = 'proposition_index'
-        else:
-            raise KeyError("dict_key can only be `documents` or "
-                           "`propositions`.")
-        if propositions_documents_ix[dict_key].get(search_key):
-            index = propositions_documents_ix[dict_key].get(search_key)
-        else:
-            index = propositions_documents_ix.get(dict_key_ix)
-            propositions_documents_ix[dict_key][search_key] = index
-            propositions_documents_ix[dict_key_ix] += 1
-        return index
