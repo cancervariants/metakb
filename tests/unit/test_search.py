@@ -191,7 +191,7 @@ def test_civic_eid2997(query_handler, civic_eid2997_statement,
                        civic_eid2997_proposition, check_statement,
                        check_proposition):
     """Test search on CIViC Evidence Item 2997."""
-    statement_id = 'civic:eid2997'
+    statement_id = 'civic.eid:2997'
 
     # Test search by Subject
     s, p = return_response(query_handler, statement_id,
@@ -272,7 +272,7 @@ def test_civic_eid2997(query_handler, civic_eid2997_statement,
 def test_civic_eid1409_statement(query_handler, civic_eid1409_statement,
                                  check_statement):
     """Test search on CIViC Evidence Item 1409."""
-    statement_id = 'civic:eid1409'
+    statement_id = 'civic.eid:1409'
 
     # Test search by Subject
     s, p = return_response(query_handler, statement_id,
@@ -341,7 +341,7 @@ def test_civic_eid1409_statement(query_handler, civic_eid1409_statement,
 
 def test_civic_aid6(query_handler, civic_aid6_statement, check_statement):
     """Test search on CIViC Evidence Item 6."""
-    statement_id = 'civic:aid6'
+    statement_id = 'civic.aid:6'
 
     # Test search by Subject
     s, p = return_response(query_handler, statement_id,
@@ -455,13 +455,13 @@ def test_multiple_parameters(query_handler):
     response = query_handler.search(
         variation=subject,
         disease='malignant trunk melanoma',
-        statement_id='civic:eid2997'
+        statement_id='civic.eid:2997'
     )
     assert_no_match(response)
 
     # CIViC EID2997
     response = query_handler.search(
-        statement_id='civiC:eid2997',
+        statement_id='civiC.eid:2997',
         variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR'
     )
     assert len(response['statements']) == 1
@@ -471,7 +471,7 @@ def test_multiple_parameters(query_handler):
 
     # CIViC AID6
     response = query_handler.search(
-        statement_id='CIViC:AID6',
+        statement_id='CIViC.AID:6',
         variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR',
         disease='ncit:C2926'
     )
@@ -482,12 +482,12 @@ def test_multiple_parameters(query_handler):
 
     civic_aid6_supported_by_statements = list()
     for s in response['statements']:
-        if s['id'] == 'civic:aid6':
+        if s['id'] == 'civic.aid:6':
             statement = s
         else:
             civic_aid6_supported_by_statements.append(s['id'])
-    supported_by_statements = \
-        [s for s in statement['supported_by'] if s.startswith('civic:eid')]
+    supported_by_statements = [s for s in statement['supported_by'] if
+                               s.startswith('civic.eid:')]
     assert set(civic_aid6_supported_by_statements) == \
            set(supported_by_statements)
 
@@ -497,7 +497,7 @@ def test_multiple_parameters(query_handler):
     )
     statement_ids = list()
     for s in response['statements']:
-        if s['id'] == 'civic:aid6':
+        if s['id'] == 'civic.aid:6':
             pass
         else:
             statement_ids.append(s['id'])
@@ -518,10 +518,12 @@ def test_civic_detail_flag_therapeutic(query_handler,
                                        check_descriptor, check_method,
                                        check_document):
     """Test that detail flag works correctly for CIViC Therapeutic Response."""
-    response = query_handler.search(statement_id='civic:eid2997', detail=False)
+    response = query_handler.search(statement_id='civic.eid:2997',
+                                    detail=False)
     assert_keys_for_detail_false(response.keys())
 
-    response = query_handler.search(statement_id='civic:eid2997', detail=True)
+    response = query_handler.search(statement_id='civic.eid:2997',
+                                    detail=True)
     assert_keys_for_detail_true(response.keys(), response)
     assert_response_items(response, civic_eid2997_statement,
                           civic_eid2997_proposition,
@@ -542,10 +544,12 @@ def test_civic_detail_flag_diagnostic(query_handler, civic_eid2_statement,
                                       check_descriptor, check_method,
                                       check_document):
     """Test that detail flag works correctly for CIViC Diagnostic Response."""
-    response = query_handler.search(statement_id='civic:eid2', detail=False)
+    response = query_handler.search(statement_id='civic.eid:2',
+                                    detail=False)
     assert_keys_for_detail_false(response.keys())
 
-    response = query_handler.search(statement_id='civic:eid2', detail=True)
+    response = query_handler.search(statement_id='civic.eid:2',
+                                    detail=True)
     assert_keys_for_detail_true(response.keys(), response, tr_response=False)
     assert_response_items(response, civic_eid2_statement,
                           civic_eid2_proposition,
@@ -564,10 +568,12 @@ def test_civic_detail_flag_prognostic(query_handler, civic_eid26_statement,
                                       check_descriptor, check_method,
                                       check_document):
     """Test that detail flag works correctly for CIViC Prognostic Response."""
-    response = query_handler.search(statement_id='civic:eid26', detail=False)
+    response = query_handler.search(statement_id='civic.eid:26',
+                                    detail=False)
     assert_keys_for_detail_false(response.keys())
 
-    response = query_handler.search(statement_id='civic:eid26', detail=True)
+    response = query_handler.search(statement_id='civic.eid:26',
+                                    detail=True)
     assert_keys_for_detail_true(response.keys(), response, tr_response=False)
     assert_response_items(response, civic_eid26_statement,
                           civic_eid26_proposition,
@@ -577,22 +583,24 @@ def test_civic_detail_flag_prognostic(query_handler, civic_eid26_statement,
                           check_descriptor, check_method, check_document)
 
 
-def test_moa_detail_flag(query_handler, moa_aid69_statement,
-                         moa_aid69_proposition,
-                         moa_vid69, moa_abl1, moa_imatinib,
+def test_moa_detail_flag(query_handler, moa_aid70_statement,
+                         moa_aid70_proposition,
+                         moa_vid70, moa_abl1, moa_imatinib,
                          moa_chronic_myelogenous_leukemia, method004,
                          pmid_11423618, check_statement, check_proposition,
                          check_variation_descriptor, check_descriptor,
                          check_method, check_document):
     """Test that detail flag works correctly for MOA."""
-    response = query_handler.search(statement_id='moa:aid69', detail=False)
+    response = query_handler.search(statement_id='moa.assertion:70',
+                                    detail=False)
     assert_keys_for_detail_false(response.keys())
 
-    response = query_handler.search(statement_id='moa:aid69', detail=True)
-    moa_vid69['expressions'] = []
+    response = query_handler.search(statement_id='moa.assertion:70',
+                                    detail=True)
+    moa_vid70['expressions'] = []
     assert_keys_for_detail_true(response.keys(), response)
-    assert_response_items(response, moa_aid69_statement, moa_aid69_proposition,
-                          moa_vid69, moa_abl1,
+    assert_response_items(response, moa_aid70_statement, moa_aid70_proposition,
+                          moa_vid70, moa_abl1,
                           moa_chronic_myelogenous_leukemia, method004,
                           pmid_11423618, moa_imatinib, check_statement,
                           check_proposition, check_variation_descriptor,
@@ -633,7 +641,7 @@ def test_no_matches(query_handler):
     response = query_handler.search_by_id('aid6')
     assert_no_match_id(response)
 
-    response = query_handler.search_by_id('civc:aid6')
+    response = query_handler.search_by_id('civc.assertion:6')
     assert_no_match_id(response)
 
 
@@ -643,19 +651,19 @@ def test_civic_id_search(query_handler, civic_eid2997_statement,
                          check_variation_descriptor, check_descriptor,
                          check_method, check_document):
     """Test search on civic node id"""
-    res = query_handler.search_by_id('civic:eid2997')
+    res = query_handler.search_by_id('civic.eid:2997')
     check_statement(res['statement'], civic_eid2997_statement)
 
-    res = query_handler.search_by_id('civic:vid33')
+    res = query_handler.search_by_id('civic.vid:33')
     check_variation_descriptor(res['variation_descriptor'], civic_vid33)
 
-    res = query_handler.search_by_id('civic:gid19')
+    res = query_handler.search_by_id('civic.gid:19')
     check_descriptor(res['gene_descriptor'], civic_gid19)
 
-    res = query_handler.search_by_id('civic:tid146')
+    res = query_handler.search_by_id('civic.tid:146')
     check_descriptor(res['therapy_descriptor'], civic_tid146)
 
-    res = query_handler.search_by_id('civic:did8')
+    res = query_handler.search_by_id('civic.did:8')
     check_descriptor(res['disease_descriptor'], civic_did8)
 
     res = query_handler.search_by_id('pmid:23982599')
@@ -665,18 +673,18 @@ def test_civic_id_search(query_handler, civic_eid2997_statement,
     check_method(res['method'], method001)
 
 
-def test_moa_id_search(query_handler, moa_aid69_statement,
-                       moa_vid69, moa_abl1, moa_imatinib,
+def test_moa_id_search(query_handler, moa_aid70_statement,
+                       moa_vid70, moa_abl1, moa_imatinib,
                        moa_chronic_myelogenous_leukemia, pmid_11423618,
                        method004, check_statement, check_variation_descriptor,
                        check_descriptor, check_method, check_document):
     """Test search on moa node id"""
-    res = query_handler.search_by_id('moa:aid69')
-    check_statement(res['statement'], moa_aid69_statement)
+    res = query_handler.search_by_id('moa.assertion:70')
+    check_statement(res['statement'], moa_aid70_statement)
 
-    res = query_handler.search_by_id('moa:vid69')
-    moa_vid69['expressions'] = []
-    check_variation_descriptor(res['variation_descriptor'], moa_vid69)
+    res = query_handler.search_by_id('moa.variant:70')
+    moa_vid70['expressions'] = []
+    check_variation_descriptor(res['variation_descriptor'], moa_vid70)
 
     res = query_handler.search_by_id('moa.normalize.gene:ABL1')
     check_descriptor(res['gene_descriptor'], moa_abl1)

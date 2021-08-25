@@ -5,6 +5,13 @@ from typing import List, Optional, Union, Dict, Any, Type
 from pydantic.types import StrictBool
 
 
+class SourceName(str, Enum):
+    """Resources we import directly."""
+
+    CIVIC = 'civic'
+    MOA = 'moa'
+
+
 class XrefSystem(str, Enum):
     """Define constraints for System in xrefs."""
 
@@ -13,14 +20,6 @@ class XrefSystem(str, Enum):
     DB_SNP = 'dbsnp'
     NCBI = 'ncbigene'
     DISEASE_ONTOLOGY = 'do'
-
-
-class NamespacePrefix(str, Enum):
-    """Define constraints for Namespace prefixes."""
-
-    CIVIC = 'civic'
-    NCIT = 'ncit'
-    MOA = 'moa'
 
 
 class SourcePrefix(str, Enum):

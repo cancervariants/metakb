@@ -8,7 +8,7 @@ import logging
 from metakb.database import Graph
 from metakb import PROJECT_ROOT
 from metakb.harvesters import CIViC, MOAlmanac
-from metakb.transform import CIViCTransform, MOATransform
+from metakb.schemas import SourceName
 from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
 from disease.cli import CLI as DiseaseCLI
@@ -86,11 +86,14 @@ class CLI:
         db_username = CLI()._check_db_param(db_username, 'username')
         db_password = CLI()._check_db_param(db_password, 'password')
 
+        if normalizer_db_url:
+            for env_var_name in ['GENE_NORM_DB_URL', 'THERAPY_NORM_DB_URL',
+                                 'DISEASE_NORM_DB_URL']:
+                environ[env_var_name] = normalizer_db_url
+
         if not load_transformed:
             if initialize_normalizers or force_initialize_normalizers:
-                CLI()._handle_initialize(initialize_normalizers,
-                                         force_initialize_normalizers,
-                                         normalizer_db_url)
+                CLI()._handle_initialize(force_initialize_normalizers)
 
             CLI()._harvest_sources()
             CLI()._transform_sources()
@@ -100,9 +103,9 @@ class CLI:
         logger.info("Uploading to DB...")
         g = Graph(uri=db_url, credentials=(db_username, db_password))
         g.clear()
-        civic_path = PROJECT_ROOT / 'data' / 'civic' / 'transform' / 'civic_cdm.json'  # noqa: E501
-        moa_path = PROJECT_ROOT / 'data' / 'moa' / 'transform' / 'moa_cdm.json'
-        for path in (civic_path, moa_path):
+        for src in sorted({v.value for v in SourceName.__members__.values()}):
+            path = \
+                PROJECT_ROOT / 'data' / src / 'transform' / f'{src}_cdm.json'
             try:
                 g.load_from_json(path)
             except FileNotFoundError:
@@ -139,6 +142,7 @@ class CLI:
 
     @staticmethod
     def _transform_sources():
+        from metakb.transform import CIViCTransform, MOATransform
         logger.info("Transforming harvested data...")
         source_indices = None
         # TODO: Switch to using constant
@@ -160,74 +164,73 @@ class CLI:
             logger.info(transform_end)
             source._create_json()
 
-    @staticmethod
-    def _handle_initialize(initialize, force_initialize, db_url):
+    def _handle_initialize(self, force_initialize):
         """Handle initialization of normalizer data.
-        :param bool initialize: if true, check whether normalizer data is
-            initialized and call initialization routines if not
         :param bool force_initialize: call initialize routines for all
             normalizers
-        :param str db_url: URL endpoint for normalizer DynamoDB database
         """
         if force_initialize:
             init_disease = init_therapy = init_gene = True
-        elif initialize:
-            init_disease = init_therapy = init_gene = False
+        else:
+            init_disease = self._check_normalizer(
+                DiseaseDatabase(), {v.value for v in DiseaseSources}
+            )
 
-            click.echo("Checking Disease Normalizer...")
-            disease_db = DiseaseDatabase(db_url=db_url)
-            for src in [v.value for v in DiseaseSources]:
-                response = disease_db.metadata.get_item(
-                    Key={'src_name': src}
-                )
-                if not response.get('Item'):
-                    init_disease = True
-                    break
+            init_therapy = self._check_normalizer(
+                TherapyDatabase(),
+                {TherapySourceLookup[src] for src in TherapySources}
+            )
 
-            click.echo("Checking Therapy Normalizer...")
-            therapy_db = TherapyDatabase(db_url=db_url)
-            for src in {TherapySourceLookup[src] for src in TherapySources}:
-                response = therapy_db.metadata.get_item(
-                    Key={'src_name': src}
-                )
-                if not response.get('Item'):
-                    init_therapy = True
-                    break
+            init_gene = self._check_normalizer(
+                GeneDatabase(), {'HGNC'}
+            )
 
-            click.echo("Checking Gene Normalizer...")
-            gene_db = GeneDatabase(db_url=db_url)
-            response = gene_db.metadata.get_item(
-                Key={'src_name': 'HGNC'}
+        for init_source, source_cli, args in [
+            (init_disease, DiseaseCLI, ['--update_all',
+                                        '--update_merged']),
+            (init_therapy, TherapyCLI, ['--normalizer',
+                                        'hemonc chemidplus rxnorm wikidata'
+                                        ' ncit drugbank', '--update_merged']),
+            (init_gene, GeneCLI, ['--normalizer', 'hgnc'])
+        ]:
+            name = str(source_cli).split()[1].split('.')[0][1:].capitalize()
+            click.echo(f'\nUpdating {name} Normalizer...')
+            self._update_normalizer_db(init_source, source_cli, args)
+        click.echo("Normalizer initialization complete.")
+
+    @staticmethod
+    def _check_normalizer(db, sources) -> bool:
+        """Check whether or not normalizer needs to be initialized.
+
+        :param Database db: Normalizer database
+        :param set sources: Set of source's to use for normalizer
+        :return: `True` If normalizer needs to be initialized.
+            `False` otherwise.
+        """
+        name = str(db).split('.')[0][1:].capitalize()
+        click.echo(f'Checking {name} Normalizer...')
+        for src in sources:
+            response = db.metadata.get_item(
+                Key={'src_name': src}
             )
             if not response.get('Item'):
-                init_gene = True
+                return True
+        return False
 
-        if init_therapy:
-            click.echo("Updating Therapy Normalizer...")
-            args = ['--db_url', db_url, '--normalizer',
-                    'chemidplus rxnorm wikidata ncit', '--update_merged']
+    def _update_normalizer_db(self, init_source, source_cli, args) -> None:
+        """Update Normalizer database.
+
+        :param bool init_source: Whether or not to load normalizer db
+        :param CLI source_cli: Normalizer CLI class containing CLI methods
+            for loading and deleting source data
+        :param list args: List of arguments to use in CLI
+        """
+        if init_source:
             try:
-                TherapyCLI.update_normalizer_db(args)
+                source_cli.update_normalizer_db(args)
             except SystemExit as e:
                 if e.code != 0:
                     raise e
-        if init_disease:
-            click.echo("Updating Disease Normalizer...")
-            args = ['--db_url', db_url, '--update_all', '--update_merged']
-            try:
-                DiseaseCLI.update_normalizer_db(args)
-            except SystemExit as e:
-                if e.code != 0:
-                    raise e
-        if init_gene:
-            click.echo("Updating Gene Normalizer...")
-            args = ['--db_url', db_url, '--normalizer', 'hgnc']
-            try:
-                GeneCLI.update_normalizer_db(args)
-            except SystemExit as e:
-                if e.code != 0:
-                    raise e
-        click.echo("Normalizer initialization complete.")
 
     @staticmethod
     def _check_db_param(param: str, name: str) -> str:
