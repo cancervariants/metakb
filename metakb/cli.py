@@ -251,6 +251,8 @@ class CLI:
                     return 'neo4j'
                 else:
                     return 'admin'
+        else:
+            return param
 
     @staticmethod
     def _help_msg(msg: str = ""):
