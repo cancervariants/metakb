@@ -1110,15 +1110,15 @@ def pmid_27819322():
 
 
 @pytest.fixture(scope='module')
-def moa_aid69_statement():
-    """Create a MOA Statement 69 test fixture."""
+def moa_aid70_statement():
+    """Create a MOA Statement 70 test fixture."""
     return {
-        "id": "moa.assertion:69",
+        "id": "moa.assertion:70",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
         "evidence_level": "moa.evidence_level:Preclinical",
         "proposition": "proposition:001",
         "variation_origin": "somatic",
-        "variation_descriptor": "moa.variant:69",
+        "variation_descriptor": "moa.variant:70",
         "therapy_descriptor": "moa.normalize.therapy:Imatinib",
         "disease_descriptor": "moa.normalize.disease:oncotree%3ACML",
         "method": "method:004",
@@ -1130,8 +1130,8 @@ def moa_aid69_statement():
 
 
 @pytest.fixture(scope='module')
-def moa_aid69_proposition():
-    """Create a test fixture for MOA AID69 proposition."""
+def moa_aid70_proposition():
+    """Create a test fixture for MOA AID70 proposition."""
     return {
         "id": "proposition:001",
         "predicate": "predicts_resistance_to",
@@ -1143,10 +1143,10 @@ def moa_aid69_proposition():
 
 
 @pytest.fixture(scope='module')
-def moa_vid69():
-    """Create a test fixture for MOA VID69."""
+def moa_vid70():
+    """Create a test fixture for MOA VID70."""
     return {
-        "id": "moa.variant:69",
+        "id": "moa.variant:70",
         "type": "VariationDescriptor",
         "label": "ABL1 p.T315I (Missense)",
         "value_id": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",
