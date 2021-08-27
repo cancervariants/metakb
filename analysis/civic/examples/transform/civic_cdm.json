@@ -1,15 +1,15 @@
 {
     "statements": [
         {
-            "id": "civic:eid879",
+            "id": "civic.eid:879",
             "description": "A phase III clinical trial (NCT00949650) found that median progression free survival among patients with exon 19 deletions or L858R EGFR mutations (n = 308) was 13.6 months for afatinib and 6.9 months for chemotherapy (HR, 0.47; 95% CI, 0.34 to 0.65; P = 0.001).",
             "direction": "supports",
             "evidence_level": "civic.evidence_level:B",
-            "proposition": "proposition:103",
+            "proposition": "proposition:157",
             "variation_origin": "somatic",
-            "variation_descriptor": "civic:vid33",
-            "therapy_descriptor": "civic:tid146",
-            "disease_descriptor": "civic:did30",
+            "variation_descriptor": "civic.vid:33",
+            "therapy_descriptor": "civic.tid:146",
+            "disease_descriptor": "civic.did:30",
             "method": "method:001",
             "supported_by": [
                 "pmid:23816960"
@@ -17,15 +17,15 @@
             "type": "Statement"
         },
         {
-            "id": "civic:eid883",
+            "id": "civic.eid:883",
             "description": "In a phase 2 study of patients with lung adenocarcinoma (stage IIIb with pleural effusion or stage IV) and EGFR mutations, treated with afatinib were assessed by objective response. 129 patients were treated with afatinib. 66% of the 106 patients with two common activating EGFR mutations (deletion 19 or L858R) had an objective response compared to 39% of 23 patients with less common mutations.",
             "direction": "supports",
             "evidence_level": "civic.evidence_level:B",
-            "proposition": "proposition:103",
+            "proposition": "proposition:157",
             "variation_origin": "somatic",
-            "variation_descriptor": "civic:vid33",
-            "therapy_descriptor": "civic:tid146",
-            "disease_descriptor": "civic:did30",
+            "variation_descriptor": "civic.vid:33",
+            "therapy_descriptor": "civic.tid:146",
+            "disease_descriptor": "civic.did:30",
             "method": "method:001",
             "supported_by": [
                 "pmid:22452895"
@@ -33,15 +33,15 @@
             "type": "Statement"
         },
         {
-            "id": "civic:eid968",
+            "id": "civic.eid:968",
             "description": "Cells harboring L858R were sensitive to afatinib. This study performed drug response assays using five human NSCLC cell lines with various combinations of EGFR mutations. In order to directly compare the sensitivity of multiple EGFR mutations to EGFR-TKIs the authors also generated multiple EGFR transduced Ba/F3 stable cell lines and evaluated sensitivity to EGFR-TKIs by MTS assay.",
             "direction": "supports",
             "evidence_level": "civic.evidence_level:D",
-            "proposition": "proposition:109",
+            "proposition": "proposition:163",
             "variation_origin": "somatic",
-            "variation_descriptor": "civic:vid33",
-            "therapy_descriptor": "civic:tid146",
-            "disease_descriptor": "civic:did8",
+            "variation_descriptor": "civic.vid:33",
+            "therapy_descriptor": "civic.tid:146",
+            "disease_descriptor": "civic.did:8",
             "method": "method:001",
             "supported_by": [
                 "pmid:26515464"
@@ -49,15 +49,15 @@
             "type": "Statement"
         },
         {
-            "id": "civic:eid982",
+            "id": "civic.eid:982",
             "description": "Afatinib is an irreversible covalent inhibitor of EGFR (second generation). This Phase III clinical trial (LUX-Lung 6; NCT01121393) was performed in Asian patients with EGFR mutant advanced NSCLC. 364 eligible patients with EGFR mutations were assigned to afatinib (n=242) or gemcitabine and cisplatin (n=122) treatment. The trial observed significantly longer median progression-free survival with afatinib vs. gemcitabine and cisplatin treatment (11.0 vs. 5.6 months). Afatinib/Chemotherapy group compositions: 51.2/50.8 % del 19; 38/37.7 % Leu858Arg; 10.8/11.5 % Uncommon.",
             "direction": "supports",
             "evidence_level": "civic.evidence_level:B",
-            "proposition": "proposition:103",
+            "proposition": "proposition:157",
             "variation_origin": "somatic",
-            "variation_descriptor": "civic:vid33",
-            "therapy_descriptor": "civic:tid146",
-            "disease_descriptor": "civic:did30",
+            "variation_descriptor": "civic.vid:33",
+            "therapy_descriptor": "civic.tid:146",
+            "disease_descriptor": "civic.did:30",
             "method": "method:001",
             "supported_by": [
                 "pmid:24439929"
@@ -65,15 +65,15 @@
             "type": "Statement"
         },
         {
-            "id": "civic:eid2629",
+            "id": "civic.eid:2629",
             "description": "In an in vitro study using NCI-H1666 cells (wildtype EGFR) and NCI-H3255 cells (EGFR-L858R), inhibition of cell growth was used as an assay to determine sensitivity to irreversible tyrosine kinase inhibitor (TKI) drugs. Cells with an EGFR L858R mutation demonstrated an improved response to afatinib (IC50: 0.7nM vs. 60nM) compared to wildtype EGFR cells.",
             "direction": "supports",
             "evidence_level": "civic.evidence_level:D",
-            "proposition": "proposition:109",
+            "proposition": "proposition:163",
             "variation_origin": "somatic",
-            "variation_descriptor": "civic:vid33",
-            "therapy_descriptor": "civic:tid146",
-            "disease_descriptor": "civic:did8",
+            "variation_descriptor": "civic.vid:33",
+            "therapy_descriptor": "civic.tid:146",
+            "disease_descriptor": "civic.did:8",
             "method": "method:001",
             "supported_by": [
                 "pmid:18408761"
@@ -81,15 +81,15 @@
             "type": "Statement"
         },
         {
-            "id": "civic:eid2997",
+            "id": "civic.eid:2997",
             "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
             "direction": "supports",
             "evidence_level": "civic.evidence_level:A",
-            "proposition": "proposition:109",
+            "proposition": "proposition:163",
             "variation_origin": "somatic",
-            "variation_descriptor": "civic:vid33",
-            "therapy_descriptor": "civic:tid146",
-            "disease_descriptor": "civic:did8",
+            "variation_descriptor": "civic.vid:33",
+            "therapy_descriptor": "civic.tid:146",
+            "disease_descriptor": "civic.did:8",
             "method": "method:001",
             "supported_by": [
                 "pmid:23982599"
@@ -97,62 +97,62 @@
             "type": "Statement"
         },
         {
-            "id": "civic:aid6",
+            "id": "civic.aid:6",
             "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",
             "direction": "supports",
             "evidence_level": "amp_asco_cap_2017_level:1A",
-            "proposition": "proposition:109",
+            "proposition": "proposition:163",
             "variation_origin": "somatic",
-            "variation_descriptor": "civic:vid33",
-            "therapy_descriptor": "civic:tid146",
-            "disease_descriptor": "civic:did8",
+            "variation_descriptor": "civic.vid:33",
+            "therapy_descriptor": "civic.tid:146",
+            "disease_descriptor": "civic.did:8",
             "method": "method:002",
             "supported_by": [
                 "document:001",
-                "civic:eid2997",
-                "civic:eid2629",
-                "civic:eid982",
-                "civic:eid968",
-                "civic:eid883",
-                "civic:eid879"
+                "civic.eid:2997",
+                "civic.eid:2629",
+                "civic.eid:982",
+                "civic.eid:968",
+                "civic.eid:883",
+                "civic.eid:879"
             ],
             "type": "Statement"
         }
     ],
     "propositions": [
         {
-            "id": "proposition:103",
+            "id": "proposition:157",
+            "type": "therapeutic_response_proposition",
             "predicate": "predicts_sensitivity_to",
             "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
             "object_qualifier": "ncit:C3512",
-            "object": "rxcui:1430438",
-            "type": "therapeutic_response_proposition"
+            "object": "rxcui:1430438"
         },
         {
-            "id": "proposition:109",
+            "id": "proposition:163",
+            "type": "therapeutic_response_proposition",
             "predicate": "predicts_sensitivity_to",
             "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
             "object_qualifier": "ncit:C2926",
-            "object": "rxcui:1430438",
-            "type": "therapeutic_response_proposition"
+            "object": "rxcui:1430438"
         }
     ],
     "variation_descriptors": [
         {
-            "id": "civic:vid33",
+            "id": "civic.vid:33",
             "type": "VariationDescriptor",
             "label": "L858R",
             "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",
             "value_id": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
             "value": {
                 "location": {
+                    "type": "SequenceLocation",
+                    "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
                     "interval": {
                         "end": 858,
                         "start": 857,
                         "type": "SimpleInterval"
-                    },
-                    "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
-                    "type": "SequenceLocation"
+                    }
                 },
                 "state": {
                     "sequence": "R",
@@ -191,8 +191,7 @@
                     "type": "Extension"
                 }
             ],
-            "molecule_context": "protein",
-            "structural_type": "SO:0001060",
+            "structural_type": "SO:0001583",
             "expressions": [
                 {
                     "syntax": "hgvs:genomic",
@@ -215,13 +214,12 @@
                     "type": "Expression"
                 }
             ],
-            "ref_allele_seq": "L",
-            "gene_context": "civic:gid19"
+            "gene_context": "civic.gid:19"
         }
     ],
     "gene_descriptors": [
         {
-            "id": "civic:gid19",
+            "id": "civic.gid:19",
             "type": "GeneDescriptor",
             "label": "EGFR",
             "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",
@@ -229,6 +227,9 @@
                 "id": "hgnc:3236",
                 "type": "Gene"
             },
+            "xrefs": [
+                "ncbigene:1956"
+            ],
             "alternate_labels": [
                 "ERRP",
                 "EGFR",
@@ -243,13 +244,16 @@
     ],
     "therapy_descriptors": [
         {
-            "id": "civic:tid146",
+            "id": "civic.tid:146",
             "type": "TherapyDescriptor",
             "label": "Afatinib",
             "value": {
                 "id": "rxcui:1430438",
                 "type": "Drug"
             },
+            "xrefs": [
+                "ncit:C66940"
+            ],
             "alternate_labels": [
                 "BIBW2992",
                 "BIBW 2992",
@@ -259,22 +263,28 @@
     ],
     "disease_descriptors": [
         {
-            "id": "civic:did8",
+            "id": "civic.did:8",
             "type": "DiseaseDescriptor",
             "label": "Lung Non-small Cell Carcinoma",
             "value": {
                 "id": "ncit:C2926",
                 "type": "Disease"
-            }
+            },
+            "xrefs": [
+                "DOID:3908"
+            ]
         },
         {
-            "id": "civic:did30",
+            "id": "civic.did:30",
             "type": "DiseaseDescriptor",
             "label": "Lung Adenocarcinoma",
             "value": {
                 "id": "ncit:C3512",
                 "type": "Disease"
-            }
+            },
+            "xrefs": [
+                "DOID:3910"
+            ]
         }
     ],
     "methods": [
@@ -287,7 +297,8 @@
                 "month": 11,
                 "day": 29
             },
-            "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al."
+            "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al.",
+            "type": "Method"
         },
         {
             "id": "method:002",
@@ -297,19 +308,22 @@
                 "year": 2017,
                 "month": 1
             },
-            "authors": "Li MM, Datto M, Duncavage EJ, et al."
+            "authors": "Li MM, Datto M, Duncavage EJ, et al.",
+            "type": "Method"
         }
     ],
     "documents": [
         {
             "id": "pmid:23816960",
             "label": "Sequist et al., 2013, J. Clin. Oncol.",
-            "description": "Phase III study of afatinib or cisplatin plus pemetrexed in patients with metastatic lung adenocarcinoma with EGFR mutations."
+            "description": "Phase III study of afatinib or cisplatin plus pemetrexed in patients with metastatic lung adenocarcinoma with EGFR mutations.",
+            "type": "Document"
         },
         {
             "id": "pmid:22452895",
             "label": "Yang et al., 2012, Lancet Oncol.",
-            "description": "Afatinib for patients with lung adenocarcinoma and epidermal growth factor receptor mutations (LUX-Lung 2): a phase 2 trial."
+            "description": "Afatinib for patients with lung adenocarcinoma and epidermal growth factor receptor mutations (LUX-Lung 2): a phase 2 trial.",
+            "type": "Document"
         },
         {
             "id": "pmid:26515464",
@@ -317,12 +331,14 @@
             "description": "In vitro modeling to determine mutation specificity of EGFR tyrosine kinase inhibitors against clinically relevant EGFR mutants in non-small-cell lung cancer.",
             "xrefs": [
                 "pmc:PMC4770737"
-            ]
+            ],
+            "type": "Document"
         },
         {
             "id": "pmid:24439929",
             "label": "Wu et al., 2014, Lancet Oncol.",
-            "description": "Afatinib versus cisplatin plus gemcitabine for first-line treatment of Asian patients with advanced non-small-cell lung cancer harbouring EGFR mutations (LUX-Lung 6): an open-label, randomised phase 3 trial."
+            "description": "Afatinib versus cisplatin plus gemcitabine for first-line treatment of Asian patients with advanced non-small-cell lung cancer harbouring EGFR mutations (LUX-Lung 6): an open-label, randomised phase 3 trial.",
+            "type": "Document"
         },
         {
             "id": "pmid:18408761",
@@ -330,17 +346,20 @@
             "description": "BIBW2992, an irreversible EGFR/HER2 inhibitor highly effective in preclinical lung cancer models.",
             "xrefs": [
                 "pmc:PMC2748240"
-            ]
+            ],
+            "type": "Document"
         },
         {
             "id": "pmid:23982599",
             "label": "Dungo et al., 2013, Drugs",
-            "description": "Afatinib: first global approval."
+            "description": "Afatinib: first global approval.",
+            "type": "Document"
         },
         {
             "id": "document:001",
             "document_id": "https://www.nccn.org/professionals/physician_gls/default.aspx",
-            "label": "NCCN Guidelines: Non-Small Cell Lung Cancer version 3.2018"
+            "label": "NCCN Guidelines: Non-Small Cell Lung Cancer version 3.2018",
+            "type": "Document"
         }
     ]
 }
