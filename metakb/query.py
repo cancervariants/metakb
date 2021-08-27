@@ -402,7 +402,7 @@ class QueryHandler:
                         if not v['description']:
                             del v['description']
                     vd_params['extensions'].append(vg)
-        elif vd_params['id'].startswith('moa:vid'):
+        elif vd_params['id'].startswith('moa.variant'):
             if 'moa_representative_coordinate' in keys:
                 vd_params['extensions'].append({
                     'name': 'moa_representative_coordinate',
