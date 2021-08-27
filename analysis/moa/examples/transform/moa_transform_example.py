@@ -6,7 +6,7 @@ from metakb import PROJECT_ROOT
 
 def create_moa_example(moa_data):
     """Create MOA transform examples from list of evidence items."""
-    assertion_id = ['moa:aid69', 'moa:aid186']
+    assertion_id = ['moa.assertion:70', 'moa.assertion:187']
     ex = {}
     proposition = None
     var_des = None
