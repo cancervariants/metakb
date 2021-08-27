@@ -6,7 +6,7 @@ from os import environ
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 if 'METAKB_NORM_EB_PROD' in environ:
-    environ['VARIANT_NORM_EB_PROD'] = "true"
+    environ['VARIATION_NORM_EB_PROD'] = "true"
     environ['GENE_NORM_EB_PROD'] = "true"
     environ['THERAPY_NORM_EB_PROD'] = "true"
     environ['DISEASE_NORM_EB_PROD'] = "true"
