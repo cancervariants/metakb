@@ -18,9 +18,9 @@ def create_civic_example(civic_data):
     }
     supported_by_statement_ids = set()
     for s in civic_data['statements']:
-        if s['id'] == 'civic:aid6':
+        if s['id'] == 'civic.aid:6':
             supported_by_statement_ids = \
-                {s for s in s['supported_by'] if s.startswith('civic:eid')}
+                {s for s in s['supported_by'] if s.startswith('civic.eid')}
             supported_by_statement_ids.add(s['id'])
             break
 
@@ -40,7 +40,7 @@ def create_civic_example(civic_data):
             dids.add(s['disease_descriptor'])
             methods.add(s['method'])
             documents.update({d for d in s['supported_by'] if
-                             not d.startswith('civic:eid')})
+                             not d.startswith('civic.eid')})
 
     for p in civic_data['propositions']:
         if p['id'] in proposition_ids:
