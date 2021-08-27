@@ -360,7 +360,7 @@ class QueryHandler:
                         }
                     )
         # Get Variation Descriptor Extensions
-        if vd_params['id'].startswith('civic:vid'):
+        if vd_params['id'].startswith('civic.vid'):
             if 'civic_representative_coordinate' in keys:
                 vd_params['extensions'].append({
                     'name': 'civic_representative_coordinate',

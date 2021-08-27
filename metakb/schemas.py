@@ -376,15 +376,15 @@ class StatementResponse(BaseModel):
             for prop in schema.get('properties', {}).values():
                 prop.pop('title', None)
             schema['example'] = {
-                "id": "civic:eid2997",
+                "id": "civic.eid:2997",
                 "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
                 "direction": "supports",
                 "evidence_level": "civic.evidence_level:A",
                 "variation_origin": "somatic",
                 "proposition": "proposition:109",
-                "variation_descriptor": "civic:vid33",
-                "therapy_descriptor": "civic:tid146",
-                "disease_descriptor": "civic:did8",
+                "variation_descriptor": "civic.vid:33",
+                "therapy_descriptor": "civic.tid:146",
+                "disease_descriptor": "civic.did:8",
                 "method": "method:001",
                 "supported_by": [
                     "pmid:23982599"
@@ -418,7 +418,7 @@ class SearchQuery(BaseModel):
                 "variation": "NP_005219.2:p.Leu858Arg",
                 "disease": "Lung Non-small Cell Carcinoma",
                 "therapy": "Afatinib",
-                "statement_id": "civic:eid2997",
+                "statement_id": "civic.eid:2997",
                 "detail": False
             }
 
@@ -441,7 +441,7 @@ class Matches(BaseModel):
             for prop in schema.get('properties', {}).values():
                 prop.pop('title', None)
             schema['example'] = {
-                "statements": ["civic:eid2997"],
+                "statements": ["civic.eid:2997"],
                 "propositions": ["proposition:109"]
             }
 
@@ -479,25 +479,25 @@ class SearchService(BaseModel):
                     "variation": "EGFR L858R",
                     "disease": "Lung Non-small Cell Carcinoma",
                     "therapy": "Afatinib",
-                    "statement_id": "civic:eid2997",
+                    "statement_id": "civic.eid:2997",
                     "detail": False
                 },
                 "warnings": [],
                 "matches": {
-                    "statements": ["civic:eid2997"],
+                    "statements": ["civic.eid:2997"],
                     "propositions": ["proposition:109"]
                 },
                 "statements": [
                     {
-                        "id": "civic:eid2997",
+                        "id": "civic.eid:2997",
                         "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
                         "direction": "supports",
                         "evidence_level": "civic.evidence_level:A",
                         "variation_origin": "somatic",
                         "proposition": "proposition:109",
-                        "variation_descriptor": "civic:vid33",
-                        "therapy_descriptor": "civic:tid146",
-                        "disease_descriptor": "civic:did8",
+                        "variation_descriptor": "civic.vid:33",
+                        "therapy_descriptor": "civic.tid:146",
+                        "disease_descriptor": "civic.did:8",
                         "method": "method:001",
                         "supported_by": [
                             "pmid:23982599"
@@ -547,15 +547,15 @@ class SearchIDService(BaseModel):
                 prop.pop('title', None)
             schema['example'] = {
                 "query": {
-                    "node_id": "civic:vid33"
+                    "node_id": "civic.vid:33"
                 },
                 "warnings": [],
                 "matches": {
-                    "node": "civic:vid33"
+                    "node": "civic.vid:33"
                 },
                 "variation_descriptors": [
                     {
-                        "id": "civic:vid33",
+                        "id": "civic.vid:33",
                         "type": "VariationDescriptor",
                         "label": "L858R",
                         "description": "EGFR L858R has long been recognized "
@@ -650,7 +650,7 @@ class SearchIDService(BaseModel):
                                 "type": "Expression"
                             }
                         ],
-                        "gene_context": "civic:gid19"
+                        "gene_context": "civic.gid:19"
                     }
                 ]
             }
