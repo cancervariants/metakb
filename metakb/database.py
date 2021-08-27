@@ -477,6 +477,7 @@ class Graph:
                 SecretId=secret_name
             )
         except ClientError as e:
+            logger.warning(e)
             if e.response['Error']['Code'] == 'DecryptionFailureException':
                 # Secrets Manager can't decrypt the protected
                 # secret text using the provided KMS key.
