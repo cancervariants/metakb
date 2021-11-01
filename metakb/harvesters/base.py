@@ -1,5 +1,5 @@
 """A module for the Harvester base class"""
-from metakb import PROJECT_ROOT
+from metakb import APP_ROOT
 import json
 import logging
 
@@ -43,7 +43,7 @@ class Harvester:
         :return: `True` if JSON creation was successful. `False` otherwise.
         """
         composite_dict = dict()
-        src_dir = PROJECT_ROOT / 'data' / src
+        src_dir = APP_ROOT / 'data' / src
         src_dir.mkdir(exist_ok=True, parents=True)
         try:
             for arg_name in kwargs:

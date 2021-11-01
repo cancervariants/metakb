@@ -1,5 +1,5 @@
 """A module to convert MOA resources to common data model"""
-from metakb import PROJECT_ROOT
+from metakb import APP_ROOT
 import json
 import logging
 import metakb.schemas as schemas
@@ -14,7 +14,7 @@ class MOATransform(Transform):
     """A class for transforming MOA resources to common data model."""
 
     def __init__(self,
-                 file_path=f"{PROJECT_ROOT}/data/moa/moa_harvester.json"):
+                 file_path=f"{APP_ROOT}/data/moa/moa_harvester.json"):
         """
         Initialize VICC normalizers and class attributes
 
@@ -31,7 +31,7 @@ class MOATransform(Transform):
         self.documents = list()
 
     def _create_json(self,
-                     moa_dir=PROJECT_ROOT / 'data' / 'moa' / 'transform',
+                     moa_dir=APP_ROOT / 'data' / 'moa' / 'transform',
                      fn='moa_cdm.json'):
         """Create a composite JSON for the transformed MOA data.
 

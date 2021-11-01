@@ -3,6 +3,7 @@ from pathlib import Path
 import logging
 from os import environ
 
+APP_ROOT = Path(__file__).resolve().parents[0]
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 if 'METAKB_NORM_EB_PROD' in environ:
