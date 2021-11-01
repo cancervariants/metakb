@@ -6,7 +6,7 @@ import click
 from os import environ
 import logging
 from metakb.database import Graph
-from metakb import PROJECT_ROOT
+from metakb import APP_ROOT
 from metakb.harvesters import CIViC, MOAlmanac
 from metakb.schemas import SourceName
 from disease.database import Database as DiseaseDatabase
@@ -105,7 +105,7 @@ class CLI:
         g.clear()
         for src in sorted({v.value for v in SourceName.__members__.values()}):
             path = \
-                PROJECT_ROOT / 'data' / src / 'transform' / f'{src}_cdm.json'
+                APP_ROOT / 'data' / src / 'transform' / f'{src}_cdm.json'
             try:
                 g.load_from_json(path)
             except FileNotFoundError:

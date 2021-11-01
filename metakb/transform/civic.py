@@ -1,7 +1,7 @@
 """A module for to transform CIViC."""
 from .base import Transform
 from typing import Optional, Dict, List
-from metakb import PROJECT_ROOT
+from metakb import APP_ROOT
 import json
 import logging
 import metakb.schemas as schemas
@@ -15,7 +15,7 @@ class CIViCTransform(Transform):
     """A class for transforming CIViC to the common data model."""
 
     def __init__(self,
-                 file_path=f"{PROJECT_ROOT}/data/civic"
+                 file_path=f"{APP_ROOT}/data/civic"
                            f"/civic_harvester.json") -> None:
         """Initialize CIViC Transform class.
 
@@ -45,7 +45,7 @@ class CIViCTransform(Transform):
         }
 
     def _create_json(self,
-                     civic_dir=PROJECT_ROOT / 'data' / 'civic' / 'transform',
+                     civic_dir=APP_ROOT / 'data' / 'civic' / 'transform',
                      fn='civic_cdm.json') -> None:
         """Create a composite JSON for the transformed CIViC data.
 
