@@ -15,7 +15,6 @@ gene-normalizer = "*"
 disease-normalizer = "*"
 thera-py = "*"
 neo4j = "*"
-ipykernel = "*"
 uvicorn = "*"
 fastapi = "*"
 click = "*"
@@ -26,6 +25,7 @@ typing-extensions = "*"
 boto3 = "*"
 botocore = "*"
 variation-normalizer = ">=0.2.9"
+jsonschema = ">=2.3, <4.0"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
