@@ -2,6 +2,7 @@
 from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
 from metakb.query import QueryHandler
+from metakb.version import __version__
 from metakb.schemas import SearchService, SearchIDService
 from typing import Optional
 
@@ -15,7 +16,7 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="The VICC Meta-Knowledgebase",
-        version="2.0.0-alpha.1",
+        version=__version__,
         description="A search interface for cancer variant interpretations"
                     " assembled by aggregating and harmonizing across multiple"
                     " cancer variant interpretation knowledgebases.",
