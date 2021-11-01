@@ -20,3 +20,11 @@ logging.basicConfig(
     format='[%(asctime)s] - %(name)s - %(levelname)s : %(message)s')
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
+logging.getLogger("boto3").setLevel(logging.INFO)
+logging.getLogger("botocore").setLevel(logging.INFO)
+logger.handlers = []
+
+if 'METAKB_NORM_EB_PROD' in environ:
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    logger.addHandler(ch)
