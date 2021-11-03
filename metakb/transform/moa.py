@@ -429,7 +429,7 @@ class MOATransform(Transform):
         if normalized_therapy_id:
             therapy_descriptor = schemas.ValueObjectDescriptor(
                 id=f"{schemas.SourceName.MOA.value}."
-                   f"{therapy_norm_resp['value_object_descriptor']['id']}",
+                   f"{therapy_norm_resp['therapy_descriptor']['id']}",
                 type="TherapyDescriptor",
                 label=label,
                 value=schemas.Drug(id=normalized_therapy_id)
@@ -460,7 +460,7 @@ class MOATransform(Transform):
 
         disease_descriptor = schemas.ValueObjectDescriptor(
             id=f"{schemas.SourceName.MOA.value}."
-               f"{disease_norm_resp['value_object_descriptor']['id']}",
+               f"{disease_norm_resp['disease_descriptor']['id']}",
             type="DiseaseDescriptor",
             label=disease_name,
             value=schemas.Disease(id=normalized_disease_id),
