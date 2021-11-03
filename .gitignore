@@ -121,7 +121,7 @@ pytest.ini
 .DS_Store
 
 # data files
-data/*
+metakb/data/*
 analysis/graph/*.json
 analysis/graph/*.ipynb
 
