@@ -88,7 +88,7 @@ class VICCNormalizers:
             if disease_norm_resp['match_type'] > highest_match:
                 highest_match = disease_norm_resp['match_type']
                 normalized_disease_id = \
-                    disease_norm_resp['value_object_descriptor']['value']['id']
+                    disease_norm_resp['disease_descriptor']['disease_id']
                 if highest_match == 100:
                     break
         return disease_norm_resp, normalized_disease_id
@@ -111,7 +111,7 @@ class VICCNormalizers:
             therapy_norm_resp = self.therapy_query_handler.search_groups(query)
             if therapy_norm_resp['match_type'] > highest_match:
                 highest_match = therapy_norm_resp['match_type']
-                normalized_therapy_id = therapy_norm_resp['value_object_descriptor']['value']['id']  # noqa: E501
+                normalized_therapy_id = therapy_norm_resp['therapy_descriptor']['therapy_id']  # noqa: E501
                 if highest_match == 100:
                     break
         return therapy_norm_resp, normalized_therapy_id
