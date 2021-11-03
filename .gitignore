@@ -126,7 +126,7 @@ analysis/graph/*.json
 analysis/graph/*.ipynb
 
 # Build files
-sPipfile.lock
+Pipfile.lock
 pyproject.toml
 
 # DynamoDB
