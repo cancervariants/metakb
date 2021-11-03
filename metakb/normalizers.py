@@ -61,10 +61,10 @@ class VICCNormalizers:
                 continue
 
             gene_norm_resp = self.gene_query_handler.normalize(query_str)
-            if gene_norm_resp['match_type'] > highest_match:
-                highest_match = gene_norm_resp['match_type']
+            if gene_norm_resp.match_type > highest_match:
+                highest_match = gene_norm_resp.match_type
                 normalized_gene_id = \
-                    gene_norm_resp['gene_descriptor']['value']['id']
+                    gene_norm_resp.gene_descriptor.gene_id
                 if highest_match == 100:
                     break
         return gene_norm_resp, normalized_gene_id
