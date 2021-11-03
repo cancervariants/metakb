@@ -4,10 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+"ga4gh.vrs" = {version = "==0.7.0rc3", extras = ["extras"]}
 civicpy = "*"
-pandas = "*"
 requests = "*"
-numpy = "*"
 jsondiff = "*"
 pydantic = "*"
 requests-cache = "*"
@@ -26,6 +25,7 @@ boto3 = "*"
 botocore = "*"
 variation-normalizer = ">=0.2.9"
 jsonschema = ">=2.3, <4.0"
+"ga4gh.vrsatile.pydantic" = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
