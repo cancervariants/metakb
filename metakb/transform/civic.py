@@ -431,7 +431,7 @@ class CIViCTransform(Transform):
             #  Filtering to speed up transformation
             vname_lower = variant['name'].lower()
 
-            if vname_lower.endswith('fs') or vname_lower.endswith('del') or '-' in vname_lower or '/' in vname_lower:  # noqa: E501
+            if vname_lower.endswith('fs') or '-' in vname_lower or '/' in vname_lower:  # noqa: E501
                 if not hgvs_exprs:
                     logger.warning("Variant Normalizer does not support "
                                    f"{variant_id}: {variant_query}")
@@ -449,33 +449,12 @@ class CIViCTransform(Transform):
             }
 
             if set(vname_lower.split()) & unable_to_normalize:
-                if not hgvs_exprs:
-                    logger.warning("Variant Normalizer does not support "
-                                   f"{variant_id}: {variant_query}")
-                    continue
-
-            # If c. in variant name, this indicates transcript
-            # Otherwise it indicates protein
-            transcript_queries = list()
-            genomic_queries = list()
-            protein_queries = list()
-            for expr in hgvs_exprs:
-                if 'protein' in expr['syntax']:
-                    protein_queries.append(expr['value'])
-                elif 'genomic' in expr['syntax']:
-                    genomic_queries.append(expr['value'])
-                else:
-                    transcript_queries.append(expr['value'])
-
-            if 'c.' in variant_query:
-                queries = \
-                    [variant_query] + transcript_queries
-            else:
-                queries = \
-                    [variant_query] + protein_queries
+                logger.warning("Variant Normalizer does not support "
+                               f"{variant_id}: {variant_query}")
+                continue
 
             variation_norm_resp = self.vicc_normalizers.normalize_variation(
-                queries, normalizer_responses
+                [variant_query], normalizer_responses
             )
 
             if not variation_norm_resp:
@@ -489,8 +468,8 @@ class CIViCTransform(Transform):
                 variation_norm_resp = normalizer_responses[0]
             elif not variation_norm_resp and len(normalizer_responses) == 0:
                 logger.warning("Variation Normalizer unable to normalize: "
-                               f"civic.vid:{variant['id']} using queries "
-                               f"{queries}")
+                               f"civic.vid:{variant['id']} using query "
+                               f"{variant_query}")
                 continue
 
             if variant['variant_types']:
