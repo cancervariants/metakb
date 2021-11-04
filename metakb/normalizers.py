@@ -42,9 +42,9 @@ class VICCNormalizers:
                         normalizer_responses.append(variation_norm_resp)
                     if not self.variation_normalizer.normalize_handler.warnings:  # noqa: E501
                         return variation_norm_resp.dict(exclude_none=True)
-            except:  # noqa: E722
-                logger.warning("Variation Normalizer does not support: "
-                               f"{query}")
+            except Exception as e:  # noqa: E722
+                logger.warning(f"Variation Normalizer could not "
+                               f"normalize {query}: {e}")
         return None
 
     def normalize_gene(self, queries) -> Tuple[Optional[dict], Optional[str]]:
