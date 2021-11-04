@@ -22,6 +22,7 @@ logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 logging.getLogger("boto3").setLevel(logging.INFO)
 logging.getLogger("botocore").setLevel(logging.INFO)
+logging.getLogger("urllib3").setLevel(logging.INFO)
 logger.handlers = []
 
 if 'METAKB_NORM_EB_PROD' in environ:
