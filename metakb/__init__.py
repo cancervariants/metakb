@@ -23,6 +23,9 @@ logger.setLevel(logging.DEBUG)
 logging.getLogger("boto3").setLevel(logging.INFO)
 logging.getLogger("botocore").setLevel(logging.INFO)
 logging.getLogger("urllib3").setLevel(logging.INFO)
+logging.getLogger("python_jsonschema_objects").setLevel(logging.INFO)
+logging.getLogger("hgvs.parser").setLevel(logging.INFO)
+logging.getLogger("biocommons.seqrepo.seqaliasdb.seqaliasdb").setLevel(logging.INFO)  # noqa: E501
 logger.handlers = []
 
 if 'METAKB_NORM_EB_PROD' in environ:
