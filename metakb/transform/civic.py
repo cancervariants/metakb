@@ -497,8 +497,8 @@ class CIViCTransform(Transform):
                 id=variant_id,
                 label=variant['name'],
                 description=variant['description'] if variant['description'] else None,  # noqa: E501
-                value_id=variation_norm_resp['value_id'],
-                value=variation_norm_resp['value'],
+                value_id=variation_norm_resp['variation_id'],
+                value=variation_norm_resp['variation'],
                 gene_context=f"civic.gid:{variant['gene_id']}",
                 structural_type=structural_type,
                 expressions=hgvs_exprs,
