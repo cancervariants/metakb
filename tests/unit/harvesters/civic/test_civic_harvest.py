@@ -1,6 +1,6 @@
 """Test CIViC Harvester."""
 from metakb.harvesters.civic import CIViC
-from metakb import PROJECT_ROOT
+from metakb import APP_ROOT
 import os
 
 
@@ -9,7 +9,7 @@ def test_harvest():
     assert not CIViC().harvest(fn='')
     fn = 'test_civic_harvester.json'
     assert CIViC().harvest(fn=fn)
-    file_path = PROJECT_ROOT / 'data' / 'civic' / fn
+    file_path = APP_ROOT / 'data' / 'civic' / fn
     assert file_path.exists()
     os.remove(file_path)
     assert not file_path.exists()
