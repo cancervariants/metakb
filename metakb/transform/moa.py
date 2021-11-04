@@ -301,8 +301,8 @@ class MOATransform(Transform):
         variation_descriptor = schemas.VariationDescriptor(
             id=f"moa.variant:{variant['id']}",
             label=variant['feature'],
-            value_id=v_norm_resp['value_id'],
-            value=v_norm_resp['value'],
+            value_id=v_norm_resp['variation_id'],
+            value=v_norm_resp['variation'],
             gene_context=gene_context,
             ref_allele_seq=ref_allele_seq,
             extensions=self._get_variant_extensions(variant)
