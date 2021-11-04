@@ -415,7 +415,16 @@ class CIViCTransform(Transform):
                 continue
             variant_id = f"civic.vid:{variant['id']}"
             normalizer_responses = list()
-            variant_query = f"{variant['entrez_name']} {variant['name']}"
+            if 'c.' in variant['name']:
+                variant_name = variant['name']
+                if '(' in variant_name:
+                    variant_name = \
+                        variant_name.replace('(', '').replace(')', '')
+                variant_name = variant_name.split()[-1]
+            else:
+                variant_name = variant['name']
+
+            variant_query = f"{variant['entrez_name']} {variant_name}"
             hgvs_exprs = self._get_hgvs_expr(variant)
 
             # TODO: Remove as more get implemented in variant normalizer
@@ -446,7 +455,7 @@ class CIViCTransform(Transform):
                     continue
 
             # If c. in variant name, this indicates transcript
-            # Otherwise it indicates protein or genomic
+            # Otherwise it indicates protein
             transcript_queries = list()
             genomic_queries = list()
             protein_queries = list()
@@ -458,16 +467,12 @@ class CIViCTransform(Transform):
                 else:
                     transcript_queries.append(expr['value'])
 
-            # Order based on type of variant we think it is in order to
-            # give corresponding value_id/value.
             if 'c.' in variant_query:
                 queries = \
-                    transcript_queries + genomic_queries + [variant_query] + \
-                    protein_queries
+                    [variant_query] + transcript_queries
             else:
                 queries = \
-                    protein_queries + genomic_queries + \
-                    [variant_query] + transcript_queries
+                    [variant_query] + protein_queries
 
             variation_norm_resp = self.vicc_normalizers.normalize_variation(
                 queries, normalizer_responses
@@ -475,11 +480,11 @@ class CIViCTransform(Transform):
 
             if not variation_norm_resp:
                 logger.warning(
-                    "Variation Normalizer unable to find MANE transcript "
+                    "Variation Normalizer unable to find normalized concept "
                     f"for civic.vid:{variant['id']} : {variant_query}"
                 )
 
-            # Couldn't find MANE transcript
+            # Couldn't find normalized concept
             if not variation_norm_resp and len(normalizer_responses) > 0:
                 variation_norm_resp = normalizer_responses[0]
             elif not variation_norm_resp and len(normalizer_responses) == 0:
