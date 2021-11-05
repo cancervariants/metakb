@@ -1,8 +1,10 @@
 """Module for queries."""
 from metakb.normalizers import VICCNormalizers
+from ga4gh.vrsatile.pydantic.vrs_model import Allele, SequenceLocation, \
+    SequenceInterval, Number, SequenceState
 from metakb.schemas import SearchService, StatementResponse, \
     TherapeuticResponseProposition, VariationDescriptor,\
-    ValueObjectDescriptor, GeneDescriptor, Drug, Disease, Gene, Method, \
+    ValueObjectDescriptor, GeneDescriptor, Method, \
     Document, SearchIDService, DiagnosticProposition, PrognosticProposition
 import logging
 from metakb.database import Graph
@@ -67,7 +69,7 @@ class QueryHandler:
             self.vicc_normalizers.normalize_variation([variation])
         normalized_variation = None
         if variant_norm_resp:
-            normalized_variation = variant_norm_resp['value_id']
+            normalized_variation = variant_norm_resp['variation_id']
         if not normalized_variation:
             # Check if VRS object
             lower_variation = variation.lower()
@@ -322,12 +324,12 @@ class QueryHandler:
             'id': vid,
             'label': variation_descriptor.get('label'),
             'description': variation_descriptor.get('description'),
-            'value_id': None,
-            'value': None,
+            'variation_id': None,
+            'variation': None,
             'gene_context': None,
             'molecule_context': variation_descriptor.get('molecule_context'),
             'structural_type': variation_descriptor.get('structural_type'),
-            'ref_allele_seq': variation_descriptor.get('ref_allele_seq'),
+            'vrs_ref_allele_seq': variation_descriptor.get('vrs_ref_allele_seq'),  # noqa: E501
             'expressions': [],
             'xrefs': variation_descriptor.get('xrefs'),
             'alternate_labels': variation_descriptor.get('alternate_labels'),
@@ -424,22 +426,22 @@ class QueryHandler:
             value_object = session.read_transaction(
                 self._find_descriptor_value_object, vd_params['id']
             )
-            vd_params['value_id'] = value_object.get('id')
-            vd_params['value'] = {
-                'location': {
-                    'interval': {
-                        'end': value_object.get('location_interval_end'),
-                        'start': value_object.get('location_interval_start'),
-                        'type': value_object.get('location_interval_type')
-                    },
-                    'sequence_id': value_object.get('location_sequence_id'),
-                    'type': value_object.get('location_type')
-                },
-                'state': json.loads(value_object.get('state')),
-                'type': 'Allele'
-            }
 
-        vd = VariationDescriptor(**vd_params).dict()
+            vd_params['variation_id'] = value_object.get('id')
+            vd_params['variation'] = Allele(
+                location=SequenceLocation(
+                    interval=SequenceInterval(
+                        start=Number(value=value_object.get('location_interval_start')),  # noqa: E501
+                        end=Number(value=value_object.get('location_interval_end'))  # noqa: E501
+                    ),
+                    sequence_id=value_object.get('location_sequence_id')
+                ),
+                state=SequenceState(
+                    sequence=json.loads(value_object.get('state')).get('sequence')  # noqa: E501
+                )
+            )
+
+        vd = VariationDescriptor(**vd_params)
         if by_id:
             response['variation_descriptor'] = vd
         else:
@@ -479,12 +481,12 @@ class QueryHandler:
             'type': 'GeneDescriptor',
             'label': gene_descriptor.get('label'),
             'description': gene_descriptor.get('description'),
-            'value': Gene(id=gene_value_object.get('id')).dict(),
+            'gene_id': gene_value_object.get('id'),
             'alternate_labels': gene_descriptor.get('alternate_labels'),
             'xrefs': gene_descriptor.get('xrefs')
         }
 
-        gd = GeneDescriptor(**gd_params).dict()
+        gd = GeneDescriptor(**gd_params)
         if by_id:
             response['gene_descriptor'] = gd
         else:
@@ -502,7 +504,7 @@ class QueryHandler:
             'id': therapy_descriptor.get('id'),
             'type': 'TherapyDescriptor',
             'label': therapy_descriptor.get('label'),
-            'value': None,
+            'therapy_id': None,
             'alternate_labels': therapy_descriptor.get('alternate_labels'),
             'xrefs': therapy_descriptor.get('xrefs')
         }
@@ -511,9 +513,9 @@ class QueryHandler:
             value_object = session.read_transaction(
                 self._find_descriptor_value_object, td_params['id']
             )
-            td_params['value'] = Drug(id=value_object.get('id')).dict()
+            td_params['therapy_id'] = value_object.get('id')
 
-        td = ValueObjectDescriptor(**td_params).dict()
+        td = ValueObjectDescriptor(**td_params)
         if by_id:
             response['therapy_descriptor'] = td
         else:
@@ -531,7 +533,7 @@ class QueryHandler:
             'id': disease_descriptor.get('id'),
             'type': 'DiseaseDescriptor',
             'label': disease_descriptor.get('label'),
-            'value': None,
+            'disease_id': None,
             'xrefs': disease_descriptor.get('xrefs')
         }
 
@@ -539,9 +541,9 @@ class QueryHandler:
             value_object = session.read_transaction(
                 self._find_descriptor_value_object, dd_params['id']
             )
-            dd_params['value'] = Disease(id=value_object.get('id')).dict()
+            dd_params['disease_id'] = value_object.get('id')
 
-        dd = ValueObjectDescriptor(**dd_params).dict()
+        dd = ValueObjectDescriptor(**dd_params)
         if by_id:
             response['disease_descriptor'] = dd
         else:
@@ -561,7 +563,7 @@ class QueryHandler:
             except JSONDecodeError:
                 params[key] = method.get(key)
 
-        m = Method(**params).dict()
+        m = Method(**params)
         if by_id:
             response['method'] = m
         else:
@@ -582,7 +584,7 @@ class QueryHandler:
         for key in document.keys():
             params[key] = document.get(key)
 
-        d = Document(**params).dict()
+        d = Document(**params)
         if by_id:
             response['document'] = d
         else:
@@ -878,11 +880,11 @@ class QueryHandler:
             if p_type == "therapeutic_response_proposition":
                 params["object"] = value_ids["object"]
                 proposition = \
-                    TherapeuticResponseProposition(**params).dict()
+                    TherapeuticResponseProposition(**params)
             elif p_type == "prognostic_proposition":
-                proposition = PrognosticProposition(**params).dict()
+                proposition = PrognosticProposition(**params)
             elif p_type == "diagnostic_proposition":
-                proposition = DiagnosticProposition(**params).dict()
+                proposition = DiagnosticProposition(**params)
             return proposition
 
     def _get_statement(self, s):
