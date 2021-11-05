@@ -63,14 +63,15 @@ class Graph:
         with self.driver.session() as session:
             session.write_transaction(delete_all)
 
-    def load_from_json(self, infile_path: Path):
+    def load_from_json(self, src_transformed_cdm: Path):
         """Load evidence into DB from given JSON file.
-        :param Path infile_path: path to file formatted as array of successive
-            collections of evidence, disease/therapy/gene/variation objects,
-            statements, etc
+        :param Path src_transformed_cdm: path to file for a source's
+            transformed data to common data model containing statements,
+            propositions, variation/therapy/disease/gene descriptors,
+            methods, and documents
         """
-        logger.info(f"Loading data from {infile_path}")
-        with open(infile_path, 'r') as f:
+        logger.info(f"Loading data from {src_transformed_cdm}")
+        with open(src_transformed_cdm, 'r') as f:
             items = json.load(f)
             self.add_transformed_data(items)
 
@@ -98,8 +99,8 @@ class Graph:
     def add_transformed_data(self, data: Dict):
         """Add set of data formatted per Common Data Model to DB.
         :param Dict data: contains key/value pairs for data objects to add
-            to DB, including Assertions, Therapies, Diseases, Genes,
-            Variations, Propositions, and Evidence
+            to DB, including statements, propositions,
+            variation/therapy/disease/gene descriptors, methods, and documents
         """
         added_ids = set()  # Used to keep track of IDs that are in statements
         with self.driver.session() as session:
@@ -190,23 +191,21 @@ class Graph:
         descr_type = descriptor['type']
         if descr_type == 'TherapyDescriptor':
             value_type = 'Therapy'
-            descriptor['value_id'] = descriptor['value']['id']
         elif descr_type == 'DiseaseDescriptor':
             value_type = 'Disease'
-            descriptor['value_id'] = descriptor['value']['id']
         elif descr_type == 'GeneDescriptor':
             value_type = 'Gene'
-            descriptor['value_id'] = descriptor['value']['id']
         else:
             raise TypeError(f"Invalid Descriptor type: {descr_type}")
 
+        value_id = f"{value_type.lower()}_id"
         descr_keys = _create_keys_string(descriptor, ('id', 'label',
                                                       'description', 'xrefs',
                                                       'alternate_labels'))
 
         query = f'''
         MERGE (descr:{descr_type} {{ {descr_keys} }})
-        MERGE (value:{value_type} {{ id:$value_id }})
+        MERGE (value:{value_type} {{ id:${value_id} }})
         MERGE (descr) -[:DESCRIBES]-> (value)
         '''
         try:
@@ -230,9 +229,10 @@ class Graph:
             return
 
         # prepare value properties
-        value_type = descriptor['value']['type']
-        descriptor['value_state'] = json.dumps(descriptor['value']['state'])
-        location = descriptor['value']['location']
+        value_type = descriptor['variation']['type']
+        descriptor['value_state'] = \
+            json.dumps(descriptor['variation']['state'])
+        location = descriptor['variation']['location']
         descriptor['value_location_type'] = location['type']
         descriptor['value_location_sequence_id'] = location['sequence_id']
         descriptor['value_location_interval_start'] = \
@@ -260,7 +260,7 @@ class Graph:
                                              'expressions_transcript',
                                              'expressions_genomic',
                                              'expressions_protein',
-                                             'ref_allele_seq'))]
+                                             'vrs_ref_allele_seq'))]
 
         # handle extensions
         variant_groups = None
@@ -280,7 +280,7 @@ class Graph:
         MERGE (descr:VariationDescriptor
             {{ {descriptor_keys} }})
         MERGE (value:{value_type}:Variation
-            {{id:$value_id,
+            {{id:$variation_id,
               state:$value_state,
               location_type:$value_location_type,
               location_sequence_id:$value_location_sequence_id,
@@ -409,8 +409,8 @@ class Graph:
     def _add_statement(tx, statement: Dict, added_ids: Set[str]):
         """Add Statement object to DB.
         :param Dict statement: must include `id`, `variation_descriptor`,
-            `therapy_descriptor`, `disease_descriptor`, `method`, and
-            `supported_by` fields.
+            `disease_descriptor`, `method`, and `supported_by` fields as well
+            as optional `therapy_descriptor` field
         :param set added_ids: IDs found in statements
         """
         formatted_keys = _create_keys_string(statement, ('id', 'description',
