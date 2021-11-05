@@ -299,15 +299,15 @@ class CIViCTransform(Transform):
             'id': '',
             'type': proposition_type,
             'predicate': predicate,
-            'subject': variation_descriptor['value_id'],
-            'object_qualifier': disease_descriptor['value']['id']
+            'subject': variation_descriptor['variation_id'],
+            'object_qualifier': disease_descriptor['disease_id']
         }
 
         if proposition_type == schemas.PropositionType.PROGNOSTIC.value:
             proposition = \
                 schemas.PrognosticProposition(**params).dict(exclude_none=True)
         elif proposition_type == schemas.PropositionType.PREDICTIVE.value:
-            params['object'] = therapy_descriptor['value']['id']
+            params['object'] = therapy_descriptor['therapy_id']
             proposition =\
                 schemas.TherapeuticResponseProposition(**params).dict(
                     exclude_none=True

@@ -230,9 +230,9 @@ class MOATransform(Transform):
             id="",
             type="therapeutic_response_proposition",
             predicate=predicate,
-            subject=variation_descriptors[0]['value_id'],
-            object_qualifier=disease_descriptors[0]['value']['id'],
-            object=therapy_descriptors[0]['value']['id']
+            subject=variation_descriptors[0]['variation_id'],
+            object_qualifier=disease_descriptors[0]['disease_id'],
+            object=therapy_descriptors[0]['therapy_id']
         ).dict(exclude_none=True)
 
         # Get corresponding id for proposition
