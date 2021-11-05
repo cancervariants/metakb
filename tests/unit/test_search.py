@@ -144,12 +144,13 @@ def assert_response_items(response, statement, proposition,
     assert response_statement['method'] == response_method['id']
     assert response_statement['supported_by'][0] == response_document['id']
 
-    assert proposition['subject'] == response_variation_descriptor['value_id']
+    assert proposition['subject'] == \
+           response_variation_descriptor['variation_id']
     assert proposition['object_qualifier'] == \
-           response_disease_descriptor['value']['id']
+           response_disease_descriptor['disease_id']
     if therapy_descriptor:
         assert proposition['object'] == \
-               response_therapy_descriptor['value']['id']
+               response_therapy_descriptor['therapy_id']
 
     assert response_variation_descriptor['gene_context'] == \
            response_gene_descriptor['id']
@@ -591,14 +592,15 @@ def test_moa_detail_flag(query_handler, moa_aid70_statement,
                          check_variation_descriptor, check_descriptor,
                          check_method, check_document):
     """Test that detail flag works correctly for MOA."""
-    response = query_handler.search(statement_id='moa.assertion:70',
+    response = query_handler.search(statement_id='moa.assertion:71',
                                     detail=False)
     assert_keys_for_detail_false(response.keys())
 
-    response = query_handler.search(statement_id='moa.assertion:70',
+    response = query_handler.search(statement_id='moa.assertion:71',
                                     detail=True)
     moa_vid70['expressions'] = []
     assert_keys_for_detail_true(response.keys(), response)
+    print(response)
     assert_response_items(response, moa_aid70_statement, moa_aid70_proposition,
                           moa_vid70, moa_abl1,
                           moa_chronic_myelogenous_leukemia, method004,
@@ -679,10 +681,10 @@ def test_moa_id_search(query_handler, moa_aid70_statement,
                        method004, check_statement, check_variation_descriptor,
                        check_descriptor, check_method, check_document):
     """Test search on moa node id"""
-    res = query_handler.search_by_id('moa.assertion:70')
+    res = query_handler.search_by_id('moa.assertion:71')
     check_statement(res['statement'], moa_aid70_statement)
 
-    res = query_handler.search_by_id('moa.variant:70')
+    res = query_handler.search_by_id('moa.variant:71')
     moa_vid70['expressions'] = []
     check_variation_descriptor(res['variation_descriptor'], moa_vid70)
 
