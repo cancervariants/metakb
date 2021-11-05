@@ -5,6 +5,8 @@ import logging
 import metakb.schemas as schemas
 from .base import Transform
 from urllib.parse import quote
+from ga4gh.vrsatile.pydantic.vrsatile_model import VariationDescriptor,\
+    Extension, GeneDescriptor, ValueObjectDescriptor
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -298,11 +300,11 @@ class MOATransform(Transform):
 
         gene_context = g_descriptors[0]['id'] if g_descriptors else None
 
-        variation_descriptor = schemas.VariationDescriptor(
+        variation_descriptor = VariationDescriptor(
             id=f"moa.variant:{variant['id']}",
             label=variant['feature'],
-            value_id=v_norm_resp['variation_id'],
-            value=v_norm_resp['variation'],
+            variation_id=v_norm_resp['variation_id'],
+            variation=v_norm_resp['variation'],
             gene_context=gene_context,
             vrs_ref_allele_seq=vrs_ref_allele_seq,
             extensions=self._get_variant_extensions(variant)
@@ -321,7 +323,7 @@ class MOATransform(Transform):
                       'cdna_change', 'protein_change', 'exon']
 
         extensions = [
-            schemas.Extension(
+            Extension(
                 name='moa_representative_coordinate',
                 value={c: variant[c] for c in coordinate}
             ).dict(exclude_none=True)
@@ -329,7 +331,7 @@ class MOATransform(Transform):
 
         if variant['rsid']:
             extensions.append(
-                schemas.Extension(
+                Extension(
                     name='moa_rsid',
                     value=variant['rsid']
                 ).dict(exclude_none=True)
@@ -352,11 +354,11 @@ class MOATransform(Transform):
                 _, normalized_gene_id = \
                     self.vicc_normalizers.normalize_gene([gene])
                 if normalized_gene_id:
-                    gene_descriptor = schemas.GeneDescriptor(
+                    gene_descriptor = GeneDescriptor(
                         id=f"{schemas.SourceName.MOA.value}.normalize."
                            f"{schemas.NormalizerPrefix.GENE.value}:{quote(gene)}",  # noqa: E501
                         label=gene,
-                        value=schemas.Gene(id=normalized_gene_id),
+                        gene_id=normalized_gene_id,
                     ).dict(exclude_none=True)
                 else:
                     logger.warning(f"Gene Normalizer unable to "
@@ -427,12 +429,12 @@ class MOATransform(Transform):
             return []
 
         if normalized_therapy_id:
-            therapy_descriptor = schemas.ValueObjectDescriptor(
+            therapy_descriptor = ValueObjectDescriptor(
                 id=f"{schemas.SourceName.MOA.value}."
                    f"{therapy_norm_resp['therapy_descriptor']['id']}",
                 type="TherapyDescriptor",
                 label=label,
-                value=schemas.Drug(id=normalized_therapy_id)
+                therapy_id=normalized_therapy_id
             ).dict(exclude_none=True)
         else:
             return []
@@ -458,12 +460,12 @@ class MOATransform(Transform):
                            f"{ot_code} and {disease_name}")
             return []
 
-        disease_descriptor = schemas.ValueObjectDescriptor(
+        disease_descriptor = ValueObjectDescriptor(
             id=f"{schemas.SourceName.MOA.value}."
                f"{disease_norm_resp['disease_descriptor']['id']}",
             type="DiseaseDescriptor",
             label=disease_name,
-            value=schemas.Disease(id=normalized_disease_id),
+            disease_id=normalized_disease_id,
         ).dict(exclude_none=True)
 
         return [disease_descriptor]
