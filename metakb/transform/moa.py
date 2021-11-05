@@ -281,7 +281,7 @@ class MOATransform(Transform):
         :param: single assertion record from MOA
         :return: list of variation descriptor
         """
-        ref_allele_seq = variant['protein_change'][2] \
+        vrs_ref_allele_seq = variant['protein_change'][2] \
             if 'protein_change' in variant and variant['protein_change'] else None  # noqa: E501
 
         v_norm_resp = None
@@ -304,7 +304,7 @@ class MOATransform(Transform):
             value_id=v_norm_resp['variation_id'],
             value=v_norm_resp['variation'],
             gene_context=gene_context,
-            ref_allele_seq=ref_allele_seq,
+            vrs_ref_allele_seq=vrs_ref_allele_seq,
             extensions=self._get_variant_extensions(variant)
         ).dict(exclude_none=True)
 
