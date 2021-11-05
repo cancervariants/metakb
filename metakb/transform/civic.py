@@ -5,6 +5,8 @@ from metakb import APP_ROOT
 import json
 import logging
 import metakb.schemas as schemas
+from ga4gh.vrsatile.pydantic.vrsatile_model import VariationDescriptor, \
+    Extension, Expression, GeneDescriptor, ValueObjectDescriptor
 
 
 logger = logging.getLogger('metakb')
@@ -477,12 +479,12 @@ class CIViCTransform(Transform):
             else:
                 structural_type = None
 
-            variation_descriptor = schemas.VariationDescriptor(
+            variation_descriptor = VariationDescriptor(
                 id=variant_id,
                 label=variant['name'],
                 description=variant['description'] if variant['description'] else None,  # noqa: E501
-                value_id=variation_norm_resp['variation_id'],
-                value=variation_norm_resp['variation'],
+                variation_id=variation_norm_resp['variation_id'],
+                variation=variation_norm_resp['variation'],
                 gene_context=f"civic.gid:{variant['gene_id']}",
                 structural_type=structural_type,
                 expressions=hgvs_exprs,
@@ -505,12 +507,12 @@ class CIViCTransform(Transform):
         :return: A list of extensions
         """
         extensions = [
-            schemas.Extension(
+            Extension(
                 name='civic_representative_coordinate',
                 value={k: v for k, v in variant['coordinates'].items()
                        if v is not None}
             ).dict(exclude_none=True),
-            schemas.Extension(
+            Extension(
                 name='civic_actionability_score',
                 value=variant['civic_actionability_score']
             ).dict(exclude_none=True)
@@ -529,7 +531,7 @@ class CIViCTransform(Transform):
                 if v_group['description'] == '':
                     del params['description']
                 v_groups.append(params)
-            extensions.append(schemas.Extension(
+            extensions.append(Extension(
                 name='variant_group',
                 value=v_groups
             ).dict(exclude_none=True))
@@ -577,8 +579,8 @@ class CIViCTransform(Transform):
                 syntax = 'hgvs:protein'
             if hgvs_expr != 'N/A':
                 hgvs_expressions.append(
-                    schemas.Expression(syntax=syntax,
-                                       value=hgvs_expr).dict(exclude_none=True)
+                    Expression(syntax=syntax,
+                               value=hgvs_expr).dict(exclude_none=True)
                 )
         return hgvs_expressions
 
@@ -596,11 +598,11 @@ class CIViCTransform(Transform):
                 self.vicc_normalizers.normalize_gene(queries)
 
             if normalized_gene_id:
-                gene_descriptor = schemas.GeneDescriptor(
+                gene_descriptor = GeneDescriptor(
                     id=gene_id,
                     label=gene['name'],
                     description=gene['description'] if gene['description'] else None,  # noqa: E501
-                    value=schemas.Gene(id=normalized_gene_id),
+                    gene_id=normalized_gene_id,
                     alternate_labels=gene['aliases'],
                     xrefs=[ncbigene]
                 ).dict(exclude_none=True)
@@ -610,7 +612,7 @@ class CIViCTransform(Transform):
                                f"using queries: {queries}")
 
     def _add_disease_descriptor(self, disease_id, record) \
-            -> Optional[schemas.ValueObjectDescriptor]:
+            -> Optional[ValueObjectDescriptor]:
         """Add disease ID to list of valid or invalid transformations.
 
         :param str disease_id: The CIViC ID for the disease
@@ -634,7 +636,7 @@ class CIViCTransform(Transform):
             return disease_descriptor
 
     def _get_disease_descriptors(self, disease) \
-            -> Optional[schemas.ValueObjectDescriptor]:
+            -> Optional[ValueObjectDescriptor]:
         """Get a disease descriptor.
 
         :param dict disease: A CIViC disease record
@@ -664,17 +666,17 @@ class CIViCTransform(Transform):
                            f"{disease_id} using queries {queries}")
             return None
 
-        disease_descriptor = schemas.ValueObjectDescriptor(
+        disease_descriptor = ValueObjectDescriptor(
             id=disease_id,
             type="DiseaseDescriptor",
             label=display_name,
-            value=schemas.Disease(id=normalized_disease_id),
+            disease_id=normalized_disease_id,
             xrefs=xrefs if xrefs else None
         ).dict(exclude_none=True)
         return disease_descriptor
 
     def _add_therapy_descriptor(self, therapy_id, record)\
-            -> Optional[schemas.ValueObjectDescriptor]:
+            -> Optional[ValueObjectDescriptor]:
         """Add therapy ID to list of valid or invalid transformations.
 
         :param str therapy_id: The CIViC ID for the drug
@@ -698,7 +700,7 @@ class CIViCTransform(Transform):
             return therapy_descriptor
 
     def _get_therapy_descriptor(self, drug) \
-            -> Optional[schemas.ValueObjectDescriptor]:
+            -> Optional[ValueObjectDescriptor]:
         """Get a therapy descriptor.
 
         :param dict drug: A CIViC drug record
@@ -717,11 +719,11 @@ class CIViCTransform(Transform):
                            f"using queries {ncit_id} and {label}")
             return None
 
-        therapy_descriptor = schemas.ValueObjectDescriptor(
+        therapy_descriptor = ValueObjectDescriptor(
             id=therapy_id,
             type="TherapyDescriptor",
             label=label,
-            value=schemas.Drug(id=normalized_therapy_id),
+            therapy_id=normalized_therapy_id,
             alternate_labels=drug['aliases'],
             xrefs=[ncit_id]
         ).dict(exclude_none=True)
