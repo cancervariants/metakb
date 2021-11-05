@@ -3,6 +3,8 @@ from enum import Enum, IntEnum
 from pydantic import BaseModel
 from typing import List, Optional, Union, Dict, Any, Type
 from pydantic.types import StrictBool
+from ga4gh.vrsatile.pydantic.vrsatile_model import ValueObjectDescriptor, \
+    GeneDescriptor, VariationDescriptor
 
 
 class SourceName(str, Enum):
@@ -30,7 +32,7 @@ class SourcePrefix(str, Enum):
 
 
 class NormalizerPrefix(str, Enum):
-    """Define contraints for normalizer prefixes."""
+    """Define constraints for normalizer prefixes."""
 
     GENE = 'gene'
 
@@ -107,37 +109,6 @@ class MoleculeContext(str, Enum):
     GENOMIC = 'genomic'
     TRANSCRIPT = 'transcript'
     PROTEIN = 'protein'
-
-
-class ValueObject(BaseModel):
-    """Define model for value object."""
-
-    id: str
-    type: str
-
-
-class Gene(ValueObject):
-    """GA4GH Gene Value Object."""
-
-    type = "Gene"
-
-
-class Disease(ValueObject):
-    """Disease Value Object"""
-
-    type = "Disease"
-
-
-class Therapy(ValueObject):
-    """A procedure or substance used in the treatment of a disease."""
-
-    type = "Therapy"
-
-
-class Drug(Therapy):
-    """A pharmacologic substance used to treat a medical condition."""
-
-    type = "Drug"
 
 
 class Proposition(BaseModel):
@@ -267,70 +238,6 @@ class Method(BaseModel):
     version: Date
     authors: str
     type = 'Method'
-
-
-class Extension(BaseModel):
-    """Extend descriptions with other attributes unique to a content provider. -GA4GH"""  # noqa: E501
-
-    name: str
-    value: Union[str, dict, List]
-    type = 'Extension'
-
-
-class Expression(BaseModel):
-    """Enable descriptions based on a specified nomenclature or syntax for representing an object. - GA4GH"""  # noqa: E501
-
-    type = 'Expression'
-    syntax: str
-    value: str
-    version: Optional[str]
-
-
-class ValueObjectDescriptor(BaseModel):
-    """GA4GH Value Object Descriptor."""
-
-    id: str
-    type: str
-    label: Optional[str]
-    description: Optional[str]
-    value_id: Optional[str]
-    value: Optional[dict]
-    xrefs: Optional[List[str]]
-    alternate_labels: Optional[List[str]]
-    extensions: Optional[List[Extension]]
-
-
-class GeneDescriptor(ValueObjectDescriptor):
-    """Reference GA4GH Gene Value Objects."""
-
-    type = 'GeneDescriptor'
-    value: Gene
-
-
-class SequenceDescriptor(ValueObjectDescriptor):
-    """Reference GA4GH Sequence value objects."""
-
-    type = 'SequenceDescriptor'
-    residue_type: Optional[str]
-
-
-class LocationDescriptor(ValueObjectDescriptor):
-    """Reference GA4GH Location value objects."""
-
-    type = 'LocationDescriptor'
-    sequence_descriptor: Optional[SequenceDescriptor]
-
-
-class VariationDescriptor(ValueObjectDescriptor):
-    """Reference GA4GH Variation value objects."""
-
-    type = 'VariationDescriptor'
-    molecule_context: Optional[MoleculeContext]
-    structural_type: Optional[str]
-    expressions: Optional[List[Expression]]
-    extensions: Optional[List[Extension]]
-    ref_allele_seq: Optional[str]
-    gene_context: Optional[Union[str, GeneDescriptor]]
 
 
 class Response(BaseModel):
