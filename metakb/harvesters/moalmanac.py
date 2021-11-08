@@ -5,7 +5,7 @@ import requests_cache
 import logging
 
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.harvesters.moa')
 logger.setLevel(logging.DEBUG)
 
 

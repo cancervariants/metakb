@@ -8,7 +8,7 @@ from urllib.parse import quote
 from ga4gh.vrsatile.pydantic.vrsatile_model import VariationDescriptor,\
     Extension, GeneDescriptor, ValueObjectDescriptor
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.transform.moa')
 logger.setLevel(logging.DEBUG)
 
 
@@ -16,7 +16,8 @@ class MOATransform(Transform):
     """A class for transforming MOA resources to common data model."""
 
     def __init__(self,
-                 file_path=f"{APP_ROOT}/data/moa/moa_harvester.json"):
+                 file_path=f"{APP_ROOT}/data/moa/harvester"
+                           f"/moa_harvester.json"):
         """
         Initialize VICC normalizers and class attributes
 

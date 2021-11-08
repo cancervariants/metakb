@@ -3,7 +3,7 @@ from metakb.harvesters.base import Harvester
 from civicpy import civic as civicpy
 import logging
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.harvesters.civic')
 logger.setLevel(logging.DEBUG)
 
 

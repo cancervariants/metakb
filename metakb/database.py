@@ -11,7 +11,7 @@ import base64
 from botocore.exceptions import ClientError
 import ast
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.database')
 logger.setLevel(logging.DEBUG)
 
 
