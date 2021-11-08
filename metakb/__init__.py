@@ -26,6 +26,8 @@ logging.getLogger("urllib3").setLevel(logging.INFO)
 logging.getLogger("python_jsonschema_objects").setLevel(logging.INFO)
 logging.getLogger("hgvs.parser").setLevel(logging.INFO)
 logging.getLogger("biocommons.seqrepo.seqaliasdb.seqaliasdb").setLevel(logging.INFO)  # noqa: E501
+logging.getLogger("biocommons.seqrepo.fastadir.fastadir").setLevel(logging.INFO)  # noqa: E501
+logging.getLogger("requests_cache.patcher").setLevel(logging.INFO)
 logger.handlers = []
 
 if 'METAKB_NORM_EB_PROD' in environ:
