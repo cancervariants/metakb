@@ -1,7 +1,7 @@
 """Test MOAlmanac source"""
 import pytest
 from metakb import PROJECT_ROOT
-from metakb.harvesters.moalmanac import MOAlmanac
+from metakb.harvesters import MOAlmanacHarvester
 from mock import patch
 import json
 
@@ -9,7 +9,7 @@ import json
 @pytest.fixture(scope='module')
 def sources():
     """Create a list of sources."""
-    moa = MOAlmanac()
+    moa = MOAlmanacHarvester()
 
     return moa._harvest_sources()
 
@@ -31,7 +31,7 @@ def source66():
     }
 
 
-@patch.object(MOAlmanac, '_get_all_assertions')
+@patch.object(MOAlmanacHarvester, '_get_all_assertions')
 def test_source66(test_get_all_assertions, source66):
     """Test moa harvester works correctly for evidence."""
     with open(f"{PROJECT_ROOT}/tests/data/"
@@ -39,8 +39,8 @@ def test_source66(test_get_all_assertions, source66):
         data = json.load(f)
     test_get_all_assertions.return_value = data
 
-    assertion_resp = MOAlmanac()._get_all_assertions()
-    sources = MOAlmanac()._harvest_sources(assertion_resp)
+    assertion_resp = MOAlmanacHarvester()._get_all_assertions()
+    sources = MOAlmanacHarvester()._harvest_sources(assertion_resp)
 
     actual = None
     for s in sources:
