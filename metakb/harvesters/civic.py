@@ -7,7 +7,7 @@ logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
 
-class CIViC(Harvester):
+class CIViCHarvester(Harvester):
     """A class for the CIViC harvester."""
 
     def harvest(self, fn='civic_harvester.json'):

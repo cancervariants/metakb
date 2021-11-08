@@ -1,7 +1,7 @@
 """Test CIViC source"""
 import pytest
 from metakb import PROJECT_ROOT
-from metakb.harvesters.civic import CIViC
+from metakb.harvesters import CIViCHarvester
 from mock import patch
 import json
 
@@ -116,14 +116,14 @@ def lnscc():
     }
 
 
-@patch.object(CIViC, '_get_all_evidence')
+@patch.object(CIViCHarvester, '_get_all_evidence')
 def test_evidence(test_get_all_evidence, lnscc):
     """Test that CIViC harvest evidence method is correct."""
     with open(f"{PROJECT_ROOT}/tests/data/"
               f"harvesters/civic/evidence.json") as f:
         data = json.load(f)
     test_get_all_evidence.return_value = data
-    evidence = CIViC()._harvest_evidence()
+    evidence = CIViCHarvester()._harvest_evidence()
     evidence_item = None
     for ev in evidence:
         if ev['id'] == 3017:

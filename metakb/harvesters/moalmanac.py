@@ -9,7 +9,7 @@ logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
 
 
-class MOAlmanac(Harvester):
+class MOAlmanacHarvester(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
     def harvest(self, fn='moa_harvester.json'):

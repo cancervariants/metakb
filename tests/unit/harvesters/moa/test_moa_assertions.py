@@ -1,7 +1,7 @@
 """Test MOAlmanac assertions"""
 import pytest
 from metakb import PROJECT_ROOT
-from metakb.harvesters.moalmanac import MOAlmanac
+from metakb.harvesters import MOAlmanacHarvester
 from mock import patch
 import json
 
@@ -50,8 +50,8 @@ def assertion168():
     }
 
 
-@patch.object(MOAlmanac, '_get_all_variants')
-@patch.object(MOAlmanac, '_get_all_assertions')
+@patch.object(MOAlmanacHarvester, '_get_all_variants')
+@patch.object(MOAlmanacHarvester, '_get_all_assertions')
 def test_assertion_168(test_get_all_assertions, test_get_all_variants,
                        assertion168):
     """Test moa harvester works correctly for assertions."""
@@ -65,9 +65,10 @@ def test_assertion_168(test_get_all_assertions, test_get_all_variants,
         data = json.load(f)
     test_get_all_variants.return_value = data
 
-    assertion_resp = MOAlmanac()._get_all_assertions()
-    variants, variants_list = MOAlmanac()._harvest_variants()
-    assertions = MOAlmanac()._harvest_assertions(assertion_resp, variants_list)
+    assertion_resp = MOAlmanacHarvester()._get_all_assertions()
+    variants, variants_list = MOAlmanacHarvester()._harvest_variants()
+    assertions = MOAlmanacHarvester()._harvest_assertions(assertion_resp,
+                                                          variants_list)
 
     actual = None
     for a in assertions:

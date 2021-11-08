@@ -7,7 +7,7 @@ from os import environ
 import logging
 from metakb.database import Graph
 from metakb import APP_ROOT
-from metakb.harvesters import CIViC, MOAlmanac
+from metakb.harvesters import CIViCHarvester, MOAlmanacHarvester
 from metakb.schemas import SourceName
 from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
@@ -124,8 +124,8 @@ class CLI:
         logger.info("Harvesting sources...")
         # TODO: Switch to using constant
         harvester_sources = {
-            'civic': CIViC,
-            'moa': MOAlmanac
+            'civic': CIViCHarvester,
+            'moa': MOAlmanacHarvester
         }
         total_start = timer()
         for class_str, class_name in harvester_sources.items():
