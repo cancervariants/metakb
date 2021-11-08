@@ -100,7 +100,9 @@ class CLI:
 
         # upload
         start = timer()
-        logger.info("Uploading to DB...")
+        msg = "Loading neo4j database..."
+        click.echo(msg)
+        logger.info(msg)
         g = Graph(uri=db_url, credentials=(db_username, db_password))
         g.clear()
         for src in sorted({v.value for v in SourceName.__members__.values()}):
@@ -113,17 +115,19 @@ class CLI:
                 raise FileNotFoundError
         g.close()
         end = timer()
-        click.echo(f"DB loaded in {(end-start):.5f} s.")
-        logger.info("DB upload successful.")
+        msg = f"Successfully loaded neo4j database in {(end-start):.5f} s"
+        click.echo(msg)
+        logger.info(msg)
 
     @staticmethod
     def _harvest_sources():
-        logger.info("Harvesting resource data...")
+        logger.info("Harvesting sources...")
         # TODO: Switch to using constant
         harvester_sources = {
             'civic': CIViC,
             'moa': MOAlmanac
         }
+        total_start = timer()
         for class_str, class_name in harvester_sources.items():
             harvest_start = f"Harvesting {class_str}..."
             click.echo(harvest_start)
@@ -136,20 +140,26 @@ class CLI:
                 logger.info(f'{class_str} harvest failed.')
                 click.get_current_context().exit()
             harvest_finish = \
-                f"{class_str} harvest finished in {(end-start):.5f} s."
+                f"{class_str} harvest finished in {(end-start):.5f} s"
             click.echo(harvest_finish)
             logger.info(harvest_finish)
+        total_end = timer()
+        msg = f"Successfully harvested all sources in " \
+              f"{(total_end-total_start):.5f} s"
+        click.echo(msg)
+        logger.info(msg)
 
     @staticmethod
     def _transform_sources():
         from metakb.transform import CIViCTransform, MOATransform
-        logger.info("Transforming harvested data...")
+        logger.info("Transforming harvested data to CDM...")
         source_indices = None
         # TODO: Switch to using constant
         transform_sources = {
             'civic': CIViCTransform,
             'moa': MOATransform
         }
+        total_start = timer()
         for class_str, class_name in transform_sources.items():
             transform_start = f"Transforming {class_str}..."
             click.echo(transform_start)
@@ -163,6 +173,11 @@ class CLI:
             click.echo(transform_end)
             logger.info(transform_end)
             source._create_json()
+        total_end = timer()
+        msg = f"Successfully transformed all sources to CDM in " \
+              f"{(total_end-total_start):.5f} s"
+        click.echo(msg)
+        logger.info(msg)
 
     def _handle_initialize(self, force_initialize):
         """Handle initialization of normalizer data.
