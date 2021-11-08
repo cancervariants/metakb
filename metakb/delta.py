@@ -9,7 +9,7 @@ HARVESTER_CLASS = {
     'civic': CIViCHarvester,
     'moa': MOAlmanacHarvester
 }
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.delta')
 logger.setLevel(logging.DEBUG)
 
 

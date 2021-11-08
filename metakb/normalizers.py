@@ -6,7 +6,7 @@ from disease.query import QueryHandler as DiseaseQueryHandler
 from gene.query import QueryHandler as GeneQueryHandler
 import logging
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.normalizers')
 logger.setLevel(logging.DEBUG)
 
 

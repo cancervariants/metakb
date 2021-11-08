@@ -9,7 +9,7 @@ from ga4gh.vrsatile.pydantic.vrsatile_model import VariationDescriptor, \
     Extension, Expression, GeneDescriptor, ValueObjectDescriptor
 
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.transform.civic')
 logger.setLevel(logging.DEBUG)
 
 
@@ -17,7 +17,7 @@ class CIViCTransform(Transform):
     """A class for transforming CIViC to the common data model."""
 
     def __init__(self,
-                 file_path=f"{APP_ROOT}/data/civic"
+                 file_path=f"{APP_ROOT}/data/civic/harvester"
                            f"/civic_harvester.json") -> None:
         """Initialize CIViC Transform class.
 

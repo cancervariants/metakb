@@ -43,7 +43,7 @@ class Harvester:
         :return: `True` if JSON creation was successful. `False` otherwise.
         """
         composite_dict = dict()
-        src_dir = APP_ROOT / 'data' / src
+        src_dir = APP_ROOT / 'data' / src / 'harvester'
         src_dir.mkdir(exist_ok=True, parents=True)
         try:
             for arg_name in kwargs:

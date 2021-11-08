@@ -13,7 +13,7 @@ from json.decoder import JSONDecodeError
 from urllib.parse import quote
 
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.query')
 logger.setLevel(logging.DEBUG)
 
 

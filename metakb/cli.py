@@ -21,7 +21,7 @@ from gene.cli import CLI as GeneCLI
 from timeit import default_timer as timer
 
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.cli')
 logger.setLevel(logging.DEBUG)
 
 
@@ -116,7 +116,7 @@ class CLI:
         g.close()
         end = timer()
         msg = f"Successfully loaded neo4j database in {(end-start):.5f} s"
-        click.echo(msg)
+        click.echo(f"{msg}\n")
         logger.info(msg)
 
     @staticmethod
@@ -146,7 +146,7 @@ class CLI:
         total_end = timer()
         msg = f"Successfully harvested all sources in " \
               f"{(total_end-total_start):.5f} s"
-        click.echo(msg)
+        click.echo(f"{msg}\n")
         logger.info(msg)
 
     @staticmethod
@@ -176,7 +176,7 @@ class CLI:
         total_end = timer()
         msg = f"Successfully transformed all sources to CDM in " \
               f"{(total_end-total_start):.5f} s"
-        click.echo(msg)
+        click.echo(f"{msg}\n")
         logger.info(msg)
 
     def _handle_initialize(self, force_initialize):
@@ -211,7 +211,7 @@ class CLI:
             name = str(source_cli).split()[1].split('.')[0][1:].capitalize()
             click.echo(f'\nUpdating {name} Normalizer...')
             self._update_normalizer_db(init_source, source_cli, args)
-        click.echo("Normalizer initialization complete.")
+        click.echo("Normalizer initialization complete.\n")
 
     @staticmethod
     def _check_normalizer(db, sources) -> bool:
