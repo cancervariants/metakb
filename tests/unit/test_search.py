@@ -600,7 +600,6 @@ def test_moa_detail_flag(query_handler, moa_aid70_statement,
                                     detail=True)
     moa_vid70['expressions'] = []
     assert_keys_for_detail_true(response.keys(), response)
-    print(response)
     assert_response_items(response, moa_aid70_statement, moa_aid70_proposition,
                           moa_vid70, moa_abl1,
                           moa_chronic_myelogenous_leukemia, method004,
