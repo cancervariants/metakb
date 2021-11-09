@@ -9,7 +9,7 @@ def test_harvest():
     assert not MOAlmanacHarvester().harvest(fn='')
     fn = 'test_moa_harvester.json'
     assert MOAlmanacHarvester().harvest(fn=fn)
-    file_path = APP_ROOT / 'data' / 'moa' / fn
+    file_path = APP_ROOT / 'data' / 'moa' / 'harvester' / fn
     assert file_path.exists()
     os.remove(file_path)
     assert not file_path.exists()
