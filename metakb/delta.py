@@ -52,7 +52,7 @@ class Delta:
             # Want to create updated harvester file
             fn = f"{self._src}_harvester_{current_date}.json"
             HARVESTER_CLASS[self._src]().harvest(fn=fn)
-            with open(f"{APP_ROOT}/data/{self._src}/{fn}", 'r') as f:
+            with open(f"{APP_ROOT}/data/{self._src}/harvester/{fn}", 'r') as f:
                 updated_json = json.load(f)
 
         delta = {
@@ -140,7 +140,7 @@ class Delta:
         :param dict delta: A dictionary containing deltas.
         :param str current_date: The current date
         """
-        src_dir = APP_ROOT / 'data' / self._src
+        src_dir = APP_ROOT / 'data' / self._src / 'delta'
         src_dir.mkdir(exist_ok=True, parents=True)
 
         with open(f"{src_dir}/{self._src}_deltas_{current_date}.json",

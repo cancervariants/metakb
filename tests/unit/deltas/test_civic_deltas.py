@@ -1,6 +1,6 @@
 """Test CIViC deltas."""
 import pytest
-from metakb import PROJECT_ROOT
+from metakb import PROJECT_ROOT, APP_ROOT
 from metakb.delta import Delta
 from datetime import date
 import json
@@ -141,7 +141,7 @@ def test_compute_delta(civic, diff):
     # Test when _updated_json is not in kwargs
     cd = Delta(MAIN_JSON, 'civic')
     cd.compute_delta()
-    fn = PROJECT_ROOT / 'data' / 'civic' / \
+    fn = APP_ROOT / 'data' / 'civic' / 'harvester' / \
         f"civic_harvester_{date.today().strftime('%Y%m%d')}.json"
     assert fn.exists()
     os.remove(fn)
@@ -190,8 +190,8 @@ def test_create_json(civic, diff):
     """Test that _create_json method is correct."""
     test_date = '19980108'
     civic._create_json(diff, test_date)
-    file_name = PROJECT_ROOT / 'data' / 'civic' / f'civic_deltas_' \
-                                                  f'{test_date}.json'
+    file_name = APP_ROOT / 'data' / 'civic' / 'delta' / f'civic_deltas' \
+                                                        f'_{test_date}.json'
     assert file_name.exists()
     os.remove(file_name)
     assert not file_name.exists()
