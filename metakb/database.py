@@ -229,18 +229,8 @@ class Graph:
             return
 
         # prepare value properties
-        value_type = descriptor['variation']['type']
-        descriptor['value_state'] = \
-            json.dumps(descriptor['variation']['state'])
-        location = descriptor['variation']['location']
-        descriptor['value_location_type'] = location['type']
-        descriptor['value_location_sequence_id'] = location['sequence_id']
-        descriptor['value_location_interval_start'] = \
-            location['interval']['start']
-        descriptor['value_location_interval_end'] = location['interval']['end']
-        descriptor['value_location_interval_type'] = \
-            location['interval']['type']
-
+        variation_type = descriptor['variation']['type']
+        descriptor['variation'] = json.dumps(descriptor['variation'])
         # prepare descriptor properties
         expressions = descriptor.get('expressions')
         if expressions:
@@ -279,14 +269,9 @@ class Graph:
         query = f"""
         MERGE (descr:VariationDescriptor
             {{ {descriptor_keys} }})
-        MERGE (value:{value_type}:Variation
+        MERGE (value:{variation_type}:Variation
             {{id:$variation_id,
-              state:$value_state,
-              location_type:$value_location_type,
-              location_sequence_id:$value_location_sequence_id,
-              location_interval_start:$value_location_interval_start,
-              location_interval_end:$value_location_interval_end,
-              location_interval_type:$value_location_interval_type
+              variation:$variation
               }})
         MERGE (gene_context:GeneDescriptor {{id:$gene_context}} )
         MERGE (descr) -[:DESCRIBES]-> (value)

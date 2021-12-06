@@ -1,7 +1,6 @@
 """Module for queries."""
+from ga4gh.vrsatile.pydantic.vrsatile_model import Extension, Expression
 from metakb.normalizers import VICCNormalizers
-from ga4gh.vrsatile.pydantic.vrs_model import Allele, SequenceLocation, \
-    SequenceInterval, Number, SequenceState
 from metakb.schemas import SearchService, StatementResponse, \
     TherapeuticResponseProposition, VariationDescriptor,\
     ValueObjectDescriptor, GeneDescriptor, Method, \
@@ -71,9 +70,8 @@ class QueryHandler:
         if variant_norm_resp:
             normalized_variation = variant_norm_resp['variation_id']
         if not normalized_variation:
-            # Check if VRS object
-            lower_variation = variation.lower()
-            if lower_variation.startswith('ga4gh:va.') or lower_variation.startswith('ga4gh:sq.'):  # noqa: E501
+            # Check if VRS variation (allele, cnv, or haplotype)
+            if variation.startswith(("ga4gh:VA.", "ga4gh:CNV.", "ga4gh:VH.")):
                 normalized_variation = variation
             else:
                 warnings.append(f'Variant Normalizer unable to normalize: '
@@ -355,72 +353,50 @@ class QueryHandler:
             if key in keys:
                 for value in variation_descriptor.get(key):
                     vd_params['expressions'].append(
-                        {
-                            'syntax': f"hgvs:{key.split('_')[-1]}",
-                            'value': value,
-                            'type': 'Expression'
-                        }
+                        Expression(
+                            syntax=f"hgvs:{key.split('_')[-1]}",
+                            value=value
+                        ).dict()
                     )
         # Get Variation Descriptor Extensions
         if vd_params['id'].startswith('civic.vid'):
-            if 'civic_representative_coordinate' in keys:
-                vd_params['extensions'].append({
-                    'name': 'civic_representative_coordinate',
-                    'value': json.loads(
-                        variation_descriptor.get(
-                            'civic_representative_coordinate'
-                        )
-                    ),
-                    'type': 'Extension'
-                })
-            if 'civic_actionability_score' in keys:
-                vd_params['extensions'].append({
-                    'name': 'civic_actionability_score',
-                    'value': json.loads(
-                        variation_descriptor.get('civic_actionability_score')
-                    ),
-                    'type': 'Extension'
-                })
+            for field in ['civic_representative_coordinate',
+                          'civic_actionability_score']:
+                if field in keys:
+                    vd_params['extensions'].append(
+                        Extension(
+                            name=field,
+                            value=json.loads(variation_descriptor.get(field))
+                        ).dict()
+                    )
             with self.driver.session() as session:
                 variant_group = session.read_transaction(
                     self._get_variation_group, vid
                 )
                 if variant_group:
                     variant_group = variant_group[0]
-                    vg = {
-                        'name': 'variant_group',
-                        'value': [
-                            {
-                                'id': variant_group.get('id'),
-                                'label': variant_group.get('label'),
-                                'description':
-                                    variant_group.get('description'),
-                                'type': 'variant_group'
-                            }
-                        ],
-                        'type': 'Extension'
-                    }
+                    vg = Extension(
+                        name='variant_group',
+                        value=[{
+                            'id': variant_group.get('id'),
+                            'label': variant_group.get('label'),
+                            'description': variant_group.get('description'),
+                            'type': 'variant_group'
+                        }]
+                    ).dict()
                     for v in vg['value']:
                         if not v['description']:
                             del v['description']
                     vd_params['extensions'].append(vg)
         elif vd_params['id'].startswith('moa.variant'):
-            if 'moa_representative_coordinate' in keys:
-                vd_params['extensions'].append({
-                    'name': 'moa_representative_coordinate',
-                    'value': json.loads(
-                        variation_descriptor.get(
-                            'moa_representative_coordinate'
-                        )
-                    ),
-                    'type': 'Extension'
-                })
-            if 'moa_rsid' in keys:
-                vd_params['extensions'].append({
-                    'name': 'moa_rsid',
-                    'value': json.loads(variation_descriptor.get('moa_rsid')),
-                    'type': 'Extension'
-                })
+            for field in ['moa_representative_coordinate', 'moa_rsid']:
+                if field in keys:
+                    vd_params['extensions'].append(
+                        Extension(
+                            name=field,
+                            value=json.loads(variation_descriptor.get(field))
+                        ).dict()
+                    )
 
         with self.driver.session() as session:
             value_object = session.read_transaction(
@@ -428,18 +404,7 @@ class QueryHandler:
             )
 
             vd_params['variation_id'] = value_object.get('id')
-            vd_params['variation'] = Allele(
-                location=SequenceLocation(
-                    interval=SequenceInterval(
-                        start=Number(value=value_object.get('location_interval_start')),  # noqa: E501
-                        end=Number(value=value_object.get('location_interval_end'))  # noqa: E501
-                    ),
-                    sequence_id=value_object.get('location_sequence_id')
-                ),
-                state=SequenceState(
-                    sequence=json.loads(value_object.get('state')).get('sequence')  # noqa: E501
-                )
-            )
+            vd_params['variation'] = json.loads(value_object['variation'])
 
         vd = VariationDescriptor(**vd_params)
         if by_id:
