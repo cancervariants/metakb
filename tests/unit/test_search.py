@@ -233,12 +233,6 @@ def test_civic_eid2997(query_handler, civic_eid2997_statement,
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
-    # Sequence ID
-    s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE')  # noqa: E501
-    check_statement(s, civic_eid2997_statement)
-    check_proposition(p, civic_eid2997_proposition)
-
     # Alt Label
     s, p = return_response(query_handler, statement_id,
                            variation='egfr Leu858ARG')
@@ -309,11 +303,6 @@ def test_civic_eid1409_statement(query_handler, civic_eid1409_statement,
                            variation='BRAF V600E')
     check_statement(s, civic_eid1409_statement)
 
-    # Sequence ID
-    s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:SQ.WaAJ_cXXn9YpMNfhcq9lnzIvaB9ALawo')  # noqa: E501
-    check_statement(s, civic_eid1409_statement)
-
     # # Alt Label
     s, p = return_response(query_handler, statement_id,
                            variation='braf val600glu')
@@ -374,11 +363,6 @@ def test_civic_aid6(query_handler, civic_aid6_statement, check_statement):
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
     s, p = return_response(query_handler, statement_id, variation='EGFR L858R')
-    check_statement(s, civic_aid6_statement)
-
-    # Sequence ID
-    s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE')  # noqa: E501
     check_statement(s, civic_aid6_statement)
 
     # Alt Label
