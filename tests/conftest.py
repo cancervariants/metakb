@@ -28,7 +28,7 @@ def civic_eid2997_proposition():
     return {
         "id": "proposition:001",
         "predicate": "predicts_sensitivity_to",
-        "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+        "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
         "object_qualifier": "ncit:C2926",
         "object": "rxcui:1430438",
         "type": "therapeutic_response_proposition"
@@ -43,9 +43,11 @@ def civic_vid33():
         "type": "VariationDescriptor",
         "label": "L858R",
         "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
-        "variation_id": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+        "variation_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
         "variation": {
+            "_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
             "location": {
+                "_id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",
                 "interval": {
                     "end": {"value": 858, "type": "Number"},
                     "start": {"value": 857, "type": "Number"},
@@ -56,7 +58,7 @@ def civic_vid33():
             },
             "state": {
                 "sequence": "R",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },
@@ -267,7 +269,7 @@ def civic_eid2_proposition():
     return {
         "id": "proposition:001",
         "predicate": "is_diagnostic_exclusion_criterion_for",
-        "subject": "ga4gh:VA.3Yv7t0YzME9W4xErQf7-eFWtqvdfmjgt",
+        "subject": "ga4gh:VA.bjWVYvXPaPbIRAfZvE0Uw_P-i36PGkAz",
         "object_qualifier": "ncit:C3868",
         "type": "diagnostic_proposition"
     }
@@ -281,9 +283,11 @@ def civic_vid99():
         "type": "VariationDescriptor",
         "label": "D842V",
         "description": "PDGFRA D842 mutations are characterized broadly as imatinib resistance mutations. This is most well characterized in gastrointestinal stromal tumors, but other cell lines containing these mutations have been shown to be resistant as well. Exogenous expression of the A842V mutation resulted in constitutive tyrosine phosphorylation of PDGFRA in the absence of ligand in 293T cells and cytokine-independent proliferation of the IL-3-dependent Ba/F3 cell line, both evidence that this is an activating mutation. In imatinib resistant cell lines, a number of other therapeutics have demonstrated efficacy. These include; crenolanib, sirolimus, and midostaurin (PKC412).",  # noqa: E501
-        "variation_id": "ga4gh:VA.3Yv7t0YzME9W4xErQf7-eFWtqvdfmjgt",
+        "variation_id": "ga4gh:VA.bjWVYvXPaPbIRAfZvE0Uw_P-i36PGkAz",
         "variation": {
+            "_id": "ga4gh:VA.bjWVYvXPaPbIRAfZvE0Uw_P-i36PGkAz",
             "location": {
+                "_id": "ga4gh:VSL.CvhzuX1-CV0in3YTnaq9xZGAPxmrkrFC",
                 "interval": {
                     "start": {"value": 841, "type": "Number"},
                     "end": {"value": 842, "type": "Number"},
@@ -294,7 +298,7 @@ def civic_vid99():
             },
             "state": {
                 "sequence": "V",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },
@@ -425,7 +429,7 @@ def civic_eid74_proposition():
     return {
         "id": "proposition:002",
         "predicate": "is_diagnostic_inclusion_criterion_for",
-        "subject": "ga4gh:VA.ifPUeUiHj0TkYmimFK7T7jvbucAsGKqa",
+        "subject": "ga4gh:VA.GweduWrfxV58YnSvUBfHPGOA-KCH_iIl",
         "object_qualifier": "ncit:C3879",
         "type": "diagnostic_proposition"
     }
@@ -439,9 +443,11 @@ def civic_vid113():
         "type": "VariationDescriptor",
         "label": "M918T",
         "description": "RET M819T is the most common somatically acquired mutation in medullary thyroid cancer (MTC). While there currently are no RET-specific inhibiting agents, promiscuous kinase inhibitors have seen some success in treating RET overactivity. Data suggests however, that the M918T mutation may lead to drug resistance, especially against the VEGFR-inhibitor motesanib. It has also been suggested that RET M819T leads to more aggressive MTC with a poorer prognosis.",  # noqa: E501
-        "variation_id": "ga4gh:VA.ifPUeUiHj0TkYmimFK7T7jvbucAsGKqa",
+        "variation_id": "ga4gh:VA.GweduWrfxV58YnSvUBfHPGOA-KCH_iIl",
         "variation": {
+            "_id": "ga4gh:VA.GweduWrfxV58YnSvUBfHPGOA-KCH_iIl",
             "location": {
+                "_id": "ga4gh:VSL.zkwClPQjjO0FqXWN46QRuiGgodhPjxqT",
                 "interval": {
                     "end": {"value": 918, "type": "Number"},
                     "start": {"value": 917, "type": "Number"},
@@ -452,7 +458,7 @@ def civic_vid113():
             },
             "state": {
                 "sequence": "T",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },
@@ -589,7 +595,7 @@ def civic_aid9_proposition():
     return {
         "id": "proposition:003",
         "predicate": "is_diagnostic_inclusion_criterion_for",
-        "subject": "ga4gh:VA.twWuxZk0p0Vn3NSkp0kwD1VgfNN2fvDm",
+        "subject": "ga4gh:VA.yuvNtv-SpNOzcGsKsNnnK0n026rbfp6T",
         "object_qualifier": "DOID:0080684",
         "type": "diagnostic_proposition"
     }
@@ -602,9 +608,11 @@ def civic_vid1686():
         "id": "civic.vid:1686",
         "type": "VariationDescriptor",
         "label": "G328V",
-        "variation_id": "ga4gh:VA.twWuxZk0p0Vn3NSkp0kwD1VgfNN2fvDm",
+        "variation_id": "ga4gh:VA.yuvNtv-SpNOzcGsKsNnnK0n026rbfp6T",
         "variation": {
+            "_id": "ga4gh:VA.yuvNtv-SpNOzcGsKsNnnK0n026rbfp6T",
             "location": {
+                "_id": "ga4gh:VSL.w84KcAESJfbxvPCwCvYpQajlkdPrfS12",
                 "interval": {
                     "end": {"value": 328, "type": "Number"},
                     "start": {"value": 327, "type": "Number"},
@@ -615,7 +623,7 @@ def civic_vid1686():
             },
             "state": {
                 "sequence": "V",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },
@@ -748,7 +756,7 @@ def civic_eid26_proposition():
     return {
         "id": "proposition:001",
         "predicate": "is_prognostic_of_worse_outcome_for",
-        "subject": "ga4gh:VA.EGLm8XWH3V17-VZw7vEygPmy4wHQ8mCf",
+        "subject": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
         "object_qualifier": "ncit:C3171",
         "type": "prognostic_proposition"
     }
@@ -762,12 +770,14 @@ def civic_vid65():
         "type": "VariationDescriptor",
         "label": "D816V",
         "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",  # noqa: E501
-        "variation_id": "ga4gh:VA.EGLm8XWH3V17-VZw7vEygPmy4wHQ8mCf",
+        "variation_id": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
         "variation": {
+            "_id": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
             "location": {
+                "_id": "ga4gh:VSL.67qWY-IcFDjFx5DttZ1-5ZMm3v_SC7jI",
                 "interval": {
-                    "end": {"value": 816, "type": "Number"},
-                    "start": {"value": 815, "type": "Number"},
+                    "end": {"value": 820, "type": "Number"},
+                    "start": {"value": 819, "type": "Number"},
                     "type": "SequenceInterval"
                 },
                 "sequence_id": "ga4gh:SQ.TcMVFj5kDODDWpiy1d_1-3_gOf4BYaAB",
@@ -775,7 +785,7 @@ def civic_vid65():
             },
             "state": {
                 "sequence": "V",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },
@@ -907,7 +917,7 @@ def civic_eid1756_proposition():
     return {
         "id": "proposition:002",
         "predicate": "is_prognostic_of_better_outcome_for",
-        "subject": "ga4gh:VA.V5IUMLhaM8Oo-oAClUZqb-gDPaIzIi-A",
+        "subject": "ga4gh:VA.Nq7ozfH2X6m1PGr_n38E-F0NZ7I9UASP",
         "object_qualifier": "ncit:C9005",
         "type": "prognostic_proposition"
     }
@@ -920,9 +930,11 @@ def civic_vid258():
         "id": "civic.vid:258",
         "type": "VariationDescriptor",
         "label": "A222V",
-        "variation_id": "ga4gh:VA.V5IUMLhaM8Oo-oAClUZqb-gDPaIzIi-A",
+        "variation_id": "ga4gh:VA.Nq7ozfH2X6m1PGr_n38E-F0NZ7I9UASP",
         "variation": {
+            "_id": "ga4gh:VA.Nq7ozfH2X6m1PGr_n38E-F0NZ7I9UASP",
             "location": {
+                "_id": "ga4gh:VSL._zGTVJ2unM-BjeDKxGl0IKZtKWQdfOxw",
                 "interval": {
                     "end": {"value": 222, "type": "Number"},
                     "start": {"value": 221, "type": "Number"},
@@ -933,7 +945,7 @@ def civic_vid258():
             },
             "state": {
                 "sequence": "V",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },
@@ -1096,7 +1108,7 @@ def moa_aid70_proposition():
     return {
         "id": "proposition:001",
         "predicate": "predicts_resistance_to",
-        "subject": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",
+        "subject": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
         "object_qualifier": "ncit:C3174",
         "object": "rxcui:282388",
         "type": "therapeutic_response_proposition"
@@ -1110,9 +1122,11 @@ def moa_vid70():
         "id": "moa.variant:71",
         "type": "VariationDescriptor",
         "label": "ABL1 p.T315I (Missense)",
-        "variation_id": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",
+        "variation_id": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
         "variation": {
+            "_id": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
             "location": {
+                "_id": "ga4gh:VSL.JkBiKTd3Kq-l0ZSOzCOJ1i60mh03hXb5",
                 "interval": {
                     "end": {"value": 315, "type": "Number"},
                     "start": {"value": 314, "type": "Number"},
@@ -1123,7 +1137,7 @@ def moa_vid70():
             },
             "state": {
                 "sequence": "I",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },

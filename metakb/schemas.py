@@ -1,11 +1,11 @@
 """Common data model"""
 from enum import Enum, IntEnum
 
-from ga4gh.vrsatile.pydantic.vrs_model import CURIE
+from ga4gh.vrsatile.pydantic.vrs_models import CURIE
 from pydantic import BaseModel
 from typing import List, Optional, Union, Dict, Any, Type
 from pydantic.types import StrictBool
-from ga4gh.vrsatile.pydantic.vrsatile_model import ValueObjectDescriptor, \
+from ga4gh.vrsatile.pydantic.vrsatile_models import ValueObjectDescriptor, \
     GeneDescriptor, VariationDescriptor
 
 

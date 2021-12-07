@@ -5,7 +5,7 @@ import logging
 import metakb.schemas as schemas
 from .base import Transform
 from urllib.parse import quote
-from ga4gh.vrsatile.pydantic.vrsatile_model import VariationDescriptor,\
+from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor,\
     Extension, GeneDescriptor, ValueObjectDescriptor
 
 logger = logging.getLogger('metakb.transform.moa')
@@ -133,7 +133,7 @@ class MOATransform(Transform):
                 disease_descriptors=disease_descriptors,
                 methods=methods,
                 documents=documents
-            ).dict(exclude_none=True)
+            ).dict(by_alias=True, exclude_none=True)
 
             cdm_assertions[f"moa:assertion_{record['id']}"] = response
 
@@ -227,26 +227,27 @@ class MOATransform(Transform):
         if not predicate:
             return []
 
-        proposition = schemas.TherapeuticResponseProposition(
-            id="",
-            type="therapeutic_response_proposition",
-            predicate=predicate,
-            subject=variation_descriptors[0]['variation_id'],
-            object_qualifier=disease_descriptors[0]['disease_id'],
-            object=therapy_descriptors[0]['therapy_id']
-        ).dict(exclude_none=True)
+        params = {
+            'id': '',
+            'type': schemas.PropositionType.PREDICTIVE,
+            'predicate': predicate,
+            'subject': variation_descriptors[0]['variation_id'],
+            'object_qualifier': disease_descriptors[0]['disease_id'],
+            'object': therapy_descriptors[0]['therapy_id']
+        }
 
         # Get corresponding id for proposition
-        key = (proposition['type'],
-               proposition['predicate'],
-               proposition['subject'],
-               proposition['object_qualifier'],
-               proposition['object'])
+        key = (params['type'],
+               params['predicate'],
+               params['subject'],
+               params['object_qualifier'],
+               params['object'])
 
         proposition_index = self._set_ix(propositions_ix,
                                          'propositions', key)
-        proposition['id'] = f"proposition:{proposition_index:03}"
-
+        params['id'] = f"proposition:{proposition_index:03}"
+        proposition = schemas.TherapeuticResponseProposition(
+            **params).dict(exclude_none=True)
         return [proposition]
 
     def _get_predicate(self, clin_sig):
@@ -309,8 +310,7 @@ class MOATransform(Transform):
             gene_context=gene_context,
             vrs_ref_allele_seq=vrs_ref_allele_seq,
             extensions=self._get_variant_extensions(variant)
-        ).dict(exclude_none=True)
-
+        ).dict(by_alias=True, exclude_none=True)
         return [variation_descriptor]
 
     def _get_variant_extensions(self, variant):
