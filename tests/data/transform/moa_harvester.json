@@ -1,7 +1,7 @@
 {
     "assertions": [
     	{
-	        "id": 70,
+	        "id": 71,
 	        "context": null,
 	        "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
 	        "disease": {
@@ -20,7 +20,7 @@
 	        "validated": true,
 	        "source_ids": 41,
 	        "variant": {
-	            "id": 70,
+	            "id": 71,
 	            "alternate_allele": "T",
 	            "cdna_change": "c.944C>T",
 	            "chromosome": "9",
@@ -50,7 +50,7 @@
 	],
     "variants": [
     	{
-	        "id": 70,
+	        "id": 71,
 	        "alternate_allele": "T",
 	        "cdna_change": "c.944C>T",
 	        "chromosome": "9",
