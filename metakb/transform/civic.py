@@ -5,7 +5,7 @@ from metakb import APP_ROOT
 import json
 import logging
 import metakb.schemas as schemas
-from ga4gh.vrsatile.pydantic.vrsatile_model import VariationDescriptor, \
+from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
     Extension, Expression, GeneDescriptor, ValueObjectDescriptor
 
 
@@ -303,6 +303,20 @@ class CIViCTransform(Transform):
             'object_qualifier': disease_descriptor['disease_id']
         }
 
+        if proposition_type == schemas.PropositionType.PREDICTIVE:
+            params['object'] = therapy_descriptor['therapy_id']
+
+        # Get corresponding id for proposition
+        key = (params['type'],
+               params['predicate'],
+               params['subject'],
+               params['object_qualifier'])
+        if proposition_type == schemas.PropositionType.PREDICTIVE.value:
+            key = key + (params['object'],)
+        proposition_index = self._set_ix(propositions_documents_ix,
+                                         'propositions', key)
+        params['id'] = f"proposition:{proposition_index:03}"
+
         if proposition_type == schemas.PropositionType.PROGNOSTIC.value:
             proposition = \
                 schemas.PrognosticProposition(**params).dict(exclude_none=True)
@@ -316,18 +330,8 @@ class CIViCTransform(Transform):
             proposition = \
                 schemas.DiagnosticProposition(**params).dict(
                     exclude_none=True)
-
-        # Get corresponding id for proposition
-        key = (proposition['type'],
-               proposition['predicate'],
-               proposition['subject'],
-               proposition['object_qualifier'])
-        if proposition_type == schemas.PropositionType.PREDICTIVE.value:
-            key = key + (proposition['object'],)
-        proposition_index = self._set_ix(propositions_documents_ix,
-                                         'propositions', key)
-        proposition['id'] = f"proposition:{proposition_index:03}"
-
+        else:
+            proposition = None
         return proposition
 
     def _get_proposition_type(self, evidence_type, is_evidence=True) -> str:
@@ -493,7 +497,7 @@ class CIViCTransform(Transform):
                                   variant['variant_aliases'] if not
                                   v_alias.startswith('RS')],
                 extensions=self._get_variant_extensions(variant)
-            ).dict(exclude_none=True)
+            ).dict(by_alias=True, exclude_none=True)
             self.valid_ids['variation_descriptors'][variant_id] = \
                 variation_descriptor
             self.transformed['variation_descriptors'].append(
