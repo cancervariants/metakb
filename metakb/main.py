@@ -47,7 +47,6 @@ detail_description = "Display all descriptors, methods, and documents."
 
 @app.get('/api/v2/search',
          summary=search_summary,
-         operation_id="getQueryResponse",
          response_description=search_response_description,
          response_model=SearchService,
          description=search_description,
@@ -64,6 +63,23 @@ def search(variation: Optional[str] = Query(None, description=v_description),
                         detail)
 
 
+@app.get('/api/v2/search/statements',
+         summary=search_summary,
+         response_description=search_response_description,
+         # response_model=SearchStatementsService,
+         description=search_description,
+         response_model_exclude_none=True)
+def get_statements(
+        variation: Optional[str] = Query(None, description=v_description),
+        disease: Optional[str] = Query(None, description=d_description),
+        therapy: Optional[str] = Query(None, description=t_description),
+        gene: Optional[str] = Query(None, description=g_description),
+        statement_id: Optional[str] = Query(None, description=s_description)):
+    """Return nested statements for queried concepts"""
+    return query.search_statements(
+        variation, disease, therapy, gene, statement_id)
+
+
 id_query_desc = ("Given Meta-KB statement_id, proposition_id, descriptor_id,"
                  " document_id, or method_id return the node content.")
 id_search_description = ("Return node of the queried node id.")
@@ -72,7 +88,6 @@ id_description = "Node ID to search"
 
 @app.get('/api/v2/search/{id}',
          summary=id_query_desc,
-         operation_id="getIDResponse",
          response_description=search_response_description,
          response_model=SearchIDService,
          description=id_search_description,

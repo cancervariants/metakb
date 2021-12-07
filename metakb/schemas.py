@@ -1,5 +1,7 @@
 """Common data model"""
 from enum import Enum, IntEnum
+
+from ga4gh.vrsatile.pydantic.vrs_model import CURIE
 from pydantic import BaseModel
 from typing import List, Optional, Union, Dict, Any, Type
 from pydantic.types import StrictBool
@@ -114,21 +116,21 @@ class MoleculeContext(str, Enum):
 class Proposition(BaseModel):
     """Define Proposition model."""
 
-    id: str
-    type: str
-    predicate: Optional[Union[PredictivePredicate, DiagnosticPredicate,
-                        PrognosticPredicate, PathogenicPredicate,
-                        FunctionalPredicate]]
-    subject: str  # vrs:Variation
-    object_qualifier: str  # vicc:Disease
+    id: CURIE
+    type: PropositionType
+    predicate: Union[PredictivePredicate, DiagnosticPredicate,
+                     PrognosticPredicate, PathogenicPredicate,
+                     FunctionalPredicate]
+    subject: CURIE  # vrs:Variation
+    object_qualifier: CURIE  # vicc:Disease
 
 
 class TherapeuticResponseProposition(Proposition):
     """Define therapeutic Response Proposition model"""
 
-    type = PropositionType.PREDICTIVE.value
-    predicate: Optional[PredictivePredicate]
-    object: str  # Therapy value object
+    type = PropositionType.PREDICTIVE
+    predicate: PredictivePredicate
+    object: CURIE  # vicc:Therapy
 
     class Config:
         """Configure examples."""
@@ -155,15 +157,15 @@ class TherapeuticResponseProposition(Proposition):
 class PrognosticProposition(Proposition):
     """Defines the Prognostic Proposition model."""
 
-    type = PropositionType.PROGNOSTIC.value
-    predicate: Optional[PrognosticPredicate]
+    type = PropositionType.PROGNOSTIC
+    predicate: PrognosticPredicate
 
 
 class DiagnosticProposition(Proposition):
     """Defines the Diagnostic Proposition model."""
 
-    type = PropositionType.DIAGNOSTIC.value
-    predicate: Optional[DiagnosticPredicate]
+    type = PropositionType.DIAGNOSTIC
+    predicate: DiagnosticPredicate
 
 
 class MethodID(IntEnum):
@@ -178,29 +180,29 @@ class MethodID(IntEnum):
 class Statement(BaseModel):
     """Define Statement model."""
 
-    id: str
+    id: CURIE
     type = 'Statement'
     description: str
     direction: Optional[Direction]
-    evidence_level: str
-    proposition: str
+    evidence_level: CURIE
+    proposition: CURIE
     variation_origin: Optional[VariationOrigin]
-    variation_descriptor: str
-    therapy_descriptor: Optional[str]
-    disease_descriptor: str
-    method: str
-    supported_by: List[str]
+    variation_descriptor: CURIE
+    therapy_descriptor: Optional[CURIE]
+    disease_descriptor: CURIE
+    method: CURIE
+    supported_by: List[CURIE]
     # contribution: str  TODO: After metakb first pass
 
 
 class Document(BaseModel):
     """Define model for Source."""
 
-    id: str
-    document_id: Optional[str]
+    id: CURIE
+    document_id: Optional[CURIE]
     label: str
     description: Optional[str]
-    xrefs: Optional[List[str]]
+    xrefs: Optional[List[CURIE]]
     type = 'Document'
 
 
@@ -232,7 +234,7 @@ class Date(BaseModel):
 class Method(BaseModel):
     """Define model for methods used in evidence curation and classifications."""  # noqa: E501
 
-    id: str
+    id: CURIE
     label: str
     url: str
     version: Date
@@ -258,18 +260,18 @@ class Response(BaseModel):
 class StatementResponse(BaseModel):
     """Define Statement Response for Search Endpoint."""
 
-    id: str
+    id: CURIE
     type = 'Statement'
     description: str
     direction: Optional[Direction]
-    evidence_level: str
+    evidence_level: CURIE
     variation_origin: Optional[VariationOrigin]
-    proposition: str
-    variation_descriptor: str
-    therapy_descriptor: Optional[str]
-    disease_descriptor: str
-    method: str
-    supported_by: List[str]
+    proposition: CURIE
+    variation_descriptor: CURIE
+    therapy_descriptor: Optional[CURIE]
+    disease_descriptor: CURIE
+    method: CURIE
+    supported_by: List[CURIE]
 
     class Config:
         """Configure examples."""
@@ -298,6 +300,23 @@ class StatementResponse(BaseModel):
                 ],
                 "type": "Statement"
             }
+
+
+class NestedStatementResponse(BaseModel):
+    """Define Statement Response for Search Endpoint."""
+
+    id: CURIE
+    type = 'Statement'
+    description: str
+    direction: Optional[Direction]
+    evidence_level: CURIE
+    variation_origin: Optional[VariationOrigin]
+    proposition: Proposition
+    variation_descriptor: VariationDescriptor
+    therapy_descriptor: Optional[ValueObjectDescriptor]
+    disease_descriptor: ValueObjectDescriptor
+    method: Method
+    supported_by: List[Union[Document, CURIE]]
 
 
 class SearchQuery(BaseModel):
@@ -330,11 +349,21 @@ class SearchQuery(BaseModel):
             }
 
 
+class SearchStatementsQuery(BaseModel):
+    """Queries for the Search Endpoint."""
+
+    variation: Optional[str]
+    disease: Optional[str]
+    therapy: Optional[str]
+    gene: Optional[str]
+    statement_id: Optional[str]
+
+
 class Matches(BaseModel):
     """Statements and Propositions that match the queried parameters."""
 
-    statements: Optional[List[str]]
-    propositions: Optional[List[str]]
+    statements: List[str]
+    propositions: List[str]
 
     class Config:
         """Configure examples."""
@@ -561,3 +590,12 @@ class SearchIDService(BaseModel):
                     }
                 ]
             }
+
+
+class SearchStatementsService(BaseModel):
+    """Define model for Search Statements Endpoint Response."""
+
+    query: SearchStatementsQuery
+    warnings: Optional[List[str]]
+    matches: Matches
+    statements: Optional[List[NestedStatementResponse]]
