@@ -196,7 +196,7 @@ def test_civic_eid2997(query_handler, civic_eid2997_statement,
 
     # Test search by Subject
     s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')  # noqa: E501
+                           variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA')  # noqa: E501
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
@@ -271,7 +271,7 @@ def test_civic_eid1409_statement(query_handler, civic_eid1409_statement,
 
     # Test search by Subject
     s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:VA.9dA0egRAIfVFDL1sdU1VP7HsBcG0-DtE')  # noqa: E501
+                           variation='ga4gh:VA.8JkgnqIgYqufNl-OV_hpRG_aWF9UFQCE')  # noqa: E501
     check_statement(s, civic_eid1409_statement)
 
     # Test search by Object
@@ -335,7 +335,7 @@ def test_civic_aid6(query_handler, civic_aid6_statement, check_statement):
 
     # Test search by Subject
     s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')  # noqa: E501
+                           variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA')  # noqa: E501
     check_statement(s, civic_aid6_statement)
 
     # Test search by Object
@@ -401,7 +401,7 @@ def test_multiple_parameters(query_handler):
 
     # Test EID2997 queries
     object_qualifier = 'ncit:C2926'
-    subject = 'ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR'
+    subject = 'ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA'
     object = 'rxcui:1430438'
     response = query_handler.search(
         variation='NP_005219.2:p.Leu858Arg',
@@ -425,7 +425,7 @@ def test_multiple_parameters(query_handler):
 
     # Test eid1409 queries
     object_qualifier = 'ncit:C3510'
-    subject = 'ga4gh:VA.9dA0egRAIfVFDL1sdU1VP7HsBcG0-DtE'
+    subject = 'ga4gh:VA.8JkgnqIgYqufNl-OV_hpRG_aWF9UFQCE'
     response = query_handler.search(
         variation=subject,
         disease='malignant trunk melanoma'
@@ -447,7 +447,7 @@ def test_multiple_parameters(query_handler):
     # CIViC EID2997
     response = query_handler.search(
         statement_id='civiC.eid:2997',
-        variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR'
+        variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA'
     )
     assert len(response['statements']) == 1
     assert len(response['propositions']) == 1
@@ -457,7 +457,7 @@ def test_multiple_parameters(query_handler):
     # CIViC AID6
     response = query_handler.search(
         statement_id='CIViC.AID:6',
-        variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR',
+        variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA',
         disease='ncit:C2926'
     )
     assert len(response['statements']) > 1
@@ -478,7 +478,7 @@ def test_multiple_parameters(query_handler):
 
     response = query_handler.search(
         disease='ncit:C2926',
-        variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR'
+        variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA'
     )
     statement_ids = list()
     for s in response['statements']:

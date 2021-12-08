@@ -38,9 +38,37 @@ def civic_eid2997(civic_eid2997_proposition, civic_vid33_with_gene,
     }
 
 
-def test_civic_eid2997(query_handler, civic_eid2997):
+def check_statement_assertions(
+        actual, test, check_proposition, check_variation_descriptor,
+        check_descriptor, check_method):
+    """Check that statement response is correct"""
+    for key in ["id", "type", "description", "direction", "evidence_level",
+                "variation_origin", "method"]:
+        assert actual[key] == test[key]
+
+    check_proposition(actual["proposition"], test["proposition"])
+    check_variation_descriptor(actual["variation_descriptor"],
+                               test["variation_descriptor"])
+    check_descriptor(actual["disease_descriptor"], test["disease_descriptor"])
+    if test.get("therapy_descriptor"):
+        check_descriptor(actual["therapy_descriptor"],
+                         test["therapy_descriptor"])
+    else:
+        assert actual.get("therapy_descriptor") is None
+    check_method(actual["method"], test["method"])
+    assert len(actual["supported_by"]) == len(test["supported_by"])
+    for sb in test["supported_by"]:
+        assert sb in actual["supported_by"]
+
+
+def test_civic_eid2997(
+        query_handler, civic_eid2997, check_proposition,
+        check_variation_descriptor, check_descriptor, check_method):
     """Test that search_statements works correctly for CIVIC EID2997"""
     statement_id = "civic.eid:2997"
     resp = query_handler.search_statements(statement_id=statement_id)
-    assert resp["statements"] == [civic_eid2997]
+    assert len(resp["statements"]) == 1
+    check_statement_assertions(
+        resp["statements"][0], civic_eid2997, check_proposition,
+        check_variation_descriptor, check_descriptor, check_method)
     assert resp["warnings"] == []
