@@ -1,5 +1,7 @@
 """Module for VICC normalizers."""
 from typing import Optional, Tuple
+
+from ga4gh.vrsatile.pydantic.vrs_models import VRSTypes
 from variation.query import QueryHandler as VariationQueryHandler
 from therapy.query import QueryHandler as TherapyQueryHandler
 from disease.query import QueryHandler as DiseaseQueryHandler
@@ -20,12 +22,10 @@ class VICCNormalizers:
         self.disease_query_handler = DiseaseQueryHandler()
         self.therapy_query_handler = TherapyQueryHandler()
 
-    def normalize_variation(self, queries, normalizer_responses=None)\
-            -> Optional[dict]:
+    def normalize_variation(self, queries) -> Optional[dict]:
         """Normalize variation queries.
 
         :param list queries: Possible query strings to try to normalize
-        :param list normalizer_responses: A list to store normalizer_responses
             which are used in the event that a MANE transcript cannot be found
         :return: A normalized variation
         """
@@ -37,10 +37,8 @@ class VICCNormalizers:
                 variation_norm_resp = \
                     self.variation_normalizer.normalize(query)
                 if variation_norm_resp:
-                    if normalizer_responses and \
-                            variation_norm_resp.value.type != 'Text':
-                        normalizer_responses.append(variation_norm_resp)
-                    return variation_norm_resp.dict(exclude_none=True)
+                    if variation_norm_resp.variation.type != VRSTypes.TEXT:
+                        return variation_norm_resp.dict(exclude_none=True)
             except Exception as e:  # noqa: E722
                 logger.warning(f"Variation Normalizer could not "
                                f"normalize {query}: {e}")

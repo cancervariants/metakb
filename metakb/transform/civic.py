@@ -420,7 +420,6 @@ class CIViCTransform(Transform):
             if variant['id'] not in vids:
                 continue
             variant_id = f"civic.vid:{variant['id']}"
-            normalizer_responses = list()
             if 'c.' in variant['name']:
                 variant_name = variant['name']
                 if '(' in variant_name:
@@ -460,7 +459,7 @@ class CIViCTransform(Transform):
                 continue
 
             variation_norm_resp = self.vicc_normalizers.normalize_variation(
-                [variant_query], normalizer_responses
+                [variant_query]
             )
 
             if not variation_norm_resp:
@@ -470,9 +469,7 @@ class CIViCTransform(Transform):
                 )
 
             # Couldn't find normalized concept
-            if not variation_norm_resp and len(normalizer_responses) > 0:
-                variation_norm_resp = normalizer_responses[0]
-            elif not variation_norm_resp and len(normalizer_responses) == 0:
+            if not variation_norm_resp:
                 logger.warning("Variation Normalizer unable to normalize: "
                                f"civic.vid:{variant['id']} using query "
                                f"{variant_query}")
