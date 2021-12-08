@@ -13,10 +13,10 @@ from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
 from disease.cli import CLI as DiseaseCLI
 from therapy.database import Database as TherapyDatabase
-from therapy import ACCEPTED_SOURCES as TherapySources
-from therapy import SOURCES as TherapySourceLookup
+from therapy.schemas import SourceName as TherapySources
 from therapy.cli import CLI as TherapyCLI
 from gene.database import Database as GeneDatabase
+from gene.schemas import SourceName as GeneSources
 from gene.cli import CLI as GeneCLI
 from timeit import default_timer as timer
 
@@ -46,24 +46,24 @@ class CLI:
               'provided via environment variable METAKB_DB_PASSWORD.')
     )
     @click.option(
-        '--initialize_normalizers',
+        '--load_normalizers_db',
         '-i',
         is_flag=True,
         default=False,
-        help='Check normalizer databases and initialize if necessary.'
+        help='Check normalizers database and load data if necessary.'
     )
     @click.option(
-        '--force_initialize_normalizers',
+        '--force_load_normalizers_db',
         '-f',
         is_flag=True,
         default=False,
-        help=('Initialize all normalizer data repositories. Overrides '
-              '--initialize_normalizers if both are selected.')
+        help=('Load all normalizers data into database. Overrides '
+              '--load_normalizers_db if both are selected.')
     )
     @click.option(
-        '--normalizer_db_url',
+        '--normalizers_db_url',
         default='http://localhost:8000',
-        help=('URL endpoint of normalizer DynamoDB database. Set to '
+        help=('URL endpoint of normalizers DynamoDB database. Set to '
               '`http://localhost:8000` by default.')
     )
     @click.option(
@@ -71,13 +71,13 @@ class CLI:
         '-l',
         is_flag=True,
         default=False,
-        help=('Load from existing resource transform documents instead of'
-              ' initiating new harvest and transformation procedures.')
+        help=('Load existing sources transform files rather than running '
+              'harvest and transform methods to load the neo4j database.')
     )
     def update_metakb_db(db_url, db_username, db_password,
-                         initialize_normalizers,
-                         force_initialize_normalizers,
-                         normalizer_db_url,
+                         load_normalizers_db,
+                         force_load_normalizers_db,
+                         normalizers_db_url,
                          load_transformed):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
@@ -86,19 +86,19 @@ class CLI:
         db_username = CLI()._check_db_param(db_username, 'username')
         db_password = CLI()._check_db_param(db_password, 'password')
 
-        if normalizer_db_url:
+        if normalizers_db_url:
             for env_var_name in ['GENE_NORM_DB_URL', 'THERAPY_NORM_DB_URL',
                                  'DISEASE_NORM_DB_URL']:
-                environ[env_var_name] = normalizer_db_url
+                environ[env_var_name] = normalizers_db_url
 
         if not load_transformed:
-            if initialize_normalizers or force_initialize_normalizers:
-                CLI()._handle_initialize(force_initialize_normalizers)
+            if load_normalizers_db or force_load_normalizers_db:
+                CLI()._load_normalizers_db(force_load_normalizers_db)
 
             CLI()._harvest_sources()
             CLI()._transform_sources()
 
-        # upload
+        # Load neo4j database
         start = timer()
         msg = "Loading neo4j database..."
         click.echo(msg)
@@ -179,51 +179,39 @@ class CLI:
         click.echo(f"{msg}\n")
         logger.info(msg)
 
-    def _handle_initialize(self, force_initialize):
-        """Handle initialization of normalizer data.
-        :param bool force_initialize: call initialize routines for all
-            normalizers
+    def _load_normalizers_db(self, load_normalizer_db):
+        """Load normalizer database source data.
+
+        :param bool load_normalizer_db: Load normalizer database for each
+            normalizer
         """
-        if force_initialize:
-            init_disease = init_therapy = init_gene = True
+        if load_normalizer_db:
+            load_disease = load_therapy = load_gene = True
         else:
-            init_disease = self._check_normalizer(
-                DiseaseDatabase(), {v.value for v in DiseaseSources}
-            )
+            load_disease = self._check_normalizer(
+                DiseaseDatabase(), {src.value for src in DiseaseSources})
+            load_therapy = self._check_normalizer(
+                TherapyDatabase(), {src for src in TherapySources})
+            load_gene = self._check_normalizer(
+                GeneDatabase(), {src.value for src in GeneSources})
 
-            init_therapy = self._check_normalizer(
-                TherapyDatabase(),
-                {TherapySourceLookup[src] for src in TherapySources}
-            )
-
-            init_gene = self._check_normalizer(
-                GeneDatabase(), {'HGNC'}
-            )
-
-        for init_source, source_cli, args in [
-            (init_disease, DiseaseCLI, ['--update_all',
-                                        '--update_merged']),
-            (init_therapy, TherapyCLI, ['--normalizer',
-                                        'hemonc chemidplus rxnorm wikidata'
-                                        ' ncit drugbank', '--update_merged']),
-            (init_gene, GeneCLI, ['--normalizer', 'hgnc'])
+        for load_source, normalizer_cli in [
+            (load_disease, DiseaseCLI), (load_therapy, TherapyCLI),
+            (load_gene, GeneCLI)
         ]:
-            name = str(source_cli).split()[1].split('.')[0][1:].capitalize()
-            click.echo(f'\nUpdating {name} Normalizer...')
-            self._update_normalizer_db(init_source, source_cli, args)
-        click.echo("Normalizer initialization complete.\n")
+            name = \
+                str(normalizer_cli).split()[1].split('.')[0][1:].capitalize()
+            self._update_normalizer_db(name, load_source, normalizer_cli)
+        click.echo("Normalizers database loaded.\n")
 
     @staticmethod
     def _check_normalizer(db, sources) -> bool:
-        """Check whether or not normalizer needs to be initialized.
+        """Check whether or not normalizer data needs to be loaded.
 
         :param Database db: Normalizer database
-        :param set sources: Set of source's to use for normalizer
-        :return: `True` If normalizer needs to be initialized.
-            `False` otherwise.
+        :param set sources: Sources that are needed in the normalizer db
+        :return: `True` If normalizer needs to be loaded. `False` otherwise.
         """
-        name = str(db).split('.')[0][1:].capitalize()
-        click.echo(f'Checking {name} Normalizer...')
         for src in sources:
             response = db.metadata.get_item(
                 Key={'src_name': src}
@@ -232,20 +220,26 @@ class CLI:
                 return True
         return False
 
-    def _update_normalizer_db(self, init_source, source_cli, args) -> None:
+    @staticmethod
+    def _update_normalizer_db(name, load_normalizer, source_cli) -> None:
         """Update Normalizer database.
 
-        :param bool init_source: Whether or not to load normalizer db
-        :param CLI source_cli: Normalizer CLI class containing CLI methods
-            for loading and deleting source data
-        :param list args: List of arguments to use in CLI
+        :param str name: Name of the normalizer
+        :param bool load_normalizer: Whether or not to load normalizer db
+        :param CLI source_cli: Normalizer CLI class for loading and
+            deleting source data
         """
-        if init_source:
+        if load_normalizer:
             try:
-                source_cli.update_normalizer_db(args)
+                click.echo(f'\nLoading {name} Normalizer data...')
+                source_cli.update_normalizer_db(
+                    ['--update_all', '--update_merged'])
+                click.echo(f'Successfully Loaded {name} Normalizer data.\n')
             except SystemExit as e:
                 if e.code != 0:
                     raise e
+        else:
+            click.echo(f'{name} Normalizer is already loaded.\n')
 
     @staticmethod
     def _check_db_param(param: str, name: str) -> str:
