@@ -432,13 +432,13 @@ class CIViCTransform(Transform):
             variant_query = f"{variant['entrez_name']} {variant_name}"
             hgvs_exprs = self._get_hgvs_expr(variant)
 
-            # TODO: Remove as more get implemented in variant normalizer
+            # TODO: Remove as more get implemented in variation normalizer
             #  Filtering to speed up transformation
             vname_lower = variant['name'].lower()
 
             if vname_lower.endswith('fs') or '-' in vname_lower or '/' in vname_lower:  # noqa: E501
                 if not hgvs_exprs:
-                    logger.warning("Variant Normalizer does not support "
+                    logger.warning("Variation Normalizer does not support "
                                    f"{variant_id}: {variant_query}")
                     continue
 
@@ -454,7 +454,7 @@ class CIViCTransform(Transform):
             }
 
             if set(vname_lower.split()) & unable_to_normalize:
-                logger.warning("Variant Normalizer does not support "
+                logger.warning("Variation Normalizer does not support "
                                f"{variant_id}: {variant_query}")
                 continue
 
@@ -462,15 +462,9 @@ class CIViCTransform(Transform):
                 [variant_query]
             )
 
-            if not variation_norm_resp:
-                logger.warning(
-                    "Variation Normalizer unable to find normalized concept "
-                    f"for civic.vid:{variant['id']} : {variant_query}"
-                )
-
             # Couldn't find normalized concept
             if not variation_norm_resp:
-                logger.warning("Variation Normalizer unable to normalize: "
+                logger.warning("Variation Normalizer unable to normalize "
                                f"civic.vid:{variant['id']} using query "
                                f"{variant_query}")
                 continue

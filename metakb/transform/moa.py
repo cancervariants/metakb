@@ -156,23 +156,26 @@ class MOATransform(Transform):
         :return: a tuple Descriptors
         """
         therapy_descriptors = self._get_therapy_descriptors(record)
-        if len(therapy_descriptors) != 1:
-            logger.warning(f"Therapy {record['therapy_name']} "
-                           f"could not be found in therapy normalizer.")
+        len_td = len(therapy_descriptors)
+        if len_td != 1:
+            logger.warning(f"Expected 1 therapy_descriptor for"
+                           f" {record['therapy_name']} but found {len_td}")
             return None
 
         variation_descriptors = self._get_variation_descriptors(
             self._get_record(record['variant']['id'], variants),
             gene_descriptors)
-        if len(variation_descriptors) != 1:
-            logger.warning(f"Variant {record['variant']['feature']} "
-                           f"could not be found in variant normalizer.")
+        len_vd = len(variation_descriptors)
+        if len_vd != 1:
+            logger.warning(f"Expected 1 variation descriptor for"
+                           f" {record['variant']} but found {len_vd}")
             return None
 
         disease_descriptors = self._get_disease_descriptors(record)
-        if len(disease_descriptors) != 1:
-            logger.warning(f"Disease {record['disease']['name']}"
-                           f" could not be found in disease normalizer.")
+        len_dd = len(disease_descriptors)
+        if len_dd != 1:
+            logger.warning(f"Expected 1 disease descriptor for"
+                           f" {record['disease']} but found {len_dd}")
             return None
 
         return therapy_descriptors, variation_descriptors, disease_descriptors
@@ -295,9 +298,13 @@ class MOATransform(Transform):
             query = f"{gene} {variant['protein_change'][2:]}"
             v_norm_resp = self.vicc_normalizers.normalize_variation([query])
 
-        if not v_norm_resp:
-            logger.warning(f"Variant Normalizer unable to normalize: "
-                           f"moa.variant:{variant['id']}.")
+            if not v_norm_resp:
+                logger.warning(f"Variant Normalizer unable to normalize: "
+                               f"moa.variant:{variant['id']}.")
+                return []
+        else:
+            logger.warning(f"Variation Normalizer does not support "
+                           f"moa.variant:{variant['id']}: {variant}")
             return []
 
         gene_context = g_descriptors[0]['id'] if g_descriptors else None
