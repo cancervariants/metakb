@@ -40,8 +40,8 @@ class VICCNormalizers:
                     if variation_norm_resp.variation.type != VRSTypes.TEXT:
                         return variation_norm_resp.dict(exclude_none=True)
             except Exception as e:  # noqa: E722
-                logger.warning(f"Variation Normalizer could not "
-                               f"normalize {query}: {e}")
+                logger.warning(f"Variation Normalizer raised an exception "
+                               f"using query {query}: {e}")
         return None
 
     def normalize_gene(self, queries) -> Tuple[Optional[dict], Optional[str]]:
