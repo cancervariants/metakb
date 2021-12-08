@@ -311,7 +311,9 @@ class NestedStatementResponse(BaseModel):
     direction: Optional[Direction]
     evidence_level: CURIE
     variation_origin: Optional[VariationOrigin]
-    proposition: Proposition
+    proposition: Union[TherapeuticResponseProposition,
+                       PrognosticProposition,
+                       DiagnosticProposition]
     variation_descriptor: VariationDescriptor
     therapy_descriptor: Optional[ValueObjectDescriptor]
     disease_descriptor: ValueObjectDescriptor

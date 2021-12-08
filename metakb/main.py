@@ -3,7 +3,8 @@ from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
 from metakb.query import QueryHandler
 from metakb.version import __version__
-from metakb.schemas import SearchService, SearchIDService
+from metakb.schemas import SearchService, SearchIDService, \
+    SearchStatementsService
 from typing import Optional
 
 app = FastAPI(docs_url='/api/v2', openapi_url='/api/v2/openapi.json')
@@ -66,7 +67,7 @@ def search(variation: Optional[str] = Query(None, description=v_description),
 @app.get('/api/v2/search/statements',
          summary=search_summary,
          response_description=search_response_description,
-         # response_model=SearchStatementsService,
+         response_model=SearchStatementsService,
          description=search_description,
          response_model_exclude_none=True)
 def get_statements(

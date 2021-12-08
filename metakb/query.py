@@ -1,12 +1,13 @@
 """Module for queries."""
-from typing import Dict
-from ga4gh.vrsatile.pydantic.vrsatile_model import Extension, Expression
+from typing import Dict, List, Optional, Tuple
+from ga4gh.vrsatile.pydantic.vrsatile_models import Extension, Expression
 from metakb.normalizers import VICCNormalizers
 from metakb.schemas import SearchService, StatementResponse, \
     TherapeuticResponseProposition, VariationDescriptor, \
     ValueObjectDescriptor, GeneDescriptor, Method, \
     Document, SearchIDService, DiagnosticProposition, PrognosticProposition, \
-    SearchStatementsService, NestedStatementResponse
+    SearchStatementsService, NestedStatementResponse, PropositionType, \
+    Proposition
 import logging
 from metakb.database import Graph
 import json
@@ -21,18 +22,18 @@ logger.setLevel(logging.DEBUG)
 class QueryHandler:
     """Class for handling queries."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize neo4j driver and the VICC normalizers."""
         self.driver = Graph().driver
         self.vicc_normalizers = VICCNormalizers()
 
-    def get_normalized_therapy(self, therapy, warnings):
+    def get_normalized_therapy(self, therapy: str,
+                               warnings: List[str]) -> Optional[str]:
         """Get normalized therapy concept.
 
         :param str therapy: Therapy query
-        :param list warnings: A list of warnings for the search query
-        :return: A normalized therapy concept string if concept exists in
-            thera-py, else `None`
+        :param List[str] warnings: A list of warnings for the search query
+        :return: A normalized therapy concept if it exists
         """
         _, normalized_therapy_id = \
             self.vicc_normalizers.normalize_therapy([therapy])
@@ -42,13 +43,13 @@ class QueryHandler:
                             f'{therapy}')
         return normalized_therapy_id
 
-    def get_normalized_disease(self, disease, warnings):
+    def get_normalized_disease(self, disease: str,
+                               warnings: List[str]) -> Optional[str]:
         """Get normalized disease concept.
 
         :param str disease: Disease query
-        :param list warnings: A list of warnings for the search query
-        :return: A normalized disease concept string if concept exists in
-            disease-normalizer, else `None`
+        :param List[str] warnings: A list of warnings for the search query
+        :return: A normalized disease concept if it exists
         """
         _, normalized_disease_id = \
             self.vicc_normalizers.normalize_disease([disease])
@@ -58,13 +59,13 @@ class QueryHandler:
                             f'{disease}')
         return normalized_disease_id
 
-    def get_normalized_variation(self, variation, warnings):
+    def get_normalized_variation(self, variation: str,
+                                 warnings: List[str]) -> Optional[str]:
         """Get normalized variation concept.
 
         :param str variation: Variation query
-        :param list warnings: A list of warnings for the search query
-        :return: A normalized variant concept string if concept exists in
-            variant-normalizer, else `None`
+        :param List[str] warnings: A list of warnings for the search query
+        :return: A normalized variant concept if it exists
         """
         variant_norm_resp = \
             self.vicc_normalizers.normalize_variation([variation])
@@ -80,21 +81,23 @@ class QueryHandler:
                                 f'{variation}')
         return normalized_variation
 
-    def get_normalized_gene(self, gene, warnings):
+    def get_normalized_gene(self, gene: str,
+                            warnings: List[str]) -> Optional[str]:
         """Get normalized gene concept.
 
         :param str gene: Gene query
-        :param list warnings: A list of warnings for the search query.
-        :return: A normalized gene concept string if concept exists in
-            gene-normalizer, else `None`
+        :param List[str] warnings: A list of warnings for the search query.
+        :return: A normalized gene concept if it exists
         """
         _, normalized_gene_id = self.vicc_normalizers.normalize_gene([gene])
         if not normalized_gene_id:
             warnings.append(f'Gene Normalizer unable to normalize: {gene}')
         return normalized_gene_id
 
-    def get_normalized_terms(self, variation, disease, therapy, gene,
-                             statement_id, response):
+    def get_normalized_terms(
+            self, variation: str, disease: str, therapy: str,
+            gene: str, statement_id: str, response: Dict
+    ) -> Optional[Tuple]:
         """Find normalized terms for queried concepts.
 
         :param str variation: Variation (subject) query
@@ -102,9 +105,8 @@ class QueryHandler:
         :param str therapy: Therapy (object) query
         :param str gene: Gene query
         :param str statement_id: Statement ID query
-        :param Dict response: The search response
-        :return: A tuple containing the normalized concepts if it exists, else
-            None
+        :param Dict response: The response for the query
+        :return: A tuple containing the normalized concepts
         """
         if not (variation or disease or therapy or gene or statement_id):
             response['warnings'].append('No parameters were entered.')
@@ -139,6 +141,7 @@ class QueryHandler:
         else:
             normalized_gene = None
 
+        # Check that queried statement_id is valid
         valid_statement_id = None
         statement = None
         if statement_id:
@@ -153,6 +156,7 @@ class QueryHandler:
                     response['warnings'].append(
                         f"Statement: {statement_id} does not exist.")
 
+        # If queried concept is given check that it is normalized / valid
         if (variation and not normalized_variation) or \
                 (therapy and not normalized_therapy) or \
                 (disease and not normalized_disease) or \
@@ -163,8 +167,9 @@ class QueryHandler:
         return (normalized_variation, normalized_disease, normalized_therapy,
                 normalized_gene, statement, valid_statement_id)
 
-    def search(self, variation='', disease='', therapy='', gene='',
-               statement_id='', detail=False):
+    def search(self, variation: str = '', disease: str = '', therapy: str = '',
+               gene: str = '', statement_id: str = '', detail: bool = False
+               ) -> SearchService:
         """Get statements and propositions from queried concepts.
 
         :param str variation: Variation query
@@ -173,7 +178,7 @@ class QueryHandler:
         :param str gene: Gene query
         :param str statement_id: Statement ID query
         :param bool detail: Whether or not to display all descriptors,
-        methods, and documents
+            methods, and documents
         :return: A dictionary containing the statements and propositions
             with relationships to the queried concepts
         """
@@ -326,12 +331,12 @@ class QueryHandler:
             response['documents'] = None
 
         session.close()
-        return SearchService(**response).dict(exclude_none=True)
+        return SearchService(**response).dict(by_alias=True, exclude_none=True)
 
-    def search_by_id(self, node_id):
-        """Get node information from queried concepts.
+    def search_by_id(self, node_id: str) -> SearchIDService:
+        """Get node information given id query
 
-        :param str node_id: node_id
+        :param str node_id: Node's ID query
         :return: A dictionary containing the node content
         """
         valid_node_id = None
@@ -393,11 +398,12 @@ class QueryHandler:
             response['method'] = self._get_method(node)
 
         session.close()
-        return SearchIDService(**response).dict(exclude_none=True)
+        return SearchIDService(**response).dict(
+            by_alias=True, exclude_none=True)
 
     def search_statements(
-            self, variation='', disease='', therapy='', gene='',
-            statement_id=''):
+            self, variation: str = '', disease: str = '', therapy: str = '',
+            gene: str = '', statement_id: str = ''):
         """Get nested statements from queried concepts
 
         :param str variation: Variation query
@@ -471,20 +477,18 @@ class QueryHandler:
                     self._add_to_proposition_cache(
                         session, p_node, proposition_cache)
 
-        methods_cache = dict()
-        variations_cache = dict()
-        disease_cache = dict()
-        therapy_cache = dict()
-        document_cache = dict()
+        methods_cache: Dict = dict()
+        variations_cache: Dict = dict()
+        disease_cache: Dict = dict()
+        therapy_cache: Dict = dict()
+        document_cache: Dict = dict()
 
         for s in statement_nodes:
-
             s_id = s.get('id')
             statement_resp = session.read_transaction(
                 self._find_and_return_statement_response, s_id
             )
             p_id = statement_resp.get('p_id')
-
             proposition = proposition_cache[p_id]
 
             method_id = statement_resp['m']['id']
@@ -506,7 +510,7 @@ class QueryHandler:
                 )
                 variations_cache[variation_id] = variation_descr
 
-            if proposition.type == 'therapeutic_response_proposition':
+            if proposition.type == PropositionType.PREDICTIVE:
                 therapy_id = statement_resp.get('tid')
                 if therapy_id in therapy_cache:
                     therapy_descr = therapy_cache[therapy_id]
@@ -578,10 +582,17 @@ class QueryHandler:
             response['matches']['statements'].append(s_id)
             response['matches']['propositions'].append(p_id)
         session.close()
-        return response
-        # return SearchStatementsService(**response).dict(exclude_none=True)
+        return SearchStatementsService(**response).dict(
+            by_alias=True, exclude_none=True)
 
-    def _add_to_proposition_cache(self, session, p_node, proposition_cache):
+    def _add_to_proposition_cache(self, session, p_node,
+                                  proposition_cache: Dict) -> None:
+        """Add a proposition to `proposition_cache`
+
+        :param session: Session
+        :param p_node: Proposition Node
+        :param Dict proposition_cache: Proposition lookup dictionary
+        """
         p_id = p_node.get('id')
         if p_id not in proposition_cache:
             proposition_resp = session.read_transaction(
@@ -596,20 +607,32 @@ class QueryHandler:
                 'subject': proposition_resp['subject'],
                 'object_qualifier': proposition_resp['object_qualifier']
             }
-            if proposition_type == 'therapeutic_response_proposition':
+            if proposition_type == PropositionType.PREDICTIVE:
                 proposition['object'] = proposition_resp['object']
                 proposition = \
                     TherapeuticResponseProposition(**proposition)
-            elif proposition_type == "prognostic_proposition":
+            elif proposition_type == PropositionType.PROGNOSTIC:
                 proposition = PrognosticProposition(**proposition)
-            elif proposition_type == "diagnostic_proposition":
+            elif proposition_type == PropositionType.DIAGNOSTIC:
                 proposition = DiagnosticProposition(**proposition)
-            proposition_cache[p_id] = proposition
+            else:
+                # TODO Check
+                raise Exception(f"{proposition_type} is not a valid "
+                                f"proposition type")
+            if proposition:
+                proposition_cache[p_id] = proposition
 
-    def _get_variation_descriptor(self, response, variation_descriptor,
-                                  gene_context_by_id=True):
-        """Add variation descriptor to response.
-        :param Node variation_descriptor: Variation Descriptor Node
+    def _get_variation_descriptor(
+            self, response: Dict, variation_descriptor,
+            gene_context_by_id: bool = True) -> VariationDescriptor:
+        """Get variation descriptor
+
+        :param Dict response: Query response object
+        :param variation_descriptor: Variation Descriptor Node
+        :param bool gene_context_by_id: `True` if gene_context field will be
+            a CURIE that reference's a gene descriptor. `False` if gene_context
+            field will be a gene descriptor
+        :return: Variation descriptor
         """
         keys = variation_descriptor.keys()
         vid = variation_descriptor.get('id')
@@ -644,10 +667,10 @@ class QueryHandler:
                 gene_descriptor, gene_value_object)
 
             if gene_context_by_id:
-                # Reference gene descr by id
+                # Reference gene descriptor by id
                 vd_params['gene_context'] = gene_descriptor_id
             else:
-                # gene context will be gene desecriptor
+                # gene context will be gene descriptor
                 vd_params['gene_context'] = gene_context
 
             if 'gene_descriptors' in response and\
@@ -752,10 +775,12 @@ class QueryHandler:
 
         return GeneDescriptor(**gd_params)
 
-    def _get_therapy_descriptor(self, therapy_descriptor):
-        """Add therapy descriptor to response.
+    def _get_therapy_descriptor(self,
+                                therapy_descriptor) -> ValueObjectDescriptor:
+        """Get therapy descriptor.
 
         :param Node therapy_descriptor: Therapy Descriptor Node
+        :return: Value Object Descriptor for therapy
         """
         td_params = {
             'id': therapy_descriptor.get('id'),
@@ -774,10 +799,12 @@ class QueryHandler:
 
         return ValueObjectDescriptor(**td_params)
 
-    def _get_disease_descriptor(self, disease_descriptor):
-        """Add disease descriptor to response.
+    def _get_disease_descriptor(self,
+                                disease_descriptor) -> ValueObjectDescriptor:
+        """Get disease descriptor.
 
         :param Node disease_descriptor: Disease Descriptor Node
+        :return: Value Object Descriptor for disease
         """
         dd_params = {
             'id': disease_descriptor.get('id'),
@@ -796,10 +823,11 @@ class QueryHandler:
         return ValueObjectDescriptor(**dd_params)
 
     @staticmethod
-    def _get_method(method):
-        """Add method to response.
+    def _get_method(method) -> Method:
+        """Get method
 
         :param Node method: Method Node
+        :return: Method
         """
         params = dict()
         for key in method.keys():
@@ -811,10 +839,11 @@ class QueryHandler:
         return Method(**params)
 
     @staticmethod
-    def _get_document(document):
+    def _get_document(document) -> Optional[Document]:
         """Add document to response.
 
         :param Node document: Document Node
+        :return: Document if node has type `Document`
         """
         label, *_ = document.labels
         if label != 'Document':
@@ -845,10 +874,17 @@ class QueryHandler:
         )
         return tx.run(query).single()[0]
 
-    def add_proposition_and_statement_nodes(self, session, statement_id,
-                                            proposition_nodes,
-                                            statement_nodes):
-        """Get statements found in `supported_by` and their propositions."""
+    def add_proposition_and_statement_nodes(
+            self, session, statement_id: str, proposition_nodes: List,
+            statement_nodes: List):
+        """Get statements found in `supported_by` and their propositions
+        and add to corresponding list.
+
+        :param session: Session
+        :param str statement_id: Statement ID
+        :param List proposition_nodes: List of propositions
+        :param List statement_nodes: List of statements
+        """
         supported_by_statements = session.read_transaction(
             self._find_and_return_supported_by, statement_id,
             only_statement=True
@@ -919,14 +955,14 @@ class QueryHandler:
         )
         return [s[0] for s in tx.run(query, proposition_id=proposition_id)]
 
-    def get_statement_response(self, statements):
+    def get_statement_response(self, statement_nodes: List) -> List:
         """Return a list of statements from Statement and Proposition nodes.
 
-        :param list statements: A list of Statement Nodes
+        :param List statement_nodes: A list of Statement Nodes
         :return: A list of dicts containing statement response output
         """
         statements_response = list()
-        for s in statements:
+        for s in statement_nodes:
             statements_response.append(
                 self._get_statement(s)
             )
@@ -956,14 +992,14 @@ class QueryHandler:
                 return result
         return None
 
-    def get_propositions_response(self, propositions):
+    def get_propositions_response(self, proposition_nodes: List) -> List:
         """Return a list of propositions from Proposition nodes.
 
-        :param list propositions: A list of Proposition Nodes
+        :param list proposition_nodes: A list of Proposition Nodes
         :return: A list of Propositions
         """
         propositions_response = list()
-        for p in propositions:
+        for p in proposition_nodes:
             proposition = self._get_proposition(p)
             if proposition and proposition not in propositions_response:
                 propositions_response.append(proposition)
@@ -1029,7 +1065,7 @@ class QueryHandler:
             )
         return gene_value_object
 
-    def _get_proposition(self, p):
+    def _get_proposition(self, p) -> Proposition:
         """Return a proposition.
 
         :param Node p: Proposition Node
@@ -1049,17 +1085,17 @@ class QueryHandler:
                 "subject": value_ids["subject"],
                 "object_qualifier": value_ids["object_qualifier"]
             }
-            if p_type == "therapeutic_response_proposition":
+            if p_type == PropositionType.PREDICTIVE:
                 params["object"] = value_ids["object"]
                 proposition = \
                     TherapeuticResponseProposition(**params)
-            elif p_type == "prognostic_proposition":
+            elif p_type == PropositionType.PROGNOSTIC:
                 proposition = PrognosticProposition(**params)
-            elif p_type == "diagnostic_proposition":
+            elif p_type == PropositionType.DIAGNOSTIC:
                 proposition = DiagnosticProposition(**params)
             return proposition
 
-    def _get_statement(self, s):
+    def _get_statement(self, s) -> Dict:
         """Return a statement.
 
         :param Node s: Statement Node
