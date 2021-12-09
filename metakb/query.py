@@ -451,6 +451,9 @@ class QueryHandler:
             # If statement ID isn't specified, get all statements
             # related to a proposition
             for p_node in proposition_nodes:
+                p_id = p_node.get('id')
+                if p_id not in response['matches']['propositions']:
+                    response['matches']['propositions'].append(p_id)
                 self._add_to_proposition_cache(
                     session, p_node, proposition_cache)
                 statements = session.read_transaction(
@@ -458,10 +461,19 @@ class QueryHandler:
                 )
                 for s in statements:
                     statement_nodes.append(s)
+                    s_id = s.get('id')
+                    if s_id not in response['matches']['statements']:
+                        response['matches']['statements'].append(s_id)
         else:
             # Given Statement ID
             statement_nodes.append(statement)
+            s_id = statement.get('id')
             p_node = proposition_nodes[0]
+            p_id = p_node.get('id')
+            if s_id not in response['matches']['statements']:
+                response['matches']['statements'].append(statement_id)
+            if p_id not in response['matches']['propositions']:
+                response['matches']['propositions'].append(p_id)
             self._add_to_proposition_cache(session, p_node, proposition_cache)
 
         # Add statements found in `supported_by` to statement_nodes
@@ -482,9 +494,13 @@ class QueryHandler:
         disease_cache: Dict = dict()
         therapy_cache: Dict = dict()
         document_cache: Dict = dict()
+        added_statements = set()
 
         for s in statement_nodes:
             s_id = s.get('id')
+            if s_id in added_statements:
+                continue
+
             statement_resp = session.read_transaction(
                 self._find_and_return_statement_response, s_id
             )
@@ -566,10 +582,10 @@ class QueryHandler:
 
             params = {
                 'id': s_id,
-                'description': statement.get('description'),
-                'direction': statement.get('direction'),
-                'evidence_level': statement.get('evidence_level'),
-                'variation_origin': statement.get('variation_origin'),
+                'description': s.get('description'),
+                'direction': s.get('direction'),
+                'evidence_level': s.get('evidence_level'),
+                'variation_origin': s.get('variation_origin'),
                 'proposition': proposition,
                 'variation_descriptor': variation_descr,
                 'therapy_descriptor': therapy_descr,
@@ -579,8 +595,7 @@ class QueryHandler:
             }
             response['statements'].append(
                 NestedStatementResponse(**params).dict())
-            response['matches']['statements'].append(s_id)
-            response['matches']['propositions'].append(p_id)
+            added_statements.add(s_id)
         session.close()
         return SearchStatementsService(**response).dict(
             by_alias=True, exclude_none=True)
@@ -962,10 +977,15 @@ class QueryHandler:
         :return: A list of dicts containing statement response output
         """
         statements_response = list()
+        added_statements = set()
         for s in statement_nodes:
-            statements_response.append(
-                self._get_statement(s)
-            )
+            s_id = s.get("id")
+            if s_id not in added_statements:
+                statements_response.append(
+                    self._get_statement(s)
+                )
+                added_statements.add(s_id)
+
         return statements_response
 
     @staticmethod
