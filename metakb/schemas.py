@@ -145,12 +145,12 @@ class TherapeuticResponseProposition(Proposition):
             for prop in schema.get('properties', {}).values():
                 prop.pop('title', None)
             schema['example'] = {
-                "id": "proposition:109",
+                "id": "proposition:133",
+                "type": "therapeutic_response_proposition",
                 "predicate": "predicts_sensitivity_to",
-                "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+                "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
                 "object_qualifier": "ncit:C2926",
-                "object": "ncit:C66940",
-                "type": "therapeutic_response_proposition"
+                "object": "rxcui:1430438"
             }
 
 
@@ -290,7 +290,7 @@ class StatementResponse(BaseModel):
                 "direction": "supports",
                 "evidence_level": "civic.evidence_level:A",
                 "variation_origin": "somatic",
-                "proposition": "proposition:109",
+                "proposition": "proposition:133",
                 "variation_descriptor": "civic.vid:33",
                 "therapy_descriptor": "civic.tid:146",
                 "disease_descriptor": "civic.did:8",
@@ -319,6 +319,186 @@ class NestedStatementResponse(BaseModel):
     disease_descriptor: ValueObjectDescriptor
     method: Method
     supported_by: List[Union[Document, CURIE]]
+
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['NestedStatementResponse']) -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "id": "civic.eid:2997",
+                "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
+                "direction": "supports",
+                "evidence_level": "civic.evidence_level:A",
+                "variation_origin": "somatic",
+                "proposition": {
+                    "id": "proposition:133",
+                    "type": "therapeutic_response_proposition",
+                    "predicate": "predicts_sensitivity_to",
+                    "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
+                    "object_qualifier": "ncit:C2926",
+                    "object": "rxcui:1430438"
+                },
+                "variation_descriptor": {
+                    "id": "civic.vid:33",
+                    "type": "VariationDescriptor",
+                    "label": "L858R",
+                    "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
+                    "xrefs": [
+                        "clinvar:376280",
+                        "clinvar:16609",
+                        "clinvar:376282",
+                        "caid:CA126713",
+                        "dbsnp:121434568"
+                    ],
+                    "alternate_labels": [
+                        "LEU858ARG"
+                    ],
+                    "extensions": [
+                        {
+                            "type": "Extension",
+                            "name": "civic_representative_coordinate",
+                            "value": {
+                                "chromosome": "7",
+                                "start": 55259515,
+                                "stop": 55259515,
+                                "reference_bases": "T",
+                                "variant_bases": "G",
+                                "representative_transcript":
+                                    "ENST00000275493.2",
+                                "ensembl_version": 75,
+                                "reference_build": "GRCh37"
+                            }
+                        },
+                        {
+                            "type": "Extension",
+                            "name": "civic_actionability_score",
+                            "value": 375
+                        }
+                    ],
+                    "variation_id":
+                        "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
+                    "variation": {
+                        "_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
+                        "type": "Allele",
+                        "location": {
+                            "_id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",  # noqa: E501
+                            "type": "SequenceLocation",
+                            "sequence_id":
+                                "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
+                            "interval": {
+                                "type": "SequenceInterval",
+                                "start": {
+                                    "type": "Number",
+                                    "value": 857
+                                },
+                                "end": {
+                                    "type": "Number",
+                                    "value": 858
+                                }
+                            }
+                        },
+                        "state": {
+                            "type": "LiteralSequenceExpression",
+                            "sequence": "R"
+                        }
+                    },
+                    "structural_type": "SO:0001583",
+                    "expressions": [
+                        {
+                            "type": "Expression",
+                            "syntax": "hgvs:genomic",
+                            "value": "NC_000007.13:g.55259515T>G"
+                        },
+                        {
+                            "type": "Expression",
+                            "syntax": "hgvs:protein",
+                            "value": "NP_005219.2:p.Leu858Arg"
+                        },
+                        {
+                            "type": "Expression",
+                            "syntax": "hgvs:transcript",
+                            "value": "NM_005228.4:c.2573T>G"
+                        },
+                        {
+                            "type": "Expression",
+                            "syntax": "hgvs:transcript",
+                            "value": "ENST00000275493.2:c.2573T>G"
+                        }
+                    ],
+                    "gene_context": {
+                        "id": "civic.gid:19",
+                        "type": "GeneDescriptor",
+                        "label": "EGFR",
+                        "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
+                        "xrefs": [
+                            "ncbigene:1956"
+                        ],
+                        "alternate_labels": [
+                            "ERRP",
+                            "EGFR",
+                            "mENA",
+                            "PIG61",
+                            "NISBD2",
+                            "HER1",
+                            "ERBB1",
+                            "ERBB"
+                        ],
+                        "gene_id": "hgnc:3236"
+                    }
+                },
+                "therapy_descriptor": {
+                    "id": "civic.tid:146",
+                    "type": "TherapyDescriptor",
+                    "label": "Afatinib",
+                    "xrefs": [
+                        "ncit:C66940"
+                    ],
+                    "alternate_labels": [
+                        "BIBW2992",
+                        "BIBW 2992",
+                        "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"  # noqa: E501
+                    ],
+                    "therapy_id": "rxcui:1430438"
+                },
+                "disease_descriptor": {
+                    "id": "civic.did:8",
+                    "type": "DiseaseDescriptor",
+                    "label": "Lung Non-small Cell Carcinoma",
+                    "xrefs": [
+                        "DOID:3908"
+                    ],
+                    "disease_id": "ncit:C2926"
+                },
+                "method": {
+                    "id": "method:001",
+                    "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
+                    "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
+                    "version": {
+                        "year": 2019,
+                        "month": 11,
+                        "day": 29
+                    },
+                    "authors":
+                        "Danos, A.M., Krysiak, K., Barnell, E.K. et al.",
+                    "type": "Method"
+                },
+                "supported_by": [
+                    {
+                        "id": "pmid:23982599",
+                        "label": "Dungo et al., 2013, Drugs",
+                        "description": "Afatinib: first global approval.",
+                        "type": "Document"
+                    }
+                ],
+                "type": "Statement"
+            }
 
 
 class SearchQuery(BaseModel):
@@ -360,6 +540,24 @@ class SearchStatementsQuery(BaseModel):
     gene: Optional[str]
     statement_id: Optional[str]
 
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['SearchStatementsQuery']) -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "variation": "NP_005219.2:p.Leu858Arg",
+                "disease": "Lung Non-small Cell Carcinoma",
+                "therapy": "Afatinib",
+                "statement_id": "civic.eid:2997"
+            }
+
 
 class Matches(BaseModel):
     """Statements and Propositions that match the queried parameters."""
@@ -380,7 +578,7 @@ class Matches(BaseModel):
                 prop.pop('title', None)
             schema['example'] = {
                 "statements": ["civic.eid:2997"],
-                "propositions": ["proposition:109"]
+                "propositions": ["proposition:133"]
             }
 
 
@@ -432,7 +630,7 @@ class SearchService(BaseModel):
                         "direction": "supports",
                         "evidence_level": "civic.evidence_level:A",
                         "variation_origin": "somatic",
-                        "proposition": "proposition:109",
+                        "proposition": "proposition:133",
                         "variation_descriptor": "civic.vid:33",
                         "therapy_descriptor": "civic.tid:146",
                         "disease_descriptor": "civic.did:8",
@@ -445,12 +643,12 @@ class SearchService(BaseModel):
                 ],
                 "propositions": [
                     {
-                        "id": "proposition:109",
+                        "id": "proposition:133",
+                        "type": "therapeutic_response_proposition",
                         "predicate": "predicts_sensitivity_to",
-                        "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+                        "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
                         "object_qualifier": "ncit:C2926",
-                        "object": "ncit:C66940",
-                        "type": "therapeutic_response_proposition"
+                        "object": "rxcui:1430438"
                     }
                 ]
             }
@@ -601,3 +799,197 @@ class SearchStatementsService(BaseModel):
     warnings: Optional[List[str]]
     matches: Matches
     statements: Optional[List[NestedStatementResponse]]
+
+    class Config:
+        """Configure examples."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type['SearchStatementsService']) -> None:
+            """Configure OpenAPI schema"""
+            if 'title' in schema.keys():
+                schema.pop('title', None)
+            for prop in schema.get('properties', {}).values():
+                prop.pop('title', None)
+            schema['example'] = {
+                "query": {
+                    "variation": "EGFR L858R",
+                    "disease": "Lung Non-small Cell Carcinoma",
+                    "therapy": "Afatinib",
+                    "statement_id": "civic.eid:2997"
+                },
+                "warnings": [],
+                "matches": {
+                    "statements": ["civic.eid:2997"],
+                    "propositions": ["proposition:109"]
+                },
+                "statements": [
+                    {
+                        "id": "civic.eid:2997",
+                        "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
+                        "direction": "supports",
+                        "evidence_level": "civic.evidence_level:A",
+                        "variation_origin": "somatic",
+                        "proposition": {
+                            "id": "proposition:133",
+                            "type": "therapeutic_response_proposition",
+                            "predicate": "predicts_sensitivity_to",
+                            "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",    # noqa: E501
+                            "object_qualifier": "ncit:C2926",
+                            "object": "rxcui:1430438"
+                        },
+                        "variation_descriptor": {
+                            "id": "civic.vid:33",
+                            "type": "VariationDescriptor",
+                            "label": "L858R",
+                            "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
+                            "xrefs": [
+                                "clinvar:376280",
+                                "clinvar:16609",
+                                "clinvar:376282",
+                                "caid:CA126713",
+                                "dbsnp:121434568"
+                            ],
+                            "alternate_labels": [
+                                "LEU858ARG"
+                            ],
+                            "extensions": [
+                                {
+                                    "type": "Extension",
+                                    "name": "civic_representative_coordinate",
+                                    "value": {
+                                        "chromosome": "7",
+                                        "start": 55259515,
+                                        "stop": 55259515,
+                                        "reference_bases": "T",
+                                        "variant_bases": "G",
+                                        "representative_transcript":
+                                            "ENST00000275493.2",
+                                        "ensembl_version": 75,
+                                        "reference_build": "GRCh37"
+                                    }
+                                },
+                                {
+                                    "type": "Extension",
+                                    "name": "civic_actionability_score",
+                                    "value": 375
+                                }
+                            ],
+                            "variation_id":
+                                "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
+                            "variation": {
+                                "_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",  # noqa: E501
+                                "type": "Allele",
+                                "location": {
+                                    "_id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",  # noqa: E501
+                                    "type": "SequenceLocation",
+                                    "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",  # noqa: E501
+                                    "interval": {
+                                        "type": "SequenceInterval",
+                                        "start": {
+                                            "type": "Number",
+                                            "value": 857
+                                        },
+                                        "end": {
+                                            "type": "Number",
+                                            "value": 858
+                                        }
+                                    }
+                                },
+                                "state": {
+                                    "type": "LiteralSequenceExpression",
+                                    "sequence": "R"
+                                }
+                            },
+                            "structural_type": "SO:0001583",
+                            "expressions": [
+                                {
+                                    "type": "Expression",
+                                    "syntax": "hgvs:genomic",
+                                    "value": "NC_000007.13:g.55259515T>G"
+                                },
+                                {
+                                    "type": "Expression",
+                                    "syntax": "hgvs:protein",
+                                    "value": "NP_005219.2:p.Leu858Arg"
+                                },
+                                {
+                                    "type": "Expression",
+                                    "syntax": "hgvs:transcript",
+                                    "value": "NM_005228.4:c.2573T>G"
+                                },
+                                {
+                                    "type": "Expression",
+                                    "syntax": "hgvs:transcript",
+                                    "value": "ENST00000275493.2:c.2573T>G"
+                                }
+                            ],
+                            "gene_context": {
+                                "id": "civic.gid:19",
+                                "type": "GeneDescriptor",
+                                "label": "EGFR",
+                                "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
+                                "xrefs": [
+                                    "ncbigene:1956"
+                                ],
+                                "alternate_labels": [
+                                    "ERRP",
+                                    "EGFR",
+                                    "mENA",
+                                    "PIG61",
+                                    "NISBD2",
+                                    "HER1",
+                                    "ERBB1",
+                                    "ERBB"
+                                ],
+                                "gene_id": "hgnc:3236"
+                            }
+                        },
+                        "therapy_descriptor": {
+                            "id": "civic.tid:146",
+                            "type": "TherapyDescriptor",
+                            "label": "Afatinib",
+                            "xrefs": [
+                                "ncit:C66940"
+                            ],
+                            "alternate_labels": [
+                                "BIBW2992",
+                                "BIBW 2992",
+                                "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"  # noqa: E501
+                            ],
+                            "therapy_id": "rxcui:1430438"
+                        },
+                        "disease_descriptor": {
+                            "id": "civic.did:8",
+                            "type": "DiseaseDescriptor",
+                            "label": "Lung Non-small Cell Carcinoma",
+                            "xrefs": [
+                                "DOID:3908"
+                            ],
+                            "disease_id": "ncit:C2926"
+                        },
+                        "method": {
+                            "id": "method:001",
+                            "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
+                            "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
+                            "version": {
+                                "year": 2019,
+                                "month": 11,
+                                "day": 29
+                            },
+                            "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al.",  # noqa: E501
+                            "type": "Method"
+                        },
+                        "supported_by": [
+                            {
+                                "id": "pmid:23982599",
+                                "label": "Dungo et al., 2013, Drugs",
+                                "description": "Afatinib: first global approval.",  # noqa: E501
+                                "type": "Document"
+                            }
+                        ],
+                        "type": "Statement"
+                    }
+                ]
+
+            }
