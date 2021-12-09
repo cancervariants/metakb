@@ -167,16 +167,17 @@ class QueryHandler:
         return (normalized_variation, normalized_disease, normalized_therapy,
                 normalized_gene, statement, valid_statement_id)
 
-    def search(self, variation: str = '', disease: str = '', therapy: str = '',
-               gene: str = '', statement_id: str = '', detail: bool = False
-               ) -> SearchService:
+    def search(self, variation: Optional[str] = None,
+               disease: Optional[str] = None, therapy: Optional[str] = None,
+               gene: Optional[str] = None, statement_id: Optional[str] = None,
+               detail: bool = False) -> Dict:
         """Get statements and propositions from queried concepts.
 
-        :param str variation: Variation query
-        :param str disease: Disease query
-        :param str therapy: Therapy query
-        :param str gene: Gene query
-        :param str statement_id: Statement ID query
+        :param Optional[str]  variation: Variation query
+        :param Optional[str]  disease: Disease query
+        :param Optional[str]  therapy: Therapy query
+        :param Optional[str]  gene: Gene query
+        :param Optional[str]  statement_id: Statement ID query
         :param bool detail: Whether or not to display all descriptors,
             methods, and documents
         :return: A dictionary containing the statements and propositions
@@ -333,7 +334,7 @@ class QueryHandler:
         session.close()
         return SearchService(**response).dict(by_alias=True, exclude_none=True)
 
-    def search_by_id(self, node_id: str) -> SearchIDService:
+    def search_by_id(self, node_id: str) -> Dict:
         """Get node information given id query
 
         :param str node_id: Node's ID query
@@ -402,15 +403,17 @@ class QueryHandler:
             by_alias=True, exclude_none=True)
 
     def search_statements(
-            self, variation: str = '', disease: str = '', therapy: str = '',
-            gene: str = '', statement_id: str = ''):
+            self, variation: Optional[str] = None,
+            disease: Optional[str] = None, therapy: Optional[str] = None,
+            gene: Optional[str] = None, statement_id: Optional[str] = None
+    ) -> Dict:
         """Get nested statements from queried concepts
 
-        :param str variation: Variation query
-        :param str disease: Disease query
-        :param str therapy: Therapy query
-        :param str gene: Gene query
-        :param str statement_id: Statement ID query
+        :param Optional[str] variation: Variation query
+        :param Optional[str] disease: Disease query
+        :param Optional[str] therapy: Therapy query
+        :param Optional[str] gene: Gene query
+        :param Optional[str] statement_id: Statement ID query
         :return: A dictionary containing the statements with nested
             propositions, descriptors, methods, and supported by documents
         """
@@ -631,9 +634,8 @@ class QueryHandler:
             elif proposition_type == PropositionType.DIAGNOSTIC:
                 proposition = DiagnosticProposition(**proposition)
             else:
-                # TODO Check
-                raise Exception(f"{proposition_type} is not a valid "
-                                f"proposition type")
+                raise ValueError(f"{proposition_type} is not a valid "
+                                 f"proposition type")
             if proposition:
                 proposition_cache[p_id] = proposition
 
