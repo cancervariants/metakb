@@ -64,11 +64,19 @@ def search(variation: Optional[str] = Query(None, description=v_description),
                         detail)
 
 
+search_statements_summary = (
+    "Given variation, disease, therapy, and/or gene, return associated "
+    "nested statements containing propositions and descriptors.")
+search_statement_response_descr = "A response to a validly-formed query."
+search_statements_descr = (
+    "Return nested statements associated to the queried concepts.")
+
+
 @app.get('/api/v2/search/statements',
-         summary=search_summary,
-         response_description=search_response_description,
+         summary=search_statements_summary,
+         response_description=search_statement_response_descr,
          response_model=SearchStatementsService,
-         description=search_description,
+         description=search_statements_descr,
          response_model_exclude_none=True)
 def get_statements(
         variation: Optional[str] = Query(None, description=v_description),
