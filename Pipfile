@@ -24,7 +24,7 @@ typing-extensions = "*"
 boto3 = "*"
 botocore = "*"
 variation-normalizer = ">=0.2.14"
-"ga4gh.vrsatile.pydantic" = ">=0.0.5"
+"ga4gh.vrsatile.pydantic" = ">=0.0.6"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
