@@ -159,9 +159,12 @@ def assert_response_items(response, statement, proposition,
 def assert_general_search_queries(response):
     """Check for general search queries."""
     assert response['matches']
-    assert len(response['matches']['statements']) > 0
+    len_statement_matches = len(response['matches']['statements'])
+    assert len_statement_matches > 0
     assert len(response['matches']['propositions']) > 0
-    assert len(response['statements']) > 0
+    len_statements = len(response['statements'])
+    assert len_statements > 0
+    assert len_statement_matches == len_statements
     assert len(response['propositions']) > 0
     assert len(response['methods']) > 0
     assert len(response['documents']) > 0
@@ -568,9 +571,9 @@ def test_civic_detail_flag_prognostic(query_handler, civic_eid26_statement,
                           check_descriptor, check_method, check_document)
 
 
-def test_moa_detail_flag(query_handler, moa_aid70_statement,
-                         moa_aid70_proposition,
-                         moa_vid70, moa_abl1, moa_imatinib,
+def test_moa_detail_flag(query_handler, moa_aid71_statement,
+                         moa_aid71_proposition,
+                         moa_vid71, moa_abl1, moa_imatinib,
                          moa_chronic_myelogenous_leukemia, method004,
                          pmid_11423618, check_statement, check_proposition,
                          check_variation_descriptor, check_descriptor,
@@ -582,10 +585,10 @@ def test_moa_detail_flag(query_handler, moa_aid70_statement,
 
     response = query_handler.search(statement_id='moa.assertion:71',
                                     detail=True)
-    moa_vid70['expressions'] = []
+    moa_vid71['expressions'] = []
     assert_keys_for_detail_true(response.keys(), response)
-    assert_response_items(response, moa_aid70_statement, moa_aid70_proposition,
-                          moa_vid70, moa_abl1,
+    assert_response_items(response, moa_aid71_statement, moa_aid71_proposition,
+                          moa_vid71, moa_abl1,
                           moa_chronic_myelogenous_leukemia, method004,
                           pmid_11423618, moa_imatinib, check_statement,
                           check_proposition, check_variation_descriptor,
@@ -658,18 +661,18 @@ def test_civic_id_search(query_handler, civic_eid2997_statement,
     check_method(res['method'], method001)
 
 
-def test_moa_id_search(query_handler, moa_aid70_statement,
-                       moa_vid70, moa_abl1, moa_imatinib,
+def test_moa_id_search(query_handler, moa_aid71_statement,
+                       moa_vid71, moa_abl1, moa_imatinib,
                        moa_chronic_myelogenous_leukemia, pmid_11423618,
                        method004, check_statement, check_variation_descriptor,
                        check_descriptor, check_method, check_document):
     """Test search on moa node id"""
     res = query_handler.search_by_id('moa.assertion:71')
-    check_statement(res['statement'], moa_aid70_statement)
+    check_statement(res['statement'], moa_aid71_statement)
 
     res = query_handler.search_by_id('moa.variant:71')
-    moa_vid70['expressions'] = []
-    check_variation_descriptor(res['variation_descriptor'], moa_vid70)
+    moa_vid71['expressions'] = []
+    check_variation_descriptor(res['variation_descriptor'], moa_vid71)
 
     res = query_handler.search_by_id('moa.normalize.gene:ABL1')
     check_descriptor(res['gene_descriptor'], moa_abl1)
