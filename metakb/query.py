@@ -703,6 +703,9 @@ class QueryHandler:
                             value=value
                         ).dict()
                     )
+        if not vd_params['expressions']:
+            del vd_params['expressions']
+
         # Get Variation Descriptor Extensions
         if vd_params['id'].startswith('civic.vid'):
             for field in ['civic_representative_coordinate',

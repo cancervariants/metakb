@@ -1158,8 +1158,7 @@ def moa_vid71():
             }
         ],
         "vrs_ref_allele_seq": "T",
-        "gene_context": "moa.normalize.gene:ABL1",
-        "expressions": []
+        "gene_context": "moa.normalize.gene:ABL1"
     }
 
 

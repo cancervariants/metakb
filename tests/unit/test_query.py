@@ -585,7 +585,6 @@ def test_moa_detail_flag(query_handler, moa_aid71_statement,
 
     response = query_handler.search(statement_id='moa.assertion:71',
                                     detail=True)
-    moa_vid71['expressions'] = []
     assert_keys_for_detail_true(response.keys(), response)
     assert_response_items(response, moa_aid71_statement, moa_aid71_proposition,
                           moa_vid71, moa_abl1,
@@ -671,7 +670,6 @@ def test_moa_id_search(query_handler, moa_aid71_statement,
     check_statement(res['statement'], moa_aid71_statement)
 
     res = query_handler.search_by_id('moa.variant:71')
-    moa_vid71['expressions'] = []
     check_variation_descriptor(res['variation_descriptor'], moa_vid71)
 
     res = query_handler.search_by_id('moa.normalize.gene:ABL1')
