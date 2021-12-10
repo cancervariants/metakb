@@ -1,12 +1,14 @@
 """Module for VICC normalizers."""
 from typing import Optional, Tuple
+
+from ga4gh.vrsatile.pydantic.vrs_models import VRSTypes
 from variation.query import QueryHandler as VariationQueryHandler
 from therapy.query import QueryHandler as TherapyQueryHandler
 from disease.query import QueryHandler as DiseaseQueryHandler
 from gene.query import QueryHandler as GeneQueryHandler
 import logging
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.normalizers')
 logger.setLevel(logging.DEBUG)
 
 
@@ -20,12 +22,10 @@ class VICCNormalizers:
         self.disease_query_handler = DiseaseQueryHandler()
         self.therapy_query_handler = TherapyQueryHandler()
 
-    def normalize_variation(self, queries, normalizer_responses=None)\
-            -> Optional[dict]:
+    def normalize_variation(self, queries) -> Optional[dict]:
         """Normalize variation queries.
 
         :param list queries: Possible query strings to try to normalize
-        :param list normalizer_responses: A list to store normalizer_responses
             which are used in the event that a MANE transcript cannot be found
         :return: A normalized variation
         """
@@ -37,14 +37,11 @@ class VICCNormalizers:
                 variation_norm_resp = \
                     self.variation_normalizer.normalize(query)
                 if variation_norm_resp:
-                    if normalizer_responses and \
-                            variation_norm_resp.value.type != 'Text':
-                        normalizer_responses.append(variation_norm_resp)
-                    if not self.variation_normalizer.normalize_handler.warnings:  # noqa: E501
+                    if variation_norm_resp.variation.type != VRSTypes.TEXT:
                         return variation_norm_resp.dict(exclude_none=True)
-            except:  # noqa: E722
-                logger.warning("Variation Normalizer does not support: "
-                               f"{query}")
+            except Exception as e:  # noqa: E722
+                logger.warning(f"Variation Normalizer raised an exception "
+                               f"using query {query}: {e}")
         return None
 
     def normalize_gene(self, queries) -> Tuple[Optional[dict], Optional[str]]:
@@ -61,10 +58,10 @@ class VICCNormalizers:
                 continue
 
             gene_norm_resp = self.gene_query_handler.normalize(query_str)
-            if gene_norm_resp['match_type'] > highest_match:
-                highest_match = gene_norm_resp['match_type']
+            if gene_norm_resp.match_type > highest_match:
+                highest_match = gene_norm_resp.match_type
                 normalized_gene_id = \
-                    gene_norm_resp['gene_descriptor']['value']['id']
+                    gene_norm_resp.gene_descriptor.gene_id
                 if highest_match == 100:
                     break
         return gene_norm_resp, normalized_gene_id
@@ -88,7 +85,7 @@ class VICCNormalizers:
             if disease_norm_resp['match_type'] > highest_match:
                 highest_match = disease_norm_resp['match_type']
                 normalized_disease_id = \
-                    disease_norm_resp['value_object_descriptor']['value']['id']
+                    disease_norm_resp['disease_descriptor']['disease_id']
                 if highest_match == 100:
                     break
         return disease_norm_resp, normalized_disease_id
@@ -111,7 +108,7 @@ class VICCNormalizers:
             therapy_norm_resp = self.therapy_query_handler.search_groups(query)
             if therapy_norm_resp['match_type'] > highest_match:
                 highest_match = therapy_norm_resp['match_type']
-                normalized_therapy_id = therapy_norm_resp['value_object_descriptor']['value']['id']  # noqa: E501
+                normalized_therapy_id = therapy_norm_resp['therapy_descriptor']['therapy_id']  # noqa: E501
                 if highest_match == 100:
                     break
         return therapy_norm_resp, normalized_therapy_id

@@ -13,8 +13,8 @@
         "clinical_significance": "sensitivity",
         "predictive_implication": "FDA-Approved",
         "favorable_prognosis": null,
-        "created_on": "03/31/21",
-        "last_updated": "2020-11-12",
+        "created_on": "11/04/21",
+        "last_updated": "2021-09-16",
         "submitted_by": "breardon@broadinstitute.org",
         "validated": true,
         "source_ids": 1,
@@ -34,8 +34,8 @@
         "doi": null,
         "nct": "None",
         "pmid": "None",
-        "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/203441s018lbl.pdf",
-        "citation": "Pfizer Inc. Bosulif (bosutinib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/203441s018lbl.pdf. Revised June 2020. Accessed November 12, 2020."
+        "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2021/203341s020lbl.pdf",
+        "citation": "Pfizer Inc. Bosulif (bosutinib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2021/203341s020lbl.pdf. Revised May 2021. Accessed September 16, 2021."
     },
     "VARIANTS": {
         "id": 1,

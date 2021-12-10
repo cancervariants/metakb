@@ -32,9 +32,9 @@
         "reference_build": "GRCh37"
     },
     "evidence_items": {
-        "id": 4706,
-        "name": "EID4706",
-        "description": "Prior to dasatanib treatment, fifteen imatinib-resistant patients with chronic myeloid leukemia in various phases had the BCR-ABL1 fusion with no secondary variants in at least ten clones generated using peripheral blood RNA. They had no evidence of leukemia (n = 3), complete (9), minor (2), and no (1) best hematologic responses to dasatinib and complete (3), partial (3), minor (2), minimal (2), and no (5) best cytogenetic responses to dasatinib.",
+        "id": 7838,
+        "name": "EID7838",
+        "description": "In an in vitro study, six CML cell lines expressing the BCR-ABL1 fusion protein showed sensitivity to nilotinib (IC50: 24.3-84.5 nM), dasatinib (IC50: 1.5-10.9 nM), and bafetinib (IC50: 11.8-87.7 nM). When comparing potency of these treatments against the 6 CML cell lines, dasatinib, nilotinib and bafetinib were on average 98.6, 9.85 and 16.4 times more potent than imatinib. Sensitivity was determined by assessing cell proliferation using the MTT assay.",
         "disease": {
             "id": 4,
             "name": "Chronic Myeloid Leukemia",
@@ -43,6 +43,18 @@
             "url": "http://www.disease-ontology.org/?id=DOID:8552"
         },
         "drugs": [
+            {
+                "id": 625,
+                "name": "Bafetinib",
+                "ncit_id": "C62516",
+                "aliases": [
+                    "NS-187",
+                    "INNO-406",
+                    "Dual Bcr-Abl/Lyn Tyrosine Kinase Inhibitor INNO-406",
+                    "CNS-9",
+                    "Benzamide, N-[3-([4,5'-bipyrimidin]-2-ylamino)-4-methylphenyl]-4-[[(3S)-3- (dimethylamino)-1-pyrrolidinyl]methyl]-3-(trifluoromethyl)-"
+                ]
+            },
             {
                 "id": 20,
                 "name": "Dasatinib",
@@ -54,44 +66,45 @@
                     "BMS-354825",
                     "5-Thiazolecarboxamide, N-(2-chloro-6-methylphenyl)-2-((6-(4-(2-hydroxyethyl)-1-piperazinyl)-2-methyl-4-pyrimidinyl)amino)-, Monohydrate"
                 ]
+            },
+            {
+                "id": 13,
+                "name": "Nilotinib",
+                "ncit_id": "C48375",
+                "aliases": [
+                    "AMN 107 Base Form",
+                    "4-Methyl-3-((4-(3-pyridinyl)-2-pyrimidinyl)amino)-N-(5-(4-methyl-1H-imidazol-1-yl)-3-(trifluoromethyl)phenyl)benzamide"
+                ]
             }
         ],
-        "rating": 4,
-        "evidence_level": "C",
+        "rating": 3,
+        "evidence_level": "D",
         "evidence_type": "Predictive",
         "clinical_significance": "Sensitivity/Response",
         "evidence_direction": "Supports",
         "variant_origin": "Somatic",
-        "drug_interaction_type": null,
+        "drug_interaction_type": "Substitutes",
         "status": "accepted",
         "type": "evidence",
         "source": {
-            "id": 2096,
-            "name": "Dasatinib in imatinib-resistant Philadelphia chromosome-positive leukemias.",
-            "citation": "Talpaz et al., 2006, N. Engl. J. Med.",
-            "citation_id": "16775234",
+            "id": 1621,
+            "name": "Comparison of imatinib, dasatinib, nilotinib and INNO-406 in imatinib-resistant cell lines.",
+            "citation": "Deguchi et al., 2008, Leuk. Res.",
+            "citation_id": "18191450",
             "source_type": "PubMed",
             "asco_abstract_id": null,
-            "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/16775234",
+            "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/18191450",
             "open_access": null,
             "pmc_id": null,
             "publication_date": {
-                "year": 2006,
-                "month": 6,
-                "day": 15
+                "year": 2008,
+                "month": 6
             },
-            "journal": "N. Engl. J. Med.",
-            "full_journal_title": "The New England journal of medicine",
+            "journal": "Leuk. Res.",
+            "full_journal_title": "Leukemia research",
             "status": "fully curated",
             "is_review": false,
-            "clinical_trials": [
-                {
-                    "nct_id": "NCT00064233",
-                    "name": "BMS-354825 in Treating Patients With Chronic Phase Chronic Myelogenous Leukemia That Is Resistant to Imatinib Mesylate",
-                    "description": "RATIONALE: BMS-354825 may stop the growth of cancer cells by stopping the enzymes necessary for cancer cell growth. PURPOSE: This phase I trial is studying the side effects and best dose of BMS-354825 in treating patients with chronic phase chronic myelogenous leukemia that is resistant to imatinib mesylate.",
-                    "clinical_trial_url": "https://clinicaltrials.gov/show/NCT00064233"
-                }
-            ]
+            "clinical_trials": []
         },
         "variant_id": 1,
         "phenotypes": []
@@ -99,8 +112,8 @@
     "variant_groups": [],
     "assertions": [],
     "variant_aliases": [
-        "BCR-ABL1",
-        "T(9;22)(Q34;Q11)"
+        "T(9;22)(Q34;Q11)",
+        "BCR-ABL1"
     ],
     "hgvs_expressions": [
         "N/A"

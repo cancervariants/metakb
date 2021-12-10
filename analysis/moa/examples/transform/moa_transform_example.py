@@ -1,12 +1,12 @@
 """Create an example json file for MOA Transform."""
 import json
 from metakb.transform import MOATransform
-from metakb import PROJECT_ROOT
+from metakb import PROJECT_ROOT, APP_ROOT
 
 
 def create_moa_example(moa_data):
     """Create MOA transform examples from list of evidence items."""
-    assertion_id = ['moa.assertion:70', 'moa.assertion:187']
+    assertion_id = ['moa.assertion:71', 'moa.assertion:188']
     ex = {}
     proposition = None
     var_des = None
@@ -58,13 +58,13 @@ def create_moa_example(moa_data):
 
         with open(f"{PROJECT_ROOT}/analysis/moa/examples/transform/"
                   f"{ex['statements'][0]['id']}.json", 'w+') as f:
-            json.dump(ex, f)
+            json.dump(ex, f, indent=4)
 
 
 if __name__ == '__main__':
     moa = MOATransform()
     moa.transform()
     moa._create_json()
-    with open(f"{PROJECT_ROOT}/data/moa/transform/moa_cdm.json", 'r') as f:
+    with open(f"{APP_ROOT}/data/moa/transform/moa_cdm.json", 'r') as f:
         moa_data = json.load(f)
     create_moa_example(moa_data)

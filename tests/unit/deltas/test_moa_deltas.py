@@ -1,6 +1,6 @@
 """Test MOAlmanac deltas."""
 import pytest
-from metakb import PROJECT_ROOT
+from metakb import PROJECT_ROOT, APP_ROOT
 from metakb.delta import Delta
 from datetime import date
 import json
@@ -140,7 +140,7 @@ def test_compute_delta(moa, diff):
     # Test when _updated_json is not in kwargs
     moad = Delta(MAIN_JSON, 'moa')
     moad.compute_delta()
-    fn = PROJECT_ROOT / 'data' / 'moa' / \
+    fn = APP_ROOT / 'data' / 'moa' / 'harvester' /\
         f"moa_harvester_{date.today().strftime('%Y%m%d')}.json"
     assert fn.exists()
     os.remove(fn)
@@ -183,8 +183,8 @@ def test_create_json(moa, diff):
     """Test that _create_json method is correct."""
     test_date = '19980108'
     moa._create_json(diff, test_date)
-    file_name = PROJECT_ROOT / 'data' / 'moa' / f'moa_deltas_' \
-                                                f'{test_date}.json'
+    file_name = APP_ROOT / 'data' / 'moa' / 'delta' / f'moa_deltas_' \
+                                                      f'{test_date}.json'
     assert file_name.exists()
     os.remove(file_name)
     assert not file_name.exists()
