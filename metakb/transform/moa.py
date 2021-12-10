@@ -1,12 +1,14 @@
 """A module to convert MOA resources to common data model"""
-from metakb import PROJECT_ROOT
+from metakb import APP_ROOT
 import json
 import logging
 import metakb.schemas as schemas
 from .base import Transform
 from urllib.parse import quote
+from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor,\
+    Extension, GeneDescriptor, ValueObjectDescriptor
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.transform.moa')
 logger.setLevel(logging.DEBUG)
 
 
@@ -14,7 +16,8 @@ class MOATransform(Transform):
     """A class for transforming MOA resources to common data model."""
 
     def __init__(self,
-                 file_path=f"{PROJECT_ROOT}/data/moa/moa_harvester.json"):
+                 file_path=f"{APP_ROOT}/data/moa/harvester"
+                           f"/moa_harvester.json"):
         """
         Initialize VICC normalizers and class attributes
 
@@ -31,7 +34,7 @@ class MOATransform(Transform):
         self.documents = list()
 
     def _create_json(self,
-                     moa_dir=PROJECT_ROOT / 'data' / 'moa' / 'transform',
+                     moa_dir=APP_ROOT / 'data' / 'moa' / 'transform',
                      fn='moa_cdm.json'):
         """Create a composite JSON for the transformed MOA data.
 
@@ -52,7 +55,7 @@ class MOATransform(Transform):
         }
 
         with open(f"{moa_dir}/{fn}", 'w+') as f:
-            json.dump(composite_dict, f)
+            json.dump(composite_dict, f, indent=4)
 
     def transform(self, propositions_ix=None):
         """Transform MOA harvested JSON to common date model.
@@ -130,7 +133,7 @@ class MOATransform(Transform):
                 disease_descriptors=disease_descriptors,
                 methods=methods,
                 documents=documents
-            ).dict(exclude_none=True)
+            ).dict(by_alias=True, exclude_none=True)
 
             cdm_assertions[f"moa:assertion_{record['id']}"] = response
 
@@ -153,23 +156,26 @@ class MOATransform(Transform):
         :return: a tuple Descriptors
         """
         therapy_descriptors = self._get_therapy_descriptors(record)
-        if len(therapy_descriptors) != 1:
-            logger.warning(f"Therapy {record['therapy_name']} "
-                           f"could not be found in therapy normalizer.")
+        len_td = len(therapy_descriptors)
+        if len_td != 1:
+            logger.warning(f"Expected 1 therapy_descriptor for"
+                           f" {record['therapy_name']} but found {len_td}")
             return None
 
         variation_descriptors = self._get_variation_descriptors(
             self._get_record(record['variant']['id'], variants),
             gene_descriptors)
-        if len(variation_descriptors) != 1:
-            logger.warning(f"Variant {record['variant']['feature']} "
-                           f"could not be found in variant normalizer.")
+        len_vd = len(variation_descriptors)
+        if len_vd != 1:
+            logger.warning(f"Expected 1 variation descriptor for"
+                           f" {record['variant']} but found {len_vd}")
             return None
 
         disease_descriptors = self._get_disease_descriptors(record)
-        if len(disease_descriptors) != 1:
-            logger.warning(f"Disease {record['disease']['name']}"
-                           f" could not be found in disease normalizer.")
+        len_dd = len(disease_descriptors)
+        if len_dd != 1:
+            logger.warning(f"Expected 1 disease descriptor for"
+                           f" {record['disease']} but found {len_dd}")
             return None
 
         return therapy_descriptors, variation_descriptors, disease_descriptors
@@ -224,26 +230,27 @@ class MOATransform(Transform):
         if not predicate:
             return []
 
-        proposition = schemas.TherapeuticResponseProposition(
-            id="",
-            type="therapeutic_response_proposition",
-            predicate=predicate,
-            subject=variation_descriptors[0]['value_id'],
-            object_qualifier=disease_descriptors[0]['value']['id'],
-            object=therapy_descriptors[0]['value']['id']
-        ).dict(exclude_none=True)
+        params = {
+            'id': '',
+            'type': schemas.PropositionType.PREDICTIVE,
+            'predicate': predicate,
+            'subject': variation_descriptors[0]['variation_id'],
+            'object_qualifier': disease_descriptors[0]['disease_id'],
+            'object': therapy_descriptors[0]['therapy_id']
+        }
 
         # Get corresponding id for proposition
-        key = (proposition['type'],
-               proposition['predicate'],
-               proposition['subject'],
-               proposition['object_qualifier'],
-               proposition['object'])
+        key = (params['type'],
+               params['predicate'],
+               params['subject'],
+               params['object_qualifier'],
+               params['object'])
 
         proposition_index = self._set_ix(propositions_ix,
                                          'propositions', key)
-        proposition['id'] = f"proposition:{proposition_index:03}"
-
+        params['id'] = f"proposition:{proposition_index:03}"
+        proposition = schemas.TherapeuticResponseProposition(
+            **params).dict(exclude_none=True)
         return [proposition]
 
     def _get_predicate(self, clin_sig):
@@ -281,7 +288,7 @@ class MOATransform(Transform):
         :param: single assertion record from MOA
         :return: list of variation descriptor
         """
-        ref_allele_seq = variant['protein_change'][2] \
+        vrs_ref_allele_seq = variant['protein_change'][2] \
             if 'protein_change' in variant and variant['protein_change'] else None  # noqa: E501
 
         v_norm_resp = None
@@ -291,23 +298,26 @@ class MOATransform(Transform):
             query = f"{gene} {variant['protein_change'][2:]}"
             v_norm_resp = self.vicc_normalizers.normalize_variation([query])
 
-        if not v_norm_resp:
-            logger.warning(f"Variant Normalizer unable to normalize: "
-                           f"moa.variant:{variant['id']}.")
+            if not v_norm_resp:
+                logger.warning(f"Variant Normalizer unable to normalize: "
+                               f"moa.variant:{variant['id']}.")
+                return []
+        else:
+            logger.warning(f"Variation Normalizer does not support "
+                           f"moa.variant:{variant['id']}: {variant}")
             return []
 
         gene_context = g_descriptors[0]['id'] if g_descriptors else None
 
-        variation_descriptor = schemas.VariationDescriptor(
+        variation_descriptor = VariationDescriptor(
             id=f"moa.variant:{variant['id']}",
             label=variant['feature'],
-            value_id=v_norm_resp['value_id'],
-            value=v_norm_resp['value'],
+            variation_id=v_norm_resp['variation_id'],
+            variation=v_norm_resp['variation'],
             gene_context=gene_context,
-            ref_allele_seq=ref_allele_seq,
+            vrs_ref_allele_seq=vrs_ref_allele_seq,
             extensions=self._get_variant_extensions(variant)
-        ).dict(exclude_none=True)
-
+        ).dict(by_alias=True, exclude_none=True)
         return [variation_descriptor]
 
     def _get_variant_extensions(self, variant):
@@ -321,7 +331,7 @@ class MOATransform(Transform):
                       'cdna_change', 'protein_change', 'exon']
 
         extensions = [
-            schemas.Extension(
+            Extension(
                 name='moa_representative_coordinate',
                 value={c: variant[c] for c in coordinate}
             ).dict(exclude_none=True)
@@ -329,7 +339,7 @@ class MOATransform(Transform):
 
         if variant['rsid']:
             extensions.append(
-                schemas.Extension(
+                Extension(
                     name='moa_rsid',
                     value=variant['rsid']
                 ).dict(exclude_none=True)
@@ -352,11 +362,11 @@ class MOATransform(Transform):
                 _, normalized_gene_id = \
                     self.vicc_normalizers.normalize_gene([gene])
                 if normalized_gene_id:
-                    gene_descriptor = schemas.GeneDescriptor(
+                    gene_descriptor = GeneDescriptor(
                         id=f"{schemas.SourceName.MOA.value}.normalize."
                            f"{schemas.NormalizerPrefix.GENE.value}:{quote(gene)}",  # noqa: E501
                         label=gene,
-                        value=schemas.Gene(id=normalized_gene_id),
+                        gene_id=normalized_gene_id,
                     ).dict(exclude_none=True)
                 else:
                     logger.warning(f"Gene Normalizer unable to "
@@ -427,12 +437,12 @@ class MOATransform(Transform):
             return []
 
         if normalized_therapy_id:
-            therapy_descriptor = schemas.ValueObjectDescriptor(
+            therapy_descriptor = ValueObjectDescriptor(
                 id=f"{schemas.SourceName.MOA.value}."
-                   f"{therapy_norm_resp['value_object_descriptor']['id']}",
+                   f"{therapy_norm_resp['therapy_descriptor']['id']}",
                 type="TherapyDescriptor",
                 label=label,
-                value=schemas.Drug(id=normalized_therapy_id)
+                therapy_id=normalized_therapy_id
             ).dict(exclude_none=True)
         else:
             return []
@@ -458,12 +468,12 @@ class MOATransform(Transform):
                            f"{ot_code} and {disease_name}")
             return []
 
-        disease_descriptor = schemas.ValueObjectDescriptor(
+        disease_descriptor = ValueObjectDescriptor(
             id=f"{schemas.SourceName.MOA.value}."
-               f"{disease_norm_resp['value_object_descriptor']['id']}",
+               f"{disease_norm_resp['disease_descriptor']['id']}",
             type="DiseaseDescriptor",
             label=disease_name,
-            value=schemas.Disease(id=normalized_disease_id),
+            disease_id=normalized_disease_id,
         ).dict(exclude_none=True)
 
         return [disease_descriptor]

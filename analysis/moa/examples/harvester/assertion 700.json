@@ -1,47 +1,47 @@
 {
     "ASSERTIONS": {
         "id": 700,
-        "context": null,
-        "description": "CRKL amplification was observed in an EGFR inhibitor resistant tumor after researchers observed that cells from gefitinib-sensitive cell line (HCC827) overexpressing CRKL became resistant to gefitinib relative to controls.",
+        "context": "Metastatic",
+        "description": "Loss of function ARID1A mutations may predict sensitivity to immune checkpoint blockade, particularly PD-L1 inhibition. Anti-PD-L1 antibody reduced tumor mutational burden and prolonged survival of mice ARID1A-deficient but not ARID1A-wild-type ovarian tumors.",
         "disease": {
-            "name": "Non-Small Cell Lung Cancer",
-            "oncotree_code": "NSCLC",
-            "oncotree_term": "Non-Small Cell Lung Cancer"
+            "name": "Ovarian Cancer, Other",
+            "oncotree_code": "OOVC",
+            "oncotree_term": "Ovarian Cancer, Other"
         },
-        "therapy_name": "Gefitinib",
-        "therapy_type": "Targeted therapy",
-        "clinical_significance": "resistance",
-        "predictive_implication": "Clinical evidence",
+        "therapy_name": "Durvalumab",
+        "therapy_type": "Immunotherapy",
+        "clinical_significance": "sensitivity",
+        "predictive_implication": "Preclinical",
         "favorable_prognosis": null,
-        "created_on": "03/31/21",
-        "last_updated": "2017-11-03",
+        "created_on": "11/04/21",
+        "last_updated": "2019-02-04",
         "submitted_by": "breardon@broadinstitute.org",
         "validated": true,
-        "source_ids": 200,
+        "source_ids": 51,
         "variant": {
             "id": 700,
-            "cytoband": "22q11.21",
-            "direction": "Amplification",
+            "cytoband": null,
+            "direction": "Deletion",
             "feature_type": "copy_number",
-            "gene": "CRKL",
-            "feature": "CRKL Amplification"
+            "gene": "ARID1A",
+            "feature": "ARID1A Deletion"
         }
     },
     "SOURCES": {
-        "id": 200,
+        "id": 51,
         "type": "Journal",
-        "doi": "10.1158/2159-8290.CD-11-0046",
+        "doi": "10.1038/s41591-018-0012-z",
         "nct": "None",
-        "pmid": 22586683,
-        "url": "https://doi.org/10.1158/2159-8290.CD-11-0046",
-        "citation": "Cheung HW, Du J, Boehm JS, et al. Amplification of CRKL induces transformation and epidermal growth factor receptor inhibitor resistance in human non-small cell lung cancers. Cancer Discov. 2011;1(7):608-25."
+        "pmid": 29736026,
+        "url": "https://doi.org/10.1038/s41591-018-0012-z",
+        "citation": "Shen J, Ju Z, Zhao W, et al. ARID1A deficiency promotes mutability and potentiates therapeutic antitumor immunity unleashed by immune checkpoint blockade. Nat Med. 2018;24(5):556-562."
     },
     "VARIANTS": {
         "id": 700,
-        "cytoband": "22q11.21",
-        "direction": "Amplification",
+        "cytoband": null,
+        "direction": "Deletion",
         "feature_type": "copy_number",
-        "gene": "CRKL",
-        "feature": "CRKL Amplification"
+        "gene": "ARID1A",
+        "feature": "ARID1A Deletion"
     }
 }

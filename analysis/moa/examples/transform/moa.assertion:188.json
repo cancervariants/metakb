@@ -1,12 +1,12 @@
 {
     "statements": [
         {
-            "id": "moa.assertion:187",
+            "id": "moa.assertion:188",
             "description": "BRAF V600E mutations were associated with sensitivity to the BRAF inhibitor PLX-4032 in a study of 109 microdissected pancreatic ductal adenocarcinoma patients.",
             "evidence_level": "moa.evidence_level:Clinical_evidence",
-            "proposition": "proposition:804",
+            "proposition": "proposition:623",
             "variation_origin": "somatic",
-            "variation_descriptor": "moa.variant:148",
+            "variation_descriptor": "moa.variant:149",
             "therapy_descriptor": "moa.normalize.therapy:Vemurafenib",
             "disease_descriptor": "moa.normalize.disease:oncotree%3APAAD",
             "method": "method:004",
@@ -18,38 +18,22 @@
     ],
     "propositions": [
         {
-            "id": "proposition:804",
+            "id": "proposition:623",
             "type": "therapeutic_response_proposition",
             "predicate": "predicts_sensitivity_to",
-            "subject": "ga4gh:VA.9dA0egRAIfVFDL1sdU1VP7HsBcG0-DtE",
+            "subject": "ga4gh:VA.8JkgnqIgYqufNl-OV_hpRG_aWF9UFQCE",
             "object_qualifier": "ncit:C8294",
             "object": "rxcui:1147220"
         }
     ],
     "variation_descriptors": [
         {
-            "id": "moa.variant:148",
+            "id": "moa.variant:149",
             "type": "VariationDescriptor",
             "label": "BRAF p.V600E (Missense)",
-            "value_id": "ga4gh:VA.9dA0egRAIfVFDL1sdU1VP7HsBcG0-DtE",
-            "value": {
-                "location": {
-                    "type": "SequenceLocation",
-                    "sequence_id": "ga4gh:SQ.WaAJ_cXXn9YpMNfhcq9lnzIvaB9ALawo",
-                    "interval": {
-                        "end": 640,
-                        "start": 639,
-                        "type": "SimpleInterval"
-                    }
-                },
-                "state": {
-                    "sequence": "E",
-                    "type": "SequenceState"
-                },
-                "type": "Allele"
-            },
             "extensions": [
                 {
+                    "type": "Extension",
                     "name": "moa_representative_coordinate",
                     "value": {
                         "chromosome": "7",
@@ -60,17 +44,41 @@
                         "cdna_change": "c.1799T>A",
                         "protein_change": "p.V600E",
                         "exon": "15.0"
-                    },
-                    "type": "Extension"
+                    }
                 },
                 {
+                    "type": "Extension",
                     "name": "moa_rsid",
-                    "value": "rs113488022",
-                    "type": "Extension"
+                    "value": "rs113488022"
                 }
             ],
-            "ref_allele_seq": "V",
-            "gene_context": "moa.normalize.gene:BRAF"
+            "variation_id": "ga4gh:VA.8JkgnqIgYqufNl-OV_hpRG_aWF9UFQCE",
+            "variation": {
+                "_id": "ga4gh:VA.8JkgnqIgYqufNl-OV_hpRG_aWF9UFQCE",
+                "type": "Allele",
+                "location": {
+                    "_id": "ga4gh:VSL.AqrQ-EkAvTrXOFn70_8i3dXF5shBBZ5i",
+                    "type": "SequenceLocation",
+                    "sequence_id": "ga4gh:SQ.WaAJ_cXXn9YpMNfhcq9lnzIvaB9ALawo",
+                    "interval": {
+                        "type": "SequenceInterval",
+                        "start": {
+                            "type": "Number",
+                            "value": 639
+                        },
+                        "end": {
+                            "type": "Number",
+                            "value": 640
+                        }
+                    }
+                },
+                "state": {
+                    "type": "LiteralSequenceExpression",
+                    "sequence": "E"
+                }
+            },
+            "gene_context": "moa.normalize.gene:BRAF",
+            "vrs_ref_allele_seq": "V"
         }
     ],
     "gene_descriptors": [
@@ -78,10 +86,7 @@
             "id": "moa.normalize.gene:BRAF",
             "type": "GeneDescriptor",
             "label": "BRAF",
-            "value": {
-                "id": "hgnc:1097",
-                "type": "Gene"
-            }
+            "gene_id": "hgnc:1097"
         }
     ],
     "therapy_descriptors": [
@@ -89,10 +94,7 @@
             "id": "moa.normalize.therapy:Vemurafenib",
             "type": "TherapyDescriptor",
             "label": "Vemurafenib",
-            "value": {
-                "id": "rxcui:1147220",
-                "type": "Drug"
-            }
+            "therapy_id": "rxcui:1147220"
         }
     ],
     "disease_descriptors": [
@@ -100,10 +102,7 @@
             "id": "moa.normalize.disease:oncotree%3APAAD",
             "type": "DiseaseDescriptor",
             "label": "Pancreatic Adenocarcinoma",
-            "value": {
-                "id": "ncit:C8294",
-                "type": "Disease"
-            }
+            "disease_id": "ncit:C8294"
         }
     ],
     "methods": [
