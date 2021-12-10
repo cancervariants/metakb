@@ -1,12 +1,12 @@
 {
     "statements": [
         {
-            "id": "moa.assertion:70",
+            "id": "moa.assertion:71",
             "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
             "evidence_level": "moa.evidence_level:Preclinical",
-            "proposition": "proposition:057",
+            "proposition": "proposition:569",
             "variation_origin": "somatic",
-            "variation_descriptor": "moa.variant:70",
+            "variation_descriptor": "moa.variant:71",
             "therapy_descriptor": "moa.normalize.therapy:Imatinib",
             "disease_descriptor": "moa.normalize.disease:oncotree%3ACML",
             "method": "method:004",
@@ -18,38 +18,22 @@
     ],
     "propositions": [
         {
-            "id": "proposition:057",
+            "id": "proposition:569",
             "type": "therapeutic_response_proposition",
             "predicate": "predicts_resistance_to",
-            "subject": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",
+            "subject": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
             "object_qualifier": "ncit:C3174",
             "object": "rxcui:282388"
         }
     ],
     "variation_descriptors": [
         {
-            "id": "moa.variant:70",
+            "id": "moa.variant:71",
             "type": "VariationDescriptor",
             "label": "ABL1 p.T315I (Missense)",
-            "value_id": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",
-            "value": {
-                "location": {
-                    "type": "SequenceLocation",
-                    "sequence_id": "ga4gh:SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg",
-                    "interval": {
-                        "end": 315,
-                        "start": 314,
-                        "type": "SimpleInterval"
-                    }
-                },
-                "state": {
-                    "sequence": "I",
-                    "type": "SequenceState"
-                },
-                "type": "Allele"
-            },
             "extensions": [
                 {
+                    "type": "Extension",
                     "name": "moa_representative_coordinate",
                     "value": {
                         "chromosome": "9",
@@ -60,12 +44,36 @@
                         "cdna_change": "c.944C>T",
                         "protein_change": "p.T315I",
                         "exon": "5.0"
-                    },
-                    "type": "Extension"
+                    }
                 }
             ],
-            "ref_allele_seq": "T",
-            "gene_context": "moa.normalize.gene:ABL1"
+            "variation_id": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
+            "variation": {
+                "_id": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
+                "type": "Allele",
+                "location": {
+                    "_id": "ga4gh:VSL.JkBiKTd3Kq-l0ZSOzCOJ1i60mh03hXb5",
+                    "type": "SequenceLocation",
+                    "sequence_id": "ga4gh:SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg",
+                    "interval": {
+                        "type": "SequenceInterval",
+                        "start": {
+                            "type": "Number",
+                            "value": 314
+                        },
+                        "end": {
+                            "type": "Number",
+                            "value": 315
+                        }
+                    }
+                },
+                "state": {
+                    "type": "LiteralSequenceExpression",
+                    "sequence": "I"
+                }
+            },
+            "gene_context": "moa.normalize.gene:ABL1",
+            "vrs_ref_allele_seq": "T"
         }
     ],
     "gene_descriptors": [
@@ -73,10 +81,7 @@
             "id": "moa.normalize.gene:ABL1",
             "type": "GeneDescriptor",
             "label": "ABL1",
-            "value": {
-                "id": "hgnc:76",
-                "type": "Gene"
-            }
+            "gene_id": "hgnc:76"
         }
     ],
     "therapy_descriptors": [
@@ -84,10 +89,7 @@
             "id": "moa.normalize.therapy:Imatinib",
             "type": "TherapyDescriptor",
             "label": "Imatinib",
-            "value": {
-                "id": "rxcui:282388",
-                "type": "Drug"
-            }
+            "therapy_id": "rxcui:282388"
         }
     ],
     "disease_descriptors": [
@@ -95,10 +97,7 @@
             "id": "moa.normalize.disease:oncotree%3ACML",
             "type": "DiseaseDescriptor",
             "label": "Chronic Myelogenous Leukemia",
-            "value": {
-                "id": "ncit:C3174",
-                "type": "Disease"
-            }
+            "disease_id": "ncit:C3174"
         }
     ],
     "methods": [

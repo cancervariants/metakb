@@ -1,13 +1,13 @@
 """Utility function to load/reload graph for development."""
 from metakb.database import Graph
-from metakb import PROJECT_ROOT
+from metakb import APP_ROOT
 import json
 
 
 g = Graph(uri="bolt://localhost:7687", credentials=("neo4j", "admin"))
 g.clear()
 
-fpath = PROJECT_ROOT / 'data' / 'civic' / 'transform' / 'civic_cdm.json'
+fpath = APP_ROOT / 'data' / 'civic' / 'transform' / 'civic_cdm.json'
 with open(fpath, 'r') as f:
     items = json.load(f)
 

@@ -1,7 +1,7 @@
 """Test CIViC source"""
 import pytest
 from metakb import PROJECT_ROOT
-from metakb.harvesters.civic import CIViC
+from metakb.harvesters import CIViCHarvester
 from mock import patch
 import json
 
@@ -114,13 +114,13 @@ def dux4():
     }
 
 
-@patch.object(CIViC, '_get_all_genes')
+@patch.object(CIViCHarvester, '_get_all_genes')
 def test_genes(test_get_all_genes, dux4, alk):
     """Test that CIViC harvest genes method is correct."""
     with open(f"{PROJECT_ROOT}/tests/data/harvesters/civic/genes.json") as f:
         data = json.load(f)
     test_get_all_genes.return_value = data
-    genes = CIViC()._harvest_genes()
+    genes = CIViCHarvester()._harvest_genes()
     actual_dux4 = None
     actual_alk = None
     for gene in genes:

@@ -28,7 +28,7 @@ def civic_eid2997_proposition():
     return {
         "id": "proposition:001",
         "predicate": "predicts_sensitivity_to",
-        "subject": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
+        "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
         "object_qualifier": "ncit:C2926",
         "object": "rxcui:1430438",
         "type": "therapeutic_response_proposition"
@@ -43,20 +43,22 @@ def civic_vid33():
         "type": "VariationDescriptor",
         "label": "L858R",
         "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
-        "value_id": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
-        "value": {
+        "variation_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
+        "variation": {
+            "_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
             "location": {
+                "_id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",
                 "interval": {
-                    "end": 858,
-                    "start": 857,
-                    "type": "SimpleInterval"
+                    "end": {"value": 858, "type": "Number"},
+                    "start": {"value": 857, "type": "Number"},
+                    "type": "SequenceInterval"
                 },
                 "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
                 "type": "SequenceLocation"
             },
             "state": {
                 "sequence": "R",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },
@@ -126,10 +128,7 @@ def civic_gid19():
         "type": "GeneDescriptor",
         "label": "EGFR",
         "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
-        "value": {
-            "id": "hgnc:3236",
-            "type": "Gene"
-        },
+        "gene_id": "hgnc:3236",
         "alternate_labels": [
             "ERRP",
             "EGFR",
@@ -153,10 +152,7 @@ def civic_tid146():
         "id": "civic.tid:146",
         "type": "TherapyDescriptor",
         "label": "Afatinib",
-        "value": {
-            "id": "rxcui:1430438",
-            "type": "Drug"
-        },
+        "therapy_id": "rxcui:1430438",
         "alternate_labels": [
             "BIBW2992",
             "BIBW 2992",
@@ -175,10 +171,7 @@ def civic_did8():
         "id": "civic.did:8",
         "type": "DiseaseDescriptor",
         "label": "Lung Non-small Cell Carcinoma",
-        "value": {
-            "id": "ncit:C2926",
-            "type": "Disease"
-        },
+        "disease_id": "ncit:C2926",
         "xrefs": [
             "DOID:3908"
         ]
@@ -276,7 +269,7 @@ def civic_eid2_proposition():
     return {
         "id": "proposition:001",
         "predicate": "is_diagnostic_exclusion_criterion_for",
-        "subject": "ga4gh:VA.3Yv7t0YzME9W4xErQf7-eFWtqvdfmjgt",
+        "subject": "ga4gh:VA.bjWVYvXPaPbIRAfZvE0Uw_P-i36PGkAz",
         "object_qualifier": "ncit:C3868",
         "type": "diagnostic_proposition"
     }
@@ -290,20 +283,22 @@ def civic_vid99():
         "type": "VariationDescriptor",
         "label": "D842V",
         "description": "PDGFRA D842 mutations are characterized broadly as imatinib resistance mutations. This is most well characterized in gastrointestinal stromal tumors, but other cell lines containing these mutations have been shown to be resistant as well. Exogenous expression of the A842V mutation resulted in constitutive tyrosine phosphorylation of PDGFRA in the absence of ligand in 293T cells and cytokine-independent proliferation of the IL-3-dependent Ba/F3 cell line, both evidence that this is an activating mutation. In imatinib resistant cell lines, a number of other therapeutics have demonstrated efficacy. These include; crenolanib, sirolimus, and midostaurin (PKC412).",  # noqa: E501
-        "value_id": "ga4gh:VA.3Yv7t0YzME9W4xErQf7-eFWtqvdfmjgt",
-        "value": {
+        "variation_id": "ga4gh:VA.bjWVYvXPaPbIRAfZvE0Uw_P-i36PGkAz",
+        "variation": {
+            "_id": "ga4gh:VA.bjWVYvXPaPbIRAfZvE0Uw_P-i36PGkAz",
             "location": {
+                "_id": "ga4gh:VSL.CvhzuX1-CV0in3YTnaq9xZGAPxmrkrFC",
                 "interval": {
-                    "start": 841,
-                    "end": 842,
-                    "type": "SimpleInterval"
+                    "start": {"value": 841, "type": "Number"},
+                    "end": {"value": 842, "type": "Number"},
+                    "type": "SequenceInterval"
                 },
                 "sequence_id": "ga4gh:SQ.XpQn9sZLGv_GU3uiWO7YHq9-_alGjrVX",
                 "type": "SequenceLocation"
             },
             "state": {
                 "sequence": "V",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },
@@ -342,7 +337,7 @@ def civic_vid99():
                         "id": "civic.variant_group:1",
                         "label": "Imatinib Resistance",
                         "description": "While imatinib has shown to be incredibly successful in treating philadelphia chromosome positive CML, patients that have shown primary or secondary resistance to the drug have been observed to harbor T315I and E255K ABL kinase domain mutations. These mutations, among others, have been observed both in primary refractory disease and acquired resistance. In gastrointestinal stromal tumors (GIST), PDGFRA 842 mutations have also been shown to confer resistance to imatinib. ",  # noqa: E501
-                        'type': 'variant_group'
+                        "type": "variant_group"
                     }
                 ],
                 "type": "Extension"
@@ -382,10 +377,7 @@ def civic_did2():
         "id": "civic.did:2",
         "type": "DiseaseDescriptor",
         "label": "Gastrointestinal Stromal Tumor",
-        "value": {
-            "id": "ncit:C3868",
-            "type": "Disease"
-        },
+        "disease_id": "ncit:C3868",
         "xrefs": [
             "DOID:9253"
         ]
@@ -400,10 +392,7 @@ def civic_gid38():
         "type": "GeneDescriptor",
         "label": "PDGFRA",
         "description": "Commonly mutated in GI tract tumors, PDGFR family genes (mutually exclusive to KIT mutations) are a hallmark of gastrointestinal stromal tumors. Gene fusions involving the PDGFRA kinase domain are highly correlated with eosinophilia, and the WHO classifies myeloid and lymphoid neoplasms with these characteristics as a distinct disorder. Mutations in the 842 region of PDGFRA have been often found to confer resistance to the tyrosine kinase inhibitor, imatinib.",  # noqa: E501
-        "value": {
-            "id": "hgnc:8803",
-            "type": "Gene"
-        },
+        "gene_id": "hgnc:8803",
         "alternate_labels": [
             "PDGFRA",
             "PDGFR2",
@@ -440,7 +429,7 @@ def civic_eid74_proposition():
     return {
         "id": "proposition:002",
         "predicate": "is_diagnostic_inclusion_criterion_for",
-        "subject": "ga4gh:VA.ifPUeUiHj0TkYmimFK7T7jvbucAsGKqa",
+        "subject": "ga4gh:VA.GweduWrfxV58YnSvUBfHPGOA-KCH_iIl",
         "object_qualifier": "ncit:C3879",
         "type": "diagnostic_proposition"
     }
@@ -454,20 +443,22 @@ def civic_vid113():
         "type": "VariationDescriptor",
         "label": "M918T",
         "description": "RET M819T is the most common somatically acquired mutation in medullary thyroid cancer (MTC). While there currently are no RET-specific inhibiting agents, promiscuous kinase inhibitors have seen some success in treating RET overactivity. Data suggests however, that the M918T mutation may lead to drug resistance, especially against the VEGFR-inhibitor motesanib. It has also been suggested that RET M819T leads to more aggressive MTC with a poorer prognosis.",  # noqa: E501
-        "value_id": "ga4gh:VA.ifPUeUiHj0TkYmimFK7T7jvbucAsGKqa",
-        "value": {
+        "variation_id": "ga4gh:VA.GweduWrfxV58YnSvUBfHPGOA-KCH_iIl",
+        "variation": {
+            "_id": "ga4gh:VA.GweduWrfxV58YnSvUBfHPGOA-KCH_iIl",
             "location": {
+                "_id": "ga4gh:VSL.zkwClPQjjO0FqXWN46QRuiGgodhPjxqT",
                 "interval": {
-                    "end": 918,
-                    "start": 917,
-                    "type": "SimpleInterval"
+                    "end": {"value": 918, "type": "Number"},
+                    "start": {"value": 917, "type": "Number"},
+                    "type": "SequenceInterval"
                 },
                 "sequence_id": "ga4gh:SQ.jMu9-ItXSycQsm4hyABeW_UfSNRXRVnl",
                 "type": "SequenceLocation"
             },
             "state": {
                 "sequence": "T",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },
@@ -506,7 +497,7 @@ def civic_vid113():
                         "id": "civic.variant_group:6",
                         "label": "Motesanib Resistance",
                         "description": "RET activation is a common oncogenic marker of medullary thyroid carcinoma. Treatment of these patients with the targeted therapeutic motesanib has shown to be effective. However, the missense mutations C634W and M918T have shown to confer motesanib resistance in cell lines. ",  # noqa: E501
-                        'type': 'variant_group'
+                        "type": "variant_group"
                     }
                 ],
                 "type": "Extension"
@@ -546,10 +537,7 @@ def civic_did15():
         "id": "civic.did:15",
         "type": "DiseaseDescriptor",
         "label": "Thyroid Gland Medullary Carcinoma",
-        "value": {
-            "id": "ncit:C3879",
-            "type": "Disease"
-        },
+        "disease_id": "ncit:C3879",
         "xrefs": [
             "DOID:3973"
         ]
@@ -564,10 +552,7 @@ def civic_gid42():
         "type": "GeneDescriptor",
         "label": "RET",
         "description": "RET mutations and the RET fusion RET-PTC lead to activation of this tyrosine kinase receptor and are associated with thyroid cancers. RET point mutations are the most common mutations identified in medullary thyroid cancer (MTC) with germline and somatic mutations in RET associated with hereditary and sporadic forms, respectively. The most common somatic form mutation is M918T (exon 16) and a variety of other mutations effecting exons 10, 11 and 15 have been described. The prognostic significance of these mutations have been hotly debated in the field, however, data suggests that some RET mutation may confer drug resistence. No RET-specific agents are currently clinically available but several promiscuous kinase inhibitors that target RET, among others, have been approved for MTC treatment.",  # noqa: E501
-        "value": {
-            "id": "hgnc:9967",
-            "type": "Gene"
-        },
+        "gene_id": "hgnc:9967",
         "alternate_labels": [
             "RET",
             "RET-ELE1",
@@ -610,7 +595,7 @@ def civic_aid9_proposition():
     return {
         "id": "proposition:003",
         "predicate": "is_diagnostic_inclusion_criterion_for",
-        "subject": "ga4gh:VA.twWuxZk0p0Vn3NSkp0kwD1VgfNN2fvDm",
+        "subject": "ga4gh:VA.yuvNtv-SpNOzcGsKsNnnK0n026rbfp6T",
         "object_qualifier": "DOID:0080684",
         "type": "diagnostic_proposition"
     }
@@ -623,20 +608,22 @@ def civic_vid1686():
         "id": "civic.vid:1686",
         "type": "VariationDescriptor",
         "label": "G328V",
-        "value_id": "ga4gh:VA.twWuxZk0p0Vn3NSkp0kwD1VgfNN2fvDm",
-        "value": {
+        "variation_id": "ga4gh:VA.yuvNtv-SpNOzcGsKsNnnK0n026rbfp6T",
+        "variation": {
+            "_id": "ga4gh:VA.yuvNtv-SpNOzcGsKsNnnK0n026rbfp6T",
             "location": {
+                "_id": "ga4gh:VSL.w84KcAESJfbxvPCwCvYpQajlkdPrfS12",
                 "interval": {
-                    "end": 328,
-                    "start": 327,
-                    "type": "SimpleInterval"
+                    "end": {"value": 328, "type": "Number"},
+                    "start": {"value": 327, "type": "Number"},
+                    "type": "SequenceInterval"
                 },
                 "sequence_id": "ga4gh:SQ.6CnHhDq_bDCsuIBf0AzxtKq_lXYM7f0m",
                 "type": "SequenceLocation"
             },
             "state": {
                 "sequence": "V",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },
@@ -674,7 +661,7 @@ def civic_vid1686():
                     {
                         "id": "civic.variant_group:23",
                         "label": "ACVR1 kinase domain mutation",
-                        'type': 'variant_group'
+                        "type": "variant_group"
                     }
                 ],
                 "type": "Extension"
@@ -714,10 +701,7 @@ def civic_did2950():
         "id": "civic.did:2950",
         "type": "DiseaseDescriptor",
         "label": "Diffuse Midline Glioma, H3 K27M-mutant",
-        "value": {
-            "id": "DOID:0080684",
-            "type": "Disease"
-        },
+        "disease_id": "DOID:0080684",
         "xrefs": [
             "DOID:0080684"
         ]
@@ -731,10 +715,7 @@ def civic_gid154():
         "id": "civic.gid:154",
         "type": "GeneDescriptor",
         "label": "ACVR1",
-        "value": {
-            "id": "hgnc:171",
-            "type": "Gene"
-        },
+        "gene_id": "hgnc:171",
         "alternate_labels": [
             "ACVR1",
             "TSRI",
@@ -775,7 +756,7 @@ def civic_eid26_proposition():
     return {
         "id": "proposition:001",
         "predicate": "is_prognostic_of_worse_outcome_for",
-        "subject": "ga4gh:VA.EGLm8XWH3V17-VZw7vEygPmy4wHQ8mCf",
+        "subject": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
         "object_qualifier": "ncit:C3171",
         "type": "prognostic_proposition"
     }
@@ -789,20 +770,22 @@ def civic_vid65():
         "type": "VariationDescriptor",
         "label": "D816V",
         "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",  # noqa: E501
-        "value_id": "ga4gh:VA.EGLm8XWH3V17-VZw7vEygPmy4wHQ8mCf",
-        "value": {
+        "variation_id": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
+        "variation": {
+            "_id": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
             "location": {
+                "_id": "ga4gh:VSL.67qWY-IcFDjFx5DttZ1-5ZMm3v_SC7jI",
                 "interval": {
-                    "end": 816,
-                    "start": 815,
-                    "type": "SimpleInterval"
+                    "end": {"value": 820, "type": "Number"},
+                    "start": {"value": 819, "type": "Number"},
+                    "type": "SequenceInterval"
                 },
                 "sequence_id": "ga4gh:SQ.TcMVFj5kDODDWpiy1d_1-3_gOf4BYaAB",
                 "type": "SequenceLocation"
             },
             "state": {
                 "sequence": "V",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },
@@ -840,7 +823,7 @@ def civic_vid65():
                     {
                         "id": "civic.variant_group:2",
                         "label": "KIT Exon 17",
-                        'type': 'variant_group'
+                        "type": "variant_group"
                     }
                 ],
                 "type": "Extension"
@@ -880,10 +863,7 @@ def civic_did3():
         "id": "civic.did:3",
         "type": "DiseaseDescriptor",
         "label": "Acute Myeloid Leukemia",
-        "value": {
-            "id": "ncit:C3171",
-            "type": "Disease"
-        },
+        "disease_id": "ncit:C3171",
         "xrefs": [
             "DOID:9119"
         ]
@@ -898,10 +878,7 @@ def civic_gid29():
         "type": "GeneDescriptor",
         "label": "KIT",
         "description": "c-KIT activation has been shown to have oncogenic activity in gastrointestinal stromal tumors (GISTs), melanomas, lung cancer, and other tumor types. The targeted therapeutics nilotinib and sunitinib have shown efficacy in treating KIT overactive patients, and are in late-stage trials in melanoma and GIST. KIT overactivity can be the result of many genomic events from genomic amplification to overexpression to missense mutations. Missense mutations have been shown to be key players in mediating clinical response and acquired resistance in patients being treated with these targeted therapeutics.",  # noqa: E501
-        "value": {
-            "id": "hgnc:6342",
-            "type": "Gene"
-        },
+        "gene_id": "hgnc:6342",
         "alternate_labels": [
             "MASTC",
             "KIT",
@@ -940,7 +917,7 @@ def civic_eid1756_proposition():
     return {
         "id": "proposition:002",
         "predicate": "is_prognostic_of_better_outcome_for",
-        "subject": "ga4gh:VA.V5IUMLhaM8Oo-oAClUZqb-gDPaIzIi-A",
+        "subject": "ga4gh:VA.Nq7ozfH2X6m1PGr_n38E-F0NZ7I9UASP",
         "object_qualifier": "ncit:C9005",
         "type": "prognostic_proposition"
     }
@@ -953,20 +930,22 @@ def civic_vid258():
         "id": "civic.vid:258",
         "type": "VariationDescriptor",
         "label": "A222V",
-        "value_id": "ga4gh:VA.V5IUMLhaM8Oo-oAClUZqb-gDPaIzIi-A",
-        "value": {
+        "variation_id": "ga4gh:VA.Nq7ozfH2X6m1PGr_n38E-F0NZ7I9UASP",
+        "variation": {
+            "_id": "ga4gh:VA.Nq7ozfH2X6m1PGr_n38E-F0NZ7I9UASP",
             "location": {
+                "_id": "ga4gh:VSL._zGTVJ2unM-BjeDKxGl0IKZtKWQdfOxw",
                 "interval": {
-                    "end": 222,
-                    "start": 221,
-                    "type": "SimpleInterval"
+                    "end": {"value": 222, "type": "Number"},
+                    "start": {"value": 221, "type": "Number"},
+                    "type": "SequenceInterval"
                 },
                 "sequence_id": "ga4gh:SQ.4RSETawLfMkNpQBPepa7Uf9ItHAEJUde",
                 "type": "SequenceLocation"
             },
             "state": {
                 "sequence": "V",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },
@@ -1034,10 +1013,7 @@ def civic_did556():
         "id": "civic.did:556",
         "type": "DiseaseDescriptor",
         "label": "Pancreatic Cancer",
-        "value": {
-            "id": "ncit:C9005",
-            "type": "Disease"
-        },
+        "disease_id": "ncit:C9005",
         "xrefs": [
             "DOID:1793"
         ]
@@ -1051,10 +1027,7 @@ def civic_gid3672():
         "id": "civic.gid:3672",
         "type": "GeneDescriptor",
         "label": "MTHFR",
-        "value": {
-            "id": "hgnc:7436",
-            "type": "Gene"
-        },
+        "gene_id": "hgnc:7436",
         "alternate_labels": [
             "MTHFR"
         ],
@@ -1110,15 +1083,15 @@ def pmid_27819322():
 
 
 @pytest.fixture(scope='module')
-def moa_aid70_statement():
-    """Create a MOA Statement 70 test fixture."""
+def moa_aid71_statement():
+    """Create a MOA Statement 71 test fixture."""
     return {
-        "id": "moa.assertion:70",
+        "id": "moa.assertion:71",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
         "evidence_level": "moa.evidence_level:Preclinical",
         "proposition": "proposition:001",
         "variation_origin": "somatic",
-        "variation_descriptor": "moa.variant:70",
+        "variation_descriptor": "moa.variant:71",
         "therapy_descriptor": "moa.normalize.therapy:Imatinib",
         "disease_descriptor": "moa.normalize.disease:oncotree%3ACML",
         "method": "method:004",
@@ -1130,12 +1103,12 @@ def moa_aid70_statement():
 
 
 @pytest.fixture(scope='module')
-def moa_aid70_proposition():
-    """Create a test fixture for MOA AID70 proposition."""
+def moa_aid71_proposition():
+    """Create a test fixture for MOA AID71 proposition."""
     return {
         "id": "proposition:001",
         "predicate": "predicts_resistance_to",
-        "subject": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",
+        "subject": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
         "object_qualifier": "ncit:C3174",
         "object": "rxcui:282388",
         "type": "therapeutic_response_proposition"
@@ -1143,26 +1116,28 @@ def moa_aid70_proposition():
 
 
 @pytest.fixture(scope='module')
-def moa_vid70():
-    """Create a test fixture for MOA VID70."""
+def moa_vid71():
+    """Create a test fixture for MOA VID71."""
     return {
-        "id": "moa.variant:70",
+        "id": "moa.variant:71",
         "type": "VariationDescriptor",
         "label": "ABL1 p.T315I (Missense)",
-        "value_id": "ga4gh:VA.wVNOLHSUDotkavwqtSiPW1aWxJln3VMG",
-        "value": {
+        "variation_id": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
+        "variation": {
+            "_id": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
             "location": {
+                "_id": "ga4gh:VSL.JkBiKTd3Kq-l0ZSOzCOJ1i60mh03hXb5",
                 "interval": {
-                    "end": 315,
-                    "start": 314,
-                    "type": "SimpleInterval"
+                    "end": {"value": 315, "type": "Number"},
+                    "start": {"value": 314, "type": "Number"},
+                    "type": "SequenceInterval"
                 },
                 "sequence_id": "ga4gh:SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg",
                 "type": "SequenceLocation"
             },
             "state": {
                 "sequence": "I",
-                "type": "SequenceState"
+                "type": "LiteralSequenceExpression"
             },
             "type": "Allele"
         },
@@ -1182,7 +1157,7 @@ def moa_vid70():
                 "type": "Extension"
             }
         ],
-        "ref_allele_seq": "T",
+        "vrs_ref_allele_seq": "T",
         "gene_context": "moa.normalize.gene:ABL1"
     }
 
@@ -1194,10 +1169,7 @@ def moa_abl1():
         "id": "moa.normalize.gene:ABL1",
         "type": "GeneDescriptor",
         "label": "ABL1",
-        "value": {
-            "id": "hgnc:76",
-            "type": "Gene"
-        }
+        "gene_id": "hgnc:76"
     }
 
 
@@ -1208,10 +1180,7 @@ def moa_imatinib():
         "id": "moa.normalize.therapy:Imatinib",
         "type": "TherapyDescriptor",
         "label": "Imatinib",
-        "value": {
-            "id": "rxcui:282388",
-            "type": "Drug"
-        }
+        "therapy_id": "rxcui:282388"
     }
 
 
@@ -1222,10 +1191,7 @@ def moa_chronic_myelogenous_leukemia():
         "id": "moa.normalize.disease:oncotree%3ACML",
         "type": "DiseaseDescriptor",
         "label": "Chronic Myelogenous Leukemia",
-        "value": {
-            "id": "ncit:C3174",
-            "type": "Disease"
-        }
+        "disease_id": "ncit:C3174"
     }
 
 
@@ -1367,13 +1333,14 @@ def check_variation_descriptor():
         test_keys = test.keys()
         assert actual_keys == test_keys
         for key in test_keys:
-            if key in ['id', 'type', 'label', 'description', 'value_id',
-                       'structural_type', 'ref_seq_allele', 'gene_context']:
+            if key in ['id', 'type', 'label', 'description', 'variation_id',
+                       'structural_type', 'vrs_ref_allele_seq',
+                       'gene_context']:
                 assert actual[key] == test[key]
             elif key in ['xrefs', 'alternate_labels']:
                 assert set(actual[key]) == set(test[key])
-            elif key == 'value':
-                assert actual['value'] == test['value']
+            elif key == 'variation':
+                assert actual['variation'] == test['variation']
             elif key == 'extensions':
                 assert len(actual) == len(test)
                 for test_extension in test['extensions']:
@@ -1405,10 +1372,10 @@ def check_descriptor():
         test_keys = test.keys()
         assert actual_keys == test_keys
         for key in test_keys:
-            if key in ['id', 'type', 'label', 'description', 'value']:
-                assert actual[key] == test[key]
-            elif key in ['alternate_labels', 'xrefs']:
+            if key in ['alternate_labels', 'xrefs']:
                 assert set(actual[key]) == set(test[key])
+            else:
+                assert actual[key] == test[key]
     return check_descriptor
 
 
