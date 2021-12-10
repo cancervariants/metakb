@@ -144,12 +144,13 @@ def assert_response_items(response, statement, proposition,
     assert response_statement['method'] == response_method['id']
     assert response_statement['supported_by'][0] == response_document['id']
 
-    assert proposition['subject'] == response_variation_descriptor['value_id']
+    assert proposition['subject'] == \
+           response_variation_descriptor['variation_id']
     assert proposition['object_qualifier'] == \
-           response_disease_descriptor['value']['id']
+           response_disease_descriptor['disease_id']
     if therapy_descriptor:
         assert proposition['object'] == \
-               response_therapy_descriptor['value']['id']
+               response_therapy_descriptor['therapy_id']
 
     assert response_variation_descriptor['gene_context'] == \
            response_gene_descriptor['id']
@@ -158,9 +159,12 @@ def assert_response_items(response, statement, proposition,
 def assert_general_search_queries(response):
     """Check for general search queries."""
     assert response['matches']
-    assert len(response['matches']['statements']) > 0
+    len_statement_matches = len(response['matches']['statements'])
+    assert len_statement_matches > 0
     assert len(response['matches']['propositions']) > 0
-    assert len(response['statements']) > 0
+    len_statements = len(response['statements'])
+    assert len_statements > 0
+    assert len_statement_matches == len_statements
     assert len(response['propositions']) > 0
     assert len(response['methods']) > 0
     assert len(response['documents']) > 0
@@ -195,7 +199,7 @@ def test_civic_eid2997(query_handler, civic_eid2997_statement,
 
     # Test search by Subject
     s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')  # noqa: E501
+                           variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA')  # noqa: E501
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
@@ -229,12 +233,6 @@ def test_civic_eid2997(query_handler, civic_eid2997_statement,
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
     s, p = return_response(query_handler, statement_id, variation='EGFR L858R')
-    check_statement(s, civic_eid2997_statement)
-    check_proposition(p, civic_eid2997_proposition)
-
-    # Sequence ID
-    s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE')  # noqa: E501
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
@@ -276,7 +274,7 @@ def test_civic_eid1409_statement(query_handler, civic_eid1409_statement,
 
     # Test search by Subject
     s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:VA.9dA0egRAIfVFDL1sdU1VP7HsBcG0-DtE')  # noqa: E501
+                           variation='ga4gh:VA.8JkgnqIgYqufNl-OV_hpRG_aWF9UFQCE')  # noqa: E501
     check_statement(s, civic_eid1409_statement)
 
     # Test search by Object
@@ -306,11 +304,6 @@ def test_civic_eid1409_statement(query_handler, civic_eid1409_statement,
     # Gene Symbol + Variant Name
     s, p = return_response(query_handler, statement_id,
                            variation='BRAF V600E')
-    check_statement(s, civic_eid1409_statement)
-
-    # Sequence ID
-    s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:SQ.WaAJ_cXXn9YpMNfhcq9lnzIvaB9ALawo')  # noqa: E501
     check_statement(s, civic_eid1409_statement)
 
     # # Alt Label
@@ -345,7 +338,7 @@ def test_civic_aid6(query_handler, civic_aid6_statement, check_statement):
 
     # Test search by Subject
     s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')  # noqa: E501
+                           variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA')  # noqa: E501
     check_statement(s, civic_aid6_statement)
 
     # Test search by Object
@@ -373,11 +366,6 @@ def test_civic_aid6(query_handler, civic_aid6_statement, check_statement):
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
     s, p = return_response(query_handler, statement_id, variation='EGFR L858R')
-    check_statement(s, civic_aid6_statement)
-
-    # Sequence ID
-    s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE')  # noqa: E501
     check_statement(s, civic_aid6_statement)
 
     # Alt Label
@@ -416,7 +404,7 @@ def test_multiple_parameters(query_handler):
 
     # Test EID2997 queries
     object_qualifier = 'ncit:C2926'
-    subject = 'ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR'
+    subject = 'ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA'
     object = 'rxcui:1430438'
     response = query_handler.search(
         variation='NP_005219.2:p.Leu858Arg',
@@ -440,7 +428,7 @@ def test_multiple_parameters(query_handler):
 
     # Test eid1409 queries
     object_qualifier = 'ncit:C3510'
-    subject = 'ga4gh:VA.9dA0egRAIfVFDL1sdU1VP7HsBcG0-DtE'
+    subject = 'ga4gh:VA.8JkgnqIgYqufNl-OV_hpRG_aWF9UFQCE'
     response = query_handler.search(
         variation=subject,
         disease='malignant trunk melanoma'
@@ -462,7 +450,7 @@ def test_multiple_parameters(query_handler):
     # CIViC EID2997
     response = query_handler.search(
         statement_id='civiC.eid:2997',
-        variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR'
+        variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA'
     )
     assert len(response['statements']) == 1
     assert len(response['propositions']) == 1
@@ -472,7 +460,7 @@ def test_multiple_parameters(query_handler):
     # CIViC AID6
     response = query_handler.search(
         statement_id='CIViC.AID:6',
-        variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR',
+        variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA',
         disease='ncit:C2926'
     )
     assert len(response['statements']) > 1
@@ -493,7 +481,7 @@ def test_multiple_parameters(query_handler):
 
     response = query_handler.search(
         disease='ncit:C2926',
-        variation='ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR'
+        variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA'
     )
     statement_ids = list()
     for s in response['statements']:
@@ -583,24 +571,23 @@ def test_civic_detail_flag_prognostic(query_handler, civic_eid26_statement,
                           check_descriptor, check_method, check_document)
 
 
-def test_moa_detail_flag(query_handler, moa_aid70_statement,
-                         moa_aid70_proposition,
-                         moa_vid70, moa_abl1, moa_imatinib,
+def test_moa_detail_flag(query_handler, moa_aid71_statement,
+                         moa_aid71_proposition,
+                         moa_vid71, moa_abl1, moa_imatinib,
                          moa_chronic_myelogenous_leukemia, method004,
                          pmid_11423618, check_statement, check_proposition,
                          check_variation_descriptor, check_descriptor,
                          check_method, check_document):
     """Test that detail flag works correctly for MOA."""
-    response = query_handler.search(statement_id='moa.assertion:70',
+    response = query_handler.search(statement_id='moa.assertion:71',
                                     detail=False)
     assert_keys_for_detail_false(response.keys())
 
-    response = query_handler.search(statement_id='moa.assertion:70',
+    response = query_handler.search(statement_id='moa.assertion:71',
                                     detail=True)
-    moa_vid70['expressions'] = []
     assert_keys_for_detail_true(response.keys(), response)
-    assert_response_items(response, moa_aid70_statement, moa_aid70_proposition,
-                          moa_vid70, moa_abl1,
+    assert_response_items(response, moa_aid71_statement, moa_aid71_proposition,
+                          moa_vid71, moa_abl1,
                           moa_chronic_myelogenous_leukemia, method004,
                           pmid_11423618, moa_imatinib, check_statement,
                           check_proposition, check_variation_descriptor,
@@ -673,18 +660,17 @@ def test_civic_id_search(query_handler, civic_eid2997_statement,
     check_method(res['method'], method001)
 
 
-def test_moa_id_search(query_handler, moa_aid70_statement,
-                       moa_vid70, moa_abl1, moa_imatinib,
+def test_moa_id_search(query_handler, moa_aid71_statement,
+                       moa_vid71, moa_abl1, moa_imatinib,
                        moa_chronic_myelogenous_leukemia, pmid_11423618,
                        method004, check_statement, check_variation_descriptor,
                        check_descriptor, check_method, check_document):
     """Test search on moa node id"""
-    res = query_handler.search_by_id('moa.assertion:70')
-    check_statement(res['statement'], moa_aid70_statement)
+    res = query_handler.search_by_id('moa.assertion:71')
+    check_statement(res['statement'], moa_aid71_statement)
 
-    res = query_handler.search_by_id('moa.variant:70')
-    moa_vid70['expressions'] = []
-    check_variation_descriptor(res['variation_descriptor'], moa_vid70)
+    res = query_handler.search_by_id('moa.variant:71')
+    check_variation_descriptor(res['variation_descriptor'], moa_vid71)
 
     res = query_handler.search_by_id('moa.normalize.gene:ABL1')
     check_descriptor(res['gene_descriptor'], moa_abl1)

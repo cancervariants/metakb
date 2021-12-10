@@ -1,13 +1,15 @@
 """A module for to transform CIViC."""
 from .base import Transform
 from typing import Optional, Dict, List
-from metakb import PROJECT_ROOT
+from metakb import APP_ROOT
 import json
 import logging
 import metakb.schemas as schemas
+from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
+    Extension, Expression, GeneDescriptor, ValueObjectDescriptor
 
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.transform.civic')
 logger.setLevel(logging.DEBUG)
 
 
@@ -15,7 +17,7 @@ class CIViCTransform(Transform):
     """A class for transforming CIViC to the common data model."""
 
     def __init__(self,
-                 file_path=f"{PROJECT_ROOT}/data/civic"
+                 file_path=f"{APP_ROOT}/data/civic/harvester"
                            f"/civic_harvester.json") -> None:
         """Initialize CIViC Transform class.
 
@@ -45,7 +47,7 @@ class CIViCTransform(Transform):
         }
 
     def _create_json(self,
-                     civic_dir=PROJECT_ROOT / 'data' / 'civic' / 'transform',
+                     civic_dir=APP_ROOT / 'data' / 'civic' / 'transform',
                      fn='civic_cdm.json') -> None:
         """Create a composite JSON for the transformed CIViC data.
 
@@ -54,7 +56,7 @@ class CIViCTransform(Transform):
         """
         civic_dir.mkdir(exist_ok=True, parents=True)
         with open(f"{civic_dir}/{fn}", 'w+') as f:
-            json.dump(self.transformed, f)
+            json.dump(self.transformed, f, indent=4)
 
     def transform(self, propositions_documents_ix=None) -> Dict[str, dict]:
         """Transform CIViC harvested json to common data model.
@@ -297,15 +299,29 @@ class CIViCTransform(Transform):
             'id': '',
             'type': proposition_type,
             'predicate': predicate,
-            'subject': variation_descriptor['value_id'],
-            'object_qualifier': disease_descriptor['value']['id']
+            'subject': variation_descriptor['variation_id'],
+            'object_qualifier': disease_descriptor['disease_id']
         }
+
+        if proposition_type == schemas.PropositionType.PREDICTIVE:
+            params['object'] = therapy_descriptor['therapy_id']
+
+        # Get corresponding id for proposition
+        key = (params['type'],
+               params['predicate'],
+               params['subject'],
+               params['object_qualifier'])
+        if proposition_type == schemas.PropositionType.PREDICTIVE.value:
+            key = key + (params['object'],)
+        proposition_index = self._set_ix(propositions_documents_ix,
+                                         'propositions', key)
+        params['id'] = f"proposition:{proposition_index:03}"
 
         if proposition_type == schemas.PropositionType.PROGNOSTIC.value:
             proposition = \
                 schemas.PrognosticProposition(**params).dict(exclude_none=True)
         elif proposition_type == schemas.PropositionType.PREDICTIVE.value:
-            params['object'] = therapy_descriptor['value']['id']
+            params['object'] = therapy_descriptor['therapy_id']
             proposition =\
                 schemas.TherapeuticResponseProposition(**params).dict(
                     exclude_none=True
@@ -314,18 +330,8 @@ class CIViCTransform(Transform):
             proposition = \
                 schemas.DiagnosticProposition(**params).dict(
                     exclude_none=True)
-
-        # Get corresponding id for proposition
-        key = (proposition['type'],
-               proposition['predicate'],
-               proposition['subject'],
-               proposition['object_qualifier'])
-        if proposition_type == schemas.PropositionType.PREDICTIVE.value:
-            key = key + (proposition['object'],)
-        proposition_index = self._set_ix(propositions_documents_ix,
-                                         'propositions', key)
-        proposition['id'] = f"proposition:{proposition_index:03}"
-
+        else:
+            proposition = None
         return proposition
 
     def _get_proposition_type(self, evidence_type, is_evidence=True) -> str:
@@ -414,17 +420,25 @@ class CIViCTransform(Transform):
             if variant['id'] not in vids:
                 continue
             variant_id = f"civic.vid:{variant['id']}"
-            normalizer_responses = list()
-            variant_query = f"{variant['entrez_name']} {variant['name']}"
+            if 'c.' in variant['name']:
+                variant_name = variant['name']
+                if '(' in variant_name:
+                    variant_name = \
+                        variant_name.replace('(', '').replace(')', '')
+                variant_name = variant_name.split()[-1]
+            else:
+                variant_name = variant['name']
+
+            variant_query = f"{variant['entrez_name']} {variant_name}"
             hgvs_exprs = self._get_hgvs_expr(variant)
 
-            # TODO: Remove as more get implemented in variant normalizer
+            # TODO: Remove as more get implemented in variation normalizer
             #  Filtering to speed up transformation
             vname_lower = variant['name'].lower()
 
-            if vname_lower.endswith('fs') or vname_lower.endswith('del') or '-' in vname_lower or '/' in vname_lower:  # noqa: E501
+            if vname_lower.endswith('fs') or '-' in vname_lower or '/' in vname_lower:  # noqa: E501
                 if not hgvs_exprs:
-                    logger.warning("Variant Normalizer does not support "
+                    logger.warning("Variation Normalizer does not support "
                                    f"{variant_id}: {variant_query}")
                     continue
 
@@ -440,52 +454,19 @@ class CIViCTransform(Transform):
             }
 
             if set(vname_lower.split()) & unable_to_normalize:
-                if not hgvs_exprs:
-                    logger.warning("Variant Normalizer does not support "
-                                   f"{variant_id}: {variant_query}")
-                    continue
-
-            # If c. in variant name, this indicates transcript
-            # Otherwise it indicates protein or genomic
-            transcript_queries = list()
-            genomic_queries = list()
-            protein_queries = list()
-            for expr in hgvs_exprs:
-                if 'protein' in expr['syntax']:
-                    protein_queries.append(expr['value'])
-                elif 'genomic' in expr['syntax']:
-                    genomic_queries.append(expr['value'])
-                else:
-                    transcript_queries.append(expr['value'])
-
-            # Order based on type of variant we think it is in order to
-            # give corresponding value_id/value.
-            if 'c.' in variant_query:
-                queries = \
-                    transcript_queries + genomic_queries + [variant_query] + \
-                    protein_queries
-            else:
-                queries = \
-                    protein_queries + genomic_queries + \
-                    [variant_query] + transcript_queries
+                logger.warning("Variation Normalizer does not support "
+                               f"{variant_id}: {variant_query}")
+                continue
 
             variation_norm_resp = self.vicc_normalizers.normalize_variation(
-                queries, normalizer_responses
+                [variant_query]
             )
 
+            # Couldn't find normalized concept
             if not variation_norm_resp:
-                logger.warning(
-                    "Variation Normalizer unable to find MANE transcript "
-                    f"for civic.vid:{variant['id']} : {variant_query}"
-                )
-
-            # Couldn't find MANE transcript
-            if not variation_norm_resp and len(normalizer_responses) > 0:
-                variation_norm_resp = normalizer_responses[0]
-            elif not variation_norm_resp and len(normalizer_responses) == 0:
-                logger.warning("Variation Normalizer unable to normalize: "
-                               f"civic.vid:{variant['id']} using queries "
-                               f"{queries}")
+                logger.warning("Variation Normalizer unable to normalize "
+                               f"civic.vid:{variant['id']} using query "
+                               f"{variant_query}")
                 continue
 
             if variant['variant_types']:
@@ -493,12 +474,12 @@ class CIViCTransform(Transform):
             else:
                 structural_type = None
 
-            variation_descriptor = schemas.VariationDescriptor(
+            variation_descriptor = VariationDescriptor(
                 id=variant_id,
                 label=variant['name'],
                 description=variant['description'] if variant['description'] else None,  # noqa: E501
-                value_id=variation_norm_resp['value_id'],
-                value=variation_norm_resp['value'],
+                variation_id=variation_norm_resp['variation_id'],
+                variation=variation_norm_resp['variation'],
                 gene_context=f"civic.gid:{variant['gene_id']}",
                 structural_type=structural_type,
                 expressions=hgvs_exprs,
@@ -507,7 +488,7 @@ class CIViCTransform(Transform):
                                   variant['variant_aliases'] if not
                                   v_alias.startswith('RS')],
                 extensions=self._get_variant_extensions(variant)
-            ).dict(exclude_none=True)
+            ).dict(by_alias=True, exclude_none=True)
             self.valid_ids['variation_descriptors'][variant_id] = \
                 variation_descriptor
             self.transformed['variation_descriptors'].append(
@@ -521,12 +502,12 @@ class CIViCTransform(Transform):
         :return: A list of extensions
         """
         extensions = [
-            schemas.Extension(
+            Extension(
                 name='civic_representative_coordinate',
                 value={k: v for k, v in variant['coordinates'].items()
                        if v is not None}
             ).dict(exclude_none=True),
-            schemas.Extension(
+            Extension(
                 name='civic_actionability_score',
                 value=variant['civic_actionability_score']
             ).dict(exclude_none=True)
@@ -545,7 +526,7 @@ class CIViCTransform(Transform):
                 if v_group['description'] == '':
                     del params['description']
                 v_groups.append(params)
-            extensions.append(schemas.Extension(
+            extensions.append(Extension(
                 name='variant_group',
                 value=v_groups
             ).dict(exclude_none=True))
@@ -593,8 +574,8 @@ class CIViCTransform(Transform):
                 syntax = 'hgvs:protein'
             if hgvs_expr != 'N/A':
                 hgvs_expressions.append(
-                    schemas.Expression(syntax=syntax,
-                                       value=hgvs_expr).dict(exclude_none=True)
+                    Expression(syntax=syntax,
+                               value=hgvs_expr).dict(exclude_none=True)
                 )
         return hgvs_expressions
 
@@ -612,11 +593,11 @@ class CIViCTransform(Transform):
                 self.vicc_normalizers.normalize_gene(queries)
 
             if normalized_gene_id:
-                gene_descriptor = schemas.GeneDescriptor(
+                gene_descriptor = GeneDescriptor(
                     id=gene_id,
                     label=gene['name'],
                     description=gene['description'] if gene['description'] else None,  # noqa: E501
-                    value=schemas.Gene(id=normalized_gene_id),
+                    gene_id=normalized_gene_id,
                     alternate_labels=gene['aliases'],
                     xrefs=[ncbigene]
                 ).dict(exclude_none=True)
@@ -626,7 +607,7 @@ class CIViCTransform(Transform):
                                f"using queries: {queries}")
 
     def _add_disease_descriptor(self, disease_id, record) \
-            -> Optional[schemas.ValueObjectDescriptor]:
+            -> Optional[ValueObjectDescriptor]:
         """Add disease ID to list of valid or invalid transformations.
 
         :param str disease_id: The CIViC ID for the disease
@@ -650,7 +631,7 @@ class CIViCTransform(Transform):
             return disease_descriptor
 
     def _get_disease_descriptors(self, disease) \
-            -> Optional[schemas.ValueObjectDescriptor]:
+            -> Optional[ValueObjectDescriptor]:
         """Get a disease descriptor.
 
         :param dict disease: A CIViC disease record
@@ -680,17 +661,17 @@ class CIViCTransform(Transform):
                            f"{disease_id} using queries {queries}")
             return None
 
-        disease_descriptor = schemas.ValueObjectDescriptor(
+        disease_descriptor = ValueObjectDescriptor(
             id=disease_id,
             type="DiseaseDescriptor",
             label=display_name,
-            value=schemas.Disease(id=normalized_disease_id),
+            disease_id=normalized_disease_id,
             xrefs=xrefs if xrefs else None
         ).dict(exclude_none=True)
         return disease_descriptor
 
     def _add_therapy_descriptor(self, therapy_id, record)\
-            -> Optional[schemas.ValueObjectDescriptor]:
+            -> Optional[ValueObjectDescriptor]:
         """Add therapy ID to list of valid or invalid transformations.
 
         :param str therapy_id: The CIViC ID for the drug
@@ -714,7 +695,7 @@ class CIViCTransform(Transform):
             return therapy_descriptor
 
     def _get_therapy_descriptor(self, drug) \
-            -> Optional[schemas.ValueObjectDescriptor]:
+            -> Optional[ValueObjectDescriptor]:
         """Get a therapy descriptor.
 
         :param dict drug: A CIViC drug record
@@ -733,11 +714,11 @@ class CIViCTransform(Transform):
                            f"using queries {ncit_id} and {label}")
             return None
 
-        therapy_descriptor = schemas.ValueObjectDescriptor(
+        therapy_descriptor = ValueObjectDescriptor(
             id=therapy_id,
             type="TherapyDescriptor",
             label=label,
-            value=schemas.Drug(id=normalized_therapy_id),
+            therapy_id=normalized_therapy_id,
             alternate_labels=drug['aliases'],
             xrefs=[ncit_id]
         ).dict(exclude_none=True)

@@ -2,7 +2,7 @@
     "id": 190,
     "entrez_name": "EGFR",
     "entrez_id": 1956,
-    "name": "AMPLIFICATION",
+    "name": "Amplification",
     "description": "",
     "gene_id": 19,
     "type": "variant",
@@ -32,54 +32,62 @@
         "reference_build": "GRCh37"
     },
     "evidence_items": {
-        "id": 7785,
-        "name": "EID7785",
-        "description": "Preclinical experiments with 27 GBM patient-derived cell lines showed selective sensitivity to the PARP inhibitor talazoparib in EGFR amplified samples relative to EGFR wild-type samples (p<0.0001). Functional assays showed that EGFR signaling was required for EGFR-mediated cellular inhibition by talazoparib, and that ROS levels, DNA repair capacity, and PARP trapping are associated with response in EGFR amplified cells. Talazoparib treatment also suppressed tumour growth and induced DNA damage and apoptosis in vivo for two EGFR amplified models, but not for two non-amplified models.",
+        "id": 5924,
+        "name": "EID5924",
+        "description": "The result of the analysis found that EGFR gene copy number was associated with increased OS and PFS, supporting the idea that EGFR gene copy number is a biomarker for response to EGFR-TKI therapy in patients with advanced NSCLC.",
         "disease": {
-            "id": 19,
-            "name": "Glioblastoma Multiforme",
-            "display_name": "Glioblastoma Multiforme",
-            "doid": "3068",
-            "url": "http://www.disease-ontology.org/?id=DOID:3068"
+            "id": 8,
+            "name": "Lung Non-small Cell Carcinoma",
+            "display_name": "Lung Non-small Cell Carcinoma",
+            "doid": "3908",
+            "url": "http://www.disease-ontology.org/?id=DOID:3908"
         },
         "drugs": [
             {
-                "id": 168,
-                "name": "Talazoparib",
-                "ncit_id": "C95733",
+                "id": 14,
+                "name": "Gefitinib",
+                "ncit_id": "C1855",
                 "aliases": [
-                    "BMN-673",
-                    "BMN 673"
+                    "ZD1839",
+                    "ZD 1839",
+                    "N-(3-chloro-4-fluorophenyl)-7-methoxy-6-[3-(4-morpholin) Propoxy]-4-quinazolinamine",
+                    "Iressa",
+                    "4-(3'-Chloro-4'-fluoroanilino)-7-methoxy-6-(3-morpholinopropoxy)quinazoline"
                 ]
+            },
+            {
+                "id": 15,
+                "name": "Erlotinib",
+                "ncit_id": "C65530",
+                "aliases": []
             }
         ],
         "rating": 4,
-        "evidence_level": "D",
+        "evidence_level": "B",
         "evidence_type": "Predictive",
         "clinical_significance": "Sensitivity/Response",
         "evidence_direction": "Supports",
         "variant_origin": "Somatic",
-        "drug_interaction_type": null,
-        "status": "submitted",
+        "drug_interaction_type": "Substitutes",
+        "status": "accepted",
         "type": "evidence",
         "source": {
-            "id": 3112,
-            "name": "EGFR amplification induces increased DNA damage response and renders selective sensitivity to Talazoparib (PARP inhibitor) in glioblastoma.",
-            "citation": "Wu et al., 2019, Clin. Cancer Res.",
-            "citation_id": "31852834",
+            "id": 650,
+            "name": "EGFR gene copy number as a predictive biomarker for patients receiving tyrosine kinase inhibitor treatment: a systematic review and meta-analysis in non-small-cell lung cancer.",
+            "citation": "Dahabreh et al., 2011, Ann. Oncol.",
+            "citation_id": "20826716",
             "source_type": "PubMed",
             "asco_abstract_id": null,
-            "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/31852834",
+            "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/20826716",
             "open_access": null,
             "pmc_id": null,
             "publication_date": {
-                "year": 2019,
-                "month": 12,
-                "day": 18
+                "year": 2011,
+                "month": 3
             },
-            "journal": "Clin. Cancer Res.",
-            "full_journal_title": "Clinical cancer research : an official journal of the American Association for Cancer Research",
-            "status": "partially curated",
+            "journal": "Ann. Oncol.",
+            "full_journal_title": "Annals of oncology : official journal of the European Society for Medical Oncology / ESMO",
+            "status": "fully curated",
             "is_review": false,
             "clinical_trials": []
         },
@@ -89,7 +97,9 @@
     "variant_groups": [],
     "assertions": [],
     "variant_aliases": [],
-    "hgvs_expressions": [],
+    "hgvs_expressions": [
+        "N/A"
+    ],
     "clinvar_entries": [
         "N/A"
     ],

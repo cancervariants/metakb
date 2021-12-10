@@ -1,5 +1,5 @@
 """A module for the Harvester base class"""
-from metakb import PROJECT_ROOT
+from metakb import APP_ROOT
 import json
 import logging
 
@@ -43,17 +43,17 @@ class Harvester:
         :return: `True` if JSON creation was successful. `False` otherwise.
         """
         composite_dict = dict()
-        src_dir = PROJECT_ROOT / 'data' / src
+        src_dir = APP_ROOT / 'data' / src / 'harvester'
         src_dir.mkdir(exist_ok=True, parents=True)
         try:
             for arg_name in kwargs:
                 composite_dict[arg_name] = kwargs[arg_name]
 
                 with open(f"{src_dir}/{arg_name}.json", 'w+') as f:
-                    f.write(json.dumps(composite_dict[arg_name]))
+                    f.write(json.dumps(composite_dict[arg_name], indent=4))
 
             with open(f"{src_dir}/{fn}", 'w+') as f:
-                json.dump(composite_dict, f)
+                json.dump(composite_dict, f, indent=4)
         except Exception as e:
             logger.error(f"Unable to create json: {e}")
             return False

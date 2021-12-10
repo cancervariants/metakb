@@ -21,66 +21,66 @@ def data():
 
 
 @pytest.fixture(scope='module')
-def asst70_statements(moa_aid70_statement):
-    """Create assertion70 statements test fixture."""
-    return [moa_aid70_statement]
+def asst71_statements(moa_aid71_statement):
+    """Create assertion71 statements test fixture."""
+    return [moa_aid71_statement]
 
 
 @pytest.fixture(scope='module')
-def asst70_propositions(moa_aid70_proposition):
-    """Create assertion70 propositions test fixture."""
-    return [moa_aid70_proposition]
+def asst71_propositions(moa_aid71_proposition):
+    """Create assertion71 propositions test fixture."""
+    return [moa_aid71_proposition]
 
 
 @pytest.fixture(scope='module')
-def asst70_variation_descriptors(moa_vid70):
-    """Create assertion70 variation_descriptors test fixture."""
-    return [moa_vid70]
+def asst71_variation_descriptors(moa_vid71):
+    """Create assertion71 variation_descriptors test fixture."""
+    return [moa_vid71]
 
 
 @pytest.fixture(scope='module')
-def asst70_gene_descriptors(moa_abl1):
-    """Create assertion70 gene_descriptors test fixture."""
+def asst71_gene_descriptors(moa_abl1):
+    """Create assertion71 gene_descriptors test fixture."""
     return [moa_abl1]
 
 
 @pytest.fixture(scope='module')
-def asst70_therapy_descriptors(moa_imatinib):
-    """Create assertion70 therapy_descriptors test fixture."""
+def asst71_therapy_descriptors(moa_imatinib):
+    """Create assertion71 therapy_descriptors test fixture."""
     return [moa_imatinib]
 
 
 @pytest.fixture(scope='module')
-def asst70_disease_descriptors(moa_chronic_myelogenous_leukemia):
-    """Create assertion70 disease_descriptors test fixture."""
+def asst71_disease_descriptors(moa_chronic_myelogenous_leukemia):
+    """Create assertion71 disease_descriptors test fixture."""
     return [moa_chronic_myelogenous_leukemia]
 
 
 @pytest.fixture(scope='module')
-def asst70_methods(method004):
-    """Create assertion70 methods test fixture."""
+def asst71_methods(method004):
+    """Create assertion71 methods test fixture."""
     return[method004]
 
 
 @pytest.fixture(scope='module')
-def asst70_documents(pmid_11423618):
-    """Create assertion70 documents test fixture."""
+def asst71_documents(pmid_11423618):
+    """Create assertion71 documents test fixture."""
     return[pmid_11423618]
 
 
-def test_moa_cdm(data, asst70_statements, asst70_propositions,
-                 asst70_variation_descriptors, asst70_gene_descriptors,
-                 asst70_disease_descriptors, asst70_therapy_descriptors,
-                 asst70_methods, asst70_documents, check_statement,
+def test_moa_cdm(data, asst71_statements, asst71_propositions,
+                 asst71_variation_descriptors, asst71_gene_descriptors,
+                 asst71_disease_descriptors, asst71_therapy_descriptors,
+                 asst71_methods, asst71_documents, check_statement,
                  check_proposition, check_variation_descriptor,
                  check_descriptor, check_document, check_method,
                  check_transformed_cdm):
     """Test that moa transform works correctly."""
     check_transformed_cdm(
-        data, asst70_statements, asst70_propositions,
-        asst70_variation_descriptors, asst70_gene_descriptors,
-        asst70_disease_descriptors, asst70_therapy_descriptors, asst70_methods,
-        asst70_documents, check_statement, check_proposition,
+        data, asst71_statements, asst71_propositions,
+        asst71_variation_descriptors, asst71_gene_descriptors,
+        asst71_disease_descriptors, asst71_therapy_descriptors, asst71_methods,
+        asst71_documents, check_statement, check_proposition,
         check_variation_descriptor, check_descriptor, check_document,
         check_method, TRANSFORMED_FILE
     )

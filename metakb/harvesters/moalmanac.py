@@ -5,11 +5,11 @@ import requests_cache
 import logging
 
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.harvesters.moa')
 logger.setLevel(logging.DEBUG)
 
 
-class MOAlmanac(Harvester):
+class MOAlmanacHarvester(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
     def harvest(self, fn='moa_harvester.json'):

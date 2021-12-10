@@ -10,7 +10,7 @@ The intent of the project is to leverage the collective knowledge of the dispara
 
 ### Prerequisites
 
-* A newer version of Python 3, preferably 3.6 or greater. To confirm on your system, run:
+* A newer version of Python 3, preferably 3.8 or greater. To confirm on your system, run:
 
 ```
 python3 --version
@@ -40,8 +40,6 @@ If you intend to provide development support, install the development dependenci
 pipenv lock --dev
 pipenv sync
 ```
-
-TODO CIViCPy installation instructions
 
 ### Setting up Neo4j
 
@@ -89,7 +87,7 @@ In the MetaKB project root, run the following:
 
 ```sh
 pipenv shell
-python3 -m metakb.cli --db_url=bolt://localhost:7687 --db_username=neo4j --db_password=<neo4j-password-here> --initialize_normalizers
+python3 -m metakb.cli --db_url=bolt://localhost:7687 --db_username=neo4j --db_password=<neo4j-password-here> --load_normalizers_db
 ```
 
 ### Starting the server

@@ -1,6 +1,6 @@
 """Create an example json file for MOAlmanac Harvester."""
-from metakb.harvesters import MOAlmanac
-from metakb import PROJECT_ROOT
+from metakb.harvesters import MOAlmanacHarvester
+from metakb import PROJECT_ROOT, APP_ROOT
 import json
 
 
@@ -30,7 +30,7 @@ def create_assertion_examples(data):
                 'VARIANTS': variant
             }
 
-            json.dump(example, f)
+            json.dump(example, f, indent=4)
             print(f"Created JSON for evidence: assertion {assertion['id']}")
             f.close()
 
@@ -47,15 +47,15 @@ def create_variant_examples(data):
     for variant in variants:
         with open(f"{PROJECT_ROOT}/analysis/moa/examples/harvester/"
                   f"{variant['feature'].lower()}.json", 'w+') as f:
-            f.write(json.dumps(variant))
+            f.write(json.dumps(variant, indent=4))
             print(f"Created JSON for variant: {variant['feature']}")
             f.close()
 
 
 if __name__ == '__main__':
-    moa = MOAlmanac()
+    moa = MOAlmanacHarvester()
     moa.harvest()
-    with open(f'{PROJECT_ROOT}/data/moa/moa_harvester.json', 'r') as f:
+    with open(f'{APP_ROOT}/data/moa/harvester/moa_harvester.json', 'r') as f:
         moa_data = json.load(f)
     moa_ex_dir = PROJECT_ROOT / 'analysis' / 'moa' / 'examples'
     moa_ex_dir.mkdir(exist_ok=True, parents=True)

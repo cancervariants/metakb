@@ -1,0 +1,2873 @@
+{
+    "EVIDENCE": {
+        "id": 93,
+        "name": "EID93",
+        "description": "This was a Phase I and II study (NCT01072175) of dabrafenib and trametinib combination therapy vs. dabrafenib monotherapy in patients with metastatic melanoma.  \n\nCutaneous squamous-cell carcinoma was seen in 7% of patients receiving combination therapy in contrast to 19% in those receiving monotherapy (P = 0.09).\n\nOf 162 patients with V600E or V600K mutation, 108 were given combination therapy and 54 monotherapy.\n\nAfter 1 year, 41% of patients in the combination group were alive and progression free whereas this was 9% in the monotherapy group (P<0.001).\n\n\nMedian progression-free survival was 9.4 months with combination and 5.8 months with monotherapy. Hazard ratio for progression or death was 0.39 (95% CI, 0.25 to 0.62; P<0.001).",
+        "disease": {
+            "id": 7,
+            "name": "Melanoma",
+            "display_name": "Melanoma",
+            "doid": "1909",
+            "url": "http://www.disease-ontology.org/?id=DOID:1909"
+        },
+        "drugs": [
+            {
+                "id": 19,
+                "name": "Trametinib",
+                "ncit_id": "C77908",
+                "aliases": [
+                    "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide",
+                    "Mekinist",
+                    "MEK Inhibitor GSK1120212",
+                    "JTP-74057",
+                    "GSK1120212"
+                ]
+            },
+            {
+                "id": 22,
+                "name": "Dabrafenib",
+                "ncit_id": "C82386",
+                "aliases": [
+                    "GSK2118436",
+                    "GSK-2118436A",
+                    "GSK-2118436",
+                    "BRAF Inhibitor GSK2118436",
+                    "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-"
+                ]
+            }
+        ],
+        "rating": 3,
+        "evidence_level": "B",
+        "evidence_type": "Predictive",
+        "clinical_significance": "Sensitivity/Response",
+        "evidence_direction": "Supports",
+        "variant_origin": "Somatic",
+        "drug_interaction_type": "Combination",
+        "status": "accepted",
+        "type": "evidence",
+        "source": {
+            "id": 103,
+            "name": "Combined BRAF and MEK inhibition in melanoma with BRAF V600 mutations.",
+            "citation": "Flaherty et al., 2012, N. Engl. J. Med.",
+            "citation_id": "23020132",
+            "source_type": "PubMed",
+            "asco_abstract_id": null,
+            "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23020132",
+            "open_access": true,
+            "pmc_id": "PMC3549295",
+            "publication_date": {
+                "year": 2012,
+                "month": 11
+            },
+            "journal": "N. Engl. J. Med.",
+            "full_journal_title": "The New England journal of medicine",
+            "status": "fully curated",
+            "is_review": false,
+            "clinical_trials": [
+                {
+                    "nct_id": "NCT01072175",
+                    "name": "Investigate Safety, Pharmacokinetics and Pharmacodynamics of GSK2118436 & GSK1120212",
+                    "description": "This was an open-label, dose escalation study to investigate the safety, pharmacokinetics, pharmacodynamics and clinical activity of GSK2118436 and GSK1120212 in combination. This study was designed in four parts. In Part A, the effect of repeat doses of GSK1120212 on the pharmacokinetics of single dose GSK2118436 was investigated prior to evaluating combination regimens. In Part B, the range of tolerated dose combinations was identified using a dose-escalation procedure. In Part C, different dose combinations of GSK2118436 and GSK1120212 were evaluated, based on results from the dose escalation cohorts. In Part D, the pharmacokinetics and safety of GSK2118436 administered as HPMC capsules alone and in combination with GSK1120212 was evaluated.",
+                    "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01072175"
+                }
+            ]
+        },
+        "variant_id": 17,
+        "phenotypes": [],
+        "assertions": [
+            {
+                "id": 12,
+                "type": "assertion",
+                "name": "AID12",
+                "summary": "BRAF V600E mutant melanoma is sensitive to dabrafenib and trametinib combination therapy",
+                "description": "Combination treatment of BRAF inhibitor dabrafenib and MEK inhibitor trametinib is recommended for adjuvant treatment of stage III or recurrent melanoma with BRAF V600E mutation detected by the approved THxID kit, as well as first line treatment for metastatic melanoma. The treatments are FDA approved and NCCN guidelines recommend these treatments as category 1 based on studies including the Phase III COMBI-V, COMBI-D and COMBI-AD Trials. Combination therapy is now recommended above BRAF inhibitor monotherapy. Dabrafenib and trametinib are recommend as NCCN Category 2A for second line therapy in metastatic melanoma due to lack of clear Phase III trial data for this use case. Cutaneous squamous-cell carcinoma and keratoacanthoma occur at lower rates with combination therapy.",
+                "gene": {
+                    "name": "BRAF",
+                    "id": 5
+                },
+                "variant": {
+                    "name": "V600E",
+                    "id": 12
+                },
+                "disease": {
+                    "id": 7,
+                    "name": "Melanoma",
+                    "display_name": "Melanoma",
+                    "doid": "1909",
+                    "url": "http://www.disease-ontology.org/?id=DOID:1909"
+                },
+                "drugs": [
+                    {
+                        "id": 19,
+                        "name": "Trametinib",
+                        "ncit_id": "C77908",
+                        "aliases": [
+                            "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide",
+                            "Mekinist",
+                            "MEK Inhibitor GSK1120212",
+                            "JTP-74057",
+                            "GSK1120212"
+                        ]
+                    },
+                    {
+                        "id": 22,
+                        "name": "Dabrafenib",
+                        "ncit_id": "C82386",
+                        "aliases": [
+                            "GSK2118436",
+                            "GSK-2118436A",
+                            "GSK-2118436",
+                            "BRAF Inhibitor GSK2118436",
+                            "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-"
+                        ]
+                    }
+                ],
+                "evidence_type": "Predictive",
+                "evidence_direction": "Supports",
+                "clinical_significance": "Sensitivity/Response",
+                "fda_regulatory_approval": true,
+                "status": "rejected"
+            }
+        ],
+        "gene_id": 5
+    },
+    "GENE": {
+        "id": 5,
+        "name": "BRAF",
+        "entrez_id": 673,
+        "description": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase.",
+        "variants": [
+            {
+                "name": "V600E",
+                "id": 12,
+                "evidence_items": {
+                    "accepted_count": 88,
+                    "rejected_count": 7,
+                    "submitted_count": 79
+                }
+            },
+            {
+                "name": "T599dup",
+                "id": 1298,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "Mutation",
+                "id": 399,
+                "evidence_items": {
+                    "accepted_count": 12,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "V600_S605delinsDV",
+                "id": 3241,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "V600",
+                "id": 17,
+                "evidence_items": {
+                    "accepted_count": 22,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "V600E and AMPLIFICATION",
+                "id": 14,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "G496A",
+                "id": 2221,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "AKAP9-BRAF",
+                "id": 184,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "K483M",
+                "id": 581,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "intron 10 rearrangement",
+                "id": 2226,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "CUX1-BRAF",
+                "id": 2229,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "intron 9 rearrangement",
+                "id": 2225,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "PAPSS1-BRAF",
+                "id": 286,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "TRIM24-BRAF",
+                "id": 287,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "WASFL-BRAF",
+                "id": 2228,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "AMPLIFICATION",
+                "id": 1269,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "WILD TYPE",
+                "id": 426,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "PPFIBP2-BRAF",
+                "id": 617,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "BRAF-CUL1",
+                "id": 656,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "MACF1-BRAF",
+                "id": 2227,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "ZKSCAN1-BRAF",
+                "id": 657,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "NRF1-BRAF",
+                "id": 2883,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "APC",
+                "id": 842,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 1,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "N581S",
+                "id": 1186,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "V600G",
+                "id": 1199,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "A728V",
+                "id": 1198,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "K601",
+                "id": 2765,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "L597",
+                "id": 2766,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 4
+                }
+            },
+            {
+                "name": "V600L",
+                "id": 1404,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "V600M",
+                "id": 1405,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "D594",
+                "id": 2767,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "G596",
+                "id": 2768,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "DELNVTAP",
+                "id": 1663,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "G466A",
+                "id": 1196,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "AGK-BRAF",
+                "id": 285,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "G469",
+                "id": 2822,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "V600E/K and AMPLIFICATION",
+                "id": 2361,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "D594K",
+                "id": 2398,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "Non-V600",
+                "id": 2408,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "P731T",
+                "id": 2224,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "G606E",
+                "id": 2223,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "G466V",
+                "id": 2222,
+                "evidence_items": {
+                    "accepted_count": 4,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "DEL 485-490",
+                "id": 522,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "D594A",
+                "id": 579,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "D594V",
+                "id": 580,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "V600K",
+                "id": 563,
+                "evidence_items": {
+                    "accepted_count": 8,
+                    "rejected_count": 0,
+                    "submitted_count": 10
+                }
+            },
+            {
+                "name": "L597S",
+                "id": 582,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "K601E",
+                "id": 584,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "L597V",
+                "id": 585,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "L597Q",
+                "id": 583,
+                "evidence_items": {
+                    "accepted_count": 3,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "L505H",
+                "id": 658,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "G596C",
+                "id": 694,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "G469V",
+                "id": 841,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "G469A",
+                "id": 992,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "V600R",
+                "id": 991,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 7
+                }
+            },
+            {
+                "name": "G464V",
+                "id": 1106,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "F595L",
+                "id": 1121,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "G469E",
+                "id": 993,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "G469R",
+                "id": 840,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "V600_K601DELINSD",
+                "id": 1658,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "G596V",
+                "id": 1650,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "G596R",
+                "id": 1627,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "L597R",
+                "id": 288,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "D594N",
+                "id": 1107,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 5,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "D594G",
+                "id": 611,
+                "evidence_items": {
+                    "accepted_count": 9,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "EXON 15 MUTATION",
+                "id": 2650,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "BRAF fusions and mutations",
+                "id": 2639,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "KIAA1549-BRAF",
+                "id": 618,
+                "evidence_items": {
+                    "accepted_count": 11,
+                    "rejected_count": 1,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "FAM131B-BRAF",
+                "id": 2656,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "K439Q",
+                "id": 2775,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "K439T",
+                "id": 2776,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "G466E",
+                "id": 2792,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "L525R",
+                "id": 2793,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "T488_P492del",
+                "id": 2795,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "P490_Q494del",
+                "id": 2796,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "D594E",
+                "id": 2799,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "class 2 mutations",
+                "id": 2800,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "F247L",
+                "id": 2802,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "R558Q",
+                "id": 2803,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "L485F",
+                "id": 2804,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "V600_S602>DT",
+                "id": 2821,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "G593D",
+                "id": 2823,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "V601E",
+                "id": 2825,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "N486_P490del",
+                "id": 2794,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "V600_K601>E",
+                "id": 2820,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "A598V",
+                "id": 2826,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "class 3 mutations",
+                "id": 2801,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "T599_V600insT",
+                "id": 2824,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "FAM73A-BRAF",
+                "id": 2987,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "D594H",
+                "id": 2832,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "V600E and V600M",
+                "id": 13,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "V600D",
+                "id": 11,
+                "evidence_items": {
+                    "accepted_count": 5,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            }
+        ],
+        "aliases": [
+            "BRAF",
+            "B-raf",
+            "RAFB1",
+            "NS7",
+            "BRAF1",
+            "B-RAF1"
+        ],
+        "type": "gene"
+    },
+    "VARIANT": {
+        "id": 17,
+        "entrez_name": "BRAF",
+        "entrez_id": 673,
+        "name": "V600",
+        "description": "BRAF mutations of the valine 600 residue have been shown to be recurrent in many cancer types. Of the V600 mutations, V600E is the most widely researched. V600 mutations as a whole have been correlated to poorer prognosis in colorectal and papilarry thyroid cancers. V600 mutations have also been shown to confer sensitivity to the BRAF inhibitor dabrafenib. For a more detailed summary, click the individual mutations.",
+        "gene_id": 5,
+        "type": "variant",
+        "variant_types": [
+            {
+                "id": 103,
+                "name": "protein_altering_variant",
+                "display_name": "Protein Altering Variant",
+                "so_id": "SO:0001818",
+                "description": "A sequence_variant which is predicted to change the protein encoded in the coding sequence.",
+                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001818"
+            }
+        ],
+        "civic_actionability_score": 460,
+        "coordinates": {
+            "chromosome": "7",
+            "start": 140453136,
+            "stop": 140453137,
+            "reference_bases": null,
+            "variant_bases": null,
+            "representative_transcript": "ENST00000288602.6",
+            "chromosome2": null,
+            "start2": null,
+            "stop2": null,
+            "representative_transcript2": null,
+            "ensembl_version": 75,
+            "reference_build": "GRCh37"
+        },
+        "evidence_items": [
+            {
+                "id": 88,
+                "name": "EID88",
+                "description": "In metastatic colorectal cancer patients with wildtype KRAS, BRAF mutations were associated with poor progression free survival regardless of treatment (panitumumab with best supportive care or best supportive care alone).",
+                "disease": {
+                    "id": 11,
+                    "name": "Colorectal Cancer",
+                    "display_name": "Colorectal Cancer",
+                    "doid": "9256",
+                    "url": "http://www.disease-ontology.org/?id=DOID:9256"
+                },
+                "drugs": [
+                    {
+                        "id": 28,
+                        "name": "Panitumumab",
+                        "ncit_id": "C1857",
+                        "aliases": []
+                    }
+                ],
+                "rating": 3,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Resistance",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": null,
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 99,
+                    "name": "Massively parallel tumor multigene sequencing to evaluate response to panitumumab in a randomized phase III study of metastatic colorectal cancer.",
+                    "citation": "Peeters et al., 2013, Clin. Cancer Res.",
+                    "citation_id": "23325582",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23325582",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2013,
+                        "month": 4,
+                        "day": 1
+                    },
+                    "journal": "Clin. Cancer Res.",
+                    "full_journal_title": "Clinical cancer research : an official journal of the American Association for Cancer Research",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": []
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 93,
+                "name": "EID93",
+                "description": "This was a Phase I and II study (NCT01072175) of dabrafenib and trametinib combination therapy vs. dabrafenib monotherapy in patients with metastatic melanoma.  \n\nCutaneous squamous-cell carcinoma was seen in 7% of patients receiving combination therapy in contrast to 19% in those receiving monotherapy (P = 0.09).\n\nOf 162 patients with V600E or V600K mutation, 108 were given combination therapy and 54 monotherapy.\n\nAfter 1 year, 41% of patients in the combination group were alive and progression free whereas this was 9% in the monotherapy group (P<0.001).\n\n\nMedian progression-free survival was 9.4 months with combination and 5.8 months with monotherapy. Hazard ratio for progression or death was 0.39 (95% CI, 0.25 to 0.62; P<0.001).",
+                "disease": {
+                    "id": 7,
+                    "name": "Melanoma",
+                    "display_name": "Melanoma",
+                    "doid": "1909",
+                    "url": "http://www.disease-ontology.org/?id=DOID:1909"
+                },
+                "drugs": [
+                    {
+                        "id": 22,
+                        "name": "Dabrafenib",
+                        "ncit_id": "C82386",
+                        "aliases": [
+                            "GSK2118436",
+                            "GSK-2118436A",
+                            "GSK-2118436",
+                            "BRAF Inhibitor GSK2118436",
+                            "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-"
+                        ]
+                    },
+                    {
+                        "id": 19,
+                        "name": "Trametinib",
+                        "ncit_id": "C77908",
+                        "aliases": [
+                            "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide",
+                            "Mekinist",
+                            "MEK Inhibitor GSK1120212",
+                            "JTP-74057",
+                            "GSK1120212"
+                        ]
+                    }
+                ],
+                "rating": 3,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": "Combination",
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 103,
+                    "name": "Combined BRAF and MEK inhibition in melanoma with BRAF V600 mutations.",
+                    "citation": "Flaherty et al., 2012, N. Engl. J. Med.",
+                    "citation_id": "23020132",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23020132",
+                    "open_access": true,
+                    "pmc_id": "PMC3549295",
+                    "publication_date": {
+                        "year": 2012,
+                        "month": 11
+                    },
+                    "journal": "N. Engl. J. Med.",
+                    "full_journal_title": "The New England journal of medicine",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01072175",
+                            "name": "Investigate Safety, Pharmacokinetics and Pharmacodynamics of GSK2118436 & GSK1120212",
+                            "description": "This was an open-label, dose escalation study to investigate the safety, pharmacokinetics, pharmacodynamics and clinical activity of GSK2118436 and GSK1120212 in combination. This study was designed in four parts. In Part A, the effect of repeat doses of GSK1120212 on the pharmacokinetics of single dose GSK2118436 was investigated prior to evaluating combination regimens. In Part B, the range of tolerated dose combinations was identified using a dose-escalation procedure. In Part C, different dose combinations of GSK2118436 and GSK1120212 were evaluated, based on results from the dose escalation cohorts. In Part D, the pharmacokinetics and safety of GSK2118436 administered as HPMC capsules alone and in combination with GSK1120212 was evaluated.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01072175"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 1407,
+                "name": "EID1407",
+                "description": "In the NCT00880321 trial using mutant BRAF inhibitor dabrafenib in solid tumors, 10 cases of melanoma brain metastases were assessed for dabrafenib response. In nine patients a decrease in size of metastases was seen, and in four cases a complete resolution of brain lesions was observed. This subset of patients had median progression free survival of 4.2 months.",
+                "disease": {
+                    "id": 7,
+                    "name": "Melanoma",
+                    "display_name": "Melanoma",
+                    "doid": "1909",
+                    "url": "http://www.disease-ontology.org/?id=DOID:1909"
+                },
+                "drugs": [
+                    {
+                        "id": 22,
+                        "name": "Dabrafenib",
+                        "ncit_id": "C82386",
+                        "aliases": [
+                            "GSK2118436",
+                            "GSK-2118436A",
+                            "GSK-2118436",
+                            "BRAF Inhibitor GSK2118436",
+                            "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-"
+                        ]
+                    }
+                ],
+                "rating": 4,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": null,
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 345,
+                    "name": "Dabrafenib in patients with melanoma, untreated brain metastases, and other solid tumours: a phase 1 dose-escalation trial.",
+                    "citation": "Falchook et al., 2012, Lancet",
+                    "citation_id": "22608338",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/22608338",
+                    "open_access": true,
+                    "pmc_id": "PMC4109288",
+                    "publication_date": {
+                        "year": 2012,
+                        "month": 5,
+                        "day": 19
+                    },
+                    "journal": "Lancet",
+                    "full_journal_title": "Lancet (London, England)",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT00880321",
+                            "name": "A Phase I Study to Investigate the Safety, Pharmacokinetics, and Pharmacodynamics of GSK2118436 in Subjects With Solid Tumors",
+                            "description": "BRF112680 is a first-time-in-human study to establish the recommended dose and schedule of the orally administered GSK2118436. The recommended dose and regimen will be selected based on the safety, pharmacokinetic, and pharmacodynamic profiles observed after the treatment of subjects with solid tumors. This is a two-part study. Part 1 will identify the recommended Part 2 dose using a dose-escalation procedure. Escalation may proceed until either a maximum tolerated dose is established, or the toxicokinetic safety limit is reached. The recommended Part 2 dose will be expanded to up to 12 patients. Part 2 will explore further the safety, tolerability, and clinical activity of GSK2118436 in subjects with BRAF mutation-positive tumors. In addition, the effect of GSK2118436 on midazolam will be assessed in a subset of patients in Part 2. Biologically active doses will be identified by measurement of pharmacodynamic markers in tumor tissue and blood across a range of doses and these doses may be explored in Part 2.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT00880321"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 1411,
+                "name": "EID1411",
+                "description": "The Combi-v (NCT01597908) open-label, randomized phase 3 trial had 704 patients with metastatic melanoma with a BRAF V600 mutation. Patients were randomized to receive either a combination of dabrafenib and trametinib or vemurafenib orally as first-line therapy. At preplanned interim analysis the overall survival rate at 12 months was 72% (95% confidence interval [CI], 67 to 77) in the combination-therapy group and 65% (95% CI, 59 to 70) in the vemurafenib group (hazard ratio for death in the combination-therapy group, 0.69; 95% CI, 0.53 to 0.89; P=0.005). Median progression-free survival was 11.4 months in the combination-therapy group and 7.3 months in the vemurafenib group (hazard ratio, 0.56; 95% CI, 0.46 to 0.69; P<0.001). Cutaneous squamous-cell carcinoma and keratoacanthoma occurred at 1% with combination-therapy and 18% in the vemurafenib group.",
+                "disease": {
+                    "id": 206,
+                    "name": "Skin Melanoma",
+                    "display_name": "Skin Melanoma",
+                    "doid": "8923",
+                    "url": "http://www.disease-ontology.org/?id=DOID:8923"
+                },
+                "drugs": [
+                    {
+                        "id": 19,
+                        "name": "Trametinib",
+                        "ncit_id": "C77908",
+                        "aliases": [
+                            "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide",
+                            "Mekinist",
+                            "MEK Inhibitor GSK1120212",
+                            "JTP-74057",
+                            "GSK1120212"
+                        ]
+                    },
+                    {
+                        "id": 22,
+                        "name": "Dabrafenib",
+                        "ncit_id": "C82386",
+                        "aliases": [
+                            "GSK2118436",
+                            "GSK-2118436A",
+                            "GSK-2118436",
+                            "BRAF Inhibitor GSK2118436",
+                            "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-"
+                        ]
+                    }
+                ],
+                "rating": 5,
+                "evidence_level": "A",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": "Combination",
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 353,
+                    "name": "Improved overall survival in melanoma with combined dabrafenib and trametinib.",
+                    "citation": "Robert et al., 2015, N. Engl. J. Med.",
+                    "citation_id": "25399551",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/25399551",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2015,
+                        "month": 1,
+                        "day": 1
+                    },
+                    "journal": "N. Engl. J. Med.",
+                    "full_journal_title": "The New England journal of medicine",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01597908",
+                            "name": "Dabrafenib Plus Trametinib vs Vemurafenib Alone in Unresectable or Metastatic BRAF V600E/K Cutaneous Melanoma",
+                            "description": "This is a two-arm, open-label, randomised, Phase III study comparing dabrafenib (GSK2118436) and trametinib (GSK1120212) combination therapy to vemurafenib. Subjects with histologically confirmed cutaneous melanoma that is either stage IIIc (unresectable) or stage IV, and BRAF V600E/K mutation positive will be screened for eligibility. Subjects who have had prior systemic anti-cancer treatment in the advanced or metastatic setting will not be eligible although prior systemic treatment in the adjuvant setting will be allowed. Approximately 694 subjects will be randomised 1:1 (combination therapy:vemurafenib). The primary endpoint is overall survival (OS) for subjects receiving the combination therapy compared with those receiving vemurafenib.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01597908"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 1415,
+                "name": "EID1415",
+                "description": "In clinical trial NCT01072175, 43 patients with BRAF V600 metastatic colorectal cancer (CRC) received mutant BRAF inhibitor dabrafenib and MEK inhibitor trametinib. Only 12% of patients showed  partial response or better, with one complete response lasting 36 months and ongoing after data cutoff. 56% of patients achieved stable disease. The median progression free survival (PFS) was 3.5 months, longer than the median PFS (2.5 months) reported for metastatic CRC treated with standard chemotherapy. The authors conclude that MAPK targeting in CRC is a valid approach that can produce meaningful responses but additional work is required to more effectively inhibit the pathway.",
+                "disease": {
+                    "id": 11,
+                    "name": "Colorectal Cancer",
+                    "display_name": "Colorectal Cancer",
+                    "doid": "9256",
+                    "url": "http://www.disease-ontology.org/?id=DOID:9256"
+                },
+                "drugs": [
+                    {
+                        "id": 22,
+                        "name": "Dabrafenib",
+                        "ncit_id": "C82386",
+                        "aliases": [
+                            "GSK2118436",
+                            "GSK-2118436A",
+                            "GSK-2118436",
+                            "BRAF Inhibitor GSK2118436",
+                            "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-"
+                        ]
+                    },
+                    {
+                        "id": 19,
+                        "name": "Trametinib",
+                        "ncit_id": "C77908",
+                        "aliases": [
+                            "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide",
+                            "Mekinist",
+                            "MEK Inhibitor GSK1120212",
+                            "JTP-74057",
+                            "GSK1120212"
+                        ]
+                    }
+                ],
+                "rating": 2,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": "Combination",
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 959,
+                    "name": "Combined BRAF and MEK Inhibition With Dabrafenib and Trametinib in BRAF V600-Mutant Colorectal Cancer.",
+                    "citation": "Corcoran et al., 2015, J. Clin. Oncol.",
+                    "citation_id": "26392102",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/26392102",
+                    "open_access": true,
+                    "pmc_id": "PMC4669588",
+                    "publication_date": {
+                        "year": 2015,
+                        "month": 12,
+                        "day": 1
+                    },
+                    "journal": "J. Clin. Oncol.",
+                    "full_journal_title": "Journal of clinical oncology : official journal of the American Society of Clinical Oncology",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01072175",
+                            "name": "Investigate Safety, Pharmacokinetics and Pharmacodynamics of GSK2118436 & GSK1120212",
+                            "description": "This was an open-label, dose escalation study to investigate the safety, pharmacokinetics, pharmacodynamics and clinical activity of GSK2118436 and GSK1120212 in combination. This study was designed in four parts. In Part A, the effect of repeat doses of GSK1120212 on the pharmacokinetics of single dose GSK2118436 was investigated prior to evaluating combination regimens. In Part B, the range of tolerated dose combinations was identified using a dose-escalation procedure. In Part C, different dose combinations of GSK2118436 and GSK1120212 were evaluated, based on results from the dose escalation cohorts. In Part D, the pharmacokinetics and safety of GSK2118436 administered as HPMC capsules alone and in combination with GSK1120212 was evaluated.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01072175"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 1422,
+                "name": "EID1422",
+                "description": "In a randomized phase 3 study, previously untreated advanced or metastatic BRAF V600 mutation-positive melanoma patients treated with combination vemurafenib and cobimetinib showed improved progression free survival (9.9 vs 6.2 months), increased rate of complete or partial response (68% vs 45%), and improved overall survival at 9 months ( 81% vs 73%) compared to the vemurafenib and placebo control group.",
+                "disease": {
+                    "id": 7,
+                    "name": "Melanoma",
+                    "display_name": "Melanoma",
+                    "doid": "1909",
+                    "url": "http://www.disease-ontology.org/?id=DOID:1909"
+                },
+                "drugs": [
+                    {
+                        "id": 4,
+                        "name": "Vemurafenib",
+                        "ncit_id": "C64768",
+                        "aliases": [
+                            "Zelboraf",
+                            "RO 5185426",
+                            "RG7204",
+                            "RG 7204",
+                            "PLX4032",
+                            "PLX-4032",
+                            "BRAF(V600E) Kinase Inhibitor RO5185426",
+                            "BRAF (V600E) Kinase Inhibitor RO5185426",
+                            "1-propanesulfonamide, N-(3-((5-(4-chlorophenyl)-1h-pyrrolo(2,3-b)pyridin-3-yl)carbonyl)-2,4-difluorophenyl)-"
+                        ]
+                    },
+                    {
+                        "id": 342,
+                        "name": "Cobimetinib",
+                        "ncit_id": "C68923",
+                        "aliases": [
+                            "XL518",
+                            "MEK Inhibitor GDC-0973",
+                            "GDC-0973",
+                            "Cotellic"
+                        ]
+                    }
+                ],
+                "rating": 4,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": "Combination",
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 963,
+                    "name": "Combined vemurafenib and cobimetinib in BRAF-mutated melanoma.",
+                    "citation": "Larkin et al., 2014, N. Engl. J. Med.",
+                    "citation_id": "25265494",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/25265494",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2014,
+                        "month": 11,
+                        "day": 13
+                    },
+                    "journal": "N. Engl. J. Med.",
+                    "full_journal_title": "The New England journal of medicine",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01689519",
+                            "name": "A Study Comparing Vemurafenib Versus Vemurafenib Plus Cobimetinib in Participants With Metastatic Melanoma",
+                            "description": "To evaluate the efficacy of vemurafenib in combination with cobimetinib (GDC-0973), compared with vemurafenib and placebo, in previously untreated BRAF V600 mutation-positive patients with unresectable locally advanced or metastatic melanoma, as measured by progression-free survival (PFS), assessed by the study site investigator.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01689519"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 1574,
+                "name": "EID1574",
+                "description": "Patients with BRAF-V600 mutated cancers were identified (n=122) and clinical response to vemurafenib was evaluated. Of the 20 patients with non-small-cell-lung cancer (17 with BRAF V600E, one with BRAF V600G and one with BRAF V600 unknown status), 19 were evaluable and the response rate to vemurafenib was 42%, tumor regression was observed in 14/19 patients, progression-free survival was 7.3 months, and 12-month overall survival was 66%.",
+                "disease": {
+                    "id": 8,
+                    "name": "Lung Non-small Cell Carcinoma",
+                    "display_name": "Lung Non-small Cell Carcinoma",
+                    "doid": "3908",
+                    "url": "http://www.disease-ontology.org/?id=DOID:3908"
+                },
+                "drugs": [
+                    {
+                        "id": 4,
+                        "name": "Vemurafenib",
+                        "ncit_id": "C64768",
+                        "aliases": [
+                            "Zelboraf",
+                            "RO 5185426",
+                            "RG7204",
+                            "RG 7204",
+                            "PLX4032",
+                            "PLX-4032",
+                            "BRAF(V600E) Kinase Inhibitor RO5185426",
+                            "BRAF (V600E) Kinase Inhibitor RO5185426",
+                            "1-propanesulfonamide, N-(3-((5-(4-chlorophenyl)-1h-pyrrolo(2,3-b)pyridin-3-yl)carbonyl)-2,4-difluorophenyl)-"
+                        ]
+                    }
+                ],
+                "rating": 3,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": null,
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 1040,
+                    "name": "Vemurafenib in Multiple Nonmelanoma Cancers with BRAF V600 Mutations.",
+                    "citation": "Hyman et al., 2015, N. Engl. J. Med.",
+                    "citation_id": "26287849",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/26287849",
+                    "open_access": true,
+                    "pmc_id": "PMC4971773",
+                    "publication_date": {
+                        "year": 2015,
+                        "month": 8,
+                        "day": 20
+                    },
+                    "journal": "N. Engl. J. Med.",
+                    "full_journal_title": "The New England journal of medicine",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01524978",
+                            "name": "A Study of Vemurafenib in Participants With BRAF V600 Mutation-Positive Cancers",
+                            "description": "This open-label, multi-center study will assess the efficacy and safety of vemurafenib in participants with BRAF V600 mutation-positive cancers (solid tumors and multiple myeloma, except melanoma and papillary thyroid cancer) and for whom vemurafenib is deemed the best treatment option in the opinion of the investigator. Participants will receive twice daily oral doses of 960 mg vemurafenib until disease progression, unacceptable toxicity, or withdrawal of consent. The safety and efficacy of vemurafenib in combination with cetuximab in a subset of participants with colorectal cancer will also be assessed.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01524978"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 1575,
+                "name": "EID1575",
+                "description": "Patients with BRAF-V600 mutated cancers were identified (n=122) and clinical response to vemurafenib was evaluated.  Of the 14 patients with Langerhans\u2019-cell histiocytosis, 43% of patients had a response to vemurafenib (1 complete and 5 partial responses), disease regression was observed in 12/14 patients, all patients detailed improvement in disease-related symptoms, 0 patients had progressive disease during treatment, 12-month progression free survival was 91%, and overall survival rate was 100%.\nAmong all 18 patients with Erdheim-Chester disease or Langerhans histiocytosis, 94% had BRAF V600E mutations and the remaining 6 percent (1 patient) had an unknown V600 mutation.",
+                "disease": {
+                    "id": 2136,
+                    "name": "Langerhans-cell Histiocytosis",
+                    "display_name": "Langerhans-cell Histiocytosis",
+                    "doid": "2571",
+                    "url": "http://www.disease-ontology.org/?id=DOID:2571"
+                },
+                "drugs": [
+                    {
+                        "id": 4,
+                        "name": "Vemurafenib",
+                        "ncit_id": "C64768",
+                        "aliases": [
+                            "Zelboraf",
+                            "RO 5185426",
+                            "RG7204",
+                            "RG 7204",
+                            "PLX4032",
+                            "PLX-4032",
+                            "BRAF(V600E) Kinase Inhibitor RO5185426",
+                            "BRAF (V600E) Kinase Inhibitor RO5185426",
+                            "1-propanesulfonamide, N-(3-((5-(4-chlorophenyl)-1h-pyrrolo(2,3-b)pyridin-3-yl)carbonyl)-2,4-difluorophenyl)-"
+                        ]
+                    }
+                ],
+                "rating": 3,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": null,
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 1040,
+                    "name": "Vemurafenib in Multiple Nonmelanoma Cancers with BRAF V600 Mutations.",
+                    "citation": "Hyman et al., 2015, N. Engl. J. Med.",
+                    "citation_id": "26287849",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/26287849",
+                    "open_access": true,
+                    "pmc_id": "PMC4971773",
+                    "publication_date": {
+                        "year": 2015,
+                        "month": 8,
+                        "day": 20
+                    },
+                    "journal": "N. Engl. J. Med.",
+                    "full_journal_title": "The New England journal of medicine",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01524978",
+                            "name": "A Study of Vemurafenib in Participants With BRAF V600 Mutation-Positive Cancers",
+                            "description": "This open-label, multi-center study will assess the efficacy and safety of vemurafenib in participants with BRAF V600 mutation-positive cancers (solid tumors and multiple myeloma, except melanoma and papillary thyroid cancer) and for whom vemurafenib is deemed the best treatment option in the opinion of the investigator. Participants will receive twice daily oral doses of 960 mg vemurafenib until disease progression, unacceptable toxicity, or withdrawal of consent. The safety and efficacy of vemurafenib in combination with cetuximab in a subset of participants with colorectal cancer will also be assessed.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01524978"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 1576,
+                "name": "EID1576",
+                "description": "Patients with BRAF-V600 mutated cancers were identified (n=122) and clinical response to vemurafenib was evaluated.  Of the 10 patients with colorectal cancer (80% BRAF V600E, 20% V600 unknown status), no responses were observed and overall survival was 9.3 months with a median progression-free survival of 4.5 months.",
+                "disease": {
+                    "id": 11,
+                    "name": "Colorectal Cancer",
+                    "display_name": "Colorectal Cancer",
+                    "doid": "9256",
+                    "url": "http://www.disease-ontology.org/?id=DOID:9256"
+                },
+                "drugs": [
+                    {
+                        "id": 4,
+                        "name": "Vemurafenib",
+                        "ncit_id": "C64768",
+                        "aliases": [
+                            "Zelboraf",
+                            "RO 5185426",
+                            "RG7204",
+                            "RG 7204",
+                            "PLX4032",
+                            "PLX-4032",
+                            "BRAF(V600E) Kinase Inhibitor RO5185426",
+                            "BRAF (V600E) Kinase Inhibitor RO5185426",
+                            "1-propanesulfonamide, N-(3-((5-(4-chlorophenyl)-1h-pyrrolo(2,3-b)pyridin-3-yl)carbonyl)-2,4-difluorophenyl)-"
+                        ]
+                    }
+                ],
+                "rating": 3,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Resistance",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": null,
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 1040,
+                    "name": "Vemurafenib in Multiple Nonmelanoma Cancers with BRAF V600 Mutations.",
+                    "citation": "Hyman et al., 2015, N. Engl. J. Med.",
+                    "citation_id": "26287849",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/26287849",
+                    "open_access": true,
+                    "pmc_id": "PMC4971773",
+                    "publication_date": {
+                        "year": 2015,
+                        "month": 8,
+                        "day": 20
+                    },
+                    "journal": "N. Engl. J. Med.",
+                    "full_journal_title": "The New England journal of medicine",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01524978",
+                            "name": "A Study of Vemurafenib in Participants With BRAF V600 Mutation-Positive Cancers",
+                            "description": "This open-label, multi-center study will assess the efficacy and safety of vemurafenib in participants with BRAF V600 mutation-positive cancers (solid tumors and multiple myeloma, except melanoma and papillary thyroid cancer) and for whom vemurafenib is deemed the best treatment option in the opinion of the investigator. Participants will receive twice daily oral doses of 960 mg vemurafenib until disease progression, unacceptable toxicity, or withdrawal of consent. The safety and efficacy of vemurafenib in combination with cetuximab in a subset of participants with colorectal cancer will also be assessed.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01524978"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 1598,
+                "name": "EID1598",
+                "description": "Patients with BRAF-V600 mutated cancers were identified (n=122) and subsequently underwent targeted therapy. 27 patients with colorectal cancer were treated with vemurafenib and cetuximab (N=24 with BRAF V600E mutation, N=3 with V600 unknown status). One response was observed; however, approximately half the patients had tumor regression that did not meet the standard criteria for a partial response. Median progression-free survival and overall survival for patients receiving combination therapy were 3.7 months (95% CI, 1.8 to 5.1) and 7.1 months (95% CI, 4.4 to not reached), respectively. Patients were heavily pretreated, with a median of two lines of previous therapy (range, one to six).",
+                "disease": {
+                    "id": 11,
+                    "name": "Colorectal Cancer",
+                    "display_name": "Colorectal Cancer",
+                    "doid": "9256",
+                    "url": "http://www.disease-ontology.org/?id=DOID:9256"
+                },
+                "drugs": [
+                    {
+                        "id": 16,
+                        "name": "Cetuximab",
+                        "ncit_id": "C1723",
+                        "aliases": []
+                    },
+                    {
+                        "id": 4,
+                        "name": "Vemurafenib",
+                        "ncit_id": "C64768",
+                        "aliases": [
+                            "Zelboraf",
+                            "RO 5185426",
+                            "RG7204",
+                            "RG 7204",
+                            "PLX4032",
+                            "PLX-4032",
+                            "BRAF(V600E) Kinase Inhibitor RO5185426",
+                            "BRAF (V600E) Kinase Inhibitor RO5185426",
+                            "1-propanesulfonamide, N-(3-((5-(4-chlorophenyl)-1h-pyrrolo(2,3-b)pyridin-3-yl)carbonyl)-2,4-difluorophenyl)-"
+                        ]
+                    }
+                ],
+                "rating": 2,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Does Not Support",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": "Combination",
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 1040,
+                    "name": "Vemurafenib in Multiple Nonmelanoma Cancers with BRAF V600 Mutations.",
+                    "citation": "Hyman et al., 2015, N. Engl. J. Med.",
+                    "citation_id": "26287849",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/26287849",
+                    "open_access": true,
+                    "pmc_id": "PMC4971773",
+                    "publication_date": {
+                        "year": 2015,
+                        "month": 8,
+                        "day": 20
+                    },
+                    "journal": "N. Engl. J. Med.",
+                    "full_journal_title": "The New England journal of medicine",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01524978",
+                            "name": "A Study of Vemurafenib in Participants With BRAF V600 Mutation-Positive Cancers",
+                            "description": "This open-label, multi-center study will assess the efficacy and safety of vemurafenib in participants with BRAF V600 mutation-positive cancers (solid tumors and multiple myeloma, except melanoma and papillary thyroid cancer) and for whom vemurafenib is deemed the best treatment option in the opinion of the investigator. Participants will receive twice daily oral doses of 960 mg vemurafenib until disease progression, unacceptable toxicity, or withdrawal of consent. The safety and efficacy of vemurafenib in combination with cetuximab in a subset of participants with colorectal cancer will also be assessed.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01524978"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 1750,
+                "name": "EID1750",
+                "description": "Patients who had histologically confirmed, unresectable stage IIIC or IV cutaneous melanoma with a V600E or V600K BRAF mutation were eligible for the study. 322 eligible patients (281 with the V600E mutation, 40 with the V600K mutation, and 1 with both mutations) in a 2:1 ratio to receive oral trametinib (2 mg once daily) or intravenous chemotherapy consisting of either dacarbazine (1000 mg per square meter of body-surface area) or paclitaxel (175 mg per square meter), at the discretion of the investigator, every 3 weeks. The primary end point was progression-free survival; secondary end points included overall survival, overall response rate, duration of response, and safety. Treatment continued until disease progression, death, or withdrawal from the study. In the intention-to-treat population, the median duration of progression-free survival was 4.8 months in the trametinib group as compared with 1.5 months in the chemotherapy group (hazard ratio for progression, 0.45; 95% confidence interval [CI], 0.33 to 0.63; P<0.001).  The 6-month overall survival rate in the intention-to-treat population was 81% in the trametinib group and 67% in the chemotherapy group.",
+                "disease": {
+                    "id": 7,
+                    "name": "Melanoma",
+                    "display_name": "Melanoma",
+                    "doid": "1909",
+                    "url": "http://www.disease-ontology.org/?id=DOID:1909"
+                },
+                "drugs": [
+                    {
+                        "id": 19,
+                        "name": "Trametinib",
+                        "ncit_id": "C77908",
+                        "aliases": [
+                            "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide",
+                            "Mekinist",
+                            "MEK Inhibitor GSK1120212",
+                            "JTP-74057",
+                            "GSK1120212"
+                        ]
+                    }
+                ],
+                "rating": 3,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": null,
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 1210,
+                    "name": "Improved survival with MEK inhibition in BRAF-mutated melanoma.",
+                    "citation": "Flaherty et al., 2012, N. Engl. J. Med.",
+                    "citation_id": "22663011",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/22663011",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2012,
+                        "month": 7,
+                        "day": 12
+                    },
+                    "journal": "N. Engl. J. Med.",
+                    "full_journal_title": "The New England journal of medicine",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01245062",
+                            "name": "GSK1120212 vs Chemotherapy in Advanced or Metastatic BRAF V600E/K Mutation-positive Melanoma",
+                            "description": "This is a two-arm, open-label, randomized Phase III study comparing single agent GSK1120212 to chemotherapy (either dacarbazine or paclitaxel) in subjects with Stage IIIc or Stage IV malignant cutaneous melanoma. All subjects must have a BRAF mutation-positive tumour sample. Subjects who have received up to one prior regimen of chemotherapy in the advanced or metastatic melanoma setting will be enrolled into the study. Subjects with any prior BRAF or MEK inhibitor use will be excluded. Approximately 297 subjects will be enrolled with 2:1 randomization (198 subjects into the GSK1120212 arm and 99 subjects into the chemotherapy arm). The primary endpoint for the statistical analysis will be a comparison of progression free survival for subjects receiving GSK1120212 compared to chemotherapy. Subjects who have progression on chemotherapy will be offered the option to receive GSK1120212.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01245062"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 5905,
+                "name": "EID5905",
+                "description": "Eight patients with BRAF V600 (7 with V600E, 1 with V600 unknown) mutated cholangiocarcinoma received vemurafenib. Only one patients showed partial response and duration of response of this patient was longer than 12 months.",
+                "disease": {
+                    "id": 29,
+                    "name": "Cholangiocarcinoma",
+                    "display_name": "Cholangiocarcinoma",
+                    "doid": "4947",
+                    "url": "http://www.disease-ontology.org/?id=DOID:4947"
+                },
+                "drugs": [
+                    {
+                        "id": 4,
+                        "name": "Vemurafenib",
+                        "ncit_id": "C64768",
+                        "aliases": [
+                            "Zelboraf",
+                            "RO 5185426",
+                            "RG7204",
+                            "RG 7204",
+                            "PLX4032",
+                            "PLX-4032",
+                            "BRAF(V600E) Kinase Inhibitor RO5185426",
+                            "BRAF (V600E) Kinase Inhibitor RO5185426",
+                            "1-propanesulfonamide, N-(3-((5-(4-chlorophenyl)-1h-pyrrolo(2,3-b)pyridin-3-yl)carbonyl)-2,4-difluorophenyl)-"
+                        ]
+                    }
+                ],
+                "rating": 4,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": null,
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 1040,
+                    "name": "Vemurafenib in Multiple Nonmelanoma Cancers with BRAF V600 Mutations.",
+                    "citation": "Hyman et al., 2015, N. Engl. J. Med.",
+                    "citation_id": "26287849",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/26287849",
+                    "open_access": true,
+                    "pmc_id": "PMC4971773",
+                    "publication_date": {
+                        "year": 2015,
+                        "month": 8,
+                        "day": 20
+                    },
+                    "journal": "N. Engl. J. Med.",
+                    "full_journal_title": "The New England journal of medicine",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01524978",
+                            "name": "A Study of Vemurafenib in Participants With BRAF V600 Mutation-Positive Cancers",
+                            "description": "This open-label, multi-center study will assess the efficacy and safety of vemurafenib in participants with BRAF V600 mutation-positive cancers (solid tumors and multiple myeloma, except melanoma and papillary thyroid cancer) and for whom vemurafenib is deemed the best treatment option in the opinion of the investigator. Participants will receive twice daily oral doses of 960 mg vemurafenib until disease progression, unacceptable toxicity, or withdrawal of consent. The safety and efficacy of vemurafenib in combination with cetuximab in a subset of participants with colorectal cancer will also be assessed.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01524978"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 6044,
+                "name": "EID6044",
+                "description": "In this double-blind, randomized, placebo-controlled, multicentre study, adult patients with histologically confirmed BRAF(V600) mutation-positive unresectable stage IIIC or stage IV melanoma were randomly assigned (1:1) to receive cobimetinib or placebo, in combination with oral vemurafenib. Progression-free survival was the primary endpoint.\nBetween Jan 8, 2013, and Jan 31, 2014, 495 eligible adult patients were enrolled and randomly assigned to the cobimetinib plus vemurafenib group (n=247) or placebo plus vemurafenib group (n=248). Investigator-assessed median progression-free survival was 12.3 months for cobimetinib and vemurafenib versus 7.2 months for placebo and vemurafenib (HR 0.58 [95% CI 0.46-0.72], p<0.0001). Median overall survival was 22.3 months for cobimetinib and vemurafenib versus 17.4 months for placebo and vemurafenib (HR 0.70, 95% CI 0.55-0.90; p=0.005). The safety profile for cobimetinib and vemurafenib was tolerable and manageable, and no new safety signals were observed with longer follow-up.",
+                "disease": {
+                    "id": 7,
+                    "name": "Melanoma",
+                    "display_name": "Melanoma",
+                    "doid": "1909",
+                    "url": "http://www.disease-ontology.org/?id=DOID:1909"
+                },
+                "drugs": [
+                    {
+                        "id": 342,
+                        "name": "Cobimetinib",
+                        "ncit_id": "C68923",
+                        "aliases": [
+                            "XL518",
+                            "MEK Inhibitor GDC-0973",
+                            "GDC-0973",
+                            "Cotellic"
+                        ]
+                    },
+                    {
+                        "id": 4,
+                        "name": "Vemurafenib",
+                        "ncit_id": "C64768",
+                        "aliases": [
+                            "Zelboraf",
+                            "RO 5185426",
+                            "RG7204",
+                            "RG 7204",
+                            "PLX4032",
+                            "PLX-4032",
+                            "BRAF(V600E) Kinase Inhibitor RO5185426",
+                            "BRAF (V600E) Kinase Inhibitor RO5185426",
+                            "1-propanesulfonamide, N-(3-((5-(4-chlorophenyl)-1h-pyrrolo(2,3-b)pyridin-3-yl)carbonyl)-2,4-difluorophenyl)-"
+                        ]
+                    }
+                ],
+                "rating": 5,
+                "evidence_level": "A",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": "Combination",
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 2441,
+                    "name": "Cobimetinib combined with vemurafenib in advanced BRAF(V600)-mutant melanoma (coBRIM): updated efficacy results from a randomised, double-blind, phase 3 trial.",
+                    "citation": "Ascierto et al., 2016, Lancet Oncol.",
+                    "citation_id": "27480103",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/27480103",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2016,
+                        "month": 9
+                    },
+                    "journal": "Lancet Oncol.",
+                    "full_journal_title": "The Lancet. Oncology",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01689519",
+                            "name": "A Study Comparing Vemurafenib Versus Vemurafenib Plus Cobimetinib in Participants With Metastatic Melanoma",
+                            "description": "To evaluate the efficacy of vemurafenib in combination with cobimetinib (GDC-0973), compared with vemurafenib and placebo, in previously untreated BRAF V600 mutation-positive patients with unresectable locally advanced or metastatic melanoma, as measured by progression-free survival (PFS), assessed by the study site investigator.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01689519"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 6046,
+                "name": "EID6046",
+                "description": "In a Phase Ib Dose-Escalation Study of Encorafenib and Cetuximab, Twenty-six patients with refractory BRAF V600 mutant metastatic CRC (mCRC) were treated with a selective RAF kinase inhibitor (encorafenib) plus a monoclonal antibody targeting EGFR (cetuximab).  Confirmed overall response rates of 19% were observed and median progression-free survival was 3.7 months.",
+                "disease": {
+                    "id": 11,
+                    "name": "Colorectal Cancer",
+                    "display_name": "Colorectal Cancer",
+                    "doid": "9256",
+                    "url": "http://www.disease-ontology.org/?id=DOID:9256"
+                },
+                "drugs": [
+                    {
+                        "id": 483,
+                        "name": "Encorafenib",
+                        "ncit_id": "C98283",
+                        "aliases": [
+                            "LGX818",
+                            "LGX-818",
+                            "LGX 818",
+                            "Braftovi"
+                        ]
+                    },
+                    {
+                        "id": 16,
+                        "name": "Cetuximab",
+                        "ncit_id": "C1723",
+                        "aliases": []
+                    }
+                ],
+                "rating": 4,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": "Combination",
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 2442,
+                    "name": "A Phase Ib Dose-Escalation Study of Encorafenib and Cetuximab with or without Alpelisib in Metastatic BRAF-Mutant Colorectal Cancer.",
+                    "citation": "van Geel et al., 2017, Cancer Discov",
+                    "citation_id": "28363909",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/28363909",
+                    "open_access": true,
+                    "pmc_id": "PMC5546207",
+                    "publication_date": {
+                        "year": 2017
+                    },
+                    "journal": "Cancer Discov",
+                    "full_journal_title": "Cancer discovery",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": []
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 6047,
+                "name": "EID6047",
+                "description": "In a phase Ib dose-escalation study of encorafenib, cetuximab and alpelisib, twenty-eight patients with refractory BRAF V600-mutant metastatic CRC (mCRC) were treated with a selective RAF kinase inhibitor (encorafenib) plus a monoclonal antibody targeting EGFR (cetuximab) with a PI3K\u03b1 inhibitor (alpelisib).  Confirmed overall response rates of 18% were observed and median progression-free survival was 4.2 months",
+                "disease": {
+                    "id": 11,
+                    "name": "Colorectal Cancer",
+                    "display_name": "Colorectal Cancer",
+                    "doid": "9256",
+                    "url": "http://www.disease-ontology.org/?id=DOID:9256"
+                },
+                "drugs": [
+                    {
+                        "id": 483,
+                        "name": "Encorafenib",
+                        "ncit_id": "C98283",
+                        "aliases": [
+                            "LGX818",
+                            "LGX-818",
+                            "LGX 818",
+                            "Braftovi"
+                        ]
+                    },
+                    {
+                        "id": 16,
+                        "name": "Cetuximab",
+                        "ncit_id": "C1723",
+                        "aliases": []
+                    },
+                    {
+                        "id": 570,
+                        "name": "Alpelisib",
+                        "ncit_id": "C94214",
+                        "aliases": [
+                            "Piqray",
+                            "Phosphoinositide 3-kinase Inhibitor BYL719",
+                            "BYL719"
+                        ]
+                    }
+                ],
+                "rating": 3,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": "Combination",
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 2442,
+                    "name": "A Phase Ib Dose-Escalation Study of Encorafenib and Cetuximab with or without Alpelisib in Metastatic BRAF-Mutant Colorectal Cancer.",
+                    "citation": "van Geel et al., 2017, Cancer Discov",
+                    "citation_id": "28363909",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/28363909",
+                    "open_access": true,
+                    "pmc_id": "PMC5546207",
+                    "publication_date": {
+                        "year": 2017
+                    },
+                    "journal": "Cancer Discov",
+                    "full_journal_title": "Cancer discovery",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": []
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 6180,
+                "name": "EID6180",
+                "description": "Combination Dabrafenib and Trametinib treatment was assessed for adjuvant treatment of stage III resected BRAF V600 mutant melanoma in the COMBI-AD trial NCT01682083. Patients were treated with combination therapy or placebo for 12 months. The estimated 3-year rate of relapse-free survival was 58% in the treated group and 39% in the placebo group  with hazard ratio for relapse or death of 0.47 (95% CI, 0.39 to 0.58; P<0.001). 3-year overall survival rate for treated group was 86%, and 77% in the placebo group (hazard ratio for death, 0.57; 95% CI, 0.42-0.79; P=0.0006). The level of improvement observed did not cross the prespecified interim analysis boundary of P=0.000019. Distant metastasis-free survival and freedom from relapse was higher in the combination-treated group.",
+                "disease": {
+                    "id": 7,
+                    "name": "Melanoma",
+                    "display_name": "Melanoma",
+                    "doid": "1909",
+                    "url": "http://www.disease-ontology.org/?id=DOID:1909"
+                },
+                "drugs": [
+                    {
+                        "id": 19,
+                        "name": "Trametinib",
+                        "ncit_id": "C77908",
+                        "aliases": [
+                            "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide",
+                            "Mekinist",
+                            "MEK Inhibitor GSK1120212",
+                            "JTP-74057",
+                            "GSK1120212"
+                        ]
+                    },
+                    {
+                        "id": 22,
+                        "name": "Dabrafenib",
+                        "ncit_id": "C82386",
+                        "aliases": [
+                            "GSK2118436",
+                            "GSK-2118436A",
+                            "GSK-2118436",
+                            "BRAF Inhibitor GSK2118436",
+                            "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-"
+                        ]
+                    }
+                ],
+                "rating": 5,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": "Combination",
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 2475,
+                    "name": "Adjuvant Dabrafenib plus Trametinib in Stage III BRAF-Mutated Melanoma.",
+                    "citation": "Long et al., 2017, N. Engl. J. Med.",
+                    "citation_id": "28891408",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/28891408",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2017,
+                        "day": 9
+                    },
+                    "journal": "N. Engl. J. Med.",
+                    "full_journal_title": "The New England journal of medicine",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01682083",
+                            "name": "A Study of the BRAF Inhibitor Dabrafenib in Combination With the MEK Inhibitor Trametinib in the Adjuvant Treatment of High-risk BRAF V600 Mutation-positive Melanoma After Surgical Resection.",
+                            "description": "This is a two-arm, randomized, double-blind Phase III study of dabrafenib in combination with trametinib versus two placebos in the adjuvant treatment of melanoma after surgical resection. Patients with completely resected, histologically confirmed, BRAF V600E/K mutation-positive, high-risk [Stage IIIa (lymph node metastasis >1 mm), IIIb or IIIc] cutaneous melanoma will be screened for eligibility. Subjects will be randomized to receive either dabrafenib (150 milligram (mg) twice daily [BID]) and trametinib (2 mg once daily [QD]) combination therapy or two placebos for 12 months.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01682083"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 6937,
+                "name": "EID6937",
+                "description": "In this Phase III trial (NCT01584648 COMBI-d), 423 previously untreated patients with unresectable stage IIIC or IV BRAF V600E or V600K mutant melanoma received dabrafenib and trametinib or dabrafenib alone with primary endpoint of progression free survival with secondary endpoints including disease response. The hazard ratio for progression or death in the dabrafenib\u2013trametinib group was 0.75 (95% confidence interval, 0.57 to 0.99; P=0.03). Of 210 patients in the dabrafenib + trametinib group, 67% of patients had a response, which was 16 percentage points higher than in the dabrafenib-alone group (95% CI, 6 to 25; P=0.002).",
+                "disease": {
+                    "id": 7,
+                    "name": "Melanoma",
+                    "display_name": "Melanoma",
+                    "doid": "1909",
+                    "url": "http://www.disease-ontology.org/?id=DOID:1909"
+                },
+                "drugs": [
+                    {
+                        "id": 22,
+                        "name": "Dabrafenib",
+                        "ncit_id": "C82386",
+                        "aliases": [
+                            "GSK2118436",
+                            "GSK-2118436A",
+                            "GSK-2118436",
+                            "BRAF Inhibitor GSK2118436",
+                            "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-"
+                        ]
+                    },
+                    {
+                        "id": 19,
+                        "name": "Trametinib",
+                        "ncit_id": "C77908",
+                        "aliases": [
+                            "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide",
+                            "Mekinist",
+                            "MEK Inhibitor GSK1120212",
+                            "JTP-74057",
+                            "GSK1120212"
+                        ]
+                    }
+                ],
+                "rating": 5,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": "Combination",
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 2671,
+                    "name": "Combined BRAF and MEK inhibition versus BRAF inhibition alone in melanoma.",
+                    "citation": "Long et al., 2014, N. Engl. J. Med.",
+                    "citation_id": "25265492",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/25265492",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2014,
+                        "month": 11,
+                        "day": 13
+                    },
+                    "journal": "N. Engl. J. Med.",
+                    "full_journal_title": "The New England journal of medicine",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01584648",
+                            "name": "A Study Comparing Trametinib and Dabrafenib Combination Therapy to Dabrafenib Monotherapy in Subjects With BRAF-mutant Melanoma",
+                            "description": "This is a two-arm, double-blinded, randomized, Phase III study comparing dabrafenib (GSK2118436) and trametinib (GSK1120212) combination therapy to dabrafenib administered with a trametinib placebo (dabrafenib monotherapy). Subjects with histologically confirmed cutaneous melanoma that is either Stage IIIC (unresectable) or Stage IV, and BRAF V600E/K mutation positive will be screened for eligibility. Subjects who have had prior systemic anti-cancer treatment in the advanced or metastatic setting will not be eligible although prior systemic treatment in the adjuvant setting will be allowed. Approximately 340 subjects will be randomized 1:1 (combination therapy: dabrafenib monotherapy). Subjects will be stratified by lactate dehydrogenase (LDH) level (> the upper limit of normal (ULN) versus less than or equal to the ULN) and BRAF mutation (V600E versus V600K). The primary endpoint is investigator-assessed, progression-free survival for subjects receiving the combination therapy compared with those receiving dabrafenib monotherapy. Subjects will be followed for overall survival; crossover will not be permitted.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01584648"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 6966,
+                "name": "EID6966",
+                "description": "In this Phase 1b study, 129 patients with unresectable or metastatic melanoma were verified for BRAF V600 mutation using the cobas 4800 mutation test were selected who had progressed on vemurafenib (66 patients) or never received BRAF inhibitor (63 patients). The combination of vemurafenib and cobimetinib was deemed safe and tolerable. Confirmed objective responses were seen in 15% of vemurafenib progressed patients and median progression-free survival was 2.8 months (95% CI 2\u00b76\u20133\u00b74). Confirmed objective responses were seen in 87% of patients who had never received BRAF inhibitor, including 10% with complete response. Median progression-free survival was 13.7 months (95% CI 10\u00b71\u201317\u00b75). The majority of patients had BRAF V600E mutation. Post-hoc sequencing of 94 tumor samples indicated seven tumors with a mutation other than BRAF V600E.",
+                "disease": {
+                    "id": 7,
+                    "name": "Melanoma",
+                    "display_name": "Melanoma",
+                    "doid": "1909",
+                    "url": "http://www.disease-ontology.org/?id=DOID:1909"
+                },
+                "drugs": [
+                    {
+                        "id": 4,
+                        "name": "Vemurafenib",
+                        "ncit_id": "C64768",
+                        "aliases": [
+                            "Zelboraf",
+                            "RO 5185426",
+                            "RG7204",
+                            "RG 7204",
+                            "PLX4032",
+                            "PLX-4032",
+                            "BRAF(V600E) Kinase Inhibitor RO5185426",
+                            "BRAF (V600E) Kinase Inhibitor RO5185426",
+                            "1-propanesulfonamide, N-(3-((5-(4-chlorophenyl)-1h-pyrrolo(2,3-b)pyridin-3-yl)carbonyl)-2,4-difluorophenyl)-"
+                        ]
+                    },
+                    {
+                        "id": 342,
+                        "name": "Cobimetinib",
+                        "ncit_id": "C68923",
+                        "aliases": [
+                            "XL518",
+                            "MEK Inhibitor GDC-0973",
+                            "GDC-0973",
+                            "Cotellic"
+                        ]
+                    }
+                ],
+                "rating": 3,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": "Combination",
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 2688,
+                    "name": "Combination of vemurafenib and cobimetinib in patients with advanced BRAF(V600)-mutated melanoma: a phase 1b study.",
+                    "citation": "Ribas et al., 2014, Lancet Oncol.",
+                    "citation_id": "25037139",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/25037139",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2014,
+                        "month": 8
+                    },
+                    "journal": "Lancet Oncol.",
+                    "full_journal_title": "The Lancet. Oncology",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01271803",
+                            "name": "A Study of Vemurafenib and GDC-0973 (Cobimetinib) in Participants With BRAFV600E Mutation-Positive Metastatic Melanoma",
+                            "description": "This open-label, dose-escalation study of vemurafenib in combination with cobimetinib will evaluate the safety, tolerability and pharmacokinetics in participants with BRAFV600 mutation-positive metastatic melanoma. Participants with previously untreated, BRAFV600E mutation-positive, locally advanced/unresectable or metastatic melanoma or those who have progressed on vemurafenib monotherapy immediately prior to enrolling in this trial are eligible. Participants will be assigned to different cohorts with escalating oral doses of vemurafenib and cobimetinib. This study consists of 2 stages, Stage 1 (Dose Escalation Stage [DES] and Cohort Expansion Stage [CES]) and the anticipated time on study treatment is until disease progression, unacceptable toxicity or any other discontinuation criterion is met.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01271803"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 7287,
+                "name": "EID7287",
+                "description": "In a phase 3 trial, patients with melanoma with BRAF V600E or V600K mutation were randomly assigned to encorafenib plus binimetinib or vemurafenib or encorafenib.\nmPFS was 14\u00b79 months (95% CI 11\u00b70-18\u00b75) in the encorafenib plus binimetinib group and 7\u00b73 months (5\u00b76-8\u00b72) in the vemurafenib group (hazard ratio [HR] 0\u00b754, 95% CI 0\u00b741-0\u00b771; two-sided p<0\u00b70001)",
+                "disease": {
+                    "id": 7,
+                    "name": "Melanoma",
+                    "display_name": "Melanoma",
+                    "doid": "1909",
+                    "url": "http://www.disease-ontology.org/?id=DOID:1909"
+                },
+                "drugs": [
+                    {
+                        "id": 483,
+                        "name": "Encorafenib",
+                        "ncit_id": "C98283",
+                        "aliases": [
+                            "LGX818",
+                            "LGX-818",
+                            "LGX 818",
+                            "Braftovi"
+                        ]
+                    },
+                    {
+                        "id": 485,
+                        "name": "Binimetinib",
+                        "ncit_id": "C84865",
+                        "aliases": [
+                            "Mektovi",
+                            "MEK162",
+                            "ARRY-438162",
+                            "ARRY-162"
+                        ]
+                    }
+                ],
+                "rating": 5,
+                "evidence_level": "A",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": "Combination",
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 2874,
+                    "name": "Encorafenib plus binimetinib versus vemurafenib or encorafenib in patients with BRAF-mutant melanoma (COLUMBUS): a multicentre, open-label, randomised phase 3 trial.",
+                    "citation": "Dummer et al., 2018, Lancet Oncol.",
+                    "citation_id": "29573941",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/29573941",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2018
+                    },
+                    "journal": "Lancet Oncol.",
+                    "full_journal_title": "The Lancet. Oncology",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01909453",
+                            "name": "Study Comparing Combination of LGX818 Plus MEK162 Versus Vemurafenib and LGX818 Monotherapy in BRAF Mutant Melanoma",
+                            "description": "This is 2-part, randomized, open label, multi-center, parallel group, phase III study comparing the efficacy and safety of LGX818 plus MEK162 to vemurafenib and LGX818 monotherapy in patients with locally advanced unresectable or metastatic melanoma with BRAF V600 mutation. A total of approximately 900 patients will be randomized. Part 1: Patients will be randomized in a 1:1:1 ratio to one of 3 treatment arms: 1. LGX818 450 mg QD plus MEK162 45 mg BID (denoted as Combo 450 arm) 2. LGX818 300 mg QD monotherapy (denoted as LGX818 arm) or 3. vemurafenib 960 mg BID (denoted as vemurafenib arm) Part 2: Patients will be randomized in a 3:1 ratio to one of the 2 treatment arms: 1. LGX818 300 mg QD plus MEK162 45 mg BID (denoted as Combo 300 arm) or 2. LGX818 300 mg QD monotherapy (denoted as LGX818 arm)",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01909453"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 7355,
+                "name": "EID7355",
+                "description": "A randomized clinical trial was done with metastatic colorectal cancer (mCRC) patients (50 in the control group, 49 in the experimental group) with BRAF V600 mutations and RAS wild type that were enrolled from December 2014 to April 2016. The patients were randomized into groups with irinotecan and cetuximab with vemurafenib (VIC group) or without (IC group). The VIC group showed an improvement of progression of free survival (HR 0.42, 95% CI: 0.26 to 0.66, p < 0.001) with a median value of 4.4 months compared to 2.0 months for the IC group. In addition, for the VIC group, there was a 16% drug response rate while the IC group had a 4% drug response rate (p-value = 0.08). Some grade 3/4 adverse events were higher in the experimental arm, and skin toxicity and fatigue showed no increase.",
+                "disease": {
+                    "id": 11,
+                    "name": "Colorectal Cancer",
+                    "display_name": "Colorectal Cancer",
+                    "doid": "9256",
+                    "url": "http://www.disease-ontology.org/?id=DOID:9256"
+                },
+                "drugs": [
+                    {
+                        "id": 4,
+                        "name": "Vemurafenib",
+                        "ncit_id": "C64768",
+                        "aliases": [
+                            "Zelboraf",
+                            "RO 5185426",
+                            "RG7204",
+                            "RG 7204",
+                            "PLX4032",
+                            "PLX-4032",
+                            "BRAF(V600E) Kinase Inhibitor RO5185426",
+                            "BRAF (V600E) Kinase Inhibitor RO5185426",
+                            "1-propanesulfonamide, N-(3-((5-(4-chlorophenyl)-1h-pyrrolo(2,3-b)pyridin-3-yl)carbonyl)-2,4-difluorophenyl)-"
+                        ]
+                    },
+                    {
+                        "id": 101,
+                        "name": "Irinotecan",
+                        "ncit_id": "C62040",
+                        "aliases": [
+                            "[1,4'-bipiperidine]-1'-carboxylic Acid (S)-4,11-diethyl-3,4,12,14-tetrahydro-4-hydroxy-3,14-dioxo-1H-pyrano[3',4':6,7]indolizino[1,2-b]quinolin-9-yl Ester",
+                            "7-ethyl-10-[4-(1-piperidino)-1-piperidino]carbonyloxycamptothecin",
+                            "(+)-7-ethyl-10-hydroxycamptothecine 10-[1,4'-bipiperidine]-1'-carboxylate",
+                            "(+)-(4S)-4,11-diethyl-4-hydroxy-9-[(4-piperidino-piperidino)carbonyloxy]-1H-pyrano[3',4':6,7]indolizino[1,2-b]quinol-3,14,(4H,12H)-dione"
+                        ]
+                    },
+                    {
+                        "id": 16,
+                        "name": "Cetuximab",
+                        "ncit_id": "C1723",
+                        "aliases": []
+                    }
+                ],
+                "rating": 3,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": "Combination",
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 2905,
+                    "name": "Randomized trial of irinotecan and cetuximab with or without vemurafenib in BRAF-mutant metastatic colorectal cancer (SWOG S1406).",
+                    "citation": "Scott Kopetz, 2017, ASCO Annual Meeting, Abstract 3505",
+                    "citation_id": "147167",
+                    "source_type": "ASCO",
+                    "asco_abstract_id": 3505,
+                    "source_url": "https://meetinglibrary.asco.org/record/147167/abstract",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2017
+                    },
+                    "journal": "J Clin Oncol 35, 2017 (suppl; abstr 3505)",
+                    "full_journal_title": "Dermatosen in Beruf und Umwelt. Occupation and environment",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT02164916",
+                            "name": "S1406 Phase II Study of Irinotecan and Cetuximab With or Without Vemurafenib in BRAF Mutant Metastatic Colorectal Cancer",
+                            "description": "This randomized phase II trial studies how well irinotecan hydrochloride and cetuximab with or without vemurafenib works in treating patients with colorectal cancer that has spread to nearby tissue or lymph nodes, that has spread to other places in the body, or cannot be removed by surgery. Irinotecan hydrochloride and vemurafenib may stop the growth of tumor cells by blocking some of the enzymes needed for cell growth. Monoclonal antibodies, such as cetuximab, may block the ability of tumor cells to grow and spread. It is not yet known whether irinotecan hydrochloride and cetuximab are more effective with or without vemurafenib in treating colorectal cancer.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT02164916"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 1000,
+                "name": "EID1000",
+                "description": "Phase I trial of the mitogen-activated protein kinase 1/2 inhibitor BAY 86-9766. 2 of 2 patients with BRAF mutant melanoma had moderate progressive disease (despite receiving the highest doses administered in the study).",
+                "disease": {
+                    "id": 7,
+                    "name": "Melanoma",
+                    "display_name": "Melanoma",
+                    "doid": "1909",
+                    "url": "http://www.disease-ontology.org/?id=DOID:1909"
+                },
+                "drugs": [
+                    {
+                        "id": 394,
+                        "name": "Refametinib",
+                        "ncit_id": "C74059",
+                        "aliases": [
+                            "RDEA119",
+                            "MEK Inhibitor RDEA119",
+                            "BAY86-9766",
+                            "BAY 869766"
+                        ]
+                    }
+                ],
+                "rating": 2,
+                "evidence_level": "C",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Resistance",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": null,
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 690,
+                    "name": "Multicenter phase I trial of the mitogen-activated protein kinase 1/2 inhibitor BAY 86-9766 in patients with advanced cancer.",
+                    "citation": "Weekes et al., 2013, Clin. Cancer Res.",
+                    "citation_id": "23434733",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23434733",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2013,
+                        "month": 3,
+                        "day": 1
+                    },
+                    "journal": "Clin. Cancer Res.",
+                    "full_journal_title": "Clinical cancer research : an official journal of the American Association for Cancer Research",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": []
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 8034,
+                "name": "EID8034",
+                "description": "This clinical trial used a cohort of 32 pediatric low grade glioma (pLGG) patients. The primary endpoint of this study was objective response rate (ORR). In this study, an ORR of 44% and a 1-year progression free survival rate of 85% was reported. Approximately half of the patients had an ongoing treatment response at the end of the study, while only two had progressive disease. Although the study cohort was on the smaller side, this provides evidence that treatment BRAF V600-mutant pLGG patients with Dabrafenib could be beneficial. Being a clinical trial, the study was not well controlled.",
+                "disease": {
+                    "id": 3048,
+                    "name": "Pediatric Low-grade Glioma",
+                    "display_name": "Pediatric Low-grade Glioma",
+                    "doid": "0080830",
+                    "url": "http://www.disease-ontology.org/?id=DOID:0080830"
+                },
+                "drugs": [
+                    {
+                        "id": 22,
+                        "name": "Dabrafenib",
+                        "ncit_id": "C82386",
+                        "aliases": [
+                            "GSK2118436",
+                            "GSK-2118436A",
+                            "GSK-2118436",
+                            "BRAF Inhibitor GSK2118436",
+                            "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-"
+                        ]
+                    }
+                ],
+                "rating": 3,
+                "evidence_level": "B",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": null,
+                "status": "submitted",
+                "type": "evidence",
+                "source": {
+                    "id": 3124,
+                    "name": "Efficacy and Safety of Dabrafenib in Pediatric Patients with BRAF V600 Mutation-Positive Relapsed or Refractory Low-Grade Glioma: Results from a Phase I/IIa Study.",
+                    "citation": "Hargrave et al., 2019, Clin. Cancer Res.",
+                    "citation_id": "31811016",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/31811016",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2019,
+                        "month": 12,
+                        "day": 15
+                    },
+                    "journal": "Clin. Cancer Res.",
+                    "full_journal_title": "Clinical cancer research : an official journal of the American Association for Cancer Research",
+                    "status": "submitted",
+                    "is_review": false,
+                    "clinical_trials": [
+                        {
+                            "nct_id": "NCT01677741",
+                            "name": "A Study to Determine Safety, Tolerability and Pharmacokinetics of Oral Dabrafenib In Children and Adolescent Subjects",
+                            "description": "This is a 2-part, study to determine the safety, tolerability and pharmacokinetics of oral dabrafenib in children and adolescent subjects with advanced BRAF V600 mutation-positive solid tumors. Part 1 (dose escalation study) will identify the recommended Part 2 (tumor-specific expansion study) dose and regimen using a dose-escalation procedure. Approximately 6 to 18 subjects will participate in Part 1 and will receive a starting dose of 3 mg/kg and dose will deescalate or escalate between 1.5 milligram (mg)/kilogram (kg) and 6 mg/kg. Up to 6 subjects will be enrolled at one dose level dependent upon the number of subjects at the current dose level, the number of subjects who have experienced a dose limiting toxicity (DLT) at the current dose level, and the number of subjects enrolled but with data pending at the current dose level. Escalation may proceed until either a maximum tolerated dose (MTD) is established, or until the dose in which the median pharmacokinetic parameters consistent with exposure in adults are achieved. Cohorts may be added in order to evaluate additional dose levels. Part 2 consists of four disease-specific cohorts of subjects with tumors known to have BRAF V600 activation (pediatric low-grade gliomas, pediatric high-grade gliomas, Langerhans cell histiocytosis [LCH], and other tumors such as melanoma and papillary thyroid carcinoma [PTC]). Each cohort will enroll at least 10 subjects with a pre-dose and at least 1 post-dose disease assessment. In both the parts of the study, on Day 1, a single first dose will be administered, and repeat dosing will begin on Day 2. PK sampling will be performed on Day 1 and Day 15 for subjects >=25 kg in weight. For subjects <25 kg and >=10 kg in weight, blood samples for PK analysis will be collected on Day 1 and Day 15. For subjects <10kg in weight, blood samples for PK analysis will be collected after repeated administration on Day 15 only. Safety and tolerability will be assessed throughout the study. Treatment with dabrafenib will be continued until disease progression or until no clinical benefit or development of an unacceptable toxicity, or until they withdraw consent or begin a new therapy. At the end of treatment, a final study visit will occur.",
+                            "clinical_trial_url": "https://clinicaltrials.gov/show/NCT01677741"
+                        }
+                    ]
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            },
+            {
+                "id": 30,
+                "name": "EID30",
+                "description": "BRAF mutations are associated with melanoma arising in non-chronic sun damaged skin and with superficial spreading melanoma.",
+                "disease": {
+                    "id": 7,
+                    "name": "Melanoma",
+                    "display_name": "Melanoma",
+                    "doid": "1909",
+                    "url": "http://www.disease-ontology.org/?id=DOID:1909"
+                },
+                "drugs": [],
+                "rating": 4,
+                "evidence_level": "B",
+                "evidence_type": "Diagnostic",
+                "clinical_significance": "Positive",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": null,
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 71,
+                    "name": "Frequencies of BRAF and NRAS mutations are different in histological types and sites of origin of cutaneous melanoma: a meta-analysis.",
+                    "citation": "Lee et al., 2011, Br. J. Dermatol.",
+                    "citation_id": "21166657",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/21166657",
+                    "open_access": null,
+                    "pmc_id": null,
+                    "publication_date": {
+                        "year": 2011,
+                        "month": 4
+                    },
+                    "journal": "Br. J. Dermatol.",
+                    "full_journal_title": "The British journal of dermatology",
+                    "status": "fully curated",
+                    "is_review": false,
+                    "clinical_trials": []
+                },
+                "variant_id": 17,
+                "phenotypes": []
+            }
+        ],
+        "variant_groups": [
+            {
+                "id": 5,
+                "name": "Other V600's",
+                "description": "While BRAF V600E is nearly ubiquitous in many cancer types, other V600 variants have also been observed and studied to a lesser degree. At first approximation, many of these variants seem to behave similarly to V600E, and treatment with dabrafenib has been shown to be effective. ",
+                "variants": [
+                    {
+                        "id": 11,
+                        "entrez_name": "BRAF",
+                        "entrez_id": 673,
+                        "name": "V600D",
+                        "description": "Patients harboring mutations in valine 600 residue of BRAF have been shown to be sensitive to dabrafenib. For more information on the V600 locus, see the V600E entry.",
+                        "gene_id": 5,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 47,
+                                "name": "missense_variant",
+                                "display_name": "Missense Variant",
+                                "so_id": "SO:0001583",
+                                "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
+                            }
+                        ],
+                        "civic_actionability_score": 47,
+                        "coordinates": {
+                            "chromosome": "7",
+                            "start": 140453135,
+                            "stop": 140453136,
+                            "reference_bases": "CA",
+                            "variant_bases": "AT",
+                            "representative_transcript": "ENST00000288602.6",
+                            "chromosome2": null,
+                            "start2": null,
+                            "stop2": null,
+                            "representative_transcript2": null,
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 13,
+                        "entrez_name": "BRAF",
+                        "entrez_id": 673,
+                        "name": "V600E and V600M",
+                        "description": "A case study of a single patient harboring both a V600E and a V600M mutation, dabrafenib was shown to acheive clinical response.",
+                        "gene_id": 5,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 47,
+                                "name": "missense_variant",
+                                "display_name": "Missense Variant",
+                                "so_id": "SO:0001583",
+                                "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
+                            }
+                        ],
+                        "civic_actionability_score": 7.5,
+                        "coordinates": {
+                            "chromosome": "7",
+                            "start": 140453135,
+                            "stop": 140453137,
+                            "reference_bases": null,
+                            "variant_bases": null,
+                            "representative_transcript": "ENST00000288602.6",
+                            "chromosome2": null,
+                            "start2": null,
+                            "stop2": null,
+                            "representative_transcript2": null,
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 288,
+                        "entrez_name": "BRAF",
+                        "entrez_id": 673,
+                        "name": "L597R",
+                        "description": "",
+                        "gene_id": 5,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 47,
+                                "name": "missense_variant",
+                                "display_name": "Missense Variant",
+                                "so_id": "SO:0001583",
+                                "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
+                            }
+                        ],
+                        "civic_actionability_score": 12,
+                        "coordinates": {
+                            "chromosome": "7",
+                            "start": 140453145,
+                            "stop": 140453145,
+                            "reference_bases": "A",
+                            "variant_bases": "C",
+                            "representative_transcript": "ENST00000288602.6",
+                            "chromosome2": null,
+                            "start2": null,
+                            "stop2": null,
+                            "representative_transcript2": null,
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 17,
+                        "entrez_name": "BRAF",
+                        "entrez_id": 673,
+                        "name": "V600",
+                        "description": "BRAF mutations of the valine 600 residue have been shown to be recurrent in many cancer types. Of the V600 mutations, V600E is the most widely researched. V600 mutations as a whole have been correlated to poorer prognosis in colorectal and papilarry thyroid cancers. V600 mutations have also been shown to confer sensitivity to the BRAF inhibitor dabrafenib. For a more detailed summary, click the individual mutations.",
+                        "gene_id": 5,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 103,
+                                "name": "protein_altering_variant",
+                                "display_name": "Protein Altering Variant",
+                                "so_id": "SO:0001818",
+                                "description": "A sequence_variant which is predicted to change the protein encoded in the coding sequence.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001818"
+                            }
+                        ],
+                        "civic_actionability_score": 460,
+                        "coordinates": {
+                            "chromosome": "7",
+                            "start": 140453136,
+                            "stop": 140453137,
+                            "reference_bases": null,
+                            "variant_bases": null,
+                            "representative_transcript": "ENST00000288602.6",
+                            "chromosome2": null,
+                            "start2": null,
+                            "stop2": null,
+                            "representative_transcript2": null,
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 563,
+                        "entrez_name": "BRAF",
+                        "entrez_id": 673,
+                        "name": "V600K",
+                        "description": "",
+                        "gene_id": 5,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 47,
+                                "name": "missense_variant",
+                                "display_name": "Missense Variant",
+                                "so_id": "SO:0001583",
+                                "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
+                            }
+                        ],
+                        "civic_actionability_score": 107.5,
+                        "coordinates": {
+                            "chromosome": "7",
+                            "start": 140453136,
+                            "stop": 140453137,
+                            "reference_bases": "AC",
+                            "variant_bases": "TT",
+                            "representative_transcript": "ENST00000288602.6",
+                            "chromosome2": null,
+                            "start2": null,
+                            "stop2": null,
+                            "representative_transcript2": null,
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    }
+                ],
+                "type": "variant_group"
+            }
+        ],
+        "assertions": [],
+        "variant_aliases": [
+            "VAL600"
+        ],
+        "hgvs_expressions": [],
+        "clinvar_entries": [
+            "40389",
+            "44815",
+            "376289",
+            "44816",
+            "13961",
+            "376288"
+        ],
+        "allele_registry_id": null
+    },
+    "ASSERTIONS": [
+        {
+            "id": 12,
+            "type": "assertion",
+            "name": "AID12",
+            "summary": "BRAF V600E mutant melanoma is sensitive to dabrafenib and trametinib combination therapy",
+            "description": "Combination treatment of BRAF inhibitor dabrafenib and MEK inhibitor trametinib is recommended for adjuvant treatment of stage III or recurrent melanoma with BRAF V600E mutation detected by the approved THxID kit, as well as first line treatment for metastatic melanoma. The treatments are FDA approved and NCCN guidelines recommend these treatments as category 1 based on studies including the Phase III COMBI-V, COMBI-D and COMBI-AD Trials. Combination therapy is now recommended above BRAF inhibitor monotherapy. Dabrafenib and trametinib are recommend as NCCN Category 2A for second line therapy in metastatic melanoma due to lack of clear Phase III trial data for this use case. Cutaneous squamous-cell carcinoma and keratoacanthoma occur at lower rates with combination therapy.",
+            "gene": {
+                "name": "BRAF",
+                "id": 5
+            },
+            "variant": {
+                "name": "V600E",
+                "id": 12
+            },
+            "disease": {
+                "id": 7,
+                "name": "Melanoma",
+                "display_name": "Melanoma",
+                "doid": "1909",
+                "url": "http://www.disease-ontology.org/?id=DOID:1909"
+            },
+            "drugs": [
+                {
+                    "id": 19,
+                    "name": "Trametinib",
+                    "ncit_id": "C77908",
+                    "aliases": [
+                        "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide",
+                        "Mekinist",
+                        "MEK Inhibitor GSK1120212",
+                        "JTP-74057",
+                        "GSK1120212"
+                    ]
+                },
+                {
+                    "id": 22,
+                    "name": "Dabrafenib",
+                    "ncit_id": "C82386",
+                    "aliases": [
+                        "GSK2118436",
+                        "GSK-2118436A",
+                        "GSK-2118436",
+                        "BRAF Inhibitor GSK2118436",
+                        "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-"
+                    ]
+                }
+            ],
+            "evidence_type": "Predictive",
+            "evidence_direction": "Supports",
+            "clinical_significance": "Sensitivity/Response",
+            "fda_regulatory_approval": true,
+            "status": "rejected"
+        }
+    ]
+}
