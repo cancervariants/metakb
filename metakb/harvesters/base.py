@@ -50,10 +50,10 @@ class Harvester:
                 composite_dict[arg_name] = kwargs[arg_name]
 
                 with open(f"{src_dir}/{arg_name}.json", 'w+') as f:
-                    f.write(json.dumps(composite_dict[arg_name]))
+                    f.write(json.dumps(composite_dict[arg_name], indent=4))
 
             with open(f"{src_dir}/{fn}", 'w+') as f:
-                json.dump(composite_dict, f)
+                json.dump(composite_dict, f, indent=4)
         except Exception as e:
             logger.error(f"Unable to create json: {e}")
             return False

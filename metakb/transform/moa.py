@@ -55,7 +55,7 @@ class MOATransform(Transform):
         }
 
         with open(f"{moa_dir}/{fn}", 'w+') as f:
-            json.dump(composite_dict, f)
+            json.dump(composite_dict, f, indent=4)
 
     def transform(self, propositions_ix=None):
         """Transform MOA harvested JSON to common date model.
