@@ -56,7 +56,7 @@ class CIViCTransform(Transform):
         """
         civic_dir.mkdir(exist_ok=True, parents=True)
         with open(f"{civic_dir}/{fn}", 'w+') as f:
-            json.dump(self.transformed, f)
+            json.dump(self.transformed, f, indent=4)
 
     def transform(self, propositions_documents_ix=None) -> Dict[str, dict]:
         """Transform CIViC harvested json to common data model.

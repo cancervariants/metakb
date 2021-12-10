@@ -145,4 +145,4 @@ class Delta:
 
         with open(f"{src_dir}/{self._src}_deltas_{current_date}.json",
                   'w+') as f:
-            json.dump(delta, f)
+            json.dump(delta, f, indent=4)

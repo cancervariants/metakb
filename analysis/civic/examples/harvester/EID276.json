@@ -114,8 +114,8 @@
         "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",
         "variants": [
             {
-                "name": "N771DELinsVH",
-                "id": 1662,
+                "name": "N771_P772insL",
+                "id": 3304,
                 "evidence_items": {
                     "accepted_count": 0,
                     "rejected_count": 0,
@@ -123,772 +123,7 @@
                 }
             },
             {
-                "name": "Y764_V765insHH",
-                "id": 1665,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "E746_S752>D",
-                "id": 1009,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 5
-                }
-            },
-            {
-                "name": "P546S",
-                "id": 1582,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "V834I",
-                "id": 1897,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "EXON 4 DELETION",
-                "id": 252,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "T725M",
-                "id": 861,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "R832L",
-                "id": 2741,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 2
-                }
-            },
-            {
-                "name": "T263P",
-                "id": 995,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "D770_N771insNPG",
-                "id": 1569,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 4
-                }
-            },
-            {
-                "name": "S752_I759delSPKANKEI",
-                "id": 891,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "D761Y",
-                "id": 712,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "K467N",
-                "id": 2605,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "K757R",
-                "id": 723,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "G719",
-                "id": 718,
-                "evidence_items": {
-                    "accepted_count": 2,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "Y801H",
-                "id": 1575,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "R831H",
-                "id": 1017,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 3
-                }
-            },
-            {
-                "name": "R776C",
-                "id": 1181,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "V441G",
-                "id": 2611,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "L838V",
-                "id": 1018,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "WILDTYPE",
-                "id": 2174,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 1,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "VIII",
-                "id": 312,
-                "evidence_items": {
-                    "accepted_count": 7,
-                    "rejected_count": 0,
-                    "submitted_count": 2
-                }
-            },
-            {
-                "name": "E746V",
-                "id": 1005,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 6
-                }
-            },
-            {
-                "name": "Y1092 PHOSPHORYLATION",
-                "id": 390,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "S768_D770dup",
-                "id": 1511,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "E746_S752>A",
-                "id": 1433,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "L792H",
-                "id": 3004,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "E746_T751delinsA",
-                "id": 1004,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 5
-                }
-            },
-            {
-                "name": "E746_A750>IP",
-                "id": 1635,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "G465E",
-                "id": 2603,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "G719S",
-                "id": 134,
-                "evidence_items": {
-                    "accepted_count": 4,
-                    "rejected_count": 0,
-                    "submitted_count": 4
-                }
-            },
-            {
-                "name": "L747P",
-                "id": 1891,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "S720",
-                "id": 720,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "D770_N771insGT",
-                "id": 1566,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "G465V",
-                "id": 2604,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "A859T",
-                "id": 1474,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 2
-                }
-            },
-            {
-                "name": "K489Q",
-                "id": 2606,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "L747_S752del",
-                "id": 890,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 7
-                }
-            },
-            {
-                "name": "L747_P753delinsS",
-                "id": 1012,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 8
-                }
-            },
-            {
-                "name": "S768I",
-                "id": 562,
-                "evidence_items": {
-                    "accepted_count": 5,
-                    "rejected_count": 0,
-                    "submitted_count": 5
-                }
-            },
-            {
-                "name": "F404V",
-                "id": 2617,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "C797S",
-                "id": 415,
-                "evidence_items": {
-                    "accepted_count": 2,
-                    "rejected_count": 0,
-                    "submitted_count": 6
-                }
-            },
-            {
-                "name": "L747_T751>P",
-                "id": 1010,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 6
-                }
-            },
-            {
-                "name": "G810S",
-                "id": 1016,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 2
-                }
-            },
-            {
-                "name": "L718V",
-                "id": 3000,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 3
-                }
-            },
-            {
-                "name": "RARE EGRF MUT",
-                "id": 2334,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "L718V and L718Q",
-                "id": 2997,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 2
-                }
-            },
-            {
-                "name": "Ex19 del L858R",
-                "id": 1854,
-                "evidence_items": {
-                    "accepted_count": 3,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "T785A",
-                "id": 1573,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "N826Y",
-                "id": 1896,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "M766_A767insASV",
-                "id": 2213,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "MUTATION",
-                "id": 442,
-                "evidence_items": {
-                    "accepted_count": 15,
-                    "rejected_count": 1,
-                    "submitted_count": 3
-                }
-            },
-            {
-                "name": "V774_C775insHV",
-                "id": 1567,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 2
-                }
-            },
-            {
-                "name": "I744_K745insKIPVAI",
-                "id": 2259,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "L718Q",
-                "id": 2999,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 4
-                }
-            },
-            {
-                "name": "G724S",
-                "id": 317,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "L838P",
-                "id": 1457,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "L861R",
-                "id": 1477,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "EXON 19 DELETION",
-                "id": 133,
-                "evidence_items": {
-                    "accepted_count": 16,
-                    "rejected_count": 0,
-                    "submitted_count": 2
-                }
-            },
-            {
-                "name": "E734Q",
-                "id": 1572,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "R451C",
-                "id": 454,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "Gain-of-function",
-                "id": 1765,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "M766Q",
-                "id": 2745,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 3
-                }
-            },
-            {
-                "name": "S492C",
-                "id": 2610,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "P753S",
-                "id": 460,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "C797Y",
-                "id": 1574,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "M766_A767insAI",
-                "id": 1664,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "EXPRESSION",
-                "id": 354,
-                "evidence_items": {
-                    "accepted_count": 5,
-                    "rejected_count": 0,
-                    "submitted_count": 3
-                }
-            },
-            {
-                "name": "E746_T751delinsVA",
-                "id": 1214,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "EXON 20 INSERTION",
-                "id": 726,
-                "evidence_items": {
-                    "accepted_count": 2,
-                    "rejected_count": 0,
-                    "submitted_count": 4
-                }
-            },
-            {
-                "name": "L747_S752delinsQ",
-                "id": 1580,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "E709A and G719C",
-                "id": 2258,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "V774M",
-                "id": 1894,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "V851I",
-                "id": 1466,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "V441F",
-                "id": 2613,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "S492R",
-                "id": 453,
-                "evidence_items": {
-                    "accepted_count": 4,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "H773_V774insNPH",
-                "id": 1513,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "K467T",
-                "id": 455,
-                "evidence_items": {
-                    "accepted_count": 2,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "G719D",
-                "id": 1420,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "3' UTR MUTATION",
-                "id": 253,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 1,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "P848L",
-                "id": 1465,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "V769A",
-                "id": 1578,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "A702S",
-                "id": 2255,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "L858R",
-                "id": 33,
-                "evidence_items": {
-                    "accepted_count": 37,
-                    "rejected_count": 1,
-                    "submitted_count": 4
-                }
-            },
-            {
-                "name": "E746_T751>I",
-                "id": 1003,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 6
-                }
-            },
-            {
-                "name": "N826S",
-                "id": 1188,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "OVEREXPRESSION",
+                "name": "Overexpression",
                 "id": 193,
                 "evidence_items": {
                     "accepted_count": 9,
@@ -897,17 +132,8 @@
                 }
             },
             {
-                "name": "P772_H773insH",
-                "id": 2217,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "R705K",
-                "id": 2333,
+                "name": "Exon 4 Deletion",
+                "id": 252,
                 "evidence_items": {
                     "accepted_count": 1,
                     "rejected_count": 0,
@@ -915,26 +141,17 @@
                 }
             },
             {
-                "name": "T847I",
-                "id": 1463,
+                "name": "Exon 20 Insertion",
+                "id": 726,
                 "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "G598V",
-                "id": 997,
-                "evidence_items": {
-                    "accepted_count": 0,
+                    "accepted_count": 2,
                     "rejected_count": 0,
                     "submitted_count": 5
                 }
             },
             {
-                "name": "V774A",
-                "id": 1892,
+                "name": "Exon 18 Overexpression",
+                "id": 375,
                 "evidence_items": {
                     "accepted_count": 1,
                     "rejected_count": 0,
@@ -942,152 +159,35 @@
                 }
             },
             {
-                "name": "Y69FS*11",
-                "id": 1672,
+                "name": "Expression",
+                "id": 354,
                 "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "V769_770insASV",
-                "id": 736,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 2
-                }
-            },
-            {
-                "name": "L747_A750>P",
-                "id": 1006,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 5
-                }
-            },
-            {
-                "name": "G465R",
-                "id": 443,
-                "evidence_items": {
-                    "accepted_count": 2,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "E746_A750del",
-                "id": 1002,
-                "evidence_items": {
-                    "accepted_count": 2,
-                    "rejected_count": 0,
-                    "submitted_count": 19
-                }
-            },
-            {
-                "name": "N771>GY",
-                "id": 1581,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "D770delinsGY",
-                "id": 2214,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "E746G",
-                "id": 724,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "L747_T751>Q",
-                "id": 1008,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 5
-                }
-            },
-            {
-                "name": "E709Q",
-                "id": 1413,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "S784F",
-                "id": 1182,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 4
-                }
-            },
-            {
-                "name": "G719A",
-                "id": 999,
-                "evidence_items": {
-                    "accepted_count": 2,
-                    "rejected_count": 0,
-                    "submitted_count": 4
-                }
-            },
-            {
-                "name": "S442R",
-                "id": 2614,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "A767_V769dupASV",
-                "id": 1579,
-                "evidence_items": {
-                    "accepted_count": 1,
+                    "accepted_count": 5,
                     "rejected_count": 0,
                     "submitted_count": 3
                 }
             },
             {
-                "name": "D770_N771insSVD",
-                "id": 1445,
+                "name": "Wildtype",
+                "id": 2174,
                 "evidence_items": {
                     "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 2
+                    "rejected_count": 1,
+                    "submitted_count": 0
                 }
             },
             {
-                "name": "I491R",
-                "id": 2609,
+                "name": "L747_T751delinsP",
+                "id": 1010,
                 "evidence_items": {
                     "accepted_count": 0,
                     "rejected_count": 0,
-                    "submitted_count": 1
+                    "submitted_count": 6
                 }
             },
             {
-                "name": "P772_V774insPHV",
-                "id": 1668,
+                "name": "D770_N771insGL",
+                "id": 1514,
                 "evidence_items": {
                     "accepted_count": 1,
                     "rejected_count": 0,
@@ -1095,21 +195,12 @@
                 }
             },
             {
-                "name": "I462R",
-                "id": 2600,
+                "name": "Amplification",
+                "id": 190,
                 "evidence_items": {
-                    "accepted_count": 0,
+                    "accepted_count": 11,
                     "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "G719X",
-                "id": 2912,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
+                    "submitted_count": 3
                 }
             },
             {
@@ -1122,12 +213,48 @@
                 }
             },
             {
-                "name": "K806E",
-                "id": 1895,
+                "name": "Copy Number Variation",
+                "id": 191,
                 "evidence_items": {
                     "accepted_count": 1,
                     "rejected_count": 0,
                     "submitted_count": 0
+                }
+            },
+            {
+                "name": "Exon 19 Deletion",
+                "id": 133,
+                "evidence_items": {
+                    "accepted_count": 16,
+                    "rejected_count": 0,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "G465E",
+                "id": 2603,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "F404V",
+                "id": 2617,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "F404I",
+                "id": 2616,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
                 }
             },
             {
@@ -1140,8 +267,8 @@
                 }
             },
             {
-                "name": "G12V",
-                "id": 3206,
+                "name": "E709Q",
+                "id": 1413,
                 "evidence_items": {
                     "accepted_count": 0,
                     "rejected_count": 0,
@@ -1149,35 +276,44 @@
                 }
             },
             {
-                "name": "L861",
-                "id": 1866,
+                "name": "D761N",
+                "id": 1013,
                 "evidence_items": {
-                    "accepted_count": 1,
+                    "accepted_count": 0,
                     "rejected_count": 0,
-                    "submitted_count": 0
+                    "submitted_count": 2
                 }
             },
             {
-                "name": "A763_Y764insFQEA",
-                "id": 1515,
+                "name": "Mutation",
+                "id": 442,
                 "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
+                    "accepted_count": 16,
+                    "rejected_count": 1,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "L858R",
+                "id": 33,
+                "evidence_items": {
+                    "accepted_count": 36,
+                    "rejected_count": 1,
                     "submitted_count": 4
                 }
             },
             {
-                "name": "EXON 18 OVEREXPRESSION",
-                "id": 375,
+                "name": "T790M",
+                "id": 34,
                 "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
+                    "accepted_count": 30,
+                    "rejected_count": 2,
+                    "submitted_count": 9
                 }
             },
             {
-                "name": "E868G",
-                "id": 1482,
+                "name": "Y1092 PHOSPHORYLATION",
+                "id": 390,
                 "evidence_items": {
                     "accepted_count": 1,
                     "rejected_count": 0,
@@ -1194,17 +330,8 @@
                 }
             },
             {
-                "name": "S464T",
-                "id": 2602,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "A289V",
-                "id": 996,
+                "name": "R451C",
+                "id": 454,
                 "evidence_items": {
                     "accepted_count": 1,
                     "rejected_count": 0,
@@ -1212,30 +339,12 @@
                 }
             },
             {
-                "name": "F404I",
-                "id": 2616,
+                "name": "I462R",
+                "id": 2600,
                 "evidence_items": {
                     "accepted_count": 0,
                     "rejected_count": 0,
                     "submitted_count": 1
-                }
-            },
-            {
-                "name": "K489E",
-                "id": 2607,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "COPY NUMBER VARIATION",
-                "id": 191,
-                "evidence_items": {
-                    "accepted_count": 3,
-                    "rejected_count": 0,
-                    "submitted_count": 0
                 }
             },
             {
@@ -1248,8 +357,125 @@
                 }
             },
             {
-                "name": "N842S",
-                "id": 1899,
+                "name": "S492R",
+                "id": 453,
+                "evidence_items": {
+                    "accepted_count": 4,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "I462K",
+                "id": 2599,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "S464T",
+                "id": 2602,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "G465V",
+                "id": 2604,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "K467N",
+                "id": 2605,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "K489Q",
+                "id": 2606,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "G719S",
+                "id": 134,
+                "evidence_items": {
+                    "accepted_count": 4,
+                    "rejected_count": 0,
+                    "submitted_count": 4
+                }
+            },
+            {
+                "name": "K489E",
+                "id": 2607,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "I491K",
+                "id": 2608,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "I491R",
+                "id": 2609,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "S492C",
+                "id": 2610,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "V441G",
+                "id": 2611,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "V441D",
+                "id": 2612,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "V441F",
+                "id": 2613,
                 "evidence_items": {
                     "accepted_count": 1,
                     "rejected_count": 0,
@@ -1257,12 +483,12 @@
                 }
             },
             {
-                "name": "T790M",
-                "id": 34,
+                "name": "S442R",
+                "id": 2614,
                 "evidence_items": {
-                    "accepted_count": 30,
-                    "rejected_count": 2,
-                    "submitted_count": 9
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
                 }
             },
             {
@@ -1275,15 +501,6 @@
                 }
             },
             {
-                "name": "W731L",
-                "id": 1571,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
                 "name": "T415M",
                 "id": 2618,
                 "evidence_items": {
@@ -1293,8 +510,98 @@
                 }
             },
             {
-                "name": "RARE Exon 18-21 Mutation",
-                "id": 1863,
+                "name": "M766_A767insASV",
+                "id": 2213,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "delL747_P753insS",
+                "id": 2215,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "D770delinsGY",
+                "id": 2214,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "P772_H773insH",
+                "id": 2217,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "3' UTR MUTATION",
+                "id": 253,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 1,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "AUTOCRINE ACTIVATION",
+                "id": 309,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 2,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "C797S",
+                "id": 415,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 6
+                }
+            },
+            {
+                "name": "S768N",
+                "id": 1443,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "Gain-of-function",
+                "id": 1765,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "G465R",
+                "id": 443,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "G719",
+                "id": 718,
                 "evidence_items": {
                     "accepted_count": 2,
                     "rejected_count": 0,
@@ -1302,12 +609,102 @@
                 }
             },
             {
-                "name": "E709K and G719A",
-                "id": 2256,
+                "name": "S720",
+                "id": 720,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "S752_I759delSPKANKEI",
+                "id": 891,
                 "evidence_items": {
                     "accepted_count": 0,
                     "rejected_count": 0,
                     "submitted_count": 1
+                }
+            },
+            {
+                "name": "L838V",
+                "id": 1018,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "R108K",
+                "id": 994,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "L861Q",
+                "id": 1020,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "T263P",
+                "id": 995,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "V742A",
+                "id": 1001,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "E746_T751>I",
+                "id": 1003,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 6
+                }
+            },
+            {
+                "name": "E746V",
+                "id": 1005,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 6
+                }
+            },
+            {
+                "name": "L747_T751>Q",
+                "id": 1008,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 5
+                }
+            },
+            {
+                "name": "E746_S752>D",
+                "id": 1009,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 5
                 }
             },
             {
@@ -1329,26 +726,8 @@
                 }
             },
             {
-                "name": "R108K",
-                "id": 994,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "V742A",
-                "id": 1001,
-                "evidence_items": {
-                    "accepted_count": 1,
-                    "rejected_count": 0,
-                    "submitted_count": 2
-                }
-            },
-            {
-                "name": "S768N",
-                "id": 1443,
+                "name": "G810S",
+                "id": 1016,
                 "evidence_items": {
                     "accepted_count": 0,
                     "rejected_count": 0,
@@ -1356,30 +735,48 @@
                 }
             },
             {
-                "name": "AUTOCRINE ACTIVATION",
-                "id": 309,
+                "name": "R776C",
+                "id": 1181,
                 "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 2,
-                    "submitted_count": 0
-                }
-            },
-            {
-                "name": "Exon 18 deletion",
-                "id": 2257,
-                "evidence_items": {
-                    "accepted_count": 0,
+                    "accepted_count": 1,
                     "rejected_count": 0,
                     "submitted_count": 1
                 }
             },
             {
-                "name": "L861Q",
-                "id": 1020,
+                "name": "S784F",
+                "id": 1182,
                 "evidence_items": {
-                    "accepted_count": 2,
+                    "accepted_count": 0,
                     "rejected_count": 0,
-                    "submitted_count": 3
+                    "submitted_count": 4
+                }
+            },
+            {
+                "name": "N826S",
+                "id": 1188,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "G719D",
+                "id": 1420,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "E746_S752>A",
+                "id": 1433,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
                 }
             },
             {
@@ -1392,35 +789,35 @@
                 }
             },
             {
-                "name": "V441D",
-                "id": 2612,
+                "name": "L747_S752del",
+                "id": 890,
                 "evidence_items": {
                     "accepted_count": 0,
                     "rejected_count": 0,
-                    "submitted_count": 1
+                    "submitted_count": 7
                 }
             },
             {
-                "name": "D761N",
-                "id": 1013,
+                "name": "L747_A750>P",
+                "id": 1006,
                 "evidence_items": {
                     "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 5
+                }
+            },
+            {
+                "name": "D770_N771insSVD",
+                "id": 1445,
+                "evidence_items": {
+                    "accepted_count": 1,
                     "rejected_count": 0,
                     "submitted_count": 2
                 }
             },
             {
-                "name": "T854A",
-                "id": 1467,
-                "evidence_items": {
-                    "accepted_count": 0,
-                    "rejected_count": 0,
-                    "submitted_count": 1
-                }
-            },
-            {
-                "name": "D770_N771insGL",
-                "id": 1514,
+                "name": "L838P",
+                "id": 1457,
                 "evidence_items": {
                     "accepted_count": 1,
                     "rejected_count": 0,
@@ -1428,17 +825,80 @@
                 }
             },
             {
-                "name": "AMPLIFICATION",
-                "id": 190,
+                "name": "T847I",
+                "id": 1463,
                 "evidence_items": {
-                    "accepted_count": 9,
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "L861R",
+                "id": 1477,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "E868G",
+                "id": 1482,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "D770_N771insNPG",
+                "id": 1569,
+                "evidence_items": {
+                    "accepted_count": 1,
                     "rejected_count": 0,
                     "submitted_count": 3
                 }
             },
             {
-                "name": "D770_N771insGY",
-                "id": 1666,
+                "name": "V774_C775insHV",
+                "id": 1567,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "W731L",
+                "id": 1571,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "T785A",
+                "id": 1573,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "E734Q",
+                "id": 1572,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "Y801H",
+                "id": 1575,
                 "evidence_items": {
                     "accepted_count": 1,
                     "rejected_count": 0,
@@ -1455,8 +915,53 @@
                 }
             },
             {
-                "name": "delL747_P753insS",
-                "id": 2215,
+                "name": "V769A",
+                "id": 1578,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "N771>GY",
+                "id": 1581,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "P546S",
+                "id": 1582,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "T854A",
+                "id": 1467,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "P848L",
+                "id": 1465,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "E746_A750>IP",
+                "id": 1635,
                 "evidence_items": {
                     "accepted_count": 0,
                     "rejected_count": 0,
@@ -1473,8 +978,44 @@
                 }
             },
             {
-                "name": "I462K",
-                "id": 2599,
+                "name": "M766_A767insAI",
+                "id": 1664,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "Y764_V765insHH",
+                "id": 1665,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "P772_V774insPHV",
+                "id": 1668,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "P772_H773insYNP",
+                "id": 1667,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "Y69FS*11",
+                "id": 1672,
                 "evidence_items": {
                     "accepted_count": 0,
                     "rejected_count": 0,
@@ -1482,12 +1023,372 @@
                 }
             },
             {
-                "name": "C797G",
-                "id": 3003,
+                "name": "N771DELinsVH",
+                "id": 1662,
                 "evidence_items": {
                     "accepted_count": 0,
                     "rejected_count": 0,
                     "submitted_count": 1
+                }
+            },
+            {
+                "name": "V851I",
+                "id": 1466,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "L747_S752delinsQ",
+                "id": 1580,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "Ex19 del L858R",
+                "id": 1854,
+                "evidence_items": {
+                    "accepted_count": 3,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "L861",
+                "id": 1866,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "V774A",
+                "id": 1892,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "L747P",
+                "id": 1891,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "V774M",
+                "id": 1894,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "V834I",
+                "id": 1897,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "N842S",
+                "id": 1899,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "N826Y",
+                "id": 1896,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "A702S",
+                "id": 2255,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "E709K and G719A",
+                "id": 2256,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "Exon 18 deletion",
+                "id": 2257,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "E709A and G719C",
+                "id": 2258,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "I744_K745insKIPVAI",
+                "id": 2259,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "S768_D770dup",
+                "id": 1511,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "G598V",
+                "id": 997,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 5
+                }
+            },
+            {
+                "name": "L747_P753delinsS",
+                "id": 1012,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 8
+                }
+            },
+            {
+                "name": "R705K",
+                "id": 2333,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "RARE EGRF MUT",
+                "id": 2334,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "RARE Exon 18-21 Mutation",
+                "id": 1863,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "E746_T751delinsVA",
+                "id": 1214,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "E746_A750del",
+                "id": 1002,
+                "evidence_items": {
+                    "accepted_count": 3,
+                    "rejected_count": 0,
+                    "submitted_count": 19
+                }
+            },
+            {
+                "name": "K467T",
+                "id": 455,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "P753S",
+                "id": 460,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "G724S",
+                "id": 317,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "S768I",
+                "id": 562,
+                "evidence_items": {
+                    "accepted_count": 5,
+                    "rejected_count": 0,
+                    "submitted_count": 5
+                }
+            },
+            {
+                "name": "E746G",
+                "id": 724,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "L718V and L718Q",
+                "id": 2997,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "L718Q",
+                "id": 2999,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 4
+                }
+            },
+            {
+                "name": "V769_770insASV",
+                "id": 736,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "D761Y",
+                "id": 712,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "T725M",
+                "id": 861,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "L718V",
+                "id": 3000,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "A289V",
+                "id": 996,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "E746_T751delinsA",
+                "id": 1004,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 5
+                }
+            },
+            {
+                "name": "R831H",
+                "id": 1017,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "G719A",
+                "id": 999,
+                "evidence_items": {
+                    "accepted_count": 2,
+                    "rejected_count": 0,
+                    "submitted_count": 4
+                }
+            },
+            {
+                "name": "A763_Y764insFQEA",
+                "id": 1515,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 4
+                }
+            },
+            {
+                "name": "A859T",
+                "id": 1474,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 2
                 }
             },
             {
@@ -1500,8 +1401,62 @@
                 }
             },
             {
-                "name": "I491K",
-                "id": 2608,
+                "name": "H773_V774insNPH",
+                "id": 1513,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "C797Y",
+                "id": 1574,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "A767_V769dupASV",
+                "id": 1579,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 4
+                }
+            },
+            {
+                "name": "K806E",
+                "id": 1895,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "D770_N771insGT",
+                "id": 1566,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "K757R",
+                "id": 723,
+                "evidence_items": {
+                    "accepted_count": 1,
+                    "rejected_count": 0,
+                    "submitted_count": 0
+                }
+            },
+            {
+                "name": "C797G",
+                "id": 3003,
                 "evidence_items": {
                     "accepted_count": 0,
                     "rejected_count": 0,
@@ -1509,16 +1464,53 @@
                 }
             },
             {
-                "name": "P772_H773insYNP",
-                "id": 1667,
+                "name": "L792H",
+                "id": 3004,
                 "evidence_items": {
-                    "accepted_count": 1,
+                    "accepted_count": 0,
                     "rejected_count": 0,
-                    "submitted_count": 0
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "G719X",
+                "id": 2912,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 1
+                }
+            },
+            {
+                "name": "R832L",
+                "id": 2741,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 2
+                }
+            },
+            {
+                "name": "M766Q",
+                "id": 2745,
+                "evidence_items": {
+                    "accepted_count": 0,
+                    "rejected_count": 0,
+                    "submitted_count": 3
+                }
+            },
+            {
+                "name": "VIII",
+                "id": 312,
+                "evidence_items": {
+                    "accepted_count": 7,
+                    "rejected_count": 0,
+                    "submitted_count": 2
                 }
             }
         ],
         "aliases": [
+            "ERRP",
             "EGFR",
             "mENA",
             "PIG61",
@@ -1547,7 +1539,7 @@
                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
             }
         ],
-        "civic_actionability_score": 362.5,
+        "civic_actionability_score": 375,
         "coordinates": {
             "chromosome": "7",
             "start": 55259515,
@@ -2050,7 +2042,7 @@
             {
                 "id": 1665,
                 "name": "EID1665",
-                "description": "90 NSCLC patients with stage IIIB/IV chemotherapy-resistant tumors were  treated with gefitinib, and the L858R EGFR mutation was associated with longer time to treatment failure than those with wild-type EGFR(median 9.1 versus 2.1). In multivariate analysis, L858R mutations plus adenocarcinoma was a significant predictive factor for TTF (HR = 0.1030; P = .0004).",
+                "description": "90 NSCLC patients with stage IIIB/IV chemotherapy-resistant tumors were treated with gefitinib, and the L858R EGFR mutation was associated with longer time to treatment failure than those with wild-type EGFR (median 9.1 versus 2.1). In multivariate analysis, L858R mutations plus adenocarcinoma was a significant predictive factor for time to treatment failure (HR = 0.1030; P = .0004).",
                 "disease": {
                     "id": 8,
                     "name": "Lung Non-small Cell Carcinoma",
@@ -2279,63 +2271,6 @@
                     },
                     "journal": "Proc. Natl. Acad. Sci. U.S.A.",
                     "full_journal_title": "Proceedings of the National Academy of Sciences of the United States of America",
-                    "status": "partially curated",
-                    "is_review": false,
-                    "clinical_trials": []
-                },
-                "variant_id": 33,
-                "phenotypes": []
-            },
-            {
-                "id": 2625,
-                "name": "EID2625",
-                "description": "In an in vitro study using PC9 cells (EGFR exon 19 deletion), inhibition of cell viability was used as an assay to determine sensitivity to EGFR tyrosine kinase inhibitors. PC9 cells demonstrated an increased sensitivity to gefitinib  (IC50: 23.0 nmol/L vs 200.0 nmol/L) compared to NCI-H2073 cells (EGFR wild type).",
-                "disease": {
-                    "id": 8,
-                    "name": "Lung Non-small Cell Carcinoma",
-                    "display_name": "Lung Non-small Cell Carcinoma",
-                    "doid": "3908",
-                    "url": "http://www.disease-ontology.org/?id=DOID:3908"
-                },
-                "drugs": [
-                    {
-                        "id": 14,
-                        "name": "Gefitinib",
-                        "ncit_id": "C1855",
-                        "aliases": [
-                            "ZD1839",
-                            "ZD 1839",
-                            "N-(3-chloro-4-fluorophenyl)-7-methoxy-6-[3-(4-morpholin) Propoxy]-4-quinazolinamine",
-                            "Iressa",
-                            "4-(3'-Chloro-4'-fluoroanilino)-7-methoxy-6-(3-morpholinopropoxy)quinazoline"
-                        ]
-                    }
-                ],
-                "rating": 2,
-                "evidence_level": "D",
-                "evidence_type": "Predictive",
-                "clinical_significance": "Sensitivity/Response",
-                "evidence_direction": "Supports",
-                "variant_origin": "Somatic",
-                "drug_interaction_type": null,
-                "status": "accepted",
-                "type": "evidence",
-                "source": {
-                    "id": 665,
-                    "name": "AZD9291, an irreversible EGFR TKI, overcomes T790M-mediated resistance to EGFR inhibitors in lung cancer.",
-                    "citation": "Cross et al., 2014, Cancer Discov",
-                    "citation_id": "24893891",
-                    "source_type": "PubMed",
-                    "asco_abstract_id": null,
-                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/24893891",
-                    "open_access": true,
-                    "pmc_id": "PMC4315625",
-                    "publication_date": {
-                        "year": 2014,
-                        "month": 9
-                    },
-                    "journal": "Cancer Discov",
-                    "full_journal_title": "Cancer discovery",
                     "status": "partially curated",
                     "is_review": false,
                     "clinical_trials": []
@@ -2635,7 +2570,7 @@
             {
                 "id": 2633,
                 "name": "EID2633",
-                "description": "EGFR L858R mutation has been associated with increased sensitivity to first generation EGFR tyrosine kinase inhibitors, including erlotinib and gefitinib.In an in vitro study using PC9 cells (EGFR L858R mutation), inhibition of EGFR phosphorylation was used as an assay to determine sensitivity to EGFR tyrosine kinase inhibitors. PC9 cells demonstrated an increased sensitivity to gefitinib  (IC50: 11.0-12.0 nmol/L vs 61.0 nmol/L) compared to NCI-H2073 cells (EGFR wild type).",
+                "description": "EGFR L858R mutation has been associated with increased sensitivity to first generation EGFR tyrosine kinase inhibitors, including erlotinib and gefitinib.In an in vitro study using PC9 cells (EGFR L858R mutation), inhibition of EGFR phosphorylation was used as an assay to determine sensitivity to EGFR tyrosine kinase inhibitors. PC9 cells demonstrated an increased sensitivity to gefitinib (IC50: 11.0-12.0 nmol/L vs 61.0 nmol/L) compared to NCI-H2073 cells (EGFR wild type).",
                 "disease": {
                     "id": 8,
                     "name": "Lung Non-small Cell Carcinoma",
@@ -2656,11 +2591,11 @@
                         ]
                     }
                 ],
-                "rating": null,
+                "rating": 1,
                 "evidence_level": "D",
                 "evidence_type": "Predictive",
-                "clinical_significance": null,
-                "evidence_direction": null,
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
                 "variant_origin": "Somatic",
                 "drug_interaction_type": null,
                 "status": "rejected",
@@ -2905,7 +2840,7 @@
             {
                 "id": 4286,
                 "name": "EID4286",
-                "description": "In an in vitro study, Ba/F3 and NCI-H3255 cell lines expressing EGFR L858R demonstrated increased sensitivity to erlotinib treatment (IC50=0.006\ufffdM). Sensitivity was determined by assessing cell proliferation, EGFR, AKT and ERK phosphorylation, levels of BIM (a marker of EGFR TKI-induced cell killing) and cell viability.",
+                "description": "In an in vitro study, Ba/F3 and NCI-H3255 cell lines expressing EGFR L858R demonstrated increased sensitivity to erlotinib treatment (IC50=0.006 and 0.068 \u00b5M). Sensitivity was determined by assessing cell proliferation, EGFR, AKT and ERK phosphorylation, levels of BIM (a marker of EGFR TKI-induced cell killing) and cell viability.",
                 "disease": {
                     "id": 8,
                     "name": "Lung Non-small Cell Carcinoma",
@@ -2921,7 +2856,7 @@
                         "aliases": []
                     }
                 ],
-                "rating": null,
+                "rating": 3,
                 "evidence_level": "D",
                 "evidence_type": "Predictive",
                 "clinical_significance": "Sensitivity/Response",
@@ -3009,7 +2944,7 @@
             {
                 "id": 4288,
                 "name": "EID4288",
-                "description": "In a non-small cell lung cancer patient with an EGFR L858R mutation, EGFR L858R was reported to be refractory to 61-day crizotinib treatment.",
+                "description": "This study analyzed patients with non small cell lung cancer (NSCLC) who were positive for EML4-ALK fusions (ALK+) and progressed on crizotinib monotherapy. One patient was biopsied twice following crizotinib progression and once pre-treatment. This patient was a 27 year old female with one pack year who experienced partial response on crizotinib as 4th line therapy. The patient's pre-crizotinib biopsy was ALK+ and lacked the EGFR mutation. A biopsy taken after 63 days on crizotinib showed EGFR L858R mutation and lacked ALK gene rearrangement by FISH (ALK Loss). Of note, a second post-treatment biopsy (after 113 on crizotinib) showed ALK rearrangement but lacked EGFR mutation. The authors interpreted the emergence of an ALK negative tumor (first post-critozitinib biopsy) as evidence of a separate oncogenic driver (EGFR L858R).",
                 "disease": {
                     "id": 8,
                     "name": "Lung Non-small Cell Carcinoma",
@@ -3032,7 +2967,7 @@
                         ]
                     }
                 ],
-                "rating": null,
+                "rating": 3,
                 "evidence_level": "C",
                 "evidence_type": "Predictive",
                 "clinical_significance": "Resistance",
@@ -3225,7 +3160,7 @@
             {
                 "id": 4293,
                 "name": "EID4293",
-                "description": "In an in vitro study using NCI-H3255 cells (EGFR L858R mutation), inhibition of EGFR phosphorylation was used as an assay to determine sensitivity to EGFR tyrosine kinase inhibitors. NCI-H3255 cells demonstrated an sensitivity to erlotinib (IC50: 8.0-11.0 nmol/L vs 108.0 nmol/L) compared to NCI-H2073 cells (EGFR wild type).",
+                "description": "In an in vitro study using NCI-H3255 cells (EGFR L858R mutation), inhibition of EGFR phosphorylation was used as an assay to determine sensitivity to EGFR tyrosine kinase inhibitors. NCI-H3255 cells demonstrated increased sensitivity to erlotinib (IC50: 8 and 11 nM) compared to EGFRwt NCI-H2073 cells (IC50: 108 nM; 95%CI 52-223 nM).",
                 "disease": {
                     "id": 174,
                     "name": "Lung Small Cell Carcinoma",
@@ -3241,58 +3176,7 @@
                         "aliases": []
                     }
                 ],
-                "rating": null,
-                "evidence_level": "D",
-                "evidence_type": "Predictive",
-                "clinical_significance": "Sensitivity/Response",
-                "evidence_direction": "Supports",
-                "variant_origin": "Somatic",
-                "drug_interaction_type": null,
-                "status": "accepted",
-                "type": "evidence",
-                "source": {
-                    "id": 665,
-                    "name": "AZD9291, an irreversible EGFR TKI, overcomes T790M-mediated resistance to EGFR inhibitors in lung cancer.",
-                    "citation": "Cross et al., 2014, Cancer Discov",
-                    "citation_id": "24893891",
-                    "source_type": "PubMed",
-                    "asco_abstract_id": null,
-                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/24893891",
-                    "open_access": true,
-                    "pmc_id": "PMC4315625",
-                    "publication_date": {
-                        "year": 2014,
-                        "month": 9
-                    },
-                    "journal": "Cancer Discov",
-                    "full_journal_title": "Cancer discovery",
-                    "status": "partially curated",
-                    "is_review": false,
-                    "clinical_trials": []
-                },
-                "variant_id": 33,
-                "phenotypes": []
-            },
-            {
-                "id": 4294,
-                "name": "EID4294",
-                "description": "EGFR L858R mutation has been associated with increased sensitivity to first generation EGFR tyrosine kinase inhibitors, including erlotinib and gefitinib. In an in vitro study using NCI-H3255 cells (EGFR L858R mutation), inhibition of EGFR phosphorylation was used as an assay to determine sensitivity to EGFR tyrosine kinase inhibitors. NCI-H3255 cells demonstrated increased sensitivity to erlotinib (IC50: 8.0-11.0 nmol/L vs 108.0 nmol/L) compared to NCI-H2073 cells (EGFR wild type).",
-                "disease": {
-                    "id": 217,
-                    "name": "Hematologic Cancer",
-                    "display_name": "Hematologic Cancer",
-                    "doid": "2531",
-                    "url": "http://www.disease-ontology.org/?id=DOID:2531"
-                },
-                "drugs": [
-                    {
-                        "id": 16,
-                        "name": "Cetuximab",
-                        "ncit_id": "C1723",
-                        "aliases": []
-                    }
-                ],
-                "rating": null,
+                "rating": 2,
                 "evidence_level": "D",
                 "evidence_type": "Predictive",
                 "clinical_significance": "Sensitivity/Response",
@@ -3330,8 +3214,8 @@
                 "description": "In an in vitro study, a Ba/F3 cell line expressing EGFR L858R demonstrated increased sensitivity to erlotinib treatment, compared to Ba/F3 cells expressing EGFR wild-type. Variant function was assessed by EGFR auto-phosphorylation. Sensitivity was assessed by cell viability assay using stable transfection of each variant and increasing concentrations of erlotinib (0\u201310 uM).",
                 "disease": {
                     "id": 695,
-                    "name": "Malignant Glioma",
-                    "display_name": "Malignant Glioma",
+                    "name": "High Grade Glioma",
+                    "display_name": "High Grade Glioma",
                     "doid": "3070",
                     "url": "http://www.disease-ontology.org/?id=DOID:3070"
                 },
@@ -3758,8 +3642,8 @@
                 "rating": 2,
                 "evidence_level": "B",
                 "evidence_type": "Predictive",
-                "clinical_significance": "Reduced Sensitivity",
-                "evidence_direction": "Does Not Support",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
                 "variant_origin": "Somatic",
                 "drug_interaction_type": null,
                 "status": "accepted",
@@ -3905,6 +3789,63 @@
                 "phenotypes": []
             },
             {
+                "id": 4294,
+                "name": "EID4294",
+                "description": "In an in vitro study using NCI-H3255 cells (EGFR L858R mutation), inhibition of EGFR phosphorylation was used as an assay to determine sensitivity to EGFR tyrosine kinase inhibitors. NCI-H3255 cells demonstrated increased sensitivity to AZD9291 (IC50: 60 and 49 nM) compared to EGFRwt NCI-H2073 cells (IC50: 1865 nM; 95%CI 872-3988 nM). In vivo experiments with NCI-H3255 xenograft models showed drastic tumour volume reduction upon treatment with 5mg/kg/day AZD9291.",
+                "disease": {
+                    "id": 8,
+                    "name": "Lung Non-small Cell Carcinoma",
+                    "display_name": "Lung Non-small Cell Carcinoma",
+                    "doid": "3908",
+                    "url": "http://www.disease-ontology.org/?id=DOID:3908"
+                },
+                "drugs": [
+                    {
+                        "id": 187,
+                        "name": "Osimertinib",
+                        "ncit_id": "C116377",
+                        "aliases": [
+                            "Tagrisso",
+                            "Mereletinib",
+                            "AZD9291",
+                            "AZD-9291",
+                            "2-Propenamide, N-(2-((2-(dimethylamino)ethyl)methylamino)-4-methoxy-5-((4-(1-methyl-1H-indol-3-yl)-2-pyrimidinyl)amino)phenyl)-"
+                        ]
+                    }
+                ],
+                "rating": 2,
+                "evidence_level": "D",
+                "evidence_type": "Predictive",
+                "clinical_significance": "Sensitivity/Response",
+                "evidence_direction": "Supports",
+                "variant_origin": "Somatic",
+                "drug_interaction_type": null,
+                "status": "accepted",
+                "type": "evidence",
+                "source": {
+                    "id": 665,
+                    "name": "AZD9291, an irreversible EGFR TKI, overcomes T790M-mediated resistance to EGFR inhibitors in lung cancer.",
+                    "citation": "Cross et al., 2014, Cancer Discov",
+                    "citation_id": "24893891",
+                    "source_type": "PubMed",
+                    "asco_abstract_id": null,
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/24893891",
+                    "open_access": true,
+                    "pmc_id": "PMC4315625",
+                    "publication_date": {
+                        "year": 2014,
+                        "month": 9
+                    },
+                    "journal": "Cancer Discov",
+                    "full_journal_title": "Cancer discovery",
+                    "status": "partially curated",
+                    "is_review": false,
+                    "clinical_trials": []
+                },
+                "variant_id": 33,
+                "phenotypes": []
+            },
+            {
                 "id": 347,
                 "name": "EID347",
                 "description": "Median survival of patients with EGFR L858R mutation is better than those with wild type EGFR.",
@@ -4039,19 +3980,19 @@
             }
         ],
         "variant_aliases": [
-            "RS121434568",
-            "LEU858ARG"
+            "LEU858ARG",
+            "RS121434568"
         ],
         "hgvs_expressions": [
-            "NP_005219.2:p.Leu858Arg",
-            "ENST00000275493.2:c.2573T>G",
+            "NC_000007.13:g.55259515T>G",
             "NM_005228.4:c.2573T>G",
-            "NC_000007.13:g.55259515T>G"
+            "ENST00000275493.2:c.2573T>G",
+            "NP_005219.2:p.Leu858Arg"
         ],
         "clinvar_entries": [
             "376280",
-            "376282",
-            "16609"
+            "16609",
+            "376282"
         ],
         "allele_registry_id": "CA126713"
     },

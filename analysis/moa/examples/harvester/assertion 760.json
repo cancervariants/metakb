@@ -2,44 +2,46 @@
     "ASSERTIONS": {
         "id": 760,
         "context": null,
-        "description": "Signature 10 is related to mutant pole, which may suggest sensitivity to immunotherapy. ",
+        "description": "Results from the METEOR trial (n=658) suggest that the MET expression level might not affect treatment outcomes with cabozantinib in this patient population.",
         "disease": {
-            "name": null,
-            "oncotree_code": null,
-            "oncotree_term": null
+            "name": "Renal Clear Cell Carcinoma",
+            "oncotree_code": "RCC",
+            "oncotree_term": "Renal Clear Cell Carcinoma"
         },
-        "therapy_name": "Pembrolizumab",
-        "therapy_type": "Immunotherapy",
-        "clinical_significance": "sensitivity",
+        "therapy_name": "Cabozantinib",
+        "therapy_type": "Targeted therapy",
+        "clinical_significance": null,
         "predictive_implication": "Inferential",
         "favorable_prognosis": null,
-        "created_on": "03/31/21",
-        "last_updated": "2019-02-04",
+        "created_on": "11/04/21",
+        "last_updated": "2019-08-12",
         "submitted_by": "breardon@broadinstitute.org",
         "validated": true,
-        "source_ids": 150,
+        "source_ids": 228,
         "variant": {
-            "id": 760,
-            "cosmic_signature_number": "10",
-            "cosmic_signature_version": "2",
-            "feature_type": "mutational_signature",
-            "feature": "COSMIC Signature 10"
+            "id": 758,
+            "cytoband": null,
+            "direction": "Amplification",
+            "feature_type": "copy_number",
+            "gene": "MET",
+            "feature": "MET Amplification"
         }
     },
     "SOURCES": {
-        "id": 150,
+        "id": 228,
         "type": "Journal",
-        "doi": "10.1056/NEJMoa1500596",
-        "nct": "NCT01876511",
-        "pmid": 26028255,
-        "url": "https://doi.org/10.1056/NEJMoa1500596",
-        "citation": "Le DT, Uram JN, Wang H, et al. PD-1 Blockade in Tumors with Mismatch-Repair Deficiency. N Engl J Med. 2015;372(26):2509-20."
+        "doi": "10.1056/NEJMoa1510016",
+        "nct": "NCT01865747",
+        "pmid": 26406150,
+        "url": "https://doi.org/10.1056/NEJMoa1510016",
+        "citation": "Choueiri TK, Escudier B, Powles T, et al. Cabozantinib versus Everolimus in Advanced Renal-Cell Carcinoma. N Engl J Med. 2015;373(19):1814-23."
     },
     "VARIANTS": {
-        "id": 760,
-        "cosmic_signature_number": "10",
-        "cosmic_signature_version": "2",
-        "feature_type": "mutational_signature",
-        "feature": "COSMIC Signature 10"
+        "id": 758,
+        "cytoband": null,
+        "direction": "Amplification",
+        "feature_type": "copy_number",
+        "gene": "MET",
+        "feature": "MET Amplification"
     }
 }
