@@ -1,2 +1,2 @@
 """MetaKB version"""
-__version__ = " 1.1.0-alpha.2"
+__version__ = " 1.1.0-alpha.3"
