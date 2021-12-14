@@ -7,6 +7,8 @@ from typing import List, Optional, Union, Dict, Any, Type
 from pydantic.types import StrictBool
 from ga4gh.vrsatile.pydantic.vrsatile_models import ValueObjectDescriptor, \
     GeneDescriptor, VariationDescriptor
+from datetime import datetime
+from metakb.version import __version__
 
 
 class SourceName(str, Enum):
@@ -582,6 +584,33 @@ class Matches(BaseModel):
             }
 
 
+class ServiceMeta(BaseModel):
+    """Metadata for MetaKB service."""
+
+    name = "metakb"
+    version = __version__
+    response_datetime: datetime
+    url = "https://github.com/cancervariants/metakb"
+
+    class Config:
+        """Configure schema example."""
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any],
+                         model: Type["ServiceMeta"]) -> None:
+            """Configure OpenAPI schema"""
+            if "title" in schema.keys():
+                schema.pop("title", None)
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)
+            schema["example"] = {
+                "name": "metakb",
+                "version": "1.1.0-alpha.3",
+                "response_datetime": "2021-04-05T16:44:15.367831",
+                "url": "https://github.com/cancervariants/metakb"
+            }
+
+
 class SearchService(BaseModel):
     """Define model for Search Endpoint Response."""
 
@@ -598,6 +627,7 @@ class SearchService(BaseModel):
     disease_descriptors: Optional[List[ValueObjectDescriptor]]
     methods: Optional[List[Method]]
     documents: Optional[List[Document]]
+    service_meta_: ServiceMeta
 
     class Config:
         """Configure examples."""
@@ -650,7 +680,13 @@ class SearchService(BaseModel):
                         "object_qualifier": "ncit:C2926",
                         "object": "rxcui:1430438"
                     }
-                ]
+                ],
+                "service_meta_": {
+                    "name": "metakb",
+                    "version": "1.1.0-alpha.3",
+                    "response_datetime": "2021-04-05T16:44:15.367831",
+                    "url": "https://github.com/cancervariants/metakb"
+                }
             }
 
 
@@ -669,6 +705,7 @@ class SearchIDService(BaseModel):
     disease_descriptor: Optional[ValueObjectDescriptor]
     document: Optional[Document]
     method: Optional[Method]
+    service_meta_: ServiceMeta
 
     class Config:
         """Configure examples."""
@@ -788,7 +825,13 @@ class SearchIDService(BaseModel):
                         ],
                         "gene_context": "civic.gid:19"
                     }
-                ]
+                ],
+                "service_meta_": {
+                    "name": "metakb",
+                    "version": "1.1.0-alpha.3",
+                    "response_datetime": "2021-04-05T16:44:15.367831",
+                    "url": "https://github.com/cancervariants/metakb"
+                }
             }
 
 
@@ -799,6 +842,7 @@ class SearchStatementsService(BaseModel):
     warnings: Optional[List[str]]
     matches: Matches
     statements: Optional[List[NestedStatementResponse]]
+    service_meta_: ServiceMeta
 
     class Config:
         """Configure examples."""
@@ -990,6 +1034,11 @@ class SearchStatementsService(BaseModel):
                         ],
                         "type": "Statement"
                     }
-                ]
-
+                ],
+                "service_meta_": {
+                    "name": "metakb",
+                    "version": "1.1.0-alpha.3",
+                    "response_datetime": "2021-04-05T16:44:15.367831",
+                    "url": "https://github.com/cancervariants/metakb"
+                }
             }
