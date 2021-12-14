@@ -7,12 +7,13 @@ from metakb.schemas import SearchService, StatementResponse, \
     ValueObjectDescriptor, GeneDescriptor, Method, \
     Document, SearchIDService, DiagnosticProposition, PrognosticProposition, \
     SearchStatementsService, NestedStatementResponse, PropositionType, \
-    Proposition
+    Proposition, ServiceMeta
 import logging
 from metakb.database import Graph
 import json
 from json.decoder import JSONDecodeError
 from urllib.parse import quote
+from datetime import datetime
 
 
 logger = logging.getLogger('metakb.query')
@@ -26,6 +27,15 @@ class QueryHandler:
         """Initialize neo4j driver and the VICC normalizers."""
         self.driver = Graph().driver
         self.vicc_normalizers = VICCNormalizers()
+
+    def get_service_meta(self) -> Dict:
+        """Return MetaKB's Service Meta
+
+        :return: ServiceMeta for MetaKB as a dict
+        """
+        return ServiceMeta(
+            response_datetime=datetime.now()
+        ).dict()
 
     def get_normalized_therapy(self, therapy: str,
                                warnings: List[str]) -> Optional[str]:
@@ -204,7 +214,8 @@ class QueryHandler:
             'therapy_descriptors': [],
             'disease_descriptors': [],
             'methods': [],
-            'documents': []
+            'documents': [],
+            'service_meta_': self.get_service_meta()
         }
 
         normalized_terms = self.get_normalized_terms(
@@ -343,7 +354,8 @@ class QueryHandler:
         valid_node_id = None
         response = {
             'query': node_id,
-            'warnings': []
+            'warnings': [],
+            'service_meta_': self.get_service_meta()
         }
 
         if not node_id:
@@ -430,7 +442,8 @@ class QueryHandler:
                 "statements": [],
                 "propositions": []
             },
-            'statements': []
+            'statements': [],
+            'service_meta_': self.get_service_meta()
         }
 
         normalized_terms = self.get_normalized_terms(
