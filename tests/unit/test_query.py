@@ -1,5 +1,8 @@
 """Test the MetaKB search method."""
+from datetime import datetime
+
 from metakb.query import QueryHandler
+from metakb.version import __version__
 import pytest
 
 # TODO:
@@ -10,25 +13,7 @@ import pytest
 @pytest.fixture(scope='module')
 def query_handler():
     """Create query handler test fixture."""
-    class QueryGetter:
-
-        def __init__(self):
-            self.query_handler = QueryHandler()
-
-        def search(self, variation='', disease='', therapy='', gene='',
-                   statement_id='', detail=False):
-            response = self.query_handler.search(variation=variation,
-                                                 disease=disease,
-                                                 therapy=therapy, gene=gene,
-                                                 statement_id=statement_id,
-                                                 detail=detail)
-            return response
-
-        def search_by_id(self, node_id=''):
-            response = self.query_handler.search_by_id(node_id=node_id)
-
-            return response
-    return QueryGetter()
+    return QueryHandler()
 
 
 def return_response(query_handler, statement_id, **kwargs):
@@ -63,7 +48,7 @@ def assert_no_match(response):
 
 def assert_no_match_id(response):
     """No match assertions for search by id."""
-    assert len(response.keys()) == 2
+    assert len(response.keys()) == 3
     assert len(response['warnings']) > 0
 
 
@@ -691,3 +676,26 @@ def test_moa_id_search(query_handler, moa_aid71_statement,
 
     res = query_handler.search_by_id(' method:004 ')
     check_method(res['method'], method004)
+
+
+def test_service_meta(query_handler):
+    """Test service meta in response"""
+    def check_service_meta(response):
+        """Check service meta in response is correct"""
+        assert "service_meta_" in response
+        service_meta_ = response["service_meta_"]
+        assert service_meta_["name"] == "metakb"
+        assert service_meta_["version"] == __version__
+        assert isinstance(service_meta_["response_datetime"], datetime)
+        assert service_meta_["url"] == \
+               "https://github.com/cancervariants/metakb"
+
+    statement_id = "civic.eid:2997"
+    resp = query_handler.search(statement_id=statement_id)
+    check_service_meta(resp)
+
+    resp = query_handler.search_by_id("method:004")
+    check_service_meta(resp)
+
+    resp = query_handler.search_statements(statement_id=statement_id)
+    check_service_meta(resp)
