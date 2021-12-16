@@ -1,13 +1,14 @@
 """Common data model"""
 from enum import Enum, IntEnum
+from datetime import datetime
+from typing import List, Optional, Union, Dict, Any, Type
 
 from ga4gh.vrsatile.pydantic.vrs_models import CURIE
-from pydantic import BaseModel
-from typing import List, Optional, Union, Dict, Any, Type
-from pydantic.types import StrictBool
 from ga4gh.vrsatile.pydantic.vrsatile_models import ValueObjectDescriptor, \
     GeneDescriptor, VariationDescriptor
-from datetime import datetime
+from pydantic import BaseModel
+from pydantic.types import StrictBool
+
 from metakb.version import __version__
 
 
@@ -90,6 +91,11 @@ class FunctionalPredicate(str, Enum):
     UNALTERED_FUNCTION = 'does_not_change_function_of'
     NEOMORPHIC = 'causes_neomorphic_function_of'
     DOMINATE_NEGATIVE = 'causes_dominant_negative_function_of'
+
+
+Predicate = Union[PredictivePredicate, DiagnosticPredicate,
+                  PrognosticPredicate, PathogenicPredicate,
+                  FunctionalPredicate]
 
 
 class VariationOrigin(str, Enum):
