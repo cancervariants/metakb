@@ -1,20 +1,23 @@
 """Module for queries."""
 from typing import Dict, List, Optional, Tuple
+import logging
+import json
+from json.decoder import JSONDecodeError
+from urllib.parse import quote
+from datetime import datetime
+
 from ga4gh.vrsatile.pydantic.vrsatile_models import Extension, Expression
+from neo4j.graph import Node
+from neo4j.work.transaction import Transaction
+
+from metakb.database import Graph
 from metakb.normalizers import VICCNormalizers
 from metakb.schemas import SearchService, StatementResponse, \
     TherapeuticResponseProposition, VariationDescriptor, \
     ValueObjectDescriptor, GeneDescriptor, Method, \
     Document, SearchIDService, DiagnosticProposition, PrognosticProposition, \
     SearchStatementsService, NestedStatementResponse, PropositionType, \
-    Proposition, ServiceMeta
-import logging
-from metakb.database import Graph
-import json
-from json.decoder import JSONDecodeError
-from urllib.parse import quote
-from datetime import datetime
-
+    Proposition, ServiceMeta, Predicate
 
 logger = logging.getLogger('metakb.query')
 logger.setLevel(logging.DEBUG)
@@ -23,9 +26,14 @@ logger.setLevel(logging.DEBUG)
 class QueryHandler:
     """Class for handling queries."""
 
-    def __init__(self) -> None:
-        """Initialize neo4j driver and the VICC normalizers."""
-        self.driver = Graph().driver
+    def __init__(self, uri: str = "",
+                 creds: Tuple[str, str] = ("", "")) -> None:
+        """Initialize neo4j driver and the VICC normalizers.
+        :param str uri: address of Neo4j DB
+        :param Tuple[str, str] credentials: tuple containing username and
+            password
+        """
+        self.driver = Graph(uri, creds).driver
         self.vicc_normalizers = VICCNormalizers()
 
     def get_service_meta(self) -> Dict:
@@ -944,40 +952,70 @@ class QueryHandler:
         return (tx.run(query).single() or [None])[0]
 
     @staticmethod
-    def _get_propositions(tx, normalized_therapy, normalized_variation,
-                          normalized_disease, normalized_gene,
-                          valid_statement_id):
-        """Get propositions that contain normalized concepts queried."""
+    def _get_propositions(
+            tx: Transaction,
+            statement_id: str = "",
+            normalized_variation: str = "",
+            normalized_therapy: str = "",
+            normalized_disease: str = "",
+            normalized_gene: str = "",
+            prop_type: Optional[PropositionType] = None,
+            pred: Optional[Predicate] = None
+    ) -> List[Node]:
+        """Get propositions that contain normalized concepts queried. Used
+        as callback for Neo4j session API.
+
+        :param str statement_id: statement ID as stored in DB
+        :param str normalized_variation: variation VRS ID
+        :param str normalized_therapy: normalized therapy concept ID
+        :param str normalized_disease: normalized disease concept ID
+        :param str normalized_gene: normalized gene concept ID
+        :param Optional[PropositionType] prop_type: type of proposition
+        :param Optional[Predicate] pred: predicate value
+        :returns: List of nodes matching given parameters
+        """
         query = ""
-        if valid_statement_id:
-            query += "MATCH (s:Statement {id:$s_id})-[:DEFINED_BY]->" \
+        params: Dict[str, str] = {}
+        if prop_type and pred:
+            query += "MATCH (p:Proposition " \
+                "{type:$prop_type, predicate:$pred}) "
+            params["prop_type"] = prop_type.value
+            params["pred"] = pred.value
+        elif prop_type:
+            query += "MATCH (p:Proposition {type:$prop_type) "
+            params["prop_type"] = prop_type.value
+        elif pred:
+            query += "MATCH (p:Proposition {predicate:$pred) "
+            params["pred"] = pred.value
+        if statement_id:
+            query += "MATCH (:Statement {id:$s_id})-[:DEFINED_BY]->" \
                      "(p:Proposition) "
+            params["s_id"] = statement_id
         if normalized_therapy:
             query += "MATCH (p:Proposition)<-[:IS_OBJECT_OF]-" \
-                     "(t:Therapy {id:$t_id}) "
+                     "(:Therapy {id:$t_id}) "
+            params["t_id"] = normalized_therapy
         if normalized_variation:
             lower_normalized_variation = normalized_variation.lower()
-            query += "MATCH (p:Proposition)<-[:IS_SUBJECT_OF]-(a:Allele "
+            query += "MATCH (p:Proposition)<-[:IS_SUBJECT_OF]-(v:Variation "
             if lower_normalized_variation.startswith('ga4gh:sq.'):
                 # Sequence ID
                 query += "{location_sequence_id: $v_id}) "
             else:
                 query += "{id:$v_id}) "
+            params["v_id"] = normalized_variation
         if normalized_disease:
             query += "MATCH (p:Proposition)<-[:IS_OBJECT_QUALIFIER_OF]-" \
-                     "(d:Disease {id:$d_id}) "
+                     "(:Disease {id:$d_id}) "
+            params["d_id"] = normalized_disease
         if normalized_gene:
-            query += "MATCH (g:Gene {id:$g_id})<-[:DESCRIBES]-" \
-                     "(gd:GeneDescriptor)<-[:HAS_GENE]-" \
-                     "(vd:VariationDescriptor)-[:DESCRIBES]->(v:Allele)-" \
+            query += "MATCH (:Gene {id:$g_id})<-[:DESCRIBES]-" \
+                     "(:GeneDescriptor)<-[:HAS_GENE]-" \
+                     "(:VariationDescriptor)-[:DESCRIBES]->(v:Allele)-" \
                      "[:IS_SUBJECT_OF]->(p:Proposition) "
+            params["g_id"] = normalized_gene
         query += "RETURN DISTINCT p"
-
-        return [p[0] for p in tx.run(query, t_id=normalized_therapy,
-                                     v_id=normalized_variation,
-                                     d_id=normalized_disease,
-                                     g_id=normalized_gene,
-                                     s_id=valid_statement_id)]
+        return [p[0] for p in tx.run(query, **params)]
 
     @staticmethod
     def _get_statements_from_proposition(tx, proposition_id):
