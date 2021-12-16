@@ -1,8 +1,10 @@
 """A module for the Transform base class."""
-from typing import Dict
-from metakb.normalizers import VICCNormalizers
+from typing import Dict, Tuple
 import json
 import logging
+
+from metakb.normalizers import VICCNormalizers
+from metakb.database import Graph
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -11,13 +13,15 @@ logger.setLevel(logging.DEBUG)
 class Transform:
     """A base class for transforming harvester data."""
 
-    def __init__(self, file_path):
+    def __init__(self, file_path: str, uri: str = '',
+                 credentials: Tuple[str, str] = ('', '')):
         """Initialize Transform base class.
 
         :param str file_path: Path to harvested json to transform
         """
         self.file_path = file_path
         self.vicc_normalizers = VICCNormalizers()
+        self.graph_driver = Graph(uri, credentials).driver
 
     def transform(self, *args, **kwargs) -> Dict[str, dict]:
         """Transform harvested data to the Common Data Model.
