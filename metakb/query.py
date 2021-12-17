@@ -1011,7 +1011,7 @@ class QueryHandler:
         if normalized_gene:
             query += "MATCH (:Gene {id:$g_id})<-[:DESCRIBES]-" \
                      "(:GeneDescriptor)<-[:HAS_GENE]-" \
-                     "(:VariationDescriptor)-[:DESCRIBES]->(v:Allele)-" \
+                     "(:VariationDescriptor)-[:DESCRIBES]->(v:Variation)-" \
                      "[:IS_SUBJECT_OF]->(p:Proposition) "
             params["g_id"] = normalized_gene
         query += "RETURN DISTINCT p"
