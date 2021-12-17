@@ -7,8 +7,7 @@ from typing import List, Optional, Union, Dict, Any, Type
 from pydantic.types import StrictBool
 from ga4gh.vrsatile.pydantic.vrsatile_models import ValueObjectDescriptor, \
     GeneDescriptor, VariationDescriptor
-from datetime import datetime
-from metakb.version import __version__
+from metakb.version import __version__, LAST_UPDATED
 
 
 class SourceName(str, Enum):
@@ -589,7 +588,7 @@ class ServiceMeta(BaseModel):
 
     name = "metakb"
     version = __version__
-    response_datetime: datetime
+    last_updated = LAST_UPDATED
     url = "https://github.com/cancervariants/metakb"
 
     class Config:
@@ -605,8 +604,8 @@ class ServiceMeta(BaseModel):
                 prop.pop("title", None)
             schema["example"] = {
                 "name": "metakb",
-                "version": "1.1.0-alpha.3",
-                "response_datetime": "2021-04-05T16:44:15.367831",
+                "version": "1.1.0-alpha.4",
+                "last_updated": "2021-12-16",
                 "url": "https://github.com/cancervariants/metakb"
             }
 
@@ -683,8 +682,8 @@ class SearchService(BaseModel):
                 ],
                 "service_meta_": {
                     "name": "metakb",
-                    "version": "1.1.0-alpha.3",
-                    "response_datetime": "2021-04-05T16:44:15.367831",
+                    "version": "1.1.0-alpha.4",
+                    "last_updated": "2021-12-16",
                     "url": "https://github.com/cancervariants/metakb"
                 }
             }
@@ -828,8 +827,8 @@ class SearchIDService(BaseModel):
                 ],
                 "service_meta_": {
                     "name": "metakb",
-                    "version": "1.1.0-alpha.3",
-                    "response_datetime": "2021-04-05T16:44:15.367831",
+                    "version": "1.1.0-alpha.4",
+                    "last_updated": "2021-12-16",
                     "url": "https://github.com/cancervariants/metakb"
                 }
             }
@@ -1037,8 +1036,8 @@ class SearchStatementsService(BaseModel):
                 ],
                 "service_meta_": {
                     "name": "metakb",
-                    "version": "1.1.0-alpha.3",
-                    "response_datetime": "2021-04-05T16:44:15.367831",
+                    "version": "1.1.0-alpha.4",
+                    "last_updated": "2021-12-16",
                     "url": "https://github.com/cancervariants/metakb"
                 }
             }
