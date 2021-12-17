@@ -5,6 +5,7 @@ import logging
 
 from ga4gh.core import sha512t24u
 
+from metakb.schemas import PropositionType, Predicate
 from metakb.normalizers import VICCNormalizers
 
 logger = logging.getLogger('metakb')
@@ -59,11 +60,15 @@ class Transform:
             propositions_documents_ix[dict_key_ix] += 1
         return index
 
-    def get_proposition_ID_hash(self, concept_ids: List[str]) -> str:
-        """Get hash for proposition ID values.
+    def _get_proposition_ID(self, prop_type: PropositionType, pred: Predicate,
+                            concept_ids: List[str]) -> str:
+        """Produce hashed ID for a proposition.
+
+        :param PropositionType prop_type: type of Proposition
+        :param Predicate pred: proposition predicate value
         :param List[str] concept_ids: all concept IDs relevant to the
         proposition (therapies, variations, diseases). Order irrelevant.
-        :return: proposition ID as an SHA-512 hash of the IDs
+        :return: proposition ID including the SHA-512 hash of the provided IDs
         """
-        combined = "".join(sorted(concept_ids))
-        return sha512t24u(combined.encode())
+        combined = "".join(sorted([prop_type.value, pred.value] + concept_ids))
+        return f"proposition:{sha512t24u(combined.encode())}"
