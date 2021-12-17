@@ -207,7 +207,8 @@ def test_proposition_rules(graph):
             assert p_id not in ids
             ids.add(p_id)
             # labeling is correct
-            assert set(values.labels) in [
+            labels = set(values.labels)
+            assert labels in [
                 {'Proposition', 'TherapeuticResponse'},
                 {'Proposition', 'Prognostic'},
                 {'Proposition', 'Diagnostic'}
@@ -226,6 +227,7 @@ def test_proposition_rules(graph):
             variations_out = {v[0] for v in s.run(query, p_id=p_id).values()}
             assert variations_in == variations_out
 
+            # Proposition-Therapy relationships appropriate given labels
             query = "MATCH (:Proposition {id:$p_id}) -[:HAS_OBJECT]-> (v:Therapy) RETURN v.id"  # noqa: E501
             therapies_in = {v[0] for v in s.run(query, p_id=p_id).values()}
             if 'TherapeuticResponse' in values.labels:
@@ -233,9 +235,12 @@ def test_proposition_rules(graph):
             else:
                 assert len(therapies_in) == 0
             query = "MATCH (:Proposition {id:$p_id}) <-[:IS_OBJECT_OF]- (v:Therapy) RETURN v.id"  # noqa: E501
-            therapies_out = {v[0] for v in s.run(query,
-                                                 p_id=p_id).values()}
+            therapies_out = {v[0] for v in s.run(query, p_id=p_id).values()}
             assert therapies_in == therapies_out
+            if 'TherapeuticResponse' in values.labels:
+                assert len(therapies_in) >= 1
+            else:
+                assert len(therapies_in) == 0
 
             # Proposition-Disease relationships >= 1 and match
             query = "MATCH (:Proposition {id:$p_id}) -[:HAS_OBJECT_QUALIFIER]-> (v:Disease) RETURN v.id"  # noqa: E501
@@ -402,3 +407,17 @@ def test_method_rules(graph):
             query = "MATCH (:Method {id:$p_id}) <-[:USES_METHOD]- (:Statement) RETURN count(*)"  # noqa: E501
             statements = s.run(query, p_id=p_id)
             assert statements.value()[0] >= 1
+
+
+def test_no_unlabeled_nodes(graph):
+    """Verify that no extra nodes have been errantly created.
+    Currently ignores CITES relationships for statements that contain
+    nonnormalizable values.
+    """
+    with graph.driver.session() as s:
+        query = """MATCH (n)
+        WHERE size(labels(n)) = 0
+        AND NOT (n)<-[:CITES]-(:Statement)
+        RETURN n"""
+        result = s.run(query)
+        assert len(result.value()) == 0
