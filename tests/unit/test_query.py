@@ -1,8 +1,6 @@
 """Test the MetaKB search method."""
-from datetime import datetime
-
 from metakb.query import QueryHandler
-from metakb.version import __version__
+from metakb.version import __version__, LAST_UPDATED
 import pytest
 
 # TODO:
@@ -686,7 +684,7 @@ def test_service_meta(query_handler):
         service_meta_ = response["service_meta_"]
         assert service_meta_["name"] == "metakb"
         assert service_meta_["version"] == __version__
-        assert isinstance(service_meta_["response_datetime"], datetime)
+        assert service_meta_["last_updated"] == LAST_UPDATED
         assert service_meta_["url"] == \
                "https://github.com/cancervariants/metakb"
 
