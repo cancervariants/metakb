@@ -3,6 +3,8 @@ from typing import Dict, Tuple, Optional
 import json
 import logging
 
+from neo4j.work.transaction import Transaction
+
 from metakb.schemas import PropositionType, Predicate, PredictivePredicate, \
     DiagnosticPredicate, PrognosticPredicate, PathogenicPredicate, \
     FunctionalPredicate
@@ -113,3 +115,27 @@ class Transform:
                 return None
             else:
                 return response[0].get("id")
+
+    def get_next_proposition_ID(self) -> int:
+        """Get next unused proposition ID number.
+        :return: integer corresponding to next available prop ID number.
+        Returns 1 if no propositions are found.
+        """
+        def _run_ix_query(tx: Transaction):
+            query = """MATCH (p:Proposition)
+            RETURN p.id
+            ORDER BY p.id
+            DESC LIMIT 1"""
+            result = tx.run(query)
+            if result is None:
+                return None
+            single = result.single()
+            if single is None:
+                return None
+            return single.get("p.id")
+        with self.query_handler.driver.session() as session:
+            result = session.read_transaction(_run_ix_query)
+        if result is None:
+            return 1
+        else:
+            return int(result.split(':')[1]) + 1
