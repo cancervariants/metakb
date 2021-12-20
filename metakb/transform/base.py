@@ -36,31 +36,24 @@ class Transform:
             return json.load(f)
 
     @staticmethod
-    def _set_ix(propositions_documents_ix, dict_key, search_key) -> int:
-        """Set indexes for documents or propositions.
+    def _set_ix(documents_ix, search_key) -> int:
+        """Set indexes for documents.
 
-        :param dict propositions_documents_ix: Keeps track of
-            proposition and documents indexes
-        :param str dict_key: 'sources' or 'propositions'
+        :param dict documents_ix: Keeps track of documents indexes
         :param Any search_key: The key to get or set
         :return: An int representing the index
         """
-        if dict_key == 'documents':
-            dict_key_ix = 'document_index'
-        elif dict_key == 'propositions':
-            dict_key_ix = 'proposition_index'
+        # dict_key_ix = 'document_index'
+        if documents_ix["documents"].get(search_key):
+            index = documents_ix["documents"].get(search_key)
         else:
-            raise KeyError("dict_key can only be `documents` or "
-                           "`propositions`.")
-        if propositions_documents_ix[dict_key].get(search_key):
-            index = propositions_documents_ix[dict_key].get(search_key)
-        else:
-            index = propositions_documents_ix.get(dict_key_ix)
-            propositions_documents_ix[dict_key][search_key] = index
-            propositions_documents_ix[dict_key_ix] += 1
+            index = documents_ix.get("document_index")
+            documents_ix["documents"][search_key] = index
+            documents_ix["document_index"] += 1
         return index
 
-    def _get_proposition_ID(self, prop_type: PropositionType, pred: Predicate,
+    @staticmethod
+    def _get_proposition_ID(prop_type: PropositionType, pred: Predicate,
                             concept_ids: List[str]) -> str:
         """Produce hashed ID for a proposition.
 

@@ -1,12 +1,15 @@
 """A module to convert MOA resources to common data model"""
-from metakb import APP_ROOT
+from typing import Dict
 import json
 import logging
-import metakb.schemas as schemas
-from .base import Transform
 from urllib.parse import quote
+
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor,\
     Extension, GeneDescriptor, ValueObjectDescriptor
+
+from metakb import APP_ROOT
+import metakb.schemas as schemas
+from .base import Transform
 
 logger = logging.getLogger('metakb.transform.moa')
 logger.setLevel(logging.DEBUG)
@@ -57,12 +60,9 @@ class MOATransform(Transform):
         with open(f"{moa_dir}/{fn}", 'w+') as f:
             json.dump(composite_dict, f, indent=4)
 
-    def transform(self, propositions_ix=None):
+    def transform(self, documents_ix: Dict = None):
         """Transform MOA harvested JSON to common date model.
-
-        :param Dict propositions_ix: tracking data to properly
-            index SupportEvidence
-        :return: An updated propositions_ix object
+        Saves output in MOA transform directory.
         """
         data = self.extract_harvester()
         cdm_assertions = {}  # assertions that have been transformed to CDM
@@ -70,21 +70,14 @@ class MOATransform(Transform):
         assertions = data['assertions']
         sources = data['sources']
         variants = data['variants']
-        if not propositions_ix:
-            propositions_ix = {
-                # Keep track of proposition index value
-                'proposition_index': 1,
-                # {tuple: proposition_index}
-                'propositions': dict()
-            }
 
         # Transform MOA assertions
         self._transform_statements(assertions, variants, sources,
-                                   propositions_ix, cdm_assertions)
-        return propositions_ix
+                                   cdm_assertions)
+        return documents_ix
 
     def _transform_statements(self, records, variants, sources,
-                              propositions_ix, cdm_assertions):
+                              cdm_assertions):
         """Add transformed assertions to the response list.
 
         :param: A list of MOA assertion records
@@ -107,8 +100,7 @@ class MOATransform(Transform):
             propositions = \
                 self._get_tr_propositions(record, variation_descriptors,
                                           disease_descriptors,
-                                          therapy_descriptors,
-                                          propositions_ix)
+                                          therapy_descriptors)
 
             # We only want therapeutic response for now
             if not propositions:
@@ -213,15 +205,13 @@ class MOATransform(Transform):
         return [statement]
 
     def _get_tr_propositions(self, record, variation_descriptors,
-                             disease_descriptors, therapy_descriptors,
-                             propositions_ix):
+                             disease_descriptors, therapy_descriptors):
         """Return a list of propositions.
 
         :param: MOA assertion
         :param: A list of Variation Descriptors
         :param: A list of Disease Descriptors
         :param: A list of therapy_descriptors
-        :param: Keeps track of proposition and support_evidence indexes
         :return: A list of therapeutic propositions.
         """
         predicate = self._get_predicate(record['clinical_significance'])
@@ -240,15 +230,13 @@ class MOATransform(Transform):
         }
 
         # Get corresponding id for proposition
-        key = (params['type'],
-               params['predicate'],
-               params['subject'],
-               params['object_qualifier'],
-               params['object'])
-
-        proposition_index = self._set_ix(propositions_ix,
-                                         'propositions', key)
-        params['id'] = f"proposition:{proposition_index:03}"
+        concept_ids = [params["subject"], params["object_qualifer"],
+                       params["object"]]
+        params["id"] = self._get_proposition_ID(
+            params["type"],
+            params["predicate"],
+            concept_ids
+        )
         proposition = schemas.TherapeuticResponseProposition(
             **params).dict(exclude_none=True)
         return [proposition]

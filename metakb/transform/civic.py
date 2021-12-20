@@ -58,28 +58,22 @@ class CIViCTransform(Transform):
         with open(f"{civic_dir}/{fn}", 'w+') as f:
             json.dump(self.transformed, f, indent=4)
 
-    def transform(self, propositions_documents_ix=None) -> Dict[str, dict]:
+    def transform(self,
+                  documents_ix: Optional[Dict] = None) -> Dict[str, dict]:
         """Transform CIViC harvested json to common data model.
 
-        :param Dict propositions_documents_ix: Indexes for propositions and
-            documents
-        :return: An updated propositions_documents_ix object
+        :param Optional[Dict] documents_ix: Indexes for documents
+        :return: An updated documents_ix object
         """
         data = self.extract_harvester()
         evidence_items = data['evidence']
         assertions = data['assertions']
         variants = data['variants']
         genes = data['genes']
-        if not propositions_documents_ix:
-            propositions_documents_ix = {
-                # Keep track of documents index value
-                'document_index': 1,
-                # {document_id: document_index}
-                'documents': dict(),
-                # Keep track of proposition index value
-                'proposition_index': 1,
-                # {tuple: proposition_index}
-                'propositions': dict()
+        if not documents_ix:
+            documents_ix = {
+                'document_index': 1,  # Keep track of documents index value
+                'documents': dict(),  # {document_id: document_index}
             }
 
         # Filter Variant IDs for
@@ -93,22 +87,19 @@ class CIViCTransform(Transform):
         self._add_variation_descriptors(variants, vids)
         self._add_gene_descriptors(genes)
         self._add_methods()
-        self._transform_evidence_and_assertions(evidence_items,
-                                                propositions_documents_ix)
-        self._transform_evidence_and_assertions(assertions,
-                                                propositions_documents_ix,
+        self._transform_evidence_and_assertions(evidence_items, documents_ix)
+        self._transform_evidence_and_assertions(assertions, documents_ix,
                                                 is_evidence=False)
-        return propositions_documents_ix
+        return documents_ix
 
-    def _transform_evidence_and_assertions(self, records,
-                                           propositions_documents_ix,
+    def _transform_evidence_and_assertions(self, records: List[Dict],
+                                           documents_ix: Dict[str, str],
                                            is_evidence=True) -> None:
         """Transform statements, propositions, descriptors, and documents
         from CIViC evidence items and assertions.
 
         :param list records: CIViC Evidence Items or Assertions
-        :param dict propositions_documents_ix: Indexes for propositions and
-            documents
+        :param Dict[str, str] documents_ix: Indexes for documents
         :param bool is_evidence: `True` if records are evidence items.
             `False` if records are assertions.
         """
@@ -167,7 +158,7 @@ class CIViCTransform(Transform):
 
             proposition = self._get_proposition(
                 r, variation_descriptor, disease_descriptor,
-                therapy_descriptor, propositions_documents_ix
+                therapy_descriptor
             )
 
             # Only support Therapeutic Response and Prognostic
@@ -207,7 +198,7 @@ class CIViCTransform(Transform):
                 # Supported by evidence for assertion
                 supported_by = list()
                 documents = \
-                    self._get_aid_document(r, propositions_documents_ix)
+                    self._get_aid_document(r, documents_ix)
                 for d in documents:
                     if d not in self.transformed['documents']:
                         self.transformed['documents'].append(d)
@@ -273,16 +264,14 @@ class CIViCTransform(Transform):
         return evidence_level
 
     def _get_proposition(self, record, variation_descriptor,
-                         disease_descriptor, therapy_descriptor,
-                         propositions_documents_ix) -> Optional[dict]:
+                         disease_descriptor, therapy_descriptor
+                         ) -> Optional[dict]:
         """Return a proposition for a record.
 
         :param dict record: CIViC EID or AID
         :param dict variation_descriptor: The record's variation descriptor
         :param dict disease_descriptor: The record's disease descriptor
         :param dict therapy_descriptor: The record's therapy descriptor
-        :param dict propositions_documents_ix: Indexes for propositions and
-            documents
         :return: A proposition
         """
         proposition_type = \
@@ -307,15 +296,14 @@ class CIViCTransform(Transform):
             params['object'] = therapy_descriptor['therapy_id']
 
         # Get corresponding id for proposition
-        key = (params['type'],
-               params['predicate'],
-               params['subject'],
-               params['object_qualifier'])
-        if proposition_type == schemas.PropositionType.PREDICTIVE.value:
-            key = key + (params['object'],)
-        proposition_index = self._set_ix(propositions_documents_ix,
-                                         'propositions', key)
-        params['id'] = f"proposition:{proposition_index:03}"
+        concept_ids = [params["subject"], params["object_qualifer"],
+                       params.get("object", [])]
+
+        params["id"] = self._get_proposition_ID(
+            params["type"],
+            params["predicate"],
+            concept_ids
+        )
 
         if proposition_type == schemas.PropositionType.PROGNOSTIC.value:
             proposition = \
