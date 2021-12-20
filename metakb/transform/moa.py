@@ -230,7 +230,7 @@ class MOATransform(Transform):
         }
 
         # Get corresponding id for proposition
-        concept_ids = [params["subject"], params["object_qualifer"],
+        concept_ids = [params["subject"], params["object_qualifier"],
                        params["object"]]
         params["id"] = self._get_proposition_ID(
             params["type"],
