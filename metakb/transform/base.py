@@ -63,5 +63,7 @@ class Transform:
         proposition (therapies, variations, diseases). Order irrelevant.
         :return: proposition ID including the SHA-512 hash of the provided IDs
         """
-        combined = "".join(sorted([prop_type.value, pred.value] + concept_ids))
+        terms = [prop_type.value, pred.value] + concept_ids
+        terms_lower = [t.lower() for t in terms]
+        combined = "".join(sorted(terms_lower))
         return f"proposition:{sha512t24u(combined.encode())}"

@@ -1,5 +1,5 @@
 """A module to convert MOA resources to common data model"""
-from typing import Dict
+from typing import Dict, Optional
 import json
 import logging
 from urllib.parse import quote
@@ -241,19 +241,19 @@ class MOATransform(Transform):
             **params).dict(exclude_none=True)
         return [proposition]
 
-    def _get_predicate(self, clin_sig):
+    def _get_predicate(self,
+                       clin_sig) -> Optional[schemas.PredictivePredicate]:
         """Get the predicate of this record
 
         :param: clinical significance of the assertion
-        :return: predicate
+        :return: predicate if valid, None otherwise
         """
-        predicate = None
         if not clin_sig:
             return None
-        if clin_sig.upper() in schemas.PredictivePredicate.__members__.keys():
-            predicate = schemas.PredictivePredicate[clin_sig.upper()].value
-
-        return predicate
+        try:
+            return schemas.PredictivePredicate[clin_sig.upper()]
+        except KeyError:
+            return None
 
     def _get_variation_origin(self, variant):
         """Return variant origin.

@@ -274,30 +274,31 @@ class CIViCTransform(Transform):
         :param dict therapy_descriptor: The record's therapy descriptor
         :return: A proposition
         """
-        proposition_type = \
-            self._get_proposition_type(record['evidence_type'])
+        try:
+            proposition_type = \
+                self._get_proposition_type(record["evidence_type"])
+        except KeyError:
+            return None
 
         predicate = self._get_predicate(proposition_type,
-                                        record['clinical_significance'])
+                                        record["clinical_significance"])
 
-        # Don't support TR that has  `None`, 'N/A', or 'Unknown' predicate
+        # Don't support TR that has  `None`, "N/A", or "Unknown" predicate
         if not predicate:
             return None
 
         params = {
-            'id': '',
-            'type': proposition_type,
-            'predicate': predicate,
-            'subject': variation_descriptor['variation_id'],
-            'object_qualifier': disease_descriptor['disease_id']
+            "id": "",
+            "type": proposition_type,
+            "predicate": predicate,
+            "subject": variation_descriptor["variation_id"],
+            "object_qualifier": disease_descriptor["disease_id"]
         }
+        concept_ids = [params["subject"], params["object_qualifier"]]
 
         if proposition_type == schemas.PropositionType.PREDICTIVE:
-            params['object'] = therapy_descriptor['therapy_id']
-
-        # Get corresponding id for proposition
-        concept_ids = [params["subject"], params["object_qualifer"],
-                       params.get("object", [])]
+            params["object"] = therapy_descriptor["therapy_id"]
+            concept_ids += [params["object"]]
 
         params["id"] = self._get_proposition_ID(
             params["type"],
@@ -309,7 +310,7 @@ class CIViCTransform(Transform):
             proposition = \
                 schemas.PrognosticProposition(**params).dict(exclude_none=True)
         elif proposition_type == schemas.PropositionType.PREDICTIVE.value:
-            params['object'] = therapy_descriptor['therapy_id']
+            params["object"] = therapy_descriptor["therapy_id"]
             proposition =\
                 schemas.TherapeuticResponseProposition(**params).dict(
                     exclude_none=True
@@ -322,7 +323,9 @@ class CIViCTransform(Transform):
             proposition = None
         return proposition
 
-    def _get_proposition_type(self, evidence_type, is_evidence=True) -> str:
+    def _get_proposition_type(self,
+                              evidence_type,
+                              is_evidence=True) -> Optional[schemas.Proposition]:  # noqa: E501
         """Return proposition type for a given EID or AID.
 
         :param str evidence_type: CIViC evidence type
@@ -341,7 +344,7 @@ class CIViCTransform(Transform):
         else:
             raise KeyError(f"Proposition Type {evidence_type} not found in "
                            f"schemas.PropositionType")
-        return proposition_type.value
+        return proposition_type
 
     def _get_variation_origin(self, variant_origin) -> Optional[str]:
         """Return variant origin.
@@ -359,12 +362,13 @@ class CIViCTransform(Transform):
             origin = None
         return origin
 
-    def _get_predicate(self, proposition_type, clin_sig) -> Optional[str]:
+    def _get_predicate(self, proposition_type,
+                       clin_sig) -> Optional[schemas.Predicate]:
         """Return predicate for an evidence item.
 
         :param str proposition_type: The proposition type
         :param str clin_sig: The evidence item's clinical significance
-        :return: Predicate for proposition
+        :return: Predicate for proposition if valid
         """
         if clin_sig is None or clin_sig.upper() in ['N/A', 'UNKNOWN']:
             return None
@@ -372,27 +376,27 @@ class CIViCTransform(Transform):
         clin_sig = '_'.join(clin_sig.upper().split())
         predicate = None
 
-        if proposition_type == schemas.PropositionType.PREDICTIVE.value:
+        if proposition_type == schemas.PropositionType.PREDICTIVE:
             if clin_sig == 'SENSITIVITY/RESPONSE':
-                predicate = schemas.PredictivePredicate.SENSITIVITY.value
+                predicate = schemas.PredictivePredicate.SENSITIVITY
             elif clin_sig == 'RESISTANCE':
-                predicate = schemas.PredictivePredicate.RESISTANCE.value
-        elif proposition_type == schemas.PropositionType.DIAGNOSTIC.value:
-            predicate = schemas.DiagnosticPredicate[clin_sig].value
-        elif proposition_type == schemas.PropositionType.PROGNOSTIC.value:
+                predicate = schemas.PredictivePredicate.RESISTANCE
+        elif proposition_type == schemas.PropositionType.DIAGNOSTIC:
+            predicate = schemas.DiagnosticPredicate[clin_sig]
+        elif proposition_type == schemas.PropositionType.PROGNOSTIC:
             if clin_sig == 'POSITIVE':
-                predicate = schemas.PrognosticPredicate.BETTER_OUTCOME.value
+                predicate = schemas.PrognosticPredicate.BETTER_OUTCOME
             else:
-                predicate = schemas.PrognosticPredicate[clin_sig].value
-        elif proposition_type == schemas.PropositionType.FUNCTIONAL.value:
-            predicate = schemas.FunctionalPredicate[clin_sig].value
-        elif proposition_type == schemas.PropositionType.ONCOGENIC.value:
+                predicate = schemas.PrognosticPredicate[clin_sig]
+        elif proposition_type == schemas.PropositionType.FUNCTIONAL:
+            predicate = schemas.FunctionalPredicate[clin_sig]
+        elif proposition_type == schemas.PropositionType.ONCOGENIC:
             # TODO: There are currently no Oncogenic types in CIViC harvester
             #  Look into why this is
             pass
-        elif proposition_type == schemas.PropositionType.PATHOGENIC.value:
+        elif proposition_type == schemas.PropositionType.PATHOGENIC:
             if clin_sig in ['PATHOGENIC', 'LIKELY_PATHOGENIC']:
-                predicate = schemas.PathogenicPredicate.PATHOGENIC.value
+                predicate = schemas.PathogenicPredicate.PATHOGENIC
         else:
             logger.warning(f"CIViC proposition type: {proposition_type} "
                            f"not supported in Predicate schemas")
@@ -762,7 +766,6 @@ class CIViCTransform(Transform):
         :param dict source: An evidence item's source
         :return: Document for EID
         """
-        document = None
         source_type = source['source_type'].upper()
         if source_type in schemas.SourcePrefix.__members__:
             prefix = schemas.SourcePrefix[source_type].value
@@ -779,17 +782,16 @@ class CIViCTransform(Transform):
                 description=source['name'],
                 xrefs=xrefs if xrefs else None
             ).dict(exclude_none=True)
+            return document
         else:
             logger.warning(f"{source_type} not in schemas.SourcePrefix")
-        return document
 
-    def _get_aid_document(self, assertion, propositions_documents_ix) \
+    def _get_aid_document(self, assertion, documents_ix) \
             -> List[schemas.Document]:
         """Get an AID's documents.
 
         :param dict assertion: A CIViC Assertion
-        :param propositions_documents_ix: Keeps track of proposition and
-            documents indexes
+        :param dict documents_ix: Keeps track of document index
         :return: A list of AID documents
         """
         # NCCN Guidlines
@@ -799,8 +801,7 @@ class CIViCTransform(Transform):
         if label and version:
             document_id = '_'.join((label + version).split())
             document_ix = \
-                self._set_ix(propositions_documents_ix, 'documents',
-                             document_id)
+                self._set_ix(documents_ix, document_id)
             documents = list()
             documents.append(schemas.Document(
                 id=f"document:{document_ix:03}",
