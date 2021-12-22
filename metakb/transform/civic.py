@@ -17,10 +17,7 @@ class CIViCTransform(Transform):
     """A class for transforming CIViC to the common data model."""
 
     def __init__(self) -> None:
-        """Initialize CIViC Transform class.
-
-        :param str file_path: The file path to the harvested json to transform.
-        """
+        """Initialize CIViC Transform class."""
         super().__init__()
         # Able to normalize these IDSs
         self.valid_ids = {
@@ -41,7 +38,7 @@ class CIViCTransform(Transform):
             documents
         :return: An updated propositions_documents_ix object
         """
-        data = self.extract_harvested()
+        data = self.extract_harvester()
         evidence_items = data['evidence']
         assertions = data['assertions']
         variants = data['variants']

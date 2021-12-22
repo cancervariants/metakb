@@ -123,7 +123,9 @@ class CLI:
         click.echo(f"{msg}\n")
         logger.info(msg)
 
-    def _harvest_sources(self):
+    @staticmethod
+    def _harvest_sources() -> None:
+        """Run harvesting procedure for all sources."""
         logger.info("Harvesting sources...")
         # TODO: Switch to using constant
         harvester_sources = {
@@ -152,7 +154,9 @@ class CLI:
         click.echo(f"{msg}\n")
         logger.info(msg)
 
-    def _transform_sources(self):
+    @staticmethod
+    def _transform_sources() -> None:
+        """Run transformation procedure for all sources."""
         logger.info("Transforming harvested data to CDM...")
         source_indices = None
         # TODO: Switch to using constant

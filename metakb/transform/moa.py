@@ -34,7 +34,7 @@ class MOATransform(Transform):
             index SupportEvidence
         :return: An updated propositions_ix object
         """
-        data = self.extract_harvested()
+        data = self.extract_harvester()
         cdm_assertions = {}  # assertions that have been transformed to CDM
 
         assertions = data['assertions']
