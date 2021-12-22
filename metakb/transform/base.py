@@ -43,9 +43,9 @@ class Transform:
         """
         raise NotImplementedError
 
-    def extract_harvested(self,
-                          harvest_path: Optional[Path] = None
-                          ) -> Dict[str, List]:
+    def extract_harvested(
+        self, harvest_path: Optional[Path] = None
+    ) -> Dict[str, List]:
         """Get harvested data from file.
         :param Optional[Path] harvest_path: path to harvest JSON file. If not
         provided, will attempt to open file with current date at default
