@@ -306,6 +306,7 @@ class Graph:
     @staticmethod
     def _add_proposition(tx, proposition: Dict):
         """Add Proposition object to DB.
+
         :param Dict proposition: must include `disease_context`, `therapy`,
             and `has_originating_context` fields.
         """
@@ -314,8 +315,9 @@ class Graph:
         prop_type = proposition.get('type')
         if prop_type == "therapeutic_response_proposition":
             prop_label = ":TherapeuticResponse"
-            therapy_obj = f"MERGE (therapy:Therapy {{id:$object}})"  # noqa: F541, E501
-            therapy_rel = f"MERGE (response) -[:HAS_OBJECT]-> (therapy)"  # noqa: F541, E501
+            therapy_obj = "MERGE (therapy:Therapy {id:$object})"
+            therapy_rel = """MERGE (response) -[:HAS_OBJECT]-> (therapy)
+            MERGE (therapy)-[:IS_OBJECT_OF]->(response)"""
         else:
             therapy_obj, therapy_rel = "", ""
             if prop_type == "prognostic_proposition":
@@ -334,7 +336,6 @@ class Graph:
         MERGE (response) -[:HAS_SUBJECT]-> (variation)
         MERGE (variation) -[:IS_SUBJECT_OF]-> (response)
         {therapy_rel}
-        MERGE (therapy) -[:IS_OBJECT_OF]-> (response)
         MERGE (response) -[:HAS_OBJECT_QUALIFIER]-> (disease)
         MERGE (disease) -[:IS_OBJECT_QUALIFIER_OF]-> (response)
         """

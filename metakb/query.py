@@ -4,7 +4,6 @@ import logging
 import json
 from json.decoder import JSONDecodeError
 from urllib.parse import quote
-from datetime import datetime
 
 from ga4gh.vrsatile.pydantic.vrsatile_models import Extension, Expression
 from neo4j.graph import Node
@@ -35,15 +34,6 @@ class QueryHandler:
         """
         self.driver = Graph(uri, creds).driver
         self.vicc_normalizers = VICCNormalizers()
-
-    def get_service_meta(self) -> Dict:
-        """Return MetaKB's Service Meta
-
-        :return: ServiceMeta for MetaKB as a dict
-        """
-        return ServiceMeta(
-            response_datetime=datetime.now()
-        ).dict()
 
     def get_normalized_therapy(self, therapy: str,
                                warnings: List[str]) -> Optional[str]:
@@ -223,7 +213,7 @@ class QueryHandler:
             'disease_descriptors': [],
             'methods': [],
             'documents': [],
-            'service_meta_': self.get_service_meta()
+            'service_meta_': ServiceMeta().dict()
         }
 
         normalized_terms = self.get_normalized_terms(
@@ -363,7 +353,7 @@ class QueryHandler:
         response = {
             'query': node_id,
             'warnings': [],
-            'service_meta_': self.get_service_meta()
+            'service_meta_': ServiceMeta().dict()
         }
 
         if not node_id:
@@ -451,7 +441,7 @@ class QueryHandler:
                 "propositions": []
             },
             'statements': [],
-            'service_meta_': self.get_service_meta()
+            'service_meta_': ServiceMeta().dict()
         }
 
         normalized_terms = self.get_normalized_terms(
