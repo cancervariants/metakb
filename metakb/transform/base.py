@@ -23,8 +23,6 @@ class Transform:
         self.name = self.__class__.__name__.lower().split("transform")[0]
         self.data_dir = data_dir / self.name
 
-        self.harvester_file = data_dir
-
         self.vicc_normalizers = VICCNormalizers()
 
         self.statements = list()
@@ -43,7 +41,7 @@ class Transform:
         """
         raise NotImplementedError
 
-    def extract_harvested(
+    def extract_harvester(
         self, harvest_path: Optional[Path] = None
     ) -> Dict[str, List]:
         """Get harvested data from file.
