@@ -15,18 +15,6 @@ logger.setLevel(logging.DEBUG)
 class MOATransform(Transform):
     """A class for transforming MOA resources to common data model."""
 
-    def __init__(self) -> None:
-        """Initialize VICC normalizers and class attributes"""
-        super().__init__()
-        self.statements = list()
-        self.propositions = list()
-        self.variation_descriptors = list()
-        self.gene_descriptors = list()
-        self.therapy_descriptors = list()
-        self.disease_descriptors = list()
-        self.methods = list()
-        self.documents = list()
-
     def transform(self, propositions_ix=None):
         """Transform MOA harvested JSON to common date model.
 
