@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime as dt
 
-from metakb import APP_ROOT
+from metakb import APP_ROOT, DATE_FMT
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -46,7 +46,7 @@ class Harvester:
         src = self.__class__.__name__.lower().split("harvest")[0]
         src_dir = APP_ROOT / 'data' / src / 'harvester'
         src_dir.mkdir(exist_ok=True, parents=True)
-        today = dt.strftime(dt.today(), "%Y-%m-%d")
+        today = dt.strftime(dt.today(), DATE_FMT)
         try:
             for arg_name in kwargs:
                 composite_dict[arg_name] = kwargs[arg_name]

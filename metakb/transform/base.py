@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from datetime import datetime as dt
 
-from metakb import APP_ROOT
+from metakb import APP_ROOT, DATE_FMT
 from metakb.normalizers import VICCNormalizers
 
 logger = logging.getLogger('metakb')
@@ -53,7 +53,7 @@ class Transform:
         :return: Dict containing Lists of entries for each object type
         """
         if not harvest_path:
-            today = dt.strftime(dt.today(), "%Y-%m-%d")
+            today = dt.strftime(dt.today(), DATE_FMT)
             default_fname = f"{self.name}_harvester_{today}.json"
             default_path = self.data_dir / "harvester" / default_fname
             if not default_path.exists():
@@ -103,7 +103,7 @@ class Transform:
             'documents': self.documents
         }
 
-        today = dt.strftime(dt.today(), "%Y-%m-%d")
+        today = dt.strftime(dt.today(), DATE_FMT)
         out = transform_dir / f"{self.name}_cdm_{today}.json"
         with open(out, 'w+') as f:
             json.dump(composite_dict, f, indent=4)
