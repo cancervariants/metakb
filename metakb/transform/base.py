@@ -1,8 +1,12 @@
 """A module for the Transform base class."""
-from typing import Dict
-from metakb.normalizers import VICCNormalizers
+from typing import Dict, Optional, List
 import json
 import logging
+from pathlib import Path
+from datetime import datetime as dt
+
+from metakb import APP_ROOT
+from metakb.normalizers import VICCNormalizers
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -11,13 +15,26 @@ logger.setLevel(logging.DEBUG)
 class Transform:
     """A base class for transforming harvester data."""
 
-    def __init__(self, file_path):
+    def __init__(self, data_dir: Path = APP_ROOT / "data") -> None:
         """Initialize Transform base class.
 
-        :param str file_path: Path to harvested json to transform
+        :param Path data_dir: Path to source data directory
         """
-        self.file_path = file_path
+        self.name = self.__class__.__name__.lower().split("transform")[0]
+        self.data_dir = data_dir / self.name
+
+        self.harvester_file = data_dir
+
         self.vicc_normalizers = VICCNormalizers()
+
+        self.statements = list()
+        self.propositions = list()
+        self.variation_descriptors = list()
+        self.gene_descriptors = list()
+        self.therapy_descriptors = list()
+        self.disease_descriptors = list()
+        self.methods = list()
+        self.documents = list()
 
     def transform(self, *args, **kwargs) -> Dict[str, dict]:
         """Transform harvested data to the Common Data Model.
@@ -26,9 +43,23 @@ class Transform:
         """
         raise NotImplementedError
 
-    def extract_harvester(self) -> Dict[str, list]:
-        """Extract source data"""
-        with open(self.file_path, 'r') as f:
+    def extract_harvested(self,
+                          harvest_path: Optional[Path] = None
+                          ) -> Dict[str, List]:
+        """Get harvested data from file.
+        :param Optional[Path] harvest_path: path to harvest JSON file. If not
+        provided, will attempt to open file with current date at default
+        location.
+        :return: Dict containing Lists of entries for each object type
+        """
+        if not harvest_path:
+            today = dt.strftime(dt.today(), "%Y-%m-%d")
+            default_fname = f"{self.name}_harvester_{today}.json"
+            default_path = self.data_dir / "harvester" / default_fname
+            if not default_path.exists():
+                raise FileNotFoundError(f"{default_fname} not found")
+            harvest_path = default_path
+        with open(harvest_path, "r") as f:
             return json.load(f)
 
     @staticmethod
@@ -55,3 +86,24 @@ class Transform:
             propositions_documents_ix[dict_key][search_key] = index
             propositions_documents_ix[dict_key_ix] += 1
         return index
+
+    def _create_json(self) -> None:
+        """Create a composite JSON for transformed data."""
+        transform_dir = self.data_dir / "transform"
+        transform_dir.mkdir(exist_ok=True, parents=True)
+
+        composite_dict = {
+            'statements': self.statements,
+            'propositions': self.propositions,
+            'variation_descriptors': self.variation_descriptors,
+            'gene_descriptors': self.gene_descriptors,
+            'therapy_descriptors': self.therapy_descriptors,
+            'disease_descriptors': self.disease_descriptors,
+            'methods': self.methods,
+            'documents': self.documents
+        }
+
+        today = dt.strftime(dt.today(), "%Y-%m-%d")
+        out = transform_dir / f"{self.name}_cdm_{today}.json"
+        with open(out, 'w+') as f:
+            json.dump(composite_dict, f, indent=4)

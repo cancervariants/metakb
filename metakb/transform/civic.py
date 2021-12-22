@@ -1,12 +1,12 @@
 """A module for to transform CIViC."""
-from .base import Transform
 from typing import Optional, Dict, List
-from metakb import APP_ROOT
-import json
 import logging
-import metakb.schemas as schemas
+
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
     Extension, Expression, GeneDescriptor, ValueObjectDescriptor
+
+from metakb.transform.base import Transform
+import metakb.schemas as schemas
 
 
 logger = logging.getLogger('metakb.transform.civic')
@@ -16,24 +16,12 @@ logger.setLevel(logging.DEBUG)
 class CIViCTransform(Transform):
     """A class for transforming CIViC to the common data model."""
 
-    def __init__(self,
-                 file_path=f"{APP_ROOT}/data/civic/harvester"
-                           f"/civic_harvester.json") -> None:
+    def __init__(self) -> None:
         """Initialize CIViC Transform class.
 
         :param str file_path: The file path to the harvested json to transform.
         """
-        super().__init__(file_path)
-        self.transformed = {
-            'statements': list(),
-            'propositions': list(),
-            'variation_descriptors': list(),
-            'gene_descriptors': list(),
-            'therapy_descriptors': list(),
-            'disease_descriptors': list(),
-            'methods': list(),
-            'documents': list()
-        }
+        super().__init__()
         # Able to normalize these IDSs
         self.valid_ids = {
             'variation_descriptors': dict(),
@@ -46,18 +34,6 @@ class CIViCTransform(Transform):
             'disease_descriptors': list()
         }
 
-    def _create_json(self,
-                     civic_dir=APP_ROOT / 'data' / 'civic' / 'transform',
-                     fn='civic_cdm.json') -> None:
-        """Create a composite JSON for the transformed CIViC data.
-
-        :param Path civic_dir: The civic transform data directory
-        :param str fn: The file name for the transformed data
-        """
-        civic_dir.mkdir(exist_ok=True, parents=True)
-        with open(f"{civic_dir}/{fn}", 'w+') as f:
-            json.dump(self.transformed, f, indent=4)
-
     def transform(self, propositions_documents_ix=None) -> Dict[str, dict]:
         """Transform CIViC harvested json to common data model.
 
@@ -65,7 +41,7 @@ class CIViCTransform(Transform):
             documents
         :return: An updated propositions_documents_ix object
         """
-        data = self.extract_harvester()
+        data = self.extract_harvested()
         evidence_items = data['evidence']
         assertions = data['assertions']
         variants = data['variants']
@@ -142,8 +118,8 @@ class CIViCTransform(Transform):
                     if not therapy_descriptor:
                         continue
 
-                    if therapy_descriptor not in self.transformed['therapy_descriptors']:  # noqa: E501
-                        self.transformed['therapy_descriptors'].append(therapy_descriptor)  # noqa: E501
+                    if therapy_descriptor not in self.therapy_descriptors:
+                        self.therapy_descriptors.append(therapy_descriptor)
             else:
                 therapy_id = None
                 therapy_descriptor = None
@@ -153,8 +129,8 @@ class CIViCTransform(Transform):
             if not disease_descriptor:
                 continue
 
-            if disease_descriptor not in self.transformed['disease_descriptors']:  # noqa: E501
-                self.transformed['disease_descriptors'].append(disease_descriptor)  # noqa: E501
+            if disease_descriptor not in self.disease_descriptors:
+                self.disease_descriptors.append(disease_descriptor)
 
             if is_evidence:
                 variant_id = f"civic.vid:{r['variant_id']}"
@@ -174,8 +150,8 @@ class CIViCTransform(Transform):
             if not proposition:
                 continue
 
-            if proposition not in self.transformed['propositions']:
-                self.transformed['propositions'].append(proposition)
+            if proposition not in self.propositions:
+                self.propositions.append(proposition)
 
             if is_evidence:
                 # Evidence items's method and evidence level
@@ -184,8 +160,8 @@ class CIViCTransform(Transform):
 
                 # Supported by evidence for evidence item
                 document = self._get_eid_document(r['source'])
-                if document not in self.transformed['documents']:
-                    self.transformed['documents'].append(document)
+                if document not in self.documents:
+                    self.documents.append(document)
                 supported_by = [document['id']]
             else:
                 # Assertion's method
@@ -209,8 +185,8 @@ class CIViCTransform(Transform):
                 documents = \
                     self._get_aid_document(r, propositions_documents_ix)
                 for d in documents:
-                    if d not in self.transformed['documents']:
-                        self.transformed['documents'].append(d)
+                    if d not in self.documents:
+                        self.documents.append(d)
                     supported_by.append(d['id'])
                 for evidence_item in r['evidence_items']:
                     supported_by.append(f"civic.eid:"
@@ -231,7 +207,7 @@ class CIViCTransform(Transform):
                 method=method,
                 supported_by=supported_by
             ).dict(exclude_none=True)
-            self.transformed['statements'].append(statement)
+            self.statements.append(statement)
 
     def _get_evidence_direction(self, direction) -> Optional[str]:
         """Return the evidence direction.
@@ -491,7 +467,7 @@ class CIViCTransform(Transform):
             ).dict(by_alias=True, exclude_none=True)
             self.valid_ids['variation_descriptors'][variant_id] = \
                 variation_descriptor
-            self.transformed['variation_descriptors'].append(
+            self.variation_descriptors.append(
                 variation_descriptor
             )
 
@@ -601,7 +577,7 @@ class CIViCTransform(Transform):
                     alternate_labels=gene['aliases'],
                     xrefs=[ncbigene]
                 ).dict(exclude_none=True)
-                self.transformed['gene_descriptors'].append(gene_descriptor)
+                self.gene_descriptors.append(gene_descriptor)
             else:
                 logger.warning(f"Gene Normalizer unable to normalize {gene_id}"
                                f"using queries: {queries}")
@@ -726,7 +702,7 @@ class CIViCTransform(Transform):
 
     def _add_methods(self) -> None:
         """Add methods to list of transformations."""
-        self.transformed['methods'] = [
+        self.methods = [
             schemas.Method(
                 id=f'method:'
                    f'{schemas.MethodID.CIVIC_EID_SOP:03}',

@@ -9,10 +9,10 @@ logger = logging.getLogger('metakb.harvesters.moa')
 logger.setLevel(logging.DEBUG)
 
 
-class MOAlmanacHarvester(Harvester):
+class MOAHarvester(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
-    def harvest(self, fn='moa_harvester.json'):
+    def harvest(self):
         """
         Retrieve and store sources, variants, and assertions
         records from MOAlmanac in composite and individual JSON files.
@@ -28,7 +28,7 @@ class MOAlmanacHarvester(Harvester):
             assertions = \
                 self._harvest_assertions(assertion_resp, variants_list)
             json_created = self.create_json(
-                fn, 'moa', assertions=assertions,
+                assertions=assertions,
                 sources=sources, variants=variants
             )
             if not json_created:
