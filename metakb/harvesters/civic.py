@@ -10,11 +10,10 @@ logger.setLevel(logging.DEBUG)
 class CIViCHarvester(Harvester):
     """A class for the CIViC harvester."""
 
-    def harvest(self, fn='civic_harvester.json'):
+    def harvest(self):
         """Retrieve and store evidence, gene, variant, and assertion
         records from CIViC in composite and individual JSON files.
 
-        :param str fn: File name for composite json
         :return: `True` if operation was successful, `False` otherwise.
         :rtype: bool
         """
@@ -26,7 +25,7 @@ class CIViCHarvester(Harvester):
             assertions = self._harvest_assertions()
             self.assertions = assertions
             json_created = self.create_json(
-                fn, 'civic', evidence=evidence, genes=genes,
+                evidence=evidence, genes=genes,
                 variants=variants, assertions=assertions
             )
             if not json_created:
