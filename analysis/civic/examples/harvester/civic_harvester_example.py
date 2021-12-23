@@ -1,7 +1,8 @@
 """Create an example json file for CIViC Harvester."""
 import json
-from metakb.harvesters import CIViCHarvester
+
 from metakb import APP_ROOT, PROJECT_ROOT
+from metakb.harvesters import CIViCHarvester
 
 
 def create_evidence_examples(data):
@@ -58,8 +59,10 @@ def create_variant_examples(data):
 if __name__ == '__main__':
     c = CIViCHarvester()
     c.harvest()
-    with open(f'{APP_ROOT}/data/civic/harvester/civic_harvester.json',
-              'r') as f:
+    directory = APP_ROOT / "data" / "civic" / "harvester"
+    pattern = "civic_harvester_*.json"
+    harvest_file = sorted(directory.glob(pattern))[-1]
+    with open(harvest_file, "r") as f:
         civic_data = json.load(f)
 
     civic_ex_dir =\
