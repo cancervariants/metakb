@@ -1,7 +1,8 @@
 """Create an example json file for MOA Transform."""
 import json
-from metakb.transform import MOATransform
+
 from metakb import PROJECT_ROOT, APP_ROOT
+from metakb.transform import MOATransform
 
 
 def create_moa_example(moa_data):
@@ -65,6 +66,9 @@ if __name__ == '__main__':
     moa = MOATransform()
     moa.transform()
     moa._create_json()
-    with open(f"{APP_ROOT}/data/moa/transform/moa_cdm.json", 'r') as f:
+    directory = APP_ROOT / "data" / "moa" / "transform"
+    pattern = "moa_cdm_*.json"
+    transformed_file = sorted(directory.glob(pattern))[-1]
+    with open(transformed_file, "r") as f:
         moa_data = json.load(f)
     create_moa_example(moa_data)
