@@ -25,8 +25,12 @@ class CIViCHarvester(Harvester):
             assertions = self._harvest_assertions()
             self.assertions = assertions
             json_created = self.create_json(
-                evidence=evidence, genes=genes,
-                variants=variants, assertions=assertions
+                {
+                    "evidence": evidence,
+                    "genes": genes,
+                    "variants": variants,
+                    "assertions": assertions
+                }
             )
             if not json_created:
                 logger.error('CIViC Harvester was not successful.')
