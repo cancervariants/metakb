@@ -85,8 +85,11 @@ class Transform:
             propositions_documents_ix[dict_key_ix] += 1
         return index
 
-    def _create_json(self) -> None:
-        """Create a composite JSON for transformed data."""
+    def _create_json(self, filename: Optional[str] = None) -> None:
+        """Create a composite JSON for transformed data.
+
+        :param Optional[str] filename: custom filename to save as
+        """
         transform_dir = self.data_dir / "transform"
         transform_dir.mkdir(exist_ok=True, parents=True)
 
@@ -102,6 +105,8 @@ class Transform:
         }
 
         today = dt.strftime(dt.today(), DATE_FMT)
-        out = transform_dir / f"{self.name}_cdm_{today}.json"
+        if filename is None:
+            filename = f"{self.name}_cdm_{today}.json"
+        out = transform_dir / filename
         with open(out, 'w+') as f:
             json.dump(composite_dict, f, indent=4)

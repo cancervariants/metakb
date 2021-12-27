@@ -28,8 +28,11 @@ class MOAHarvester(Harvester):
             assertions = \
                 self._harvest_assertions(assertion_resp, variants_list)
             json_created = self.create_json(
-                assertions=assertions,
-                sources=sources, variants=variants
+                {
+                    "assertions": assertions,
+                    "sources": sources,
+                    "variants": variants
+                }
             )
             if not json_created:
                 logger.error("MOAlmanac Harvester was not successful.")
