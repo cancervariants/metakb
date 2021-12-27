@@ -110,7 +110,7 @@ class CLI:
         g.clear()
         for src in sorted({v.value for v in SourceName.__members__.values()}):
             pattern = f"{src}_cdm_*.json"
-            globbed = (APP_ROOT / 'data' / src / 'transform').glob(pattern)
+            globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
             try:
                 path = sorted(globbed)[-1]
             except IndexError:

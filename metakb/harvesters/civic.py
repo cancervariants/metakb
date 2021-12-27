@@ -1,7 +1,10 @@
 """A module for the CIViC harvester."""
-from metakb.harvesters.base import Harvester
-from civicpy import civic as civicpy
 import logging
+from typing import Optional
+
+from civicpy import civic as civicpy
+
+from metakb.harvesters.base import Harvester
 
 logger = logging.getLogger('metakb.harvesters.civic')
 logger.setLevel(logging.DEBUG)
@@ -10,10 +13,11 @@ logger.setLevel(logging.DEBUG)
 class CIViCHarvester(Harvester):
     """A class for the CIViC harvester."""
 
-    def harvest(self):
+    def harvest(self, filename: Optional[str] = None):
         """Retrieve and store evidence, gene, variant, and assertion
         records from CIViC in composite and individual JSON files.
 
+        :param Optional[str] filename: File name for composite json
         :return: `True` if operation was successful, `False` otherwise.
         :rtype: bool
         """
@@ -30,7 +34,8 @@ class CIViCHarvester(Harvester):
                     "genes": genes,
                     "variants": variants,
                     "assertions": assertions
-                }
+                },
+                filename
             )
             if not json_created:
                 logger.error('CIViC Harvester was not successful.')
