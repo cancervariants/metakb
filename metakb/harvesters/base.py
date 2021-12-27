@@ -57,7 +57,7 @@ class Harvester:
                 with open(src_dir / f"{item_type}_{today}.json", "w+") as f:
                     f.write(json.dumps(item_list, indent=4))
             if filename is None:
-                filename = "{src}_harvester_{today}.json"
+                filename = f"{src}_harvester_{today}.json"
             with open(src_dir / filename, "w+") as f:
                 json.dump(composite_dict, f, indent=4)
         except Exception as e:
