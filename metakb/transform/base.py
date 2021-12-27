@@ -50,13 +50,22 @@ class Transform:
         location.
         :return: Dict containing Lists of entries for each object type
         """
-        if not harvest_path:
+        if harvest_path is None:
             today = dt.strftime(dt.today(), DATE_FMT)
             default_fname = f"{self.name}_harvester_{today}.json"
             default_path = self.data_dir / "harvester" / default_fname
             if not default_path.exists():
-                raise FileNotFoundError(f"{default_fname} not found")
+                raise FileNotFoundError(
+                    f"Unable to open harvest file under default filename: "
+                    f"{(default_path.absolute() / default_fname).as_uri()}"
+                )
             harvest_path = default_path
+        else:
+            if not harvest_path.exists():
+                raise FileNotFoundError(
+                    f"Unable to open harvest file under provided filename: "
+                    f"{harvest_path.absolute().as_uri()}"
+                )
         with open(harvest_path, "r") as f:
             return json.load(f)
 
