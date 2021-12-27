@@ -1,5 +1,5 @@
 """Create an example json file for MOAlmanac Harvester."""
-from metakb.harvesters import MOAlmanacHarvester
+from metakb.harvesters import MOAHarvester
 from metakb import PROJECT_ROOT, APP_ROOT
 import json
 
@@ -53,7 +53,7 @@ def create_variant_examples(data):
 
 
 if __name__ == '__main__':
-    moa = MOAlmanacHarvester()
+    moa = MOAHarvester()
     moa.harvest()
     with open(f'{APP_ROOT}/data/moa/harvester/moa_harvester.json', 'r') as f:
         moa_data = json.load(f)
