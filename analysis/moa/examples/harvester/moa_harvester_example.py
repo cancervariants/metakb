@@ -55,7 +55,8 @@ def create_variant_examples(data):
 if __name__ == '__main__':
     moa = MOAHarvester()
     moa.harvest()
-    with open(f'{APP_ROOT}/data/moa/harvester/moa_harvester.json', 'r') as f:
+    latest = sorted((APP_ROOT / "data" / "moa" / "harvester").glob("moa_harvester_*.json"))[-1]  # noqa: E501
+    with open(latest, "r") as f:
         moa_data = json.load(f)
     moa_ex_dir = PROJECT_ROOT / 'analysis' / 'moa' / 'examples'
     moa_ex_dir.mkdir(exist_ok=True, parents=True)
