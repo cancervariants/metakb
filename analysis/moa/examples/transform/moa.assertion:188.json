@@ -4,7 +4,7 @@
             "id": "moa.assertion:188",
             "description": "BRAF V600E mutations were associated with sensitivity to the BRAF inhibitor PLX-4032 in a study of 109 microdissected pancreatic ductal adenocarcinoma patients.",
             "evidence_level": "moa.evidence_level:Clinical_evidence",
-            "proposition": "proposition:623",
+            "proposition": "proposition:060",
             "variation_origin": "somatic",
             "variation_descriptor": "moa.variant:149",
             "therapy_descriptor": "moa.normalize.therapy:Vemurafenib",
@@ -18,7 +18,7 @@
     ],
     "propositions": [
         {
-            "id": "proposition:623",
+            "id": "proposition:060",
             "type": "therapeutic_response_proposition",
             "predicate": "predicts_sensitivity_to",
             "subject": "ga4gh:VA.8JkgnqIgYqufNl-OV_hpRG_aWF9UFQCE",
