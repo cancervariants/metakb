@@ -2,7 +2,7 @@
 import json
 
 from metakb import PROJECT_ROOT, APP_ROOT
-from metakb.harvesters import MOAlmanacHarvester
+from metakb.harvesters import MOAHarvester
 
 
 def create_assertion_examples(data):
@@ -56,12 +56,10 @@ def create_variant_examples(data):
 
 
 if __name__ == '__main__':
-    moa = MOAlmanacHarvester()
+    moa = MOAHarvester()
     moa.harvest()
-    directory = APP_ROOT / "data" / "moa" / "harvester"
-    pattern = "moa_harvester_*.json"
-    harvest_file = sorted(directory.glob(pattern))[-1]
-    with open(harvest_file, "r") as f:
+    latest = sorted((APP_ROOT / "data" / "moa" / "harvester").glob("moa_harvester_*.json"))[-1]  # noqa: E501
+    with open(latest, "r") as f:
         moa_data = json.load(f)
     moa_ex_dir = PROJECT_ROOT / 'analysis' / 'moa' / 'examples'
     moa_ex_dir.mkdir(exist_ok=True, parents=True)

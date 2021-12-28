@@ -66,9 +66,7 @@ if __name__ == '__main__':
     moa = MOATransform()
     moa.transform()
     moa._create_json()
-    directory = APP_ROOT / "data" / "moa" / "transform"
-    pattern = "moa_cdm_*.json"
-    transformed_file = sorted(directory.glob(pattern))[-1]
-    with open(transformed_file, "r") as f:
+    latest = sorted((APP_ROOT / "data" / "moa" / "transform").glob("moa_cdm_*.json"))[-1]  # noqa: E501
+    with open(latest, "r") as f:
         moa_data = json.load(f)
     create_moa_example(moa_data)

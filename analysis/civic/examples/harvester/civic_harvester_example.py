@@ -59,10 +59,8 @@ def create_variant_examples(data):
 if __name__ == '__main__':
     c = CIViCHarvester()
     c.harvest()
-    directory = APP_ROOT / "data" / "civic" / "harvester"
-    pattern = "civic_harvester_*.json"
-    harvest_file = sorted(directory.glob(pattern))[-1]
-    with open(harvest_file, "r") as f:
+    latest = sorted((APP_ROOT / "data" / "civic" / "harvester").glob("civic_harvester_*.json"))[-1]  # noqa: E501
+    with open(latest, "r") as f:
         civic_data = json.load(f)
 
     civic_ex_dir =\
