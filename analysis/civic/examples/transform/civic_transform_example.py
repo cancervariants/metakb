@@ -83,7 +83,7 @@ if __name__ == '__main__':
     civic = CIViCTransform()
     civic.transform()
     civic._create_json()
-    with open(f"{APP_ROOT}/data/civic/transform/civic_cdm.json",
-              'r') as f:
+    latest = sorted((APP_ROOT / "data" / "civic" / "transform").glob("civic_cdm_*.json"))[-1]  # noqa: E501
+    with open(latest, "r") as f:
         civic_data = json.load(f)
     create_civic_example(civic_data)
