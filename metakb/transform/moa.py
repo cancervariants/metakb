@@ -1,15 +1,13 @@
 """A module to convert MOA resources to common data model"""
 from typing import Dict, Optional
-import json
 import logging
 from urllib.parse import quote
 
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor,\
     Extension, GeneDescriptor, ValueObjectDescriptor
 
-from metakb import APP_ROOT
 import metakb.schemas as schemas
-from .base import Transform
+from metakb.transform.base import Transform
 
 logger = logging.getLogger('metakb.transform.moa')
 logger.setLevel(logging.DEBUG)
@@ -17,48 +15,6 @@ logger.setLevel(logging.DEBUG)
 
 class MOATransform(Transform):
     """A class for transforming MOA resources to common data model."""
-
-    def __init__(self,
-                 file_path=f"{APP_ROOT}/data/moa/harvester"
-                           f"/moa_harvester.json"):
-        """
-        Initialize VICC normalizers and class attributes
-
-        :param: The file path to the harvested json to transform
-        """
-        super().__init__(file_path)
-        self.statements = list()
-        self.propositions = list()
-        self.variation_descriptors = list()
-        self.gene_descriptors = list()
-        self.therapy_descriptors = list()
-        self.disease_descriptors = list()
-        self.methods = list()
-        self.documents = list()
-
-    def _create_json(self,
-                     moa_dir=APP_ROOT / 'data' / 'moa' / 'transform',
-                     fn='moa_cdm.json'):
-        """Create a composite JSON for the transformed MOA data.
-
-        :param path moa_dir: The moa transform data directory
-        :param str fn: The file name for the transformed data
-        """
-        moa_dir.mkdir(exist_ok=True, parents=True)
-
-        composite_dict = {
-            'statements': self.statements,
-            'propositions': self.propositions,
-            'variation_descriptors': self.variation_descriptors,
-            'gene_descriptors': self.gene_descriptors,
-            'therapy_descriptors': self.therapy_descriptors,
-            'disease_descriptors': self.disease_descriptors,
-            'methods': self.methods,
-            'documents': self.documents
-        }
-
-        with open(f"{moa_dir}/{fn}", 'w+') as f:
-            json.dump(composite_dict, f, indent=4)
 
     def transform(self, documents_ix: Dict = None):
         """Transform MOA harvested JSON to common date model.

@@ -2,13 +2,11 @@
 Provide CLI utility for performing data collection, transformation, and upload
 to graph datastore.
 """
-import click
+from timeit import default_timer as timer
 from os import environ
 import logging
-from metakb.database import Graph
-from metakb import APP_ROOT
-from metakb.harvesters import CIViCHarvester, MOAlmanacHarvester
-from metakb.schemas import SourceName
+
+import click
 from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
 from disease.cli import CLI as DiseaseCLI
@@ -18,7 +16,12 @@ from therapy.cli import CLI as TherapyCLI
 from gene.database import Database as GeneDatabase
 from gene.schemas import SourceName as GeneSources
 from gene.cli import CLI as GeneCLI
-from timeit import default_timer as timer
+
+from metakb import APP_ROOT
+from metakb.database import Graph
+from metakb.schemas import SourceName
+from metakb.harvesters import Harvester, CIViCHarvester, MOAHarvester
+from metakb.transform import Transform, CIViCTransform, MOATransform
 
 
 logger = logging.getLogger('metakb.cli')
@@ -106,13 +109,14 @@ class CLI:
         g = Graph(uri=db_url, credentials=(db_username, db_password))
         g.clear()
         for src in sorted({v.value for v in SourceName.__members__.values()}):
-            path = \
-                APP_ROOT / 'data' / src / 'transform' / f'{src}_cdm.json'
+            pattern = f"{src}_cdm_*.json"
+            globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
             try:
-                g.load_from_json(path)
-            except FileNotFoundError:
-                logger.fatal(f'Could not locate transformed JSON at {path}')
-                raise FileNotFoundError
+                path = sorted(globbed)[-1]
+            except IndexError:
+                raise FileNotFoundError(f"No valid transform file found for "
+                                        f"{src}")
+            g.load_from_json(path)
         g.close()
         end = timer()
         msg = f"Successfully loaded neo4j database in {(end-start):.5f} s"
@@ -120,38 +124,39 @@ class CLI:
         logger.info(msg)
 
     @staticmethod
-    def _harvest_sources():
+    def _harvest_sources() -> None:
+        """Run harvesting procedure for all sources."""
         logger.info("Harvesting sources...")
         # TODO: Switch to using constant
         harvester_sources = {
             'civic': CIViCHarvester,
-            'moa': MOAlmanacHarvester
+            'moa': MOAHarvester
         }
         total_start = timer()
-        for class_str, class_name in harvester_sources.items():
-            harvest_start = f"Harvesting {class_str}..."
+        for source_str, source_class in harvester_sources.items():
+            harvest_start = f"Harvesting {source_str}..."
             click.echo(harvest_start)
             logger.info(harvest_start)
             start = timer()
-            source = class_name()
+            source: Harvester = source_class()
             source_successful = source.harvest()
             end = timer()
             if not source_successful:
-                logger.info(f'{class_str} harvest failed.')
+                logger.info(f'{source_str} harvest failed.')
                 click.get_current_context().exit()
             harvest_finish = \
-                f"{class_str} harvest finished in {(end-start):.5f} s"
+                f"{source_str} harvest finished in {(end - start):.5f} s"
             click.echo(harvest_finish)
             logger.info(harvest_finish)
         total_end = timer()
         msg = f"Successfully harvested all sources in " \
-              f"{(total_end-total_start):.5f} s"
+              f"{(total_end - total_start):.5f} s"
         click.echo(f"{msg}\n")
         logger.info(msg)
 
     @staticmethod
-    def _transform_sources():
-        from metakb.transform import CIViCTransform, MOATransform
+    def _transform_sources() -> None:
+        """Run transformation procedure for all sources."""
         logger.info("Transforming harvested data to CDM...")
         source_indices = None
         # TODO: Switch to using constant
@@ -160,16 +165,16 @@ class CLI:
             'moa': MOATransform
         }
         total_start = timer()
-        for class_str, class_name in transform_sources.items():
-            transform_start = f"Transforming {class_str}..."
+        for src_str, src_name in transform_sources.items():
+            transform_start = f"Transforming {src_str}..."
             click.echo(transform_start)
             logger.info(transform_start)
             start = timer()
-            source = class_name()
+            source: Transform = src_name()
             source_indices = source.transform(source_indices)
             end = timer()
             transform_end = \
-                f"{class_str} transform finished in {(end - start):.5f} s."
+                f"{src_str} transform finished in {(end - start):.5f} s."
             click.echo(transform_end)
             logger.info(transform_end)
             source._create_json()
