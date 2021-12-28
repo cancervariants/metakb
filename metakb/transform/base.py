@@ -57,7 +57,7 @@ class Transform:
             if not default_path.exists():
                 raise FileNotFoundError(
                     f"Unable to open harvest file under default filename: "
-                    f"{(default_path.absolute() / default_fname).as_uri()}"
+                    f"{default_path.absolute().as_uri()}"
                 )
             harvest_path = default_path
         else:
