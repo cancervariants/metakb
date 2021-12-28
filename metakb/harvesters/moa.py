@@ -1,24 +1,27 @@
 """A module for the Molecular Oncology Almanac harvester"""
-from .base import Harvester
+import logging
+from typing import Optional
+
 import requests
 import requests_cache
-import logging
+
+from metakb.harvesters.base import Harvester
 
 
 logger = logging.getLogger('metakb.harvesters.moa')
 logger.setLevel(logging.DEBUG)
 
 
-class MOAlmanacHarvester(Harvester):
+class MOAHarvester(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
-    def harvest(self, fn='moa_harvester.json'):
+    def harvest(self, filename: Optional[str] = None):
         """
         Retrieve and store sources, variants, and assertions
         records from MOAlmanac in composite and individual JSON files.
 
-        :param: file name of composite json
-        :return:'True' if successfully retreived, 'False' otherwise
+        :param Optional[str] filename: File name for composite json
+        :return: True if successfully retreived, False otherwise
         :rtype: bool
         """
         try:
@@ -28,8 +31,12 @@ class MOAlmanacHarvester(Harvester):
             assertions = \
                 self._harvest_assertions(assertion_resp, variants_list)
             json_created = self.create_json(
-                fn, 'moa', assertions=assertions,
-                sources=sources, variants=variants
+                {
+                    "assertions": assertions,
+                    "sources": sources,
+                    "variants": variants
+                },
+                filename
             )
             if not json_created:
                 logger.error("MOAlmanac Harvester was not successful.")
