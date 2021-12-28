@@ -73,23 +73,6 @@ class Transform:
             return json.load(f)
 
     @staticmethod
-    def _set_ix(documents_ix, search_key) -> int:
-        """Set indexes for documents.
-
-        :param dict documents_ix: Keeps track of documents indexes
-        :param Any search_key: The key to get or set
-        :return: An int representing the index
-        """
-        # dict_key_ix = 'document_index'
-        if documents_ix["documents"].get(search_key):
-            index = documents_ix["documents"].get(search_key)
-        else:
-            index = documents_ix.get("document_index")
-            documents_ix["documents"][search_key] = index
-            documents_ix["document_index"] += 1
-        return index
-
-    @staticmethod
     def _get_proposition_ID(prop_type: PropositionType, pred: Predicate,
                             concept_ids: List[str]) -> str:
         """Produce hashed ID for a proposition.
@@ -104,6 +87,17 @@ class Transform:
         terms_lower = [t.lower() for t in terms]
         combined = "".join(sorted(terms_lower))
         return f"proposition:{sha512t24u(combined.encode())}"
+
+    @staticmethod
+    def _get_document_ID(attributes: List[str]) -> str:
+        """Produce hashed ID for a document.
+        :param List[str] attributes: list of attribute values constituting the
+        document.
+        :return: identifying document ID value
+        """
+        attributes_lower = [attribute.lower() for attribute in attributes]
+        combined = "".join(sorted(attributes_lower))
+        return f"document:{sha512t24u(combined.encode())}"
 
     def _create_json(self, filename: Optional[str] = None) -> None:
         """Create a composite JSON for transformed data.

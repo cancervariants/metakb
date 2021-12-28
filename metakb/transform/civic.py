@@ -31,23 +31,13 @@ class CIViCTransform(Transform):
             'disease_descriptors': list()
         }
 
-    def transform(self,
-                  documents_ix: Optional[Dict] = None) -> Dict[str, dict]:
-        """Transform CIViC harvested json to common data model.
-
-        :param Optional[Dict] documents_ix: Indexes for documents
-        :return: An updated documents_ix object
-        """
+    def transform(self):
+        """Transform CIViC harvested json to common data model."""
         data = self.extract_harvester()
         evidence_items = data['evidence']
         assertions = data['assertions']
         variants = data['variants']
         genes = data['genes']
-        if not documents_ix:
-            documents_ix = {
-                'document_index': 1,  # Keep track of documents index value
-                'documents': dict(),  # {document_id: document_index}
-            }
 
         # Filter Variant IDs for
         # Prognostic, Predictive, and Diagnostic evidence
@@ -60,19 +50,15 @@ class CIViCTransform(Transform):
         self._add_variation_descriptors(variants, vids)
         self._add_gene_descriptors(genes)
         self._add_methods()
-        self._transform_evidence_and_assertions(evidence_items, documents_ix)
-        self._transform_evidence_and_assertions(assertions, documents_ix,
-                                                is_evidence=False)
-        return documents_ix
+        self._transform_evidence_and_assertions(evidence_items)
+        self._transform_evidence_and_assertions(assertions, is_evidence=False)
 
     def _transform_evidence_and_assertions(self, records: List[Dict],
-                                           documents_ix: Dict[str, str],
                                            is_evidence=True) -> None:
         """Transform statements, propositions, descriptors, and documents
         from CIViC evidence items and assertions.
 
         :param list records: CIViC Evidence Items or Assertions
-        :param Dict[str, str] documents_ix: Indexes for documents
         :param bool is_evidence: `True` if records are evidence items.
             `False` if records are assertions.
         """
@@ -171,7 +157,7 @@ class CIViCTransform(Transform):
                 # Supported by evidence for assertion
                 supported_by = list()
                 documents = \
-                    self._get_aid_document(r, documents_ix)
+                    self._get_aid_document(r)
                 for d in documents:
                     if d not in self.documents:
                         self.documents.append(d)
@@ -298,7 +284,7 @@ class CIViCTransform(Transform):
 
     def _get_proposition_type(self,
                               evidence_type,
-                              is_evidence=True) -> Optional[schemas.Proposition]:  # noqa: E501
+                              is_evidence=True) -> Optional[schemas.PropositionType]:  # noqa: E501
         """Return proposition type for a given EID or AID.
 
         :param str evidence_type: CIViC evidence type
@@ -759,28 +745,25 @@ class CIViCTransform(Transform):
         else:
             logger.warning(f"{source_type} not in schemas.SourcePrefix")
 
-    def _get_aid_document(self, assertion, documents_ix) \
-            -> List[schemas.Document]:
+    def _get_aid_document(self, assertion: Dict) -> List[schemas.Document]:
         """Get an AID's documents.
 
         :param dict assertion: A CIViC Assertion
-        :param dict documents_ix: Keeps track of document index
         :return: A list of AID documents
         """
         # NCCN Guidlines
         documents = list()
-        label = assertion['nccn_guideline']
-        version = assertion['nccn_guideline_version']
+        label = assertion["nccn_guideline"]
+        version = assertion["nccn_guideline_version"]
         if label and version:
-            document_id = '_'.join((label + version).split())
-            document_ix = \
-                self._set_ix(documents_ix, document_id)
+            doc_id = "https://www.nccn.org/professionals/physician_gls/default.aspx"  # noqa: E501
+            doc_label = f"NCCN Guidelines: {label} version {version}"
+            db_id = self._get_document_ID([doc_id, doc_label])
             documents = list()
             documents.append(schemas.Document(
-                id=f"document:{document_ix:03}",
-                document_id="https://www.nccn.org/professionals/"
-                            "physician_gls/default.aspx",
-                label=f"NCCN Guidelines: {label} version {version}"
+                id=db_id,
+                document_id=doc_id,
+                label=doc_label
             ).dict(exclude_none=True))
 
         # TODO: Check this after first pass
