@@ -158,7 +158,6 @@ class CLI:
     def _transform_sources() -> None:
         """Run transformation procedure for all sources."""
         logger.info("Transforming harvested data to CDM...")
-        source_indices = None
         # TODO: Switch to using constant
         transform_sources = {
             'civic': CIViCTransform,
@@ -171,7 +170,7 @@ class CLI:
             logger.info(transform_start)
             start = timer()
             source: Transform = src_name()
-            source_indices = source.transform(source_indices)
+            source.transform()
             end = timer()
             transform_end = \
                 f"{src_str} transform finished in {(end - start):.5f} s."
