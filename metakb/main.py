@@ -26,7 +26,8 @@ def custom_openapi():
 
     openapi_schema['info']['contact'] = {
         "name": "VICC",
-        "email": "help@cancervariants.org"
+        "email": "help@cancervariants.org",
+        "url": "https://cancervariants.org"
     }
     app.openapi_schema = openapi_schema
     return app.openapi_schema
