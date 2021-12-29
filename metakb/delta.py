@@ -4,10 +4,10 @@ import json
 import logging
 from jsondiff import diff
 from datetime import date
-from metakb.harvesters import CIViCHarvester, MOAlmanacHarvester
+from metakb.harvesters import CIViCHarvester, MOAHarvester
 HARVESTER_CLASS = {
     'civic': CIViCHarvester,
-    'moa': MOAlmanacHarvester
+    'moa': MOAHarvester
 }
 logger = logging.getLogger('metakb.delta')
 logger.setLevel(logging.DEBUG)
