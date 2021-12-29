@@ -18,13 +18,16 @@ logger.setLevel(logging.DEBUG)
 class Transform:
     """A base class for transforming harvester data."""
 
-    def __init__(self, data_dir: Path = APP_ROOT / "data") -> None:
+    def __init__(self, data_dir: Path = APP_ROOT / "data",
+                 harvester_path: Optional[Path] = None) -> None:
         """Initialize Transform base class.
 
         :param Path data_dir: Path to source data directory
+        :param Path harvester_path: Path to previously harvested data
         """
         self.name = self.__class__.__name__.lower().split("transform")[0]
         self.data_dir = data_dir / self.name
+        self.harvester_path = harvester_path
 
         self.vicc_normalizers = VICCNormalizers()
 
@@ -44,16 +47,12 @@ class Transform:
         """
         raise NotImplementedError
 
-    def extract_harvester(
-        self, harvest_path: Optional[Path] = None
-    ) -> Dict[str, List]:
+    def extract_harvester(self) -> Dict[str, List]:
         """Get harvested data from file.
-        :param Optional[Path] harvest_path: path to harvest JSON file. If not
-        provided, will attempt to open file with current date at default
-        location.
+
         :return: Dict containing Lists of entries for each object type
         """
-        if harvest_path is None:
+        if self.harvester_path is None:
             today = dt.strftime(dt.today(), DATE_FMT)
             default_fname = f"{self.name}_harvester_{today}.json"
             default_path = self.data_dir / "harvester" / default_fname
@@ -62,14 +61,14 @@ class Transform:
                     f"Unable to open harvest file under default filename: "
                     f"{default_path.absolute().as_uri()}"
                 )
-            harvest_path = default_path
+            self.harvester_path = default_path
         else:
-            if not harvest_path.exists():
+            if not self.harvester_path.exists():
                 raise FileNotFoundError(
-                    f"Unable to open harvest file under provided filename: "
-                    f"{harvest_path.absolute().as_uri()}"
+                    f"Unable to open harvester file: "
+                    f"{self.harvester_path}"
                 )
-        with open(harvest_path, "r") as f:
+        with open(self.harvester_path, "r") as f:
             return json.load(f)
 
     @staticmethod
@@ -99,12 +98,16 @@ class Transform:
         combined = "".join(sorted(attributes_lower))
         return f"document:{sha512t24u(combined.encode())}"
 
-    def _create_json(self, filename: Optional[str] = None) -> None:
+    def _create_json(self, transform_dir: Optional[Path] = None,
+                     filename: Optional[str] = None) -> None:
         """Create a composite JSON for transformed data.
 
-        :param Optional[str] filename: custom filename to save as
+        :param Optional[Path] transform_dir: Path to data directory for
+            transformed data
+        :param Optional[str] filename: Name of transformed file
         """
-        transform_dir = self.data_dir / "transform"
+        if transform_dir is None:
+            transform_dir = self.data_dir / "transform"
         transform_dir.mkdir(exist_ok=True, parents=True)
 
         composite_dict = {
