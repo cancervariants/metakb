@@ -65,8 +65,7 @@ class Transform:
         else:
             if not self.harvester_path.exists():
                 raise FileNotFoundError(
-                    f"Unable to open harvester file: "
-                    f"{self.harvester_path}"
+                    f"Unable to open harvester file: {self.harvester_path}"
                 )
         with open(self.harvester_path, "r") as f:
             return json.load(f)
