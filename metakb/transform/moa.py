@@ -20,7 +20,7 @@ class MOATransform(Transform):
         """Transform MOA harvested JSON to common date model.
         Saves output in MOA transform directory.
         """
-        data = self.extract_harvester(self.harvester_path)
+        data = self.extract_harvester()
         cdm_assertions = {}  # assertions that have been transformed to CDM
 
         assertions = data['assertions']
