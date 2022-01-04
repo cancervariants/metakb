@@ -11,7 +11,6 @@ from metakb import APP_ROOT, DATE_FMT
 from metakb.schemas import PropositionType, Predicate, DiagnosticPredicate, \
     PrognosticPredicate, PredictivePredicate, FunctionalPredicate, \
     PathogenicPredicate
-from metakb.normalizers import VICCNormalizers
 from metakb.query import QueryHandler
 
 logger = logging.getLogger('metakb')
@@ -38,8 +37,7 @@ class Transform:
         self.harvester_path = harvester_path
 
         self.query_handler = QueryHandler(uri, credentials)
-
-        self.vicc_normalizers = VICCNormalizers()
+        self.vicc_normalizers = self.query_handler.vicc_normalizers
 
         self.statements = list()
         self.propositions = list()
