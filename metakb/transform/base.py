@@ -104,7 +104,7 @@ class Transform:
             if highest_id is None:
                 return f"{label_lower}:1"
             else:
-                id_number = highest_id.split(":")
+                id_number = highest_id.split(":")[-1]
                 return f"{label_lower}:{int(id_number) + 1}"
 
     predicate_validation = {
