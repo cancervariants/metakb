@@ -3,7 +3,7 @@ import pytest
 import os
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_eid2997_statement():
     """Create CIVIC EID2997 Statement test fixture."""
     return {
@@ -12,7 +12,7 @@ def civic_eid2997_statement():
         "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:A",
-        "proposition": "proposition:001",
+        "proposition": "proposition:_mxdCji9FgUuVt-pWsdZNYsAjL0Xgt-E",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:33",
         "therapy_descriptor": "civic.tid:146",
@@ -22,11 +22,11 @@ def civic_eid2997_statement():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_eid2997_proposition():
     """Create a test fixture for EID2997 proposition."""
     return {
-        "id": "proposition:001",
+        "id": "proposition:_mxdCji9FgUuVt-pWsdZNYsAjL0Xgt-E",
         "predicate": "predicts_sensitivity_to",
         "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
         "object_qualifier": "ncit:C2926",
@@ -35,7 +35,7 @@ def civic_eid2997_proposition():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_vid33():
     """Create a test fixture for CIViC VID33."""
     return {
@@ -120,7 +120,7 @@ def civic_vid33():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_gid19():
     """Create test fixture for CIViC GID19."""
     return {
@@ -145,7 +145,7 @@ def civic_gid19():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_tid146():
     """Create test fixture for CIViC TID146."""
     return {
@@ -164,7 +164,7 @@ def civic_tid146():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_did8():
     """Create test fixture for CIViC DID8."""
     return {
@@ -178,7 +178,7 @@ def civic_did8():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def pmid_23982599():
     """Create test fixture for CIViC EID2997 document."""
     return {
@@ -189,7 +189,7 @@ def pmid_23982599():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_eid1409_statement():
     """Create test fixture for CIViC Evidence 1406."""
     return {
@@ -208,7 +208,7 @@ def civic_eid1409_statement():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_aid6_statement():
     """Create CIViC AID 6 test fixture."""
     return {
@@ -216,14 +216,14 @@ def civic_aid6_statement():
         "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "amp_asco_cap_2017_level:1A",
-        "proposition": "proposition:001",
+        "proposition": "proposition:_mxdCji9FgUuVt-pWsdZNYsAjL0Xgt-E",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:33",
         "therapy_descriptor": "civic.tid:146",
         "disease_descriptor": "civic.did:8",
         "method": "method:002",
         "supported_by": [
-            "document:001", "civic.eid:2997",
+            "document:BzZRefItUKRQiExmX_7dYuURaqH-ZiGK", "civic.eid:2997",
             "civic.eid:2629", "civic.eid:982",
             "civic.eid:968", "civic.eid:883",
             "civic.eid:879"
@@ -232,11 +232,11 @@ def civic_aid6_statement():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_aid6_document():
     """Create test fixture for civic aid6 document."""
     return {
-        "id": "document:001",
+        "id": "document:BzZRefItUKRQiExmX_7dYuURaqH-ZiGK",
         "document_id": "https://www.nccn.org/professionals/"
                        "physician_gls/default.aspx",
         "label": "NCCN Guidelines: Non-Small Cell "
@@ -245,7 +245,7 @@ def civic_aid6_document():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_eid2_statement():
     """Create a test fixture for CIViC EID2 statement."""
     return {
@@ -254,7 +254,7 @@ def civic_eid2_statement():
         "description": "GIST tumors harboring PDGFRA D842V mutation are more likely to be benign than malignant.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:001",
+        "proposition": "proposition:nUReCRWjR4gXpyrqW-1eQhQCzayfTQ4-",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:99",
         "disease_descriptor": "civic.did:2",
@@ -263,11 +263,11 @@ def civic_eid2_statement():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_eid2_proposition():
     """Create a test fixture for CIViC EID2 proposition."""
     return {
-        "id": "proposition:001",
+        "id": "proposition:nUReCRWjR4gXpyrqW-1eQhQCzayfTQ4-",
         "predicate": "is_diagnostic_exclusion_criterion_for",
         "subject": "ga4gh:VA.bjWVYvXPaPbIRAfZvE0Uw_P-i36PGkAz",
         "object_qualifier": "ncit:C3868",
@@ -275,7 +275,7 @@ def civic_eid2_proposition():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_vid99():
     """Create a test fixture for CIViC VID99."""
     return {
@@ -370,7 +370,7 @@ def civic_vid99():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_did2():
     """Create a test fixture for CIViC DID2."""
     return {
@@ -384,7 +384,7 @@ def civic_did2():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_gid38():
     """Create a test fixture for CIViC GID38."""
     return {
@@ -405,7 +405,7 @@ def civic_gid38():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_eid74_statement():
     """Create a test fixture for CIViC EID74 statement."""
     return {
@@ -413,7 +413,7 @@ def civic_eid74_statement():
         "description": "In patients with medullary carcinoma, the presence of RET M918T mutation is associated with increased probability of lymph node metastases.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:002",
+        "proposition": "proposition:l4BuRexjq-Cg8djtXV-xkBvMzj95qtHx",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:113",
         "disease_descriptor": "civic.did:15",
@@ -423,11 +423,11 @@ def civic_eid74_statement():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_eid74_proposition():
     """Create a test fixture for CIViC EID74 proposition."""
     return {
-        "id": "proposition:002",
+        "id": "proposition:l4BuRexjq-Cg8djtXV-xkBvMzj95qtHx",
         "predicate": "is_diagnostic_inclusion_criterion_for",
         "subject": "ga4gh:VA.GweduWrfxV58YnSvUBfHPGOA-KCH_iIl",
         "object_qualifier": "ncit:C3879",
@@ -435,7 +435,7 @@ def civic_eid74_proposition():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_vid113():
     """Create a test fixture for CIViC VID113."""
     return {
@@ -530,7 +530,7 @@ def civic_vid113():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_did15():
     """Create test fixture for CIViC DID15."""
     return {
@@ -544,7 +544,7 @@ def civic_did15():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_gid42():
     """Create test fixture for CIViC GID42."""
     return {
@@ -570,7 +570,7 @@ def civic_gid42():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_aid9_statement():
     """Create a test fixture for CIViC AID9 statement."""
     return {
@@ -578,7 +578,7 @@ def civic_aid9_statement():
         "description": "ACVR1 G328V mutations occur within the kinase domain, leading to activation of downstream signaling. Exclusively seen in high-grade pediatric gliomas, supporting diagnosis of diffuse intrinsic pontine glioma.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "amp_asco_cap_2017_level:2C",
-        "proposition": "proposition:003",
+        "proposition": "proposition:UiGAYP1ctbGO25M-cyfpGUt-iCVvCWLc",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:1686",
         "disease_descriptor": "civic.did:2950",
@@ -589,11 +589,11 @@ def civic_aid9_statement():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_aid9_proposition():
     """Create a test fixture for CIViC AID9 proposition."""
     return {
-        "id": "proposition:003",
+        "id": "proposition:UiGAYP1ctbGO25M-cyfpGUt-iCVvCWLc",
         "predicate": "is_diagnostic_inclusion_criterion_for",
         "subject": "ga4gh:VA.yuvNtv-SpNOzcGsKsNnnK0n026rbfp6T",
         "object_qualifier": "DOID:0080684",
@@ -601,7 +601,7 @@ def civic_aid9_proposition():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_vid1686():
     """Create a test fixture for CIViC VID1686."""
     return {
@@ -694,7 +694,7 @@ def civic_vid1686():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_did2950():
     """Create a test fixture for CIViC DID2950."""
     return {
@@ -708,7 +708,7 @@ def civic_did2950():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_gid154():
     """Create a test fixture for CIViC GID154."""
     return {
@@ -732,7 +732,7 @@ def civic_gid154():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_eid26_statement():
     """Create a test fixture for CIViC EID26 statement."""
     return {
@@ -740,7 +740,7 @@ def civic_eid26_statement():
         "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:001",
+        "proposition": "proposition:vUkpwCJD6IzzCQrEPKinxReufCE-73Mf1",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:65",
         "disease_descriptor": "civic.did:3",
@@ -750,11 +750,11 @@ def civic_eid26_statement():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_eid26_proposition():
     """Create a test fixture for CIViC EID26 proposition."""
     return {
-        "id": "proposition:001",
+        "id": "proposition:vUkpwCJD6IzzCQrEPKinxReufCE-73Mf",
         "predicate": "is_prognostic_of_worse_outcome_for",
         "subject": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
         "object_qualifier": "ncit:C3171",
@@ -762,7 +762,7 @@ def civic_eid26_proposition():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_vid65():
     """Create a test fixture for CIViC VID65."""
     return {
@@ -856,7 +856,7 @@ def civic_vid65():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_did3():
     """Create test fixture for CIViC DID3."""
     return {
@@ -870,7 +870,7 @@ def civic_did3():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_gid29():
     """Create test fixture for CIViC GID29."""
     return {
@@ -893,7 +893,7 @@ def civic_gid29():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_eid1756_statement():
     """Create test fixture for CIViC EID1756 statement."""
     return {
@@ -901,7 +901,7 @@ def civic_eid1756_statement():
         "description": "Study of 1817 PCa cases and 2026 cancer free controls to clarify the association of (MTHFR)c.677C>T  (and c.1298A>C ) of pancreatic cancer risk in a population of Han Chinese in Shanghai.  Results indicated a lower risk for the heterozygous CT genotype and homozygous TT genotype carriers of (MTHFR)c.677C>T  which had a significantly lower risk of developing pancreatic cancer compared with the wild-type CC genotype.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:002",
+        "proposition": "proposition:e4rfA9CXghm3axxyjEKYWEImb8VuOmzU",
         "variation_origin": "germline",
         "variation_descriptor": "civic.vid:258",
         "disease_descriptor": "civic.did:556",
@@ -911,11 +911,11 @@ def civic_eid1756_statement():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_eid1756_proposition():
     """Create a test fixture for CIViC EID1756 proposition."""
     return {
-        "id": "proposition:002",
+        "id": "proposition:e4rfA9CXghm3axxyjEKYWEImb8VuOmzU",
         "predicate": "is_prognostic_of_better_outcome_for",
         "subject": "ga4gh:VA.Nq7ozfH2X6m1PGr_n38E-F0NZ7I9UASP",
         "object_qualifier": "ncit:C9005",
@@ -923,7 +923,7 @@ def civic_eid1756_proposition():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_vid258():
     """Create a test fixture for CIViC VID258."""
     return {
@@ -1006,7 +1006,7 @@ def civic_vid258():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_did556():
     """Create a test fixture for CIViC DID556."""
     return {
@@ -1020,7 +1020,7 @@ def civic_did556():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_gid3672():
     """Create test fixture for CIViC GID3672."""
     return {
@@ -1037,7 +1037,7 @@ def civic_gid3672():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def pmid_15146165():
     """Create a test fixture for PMID 15146165."""
     return {
@@ -1048,7 +1048,7 @@ def pmid_15146165():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def pmid_18073307():
     """Create a test fixture for PMID 18073307."""
     return {
@@ -1059,7 +1059,7 @@ def pmid_18073307():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def pmid_16384925():
     """Create a test fixture for PMID 16384925."""
     return {
@@ -1070,7 +1070,7 @@ def pmid_16384925():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def pmid_27819322():
     """Create a test fixture for PMID 27819322."""
     return {
@@ -1082,14 +1082,14 @@ def pmid_27819322():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def moa_aid71_statement():
     """Create a MOA Statement 71 test fixture."""
     return {
         "id": "moa.assertion:71",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
         "evidence_level": "moa.evidence_level:Preclinical",
-        "proposition": "proposition:001",
+        "proposition": "proposition:ReqWtqemZoVtMAGpxG5G6w3HLvlS8KvW",
         "variation_origin": "somatic",
         "variation_descriptor": "moa.variant:71",
         "therapy_descriptor": "moa.normalize.therapy:Imatinib",
@@ -1102,11 +1102,11 @@ def moa_aid71_statement():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def moa_aid71_proposition():
     """Create a test fixture for MOA AID71 proposition."""
     return {
-        "id": "proposition:001",
+        "id": "proposition:ReqWtqemZoVtMAGpxG5G6w3HLvlS8KvW",
         "predicate": "predicts_resistance_to",
         "subject": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
         "object_qualifier": "ncit:C3174",
@@ -1115,7 +1115,7 @@ def moa_aid71_proposition():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def moa_vid71():
     """Create a test fixture for MOA VID71."""
     return {
@@ -1162,7 +1162,7 @@ def moa_vid71():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def moa_abl1():
     """Create a test fixture for MOA ABL1 Gene Descriptor."""
     return {
@@ -1173,7 +1173,7 @@ def moa_abl1():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def moa_imatinib():
     """Create a test fixture for MOA Imatinib Therapy Descriptor."""
     return {
@@ -1184,7 +1184,7 @@ def moa_imatinib():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def moa_chronic_myelogenous_leukemia():
     """Create test fixture for MOA Chronic Myelogenous Leukemia Descriptor."""
     return {
@@ -1195,7 +1195,7 @@ def moa_chronic_myelogenous_leukemia():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def method001():
     """Create test fixture for method:001."""
     return {
@@ -1212,7 +1212,7 @@ def method001():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def method002():
     """Create test fixture for method:002."""
     return {
@@ -1228,7 +1228,7 @@ def method002():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def method003():
     """Create test fixture for method:003."""
     return {
@@ -1244,7 +1244,7 @@ def method003():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def method004():
     """Create a test fixture for MOA method:004."""
     return {
@@ -1261,13 +1261,13 @@ def method004():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def civic_methods(method001, method002, method003):
     """Create test fixture for methods."""
     return [method001, method002, method003]
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def pmid_11423618():
     """Create a test fixture for PMID 11423618."""
     return {
@@ -1280,51 +1280,51 @@ def pmid_11423618():
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def check_statement():
     """Create a test fixture to compare statements."""
     def check_statement(actual, test):
         """Check that statements are match."""
         assert actual.keys() == test.keys()
-        assert actual['id'] == test['id']
-        assert actual['description'] == test['description']
-        if 'direction' in test.keys():
-            # MOA doesn't have direction?
-            assert actual['direction'] == test['direction']
-        assert actual['evidence_level'] == test['evidence_level']
-        assert actual['proposition'].startswith('proposition:')
-        assert actual['variation_origin'] == test['variation_origin']
-        assert actual['variation_descriptor'] == test['variation_descriptor']
-        if 'therapy_descriptor' not in test.keys():
-            assert 'therapy_descriptor' not in actual.keys()
+        assert actual["id"] == test["id"]
+        assert actual["description"] == test["description"]
+        if "direction" in test.keys():
+            # MOA doesn"t have direction?
+            assert actual["direction"] == test["direction"]
+        assert actual["evidence_level"] == test["evidence_level"]
+        assert actual["proposition"].startswith("proposition:")
+        assert actual["variation_origin"] == test["variation_origin"]
+        assert actual["variation_descriptor"] == test["variation_descriptor"]
+        if "therapy_descriptor" not in test.keys():
+            assert "therapy_descriptor" not in actual.keys()
         else:
-            assert actual['therapy_descriptor'] == test['therapy_descriptor']
-        assert actual['disease_descriptor'] == test['disease_descriptor']
-        assert actual['method'] == test['method']
-        assert set(actual['supported_by']) == set(test['supported_by'])
-        assert actual['type'] == test['type']
+            assert actual["therapy_descriptor"] == test["therapy_descriptor"]
+        assert actual["disease_descriptor"] == test["disease_descriptor"]
+        assert actual["method"] == test["method"]
+        assert set(actual["supported_by"]) == set(test["supported_by"])
+        assert actual["type"] == test["type"]
     return check_statement
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def check_proposition():
     """Create a test fixture to compare propositions."""
     def check_proposition(actual, test):
         """Check that propositions match."""
         assert actual.keys() == test.keys()
-        assert actual['id'].startswith('proposition:')
-        assert actual['type'] == test['type']
-        if test['type'] == 'therapeutic_response_proposition':
-            assert actual['object'] == test['object']
+        assert actual["id"].startswith("proposition:")
+        assert actual["type"] == test["type"]
+        if test["type"] == "therapeutic_response_proposition":
+            assert actual["object"] == test["object"]
         else:
-            assert 'object' not in actual.keys()
-        assert actual['predicate'] == test['predicate']
-        assert actual['subject'] == test['subject']
-        assert actual['object_qualifier'] == test['object_qualifier']
+            assert "object" not in actual.keys()
+        assert actual["predicate"] == test["predicate"]
+        assert actual["subject"] == test["subject"]
+        assert actual["object_qualifier"] == test["object_qualifier"]
     return check_proposition
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def check_variation_descriptor():
     """Create a test fixture to compare variation descriptors."""
     def check_variation_descriptor(actual, test):
@@ -1333,37 +1333,37 @@ def check_variation_descriptor():
         test_keys = test.keys()
         assert actual_keys == test_keys
         for key in test_keys:
-            if key in ['id', 'type', 'label', 'description', 'variation_id',
-                       'structural_type', 'vrs_ref_allele_seq',
-                       'gene_context']:
+            if key in ["id", "type", "label", "description", "variation_id",
+                       "structural_type", "vrs_ref_allele_seq",
+                       "gene_context"]:
                 assert actual[key] == test[key]
-            elif key in ['xrefs', 'alternate_labels']:
+            elif key in ["xrefs", "alternate_labels"]:
                 assert set(actual[key]) == set(test[key])
-            elif key == 'variation':
-                assert actual['variation'] == test['variation']
-            elif key == 'extensions':
+            elif key == "variation":
+                assert actual["variation"] == test["variation"]
+            elif key == "extensions":
                 assert len(actual) == len(test)
-                for test_extension in test['extensions']:
-                    for actual_extension in actual['extensions']:
-                        if test_extension['name'] == actual_extension['name']:
-                            if test_extension['name'] != \
-                                    'civic_actionability_score':
+                for test_extension in test["extensions"]:
+                    for actual_extension in actual["extensions"]:
+                        if test_extension["name"] == actual_extension["name"]:
+                            if test_extension["name"] != \
+                                    "civic_actionability_score":
                                 assert actual_extension == test_extension
                             else:
                                 try:
-                                    float(actual_extension['value'])
+                                    float(actual_extension["value"])
                                 except ValueError:
                                     assert False
                                 else:
                                     assert True
-            elif key == 'expressions':
-                assert len(actual['expressions']) == len(test['expressions'])
-                for expression in test['expressions']:
-                    assert expression in actual['expressions']
+            elif key == "expressions":
+                assert len(actual["expressions"]) == len(test["expressions"])
+                for expression in test["expressions"]:
+                    assert expression in actual["expressions"]
     return check_variation_descriptor
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def check_descriptor():
     """Test fixture to compare gene, therapy, and disease descriptors."""
     def check_descriptor(actual, test):
@@ -1372,14 +1372,14 @@ def check_descriptor():
         test_keys = test.keys()
         assert actual_keys == test_keys
         for key in test_keys:
-            if key in ['alternate_labels', 'xrefs']:
+            if key in ["alternate_labels", "xrefs"]:
                 assert set(actual[key]) == set(test[key])
             else:
                 assert actual[key] == test[key]
     return check_descriptor
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def check_method():
     """Create a test fixture to compare methods."""
     def check_method(actual, test):
@@ -1388,7 +1388,7 @@ def check_method():
     return check_method
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def check_document():
     """Create a test fixture to compare documents."""
     def check_document(actual, test):
@@ -1398,14 +1398,14 @@ def check_document():
         assert actual_keys == test_keys
         for key in test_keys:
             assert key in actual_keys
-            if key == 'xrefs':
+            if key == "xrefs":
                 assert set(actual[key]) == set(test[key])
             else:
                 assert actual == test
     return check_document
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def check_transformed_cdm():
     """Test fixture to compare CDM transformations."""
     def check_transformed_cdm(data, statements, propositions,
@@ -1417,19 +1417,19 @@ def check_transformed_cdm():
                               transformed_file):
         """Test that transform to CDM works correctly."""
         tests = (
-            (data['statements'], statements, check_statement),
-            (data['propositions'], propositions, check_proposition),
-            (data['variation_descriptors'], variation_descriptors,
+            (data["statements"], statements, check_statement),
+            (data["propositions"], propositions, check_proposition),
+            (data["variation_descriptors"], variation_descriptors,
              check_variation_descriptor),
-            (data['gene_descriptors'], gene_descriptors, check_descriptor),
-            (data['disease_descriptors'], disease_descriptors,
+            (data["gene_descriptors"], gene_descriptors, check_descriptor),
+            (data["disease_descriptors"], disease_descriptors,
              check_descriptor),
-            (data['methods'], civic_methods, check_method),
-            (data['documents'], documents, check_document)
+            (data["methods"], civic_methods, check_method),
+            (data["documents"], documents, check_document)
         )
 
         if therapy_descriptors:
-            tests += (data['therapy_descriptors'], therapy_descriptors,
+            tests += (data["therapy_descriptors"], therapy_descriptors,
                       check_descriptor),
 
         for t in tests:
@@ -1439,10 +1439,10 @@ def check_transformed_cdm():
 
             assert len(actual_data) == len(test_data)
             for test in test_data:
-                test_id = test['id']
+                test_id = test["id"]
                 checked_id = None
                 for actual in actual_data:
-                    actual_id = actual['id']
+                    actual_id = actual["id"]
                     if test_id == actual_id:
                         checked_id = actual_id
                         test_fixture(actual, test)
