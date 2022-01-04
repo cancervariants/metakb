@@ -125,9 +125,7 @@ class Proposition(BaseModel):
 
     id: CURIE
     type: PropositionType
-    predicate: Union[PredictivePredicate, DiagnosticPredicate,
-                     PrognosticPredicate, PathogenicPredicate,
-                     FunctionalPredicate]
+    predicate: Predicate
     subject: CURIE  # vrs:Variation
     object_qualifier: CURIE  # vicc:Disease
 
