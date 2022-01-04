@@ -788,7 +788,10 @@ class QueryHandler:
         return tx.run(query).single()[0]
 
     @staticmethod
-    def _get_gene_descriptor(gene_descriptor, gene_value_object):
+    def _get_gene_descriptor(
+        gene_descriptor,
+        gene_value_object
+    ) -> GeneDescriptor:
         """Add gene descriptor to response.
 
         :param Node gene_descriptor: Gene Descriptor Node
@@ -967,23 +970,23 @@ class QueryHandler:
         query = ""
         params: Dict[str, str] = {}
         if prop_type and pred:
-            query += "MATCH (p:Proposition " \
-                "{type:$prop_type, predicate:$pred}) "
+            query += \
+                "MATCH (p:Proposition {type:$prop_type, predicate:$pred}) "
             params["prop_type"] = prop_type.value
             params["pred"] = pred.value
         elif prop_type:
-            query += "MATCH (p:Proposition {type:$prop_type) "
+            query += "MATCH (p:Proposition {type:$prop_type}) "
             params["prop_type"] = prop_type.value
         elif pred:
-            query += "MATCH (p:Proposition {predicate:$pred) "
+            query += "MATCH (p:Proposition {predicate:$pred}) "
             params["pred"] = pred.value
         if statement_id:
-            query += "MATCH (:Statement {id:$s_id})-[:DEFINED_BY]->" \
-                     "(p:Proposition) "
+            query += \
+                "MATCH (:Statement {id:$s_id})-[:DEFINED_BY]-> (p:Proposition)"
             params["s_id"] = statement_id
         if normalized_therapy:
-            query += "MATCH (p:Proposition)<-[:IS_OBJECT_OF]-" \
-                     "(:Therapy {id:$t_id}) "
+            query += \
+                "MATCH (p:Proposition)<-[:IS_OBJECT_OF]-(:Therapy {id:$t_id})"
             params["t_id"] = normalized_therapy
         if normalized_variation:
             lower_normalized_variation = normalized_variation.lower()
@@ -995,8 +998,7 @@ class QueryHandler:
                 query += "{id:$v_id}) "
             params["v_id"] = normalized_variation
         if normalized_disease:
-            query += "MATCH (p:Proposition)<-[:IS_OBJECT_QUALIFIER_OF]-" \
-                     "(:Disease {id:$d_id}) "
+            query += "MATCH (p:Proposition)<-[:IS_OBJECT_QUALIFIER_OF]-(:Disease {id:$d_id}) "  # noqa: E501
             params["d_id"] = normalized_disease
         if normalized_gene:
             query += "MATCH (:Gene {id:$g_id})<-[:DESCRIBES]-" \
@@ -1159,6 +1161,7 @@ class QueryHandler:
                 proposition = PrognosticProposition(**params)
             elif p_type == PropositionType.DIAGNOSTIC:
                 proposition = DiagnosticProposition(**params)
+                raise ValueError
             return proposition
 
     def _get_statement(self, s) -> Dict:
@@ -1187,3 +1190,23 @@ class QueryHandler:
                 supported_by=[se['id'] for se in se_list]
             ).dict(exclude_none=True)
             return statement
+
+    @staticmethod
+    def _get_documents(tx: Transaction, **parameters) -> List[Node]:
+        """Get Document nodes matching provided parameters. Provide as callback
+        to Neo4j session methods.
+        :param Transaction tx: session transaction
+        :param Dict parameters: document properties and values
+        :return: List of nodes matching given parameters
+        :raise TypeError: if no parameters given
+        """
+        params_strings = []
+        if len(parameters) == 0:
+            raise TypeError("Must provide at least one parameter")
+        for key in parameters.keys():
+            params_strings.append(f"{key}:${key}")
+        query_string = f"""
+            MATCH (d:Document {{ {','.join(params_strings)} }})
+            RETURN d
+        """
+        return [p[0] for p in tx.run(query_string, **parameters)]

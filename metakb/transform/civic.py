@@ -1,11 +1,12 @@
 """A module for to transform CIViC."""
+from typing import Optional, Dict, List, Tuple
 from pathlib import Path
-from typing import Optional, Dict, List
 import logging
 
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
     Extension, Expression, GeneDescriptor, ValueObjectDescriptor
 
+from metakb import APP_ROOT
 from metakb.transform.base import Transform
 import metakb.schemas as schemas
 
@@ -18,10 +19,13 @@ class CIViCTransform(Transform):
     """A class for transforming CIViC to the common data model."""
 
     def __init__(self,
-                 data_dir: Optional[Path] = None,
+                 data_dir: Path = APP_ROOT / "data",
+                 uri: str = "",
+                 credentials: Tuple[str, str] = ("", ""),
                  harvester_path: Optional[Path] = None) -> None:
         """Initialize CIViC Transform class."""
-        super().__init__(data_dir=data_dir, harvester_path=harvester_path)
+        super().__init__(data_dir=data_dir, uri=uri, credentials=credentials,
+                         harvester_path=harvester_path)
         # Able to normalize these IDSs
         self.valid_ids = {
             'variation_descriptors': dict(),
@@ -256,17 +260,23 @@ class CIViCTransform(Transform):
             "subject": variation_descriptor["variation_id"],
             "object_qualifier": disease_descriptor["disease_id"]
         }
-        concept_ids = [params["subject"], params["object_qualifier"]]
 
         if proposition_type == schemas.PropositionType.PREDICTIVE:
             params["object"] = therapy_descriptor["therapy_id"]
-            concept_ids += [params["object"]]
-
-        params["id"] = self._get_proposition_ID(
-            params["type"],
-            params["predicate"],
-            concept_ids
-        )
+            params["id"] = self._get_proposition_id(
+                params["type"],
+                params["predicate"],
+                params["subject"],
+                params["object_qualifier"],
+                params["object"]
+            )
+        else:
+            params["id"] = self._get_proposition_id(
+                params["type"],
+                params["predicate"],
+                params["subject"],
+                params["object_qualifier"]
+            )
 
         if proposition_type == schemas.PropositionType.PROGNOSTIC.value:
             proposition = \
@@ -761,7 +771,7 @@ class CIViCTransform(Transform):
         if label and version:
             doc_id = "https://www.nccn.org/professionals/physician_gls/default.aspx"  # noqa: E501
             doc_label = f"NCCN Guidelines: {label} version {version}"
-            db_id = self._get_document_ID([doc_id, doc_label])
+            db_id = self._get_document_id(document_id=doc_id, label=doc_label)
             documents = list()
             documents.append(schemas.Document(
                 id=db_id,
