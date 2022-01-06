@@ -16,6 +16,9 @@ class Harvester:
     def __init__(self):
         """Initialize Harvester class."""
         self.assertions = []
+        src = self.__class__.__name__.lower().split("harvest")[0]
+        self.harvest_dir = APP_ROOT / "data" / src / "harvester"
+        self.harvest_dir.mkdir(exist_ok=True, parents=True)
 
     def harvest(self):
         """
@@ -47,18 +50,17 @@ class Harvester:
         """
         composite_dict = dict()
         src = self.__class__.__name__.lower().split("harvest")[0]
-        src_dir = APP_ROOT / "data" / src / "harvester"
-        src_dir.mkdir(exist_ok=True, parents=True)
         today = dt.strftime(dt.today(), DATE_FMT)
         try:
             for item_type, item_list in items.items():
                 composite_dict[item_type] = item_list
 
-                with open(src_dir / f"{item_type}_{today}.json", "w+") as f:
+                with open(self.harvest_dir / f"{item_type}_{today}.json",
+                          "w+") as f:
                     f.write(json.dumps(item_list, indent=4))
             if filename is None:
                 filename = f"{src}_harvester_{today}.json"
-            with open(src_dir / filename, "w+") as f:
+            with open(self.harvest_dir / filename, "w+") as f:
                 json.dump(composite_dict, f, indent=4)
         except Exception as e:
             logger.error(f"Unable to create json: {e}")
