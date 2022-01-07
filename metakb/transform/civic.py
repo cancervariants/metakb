@@ -263,7 +263,7 @@ class CIViCTransform(Transform):
 
         if proposition_type == schemas.PropositionType.PREDICTIVE:
             params["object"] = therapy_descriptor["therapy_id"]
-            params["id"] = self._get_proposition_id(
+            proposition_id = self._get_proposition_id(
                 params["type"],
                 params["predicate"],
                 params["subject"],
@@ -271,12 +271,16 @@ class CIViCTransform(Transform):
                 params["object"]
             )
         else:
-            params["id"] = self._get_proposition_id(
+            proposition_id = self._get_proposition_id(
                 params["type"],
                 params["predicate"],
                 params["subject"],
                 params["object_qualifier"]
             )
+        if proposition_id is None:
+            return None
+        else:
+            params["id"] = proposition_id
 
         if proposition_type == schemas.PropositionType.PROGNOSTIC.value:
             proposition = \
