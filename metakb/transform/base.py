@@ -155,7 +155,7 @@ class Transform:
         elif num_matches == 1:
             return response[0].get("id")
         else:
-            self._get_next_node_id("Proposition")
+            return self._get_next_node_id("Proposition")
 
     def _get_document_id(self, **parameters) -> Optional[str]:
         """Retrieve stable ID for a document.

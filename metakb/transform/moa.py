@@ -186,12 +186,12 @@ class MOATransform(Transform):
         }
 
         # Get corresponding id for proposition
-        concept_ids = [params["subject"], params["object_qualifier"],
-                       params["object"]]
-        params["id"] = self._get_proposition_ID(
+        params["id"] = self._get_proposition_id(
             params["type"],
             params["predicate"],
-            concept_ids
+            variation_id=params["subject"],
+            disease_id=params["object_qualifier"],
+            therapy_id=params["object"]
         )
         proposition = schemas.TherapeuticResponseProposition(
             **params).dict(exclude_none=True)
