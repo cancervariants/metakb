@@ -48,6 +48,8 @@ class Transform:
         self.methods = list()
         self.documents = list()
 
+        self.next_node_id = {}
+
     def transform(self, *args, **kwargs) -> Dict[str, dict]:
         """Transform harvested data to the Common Data Model.
 
@@ -85,27 +87,34 @@ class Transform:
         """
         label_lower = label.lower()
 
-        def _get_highest_id(tx: Transaction) -> Optional[str]:
-            query = f"""
-            MATCH (x:{label})
-            WHERE x.id STARTS WITH "{label_lower}:"
-            RETURN x
-            ORDER BY x.id DESC
-            LIMIT 1
-            """
-            query_result = [x[0] for x in tx.run(query)]
-            if len(query_result) == 0:
-                return None
-            else:
-                return query_result[0].get("id")
+        if label_lower in self.next_node_id:
+            next_id = self.next_node_id[label_lower]
+            self.next_node_id[label_lower] += 1
 
-        with self.query_handler.driver.session() as session:
-            highest_id = session.read_transaction(_get_highest_id)
-            if highest_id is None:
-                return f"{label_lower}:1"
-            else:
-                id_number = highest_id.split(":")[-1]
-                return f"{label_lower}:{int(id_number) + 1}"
+        else:
+            def _get_highest_id(tx: Transaction) -> Optional[str]:
+                query = f"""
+                MATCH (x:{label})
+                WHERE x.id STARTS WITH "{label_lower}:"
+                RETURN x
+                ORDER BY x.id DESC
+                LIMIT 1
+                """
+                query_result = [x[0] for x in tx.run(query)]
+                if len(query_result) == 0:
+                    return None
+                else:
+                    return query_result[0].get("id")
+            with self.query_handler.driver.session() as session:
+                highest_id = session.read_transaction(_get_highest_id)
+                if highest_id is None:
+                    next_id = 1
+                    self.next_node_id[label_lower] = 2
+                else:
+                    next_id = int(highest_id.split(":")[-1]) + 1
+                    self.next_node_id[label_lower] = next_id + 1
+
+        return f"{label_lower}:{next_id}"
 
     predicate_validation = {
         PropositionType.PREDICTIVE: PredictivePredicate,
