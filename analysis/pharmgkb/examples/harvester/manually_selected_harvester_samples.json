@@ -1,0 +1,470 @@
+{
+  "clinical_annotations": {
+    "clinical_annotation_id": "981755803",
+    "variations": ["rs75527207"],
+    "genes": ["CFTR"],
+    "evidence_level": "pharmgkb:1A",
+    "score": "234.875",
+    "phenotype_categories": ["Efficacy"],
+    "drugs": ["ivacaftor"],
+    "diseases": ["Cystic Fibrosis"],
+    "level_modifiers": ["Rare Variant", "Tier 1 VIP"],
+    "specialty_population": "Pediatric"
+  },
+  "clinical_annotation_alleles": [
+    {
+      "clinical_annotation_id": "981755803",
+      "genotype_allele": "AA",
+      "description": "Patients with the rs75527207 AA genotype (two copies of the CFTR G551D variant) and cystic fibrosis may respond to ivacaftor treatment. FDA-approved drug labeling information and CPIC guidelines indicate use of ivacaftor in cystic fibrosis patients with at least one copy of a list of 33 CFTR genetic variants, including G551D. Other genetic and clinical factors may also influence response to ivacaftor.",
+      "function": ""
+    },
+    {
+      "clinical_annotation_id": "981755803",
+      "genotype_allele": "AG",
+      "description": "Patients with the rs75527207 AG genotype (one copy of the CFTR G551D variant) and cystic fibrosis may respond to ivacaftor treatment. FDA-approved drug labeling information and CPIC guidelines indicate use of ivacaftor in cystic fibrosis patients with at least one copy of a list of 33 CFTR genetic variants, including G551D. Other genetic and clinical factors may also influence response to ivacaftor.",
+      "function": ""
+    },
+    {
+      "clinical_annotation_id": "981755803",
+      "genotype_allele": "GG",
+      "description": "Patients with the rs75527207 GG genotype (do not have a copy of the CFTR G551D variant) and cystic fibrosis have an unknown response to ivacaftor treatment, as response may depend on the presence of other CFTR variants. FDA-approved drug labeling information and CPIC guidelines indicate use of ivacaftor in cystic fibrosis patients with at least one copy of a list of 33 CFTR genetic variants, including G551D. Other genetic and clinical factors may also influence response to ivacaftor.",
+      "function": ""
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "PA166114461",
+      "evidence_url": "https://www.pharmgkb.org/guidelineAnnotation/PA166114461",
+      "evidence_type": "Guideline Annotation",
+      "pmid": "",
+      "clinical_annotation_id": "981755803",
+      "description": "Annotation of CPIC Guideline for ivacaftor and CFTR",
+      "score": "100"
+    },
+    {
+      "evidence_id": "PA166104890",
+      "evidence_url": "https://www.pharmgkb.org/labelAnnotation/PA166104890",
+      "evidence_type": "Label Annotation",
+      "pmid": "",
+      "clinical_annotation_id": "981755803",
+      "description": "Annotation of FDA Label for ivacaftor and CFTR",
+      "score": "100"
+    },
+    {
+      "evidence_id": "981755665",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/981755665",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "21083385",
+      "clinical_annotation_id": "981755803",
+      "description": "Genotypes AA + AG are associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "0.25"
+    },
+    {
+      "evidence_id": "981755678",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/981755678",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "22047557",
+      "clinical_annotation_id": "981755803",
+      "description": "Genotypes AA + AG are associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "2.0"
+    },
+    {
+      "evidence_id": "982006840",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/982006840",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "23313410",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in men with Cystic Fibrosis.",
+      "score": "0.25"
+    },
+    {
+      "evidence_id": "982009991",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/982009991",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "23590265",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in children with Cystic Fibrosis.",
+      "score": "2.25"
+    },
+    {
+      "evidence_id": "1043737597",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1043737597",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "23757359",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "2.0"
+    },
+    {
+      "evidence_id": "1043737620",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1043737620",
+      "evidence_type": "Variant Functional Assay Annotation",
+      "pmid": "23757361",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with increased activity of CFTR when treated with ivacaftor in transfected CHO cells.",
+      "score": "0.0"
+    },
+    {
+      "evidence_id": "1043737636",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1043737636",
+      "evidence_type": "Variant Functional Assay Annotation",
+      "pmid": "23891399",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with activity of CFTR when treated with ivacaftor in FRT cell lines.",
+      "score": "0.0"
+    },
+    {
+      "evidence_id": "1183629335",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1183629335",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "24066763",
+      "clinical_annotation_id": "981755803",
+      "description": "Genotype AA is associated with response to ivacaftor in women with Cystic Fibrosis.",
+      "score": "0.25"
+    },
+    {
+      "evidence_id": "1448267532",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1448267532",
+      "evidence_type": "Variant Phenotype Annotation",
+      "pmid": "27745802",
+      "clinical_annotation_id": "981755803",
+      "description": "Genotypes AA + AG is associated with decreased severity of bone density when treated with ivacaftor in people with Cystic Fibrosis as compared to genotype GG.",
+      "score": "1.5"
+    },
+    {
+      "evidence_id": "1448423752",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1448423752",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "27773592",
+      "clinical_annotation_id": "981755803",
+      "description": "Genotypes AA + AG is associated with increased response to ivacaftor in people with Cystic Fibrosis as compared to genotype GG.",
+      "score": "0.875"
+    },
+    {
+      "evidence_id": "1449191908",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1449191908",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "25682022",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "0.25"
+    },
+    {
+      "evidence_id": "1449192031",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1449192031",
+      "evidence_type": "Variant Phenotype Annotation",
+      "pmid": "28651844",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with decreased likelihood of cystic fibrosis pulmonary exacerbation when treated with ivacaftor in people with Cystic Fibrosis.",
+      "score": "3.0"
+    },
+    {
+      "evidence_id": "1449192055",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1449192055",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "28711222",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "2.25"
+    },
+    {
+      "evidence_id": "1449192093",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1449192093",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "25311995",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "0.0"
+    },
+    {
+      "evidence_id": "1449192439",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1449192439",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "28611235",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "1.5"
+    },
+    {
+      "evidence_id": "1449192481",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1449192481",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "26135562",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "2.0"
+    },
+    {
+      "evidence_id": "1449192494",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1449192494",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "25171465",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in children with Cystic Fibrosis.",
+      "score": "0.25"
+    },
+    {
+      "evidence_id": "1449192576",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1449192576",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "25755212",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "2.0"
+    },
+    {
+      "evidence_id": "1449192615",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1449192615",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "26568242",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "2.5"
+    },
+    {
+      "evidence_id": "1449192709",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1449192709",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "25473543",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "0.25"
+    },
+    {
+      "evidence_id": "1449192721",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1449192721",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "25145599",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "2.5"
+    },
+    {
+      "evidence_id": "1450043422",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1450043422",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "23628510",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in children with Cystic Fibrosis.",
+      "score": "3.0"
+    },
+    {
+      "evidence_id": "1184512440",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1184512440",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "25049054",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "1.5"
+    },
+    {
+      "evidence_id": "981755746",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/981755746",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "22942289",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with increased response to ivacaftor.",
+      "score": "This annotation is not used for clinical annotation scoring."
+    },
+    {
+      "evidence_id": "981755699",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/981755699",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "19846789",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with increased response to ivacaftor.",
+      "score": "This annotation is not used for clinical annotation scoring."
+    },
+    {
+      "evidence_id": "981755787",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/981755787",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "22293084",
+      "clinical_annotation_id": "981755803",
+      "description": "Allele A is associated with increased response to ivacaftor.",
+      "score": "This annotation is not used for clinical annotation scoring."
+    },
+    {
+      "evidence_id": "1446903789",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1446903789",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "24461666",
+      "clinical_annotation_id": "981755803",
+      "description": "Genotypes AA + AG are associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "score": "2.5"
+    },
+    {
+      "evidence_id": "1448099051",
+      "evidence_url": "https://www.pharmgkb.org/variantAnnotation/1448099051",
+      "evidence_type": "Variant Drug Annotation",
+      "pmid": "27158673",
+      "clinical_annotation_id": "981755803",
+      "description": "Genotypes AA + AG are associated with increased response to ivacaftor in people with Cystic Fibrosis as compared to genotype GG.",
+      "score": "2.0"
+    }
+  ],
+  "drug_label_annotations": [
+    {
+      "druglabel_id": "PA166104890",
+      "pgx_level": "Testing required",
+      "description": "Annotation of FDA Label for ivacaftor and CFTR",
+      "source": "FDA",
+      "fda_biomarker_status": "On FDA Biomarker List",
+      "prescribing": true,
+      "prescribing_info": true,
+      "alternate_drug": true,
+      "genes": [
+        {
+          "symbol": "CFTR"
+        }
+      ],
+      "variations": [
+        {
+          "id": "rs113993958"
+        },
+        {
+          "id": "rs115545701"
+        },
+        {
+          "id": "rs11971167"
+        },
+        {
+          "id": "rs121908752"
+        },
+        {
+          "id": "rs121908753"
+        },
+        {
+          "id": "rs121908755"
+        },
+        {
+          "id": "rs121908757"
+        },
+        {
+          "id": "rs121909013"
+        },
+        {
+          "id": "rs121909020"
+        },
+        {
+          "id": "rs121909041"
+        },
+        {
+          "id": "rs141033578"
+        },
+        {
+          "id": "rs150212784"
+        },
+        {
+          "id": "rs186045772"
+        },
+        {
+          "id": "rs193922525"
+        },
+        {
+          "id": "rs200321110"
+        },
+        {
+          "id": "rs202179988"
+        },
+        {
+          "id": "rs267606723"
+        },
+        {
+          "id": "rs368505753"
+        },
+        {
+          "id": "rs397508256"
+        },
+        {
+          "id": "rs397508288"
+        },
+        {
+          "id": "rs397508387"
+        },
+        {
+          "id": "rs397508442"
+        },
+        {
+          "id": "rs397508513"
+        },
+        {
+          "id": "rs397508537"
+        },
+        {
+          "id": "rs397508761"
+        },
+        {
+          "id": "rs74503330"
+        },
+        {
+          "id": "rs74551128"
+        },
+        {
+          "id": "rs75039782"
+        },
+        {
+          "id": "rs75527207"
+        },
+        {
+          "id": "rs75541969"
+        },
+        {
+          "id": "rs76151804"
+        },
+        {
+          "id": "rs77834169"
+        },
+        {
+          "id": "rs77932196"
+        },
+        {
+          "id": "rs78655421"
+        },
+        {
+          "id": "rs78769542"
+        },
+        {
+          "id": "rs80224560"
+        },
+        {
+          "id": "rs80282562"
+        }
+      ],
+      "therapies": [
+        {
+          "label": "ivacaftor"
+        }
+      ]
+    }
+  ],
+  "variant_annotations": [
+    {
+      "variant_annotation_id": "981755665",
+      "variants": ["rs75527207"],
+      "document_pmid": "21083385",
+      "phenotype_categories": ["Efficacy"],
+      "significance": "not stated",
+      "notes": "Clinical trials were carried out to test efficacy of ivacaftor selecting only patients with the CFTR G551D mutation on at least one allele (genotype AA or AG).",
+      "description": "Genotypes AA + AG are associated with response to ivacaftor in people with Cystic Fibrosis.",
+      "genotype_allele": "AA + AG",
+      "specialty_population": "",
+      "genes": ["CFTR"],
+      "therapies": ["ivacaftor"]
+    }
+  ],
+  "variants": [
+    {
+      "variant_id": "PA166157516",
+      "location": "NC_000007.14:117587806",
+      "synonyms": "XM_011515754.1:c.1409G>A, XP_011514056.1:p.Gly470Asp, NG_056131.3:g.761G>A, NG_016465.4:g.127023G>A, NM_000492.3:c.1652G>A, XM_011515753.1:c.1409G>A, NP_000483.3:p.Gly551Asp, NC_000007.13:g.117227860=, NC_000007.14:g.117587806G>A, XM_011515752.1:c.1742G>A, XP_011514053.1:p.Gly581Asp, XP_011514055.1:p.Gly470Asp, 75527207, XM_011515751.1:c.1742G>A, XP_011514054.1:p.Gly581Asp, NC_000007.14:g.117587806=, NG_056131.1:g.130G>A, NG_016465.4:g.127023=, NC_000007.13:g.117227860G>A, rs75527207, NG_056131.1:g.130=, NP_000483.3:p.Gly551=, NG_056131.3:g.761=",
+      "name": "rs75527207",
+      "genes": [
+        {
+          "gene_id": "PA109",
+          "gene_symbol": "CFTR"
+        }
+      ]
+    }
+  ]
+}
