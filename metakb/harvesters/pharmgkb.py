@@ -3,7 +3,7 @@ import tempfile
 from pathlib import Path
 import logging
 import zipfile
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import csv
 import json
 
@@ -24,30 +24,34 @@ class PharmGKBHarvester(Harvester):
         super().__init__()
         self.src_dir = self.harvest_dir.parents[0] / "source"
 
-    def harvest(self, fn="pharmgkb_harvester.json") -> None:
+    def harvest(self, filename: Optional[str] = None):
         """Retrieve and store records from a resource. Records may be stored in
         any manner, but must be retrievable by :method:`iterate_records`.
 
+        :param Optional[str] filename: File name for composite json
         :return: `True` if operation was successful, `False` otherwise.
         :rtype: bool
         """
+        # TODO checking files
         # check for recency of data
-        file_list = [
-            "variants.tsv",
-            "clinical_annotations.tsv",
-            "clinical_ann_evidence.tsv",
-        ]
-        if not all([(self.src_dir / f).exists() for f in file_list]):
-            self._fetch_data()
+        # file_list = [
+        #     "variants.tsv",
+        #     "clinical_annotations.tsv",
+        #     "clinical_ann_evidence.tsv",
+        # ]
+        # if not all([(self.src_dir / f).exists() for f in file_list]):
+        #     self._fetch_data()
 
         complete_data = {
-            "variants": self._harvest_variants,
-            "drug_labels": self._harvest_drug_labels,
-            "clinical_annotations": self._harvest_clinical_annotations,
-            "variant_annotations": self._harvest_variant_annotations
+            "variants": self._harvest_variants(),
+            "drug_labels": self._harvest_drug_labels(),
+            "clinical_annotations": self._harvest_clinical_annotations(),
+            "variant_annotations": self._harvest_variant_annotations(),
+            # "clinical_guideline_annotations": \
+            #     self._harvest_clinical_guideline_annotations()
         }
-        with open(fn, "w") as f:
-            json.dump(complete_data, f)
+        self.create_json(complete_data, filename)
+        return True
 
     def _fetch_data(self) -> None:
         """Retrieve data from pharmgkb"""
@@ -103,40 +107,40 @@ class PharmGKBHarvester(Harvester):
         :return: Dictionary keying variant ID to complete variant object
         """
         variant_file_path = self.src_dir / "variants.tsv"
+        variants: Dict[str, Dict] = {}
         with open(variant_file_path, "r") as f:
             reader = csv.DictReader(f, delimiter="\t")
-        variants: Dict[str, Dict] = {}
-        for row in reader:
-            variant: Dict[str, Any] = {
-                "variant_id": row["Variant ID"],
-                "location": row["Location"],
-                "synonyms": row["Synonyms"]
-            }
+            for row in reader:
+                variant: Dict[str, Any] = {
+                    "variant_id": row["Variant ID"],
+                    "location": row["Location"],
+                    "synonyms": row["Synonyms"]
+                }
 
-            name = variant["Variant Name"]  # typically refSNP ID
-            if name:
-                variant["name"] = name
+                name = row["Variant Name"]  # typically refSNP ID
+                if name:
+                    variant["name"] = name
 
-            gene_ids = variant["Gene IDs"]
-            gene_symbols = variant["Gene Symbols"]
-            if gene_ids and gene_symbols:
-                if "," in gene_ids and "," in gene_symbols:
-                    gene_ids_split = gene_ids.split(",")
-                    gene_symbols_split = gene_symbols.split(",")
-                    variant["genes"] = [
-                        {
-                            "gene_id": gene_id,
-                            "gene_symbol": gene_symbol
-                        }
-                        for gene_id, gene_symbol
-                        in zip(gene_ids_split, gene_symbols_split)
-                    ]
-                else:
-                    variant["genes"] = [{
-                        "gene_id": gene_ids,
-                        "gene_symbol": gene_symbols
-                    }]
-            variants[row["Variant ID"]] = variant
+                gene_ids = row["Gene IDs"]
+                gene_symbols = row["Gene Symbols"]
+                if gene_ids and gene_symbols:
+                    if "," in gene_ids and "," in gene_symbols:
+                        gene_ids_split = gene_ids.split(",")
+                        gene_symbols_split = gene_symbols.split(",")
+                        variant["genes"] = [
+                            {
+                                "gene_id": gene_id,
+                                "gene_symbol": gene_symbol
+                            }
+                            for gene_id, gene_symbol
+                            in zip(gene_ids_split, gene_symbols_split)
+                        ]
+                    else:
+                        variant["genes"] = [{
+                            "gene_id": gene_ids,
+                            "gene_symbol": gene_symbols
+                        }]
+                variants[row["Variant ID"]] = variant
         return variants
 
     def _harvest_drug_labels(self) -> List[Dict]:
@@ -151,58 +155,58 @@ class PharmGKBHarvester(Harvester):
         :return: List of drug label annotation objects
         """
         drug_labels_file = self.src_dir / "drugLabels.tsv"
+        drug_labels = []
         with open(drug_labels_file, "r") as f:
             reader = csv.DictReader(f, delimiter="\t")
-        drug_labels = []
-        for row in reader:
-            drug_label: Dict[str, Any] = {
-                "druglabel_id": row["PharmGKB ID"],
-                "pgx_level": row["Testing Level"],
-                "description": row["Name"],
-                "source": row["Source"],
-            }
+            for row in reader:
+                drug_label: Dict[str, Any] = {
+                    "druglabel_id": row["PharmGKB ID"],
+                    "pgx_level": row["Testing Level"],
+                    "description": row["Name"],
+                    "source": row["Source"],
+                }
 
-            biomarker_flag = row.get("Biomarker Flag")
-            if biomarker_flag:
-                drug_label["fda_biomarker_status"] = biomarker_flag
+                biomarker_flag = row.get("Biomarker Flag")
+                if biomarker_flag:
+                    drug_label["fda_biomarker_status"] = biomarker_flag
 
-            if row.get("Prescribing"):
-                drug_label["prescribing"] = True
+                if row.get("Prescribing"):
+                    drug_label["prescribing"] = True
 
-            if row.get("Has Prescribing Info"):
-                drug_label["prescribing_info"] = True
+                if row.get("Has Prescribing Info"):
+                    drug_label["prescribing_info"] = True
 
-            if row.get("Has Dosing Info"):
-                drug_label["dosing_info"] = True
+                if row.get("Has Dosing Info"):
+                    drug_label["dosing_info"] = True
 
-            if row.get("Has Alternate Drug"):
-                drug_label["alternate_drug"] = True
+                if row.get("Has Alternate Drug"):
+                    drug_label["alternate_drug"] = True
 
-            if row.get("Cancer Genome"):
-                drug_label["cancer_genome"] = True
+                if row.get("Cancer Genome"):
+                    drug_label["cancer_genome"] = True
 
-            genes = row.get("Genes")
-            if genes:
-                drug_label["genes"] = [
-                    {"symbol": g} for g in genes.split("; ")
-                ]
+                genes = row.get("Genes")
+                if genes:
+                    drug_label["genes"] = [
+                        {"symbol": g} for g in genes.split("; ")
+                    ]
 
-            variations = row.get("Variants/Haplotypes")
-            if variations:
-                drug_label["variations"] = [
-                    {"id": v} for v in variations.split("; ")
-                ]
+                variations = row.get("Variants/Haplotypes")
+                if variations:
+                    drug_label["variations"] = [
+                        {"id": v} for v in variations.split("; ")
+                    ]
 
-            therapies = row.get("Chemicals")
-            if therapies:
-                drug_label["therapies"] = [
-                    {"label": t for t in therapies.split("; ")}
-                ]
+                therapies = row.get("Chemicals")
+                if therapies:
+                    drug_label["therapies"] = [
+                        {"label": t for t in therapies.split("; ")}
+                    ]
 
-            if row.get("Cancer Genome"):
-                drug_label["cancer_genome"] = True
+                if row.get("Cancer Genome"):
+                    drug_label["cancer_genome"] = True
 
-            drug_labels.append(drug_label)
+                drug_labels.append(drug_label)
         return drug_labels
 
     def _harvest_clinical_annotations(self) -> Dict[str, Any]:
@@ -224,60 +228,60 @@ class PharmGKBHarvester(Harvester):
         clinical_annotations = {}
         with open(clinann_meta_file, "r") as f:
             reader = csv.DictReader(f, delimiter="\t")
-        for row in reader:
-            annotation_id = row["Clinical Annotation ID"]
-            annotation = {
-                "clinical_annotation_id": annotation_id,
-                "variations": row["Variant/Haplotypes"].split(", "),
-                "genes": row["Gene"].split(";"),
-                "evidence_level": f"pharmgkb:{row['Level of Evidence']}",
-                "score": row["Score"],
-                "phenotype_categories": row["Phenotype Category"].split(";"),
-                "drugs": row["Drug(s)"].split(";"),
-                "diseases": row["Phenotype(s)"].split(";"),
-            }
+            for row in reader:
+                annotation_id = row["Clinical Annotation ID"]
+                annotation = {
+                    "clinical_annotation_id": annotation_id,
+                    "variations": row["Variant/Haplotypes"].split(", "),
+                    "genes": row["Gene"].split(";"),
+                    "evidence_level": f"pharmgkb:{row['Level of Evidence']}",
+                    "score": row["Score"],
+                    "phenotype_categories": row["Phenotype Category"].split(";"),  # noqa: E501
+                    "drugs": row["Drug(s)"].split(";"),
+                    "diseases": row["Phenotype(s)"].split(";"),
+                }
 
-            override = row["Level Override"]
-            if override:
-                annotation["evidence_level_override"] = override
+                override = row["Level Override"]
+                if override:
+                    annotation["evidence_level_override"] = override
 
-            modifiers = row["Level Modifiers"]
-            if modifiers:
-                annotation["level_modifiers"] = modifiers.split("; ")
+                modifiers = row["Level Modifiers"]
+                if modifiers:
+                    annotation["level_modifiers"] = modifiers.split("; ")
 
-            special_population = row["Specialty Population"]
-            if special_population:
-                annotation["specialty_population"] = special_population
+                special_population = row["Specialty Population"]
+                if special_population:
+                    annotation["specialty_population"] = special_population
 
-            clinical_annotations[annotation_id] = annotation
+                clinical_annotations[annotation_id] = annotation
 
         ev_file = self.src_dir / "clinical_ann_evidence.tsv"
+        evidence_list = []
         with open(ev_file, "r") as f:
             reader = csv.DictReader(f, delimiter="\t")
-        evidence_list = []
-        for row in reader:
-            evidence: Dict[str, Any] = {
-                "evidence_id": row["Evidence ID"],
-                "evidence_url": row["Evidence URL"],
-                "evidence_type": row["Evidence Type"],
-                "pmid": row["PMID"],
-                "clinical_annotation_id": row["Clinical Annotation ID"],
-                "description": row["Summary"],
-                "score": row["Score"],
-            }
-            evidence_list.append(evidence)
+            for row in reader:
+                evidence: Dict[str, Any] = {
+                    "evidence_id": row["Evidence ID"],
+                    "evidence_url": row["Evidence URL"],
+                    "evidence_type": row["Evidence Type"],
+                    "pmid": row["PMID"],
+                    "clinical_annotation_id": row["Clinical Annotation ID"],
+                    "description": row["Summary"],
+                    "score": row["Score"],
+                }
+                evidence_list.append(evidence)
 
         alleles_file = self.src_dir / "clinical_ann_alleles.tsv"
+        alleles = []
         with open(alleles_file, "r") as f:
             reader = csv.DictReader(f, delimiter="\t")
-        alleles = []
-        for row in reader:
-            alleles.append({
-                "clinical_annotation_id": row["Clinical Annotation ID"],
-                "genotype_allele": row["Genotype/Allele"],
-                "description": row["Annotation Text"],
-                "function": row["Allele Function"]
-            })
+            for row in reader:
+                alleles.append({
+                    "clinical_annotation_id": row["Clinical Annotation ID"],
+                    "genotype_allele": row["Genotype/Allele"],
+                    "description": row["Annotation Text"],
+                    "function": row["Allele Function"]
+                })
         return {
             "clinical_annotations": clinical_annotations,
             "evidence": evidence_list,
@@ -289,32 +293,32 @@ class PharmGKBHarvester(Harvester):
         :param Path file: path to file
         :return: List of captured annotations
         """
+        annotations = []
         with open(file, "r") as f:
             reader = csv.DictReader(f, delimiter="\t")
-        annotations = []
-        for row in reader:
-            annotation = {
-                "variant_annotation_id": row["Variant Annotation ID"],
-                "variants": row["Variant/Haplotypes"].split(", "),
-                "document_pmid": row["PMID"],
-                "phenotype_categories": self._split_comma_column(
-                    row["Phenotype Categories"]
-                ),
-                "significance": row["Significance"],
-                "notes": row["Notes"],
-                "description": row["Sentence"],
-                "genotype_allele": row["Alleles"],
-                "specialty_population": row["Specialty Population"]
-            }
-            genes = row["Gene"]
-            if genes:
-                annotation["genes"] = self._split_comma_column(row["Gene"])
-            drugs = row["Drug(s)"]
-            if drugs:
-                annotation["therapies"] = self._split_comma_column(
-                    row["Drug(s)"]
-                )
-            annotations.append(annotation)
+            for row in reader:
+                annotation = {
+                    "variant_annotation_id": row["Variant Annotation ID"],
+                    "variants": row["Variant/Haplotypes"].split(", "),
+                    "document_pmid": row["PMID"],
+                    "phenotype_categories": self._split_comma_column(
+                        row["Phenotype Category"]
+                    ),
+                    "significance": row["Significance"],
+                    "notes": row["Notes"],
+                    "description": row["Sentence"],
+                    "genotype_allele": row["Alleles"],
+                    "specialty_population": row["Specialty Population"]
+                }
+                genes = row["Gene"]
+                if genes:
+                    annotation["genes"] = self._split_comma_column(row["Gene"])
+                drugs = row["Drug(s)"]
+                if drugs:
+                    annotation["therapies"] = self._split_comma_column(
+                        row["Drug(s)"]
+                    )
+                annotations.append(annotation)
         return annotations
 
     def _harvest_variant_annotations(self) -> List[Dict]:
@@ -336,5 +340,60 @@ class PharmGKBHarvester(Harvester):
         return annotations
 
     def _harvest_clinical_guideline_annotations(self) -> List:
-        # TODO -- parsable?
-        return []
+        clinical_guideline_dir = self.src_dir / "guidelineAnnotations.json"
+        annotations = []
+        for file in [f for f in clinical_guideline_dir.iterdir()
+                     if f.suffix == ".json"]:
+            with open(file, "r") as f:
+                guideline = json.load(f)
+            # todo "crossReferences"
+            annotation = {
+                "documents": [],
+                "genes": [],
+                "summary": guideline["guideline"]["name"],
+                "annotation_id": guideline["guideline"]["id"],
+                "cancer_genome": guideline["guideline"]["cancerGenome"],
+                "pediatric": guideline["guideline"]["pediatric"],
+                "has_recommendation": guideline["guideline"]["recommendation"],
+                "source": guideline["guideline"]["source"],
+                "therapies": [
+                    {
+                        "therapy_id": t["id"],
+                        "label": t["name"]
+                    }
+                    for t in guideline["guideline"]["relatedChemicals"]
+                ]
+            }
+
+            for c in guideline["citations"]:
+                document = {
+                    "title": c["title"],
+                    "document_url": c["_sameAs"],
+                    "authors": c["authors"],
+                    "pharmgkb_id": c["id"],
+                    "journal": c["journal"],
+                    "mesh_disease_terms": c["meshDiseases"],
+                    "date": c["pubDate"],
+                    "volume": c["volume"],
+                    "year": c["year"],
+                    "page": c["page"],
+                    "summary": c["summary"]
+                }
+                for ref in document["crossReferences"]:
+                    if ref["resource"] == "PubMed":
+                        document["pmid"] = ref["resourceId"]
+                    elif ref["resource"] == "DOI":
+                        document["doi"] = ref["resourceId"]
+                annotation["documents"].append(document)
+
+            for gene in guideline["guideline"]["guidelineGenes"]:
+                pharmgkb_gene = {
+                    "gene_id": gene["id"],
+                }
+                annotation["genes"].append(pharmgkb_gene)
+                # WIP
+
+            # guidelineGenes (star alleles) vs relatedGenes?
+
+            annotations.append(annotation)
+        return annotations

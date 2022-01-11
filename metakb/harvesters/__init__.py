@@ -2,3 +2,4 @@
 from .base import Harvester
 from .civic import CIViCHarvester
 from .moa import MOAHarvester
+from .pharmgkb import PharmGKBHarvester
