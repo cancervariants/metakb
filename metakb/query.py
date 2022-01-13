@@ -15,7 +15,7 @@ from json.decoder import JSONDecodeError
 from urllib.parse import quote
 
 
-logger = logging.getLogger('metakb.query')
+logger = logging.getLogger("metakb.query")
 logger.setLevel(logging.DEBUG)
 
 
@@ -39,8 +39,8 @@ class QueryHandler:
             self.vicc_normalizers.normalize_therapy([therapy])
 
         if not normalized_therapy_id:
-            warnings.append(f'Therapy Normalizer unable to normalize: '
-                            f'{therapy}')
+            warnings.append(f"Therapy Normalizer unable to normalize: "
+                            f"{therapy}")
         return normalized_therapy_id
 
     def get_normalized_disease(self, disease: str,
@@ -55,8 +55,8 @@ class QueryHandler:
             self.vicc_normalizers.normalize_disease([disease])
 
         if not normalized_disease_id:
-            warnings.append(f'Disease Normalizer unable to normalize: '
-                            f'{disease}')
+            warnings.append(f"Disease Normalizer unable to normalize: "
+                            f"{disease}")
         return normalized_disease_id
 
     def get_normalized_variation(self, variation: str,
@@ -71,14 +71,14 @@ class QueryHandler:
             self.vicc_normalizers.normalize_variation([variation])
         normalized_variation = None
         if variant_norm_resp:
-            normalized_variation = variant_norm_resp['variation_id']
+            normalized_variation = variant_norm_resp["variation_id"]
         if not normalized_variation:
             # Check if VRS variation (allele, cnv, or haplotype)
             if variation.startswith(("ga4gh:VA.", "ga4gh:CNV.", "ga4gh:VH.")):
                 normalized_variation = variation
             else:
-                warnings.append(f'Variant Normalizer unable to normalize: '
-                                f'{variation}')
+                warnings.append(f"Variant Normalizer unable to normalize: "
+                                f"{variation}")
         return normalized_variation
 
     def get_normalized_gene(self, gene: str,
@@ -91,7 +91,7 @@ class QueryHandler:
         """
         _, normalized_gene_id = self.vicc_normalizers.normalize_gene([gene])
         if not normalized_gene_id:
-            warnings.append(f'Gene Normalizer unable to normalize: {gene}')
+            warnings.append(f"Gene Normalizer unable to normalize: {gene}")
         return normalized_gene_id
 
     def get_normalized_terms(
@@ -109,35 +109,35 @@ class QueryHandler:
         :return: A tuple containing the normalized concepts
         """
         if not (variation or disease or therapy or gene or statement_id):
-            response['warnings'].append('No parameters were entered.')
+            response["warnings"].append("No parameters were entered.")
             return None
 
         # Find normalized terms using VICC normalizers
         if therapy:
-            response['query']['therapy'] = therapy
+            response["query"]["therapy"] = therapy
             normalized_therapy = \
                 self.get_normalized_therapy(therapy.strip(),
-                                            response['warnings'])
+                                            response["warnings"])
         else:
             normalized_therapy = None
         if disease:
-            response['query']['disease'] = disease
+            response["query"]["disease"] = disease
             normalized_disease = \
                 self.get_normalized_disease(disease.strip(),
-                                            response['warnings'])
+                                            response["warnings"])
         else:
             normalized_disease = None
         if variation:
-            response['query']['variation'] = variation
+            response["query"]["variation"] = variation
             normalized_variation = \
                 self.get_normalized_variation(variation,
-                                              response['warnings'])
+                                              response["warnings"])
         else:
             normalized_variation = None
         if gene:
-            response['query']['gene'] = gene
+            response["query"]["gene"] = gene
             normalized_gene = self.get_normalized_gene(gene,
-                                                       response['warnings'])
+                                                       response["warnings"])
         else:
             normalized_gene = None
 
@@ -145,15 +145,15 @@ class QueryHandler:
         valid_statement_id = None
         statement = None
         if statement_id:
-            response['query']['statement_id'] = statement_id
+            response["query"]["statement_id"] = statement_id
             with self.driver.session() as session:
                 statement = session.read_transaction(
                     self._get_statement_by_id, statement_id
                 )
                 if statement:
-                    valid_statement_id = statement.get('id')
+                    valid_statement_id = statement.get("id")
                 else:
-                    response['warnings'].append(
+                    response["warnings"].append(
                         f"Statement: {statement_id} does not exist.")
 
         # If queried concept is given check that it is normalized / valid
@@ -184,28 +184,28 @@ class QueryHandler:
             with relationships to the queried concepts
         """
         response: Dict = {
-            'query': {
-                'variation': None,
-                'disease': None,
-                'therapy': None,
-                'gene': None,
-                'statement_id': None,
-                'detail': detail
+            "query": {
+                "variation": None,
+                "disease": None,
+                "therapy": None,
+                "gene": None,
+                "statement_id": None,
+                "detail": detail
             },
-            'warnings': [],
-            'matches': {
+            "warnings": [],
+            "matches": {
                 "statements": [],
                 "propositions": []
             },
-            'statements': [],  # All Statements
-            'propositions': [],  # All propositions
-            'variation_descriptors': [],
-            'gene_descriptors': [],
-            'therapy_descriptors': [],
-            'disease_descriptors': [],
-            'methods': [],
-            'documents': [],
-            'service_meta_': ServiceMeta().dict()
+            "statements": [],  # All Statements
+            "propositions": [],  # All propositions
+            "variation_descriptors": [],
+            "gene_descriptors": [],
+            "therapy_descriptors": [],
+            "disease_descriptors": [],
+            "methods": [],
+            "documents": [],
+            "service_meta_": ServiceMeta().dict()
         }
 
         normalized_terms = self.get_normalized_terms(
@@ -224,91 +224,91 @@ class QueryHandler:
         )
 
         if not valid_statement_id:
-            # If statement ID isn't specified, get all statements
+            # If statement ID isn"t specified, get all statements
             # related to a proposition
             statement_nodes = list()
             for p_node in proposition_nodes:
-                p_id = p_node.get('id')
-                if p_id not in response['matches']['propositions']:
-                    response['matches']['propositions'].append(p_id)
+                p_id = p_node.get("id")
+                if p_id not in response["matches"]["propositions"]:
+                    response["matches"]["propositions"].append(p_id)
                 statements = session.read_transaction(
                     self._get_statements_from_proposition, p_id
                 )
                 for s in statements:
                     statement_nodes.append(s)
-                    s_id = s.get('id')
-                    if s_id not in response['matches']['statements']:
-                        response['matches']['statements'].append(s_id)
+                    s_id = s.get("id")
+                    if s_id not in response["matches"]["statements"]:
+                        response["matches"]["statements"].append(s_id)
         else:
             # Given Statement ID
             statement_nodes = [statement]
-            s_id = statement.get('id')
-            response['matches']['statements'].append(s_id)
+            s_id = statement.get("id")
+            response["matches"]["statements"].append(s_id)
 
             for p in proposition_nodes:
-                p_id = p.get('id')
-                if p_id not in response['matches']['propositions']:
-                    response['matches']['propositions'].append(p_id)
+                p_id = p.get("id")
+                if p_id not in response["matches"]["propositions"]:
+                    response["matches"]["propositions"].append(p_id)
 
         # Add statements found in `supported_by` to statement_nodes
         # Then add the associated proposition to proposition_nodes
         for s in statement_nodes:
             self.add_proposition_and_statement_nodes(
-                session, s.get('id'), proposition_nodes, statement_nodes
+                session, s.get("id"), proposition_nodes, statement_nodes
             )
 
         if proposition_nodes and statement_nodes:
-            response['statements'] = \
+            response["statements"] = \
                 self.get_statement_response(statement_nodes)
-            response['propositions'] = \
+            response["propositions"] = \
                 self.get_propositions_response(proposition_nodes)
         else:
-            response['warnings'].append('Could not find statements '
-                                        'associated with the queried'
-                                        ' concepts.')
+            response["warnings"].append("Could not find statements "
+                                        "associated with the queried"
+                                        " concepts.")
 
         if detail:
-            for s in response['statements']:
-                response['variation_descriptors'].append(
-                    self._get_variation_descriptor(
-                        response,
-                        session.read_transaction(
-                            self._find_node_by_id,
-                            s['variation_descriptor']
-                        )
+            for s in response["statements"]:
+                vd = self._get_variation_descriptor(
+                    response,
+                    session.read_transaction(
+                        self._find_node_by_id,
+                        s["variation_descriptor"]
                     )
                 )
-                if 'therapy_descriptor' in s.keys():
-                    response['therapy_descriptors'].append(
-                        self._get_therapy_descriptor(
-                            session.read_transaction(
-                                self._find_node_by_id, s['therapy_descriptor']
-                            )
+                if vd not in response["variation_descriptors"]:
+                    response["variation_descriptors"].append(vd)
+                if "therapy_descriptor" in s.keys():
+                    td = self._get_therapy_descriptor(
+                        session.read_transaction(
+                            self._find_node_by_id, s["therapy_descriptor"]
                         )
                     )
+                    if td not in response["therapy_descriptors"]:
+                        response["therapy_descriptors"].append(td)
                 else:
-                    response['therapy_descriptors'] = []
+                    response["therapy_descriptors"] = []
 
-                response['disease_descriptors'].append(
-                    self._get_disease_descriptor(
-                        session.read_transaction(
-                            self._find_node_by_id, s['disease_descriptor']
-                        )
+                dd = self._get_disease_descriptor(
+                    session.read_transaction(
+                        self._find_node_by_id, s["disease_descriptor"]
                     )
                 )
+                if dd not in response["disease_descriptors"]:
+                    response["disease_descriptors"].append(dd)
 
-                response['methods'].append(
-                    self._get_method(
-                        session.read_transaction(
-                            self._find_node_by_id, s['method']
-                        )
+                m = self._get_method(
+                    session.read_transaction(
+                        self._find_node_by_id, s["method"]
                     )
                 )
+                if m not in response["methods"]:
+                    response["methods"].append(m)
 
                 # Sometimes CIViC AIDs have supported by statements
-                # that we aren't able to transform
+                # that we aren"t able to transform
                 sb_not_found = set()
-                for sb_id in s['supported_by']:
+                for sb_id in s["supported_by"]:
                     try:
                         document = self._get_document(
                             session.read_transaction(
@@ -316,21 +316,22 @@ class QueryHandler:
                             )
                         )
                         if document:
-                            response['documents'].append(document)
+                            if document not in response["documents"]:
+                                response["documents"].append(document)
                     except ValueError:
                         sb_not_found.add(sb_id)
                 if sb_not_found:
-                    response['warnings'].append(f"Supported by evidence not "
+                    response["warnings"].append(f"Supported by evidence not "
                                                 f"yet  supported in MetaKB: "
                                                 f"{sb_not_found} for "
                                                 f"{s['id']}")
         else:
-            response['variation_descriptors'] = None
-            response['gene_descriptors'] = None
-            response['disease_descriptors'] = None
-            response['therapy_descriptors'] = None
-            response['methods'] = None
-            response['documents'] = None
+            response["variation_descriptors"] = None
+            response["gene_descriptors"] = None
+            response["disease_descriptors"] = None
+            response["therapy_descriptors"] = None
+            response["methods"] = None
+            response["documents"] = None
 
         session.close()
         return SearchService(**response).dict(by_alias=True, exclude_none=True)
@@ -338,23 +339,23 @@ class QueryHandler:
     def search_by_id(self, node_id: str) -> Dict:
         """Get node information given id query
 
-        :param str node_id: Node's ID query
+        :param str node_id: Node"s ID query
         :return: A dictionary containing the node content
         """
         valid_node_id = None
         response = {
-            'query': node_id,
-            'warnings': [],
-            'service_meta_': ServiceMeta().dict()
+            "query": node_id,
+            "warnings": [],
+            "service_meta_": ServiceMeta().dict()
         }
 
         if not node_id:
-            response['warnings'].append("No parameters were entered.")
-        elif node_id.strip() == '':
-            response['warnings'].append("Cannot enter empty string.")
+            response["warnings"].append("No parameters were entered.")
+        elif node_id.strip() == "":
+            response["warnings"].append("Cannot enter empty string.")
         else:
             node_id = node_id.strip()
-            if '%' not in node_id and ':' in node_id:
+            if "%" not in node_id and ":" in node_id:
                 concept_name = quote(node_id.split(":", 1)[1])
                 node_id = \
                     f"{node_id.split(':', 1)[0]}" \
@@ -364,41 +365,41 @@ class QueryHandler:
                     self._find_node_by_id, node_id
                 )
                 if node:
-                    valid_node_id = node.get('id')
+                    valid_node_id = node.get("id")
                 else:
-                    response['warnings'].append(f"Node: {node_id} "
+                    response["warnings"].append(f"Node: {node_id} "
                                                 f"does not exist.")
         if (not node_id and not valid_node_id) or \
                 (node_id and not valid_node_id):
             return SearchIDService(**response).dict(exclude_none=True)
 
         label, *_ = node.labels
-        if label == 'Statement':
+        if label == "Statement":
             statement = self._get_statement(node)
             if statement:
                 response["statement"] = statement
-        elif label in ['Proposition', 'TherapeuticResponse',
-                       'Prognostic', 'Diagnostic']:
+        elif label in ["Proposition", "TherapeuticResponse",
+                       "Prognostic", "Diagnostic"]:
             proposition = self._get_proposition(node)
             if proposition:
                 response["proposition"] = proposition
-        elif label == 'VariationDescriptor':
-            response['variation_descriptor'] = \
+        elif label == "VariationDescriptor":
+            response["variation_descriptor"] = \
                 self._get_variation_descriptor(response, node)
-        elif label == 'TherapyDescriptor':
-            response['therapy_descriptor'] = \
+        elif label == "TherapyDescriptor":
+            response["therapy_descriptor"] = \
                 self._get_therapy_descriptor(node)
-        elif label == 'DiseaseDescriptor':
-            response['disease_descriptor'] = self._get_disease_descriptor(node)
-        elif label == 'GeneDescriptor':
-            response['gene_descriptor'] = \
+        elif label == "DiseaseDescriptor":
+            response["disease_descriptor"] = self._get_disease_descriptor(node)
+        elif label == "GeneDescriptor":
+            response["gene_descriptor"] = \
                 self._get_gene_descriptor(node, self._get_gene_value_object(node))  # noqa: E501
-        elif label == 'Document':
+        elif label == "Document":
             document = self._get_document(node)
             if document:
-                response['document'] = document
-        elif label == 'Method':
-            response['method'] = self._get_method(node)
+                response["document"] = document
+        elif label == "Method":
+            response["method"] = self._get_method(node)
 
         session.close()
         return SearchIDService(**response).dict(
@@ -420,20 +421,20 @@ class QueryHandler:
             propositions, descriptors, methods, and supported by documents
         """
         response: Dict = {
-            'query': {
-                'variation': None,
-                'disease': None,
-                'therapy': None,
-                'gene': None,
-                'statement_id': None
+            "query": {
+                "variation": None,
+                "disease": None,
+                "therapy": None,
+                "gene": None,
+                "statement_id": None
             },
-            'warnings': [],
-            'matches': {
+            "warnings": [],
+            "matches": {
                 "statements": [],
                 "propositions": []
             },
-            'statements': [],
-            'service_meta_': ServiceMeta().dict()
+            "statements": [],
+            "service_meta_": ServiceMeta().dict()
         }
 
         normalized_terms = self.get_normalized_terms(
@@ -454,32 +455,32 @@ class QueryHandler:
 
         proposition_cache = dict()
         if not valid_statement_id:
-            # If statement ID isn't specified, get all statements
+            # If statement ID isn"t specified, get all statements
             # related to a proposition
             for p_node in proposition_nodes:
-                p_id = p_node.get('id')
-                if p_id not in response['matches']['propositions']:
-                    response['matches']['propositions'].append(p_id)
+                p_id = p_node.get("id")
+                if p_id not in response["matches"]["propositions"]:
+                    response["matches"]["propositions"].append(p_id)
                 self._add_to_proposition_cache(
                     session, p_node, proposition_cache)
                 statements = session.read_transaction(
-                    self._get_statements_from_proposition, p_node.get('id')
+                    self._get_statements_from_proposition, p_node.get("id")
                 )
                 for s in statements:
                     statement_nodes.append(s)
-                    s_id = s.get('id')
-                    if s_id not in response['matches']['statements']:
-                        response['matches']['statements'].append(s_id)
+                    s_id = s.get("id")
+                    if s_id not in response["matches"]["statements"]:
+                        response["matches"]["statements"].append(s_id)
         else:
             # Given Statement ID
             statement_nodes.append(statement)
-            s_id = statement.get('id')
+            s_id = statement.get("id")
             p_node = proposition_nodes[0]
-            p_id = p_node.get('id')
-            if s_id not in response['matches']['statements']:
-                response['matches']['statements'].append(statement_id)
-            if p_id not in response['matches']['propositions']:
-                response['matches']['propositions'].append(p_id)
+            p_id = p_node.get("id")
+            if s_id not in response["matches"]["statements"]:
+                response["matches"]["statements"].append(statement_id)
+            if p_id not in response["matches"]["propositions"]:
+                response["matches"]["propositions"].append(p_id)
             self._add_to_proposition_cache(session, p_node, proposition_cache)
 
         # Add statements found in `supported_by` to statement_nodes
@@ -487,7 +488,7 @@ class QueryHandler:
         og_prop_nodes_len = len(proposition_nodes)
         for s in statement_nodes:
             self.add_proposition_and_statement_nodes(
-                session, s.get('id'), proposition_nodes, statement_nodes
+                session, s.get("id"), proposition_nodes, statement_nodes
             )
 
             if og_prop_nodes_len != len(proposition_nodes):
@@ -503,24 +504,24 @@ class QueryHandler:
         added_statements = set()
 
         for s in statement_nodes:
-            s_id = s.get('id')
+            s_id = s.get("id")
             if s_id in added_statements:
                 continue
 
             statement_resp = session.read_transaction(
                 self._find_and_return_statement_response, s_id
             )
-            p_id = statement_resp.get('p_id')
+            p_id = statement_resp.get("p_id")
             proposition = proposition_cache[p_id]
 
-            method_id = statement_resp['m']['id']
+            method_id = statement_resp["m"]["id"]
             if method_id in methods_cache:
                 method = methods_cache[method_id]
             else:
-                method = self.search_by_id(method_id)['method']
+                method = self.search_by_id(method_id)["method"]
                 methods_cache[method_id] = method
 
-            variation_id = statement_resp['vid']
+            variation_id = statement_resp["vid"]
             if variation_id in variations_cache:
                 variation_descr = variations_cache[variation_id]
             else:
@@ -533,7 +534,7 @@ class QueryHandler:
                 variations_cache[variation_id] = variation_descr
 
             if proposition.type == PropositionType.PREDICTIVE:
-                therapy_id = statement_resp.get('tid')
+                therapy_id = statement_resp.get("tid")
                 if therapy_id in therapy_cache:
                     therapy_descr = therapy_cache[therapy_id]
                 else:
@@ -545,7 +546,7 @@ class QueryHandler:
             else:
                 therapy_descr = None
 
-            disease_id = statement_resp.get('did')
+            disease_id = statement_resp.get("did")
             if disease_id in disease_cache:
                 disease_descr = disease_cache[disease_id]
             else:
@@ -561,7 +562,7 @@ class QueryHandler:
                 self._find_and_return_supported_by, s_id
             )
             for sb in sb_list:
-                sb_id = sb.get('id')
+                sb_id = sb.get("id")
                 try:
                     if sb_id in document_cache:
                         document = document_cache[sb_id]
@@ -576,30 +577,30 @@ class QueryHandler:
                         supported_by.append(document)
                         document_cache[sb_id] = document
                     else:
-                        if sb_id.startswith('civic.eid'):
+                        if sb_id.startswith("civic.eid"):
                             supported_by.append(sb_id)
                 except ValueError:
                     sb_not_found.add(sb_id)
             if sb_not_found:
-                response['warnings'].append(f"Supported by evidence not "
+                response["warnings"].append(f"Supported by evidence not "
                                             f"yet  supported in MetaKB: "
                                             f"{sb_not_found} for "
                                             f"{s['id']}")
 
             params = {
-                'id': s_id,
-                'description': s.get('description'),
-                'direction': s.get('direction'),
-                'evidence_level': s.get('evidence_level'),
-                'variation_origin': s.get('variation_origin'),
-                'proposition': proposition,
-                'variation_descriptor': variation_descr,
-                'therapy_descriptor': therapy_descr,
-                'disease_descriptor': disease_descr,
-                'method': method,
-                'supported_by': supported_by
+                "id": s_id,
+                "description": s.get("description"),
+                "direction": s.get("direction"),
+                "evidence_level": s.get("evidence_level"),
+                "variation_origin": s.get("variation_origin"),
+                "proposition": proposition,
+                "variation_descriptor": variation_descr,
+                "therapy_descriptor": therapy_descr,
+                "disease_descriptor": disease_descr,
+                "method": method,
+                "supported_by": supported_by
             }
-            response['statements'].append(
+            response["statements"].append(
                 NestedStatementResponse(**params).dict())
             added_statements.add(s_id)
         session.close()
@@ -614,22 +615,22 @@ class QueryHandler:
         :param p_node: Proposition Node
         :param Dict proposition_cache: Proposition lookup dictionary
         """
-        p_id = p_node.get('id')
+        p_id = p_node.get("id")
         if p_id not in proposition_cache:
             proposition_resp = session.read_transaction(
                 self._find_and_return_proposition_response,
                 p_id
             )
-            proposition_type = p_node.get('type')
+            proposition_type = p_node.get("type")
             proposition = {
-                'id': p_id,
-                'type': proposition_type,
-                'predicate': p_node.get('predicate'),
-                'subject': proposition_resp['subject'],
-                'object_qualifier': proposition_resp['object_qualifier']
+                "id": p_id,
+                "type": proposition_type,
+                "predicate": p_node.get("predicate"),
+                "subject": proposition_resp["subject"],
+                "object_qualifier": proposition_resp["object_qualifier"]
             }
             if proposition_type == PropositionType.PREDICTIVE:
-                proposition['object'] = proposition_resp['object']
+                proposition["object"] = proposition_resp["object"]
                 proposition = \
                     TherapeuticResponseProposition(**proposition)
             elif proposition_type == PropositionType.PROGNOSTIC:
@@ -650,34 +651,34 @@ class QueryHandler:
         :param Dict response: Query response object
         :param variation_descriptor: Variation Descriptor Node
         :param bool gene_context_by_id: `True` if gene_context field will be
-            a CURIE that reference's a gene descriptor. `False` if gene_context
+            a CURIE that reference"s a gene descriptor. `False` if gene_context
             field will be a gene descriptor
         :return: Variation descriptor
         """
         keys = variation_descriptor.keys()
-        vid = variation_descriptor.get('id')
+        vid = variation_descriptor.get("id")
         vd_params = {
-            'id': vid,
-            'label': variation_descriptor.get('label'),
-            'description': variation_descriptor.get('description'),
-            'variation_id': None,
-            'variation': None,
-            'gene_context': None,
-            'molecule_context': variation_descriptor.get('molecule_context'),
-            'structural_type': variation_descriptor.get('structural_type'),
-            'vrs_ref_allele_seq': variation_descriptor.get('vrs_ref_allele_seq'),  # noqa: E501
-            'expressions': [],
-            'xrefs': variation_descriptor.get('xrefs'),
-            'alternate_labels': variation_descriptor.get('alternate_labels'),
-            'extensions': []
+            "id": vid,
+            "label": variation_descriptor.get("label"),
+            "description": variation_descriptor.get("description"),
+            "variation_id": None,
+            "variation": None,
+            "gene_context": None,
+            "molecule_context": variation_descriptor.get("molecule_context"),
+            "structural_type": variation_descriptor.get("structural_type"),
+            "vrs_ref_allele_seq": variation_descriptor.get("vrs_ref_allele_seq"),  # noqa: E501
+            "expressions": [],
+            "xrefs": variation_descriptor.get("xrefs"),
+            "alternate_labels": variation_descriptor.get("alternate_labels"),
+            "extensions": []
         }
 
         # Get Gene Descriptor / gene context
         with self.driver.session() as session:
             gene_descriptor = session.read_transaction(
-                self._get_variation_descriptors_gene, vd_params['id']
+                self._get_variation_descriptors_gene, vd_params["id"]
             )
-            gene_descriptor_id = gene_descriptor.get('id')
+            gene_descriptor_id = gene_descriptor.get("id")
 
             gene_value_object = session.read_transaction(
                 self._find_descriptor_value_object,
@@ -688,35 +689,35 @@ class QueryHandler:
 
             if gene_context_by_id:
                 # Reference gene descriptor by id
-                vd_params['gene_context'] = gene_descriptor_id
+                vd_params["gene_context"] = gene_descriptor_id
             else:
                 # gene context will be gene descriptor
-                vd_params['gene_context'] = gene_context
+                vd_params["gene_context"] = gene_context
 
-            if 'gene_descriptors' in response and\
-                    gene_descriptor_id not in response['gene_descriptors']:
-                response['gene_descriptors'].append(gene_context)
+            if "gene_descriptors" in response and\
+                    gene_descriptor_id not in response["gene_descriptors"]:
+                response["gene_descriptors"].append(gene_context)
 
         # Get Variation Descriptor Expressions
-        for key in ['expressions_genomic', 'expressions_protein',
-                    'expressions_transcript']:
+        for key in ["expressions_genomic", "expressions_protein",
+                    "expressions_transcript"]:
             if key in keys:
                 for value in variation_descriptor.get(key):
-                    vd_params['expressions'].append(
+                    vd_params["expressions"].append(
                         Expression(
                             syntax=f"hgvs:{key.split('_')[-1]}",
                             value=value
                         ).dict()
                     )
-        if not vd_params['expressions']:
-            del vd_params['expressions']
+        if not vd_params["expressions"]:
+            del vd_params["expressions"]
 
         # Get Variation Descriptor Extensions
-        if vd_params['id'].startswith('civic.vid'):
-            for field in ['civic_representative_coordinate',
-                          'civic_actionability_score']:
+        if vd_params["id"].startswith("civic.vid"):
+            for field in ["civic_representative_coordinate",
+                          "civic_actionability_score"]:
                 if field in keys:
-                    vd_params['extensions'].append(
+                    vd_params["extensions"].append(
                         Extension(
                             name=field,
                             value=json.loads(variation_descriptor.get(field))
@@ -729,22 +730,22 @@ class QueryHandler:
                 if variant_group:
                     variant_group = variant_group[0]
                     vg = Extension(
-                        name='variant_group',
+                        name="variant_group",
                         value=[{
-                            'id': variant_group.get('id'),
-                            'label': variant_group.get('label'),
-                            'description': variant_group.get('description'),
-                            'type': 'variant_group'
+                            "id": variant_group.get("id"),
+                            "label": variant_group.get("label"),
+                            "description": variant_group.get("description"),
+                            "type": "variant_group"
                         }]
                     ).dict()
-                    for v in vg['value']:
-                        if not v['description']:
-                            del v['description']
-                    vd_params['extensions'].append(vg)
-        elif vd_params['id'].startswith('moa.variant'):
-            for field in ['moa_representative_coordinate', 'moa_rsid']:
+                    for v in vg["value"]:
+                        if not v["description"]:
+                            del v["description"]
+                    vd_params["extensions"].append(vg)
+        elif vd_params["id"].startswith("moa.variant"):
+            for field in ["moa_representative_coordinate", "moa_rsid"]:
                 if field in keys:
-                    vd_params['extensions'].append(
+                    vd_params["extensions"].append(
                         Extension(
                             name=field,
                             value=json.loads(variation_descriptor.get(field))
@@ -753,15 +754,15 @@ class QueryHandler:
 
         with self.driver.session() as session:
             value_object = session.read_transaction(
-                self._find_descriptor_value_object, vd_params['id']
+                self._find_descriptor_value_object, vd_params["id"]
             )
-            vd_params['variation_id'] = value_object.get('id')
-            vd_params['variation'] = json.loads(value_object['variation'])
+            vd_params["variation_id"] = value_object.get("id")
+            vd_params["variation"] = json.loads(value_object["variation"])
         return VariationDescriptor(**vd_params)
 
     @staticmethod
     def _get_variation_group(tx, vid):
-        """Get a variation descriptor's variation group."""
+        """Get a variation descriptor"s variation group."""
         query = (
             "MATCH (vd:VariationDescriptor)-[:IN_VARIATION_GROUP]->(vg:VariationGroup) "  # noqa: E501
             f"WHERE toLower(vd.id) = toLower('{vid}') "
@@ -771,7 +772,7 @@ class QueryHandler:
 
     @staticmethod
     def _get_variation_descriptors_gene(tx, vid):
-        """Get a Variation Descriptor's Gene Descriptor."""
+        """Get a Variation Descriptor"s Gene Descriptor."""
         query = (
             "MATCH (vd:VariationDescriptor)-[:HAS_GENE]->(gd:GeneDescriptor) "
             f"WHERE toLower(vd.id) = toLower('{vid}') "
@@ -787,13 +788,13 @@ class QueryHandler:
         :param Node gene_value_object: Gene Node
         """
         gd_params = {
-            'id': gene_descriptor.get('id'),
-            'type': 'GeneDescriptor',
-            'label': gene_descriptor.get('label'),
-            'description': gene_descriptor.get('description'),
-            'gene_id': gene_value_object.get('id'),
-            'alternate_labels': gene_descriptor.get('alternate_labels'),
-            'xrefs': gene_descriptor.get('xrefs')
+            "id": gene_descriptor.get("id"),
+            "type": "GeneDescriptor",
+            "label": gene_descriptor.get("label"),
+            "description": gene_descriptor.get("description"),
+            "gene_id": gene_value_object.get("id"),
+            "alternate_labels": gene_descriptor.get("alternate_labels"),
+            "xrefs": gene_descriptor.get("xrefs")
         }
 
         return GeneDescriptor(**gd_params)
@@ -806,19 +807,19 @@ class QueryHandler:
         :return: Value Object Descriptor for therapy
         """
         td_params = {
-            'id': therapy_descriptor.get('id'),
-            'type': 'TherapyDescriptor',
-            'label': therapy_descriptor.get('label'),
-            'therapy_id': None,
-            'alternate_labels': therapy_descriptor.get('alternate_labels'),
-            'xrefs': therapy_descriptor.get('xrefs')
+            "id": therapy_descriptor.get("id"),
+            "type": "TherapyDescriptor",
+            "label": therapy_descriptor.get("label"),
+            "therapy_id": None,
+            "alternate_labels": therapy_descriptor.get("alternate_labels"),
+            "xrefs": therapy_descriptor.get("xrefs")
         }
 
         with self.driver.session() as session:
             value_object = session.read_transaction(
-                self._find_descriptor_value_object, td_params['id']
+                self._find_descriptor_value_object, td_params["id"]
             )
-            td_params['therapy_id'] = value_object.get('id')
+            td_params["therapy_id"] = value_object.get("id")
 
         return ValueObjectDescriptor(**td_params)
 
@@ -830,18 +831,18 @@ class QueryHandler:
         :return: Value Object Descriptor for disease
         """
         dd_params = {
-            'id': disease_descriptor.get('id'),
-            'type': 'DiseaseDescriptor',
-            'label': disease_descriptor.get('label'),
-            'disease_id': None,
-            'xrefs': disease_descriptor.get('xrefs')
+            "id": disease_descriptor.get("id"),
+            "type": "DiseaseDescriptor",
+            "label": disease_descriptor.get("label"),
+            "disease_id": None,
+            "xrefs": disease_descriptor.get("xrefs")
         }
 
         with self.driver.session() as session:
             value_object = session.read_transaction(
-                self._find_descriptor_value_object, dd_params['id']
+                self._find_descriptor_value_object, dd_params["id"]
             )
-            dd_params['disease_id'] = value_object.get('id')
+            dd_params["disease_id"] = value_object.get("id")
 
         return ValueObjectDescriptor(**dd_params)
 
@@ -869,7 +870,7 @@ class QueryHandler:
         :return: Document if node has type `Document`
         """
         label, *_ = document.labels
-        if label != 'Document':
+        if label != "Document":
             return None
 
         params = dict()
@@ -889,7 +890,7 @@ class QueryHandler:
 
     @staticmethod
     def _find_descriptor_value_object(tx, descriptor_id):
-        """Find a Descriptor's value object."""
+        """Find a Descriptor"s value object."""
         query = (
             "MATCH (d)-[:DESCRIBES]->(v)"
             f"WHERE toLower(d.id) = toLower('{descriptor_id}') "
@@ -917,7 +918,7 @@ class QueryHandler:
                 statement_nodes.append(s)
                 proposition = session.read_transaction(
                     self._find_and_return_propositions_from_statement,
-                    s.get('id')
+                    s.get("id")
                 )
                 if proposition and proposition \
                         not in proposition_nodes:
@@ -948,7 +949,7 @@ class QueryHandler:
         if normalized_variation:
             lower_normalized_variation = normalized_variation.lower()
             query += "MATCH (p:Proposition)<-[:IS_SUBJECT_OF]-(a:Allele "
-            if lower_normalized_variation.startswith('ga4gh:sq.'):
+            if lower_normalized_variation.startswith("ga4gh:sq."):
                 # Sequence ID
                 query += "{location_sequence_id: $v_id}) "
             else:
@@ -1089,7 +1090,7 @@ class QueryHandler:
         """
         with self.driver.session() as session:
             gene_value_object = session.read_transaction(
-                self._find_descriptor_value_object, node.get('id')
+                self._find_descriptor_value_object, node.get("id")
             )
         return gene_value_object
 
@@ -1100,8 +1101,8 @@ class QueryHandler:
         :return: A proposition
         """
         with self.driver.session() as session:
-            p_id = p.get('id')
-            p_type = p.get('type')
+            p_id = p.get("id")
+            p_type = p.get("type")
             proposition = None
             value_ids = session.read_transaction(
                 self._find_and_return_proposition_response, p_id
@@ -1129,7 +1130,7 @@ class QueryHandler:
         :param Node s: Statement Node
         """
         with self.driver.session() as session:
-            statement_id = s.get('id')
+            statement_id = s.get("id")
             response = session.read_transaction(
                 self._find_and_return_statement_response, statement_id)
             se_list = session.read_transaction(
@@ -1137,15 +1138,15 @@ class QueryHandler:
 
             statement = StatementResponse(
                 id=statement_id,
-                description=s.get('description'),
-                direction=s.get('direction'),
-                evidence_level=s.get('evidence_level'),
-                variation_origin=s.get('variation_origin'),
-                proposition=response['p_id'],
-                variation_descriptor=response['vid'],
-                therapy_descriptor=response['tid'] if 'tid' in response.keys() else None,  # noqa: E501
-                disease_descriptor=response['did'],
-                method=response['m']['id'],
-                supported_by=[se['id'] for se in se_list]
+                description=s.get("description"),
+                direction=s.get("direction"),
+                evidence_level=s.get("evidence_level"),
+                variation_origin=s.get("variation_origin"),
+                proposition=response["p_id"],
+                variation_descriptor=response["vid"],
+                therapy_descriptor=response["tid"] if "tid" in response.keys() else None,  # noqa: E501
+                disease_descriptor=response["did"],
+                method=response["m"]["id"],
+                supported_by=[se["id"] for se in se_list]
             ).dict(exclude_none=True)
             return statement
