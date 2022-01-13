@@ -5,17 +5,18 @@ from metakb import PROJECT_ROOT
 import json
 
 
-TRANSFORMED_FILE = f"{PROJECT_ROOT}/tests/data/transform/moa_cdm.json"
+DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform"
+FILENAME = "moa_cdm.json"
 
 
 @pytest.fixture(scope='module')
 def data():
     """Create a MOA Transform test fixture."""
-    moa = MOATransform(file_path=f"{PROJECT_ROOT}/tests/data/"
-                                 f"transform/moa_harvester.json")
+    harvester_path = DATA_DIR / "moa_harvester.json"
+    moa = MOATransform(data_dir=DATA_DIR, harvester_path=harvester_path)
     moa.transform()
-    moa._create_json(moa_dir=PROJECT_ROOT / 'tests' / 'data' / 'transform')
-    with open(TRANSFORMED_FILE, 'r') as f:
+    moa._create_json(transform_dir=DATA_DIR, filename=FILENAME)
+    with open(DATA_DIR / FILENAME, "r") as f:
         data = json.load(f)
     return data
 
@@ -82,5 +83,5 @@ def test_moa_cdm(data, asst71_statements, asst71_propositions,
         asst71_disease_descriptors, asst71_therapy_descriptors, asst71_methods,
         asst71_documents, check_statement, check_proposition,
         check_variation_descriptor, check_descriptor, check_document,
-        check_method, TRANSFORMED_FILE
+        check_method, DATA_DIR / FILENAME
     )
