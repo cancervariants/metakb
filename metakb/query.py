@@ -224,7 +224,7 @@ class QueryHandler:
         )
 
         if not valid_statement_id:
-            # If statement ID isn"t specified, get all statements
+            # If statement ID isn't specified, get all statements
             # related to a proposition
             statement_nodes = list()
             for p_node in proposition_nodes:
@@ -306,7 +306,7 @@ class QueryHandler:
                     response["methods"].append(m)
 
                 # Sometimes CIViC AIDs have supported by statements
-                # that we aren"t able to transform
+                # that we aren't able to transform
                 sb_not_found = set()
                 for sb_id in s["supported_by"]:
                     try:
@@ -339,7 +339,7 @@ class QueryHandler:
     def search_by_id(self, node_id: str) -> Dict:
         """Get node information given id query
 
-        :param str node_id: Node"s ID query
+        :param str node_id: Node's ID query
         :return: A dictionary containing the node content
         """
         valid_node_id = None
@@ -651,7 +651,7 @@ class QueryHandler:
         :param Dict response: Query response object
         :param variation_descriptor: Variation Descriptor Node
         :param bool gene_context_by_id: `True` if gene_context field will be
-            a CURIE that reference"s a gene descriptor. `False` if gene_context
+            a CURIE that reference's a gene descriptor. `False` if gene_context
             field will be a gene descriptor
         :return: Variation descriptor
         """
@@ -762,7 +762,7 @@ class QueryHandler:
 
     @staticmethod
     def _get_variation_group(tx, vid):
-        """Get a variation descriptor"s variation group."""
+        """Get a variation descriptor's variation group."""
         query = (
             "MATCH (vd:VariationDescriptor)-[:IN_VARIATION_GROUP]->(vg:VariationGroup) "  # noqa: E501
             f"WHERE toLower(vd.id) = toLower('{vid}') "
@@ -772,7 +772,7 @@ class QueryHandler:
 
     @staticmethod
     def _get_variation_descriptors_gene(tx, vid):
-        """Get a Variation Descriptor"s Gene Descriptor."""
+        """Get a Variation Descriptor's Gene Descriptor."""
         query = (
             "MATCH (vd:VariationDescriptor)-[:HAS_GENE]->(gd:GeneDescriptor) "
             f"WHERE toLower(vd.id) = toLower('{vid}') "
@@ -890,7 +890,7 @@ class QueryHandler:
 
     @staticmethod
     def _find_descriptor_value_object(tx, descriptor_id):
-        """Find a Descriptor"s value object."""
+        """Find a Descriptor's value object."""
         query = (
             "MATCH (d)-[:DESCRIBES]->(v)"
             f"WHERE toLower(d.id) = toLower('{descriptor_id}') "
