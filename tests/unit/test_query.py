@@ -155,7 +155,7 @@ def assert_general_search_queries(response):
 
 def test_search_id(query_handler):
     """Test that search id method works correctly."""
-    resp = query_handler.search_by_id('proposition:001')
+    resp = query_handler.search_by_id('proposition:1')
     assert resp['proposition']
     assert not resp['warnings']
     assert query_handler.search_by_id('proposition:1')['warnings']
@@ -482,7 +482,7 @@ def test_civic_detail_flag_therapeutic(query_handler,
                                        civic_eid2997_statement,
                                        civic_eid2997_proposition, civic_vid33,
                                        civic_gid19, civic_did8,
-                                       method001, pmid_23982599,
+                                       method1, pmid_23982599,
                                        civic_tid146, check_statement,
                                        check_proposition,
                                        check_variation_descriptor,
@@ -499,7 +499,7 @@ def test_civic_detail_flag_therapeutic(query_handler,
     assert_response_items(response, civic_eid2997_statement,
                           civic_eid2997_proposition,
                           civic_vid33, civic_gid19, civic_did8,
-                          method001, pmid_23982599, civic_tid146,
+                          method1, pmid_23982599, civic_tid146,
                           check_statement, check_proposition,
                           check_variation_descriptor,
                           check_descriptor, check_method, check_document
@@ -508,7 +508,7 @@ def test_civic_detail_flag_therapeutic(query_handler,
 
 def test_civic_detail_flag_diagnostic(query_handler, civic_eid2_statement,
                                       civic_eid2_proposition, civic_vid99,
-                                      civic_did2, civic_gid38, method001,
+                                      civic_did2, civic_gid38, method1,
                                       pmid_15146165, check_statement,
                                       check_proposition,
                                       check_variation_descriptor,
@@ -525,14 +525,14 @@ def test_civic_detail_flag_diagnostic(query_handler, civic_eid2_statement,
     assert_response_items(response, civic_eid2_statement,
                           civic_eid2_proposition,
                           civic_vid99, civic_gid38, civic_did2,
-                          method001, pmid_15146165, None, check_statement,
+                          method1, pmid_15146165, None, check_statement,
                           check_proposition, check_variation_descriptor,
                           check_descriptor, check_method, check_document)
 
 
 def test_civic_detail_flag_prognostic(query_handler, civic_eid26_statement,
                                       civic_eid26_proposition, civic_vid65,
-                                      civic_did3, civic_gid29, method001,
+                                      civic_did3, civic_gid29, method1,
                                       pmid_16384925, check_statement,
                                       check_proposition,
                                       check_variation_descriptor,
@@ -549,7 +549,7 @@ def test_civic_detail_flag_prognostic(query_handler, civic_eid26_statement,
     assert_response_items(response, civic_eid26_statement,
                           civic_eid26_proposition,
                           civic_vid65, civic_gid29, civic_did3,
-                          method001, pmid_16384925, None, check_statement,
+                          method1, pmid_16384925, None, check_statement,
                           check_proposition, check_variation_descriptor,
                           check_descriptor, check_method, check_document)
 
@@ -557,7 +557,7 @@ def test_civic_detail_flag_prognostic(query_handler, civic_eid26_statement,
 def test_moa_detail_flag(query_handler, moa_aid71_statement,
                          moa_aid71_proposition,
                          moa_vid71, moa_abl1, moa_imatinib,
-                         moa_chronic_myelogenous_leukemia, method004,
+                         moa_chronic_myelogenous_leukemia, method4,
                          pmid_11423618, check_statement, check_proposition,
                          check_variation_descriptor, check_descriptor,
                          check_method, check_document):
@@ -571,7 +571,7 @@ def test_moa_detail_flag(query_handler, moa_aid71_statement,
     assert_keys_for_detail_true(response.keys(), response)
     assert_response_items(response, moa_aid71_statement, moa_aid71_proposition,
                           moa_vid71, moa_abl1,
-                          moa_chronic_myelogenous_leukemia, method004,
+                          moa_chronic_myelogenous_leukemia, method4,
                           pmid_11423618, moa_imatinib, check_statement,
                           check_proposition, check_variation_descriptor,
                           check_descriptor, check_method, check_document)
@@ -617,7 +617,7 @@ def test_no_matches(query_handler):
 
 def test_civic_id_search(query_handler, civic_eid2997_statement,
                          civic_vid33, civic_gid19, civic_tid146, civic_did8,
-                         pmid_23982599, method001, check_statement,
+                         pmid_23982599, method1, check_statement,
                          check_variation_descriptor, check_descriptor,
                          check_method, check_document):
     """Test search on civic node id"""
@@ -639,14 +639,14 @@ def test_civic_id_search(query_handler, civic_eid2997_statement,
     res = query_handler.search_by_id('pmid:23982599')
     check_document(res['document'], pmid_23982599)
 
-    res = query_handler.search_by_id('method:001')
-    check_method(res['method'], method001)
+    res = query_handler.search_by_id('method:1')
+    check_method(res['method'], method1)
 
 
 def test_moa_id_search(query_handler, moa_aid71_statement,
                        moa_vid71, moa_abl1, moa_imatinib,
                        moa_chronic_myelogenous_leukemia, pmid_11423618,
-                       method004, check_statement, check_variation_descriptor,
+                       method4, check_statement, check_variation_descriptor,
                        check_descriptor, check_method, check_document):
     """Test search on moa node id"""
     res = query_handler.search_by_id('moa.assertion:71')
@@ -672,8 +672,8 @@ def test_moa_id_search(query_handler, moa_aid71_statement,
     res = query_handler.search_by_id('pmid:11423618')
     check_document(res['document'], pmid_11423618)
 
-    res = query_handler.search_by_id(' method:004 ')
-    check_method(res['method'], method004)
+    res = query_handler.search_by_id(' method:4 ')
+    check_method(res['method'], method4)
 
 
 def test_service_meta(query_handler):
@@ -692,7 +692,7 @@ def test_service_meta(query_handler):
     resp = query_handler.search(statement_id=statement_id)
     check_service_meta(resp)
 
-    resp = query_handler.search_by_id("method:004")
+    resp = query_handler.search_by_id("method:4")
     check_service_meta(resp)
 
     resp = query_handler.search_statements(statement_id=statement_id)

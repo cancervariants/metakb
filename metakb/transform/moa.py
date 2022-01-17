@@ -1,5 +1,5 @@
 """A module to convert MOA resources to common data model"""
-from typing import Dict, Optional
+from typing import Optional
 import logging
 from urllib.parse import quote
 
@@ -16,7 +16,7 @@ logger.setLevel(logging.DEBUG)
 class MOATransform(Transform):
     """A class for transforming MOA resources to common data model."""
 
-    def transform(self, documents_ix: Dict = None):
+    def transform(self):
         """Transform MOA harvested JSON to common date model.
         Saves output in MOA transform directory.
         """
@@ -30,7 +30,8 @@ class MOATransform(Transform):
         # Transform MOA assertions
         self._transform_statements(assertions, variants, sources,
                                    cdm_assertions)
-        return documents_ix
+        if self.query_handler.driver is not None:
+            self.query_handler.driver.close()
 
     def _transform_statements(self, records, variants, sources,
                               cdm_assertions):
@@ -353,7 +354,7 @@ class MOATransform(Transform):
         """
         methods = [schemas.Method(
             id=f'method:'
-               f'{schemas.MethodID.MOA_ASSERTION_BIORXIV:03}',
+               f'{schemas.MethodID.MOA_ASSERTION_BIORXIV}',
             label='Clinical interpretation of integrative molecular profiles to guide precision cancer medicine',  # noqa:E501
             url='https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1',  # noqa:E501
             version=schemas.Date(year=2020, month=9, day=22),

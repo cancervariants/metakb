@@ -57,15 +57,15 @@ def asst71_disease_descriptors(moa_chronic_myelogenous_leukemia):
 
 
 @pytest.fixture(scope="module")
-def asst71_methods(method004):
+def asst71_methods(method4):
     """Create assertion71 methods test fixture."""
-    return[method004]
+    return[method4]
 
 
 @pytest.fixture(scope="module")
 def asst71_documents(pmid_11423618):
     """Create assertion71 documents test fixture."""
-    return[pmid_11423618]
+    return [pmid_11423618]
 
 
 def test_moa_cdm(data, asst71_statements, asst71_propositions,

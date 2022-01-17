@@ -59,6 +59,8 @@ class CIViCTransform(Transform):
         self._add_methods()
         self._transform_evidence_and_assertions(evidence_items)
         self._transform_evidence_and_assertions(assertions, is_evidence=False)
+        if self.query_handler.driver is not None:
+            self.query_handler.driver.close()
 
     def _transform_evidence_and_assertions(self, records: List[Dict],
                                            is_evidence=True) -> None:
@@ -136,7 +138,7 @@ class CIViCTransform(Transform):
 
             if is_evidence:
                 # Evidence items's method and evidence level
-                method = f'method:{schemas.MethodID.CIVIC_EID_SOP:03}'
+                method = f'method:{schemas.MethodID.CIVIC_EID_SOP}'
                 evidence_level = f"civic.evidence_level:{r['evidence_level']}"
 
                 # Supported by evidence for evidence item
@@ -149,10 +151,10 @@ class CIViCTransform(Transform):
                 if r['amp_level'] and not r['acmg_codes']:
                     method = \
                         f'method:' \
-                        f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP.value:03}'
+                        f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP}'
                 elif not r['amp_level'] and r['acmg_codes']:
                     method = f'method:' \
-                             f'{schemas.MethodID.CIVIC_AID_ACMG.value:03}'
+                             f'{schemas.MethodID.CIVIC_AID_ACMG}'
                 else:
                     # Statements are required to have a method
                     logger.warning(f"Unable to get method for {civic_id}")
@@ -697,7 +699,7 @@ class CIViCTransform(Transform):
         self.methods = [
             schemas.Method(
                 id=f'method:'
-                   f'{schemas.MethodID.CIVIC_EID_SOP:03}',
+                   f'{schemas.MethodID.CIVIC_EID_SOP}',
                 label='Standard operating procedure for curation and clinical'
                       ' interpretation of variants in cancer',
                 url='https://genomemedicine.biomedcentral.com/articles/'
@@ -707,7 +709,7 @@ class CIViCTransform(Transform):
             ).dict(exclude_none=True),
             schemas.Method(
                 id=f'method:'
-                   f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP.value:03}',
+                   f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP.value}',
                 label='Standards and Guidelines for the '
                       'Interpretation and Reporting of Sequence '
                       'Variants in Cancer: A Joint Consensus '
@@ -722,7 +724,7 @@ class CIViCTransform(Transform):
             ).dict(exclude_none=True),
             schemas.Method(
                 id=f'method:'
-                   f'{schemas.MethodID.CIVIC_AID_ACMG.value:03}',
+                   f'{schemas.MethodID.CIVIC_AID_ACMG.value}',
                 label='Standards and guidelines for the '
                       'interpretation of sequence variants: a '
                       'joint consensus recommendation of the '
