@@ -12,12 +12,12 @@ def civic_eid2997_statement():
         "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:A",
-        "proposition": "proposition:_mxdCji9FgUuVt-pWsdZNYsAjL0Xgt-E",
+        "proposition": "proposition:133",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:33",
         "therapy_descriptor": "civic.tid:146",
         "disease_descriptor": "civic.did:8",
-        "method": "method:001",
+        "method": "method:1",
         "supported_by": ["pmid:23982599"]
     }
 
@@ -26,12 +26,12 @@ def civic_eid2997_statement():
 def civic_eid2997_proposition():
     """Create a test fixture for EID2997 proposition."""
     return {
-        "id": "proposition:_mxdCji9FgUuVt-pWsdZNYsAjL0Xgt-E",
+        "id": "proposition:133",
+        "type": "therapeutic_response_proposition",
         "predicate": "predicts_sensitivity_to",
         "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
         "object_qualifier": "ncit:C2926",
         "object": "rxcui:1430438",
-        "type": "therapeutic_response_proposition"
     }
 
 
@@ -202,7 +202,7 @@ def civic_eid1409_statement():
         "variation_descriptor": "civic.vid:12",
         "therapy_descriptor": "civic.tid:4",
         "disease_descriptor": "civic.did:206",
-        "method": "method:001",
+        "method": "method:1",
         "supported_by": ["pmid:21639808"],
         "type": "Statement"
     }
@@ -216,14 +216,14 @@ def civic_aid6_statement():
         "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "amp_asco_cap_2017_level:1A",
-        "proposition": "proposition:_mxdCji9FgUuVt-pWsdZNYsAjL0Xgt-E",
+        "proposition": "proposition:673",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:33",
         "therapy_descriptor": "civic.tid:146",
         "disease_descriptor": "civic.did:8",
-        "method": "method:002",
+        "method": "method:2",
         "supported_by": [
-            "document:BzZRefItUKRQiExmX_7dYuURaqH-ZiGK", "civic.eid:2997",
+            "document:1", "civic.eid:2997",
             "civic.eid:2629", "civic.eid:982",
             "civic.eid:968", "civic.eid:883",
             "civic.eid:879"
@@ -236,11 +236,10 @@ def civic_aid6_statement():
 def civic_aid6_document():
     """Create test fixture for civic aid6 document."""
     return {
-        "id": "document:BzZRefItUKRQiExmX_7dYuURaqH-ZiGK",
+        "id": "document:1",
         "document_id": "https://www.nccn.org/professionals/"
                        "physician_gls/default.aspx",
-        "label": "NCCN Guidelines: Non-Small Cell "
-                 "Lung Cancer version 3.2018",
+        "label": "NCCN Guidelines: Non-Small Cell Lung Cancer version 3.2018",
         "type": "Document"
     }
 
@@ -254,11 +253,11 @@ def civic_eid2_statement():
         "description": "GIST tumors harboring PDGFRA D842V mutation are more likely to be benign than malignant.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:nUReCRWjR4gXpyrqW-1eQhQCzayfTQ4-",
+        "proposition": "proposition:2",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:99",
         "disease_descriptor": "civic.did:2",
-        "method": "method:001",
+        "method": "method:1",
         "supported_by": ["pmid:15146165"]
     }
 
@@ -267,11 +266,11 @@ def civic_eid2_statement():
 def civic_eid2_proposition():
     """Create a test fixture for CIViC EID2 proposition."""
     return {
-        "id": "proposition:nUReCRWjR4gXpyrqW-1eQhQCzayfTQ4-",
+        "id": "proposition:2",
+        "type": "diagnostic_proposition",
         "predicate": "is_diagnostic_exclusion_criterion_for",
         "subject": "ga4gh:VA.bjWVYvXPaPbIRAfZvE0Uw_P-i36PGkAz",
-        "object_qualifier": "ncit:C3868",
-        "type": "diagnostic_proposition"
+        "object_qualifier": "ncit:C3868"
     }
 
 
@@ -413,11 +412,11 @@ def civic_eid74_statement():
         "description": "In patients with medullary carcinoma, the presence of RET M918T mutation is associated with increased probability of lymph node metastases.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:l4BuRexjq-Cg8djtXV-xkBvMzj95qtHx",
+        "proposition": "proposition:29",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:113",
         "disease_descriptor": "civic.did:15",
-        "method": "method:001",
+        "method": "method:1",
         "supported_by": ["pmid:18073307"],
         "type": "Statement"
     }
@@ -427,11 +426,11 @@ def civic_eid74_statement():
 def civic_eid74_proposition():
     """Create a test fixture for CIViC EID74 proposition."""
     return {
-        "id": "proposition:l4BuRexjq-Cg8djtXV-xkBvMzj95qtHx",
+        "id": "proposition:29",
+        "type": "diagnostic_proposition",
         "predicate": "is_diagnostic_inclusion_criterion_for",
         "subject": "ga4gh:VA.GweduWrfxV58YnSvUBfHPGOA-KCH_iIl",
-        "object_qualifier": "ncit:C3879",
-        "type": "diagnostic_proposition"
+        "object_qualifier": "ncit:C3879"
     }
 
 
@@ -578,11 +577,11 @@ def civic_aid9_statement():
         "description": "ACVR1 G328V mutations occur within the kinase domain, leading to activation of downstream signaling. Exclusively seen in high-grade pediatric gliomas, supporting diagnosis of diffuse intrinsic pontine glioma.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "amp_asco_cap_2017_level:2C",
-        "proposition": "proposition:UiGAYP1ctbGO25M-cyfpGUt-iCVvCWLc",
+        "proposition": "proposition:674",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:1686",
         "disease_descriptor": "civic.did:2950",
-        "method": "method:002",
+        "method": "method:2",
         "supported_by": ["civic.eid:4846",
                          "civic.eid:6955"],
         "type": "Statement"
@@ -593,7 +592,7 @@ def civic_aid9_statement():
 def civic_aid9_proposition():
     """Create a test fixture for CIViC AID9 proposition."""
     return {
-        "id": "proposition:UiGAYP1ctbGO25M-cyfpGUt-iCVvCWLc",
+        "id": "proposition:674",
         "predicate": "is_diagnostic_inclusion_criterion_for",
         "subject": "ga4gh:VA.yuvNtv-SpNOzcGsKsNnnK0n026rbfp6T",
         "object_qualifier": "DOID:0080684",
@@ -740,11 +739,11 @@ def civic_eid26_statement():
         "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:vUkpwCJD6IzzCQrEPKinxReufCE-73Mf1",
+        "proposition": "proposition:14",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:65",
         "disease_descriptor": "civic.did:3",
-        "method": "method:001",
+        "method": "method:1",
         "supported_by": ["pmid:16384925"],
         "type": "Statement"
     }
@@ -754,7 +753,7 @@ def civic_eid26_statement():
 def civic_eid26_proposition():
     """Create a test fixture for CIViC EID26 proposition."""
     return {
-        "id": "proposition:vUkpwCJD6IzzCQrEPKinxReufCE-73Mf",
+        "id": "proposition:14",
         "predicate": "is_prognostic_of_worse_outcome_for",
         "subject": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
         "object_qualifier": "ncit:C3171",
@@ -901,11 +900,11 @@ def civic_eid1756_statement():
         "description": "Study of 1817 PCa cases and 2026 cancer free controls to clarify the association of (MTHFR)c.677C>T  (and c.1298A>C ) of pancreatic cancer risk in a population of Han Chinese in Shanghai.  Results indicated a lower risk for the heterozygous CT genotype and homozygous TT genotype carriers of (MTHFR)c.677C>T  which had a significantly lower risk of developing pancreatic cancer compared with the wild-type CC genotype.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:e4rfA9CXghm3axxyjEKYWEImb8VuOmzU",
+        "proposition": "proposition:259",
         "variation_origin": "germline",
         "variation_descriptor": "civic.vid:258",
         "disease_descriptor": "civic.did:556",
-        "method": "method:001",
+        "method": "method:1",
         "supported_by": ["pmid:27819322"],
         "type": "Statement"
     }
@@ -915,7 +914,7 @@ def civic_eid1756_statement():
 def civic_eid1756_proposition():
     """Create a test fixture for CIViC EID1756 proposition."""
     return {
-        "id": "proposition:e4rfA9CXghm3axxyjEKYWEImb8VuOmzU",
+        "id": "proposition:259",
         "predicate": "is_prognostic_of_better_outcome_for",
         "subject": "ga4gh:VA.Nq7ozfH2X6m1PGr_n38E-F0NZ7I9UASP",
         "object_qualifier": "ncit:C9005",
@@ -1089,12 +1088,12 @@ def moa_aid71_statement():
         "id": "moa.assertion:71",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
         "evidence_level": "moa.evidence_level:Preclinical",
-        "proposition": "proposition:ReqWtqemZoVtMAGpxG5G6w3HLvlS8KvW",
+        "proposition": "proposition:100",
         "variation_origin": "somatic",
         "variation_descriptor": "moa.variant:71",
         "therapy_descriptor": "moa.normalize.therapy:Imatinib",
         "disease_descriptor": "moa.normalize.disease:oncotree%3ACML",
-        "method": "method:004",
+        "method": "method:4",
         "supported_by": [
             "pmid:11423618"
         ],
@@ -1106,7 +1105,7 @@ def moa_aid71_statement():
 def moa_aid71_proposition():
     """Create a test fixture for MOA AID71 proposition."""
     return {
-        "id": "proposition:ReqWtqemZoVtMAGpxG5G6w3HLvlS8KvW",
+        "id": "proposition:100",
         "predicate": "predicts_resistance_to",
         "subject": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
         "object_qualifier": "ncit:C3174",
@@ -1196,10 +1195,10 @@ def moa_chronic_myelogenous_leukemia():
 
 
 @pytest.fixture(scope="module")
-def method001():
-    """Create test fixture for method:001."""
+def method1():
+    """Create test fixture for method:1."""
     return {
-        "id": "method:001",
+        "id": "method:1",
         "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
         "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
         "version": {
@@ -1213,10 +1212,10 @@ def method001():
 
 
 @pytest.fixture(scope="module")
-def method002():
-    """Create test fixture for method:002."""
+def method2():
+    """Create test fixture for method:2."""
     return {
-        "id": "method:002",
+        "id": "method:2",
         "type": "Method",
         "label": "Standards and Guidelines for the Interpretation and Reporting of Sequence Variants in Cancer: A Joint Consensus Recommendation of the Association for Molecular Pathology, American Society of Clinical Oncology, and College of American Pathologists",  # noqa: E501
         "url": "https://pubmed.ncbi.nlm.nih.gov/27993330/",
@@ -1229,10 +1228,10 @@ def method002():
 
 
 @pytest.fixture(scope="module")
-def method003():
-    """Create test fixture for method:003."""
+def method3():
+    """Create test fixture for method:3."""
     return {
-        "id": "method:003",
+        "id": "method:3",
         "label": "Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology",  # noqa: E501
         "url": "https://pubmed.ncbi.nlm.nih.gov/25741868/",
         "version": {
@@ -1245,10 +1244,10 @@ def method003():
 
 
 @pytest.fixture(scope="module")
-def method004():
-    """Create a test fixture for MOA method:004."""
+def method4():
+    """Create a test fixture for MOA method:4."""
     return {
-        "id": "method:004",
+        "id": "method:4",
         "label": "Clinical interpretation of integrative molecular profiles to guide precision cancer medicine",  # noqa: E501
         "url": "https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1",
         "type": "Method",
@@ -1262,9 +1261,9 @@ def method004():
 
 
 @pytest.fixture(scope="module")
-def civic_methods(method001, method002, method003):
+def civic_methods(method1, method2, method3):
     """Create test fixture for methods."""
-    return [method001, method002, method003]
+    return [method1, method2, method3]
 
 
 @pytest.fixture(scope="module")
@@ -1432,11 +1431,7 @@ def check_transformed_cdm():
             tests += (data["therapy_descriptors"], therapy_descriptors,
                       check_descriptor),
 
-        for t in tests:
-            actual_data = t[0]
-            test_data = t[1]
-            test_fixture = t[2]
-
+        for actual_data, test_data, test_fixture in tests:
             assert len(actual_data) == len(test_data)
             for test in test_data:
                 test_id = test["id"]

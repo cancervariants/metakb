@@ -1161,6 +1161,7 @@ class QueryHandler:
                 proposition = PrognosticProposition(**params)
             elif p_type == PropositionType.DIAGNOSTIC:
                 proposition = DiagnosticProposition(**params)
+            else:
                 raise ValueError
             return proposition
 

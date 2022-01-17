@@ -39,6 +39,9 @@ class Transform:
         self.query_handler = QueryHandler(uri, credentials)
         self.vicc_normalizers = self.query_handler.vicc_normalizers
 
+        self._proposition_lookup = {}
+        self._document_lookup = {}
+
         self.statements = list()
         self.propositions = list()
         self.variation_descriptors = list()
@@ -50,11 +53,8 @@ class Transform:
 
         self.next_node_id = {}
 
-    def transform(self, *args, **kwargs) -> Dict[str, dict]:
-        """Transform harvested data to the Common Data Model.
-
-        :return: Updated indexes for propositions and documents
-        """
+    def transform(self, *args, **kwargs):
+        """Transform harvested data to the Common Data Model."""
         raise NotImplementedError
 
     def extract_harvester(self) -> Dict[str, List]:
@@ -142,9 +142,18 @@ class Transform:
         :return: proposition ID, or None if prop_type and pred conflict or
             if provided parameters cannot determine correct proposition ID
         """
+        breakpoint()
         if not isinstance(pred, self.predicate_validation[prop_type]):
             logger.error(f"{prop_type} in query conflicts with {pred}")
             return None
+
+        args = tuple([
+            a for a in [prop_type, pred, variation_id, disease_id, therapy_id]
+            if a
+        ])
+        if args in self._proposition_lookup:
+            return self._proposition_lookup[args]
+
         params = {
             "prop_type": prop_type,
             "pred": pred,
@@ -162,15 +171,22 @@ class Transform:
             logger.warning(f"Found >1 propositions matching {params}")
             return None
         elif num_matches == 1:
-            return response[0].get("id")
+            prop_id = response[0].get("id")
         else:
-            return self._get_next_node_id("Proposition")
+            prop_id = self._get_next_node_id("Proposition")
+        self._proposition_lookup[args] = prop_id
+        return prop_id
 
     def _get_document_id(self, **parameters) -> Optional[str]:
         """Retrieve stable ID for a document.
         :kwargs: property names and values to get ID for
         :return: identifying document ID value
         """
+        # sort and get arg values for deterministic lookup
+        args = tuple(dict(sorted(parameters.items())).values())
+        if args in self._document_lookup:
+            return self._document_lookup[args]
+
         if len(parameters) == 0:
             return self._get_next_node_id("Document")
         with self.query_handler.driver.session() as session:
@@ -183,9 +199,11 @@ class Transform:
             logger.warning(f"Found >1 propositions matching {parameters}")
             return None
         elif num_matches == 1:
-            return document_response[0].get("id")
+            doc_id = document_response[0].get("id")
         else:
-            return self._get_next_node_id("Document")
+            doc_id = self._get_next_node_id("Document")
+        self._document_lookup[args] = doc_id
+        return doc_id
 
     def _create_json(self, transform_dir: Optional[Path] = None,
                      filename: Optional[str] = None) -> None:
