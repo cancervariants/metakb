@@ -6,9 +6,9 @@ import os
 
 def test_harvest():
     """Test CIViC harvest method."""
-    assert not CIViCHarvester().harvest(fn='')
+    assert not CIViCHarvester().harvest(filename='')
     fn = 'test_civic_harvester.json'
-    assert CIViCHarvester().harvest(fn=fn)
+    assert CIViCHarvester().harvest(filename=fn)
     file_path = APP_ROOT / 'data' / 'civic' / 'harvester' / fn
     assert file_path.exists()
     os.remove(file_path)
