@@ -4,20 +4,18 @@ from metakb.transform.civic import CIViCTransform
 from metakb import PROJECT_ROOT
 import json
 
-TRANSFORMED_FILE = f"{PROJECT_ROOT}/tests/data/transform/"\
-                   f"therapeutic/civic_cdm.json"
+DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform" / "therapeutic"
+FILENAME = "civic_cdm.json"
 
 
 @pytest.fixture(scope='module')
 def data():
     """Create a CIViC Transform test fixture."""
-    c = CIViCTransform(file_path=f"{PROJECT_ROOT}/tests/data/"
-                                 f"transform/therapeutic/civic_harvester.json")
+    harvester_path = DATA_DIR / "civic_harvester.json"
+    c = CIViCTransform(data_dir=DATA_DIR, harvester_path=harvester_path)
     c.transform()
-    c._create_json(
-        civic_dir=PROJECT_ROOT / 'tests' / 'data' / 'transform' / 'therapeutic'
-    )
-    with open(TRANSFORMED_FILE, 'r') as f:
+    c._create_json(transform_dir=DATA_DIR, filename=FILENAME)
+    with open(DATA_DIR / FILENAME, "r") as f:
         data = json.load(f)
     return data
 
@@ -76,5 +74,5 @@ def test_civic_cdm(data, statements, propositions, variation_descriptors,
         gene_descriptors, disease_descriptors, therapy_descriptors,
         civic_methods, documents, check_statement, check_proposition,
         check_variation_descriptor, check_descriptor, check_document,
-        check_method, TRANSFORMED_FILE
+        check_method, DATA_DIR / FILENAME
     )

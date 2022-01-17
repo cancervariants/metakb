@@ -4,10 +4,10 @@ import json
 import logging
 from jsondiff import diff
 from datetime import date
-from metakb.harvesters import CIViCHarvester, MOAlmanacHarvester
+from metakb.harvesters import CIViCHarvester, MOAHarvester
 HARVESTER_CLASS = {
     'civic': CIViCHarvester,
-    'moa': MOAlmanacHarvester
+    'moa': MOAHarvester
 }
 logger = logging.getLogger('metakb.delta')
 logger.setLevel(logging.DEBUG)
@@ -51,7 +51,7 @@ class Delta:
         else:
             # Want to create updated harvester file
             fn = f"{self._src}_harvester_{current_date}.json"
-            HARVESTER_CLASS[self._src]().harvest(fn=fn)
+            HARVESTER_CLASS[self._src]().harvest(filename=fn)
             with open(f"{APP_ROOT}/data/{self._src}/harvester/{fn}", 'r') as f:
                 updated_json = json.load(f)
 

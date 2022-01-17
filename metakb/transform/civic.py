@@ -1,4 +1,5 @@
 """A module for to transform CIViC."""
+from pathlib import Path
 from typing import Optional, Dict, List
 import logging
 
@@ -16,9 +17,11 @@ logger.setLevel(logging.DEBUG)
 class CIViCTransform(Transform):
     """A class for transforming CIViC to the common data model."""
 
-    def __init__(self) -> None:
+    def __init__(self,
+                 data_dir: Optional[Path] = None,
+                 harvester_path: Optional[Path] = None) -> None:
         """Initialize CIViC Transform class."""
-        super().__init__()
+        super().__init__(data_dir=data_dir, harvester_path=harvester_path)
         # Able to normalize these IDSs
         self.valid_ids = {
             'variation_descriptors': dict(),
