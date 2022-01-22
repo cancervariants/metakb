@@ -12,6 +12,7 @@ from metakb.schemas import PropositionType, Predicate, DiagnosticPredicate, \
     PrognosticPredicate, PredictivePredicate, FunctionalPredicate, \
     PathogenicPredicate
 from metakb.query import QueryHandler
+from metakb.normalizers import VICCNormalizers
 
 logger = logging.getLogger('metakb')
 logger.setLevel(logging.DEBUG)
@@ -24,19 +25,21 @@ class Transform:
                  data_dir: Path = APP_ROOT / "data",
                  uri: str = "",
                  credentials: Tuple[str, str] = ("", ""),
-                 harvester_path: Optional[Path] = None) -> None:
+                 harvester_path: Optional[Path] = None,
+                 normalizers: VICCNormalizers = VICCNormalizers()) -> None:
         """Initialize Transform base class.
 
         :param Path data_dir: Path to source data directory
         :param str uri: location to send Neo4j requests to
         :param Tuple[str, str] credentials: database username and password
         :param Optional[Path] harvester_path: Path to previously harvested data
+        :param VICCNormalizers normalizers: normalizer collection instance
         """
         self.name = self.__class__.__name__.lower().split("transform")[0]
         self.data_dir = data_dir / self.name
         self.harvester_path = harvester_path
 
-        self.query_handler = QueryHandler(uri, credentials)
+        self.query_handler = QueryHandler(uri, credentials, normalizers)
         self.vicc_normalizers = self.query_handler.vicc_normalizers
 
         self._proposition_lookup = {}

@@ -7,6 +7,7 @@ from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
     Extension, Expression, GeneDescriptor, ValueObjectDescriptor
 
 from metakb import APP_ROOT
+from metakb.normalizers import VICCNormalizers
 from metakb.transform.base import Transform
 import metakb.schemas as schemas
 
@@ -22,10 +23,18 @@ class CIViCTransform(Transform):
                  data_dir: Path = APP_ROOT / "data",
                  uri: str = "",
                  credentials: Tuple[str, str] = ("", ""),
-                 harvester_path: Optional[Path] = None) -> None:
-        """Initialize CIViC Transform class."""
+                 harvester_path: Optional[Path] = None,
+                 normalizers: VICCNormalizers = VICCNormalizers()) -> None:
+        """Initialize CIViC Transform class.
+        :param Path data_dir: Path to source data directory
+        :param str uri: location to send Neo4j requests to
+        :param Tuple[str, str] credentials: database username and password
+        :param Optional[Path] harvester_path: Path to previously harvested data
+        :param VICCNormalizers normalizers: normalizer collection instance
+        """
         super().__init__(data_dir=data_dir, uri=uri, credentials=credentials,
-                         harvester_path=harvester_path)
+                         harvester_path=harvester_path,
+                         normalizers=normalizers)
         # Able to normalize these IDSs
         self.valid_ids = {
             'variation_descriptors': dict(),
