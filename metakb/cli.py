@@ -176,7 +176,7 @@ class CLI:
                 f"{src_str} transform finished in {(end - start):.5f} s."
             click.echo(transform_end)
             logger.info(transform_end)
-            source._create_json()
+            source.create_json()
         total_end = timer()
         msg = f"Successfully transformed all sources to CDM in " \
               f"{(total_end-total_start):.5f} s"

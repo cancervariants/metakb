@@ -15,7 +15,7 @@ def data():
     harvester_path = DATA_DIR / "civic_harvester.json"
     c = CIViCTransform(data_dir=DATA_DIR, harvester_path=harvester_path)
     c.transform()
-    c._create_json(transform_dir=DATA_DIR, filename=FILENAME)
+    c.create_json(transform_dir=DATA_DIR, filename=FILENAME)
     with open(DATA_DIR / FILENAME, "r") as f:
         data = json.load(f)
     return data

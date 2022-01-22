@@ -226,9 +226,8 @@ class QueryHandler:
 
         session = self.driver.session()
         proposition_nodes = session.read_transaction(
-            self._get_propositions, normalized_therapy,
-            normalized_variation, normalized_disease, normalized_gene,
-            valid_statement_id
+            self._get_propositions, valid_statement_id, normalized_variation,
+            normalized_therapy, normalized_disease, normalized_gene,
         )
 
         if not valid_statement_id:
@@ -455,9 +454,8 @@ class QueryHandler:
         session = self.driver.session()
         statement_nodes = list()
         proposition_nodes = session.read_transaction(
-            self._get_propositions, normalized_therapy,
-            normalized_variation, normalized_disease, normalized_gene,
-            valid_statement_id
+            self._get_propositions, valid_statement_id, normalized_variation,
+            normalized_therapy, normalized_disease, normalized_gene
         )
 
         proposition_cache = dict()
@@ -981,12 +979,11 @@ class QueryHandler:
             query += "MATCH (p:Proposition {predicate:$pred}) "
             params["pred"] = pred.value
         if statement_id:
-            query += \
-                "MATCH (:Statement {id:$s_id})-[:DEFINED_BY]-> (p:Proposition)"
+            query += "MATCH (:Statement {id:$s_id})-[:DEFINED_BY]-> (p:Proposition) "  # noqa: E501
             params["s_id"] = statement_id
         if normalized_therapy:
             query += \
-                "MATCH (p:Proposition)<-[:IS_OBJECT_OF]-(:Therapy {id:$t_id})"
+                "MATCH (p:Proposition)<-[:IS_OBJECT_OF]-(:Therapy {id:$t_id}) "
             params["t_id"] = normalized_therapy
         if normalized_variation:
             lower_normalized_variation = normalized_variation.lower()

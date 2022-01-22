@@ -158,7 +158,7 @@ def test_search_id(query_handler):
     resp = query_handler.search_by_id('proposition:1')
     assert resp['proposition']
     assert not resp['warnings']
-    assert query_handler.search_by_id('proposition:1')['warnings']
+    assert query_handler.search_by_id('proposition:001')['warnings']
     assert query_handler.search_by_id('proposition:0')['warnings']
 
 
