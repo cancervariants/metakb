@@ -1,17 +1,9 @@
 """Test the MetaKB search method."""
-from metakb.query import QueryHandler
 from metakb.version import __version__, LAST_UPDATED
-import pytest
 
 # TODO:
 #  Commented out tests to be fixed after first pass
 #  Load DB with test data
-
-
-@pytest.fixture(scope='module')
-def query_handler():
-    """Create query handler test fixture."""
-    return QueryHandler()
 
 
 def return_response(query_handler, statement_id, **kwargs):
