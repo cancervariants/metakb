@@ -9,6 +9,5 @@ repos:
     - id: check-added-large-files
       args: ['--maxkb=1024']
       exclude: ^tests/data
-      args: ['--maxkb=1024']
     - id: detect-aws-credentials
     - id: detect-private-key
