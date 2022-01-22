@@ -2,6 +2,9 @@
 import pytest
 import os
 
+from metakb.query import QueryHandler
+from metakb.normalizers import VICCNormalizers
+
 
 @pytest.fixture(scope="module")
 def civic_eid2997_statement():
@@ -1279,7 +1282,7 @@ def pmid_11423618():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def check_statement():
     """Create a test fixture to compare statements."""
     def check_statement(actual, test):
@@ -1305,7 +1308,7 @@ def check_statement():
     return check_statement
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def check_proposition():
     """Create a test fixture to compare propositions."""
     def check_proposition(actual, test):
@@ -1323,7 +1326,7 @@ def check_proposition():
     return check_proposition
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def check_variation_descriptor():
     """Create a test fixture to compare variation descriptors."""
     def check_variation_descriptor(actual, test):
@@ -1362,7 +1365,7 @@ def check_variation_descriptor():
     return check_variation_descriptor
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def check_descriptor():
     """Test fixture to compare gene, therapy, and disease descriptors."""
     def check_descriptor(actual, test):
@@ -1378,7 +1381,7 @@ def check_descriptor():
     return check_descriptor
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def check_method():
     """Create a test fixture to compare methods."""
     def check_method(actual, test):
@@ -1387,7 +1390,7 @@ def check_method():
     return check_method
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def check_document():
     """Create a test fixture to compare documents."""
     def check_document(actual, test):
@@ -1404,7 +1407,7 @@ def check_document():
     return check_document
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def check_transformed_cdm():
     """Test fixture to compare CDM transformations."""
     def check_transformed_cdm(data, statements, propositions,
@@ -1445,3 +1448,15 @@ def check_transformed_cdm():
 
         os.remove(transformed_file)
     return check_transformed_cdm
+
+
+@pytest.fixture(scope="session")
+def normalizers():
+    """Provide normalizers to querying/transformation tests."""
+    return VICCNormalizers()
+
+
+@pytest.fixture(scope="session")
+def query_handler(normalizers):
+    """Create query handler test fixture"""
+    return QueryHandler(normalizers=normalizers)
