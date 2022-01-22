@@ -14,7 +14,7 @@ def data():
     harvester_path = DATA_DIR / "moa_harvester.json"
     moa = MOATransform(data_dir=DATA_DIR, harvester_path=harvester_path)
     moa.transform()
-    moa._create_json(transform_dir=DATA_DIR, filename=FILENAME)
+    moa.create_json(transform_dir=DATA_DIR, filename=FILENAME)
     with open(DATA_DIR / FILENAME, "r") as f:
         data = json.load(f)
     return data

@@ -97,7 +97,8 @@ class Transform:
                 MATCH (x:{label})
                 WHERE x.id STARTS WITH "{label_lower}:"
                 RETURN x
-                ORDER BY x.id DESC
+                ORDER BY toInteger(replace(x.id, "{label_lower}:", ""))
+                DESC
                 LIMIT 1
                 """
                 query_result = [x[0] for x in tx.run(query)]
@@ -142,7 +143,6 @@ class Transform:
         :return: proposition ID, or None if prop_type and pred conflict or
             if provided parameters cannot determine correct proposition ID
         """
-        breakpoint()
         if not isinstance(pred, self.predicate_validation[prop_type]):
             logger.error(f"{prop_type} in query conflicts with {pred}")
             return None
@@ -205,8 +205,8 @@ class Transform:
         self._document_lookup[args] = doc_id
         return doc_id
 
-    def _create_json(self, transform_dir: Optional[Path] = None,
-                     filename: Optional[str] = None) -> None:
+    def create_json(self, transform_dir: Optional[Path] = None,
+                    filename: Optional[str] = None) -> None:
         """Create a composite JSON for transformed data.
 
         :param Optional[Path] transform_dir: Path to data directory for
