@@ -72,23 +72,23 @@ class CLI:
               '`http://localhost:8000` by default.')
     )
     @click.option(
-        "--load_transformed",
+        "--load_latest_cdms",
         "-l",
         is_flag=True,
         default=False,
-        help=("Clear database and load most recent available source transform "
-              "files rather than running harvest and transform methods to "
-              "load the neo4j database.")
+        help=("Clear MetaKB database and load most recent available source "
+              "CDM files. Does not run harvest and transform methods to "
+              "generate new CDM files.")
     )
     @click.option(
-        "--specify_transform_file",
-        "-s",
+        "--load_target_cdm",
+        "-t",
         type=click.Path(exists=True, dir_okay=False, readable=True,
                         path_type=Path),
         required=False,
-        help=("Load transform JSON file at specified path. Overrides "
+        help=("Load transformed CDM file at specified path. Overrides "
               "--load_normalizers_db, --force_load_normalizers_db, "
-              "and --load_transformed.")
+              "and --load_newest_cdms.")
     )
     def update_metakb_db(db_url: str, db_username: str, db_password: str,
                          load_normalizers_db: bool,
