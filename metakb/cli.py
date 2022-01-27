@@ -88,7 +88,7 @@ class CLI:
         required=False,
         help=("Load transformed CDM file at specified path. Overrides "
               "--load_normalizers_db, --force_load_normalizers_db, "
-              "and --load_newest_cdms.")
+              "and --load_latest_cdms.")
     )
     def update_metakb_db(db_url: str, db_username: str, db_password: str,
                          load_normalizers_db: bool,
