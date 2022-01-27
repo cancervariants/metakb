@@ -1,7 +1,8 @@
 """Create an example json file for MOAlmanac Harvester."""
-from metakb.harvesters import MOAHarvester
-from metakb import PROJECT_ROOT, APP_ROOT
 import json
+
+from metakb import PROJECT_ROOT, APP_ROOT
+from metakb.harvesters import MOAHarvester
 
 
 def create_assertion_examples(data):
@@ -16,11 +17,13 @@ def create_assertion_examples(data):
         for s in data['sources']:
             if s['id'] == source_id:
                 source = s
+                break
 
         feature_id = assertion['variant']['id']
         for v in data['variants']:
             if v['id'] == feature_id:
                 variant = v
+                break
 
         with open(f"{PROJECT_ROOT}/analysis/moa/examples/harvester/"
                   f"assertion {assertion['id']}.json", 'w+') as f:
