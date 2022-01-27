@@ -60,7 +60,6 @@ if __name__ == '__main__':
     c = CIViCHarvester()
     c.harvest()
     latest = sorted((APP_ROOT / "data" / "civic" / "harvester").glob("civic_harvester_*.json"))[-1]  # noqa: E501
-
     with open(latest, "r") as f:
         civic_data = json.load(f)
 

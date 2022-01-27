@@ -8,26 +8,26 @@ DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform" / "diagnostic"
 FILENAME = "civic_cdm.json"
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def data():
     """Create a CIViC Transform test fixture."""
     harvester_path = DATA_DIR / "civic_harvester.json"
     c = CIViCTransform(data_dir=DATA_DIR, harvester_path=harvester_path)
     c.transform()
-    c._create_json(transform_dir=DATA_DIR, filename=FILENAME)
+    c.create_json(transform_dir=DATA_DIR, filename=FILENAME)
     with open(DATA_DIR / FILENAME, "r") as f:
         data = json.load(f)
     return data
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def statements(civic_eid2_statement, civic_eid74_statement,
                civic_aid9_statement):
     """Create test fixture for statements."""
     return [civic_eid2_statement, civic_eid74_statement, civic_aid9_statement]
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def propositions(civic_eid2_proposition, civic_eid74_proposition,
                  civic_aid9_proposition):
     """Create test fixture for proposition."""
@@ -36,25 +36,25 @@ def propositions(civic_eid2_proposition, civic_eid74_proposition,
     ]
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def variation_descriptors(civic_vid99, civic_vid113, civic_vid1686):
     """Create test fixture for variants."""
     return [civic_vid99, civic_vid113, civic_vid1686]
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def disease_descriptors(civic_did2, civic_did15, civic_did2950):
     """Create test fixture for disease descriptors."""
     return [civic_did2, civic_did15, civic_did2950]
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def gene_descriptors(civic_gid38, civic_gid42, civic_gid154):
     """Create test fixture for gene descriptors."""
     return [civic_gid38, civic_gid42, civic_gid154]
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def documents(pmid_15146165, pmid_18073307):
     """Create test fixture for documents."""
     return [pmid_15146165, pmid_18073307]
