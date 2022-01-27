@@ -71,7 +71,7 @@ class QueryHandler:
             self.vicc_normalizers.normalize_variation([variation])
         normalized_variation = None
         if variant_norm_resp:
-            normalized_variation = variant_norm_resp["variation_id"]
+            normalized_variation = variant_norm_resp.variation_id
         if not normalized_variation:
             # Check if VRS variation (allele, cnv, or haplotype)
             if variation.startswith(("ga4gh:VA.", "ga4gh:CNV.", "ga4gh:VH.")):
@@ -95,16 +95,17 @@ class QueryHandler:
         return normalized_gene_id
 
     def get_normalized_terms(
-            self, variation: str, disease: str, therapy: str,
-            gene: str, statement_id: str, response: Dict
+            self, variation: Optional[str], disease: Optional[str],
+            therapy: Optional[str], gene: Optional[str],
+            statement_id: Optional[str], response: Dict
     ) -> Optional[Tuple]:
         """Find normalized terms for queried concepts.
 
-        :param str variation: Variation (subject) query
-        :param str disease: Disease (object_qualifier) query
-        :param str therapy: Therapy (object) query
-        :param str gene: Gene query
-        :param str statement_id: Statement ID query
+        :param Optional[str] variation: Variation (subject) query
+        :param Optional[str] disease: Disease (object_qualifier) query
+        :param Optional[str] therapy: Therapy (object) query
+        :param Optional[str] gene: Gene query
+        :param Optional[str] statement_id: Statement ID query
         :param Dict response: The response for the query
         :return: A tuple containing the normalized concepts
         """
@@ -173,11 +174,11 @@ class QueryHandler:
                detail: bool = False) -> Dict:
         """Get statements and propositions from queried concepts.
 
-        :param Optional[str]  variation: Variation query
-        :param Optional[str]  disease: Disease query
-        :param Optional[str]  therapy: Therapy query
-        :param Optional[str]  gene: Gene query
-        :param Optional[str]  statement_id: Statement ID query
+        :param Optional[str] variation: Variation query
+        :param Optional[str] disease: Disease query
+        :param Optional[str] therapy: Therapy query
+        :param Optional[str] gene: Gene query
+        :param Optional[str] statement_id: Statement ID query
         :param bool detail: Whether or not to display all descriptors,
             methods, and documents
         :return: A dictionary containing the statements and propositions
