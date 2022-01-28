@@ -7,7 +7,9 @@ from urllib.parse import quote
 
 from ga4gh.vrsatile.pydantic.vrsatile_models import Extension, Expression
 from neo4j.graph import Node
+from neo4j.data import Record
 from neo4j.work.transaction import Transaction
+from neo4j.work.simple import Session
 
 from metakb.database import Graph
 from metakb.normalizers import VICCNormalizers
@@ -103,16 +105,17 @@ class QueryHandler:
         return normalized_gene_id
 
     def get_normalized_terms(
-            self, variation: str, disease: str, therapy: str,
-            gene: str, statement_id: str, response: Dict
+        self, variation: Optional[str], disease: Optional[str],
+        therapy: Optional[str], gene: Optional[str],
+        statement_id: Optional[str], response: Dict
     ) -> Optional[Tuple]:
         """Find normalized terms for queried concepts.
 
-        :param str variation: Variation (subject) query
-        :param str disease: Disease (object_qualifier) query
-        :param str therapy: Therapy (object) query
-        :param str gene: Gene query
-        :param str statement_id: Statement ID query
+        :param Optional[str] variation: Variation (subject) query
+        :param Optional[str] disease: Disease (object_qualifier) query
+        :param Optional[str] therapy: Therapy (object) query
+        :param Optional[str] gene: Gene query
+        :param Optional[str] statement_id: Statement ID query
         :param Dict response: The response for the query
         :return: A tuple containing the normalized concepts
         """
@@ -181,11 +184,11 @@ class QueryHandler:
                detail: bool = False) -> Dict:
         """Get statements and propositions from queried concepts.
 
-        :param Optional[str]  variation: Variation query
-        :param Optional[str]  disease: Disease query
-        :param Optional[str]  therapy: Therapy query
-        :param Optional[str]  gene: Gene query
-        :param Optional[str]  statement_id: Statement ID query
+        :param Optional[str] variation: Variation query
+        :param Optional[str] disease: Disease query
+        :param Optional[str] therapy: Therapy query
+        :param Optional[str] gene: Gene query
+        :param Optional[str] statement_id: Statement ID query
         :param bool detail: Whether or not to display all descriptors,
             methods, and documents
         :return: A dictionary containing the statements and propositions
@@ -613,12 +616,12 @@ class QueryHandler:
         return SearchStatementsService(**response).dict(
             by_alias=True, exclude_none=True)
 
-    def _add_to_proposition_cache(self, session, p_node,
+    def _add_to_proposition_cache(self, session: Session, p_node: Node,
                                   proposition_cache: Dict) -> None:
         """Add a proposition to `proposition_cache`
 
-        :param session: Session
-        :param p_node: Proposition Node
+        :param Session session: Neo4j driver session
+        :param Node p_node: Proposition node
         :param Dict proposition_cache: Proposition lookup dictionary
         """
         p_id = p_node.get("id")
@@ -650,7 +653,7 @@ class QueryHandler:
                 proposition_cache[p_id] = proposition
 
     def _get_variation_descriptor(
-            self, response: Dict, variation_descriptor,
+        self, response: Dict, variation_descriptor: Node,
             gene_context_by_id: bool = True) -> VariationDescriptor:
         """Get variation descriptor
 
@@ -767,8 +770,13 @@ class QueryHandler:
         return VariationDescriptor(**vd_params)
 
     @staticmethod
-    def _get_variation_group(tx, vid):
-        """Get a variation descriptor's variation group."""
+    def _get_variation_group(tx: Transaction, vid: str) -> Optional[Record]:
+        """Get a variation descriptor's variation group.
+
+        :param Transaction tx: Neo4j session transaction
+        :param str vid: variation descriptor ID
+        :return: query record, containing variation group node if successful
+        """
         query = (
             "MATCH (vd:VariationDescriptor)-[:IN_VARIATION_GROUP]->(vg:VariationGroup) "  # noqa: E501
             f"WHERE toLower(vd.id) = toLower('{vid}') "
@@ -777,8 +785,13 @@ class QueryHandler:
         return tx.run(query).single()
 
     @staticmethod
-    def _get_variation_descriptors_gene(tx, vid):
-        """Get a Variation Descriptor's Gene Descriptor."""
+    def _get_variation_descriptors_gene(tx: Transaction,
+                                        vid: str) -> Optional[Node]:
+        """Get a Variation Descriptor's Gene Descriptor.
+        :param Transaction tx: Neo4j session transaction
+        :param str vid: variation descriptor ID
+        :return: Gene descriptor Node if successful
+        """
         query = (
             "MATCH (vd:VariationDescriptor)-[:HAS_GENE]->(gd:GeneDescriptor) "
             f"WHERE toLower(vd.id) = toLower('{vid}') "
@@ -787,14 +800,13 @@ class QueryHandler:
         return tx.run(query).single()[0]
 
     @staticmethod
-    def _get_gene_descriptor(
-        gene_descriptor,
-        gene_value_object
-    ) -> GeneDescriptor:
+    def _get_gene_descriptor(gene_descriptor: Node,
+                             gene_value_object: Node) -> GeneDescriptor:
         """Add gene descriptor to response.
 
         :param Node gene_descriptor: Gene Descriptor Node
         :param Node gene_value_object: Gene Node
+        :return: GeneDescriptor object
         """
         gd_params = {
             "id": gene_descriptor.get("id"),
@@ -808,8 +820,9 @@ class QueryHandler:
 
         return GeneDescriptor(**gd_params)
 
-    def _get_therapy_descriptor(self,
-                                therapy_descriptor) -> ValueObjectDescriptor:
+    def _get_therapy_descriptor(
+        self, therapy_descriptor: Node
+    ) -> ValueObjectDescriptor:
         """Get therapy descriptor.
 
         :param Node therapy_descriptor: Therapy Descriptor Node
@@ -832,8 +845,9 @@ class QueryHandler:
 
         return ValueObjectDescriptor(**td_params)
 
-    def _get_disease_descriptor(self,
-                                disease_descriptor) -> ValueObjectDescriptor:
+    def _get_disease_descriptor(
+        self, disease_descriptor: Node
+    ) -> ValueObjectDescriptor:
         """Get disease descriptor.
 
         :param Node disease_descriptor: Disease Descriptor Node
@@ -856,7 +870,7 @@ class QueryHandler:
         return ValueObjectDescriptor(**dd_params)
 
     @staticmethod
-    def _get_method(method) -> Method:
+    def _get_method(method: Node) -> Method:
         """Get method
 
         :param Node method: Method Node
@@ -872,7 +886,7 @@ class QueryHandler:
         return Method(**params)
 
     @staticmethod
-    def _get_document(document) -> Optional[Document]:
+    def _get_document(document: Node) -> Optional[Document]:
         """Add document to response.
 
         :param Node document: Document Node
@@ -888,8 +902,12 @@ class QueryHandler:
         return Document(**params)
 
     @staticmethod
-    def _find_node_by_id(tx, node_id):
-        """Find a node by its ID."""
+    def _find_node_by_id(tx: Transaction, node_id: str) -> Optional[Node]:
+        """Find a node by its ID.
+        :param Transaction tx: Neo4j session transaction object
+        :param str node_id: ID of node to retrieve
+        :return: Node object if successful
+        """
         query = (
             "MATCH (n) "
             f"WHERE toLower(n.id) = toLower('{node_id}') "
@@ -898,8 +916,13 @@ class QueryHandler:
         return (tx.run(query).single() or [None])[0]
 
     @staticmethod
-    def _find_descriptor_value_object(tx, descriptor_id):
-        """Find a Descriptor's value object."""
+    def _find_descriptor_value_object(tx: Transaction,
+                                      descriptor_id: str) -> Optional[Node]:
+        """Find a Descriptor's value object.
+        :param Transaction tx: Neo4j session transaction object
+        :param str descriptor_id: ID of descriptor to look up
+        :return: Node of value object described by descriptor if successful
+        """
         query = (
             "MATCH (d)-[:DESCRIBES]->(v)"
             f"WHERE toLower(d.id) = toLower('{descriptor_id}') "
@@ -934,8 +957,14 @@ class QueryHandler:
                     proposition_nodes.append(proposition)
 
     @staticmethod
-    def _get_statement_by_id(tx, statement_id):
-        """Get a Statement node by ID."""
+    def _get_statement_by_id(tx: Transaction,
+                             statement_id: str) -> Optional[Node]:
+        """Get a Statement node by ID.
+
+        :param Transaction tx: Neo4j session transaction object
+        :param str statement_id: statemend ID to retrieve
+        :return: statement node if successful
+        """
         query = (
             "MATCH (s:Statement) "
             f"WHERE toLower(s.id) = toLower('{statement_id}') "
@@ -957,6 +986,7 @@ class QueryHandler:
         """Get propositions that contain normalized concepts queried. Used
         as callback for Neo4j session API.
 
+        :param Transaction tx: Neo4j session transaction object
         :param str statement_id: statement ID as stored in DB
         :param str normalized_variation: variation VRS ID
         :param str normalized_therapy: normalized therapy concept ID
@@ -1008,15 +1038,23 @@ class QueryHandler:
         return [p[0] for p in tx.run(query, **params)]
 
     @staticmethod
-    def _get_statements_from_proposition(tx, proposition_id):
-        """Get statements that are defined by a proposition."""
+    def _get_statements_from_proposition(tx: Transaction,
+                                         proposition_id: str) -> List[Node]:
+        """Get statements that are defined by a proposition.
+
+        :param Transaction tx: Neo4j session transaction object
+        :param str proposition_id: ID for proposition to retrieve associated
+            statements from
+        :return: List of statement Nodes
+        """
         query = (
             "MATCH (p:Proposition {id: $proposition_id})<-[:DEFINED_BY]-(s:Statement) "  # noqa: E501
             "RETURN DISTINCT s"
         )
         return [s[0] for s in tx.run(query, proposition_id=proposition_id)]
 
-    def get_statement_response(self, statement_nodes: List) -> List:
+    def get_statement_response(self,
+                               statement_nodes: List[Node]) -> List[Dict]:
         """Return a list of statements from Statement and Proposition nodes.
 
         :param List statement_nodes: A list of Statement Nodes
@@ -1035,8 +1073,15 @@ class QueryHandler:
         return statements_response
 
     @staticmethod
-    def _find_and_return_statement_response(tx, statement_id):
-        """Return IDs and method related to a Statement."""
+    def _find_and_return_statement_response(
+        tx: Transaction, statement_id: str
+    ) -> Optional[Record]:
+        """Return IDs and method related to a Statement.
+        :param Transaction tx: Neo4j session transaction object
+        :param str statement_id: ID of statement to retrieve
+        :return: Record containing descriptors, methods, and propositions
+            associated with statement if successful
+        """
         queries = (
             ("MATCH (s)-[r1]->(td:TherapyDescriptor) ", "td.id AS tid,"),
             ("", "")
@@ -1058,10 +1103,12 @@ class QueryHandler:
                 return result
         return None
 
-    def get_propositions_response(self, proposition_nodes: List) -> List:
+    def get_propositions_response(
+        self, proposition_nodes: List[Node]
+    ) -> List[Proposition]:
         """Return a list of propositions from Proposition nodes.
 
-        :param list proposition_nodes: A list of Proposition Nodes
+        :param List[Node] proposition_nodes: A list of Proposition Nodes
         :return: A list of Propositions
         """
         propositions_response = list()
@@ -1072,7 +1119,8 @@ class QueryHandler:
         return propositions_response
 
     @staticmethod
-    def _find_and_return_proposition_response(tx, proposition_id):
+    def _find_and_return_proposition_response(tx: Transaction,
+                                              proposition_id: str) -> Record:
         """Return value ids from a proposition."""
         queries = (
             ("MATCH (n) -[r1]-> (t:Therapy) ", "t.id AS object,"), ("", "")
@@ -1092,11 +1140,17 @@ class QueryHandler:
         return None
 
     @staticmethod
-    def _find_and_return_supported_by(tx, statement_id, only_statement=False):
-        """Statement and Document Nodes that support a given Statement.
+    def _find_and_return_supported_by(
+        tx: Transaction, statement_id: str, only_statement: bool = False
+    ) -> List[Record]:
+        """Retrieve Statement and Document Nodes that support a given
+        Statement.
 
+        :param Transaction tx: Neo4j session transaction object
+        :param str statement_id: ID of original statement
         :param bool only_statement: `True` if only match on Statement,
             `False` if match on both Statement and Document
+        :return: List of Records that support provided statement
         """
         if not only_statement:
             match = "MATCH (s:Statement)-[:CITES]->(sb) "
@@ -1110,8 +1164,15 @@ class QueryHandler:
         return [se[0] for se in tx.run(query)]
 
     @staticmethod
-    def _find_and_return_propositions_from_statement(tx, statement_id):
-        """Find propositions from a given statement."""
+    def _find_and_return_propositions_from_statement(
+        tx: Transaction, statement_id: str
+    ) -> Optional[Node]:
+        """Find propositions from a given statement.
+
+        :param Transaction tx: Neo4j session transaction object
+        :param statement_id str: statement ID to get propositions for
+        :return: Node containing supported proposition if successful
+        """
         query = (
             "MATCH (p:Proposition)<-[:DEFINED_BY]-(s:Statement) "
             f"WHERE toLower(s.id) = toLower('{statement_id}') "
@@ -1119,10 +1180,10 @@ class QueryHandler:
         )
         return (tx.run(query).single() or [None])[0]
 
-    def _get_gene_value_object(self, node):
+    def _get_gene_value_object(self, node: Node) -> Node:
         """Get gene value object from gene descriptor object
 
-        :param descriptor object node: gene descriptor object
+        :param Node node: gene descriptor object
         :return: gene value object
         """
         with self.driver.session() as session:
@@ -1131,11 +1192,12 @@ class QueryHandler:
             )
         return gene_value_object
 
-    def _get_proposition(self, p) -> Proposition:
+    def _get_proposition(self, p: Node) -> Proposition:
         """Return a proposition.
 
         :param Node p: Proposition Node
         :return: A proposition
+        :raise: ValueError if unrecognized proposition type
         """
         with self.driver.session() as session:
             p_id = p.get("id")
@@ -1163,10 +1225,11 @@ class QueryHandler:
                 raise ValueError
             return proposition
 
-    def _get_statement(self, s) -> Dict:
+    def _get_statement(self, s: Node) -> Dict:
         """Return a statement.
 
         :param Node s: Statement Node
+        :return: Dict containing values from s
         """
         with self.driver.session() as session:
             statement_id = s.get("id")
