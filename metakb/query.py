@@ -81,7 +81,7 @@ class QueryHandler:
             self.vicc_normalizers.normalize_variation([variation])
         normalized_variation = None
         if variant_norm_resp:
-            normalized_variation = variant_norm_resp["variation_id"]
+            normalized_variation = variant_norm_resp.variation_id
         if not normalized_variation:
             # Check if VRS variation (allele, cnv, or haplotype)
             if variation.startswith(("ga4gh:VA.", "ga4gh:CNV.", "ga4gh:VH.")):
