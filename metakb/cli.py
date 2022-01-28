@@ -94,8 +94,8 @@ class CLI:
                          load_normalizers_db: bool,
                          force_load_normalizers_db: bool,
                          normalizers_db_url: str,
-                         load_transformed: bool,
-                         specify_transform_file: Optional[Path]):
+                         load_latest_cdms: bool,
+                         load_target_cdm: Optional[Path]):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
         """
@@ -108,7 +108,7 @@ class CLI:
                                  'DISEASE_NORM_DB_URL']:
                 environ[env_var_name] = normalizers_db_url
 
-        if not (load_transformed or specify_transform_file):
+        if not (load_latest_cdms or load_target_cdm):
             if load_normalizers_db or force_load_normalizers_db:
                 CLI()._load_normalizers_db(force_load_normalizers_db)
 
@@ -121,8 +121,8 @@ class CLI:
         click.echo(msg)
         logger.info(msg)
         g = Graph(uri=db_url, credentials=(db_username, db_password))
-        if specify_transform_file:
-            g.load_from_json(specify_transform_file)
+        if load_target_cdm:
+            g.load_from_json(load_target_cdm)
         else:
             g.clear()
             for src in sorted({v.value for v
