@@ -257,8 +257,8 @@ class MOATransform(Transform):
         variation_descriptor = VariationDescriptor(
             id=f"moa.variant:{variant['id']}",
             label=variant['feature'],
-            variation_id=v_norm_resp['variation_id'],
-            variation=v_norm_resp['variation'],
+            variation_id=v_norm_resp.variation_id,
+            variation=v_norm_resp.variation,
             gene_context=gene_context,
             vrs_ref_allele_seq=vrs_ref_allele_seq,
             extensions=self._get_variant_extensions(variant)
@@ -384,7 +384,7 @@ class MOATransform(Transform):
         if normalized_therapy_id:
             therapy_descriptor = ValueObjectDescriptor(
                 id=f"{schemas.SourceName.MOA.value}."
-                   f"{therapy_norm_resp['therapy_descriptor']['id']}",
+                   f"{therapy_norm_resp.therapy_descriptor.id}",
                 type="TherapyDescriptor",
                 label=label,
                 therapy_id=normalized_therapy_id
@@ -415,7 +415,7 @@ class MOATransform(Transform):
 
         disease_descriptor = ValueObjectDescriptor(
             id=f"{schemas.SourceName.MOA.value}."
-               f"{disease_norm_resp['disease_descriptor']['id']}",
+               f"{disease_norm_resp.disease_descriptor.id}",
             type="DiseaseDescriptor",
             label=disease_name,
             disease_id=normalized_disease_id,
