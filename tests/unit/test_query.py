@@ -155,11 +155,14 @@ def assert_general_search_queries(response):
 
 def test_search_id(query_handler):
     """Test that search id method works correctly."""
-    resp = query_handler.search_by_id('proposition:1')
-    assert resp['proposition']
-    assert not resp['warnings']
-    assert query_handler.search_by_id('proposition:001')['warnings']
-    assert query_handler.search_by_id('proposition:0')['warnings']
+    resp = query_handler.search_by_id(
+        "proposition:xsTCVDo1bo2P_6Sext0Y3ibU3MPbiyXE"
+    )
+    assert resp["proposition"]
+    assert not resp["warnings"]
+    assert query_handler.search_by_id("proposition:001")["warnings"]
+    assert query_handler.search_by_id("proposition:0")["warnings"]
+    assert query_handler.search_by_id("proposition:1")["warnings"]
 
 
 def test_general_search_queries(query_handler):

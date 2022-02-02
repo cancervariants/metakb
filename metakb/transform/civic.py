@@ -24,15 +24,14 @@ class CIViCTransform(Transform):
                  credentials: Tuple[str, str] = ("", ""),
                  harvester_path: Optional[Path] = None) -> None:
         """Initialize CIViC Transform class."""
-        super().__init__(data_dir=data_dir, uri=uri, credentials=credentials,
-                         harvester_path=harvester_path)
-        # Able to normalize these IDSs
+        super().__init__(data_dir=data_dir, harvester_path=harvester_path)
+        # Able to normalize these IDs
         self.valid_ids = {
             'variation_descriptors': dict(),
             'disease_descriptors': dict(),
             'therapy_descriptors': dict()
         }
-        # Unable to normalize these IDSs
+        # Unable to normalize these IDs
         self.invalid_ids = {
             'therapy_descriptors': list(),
             'disease_descriptors': list()
@@ -59,8 +58,6 @@ class CIViCTransform(Transform):
         self._add_methods()
         self._transform_evidence_and_assertions(evidence_items)
         self._transform_evidence_and_assertions(assertions, is_evidence=False)
-        if self.query_handler.driver is not None:
-            self.query_handler.driver.close()
 
     def _transform_evidence_and_assertions(self, records: List[Dict],
                                            is_evidence=True) -> None:
@@ -268,16 +265,16 @@ class CIViCTransform(Transform):
             proposition_id = self._get_proposition_id(
                 params["type"],
                 params["predicate"],
-                params["subject"],
-                params["object_qualifier"],
-                params["object"]
+                [params["subject"]],
+                [params["object_qualifier"]],
+                [params["object"]]
             )
         else:
             proposition_id = self._get_proposition_id(
                 params["type"],
                 params["predicate"],
-                params["subject"],
-                params["object_qualifier"]
+                [params["subject"]],
+                [params["object_qualifier"]]
             )
         if proposition_id is None:
             return None

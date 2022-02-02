@@ -30,8 +30,6 @@ class MOATransform(Transform):
         # Transform MOA assertions
         self._transform_statements(assertions, variants, sources,
                                    cdm_assertions)
-        if self.query_handler.driver is not None:
-            self.query_handler.driver.close()
 
     def _transform_statements(self, records, variants, sources,
                               cdm_assertions):
@@ -190,9 +188,9 @@ class MOATransform(Transform):
         params["id"] = self._get_proposition_id(
             params["type"],
             params["predicate"],
-            variation_id=params["subject"],
-            disease_id=params["object_qualifier"],
-            therapy_id=params["object"]
+            variation_ids=[params["subject"]],
+            disease_ids=[params["object_qualifier"]],
+            therapy_ids=[params["object"]]
         )
         proposition = schemas.TherapeuticResponseProposition(
             **params).dict(exclude_none=True)
