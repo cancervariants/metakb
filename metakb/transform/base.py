@@ -5,7 +5,12 @@ import logging
 from pathlib import Path
 from datetime import datetime as dt
 
+from ga4gh.core import sha512t24u
+
 from metakb import APP_ROOT, DATE_FMT
+from metakb.schemas import PropositionType, Predicate, DiagnosticPredicate, \
+    PrognosticPredicate, PredictivePredicate, FunctionalPredicate, \
+    PathogenicPredicate
 from metakb.normalizers import VICCNormalizers
 
 logger = logging.getLogger('metakb')
@@ -15,12 +20,13 @@ logger.setLevel(logging.DEBUG)
 class Transform:
     """A base class for transforming harvester data."""
 
-    def __init__(self, data_dir: Path = APP_ROOT / "data",
+    def __init__(self,
+                 data_dir: Path = APP_ROOT / "data",
                  harvester_path: Optional[Path] = None) -> None:
         """Initialize Transform base class.
 
         :param Path data_dir: Path to source data directory
-        :param Path harvester_path: Path to previously harvested data
+        :param Optional[Path] harvester_path: Path to previously harvested data
         """
         self.name = self.__class__.__name__.lower().split("transform")[0]
         self.data_dir = data_dir / self.name
@@ -37,11 +43,10 @@ class Transform:
         self.methods = list()
         self.documents = list()
 
-    def transform(self, *args, **kwargs) -> Dict[str, dict]:
-        """Transform harvested data to the Common Data Model.
+        self.next_node_id = {}
 
-        :return: Updated indexes for propositions and documents
-        """
+    def transform(self, *args, **kwargs):
+        """Transform harvested data to the Common Data Model."""
         raise NotImplementedError
 
     def extract_harvester(self) -> Dict[str, List]:
@@ -67,33 +72,59 @@ class Transform:
         with open(self.harvester_path, "r") as f:
             return json.load(f)
 
-    @staticmethod
-    def _set_ix(propositions_documents_ix, dict_key, search_key) -> int:
-        """Set indexes for documents or propositions.
+    predicate_validation = {
+        PropositionType.PREDICTIVE: PredictivePredicate,
+        PropositionType.DIAGNOSTIC: DiagnosticPredicate,
+        PropositionType.PROGNOSTIC: PrognosticPredicate,
+        PropositionType.PATHOGENIC: PathogenicPredicate,
+        PropositionType.FUNCTIONAL: FunctionalPredicate
+    }
 
-        :param dict propositions_documents_ix: Keeps track of
-            proposition and documents indexes
-        :param str dict_key: 'sources' or 'propositions'
-        :param Any search_key: The key to get or set
-        :return: An int representing the index
+    def _get_proposition_id(
+        self,
+        prop_type: PropositionType,
+        pred: Predicate,
+        variation_ids: List[str] = [],
+        disease_ids: List[str] = [],
+        therapy_ids: List[str] = []
+    ) -> Optional[str]:
+        """Retrieve stable ID for a proposition
+
+        :param PropositionType prop_type: type of Proposition
+        :param Predicate pred: proposition predicate value
+        :param str variation_id: VRS ID
+        :param str disease_id: normalized disease ID
+        :param str therapy_id: normalized therapy ID
+        :return: proposition ID, or None if prop_type and pred conflict or
+            if provided parameters cannot determine correct proposition ID
         """
-        if dict_key == 'documents':
-            dict_key_ix = 'document_index'
-        elif dict_key == 'propositions':
-            dict_key_ix = 'proposition_index'
-        else:
-            raise KeyError("dict_key can only be `documents` or "
-                           "`propositions`.")
-        if propositions_documents_ix[dict_key].get(search_key):
-            index = propositions_documents_ix[dict_key].get(search_key)
-        else:
-            index = propositions_documents_ix.get(dict_key_ix)
-            propositions_documents_ix[dict_key][search_key] = index
-            propositions_documents_ix[dict_key_ix] += 1
-        return index
+        if not isinstance(pred, self.predicate_validation[prop_type]):
+            msg = f"{prop_type} in query conflicts with {pred}"
+            logger.error(msg)
+            raise ValueError(msg)
 
-    def _create_json(self, transform_dir: Optional[Path] = None,
-                     filename: Optional[str] = None) -> None:
+        concept_ids = variation_ids + disease_ids + therapy_ids
+        terms = [prop_type.value, pred.value] + concept_ids
+        terms_sorted = sorted([t.lower() for t in terms])
+        blob = json.dumps(terms_sorted).encode("ascii")
+        digest = sha512t24u(blob=blob)
+        return f"proposition:{digest}"
+
+    @staticmethod
+    def _get_document_id(**parameters) -> str:
+        """Retrieve stable ID for a document.
+        :parameters: property names and values to get ID for. Assumes values
+            are strings.
+        :return: identifying document ID value
+        """
+        params_sorted = {
+            key.lower(): parameters[key].lower() for key in sorted(parameters)
+        }
+        blob = json.dumps(params_sorted).encode("ascii")
+        return f"document:{sha512t24u(blob=blob)}"
+
+    def create_json(self, transform_dir: Optional[Path] = None,
+                    filename: Optional[str] = None) -> None:
         """Create a composite JSON for transformed data.
 
         :param Optional[Path] transform_dir: Path to data directory for

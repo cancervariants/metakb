@@ -5,6 +5,8 @@ to graph datastore.
 from timeit import default_timer as timer
 from os import environ
 import logging
+from typing import Optional
+from pathlib import Path
 
 import click
 from disease.database import Database as DiseaseDatabase
@@ -70,18 +72,30 @@ class CLI:
               '`http://localhost:8000` by default.')
     )
     @click.option(
-        '--load_transformed',
-        '-l',
+        "--load_latest_cdms",
+        "-l",
         is_flag=True,
         default=False,
-        help=('Load existing sources transform files rather than running '
-              'harvest and transform methods to load the neo4j database.')
+        help=("Clear MetaKB database and load most recent available source "
+              "CDM files. Does not run harvest and transform methods to "
+              "generate new CDM files.")
     )
-    def update_metakb_db(db_url, db_username, db_password,
-                         load_normalizers_db,
-                         force_load_normalizers_db,
-                         normalizers_db_url,
-                         load_transformed):
+    @click.option(
+        "--load_target_cdm",
+        "-t",
+        type=click.Path(exists=True, dir_okay=False, readable=True,
+                        path_type=Path),
+        required=False,
+        help=("Load transformed CDM file at specified path. Overrides "
+              "--load_normalizers_db, --force_load_normalizers_db, "
+              "and --load_latest_cdms.")
+    )
+    def update_metakb_db(db_url: str, db_username: str, db_password: str,
+                         load_normalizers_db: bool,
+                         force_load_normalizers_db: bool,
+                         normalizers_db_url: str,
+                         load_latest_cdms: bool,
+                         load_target_cdm: Optional[Path]):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
         """
@@ -94,7 +108,7 @@ class CLI:
                                  'DISEASE_NORM_DB_URL']:
                 environ[env_var_name] = normalizers_db_url
 
-        if not load_transformed:
+        if not (load_latest_cdms or load_target_cdm):
             if load_normalizers_db or force_load_normalizers_db:
                 CLI()._load_normalizers_db(force_load_normalizers_db)
 
@@ -107,16 +121,20 @@ class CLI:
         click.echo(msg)
         logger.info(msg)
         g = Graph(uri=db_url, credentials=(db_username, db_password))
-        g.clear()
-        for src in sorted({v.value for v in SourceName.__members__.values()}):
-            pattern = f"{src}_cdm_*.json"
-            globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
-            try:
-                path = sorted(globbed)[-1]
-            except IndexError:
-                raise FileNotFoundError(f"No valid transform file found for "
-                                        f"{src}")
-            g.load_from_json(path)
+        if load_target_cdm:
+            g.load_from_json(load_target_cdm)
+        else:
+            g.clear()
+            for src in sorted({v.value for v
+                               in SourceName.__members__.values()}):
+                pattern = f"{src}_cdm_*.json"
+                globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
+                try:
+                    path = sorted(globbed)[-1]
+                except IndexError:
+                    raise FileNotFoundError(f"No valid transform file found "
+                                            f"for {src}")
+                g.load_from_json(path)
         g.close()
         end = timer()
         msg = f"Successfully loaded neo4j database in {(end-start):.5f} s"
@@ -158,7 +176,6 @@ class CLI:
     def _transform_sources() -> None:
         """Run transformation procedure for all sources."""
         logger.info("Transforming harvested data to CDM...")
-        source_indices = None
         # TODO: Switch to using constant
         transform_sources = {
             'civic': CIViCTransform,
@@ -171,13 +188,13 @@ class CLI:
             logger.info(transform_start)
             start = timer()
             source: Transform = src_name()
-            source_indices = source.transform(source_indices)
+            source.transform()
             end = timer()
             transform_end = \
                 f"{src_str} transform finished in {(end - start):.5f} s."
             click.echo(transform_end)
             logger.info(transform_end)
-            source._create_json()
+            source.create_json()
         total_end = timer()
         msg = f"Successfully transformed all sources to CDM in " \
               f"{(total_end-total_start):.5f} s"

@@ -4,69 +4,68 @@ from metakb.transform.moa import MOATransform
 from metakb import PROJECT_ROOT
 import json
 
-
 DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform"
 FILENAME = "moa_cdm.json"
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def data():
     """Create a MOA Transform test fixture."""
     harvester_path = DATA_DIR / "moa_harvester.json"
     moa = MOATransform(data_dir=DATA_DIR, harvester_path=harvester_path)
     moa.transform()
-    moa._create_json(transform_dir=DATA_DIR, filename=FILENAME)
+    moa.create_json(transform_dir=DATA_DIR, filename=FILENAME)
     with open(DATA_DIR / FILENAME, "r") as f:
         data = json.load(f)
     return data
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def asst71_statements(moa_aid71_statement):
     """Create assertion71 statements test fixture."""
     return [moa_aid71_statement]
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def asst71_propositions(moa_aid71_proposition):
     """Create assertion71 propositions test fixture."""
     return [moa_aid71_proposition]
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def asst71_variation_descriptors(moa_vid71):
     """Create assertion71 variation_descriptors test fixture."""
     return [moa_vid71]
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def asst71_gene_descriptors(moa_abl1):
     """Create assertion71 gene_descriptors test fixture."""
     return [moa_abl1]
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def asst71_therapy_descriptors(moa_imatinib):
     """Create assertion71 therapy_descriptors test fixture."""
     return [moa_imatinib]
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def asst71_disease_descriptors(moa_chronic_myelogenous_leukemia):
     """Create assertion71 disease_descriptors test fixture."""
     return [moa_chronic_myelogenous_leukemia]
 
 
-@pytest.fixture(scope='module')
-def asst71_methods(method004):
+@pytest.fixture(scope="module")
+def asst71_methods(method4):
     """Create assertion71 methods test fixture."""
-    return[method004]
+    return[method4]
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def asst71_documents(pmid_11423618):
     """Create assertion71 documents test fixture."""
-    return[pmid_11423618]
+    return [pmid_11423618]
 
 
 def test_moa_cdm(data, asst71_statements, asst71_propositions,
