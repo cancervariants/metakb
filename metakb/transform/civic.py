@@ -1,5 +1,5 @@
 """A module for to transform CIViC."""
-from typing import Optional, Dict, List, Tuple
+from typing import Optional, Dict, List, Set
 from pathlib import Path
 import logging
 
@@ -21,8 +21,6 @@ class CIViCTransform(Transform):
 
     def __init__(self,
                  data_dir: Path = APP_ROOT / "data",
-                 uri: str = "",
-                 credentials: Tuple[str, str] = ("", ""),
                  harvester_path: Optional[Path] = None,
                  normalizers: VICCNormalizers = VICCNormalizers()) -> None:
         """Initialize CIViC Transform class.
@@ -32,7 +30,7 @@ class CIViCTransform(Transform):
         :param Optional[Path] harvester_path: Path to previously harvested data
         :param VICCNormalizers normalizers: normalizer collection instance
         """
-        super().__init__(data_dir=data_dir, uri=uri, credentials=credentials,
+        super().__init__(data_dir=data_dir,
                          harvester_path=harvester_path,
                          normalizers=normalizers)
         # Able to normalize these IDSs
@@ -41,7 +39,7 @@ class CIViCTransform(Transform):
             'disease_descriptors': dict(),
             'therapy_descriptors': dict()
         }
-        # Unable to normalize these IDSs
+        # Unable to normalize these IDs
         self.invalid_ids = {
             'therapy_descriptors': list(),
             'disease_descriptors': list()
@@ -68,8 +66,6 @@ class CIViCTransform(Transform):
         self._add_methods()
         self._transform_evidence_and_assertions(evidence_items)
         self._transform_evidence_and_assertions(assertions, is_evidence=False)
-        if self.query_handler.driver is not None:
-            self.query_handler.driver.close()
 
     def _transform_evidence_and_assertions(self, records: List[Dict],
                                            is_evidence=True) -> None:
@@ -277,16 +273,16 @@ class CIViCTransform(Transform):
             proposition_id = self._get_proposition_id(
                 params["type"],
                 params["predicate"],
-                params["subject"],
-                params["object_qualifier"],
-                params["object"]
+                [params["subject"]],
+                [params["object_qualifier"]],
+                [params["object"]]
             )
         else:
             proposition_id = self._get_proposition_id(
                 params["type"],
                 params["predicate"],
-                params["subject"],
-                params["object_qualifier"]
+                [params["subject"]],
+                [params["object_qualifier"]]
             )
         if proposition_id is None:
             return None
@@ -389,47 +385,47 @@ class CIViCTransform(Transform):
                            f"not supported in Predicate schemas")
         return predicate
 
-    def _add_variation_descriptors(self, variants, vids) -> None:
+    def _add_variation_descriptors(self, variants: List, vids: Set) -> None:
         """Add Variation Descriptors to dict of transformations.
 
-        :param list variants: CIViC variants
+        :param List variants: CIViC variants
         :param set vids: Candidate CIViC Variant IDs
         """
         for variant in variants:
-            if variant['id'] not in vids:
+            if variant["id"] not in vids:
                 continue
             variant_id = f"civic.vid:{variant['id']}"
-            if 'c.' in variant['name']:
-                variant_name = variant['name']
-                if '(' in variant_name:
+            if "c." in variant["name"]:
+                variant_name = variant["name"]
+                if "(" in variant_name:
                     variant_name = \
-                        variant_name.replace('(', '').replace(')', '')
+                        variant_name.replace("(", "").replace(")", "")
                 variant_name = variant_name.split()[-1]
             else:
-                variant_name = variant['name']
+                variant_name = variant["name"]
 
             variant_query = f"{variant['entrez_name']} {variant_name}"
             hgvs_exprs = self._get_hgvs_expr(variant)
 
             # TODO: Remove as more get implemented in variation normalizer
             #  Filtering to speed up transformation
-            vname_lower = variant['name'].lower()
+            vname_lower = variant["name"].lower()
 
-            if vname_lower.endswith('fs') or '-' in vname_lower or '/' in vname_lower:  # noqa: E501
+            if vname_lower.endswith("fs") or "-" in vname_lower or "/" in vname_lower:  # noqa: E501
                 if not hgvs_exprs:
                     logger.warning("Variation Normalizer does not support "
                                    f"{variant_id}: {variant_query}")
                     continue
 
             unable_to_normalize = {
-                'mutation', 'amplification', 'exon', 'overexpression',
-                'frameshift', 'promoter', 'deletion', 'type', 'insertion',
-                'expression', 'duplication', 'copy', 'underexpression',
-                'number', 'variation', 'repeat', 'rearrangement', 'activation',
-                'expression', 'mislocalization', 'translocation', 'wild',
-                'polymorphism', 'frame', 'shift', 'loss', 'function', 'levels',
-                'inactivation', 'snp', 'fusion', 'dup', 'truncation',
-                'homozygosity', 'gain', 'phosphorylation',
+                "mutation", "amplification", "exon", "overexpression",
+                "frameshift", "promoter", "deletion", "type", "insertion",
+                "expression", "duplication", "copy", "underexpression",
+                "number", "variation", "repeat", "rearrangement", "activation",
+                "expression", "mislocalization", "translocation", "wild",
+                "polymorphism", "frame", "shift", "loss", "function", "levels",
+                "inactivation", "snp", "fusion", "dup", "truncation",
+                "homozygosity", "gain", "phosphorylation",
             }
 
             if set(vname_lower.split()) & unable_to_normalize:
@@ -448,27 +444,27 @@ class CIViCTransform(Transform):
                                f"{variant_query}")
                 continue
 
-            if variant['variant_types']:
-                structural_type = variant['variant_types'][0]['so_id']
+            if variant["variant_types"]:
+                structural_type = variant["variant_types"][0]["so_id"]
             else:
                 structural_type = None
 
             variation_descriptor = VariationDescriptor(
                 id=variant_id,
-                label=variant['name'],
-                description=variant['description'] if variant['description'] else None,  # noqa: E501
-                variation_id=variation_norm_resp['variation_id'],
-                variation=variation_norm_resp['variation'],
+                label=variant["name"],
+                description=variant["description"] if variant["description"] else None,  # noqa: E501
+                variation_id=variation_norm_resp.variation_id,
+                variation=variation_norm_resp.variation,
                 gene_context=f"civic.gid:{variant['gene_id']}",
                 structural_type=structural_type,
                 expressions=hgvs_exprs,
                 xrefs=self._get_variant_xrefs(variant),
                 alternate_labels=[v_alias for v_alias in
-                                  variant['variant_aliases'] if not
-                                  v_alias.startswith('RS')],
+                                  variant["variant_aliases"] if not
+                                  v_alias.startswith("RS")],
                 extensions=self._get_variant_extensions(variant)
             ).dict(by_alias=True, exclude_none=True)
-            self.valid_ids['variation_descriptors'][variant_id] = \
+            self.valid_ids["variation_descriptors"][variant_id] = \
                 variation_descriptor
             self.variation_descriptors.append(
                 variation_descriptor

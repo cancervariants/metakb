@@ -1,17 +1,16 @@
 """A module for the Transform base class."""
-from typing import Dict, Optional, List, Tuple
+from typing import Dict, Optional, List
 import json
 import logging
 from pathlib import Path
 from datetime import datetime as dt
 
-from neo4j.work.transaction import Transaction
+from ga4gh.core import sha512t24u
 
 from metakb import APP_ROOT, DATE_FMT
 from metakb.schemas import PropositionType, Predicate, DiagnosticPredicate, \
     PrognosticPredicate, PredictivePredicate, FunctionalPredicate, \
     PathogenicPredicate
-from metakb.query import QueryHandler
 from metakb.normalizers import VICCNormalizers
 
 logger = logging.getLogger('metakb')
@@ -23,15 +22,11 @@ class Transform:
 
     def __init__(self,
                  data_dir: Path = APP_ROOT / "data",
-                 uri: str = "",
-                 credentials: Tuple[str, str] = ("", ""),
                  harvester_path: Optional[Path] = None,
                  normalizers: VICCNormalizers = VICCNormalizers()) -> None:
         """Initialize Transform base class.
 
         :param Path data_dir: Path to source data directory
-        :param str uri: location to send Neo4j requests to
-        :param Tuple[str, str] credentials: database username and password
         :param Optional[Path] harvester_path: Path to previously harvested data
         :param VICCNormalizers normalizers: normalizer collection instance
         """
@@ -39,11 +34,7 @@ class Transform:
         self.data_dir = data_dir / self.name
         self.harvester_path = harvester_path
 
-        self.query_handler = QueryHandler(uri, credentials, normalizers)
-        self.vicc_normalizers = self.query_handler.vicc_normalizers
-
-        self._proposition_lookup = {}
-        self._document_lookup = {}
+        self.vicc_normalizers = normalizers
 
         self.statements = list()
         self.propositions = list()
@@ -83,43 +74,6 @@ class Transform:
         with open(self.harvester_path, "r") as f:
             return json.load(f)
 
-    def _get_next_node_id(self, label: str) -> str:
-        """Get next available ID number.
-        :param str label: Node label (first letter must be capitalized)
-        :return: valid CURIE with next unused ID number, e.g. `proposition:101`
-        """
-        label_lower = label.lower()
-
-        if label_lower in self.next_node_id:
-            next_id = self.next_node_id[label_lower]
-            self.next_node_id[label_lower] += 1
-
-        else:
-            def _get_highest_id(tx: Transaction) -> Optional[str]:
-                query = f"""
-                MATCH (x:{label})
-                WHERE x.id STARTS WITH "{label_lower}:"
-                RETURN x
-                ORDER BY toInteger(replace(x.id, "{label_lower}:", ""))
-                DESC
-                LIMIT 1
-                """
-                query_result = [x[0] for x in tx.run(query)]
-                if len(query_result) == 0:
-                    return None
-                else:
-                    return query_result[0].get("id")
-            with self.query_handler.driver.session() as session:
-                highest_id = session.read_transaction(_get_highest_id)
-                if highest_id is None:
-                    next_id = 1
-                    self.next_node_id[label_lower] = 2
-                else:
-                    next_id = int(highest_id.split(":")[-1]) + 1
-                    self.next_node_id[label_lower] = next_id + 1
-
-        return f"{label_lower}:{next_id}"
-
     predicate_validation = {
         PropositionType.PREDICTIVE: PredictivePredicate,
         PropositionType.DIAGNOSTIC: DiagnosticPredicate,
@@ -132,9 +86,9 @@ class Transform:
         self,
         prop_type: PropositionType,
         pred: Predicate,
-        variation_id: str = "",
-        disease_id: str = "",
-        therapy_id: str = ""
+        variation_ids: List[str] = [],
+        disease_ids: List[str] = [],
+        therapy_ids: List[str] = []
     ) -> Optional[str]:
         """Retrieve stable ID for a proposition
 
@@ -147,66 +101,29 @@ class Transform:
             if provided parameters cannot determine correct proposition ID
         """
         if not isinstance(pred, self.predicate_validation[prop_type]):
-            logger.error(f"{prop_type} in query conflicts with {pred}")
-            return None
+            msg = f"{prop_type} in query conflicts with {pred}"
+            logger.error(msg)
+            raise ValueError(msg)
 
-        args = tuple([
-            a for a in [prop_type, pred, variation_id, disease_id, therapy_id]
-            if a
-        ])
-        if args in self._proposition_lookup:
-            return self._proposition_lookup[args]
+        concept_ids = variation_ids + disease_ids + therapy_ids
+        terms = [prop_type.value, pred.value] + concept_ids
+        terms_sorted = sorted([t.lower() for t in terms])
+        blob = json.dumps(terms_sorted).encode("ascii")
+        digest = sha512t24u(blob=blob)
+        return f"proposition:{digest}"
 
-        params = {
-            "prop_type": prop_type,
-            "pred": pred,
-            "normalized_variation": variation_id,
-            "normalized_disease": disease_id,
-            "normalized_therapy": therapy_id
-        }
-        with self.query_handler.driver.session() as session:
-            response = session.read_transaction(
-                self.query_handler._get_propositions,
-                **params
-            )
-        num_matches = len(response)
-        if num_matches > 1:
-            logger.warning(f"Found >1 propositions matching {params}")
-            return None
-        elif num_matches == 1:
-            prop_id = response[0].get("id")
-        else:
-            prop_id = self._get_next_node_id("Proposition")
-        self._proposition_lookup[args] = prop_id
-        return prop_id
-
-    def _get_document_id(self, **parameters) -> Optional[str]:
+    @staticmethod
+    def _get_document_id(**parameters) -> str:
         """Retrieve stable ID for a document.
-        :kwargs: property names and values to get ID for
+        :parameters: property names and values to get ID for. Assumes values
+            are strings.
         :return: identifying document ID value
         """
-        # sort and get arg values for deterministic lookup
-        args = tuple(dict(sorted(parameters.items())).values())
-        if args in self._document_lookup:
-            return self._document_lookup[args]
-
-        if len(parameters) == 0:
-            return self._get_next_node_id("Document")
-        with self.query_handler.driver.session() as session:
-            document_response = session.read_transaction(
-                self.query_handler._get_documents,
-                **parameters
-            )
-        num_matches = len(document_response)
-        if num_matches > 1:
-            logger.warning(f"Found >1 propositions matching {parameters}")
-            return None
-        elif num_matches == 1:
-            doc_id = document_response[0].get("id")
-        else:
-            doc_id = self._get_next_node_id("Document")
-        self._document_lookup[args] = doc_id
-        return doc_id
+        params_sorted = {
+            key.lower(): parameters[key].lower() for key in sorted(parameters)
+        }
+        blob = json.dumps(params_sorted).encode("ascii")
+        return f"document:{sha512t24u(blob=blob)}"
 
     def create_json(self, transform_dir: Optional[Path] = None,
                     filename: Optional[str] = None) -> None:
