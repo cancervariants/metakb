@@ -16,7 +16,7 @@ def civic_eid2997_statement():
         "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:A",
-        "proposition": "proposition:133",
+        "proposition": "proposition:Zfp_VG0uvxwteCcJYO6_AJv1KDmJlFjs",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:33",
         "therapy_descriptor": "civic.tid:146",
@@ -30,7 +30,7 @@ def civic_eid2997_statement():
 def civic_eid2997_proposition():
     """Create a test fixture for EID2997 proposition."""
     return {
-        "id": "proposition:133",
+        "id": "proposition:Zfp_VG0uvxwteCcJYO6_AJv1KDmJlFjs",
         "type": "therapeutic_response_proposition",
         "predicate": "predicts_sensitivity_to",
         "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
@@ -201,7 +201,7 @@ def civic_eid1409_statement():
         "description": "Phase 3 randomized clinical trial comparing vemurafenib with dacarbazine in 675 patients with previously untreated, metastatic melanoma with the BRAF V600E mutation. At 6 months, overall survival was 84% (95% confidence interval [CI], 78 to 89) in the vemurafenib group and 64% (95% CI, 56 to 73) in the dacarbazine group. A relative reduction of 63% in the risk of death and of 74% in the risk of either death or disease progression was observed with vemurafenib as compared with dacarbazine (P<0.001 for both comparisons).",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:A",
-        "proposition": "proposition:181",
+        "proposition": "proposition:wsW_PurZodw_qHg1Iw8iAR1CUQte1CLA",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:12",
         "therapy_descriptor": "civic.tid:4",
@@ -220,14 +220,14 @@ def civic_aid6_statement():
         "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "amp_asco_cap_2017_level:1A",
-        "proposition": "proposition:133",
+        "proposition": "proposition:Zfp_VG0uvxwteCcJYO6_AJv1KDmJlFjs",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:33",
         "therapy_descriptor": "civic.tid:146",
         "disease_descriptor": "civic.did:8",
         "method": "method:2",
         "supported_by": [
-            "document:1", "civic.eid:2997",
+            "document:9WsQBGXOmTFRXBUanTaIec8Gvgg8bsMA", "civic.eid:2997",
             "civic.eid:2629", "civic.eid:982",
             "civic.eid:968", "civic.eid:883",
             "civic.eid:879"
@@ -240,7 +240,7 @@ def civic_aid6_statement():
 def civic_aid6_document():
     """Create test fixture for civic aid6 document."""
     return {
-        "id": "document:1",
+        "id": "document:9WsQBGXOmTFRXBUanTaIec8Gvgg8bsMA",
         "document_id": "https://www.nccn.org/professionals/"
                        "physician_gls/default.aspx",
         "label": "NCCN Guidelines: Non-Small Cell Lung Cancer version 3.2018",
@@ -257,7 +257,7 @@ def civic_eid2_statement():
         "description": "GIST tumors harboring PDGFRA D842V mutation are more likely to be benign than malignant.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:2",
+        "proposition": "proposition:KVuJMXiPm-oK4vvijE9Cakvucayay3jE",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:99",
         "disease_descriptor": "civic.did:2",
@@ -270,7 +270,7 @@ def civic_eid2_statement():
 def civic_eid2_proposition():
     """Create a test fixture for CIViC EID2 proposition."""
     return {
-        "id": "proposition:2",
+        "id": "proposition:KVuJMXiPm-oK4vvijE9Cakvucayay3jE",
         "type": "diagnostic_proposition",
         "predicate": "is_diagnostic_exclusion_criterion_for",
         "subject": "ga4gh:VA.bjWVYvXPaPbIRAfZvE0Uw_P-i36PGkAz",
@@ -416,7 +416,7 @@ def civic_eid74_statement():
         "description": "In patients with medullary carcinoma, the presence of RET M918T mutation is associated with increased probability of lymph node metastases.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:27",
+        "proposition": "proposition:Vyzbpg-s6mw27yJfYBFxGyQeuEJacP4l",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:113",
         "disease_descriptor": "civic.did:15",
@@ -430,7 +430,7 @@ def civic_eid74_statement():
 def civic_eid74_proposition():
     """Create a test fixture for CIViC EID74 proposition."""
     return {
-        "id": "proposition:27",
+        "id": "proposition:Vyzbpg-s6mw27yJfYBFxGyQeuEJacP4l",
         "type": "diagnostic_proposition",
         "predicate": "is_diagnostic_inclusion_criterion_for",
         "subject": "ga4gh:VA.GweduWrfxV58YnSvUBfHPGOA-KCH_iIl",
@@ -581,7 +581,7 @@ def civic_aid9_statement():
         "description": "ACVR1 G328V mutations occur within the kinase domain, leading to activation of downstream signaling. Exclusively seen in high-grade pediatric gliomas, supporting diagnosis of diffuse intrinsic pontine glioma.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "amp_asco_cap_2017_level:2C",
-        "proposition": "proposition:467",
+        "proposition": "proposition:Pjri4dU2VaEKcdKtVkoAUJ8bHFXnW2My",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:1686",
         "disease_descriptor": "civic.did:2950",
@@ -596,7 +596,7 @@ def civic_aid9_statement():
 def civic_aid9_proposition():
     """Create a test fixture for CIViC AID9 proposition."""
     return {
-        "id": "proposition:467",
+        "id": "proposition:Pjri4dU2VaEKcdKtVkoAUJ8bHFXnW2My",
         "predicate": "is_diagnostic_inclusion_criterion_for",
         "subject": "ga4gh:VA.yuvNtv-SpNOzcGsKsNnnK0n026rbfp6T",
         "object_qualifier": "DOID:0080684",
@@ -743,7 +743,7 @@ def civic_eid26_statement():
         "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:13",
+        "proposition": "proposition:_HXqJtIo6MSmwagQUSOot4wdKE7O4DyN",
         "variation_origin": "somatic",
         "variation_descriptor": "civic.vid:65",
         "disease_descriptor": "civic.did:3",
@@ -757,7 +757,7 @@ def civic_eid26_statement():
 def civic_eid26_proposition():
     """Create a test fixture for CIViC EID26 proposition."""
     return {
-        "id": "proposition:13",
+        "id": "proposition:_HXqJtIo6MSmwagQUSOot4wdKE7O4DyN",
         "predicate": "is_prognostic_of_worse_outcome_for",
         "subject": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
         "object_qualifier": "ncit:C3171",
@@ -904,7 +904,7 @@ def civic_eid1756_statement():
         "description": "Study of 1817 PCa cases and 2026 cancer free controls to clarify the association of (MTHFR)c.677C>T  (and c.1298A>C ) of pancreatic cancer risk in a population of Han Chinese in Shanghai.  Results indicated a lower risk for the heterozygous CT genotype and homozygous TT genotype carriers of (MTHFR)c.677C>T  which had a significantly lower risk of developing pancreatic cancer compared with the wild-type CC genotype.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:222",
+        "proposition": "proposition:cDLAt3AJPrHQPQ--JpKU4MkU528_kE-a",
         "variation_origin": "germline",
         "variation_descriptor": "civic.vid:258",
         "disease_descriptor": "civic.did:556",
@@ -918,7 +918,7 @@ def civic_eid1756_statement():
 def civic_eid1756_proposition():
     """Create a test fixture for CIViC EID1756 proposition."""
     return {
-        "id": "proposition:222",
+        "id": "proposition:cDLAt3AJPrHQPQ--JpKU4MkU528_kE-a",
         "predicate": "is_prognostic_of_better_outcome_for",
         "subject": "ga4gh:VA.Nq7ozfH2X6m1PGr_n38E-F0NZ7I9UASP",
         "object_qualifier": "ncit:C9005",
@@ -1092,7 +1092,7 @@ def moa_aid71_statement():
         "id": "moa.assertion:71",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
         "evidence_level": "moa.evidence_level:Preclinical",
-        "proposition": "proposition:569",
+        "proposition": "proposition:4BRAy5ckYBfbzLHr95Xz3M9D9mJpTRxr",
         "variation_origin": "somatic",
         "variation_descriptor": "moa.variant:71",
         "therapy_descriptor": "moa.normalize.therapy:Imatinib",
@@ -1109,7 +1109,7 @@ def moa_aid71_statement():
 def moa_aid71_proposition():
     """Create a test fixture for MOA AID71 proposition."""
     return {
-        "id": "proposition:569",
+        "id": "proposition:4BRAy5ckYBfbzLHr95Xz3M9D9mJpTRxr",
         "predicate": "predicts_resistance_to",
         "subject": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
         "object_qualifier": "ncit:C3174",
