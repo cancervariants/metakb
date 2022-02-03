@@ -23,7 +23,7 @@ class Transform:
     def __init__(self,
                  data_dir: Path = APP_ROOT / "data",
                  harvester_path: Optional[Path] = None,
-                 normalizers: VICCNormalizers = VICCNormalizers()) -> None:
+                 normalizers: Optional[VICCNormalizers] = None) -> None:
         """Initialize Transform base class.
 
         :param Path data_dir: Path to source data directory
@@ -34,7 +34,10 @@ class Transform:
         self.data_dir = data_dir / self.name
         self.harvester_path = harvester_path
 
-        self.vicc_normalizers = normalizers
+        if normalizers is None:
+            self.vicc_normalizers = VICCNormalizers()
+        else:
+            self.vicc_normalizers = normalizers
 
         self.statements = list()
         self.propositions = list()

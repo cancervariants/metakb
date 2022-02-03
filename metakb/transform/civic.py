@@ -22,7 +22,7 @@ class CIViCTransform(Transform):
     def __init__(self,
                  data_dir: Path = APP_ROOT / "data",
                  harvester_path: Optional[Path] = None,
-                 normalizers: VICCNormalizers = VICCNormalizers()) -> None:
+                 normalizers: Optional[VICCNormalizers] = None) -> None:
         """Initialize CIViC Transform class.
         :param Path data_dir: Path to source data directory
         :param str uri: location to send Neo4j requests to
