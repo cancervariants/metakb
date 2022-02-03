@@ -1,11 +1,12 @@
 """A module for to transform CIViC."""
+from typing import Optional, Dict, List, Tuple, Set
 from pathlib import Path
-from typing import Optional, Dict, List
 import logging
 
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
     Extension, Expression, GeneDescriptor, ValueObjectDescriptor
 
+from metakb import APP_ROOT
 from metakb.transform.base import Transform
 import metakb.schemas as schemas
 
@@ -18,45 +19,31 @@ class CIViCTransform(Transform):
     """A class for transforming CIViC to the common data model."""
 
     def __init__(self,
-                 data_dir: Optional[Path] = None,
+                 data_dir: Path = APP_ROOT / "data",
+                 uri: str = "",
+                 credentials: Tuple[str, str] = ("", ""),
                  harvester_path: Optional[Path] = None) -> None:
         """Initialize CIViC Transform class."""
         super().__init__(data_dir=data_dir, harvester_path=harvester_path)
-        # Able to normalize these IDSs
+        # Able to normalize these IDs
         self.valid_ids = {
             'variation_descriptors': dict(),
             'disease_descriptors': dict(),
             'therapy_descriptors': dict()
         }
-        # Unable to normalize these IDSs
+        # Unable to normalize these IDs
         self.invalid_ids = {
             'therapy_descriptors': list(),
             'disease_descriptors': list()
         }
 
-    def transform(self, propositions_documents_ix=None) -> Dict[str, dict]:
-        """Transform CIViC harvested json to common data model.
-
-        :param Dict propositions_documents_ix: Indexes for propositions and
-            documents
-        :return: An updated propositions_documents_ix object
-        """
+    def transform(self):
+        """Transform CIViC harvested json to common data model."""
         data = self.extract_harvester()
         evidence_items = data['evidence']
         assertions = data['assertions']
         variants = data['variants']
         genes = data['genes']
-        if not propositions_documents_ix:
-            propositions_documents_ix = {
-                # Keep track of documents index value
-                'document_index': 1,
-                # {document_id: document_index}
-                'documents': dict(),
-                # Keep track of proposition index value
-                'proposition_index': 1,
-                # {tuple: proposition_index}
-                'propositions': dict()
-            }
 
         # Filter Variant IDs for
         # Prognostic, Predictive, and Diagnostic evidence
@@ -69,22 +56,15 @@ class CIViCTransform(Transform):
         self._add_variation_descriptors(variants, vids)
         self._add_gene_descriptors(genes)
         self._add_methods()
-        self._transform_evidence_and_assertions(evidence_items,
-                                                propositions_documents_ix)
-        self._transform_evidence_and_assertions(assertions,
-                                                propositions_documents_ix,
-                                                is_evidence=False)
-        return propositions_documents_ix
+        self._transform_evidence_and_assertions(evidence_items)
+        self._transform_evidence_and_assertions(assertions, is_evidence=False)
 
-    def _transform_evidence_and_assertions(self, records,
-                                           propositions_documents_ix,
+    def _transform_evidence_and_assertions(self, records: List[Dict],
                                            is_evidence=True) -> None:
         """Transform statements, propositions, descriptors, and documents
         from CIViC evidence items and assertions.
 
         :param list records: CIViC Evidence Items or Assertions
-        :param dict propositions_documents_ix: Indexes for propositions and
-            documents
         :param bool is_evidence: `True` if records are evidence items.
             `False` if records are assertions.
         """
@@ -143,7 +123,7 @@ class CIViCTransform(Transform):
 
             proposition = self._get_proposition(
                 r, variation_descriptor, disease_descriptor,
-                therapy_descriptor, propositions_documents_ix
+                therapy_descriptor
             )
 
             # Only support Therapeutic Response and Prognostic
@@ -155,7 +135,7 @@ class CIViCTransform(Transform):
 
             if is_evidence:
                 # Evidence items's method and evidence level
-                method = f'method:{schemas.MethodID.CIVIC_EID_SOP:03}'
+                method = f'method:{schemas.MethodID.CIVIC_EID_SOP}'
                 evidence_level = f"civic.evidence_level:{r['evidence_level']}"
 
                 # Supported by evidence for evidence item
@@ -168,10 +148,10 @@ class CIViCTransform(Transform):
                 if r['amp_level'] and not r['acmg_codes']:
                     method = \
                         f'method:' \
-                        f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP.value:03}'
+                        f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP}'
                 elif not r['amp_level'] and r['acmg_codes']:
                     method = f'method:' \
-                             f'{schemas.MethodID.CIVIC_AID_ACMG.value:03}'
+                             f'{schemas.MethodID.CIVIC_AID_ACMG}'
                 else:
                     # Statements are required to have a method
                     logger.warning(f"Unable to get method for {civic_id}")
@@ -183,7 +163,7 @@ class CIViCTransform(Transform):
                 # Supported by evidence for assertion
                 supported_by = list()
                 documents = \
-                    self._get_aid_document(r, propositions_documents_ix)
+                    self._get_aid_document(r)
                 for d in documents:
                     if d not in self.documents:
                         self.documents.append(d)
@@ -249,55 +229,63 @@ class CIViCTransform(Transform):
         return evidence_level
 
     def _get_proposition(self, record, variation_descriptor,
-                         disease_descriptor, therapy_descriptor,
-                         propositions_documents_ix) -> Optional[dict]:
+                         disease_descriptor, therapy_descriptor
+                         ) -> Optional[dict]:
         """Return a proposition for a record.
 
         :param dict record: CIViC EID or AID
         :param dict variation_descriptor: The record's variation descriptor
         :param dict disease_descriptor: The record's disease descriptor
         :param dict therapy_descriptor: The record's therapy descriptor
-        :param dict propositions_documents_ix: Indexes for propositions and
-            documents
         :return: A proposition
         """
-        proposition_type = \
-            self._get_proposition_type(record['evidence_type'])
+        try:
+            proposition_type = \
+                self._get_proposition_type(record["evidence_type"])
+        except KeyError:
+            return None
 
         predicate = self._get_predicate(proposition_type,
-                                        record['clinical_significance'])
+                                        record["clinical_significance"])
 
-        # Don't support TR that has  `None`, 'N/A', or 'Unknown' predicate
+        # Don't support TR that has  `None`, "N/A", or "Unknown" predicate
         if not predicate:
             return None
 
         params = {
-            'id': '',
-            'type': proposition_type,
-            'predicate': predicate,
-            'subject': variation_descriptor['variation_id'],
-            'object_qualifier': disease_descriptor['disease_id']
+            "id": "",
+            "type": proposition_type,
+            "predicate": predicate,
+            "subject": variation_descriptor["variation_id"],
+            "object_qualifier": disease_descriptor["disease_id"]
         }
 
         if proposition_type == schemas.PropositionType.PREDICTIVE:
-            params['object'] = therapy_descriptor['therapy_id']
-
-        # Get corresponding id for proposition
-        key = (params['type'],
-               params['predicate'],
-               params['subject'],
-               params['object_qualifier'])
-        if proposition_type == schemas.PropositionType.PREDICTIVE.value:
-            key = key + (params['object'],)
-        proposition_index = self._set_ix(propositions_documents_ix,
-                                         'propositions', key)
-        params['id'] = f"proposition:{proposition_index:03}"
+            params["object"] = therapy_descriptor["therapy_id"]
+            proposition_id = self._get_proposition_id(
+                params["type"],
+                params["predicate"],
+                [params["subject"]],
+                [params["object_qualifier"]],
+                [params["object"]]
+            )
+        else:
+            proposition_id = self._get_proposition_id(
+                params["type"],
+                params["predicate"],
+                [params["subject"]],
+                [params["object_qualifier"]]
+            )
+        if proposition_id is None:
+            return None
+        else:
+            params["id"] = proposition_id
 
         if proposition_type == schemas.PropositionType.PROGNOSTIC.value:
             proposition = \
                 schemas.PrognosticProposition(**params).dict(exclude_none=True)
         elif proposition_type == schemas.PropositionType.PREDICTIVE.value:
-            params['object'] = therapy_descriptor['therapy_id']
+            params["object"] = therapy_descriptor["therapy_id"]
             proposition =\
                 schemas.TherapeuticResponseProposition(**params).dict(
                     exclude_none=True
@@ -310,7 +298,9 @@ class CIViCTransform(Transform):
             proposition = None
         return proposition
 
-    def _get_proposition_type(self, evidence_type, is_evidence=True) -> str:
+    def _get_proposition_type(self,
+                              evidence_type,
+                              is_evidence=True) -> Optional[schemas.PropositionType]:  # noqa: E501
         """Return proposition type for a given EID or AID.
 
         :param str evidence_type: CIViC evidence type
@@ -329,7 +319,7 @@ class CIViCTransform(Transform):
         else:
             raise KeyError(f"Proposition Type {evidence_type} not found in "
                            f"schemas.PropositionType")
-        return proposition_type.value
+        return proposition_type
 
     def _get_variation_origin(self, variant_origin) -> Optional[str]:
         """Return variant origin.
@@ -347,12 +337,13 @@ class CIViCTransform(Transform):
             origin = None
         return origin
 
-    def _get_predicate(self, proposition_type, clin_sig) -> Optional[str]:
+    def _get_predicate(self, proposition_type,
+                       clin_sig) -> Optional[schemas.Predicate]:
         """Return predicate for an evidence item.
 
         :param str proposition_type: The proposition type
         :param str clin_sig: The evidence item's clinical significance
-        :return: Predicate for proposition
+        :return: Predicate for proposition if valid
         """
         if clin_sig is None or clin_sig.upper() in ['N/A', 'UNKNOWN']:
             return None
@@ -360,73 +351,73 @@ class CIViCTransform(Transform):
         clin_sig = '_'.join(clin_sig.upper().split())
         predicate = None
 
-        if proposition_type == schemas.PropositionType.PREDICTIVE.value:
+        if proposition_type == schemas.PropositionType.PREDICTIVE:
             if clin_sig == 'SENSITIVITY/RESPONSE':
-                predicate = schemas.PredictivePredicate.SENSITIVITY.value
+                predicate = schemas.PredictivePredicate.SENSITIVITY
             elif clin_sig == 'RESISTANCE':
-                predicate = schemas.PredictivePredicate.RESISTANCE.value
-        elif proposition_type == schemas.PropositionType.DIAGNOSTIC.value:
-            predicate = schemas.DiagnosticPredicate[clin_sig].value
-        elif proposition_type == schemas.PropositionType.PROGNOSTIC.value:
+                predicate = schemas.PredictivePredicate.RESISTANCE
+        elif proposition_type == schemas.PropositionType.DIAGNOSTIC:
+            predicate = schemas.DiagnosticPredicate[clin_sig]
+        elif proposition_type == schemas.PropositionType.PROGNOSTIC:
             if clin_sig == 'POSITIVE':
-                predicate = schemas.PrognosticPredicate.BETTER_OUTCOME.value
+                predicate = schemas.PrognosticPredicate.BETTER_OUTCOME
             else:
-                predicate = schemas.PrognosticPredicate[clin_sig].value
-        elif proposition_type == schemas.PropositionType.FUNCTIONAL.value:
-            predicate = schemas.FunctionalPredicate[clin_sig].value
-        elif proposition_type == schemas.PropositionType.ONCOGENIC.value:
+                predicate = schemas.PrognosticPredicate[clin_sig]
+        elif proposition_type == schemas.PropositionType.FUNCTIONAL:
+            predicate = schemas.FunctionalPredicate[clin_sig]
+        elif proposition_type == schemas.PropositionType.ONCOGENIC:
             # TODO: There are currently no Oncogenic types in CIViC harvester
             #  Look into why this is
             pass
-        elif proposition_type == schemas.PropositionType.PATHOGENIC.value:
+        elif proposition_type == schemas.PropositionType.PATHOGENIC:
             if clin_sig in ['PATHOGENIC', 'LIKELY_PATHOGENIC']:
-                predicate = schemas.PathogenicPredicate.PATHOGENIC.value
+                predicate = schemas.PathogenicPredicate.PATHOGENIC
         else:
             logger.warning(f"CIViC proposition type: {proposition_type} "
                            f"not supported in Predicate schemas")
         return predicate
 
-    def _add_variation_descriptors(self, variants, vids) -> None:
+    def _add_variation_descriptors(self, variants: List, vids: Set) -> None:
         """Add Variation Descriptors to dict of transformations.
 
-        :param list variants: CIViC variants
+        :param List variants: CIViC variants
         :param set vids: Candidate CIViC Variant IDs
         """
         for variant in variants:
-            if variant['id'] not in vids:
+            if variant["id"] not in vids:
                 continue
             variant_id = f"civic.vid:{variant['id']}"
-            if 'c.' in variant['name']:
-                variant_name = variant['name']
-                if '(' in variant_name:
+            if "c." in variant["name"]:
+                variant_name = variant["name"]
+                if "(" in variant_name:
                     variant_name = \
-                        variant_name.replace('(', '').replace(')', '')
+                        variant_name.replace("(", "").replace(")", "")
                 variant_name = variant_name.split()[-1]
             else:
-                variant_name = variant['name']
+                variant_name = variant["name"]
 
             variant_query = f"{variant['entrez_name']} {variant_name}"
             hgvs_exprs = self._get_hgvs_expr(variant)
 
             # TODO: Remove as more get implemented in variation normalizer
             #  Filtering to speed up transformation
-            vname_lower = variant['name'].lower()
+            vname_lower = variant["name"].lower()
 
-            if vname_lower.endswith('fs') or '-' in vname_lower or '/' in vname_lower:  # noqa: E501
+            if vname_lower.endswith("fs") or "-" in vname_lower or "/" in vname_lower:  # noqa: E501
                 if not hgvs_exprs:
                     logger.warning("Variation Normalizer does not support "
                                    f"{variant_id}: {variant_query}")
                     continue
 
             unable_to_normalize = {
-                'mutation', 'amplification', 'exon', 'overexpression',
-                'frameshift', 'promoter', 'deletion', 'type', 'insertion',
-                'expression', 'duplication', 'copy', 'underexpression',
-                'number', 'variation', 'repeat', 'rearrangement', 'activation',
-                'expression', 'mislocalization', 'translocation', 'wild',
-                'polymorphism', 'frame', 'shift', 'loss', 'function', 'levels',
-                'inactivation', 'snp', 'fusion', 'dup', 'truncation',
-                'homozygosity', 'gain', 'phosphorylation',
+                "mutation", "amplification", "exon", "overexpression",
+                "frameshift", "promoter", "deletion", "type", "insertion",
+                "expression", "duplication", "copy", "underexpression",
+                "number", "variation", "repeat", "rearrangement", "activation",
+                "expression", "mislocalization", "translocation", "wild",
+                "polymorphism", "frame", "shift", "loss", "function", "levels",
+                "inactivation", "snp", "fusion", "dup", "truncation",
+                "homozygosity", "gain", "phosphorylation",
             }
 
             if set(vname_lower.split()) & unable_to_normalize:
@@ -445,27 +436,27 @@ class CIViCTransform(Transform):
                                f"{variant_query}")
                 continue
 
-            if variant['variant_types']:
-                structural_type = variant['variant_types'][0]['so_id']
+            if variant["variant_types"]:
+                structural_type = variant["variant_types"][0]["so_id"]
             else:
                 structural_type = None
 
             variation_descriptor = VariationDescriptor(
                 id=variant_id,
-                label=variant['name'],
-                description=variant['description'] if variant['description'] else None,  # noqa: E501
-                variation_id=variation_norm_resp['variation_id'],
-                variation=variation_norm_resp['variation'],
+                label=variant["name"],
+                description=variant["description"] if variant["description"] else None,  # noqa: E501
+                variation_id=variation_norm_resp.variation_id,
+                variation=variation_norm_resp.variation,
                 gene_context=f"civic.gid:{variant['gene_id']}",
                 structural_type=structural_type,
                 expressions=hgvs_exprs,
                 xrefs=self._get_variant_xrefs(variant),
                 alternate_labels=[v_alias for v_alias in
-                                  variant['variant_aliases'] if not
-                                  v_alias.startswith('RS')],
+                                  variant["variant_aliases"] if not
+                                  v_alias.startswith("RS")],
                 extensions=self._get_variant_extensions(variant)
             ).dict(by_alias=True, exclude_none=True)
-            self.valid_ids['variation_descriptors'][variant_id] = \
+            self.valid_ids["variation_descriptors"][variant_id] = \
                 variation_descriptor
             self.variation_descriptors.append(
                 variation_descriptor
@@ -705,7 +696,7 @@ class CIViCTransform(Transform):
         self.methods = [
             schemas.Method(
                 id=f'method:'
-                   f'{schemas.MethodID.CIVIC_EID_SOP:03}',
+                   f'{schemas.MethodID.CIVIC_EID_SOP}',
                 label='Standard operating procedure for curation and clinical'
                       ' interpretation of variants in cancer',
                 url='https://genomemedicine.biomedcentral.com/articles/'
@@ -715,7 +706,7 @@ class CIViCTransform(Transform):
             ).dict(exclude_none=True),
             schemas.Method(
                 id=f'method:'
-                   f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP.value:03}',
+                   f'{schemas.MethodID.CIVIC_AID_AMP_ASCO_CAP.value}',
                 label='Standards and Guidelines for the '
                       'Interpretation and Reporting of Sequence '
                       'Variants in Cancer: A Joint Consensus '
@@ -730,7 +721,7 @@ class CIViCTransform(Transform):
             ).dict(exclude_none=True),
             schemas.Method(
                 id=f'method:'
-                   f'{schemas.MethodID.CIVIC_AID_ACMG.value:03}',
+                   f'{schemas.MethodID.CIVIC_AID_ACMG.value}',
                 label='Standards and guidelines for the '
                       'interpretation of sequence variants: a '
                       'joint consensus recommendation of the '
@@ -750,7 +741,6 @@ class CIViCTransform(Transform):
         :param dict source: An evidence item's source
         :return: Document for EID
         """
-        document = None
         source_type = source['source_type'].upper()
         if source_type in schemas.SourcePrefix.__members__:
             prefix = schemas.SourcePrefix[source_type].value
@@ -767,34 +757,29 @@ class CIViCTransform(Transform):
                 description=source['name'],
                 xrefs=xrefs if xrefs else None
             ).dict(exclude_none=True)
+            return document
         else:
             logger.warning(f"{source_type} not in schemas.SourcePrefix")
-        return document
 
-    def _get_aid_document(self, assertion, propositions_documents_ix) \
-            -> List[schemas.Document]:
+    def _get_aid_document(self, assertion: Dict) -> List[schemas.Document]:
         """Get an AID's documents.
 
         :param dict assertion: A CIViC Assertion
-        :param propositions_documents_ix: Keeps track of proposition and
-            documents indexes
         :return: A list of AID documents
         """
         # NCCN Guidlines
         documents = list()
-        label = assertion['nccn_guideline']
-        version = assertion['nccn_guideline_version']
+        label = assertion["nccn_guideline"]
+        version = assertion["nccn_guideline_version"]
         if label and version:
-            document_id = '_'.join((label + version).split())
-            document_ix = \
-                self._set_ix(propositions_documents_ix, 'documents',
-                             document_id)
+            doc_id = "https://www.nccn.org/professionals/physician_gls/default.aspx"  # noqa: E501
+            doc_label = f"NCCN Guidelines: {label} version {version}"
+            db_id = self._get_document_id(document_id=doc_id, label=doc_label)
             documents = list()
             documents.append(schemas.Document(
-                id=f"document:{document_ix:03}",
-                document_id="https://www.nccn.org/professionals/"
-                            "physician_gls/default.aspx",
-                label=f"NCCN Guidelines: {label} version {version}"
+                id=db_id,
+                document_id=doc_id,
+                label=doc_label
             ).dict(exclude_none=True))
 
         # TODO: Check this after first pass

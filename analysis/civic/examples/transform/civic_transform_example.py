@@ -1,8 +1,7 @@
 """Create an example json file for CIViC Transform."""
 import json
-from datetime import datetime as dt
 
-from metakb import PROJECT_ROOT, APP_ROOT, DATE_FMT
+from metakb import PROJECT_ROOT, APP_ROOT
 from metakb.transform import CIViCTransform
 
 
@@ -73,16 +72,15 @@ def create_civic_example(civic_data):
         if d['id'] in documents:
             ex['documents'].append(d)
 
-    today = dt.strftime(dt.today(), DATE_FMT)
     with open(PROJECT_ROOT / "analysis" / "civic" / "examples" /  # noqa: W504
-              "transform" / f"civic_cdm_{today}.json", 'w+') as f2:
+              "transform" / "civic_cdm_example.json", 'w+') as f2:
         json.dump(ex, f2, indent=4)
 
 
 if __name__ == '__main__':
     civic = CIViCTransform()
     civic.transform()
-    civic._create_json()
+    civic.create_json()
     latest = sorted((APP_ROOT / "data" / "civic" / "transform").glob("civic_cdm_*.json"))[-1]  # noqa: E501
     with open(latest, "r") as f:
         civic_data = json.load(f)
