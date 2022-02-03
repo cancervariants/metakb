@@ -4,6 +4,7 @@ import os
 
 from metakb.query import QueryHandler
 from metakb.normalizers import VICCNormalizers
+from metakb.schemas import SourceName
 
 
 @pytest.fixture(scope="module")
@@ -1280,6 +1281,12 @@ def pmid_11423618():
         ],
         "type": "Document"
     }
+
+
+@pytest.fixture(scope="session")
+def sources_count() -> int:
+    """Provide number of currently-implemented sources."""
+    return len(SourceName.__members__)
 
 
 @pytest.fixture(scope="session")
