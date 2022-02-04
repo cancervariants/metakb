@@ -34,3 +34,7 @@ if 'METAKB_NORM_EB_PROD' in environ:
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
     logger.addHandler(ch)
+
+
+# default date format for all saved data files
+DATE_FMT = "%Y%m%d"

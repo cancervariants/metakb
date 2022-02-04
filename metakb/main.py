@@ -7,7 +7,11 @@ from metakb.schemas import SearchService, SearchIDService, \
     SearchStatementsService
 from typing import Optional
 
-app = FastAPI(docs_url='/api/v2', openapi_url='/api/v2/openapi.json')
+app = FastAPI(
+    docs_url='/api/v2',
+    openapi_url='/api/v2/openapi.json',
+    swagger_ui_parameters={"tryItOutEnabled": True}
+)
 query = QueryHandler()
 
 
@@ -26,7 +30,8 @@ def custom_openapi():
 
     openapi_schema['info']['contact'] = {
         "name": "VICC",
-        "email": "help@cancervariants.org"
+        "email": "help@cancervariants.org",
+        "url": "https://cancervariants.org"
     }
     app.openapi_schema = openapi_schema
     return app.openapi_schema

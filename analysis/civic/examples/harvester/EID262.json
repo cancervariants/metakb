@@ -1106,6 +1106,82 @@
                 "description": "ALK fusion positive non-small cell lung cancer (NSCLC) is treated as its own subset of NSCLC. Many ALK fusions that have been seen as recurrent in cancer serve to increase the activity of the ALK oncogene relative to normal cells. While EML4 is the most common fusion partner, other 5' partners have been observed. The EML4-ALK fusion has shown sensitivity to targeted tyrosine kinase inhibitors such as crizotinib. ",
                 "variants": [
                     {
+                        "id": 5,
+                        "entrez_name": "ALK",
+                        "entrez_id": 238,
+                        "name": "EML4-ALK",
+                        "description": "The EML4-ALK fusion variant 1 consisting of ALK kinase domain (exons 20-29) fused to EML4 exons 1-13 is the most common EML4-ALK variant, and was discovered in non-small cell lung cancer. Multiple EML4 breakpoint shave been described with differential sensitivity to inhibitors with variant 1 showing greater sensitivity than 3a in cell lines. EML4-ALK is crizotinib sensitive; however, several mutations that confer resistance mutations have been described in case studies. In the only clinical trial for crizotinib that included determination of EML4-ALK variant type in a subset of its participants, a very high response rate was observed, although the numbers were insufficient to validate correlation of variant type to outcome. Preclinical studies with this variant have indicated sensitivity to Hsp90 inhibitors.",
+                        "gene_id": 1,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 120,
+                                "name": "transcript_fusion",
+                                "display_name": "Transcript Fusion",
+                                "so_id": "SO:0001886",
+                                "description": "A feature fusion where the deletion brings together transcript regions.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
+                            }
+                        ],
+                        "civic_actionability_score": 38,
+                        "coordinates": {
+                            "chromosome": "2",
+                            "start": 42396490,
+                            "stop": 42522656,
+                            "reference_bases": null,
+                            "variant_bases": null,
+                            "representative_transcript": "ENST00000318522.5",
+                            "chromosome2": "2",
+                            "start2": 29415640,
+                            "stop2": 29446394,
+                            "representative_transcript2": "ENST00000389048.3",
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 6,
+                        "entrez_name": "ALK",
+                        "entrez_id": 238,
+                        "name": "EML4-ALK C1156Y",
+                        "description": "In patients with non-small cell lung cancer exhibiting EML4-ALK fusion, C1156Y has been shown to confer resistance to crizotinib. Case reports indicate that secondary mutations can modulate drug sensitivity. EML4-ALK C1156Y/L1196M maintained crizotinib resistance while the lorlatinib resistant combination EML4-ALK C1156Y/L1198F re-sensitized the tumor to crizotinib treatment.",
+                        "gene_id": 1,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 47,
+                                "name": "missense_variant",
+                                "display_name": "Missense Variant",
+                                "so_id": "SO:0001583",
+                                "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
+                            },
+                            {
+                                "id": 120,
+                                "name": "transcript_fusion",
+                                "display_name": "Transcript Fusion",
+                                "so_id": "SO:0001886",
+                                "description": "A feature fusion where the deletion brings together transcript regions.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
+                            }
+                        ],
+                        "civic_actionability_score": 29,
+                        "coordinates": {
+                            "chromosome": "2",
+                            "start": 29445258,
+                            "stop": 29445258,
+                            "reference_bases": "C",
+                            "variant_bases": "T",
+                            "representative_transcript": "ENST00000389048.3",
+                            "chromosome2": null,
+                            "start2": null,
+                            "stop2": null,
+                            "representative_transcript2": null,
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
                         "id": 7,
                         "entrez_name": "ALK",
                         "entrez_id": 238,
@@ -1182,48 +1258,6 @@
                         }
                     },
                     {
-                        "id": 6,
-                        "entrez_name": "ALK",
-                        "entrez_id": 238,
-                        "name": "EML4-ALK C1156Y",
-                        "description": "In patients with non-small cell lung cancer exhibiting EML4-ALK fusion, C1156Y has been shown to confer resistance to crizotinib. Case reports indicate that secondary mutations can modulate drug sensitivity. EML4-ALK C1156Y/L1196M maintained crizotinib resistance while the lorlatinib resistant combination EML4-ALK C1156Y/L1198F re-sensitized the tumor to crizotinib treatment.",
-                        "gene_id": 1,
-                        "type": "variant",
-                        "variant_types": [
-                            {
-                                "id": 47,
-                                "name": "missense_variant",
-                                "display_name": "Missense Variant",
-                                "so_id": "SO:0001583",
-                                "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
-                            },
-                            {
-                                "id": 120,
-                                "name": "transcript_fusion",
-                                "display_name": "Transcript Fusion",
-                                "so_id": "SO:0001886",
-                                "description": "A feature fusion where the deletion brings together transcript regions.",
-                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
-                            }
-                        ],
-                        "civic_actionability_score": 29,
-                        "coordinates": {
-                            "chromosome": "2",
-                            "start": 29445258,
-                            "stop": 29445258,
-                            "reference_bases": "C",
-                            "variant_bases": "T",
-                            "representative_transcript": "ENST00000389048.3",
-                            "chromosome2": null,
-                            "start2": null,
-                            "stop2": null,
-                            "representative_transcript2": null,
-                            "ensembl_version": 75,
-                            "reference_build": "GRCh37"
-                        }
-                    },
-                    {
                         "id": 500,
                         "entrez_name": "ALK",
                         "entrez_id": 238,
@@ -1246,40 +1280,6 @@
                             "chromosome": "2",
                             "start": 42396490,
                             "stop": 42552694,
-                            "reference_bases": null,
-                            "variant_bases": null,
-                            "representative_transcript": "ENST00000318522.5",
-                            "chromosome2": "2",
-                            "start2": 29415640,
-                            "stop2": 29446394,
-                            "representative_transcript2": "ENST00000389048.3",
-                            "ensembl_version": 75,
-                            "reference_build": "GRCh37"
-                        }
-                    },
-                    {
-                        "id": 503,
-                        "entrez_name": "ALK",
-                        "entrez_id": 238,
-                        "name": "EML4-ALK e6-e20",
-                        "description": "The EML4-ALK variant 3a consists of the ALK kinase domain fused to EML4 exons 1-6, while the 3b variant has an additional 33bp of intronic EML4 sequence between EML4 and ALK regions. The two variants were found to originate from a single genomic rearrangement, and 3a/3b is found in ~ 30% of EML4-ALK positive NSCLC. Variant 3a has cytoplasmic and nuclear distribution. In vitro, these variants have shown sensitivity to ALK inhibitors TAE684 and crizotinib but less sensitive than other EML4-ALK variants. The H2228 cell line contains 3a and 3b variants and is described as having cyctostatic response to ALK inhibition as opposed to apoptotic. In a study of 31 NSCLC patients with EML4-ALK rearrangements, 4/5 patients with the 3a variant showed a partial response while 1 showed progressive disease (the only PD observed). In cells the 3a variant was reported to be more stable than other variants, less sensitive to crizotinib and not to respond to Hsp90 inhibition.",
-                        "gene_id": 1,
-                        "type": "variant",
-                        "variant_types": [
-                            {
-                                "id": 120,
-                                "name": "transcript_fusion",
-                                "display_name": "Transcript Fusion",
-                                "so_id": "SO:0001886",
-                                "description": "A feature fusion where the deletion brings together transcript regions.",
-                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
-                            }
-                        ],
-                        "civic_actionability_score": 25,
-                        "coordinates": {
-                            "chromosome": "2",
-                            "start": 42396490,
-                            "stop": 42491871,
                             "reference_bases": null,
                             "variant_bases": null,
                             "representative_transcript": "ENST00000318522.5",
@@ -1326,11 +1326,11 @@
                         }
                     },
                     {
-                        "id": 520,
+                        "id": 503,
                         "entrez_name": "ALK",
                         "entrez_id": 238,
-                        "name": "CLTC-ALK",
-                        "description": "The t(2;17)(p23;q23) translocation results in the CLTC-ALK fusion protein, the most common ALK fusion observed in diffuse large B cell lymphoma (DLBCL). ALK-rearranged DLBCL is less responsive to CHOP chemotherapy. Preclinical work indicates that CLTC-ALK DLBCL is responsive to ALK inhibition in cell lines and mouse models, and two case studies show short response followed by progression when heavily pretreated and advanced ALK-positive DLBCL is treated with crizotinib (one case CLTC-ALK, one case an unknown ALK fusion).",
+                        "name": "EML4-ALK e6-e20",
+                        "description": "The EML4-ALK variant 3a consists of the ALK kinase domain fused to EML4 exons 1-6, while the 3b variant has an additional 33bp of intronic EML4 sequence between EML4 and ALK regions. The two variants were found to originate from a single genomic rearrangement, and 3a/3b is found in ~ 30% of EML4-ALK positive NSCLC. Variant 3a has cytoplasmic and nuclear distribution. In vitro, these variants have shown sensitivity to ALK inhibitors TAE684 and crizotinib but less sensitive than other EML4-ALK variants. The H2228 cell line contains 3a and 3b variants and is described as having cyctostatic response to ALK inhibition as opposed to apoptotic. In a study of 31 NSCLC patients with EML4-ALK rearrangements, 4/5 patients with the 3a variant showed a partial response while 1 showed progressive disease (the only PD observed). In cells the 3a variant was reported to be more stable than other variants, less sensitive to crizotinib and not to respond to Hsp90 inhibition.",
                         "gene_id": 1,
                         "type": "variant",
                         "variant_types": [
@@ -1343,14 +1343,14 @@
                                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
                             }
                         ],
-                        "civic_actionability_score": 19,
+                        "civic_actionability_score": 25,
                         "coordinates": {
-                            "chromosome": "17",
-                            "start": 57697219,
-                            "stop": 57768072,
+                            "chromosome": "2",
+                            "start": 42396490,
+                            "stop": 42491871,
                             "reference_bases": null,
                             "variant_bases": null,
-                            "representative_transcript": "ENST00000269122.3",
+                            "representative_transcript": "ENST00000318522.5",
                             "chromosome2": "2",
                             "start2": 29415640,
                             "stop2": 29446394,
@@ -1428,11 +1428,11 @@
                         }
                     },
                     {
-                        "id": 5,
+                        "id": 520,
                         "entrez_name": "ALK",
                         "entrez_id": 238,
-                        "name": "EML4-ALK",
-                        "description": "The EML4-ALK fusion variant 1 consisting of ALK kinase domain (exons 20-29) fused to EML4 exons 1-13 is the most common EML4-ALK variant, and was discovered in non-small cell lung cancer. Multiple EML4 breakpoint shave been described with differential sensitivity to inhibitors with variant 1 showing greater sensitivity than 3a in cell lines. EML4-ALK is crizotinib sensitive; however, several mutations that confer resistance mutations have been described in case studies. In the only clinical trial for crizotinib that included determination of EML4-ALK variant type in a subset of its participants, a very high response rate was observed, although the numbers were insufficient to validate correlation of variant type to outcome. Preclinical studies with this variant have indicated sensitivity to Hsp90 inhibitors.",
+                        "name": "CLTC-ALK",
+                        "description": "The t(2;17)(p23;q23) translocation results in the CLTC-ALK fusion protein, the most common ALK fusion observed in diffuse large B cell lymphoma (DLBCL). ALK-rearranged DLBCL is less responsive to CHOP chemotherapy. Preclinical work indicates that CLTC-ALK DLBCL is responsive to ALK inhibition in cell lines and mouse models, and two case studies show short response followed by progression when heavily pretreated and advanced ALK-positive DLBCL is treated with crizotinib (one case CLTC-ALK, one case an unknown ALK fusion).",
                         "gene_id": 1,
                         "type": "variant",
                         "variant_types": [
@@ -1445,14 +1445,14 @@
                                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886"
                             }
                         ],
-                        "civic_actionability_score": 38,
+                        "civic_actionability_score": 19,
                         "coordinates": {
-                            "chromosome": "2",
-                            "start": 42396490,
-                            "stop": 42522656,
+                            "chromosome": "17",
+                            "start": 57697219,
+                            "stop": 57768072,
                             "reference_bases": null,
                             "variant_bases": null,
-                            "representative_transcript": "ENST00000318522.5",
+                            "representative_transcript": "ENST00000269122.3",
                             "chromosome2": "2",
                             "start2": 29415640,
                             "stop2": 29446394,

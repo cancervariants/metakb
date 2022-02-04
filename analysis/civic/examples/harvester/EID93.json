@@ -2695,40 +2695,6 @@
                         }
                     },
                     {
-                        "id": 288,
-                        "entrez_name": "BRAF",
-                        "entrez_id": 673,
-                        "name": "L597R",
-                        "description": "",
-                        "gene_id": 5,
-                        "type": "variant",
-                        "variant_types": [
-                            {
-                                "id": 47,
-                                "name": "missense_variant",
-                                "display_name": "Missense Variant",
-                                "so_id": "SO:0001583",
-                                "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
-                            }
-                        ],
-                        "civic_actionability_score": 12,
-                        "coordinates": {
-                            "chromosome": "7",
-                            "start": 140453145,
-                            "stop": 140453145,
-                            "reference_bases": "A",
-                            "variant_bases": "C",
-                            "representative_transcript": "ENST00000288602.6",
-                            "chromosome2": null,
-                            "start2": null,
-                            "stop2": null,
-                            "representative_transcript2": null,
-                            "ensembl_version": 75,
-                            "reference_build": "GRCh37"
-                        }
-                    },
-                    {
                         "id": 17,
                         "entrez_name": "BRAF",
                         "entrez_id": 673,
@@ -2753,6 +2719,40 @@
                             "stop": 140453137,
                             "reference_bases": null,
                             "variant_bases": null,
+                            "representative_transcript": "ENST00000288602.6",
+                            "chromosome2": null,
+                            "start2": null,
+                            "stop2": null,
+                            "representative_transcript2": null,
+                            "ensembl_version": 75,
+                            "reference_build": "GRCh37"
+                        }
+                    },
+                    {
+                        "id": 288,
+                        "entrez_name": "BRAF",
+                        "entrez_id": 673,
+                        "name": "L597R",
+                        "description": "",
+                        "gene_id": 5,
+                        "type": "variant",
+                        "variant_types": [
+                            {
+                                "id": 47,
+                                "name": "missense_variant",
+                                "display_name": "Missense Variant",
+                                "so_id": "SO:0001583",
+                                "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+                                "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
+                            }
+                        ],
+                        "civic_actionability_score": 12,
+                        "coordinates": {
+                            "chromosome": "7",
+                            "start": 140453145,
+                            "stop": 140453145,
+                            "reference_bases": "A",
+                            "variant_bases": "C",
                             "representative_transcript": "ENST00000288602.6",
                             "chromosome2": null,
                             "start2": null,

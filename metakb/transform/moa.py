@@ -1,12 +1,13 @@
 """A module to convert MOA resources to common data model"""
-from metakb import APP_ROOT
-import json
+from typing import Optional
 import logging
-import metakb.schemas as schemas
-from .base import Transform
 from urllib.parse import quote
+
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor,\
     Extension, GeneDescriptor, ValueObjectDescriptor
+
+import metakb.schemas as schemas
+from metakb.transform.base import Transform
 
 logger = logging.getLogger('metakb.transform.moa')
 logger.setLevel(logging.DEBUG)
@@ -15,54 +16,9 @@ logger.setLevel(logging.DEBUG)
 class MOATransform(Transform):
     """A class for transforming MOA resources to common data model."""
 
-    def __init__(self,
-                 file_path=f"{APP_ROOT}/data/moa/harvester"
-                           f"/moa_harvester.json"):
-        """
-        Initialize VICC normalizers and class attributes
-
-        :param: The file path to the harvested json to transform
-        """
-        super().__init__(file_path)
-        self.statements = list()
-        self.propositions = list()
-        self.variation_descriptors = list()
-        self.gene_descriptors = list()
-        self.therapy_descriptors = list()
-        self.disease_descriptors = list()
-        self.methods = list()
-        self.documents = list()
-
-    def _create_json(self,
-                     moa_dir=APP_ROOT / 'data' / 'moa' / 'transform',
-                     fn='moa_cdm.json'):
-        """Create a composite JSON for the transformed MOA data.
-
-        :param path moa_dir: The moa transform data directory
-        :param str fn: The file name for the transformed data
-        """
-        moa_dir.mkdir(exist_ok=True, parents=True)
-
-        composite_dict = {
-            'statements': self.statements,
-            'propositions': self.propositions,
-            'variation_descriptors': self.variation_descriptors,
-            'gene_descriptors': self.gene_descriptors,
-            'therapy_descriptors': self.therapy_descriptors,
-            'disease_descriptors': self.disease_descriptors,
-            'methods': self.methods,
-            'documents': self.documents
-        }
-
-        with open(f"{moa_dir}/{fn}", 'w+') as f:
-            json.dump(composite_dict, f, indent=4)
-
-    def transform(self, propositions_ix=None):
+    def transform(self):
         """Transform MOA harvested JSON to common date model.
-
-        :param Dict propositions_ix: tracking data to properly
-            index SupportEvidence
-        :return: An updated propositions_ix object
+        Saves output in MOA transform directory.
         """
         data = self.extract_harvester()
         cdm_assertions = {}  # assertions that have been transformed to CDM
@@ -70,21 +26,13 @@ class MOATransform(Transform):
         assertions = data['assertions']
         sources = data['sources']
         variants = data['variants']
-        if not propositions_ix:
-            propositions_ix = {
-                # Keep track of proposition index value
-                'proposition_index': 1,
-                # {tuple: proposition_index}
-                'propositions': dict()
-            }
 
         # Transform MOA assertions
         self._transform_statements(assertions, variants, sources,
-                                   propositions_ix, cdm_assertions)
-        return propositions_ix
+                                   cdm_assertions)
 
     def _transform_statements(self, records, variants, sources,
-                              propositions_ix, cdm_assertions):
+                              cdm_assertions):
         """Add transformed assertions to the response list.
 
         :param: A list of MOA assertion records
@@ -107,8 +55,7 @@ class MOATransform(Transform):
             propositions = \
                 self._get_tr_propositions(record, variation_descriptors,
                                           disease_descriptors,
-                                          therapy_descriptors,
-                                          propositions_ix)
+                                          therapy_descriptors)
 
             # We only want therapeutic response for now
             if not propositions:
@@ -213,15 +160,13 @@ class MOATransform(Transform):
         return [statement]
 
     def _get_tr_propositions(self, record, variation_descriptors,
-                             disease_descriptors, therapy_descriptors,
-                             propositions_ix):
+                             disease_descriptors, therapy_descriptors):
         """Return a list of propositions.
 
         :param: MOA assertion
         :param: A list of Variation Descriptors
         :param: A list of Disease Descriptors
         :param: A list of therapy_descriptors
-        :param: Keeps track of proposition and support_evidence indexes
         :return: A list of therapeutic propositions.
         """
         predicate = self._get_predicate(record['clinical_significance'])
@@ -240,32 +185,30 @@ class MOATransform(Transform):
         }
 
         # Get corresponding id for proposition
-        key = (params['type'],
-               params['predicate'],
-               params['subject'],
-               params['object_qualifier'],
-               params['object'])
-
-        proposition_index = self._set_ix(propositions_ix,
-                                         'propositions', key)
-        params['id'] = f"proposition:{proposition_index:03}"
+        params["id"] = self._get_proposition_id(
+            params["type"],
+            params["predicate"],
+            variation_ids=[params["subject"]],
+            disease_ids=[params["object_qualifier"]],
+            therapy_ids=[params["object"]]
+        )
         proposition = schemas.TherapeuticResponseProposition(
             **params).dict(exclude_none=True)
         return [proposition]
 
-    def _get_predicate(self, clin_sig):
+    def _get_predicate(self,
+                       clin_sig) -> Optional[schemas.PredictivePredicate]:
         """Get the predicate of this record
 
         :param: clinical significance of the assertion
-        :return: predicate
+        :return: predicate if valid, None otherwise
         """
-        predicate = None
         if not clin_sig:
             return None
-        if clin_sig.upper() in schemas.PredictivePredicate.__members__.keys():
-            predicate = schemas.PredictivePredicate[clin_sig.upper()].value
-
-        return predicate
+        try:
+            return schemas.PredictivePredicate[clin_sig.upper()]
+        except KeyError:
+            return None
 
     def _get_variation_origin(self, variant):
         """Return variant origin.
@@ -312,8 +255,8 @@ class MOATransform(Transform):
         variation_descriptor = VariationDescriptor(
             id=f"moa.variant:{variant['id']}",
             label=variant['feature'],
-            variation_id=v_norm_resp['variation_id'],
-            variation=v_norm_resp['variation'],
+            variation_id=v_norm_resp.variation_id,
+            variation=v_norm_resp.variation,
             gene_context=gene_context,
             vrs_ref_allele_seq=vrs_ref_allele_seq,
             extensions=self._get_variant_extensions(variant)
@@ -409,7 +352,7 @@ class MOATransform(Transform):
         """
         methods = [schemas.Method(
             id=f'method:'
-               f'{schemas.MethodID.MOA_ASSERTION_BIORXIV:03}',
+               f'{schemas.MethodID.MOA_ASSERTION_BIORXIV}',
             label='Clinical interpretation of integrative molecular profiles to guide precision cancer medicine',  # noqa:E501
             url='https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1',  # noqa:E501
             version=schemas.Date(year=2020, month=9, day=22),
@@ -439,7 +382,7 @@ class MOATransform(Transform):
         if normalized_therapy_id:
             therapy_descriptor = ValueObjectDescriptor(
                 id=f"{schemas.SourceName.MOA.value}."
-                   f"{therapy_norm_resp['therapy_descriptor']['id']}",
+                   f"{therapy_norm_resp.therapy_descriptor.id}",
                 type="TherapyDescriptor",
                 label=label,
                 therapy_id=normalized_therapy_id
@@ -470,7 +413,7 @@ class MOATransform(Transform):
 
         disease_descriptor = ValueObjectDescriptor(
             id=f"{schemas.SourceName.MOA.value}."
-               f"{disease_norm_resp['disease_descriptor']['id']}",
+               f"{disease_norm_resp.disease_descriptor.id}",
             type="DiseaseDescriptor",
             label=disease_name,
             disease_id=normalized_disease_id,
