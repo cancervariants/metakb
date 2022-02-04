@@ -25,8 +25,6 @@ class CIViCTransform(Transform):
                  normalizers: Optional[VICCNormalizers] = None) -> None:
         """Initialize CIViC Transform class.
         :param Path data_dir: Path to source data directory
-        :param str uri: location to send Neo4j requests to
-        :param Tuple[str, str] credentials: database username and password
         :param Optional[Path] harvester_path: Path to previously harvested data
         :param VICCNormalizers normalizers: normalizer collection instance
         """
