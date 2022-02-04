@@ -1,5 +1,5 @@
 """A module for to transform CIViC."""
-from typing import Optional, Dict, List, Tuple, Set
+from typing import Optional, Dict, List, Set
 from pathlib import Path
 import logging
 
@@ -7,6 +7,7 @@ from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
     Extension, Expression, GeneDescriptor, ValueObjectDescriptor
 
 from metakb import APP_ROOT
+from metakb.normalizers import VICCNormalizers
 from metakb.transform.base import Transform
 import metakb.schemas as schemas
 
@@ -20,12 +21,17 @@ class CIViCTransform(Transform):
 
     def __init__(self,
                  data_dir: Path = APP_ROOT / "data",
-                 uri: str = "",
-                 credentials: Tuple[str, str] = ("", ""),
-                 harvester_path: Optional[Path] = None) -> None:
-        """Initialize CIViC Transform class."""
-        super().__init__(data_dir=data_dir, harvester_path=harvester_path)
-        # Able to normalize these IDs
+                 harvester_path: Optional[Path] = None,
+                 normalizers: Optional[VICCNormalizers] = None) -> None:
+        """Initialize CIViC Transform class.
+        :param Path data_dir: Path to source data directory
+        :param Optional[Path] harvester_path: Path to previously harvested data
+        :param VICCNormalizers normalizers: normalizer collection instance
+        """
+        super().__init__(data_dir=data_dir,
+                         harvester_path=harvester_path,
+                         normalizers=normalizers)
+        # Able to normalize these IDSs
         self.valid_ids = {
             'variation_descriptors': dict(),
             'disease_descriptors': dict(),
