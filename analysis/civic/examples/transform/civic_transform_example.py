@@ -1,7 +1,8 @@
 """Create an example json file for CIViC Transform."""
 import json
-from metakb.transform import CIViCTransform
+
 from metakb import PROJECT_ROOT, APP_ROOT
+from metakb.transform import CIViCTransform
 
 
 def create_civic_example(civic_data):
@@ -71,16 +72,16 @@ def create_civic_example(civic_data):
         if d['id'] in documents:
             ex['documents'].append(d)
 
-    with open(f"{PROJECT_ROOT}/analysis/civic/examples/transform/"
-              f"civic_cdm.json", 'w+') as f2:
+    with open(PROJECT_ROOT / "analysis" / "civic" / "examples" /  # noqa: W504
+              "transform" / "civic_cdm_example.json", 'w+') as f2:
         json.dump(ex, f2, indent=4)
 
 
 if __name__ == '__main__':
     civic = CIViCTransform()
     civic.transform()
-    civic._create_json()
-    with open(f"{APP_ROOT}/data/civic/transform/civic_cdm.json",
-              'r') as f:
+    civic.create_json()
+    latest = sorted((APP_ROOT / "data" / "civic" / "transform").glob("civic_cdm_*.json"))[-1]  # noqa: E501
+    with open(latest, "r") as f:
         civic_data = json.load(f)
     create_civic_example(civic_data)

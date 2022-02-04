@@ -1,13 +1,7 @@
 """Test the MetaKB search statements method"""
-from metakb.query import QueryHandler
-import pytest
 import copy
 
-
-@pytest.fixture(scope="module")
-def query_handler():
-    """Create query handler test fixture"""
-    return QueryHandler()
+import pytest
 
 
 @pytest.fixture(scope="module")
@@ -20,7 +14,7 @@ def civic_vid33_with_gene(civic_vid33, civic_gid19):
 
 @pytest.fixture(scope="module")
 def civic_eid2997(civic_eid2997_proposition, civic_vid33_with_gene,
-                  civic_tid146, civic_did8, method001, pmid_23982599):
+                  civic_tid146, civic_did8, method1, pmid_23982599):
     """Create test fixture for CIViC EID2997"""
     return {
         "id": "civic.eid:2997",
@@ -33,14 +27,14 @@ def civic_eid2997(civic_eid2997_proposition, civic_vid33_with_gene,
         "variation_descriptor": civic_vid33_with_gene,
         "therapy_descriptor": civic_tid146,
         "disease_descriptor": civic_did8,
-        "method": method001,
+        "method": method1,
         "supported_by": [pmid_23982599]
     }
 
 
 @pytest.fixture(scope="module")
 def civic_aid6(civic_eid2997_proposition, civic_vid33_with_gene, civic_tid146,
-               civic_did8, method002, civic_aid6_document):
+               civic_did8, method2, civic_aid6_document):
     """Create test fixture for CIViC AID6"""
     return {
         "id": "civic.aid:6",
@@ -52,7 +46,7 @@ def civic_aid6(civic_eid2997_proposition, civic_vid33_with_gene, civic_tid146,
         "variation_descriptor": civic_vid33_with_gene,
         "therapy_descriptor": civic_tid146,
         "disease_descriptor": civic_did8,
-        "method": method002,
+        "method": method2,
         "supported_by": [
             civic_aid6_document, "civic.eid:2997",
             "civic.eid:2629", "civic.eid:982",
@@ -73,7 +67,7 @@ def moa_vid71_with_gene(moa_vid71, moa_abl1):
 
 @pytest.fixture(scope="module")
 def moa_aid71(moa_aid71_proposition, moa_vid71_with_gene, moa_imatinib,
-              moa_chronic_myelogenous_leukemia, method004,
+              moa_chronic_myelogenous_leukemia, method4,
               pmid_11423618):
     """Create test fixture for MOA Assertion 71"""
     return {
@@ -86,7 +80,7 @@ def moa_aid71(moa_aid71_proposition, moa_vid71_with_gene, moa_imatinib,
         "variation_descriptor": moa_vid71_with_gene,
         "therapy_descriptor": moa_imatinib,
         "disease_descriptor": moa_chronic_myelogenous_leukemia,
-        "method": method004,
+        "method": method4,
         "supported_by": [pmid_11423618]
     }
 

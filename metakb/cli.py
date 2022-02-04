@@ -2,13 +2,13 @@
 Provide CLI utility for performing data collection, transformation, and upload
 to graph datastore.
 """
-import click
+from timeit import default_timer as timer
 from os import environ
 import logging
-from metakb.database import Graph
-from metakb import APP_ROOT
-from metakb.harvesters import CIViCHarvester, MOAlmanacHarvester
-from metakb.schemas import SourceName
+from typing import Optional
+from pathlib import Path
+
+import click
 from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
 from disease.cli import CLI as DiseaseCLI
@@ -18,7 +18,12 @@ from therapy.cli import CLI as TherapyCLI
 from gene.database import Database as GeneDatabase
 from gene.schemas import SourceName as GeneSources
 from gene.cli import CLI as GeneCLI
-from timeit import default_timer as timer
+
+from metakb import APP_ROOT
+from metakb.database import Graph
+from metakb.schemas import SourceName
+from metakb.harvesters import Harvester, CIViCHarvester, MOAHarvester
+from metakb.transform import Transform, CIViCTransform, MOATransform
 
 
 logger = logging.getLogger('metakb.cli')
@@ -67,18 +72,30 @@ class CLI:
               '`http://localhost:8000` by default.')
     )
     @click.option(
-        '--load_transformed',
-        '-l',
+        "--load_latest_cdms",
+        "-l",
         is_flag=True,
         default=False,
-        help=('Load existing sources transform files rather than running '
-              'harvest and transform methods to load the neo4j database.')
+        help=("Clear MetaKB database and load most recent available source "
+              "CDM files. Does not run harvest and transform methods to "
+              "generate new CDM files.")
     )
-    def update_metakb_db(db_url, db_username, db_password,
-                         load_normalizers_db,
-                         force_load_normalizers_db,
-                         normalizers_db_url,
-                         load_transformed):
+    @click.option(
+        "--load_target_cdm",
+        "-t",
+        type=click.Path(exists=True, dir_okay=False, readable=True,
+                        path_type=Path),
+        required=False,
+        help=("Load transformed CDM file at specified path. Overrides "
+              "--load_normalizers_db, --force_load_normalizers_db, "
+              "and --load_latest_cdms.")
+    )
+    def update_metakb_db(db_url: str, db_username: str, db_password: str,
+                         load_normalizers_db: bool,
+                         force_load_normalizers_db: bool,
+                         normalizers_db_url: str,
+                         load_latest_cdms: bool,
+                         load_target_cdm: Optional[Path]):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
         """
@@ -91,7 +108,7 @@ class CLI:
                                  'DISEASE_NORM_DB_URL']:
                 environ[env_var_name] = normalizers_db_url
 
-        if not load_transformed:
+        if not (load_latest_cdms or load_target_cdm):
             if load_normalizers_db or force_load_normalizers_db:
                 CLI()._load_normalizers_db(force_load_normalizers_db)
 
@@ -104,15 +121,20 @@ class CLI:
         click.echo(msg)
         logger.info(msg)
         g = Graph(uri=db_url, credentials=(db_username, db_password))
-        g.clear()
-        for src in sorted({v.value for v in SourceName.__members__.values()}):
-            path = \
-                APP_ROOT / 'data' / src / 'transform' / f'{src}_cdm.json'
-            try:
+        if load_target_cdm:
+            g.load_from_json(load_target_cdm)
+        else:
+            g.clear()
+            for src in sorted({v.value for v
+                               in SourceName.__members__.values()}):
+                pattern = f"{src}_cdm_*.json"
+                globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
+                try:
+                    path = sorted(globbed)[-1]
+                except IndexError:
+                    raise FileNotFoundError(f"No valid transform file found "
+                                            f"for {src}")
                 g.load_from_json(path)
-            except FileNotFoundError:
-                logger.fatal(f'Could not locate transformed JSON at {path}')
-                raise FileNotFoundError
         g.close()
         end = timer()
         msg = f"Successfully loaded neo4j database in {(end-start):.5f} s"
@@ -120,59 +142,59 @@ class CLI:
         logger.info(msg)
 
     @staticmethod
-    def _harvest_sources():
+    def _harvest_sources() -> None:
+        """Run harvesting procedure for all sources."""
         logger.info("Harvesting sources...")
         # TODO: Switch to using constant
         harvester_sources = {
             'civic': CIViCHarvester,
-            'moa': MOAlmanacHarvester
+            'moa': MOAHarvester
         }
         total_start = timer()
-        for class_str, class_name in harvester_sources.items():
-            harvest_start = f"Harvesting {class_str}..."
+        for source_str, source_class in harvester_sources.items():
+            harvest_start = f"Harvesting {source_str}..."
             click.echo(harvest_start)
             logger.info(harvest_start)
             start = timer()
-            source = class_name()
+            source: Harvester = source_class()
             source_successful = source.harvest()
             end = timer()
             if not source_successful:
-                logger.info(f'{class_str} harvest failed.')
+                logger.info(f'{source_str} harvest failed.')
                 click.get_current_context().exit()
             harvest_finish = \
-                f"{class_str} harvest finished in {(end-start):.5f} s"
+                f"{source_str} harvest finished in {(end - start):.5f} s"
             click.echo(harvest_finish)
             logger.info(harvest_finish)
         total_end = timer()
         msg = f"Successfully harvested all sources in " \
-              f"{(total_end-total_start):.5f} s"
+              f"{(total_end - total_start):.5f} s"
         click.echo(f"{msg}\n")
         logger.info(msg)
 
     @staticmethod
-    def _transform_sources():
-        from metakb.transform import CIViCTransform, MOATransform
+    def _transform_sources() -> None:
+        """Run transformation procedure for all sources."""
         logger.info("Transforming harvested data to CDM...")
-        source_indices = None
         # TODO: Switch to using constant
         transform_sources = {
             'civic': CIViCTransform,
             'moa': MOATransform
         }
         total_start = timer()
-        for class_str, class_name in transform_sources.items():
-            transform_start = f"Transforming {class_str}..."
+        for src_str, src_name in transform_sources.items():
+            transform_start = f"Transforming {src_str}..."
             click.echo(transform_start)
             logger.info(transform_start)
             start = timer()
-            source = class_name()
-            source_indices = source.transform(source_indices)
+            source: Transform = src_name()
+            source.transform()
             end = timer()
             transform_end = \
-                f"{class_str} transform finished in {(end - start):.5f} s."
+                f"{src_str} transform finished in {(end - start):.5f} s."
             click.echo(transform_end)
             logger.info(transform_end)
-            source._create_json()
+            source.create_json()
         total_end = timer()
         msg = f"Successfully transformed all sources to CDM in " \
               f"{(total_end-total_start):.5f} s"
