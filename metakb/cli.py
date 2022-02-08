@@ -7,6 +7,9 @@ from os import environ
 import logging
 from typing import Optional
 from pathlib import Path
+import re
+import tempfile
+from zipfile import ZipFile
 
 import click
 from disease.database import Database as DiseaseDatabase
@@ -18,6 +21,9 @@ from therapy.cli import CLI as TherapyCLI
 from gene.database import Database as GeneDatabase
 from gene.schemas import SourceName as GeneSources
 from gene.cli import CLI as GeneCLI
+import boto3
+from boto3.exceptions import ResourceLoadException
+from botocore.config import Config
 
 from metakb import APP_ROOT
 from metakb.database import Graph
@@ -90,12 +96,23 @@ class CLI:
               "--load_normalizers_db, --force_load_normalizers_db, "
               "and --load_latest_cdms.")
     )
+    @click.option(
+        "--load_s3_cdms",
+        "-s",
+        is_flag=True,
+        default=False,
+        help=("Clear MetaKB database, retrieve most recent data available "
+              "from VICC S3 bucket, and load the database with retrieved "
+              "data. Overrides --load_normalizers_db, "
+              "--force_load_normalizers_db, and --load_latest_cdms.")
+    )
     def update_metakb_db(db_url: str, db_username: str, db_password: str,
                          load_normalizers_db: bool,
                          force_load_normalizers_db: bool,
                          normalizers_db_url: str,
                          load_latest_cdms: bool,
-                         load_target_cdm: Optional[Path]):
+                         load_target_cdm: Optional[Path],
+                         load_s3_cdms: bool):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
         """
@@ -121,6 +138,8 @@ class CLI:
         click.echo(msg)
         logger.info(msg)
         g = Graph(uri=db_url, credentials=(db_username, db_password))
+        if load_s3_cdms:
+            load_target_cdm = CLI()._retrieve_s3_cdms()
         if load_target_cdm:
             g.load_from_json(load_target_cdm)
         else:
@@ -140,6 +159,49 @@ class CLI:
         msg = f"Successfully loaded neo4j database in {(end-start):.5f} s"
         click.echo(f"{msg}\n")
         logger.info(msg)
+
+    s3_cdm_pattern = re.compile(
+        r"cdm/20[23]\d[01]\d[0123]\d/(.*)_cdm_(.*).json.zip")
+
+    def _retrieve_s3_cdms(self) -> str:
+        """Retrieve most recent CDM files from VICC S3 bucket. Expects to find
+        files in a path like the following:
+            s3://vicc-metakb/cdm/20220201/civic_cdm_20220201.json.zip
+        :return: date string from retrieved files to use when loading to DB.
+        :raise: ResourceLoadException if S3 initialization fails
+        :raise: FileNotFoundError if unable to find files matching expected
+        pattern in VICC MetaKB bucket.
+        """
+        config = Config(region_name="us-east-2")
+        s3 = boto3.resource("s3", config=config)
+        if not s3:
+            raise ResourceLoadException("Unable to initiate AWS S3 Resource")
+        bucket = sorted(list(s3.Bucket("vicc-metakb").objects.all()),
+                        key=lambda f: f.key)
+        newest_version: Optional[str] = None
+        for file in bucket:
+            match = re.match(self.s3_cdm_pattern, file.key)
+            if match:
+                source = match.group(1)
+                if newest_version is None:
+                    newest_version = match.group(2)
+                elif match.group(2) != newest_version:
+                    continue
+            else:
+                continue
+
+            tmp_path = Path(tempfile.gettempdir()) / "metakb_dl_tmp"
+            with open(tmp_path, "wb") as f:
+                file.Object().download_fileobj(f)
+
+            cdm_dir = APP_ROOT / "data" / source / "transform"
+            cdm_zip = ZipFile(tmp_path, "r")
+            cdm_zip.extract(f"{source}_cdm_{newest_version}.json", cdm_dir)
+
+        if newest_version is None:
+            raise FileNotFoundError("Unable to locate files matching expected "
+                                    "resource pattern in VICC s3 bucket")
+        return newest_version
 
     @staticmethod
     def _harvest_sources() -> None:
