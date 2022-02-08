@@ -84,7 +84,8 @@ class CLI:
         default=False,
         help=("Clear MetaKB database and load most recent available source "
               "CDM files. Does not run harvest and transform methods to "
-              "generate new CDM files.")
+              "generate new CDM files. Exclusive with --load_target_cdm and "
+              "--load_s3_cdms.")
     )
     @click.option(
         "--load_target_cdm",
@@ -92,19 +93,18 @@ class CLI:
         type=click.Path(exists=True, dir_okay=False, readable=True,
                         path_type=Path),
         required=False,
-        help=("Load transformed CDM file at specified path. Overrides "
-              "--load_normalizers_db, --force_load_normalizers_db, "
-              "and --load_latest_cdms.")
+        help=("Load transformed CDM file at specified path. Exclusive with "
+              "--load_latest_cdms and --load_s3_cdms.")
     )
     @click.option(
         "--load_s3_cdms",
         "-s",
         is_flag=True,
         default=False,
+        required=False,
         help=("Clear MetaKB database, retrieve most recent data available "
               "from VICC S3 bucket, and load the database with retrieved "
-              "data. Overrides --load_normalizers_db, "
-              "--force_load_normalizers_db, and --load_latest_cdms.")
+              "data. Exclusive with --load_latest_cdms and load_target_cdm.")
     )
     def update_metakb_db(db_url: str, db_username: str, db_password: str,
                          load_normalizers_db: bool,
@@ -116,6 +116,10 @@ class CLI:
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
         """
+        if sum([load_latest_cdms, bool(load_target_cdm), load_s3_cdms]) > 1:
+            CLI()._help_msg("Error: Can only use one of `--load_latest_cdms`, "
+                            "`--load_target_cdm`, `--load_s3_cdms`.")
+
         db_url = CLI()._check_db_param(db_url, 'URL')
         db_username = CLI()._check_db_param(db_username, 'username')
         db_password = CLI()._check_db_param(db_password, 'password')
@@ -360,8 +364,11 @@ class CLI:
         :param str msg: Error message to display to user.
         """
         ctx = click.get_current_context()
-        logger.fatal(f'Error: {msg}')
-        click.echo(ctx.get_help())
+        logger.fatal(msg)
+        if msg:
+            click.echo(msg)
+        else:
+            click.echo(ctx.get_help())
         ctx.exit()
 
 
