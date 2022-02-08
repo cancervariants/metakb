@@ -125,7 +125,7 @@ class CLI:
                                  'DISEASE_NORM_DB_URL']:
                 environ[env_var_name] = normalizers_db_url
 
-        if not (load_latest_cdms or load_target_cdm):
+        if not any([load_latest_cdms, load_target_cdm, load_s3_cdms]):
             if load_normalizers_db or force_load_normalizers_db:
                 CLI()._load_normalizers_db(force_load_normalizers_db)
 
@@ -137,22 +137,27 @@ class CLI:
         msg = "Loading neo4j database..."
         click.echo(msg)
         logger.info(msg)
+
+        version = None
         g = Graph(uri=db_url, credentials=(db_username, db_password))
-        if load_s3_cdms:
-            load_target_cdm = CLI()._retrieve_s3_cdms()
         if load_target_cdm:
             g.load_from_json(load_target_cdm)
         else:
+            if load_s3_cdms:
+                version = CLI()._retrieve_s3_cdms()
             g.clear()
             for src in sorted({v.value for v
                                in SourceName.__members__.values()}):
-                pattern = f"{src}_cdm_*.json"
+                if version is not None:
+                    pattern = f"{src}_cdm_{version}.json"
+                else:
+                    pattern = f"{src}_cdm_*.json"
                 globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
                 try:
                     path = sorted(globbed)[-1]
                 except IndexError:
                     raise FileNotFoundError(f"No valid transform file found "
-                                            f"for {src}")
+                                            f"matching pattern: {pattern}")
                 g.load_from_json(path)
         g.close()
         end = timer()
@@ -172,6 +177,7 @@ class CLI:
         :raise: FileNotFoundError if unable to find files matching expected
         pattern in VICC MetaKB bucket.
         """
+        logger.info("Attempting to fetch CDM files from S3 bucket")
         config = Config(region_name="us-east-2")
         s3 = boto3.resource("s3", config=config)
         if not s3:
@@ -201,6 +207,7 @@ class CLI:
         if newest_version is None:
             raise FileNotFoundError("Unable to locate files matching expected "
                                     "resource pattern in VICC s3 bucket")
+        logger.info(f"Retrieved CDM files dated {newest_version}")
         return newest_version
 
     @staticmethod
