@@ -1,7 +1,8 @@
 """Module for VICC normalizers."""
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
+import logging
 
-from ga4gh.vrsatile.pydantic.vrs_models import VRSTypes
+from ga4gh.vrsatile.pydantic.vrs_models import VRSTypes, CURIE
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor
 from variation.query import QueryHandler as VariationQueryHandler
 from therapy.query import QueryHandler as TherapyQueryHandler
@@ -10,7 +11,6 @@ from disease.query import QueryHandler as DiseaseQueryHandler
 from disease.schemas import NormalizationService as NormalizedDisease
 from gene.query import QueryHandler as GeneQueryHandler
 from gene.schemas import NormalizeService as NormalizedGene
-import logging
 
 logger = logging.getLogger('metakb.normalizers')
 logger.setLevel(logging.DEBUG)
@@ -26,7 +26,8 @@ class VICCNormalizers:
         self.disease_query_handler = DiseaseQueryHandler()
         self.therapy_query_handler = TherapyQueryHandler()
 
-    def normalize_variation(self, queries) -> Optional[VariationDescriptor]:
+    def normalize_variation(self, queries: List[str]) \
+            -> Optional[Tuple[VariationDescriptor, CURIE]]:
         """Normalize variation queries.
 
         :param list queries: Possible query strings to try to normalize
@@ -36,43 +37,51 @@ class VICCNormalizers:
         for query in queries:
             if not query:
                 continue
-
             try:
                 variation_norm_resp = \
                     self.variation_normalizer.normalize(query)
                 if variation_norm_resp:
-                    if variation_norm_resp.variation.type != VRSTypes.TEXT:
-                        return variation_norm_resp
+                    if (
+                        (variation_norm_resp.variation) and  # noqa: W504
+                        (variation_norm_resp.variation.type != VRSTypes.TEXT)
+                        and variation_norm_resp.variation_id
+                    ):
+                        return (variation_norm_resp,
+                                variation_norm_resp.variation_id)
             except Exception as e:  # noqa: E722
                 logger.warning(f"Variation Normalizer raised an exception "
                                f"using query {query}: {e}")
         return None
 
-    def normalize_gene(self, queries)\
-            -> Tuple[Optional[NormalizedGene], Optional[str]]:
+    def normalize_gene(self, queries: List[str])\
+            -> Optional[Tuple[NormalizedGene, str]]:
         """Normalize gene queries
 
         :param list queries: Gene queries to normalize
         :return: The highest matched gene's normalized response and ID
         """
-        gene_norm_resp = None
-        normalized_gene_id = None
         highest_match = 0
-        for query_str in queries:
-            if not query_str:
+        normalized_gene_id = None
+        gene_norm_resp = None
+
+        for query in queries:
+            if not query:
                 continue
 
-            gene_norm_resp = self.gene_query_handler.normalize(query_str)
+            gene_norm_resp = self.gene_query_handler.normalize(query)
             if gene_norm_resp.match_type > highest_match:
                 highest_match = gene_norm_resp.match_type
                 normalized_gene_id = \
                     gene_norm_resp.gene_descriptor.gene_id
                 if highest_match == 100:
                     break
+
+        if not normalized_gene_id:
+            return None
         return gene_norm_resp, normalized_gene_id
 
-    def normalize_disease(self, queries)\
-            -> Tuple[Optional[NormalizedDisease], Optional[str]]:
+    def normalize_disease(self, queries: List[str])\
+            -> Optional[Tuple[NormalizedDisease, str]]:
         """Normalize disease queries
 
         :param list queries: Disease queries to normalize
@@ -93,10 +102,12 @@ class VICCNormalizers:
                     disease_norm_resp.disease_descriptor.disease_id
                 if highest_match == 100:
                     break
+        if not normalized_disease_id:
+            return None
         return disease_norm_resp, normalized_disease_id
 
     def normalize_therapy(self, queries)\
-            -> Tuple[Optional[NormalizedTherapy], Optional[str]]:
+            -> Optional[Tuple[NormalizedTherapy, str]]:
         """Normalize therapy queries
 
         :param list queries: Therapy queries to normalize
@@ -116,4 +127,6 @@ class VICCNormalizers:
                 normalized_therapy_id = therapy_norm_resp.therapy_descriptor.therapy_id  # noqa: E501
                 if highest_match == 100:
                     break
+        if not normalized_therapy_id:
+            return None
         return therapy_norm_resp, normalized_therapy_id
