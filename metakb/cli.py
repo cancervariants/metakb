@@ -25,7 +25,7 @@ import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore.config import Config
 
-from metakb import APP_ROOT
+from metakb import APP_ROOT, echo_info
 from metakb.database import Graph
 from metakb.schemas import SourceName
 from metakb.harvesters import Harvester, CIViCHarvester, MOAHarvester
@@ -139,9 +139,7 @@ class CLI:
 
         # Load neo4j database
         start = timer()
-        msg = "Loading neo4j database..."
-        click.echo(msg)
-        logger.info(msg)
+        echo_info("Loading neo4j database...")
 
         g = Graph(uri=db_url, credentials=(db_username, db_password))
         if load_target_cdm:
@@ -166,9 +164,9 @@ class CLI:
                 g.load_from_json(path)
         g.close()
         end = timer()
-        msg = f"Successfully loaded neo4j database in {(end-start):.5f} s"
-        click.echo(f"{msg}\n")
-        logger.info(msg)
+        echo_info(
+            f"Successfully loaded neo4j database in {(end-start):.5f} s\n"
+        )
 
     s3_cdm_pattern = re.compile(
         r"cdm/20[23]\d[01]\d[0123]\d/(.*)_cdm_(.*).json.zip")
@@ -182,9 +180,7 @@ class CLI:
         :raise: FileNotFoundError if unable to find files matching expected
         pattern in VICC MetaKB bucket.
         """
-        msg = "Attempting to fetch CDM files from S3 bucket"
-        logger.info(msg)
-        click.echo(msg)
+        echo_info("Attempting to fetch CDM files from S3 bucket")
         s3 = boto3.resource("s3", config=Config(region_name="us-east-2"))
         if not s3:
             raise ResourceLoadException("Unable to initiate AWS S3 Resource")

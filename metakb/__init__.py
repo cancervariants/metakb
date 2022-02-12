@@ -3,6 +3,8 @@ from pathlib import Path
 import logging
 from os import environ
 
+import click
+
 APP_ROOT = Path(__file__).resolve().parents[0]
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,6 +30,8 @@ logging.getLogger("hgvs.parser").setLevel(logging.INFO)
 logging.getLogger("biocommons.seqrepo.seqaliasdb.seqaliasdb").setLevel(logging.INFO)  # noqa: E501
 logging.getLogger("biocommons.seqrepo.fastadir.fastadir").setLevel(logging.INFO)  # noqa: E501
 logging.getLogger("requests_cache.patcher").setLevel(logging.INFO)
+logging.getLogger("bioregistry.resource_manager").setLevel(logging.INFO)
+logging.getLogger("blib2to3.pgen2.driver").setLevel(logging.INFO)
 logger.handlers = []
 
 if 'METAKB_NORM_EB_PROD' in environ:
@@ -38,3 +42,11 @@ if 'METAKB_NORM_EB_PROD' in environ:
 
 # default date format for all saved data files
 DATE_FMT = "%Y%m%d"
+
+
+def echo_info(msg: str):
+    """Log (as INFO) and echo given message.
+    :param str msg: message to emit
+    """
+    click.echo(msg)
+    logger.info(msg)
