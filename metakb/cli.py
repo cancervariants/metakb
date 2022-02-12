@@ -85,7 +85,7 @@ class CLI:
         help=("Clear MetaKB database and load most recent available source "
               "CDM files. Does not run harvest and transform methods to "
               "generate new CDM files. Exclusive with --load_target_cdm and "
-              "--load_s3_cdms.")
+              "--load_latest_s3_cdms.")
     )
     @click.option(
         "--load_target_cdm",
@@ -94,10 +94,10 @@ class CLI:
                         path_type=Path),
         required=False,
         help=("Load transformed CDM file at specified path. Exclusive with "
-              "--load_latest_cdms and --load_s3_cdms.")
+              "--load_latest_cdms and --load_latest_s3_cdms.")
     )
     @click.option(
-        "--load_s3_cdms",
+        "--load_latest_s3_cdms",
         "-s",
         is_flag=True,
         default=False,
@@ -112,13 +112,14 @@ class CLI:
                          normalizers_db_url: str,
                          load_latest_cdms: bool,
                          load_target_cdm: Optional[Path],
-                         load_s3_cdms: bool):
+                         load_latest_s3_cdms: bool):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
         """
-        if sum([load_latest_cdms, bool(load_target_cdm), load_s3_cdms]) > 1:
+        if sum([load_latest_cdms, bool(load_target_cdm),
+                load_latest_s3_cdms]) > 1:
             CLI()._help_msg("Error: Can only use one of `--load_latest_cdms`, "
-                            "`--load_target_cdm`, `--load_s3_cdms`.")
+                            "`--load_target_cdm`, `--load_latest_s3_cdms`.")
 
         db_url = CLI()._check_db_param(db_url, 'URL')
         db_username = CLI()._check_db_param(db_username, 'username')
@@ -129,7 +130,7 @@ class CLI:
                                  'DISEASE_NORM_DB_URL']:
                 environ[env_var_name] = normalizers_db_url
 
-        if not any([load_latest_cdms, load_target_cdm, load_s3_cdms]):
+        if not any([load_latest_cdms, load_target_cdm, load_latest_s3_cdms]):
             if load_normalizers_db or force_load_normalizers_db:
                 CLI()._load_normalizers_db(force_load_normalizers_db)
 
@@ -142,12 +143,12 @@ class CLI:
         click.echo(msg)
         logger.info(msg)
 
-        version = None
         g = Graph(uri=db_url, credentials=(db_username, db_password))
         if load_target_cdm:
             g.load_from_json(load_target_cdm)
         else:
-            if load_s3_cdms:
+            version = None
+            if load_latest_s3_cdms:
                 version = CLI()._retrieve_s3_cdms()
             g.clear()
             for src in sorted({v.value for v
@@ -181,13 +182,19 @@ class CLI:
         :raise: FileNotFoundError if unable to find files matching expected
         pattern in VICC MetaKB bucket.
         """
-        logger.info("Attempting to fetch CDM files from S3 bucket")
-        config = Config(region_name="us-east-2")
-        s3 = boto3.resource("s3", config=config)
+        msg = "Attempting to fetch CDM files from S3 bucket"
+        logger.info(msg)
+        click.echo(msg)
+        s3 = boto3.resource("s3", config=Config(region_name="us-east-2"))
         if not s3:
             raise ResourceLoadException("Unable to initiate AWS S3 Resource")
-        bucket = sorted(list(s3.Bucket("vicc-metakb").objects.all()),
-                        key=lambda f: f.key)
+        bucket = sorted(
+            list(
+                s3.Bucket("vicc-metakb").objects.filter(Prefix="cdm").all()
+            ),
+            key=lambda f: f.key,
+            reverse=True
+        )
         newest_version: Optional[str] = None
         for file in bucket:
             match = re.match(self.s3_cdm_pattern, file.key)
