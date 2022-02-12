@@ -25,7 +25,7 @@ import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore.config import Config
 
-from metakb import APP_ROOT, echo_info
+from metakb import APP_ROOT
 from metakb.database import Graph
 from metakb.schemas import SourceName
 from metakb.harvesters import Harvester, CIViCHarvester, MOAHarvester
@@ -34,6 +34,14 @@ from metakb.transform import Transform, CIViCTransform, MOATransform
 
 logger = logging.getLogger('metakb.cli')
 logger.setLevel(logging.DEBUG)
+
+
+def echo_info(msg: str):
+    """Log (as INFO) and echo given message.
+    :param str msg: message to emit
+    """
+    click.echo(msg)
+    logger.info(msg)
 
 
 class CLI:
@@ -214,15 +222,13 @@ class CLI:
         if newest_version is None:
             raise FileNotFoundError("Unable to locate files matching expected "
                                     "resource pattern in VICC s3 bucket")
-        msg = "Retrieved CDM files dated {newest_version}"
-        click.echo(msg)
-        logger.info(msg)
+        echo_info("Retrieved CDM files dated {newest_version}")
         return newest_version
 
     @staticmethod
     def _harvest_sources() -> None:
         """Run harvesting procedure for all sources."""
-        logger.info("Harvesting sources...")
+        echo_info("Harvesting sources...")
         # TODO: Switch to using constant
         harvester_sources = {
             'civic': CIViCHarvester,
@@ -230,30 +236,26 @@ class CLI:
         }
         total_start = timer()
         for source_str, source_class in harvester_sources.items():
-            harvest_start = f"Harvesting {source_str}..."
-            click.echo(harvest_start)
-            logger.info(harvest_start)
+            echo_info(f"Harvesting {source_str}...")
             start = timer()
             source: Harvester = source_class()
             source_successful = source.harvest()
             end = timer()
             if not source_successful:
-                logger.info(f'{source_str} harvest failed.')
+                echo_info(f'{source_str} harvest failed.')
                 click.get_current_context().exit()
-            harvest_finish = \
-                f"{source_str} harvest finished in {(end - start):.5f} s"
-            click.echo(harvest_finish)
-            logger.info(harvest_finish)
+            echo_info(
+                f"{source_str} harvest finished in {(end - start):.5f} s")
         total_end = timer()
-        msg = f"Successfully harvested all sources in " \
-              f"{(total_end - total_start):.5f} s"
-        click.echo(f"{msg}\n")
-        logger.info(msg)
+        echo_info(
+            f"Successfully harvested all sources in "
+            f"{(total_end - total_start):.5f} s"
+        )
 
     @staticmethod
     def _transform_sources() -> None:
         """Run transformation procedure for all sources."""
-        logger.info("Transforming harvested data to CDM...")
+        echo_info("Transforming harvested data to CDM...")
         # TODO: Switch to using constant
         transform_sources = {
             'civic': CIViCTransform,
@@ -261,23 +263,19 @@ class CLI:
         }
         total_start = timer()
         for src_str, src_name in transform_sources.items():
-            transform_start = f"Transforming {src_str}..."
-            click.echo(transform_start)
-            logger.info(transform_start)
+            echo_info(f"Transforming {src_str}...")
             start = timer()
             source: Transform = src_name()
             source.transform()
             end = timer()
-            transform_end = \
-                f"{src_str} transform finished in {(end - start):.5f} s."
-            click.echo(transform_end)
-            logger.info(transform_end)
+            echo_info(
+                f"{src_str} transform finished in {(end - start):.5f} s.")
             source.create_json()
         total_end = timer()
-        msg = f"Successfully transformed all sources to CDM in " \
-              f"{(total_end-total_start):.5f} s"
-        click.echo(f"{msg}\n")
-        logger.info(msg)
+        echo_info(
+            f"Successfully transformed all sources to CDM in "
+            f"{(total_end-total_start):.5f} s\n"
+        )
 
     def _load_normalizers_db(self, load_normalizer_db):
         """Load normalizer database source data.
@@ -302,7 +300,7 @@ class CLI:
             name = \
                 str(normalizer_cli).split()[1].split('.')[0][1:].capitalize()
             self._update_normalizer_db(name, load_source, normalizer_cli)
-        click.echo("Normalizers database loaded.\n")
+        echo_info("Normalizers database loaded.\n")
 
     @staticmethod
     def _check_normalizer(db, sources) -> bool:
@@ -331,15 +329,15 @@ class CLI:
         """
         if load_normalizer:
             try:
-                click.echo(f'\nLoading {name} Normalizer data...')
+                echo_info(f'\nLoading {name} Normalizer data...')
                 source_cli.update_normalizer_db(
                     ['--update_all', '--update_merged'])
-                click.echo(f'Successfully Loaded {name} Normalizer data.\n')
+                echo_info(f'Successfully Loaded {name} Normalizer data.\n')
             except SystemExit as e:
                 if e.code != 0:
                     raise e
         else:
-            click.echo(f'{name} Normalizer is already loaded.\n')
+            echo_info(f'{name} Normalizer is already loaded.\n')
 
     @staticmethod
     def _check_db_param(param: str, name: str) -> str:

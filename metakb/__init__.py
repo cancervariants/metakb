@@ -42,11 +42,3 @@ if 'METAKB_NORM_EB_PROD' in environ:
 
 # default date format for all saved data files
 DATE_FMT = "%Y%m%d"
-
-
-def echo_info(msg: str):
-    """Log (as INFO) and echo given message.
-    :param str msg: message to emit
-    """
-    click.echo(msg)
-    logger.info(msg)
