@@ -10,10 +10,11 @@ FILENAME = "civic_cdm.json"
 
 
 @pytest.fixture(scope="module")
-def data():
+def data(normalizers):
     """Create a CIViC Transform test fixture."""
     harvester_path = DATA_DIR / "civic_harvester.json"
-    c = CIViCTransform(data_dir=DATA_DIR, harvester_path=harvester_path)
+    c = CIViCTransform(data_dir=DATA_DIR, harvester_path=harvester_path,
+                       normalizers=normalizers)
     c.transform()
     c.create_json(transform_dir=DATA_DIR, filename=FILENAME)
     with open(DATA_DIR / FILENAME, "r") as f:

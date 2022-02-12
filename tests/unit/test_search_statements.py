@@ -1,13 +1,7 @@
 """Test the MetaKB search statements method"""
-from metakb.query import QueryHandler
-import pytest
 import copy
 
-
-@pytest.fixture(scope="module")
-def query_handler():
-    """Create query handler test fixture"""
-    return QueryHandler()
+import pytest
 
 
 @pytest.fixture(scope="module")

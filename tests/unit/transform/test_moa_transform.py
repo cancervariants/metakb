@@ -9,10 +9,11 @@ FILENAME = "moa_cdm.json"
 
 
 @pytest.fixture(scope="module")
-def data():
+def data(normalizers):
     """Create a MOA Transform test fixture."""
     harvester_path = DATA_DIR / "moa_harvester.json"
-    moa = MOATransform(data_dir=DATA_DIR, harvester_path=harvester_path)
+    moa = MOATransform(data_dir=DATA_DIR, harvester_path=harvester_path,
+                       normalizers=normalizers)
     moa.transform()
     moa.create_json(transform_dir=DATA_DIR, filename=FILENAME)
     with open(DATA_DIR / FILENAME, "r") as f:

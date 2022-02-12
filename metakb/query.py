@@ -28,14 +28,16 @@ class QueryHandler:
     """Class for handling queries."""
 
     def __init__(self, uri: str = "",
-                 creds: Tuple[str, str] = ("", "")) -> None:
+                 creds: Tuple[str, str] = ("", ""),
+                 normalizers: VICCNormalizers = VICCNormalizers()) -> None:
         """Initialize neo4j driver and the VICC normalizers.
         :param str uri: address of Neo4j DB
         :param Tuple[str, str] credentials: tuple containing username and
             password
+        :param VICCNormalizers normalizers: normalizer collection instance
         """
         self.driver = Graph(uri, creds).driver
-        self.vicc_normalizers = VICCNormalizers()
+        self.vicc_normalizers = normalizers
 
     def get_normalized_therapy(self, therapy: str,
                                warnings: List[str]) -> Optional[str]:
