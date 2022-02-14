@@ -249,7 +249,7 @@ class CLI:
         total_end = timer()
         echo_info(
             f"Successfully harvested all sources in "
-            f"{(total_end - total_start):.5f} s"
+            f"{(total_end - total_start):.5f} s\n"
         )
 
     @staticmethod
