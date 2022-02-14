@@ -7,6 +7,9 @@ from os import environ
 import logging
 from typing import Optional
 from pathlib import Path
+import re
+import tempfile
+from zipfile import ZipFile
 
 import click
 from disease.database import Database as DiseaseDatabase
@@ -18,6 +21,9 @@ from therapy.cli import CLI as TherapyCLI
 from gene.database import Database as GeneDatabase
 from gene.schemas import SourceName as GeneSources
 from gene.cli import CLI as GeneCLI
+import boto3
+from boto3.exceptions import ResourceLoadException
+from botocore.config import Config
 
 from metakb import APP_ROOT
 from metakb.database import Graph
@@ -78,7 +84,8 @@ class CLI:
         default=False,
         help=("Clear MetaKB database and load most recent available source "
               "CDM files. Does not run harvest and transform methods to "
-              "generate new CDM files.")
+              "generate new CDM files. Exclusive with --load_target_cdm and "
+              "--load_latest_s3_cdms.")
     )
     @click.option(
         "--load_target_cdm",
@@ -86,19 +93,34 @@ class CLI:
         type=click.Path(exists=True, dir_okay=False, readable=True,
                         path_type=Path),
         required=False,
-        help=("Load transformed CDM file at specified path. Overrides "
-              "--load_normalizers_db, --force_load_normalizers_db, "
-              "and --load_latest_cdms.")
+        help=("Load transformed CDM file at specified path. Exclusive with "
+              "--load_latest_cdms and --load_latest_s3_cdms.")
+    )
+    @click.option(
+        "--load_latest_s3_cdms",
+        "-s",
+        is_flag=True,
+        default=False,
+        required=False,
+        help=("Clear MetaKB database, retrieve most recent data available "
+              "from VICC S3 bucket, and load the database with retrieved "
+              "data. Exclusive with --load_latest_cdms and load_target_cdm.")
     )
     def update_metakb_db(db_url: str, db_username: str, db_password: str,
                          load_normalizers_db: bool,
                          force_load_normalizers_db: bool,
                          normalizers_db_url: str,
                          load_latest_cdms: bool,
-                         load_target_cdm: Optional[Path]):
+                         load_target_cdm: Optional[Path],
+                         load_latest_s3_cdms: bool):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
         """
+        if sum([load_latest_cdms, bool(load_target_cdm),
+                load_latest_s3_cdms]) > 1:
+            CLI()._help_msg("Error: Can only use one of `--load_latest_cdms`, "
+                            "`--load_target_cdm`, `--load_latest_s3_cdms`.")
+
         db_url = CLI()._check_db_param(db_url, 'URL')
         db_username = CLI()._check_db_param(db_username, 'username')
         db_password = CLI()._check_db_param(db_password, 'password')
@@ -108,7 +130,7 @@ class CLI:
                                  'DISEASE_NORM_DB_URL']:
                 environ[env_var_name] = normalizers_db_url
 
-        if not (load_latest_cdms or load_target_cdm):
+        if not any([load_latest_cdms, load_target_cdm, load_latest_s3_cdms]):
             if load_normalizers_db or force_load_normalizers_db:
                 CLI()._load_normalizers_db(force_load_normalizers_db)
 
@@ -120,26 +142,86 @@ class CLI:
         msg = "Loading neo4j database..."
         click.echo(msg)
         logger.info(msg)
+
         g = Graph(uri=db_url, credentials=(db_username, db_password))
         if load_target_cdm:
             g.load_from_json(load_target_cdm)
         else:
+            version = None
+            if load_latest_s3_cdms:
+                version = CLI()._retrieve_s3_cdms()
             g.clear()
             for src in sorted({v.value for v
                                in SourceName.__members__.values()}):
-                pattern = f"{src}_cdm_*.json"
+                if version is not None:
+                    pattern = f"{src}_cdm_{version}.json"
+                else:
+                    pattern = f"{src}_cdm_*.json"
                 globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
                 try:
                     path = sorted(globbed)[-1]
                 except IndexError:
                     raise FileNotFoundError(f"No valid transform file found "
-                                            f"for {src}")
+                                            f"matching pattern: {pattern}")
                 g.load_from_json(path)
         g.close()
         end = timer()
         msg = f"Successfully loaded neo4j database in {(end-start):.5f} s"
         click.echo(f"{msg}\n")
         logger.info(msg)
+
+    s3_cdm_pattern = re.compile(
+        r"cdm/20[23]\d[01]\d[0123]\d/(.*)_cdm_(.*).json.zip")
+
+    def _retrieve_s3_cdms(self) -> str:
+        """Retrieve most recent CDM files from VICC S3 bucket. Expects to find
+        files in a path like the following:
+            s3://vicc-metakb/cdm/20220201/civic_cdm_20220201.json.zip
+        :return: date string from retrieved files to use when loading to DB.
+        :raise: ResourceLoadException if S3 initialization fails
+        :raise: FileNotFoundError if unable to find files matching expected
+        pattern in VICC MetaKB bucket.
+        """
+        msg = "Attempting to fetch CDM files from S3 bucket"
+        logger.info(msg)
+        click.echo(msg)
+        s3 = boto3.resource("s3", config=Config(region_name="us-east-2"))
+        if not s3:
+            raise ResourceLoadException("Unable to initiate AWS S3 Resource")
+        bucket = sorted(
+            list(
+                s3.Bucket("vicc-metakb").objects.filter(Prefix="cdm").all()
+            ),
+            key=lambda f: f.key,
+            reverse=True
+        )
+        newest_version: Optional[str] = None
+        for file in bucket:
+            match = re.match(self.s3_cdm_pattern, file.key)
+            if match:
+                source = match.group(1)
+                if newest_version is None:
+                    newest_version = match.group(2)
+                elif match.group(2) != newest_version:
+                    continue
+            else:
+                continue
+
+            tmp_path = Path(tempfile.gettempdir()) / "metakb_dl_tmp"
+            with open(tmp_path, "wb") as f:
+                file.Object().download_fileobj(f)
+
+            cdm_dir = APP_ROOT / "data" / source / "transform"
+            cdm_zip = ZipFile(tmp_path, "r")
+            cdm_zip.extract(f"{source}_cdm_{newest_version}.json", cdm_dir)
+
+        if newest_version is None:
+            raise FileNotFoundError("Unable to locate files matching expected "
+                                    "resource pattern in VICC s3 bucket")
+        msg = f"Retrieved CDM files dated {newest_version}"
+        click.echo(msg)
+        logger.info(msg)
+        return newest_version
 
     @staticmethod
     def _harvest_sources() -> None:
@@ -291,8 +373,11 @@ class CLI:
         :param str msg: Error message to display to user.
         """
         ctx = click.get_current_context()
-        logger.fatal(f'Error: {msg}')
-        click.echo(ctx.get_help())
+        logger.fatal(msg)
+        if msg:
+            click.echo(msg)
+        else:
+            click.echo(ctx.get_help())
         ctx.exit()
 
 
