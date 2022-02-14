@@ -222,7 +222,7 @@ class CLI:
         if newest_version is None:
             raise FileNotFoundError("Unable to locate files matching expected "
                                     "resource pattern in VICC s3 bucket")
-        echo_info("Retrieved CDM files dated {newest_version}")
+        echo_info(f"Retrieved CDM files dated {newest_version}")
         return newest_version
 
     @staticmethod
