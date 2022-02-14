@@ -3,8 +3,6 @@ from pathlib import Path
 import logging
 from os import environ
 
-import click
-
 APP_ROOT = Path(__file__).resolve().parents[0]
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
