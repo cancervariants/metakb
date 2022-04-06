@@ -121,7 +121,7 @@ neo4j==4.4.1
 nest-asyncio==1.5.4; python_version >= '3.5'
 networkx==2.6.3; python_version >= '3.7'
 nodeenv==1.6.0
-notebook==6.4.8; python_version >= '3.6'
+notebook==6.4.10; python_version >= '3.6'
 numpy==1.22.1; python_version >= '3.8'
 oauthlib==3.2.0; python_version >= '3.6'
 obonet==0.3.0; python_full_version >= '3.5.0'
