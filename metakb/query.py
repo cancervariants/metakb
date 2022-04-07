@@ -71,8 +71,8 @@ class QueryHandler:
                             f"{disease}")
         return normalized_disease_id
 
-    def get_normalized_variation(self, variation: str,
-                                 warnings: List[str]) -> Optional[str]:
+    async def get_normalized_variation(self, variation: str,
+                                       warnings: List[str]) -> Optional[str]:
         """Get normalized variation concept.
 
         :param str variation: Variation query
@@ -80,7 +80,7 @@ class QueryHandler:
         :return: A normalized variant concept if it exists
         """
         variant_norm_resp = \
-            self.vicc_normalizers.normalize_variation([variation])
+            await self.vicc_normalizers.normalize_variation([variation])
         normalized_variation = None
         if variant_norm_resp:
             normalized_variation = variant_norm_resp.variation_id
@@ -106,7 +106,7 @@ class QueryHandler:
             warnings.append(f"Gene Normalizer unable to normalize: {gene}")
         return normalized_gene_id
 
-    def get_normalized_terms(
+    async def get_normalized_terms(
         self, variation: Optional[str], disease: Optional[str],
         therapy: Optional[str], gene: Optional[str],
         statement_id: Optional[str], response: Dict
@@ -143,8 +143,7 @@ class QueryHandler:
         if variation:
             response["query"]["variation"] = variation
             normalized_variation = \
-                self.get_normalized_variation(variation,
-                                              response["warnings"])
+                await self.get_normalized_variation(variation, response["warnings"])
         else:
             normalized_variation = None
         if gene:
@@ -180,10 +179,11 @@ class QueryHandler:
         return (normalized_variation, normalized_disease, normalized_therapy,
                 normalized_gene, statement, valid_statement_id)
 
-    def search(self, variation: Optional[str] = None,
-               disease: Optional[str] = None, therapy: Optional[str] = None,
-               gene: Optional[str] = None, statement_id: Optional[str] = None,
-               detail: bool = False) -> Dict:
+    async def search(
+        self, variation: Optional[str] = None, disease: Optional[str] = None,
+        therapy: Optional[str] = None, gene: Optional[str] = None,
+        statement_id: Optional[str] = None, detail: bool = False
+    ) -> Dict:
         """Get statements and propositions from queried concepts.
 
         :param Optional[str] variation: Variation query
@@ -221,7 +221,7 @@ class QueryHandler:
             "service_meta_": ServiceMeta().dict()
         }
 
-        normalized_terms = self.get_normalized_terms(
+        normalized_terms = await self.get_normalized_terms(
             variation, disease, therapy, gene, statement_id, response)
         if normalized_terms is None:
             return SearchService(**response).dict()
@@ -417,7 +417,7 @@ class QueryHandler:
         return SearchIDService(**response).dict(
             by_alias=True, exclude_none=True)
 
-    def search_statements(
+    async def search_statements(
             self, variation: Optional[str] = None,
             disease: Optional[str] = None, therapy: Optional[str] = None,
             gene: Optional[str] = None, statement_id: Optional[str] = None
@@ -449,7 +449,7 @@ class QueryHandler:
             "service_meta_": ServiceMeta().dict()
         }
 
-        normalized_terms = self.get_normalized_terms(
+        normalized_terms = await self.get_normalized_terms(
             variation, disease, therapy, gene, statement_id, response)
         if normalized_terms is None:
             return SearchStatementsService(**response).dict()
@@ -710,13 +710,13 @@ class QueryHandler:
                 response["gene_descriptors"].append(gene_context)
 
         # Get Variation Descriptor Expressions
-        for key in ["expressions_genomic", "expressions_protein",
-                    "expressions_transcript"]:
+        for key in ["expressions_g", "expressions_p",
+                    "expressions_c"]:
             if key in keys:
                 for value in variation_descriptor.get(key):
                     vd_params["expressions"].append(
                         Expression(
-                            syntax=f"hgvs:{key.split('_')[-1]}",
+                            syntax=f"hgvs.{key.split('_')[-1]}",
                             value=value
                         ).dict()
                     )

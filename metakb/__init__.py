@@ -30,6 +30,8 @@ logging.getLogger("biocommons.seqrepo.fastadir.fastadir").setLevel(logging.INFO)
 logging.getLogger("requests_cache.patcher").setLevel(logging.INFO)
 logging.getLogger("bioregistry.resource_manager").setLevel(logging.INFO)
 logging.getLogger("blib2to3.pgen2.driver").setLevel(logging.INFO)
+logging.getLogger("neo4j").setLevel(logging.INFO)
+logging.getLogger("asyncio").setLevel(logging.INFO)
 logger.handlers = []
 
 if 'METAKB_NORM_EB_PROD' in environ:

@@ -1,10 +1,19 @@
 """Module for pytest fixtures."""
 import pytest
 import os
+import asyncio
 
 from metakb.query import QueryHandler
 from metakb.normalizers import VICCNormalizers
 from metakb.schemas import SourceName
+
+
+@pytest.fixture(scope="session")
+def event_loop(request):
+    """Create an instance of the default event loop for each test case."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(scope="module")
@@ -100,22 +109,22 @@ def civic_vid33():
         "structural_type": "SO:0001583",
         "expressions": [
             {
-                "syntax": "hgvs:protein",
+                "syntax": "hgvs.p",
                 "value": "NP_005219.2:p.Leu858Arg",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:transcript",
+                "syntax": "hgvs.c",
                 "value": "ENST00000275493.2:c.2573T>G",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:transcript",
+                "syntax": "hgvs.c",
                 "value": "NM_005228.4:c.2573T>G",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:genomic",
+                "syntax": "hgvs.g",
                 "value": "NC_000007.13:g.55259515T>G",
                 "type": "Expression"
             }
@@ -349,22 +358,22 @@ def civic_vid99():
         "structural_type": "SO:0001583",
         "expressions": [
             {
-                "syntax": "hgvs:transcript",
+                "syntax": "hgvs.c",
                 "value": "NM_006206.4:c.2525A>T",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:protein",
+                "syntax": "hgvs.p",
                 "value": "NP_006197.1:p.Asp842Val",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:transcript",
+                "syntax": "hgvs.c",
                 "value": "ENST00000257290.5:c.2525A>T",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:genomic",
+                "syntax": "hgvs.g",
                 "value": "NC_000004.11:g.55152093A>T",
                 "type": "Expression"
             }
@@ -509,22 +518,22 @@ def civic_vid113():
         "structural_type": "SO:0001583",
         "expressions": [
             {
-                "syntax": "hgvs:transcript",
+                "syntax": "hgvs.c",
                 "value": "NM_020975.4:c.2753T>C",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:protein",
+                "syntax": "hgvs.p",
                 "value": "NP_065681.1:p.Met918Thr",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:transcript",
+                "syntax": "hgvs.c",
                 "value": "ENST00000355710.3:c.2753T>C",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:genomic",
+                "syntax": "hgvs.g",
                 "value": "NC_000010.10:g.43617416T>C",
                 "type": "Expression"
             }
@@ -673,22 +682,22 @@ def civic_vid1686():
         "structural_type": "SO:0001583",
         "expressions": [
             {
-                "syntax": "hgvs:transcript",
+                "syntax": "hgvs.c",
                 "value": "NM_001105.4:c.983G>T",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:protein",
+                "syntax": "hgvs.p",
                 "value": "NP_001096.1:p.Gly328Val",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:genomic",
+                "syntax": "hgvs.g",
                 "value": "NC_000002.11:g.158622516C>A",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:transcript",
+                "syntax": "hgvs.c",
                 "value": "ENST00000434821.1:c.983G>T",
                 "type": "Expression"
             }
@@ -835,22 +844,22 @@ def civic_vid65():
         "structural_type": "SO:0001583",
         "expressions": [
             {
-                "syntax": "hgvs:transcript",
+                "syntax": "hgvs.c",
                 "value": "NM_000222.2:c.2447A>T",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:protein",
+                "syntax": "hgvs.p",
                 "value": "NP_000213.1:p.Asp816Val",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:transcript",
+                "syntax": "hgvs.c",
                 "value": "ENST00000288135.5:c.2447A>T",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:genomic",
+                "syntax": "hgvs.g",
                 "value": "NC_000004.11:g.55599321A>T",
                 "type": "Expression"
             }
@@ -985,22 +994,22 @@ def civic_vid258():
         "structural_type": "SO:0001583",
         "expressions": [
             {
-                "syntax": "hgvs:transcript",
+                "syntax": "hgvs.c",
                 "value": "NM_005957.4:c.665C>T",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:protein",
+                "syntax": "hgvs.p",
                 "value": "NP_005948.3:p.Ala222Val",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:transcript",
+                "syntax": "hgvs.c",
                 "value": "ENST00000376592.1:c.665G>A",
                 "type": "Expression"
             },
             {
-                "syntax": "hgvs:genomic",
+                "syntax": "hgvs.g",
                 "value": "NC_000001.10:g.11856378G>A",
                 "type": "Expression"
             }
