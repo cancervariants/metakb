@@ -1,5 +1,6 @@
 [flake8]
 ignore = D205, D400, W503
+max-line-length = 88
 exclude =
   .git
   venv

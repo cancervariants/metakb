@@ -4,27 +4,27 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-"ga4gh.vrs" = {version = ">=0.7.2", extras = ["extras"]}
+"ga4gh.vrs" = {version = ">=0.7.5.dev1", extras = ["extras"]}
 civicpy = "*"
 requests = "*"
 jsondiff = "*"
 pydantic = "*"
 requests-cache = "*"
-gene-normalizer = ">=0.1.23"
+gene-normalizer = ">=0.1.25"
 disease-normalizer = ">=0.2.12"
-thera-py = ">=0.3.3"
+thera-py = ">=0.3.4"
 neo4j = "*"
 uvicorn = "*"
-fastapi = ">=0.72.0"
-click = "*"
+fastapi = "*"
 uvloop = "*"
 websockets = "*"
 httptools = "*"
 typing-extensions = "*"
 boto3 = "*"
 botocore = "*"
-variation-normalizer = ">=0.2.18"
-"ga4gh.vrsatile.pydantic" = ">=0.0.6"
+variation-normalizer = ">=0.3.0"
+"ga4gh.vrsatile.pydantic" = ">=0.0.11"
+asyncclick = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
@@ -39,3 +39,4 @@ pytest-cov = "*"
 jupyterlab = "*"
 jupyter = "*"
 ipykernel = "*"
+pytest-asyncio = "*"

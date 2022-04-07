@@ -235,7 +235,7 @@ class Graph:
         expressions = descriptor.get('expressions')
         if expressions:
             for expression in expressions:
-                syntax = expression['syntax'].split(':')[1]
+                syntax = expression['syntax'].split('.')[1]
                 key = f"expressions_{syntax}"
                 if key in descriptor:
                     descriptor[key].append(expression['value'])
@@ -247,9 +247,9 @@ class Graph:
                                              'xrefs', 'alternate_labels',
                                              'structural_type',
                                              'molecule_context',
-                                             'expressions_transcript',
-                                             'expressions_genomic',
-                                             'expressions_protein',
+                                             'expressions_c',
+                                             'expressions_g',
+                                             'expressions_p',
                                              'vrs_ref_allele_seq'))]
 
         # handle extensions
