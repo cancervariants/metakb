@@ -57,16 +57,17 @@ detail_description = "Display all descriptors, methods, and documents."
          response_model=SearchService,
          description=search_description,
          response_model_exclude_none=True)
-def search(variation: Optional[str] = Query(None, description=v_description),
-           disease: Optional[str] = Query(None, description=d_description),
-           therapy: Optional[str] = Query(None, description=t_description),
-           gene: Optional[str] = Query(None, description=g_description),
-           statement_id: Optional[str] = Query(None, description=s_description),  # noqa: E501
-           detail: Optional[bool] = Query(False, description=detail_description)  # noqa: E501
-           ):
+async def search(
+    variation: Optional[str] = Query(None, description=v_description),
+    disease: Optional[str] = Query(None, description=d_description),
+    therapy: Optional[str] = Query(None, description=t_description),
+    gene: Optional[str] = Query(None, description=g_description),
+    statement_id: Optional[str] = Query(None, description=s_description),
+    detail: Optional[bool] = Query(False, description=detail_description)
+):
     """Search endpoint"""
-    return query.search(variation, disease, therapy, gene, statement_id,
-                        detail)
+    resp = await query.search(variation, disease, therapy, gene, statement_id, detail)
+    return resp
 
 
 search_statements_summary = (
@@ -83,15 +84,16 @@ search_statements_descr = (
          response_model=SearchStatementsService,
          description=search_statements_descr,
          response_model_exclude_none=True)
-def get_statements(
+async def get_statements(
         variation: Optional[str] = Query(None, description=v_description),
         disease: Optional[str] = Query(None, description=d_description),
         therapy: Optional[str] = Query(None, description=t_description),
         gene: Optional[str] = Query(None, description=g_description),
         statement_id: Optional[str] = Query(None, description=s_description)):
     """Return nested statements for queried concepts"""
-    return query.search_statements(
-        variation, disease, therapy, gene, statement_id)
+    resp = await query.search_statements(variation, disease, therapy, gene,
+                                         statement_id)
+    return resp
 
 
 id_query_desc = ("Given Meta-KB statement_id, proposition_id, descriptor_id,"

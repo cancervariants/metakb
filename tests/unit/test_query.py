@@ -1,4 +1,6 @@
 """Test the MetaKB search method."""
+import pytest
+
 from metakb.version import __version__, LAST_UPDATED
 
 # TODO:
@@ -6,9 +8,10 @@ from metakb.version import __version__, LAST_UPDATED
 #  Load DB with test data
 
 
-def return_response(query_handler, statement_id, **kwargs):
+@pytest.mark.asyncio
+async def return_response(query_handler, statement_id, **kwargs):
     """Return the statement given ID if it exists."""
-    response = query_handler.search(**kwargs)
+    response = await query_handler.search(**kwargs)
     statements = response['statements']
     propositions = response['propositions']
     assert len(statements) != 0
@@ -157,234 +160,235 @@ def test_search_id(query_handler):
     assert query_handler.search_by_id("proposition:1")["warnings"]
 
 
-def test_general_search_queries(query_handler):
+@pytest.mark.asyncio
+async def test_general_search_queries(query_handler):
     """Test that queries do not return errors."""
-    response = query_handler.search(variation='braf v600e', detail=True)
+    response = await query_handler.search(variation='braf v600e', detail=True)
     assert_general_search_queries(response)
 
-    response = query_handler.search(variation='egfr l858r', detail=True)
+    response = await query_handler.search(variation='egfr l858r', detail=True)
     assert_general_search_queries(response)
 
-    response = query_handler.search(disease='cancer', detail=True)
+    response = await query_handler.search(disease='cancer', detail=True)
     assert_general_search_queries(response)
 
 
-def test_civic_eid2997(query_handler, civic_eid2997_statement,
-                       civic_eid2997_proposition, check_statement,
-                       check_proposition):
+@pytest.mark.asyncio
+async def test_civic_eid2997(query_handler, civic_eid2997_statement,
+                             civic_eid2997_proposition, check_statement,
+                             check_proposition):
     """Test search on CIViC Evidence Item 2997."""
     statement_id = 'civic.eid:2997'
 
     # Test search by Subject
-    s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA')  # noqa: E501
+    s, p = await return_response(query_handler, statement_id,
+                                 variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA')
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
     # Test search by Object
-    s, p = return_response(query_handler, statement_id,
-                           therapy='rxcui:1430438')
+    s, p = await return_response(query_handler, statement_id, therapy='rxcui:1430438')
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
     # Test search by Object Qualifier
-    s, p = return_response(query_handler, statement_id, disease='ncit:C2926')
+    s, p = await return_response(query_handler, statement_id, disease='ncit:C2926')
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
     # Test search by Gene Descriptor
     # HGNC ID
-    s, p = return_response(query_handler, statement_id, gene='hgnc:3236')
+    s, p = await return_response(query_handler, statement_id, gene='hgnc:3236')
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
     # Label
-    s, p = return_response(query_handler, statement_id, gene='EGFR')
+    s, p = await return_response(query_handler, statement_id, gene='EGFR')
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
     # Alt label
-    s, p = return_response(query_handler, statement_id, gene='ERBB1')
+    s, p = await return_response(query_handler, statement_id, gene='ERBB1')
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
-    s, p = return_response(query_handler, statement_id, variation='EGFR L858R')
+    s, p = await return_response(query_handler, statement_id, variation='EGFR L858R')
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
     # Alt Label
-    s, p = return_response(query_handler, statement_id,
-                           variation='egfr Leu858ARG')
+    s, p = await return_response(query_handler, statement_id,
+                                 variation='egfr Leu858ARG')
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
     # HGVS Expression
-    s, p = return_response(query_handler, statement_id,
-                           variation='NP_005219.2:p.Leu858Arg')  # noqa: E501
+    s, p = await return_response(query_handler, statement_id,
+                                 variation='NP_005219.2:p.Leu858Arg')
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
     # Test search by Therapy Descriptor
     # Label
-    s, p = return_response(query_handler, statement_id, therapy='Afatinib')
+    s, p = await return_response(query_handler, statement_id, therapy='Afatinib')
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
     # Alt Label
-    s, p = return_response(query_handler, statement_id, therapy='BIBW2992')
+    s, p = await return_response(query_handler, statement_id, therapy='BIBW2992')
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
     # Test search by Disease Descriptor
     # Label
-    s, p = return_response(query_handler, statement_id,
-                           disease='Lung Non-small Cell Carcinoma')  # noqa: E501
+    s, p = await return_response(query_handler, statement_id,
+                                 disease='Lung Non-small Cell Carcinoma')
     check_statement(s, civic_eid2997_statement)
     check_proposition(p, civic_eid2997_proposition)
 
 
-def test_civic_eid1409_statement(query_handler, civic_eid1409_statement,
-                                 check_statement):
+@pytest.mark.asyncio
+async def test_civic_eid1409_statement(query_handler, civic_eid1409_statement,
+                                       check_statement):
     """Test search on CIViC Evidence Item 1409."""
     statement_id = 'civic.eid:1409'
 
     # Test search by Subject
-    s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:VA.8JkgnqIgYqufNl-OV_hpRG_aWF9UFQCE')  # noqa: E501
+    s, p = await return_response(query_handler, statement_id,
+                                 variation='ga4gh:VA.ZDdoQdURgO2Daj2NxLj4pcDnjiiAsfbO')
     check_statement(s, civic_eid1409_statement)
 
     # Test search by Object
-    s, p = return_response(query_handler, statement_id, therapy='ncit:C64768')
+    s, p = await return_response(query_handler, statement_id, therapy='ncit:C64768')
     check_statement(s, civic_eid1409_statement)
 
     # Test search by Object Qualifier
-    s, p = return_response(query_handler, statement_id, disease='ncit:C3510')
+    s, p = await return_response(query_handler, statement_id, disease='ncit:C3510')
     check_statement(s, civic_eid1409_statement)
 
     # Test search by Gene Descriptor
     # HGNC ID
-    s, p = return_response(query_handler, statement_id, gene='hgnc:1097')
+    s, p = await return_response(query_handler, statement_id, gene='hgnc:1097')
     check_statement(s, civic_eid1409_statement)
 
     # Label
-    s, p = return_response(query_handler, statement_id, gene='BRAF')
+    s, p = await return_response(query_handler, statement_id, gene='BRAF')
     check_statement(s, civic_eid1409_statement)
 
     # TODO: Not found in gene normalizer
     # # Alt label
-    # s, p = return_response(query_handler,
+    # s, p = await return_response(query_handler,
     # statement_id, gene='NS7')
     # assertions(civic_eid1409_statement, s)
 
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
-    s, p = return_response(query_handler, statement_id,
-                           variation='BRAF V600E')
+    s, p = await return_response(query_handler, statement_id, variation='BRAF V600E')
     check_statement(s, civic_eid1409_statement)
 
     # # Alt Label
-    s, p = return_response(query_handler, statement_id,
-                           variation='braf val600glu')
+    s, p = await return_response(query_handler, statement_id,
+                                 variation='braf val600glu')
     check_statement(s, civic_eid1409_statement)
 
     # HGVS Expression
-    s, p = return_response(query_handler, statement_id,
-                           variation='NP_004324.2:p.Val600Glu')  # noqa: E501
+    s, p = await return_response(query_handler, statement_id,
+                                 variation='NP_004324.2:p.Val600Glu')
     check_statement(s, civic_eid1409_statement)
 
     # Test search by Therapy Descriptor
     # Label
-    s, p = return_response(query_handler, statement_id, therapy='Vemurafenib')
+    s, p = await return_response(query_handler, statement_id, therapy='Vemurafenib')
     check_statement(s, civic_eid1409_statement)
 
     # # Alt Label
-    s, p = return_response(query_handler, statement_id,
-                           therapy='BRAF(V600E) Kinase Inhibitor RO5185426')
+    s, p = await return_response(query_handler, statement_id,
+                                 therapy='BRAF(V600E) Kinase Inhibitor RO5185426')
     check_statement(s, civic_eid1409_statement)
 
     # Label
-    s, p = return_response(query_handler, statement_id,
-                           disease='Skin Melanoma')
+    s, p = await return_response(query_handler, statement_id, disease='Skin Melanoma')
     check_statement(s, civic_eid1409_statement)
 
 
-def test_civic_aid6(query_handler, civic_aid6_statement, check_statement):
+@pytest.mark.asyncio
+async def test_civic_aid6(query_handler, civic_aid6_statement, check_statement):
     """Test search on CIViC Evidence Item 6."""
     statement_id = 'civic.aid:6'
 
     # Test search by Subject
-    s, p = return_response(query_handler, statement_id,
-                           variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA')  # noqa: E501
+    s, p = await return_response(query_handler, statement_id,
+                                 variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA')
     check_statement(s, civic_aid6_statement)
 
     # Test search by Object
-    s, p = return_response(query_handler, statement_id,
-                           therapy='rxcui:1430438')
+    s, p = await return_response(query_handler, statement_id, therapy='rxcui:1430438')
     check_statement(s, civic_aid6_statement)
 
     # Test search by Object Qualifier
-    s, p = return_response(query_handler, statement_id, disease='ncit:C2926')
+    s, p = await return_response(query_handler, statement_id, disease='ncit:C2926')
     check_statement(s, civic_aid6_statement)
 
     # Test search by Gene Descriptor
     # HGNC ID
-    s, p = return_response(query_handler, statement_id, gene='hgnc:3236')
+    s, p = await return_response(query_handler, statement_id, gene='hgnc:3236')
     check_statement(s, civic_aid6_statement)
 
     # Label
-    s, p = return_response(query_handler, statement_id, gene='EGFR')
+    s, p = await return_response(query_handler, statement_id, gene='EGFR')
     check_statement(s, civic_aid6_statement)
 
     # Alt label
-    s, p = return_response(query_handler, statement_id, gene='ERBB1')
+    s, p = await return_response(query_handler, statement_id, gene='ERBB1')
     check_statement(s, civic_aid6_statement)
 
     # Test search by Variation Descriptor
     # Gene Symbol + Variant Name
-    s, p = return_response(query_handler, statement_id, variation='EGFR L858R')
+    s, p = await return_response(query_handler, statement_id, variation='EGFR L858R')
     check_statement(s, civic_aid6_statement)
 
     # Alt Label
-    s, p = return_response(query_handler, statement_id,
-                           variation='egfr leu858arg')
+    s, p = await return_response(query_handler, statement_id,
+                                 variation='egfr leu858arg')
     check_statement(s, civic_aid6_statement)
 
     # HGVS Expression
-    s, p = return_response(query_handler, statement_id,
-                           variation='NP_005219.2:p.leu858arg')  # Noqa: E501
+    s, p = await return_response(query_handler, statement_id,
+                                 variation='NP_005219.2:p.leu858arg')
     check_statement(s, civic_aid6_statement)
 
     # Label
-    s, p = return_response(query_handler, statement_id, therapy='afatinib')
+    s, p = await return_response(query_handler, statement_id, therapy='afatinib')
     check_statement(s, civic_aid6_statement)
 
     # Alt Label
-    s, p = return_response(query_handler, statement_id, therapy='BIBW 2992')
+    s, p = await return_response(query_handler, statement_id, therapy='BIBW 2992')
     check_statement(s, civic_aid6_statement)
 
     # Label
-    s, p = return_response(query_handler, statement_id,
-                           disease='Lung Non-small Cell Carcinoma    ')  # noqa: E501
+    s, p = await return_response(query_handler, statement_id,
+                                 disease='Lung Non-small Cell Carcinoma    ')
     check_statement(s, civic_aid6_statement)
 
 
-def test_multiple_parameters(query_handler):
+@pytest.mark.asyncio
+async def test_multiple_parameters(query_handler):
     """Test that multiple parameter searches work correctly."""
     # Test no match
-    response = query_handler.search(variation=' braf v600e', gene='egfr',
-                                    disease='cancer', therapy='cisplatin')
+    response = await query_handler.search(variation=' braf v600e', gene='egfr',
+                                          disease='cancer', therapy='cisplatin')
     assert_no_match(response)
 
-    response = query_handler.search(therapy='cisplatin', disease='4dfadfafas')
+    response = await query_handler.search(therapy='cisplatin', disease='4dfadfafas')
     assert_no_match(response)
 
     # Test EID2997 queries
     object_qualifier = 'ncit:C2926'
     subject = 'ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA'
     object = 'rxcui:1430438'
-    response = query_handler.search(
+    response = await query_handler.search(
         variation='NP_005219.2:p.Leu858Arg',
         disease='NSCLC',
         therapy='Afatinib'
@@ -396,7 +400,7 @@ def test_multiple_parameters(query_handler):
             assert p['object'] == object
 
     # Wrong gene
-    response = query_handler.search(
+    response = await query_handler.search(
         variation='NP_005219.2:p.Leu858Arg',
         disease='NSCLC',
         therapy='Afatinib',
@@ -406,8 +410,8 @@ def test_multiple_parameters(query_handler):
 
     # Test eid1409 queries
     object_qualifier = 'ncit:C3510'
-    subject = 'ga4gh:VA.8JkgnqIgYqufNl-OV_hpRG_aWF9UFQCE'
-    response = query_handler.search(
+    subject = 'ga4gh:VA.ZDdoQdURgO2Daj2NxLj4pcDnjiiAsfbO'
+    response = await query_handler.search(
         variation=subject,
         disease='malignant trunk melanoma'
     )
@@ -418,7 +422,7 @@ def test_multiple_parameters(query_handler):
             assert p['object']
 
     # No Match for statement ID
-    response = query_handler.search(
+    response = await query_handler.search(
         variation=subject,
         disease='malignant trunk melanoma',
         statement_id='civic.eid:2997'
@@ -426,7 +430,7 @@ def test_multiple_parameters(query_handler):
     assert_no_match(response)
 
     # CIViC EID2997
-    response = query_handler.search(
+    response = await query_handler.search(
         statement_id='civiC.eid:2997',
         variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA'
     )
@@ -436,7 +440,7 @@ def test_multiple_parameters(query_handler):
     assert len(response['matches']['propositions']) == 1
 
     # CIViC AID6
-    response = query_handler.search(
+    response = await query_handler.search(
         statement_id='CIViC.AID:6',
         variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA',
         disease='ncit:C2926'
@@ -457,7 +461,7 @@ def test_multiple_parameters(query_handler):
     assert set(civic_aid6_supported_by_statements) == \
            set(supported_by_statements)
 
-    response = query_handler.search(
+    response = await query_handler.search(
         disease='ncit:C2926',
         variation='ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA'
     )
@@ -473,23 +477,18 @@ def test_multiple_parameters(query_handler):
     assert len(response['matches']['propositions']) > 1
 
 
-def test_civic_detail_flag_therapeutic(query_handler,
-                                       civic_eid2997_statement,
-                                       civic_eid2997_proposition, civic_vid33,
-                                       civic_gid19, civic_did8,
-                                       method1, pmid_23982599,
-                                       civic_tid146, check_statement,
-                                       check_proposition,
-                                       check_variation_descriptor,
-                                       check_descriptor, check_method,
-                                       check_document):
+@pytest.mark.asyncio
+async def test_civic_detail_flag_therapeutic(
+    query_handler, civic_eid2997_statement, civic_eid2997_proposition, civic_vid33,
+    civic_gid19, civic_did8, method1, pmid_23982599, civic_tid146, check_statement,
+    check_proposition, check_variation_descriptor, check_descriptor, check_method,
+    check_document
+):
     """Test that detail flag works correctly for CIViC Therapeutic Response."""
-    response = query_handler.search(statement_id='civic.eid:2997',
-                                    detail=False)
+    response = await query_handler.search(statement_id='civic.eid:2997', detail=False)
     assert_keys_for_detail_false(response.keys())
 
-    response = query_handler.search(statement_id='civic.eid:2997',
-                                    detail=True)
+    response = await query_handler.search(statement_id='civic.eid:2997', detail=True)
     assert_keys_for_detail_true(response.keys(), response)
     assert_response_items(response, civic_eid2997_statement,
                           civic_eid2997_proposition,
@@ -501,21 +500,17 @@ def test_civic_detail_flag_therapeutic(query_handler,
                           )
 
 
-def test_civic_detail_flag_diagnostic(query_handler, civic_eid2_statement,
-                                      civic_eid2_proposition, civic_vid99,
-                                      civic_did2, civic_gid38, method1,
-                                      pmid_15146165, check_statement,
-                                      check_proposition,
-                                      check_variation_descriptor,
-                                      check_descriptor, check_method,
-                                      check_document):
+@pytest.mark.asyncio
+async def test_civic_detail_flag_diagnostic(
+    query_handler, civic_eid2_statement, civic_eid2_proposition, civic_vid99,
+    civic_did2, civic_gid38, method1, pmid_15146165, check_statement, check_proposition,
+    check_variation_descriptor, check_descriptor, check_method, check_document
+):
     """Test that detail flag works correctly for CIViC Diagnostic Response."""
-    response = query_handler.search(statement_id='civic.eid:2',
-                                    detail=False)
+    response = await query_handler.search(statement_id='civic.eid:2', detail=False)
     assert_keys_for_detail_false(response.keys())
 
-    response = query_handler.search(statement_id='civic.eid:2',
-                                    detail=True)
+    response = await query_handler.search(statement_id='civic.eid:2', detail=True)
     assert_keys_for_detail_true(response.keys(), response, tr_response=False)
     assert_response_items(response, civic_eid2_statement,
                           civic_eid2_proposition,
@@ -525,21 +520,17 @@ def test_civic_detail_flag_diagnostic(query_handler, civic_eid2_statement,
                           check_descriptor, check_method, check_document)
 
 
-def test_civic_detail_flag_prognostic(query_handler, civic_eid26_statement,
-                                      civic_eid26_proposition, civic_vid65,
-                                      civic_did3, civic_gid29, method1,
-                                      pmid_16384925, check_statement,
-                                      check_proposition,
-                                      check_variation_descriptor,
-                                      check_descriptor, check_method,
-                                      check_document):
+@pytest.mark.asyncio
+async def test_civic_detail_flag_prognostic(
+    query_handler, civic_eid26_statement, civic_eid26_proposition, civic_vid65,
+    civic_did3, civic_gid29, method1, pmid_16384925, check_statement, check_proposition,
+    check_variation_descriptor, check_descriptor, check_method, check_document
+):
     """Test that detail flag works correctly for CIViC Prognostic Response."""
-    response = query_handler.search(statement_id='civic.eid:26',
-                                    detail=False)
+    response = await query_handler.search(statement_id='civic.eid:26', detail=False)
     assert_keys_for_detail_false(response.keys())
 
-    response = query_handler.search(statement_id='civic.eid:26',
-                                    detail=True)
+    response = await query_handler.search(statement_id='civic.eid:26', detail=True)
     assert_keys_for_detail_true(response.keys(), response, tr_response=False)
     assert_response_items(response, civic_eid26_statement,
                           civic_eid26_proposition,
@@ -549,20 +540,18 @@ def test_civic_detail_flag_prognostic(query_handler, civic_eid26_statement,
                           check_descriptor, check_method, check_document)
 
 
-def test_moa_detail_flag(query_handler, moa_aid71_statement,
-                         moa_aid71_proposition,
-                         moa_vid71, moa_abl1, moa_imatinib,
-                         moa_chronic_myelogenous_leukemia, method4,
-                         pmid_11423618, check_statement, check_proposition,
-                         check_variation_descriptor, check_descriptor,
-                         check_method, check_document):
+@pytest.mark.asyncio
+async def test_moa_detail_flag(
+    query_handler, moa_aid71_statement, moa_aid71_proposition, moa_vid71, moa_abl1,
+    moa_imatinib, moa_chronic_myelogenous_leukemia, method4, pmid_11423618,
+    check_statement, check_proposition, check_variation_descriptor, check_descriptor,
+    check_method, check_document
+):
     """Test that detail flag works correctly for MOA."""
-    response = query_handler.search(statement_id='moa.assertion:71',
-                                    detail=False)
+    response = await query_handler.search(statement_id='moa.assertion:71', detail=False)
     assert_keys_for_detail_false(response.keys())
 
-    response = query_handler.search(statement_id='moa.assertion:71',
-                                    detail=True)
+    response = await query_handler.search(statement_id='moa.assertion:71', detail=True)
     assert_keys_for_detail_true(response.keys(), response)
     assert_response_items(response, moa_aid71_statement, moa_aid71_proposition,
                           moa_vid71, moa_abl1,
@@ -572,29 +561,28 @@ def test_moa_detail_flag(query_handler, moa_aid71_statement,
                           check_descriptor, check_method, check_document)
 
 
-def test_no_matches(query_handler):
+@pytest.mark.asyncio
+async def test_no_matches(query_handler):
     """Test invalid query matches."""
     # GA instead of VA
-    response = query_handler.search('ga4gh:GA.WyOqFMhc8a'
-                                    'OnMFgdY0uM7nSLNqxVPAiR')
+    response = await query_handler.search('ga4gh:GA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR')
     assert_no_match(response)
 
     # Invalid ID
     response = \
-        query_handler.search(disease='ncit:C292632425235321524352435623462')
+        await query_handler.search(disease='ncit:C292632425235321524352435623462')
     assert_no_match(response)
 
     # Empty query
-    response = query_handler.search(disease='')
+    response = await query_handler.search(disease='')
     assert_no_match(response)
 
-    response = query_handler.search(gene='', therapy='', variation='',
-                                    disease='')
+    response = await query_handler.search(gene='', therapy='', variation='', disease='')
     assert_no_match(response)
     assert response['warnings'] == ['No parameters were entered.']
 
     # Invalid variation
-    response = query_handler.search(variation='v600e')
+    response = await query_handler.search(variation='v600e')
     assert_no_match(response)
 
     response = query_handler.search_by_id('')
@@ -671,7 +659,8 @@ def test_moa_id_search(query_handler, moa_aid71_statement,
     check_method(res['method'], method4)
 
 
-def test_service_meta(query_handler):
+@pytest.mark.asyncio
+async def test_service_meta(query_handler):
     """Test service meta in response"""
     def check_service_meta(response):
         """Check service meta in response is correct"""
@@ -684,11 +673,11 @@ def test_service_meta(query_handler):
                "https://github.com/cancervariants/metakb"
 
     statement_id = "civic.eid:2997"
-    resp = query_handler.search(statement_id=statement_id)
+    resp = await query_handler.search(statement_id=statement_id)
     check_service_meta(resp)
 
     resp = query_handler.search_by_id("method:4")
     check_service_meta(resp)
 
-    resp = query_handler.search_statements(statement_id=statement_id)
+    resp = await query_handler.search_statements(statement_id=statement_id)
     check_service_meta(resp)

@@ -11,7 +11,7 @@ import re
 import tempfile
 from zipfile import ZipFile
 
-import click
+import asyncclick as click
 from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
 from disease.cli import CLI as DiseaseCLI
@@ -114,13 +114,12 @@ class CLI:
               "from VICC S3 bucket, and load the database with retrieved "
               "data. Exclusive with --load_latest_cdms and load_target_cdm.")
     )
-    def update_metakb_db(db_url: str, db_username: str, db_password: str,
-                         load_normalizers_db: bool,
-                         force_load_normalizers_db: bool,
-                         normalizers_db_url: str,
-                         load_latest_cdms: bool,
-                         load_target_cdm: Optional[Path],
-                         load_latest_s3_cdms: bool):
+    async def update_metakb_db(
+        db_url: str, db_username: str, db_password: str,
+        load_normalizers_db: bool, force_load_normalizers_db: bool,
+        normalizers_db_url: str, load_latest_cdms: bool,
+        load_target_cdm: Optional[Path], load_latest_s3_cdms: bool
+    ):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
         """
@@ -143,7 +142,7 @@ class CLI:
                 CLI()._load_normalizers_db(force_load_normalizers_db)
 
             CLI()._harvest_sources()
-            CLI()._transform_sources()
+            await CLI()._transform_sources()
 
         # Load neo4j database
         start = timer()
@@ -253,7 +252,7 @@ class CLI:
         )
 
     @staticmethod
-    def _transform_sources() -> None:
+    async def _transform_sources() -> None:
         """Run transformation procedure for all sources."""
         echo_info("Transforming harvested data to CDM...")
         # TODO: Switch to using constant
@@ -266,7 +265,7 @@ class CLI:
             echo_info(f"Transforming {src_str}...")
             start = timer()
             source: Transform = src_name()
-            source.transform()
+            await source.transform()
             end = timer()
             echo_info(
                 f"{src_str} transform finished in {(end - start):.5f} s.")
@@ -376,4 +375,4 @@ class CLI:
 
 
 if __name__ == '__main__':
-    CLI().update_metakb_db()
+    CLI().update_metakb_db(_anyio_backend="asyncio")
