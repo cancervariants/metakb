@@ -50,7 +50,7 @@ class Transform:
 
         self.next_node_id = {}
 
-    def transform(self, *args, **kwargs):
+    async def transform(self, *args, **kwargs):
         """Transform harvested data to the Common Data Model."""
         raise NotImplementedError
 

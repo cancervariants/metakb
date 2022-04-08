@@ -132,11 +132,12 @@ def check_statement_assertions(
         assert sb in actual["supported_by"]
 
 
-def test_civic_eid2997(
+@pytest.mark.asyncio
+async def test_civic_eid2997(
         query_handler, civic_eid2997, check_proposition,
         check_variation_descriptor, check_descriptor, check_method):
     """Test that search_statements works correctly for CIVIC EID2997"""
-    resp = query_handler.search_statements(statement_id="civic.eid:2997")
+    resp = await query_handler.search_statements(statement_id="civic.eid:2997")
     assert len(resp["statements"]) == 1
     assert resp["matches"]["statements"] == ["civic.eid:2997"]
     assert len(resp["matches"]["propositions"]) == 1
@@ -146,11 +147,12 @@ def test_civic_eid2997(
     assert resp["warnings"] == []
 
 
-def test_civic_aid6(
+@pytest.mark.asyncio
+async def test_civic_aid6(
         query_handler, civic_aid6, civic_eid2997, check_proposition,
         check_variation_descriptor, check_descriptor, check_method):
     """Test that search_statements works correctly for CIVIC EID2997"""
-    resp = query_handler.search_statements(statement_id="civic.aid:6")
+    resp = await query_handler.search_statements(statement_id="civic.aid:6")
     assert len(resp["statements"]) == 7
     assert resp["matches"]["statements"] == ["civic.aid:6"]
     assert len(resp["matches"]["propositions"]) == 1
@@ -173,10 +175,12 @@ def test_civic_aid6(
     assert found_aid6
 
 
-def test_moa(query_handler, moa_aid71, check_proposition,
-             check_variation_descriptor, check_descriptor, check_method):
+@pytest.mark.asyncio
+async def test_moa(query_handler, moa_aid71, check_proposition,
+                   check_variation_descriptor, check_descriptor, check_method):
     """Test that search_statements works correctly for MOA Assertion 71"""
-    resp = query_handler.search_statements(statement_id="moa.assertion:71")
+    resp = await query_handler.search_statements(
+        statement_id="moa.assertion:71")
     assert len(resp["statements"]) == 1
     check_statement_assertions(
         resp["statements"][0], moa_aid71, check_proposition,
@@ -184,38 +188,36 @@ def test_moa(query_handler, moa_aid71, check_proposition,
     assert resp["warnings"] == []
 
 
-def test_general_search_statements(query_handler):
+@pytest.mark.asyncio
+async def test_general_search_statements(query_handler):
     """Test that queries do not return errors"""
-    resp = query_handler.search_statements(variation="BRAF V600E")
+    resp = await query_handler.search_statements(variation="BRAF V600E")
     assert_general_search_statements(resp)
 
-    resp = query_handler.search_statements(variation="EGFR L858R")
+    resp = await query_handler.search_statements(variation="EGFR L858R")
     assert_general_search_statements(resp)
 
-    resp = query_handler.search_statements(disease="cancer")
+    resp = await query_handler.search_statements(disease="cancer")
     assert_general_search_statements(resp)
 
 
-def test_no_matches(query_handler):
+@pytest.mark.asyncio
+async def test_no_matches(query_handler):
     """Test invalid queries"""
     # invalid vrs variation prefix
-    resp = query_handler.search_statements(
+    resp = await query_handler.search_statements(
         variation="ga4gh:variation.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA")
     assert_no_match(resp)
 
     # invalid id
-    resp = query_handler.search_statements(
+    resp = await query_handler.search_statements(
         disease="ncit:C292632425235321524352435623462"
     )
     assert_no_match(resp)
 
-    resp = query_handler.search_statements(statement_id="civic:aid6")
+    resp = await query_handler.search_statements(statement_id="civic:aid6")
     assert_no_match(resp)
 
     # empty query
-    resp = query_handler.search_statements(therapy="")
-    assert_no_match(resp)
-
-    resp = query_handler.search(gene="", therapy="", variation="", disease="")
-
+    resp = await query_handler.search_statements(therapy="")
     assert_no_match(resp)

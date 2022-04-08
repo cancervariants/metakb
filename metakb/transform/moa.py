@@ -16,7 +16,7 @@ logger.setLevel(logging.DEBUG)
 class MOATransform(Transform):
     """A class for transforming MOA resources to common data model."""
 
-    def transform(self):
+    async def transform(self):
         """Transform MOA harvested JSON to common date model.
         Saves output in MOA transform directory.
         """
@@ -28,11 +28,11 @@ class MOATransform(Transform):
         variants = data['variants']
 
         # Transform MOA assertions
-        self._transform_statements(assertions, variants, sources,
-                                   cdm_assertions)
+        await self._transform_statements(assertions, variants, sources,
+                                         cdm_assertions)
 
-    def _transform_statements(self, records, variants, sources,
-                              cdm_assertions):
+    async def _transform_statements(self, records, variants, sources,
+                                    cdm_assertions):
         """Add transformed assertions to the response list.
 
         :param: A list of MOA assertion records
@@ -46,7 +46,7 @@ class MOATransform(Transform):
             gene_descriptors = self._get_gene_descriptors(
                 self._get_record(record['variant']['id'], variants))
             descriptors = \
-                self._get_descriptors(record, variants, gene_descriptors)
+                await self._get_descriptors(record, variants, gene_descriptors)
             if not descriptors:
                 continue
             else:
@@ -94,7 +94,7 @@ class MOATransform(Transform):
                     if el not in attr:
                         attr.append(el)
 
-    def _get_descriptors(self, record, variants, gene_descriptors):
+    async def _get_descriptors(self, record, variants, gene_descriptors):
         """Return tuple of descriptors if one exists for each type.
 
         :param: A MOA assertion record
@@ -109,7 +109,7 @@ class MOATransform(Transform):
                            f" {record['therapy_name']} but found {len_td}")
             return None
 
-        variation_descriptors = self._get_variation_descriptors(
+        variation_descriptors = await self._get_variation_descriptors(
             self._get_record(record['variant']['id'], variants),
             gene_descriptors)
         len_vd = len(variation_descriptors)
@@ -225,7 +225,7 @@ class MOATransform(Transform):
 
         return origin
 
-    def _get_variation_descriptors(self, variant, g_descriptors):
+    async def _get_variation_descriptors(self, variant, g_descriptors):
         """Add variation descriptor to therapeutic response
 
         :param: single assertion record from MOA
@@ -239,7 +239,8 @@ class MOATransform(Transform):
         if g_descriptors and 'protein_change' in variant and variant['protein_change']:  # noqa: E501
             gene = g_descriptors[0]['label']
             query = f"{gene} {variant['protein_change'][2:]}"
-            v_norm_resp = self.vicc_normalizers.normalize_variation([query])
+            v_norm_resp = \
+                await self.vicc_normalizers.normalize_variation([query])
 
             if not v_norm_resp:
                 logger.warning(f"Variant Normalizer unable to normalize: "

@@ -11,7 +11,7 @@ import re
 import tempfile
 from zipfile import ZipFile
 
-import click
+import asyncclick as click
 from disease.database import Database as DiseaseDatabase
 from disease.schemas import SourceName as DiseaseSources
 from disease.cli import CLI as DiseaseCLI
@@ -34,6 +34,14 @@ from metakb.transform import Transform, CIViCTransform, MOATransform
 
 logger = logging.getLogger('metakb.cli')
 logger.setLevel(logging.DEBUG)
+
+
+def echo_info(msg: str):
+    """Log (as INFO) and echo given message.
+    :param str msg: message to emit
+    """
+    click.echo(msg)
+    logger.info(msg)
 
 
 class CLI:
@@ -106,13 +114,12 @@ class CLI:
               "from VICC S3 bucket, and load the database with retrieved "
               "data. Exclusive with --load_latest_cdms and load_target_cdm.")
     )
-    def update_metakb_db(db_url: str, db_username: str, db_password: str,
-                         load_normalizers_db: bool,
-                         force_load_normalizers_db: bool,
-                         normalizers_db_url: str,
-                         load_latest_cdms: bool,
-                         load_target_cdm: Optional[Path],
-                         load_latest_s3_cdms: bool):
+    async def update_metakb_db(
+        db_url: str, db_username: str, db_password: str,
+        load_normalizers_db: bool, force_load_normalizers_db: bool,
+        normalizers_db_url: str, load_latest_cdms: bool,
+        load_target_cdm: Optional[Path], load_latest_s3_cdms: bool
+    ):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
         """
@@ -135,13 +142,11 @@ class CLI:
                 CLI()._load_normalizers_db(force_load_normalizers_db)
 
             CLI()._harvest_sources()
-            CLI()._transform_sources()
+            await CLI()._transform_sources()
 
         # Load neo4j database
         start = timer()
-        msg = "Loading neo4j database..."
-        click.echo(msg)
-        logger.info(msg)
+        echo_info("Loading neo4j database...")
 
         g = Graph(uri=db_url, credentials=(db_username, db_password))
         if load_target_cdm:
@@ -166,9 +171,9 @@ class CLI:
                 g.load_from_json(path)
         g.close()
         end = timer()
-        msg = f"Successfully loaded neo4j database in {(end-start):.5f} s"
-        click.echo(f"{msg}\n")
-        logger.info(msg)
+        echo_info(
+            f"Successfully loaded neo4j database in {(end-start):.5f} s\n"
+        )
 
     s3_cdm_pattern = re.compile(
         r"cdm/20[23]\d[01]\d[0123]\d/(.*)_cdm_(.*).json.zip")
@@ -182,9 +187,7 @@ class CLI:
         :raise: FileNotFoundError if unable to find files matching expected
         pattern in VICC MetaKB bucket.
         """
-        msg = "Attempting to fetch CDM files from S3 bucket"
-        logger.info(msg)
-        click.echo(msg)
+        echo_info("Attempting to fetch CDM files from S3 bucket")
         s3 = boto3.resource("s3", config=Config(region_name="us-east-2"))
         if not s3:
             raise ResourceLoadException("Unable to initiate AWS S3 Resource")
@@ -218,15 +221,13 @@ class CLI:
         if newest_version is None:
             raise FileNotFoundError("Unable to locate files matching expected "
                                     "resource pattern in VICC s3 bucket")
-        msg = f"Retrieved CDM files dated {newest_version}"
-        click.echo(msg)
-        logger.info(msg)
+        echo_info(f"Retrieved CDM files dated {newest_version}")
         return newest_version
 
     @staticmethod
     def _harvest_sources() -> None:
         """Run harvesting procedure for all sources."""
-        logger.info("Harvesting sources...")
+        echo_info("Harvesting sources...")
         # TODO: Switch to using constant
         harvester_sources = {
             'civic': CIViCHarvester,
@@ -234,30 +235,26 @@ class CLI:
         }
         total_start = timer()
         for source_str, source_class in harvester_sources.items():
-            harvest_start = f"Harvesting {source_str}..."
-            click.echo(harvest_start)
-            logger.info(harvest_start)
+            echo_info(f"Harvesting {source_str}...")
             start = timer()
             source: Harvester = source_class()
             source_successful = source.harvest()
             end = timer()
             if not source_successful:
-                logger.info(f'{source_str} harvest failed.')
+                echo_info(f'{source_str} harvest failed.')
                 click.get_current_context().exit()
-            harvest_finish = \
-                f"{source_str} harvest finished in {(end - start):.5f} s"
-            click.echo(harvest_finish)
-            logger.info(harvest_finish)
+            echo_info(
+                f"{source_str} harvest finished in {(end - start):.5f} s")
         total_end = timer()
-        msg = f"Successfully harvested all sources in " \
-              f"{(total_end - total_start):.5f} s"
-        click.echo(f"{msg}\n")
-        logger.info(msg)
+        echo_info(
+            f"Successfully harvested all sources in "
+            f"{(total_end - total_start):.5f} s\n"
+        )
 
     @staticmethod
-    def _transform_sources() -> None:
+    async def _transform_sources() -> None:
         """Run transformation procedure for all sources."""
-        logger.info("Transforming harvested data to CDM...")
+        echo_info("Transforming harvested data to CDM...")
         # TODO: Switch to using constant
         transform_sources = {
             'civic': CIViCTransform,
@@ -265,23 +262,19 @@ class CLI:
         }
         total_start = timer()
         for src_str, src_name in transform_sources.items():
-            transform_start = f"Transforming {src_str}..."
-            click.echo(transform_start)
-            logger.info(transform_start)
+            echo_info(f"Transforming {src_str}...")
             start = timer()
             source: Transform = src_name()
-            source.transform()
+            await source.transform()
             end = timer()
-            transform_end = \
-                f"{src_str} transform finished in {(end - start):.5f} s."
-            click.echo(transform_end)
-            logger.info(transform_end)
+            echo_info(
+                f"{src_str} transform finished in {(end - start):.5f} s.")
             source.create_json()
         total_end = timer()
-        msg = f"Successfully transformed all sources to CDM in " \
-              f"{(total_end-total_start):.5f} s"
-        click.echo(f"{msg}\n")
-        logger.info(msg)
+        echo_info(
+            f"Successfully transformed all sources to CDM in "
+            f"{(total_end-total_start):.5f} s\n"
+        )
 
     def _load_normalizers_db(self, load_normalizer_db):
         """Load normalizer database source data.
@@ -306,7 +299,7 @@ class CLI:
             name = \
                 str(normalizer_cli).split()[1].split('.')[0][1:].capitalize()
             self._update_normalizer_db(name, load_source, normalizer_cli)
-        click.echo("Normalizers database loaded.\n")
+        echo_info("Normalizers database loaded.\n")
 
     @staticmethod
     def _check_normalizer(db, sources) -> bool:
@@ -335,15 +328,15 @@ class CLI:
         """
         if load_normalizer:
             try:
-                click.echo(f'\nLoading {name} Normalizer data...')
+                echo_info(f'\nLoading {name} Normalizer data...')
                 source_cli.update_normalizer_db(
                     ['--update_all', '--update_merged'])
-                click.echo(f'Successfully Loaded {name} Normalizer data.\n')
+                echo_info(f'Successfully Loaded {name} Normalizer data.\n')
             except SystemExit as e:
                 if e.code != 0:
                     raise e
         else:
-            click.echo(f'{name} Normalizer is already loaded.\n')
+            echo_info(f'{name} Normalizer is already loaded.\n')
 
     @staticmethod
     def _check_db_param(param: str, name: str) -> str:
@@ -382,4 +375,4 @@ class CLI:
 
 
 if __name__ == '__main__':
-    CLI().update_metakb_db()
+    CLI().update_metakb_db(_anyio_backend="asyncio")
