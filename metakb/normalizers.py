@@ -26,7 +26,8 @@ class VICCNormalizers:
         self.disease_query_handler = DiseaseQueryHandler()
         self.therapy_query_handler = TherapyQueryHandler()
 
-    def normalize_variation(self, queries) -> Optional[VariationDescriptor]:
+    async def normalize_variation(self,
+                                  queries) -> Optional[VariationDescriptor]:
         """Normalize variation queries.
 
         :param list queries: Possible query strings to try to normalize
@@ -39,7 +40,7 @@ class VICCNormalizers:
 
             try:
                 variation_norm_resp = \
-                    self.variation_normalizer.normalize(query)
+                    await self.variation_normalizer.normalize(query)
                 if variation_norm_resp:
                     if variation_norm_resp.variation.type != VRSTypes.TEXT:
                         return variation_norm_resp
@@ -62,13 +63,18 @@ class VICCNormalizers:
             if not query_str:
                 continue
 
-            gene_norm_resp = self.gene_query_handler.normalize(query_str)
-            if gene_norm_resp.match_type > highest_match:
-                highest_match = gene_norm_resp.match_type
-                normalized_gene_id = \
-                    gene_norm_resp.gene_descriptor.gene_id
-                if highest_match == 100:
-                    break
+            try:
+                gene_norm_resp = self.gene_query_handler.normalize(query_str)
+            except Exception as e:
+                logger.warning(f"Gene Normalizer raised an exception using "
+                               f"query {query_str}: {e}")
+            else:
+                if gene_norm_resp.match_type > highest_match:
+                    highest_match = gene_norm_resp.match_type
+                    normalized_gene_id = \
+                        gene_norm_resp.gene_descriptor.gene_id
+                    if highest_match == 100:
+                        break
         return gene_norm_resp, normalized_gene_id
 
     def normalize_disease(self, queries)\
@@ -86,13 +92,18 @@ class VICCNormalizers:
             if not query:
                 continue
 
-            disease_norm_resp = self.disease_query_handler.normalize(query)
-            if disease_norm_resp.match_type > highest_match:
-                highest_match = disease_norm_resp.match_type
-                normalized_disease_id = \
-                    disease_norm_resp.disease_descriptor.disease_id
-                if highest_match == 100:
-                    break
+            try:
+                disease_norm_resp = self.disease_query_handler.normalize(query)
+            except Exception as e:
+                logger.warning(f"Disease Normalizer raised an exception using "
+                               f"query {query}: {e}")
+            else:
+                if disease_norm_resp.match_type > highest_match:
+                    highest_match = disease_norm_resp.match_type
+                    normalized_disease_id = \
+                        disease_norm_resp.disease_descriptor.disease_id
+                    if highest_match == 100:
+                        break
         return disease_norm_resp, normalized_disease_id
 
     def normalize_therapy(self, queries)\
@@ -110,10 +121,15 @@ class VICCNormalizers:
             if not query:
                 continue
 
-            therapy_norm_resp = self.therapy_query_handler.normalize(query)
-            if therapy_norm_resp.match_type > highest_match:
-                highest_match = therapy_norm_resp.match_type
-                normalized_therapy_id = therapy_norm_resp.therapy_descriptor.therapy_id  # noqa: E501
-                if highest_match == 100:
-                    break
+            try:
+                therapy_norm_resp = self.therapy_query_handler.normalize(query)
+            except Exception as e:
+                logger.warning(f"Therapy Normalizer raised an exception using "
+                               f"query {query}: {e}")
+            else:
+                if therapy_norm_resp.match_type > highest_match:
+                    highest_match = therapy_norm_resp.match_type
+                    normalized_therapy_id = therapy_norm_resp.therapy_descriptor.therapy_id  # noqa: E501
+                    if highest_match == 100:
+                        break
         return therapy_norm_resp, normalized_therapy_id

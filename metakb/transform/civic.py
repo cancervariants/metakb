@@ -43,7 +43,7 @@ class CIViCTransform(Transform):
             'disease_descriptors': list()
         }
 
-    def transform(self):
+    async def transform(self):
         """Transform CIViC harvested json to common data model."""
         data = self.extract_harvester()
         evidence_items = data['evidence']
@@ -59,7 +59,7 @@ class CIViCTransform(Transform):
         vids |= {a['variant']['id'] for a in assertions
                  if a['evidence_type'] in supported_evidence_types}
 
-        self._add_variation_descriptors(variants, vids)
+        await self._add_variation_descriptors(variants, vids)
         self._add_gene_descriptors(genes)
         self._add_methods()
         self._transform_evidence_and_assertions(evidence_items)
@@ -383,7 +383,7 @@ class CIViCTransform(Transform):
                            f"not supported in Predicate schemas")
         return predicate
 
-    def _add_variation_descriptors(self, variants: List, vids: Set) -> None:
+    async def _add_variation_descriptors(self, variants: List, vids: Set) -> None:
         """Add Variation Descriptors to dict of transformations.
 
         :param List variants: CIViC variants
@@ -431,7 +431,7 @@ class CIViCTransform(Transform):
                                f"{variant_id}: {variant_query}")
                 continue
 
-            variation_norm_resp = self.vicc_normalizers.normalize_variation(
+            variation_norm_resp = await self.vicc_normalizers.normalize_variation(
                 [variant_query]
             )
 
@@ -540,11 +540,11 @@ class CIViCTransform(Transform):
         hgvs_expressions = list()
         for hgvs_expr in variant['hgvs_expressions']:
             if ':g.' in hgvs_expr:
-                syntax = 'hgvs:genomic'
+                syntax = 'hgvs.g'
             elif ':c.' in hgvs_expr:
-                syntax = 'hgvs:transcript'
+                syntax = 'hgvs.c'
             else:
-                syntax = 'hgvs:protein'
+                syntax = 'hgvs.p'
             if hgvs_expr != 'N/A':
                 hgvs_expressions.append(
                     Expression(syntax=syntax,

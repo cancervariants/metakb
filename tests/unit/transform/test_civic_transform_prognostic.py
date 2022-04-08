@@ -1,5 +1,6 @@
 """Test CIViC Transformation to common data model for prognostic."""
 import pytest
+import pytest_asyncio
 from metakb.transform.civic import CIViCTransform
 from metakb import PROJECT_ROOT
 import json
@@ -8,13 +9,14 @@ DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform" / "prognostic"
 FILENAME = "civic_cdm.json"
 
 
-@pytest.fixture(scope="module")
-def data(normalizers):
+@pytest_asyncio.fixture(scope="module")
+@pytest.mark.asyncio
+async def data(normalizers):
     """Create a CIViC Transform test fixture."""
     harvester_path = DATA_DIR / "civic_harvester.json"
     c = CIViCTransform(data_dir=DATA_DIR, harvester_path=harvester_path,
                        normalizers=normalizers)
-    c.transform()
+    await c.transform()
     c.create_json(transform_dir=DATA_DIR, filename=FILENAME)
     with open(DATA_DIR / FILENAME, "r") as f:
         data = json.load(f)

@@ -418,22 +418,22 @@ class NestedStatementResponse(BaseModel):
                     "expressions": [
                         {
                             "type": "Expression",
-                            "syntax": "hgvs:genomic",
+                            "syntax": "hgvs.g",
                             "value": "NC_000007.13:g.55259515T>G"
                         },
                         {
                             "type": "Expression",
-                            "syntax": "hgvs:protein",
+                            "syntax": "hgvs.p",
                             "value": "NP_005219.2:p.Leu858Arg"
                         },
                         {
                             "type": "Expression",
-                            "syntax": "hgvs:transcript",
+                            "syntax": "hgvs.c",
                             "value": "NM_005228.4:c.2573T>G"
                         },
                         {
                             "type": "Expression",
-                            "syntax": "hgvs:transcript",
+                            "syntax": "hgvs.c",
                             "value": "ENST00000275493.2:c.2573T>G"
                         }
                     ],
@@ -806,22 +806,22 @@ class SearchIDService(BaseModel):
                         "structural_type": "SO:0001583",
                         "expressions": [
                             {
-                                "syntax": "hgvs:genomic",
+                                "syntax": "hgvs.g",
                                 "value": "NC_000007.13:g.55259515T>G",
                                 "type": "Expression"
                             },
                             {
-                                "syntax": "hgvs:protein",
+                                "syntax": "hgvs.p",
                                 "value": "NP_005219.2:p.Leu858Arg",
                                 "type": "Expression"
                             },
                             {
-                                "syntax": "hgvs:transcript",
+                                "syntax": "hgvs.c",
                                 "value": "NM_005228.4:c.2573T>G",
                                 "type": "Expression"
                             },
                             {
-                                "syntax": "hgvs:transcript",
+                                "syntax": "hgvs.c",
                                 "value": "ENST00000275493.2:c.2573T>G",
                                 "type": "Expression"
                             }
@@ -952,22 +952,22 @@ class SearchStatementsService(BaseModel):
                             "expressions": [
                                 {
                                     "type": "Expression",
-                                    "syntax": "hgvs:genomic",
+                                    "syntax": "hgvs.g",
                                     "value": "NC_000007.13:g.55259515T>G"
                                 },
                                 {
                                     "type": "Expression",
-                                    "syntax": "hgvs:protein",
+                                    "syntax": "hgvs.p",
                                     "value": "NP_005219.2:p.Leu858Arg"
                                 },
                                 {
                                     "type": "Expression",
-                                    "syntax": "hgvs:transcript",
+                                    "syntax": "hgvs.c",
                                     "value": "NM_005228.4:c.2573T>G"
                                 },
                                 {
                                     "type": "Expression",
-                                    "syntax": "hgvs:transcript",
+                                    "syntax": "hgvs.c",
                                     "value": "ENST00000275493.2:c.2573T>G"
                                 }
                             ],
