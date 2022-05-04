@@ -679,7 +679,7 @@ class CIViCTransform(Transform):
         ncit_id = f"ncit:{drug['ncit_id']}"
         queries = [ncit_id, label]
 
-        _, normalized_therapy_id = \
+        therapy_norm_resp, normalized_therapy_id = \
             self.vicc_normalizers.normalize_therapy(queries)
 
         if not normalized_therapy_id:
@@ -687,13 +687,17 @@ class CIViCTransform(Transform):
                            f"using queries {ncit_id} and {label}")
             return None
 
+        regulatory_approval_extension = \
+            self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)  # noqa: E501
+
         therapy_descriptor = ValueObjectDescriptor(
             id=therapy_id,
             type="TherapyDescriptor",
             label=label,
             therapy_id=normalized_therapy_id,
             alternate_labels=drug['aliases'],
-            xrefs=[ncit_id]
+            xrefs=[ncit_id],
+            extensions=regulatory_approval_extension if regulatory_approval_extension else None  # noqa: E501
         ).dict(exclude_none=True)
         return therapy_descriptor
 
