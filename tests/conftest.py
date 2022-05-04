@@ -173,6 +173,29 @@ def civic_tid146():
         ],
         "xrefs": [
             "ncit:C66940"
+        ],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "regulatory_approval",
+                "value": {
+                    "approval_rating": "FDA",
+                    "has_indications": [
+                        {
+                            "id": "hemonc:25316",
+                            "type": "DiseaseDescriptor",
+                            "label": "Non-small cell lung cancer Squamous",
+                            "disease_id": None
+                        },
+                        {
+                            "id": "hemonc:642",
+                            "type": "DiseaseDescriptor",
+                            "label": "Non-small cell lung cancer",
+                            "disease_id": "ncit:C2926"
+                        }
+                    ]
+                }
+            }
         ]
     }
 
@@ -1192,7 +1215,58 @@ def moa_imatinib():
         "id": "moa.normalize.therapy:Imatinib",
         "type": "TherapyDescriptor",
         "label": "Imatinib",
-        "therapy_id": "rxcui:282388"
+        "therapy_id": "rxcui:282388",
+        "extensions": [{
+            "type": "Extension",
+            "name": "regulatory_approval",
+            "value": {
+                "approval_rating": "FDA",
+                "has_indications": [
+                    {
+                        "id": "hemonc:634",
+                        "type": "DiseaseDescriptor",
+                        "label": "Myelodysplastic syndrome",
+                        "disease_id": "ncit:C3247"
+                    },
+                    {
+                        "id": "hemonc:616",
+                        "type": "DiseaseDescriptor",
+                        "label": "Hypereosinophilic syndrome",
+                        "disease_id": "ncit:C27038"
+                    },
+                    {
+                        "id": "hemonc:582",
+                        "type": "DiseaseDescriptor",
+                        "label": "Chronic myelogenous leukemia",
+                        "disease_id": "ncit:C3174"
+                    },
+                    {
+                        "id": "hemonc:669",
+                        "type": "DiseaseDescriptor",
+                        "label": "Systemic mastocytosis",
+                        "disease_id": "ncit:C9235"
+                    },
+                    {
+                        "id": "hemonc:24309",
+                        "type": "DiseaseDescriptor",
+                        "label": "Acute lymphoblastic leukemia",
+                        "disease_id": "ncit:C3167"
+                    },
+                    {
+                        "id": "hemonc:667",
+                        "type": "DiseaseDescriptor",
+                        "label": "Soft tissue sarcoma",
+                        "disease_id": "ncit:C9306"
+                    },
+                    {
+                        "id": "hemonc:602",
+                        "type": "DiseaseDescriptor",
+                        "label": "Gastrointestinal stromal tumor",
+                        "disease_id": "ncit:C3868"
+                    }
+                ]
+            }
+        }]
     }
 
 
