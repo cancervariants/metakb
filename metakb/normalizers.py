@@ -1,5 +1,5 @@
 """Module for VICC normalizers."""
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 from ga4gh.vrsatile.pydantic.vrs_models import VRSTypes
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, Extension
@@ -135,63 +135,54 @@ class VICCNormalizers:
         return therapy_norm_resp, normalized_therapy_id
 
     @staticmethod
-    def get_regulatory_approval_extension(therapy_norm_resp: NormalizedTherapy) -> List:
+    def get_regulatory_approval_extension(
+        therapy_norm_resp: NormalizedTherapy
+    ) -> Optional[Extension]:
         """Given therapy normalization service response, extract out the regulatory
         approval extension
 
         :param NormalizedTherapy therapy_norm_resp: Response from normalizing therapy
-        :return: List containing regulatory approval extension if it exists
+        :return: Extension containing transformed regulatory approval and indication
+            data if it `regulatory_approval` extensions exists in therapy normalizer
         """
-        therapy_norm_resp = therapy_norm_resp.dict()
-        tn_resp_exts = therapy_norm_resp.get("therapy_descriptor", {}).get("extensions")
-        tn_resp_exts = tn_resp_exts if tn_resp_exts else []
-        regulatory_approval_extension = list()
+        regulatory_approval_extension = None
+        tn_resp_exts = therapy_norm_resp.dict().get("therapy_descriptor", {}).get("extensions") or []  # noqa: E501
+        tn_ext = [v for v in tn_resp_exts if v["name"] == "regulatory_approval"]
 
-        for ext in tn_resp_exts:
-            if ext["name"] == "regulatory_approval":
-                ext_value = ext["value"]
-                approval_ratings = ext_value.get("approval_ratings", [])
-                matched_ext_value = None
+        if tn_ext:
+            ext_value = tn_ext[0]["value"]
+            approval_ratings = ext_value.get("approval_ratings", [])
+            matched_ext_value = None
 
-                if any(ar in [ApprovalRating.FDA_PRESCRIPTION, ApprovalRating.FDA_OTC]
-                       for ar in approval_ratings):
-                    matched_ext_value = "FDA"
-                    if ApprovalRating.FDA_DISCONTINUED in approval_ratings:
-                        if ApprovalRating.CHEMBL_4 not in approval_ratings:
-                            matched_ext_value = None
-                elif ApprovalRating.CHEMBL_4 in approval_ratings:
-                    matched_ext_value = "chembl_phase_4"
+            if any(ar in {ApprovalRating.FDA_PRESCRIPTION, ApprovalRating.FDA_OTC}
+                    for ar in approval_ratings):
+                matched_ext_value = "FDA"
+                if ApprovalRating.FDA_DISCONTINUED in approval_ratings:
+                    if ApprovalRating.CHEMBL_4 not in approval_ratings:
+                        matched_ext_value = None
+            elif ApprovalRating.CHEMBL_4 in approval_ratings:
+                matched_ext_value = "chembl_phase_4"
 
-                if matched_ext_value:
-                    has_indications = ext_value.get("has_indication", [])
-                    matched_indications = list()
+            if matched_ext_value:
+                has_indications = ext_value.get("has_indication", [])
+                matched_indications = list()
 
-                    for indication in has_indications:
-                        indication_exts = indication.get("extensions", [])
-                        for indication_ext in indication_exts:
-                            if indication_ext["value"] == matched_ext_value:
-                                matched_indications.append({
-                                    "id": indication["id"],
-                                    "type": indication["type"],
-                                    "label": indication["label"],
-                                    "disease_id": indication["disease_id"]
-                                })
+                for indication in has_indications:
+                    indication_exts = indication.get("extensions", [])
+                    for indication_ext in indication_exts:
+                        if indication_ext["value"] == matched_ext_value:
+                            matched_indications.append({
+                                "id": indication["id"],
+                                "type": indication["type"],
+                                "label": indication["label"],
+                                "disease_id": indication["disease_id"]
+                            })
 
-                    if matched_ext_value == "FDA":
-                        approval_rating = "FDA"
-                    else:
-                        approval_rating = "ChEMBL"
-
-                    regulatory_approval_extension.append(
-                        Extension(
-                            name="regulatory_approval",
-                            value={
-                                "approval_rating": approval_rating,
-                                "has_indications": matched_indications
-                            }
-                        )
-                    )
-
-                break
+                regulatory_approval_extension = Extension(
+                    name="regulatory_approval",
+                    value={
+                        "approval_rating": "FDA" if matched_ext_value == "FDA" else "ChEMBL",  # noqa: E501
+                        "has_indications": matched_indications
+                    })
 
         return regulatory_approval_extension

@@ -688,7 +688,7 @@ class CIViCTransform(Transform):
             return None
 
         regulatory_approval_extension = \
-            self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)  # noqa: E501
+            self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)
 
         therapy_descriptor = ValueObjectDescriptor(
             id=therapy_id,
@@ -697,7 +697,7 @@ class CIViCTransform(Transform):
             therapy_id=normalized_therapy_id,
             alternate_labels=drug['aliases'],
             xrefs=[ncit_id],
-            extensions=regulatory_approval_extension if regulatory_approval_extension else None  # noqa: E501
+            extensions=[regulatory_approval_extension] if regulatory_approval_extension else None  # noqa: E501
         ).dict(exclude_none=True)
         return therapy_descriptor
 

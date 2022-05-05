@@ -389,7 +389,7 @@ class MOATransform(Transform):
                 type="TherapyDescriptor",
                 label=label,
                 therapy_id=normalized_therapy_id,
-                extensions=regulatory_approval_extension if regulatory_approval_extension else None  # noqa: E501
+                extensions=[regulatory_approval_extension] if regulatory_approval_extension else None  # noqa: E501
             ).dict(exclude_none=True)
         else:
             return []
