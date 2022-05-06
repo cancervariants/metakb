@@ -2,10 +2,10 @@
 from typing import Optional, Tuple
 
 from ga4gh.vrsatile.pydantic.vrs_models import VRSTypes
-from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor
+from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, Extension
 from variation.query import QueryHandler as VariationQueryHandler
 from therapy.query import QueryHandler as TherapyQueryHandler
-from therapy.schemas import NormalizationService as NormalizedTherapy
+from therapy.schemas import NormalizationService as NormalizedTherapy, ApprovalRating
 from disease.query import QueryHandler as DiseaseQueryHandler
 from disease.schemas import NormalizationService as NormalizedDisease
 from gene.query import QueryHandler as GeneQueryHandler
@@ -133,3 +133,55 @@ class VICCNormalizers:
                     if highest_match == 100:
                         break
         return therapy_norm_resp, normalized_therapy_id
+
+    @staticmethod
+    def get_regulatory_approval_extension(
+        therapy_norm_resp: NormalizedTherapy
+    ) -> Optional[Extension]:
+        """Given therapy normalization service response, extract out the regulatory
+        approval extension
+
+        :param NormalizedTherapy therapy_norm_resp: Response from normalizing therapy
+        :return: Extension containing transformed regulatory approval and indication
+            data if it `regulatory_approval` extensions exists in therapy normalizer
+        """
+        regulatory_approval_extension = None
+        tn_resp_exts = therapy_norm_resp.dict().get("therapy_descriptor", {}).get("extensions") or []  # noqa: E501
+        tn_ext = [v for v in tn_resp_exts if v["name"] == "regulatory_approval"]
+
+        if tn_ext:
+            ext_value = tn_ext[0]["value"]
+            approval_ratings = ext_value.get("approval_ratings", [])
+            matched_ext_value = None
+
+            if any(ar in {ApprovalRating.FDA_PRESCRIPTION, ApprovalRating.FDA_OTC}
+                    for ar in approval_ratings):
+                if ApprovalRating.FDA_DISCONTINUED not in approval_ratings or \
+                    ApprovalRating.CHEMBL_4 in approval_ratings:  # noqa: E125
+                    matched_ext_value = "FDA"
+            elif ApprovalRating.CHEMBL_4 in approval_ratings:
+                matched_ext_value = "chembl_phase_4"
+
+            if matched_ext_value:
+                has_indications = ext_value.get("has_indication", [])
+                matched_indications = list()
+
+                for indication in has_indications:
+                    indication_exts = indication.get("extensions", [])
+                    for indication_ext in indication_exts:
+                        if indication_ext["value"] == matched_ext_value:
+                            matched_indications.append({
+                                "id": indication["id"],
+                                "type": indication["type"],
+                                "label": indication["label"],
+                                "disease_id": indication["disease_id"]
+                            })
+
+                regulatory_approval_extension = Extension(
+                    name="regulatory_approval",
+                    value={
+                        "approval_rating": "FDA" if matched_ext_value == "FDA" else "ChEMBL",  # noqa: E501
+                        "has_indications": matched_indications
+                    })
+
+        return regulatory_approval_extension

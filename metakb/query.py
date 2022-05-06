@@ -836,8 +836,16 @@ class QueryHandler:
             "label": therapy_descriptor.get("label"),
             "therapy_id": None,
             "alternate_labels": therapy_descriptor.get("alternate_labels"),
-            "xrefs": therapy_descriptor.get("xrefs")
+            "xrefs": therapy_descriptor.get("xrefs"),
+            "extensions": []
         }
+
+        key = "regulatory_approval"
+        val = therapy_descriptor.get(key)
+        if val:
+            td_params["extensions"].append(Extension(name=key, value=json.loads(val)))
+        else:
+            del td_params["extensions"]
 
         with self.driver.session() as session:
             value_object = session.read_transaction(
