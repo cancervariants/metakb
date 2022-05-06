@@ -381,12 +381,15 @@ class MOATransform(Transform):
             return []
 
         if normalized_therapy_id:
+            regulatory_approval_extension = \
+                self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)  # noqa: E501
             therapy_descriptor = ValueObjectDescriptor(
                 id=f"{schemas.SourceName.MOA.value}."
                    f"{therapy_norm_resp.therapy_descriptor.id}",
                 type="TherapyDescriptor",
                 label=label,
-                therapy_id=normalized_therapy_id
+                therapy_id=normalized_therapy_id,
+                extensions=[regulatory_approval_extension] if regulatory_approval_extension else None  # noqa: E501
             ).dict(exclude_none=True)
         else:
             return []

@@ -203,6 +203,15 @@ class Graph:
                                                       'description', 'xrefs',
                                                       'alternate_labels'))
 
+        if descr_type == 'TherapyDescriptor':
+            # capture regulatory_approval field in therapy descriptor extensions
+            extensions = descriptor.get('extensions', [])
+            for ext in extensions:
+                name = ext['name']
+                if name == 'regulatory_approval':
+                    descriptor[name] = json.dumps(ext['value'])
+                    descr_keys += f", {name}:${name}"
+
         query = f'''
         MERGE (descr:{descr_type} {{ {descr_keys} }})
         MERGE (value:{value_type} {{ id:${value_id} }})
