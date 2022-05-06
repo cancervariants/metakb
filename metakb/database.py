@@ -204,7 +204,7 @@ class Graph:
                                                       'alternate_labels'))
 
         if descr_type == 'TherapyDescriptor':
-            # handle extensions field in therapy descriptor
+            # capture regulatory_approval field in therapy descriptor extensions
             extensions = descriptor.get('extensions', [])
             for ext in extensions:
                 name = ext['name']
