@@ -156,10 +156,9 @@ class VICCNormalizers:
 
             if any(ar in {ApprovalRating.FDA_PRESCRIPTION, ApprovalRating.FDA_OTC}
                     for ar in approval_ratings):
-                matched_ext_value = "FDA"
-                if ApprovalRating.FDA_DISCONTINUED in approval_ratings:
-                    if ApprovalRating.CHEMBL_4 not in approval_ratings:
-                        matched_ext_value = None
+                if ApprovalRating.FDA_DISCONTINUED not in approval_ratings or \
+                    ApprovalRating.CHEMBL_4 in approval_ratings:  # noqa: E125
+                    matched_ext_value = "FDA"
             elif ApprovalRating.CHEMBL_4 in approval_ratings:
                 matched_ext_value = "chembl_phase_4"
 
