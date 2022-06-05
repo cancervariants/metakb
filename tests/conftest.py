@@ -1466,4 +1466,6 @@ def normalizers():
 @pytest.fixture(scope="session")
 def query_handler(normalizers):
     """Create query handler test fixture"""
-    return QueryHandler(normalizers=normalizers)
+    q = QueryHandler(normalizers=normalizers)
+    yield q
+    q.graph.close()

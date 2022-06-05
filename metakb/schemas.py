@@ -567,8 +567,8 @@ class SearchStatementsQuery(BaseModel):
 class Matches(BaseModel):
     """Statements and Propositions that match the queried parameters."""
 
-    statements: List[str]
-    propositions: List[str]
+    statements: List[str] = []
+    propositions: List[str] = []
 
     class Config:
         """Configure examples."""
@@ -619,11 +619,11 @@ class SearchService(BaseModel):
 
     query: SearchQuery
     warnings: Optional[List[str]]
-    matches: Matches
-    statements: Optional[List[StatementResponse]]
-    propositions: Optional[List[Union[TherapeuticResponseProposition,
-                                      DiagnosticProposition,
-                                      PrognosticProposition]]]
+    matches: Matches = Matches()
+    statements: List[StatementResponse] = []
+    propositions: List[Union[TherapeuticResponseProposition,
+                             DiagnosticProposition,
+                             PrognosticProposition]] = []
     variation_descriptors: Optional[List[VariationDescriptor]]
     gene_descriptors: Optional[List[GeneDescriptor]]
     therapy_descriptors: Optional[List[ValueObjectDescriptor]]
