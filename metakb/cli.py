@@ -28,7 +28,7 @@ from botocore.config import Config
 from metakb import APP_ROOT
 from metakb.database import Graph
 from metakb.schemas import SourceName
-from metakb.harvesters import Harvester, CIViCHarvester, MOAHarvester, OncoKBHarvester
+from metakb.harvesters import Harvester, CIViCHarvester, MOAHarvester
 from metakb.transform import Transform, CIViCTransform, MOATransform
 
 
@@ -231,8 +231,8 @@ class CLI:
         # TODO: Switch to using constant
         harvester_sources = {
             'civic': CIViCHarvester,
-            'moa': MOAHarvester,
-            'oncokb': OncoKBHarvester
+            'moa': MOAHarvester
+            #'oncokb': OncoKBHarvester
         }
         total_start = timer()
         for source_str, source_class in harvester_sources.items():
@@ -259,8 +259,8 @@ class CLI:
         # TODO: Switch to using constant
         transform_sources = {
             'civic': CIViCTransform,
-            'moa': MOATransform,
-            'oncokb': OncoKBHarvester
+            'moa': MOATransform
+            #'oncokb': OncoKBHarvester
         }
         total_start = timer()
         for src_str, src_name in transform_sources.items():
