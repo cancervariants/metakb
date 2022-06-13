@@ -67,8 +67,8 @@ class Delta:
             delta['_meta']['civicpy_version'] = '1.1.2'
         elif self._src == 'moa':
             delta['_meta']['moa_api_version'] = '0.2'
-        elif self._src == 'oncokb':
-            delta['_meta']['oncokb'] = 
+        #elif self._src == 'oncokb':
+            #delta['_meta']['oncokb'] = 
 
         for record_type in main_json.keys():
             delta[record_type] = {
