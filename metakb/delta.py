@@ -4,10 +4,11 @@ import json
 import logging
 from jsondiff import diff
 from datetime import date
-from metakb.harvesters import CIViCHarvester, MOAHarvester
+from metakb.harvesters import CIViCHarvester, MOAHarvester, OncoKBHarvester
 HARVESTER_CLASS = {
     'civic': CIViCHarvester,
-    'moa': MOAHarvester
+    'moa': MOAHarvester,
+    'oncokb': OncoKBHarvester
 }
 logger = logging.getLogger('metakb.delta')
 logger.setLevel(logging.DEBUG)
@@ -66,6 +67,8 @@ class Delta:
             delta['_meta']['civicpy_version'] = '1.1.2'
         elif self._src == 'moa':
             delta['_meta']['moa_api_version'] = '0.2'
+        elif self._src == 'oncokb':
+            delta['_meta']['oncokb'] = 
 
         for record_type in main_json.keys():
             delta[record_type] = {
