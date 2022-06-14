@@ -22,7 +22,7 @@ httptools = "*"
 typing-extensions = "*"
 boto3 = "*"
 botocore = "*"
-variation-normalizer = ">=0.3.0"
+variation-normalizer = ">= 0.4.0a7"
 "ga4gh.vrsatile.pydantic" = ">=0.0.11"
 asyncclick = "*"
 
