@@ -20,7 +20,22 @@ class OncoKBHarvester(Harvester):
         :rtype: bool
       """
       try:
-        if not json_created:
+            civicpy.load_cache(on_stale='ignore')
+            evidence = self._harvest_evidence()
+            genes = self._harvest_genes()
+            variants = self._harvest_variants()
+            assertions = self._harvest_assertions()
+            self.assertions = assertions
+            json_created = self.create_json(
+                {
+                    "evidence": evidence,
+                    "genes": genes,
+                    "variants": variants,
+                    "assertions": assertions
+                },
+                filename
+            )
+            if not json_created:
                 logger.error('OncoKB Harvester was not successful.')
                 return False
       except Exception as e:  # noqa: E722
