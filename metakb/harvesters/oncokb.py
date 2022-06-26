@@ -1,11 +1,14 @@
 """A module for the OncoKB harvester."""
 import logging
 from typing import Optional
+from os import environ
 
 from metakb.harvesters.base import Harvester
 
 logger = logging.getLogger('metakb.harvesters.oncokb')
 logger.setLevel(logging.DEBUG)
+
+oncokb_api_url = "https://www.oncokb.org/api/v1"
 
 class OncoKBHarvester(Harvester):
   """A class for the OncoKB harvester."""
