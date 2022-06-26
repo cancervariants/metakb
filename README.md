@@ -68,7 +68,48 @@ Next, navigate to the `site-packages` directory of your virtual environment. Ass
 cd ~/.local/share/virtualenvs/metakb-<various characters>/python3.7/site-packages/  # replace <various characters>
 ```
 
-Next, initialize the [Variation Normalizer](https://github.com/cancervariants/variation-normalization) by following the instructions in the [README](https://github.com/cancervariants/variation-normalization#installation).
+Next, initialize the [Variation Normalizer](https://github.com/cancervariants/variation-normalization)
+
+### SeqRepo
+Variation Normalization relies on [seqrepo](https://github.com/biocommons/biocommons.seqrepo), which you must download yourself.
+
+Variation Normalizer uses seqrepo to retrieve sequences at given positions on a transcript.
+
+From the _root_ directory:
+```
+pip install seqrepo
+sudo mkdir /usr/local/share/seqrepo
+sudo chown $USER /usr/local/share/seqrepo
+seqrepo pull -i 2021-01-29
+```
+
+
+### UTA
+Variation Normalizer also uses [uta](https://github.com/biocommons/uta).
+
+Variation Normalizer uses UTA to retrieve MANE Transcript data.
+
+_The following commands will likely need modification appropriate for the installation environment._
+1. Install [PostgreSQL](https://www.postgresql.org/)
+2. Create user and database.
+
+    ```
+    $ createuser -U postgres uta_admin
+    $ createuser -U postgres anonymous
+    $ createdb -U postgres -O uta_admin uta
+    ```
+3. Use this [installation](https://github.com/ga4gh/vrs-python/blob/main/docs/setup_help/uta_installation.md) for more information about the UTA installation.
+
+4. To install locally, from the _variation/data_ directory:
+```
+export UTA_VERSION=uta_20210129.pgd.gz
+curl -O http://dl.biocommons.org/uta/$UTA_VERSION
+gzip -cdq ${UTA_VERSION} | grep -v "^REFRESH MATERIALIZED VIEW" | psql -h localhost -U uta_admin --echo-errors --single-transaction -v ON_ERROR_STOP=1 -d uta -p 5433
+```
+
+To connect to the UTA database, you can use the default url (`postgresql://uta_admin@localhost:5433/uta/uta_20210129`). If you use the default url, you must either set the password using environment variable `UTA_PASSWORD` or setting the parameter `db_pwd` in the UTA class.
+
+If you do not wish to use the default, you must set the environment variable `UTA_DB_URL` which has the format of `driver://user:pass@host/database/schema`.
 
 
 The MetaKB can acquire all other needed normalizer data, except for that of [OMIM](https://www.omim.org/downloads), which must be manually placed:
@@ -77,6 +118,19 @@ The MetaKB can acquire all other needed normalizer data, except for that of [OMI
 cd disease/  # starting from the site-packages dir of your virtual environment's Python instance
 mkdir -p data/omim
 cp ~/YOUR/PATH/TO/mimTitles.txt data/omim/omim_<date>.tsv  # replace <date> with date of data acquisition formatted as YYYYMMDD
+```
+
+### Setting Environment Variables
+RxNorm requires a UMLS license, which you can register for one [here](https://www.nlm.nih.gov/research/umls/index.html).
+You must set the `RxNORM_API_KEY` environment variable to your API key. This can be found in the [UTS 'My Profile' area](https://uts.nlm.nih.gov/uts/profile) after singing in.
+```shell script
+export RXNORM_API_KEY={rxnorm_api_key}
+```
+
+HemOnc.org data requires a Harvard Dataverse API key. After creating a user account on the Harvard Dataverse website, you can follow [these instructions](https://guides.dataverse.org/en/latest/user/account.html) to generate a key. Once you have a key, set the following environment variable:
+
+```shell script
+export DATAVERSE_API_KEY={your api key}
 ```
 
 ### Loading data
