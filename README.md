@@ -133,6 +133,12 @@ HemOnc.org data requires a Harvard Dataverse API key. After creating a user acco
 export DATAVERSE_API_KEY={your api key}
 ```
 
+OncoKB requires API Access to their private API from [here](https://www.oncokb.org/apiAccess). Set the `ONCOKB_API_KEY` environemtn with your API Key. The key can be found under [account settings](https://www.oncokb.org/account/settings) on the OncoKB website once access is given. Once you have a key, set the following environment variable:
+
+```shell script
+export ONCOKB_API_KEY={your api key}
+```
+
 ### Loading data
 
 Once Neo4j and DynamoDB instances are both active, and necessary normalizer data has been placed, run the MetaKB CLI with the `--initialize_normalizers` flag to acquire all other necessary normalizer source data, and execute harvest, transform, and load operations into the graph datastore.
