@@ -109,6 +109,11 @@ gzip -cdq ${UTA_VERSION} | grep -v "^REFRESH MATERIALIZED VIEW" | psql -h localh
 
 To connect to the UTA database, you can use the default url (`postgresql://uta_admin@localhost:5433/uta/uta_20210129`). If you use the default url, you must either set the password using environment variable `UTA_PASSWORD` or setting the parameter `db_pwd` in the UTA class.
 
+```
+export UTA_DB_URL=postgresql://uta_admin@localhost:5432/uta/uta_20210129
+export UTA_PASSWORD=password
+```
+
 If you do not wish to use the default, you must set the environment variable `UTA_DB_URL` which has the format of `driver://user:pass@host/database/schema`.
 
 
