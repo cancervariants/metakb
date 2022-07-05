@@ -89,10 +89,10 @@ MetaKB relies on environment variables to set in order to work.
 * Required when using the `--load_normalizers_db` or `--force_load_normalizers_db` arguments in CLI commands
   * `RXNORM_API_KEY`
     * Used in Therapy Normalizer to retrieve RxNorm data
-    * More info can be found [here](https://github.com/cancervariants/therapy-normalization#setting-environment-variables)
+    * RxNorm requires a UMLS license, which you can register for one [here](https://www.nlm.nih.gov/research/umls/index.html). You must set the `RxNORM_API_KEY` environment variable to your API key. This can be found in the [UTS 'My Profile' area](https://uts.nlm.nih.gov/uts/profile) after singing in.
   * `DATAVERSE_API_KEY`
     * Used in Therapy Normalizer to retrieve HemOnc data
-    * More info can be found [here](https://github.com/cancervariants/therapy-normalization#setting-environment-variables)
+    * HemOnc.org data requires a Harvard Dataverse API key. After creating a user account on the Harvard Dataverse website, you can follow [these instructions](https://guides.dataverse.org/en/latest/user/account.html) to generate a key. You must set the `DATAVERSE_API_KEY` environment variable to your API key.
 
 ### Loading data
 
