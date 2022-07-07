@@ -60,7 +60,7 @@ jedi==0.18.1
 jmespath==1.0.0
 jsondiff==2.0.0
 jsonschema==3.2.0
-lxml==4.9.0
+lxml==4.9.1
 markdown==3.3.7
 marshmallow==3.16.0
 marshmallow-enum==1.5.1
