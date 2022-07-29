@@ -173,7 +173,7 @@ jupyterlab-widgets==1.1.0
 markupsafe==2.1.1
 mccabe==0.6.1
 -e .
-mistune==0.8.4
+mistune==2.0.3
 mock==4.0.3
 nbclassic==0.3.7
 nbclient==0.6.4
