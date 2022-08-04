@@ -71,7 +71,7 @@ class OncoKBHarvester(Harvester):
         genes = self._get_all_genes()
         genes_list = list()
         for gene in genes:
-            g = self._harvest_gene(self._get_dict(gene))
+            g = self._harvest_gene(gene)
             genes_list.append(g)
         return genes_list
     
