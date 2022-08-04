@@ -63,3 +63,27 @@ class OncoKBHarvester(Harvester):
             genes = r.json()
 
         return genes
+    
+    def _harvest_genes(self):
+        """Harvest all OncoKB gene records.
+        :return: A list of all OncoKB gene records.
+        """
+        genes = self._get_all_genes()
+        genes_list = list()
+        for gene in genes:
+            g = self._harvest_gene(self._get_dict(gene))
+            genes_list.append(g)
+        return genes_list
+    
+    def _harvest_gene(self, gene):
+        """Harvest an individual OncoKB gene record.
+        :param Gene gene: A OncoKB gene object
+        :return: A dictionary containing OncoKB gene data
+        """
+        g = {
+            'hugoSymbol': gene['hugoSymbol'],
+            'entrezGeneId': gene['entrezGeneId'],
+            'summary': gene['summary']
+        }
+        return g
+   
