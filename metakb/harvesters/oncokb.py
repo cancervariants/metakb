@@ -1,14 +1,17 @@
 """A module for the OncoKB harvester."""
 import logging
 from typing import Optional
-from os import environ
+import os
+import requests
+import requests_cache
 
 from metakb.harvesters.base import Harvester
 
 logger = logging.getLogger('metakb.harvesters.oncokb')
 logger.setLevel(logging.DEBUG)
 
-oncokb_api_url = "https://www.oncokb.org/api/v1"
+ONCOKB_API_KEY = os.getenv('ONCOKB_API_KEY')
+oncokb_api_base_url = "https://www.oncokb.org/api/v1"
 
 class OncoKBHarvester(Harvester):
   """A class for the OncoKB harvester."""
@@ -48,3 +51,15 @@ class OncoKBHarvester(Harvester):
         logger.info('OncoKB Harvester was successful.')
         return True
  
+    def _get_all_genes(self):
+        """Return all gene records.
+        :return: All OncoKB gene records
+        """
+        headers = { 'accept': 'application/json',
+                    'Authorization':ONCOKB_API_KEY}
+        url = oncokb_api_base_url+"/utils/allCuratedGenes?includeEvidence=true"
+        with requests_cache.disabled():
+            r = requests.get(url=url,headers=headers)
+            genes = r.json()
+
+        return genes
