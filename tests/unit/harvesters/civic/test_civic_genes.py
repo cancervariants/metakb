@@ -120,7 +120,7 @@ def test_genes(test_get_all_genes, dux4, alk):
     with open(f"{PROJECT_ROOT}/tests/data/harvesters/civic/genes.json") as f:
         data = json.load(f)
     test_get_all_genes.return_value = data
-    genes = CIViCHarvester()._harvest_genes()
+    genes = CIViCHarvester().harvest_genes()
     actual_dux4 = None
     actual_alk = None
     for gene in genes:

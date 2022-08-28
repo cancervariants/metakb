@@ -41,20 +41,14 @@ def aid40():
                        "Gilteritinib as the first FLT3 inhibitor indicated "
                        "for use as monotherapy R/R AML with FLT3 ITD "
                        "mutations or TKD D835 or I836 mutations.",
-        'gene': {
-            'name': "FLT3",
-            'id': 24
-        },
-        'variant': {
-            'name': "I836",
-            'id': 3232
-        },
+        'gene_id': 24,
+        'variant_id': 3232,
         'disease': {
             'id': 3,
             'name': "Acute Myeloid Leukemia",
             'display_name': "Acute Myeloid Leukemia",
             'doid': "9119",
-            'url': "http://www.disease-ontology.org/?id=DOID:9119"
+            'disease_url': "http://www.disease-ontology.org/?id=DOID:9119"
         },
         'drugs': [
             {
@@ -86,7 +80,6 @@ def aid40():
         'acmg_codes': [],
         'drug_interaction_type': None,
         'fda_companion_test': True,
-        'allele_registry_id': None,
         'phenotypes': [],
         'variant_origin': "Somatic"
     }
@@ -99,10 +92,11 @@ def test_assertions(test_get_all_assertions, aid40):
               f"harvesters/civic/assertions.json") as f:
         data = json.load(f)
     test_get_all_assertions.return_value = data
-    assertions = CIViCHarvester()._harvest_assertions()
+    assertions = CIViCHarvester().harvest_assertions()
     c_assertion = None
     for assertion in assertions:
         if assertion['id'] == 40:
             c_assertion = assertion
+    assert c_assertion['evidence_items']
     c_assertion['evidence_items'] = []
     assert c_assertion == aid40

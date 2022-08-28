@@ -27,9 +27,9 @@ class MOAHarvester(Harvester):
         try:
             assertion_resp = self._get_all_assertions()
             sources = self._harvest_sources(assertion_resp)
-            variants, variants_list = self._harvest_variants()
+            variants, variants_list = self.harvest_variants()
             assertions = \
-                self._harvest_assertions(assertion_resp, variants_list)
+                self.harvest_assertions(assertion_resp, variants_list)
             json_created = self.create_json(
                 {
                     "assertions": assertions,
@@ -66,7 +66,7 @@ class MOAHarvester(Harvester):
 
         return sources
 
-    def _harvest_variants(self):
+    def harvest_variants(self):
         """
         Harvest all MOA variants
 
@@ -82,7 +82,7 @@ class MOAHarvester(Harvester):
 
         return variants, variants_list
 
-    def _harvest_assertions(self, assertion_resp, variants_list):
+    def harvest_assertions(self, assertion_resp, variants_list):
         """
         Harvest all MOA assertions
 

@@ -66,8 +66,8 @@ def test_assertion_168(test_get_all_assertions, test_get_all_variants,
     test_get_all_variants.return_value = data
 
     assertion_resp = MOAHarvester()._get_all_assertions()
-    variants, variants_list = MOAHarvester()._harvest_variants()
-    assertions = MOAHarvester()._harvest_assertions(
+    variants, variants_list = MOAHarvester().harvest_variants()
+    assertions = MOAHarvester().harvest_assertions(
         assertion_resp, variants_list)
 
     actual = None
