@@ -27,7 +27,8 @@ async def data(normalizers):
 @pytest.fixture(scope="module")
 def statements(civic_eid2997_statement, civic_aid6_statement):
     """Create test fixture for statements."""
-    return [civic_eid2997_statement, civic_aid6_statement]
+    return [civic_eid2997_statement]
+    # return [civic_eid2997_statement, civic_aid6_statement]
 
 
 @pytest.fixture(scope="module")
@@ -63,7 +64,8 @@ def gene_descriptors(civic_gid19):
 @pytest.fixture(scope="module")
 def documents(pmid_23982599, civic_aid6_document):
     """Create test fixture for documents."""
-    return [pmid_23982599, civic_aid6_document]
+    return [pmid_23982599]
+    # return [pmid_23982599, civic_aid6_document]
 
 
 def test_civic_cdm(data, statements, propositions, variation_descriptors,

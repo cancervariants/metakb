@@ -137,3 +137,6 @@ dynamodb_local_latest/
 
 # Zip
 *.zip
+
+# Jupyter notebooks
+notebooks/*

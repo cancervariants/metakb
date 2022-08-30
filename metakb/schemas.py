@@ -1,1047 +1,333 @@
 """Common data model"""
-from enum import Enum, IntEnum
-from typing import List, Optional, Union, Dict, Any, Type
+from enum import Enum
+from typing import List, Literal, Optional, Set, Union
 
-from ga4gh.vrsatile.pydantic.vrs_models import CURIE
-from ga4gh.vrsatile.pydantic.vrsatile_models import ValueObjectDescriptor, \
-    GeneDescriptor, VariationDescriptor
+from ga4gh.vrsatile.pydantic.core_models import CURIE, ExtensibleEntity, ValueEntity, \
+    Coding, RecordMetadata, Condition, Disease, Phenotype, Therapeutic, \
+    CombinationTherapeuticCollection, SubstituteTherapeuticCollection
+from ga4gh.vrsatile.pydantic.vrs_models import Variation
+from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
+    CategoricalVariation, CategoricalVariationDescriptor, PhenotypeDescriptor, \
+    DiseaseDescriptor, ConditionDescriptor, TherapeuticDescriptor, \
+    TherapeuticCollectionDescriptor
 from pydantic import BaseModel
-from pydantic.types import StrictBool
+from pydantic.types import StrictStr
 
-from metakb.version import __version__, LAST_UPDATED
+
+class CivicEvidenceLevel(str, Enum):
+    """Define constraints for CIViC evidence levels"""
+
+    A = "civic.evidence_level:A"
+    B = "civic.evidence_level:B"
+    C = "civic.evidence_level:C"
+    D = "civic.evidence_level:D"
+    E = "civic.evidence_level:E"
+
+
+class MoaEvidenceLevel(str, Enum):
+    """Define constraints MOAlmanac evidence levels"""
+
+    FDA_APPROVED = "moa.evidence_level:fda_approved"
+    GUIDELINE = "moa.evidence_level:guideline"
+    CLINICAL_TRIAL = "moa.evidence_level:clinical_trial"
+    CLINICAL_EVIDENCE = "moa.evidence_level:clinical_evidence"
+    PRECLINICAL_EVIDENCE = "moa.evidence_level:preclinical_evidence"
+    INFERENTIAL_EVIDENCE = "moa.evidence_level:inferential_evidence"
+
+
+class EcoLevel(str, Enum):
+    """Define constraints for Evidence Ontology levels"""
+
+    EVIDENCE = "ECO:0000000"
+    CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
+
+
+class ViccConceptVocab(BaseModel):
+    """Define VICC Concept Vocab model"""
+
+    id: StrictStr
+    domain: StrictStr
+    term: StrictStr
+    parents: List[StrictStr]
+    exact_mappings: Set[Union[CivicEvidenceLevel, MoaEvidenceLevel, EcoLevel]]
+    definition: StrictStr
 
 
 class SourceName(str, Enum):
     """Resources we import directly."""
 
-    CIVIC = 'civic'
-    MOA = 'moa'
+    CIVIC = "civic"
+    MOA = "moa"
 
 
 class XrefSystem(str, Enum):
     """Define constraints for System in xrefs."""
 
-    CLINVAR = 'clinvar'
-    CLINGEN = 'caid'
-    DB_SNP = 'dbsnp'
-    NCBI = 'ncbigene'
-    DISEASE_ONTOLOGY = 'do'
+    CLINVAR = "clinvar"
+    CLINGEN = "caid"
+    DB_SNP = "dbsnp"
+    NCBI = "ncbigene"
+    DISEASE_ONTOLOGY = "do"
 
 
 class SourcePrefix(str, Enum):
     """Define constraints for source prefixes."""
 
-    PUBMED = 'pmid'
-    ASCO = 'asco'
+    PUBMED = "pmid"
+    ASCO = "asco"
 
 
 class NormalizerPrefix(str, Enum):
     """Define constraints for normalizer prefixes."""
 
-    GENE = 'gene'
+    GENE = "gene"
 
 
-class PropositionType(str, Enum):
-    """Define constraints for proposition type."""
+class TargetPropositionType(str, Enum):
+    """Define constraints for target proposition type."""
 
-    PREDICTIVE = 'therapeutic_response_proposition'
-    DIAGNOSTIC = 'diagnostic_proposition'
-    PROGNOSTIC = 'prognostic_proposition'
-    PREDISPOSING = 'predisposition_proposition'
-    FUNCTIONAL = 'functional_consequence_proposition'
-    ONCOGENIC = 'oncogenicity_proposition'
-    PATHOGENIC = 'pathogenicity_proposition'
+    VARIATION_NEOPLASM_THERAPEUTIC_RESPONSE = "VariationNeoplasmTherapeuticResponseProposition"  # noqa: E501
+    PREDICTIVE = "VariationTherapeuticResponseProposition"
+    DIAGNOSTIC = "VariationDiagnosticProposition"
+    PROGNOSTIC = "VariationPrognosticProposition"
+    PREDISPOSING = "VariationPredispositionProposition"
+    FUNCTIONAL = "VariationFunctionalConsequenceProposition"
+    ONCOGENIC = "VariationOncogenicityProposition"
+    PATHOGENIC = "VariationPathogenicityProposition"
 
 
 class PredictivePredicate(str, Enum):
     """Define constraints for predictive predicate."""
 
-    SENSITIVITY = 'predicts_sensitivity_to'
-    RESISTANCE = 'predicts_resistance_to'
+    SENSITIVITY = "predicts_sensitivity_to"
+    RESISTANCE = "predicts_resistance_to"
 
 
 class DiagnosticPredicate(str, Enum):
     """Define constraints for diagnostic predicate."""
 
-    POSITIVE = 'is_diagnostic_inclusion_criterion_for'
-    NEGATIVE = 'is_diagnostic_exclusion_criterion_for'
+    POSITIVE = "is_diagnostic_inclusion_criterion_for"
+    NEGATIVE = "is_diagnostic_exclusion_criterion_for"
 
 
 class PrognosticPredicate(str, Enum):
     """Define constraints for prognostic predicate."""
 
-    BETTER_OUTCOME = 'is_prognostic_of_better_outcome_for'
-    POOR_OUTCOME = 'is_prognostic_of_worse_outcome_for'
+    BETTER_OUTCOME = "is_prognostic_of_better_outcome_for"
+    POOR_OUTCOME = "is_prognostic_of_worse_outcome_for"
 
 
 class PathogenicPredicate(str, Enum):
     """Define constraints for the pathogenicity predicate."""
 
-    UNCERTAIN_SIGNIFICANCE = 'is_of_uncertain_significance_for'
-    PATHOGENIC = 'is_pathogenic_for'
-    BENIGN = 'is_benign_for'
+    UNCERTAIN_SIGNIFICANCE = "is_of_uncertain_significance_for"
+    PATHOGENIC = "is_pathogenic_for"
+    BENIGN = "is_benign_for"
 
 
 class FunctionalPredicate(str, Enum):
     """Define constraints for functional predicate."""
 
-    GAIN_OF_FUNCTION = 'causes_gain_of_function_of'
-    LOSS_OF_FUNCTION = 'causes_loss_of_function_of'
-    UNALTERED_FUNCTION = 'does_not_change_function_of'
-    NEOMORPHIC = 'causes_neomorphic_function_of'
-    DOMINATE_NEGATIVE = 'causes_dominant_negative_function_of'
+    GAIN_OF_FUNCTION = "causes_gain_of_function_of"
+    LOSS_OF_FUNCTION = "causes_loss_of_function_of"
+    UNALTERED_FUNCTION = "does_not_change_function_of"
+    NEOMORPHIC = "causes_neomorphic_function_of"
+    DOMINATE_NEGATIVE = "causes_dominant_negative_function_of"
 
 
-Predicate = Union[PredictivePredicate, DiagnosticPredicate,
-                  PrognosticPredicate, PathogenicPredicate,
-                  FunctionalPredicate]
+Predicate = Union[PredictivePredicate, DiagnosticPredicate, PrognosticPredicate,
+                  PathogenicPredicate, FunctionalPredicate]
 
 
-class VariationOrigin(str, Enum):
-    """Define constraints for variant origin."""
+class MethodId(str, Enum):
+    """Create method id constants"""
 
-    SOMATIC = 'somatic'
-    GERMLINE = 'germline'
-    NOT_APPLICABLE = 'N/A'
+    CIVIC_EID_SOP = "metakb.method:1"
+    CIVIC_AID_AMP_ASCO_CAP = "metakb.method:2"
+    CIVIC_AID_ACMG = "metakb.method:3"
+    MOA_ASSERTION_BIORXIV = "metakb.method:4"
+
+
+class Document(ExtensibleEntity):
+    """A representation of a physical or digital document"""
+
+    type: Literal["Document"] = "Document"
+    xrefs: Optional[List[CURIE]]
+    title: Optional[StrictStr]
+
+
+class Method(ExtensibleEntity):
+    """A set of instructions that specify how to achieve some objective (e.g.
+    experimental protocols, curation guidelines, rule sets, etc.)
+    """
+
+    type: Literal["Method"] = "Method"
+    is_reported_in: Optional[Union[CURIE, Document]]
+    method_type: Optional[StrictStr]
+
+
+# class DataItem():
+#     pass
+
+
+class Agent(ExtensibleEntity):
+    """An autonomous actor (person, organization, or computational agent) that bears
+    some form of responsibility for an activity taking place, for the existence of an
+    entity, or for another agent"s activity.
+    """
+
+    type: Literal["Agent"] = "Agent"
+    name: Optional[StrictStr]
+
+
+class Contribution(ExtensibleEntity):
+    """The sum of all actions taken by a single agent in contributing to the creation,
+    modification, assessment, or deprecation of a particular entity (e.g. a Statement,
+    EvidenceLine, DataItem, Publication, etc.)
+    """
+
+    type: Literal["Contribution"] = "Contribution"
+    agent: Optional[Agent]
+    date: Optional[StrictStr]  # TODO: format date
+    role: Optional[StrictStr]
+
+
+class InformationEntity(ExtensibleEntity):
+    """InformationEntities are abstract (non-physical) entities that are about
+    something (i.e. they carry information about things in the real world).
+    """
+
+    description: Optional[StrictStr]
+    confidence_level: Optional[Coding]
+    # confidence_score: DataItem
+    method: Optional[Union[Method, CURIE]]
+    contributions: Optional[List[Contribution]]
+    is_reported_in: Optional[List[Union[Document, CURIE]]]
+    record_metadata: Optional[RecordMetadata]
 
 
 class Direction(str, Enum):
-    """Define constraints for evidence direction."""
+    """The direction of this statement with respect to the target proposition."""
 
-    SUPPORTS = 'supports'
-    DOES_NOT_SUPPORT = 'does_not_support'
-
-
-class MoleculeContext(str, Enum):
-    """Define constraints for types of molecule context."""
-
-    GENOMIC = 'genomic'
-    TRANSCRIPT = 'transcript'
-    PROTEIN = 'protein'
+    SUPPORTS = "supports"
+    UNCERTAIN = "uncertain"
+    OPPOSES = "opposes"
 
 
-class Proposition(BaseModel):
-    """Define Proposition model."""
+class Proposition(ValueEntity):
+    """An abstract :ref:`ValueEntity` representing the shareable meaning that can be
+    put forth as true or false by a Statement.
+    """
 
-    id: CURIE
-    type: PropositionType
+    subject: ValueEntity
     predicate: Predicate
-    subject: CURIE  # vrs:Variation
-    object_qualifier: CURIE  # vicc:Disease
+    object: ValueEntity
 
 
-class TherapeuticResponseProposition(Proposition):
-    """Define therapeutic Response Proposition model"""
+class VariationProposition(Proposition):
+    """A proposition describing the role of a variation subject."""
 
-    type = PropositionType.PREDICTIVE
-    predicate: PredictivePredicate
-    object: CURIE  # vicc:Therapy
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['TherapeuticResponseProposition']) \
-                -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "id": "proposition:133",
-                "type": "therapeutic_response_proposition",
-                "predicate": "predicts_sensitivity_to",
-                "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
-                "object_qualifier": "ncit:C2926",
-                "object": "rxcui:1430438"
-            }
+    subject: Union[CURIE, Variation, CategoricalVariation]
 
 
-class PrognosticProposition(Proposition):
-    """Defines the Prognostic Proposition model."""
+class VariationGermlinePathogenicityPropositionPredicate(str, Enum):
+    """The relationship asserted to hold between the variation (subject) and the
+    condition (object) of the Proposition.
+    """
 
-    type = PropositionType.PROGNOSTIC
-    predicate: PrognosticPredicate
-
-
-class DiagnosticProposition(Proposition):
-    """Defines the Diagnostic Proposition model."""
-
-    type = PropositionType.DIAGNOSTIC
-    predicate: DiagnosticPredicate
+    CAUSES_MENDELIAN_CONDITION = "causes_mendelian_condition"
+    INCREASES_RISK_FOR_CONDITION = "increases_risk_for_condition"
+    DECREASES_RISK_FOR_CONDITION = "decreases_risk_for_condition"
 
 
-class MethodID(IntEnum):
-    """Create AssertionMethod id constants for harvested sources."""
+class VariationGermlinePathogenicityProposition(VariationProposition):
+    """A proposition describing the role of a variation in causing or preventing a
+    germline disease condition.
+    """
 
-    CIVIC_EID_SOP = 1
-    CIVIC_AID_AMP_ASCO_CAP = 2
-    CIVIC_AID_ACMG = 3
-    MOA_ASSERTION_BIORXIV = 4
+    type: Literal["VariationGermlinePathogenicityProposition"] = "VariationGermlinePathogenicityProposition"  # noqa: E501
+    predicate: VariationGermlinePathogenicityPropositionPredicate
+    object: Union[Condition, Disease, Phenotype]
 
 
-class Statement(BaseModel):
-    """Define Statement model."""
+class VariationNeoplasmProposition(VariationProposition):
+    """A proposition regarding the effect of variation within a neoplasm."""
 
-    id: CURIE
-    type = 'Statement'
-    description: str
+    type: Literal["VariationNeoplasmProposition"] = "VariationNeoplasmProposition"
+    neoplasm_type_qualifier: Union[Condition, Disease, Phenotype]
+
+
+class VariationNeoplasmTherapeuticResponseProposition(VariationNeoplasmProposition):
+    """A :ref:`Proposition` describing the role of a variation in modulating the
+    response of a neoplasm to one or more therapeutics.
+    """
+
+    type: Literal["VariationNeoplasmTherapeuticResponseProposition"] = "VariationNeoplasmTherapeuticResponseProposition"  # noqa: E501
+    object: Union[Therapeutic, CombinationTherapeuticCollection,
+                  SubstituteTherapeuticCollection]
+
+
+class Statement(InformationEntity):
+    """A Statement (aka "Assertion") represents a claim of purported truth as made by
+    a particular agent, on a particular occasion.
+    """
+
+    evidence_level: Optional[Coding]
+    # evidence_score: DataItem
+    target_proposition: Optional[Union[Proposition, CURIE]]
+    conclusion: Optional[Coding]
     direction: Optional[Direction]
-    evidence_level: CURIE
-    proposition: CURIE
+
+
+class VariationOrigin(str, Enum):
+    """A representation of whether the subject variation is inherited (germline) or
+    acquired (somatic).
+    """
+
+    GERMLINE = "germline"
+    SOMATIC = "somatic"
+
+
+class VariationStatement(Statement):
+    """A :ref:`Statement` describing the impact of a variation."""
+
+    subject_descriptor: Optional[Union[VariationDescriptor,
+                                       CategoricalVariationDescriptor, CURIE]]
     variation_origin: Optional[VariationOrigin]
-    variation_descriptor: CURIE
-    therapy_descriptor: Optional[CURIE]
-    disease_descriptor: CURIE
-    method: CURIE
-    supported_by: List[CURIE]
-    # contribution: str  TODO: After metakb first pass
 
 
-class Document(BaseModel):
-    """Define model for Source."""
+class VariationConditionStatement(VariationStatement):
+    """A :ref:`Statement` describing the impact of a variation on a condition."""
 
-    id: CURIE
-    document_id: Optional[CURIE]
-    label: str
-    description: Optional[str]
-    xrefs: Optional[List[CURIE]]
-    type = 'Document'
+    object_descriptor: Union[PhenotypeDescriptor, DiseaseDescriptor,
+                             ConditionDescriptor, CURIE]
 
 
-class Date(BaseModel):
-    """Define model for date."""
+class VariationGermlinePathogenicityStatement(VariationConditionStatement):
+    """A :ref:`Statement` describing the role of a variation in causing or protecting
+    against a germline Condition.
+    """
 
-    year: int
-    month: Optional[int]
-    day: Optional[int]
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['StatementResponse']) -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "year": 2019,
-                "month": 11,
-                "day": 29
-            }
+    type: Literal["VariationGermlinePathogenicityStatement"] = \
+        "VariationGermlinePathogenicityStatement"
+    classification: Optional[Coding]
+    target_proposition: Optional[VariationGermlinePathogenicityProposition]
 
 
-class Method(BaseModel):
-    """Define model for methods used in evidence curation and classifications."""  # noqa: E501
+class VariationNeoplasmStatement(VariationStatement):
+    """A statement regarding the effect of variation within a neoplasm."""
 
-    id: CURIE
-    label: str
-    url: str
-    version: Date
-    authors: str
-    type = 'Method'
+    type: Literal["VariationNeoplasmStatement"] = "VariationNeoplasmStatement"
+    neoplasm_type_descriptor: Optional[Union[PhenotypeDescriptor, DiseaseDescriptor,
+                                             ConditionDescriptor, CURIE]]
 
 
-class Response(BaseModel):
-    """Define the Response Model."""
+class VariationNeoplasmTherapeuticResponseStatement(VariationNeoplasmStatement):
+    """A :ref:`Statement` describing the role of a variation in modulating the response
+    of a neoplasm to one or more therapeutics.
+    """
 
-    statements: List[Statement]
-    propositions: List[Union[TherapeuticResponseProposition,
-                             PrognosticProposition,
-                             DiagnosticProposition]]
-    variation_descriptors: List[VariationDescriptor]
-    gene_descriptors: List[GeneDescriptor]
-    therapy_descriptors: Optional[List[ValueObjectDescriptor]]
-    disease_descriptors: List[ValueObjectDescriptor]
-    methods: List[Method]
-    documents: List[Document]
-
-
-class StatementResponse(BaseModel):
-    """Define Statement Response for Search Endpoint."""
-
-    id: CURIE
-    type = 'Statement'
-    description: str
-    direction: Optional[Direction]
-    evidence_level: CURIE
-    variation_origin: Optional[VariationOrigin]
-    proposition: CURIE
-    variation_descriptor: CURIE
-    therapy_descriptor: Optional[CURIE]
-    disease_descriptor: CURIE
-    method: CURIE
-    supported_by: List[CURIE]
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['StatementResponse']) -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "id": "civic.eid:2997",
-                "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
-                "direction": "supports",
-                "evidence_level": "civic.evidence_level:A",
-                "variation_origin": "somatic",
-                "proposition": "proposition:133",
-                "variation_descriptor": "civic.vid:33",
-                "therapy_descriptor": "civic.tid:146",
-                "disease_descriptor": "civic.did:8",
-                "method": "method:001",
-                "supported_by": [
-                    "pmid:23982599"
-                ],
-                "type": "Statement"
-            }
-
-
-class NestedStatementResponse(BaseModel):
-    """Define Statement Response for Search Endpoint."""
-
-    id: CURIE
-    type = 'Statement'
-    description: str
-    direction: Optional[Direction]
-    evidence_level: CURIE
-    variation_origin: Optional[VariationOrigin]
-    proposition: Union[TherapeuticResponseProposition,
-                       PrognosticProposition,
-                       DiagnosticProposition]
-    variation_descriptor: VariationDescriptor
-    therapy_descriptor: Optional[ValueObjectDescriptor]
-    disease_descriptor: ValueObjectDescriptor
-    method: Method
-    supported_by: List[Union[Document, CURIE]]
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['NestedStatementResponse']) -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "id": "civic.eid:2997",
-                "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
-                "direction": "supports",
-                "evidence_level": "civic.evidence_level:A",
-                "variation_origin": "somatic",
-                "proposition": {
-                    "id": "proposition:133",
-                    "type": "therapeutic_response_proposition",
-                    "predicate": "predicts_sensitivity_to",
-                    "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
-                    "object_qualifier": "ncit:C2926",
-                    "object": "rxcui:1430438"
-                },
-                "variation_descriptor": {
-                    "id": "civic.vid:33",
-                    "type": "VariationDescriptor",
-                    "label": "L858R",
-                    "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
-                    "xrefs": [
-                        "clinvar:376280",
-                        "clinvar:16609",
-                        "clinvar:376282",
-                        "caid:CA126713",
-                        "dbsnp:121434568"
-                    ],
-                    "alternate_labels": [
-                        "LEU858ARG"
-                    ],
-                    "extensions": [
-                        {
-                            "type": "Extension",
-                            "name": "civic_representative_coordinate",
-                            "value": {
-                                "chromosome": "7",
-                                "start": 55259515,
-                                "stop": 55259515,
-                                "reference_bases": "T",
-                                "variant_bases": "G",
-                                "representative_transcript":
-                                    "ENST00000275493.2",
-                                "ensembl_version": 75,
-                                "reference_build": "GRCh37"
-                            }
-                        },
-                        {
-                            "type": "Extension",
-                            "name": "civic_actionability_score",
-                            "value": 375
-                        }
-                    ],
-                    "variation_id":
-                        "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
-                    "variation": {
-                        "_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
-                        "type": "Allele",
-                        "location": {
-                            "_id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",  # noqa: E501
-                            "type": "SequenceLocation",
-                            "sequence_id":
-                                "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
-                            "interval": {
-                                "type": "SequenceInterval",
-                                "start": {
-                                    "type": "Number",
-                                    "value": 857
-                                },
-                                "end": {
-                                    "type": "Number",
-                                    "value": 858
-                                }
-                            }
-                        },
-                        "state": {
-                            "type": "LiteralSequenceExpression",
-                            "sequence": "R"
-                        }
-                    },
-                    "structural_type": "SO:0001583",
-                    "expressions": [
-                        {
-                            "type": "Expression",
-                            "syntax": "hgvs.g",
-                            "value": "NC_000007.13:g.55259515T>G"
-                        },
-                        {
-                            "type": "Expression",
-                            "syntax": "hgvs.p",
-                            "value": "NP_005219.2:p.Leu858Arg"
-                        },
-                        {
-                            "type": "Expression",
-                            "syntax": "hgvs.c",
-                            "value": "NM_005228.4:c.2573T>G"
-                        },
-                        {
-                            "type": "Expression",
-                            "syntax": "hgvs.c",
-                            "value": "ENST00000275493.2:c.2573T>G"
-                        }
-                    ],
-                    "gene_context": {
-                        "id": "civic.gid:19",
-                        "type": "GeneDescriptor",
-                        "label": "EGFR",
-                        "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
-                        "xrefs": [
-                            "ncbigene:1956"
-                        ],
-                        "alternate_labels": [
-                            "ERRP",
-                            "EGFR",
-                            "mENA",
-                            "PIG61",
-                            "NISBD2",
-                            "HER1",
-                            "ERBB1",
-                            "ERBB"
-                        ],
-                        "gene_id": "hgnc:3236"
-                    }
-                },
-                "therapy_descriptor": {
-                    "id": "civic.tid:146",
-                    "type": "TherapyDescriptor",
-                    "label": "Afatinib",
-                    "xrefs": [
-                        "ncit:C66940"
-                    ],
-                    "alternate_labels": [
-                        "BIBW2992",
-                        "BIBW 2992",
-                        "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"  # noqa: E501
-                    ],
-                    "therapy_id": "rxcui:1430438"
-                },
-                "disease_descriptor": {
-                    "id": "civic.did:8",
-                    "type": "DiseaseDescriptor",
-                    "label": "Lung Non-small Cell Carcinoma",
-                    "xrefs": [
-                        "DOID:3908"
-                    ],
-                    "disease_id": "ncit:C2926"
-                },
-                "method": {
-                    "id": "method:001",
-                    "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
-                    "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
-                    "version": {
-                        "year": 2019,
-                        "month": 11,
-                        "day": 29
-                    },
-                    "authors":
-                        "Danos, A.M., Krysiak, K., Barnell, E.K. et al.",
-                    "type": "Method"
-                },
-                "supported_by": [
-                    {
-                        "id": "pmid:23982599",
-                        "label": "Dungo et al., 2013, Drugs",
-                        "description": "Afatinib: first global approval.",
-                        "type": "Document"
-                    }
-                ],
-                "type": "Statement"
-            }
-
-
-class SearchQuery(BaseModel):
-    """Queries for the Search Endpoint."""
-
-    variation: Optional[str]
-    disease: Optional[str]
-    therapy: Optional[str]
-    gene: Optional[str]
-    statement_id: Optional[str]
-    detail: StrictBool
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['SearchQuery']) -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "variation": "NP_005219.2:p.Leu858Arg",
-                "disease": "Lung Non-small Cell Carcinoma",
-                "therapy": "Afatinib",
-                "statement_id": "civic.eid:2997",
-                "detail": False
-            }
-
-
-class SearchStatementsQuery(BaseModel):
-    """Queries for the Search Endpoint."""
-
-    variation: Optional[str]
-    disease: Optional[str]
-    therapy: Optional[str]
-    gene: Optional[str]
-    statement_id: Optional[str]
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['SearchStatementsQuery']) -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "variation": "NP_005219.2:p.Leu858Arg",
-                "disease": "Lung Non-small Cell Carcinoma",
-                "therapy": "Afatinib",
-                "statement_id": "civic.eid:2997"
-            }
-
-
-class Matches(BaseModel):
-    """Statements and Propositions that match the queried parameters."""
-
-    statements: List[str]
-    propositions: List[str]
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['Matches']) -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "statements": ["civic.eid:2997"],
-                "propositions": ["proposition:133"]
-            }
-
-
-class ServiceMeta(BaseModel):
-    """Metadata for MetaKB service."""
-
-    name = "metakb"
-    version = __version__
-    last_updated = LAST_UPDATED
-    url = "https://github.com/cancervariants/metakb"
-
-    class Config:
-        """Configure schema example."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type["ServiceMeta"]) -> None:
-            """Configure OpenAPI schema"""
-            if "title" in schema.keys():
-                schema.pop("title", None)
-            for prop in schema.get("properties", {}).values():
-                prop.pop("title", None)
-            schema["example"] = {
-                "name": "metakb",
-                "version": "1.1.0-alpha.4",
-                "last_updated": "2021-12-16",
-                "url": "https://github.com/cancervariants/metakb"
-            }
-
-
-class SearchService(BaseModel):
-    """Define model for Search Endpoint Response."""
-
-    query: SearchQuery
-    warnings: Optional[List[str]]
-    matches: Matches
-    statements: Optional[List[StatementResponse]]
-    propositions: Optional[List[Union[TherapeuticResponseProposition,
-                                      DiagnosticProposition,
-                                      PrognosticProposition]]]
-    variation_descriptors: Optional[List[VariationDescriptor]]
-    gene_descriptors: Optional[List[GeneDescriptor]]
-    therapy_descriptors: Optional[List[ValueObjectDescriptor]]
-    disease_descriptors: Optional[List[ValueObjectDescriptor]]
-    methods: Optional[List[Method]]
-    documents: Optional[List[Document]]
-    service_meta_: ServiceMeta
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['SearchService']) -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "query": {
-                    "variation": "EGFR L858R",
-                    "disease": "Lung Non-small Cell Carcinoma",
-                    "therapy": "Afatinib",
-                    "statement_id": "civic.eid:2997",
-                    "detail": False
-                },
-                "warnings": [],
-                "matches": {
-                    "statements": ["civic.eid:2997"],
-                    "propositions": ["proposition:109"]
-                },
-                "statements": [
-                    {
-                        "id": "civic.eid:2997",
-                        "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
-                        "direction": "supports",
-                        "evidence_level": "civic.evidence_level:A",
-                        "variation_origin": "somatic",
-                        "proposition": "proposition:133",
-                        "variation_descriptor": "civic.vid:33",
-                        "therapy_descriptor": "civic.tid:146",
-                        "disease_descriptor": "civic.did:8",
-                        "method": "method:001",
-                        "supported_by": [
-                            "pmid:23982599"
-                        ],
-                        "type": "Statement"
-                    }
-                ],
-                "propositions": [
-                    {
-                        "id": "proposition:133",
-                        "type": "therapeutic_response_proposition",
-                        "predicate": "predicts_sensitivity_to",
-                        "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
-                        "object_qualifier": "ncit:C2926",
-                        "object": "rxcui:1430438"
-                    }
-                ],
-                "service_meta_": {
-                    "name": "metakb",
-                    "version": "1.1.0-alpha.4",
-                    "last_updated": "2021-12-16",
-                    "url": "https://github.com/cancervariants/metakb"
-                }
-            }
-
-
-class SearchIDService(BaseModel):
-    """Define model for Search by ID Endpoint Response."""
-
-    query: str
-    warnings: Optional[List[str]]
-    statement: Optional[StatementResponse]
-    proposition: Optional[Union[TherapeuticResponseProposition,
-                                DiagnosticProposition,
-                                PrognosticProposition]]
-    variation_descriptor: Optional[VariationDescriptor]
-    gene_descriptor: Optional[GeneDescriptor]
-    therapy_descriptor: Optional[ValueObjectDescriptor]
-    disease_descriptor: Optional[ValueObjectDescriptor]
-    document: Optional[Document]
-    method: Optional[Method]
-    service_meta_: ServiceMeta
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['SearchIDService']) -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "query": {
-                    "node_id": "civic.vid:33"
-                },
-                "warnings": [],
-                "matches": {
-                    "node": "civic.vid:33"
-                },
-                "variation_descriptors": [
-                    {
-                        "id": "civic.vid:33",
-                        "type": "VariationDescriptor",
-                        "label": "L858R",
-                        "description": "EGFR L858R has long been recognized "
-                                       "as a functionally significant "
-                                       "mutation in cancer, and is one of "
-                                       "he most prevalent single mutations in"
-                                       " lung cancer. Best described in "
-                                       "non-small cell lung cancer (NSCLC), "
-                                       "the mutation seems to confer "
-                                       "sensitivity to first and second "
-                                       "generation TKI's like gefitinib and"
-                                       " neratinib. NSCLC patients with this"
-                                       " mutation treated with TKI's show "
-                                       "increased overall and "
-                                       "progression-free survival, as "
-                                       "compared to chemotherapy alone. "
-                                       "Third generation TKI's are currently"
-                                       " in clinical trials that specifically"
-                                       " focus on mutant forms of EGFR, a few"
-                                       " of which have shown efficacy in "
-                                       "treating patients that failed to "
-                                       "respond to earlier generation "
-                                       "TKI therapies.",
-                        "value_id": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",  # noqa: E501
-                        "value": {
-                            "location": {
-                                "interval": {
-                                    "end": 858,
-                                    "start": 857,
-                                    "type": "SimpleInterval"
-                                },
-                                "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",  # noqa: E501
-                                "type": "SequenceLocation"
-                            },
-                            "state": {
-                                "sequence": "R",
-                                "type": "SequenceState"
-                            },
-                            "type": "Allele"
-                        },
-                        "xrefs": [
-                            "clinvar:376280",
-                            "clinvar:16609",
-                            "clinvar:376282",
-                            "caid:CA126713",
-                            "dbsnp:121434568"
-                        ],
-                        "alternate_labels": [
-                            "LEU858ARG"
-                        ],
-                        "extensions": [
-                            {
-                                "name": "civic_representative_coordinate",
-                                "value": {
-                                    "chromosome": "7",
-                                    "start": 55259515,
-                                    "stop": 55259515,
-                                    "reference_bases": "T",
-                                    "variant_bases": "G",
-                                    "representative_transcript": "ENST00000275493.2",  # noqa: E501
-                                    "ensembl_version": 75,
-                                    "reference_build": "GRCh37"
-                                },
-                                "type": "Extension"
-                            },
-                            {
-                                "name": "civic_actionability_score",
-                                "value": "352.5",
-                                "type": "Extension"
-                            }
-                        ],
-                        "structural_type": "SO:0001583",
-                        "expressions": [
-                            {
-                                "syntax": "hgvs.g",
-                                "value": "NC_000007.13:g.55259515T>G",
-                                "type": "Expression"
-                            },
-                            {
-                                "syntax": "hgvs.p",
-                                "value": "NP_005219.2:p.Leu858Arg",
-                                "type": "Expression"
-                            },
-                            {
-                                "syntax": "hgvs.c",
-                                "value": "NM_005228.4:c.2573T>G",
-                                "type": "Expression"
-                            },
-                            {
-                                "syntax": "hgvs.c",
-                                "value": "ENST00000275493.2:c.2573T>G",
-                                "type": "Expression"
-                            }
-                        ],
-                        "gene_context": "civic.gid:19"
-                    }
-                ],
-                "service_meta_": {
-                    "name": "metakb",
-                    "version": "1.1.0-alpha.4",
-                    "last_updated": "2021-12-16",
-                    "url": "https://github.com/cancervariants/metakb"
-                }
-            }
-
-
-class SearchStatementsService(BaseModel):
-    """Define model for Search Statements Endpoint Response."""
-
-    query: SearchStatementsQuery
-    warnings: Optional[List[str]]
-    matches: Matches
-    statements: Optional[List[NestedStatementResponse]]
-    service_meta_: ServiceMeta
-
-    class Config:
-        """Configure examples."""
-
-        @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['SearchStatementsService']) -> None:
-            """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "query": {
-                    "variation": "EGFR L858R",
-                    "disease": "Lung Non-small Cell Carcinoma",
-                    "therapy": "Afatinib",
-                    "statement_id": "civic.eid:2997"
-                },
-                "warnings": [],
-                "matches": {
-                    "statements": ["civic.eid:2997"],
-                    "propositions": ["proposition:109"]
-                },
-                "statements": [
-                    {
-                        "id": "civic.eid:2997",
-                        "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
-                        "direction": "supports",
-                        "evidence_level": "civic.evidence_level:A",
-                        "variation_origin": "somatic",
-                        "proposition": {
-                            "id": "proposition:133",
-                            "type": "therapeutic_response_proposition",
-                            "predicate": "predicts_sensitivity_to",
-                            "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",    # noqa: E501
-                            "object_qualifier": "ncit:C2926",
-                            "object": "rxcui:1430438"
-                        },
-                        "variation_descriptor": {
-                            "id": "civic.vid:33",
-                            "type": "VariationDescriptor",
-                            "label": "L858R",
-                            "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
-                            "xrefs": [
-                                "clinvar:376280",
-                                "clinvar:16609",
-                                "clinvar:376282",
-                                "caid:CA126713",
-                                "dbsnp:121434568"
-                            ],
-                            "alternate_labels": [
-                                "LEU858ARG"
-                            ],
-                            "extensions": [
-                                {
-                                    "type": "Extension",
-                                    "name": "civic_representative_coordinate",
-                                    "value": {
-                                        "chromosome": "7",
-                                        "start": 55259515,
-                                        "stop": 55259515,
-                                        "reference_bases": "T",
-                                        "variant_bases": "G",
-                                        "representative_transcript":
-                                            "ENST00000275493.2",
-                                        "ensembl_version": 75,
-                                        "reference_build": "GRCh37"
-                                    }
-                                },
-                                {
-                                    "type": "Extension",
-                                    "name": "civic_actionability_score",
-                                    "value": 375
-                                }
-                            ],
-                            "variation_id":
-                                "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
-                            "variation": {
-                                "_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",  # noqa: E501
-                                "type": "Allele",
-                                "location": {
-                                    "_id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",  # noqa: E501
-                                    "type": "SequenceLocation",
-                                    "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",  # noqa: E501
-                                    "interval": {
-                                        "type": "SequenceInterval",
-                                        "start": {
-                                            "type": "Number",
-                                            "value": 857
-                                        },
-                                        "end": {
-                                            "type": "Number",
-                                            "value": 858
-                                        }
-                                    }
-                                },
-                                "state": {
-                                    "type": "LiteralSequenceExpression",
-                                    "sequence": "R"
-                                }
-                            },
-                            "structural_type": "SO:0001583",
-                            "expressions": [
-                                {
-                                    "type": "Expression",
-                                    "syntax": "hgvs.g",
-                                    "value": "NC_000007.13:g.55259515T>G"
-                                },
-                                {
-                                    "type": "Expression",
-                                    "syntax": "hgvs.p",
-                                    "value": "NP_005219.2:p.Leu858Arg"
-                                },
-                                {
-                                    "type": "Expression",
-                                    "syntax": "hgvs.c",
-                                    "value": "NM_005228.4:c.2573T>G"
-                                },
-                                {
-                                    "type": "Expression",
-                                    "syntax": "hgvs.c",
-                                    "value": "ENST00000275493.2:c.2573T>G"
-                                }
-                            ],
-                            "gene_context": {
-                                "id": "civic.gid:19",
-                                "type": "GeneDescriptor",
-                                "label": "EGFR",
-                                "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
-                                "xrefs": [
-                                    "ncbigene:1956"
-                                ],
-                                "alternate_labels": [
-                                    "ERRP",
-                                    "EGFR",
-                                    "mENA",
-                                    "PIG61",
-                                    "NISBD2",
-                                    "HER1",
-                                    "ERBB1",
-                                    "ERBB"
-                                ],
-                                "gene_id": "hgnc:3236"
-                            }
-                        },
-                        "therapy_descriptor": {
-                            "id": "civic.tid:146",
-                            "type": "TherapyDescriptor",
-                            "label": "Afatinib",
-                            "xrefs": [
-                                "ncit:C66940"
-                            ],
-                            "alternate_labels": [
-                                "BIBW2992",
-                                "BIBW 2992",
-                                "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"  # noqa: E501
-                            ],
-                            "therapy_id": "rxcui:1430438"
-                        },
-                        "disease_descriptor": {
-                            "id": "civic.did:8",
-                            "type": "DiseaseDescriptor",
-                            "label": "Lung Non-small Cell Carcinoma",
-                            "xrefs": [
-                                "DOID:3908"
-                            ],
-                            "disease_id": "ncit:C2926"
-                        },
-                        "method": {
-                            "id": "method:001",
-                            "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
-                            "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
-                            "version": {
-                                "year": 2019,
-                                "month": 11,
-                                "day": 29
-                            },
-                            "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al.",  # noqa: E501
-                            "type": "Method"
-                        },
-                        "supported_by": [
-                            {
-                                "id": "pmid:23982599",
-                                "label": "Dungo et al., 2013, Drugs",
-                                "description": "Afatinib: first global approval.",  # noqa: E501
-                                "type": "Document"
-                            }
-                        ],
-                        "type": "Statement"
-                    }
-                ],
-                "service_meta_": {
-                    "name": "metakb",
-                    "version": "1.1.0-alpha.4",
-                    "last_updated": "2021-12-16",
-                    "url": "https://github.com/cancervariants/metakb"
-                }
-            }
+    type: Literal["VariationNeoplasmTherapeuticResponseStatement"] = \
+        "VariationNeoplasmTherapeuticResponseStatement"
+    object_descriptor: Optional[Union[TherapeuticDescriptor,
+                                      TherapeuticCollectionDescriptor, CURIE]]

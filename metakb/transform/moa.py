@@ -3,8 +3,9 @@ from typing import Optional
 import logging
 from urllib.parse import quote
 
-from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor,\
-    Extension, GeneDescriptor, ValueObjectDescriptor
+from ga4gh.vrsatile.pydantic.core_models import Extension
+from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
+    GeneDescriptor, ValueObjectDescriptor
 
 import metakb.schemas as schemas
 from metakb.transform.base import Transform
@@ -352,8 +353,7 @@ class MOATransform(Transform):
         :return: A list of methods
         """
         methods = [schemas.Method(
-            id=f'method:'
-               f'{schemas.MethodID.MOA_ASSERTION_BIORXIV}',
+            id=schemas.MethodID.MOA_ASSERTION_BIORXIV.value,
             label='Clinical interpretation of integrative molecular profiles to guide precision cancer medicine',  # noqa:E501
             url='https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1',  # noqa:E501
             version=schemas.Date(year=2020, month=9, day=22),
