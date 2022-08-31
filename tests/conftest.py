@@ -103,7 +103,7 @@ def civic_eid2997_statement(pmid_23982599, method1):
             "label": "authoritative evidence",
             "type": "Coding"
         },
-        "target_proposition": "proposition:0IKoUusFbrOGXSFOuhZK_rQfqKRsdUaN",
+        "target_proposition": "proposition:AEC2fbyX0a0Y3wtOYoALtu06a2AJbVtm",
         "variation_origin": "somatic",
         "subject_descriptor": "civic.vid:33",
         "object_descriptor": "civic.tid:146",
@@ -117,7 +117,7 @@ def civic_eid2997_statement(pmid_23982599, method1):
 def civic_eid2997_proposition():
     """Create a test fixture for EID2997 proposition."""
     return {
-        "id": "proposition:0IKoUusFbrOGXSFOuhZK_rQfqKRsdUaN",
+        "id": "proposition:AEC2fbyX0a0Y3wtOYoALtu06a2AJbVtm",
         "type": "VariationNeoplasmTherapeuticResponseProposition",
         "predicate": "predicts_sensitivity_to",
         "subject": "ga4gh:VA.g4fsoMUU_nKYxJrf-6Ah9J76mjF988xC",
@@ -334,7 +334,7 @@ def civic_aid6_statement():
         "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "amp_asco_cap_2017_level:1A",
-        "proposition": "proposition:0IKoUusFbrOGXSFOuhZK_rQfqKRsdUaN",
+        "proposition": "proposition:AEC2fbyX0a0Y3wtOYoALtu06a2AJbVtm",
         "variation_origin": "somatic",
         "subject_descriptor": "civic.vid:33",
         "object_descriptor": "civic.tid:146",

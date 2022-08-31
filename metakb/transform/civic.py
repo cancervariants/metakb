@@ -278,7 +278,6 @@ class CIViCTransform(Transform):
             return None
 
         params = {
-            "id": "",
             "type": proposition_type,
             "predicate": predicate,
             "subject": variation_descriptor["variation"]["id"],
@@ -287,25 +286,11 @@ class CIViCTransform(Transform):
 
         if proposition_type == TargetPropositionType.VARIATION_NEOPLASM_THERAPEUTIC_RESPONSE:  # noqa: E501
             params["object"] = Therapeutic(id=therapeutic_descriptor["therapeutic"]).dict(exclude_none=True)  # noqa: E501
-            proposition_id = self._get_proposition_id(
-                params["type"],
-                params["predicate"],
-                [params["subject"]],
-                [params["neoplasm_type_qualifier"]],
-                [params["object"]]
-            )
-        else:
-            proposition_id = self._get_proposition_id(
-                params["type"],
-                params["predicate"],
-                [params["subject"]],
-                [params["neoplasm_type_qualifier"]]
-            )
 
-        if proposition_id is None:
+        params["id"] = self._get_proposition_id(params)
+
+        if params["id"] is None:
             return None
-        else:
-            params["id"] = proposition_id
 
         # TODO: Prognostic + Diagnostic
         if proposition_type == TargetPropositionType.VARIATION_NEOPLASM_THERAPEUTIC_RESPONSE:  # noqa: E501
@@ -465,6 +450,7 @@ class CIViCTransform(Transform):
 
             alternate_labels = [v_alias for v_alias in variant["variant_aliases"]
                                 if not v_alias.startswith("RS")]
+            xrefs = self._get_variant_xrefs(variant)
 
             variation_descriptor = VariationDescriptor(
                 id=variant_id,
@@ -473,8 +459,8 @@ class CIViCTransform(Transform):
                 variation=variation_norm_resp.variation_descriptor.variation,
                 gene_context=f"civic.gid:{variant['gene_id']}",
                 structural_type=structural_type,
-                expressions=hgvs_exprs,
-                xrefs=self._get_variant_xrefs(variant),
+                expressions=hgvs_exprs if hgvs_exprs else None,
+                xrefs=xrefs if xrefs else None,
                 alternate_labels=alternate_labels if alternate_labels else None,
                 extensions=self._get_variant_extensions(variant)
             ).dict(exclude_none=True)
@@ -711,29 +697,20 @@ class CIViCTransform(Transform):
         """
         source_type = source["source_type"].upper()
         if source_type in SourcePrefix.__members__:
-            extensions = list()
-            xrefs = None
+            xrefs = list()
             if source["asco_abstract_id"]:
-                extensions.append(Extension(
-                    name="Asco Abstract ID",
-                    value=f"asco.abstract:{source['asco_abstract_id']}"
-                ).dict(exclude_none=True))
+                xrefs.append(f"asco.abstract:{source['asco_abstract_id']}")
             if source["pmc_id"]:
-                extensions.append(Extension(
-                    name="PMC ID",
-                    value=f"pmc:{source['pmc_id']}"
-                ))
-
+                xrefs.append(f"pmc:{source['pmc_id']}")
             if source["source_type"].upper() == "PUBMED" and source["source_url"]:
                 pubmed_id = source["source_url"].split("/")[-1]
-                xrefs = [f"pmid:{pubmed_id}"]
+                xrefs.append(f"pmid:{pubmed_id}")
 
             document = Document(
                 id=f"civic.source:{source['id']}",
-                xrefs=xrefs,
+                xrefs=xrefs if xrefs else None,
                 label=source["citation"],
                 title=source["name"],
-                extensions=extensions if extensions else None
             ).dict(exclude_none=True)
             return document
         else:

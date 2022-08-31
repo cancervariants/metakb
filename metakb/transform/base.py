@@ -1,5 +1,5 @@
 """A module for the Transform base class."""
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Union
 import json
 import logging
 from pathlib import Path
@@ -9,7 +9,7 @@ from ga4gh.core import sha512t24u
 
 from metakb import APP_ROOT, DATE_FMT
 from metakb.schemas import CivicEvidenceLevel, Document, EcoLevel, Method, MethodId, \
-    MoaEvidenceLevel, TargetPropositionType, Predicate, DiagnosticPredicate, \
+    MoaEvidenceLevel, TargetPropositionType, DiagnosticPredicate, \
     PrognosticPredicate, PredictivePredicate, FunctionalPredicate, \
     PathogenicPredicate, ViccConceptVocab
 from metakb.normalizers import VICCNormalizers
@@ -169,43 +169,49 @@ class Transform:
             return json.load(f)
 
     predicate_validation = {
-        TargetPropositionType.VARIATION_NEOPLASM_THERAPEUTIC_RESPONSE: PredictivePredicate,  # noqa: E501
-        TargetPropositionType.PREDICTIVE: PredictivePredicate,
-        TargetPropositionType.DIAGNOSTIC: DiagnosticPredicate,
-        TargetPropositionType.PROGNOSTIC: PrognosticPredicate,
-        TargetPropositionType.PATHOGENIC: PathogenicPredicate,
-        TargetPropositionType.FUNCTIONAL: FunctionalPredicate
+        TargetPropositionType.VARIATION_NEOPLASM_THERAPEUTIC_RESPONSE: PredictivePredicate.__members__.values(),  # noqa: E501
+        TargetPropositionType.PREDICTIVE: PredictivePredicate.__members__.values(),
+        TargetPropositionType.DIAGNOSTIC: DiagnosticPredicate.__members__.values(),
+        TargetPropositionType.PROGNOSTIC: PrognosticPredicate.__members__.values(),
+        TargetPropositionType.PATHOGENIC: PathogenicPredicate.__members__.values(),
+        TargetPropositionType.FUNCTIONAL: FunctionalPredicate.__members__.values()
     }
 
-    def _get_proposition_id(
-        self,
-        prop_type: TargetPropositionType,
-        pred: Predicate,
-        variation_ids: List[str] = [],
-        disease_vos: List[Dict] = [],
-        therapeutic_vos: List[Dict] = []
-    ) -> Optional[str]:
+    def _sort_dict(self, params: any) -> Optional[Union[str, Dict]]:
+        """Recursively sort original dictionary
+        Assumes only dicts with values that are strings
+
+        :param any params: params to be sorted
+        :return: At the end will return sorted dictionary
+        """
+        if params is None:
+            return None
+
+        if isinstance(params, str):
+            return params
+
+        if isinstance(params, dict):
+            d = {k: self._sort_dict(params[k]) for k in params}
+            return dict(sorted(d.items()))
+
+    def _get_proposition_id(self, proposition_params: Dict) -> Optional[str]:
         """Retrieve stable ID for a proposition
 
-        :param TargetPropositionType prop_type: type of Proposition
-        :param Predicate pred: proposition predicate value
-        :param List[str] variation_id: VRS ID
-        :param List[Dict] disease_vos: normalized disease value objects
-        :param List[Dict] therapeutic_vos: normalized therapeutic value objects
+        :param Dict proposition_params: Paramaters for proposition
         :return: proposition ID, or None if prop_type and pred conflict or
             if provided parameters cannot determine correct proposition ID
         """
-        if not isinstance(pred, self.predicate_validation[prop_type]):
-            msg = f"{prop_type} in query conflicts with {pred}"
+        predicate = proposition_params["predicate"]
+        proposition_type = proposition_params["type"]
+        if predicate not in self.predicate_validation[proposition_type]:
+            msg = f"{proposition_type} in query conflicts with {predicate}"
             logger.error(msg)
             raise ValueError(msg)
 
-        sorted_concept_ids = sorted(variation_ids)
-        sorted_vos = sorted(disease_vos + therapeutic_vos, key=lambda x: (x["type"], x["id"]))  # noqa: E501
-        terms = [prop_type.value, pred.value]
-        data = terms + sorted_concept_ids + sorted_vos
-        blob = json.dumps(data).encode("ascii")
-        digest = sha512t24u(blob=blob)
+        sorted_params = self._sort_dict(proposition_params)
+        blob = json.dumps(sorted_params, sort_keys=True,
+                          separators=(",", ":")).encode("ascii")
+        digest = sha512t24u(blob)
         return f"proposition:{digest}"
 
     def _evidence_level_to_vicc_concept_mapping(self) -> Dict:
