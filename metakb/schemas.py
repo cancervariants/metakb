@@ -14,6 +14,13 @@ from pydantic import BaseModel
 from pydantic.types import StrictStr
 
 
+class DrugInteractionType(str, Enum):
+    """Drug interaction type"""
+
+    COMBINATION = "COMBINATION"
+    SUBSTITUTES = "SUBSTITUTES"
+
+
 class CivicEvidenceLevel(str, Enum):
     """Define constraints for CIViC evidence levels"""
 

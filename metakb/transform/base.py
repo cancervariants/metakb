@@ -191,8 +191,12 @@ class Transform:
             return params
 
         if isinstance(params, dict):
-            d = {k: self._sort_dict(params[k]) for k in params}
+            d = {k: self._sort_dict(params[k])
+                 for k in params if not params[k] is None}
             return dict(sorted(d.items()))
+
+        if isinstance(params, list):
+            return sorted([self._sort_dict(o) for o in params], key=lambda x: x["id"])
 
     def _get_proposition_id(self, proposition_params: Dict) -> Optional[str]:
         """Retrieve stable ID for a proposition

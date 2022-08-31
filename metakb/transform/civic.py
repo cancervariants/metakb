@@ -4,14 +4,17 @@ from typing import Optional, Dict, List, Set
 from pathlib import Path
 import logging
 
-from ga4gh.vrsatile.pydantic.core_models import Extension, Disease, Therapeutic, Coding
+from ga4gh.core import sha512t24u
+from ga4gh.vrsatile.pydantic.core_models import Extension, Disease, Therapeutic, \
+    Coding, CombinationTherapeuticCollection, SubstituteTherapeuticCollection
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
-    Expression, GeneDescriptor, DiseaseDescriptor, TherapeuticDescriptor
+    Expression, GeneDescriptor, DiseaseDescriptor, TherapeuticDescriptor, \
+    TherapeuticCollectionDescriptor
 
 from metakb import APP_ROOT
 from metakb.normalizers import VICCNormalizers
-from metakb.schemas import Direction, Document, MethodId, Predicate, \
-    PredictivePredicate, SourcePrefix, TargetPropositionType, \
+from metakb.schemas import Direction, Document, DrugInteractionType, MethodId, \
+    Predicate, PredictivePredicate, SourcePrefix, TargetPropositionType, \
     VariationNeoplasmTherapeuticResponseProposition, XrefSystem, VariationOrigin, \
     VariationNeoplasmTherapeuticResponseStatement
 from metakb.transform.base import Transform
@@ -47,12 +50,14 @@ class CIViCTransform(Transform):
         self.valid_ids = {
             'variation_descriptors': dict(),
             'disease_descriptors': dict(),
-            'therapeutic_descriptors': dict()
+            'therapeutic_descriptors': dict(),
+            'therapeutic_collection_descriptors': dict()
         }
         # Unable to normalize these IDs
         self.invalid_ids = {
-            'therapeutic_descriptors': list(),
-            'disease_descriptors': list()
+            'therapeutic_descriptors': set(),
+            'therapeutic_collection_descriptors': set(),
+            'disease_descriptors': set()
         }
 
     async def transform(self) -> None:
@@ -79,6 +84,17 @@ class CIViCTransform(Transform):
         self._transform_evidence_and_assertions(evidence_items)
         # TODO: Uncomment
         # self._transform_evidence_and_assertions(assertions, is_evidence=False)
+
+    @staticmethod
+    def _get_digest_for_str_lists(l: List[str]) -> str:  # noqa: E741
+        """Create digest for a list of strings
+
+        :param List[str] l: List of strings to get digest for
+        :return: Digest
+        """
+        l.sort()
+        blob = str(l).encode("ascii")
+        return sha512t24u(blob)
 
     def _transform_evidence_and_assertions(self, records: List[Dict],
                                            is_evidence: bool = True) -> None:
@@ -115,23 +131,35 @@ class CIViCTransform(Transform):
                     continue
 
             if evidence_type_upper == EvidenceType.PREDICTIVE:
-                if len(r['drugs']) != 1:
-                    continue
-                else:
-                    therapeutic_id = f"civic.tid:{r['drugs'][0]['id']}"
-                    therapeutic_descriptor = self._add_therapeutic_descriptor(
-                        therapeutic_id, r)
-                    if not therapeutic_descriptor:
-                        continue
+                drugs = r["drugs"]
+                len_drugs = len(drugs)
+                if len_drugs == 1:
+                    drug = drugs[0]
+                    therapeutic_descriptor_id = f"civic.tid:{drug['id']}"
+                    therapeutic_descriptor = self._add_therapeutic_descriptor(drug)
+                elif len_drugs > 1:
+                    therapeutic_ids = [f"civic.drug:{d['id']}" for d in drugs]
+                    therapeutic_digest = self._get_digest_for_str_lists(therapeutic_ids)
+                    drug_interaction_type = r["drug_interaction_type"].upper()
+                    therapeutic_descriptor_id = f"civic.tcd:{therapeutic_digest}"
 
-                    if therapeutic_descriptor not in self.therapeutic_descriptors:
-                        self.therapeutic_descriptors.append(therapeutic_descriptor)
+                    therapeutic_descriptor = self._add_therapeutic_collection_descriptor(  # noqa: E501
+                        therapeutic_descriptor_id, drugs, drug_interaction_type)
+                else:
+                    logger.debug(f"{r['name']} has 0 drugs")
+                    continue
+
+                if not therapeutic_descriptor:
+                    continue
+
+                if therapeutic_descriptor not in self.therapeutic_descriptors:
+                    self.therapeutic_descriptors.append(therapeutic_descriptor)
             else:
-                therapeutic_id = None
+                therapeutic_descriptor_id = None
                 therapeutic_descriptor = None
 
-            disease_id = f"civic.did:{r['disease']['id']}"
-            disease_descriptor = self._add_disease_descriptor(disease_id, r)
+            disease_descriptor_id = f"civic.did:{r['disease']['id']}"
+            disease_descriptor = self._add_disease_descriptor(disease_descriptor_id, r)
             if not disease_descriptor:
                 continue
 
@@ -139,11 +167,11 @@ class CIViCTransform(Transform):
                 self.disease_descriptors.append(disease_descriptor)
 
             if is_evidence:
-                variant_id = f"civic.vid:{r['variant_id']}"
+                variation_descriptor_id = f"civic.vid:{r['variant_id']}"
             else:
-                variant_id = f"civic.vid:{r['variant']['id']}"
+                variation_descriptor_id = f"civic.vid:{r['variant']['id']}"
             variation_descriptor = self.valid_ids['variation_descriptors'].get(
-                variant_id)
+                variation_descriptor_id)
             if not variation_descriptor:
                 continue
 
@@ -201,9 +229,9 @@ class CIViCTransform(Transform):
                     evidence_level=evidence_level,
                     variation_origin=self._get_variation_origin(r["variant_origin"]),
                     target_proposition=proposition["id"],
-                    subject_descriptor=variant_id,
-                    neoplasm_type_descriptor=disease_id,
-                    object_descriptor=therapeutic_id,
+                    subject_descriptor=variation_descriptor_id,
+                    neoplasm_type_descriptor=disease_descriptor_id,
+                    object_descriptor=therapeutic_descriptor_id,
                     method=method,
                     is_reported_in=[document],
                     type="VariationNeoplasmTherapeuticResponseStatement"
@@ -285,7 +313,11 @@ class CIViCTransform(Transform):
         }
 
         if proposition_type == TargetPropositionType.VARIATION_NEOPLASM_THERAPEUTIC_RESPONSE:  # noqa: E501
-            params["object"] = Therapeutic(id=therapeutic_descriptor["therapeutic"]).dict(exclude_none=True)  # noqa: E501
+            td_type = therapeutic_descriptor["type"]
+            if td_type == "TherapeuticDescriptor":
+                params["object"] = Therapeutic(id=therapeutic_descriptor["therapeutic"]).dict(exclude_none=True)  # noqa: E501
+            elif td_type == "TherapeuticsCollectionDescriptor":
+                params["object"] = therapeutic_descriptor["therapeutic_collection"]
 
         params["id"] = self._get_proposition_id(params)
 
@@ -353,11 +385,10 @@ class CIViCTransform(Transform):
         if clin_sig is None or clin_sig.upper() in ['N/A', 'UNKNOWN']:
             return None
 
-        clin_sig = '_'.join(clin_sig.upper().split())
         predicate = None
 
         if proposition_type == TargetPropositionType.VARIATION_NEOPLASM_THERAPEUTIC_RESPONSE:  # noqa: E501
-            if clin_sig == 'SENSITIVITY/RESPONSE':
+            if clin_sig == 'SENSITIVITYRESPONSE':
                 predicate = PredictivePredicate.SENSITIVITY
             elif clin_sig == 'RESISTANCE':
                 predicate = PredictivePredicate.RESISTANCE
@@ -587,7 +618,7 @@ class CIViCTransform(Transform):
                     self.valid_ids['disease_descriptors'][disease_id] = \
                         disease_descriptor
                 else:
-                    self.invalid_ids['disease_descriptors'].append(disease_id)
+                    self.invalid_ids['disease_descriptors'].add(disease_id)
             return disease_descriptor
 
     def _get_disease_descriptors(self, disease: Dict) -> Optional[DiseaseDescriptor]:
@@ -627,36 +658,37 @@ class CIViCTransform(Transform):
         ).dict(exclude_none=True)
         return disease_descriptor
 
-    def _add_therapeutic_descriptor(self, therapeutic_id: str,
-                                    record: Dict) -> Optional[TherapeuticDescriptor]:
+    def _add_therapeutic_descriptor(self,
+                                    drug: Dict) -> Optional[TherapeuticDescriptor]:
         """Add therapeutic ID to list of valid or invalid transformations.
 
         :param str therapeutic_id: The CIViC ID for the drug
-        :param Dict record: CIViC AID or EID
+        :param Dict drug: CIViC drug record
         :return: A therapeutic descriptor
         """
+        therapeutic_id = f"civic.tid:{drug['id']}"
         therapeutic_descriptor = self.valid_ids['therapeutic_descriptors'].get(therapeutic_id)  # noqa: E501
         if therapeutic_descriptor:
             return therapeutic_descriptor
         else:
             therapeutic_descriptor = None
             if therapeutic_id not in self.invalid_ids['therapeutic_descriptors']:
-                therapeutic_descriptor = self._get_therapeutic_descriptor(record['drugs'][0])  # noqa: E501
+                therapeutic_descriptor = self._get_therapeutic_descriptor(
+                    therapeutic_id, drug)
                 if therapeutic_descriptor:
                     self.valid_ids['therapeutic_descriptors'][therapeutic_id] = \
                         therapeutic_descriptor
                 else:
-                    self.invalid_ids['therapeutic_descriptors'].append(therapeutic_id)
+                    self.invalid_ids['therapeutic_descriptors'].add(therapeutic_id)
             return therapeutic_descriptor
 
-    def _get_therapeutic_descriptor(self,
+    def _get_therapeutic_descriptor(self, therapeutic_id: str,
                                     drug: Dict) -> Optional[TherapeuticDescriptor]:
         """Get a therapeutic descriptor.
 
         :param Dict drug: A CIViC drug record
         :return: A Therapeutic Descriptor
         """
-        therapeutic_id = f"civic.tid:{drug['id']}"
         label = drug['name']
         queries = list()
         xrefs = list()
@@ -688,6 +720,58 @@ class CIViCTransform(Transform):
             extensions=[regulatory_approval_extension] if regulatory_approval_extension else None  # noqa: E501
         ).dict(exclude_none=True)
         return therapeutic_descriptor
+
+    def _add_therapeutic_collection_descriptor(
+        self, therapeutic_descriptor_id: str, drugs: List[Dict],
+        drug_interaction_type: str
+    ) -> Optional[TherapeuticCollectionDescriptor]:
+        tcd = self.valid_ids["therapeutic_collection_descriptors"].get(
+            therapeutic_descriptor_id)
+        if tcd:
+            return tcd
+        else:
+            tcd = None
+            if therapeutic_descriptor_id not in self.invalid_ids["therapeutic_collection_descriptors"]:  # noqa: E501
+                tcd = self._get_therapeutic_collection_descriptor(
+                    therapeutic_descriptor_id, drugs, drug_interaction_type)
+                if tcd:
+                    self.valid_ids["therapeutic_collection_descriptors"][therapeutic_descriptor_id] = tcd  # noqa: E501
+                else:
+                    self.invalid_ids["therapeutic_collection_descriptors"].add(
+                        therapeutic_descriptor_id)
+                return tcd
+
+    def _get_therapeutic_collection_descriptor(
+        self, therapeutic_descriptor_id: str, drugs: List[Dict],
+        drug_interaction_type: str
+    ) -> Optional[TherapeuticCollectionDescriptor]:
+        member_descriptors = list()
+        members = list()
+
+        for drug in drugs:
+            therapeutic_descriptor = self._add_therapeutic_descriptor(drug)
+            if therapeutic_descriptor:
+                member_descriptors.append(therapeutic_descriptor)
+                therapeutic = Therapeutic(id=therapeutic_descriptor["therapeutic"]).dict(exclude_none=True)  # noqa: E501
+                members.append(therapeutic)
+            else:
+                return None
+
+        therapeutic_collection = None
+        # TODO: What to do with this drug_interaction_type? SEQUENTIAL
+        if drug_interaction_type == DrugInteractionType.COMBINATION:
+            therapeutic_collection = CombinationTherapeuticCollection(members=members).dict(exclude_none=True)  # noqa: E501
+        elif drug_interaction_type == DrugInteractionType.SUBSTITUTES:
+            therapeutic_collection = SubstituteTherapeuticCollection(members=members).dict(exclude_none=True)  # noqa: E501
+
+        if not therapeutic_collection:
+            return None
+
+        return TherapeuticCollectionDescriptor(
+            id=therapeutic_descriptor_id,
+            therapeutic_collection=therapeutic_collection,
+            member_descriptors=member_descriptors
+        ).dict(exclude_none=True)
 
     def _get_eid_document(self, source) -> Optional[Document]:
         """Get an EID's document.
