@@ -1,6 +1,6 @@
 """A module for the Molecular Oncology Almanac harvester"""
 import logging
-from typing import Optional
+from typing import Optional, List, Dict
 
 import requests
 import requests_cache
@@ -28,13 +28,14 @@ class MOAHarvester(Harvester):
             assertion_resp = self._get_all_assertions()
             sources = self._harvest_sources(assertion_resp)
             variants, variants_list = self.harvest_variants()
-            assertions = \
-                self.harvest_assertions(assertion_resp, variants_list)
+            assertions = self.harvest_assertions(assertion_resp, variants_list)
+            genes = self._harvest_genes()
             json_created = self.create_json(
                 {
                     "assertions": assertions,
                     "sources": sources,
-                    "variants": variants
+                    "variants": variants,
+                    "genes": genes
                 },
                 filename
             )
@@ -47,6 +48,19 @@ class MOAHarvester(Harvester):
         else:
             logger.info('MOAlmanac Harvester was successful.')
             return True
+
+    @staticmethod
+    def _harvest_genes() -> List[Dict]:
+        """Harvest all genes from MOAlamanc
+
+        :return: List of MOA gene records
+        """
+        genes = list()
+        with requests_cache.disabled():
+            r = requests.get("https://moalmanac.org/api/genes")
+            if r.status_code == 200:
+                genes = r.json()
+        return genes
 
     def _harvest_sources(self, assertion_resp):
         """
