@@ -1,5 +1,5 @@
 """A module for the Transform base class."""
-from typing import Dict, Optional, List, Union
+from typing import Dict, Optional, List
 import json
 import logging
 from pathlib import Path
@@ -21,19 +21,28 @@ logger.setLevel(logging.DEBUG)
 class Transform:
     """A base class for transforming harvester data."""
 
-    methods: List[Method] = [
+    _methods: List[Method] = [
         Method(
             id=MethodId.CIVIC_EID_SOP.value,
             is_reported_in=Document(
                 xrefs=["pmid:31779674"],
                 label="Danos AM, Krysiak K, Barnell EK, et al., 2019, Genome Medicine",
-                title="Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
+                title="Standard operating procedure for curation and clinical "
+                      "interpretation of variants in cancer",
             ).dict(exclude_none=True),
-            label="CIViC Curation SOP (2019)").dict(exclude_none=True)
-        # TODO: Add other methods
+            label="CIViC Curation SOP (2019)").dict(exclude_none=True),
+        Method(
+            id=MethodId.MOA_ASSERTION_BIORXIV.value,
+            is_reported_in=Document(
+                xrefs=["doi:10.1101/2020.09.22.308833"],
+                # TODO: Check label
+                label="Reardon, B., Moore, N.D., Moore, N. et al., 2020, bioRxiv",
+                title="Clinical interpretation of integrative molecular profiles to "
+                      "guide precision cancer medicine"
+            ).dict(exclude_none=True)).dict(exclude_none=True)
     ]
 
-    vicc_evidence_vocabs: List[ViccConceptVocab] = [
+    _vicc_evidence_vocabs: List[ViccConceptVocab] = [
         ViccConceptVocab(
             id="vicc:e00000",
             domain="Evidence",
@@ -102,14 +111,14 @@ class Transform:
             domain="Evidence",
             term="preclinical evidence",
             parents=["e00000"],
-            exact_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL_EVIDENCE},  # noqa: E501
+            exact_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
             definition="Evidence derived from the study of model organisms"),
         ViccConceptVocab(
             id="vicc:e00010",
             domain="Evidence",
             term="inferential evidence",
             parents=["e00000"],
-            exact_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL_EVIDENCE},  # noqa: E501
+            exact_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
             definition="Evidence derived by inference")
     ]
 
@@ -137,11 +146,13 @@ class Transform:
         self.variation_descriptors = list()
         self.gene_descriptors = list()
         self.therapeutic_descriptors = list()
+        self.therapeutic_collection_descriptors = list()
         self.disease_descriptors = list()
         self.documents = list()
+        self.methods = list()
         self.next_node_id = {}
         self.evidence_level_vicc_concept_mapping = self._evidence_level_to_vicc_concept_mapping()  # noqa: E501
-        self.methods_mappping = {m["id"]: m for m in self.methods}
+        self.methods_mappping = {m["id"]: m for m in self._methods}
 
     async def transform(self, *args, **kwargs):
         """Transform harvested data to the Common Data Model."""
@@ -177,9 +188,9 @@ class Transform:
         TargetPropositionType.FUNCTIONAL: FunctionalPredicate.__members__.values()
     }
 
-    def _sort_dict(self, params: any) -> Optional[Union[str, Dict]]:
+    def _sort_dict(self, params: Dict) -> Optional[Dict]:
         """Recursively sort original dictionary
-        Assumes only dicts with values that are strings
+        Assumes only dicts with values that are strings or lists
 
         :param any params: params to be sorted
         :return: At the end will return sorted dictionary
@@ -224,7 +235,7 @@ class Transform:
         :return: Dictionary of evidence level to coding concept
         """
         mappings = dict()
-        for item in self.vicc_evidence_vocabs:
+        for item in self._vicc_evidence_vocabs:
             for exact_mapping in item.exact_mappings:
                 mappings[exact_mapping] = {"id": item.id, "label": item.term,
                                            "type": "Coding"}
@@ -242,6 +253,18 @@ class Transform:
         }
         blob = json.dumps(params_sorted).encode("ascii")
         return f"document:{sha512t24u(blob=blob)}"
+
+    @staticmethod
+    def _get_digest_for_str_lists(l: List[str]) -> str:  # noqa: E741
+        """Create digest for a list of strings
+
+        :param List[str] l: List of strings to get digest for
+        :return: Digest
+        """
+        l.sort()
+        blob = str(l).encode("ascii")
+        blob = json.dumps(l, separators=(",", ":")).encode("ascii")
+        return sha512t24u(blob)
 
     def create_json(self, transform_dir: Optional[Path] = None,
                     filename: Optional[str] = None) -> None:
@@ -261,6 +284,7 @@ class Transform:
             'variation_descriptors': self.variation_descriptors,
             'gene_descriptors': self.gene_descriptors,
             'therapeutic_descriptors': self.therapeutic_descriptors,
+            'therapeutic_collection_descriptors': self.therapeutic_collection_descriptors,  # noqa: E501
             'disease_descriptors': self.disease_descriptors,
             'methods': self.methods,
             'documents': self.documents

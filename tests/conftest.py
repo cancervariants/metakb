@@ -71,15 +71,14 @@ def method4():
     """Create a test fixture for MOA method:4."""
     return {
         "id": "metakb.method:4",
-        "label": "Clinical interpretation of integrative molecular profiles to guide precision cancer medicine",  # noqa: E501
-        "url": "https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1",
-        "type": "Method",
-        "version": {
-            "year": 2020,
-            "month": 9,
-            "day": 22
+        "is_reported_in": {
+            "type": "Document",
+            "label": "Reardon, B., Moore, N.D., Moore, N. et al., 2020, bioRxiv",
+            "xrefs": ["doi:10.1101/2020.09.22.308833"],
+            "title": "Clinical interpretation of integrative molecular profiles to "
+                     "guide precision cancer medicine",
         },
-        "authors": "Reardon, B., Moore, N.D., Moore, N. et al."
+        "type": "Method"
     }
 
 
@@ -1180,22 +1179,39 @@ def pmid_27819322():
 
 
 @pytest.fixture(scope="module")
-def moa_aid71_statement():
+def pmid_11423618():
+    """Create a test fixture for PMID 11423618."""
+    return {
+        "id": "moa.source:41",
+        "xrefs": ["pmid:11423618", "doi:10.1126/science.1062538"],
+        "extensions": [
+            {"name": "source_url", "value": "https://doi.org/10.1126/science.1062538", "type": "Extension"},  # noqa: E501
+            {"name": "source_type", "value": "Journal", "type": "Extension"}
+        ],
+        "title": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501
+        "type": "Document"
+    }
+
+
+@pytest.fixture(scope="module")
+def moa_aid71_statement(method4, pmid_11423618):
     """Create a MOA Statement 71 test fixture."""
     return {
         "id": "moa.assertion:71",
+        "type": "VariationNeoplasmTherapeuticResponseStatement",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
-        "evidence_level": "moa.evidence_level:Preclinical",
-        "proposition": "proposition:4BRAy5ckYBfbzLHr95Xz3M9D9mJpTRxr",
+        "evidence_level": {
+            "id": "vicc:e00009",
+            "label": "preclinical evidence",
+            "type": "Coding"
+        },
+        "target_proposition": "proposition:pfhxkbKw2pNHnGu6sjexO8yI8RaeY4mH",
         "variation_origin": "somatic",
         "subject_descriptor": "moa.variant:71",
         "object_descriptor": "moa.normalize.therapy:Imatinib",
         "neoplasm_type_descriptor": "moa.normalize.disease:oncotree%3ACML",
-        "method": "method:4",
-        "supported_by": [
-            "pmid:11423618"
-        ],
-        "type": "Statement"
+        "method": method4,
+        "is_reported_in": [pmid_11423618]
     }
 
 
@@ -1203,11 +1219,11 @@ def moa_aid71_statement():
 def moa_aid71_proposition():
     """Create a test fixture for MOA AID71 proposition."""
     return {
-        "id": "proposition:4BRAy5ckYBfbzLHr95Xz3M9D9mJpTRxr",
+        "id": "proposition:pfhxkbKw2pNHnGu6sjexO8yI8RaeY4mH",
         "predicate": "predicts_resistance_to",
-        "subject": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
-        "object_qualifier": "ncit:C3174",
-        "object": "rxcui:282388",
+        "subject": "ga4gh:VA.Y6wbwixkMlfdp1iiNUfz_uJJN8mTz_ws",
+        "neoplasm_type_qualifier": {"id": "ncit:C3174", "type": "Disease"},
+        "object": {"id": "rxcui:282388", "type": "Therapeutic"},
         "type": "VariationNeoplasmTherapeuticResponseProposition"
     }
 
@@ -1220,9 +1236,9 @@ def moa_vid71():
         "type": "VariationDescriptor",
         "label": "ABL1 p.T315I (Missense)",
         "variation": {
-            "id": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
+            "id": "ga4gh:VA.Y6wbwixkMlfdp1iiNUfz_uJJN8mTz_ws",
             "location": {
-                "id": "ga4gh:VSL.JkBiKTd3Kq-l0ZSOzCOJ1i60mh03hXb5",
+                "id": "ga4gh:SL.260GmEit7aax_69ke78vlJZR__REfevt",
                 "end": {"value": 315, "type": "Number"},
                 "start": {"value": 314, "type": "Number"},
                 "sequence_id": "ga4gh:SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg",
@@ -1281,16 +1297,40 @@ def moa_imatinib():
                 "approval_rating": "FDA",
                 "has_indications": [
                     {
-                        "id": "hemonc:634",
+                        "id": "hemonc:667",
                         "type": "DiseaseDescriptor",
-                        "label": "Myelodysplastic syndrome",
-                        "disease": "ncit:C3247"
+                        "label": "Soft tissue sarcoma",
+                        "disease": "ncit:C9306"
+                    },
+                    {
+                        "id": "hemonc:602",
+                        "type": "DiseaseDescriptor",
+                        "label": "Gastrointestinal stromal tumor",
+                        "disease": "ncit:C3868"
                     },
                     {
                         "id": "hemonc:616",
                         "type": "DiseaseDescriptor",
                         "label": "Hypereosinophilic syndrome",
                         "disease": "ncit:C27038"
+                    },
+                    {
+                        "id": "hemonc:33893",
+                        "type": "DiseaseDescriptor",
+                        "label": "Chronic myelogenous leukemia pediatric",
+                        "disease": None
+                    },
+                    {
+                        "id": "hemonc:634",
+                        "type": "DiseaseDescriptor",
+                        "label": "Myelodysplastic syndrome",
+                        "disease": "ncit:C3247"
+                    },
+                    {
+                        "id": "hemonc:24309",
+                        "type": "DiseaseDescriptor",
+                        "label": "Acute lymphoblastic leukemia",
+                        "disease": "ncit:C3167"
                     },
                     {
                         "id": "hemonc:582",
@@ -1303,24 +1343,6 @@ def moa_imatinib():
                         "type": "DiseaseDescriptor",
                         "label": "Systemic mastocytosis",
                         "disease": "ncit:C9235"
-                    },
-                    {
-                        "id": "hemonc:24309",
-                        "type": "DiseaseDescriptor",
-                        "label": "Acute lymphoblastic leukemia",
-                        "disease": "ncit:C3167"
-                    },
-                    {
-                        "id": "hemonc:667",
-                        "type": "DiseaseDescriptor",
-                        "label": "Soft tissue sarcoma",
-                        "disease": "ncit:C9306"
-                    },
-                    {
-                        "id": "hemonc:602",
-                        "type": "DiseaseDescriptor",
-                        "label": "Gastrointestinal stromal tumor",
-                        "disease": "ncit:C3868"
                     }
                 ]
             }
@@ -1335,20 +1357,8 @@ def moa_chronic_myelogenous_leukemia():
         "id": "moa.normalize.disease:oncotree%3ACML",
         "type": "DiseaseDescriptor",
         "label": "Chronic Myelogenous Leukemia",
-        "disease": "ncit:C3174"
-    }
-
-
-@pytest.fixture(scope="module")
-def pmid_11423618():
-    """Create a test fixture for PMID 11423618."""
-    return {
-        "id": "pmid:11423618",
-        "label": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501
-        "xrefs": [
-            "doi:10.1126/science.1062538"
-        ],
-        "type": "Document"
+        "disease": "ncit:C3174",
+        "xrefs": ["oncotree:CML"]
     }
 
 
@@ -1476,7 +1486,7 @@ def check_transformed_cdm():
     def check_transformed_cdm(data, statements, propositions,
                               variation_descriptors, gene_descriptors,
                               disease_descriptors, therapy_descriptors,
-                              civic_methods, documents, check_statement,
+                              methods, documents, check_statement,
                               check_proposition, check_variation_descriptor,
                               check_descriptor, check_document, check_method,
                               transformed_file):
@@ -1490,7 +1500,7 @@ def check_transformed_cdm():
              "gene_descriptors"),
             (data["disease_descriptors"], disease_descriptors, check_descriptor,
              "disease_descriptors"),
-            (data["methods"], civic_methods, check_method, "methods"),
+            (data["methods"], methods, check_method, "methods"),
             (data["documents"], documents, check_document, "documents")
         )
 

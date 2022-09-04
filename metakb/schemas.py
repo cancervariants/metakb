@@ -38,8 +38,8 @@ class MoaEvidenceLevel(str, Enum):
     GUIDELINE = "moa.evidence_level:guideline"
     CLINICAL_TRIAL = "moa.evidence_level:clinical_trial"
     CLINICAL_EVIDENCE = "moa.evidence_level:clinical_evidence"
-    PRECLINICAL_EVIDENCE = "moa.evidence_level:preclinical_evidence"
-    INFERENTIAL_EVIDENCE = "moa.evidence_level:inferential_evidence"
+    PRECLINICAL = "moa.evidence_level:preclinical_evidence"
+    INFERENTIAL = "moa.evidence_level:inferential_evidence"
 
 
 class EcoLevel(str, Enum):

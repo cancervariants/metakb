@@ -4,7 +4,6 @@ from typing import Optional, Dict, List, Set
 from pathlib import Path
 import logging
 
-from ga4gh.core import sha512t24u
 from ga4gh.vrsatile.pydantic.core_models import Extension, Disease, Therapeutic, \
     Coding, CombinationTherapeuticCollection, SubstituteTherapeuticCollection
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
@@ -84,17 +83,6 @@ class CIViCTransform(Transform):
         self._transform_evidence_and_assertions(evidence_items)
         # TODO: Uncomment
         # self._transform_evidence_and_assertions(assertions, is_evidence=False)
-
-    @staticmethod
-    def _get_digest_for_str_lists(l: List[str]) -> str:  # noqa: E741
-        """Create digest for a list of strings
-
-        :param List[str] l: List of strings to get digest for
-        :return: Digest
-        """
-        l.sort()
-        blob = str(l).encode("ascii")
-        return sha512t24u(blob)
 
     def _transform_evidence_and_assertions(self, records: List[Dict],
                                            is_evidence: bool = True) -> None:
