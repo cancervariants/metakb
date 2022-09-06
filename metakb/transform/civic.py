@@ -176,6 +176,8 @@ class CIViCTransform(Transform):
             if is_evidence:
                 # Evidence items's method and evidence level
                 method = self.methods_mappping[MethodId.CIVIC_EID_SOP.value]
+                if method not in self.methods:
+                    self.methods.append(method)
                 civic_evidence_level = f"civic.evidence_level:{r['evidence_level']}"
 
                 evidence_level_params = self.evidence_level_vicc_concept_mapping[civic_evidence_level]  # noqa: E501
@@ -221,8 +223,7 @@ class CIViCTransform(Transform):
                     neoplasm_type_descriptor=disease_descriptor_id,
                     object_descriptor=therapeutic_descriptor_id,
                     method=method,
-                    is_reported_in=[document],
-                    type="VariationNeoplasmTherapeuticResponseStatement"
+                    is_reported_in=[document]
                 ).dict(exclude_none=True)
 
             self.statements.append(statement)
@@ -352,12 +353,11 @@ class CIViCTransform(Transform):
         :param str variant_origin: CIViC variant origin
         :return: Variation origin
         """
-        if variant_origin == 'Somatic':
+        variant_origin = variant_origin.upper()
+        if variant_origin == "SOMATIC":
             origin = VariationOrigin.SOMATIC.value
-        elif variant_origin in ['Rare Germline', 'Common Germline']:
+        elif variant_origin in ["RARE_GERMLINE", "COMMON_GERMLINE"]:
             origin = VariationOrigin.GERMLINE.value
-        elif variant_origin == 'N/A':
-            origin = VariationOrigin.NOT_APPLICABLE.value
         else:
             origin = None
         return origin
@@ -727,7 +727,7 @@ class CIViCTransform(Transform):
                 else:
                     self.invalid_ids["therapeutic_collection_descriptors"].add(
                         therapeutic_descriptor_id)
-                return tcd
+            return tcd
 
     def _get_therapeutic_collection_descriptor(
         self, therapeutic_descriptor_id: str, drugs: List[Dict],
@@ -758,11 +758,17 @@ class CIViCTransform(Transform):
         if not therapeutic_collection:
             return None
 
-        return TherapeuticCollectionDescriptor(
+        extensions = [Extension(name="civic_drug_interaction_type",
+                                value=drug_interaction_type).dict(exclude_none=True)]
+
+        tcd = TherapeuticCollectionDescriptor(
             id=therapeutic_descriptor_id,
             therapeutic_collection=therapeutic_collection,
-            member_descriptors=member_descriptors
+            member_descriptors=member_descriptors,
+            extensions=extensions
         ).dict(exclude_none=True)
+        self.therapeutic_collection_descriptors.append(tcd)
+        return tcd
 
     def _get_eid_document(self, source) -> Optional[Document]:
         """Get an EID's document.
