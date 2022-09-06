@@ -262,7 +262,6 @@ class Transform:
         :return: Digest
         """
         l.sort()
-        blob = str(l).encode("ascii")
         blob = json.dumps(l, separators=(",", ":")).encode("ascii")
         return sha512t24u(blob)
 

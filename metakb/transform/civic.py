@@ -126,7 +126,7 @@ class CIViCTransform(Transform):
                     therapeutic_descriptor_id = f"civic.tid:{drug['id']}"
                     therapeutic_descriptor = self._add_therapeutic_descriptor(drug)
                 elif len_drugs > 1:
-                    therapeutic_ids = [f"civic.drug:{d['id']}" for d in drugs]
+                    therapeutic_ids = [f"civic.tid:{d['id']}" for d in drugs]
                     therapeutic_digest = self._get_digest_for_str_lists(therapeutic_ids)
                     drug_interaction_type = r["drug_interaction_type"]
                     therapeutic_descriptor_id = f"civic.tcd:{therapeutic_digest}"
@@ -747,6 +747,7 @@ class CIViCTransform(Transform):
 
         therapeutic_collection = None
         drug_interaction_type_upper = drug_interaction_type.upper()
+        # TODO: Check if collection needs ID field
         if drug_interaction_type_upper in {"COMBINATION", "SEQUENTIAL"}:
             therapeutic_collection = CombinationTherapeuticCollection(members=members).dict(exclude_none=True)  # noqa: E501
         elif drug_interaction_type_upper == "SUBSTITUTES":
