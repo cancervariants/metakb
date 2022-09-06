@@ -12,7 +12,7 @@ from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
 
 from metakb import APP_ROOT
 from metakb.normalizers import VICCNormalizers
-from metakb.schemas import Direction, Document, DrugInteractionType, MethodId, \
+from metakb.schemas import Direction, Document, MethodId, \
     Predicate, PredictivePredicate, SourcePrefix, TargetPropositionType, \
     VariationNeoplasmTherapeuticResponseProposition, XrefSystem, VariationOrigin, \
     VariationNeoplasmTherapeuticResponseStatement
@@ -128,7 +128,7 @@ class CIViCTransform(Transform):
                 elif len_drugs > 1:
                     therapeutic_ids = [f"civic.drug:{d['id']}" for d in drugs]
                     therapeutic_digest = self._get_digest_for_str_lists(therapeutic_ids)
-                    drug_interaction_type = r["drug_interaction_type"].upper()
+                    drug_interaction_type = r["drug_interaction_type"]
                     therapeutic_descriptor_id = f"civic.tcd:{therapeutic_digest}"
 
                     therapeutic_descriptor = self._add_therapeutic_collection_descriptor(  # noqa: E501
@@ -746,11 +746,14 @@ class CIViCTransform(Transform):
                 return None
 
         therapeutic_collection = None
-        # TODO: What to do with this drug_interaction_type? SEQUENTIAL
-        if drug_interaction_type == DrugInteractionType.COMBINATION:
+        drug_interaction_type_upper = drug_interaction_type.upper()
+        if drug_interaction_type_upper in {"COMBINATION", "SEQUENTIAL"}:
             therapeutic_collection = CombinationTherapeuticCollection(members=members).dict(exclude_none=True)  # noqa: E501
-        elif drug_interaction_type == DrugInteractionType.SUBSTITUTES:
+        elif drug_interaction_type_upper == "SUBSTITUTES":
             therapeutic_collection = SubstituteTherapeuticCollection(members=members).dict(exclude_none=True)  # noqa: E501
+        else:
+            logger.debug(f"drug interaction type, {drug_interaction_type}, "
+                         f"is not supported")
 
         if not therapeutic_collection:
             return None
