@@ -1,0 +1,340 @@
+--------CIViC variants that are not yet supported---------
+civic.vid:265 : TYMS 5' TANDEM REPEAT
+civic.vid:551 : ALK ALK Fusion F1245C
+civic.vid:171 : ALK ALK Fusion G1202R
+civic.vid:552 : ALK ALK Fusion G1269A
+civic.vid:527 : ALK ALK Fusion I1171
+civic.vid:1296 : CTNNB1 Activating Mutation
+civic.vid:3737 : EZH2 Activating Mutation
+civic.vid:18 : CCND1 Amplification
+civic.vid:180 : AURKA Amplification
+civic.vid:187 : CCNE1 Amplification
+civic.vid:190 : EGFR Amplification
+civic.vid:212 : PIK3CA Amplification
+civic.vid:251 : BIRC7 Amplification
+civic.vid:267 : FGFR1 Amplification
+civic.vid:270 : MET Amplification
+civic.vid:298 : MYCN Amplification
+civic.vid:306 : ERBB2 Amplification
+civic.vid:321 : MAPK1 Amplification
+civic.vid:330 : NOTCH1 Amplification
+civic.vid:358 : RSF1 Amplification
+civic.vid:371 : TOP1 Amplification
+civic.vid:379 : TYMS Amplification
+civic.vid:407 : ABCC3 Amplification
+civic.vid:409 : ASNS Amplification
+civic.vid:553 : CDK4 Amplification
+civic.vid:573 : RICTOR Amplification
+civic.vid:586 : KIT Amplification
+civic.vid:591 : RAF1 Amplification
+civic.vid:592 : KRAS Amplification
+civic.vid:629 : FGFR2 Amplification
+civic.vid:630 : FGF3 Amplification
+civic.vid:635 : AKT2 Amplification
+civic.vid:716 : PDGFRA Amplification
+civic.vid:1269 : BRAF Amplification
+civic.vid:1280 : NTRK1 Amplification
+civic.vid:1281 : NTRK3 Amplification
+civic.vid:2240 : TLK2 Amplification
+civic.vid:461 : PML B2 DOMAIN MUTATION
+civic.vid:532 : PALB2 Biallelic Inactivation
+civic.vid:341 : CD44 CD44s Expression
+civic.vid:821 : HLA-C COPY-NEUTRAL LOSS OF HETEROZYGOSITY
+civic.vid:360 : CDKN1B CYTOPLASMIC MISLOCALIZATION
+civic.vid:242 : TP53 DNA Binding Domain Mutation
+civic.vid:738 : DPYD DPYD*13 HOMOZYGOSITY
+civic.vid:737 : DPYD DPYD*2A HOMOZYGOSITY
+civic.vid:334 : VEGFA Decreased Peri-therapeutic Expression
+civic.vid:221 : TP53 Deleterious Mutation
+civic.vid:213 : PTEN Deletion
+civic.vid:250 : GSTP1 Deletion
+civic.vid:646 : SMAD4 Deletion
+civic.vid:696 : SMARCB1 Deletion
+civic.vid:3309 : ATRX Deletion
+civic.vid:526 : BCL2L11 Deletion Polymorphism
+civic.vid:352 : ALK C1156Y-L1198F
+civic.vid:170 : ALK and Amplification
+civic.vid:501 : ALK e2-e20
+civic.vid:500 : ALK e20-e20
+civic.vid:503 : ALK e6-e20
+civic.vid:2893 : DPYD EXON 11-19 DELETION
+civic.vid:86 : NPM1 EXON 12 MUTATION
+civic.vid:266 : LRP1B EXON 12-22 DELETION
+civic.vid:464 : MET EXON 14 MUTATION and AMPLIFICATION
+civic.vid:324 : MET EXON 14 SKIPPING MUTATION
+civic.vid:74 : KRAS EXON 2 Mutations
+civic.vid:129 : WT1 EXON 7 MUTATION
+civic.vid:559 : CALR EXON 9 FRAMESHIFT
+civic.vid:25 : CDK4 EXPRESSION
+civic.vid:57 : GATA2 EXPRESSION
+civic.vid:158 : AURKA EXPRESSION
+civic.vid:278 : AKT2 EXPRESSION
+civic.vid:318 : EREG EXPRESSION
+civic.vid:326 : CBLC EXPRESSION
+civic.vid:328 : DEFA1 EXPRESSION
+civic.vid:335 : DNMT1 EXPRESSION
+civic.vid:337 : PDCD4 EXPRESSION
+civic.vid:339 : TFF3 EXPRESSION
+civic.vid:342 : EGF EXPRESSION
+civic.vid:343 : MDM2 EXPRESSION
+civic.vid:344 : HMOX1 EXPRESSION
+civic.vid:355 : CDKN1A EXPRESSION
+civic.vid:356 : ALCAM EXPRESSION
+civic.vid:357 : STMN1 EXPRESSION
+civic.vid:361 : ERBB3 EXPRESSION
+civic.vid:363 : UGT1A EXPRESSION
+civic.vid:365 : ERBB4 EXPRESSION
+civic.vid:366 : SLFN11 EXPRESSION
+civic.vid:372 : CDKN1B EXPRESSION
+civic.vid:373 : AGR2 EXPRESSION
+civic.vid:380 : IGF1R EXPRESSION
+civic.vid:381 : EPHB4 EXPRESSION
+civic.vid:383 : TOP2A EXPRESSION
+civic.vid:384 : TOP1 EXPRESSION
+civic.vid:386 : HSPA5 EXPRESSION
+civic.vid:389 : TUBB3 EXPRESSION
+civic.vid:392 : CFLAR EXPRESSION
+civic.vid:393 : PROM1 EXPRESSION
+civic.vid:394 : FOXP3 EXPRESSION
+civic.vid:398 : DUSP6 EXPRESSION
+civic.vid:400 : HSPB1 EXPRESSION
+civic.vid:401 : NQO1 EXPRESSION
+civic.vid:405 : CXCR4 EXPRESSION
+civic.vid:406 : MAGEH1 EXPRESSION
+civic.vid:412 : POU5F1 EXPRESSION
+civic.vid:423 : HLA-DRA EXPRESSION
+civic.vid:429 : KIT EXPRESSION
+civic.vid:492 : ECSCR EXPRESSION
+civic.vid:493 : ROBO4 EXPRESSION
+civic.vid:625 : RAD23B EXPRESSION
+civic.vid:652 : GAS6 EXPRESSION
+civic.vid:660 : HIF1A EXPRESSION
+civic.vid:670 : MYCL EXPRESSION
+civic.vid:671 : HGF EXPRESSION
+civic.vid:673 : FGF2 EXPRESSION
+civic.vid:3042 : CDK6 EXPRESSION
+civic.vid:106 : PIK3CA Exon 10 Mutation
+civic.vid:66 : KIT Exon 11 Mutation
+civic.vid:2643 : KIT Exon 13 Mutation
+civic.vid:2650 : BRAF Exon 15 Mutation
+civic.vid:2623 : PDGFRA Exon 18 Mutation
+civic.vid:375 : EGFR Exon 18 Overexpression
+civic.vid:133 : EGFR Exon 19 Deletion
+civic.vid:75 : KRAS Exon 2 Mutation
+civic.vid:726 : EGFR Exon 20 Insertion
+civic.vid:2854 : ERBB2 Exon 20 Insertion
+civic.vid:105 : PIK3CA Exon 21 Mutation
+civic.vid:252 : EGFR Exon 4 Deletion
+civic.vid:550 : ALK Exon 4-11 Deletion
+civic.vid:509 : KIT Exon 9 Mutation
+civic.vid:210 : PGR Expression
+civic.vid:268 : FGFR1 Expression
+civic.vid:276 : CD274 Expression
+civic.vid:313 : PTEN Expression
+civic.vid:314 : NRG1 Expression
+civic.vid:315 : AREG Expression
+civic.vid:329 : ERCC1 Expression
+civic.vid:354 : EGFR Expression
+civic.vid:376 : ZEB1 Expression
+civic.vid:397 : BRCA1 Expression
+civic.vid:428 : MRE11 Frameshift
+civic.vid:124 : TSC1 Frameshift Truncation
+civic.vid:419 : NTRK1 Fusion
+civic.vid:499 : ALK Fusion
+civic.vid:568 : PDGFRB Fusion
+civic.vid:569 : FGFR1 Fusion
+civic.vid:1277 : NTRK3 Fusion
+civic.vid:1687 : RET Fusion
+civic.vid:1691 : FGFR3 Fusion
+civic.vid:2202 : FGFR2 Fusion
+civic.vid:2286 : NRG1 Fusion
+civic.vid:2571 : ABL2 Fusion
+civic.vid:2640 : NTRK2 Fusion
+civic.vid:2693 : ROS1 Fusion
+civic.vid:77 : KRAS G12/G13
+civic.vid:1765 : EGFR Gain-of-function
+civic.vid:67 : KIT Internal Duplication
+civic.vid:413 : ERBB2 Kinase Domain Mutation
+civic.vid:3225 : NTRK1 e11-e10
+civic.vid:3223 : NTRK1 e2-e10
+civic.vid:3224 : NTRK1 e2-e11
+civic.vid:809 : MSH6 LOSS
+civic.vid:23 : CCND3 Loss
+civic.vid:214 : PTEN Loss
+civic.vid:370 : MRE11 Loss
+civic.vid:436 : VHL Loss
+civic.vid:485 : STK11 Loss
+civic.vid:554 : CDKN2A Loss
+civic.vid:555 : CDKN2B Loss
+civic.vid:672 : SOX10 Loss
+civic.vid:697 : NF2 Loss
+civic.vid:698 : NF1 Loss
+civic.vid:808 : MSH2 Loss
+civic.vid:2230 : ASS1 Loss
+civic.vid:2644 : SMARCA4 Loss
+civic.vid:125 : TSC1 Loss-of-function
+civic.vid:131 : BRCA1 Loss-of-function
+civic.vid:132 : BRCA2 Loss-of-function
+civic.vid:236 : CDK12 Loss-of-function
+civic.vid:534 : FANCC Loss-of-function
+civic.vid:601 : NOTCH1 Loss-of-function
+civic.vid:606 : RB1 Loss-of-function
+civic.vid:637 : FBXW7 Loss-of-function
+civic.vid:819 : PTPRB Loss-of-function
+civic.vid:1293 : ARID1A Loss-of-function
+civic.vid:2219 : BARD1 Loss-of-function
+civic.vid:2235 : RASA1 Loss-of-function
+civic.vid:29 : CEBPA Mutation
+civic.vid:155 : RUNX1 Mutation
+civic.vid:160 : VHL Mutation
+civic.vid:174 : APC Mutation
+civic.vid:178 : ATM Mutation
+civic.vid:183 : BAP1 Mutation
+civic.vid:185 : BRCA1 Mutation
+civic.vid:186 : BRCA2 Mutation
+civic.vid:189 : DNMT3A Mutation
+civic.vid:208 : NRAS Mutation
+civic.vid:216 : SMAD4 Mutation
+civic.vid:222 : TP53 Mutation
+civic.vid:275 : HRAS Mutation
+civic.vid:277 : MTOR Mutation
+civic.vid:281 : FBXW7 Mutation
+civic.vid:297 : RIT1 Mutation
+civic.vid:300 : SMO Mutation
+civic.vid:301 : PTCH1 Mutation
+civic.vid:310 : ERBB4 Mutation
+civic.vid:311 : PIK3CA Mutation
+civic.vid:323 : MET Mutation
+civic.vid:327 : PTPRD Mutation
+civic.vid:336 : KRAS Mutation
+civic.vid:388 : KIT Mutation
+civic.vid:399 : BRAF Mutation
+civic.vid:442 : EGFR Mutation
+civic.vid:505 : GNAQ Mutation
+civic.vid:506 : GNA11 Mutation
+civic.vid:510 : PTEN Mutation
+civic.vid:511 : FGFR2 Mutation
+civic.vid:512 : ALK Mutation
+civic.vid:519 : FLT3 Mutation
+civic.vid:570 : IDH2 Mutation
+civic.vid:587 : NF1 Mutation
+civic.vid:600 : AR Mutation
+civic.vid:633 : PIK3R1 Mutation
+civic.vid:645 : IDH1 Mutation
+civic.vid:666 : ERBB2 Mutation
+civic.vid:713 : CRBN Mutation
+civic.vid:715 : STK11 Mutation
+civic.vid:797 : POLE Mutation
+civic.vid:799 : RB1 Mutation
+civic.vid:827 : FGFR3 Mutation
+civic.vid:2704 : CDKN2A Mutation
+civic.vid:2749 : NFE2L2 Mutation
+civic.vid:3274 : PDGFRA Mutation
+civic.vid:4018 : MS4A1 Mutation
+civic.vid:28 : CEBPA N-TERMINAL FRAME SHIFT
+civic.vid:340 : DKK1 NUCLEAR EXPRESSION
+civic.vid:368 : BIRC5 NUCLEAR EXPRESSION
+civic.vid:391 : IGF1R NUCLEAR EXPRESSION
+civic.vid:490 : HSPH1 NUCLEAR EXPRESSION
+civic.vid:364 : ERBB4 NUCLEAR TRANSLOCATION
+civic.vid:2376 : ABL1 Non-P-Loop Mutation
+civic.vid:2408 : BRAF Non-V600
+civic.vid:305 : SYK OVEREXPRESSION
+civic.vid:348 : PBK OVEREXPRESSION
+civic.vid:359 : AR OVEREXPRESSION
+civic.vid:378 : PTP4A3 OVEREXPRESSION
+civic.vid:396 : JAK1 OVEREXPRESSION
+civic.vid:796 : RRM2 OVEREXPRESSION
+civic.vid:1299 : MERTK OVEREXPRESSION
+civic.vid:2586 : PARP1 OVEREXPRESSION
+civic.vid:2917 : LYN OVEREXPRESSION
+civic.vid:20 : CCND1 Overexpression
+civic.vid:24 : CCNE1 Overexpression
+civic.vid:156 : IGF2 Overexpression
+civic.vid:181 : AURKA Overexpression
+civic.vid:193 : EGFR Overexpression
+civic.vid:289 : ERBB3 Overexpression
+civic.vid:290 : NT5E Overexpression
+civic.vid:292 : MYD88 Overexpression
+civic.vid:325 : FGFR3 Overexpression
+civic.vid:346 : CASP8 Overexpression
+civic.vid:347 : TYMS Overexpression
+civic.vid:377 : TIMP1 Overexpression
+civic.vid:408 : ABCC10 Overexpression
+civic.vid:435 : EPAS1 Overexpression
+civic.vid:481 : DDX43 Overexpression
+civic.vid:483 : TBK1 Overexpression
+civic.vid:486 : HAVCR2 Overexpression
+civic.vid:529 : SIRT1 Overexpression
+civic.vid:547 : RB1 Overexpression
+civic.vid:578 : BIRC5 Overexpression
+civic.vid:597 : RET Overexpression
+civic.vid:602 : CDK6 Overexpression
+civic.vid:603 : FLT3 Overexpression
+civic.vid:607 : ESR1 Overexpression
+civic.vid:621 : MET Overexpression
+civic.vid:639 : JUN Overexpression
+civic.vid:640 : FOS Overexpression
+civic.vid:693 : SGK1 Overexpression
+civic.vid:795 : RRM1 Overexpression
+civic.vid:875 : ERBB2 Overexpression
+civic.vid:1273 : CTAG1B Overexpression
+civic.vid:1274 : CTAG2 Overexpression
+civic.vid:1301 : AKT3 Overexpression
+civic.vid:1303 : MYC Overexpression
+civic.vid:1306 : TP53 Overexpression
+civic.vid:1693 : CHEK1 Overexpression
+civic.vid:2360 : AKT1 Overexpression
+civic.vid:2363 : PIK3R2 Overexpression
+civic.vid:2784 : FGF19 Overexpression
+civic.vid:2911 : IL6 Overexpression
+civic.vid:2915 : ABCB1 Overexpression
+civic.vid:2944 : PDGFRA Overexpression
+civic.vid:2973 : PDGFRB Overexpression
+civic.vid:3259 : IGF1R Overexpression
+civic.vid:3728 : SLC29A1 Overexpression
+civic.vid:2375 : ABL1 P-Loop Mutation
+civic.vid:387 : EIF4EBP1 PHOSPHORYLATION
+civic.vid:395 : RPS6 PHOSPHORYLATION
+civic.vid:632 : RB1 PHOSPHORYLATION
+civic.vid:333 : PTPRT Promoter Hypermethylation
+civic.vid:374 : NAPRT Promoter Hypermethylation
+civic.vid:85 : MGMT Promoter Methylation
+civic.vid:740 : DPYD RS67376798 HOMOZYGOSITY
+civic.vid:1863 : EGFR Rare Exon 18-21 Mutation
+civic.vid:2334 : EGFR Rare Mutation
+civic.vid:269 : ROS1 Rearrangement
+civic.vid:416 : ERBB2 SERUM LEVELS
+civic.vid:487 : MMP2 SERUM LEVELS
+civic.vid:488 : MMP9 SERUM LEVELS
+civic.vid:491 : HSPH1 T17 DELETION
+civic.vid:385 : PRKAA2 T172 PHOSPHORYLATION
+civic.vid:56 : FLT3 TKD MUTATION
+civic.vid:2371 : ABL1 TKD MUTATION
+civic.vid:179 : ATM Underexpression
+civic.vid:282 : SMAD4 Underexpression
+civic.vid:304 : STK11 Underexpression
+civic.vid:349 : SMARCA4 Underexpression
+civic.vid:382 : TYMS Underexpression
+civic.vid:403 : BRCA1 Underexpression
+civic.vid:422 : STAG2 Underexpression
+civic.vid:473 : ALDH1A2 Underexpression
+civic.vid:475 : CIP2A Underexpression
+civic.vid:648 : ATRX Underexpression
+civic.vid:654 : STAG3 Underexpression
+civic.vid:695 : SMARCB1 Underexpression
+civic.vid:867 : MTAP Underexpression
+civic.vid:868 : VPS37A Underexpression
+civic.vid:1255 : MGMT Underexpression
+civic.vid:1257 : RRM1 Underexpression
+civic.vid:2409 : ERCC1 Underexpression
+civic.vid:14 : BRAF V600E and Amplification
+civic.vid:2361 : BRAF V600E/K and Amplification
+civic.vid:362 : AR V7 EXPRESSION
+civic.vid:426 : BRAF WILD TYPE
+civic.vid:390 : EGFR Y1092 PHOSPHORYLATION
+civic.vid:3049 : ATM c.902-1G>T
+civic.vid:3752 : SSTR5 expression
+civic.vid:2226 : BRAF intron 10 rearrangement
+civic.vid:2225 : BRAF intron 9 rearrangement
+civic.vid:272 : CDKN2A p16 Expression

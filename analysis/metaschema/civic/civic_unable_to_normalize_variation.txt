@@ -1,0 +1,228 @@
+--------CIViC variants that variation normalizer could not normalize---------
+civic.vid:2979 : KRAS A146
+civic.vid:1579 : EGFR A767_V769dupASV
+civic.vid:285 : BRAF AGK::BRAF
+civic.vid:1307 : TP53 ALTERATION
+civic.vid:2211 : BAP1 ALTERNATIVE TRANSCRIPT (ATI)
+civic.vid:2772 : NRG1 APP::NRG1
+civic.vid:2178 : NRG1 ATP1B1::NRG1
+civic.vid:839 : ALK Alternative Transcript (ATI)
+civic.vid:1 : ABL1 BCR::ABL
+civic.vid:1612 : ABL1 BCR::ABL A397P
+civic.vid:1027 : ABL1 BCR::ABL D276G
+civic.vid:2900 : ABL1 BCR::ABL D363G
+civic.vid:1532 : ABL1 BCR::ABL D421G
+civic.vid:3 : ABL1 BCR::ABL E255K
+civic.vid:2890 : ABL1 BCR::ABL E255K V299L
+civic.vid:1173 : ABL1 BCR::ABL E255V
+civic.vid:1526 : ABL1 BCR::ABL E279K
+civic.vid:2886 : ABL1 BCR::ABL E279K
+civic.vid:2887 : ABL1 BCR::ABL E292L
+civic.vid:1183 : ABL1 BCR::ABL E292V
+civic.vid:1487 : ABL1 BCR::ABL E355G
+civic.vid:2948 : ABL1 BCR::ABL E450Q
+civic.vid:1534 : ABL1 BCR::ABL E450V
+civic.vid:1536 : ABL1 BCR::ABL E453A
+civic.vid:1535 : ABL1 BCR::ABL E453K
+civic.vid:1509 : ABL1 BCR::ABL E453Q
+civic.vid:2370 : ABL1 BCR::ABL E459K
+civic.vid:2901 : ABL1 BCR::ABL E98G
+civic.vid:1507 : ABL1 BCR::ABL F311I
+civic.vid:1528 : ABL1 BCR::ABL F311L
+civic.vid:2359 : ABL1 BCR::ABL F317C
+civic.vid:1625 : ABL1 BCR::ABL F317I
+civic.vid:241 : ABL1 BCR::ABL F317L
+civic.vid:2888 : ABL1 BCR::ABL F317R
+civic.vid:2343 : ABL1 BCR::ABL F317S
+civic.vid:1525 : ABL1 BCR::ABL F317V
+civic.vid:1184 : ABL1 BCR::ABL F359C
+civic.vid:1523 : ABL1 BCR::ABL F359I
+civic.vid:892 : ABL1 BCR::ABL F359V
+civic.vid:1152 : ABL1 BCR::ABL F486S
+civic.vid:1023 : ABL1 BCR::ABL G250E
+civic.vid:1233 : ABL1 BCR::ABL G398R
+civic.vid:1531 : ABL1 BCR::ABL H396P
+civic.vid:1030 : ABL1 BCR::ABL H396R
+civic.vid:2340 : ABL1 BCR::ABL L248R
+civic.vid:2889 : ABL1 BCR::ABL L248R and F359I
+civic.vid:1022 : ABL1 BCR::ABL L248V
+civic.vid:2902 : ABL1 BCR::ABL L364I
+civic.vid:1530 : ABL1 BCR::ABL L364P
+civic.vid:1230 : ABL1 BCR::ABL L384M
+civic.vid:1232 : ABL1 BCR::ABL L387F
+civic.vid:1488 : ABL1 BCR::ABL L387M
+civic.vid:1021 : ABL1 BCR::ABL M244V
+civic.vid:2949 : ABL1 BCR::ABL M244V and L364I
+civic.vid:1524 : ABL1 BCR::ABL M343T
+civic.vid:1029 : ABL1 BCR::ABL M351T
+civic.vid:2954 : ABL1 BCR::ABL M388L
+civic.vid:2951 : ABL1 BCR::ABL N146S
+civic.vid:1529 : ABL1 BCR::ABL N331S
+civic.vid:1640 : ABL1 BCR::ABL N336S
+civic.vid:1537 : ABL1 BCR::ABL P480A
+civic.vid:1024 : ABL1 BCR::ABL Q252H
+civic.vid:1527 : ABL1 BCR::ABL Q300R
+civic.vid:1613 : ABL1 BCR::ABL S417Y
+civic.vid:2953 : ABL1 BCR::ABL S438C
+civic.vid:2335 : ABL1 BCR::ABL T315A
+civic.vid:2 : ABL1 BCR::ABL T315I
+civic.vid:2885 : ABL1 BCR::ABL T315V
+civic.vid:2952 : ABL1 BCR::ABL V298I
+civic.vid:1231 : ABL1 BCR::ABL V299L
+civic.vid:1609 : ABL1 BCR::ABL V379I
+civic.vid:1026 : ABL1 BCR::ABL Y253F
+civic.vid:2909 : ABL1 BCR::ABL Y253F
+civic.vid:1025 : ABL1 BCR::ABL Y253H
+civic.vid:2971 : PDGFRA BCR::PDGFRA
+civic.vid:656 : BRAF BRAF::CUL1
+civic.vid:719 : BRD4 BRD4::NUTM1
+civic.vid:2769 : ALK CAD::ALK
+civic.vid:626 : RET CCDC6::RET
+civic.vid:465 : ROS1 CD74::ROS1 G2032R
+civic.vid:518 : ROS1 CD74::ROS1 G2101A
+civic.vid:516 : ROS1 CD74::ROS1 L2026M
+civic.vid:517 : ROS1 CD74::ROS1 L2155S
+civic.vid:520 : ALK CLTC::ALK
+civic.vid:2972 : PDGFB COL1A1::PDGFB
+civic.vid:599 : CTLA4 CTLA4::CD28
+civic.vid:2229 : BRAF CUX1::BRAF
+civic.vid:437 : FLT3 D835
+civic.vid:613 : FLT3 D835H/Y
+civic.vid:943 : PDGFRA D842_H845DELDIMH
+civic.vid:2394 : NTRK1 DDR2::NTRK1
+civic.vid:522 : BRAF DEL 485-490
+civic.vid:3009 : ABL1 Double Ph
+civic.vid:572 : MTOR E2014K and E2419K
+civic.vid:1003 : EGFR E746_T751>I
+civic.vid:535 : PDGFRB EBF1::PDGFRB
+civic.vid:2203 : EGFR EGFR::RAD51
+civic.vid:5 : ALK EML4::ALK
+civic.vid:528 : ALK EML4::ALK  V1180L
+civic.vid:6 : ALK EML4::ALK C1156Y
+civic.vid:308 : ALK EML4::ALK G1269A
+civic.vid:589 : ALK EML4::ALK I1171S
+civic.vid:307 : ALK EML4::ALK L1152R
+civic.vid:7 : ALK EML4::ALK L1196M
+civic.vid:172 : ALK EML4::ALK S1206Y
+civic.vid:173 : ALK EML4::ALK T1151INST
+civic.vid:2575 : ABL1 ETV6::ABL1
+civic.vid:2396 : NTRK2 ETV6::NTRK2
+civic.vid:801 : NTRK3 ETV6::NTRK3
+civic.vid:805 : NTRK3 ETV6::NTRK3 G623R
+civic.vid:1854 : EGFR Ex19 del L858R
+civic.vid:457 : FCGR3A F212V
+civic.vid:2621 : KIT F506_F508DUP
+civic.vid:2743 : FGFR1 FGFR1OP2::FGFR1
+civic.vid:783 : FGFR2 FGFR2::AHCYL1
+civic.vid:782 : FGFR2 FGFR2::BICC1
+civic.vid:52 : FGFR2 FGFR2::MGEA5
+civic.vid:54 : FGFR2 FGFR2::TACC3
+civic.vid:53 : FGFR3 FGFR3::BAIAP2L1
+civic.vid:830 : FGFR3 FGFR3::TACC3
+civic.vid:574 : PDGFRA FIP1L1::PDGFRA
+civic.vid:577 : PDGFRA FIP1L1::PDGFRA T674I
+civic.vid:2682 : ABL1 FOXP1::ABL1
+civic.vid:2822 : BRAF G469
+civic.vid:718 : EGFR G719
+civic.vid:817 : ERBB2 G778_P780DUP
+civic.vid:3214 : JAK2 GOLGA5::JAK2
+civic.vid:2395 : NTRK1 GON4L::NTRK1
+civic.vid:2770 : ROS1 GOPC::ROS1
+civic.vid:588 : ALK HIP1::ALK I1171N
+civic.vid:55 : FLT3 ITD
+civic.vid:279 : NF2 K159fs
+civic.vid:1166 : ATM K468FS
+civic.vid:2696 : KIT K550_K559DEL
+civic.vid:1549 : KIT K558NP
+civic.vid:508 : PMS2 K706FS*19
+civic.vid:3158 : NTRK2 KANK1::NTRK2
+civic.vid:618 : BRAF KIAA1549::BRAF
+civic.vid:273 : RET KIF5B::RET
+civic.vid:424 : MYD88 L265P
+civic.vid:1866 : EGFR L861
+civic.vid:1278 : NTRK1 LMNA::NTRK1
+civic.vid:1282 : NTRK1 LMNA::NTRK1 G595R and G667C
+civic.vid:302 : PTCH1 LOH
+civic.vid:1247 : BRCA2 M1R
+civic.vid:638 : RB1 M695FS*26
+civic.vid:2227 : BRAF MACF1::BRAF
+civic.vid:30 : CSF1R MEF2D::CSF1R
+civic.vid:2894 : MET MET::ATXN7L1
+civic.vid:538 : MLH1 METHYLATION
+civic.vid:513 : ALK NPM::ALK
+civic.vid:2883 : BRAF NRF1::BRAF
+civic.vid:2660 : ABL1 NUP214::ABL1
+civic.vid:1682 : ARID1A P1175FS*5
+civic.vid:1497 : KIT P551_E554delPMYE
+civic.vid:41 : ERBB2 P780INS
+civic.vid:286 : BRAF PAPSS1::BRAF
+civic.vid:2582 : FOXO1 PAX3::FOXO1
+civic.vid:2289 : NTRK1 PDE4DIP::NTRK1
+civic.vid:108 : PML PML::RARA
+civic.vid:462 : PML PML::RARA A216V
+civic.vid:463 : PML PML::RARA L218P
+civic.vid:617 : BRAF PPFIBP2::BRAF
+civic.vid:1654 : NRAS Q179X
+civic.vid:507 : GNAQ Q209
+civic.vid:558 : GNA11 Q209
+civic.vid:94 : NRAS Q61
+civic.vid:203 : KRAS Q61
+civic.vid:58 : IDH1 R132
+civic.vid:826 : GNAS R201C
+civic.vid:1319 : GNAS R201H
+civic.vid:119 : TP53 R249
+civic.vid:32 : DNMT3A R882
+civic.vid:3268 : ABL1 RANBP2::ABL1
+civic.vid:514 : ALK RANBP2::ALK
+civic.vid:2681 : ABL1 RCSD1::ABL1
+civic.vid:332 : FNTB RS11623866
+civic.vid:338 : MGMT RS16906252
+civic.vid:779 : TYMS RS34743033
+civic.vid:482 : KIT RS3733542
+civic.vid:331 : WEE1 RS3910384
+civic.vid:777 : SLCO1B1 RS4149056
+civic.vid:445 : ETS2 RS461155
+civic.vid:548 : PPP1R15A RS557806
+civic.vid:254 : KRAS RS61764370
+civic.vid:616 : B2M S14FS
+civic.vid:497 : ERBB2 S310F/Y
+civic.vid:720 : EGFR S720
+civic.vid:2179 : NRG1 SDC4::NRG1
+civic.vid:3287 : ABL1 SFPQ::ABL1
+civic.vid:2678 : ABL1 SNX2::ABL1
+civic.vid:800 : NTRK1 SQSTM1::NTRK1
+civic.vid:2661 : JAK2 SSBP2::JAK2
+civic.vid:2218 : ALK STRN::ALK
+civic.vid:2287 : NTRK2 STRN::NTRK2
+civic.vid:1681 : JAK2 c.1641+2T>G
+civic.vid:576 : ROS1 TFG::ROS1
+civic.vid:774 : PDGFRA TNKS2::PDGFRA
+civic.vid:2992 : NTRK1 TPM3::NTRK1
+civic.vid:287 : BRAF TRIM24::BRAF
+civic.vid:2393 : NTRK1 TRIM63::NTRK1
+civic.vid:729 : UGT1A1 UGT1A1*28
+civic.vid:732 : UGT1A1 UGT1A1*60
+civic.vid:605 : PTEN V317FS
+civic.vid:17 : BRAF V600
+civic.vid:13 : BRAF V600E and V600M
+civic.vid:2820 : BRAF V600_K601>E
+civic.vid:312 : EGFR VIII
+civic.vid:1555 : BRCA1 W1815X
+civic.vid:87 : NPM1 W288FS
+civic.vid:176 : AR W742
+civic.vid:2228 : BRAF WASFL::BRAF
+civic.vid:2651 : KIT WILDTYPE
+civic.vid:369 : TP53 Wildtype
+civic.vid:2174 : EGFR Wildtype
+civic.vid:2590 : PIK3CA Wildtype
+civic.vid:3200 : KRAS Wildtype
+civic.vid:245 : NF2 Y177fs
+civic.vid:165 : EZH2 Y646
+civic.vid:414 : ERBB2 Y772_A775DUP
+civic.vid:657 : BRAF ZKSCAN1::BRAF
+civic.vid:466 : FGFR1 ZNF198::FGFR1
+civic.vid:3727 : FLCN c.1285dupC
+civic.vid:615 : JAK2 c.1641+1dup
+civic.vid:877 : GNAS c.393T>C
+civic.vid:3050 : ATM c.7089+1del
+civic.vid:3051 : ATM c.7515+1_2del

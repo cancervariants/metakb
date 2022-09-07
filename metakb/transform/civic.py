@@ -63,17 +63,32 @@ class CIViCTransform(Transform):
         """Transform CIViC harvested json to common data model."""
         data = self.extract_harvester()
         evidence_items = data['evidence']
+        logger.debug(f"TOTAL CIViC EIDs: {len(evidence_items)}")
         # assertions = data['assertions']
         variants = data['variants']
+        logger.debug(f"TOTAL CIViC Variants: {len(variants)}")
         genes = data['genes']
+
+        # TODO: Do filtering on assertions once we support them
+
+        # Only want evidence with approved status
+        evidence_items = [e for e in evidence_items if e["status"] == "accepted"]
+        logger.debug(f"TOTAL approved CIViC EIDs: {len(evidence_items)}")
 
         # Filter Variant IDs for
         # Prognostic, Predictive, and Diagnostic evidence
         # TODO: Uncomment
         supported_evidence_types = [EvidenceType.PREDICTIVE]
         # supported_evidence_types = ['Prognostic', 'PREDICTIVE', 'Diagnostic']
-        vids = {e['variant_id'] for e in evidence_items
-                if e['evidence_type'].upper() in supported_evidence_types}
+
+        # Only support certain CIViC Evidence Types
+        evidence_items = [e for e in evidence_items
+                          if e["evidence_type"].upper() in supported_evidence_types]
+        logger.debug(f"TOTAL approved predictive CIViC EIDs: {len(evidence_items)}")
+
+        vids = {e['variant_id'] for e in evidence_items}
+        logger.debug(f"TOTAL CIViC Variants in Approved Predictive Evidence: "
+                     f"{len(vids)}")
         # TODO: Uncomment
         # vids |= {a['variant']['id'] for a in assertions
         #          if a['evidence_type'].upper() in supported_evidence_types}
@@ -81,7 +96,7 @@ class CIViCTransform(Transform):
         await self._add_variation_descriptors(variants, vids)
         self._add_gene_descriptors(genes)
         self._transform_evidence_and_assertions(evidence_items)
-        # TODO: Uncomment
+        # TODO: Uncomment once we support CIViC Assertions
         # self._transform_evidence_and_assertions(assertions, is_evidence=False)
 
     def _transform_evidence_and_assertions(self, records: List[Dict],
@@ -94,6 +109,20 @@ class CIViCTransform(Transform):
             `False` if records are assertions.
         """
         for r in records:
+            # # Only supporting PREDICTIVE CIViC Evidence
+            evidence_type_upper = r["evidence_type"].upper()
+
+            # if evidence_type_upper != EvidenceType.PREDICTIVE:
+            #     continue
+            #  TODO: Uncomment once we have prognostic / diagnostic
+            # if evidence_type_upper not in ['Predictive', 'Prognostic',
+            #                               'Diagnostic']:
+            #     continue
+            # else:
+            #     # Functional Evidence types do not have a disease
+            #     if not r['disease']:
+            #         continue
+
             name_lower = r['name'].lower()
             if name_lower.startswith('eid'):
                 civic_id = name_lower.replace('eid', 'civic.eid:')
@@ -102,21 +131,8 @@ class CIViCTransform(Transform):
 
             # Omit entries that are not in an accepted state
             if r['status'] != 'accepted':
-                logger.warning(f"{civic_id} has status: {r['status']}")
+                logger.debug(f"{civic_id} has status: {r['status']}")
                 continue
-
-            evidence_type_upper = r["evidence_type"].upper()
-
-            if evidence_type_upper != EvidenceType.PREDICTIVE:
-                continue
-            #  TODO: Uncomment once we have prognostic / diagnostic
-            # if evidence_type_upper not in ['Predictive', 'Prognostic',
-            #                               'Diagnostic']:
-            #     continue
-            else:
-                # Functional Evidence types do not have a disease
-                if not r['disease']:
-                    continue
 
             if evidence_type_upper == EvidenceType.PREDICTIVE:
                 drugs = r["drugs"]
@@ -134,21 +150,26 @@ class CIViCTransform(Transform):
                     therapeutic_descriptor = self._add_therapeutic_collection_descriptor(  # noqa: E501
                         therapeutic_descriptor_id, drugs, drug_interaction_type)
                 else:
-                    logger.debug(f"{r['name']} has 0 drugs")
+                    logger.debug(f"civic {r['name']} has 0 drugs")
                     continue
-
-                if not therapeutic_descriptor:
-                    continue
-
-                if therapeutic_descriptor not in self.therapeutic_descriptors:
-                    self.therapeutic_descriptors.append(therapeutic_descriptor)
             else:
                 therapeutic_descriptor_id = None
                 therapeutic_descriptor = None
 
+            if not therapeutic_descriptor:
+                drug_ids = [f"civic.drug:{drug['id']}" for drug in drugs]
+                logger.debug(f"civic {r['name']} has no therapeutic descriptor for "
+                             f"drugs: {drug_ids}")
+                continue
+
+            if therapeutic_descriptor not in self.therapeutic_descriptors:
+                self.therapeutic_descriptors.append(therapeutic_descriptor)
+
             disease_descriptor_id = f"civic.did:{r['disease']['id']}"
             disease_descriptor = self._add_disease_descriptor(disease_descriptor_id, r)
             if not disease_descriptor:
+                logger.debug(f"civic {r['name']} has no disease descriptor for "
+                             f"disease_id {r['disease']['id']}")
                 continue
 
             if disease_descriptor not in self.disease_descriptors:
@@ -161,6 +182,8 @@ class CIViCTransform(Transform):
             variation_descriptor = self.valid_ids['variation_descriptors'].get(
                 variation_descriptor_id)
             if not variation_descriptor:
+                logger.debug(f"civic {r['name']} has no variation descriptor for "
+                             f"variant_id {r['variant_id']}")
                 continue
 
             proposition = self._get_proposition(
@@ -168,6 +191,7 @@ class CIViCTransform(Transform):
 
             # Only support Therapeutic Response and Prognostic
             if not proposition:
+                logger.debug(f"civic {r['name']} has no proposition")
                 continue
 
             if proposition not in self.propositions:
@@ -690,8 +714,8 @@ class CIViCTransform(Transform):
             self.vicc_normalizers.normalize_therapy(queries)
 
         if not normalized_therapeutic_id:
-            logger.warning(f"Therapy Normalizer unable to normalize: "
-                           f"using queries {queries}")
+            logger.warning(f"Therapy Normalizer unable to normalize "
+                           f"civic.drug:{drug['id']} using queries {queries}")
             return None
 
         regulatory_approval_extension = \
