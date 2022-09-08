@@ -9,6 +9,26 @@ from metakb.schemas import SourceName
 
 
 @pytest.fixture(scope="session")
+def braf_v600e_variation():
+    """Create test fixture for BRAF V600E variation"""
+    return {
+        "id": "ga4gh:VA.h313H4CQh6pogbbSJ3H5pI1cPoh9YMm_",
+        "location": {
+            "id": "ga4gh:SL.xfBTztcmMstx8jrrdgPiE_BUoLHLFMMS",
+            "end": {"value": 600, "type": "Number"},
+            "start": {"value": 599, "type": "Number"},
+            "sequence_id": "ga4gh:SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y",
+            "type": "SequenceLocation"
+        },
+        "state": {
+            "sequence": "E",
+            "type": "LiteralSequenceExpression"
+        },
+        "type": "Allele"
+    }
+
+
+@pytest.fixture(scope="session")
 def event_loop(request):
     """Create an instance of the default event loop for each test case."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
@@ -1483,13 +1503,13 @@ def check_document():
 @pytest.fixture(scope="session")
 def check_transformed_cdm():
     """Test fixture to compare CDM transformations."""
-    def check_transformed_cdm(data, statements, propositions,
-                              variation_descriptors, gene_descriptors,
-                              disease_descriptors, therapy_descriptors,
-                              methods, documents, check_statement,
-                              check_proposition, check_variation_descriptor,
-                              check_descriptor, check_document, check_method,
-                              transformed_file):
+    def check_transformed_cdm(data, statements, propositions, variation_descriptors,
+                              gene_descriptors, disease_descriptors, methods, documents,
+                              check_statement, check_proposition,
+                              check_variation_descriptor, check_descriptor,
+                              check_document, check_method, transformed_file,
+                              therapeutic_descriptors=None,
+                              therapeutic_collection_descriptors=None):
         """Test that transform to CDM works correctly."""
         tests = (
             (data["statements"], statements, check_statement, "statements"),
@@ -1504,9 +1524,14 @@ def check_transformed_cdm():
             (data["documents"], documents, check_document, "documents")
         )
 
-        if therapy_descriptors:
-            tests += (data["therapeutic_descriptors"], therapy_descriptors,
-                      check_descriptor, "therapeutic_descriptors"),
+        if therapeutic_descriptors:
+            tests += (data["therapeutic_descriptors"], therapeutic_descriptors,
+                      check_descriptor, "therapeutic_descripotrs"),
+
+        if therapeutic_collection_descriptors:
+            tests += (data["therapeutic_collection_descriptors"],
+                      therapeutic_collection_descriptors, check_descriptor,
+                      "therapeutic_collection_descriptors"),
 
         for actual_data, test_data, test_fixture, data_type in tests:
             assert len(actual_data) == len(test_data), data_type

@@ -44,8 +44,8 @@ def variation_descriptors(civic_vid33):
 
 
 @pytest.fixture(scope="module")
-def therapy_descriptors(civic_tid146):
-    """Create test fixture for therapy descriptors."""
+def therapeutic_descriptors(civic_tid146):
+    """Create test fixture for therapeutic descriptors."""
     return [civic_tid146]
 
 
@@ -69,16 +69,15 @@ def documents(pmid_23982599, civic_aid6_document):
 
 
 def test_civic_cdm(data, statements, propositions, variation_descriptors,
-                   gene_descriptors, disease_descriptors, therapy_descriptors,
-                   civic_methods, documents, check_statement,
-                   check_proposition, check_variation_descriptor,
+                   gene_descriptors, disease_descriptors, civic_methods, documents,
+                   check_statement, check_proposition, check_variation_descriptor,
                    check_descriptor, check_document, check_method,
-                   check_transformed_cdm):
+                   therapeutic_descriptors, check_transformed_cdm):
     """Test that civic transform works correctly."""
     check_transformed_cdm(
-        data, statements, propositions, variation_descriptors,
-        gene_descriptors, disease_descriptors, therapy_descriptors,
-        civic_methods, documents, check_statement, check_proposition,
-        check_variation_descriptor, check_descriptor, check_document,
-        check_method, DATA_DIR / FILENAME
+        data, statements, propositions, variation_descriptors, gene_descriptors,
+        disease_descriptors, civic_methods, documents, check_statement,
+        check_proposition, check_variation_descriptor, check_descriptor, check_document,
+        check_method, DATA_DIR / FILENAME,
+        therapeutic_descriptors=therapeutic_descriptors
     )

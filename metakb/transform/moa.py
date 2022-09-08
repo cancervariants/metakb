@@ -93,7 +93,8 @@ class MOATransform(Transform):
                 # Multiple therapies --> Therapeutic Collection
                 therapy_names = [tn.strip() for tn in therapy_name.split("+")]
                 therapy_type = record["therapy_type"]
-                therapeutic_digest = self._get_digest_for_str_lists(therapy_names)
+                therapeutic_digest = self._get_digest_for_str_lists(
+                    [f"moa.therapy:{tn}" for tn in therapy_names])
                 therapeutic_descriptor_id = f"moa.tcd:{therapeutic_digest}"
                 therapeutic_descriptor = self._add_therapeutic_collection_descriptor(
                     therapeutic_descriptor_id, therapy_names, therapy_type)
@@ -253,6 +254,9 @@ class MOATransform(Transform):
                 continue
 
             extensions = self._get_variant_extensions(variant)
+            xrefs = list()
+            if variant["rsid"]:
+                xrefs.append(f"dbsnp:{variant['rsid'][2:]}")
 
             variation_descriptor = VariationDescriptor(
                 id=f"moa.variant:{variant_id}",
@@ -260,7 +264,8 @@ class MOATransform(Transform):
                 variation=v_norm_resp.variation_descriptor.variation,
                 gene_context=gene_descriptor["id"],
                 vrs_ref_allele_seq=vrs_ref_allele_seq,
-                extensions=extensions if extensions else None
+                extensions=extensions if extensions else None,
+                xrefs=xrefs if xrefs else None
             ).dict(by_alias=True, exclude_none=True)
             self.valid_ids["variation_descriptors"][variant_id] = variation_descriptor
             self.variation_descriptors.append(variation_descriptor)

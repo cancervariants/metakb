@@ -162,9 +162,6 @@ class CIViCTransform(Transform):
                              f"drugs: {drug_ids}")
                 continue
 
-            if therapeutic_descriptor not in self.therapeutic_descriptors:
-                self.therapeutic_descriptors.append(therapeutic_descriptor)
-
             disease_descriptor_id = f"civic.did:{r['disease']['id']}"
             disease_descriptor = self._add_disease_descriptor(disease_descriptor_id, r)
             if not disease_descriptor:
@@ -731,6 +728,7 @@ class CIViCTransform(Transform):
             xrefs=xrefs if xrefs else None,
             extensions=[regulatory_approval_extension] if regulatory_approval_extension else None  # noqa: E501
         ).dict(exclude_none=True)
+        self.therapeutic_descriptors.append(therapeutic_descriptor)
         return therapeutic_descriptor
 
     def _add_therapeutic_collection_descriptor(

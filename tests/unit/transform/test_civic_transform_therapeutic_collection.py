@@ -135,28 +135,14 @@ def civic_eid816_proposition():
 
 
 @pytest.fixture(scope="module")
-def civic_vid12():
+def civic_vid12(braf_v600e_variation):
     """Create a test fixture for CIViC VID12"""
     return {
         "id": "civic.vid:12",
         "type": "VariationDescriptor",
         "label": "V600E",
         "description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",  # noqa: E501
-        "variation": {
-            "id": "ga4gh:VA.h313H4CQh6pogbbSJ3H5pI1cPoh9YMm_",
-            "location": {
-                "id": "ga4gh:SL.xfBTztcmMstx8jrrdgPiE_BUoLHLFMMS",
-                "end": {"value": 600, "type": "Number"},
-                "start": {"value": 599, "type": "Number"},
-                "sequence_id": "ga4gh:SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y",
-                "type": "SequenceLocation"
-            },
-            "state": {
-                "sequence": "E",
-                "type": "LiteralSequenceExpression"
-            },
-            "type": "Allele"
-        },
+        "variation": braf_v600e_variation,
         "xrefs": [
             "clinvar:376069",
             "clinvar:13961",
@@ -464,8 +450,14 @@ def variation_descriptors(civic_vid12):
 
 
 @pytest.fixture(scope="module")
-def therapeutic_descriptors(civic_tcd_combination, civic_tcd_substitutes):
-    """Create test fixture for therapeutic descriptors"""
+def therapeutic_descriptors(civic_tid483, civic_tid16, civic_tid28):
+    """Create a test fixture for therapeutic descriptors"""
+    return [civic_tid483, civic_tid16, civic_tid28]
+
+
+@pytest.fixture(scope="module")
+def therapeutic_collection_descriptors(civic_tcd_combination, civic_tcd_substitutes):
+    """Create test fixture for therapeutic collection descriptors"""
     return [civic_tcd_combination, civic_tcd_substitutes]
 
 
@@ -488,16 +480,17 @@ def documents(pmid_31566309, pmid_25989278):
 
 
 def test_civic_cdm(data, statements, propositions, variation_descriptors,
-                   gene_descriptors, disease_descriptors, therapeutic_descriptors,
-                   civic_methods, documents, check_statement,
-                   check_proposition, check_variation_descriptor,
+                   gene_descriptors, disease_descriptors, civic_methods, documents,
+                   check_statement, check_proposition, check_variation_descriptor,
                    check_descriptor, check_document, check_method,
+                   therapeutic_descriptors, therapeutic_collection_descriptors,
                    check_transformed_cdm):
     """Test that civic transform works correctly with therapeutic collections."""
     check_transformed_cdm(
-        data, statements, propositions, variation_descriptors,
-        gene_descriptors, disease_descriptors, therapeutic_descriptors,
-        civic_methods, documents, check_statement, check_proposition,
-        check_variation_descriptor, check_descriptor, check_document,
-        check_method, DATA_DIR / FILENAME
+        data, statements, propositions, variation_descriptors, gene_descriptors,
+        disease_descriptors, civic_methods, documents, check_statement,
+        check_proposition, check_variation_descriptor, check_descriptor, check_document,
+        check_method, DATA_DIR / FILENAME,
+        therapeutic_descriptors=therapeutic_descriptors,
+        therapeutic_collection_descriptors=therapeutic_collection_descriptors
     )
