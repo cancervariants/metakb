@@ -243,7 +243,7 @@ class CIViCTransform(Transform):
                     subject_descriptor=variation_descriptor_id,
                     neoplasm_type_descriptor=disease_descriptor_id,
                     object_descriptor=therapeutic_descriptor_id,
-                    method=method,
+                    specified_by=method,
                     is_reported_in=[document]
                 ).dict(exclude_none=True)
 

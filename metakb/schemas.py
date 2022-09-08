@@ -163,11 +163,7 @@ class Method(ExtensibleEntity):
 
     type: Literal["Method"] = "Method"
     is_reported_in: Optional[Union[CURIE, Document]]
-    method_type: Optional[StrictStr]
-
-
-# class DataItem():
-#     pass
+    subtype: Optional[Coding]
 
 
 class Agent(ExtensibleEntity):
@@ -178,6 +174,7 @@ class Agent(ExtensibleEntity):
 
     type: Literal["Agent"] = "Agent"
     name: Optional[StrictStr]
+    subtype: Optional[Coding]
 
 
 class Contribution(ExtensibleEntity):
@@ -187,9 +184,9 @@ class Contribution(ExtensibleEntity):
     """
 
     type: Literal["Contribution"] = "Contribution"
-    agent: Optional[Agent]
+    contributor: Optional[Agent]
     date: Optional[StrictStr]  # TODO: format date
-    role: Optional[StrictStr]
+    activity: Optional[Coding]
 
 
 class InformationEntity(ExtensibleEntity):
@@ -198,12 +195,20 @@ class InformationEntity(ExtensibleEntity):
     """
 
     description: Optional[StrictStr]
-    confidence_level: Optional[Coding]
-    # confidence_score: DataItem
-    method: Optional[Union[Method, CURIE]]
+    specified_by: Optional[Union[Method, CURIE]]
     contributions: Optional[List[Contribution]]
     is_reported_in: Optional[List[Union[Document, CURIE]]]
     record_metadata: Optional[RecordMetadata]
+
+
+class DataItem(InformationEntity):
+    """An InformationEntity representing an individual piece of data, generated/acquired
+    through methods which reliably produce truthful information about something.
+    """
+
+    type: Literal["DataItem"] = "DataItem"
+    subtype: Optional[Coding]
+    value: StrictStr
 
 
 class Direction(str, Enum):
@@ -273,7 +278,6 @@ class Statement(InformationEntity):
     """
 
     evidence_level: Optional[Coding]
-    # evidence_score: DataItem
     target_proposition: Optional[Union[Proposition, CURIE]]
     conclusion: Optional[Coding]
     direction: Optional[Direction]

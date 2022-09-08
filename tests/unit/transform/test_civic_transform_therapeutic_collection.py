@@ -4,7 +4,7 @@ import json
 import pytest
 import pytest_asyncio
 
-from metakb.transform.civic import CIViCTransform
+from metakb.transform.civic import CIViCTransform  # noqa: I202
 from metakb import PROJECT_ROOT
 
 
@@ -68,7 +68,7 @@ def civic_eid9851_statement(method1, pmid_31566309):
         "subject_descriptor": "civic.vid:12",
         "object_descriptor": "civic.tcd:P1PY89shAjemg7jquQ0V9pg1VnYnkPeK",
         "neoplasm_type_descriptor": "civic.did:11",
-        "method": method1,
+        "specified_by": method1,
         "is_reported_in": [pmid_31566309]
     }
 
@@ -110,7 +110,7 @@ def civic_eid816_statement(method1, pmid_25989278):
         "subject_descriptor": "civic.vid:12",
         "object_descriptor": "civic.tcd:7IxyhCwID0QYyVCP2xuIyYvwwu-S_HrZ",
         "neoplasm_type_descriptor": "civic.did:11",
-        "method": method1,
+        "specified_by": method1,
         "is_reported_in": [pmid_25989278]
     }
 

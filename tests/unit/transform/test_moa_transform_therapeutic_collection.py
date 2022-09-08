@@ -1,9 +1,11 @@
 """Test MOA Transformation to common data model for therapeutic collection"""
+import json
+
 import pytest
 import pytest_asyncio
+
+from metakb import PROJECT_ROOT  # noqa: I202
 from metakb.transform.moa import MOATransform
-from metakb import PROJECT_ROOT
-import json
 
 
 DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform" / "therapeutic_collection"
@@ -30,10 +32,10 @@ def moa_source62():
     return {
         "id": "moa.source:62",
         "extensions": [
-            {"name": "source_url", "value": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/202429s019lbl.pdf", "type": "Extension"},  # noqa: E501
+            {"name": "source_url", "value": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf", "type": "Extension"},  # noqa: E501
             {"name": "source_type", "value": "FDA", "type": "Extension"}
         ],
-        "title": "Genentech, Inc. Zelboraf (vemurafenib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/202429s019lbl.pdf. Revised May 2020. Accessed November 12, 2020.",  # noqa: E501
+        "title": "Array BioPharma Inc. Braftovi (encorafenib) [package insert]. U.S. Food and Drug Administration website. www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf. Revised April 2020. Accessed October 15, 2020.",  # noqa: E501
         "type": "Document"
     }
 
@@ -55,7 +57,7 @@ def moa_aid159_statement(method4, moa_source62):
         "subject_descriptor": "moa.variant:149",
         "object_descriptor": "moa.tcd:zBda4sO3iQLExj5SB8VTPzPLaPoWefiP",
         "neoplasm_type_descriptor": "moa.normalize.disease:oncotree%3ACOADREAD",
-        "method": method4,
+        "specified_by": method4,
         "is_reported_in": [moa_source62]
     }
 
@@ -93,13 +95,13 @@ def moa_vid149(braf_v600e_variation):
                 "type": "Extension",
                 "value": {
                     "chromosome": "7",
-                    "start_position": "140453136.0",
-                    "end_position": "140453136.0",
+                    "start_position": "140453136",
+                    "end_position": "140453136",
                     "reference_allele": "A",
                     "alternate_allele": "T",
                     "cdna_change": "c.1799T>A",
                     "protein_change": "p.V600E",
-                    "exon": "15.0",
+                    "exon": "15",
                 }
             }
         ],

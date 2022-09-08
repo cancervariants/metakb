@@ -1,9 +1,12 @@
 """Test MOA Transformation to common data model"""
+import json
+
 import pytest
 import pytest_asyncio
+
+from metakb import PROJECT_ROOT  # noqa: I202
 from metakb.transform.moa import MOATransform
-from metakb import PROJECT_ROOT
-import json
+
 
 DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform"
 FILENAME = "moa_cdm.json"
@@ -66,9 +69,9 @@ def asst71_methods(method4):
 
 
 @pytest.fixture(scope="module")
-def asst71_documents(pmid_11423618):
+def asst71_documents(moa_source44):
     """Create assertion71 documents test fixture."""
-    return [pmid_11423618]
+    return [moa_source44]
 
 
 def test_moa_cdm(data, asst71_statements, asst71_propositions,

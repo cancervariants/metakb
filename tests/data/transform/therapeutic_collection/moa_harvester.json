@@ -13,8 +13,8 @@
       "therapy_type": "Targeted therapy",
       "clinical_significance": "sensitivity",
       "predictive_implication": "FDA-Approved",
-      "favorable_prognosis": null,
-      "created_on": "07/08/22",
+      "favorable_prognosis": false,
+      "created_on": "09/08/22",
       "last_updated": "2020-10-15",
       "submitted_by": "breardon@broadinstitute.org",
       "validated": true,
@@ -24,14 +24,14 @@
         "alternate_allele": "T",
         "cdna_change": "c.1799T>A",
         "chromosome": "7",
-        "end_position": "140453136.0",
-        "exon": "15.0",
+        "end_position": "140453136",
+        "exon": "15",
         "feature_type": "somatic_variant",
         "gene": "BRAF",
         "protein_change": "p.V600E",
         "reference_allele": "A",
         "rsid": "rs113488022",
-        "start_position": "140453136.0",
+        "start_position": "140453136",
         "variant_annotation": "Missense",
         "feature": "BRAF p.V600E (Missense)"
       }
@@ -41,11 +41,11 @@
     {
       "id": 62,
       "type": "FDA",
-      "doi": null,
-      "nct": "None",
-      "pmid": "None",
-      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/202429s019lbl.pdf",
-      "citation": "Genentech, Inc. Zelboraf (vemurafenib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/202429s019lbl.pdf. Revised May 2020. Accessed November 12, 2020."
+      "doi": "",
+      "nct": "",
+      "pmid": "",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf",
+      "citation": "Array BioPharma Inc. Braftovi (encorafenib) [package insert]. U.S. Food and Drug Administration website. www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf. Revised April 2020. Accessed October 15, 2020."
     }
   ],
   "variants": [
@@ -54,14 +54,14 @@
       "alternate_allele": "T",
       "cdna_change": "c.1799T>A",
       "chromosome": "7",
-      "end_position": "140453136.0",
-      "exon": "15.0",
+      "end_position": "140453136",
+      "exon": "15",
       "feature_type": "somatic_variant",
       "gene": "BRAF",
       "protein_change": "p.V600E",
       "reference_allele": "A",
       "rsid": "rs113488022",
-      "start_position": "140453136.0",
+      "start_position": "140453136",
       "variant_annotation": "Missense",
       "feature": "BRAF p.V600E (Missense)"
     }

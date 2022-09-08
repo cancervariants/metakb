@@ -138,7 +138,7 @@ class MOATransform(Transform):
                 subject_descriptor=variation_descriptor["id"],
                 neoplasm_type_descriptor=disease_descriptor["id"],
                 object_descriptor=therapeutic_descriptor["id"],
-                method=method,
+                specified_by=method,
                 is_reported_in=[document]
             ).dict(exclude_none=True)
             self.statements.append(statement)
@@ -321,11 +321,11 @@ class MOATransform(Transform):
         """
         for source in sources:
             xrefs = list()
-            if source["pmid"] != "None":
+            if source["pmid"]:
                 xrefs.append(f"pmid:{source['pmid']}")
             if source["doi"]:
                 xrefs.append(f"doi:{source['doi']}")
-            if source["nct"] != "None":
+            if source["nct"]:
                 xrefs.append(f"nct:{source['nct']}")
 
             extensions = [

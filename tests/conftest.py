@@ -1,10 +1,11 @@
 """Module for pytest fixtures."""
-import pytest
 import os
 import asyncio
 
+import pytest
+
 # from metakb.query import QueryHandler
-from metakb.normalizers import VICCNormalizers
+from metakb.normalizers import VICCNormalizers  # noqa: I202
 from metakb.schemas import SourceName
 
 
@@ -127,7 +128,7 @@ def civic_eid2997_statement(pmid_23982599, method1):
         "subject_descriptor": "civic.vid:33",
         "object_descriptor": "civic.tid:146",
         "neoplasm_type_descriptor": "civic.did:8",
-        "method": method1,
+        "specified_by": method1,
         "is_reported_in": [pmid_23982599]
     }
 
@@ -325,7 +326,7 @@ def civic_eid1409_statement():
         "subject_descriptor": "civic.vid:12",
         "object_descriptor": "civic.tid:4",
         "neoplasm_type_descriptor": "civic.did:206",
-        "method": {
+        "specified_by": {
             "id": "metakb.method:1",
             "is_reported_in": "pmid:31779674",
             "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
@@ -1199,22 +1200,22 @@ def pmid_27819322():
 
 
 @pytest.fixture(scope="module")
-def pmid_11423618():
+def moa_source44():
     """Create a test fixture for PMID 11423618."""
     return {
-        "id": "moa.source:41",
+        "id": "moa.source:44",
         "xrefs": ["pmid:11423618", "doi:10.1126/science.1062538"],
         "extensions": [
             {"name": "source_url", "value": "https://doi.org/10.1126/science.1062538", "type": "Extension"},  # noqa: E501
             {"name": "source_type", "value": "Journal", "type": "Extension"}
         ],
-        "title": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501
+        "title": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501, Q003
         "type": "Document"
     }
 
 
 @pytest.fixture(scope="module")
-def moa_aid71_statement(method4, pmid_11423618):
+def moa_aid71_statement(method4, moa_source44):
     """Create a MOA Statement 71 test fixture."""
     return {
         "id": "moa.assertion:71",
@@ -1230,8 +1231,8 @@ def moa_aid71_statement(method4, pmid_11423618):
         "subject_descriptor": "moa.variant:71",
         "object_descriptor": "moa.normalize.therapy:Imatinib",
         "neoplasm_type_descriptor": "moa.normalize.disease:oncotree%3ACML",
-        "method": method4,
-        "is_reported_in": [pmid_11423618]
+        "specified_by": method4,
+        "is_reported_in": [moa_source44]
     }
 
 
@@ -1275,13 +1276,13 @@ def moa_vid71():
                 "name": "moa_representative_coordinate",
                 "value": {
                     "chromosome": "9",
-                    "start_position": "133747580.0",
-                    "end_position": "133747580.0",
+                    "start_position": "133747580",
+                    "end_position": "133747580",
                     "reference_allele": "C",
                     "alternate_allele": "T",
                     "cdna_change": "c.944C>T",
                     "protein_change": "p.T315I",
-                    "exon": "5.0"
+                    "exon": "5"
                 },
                 "type": "Extension"
             }
