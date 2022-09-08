@@ -7,14 +7,14 @@ from datetime import datetime as dt
 
 from ga4gh.core import sha512t24u
 
-from metakb import APP_ROOT, DATE_FMT
+from metakb import APP_ROOT, DATE_FMT  # noqa: I202
 from metakb.schemas import CivicEvidenceLevel, Document, EcoLevel, Method, MethodId, \
     MoaEvidenceLevel, TargetPropositionType, DiagnosticPredicate, \
     PrognosticPredicate, PredictivePredicate, FunctionalPredicate, \
     PathogenicPredicate, ViccConceptVocab
 from metakb.normalizers import VICCNormalizers
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger("metakb.transform.base")
 logger.setLevel(logging.DEBUG)
 
 
@@ -154,7 +154,7 @@ class Transform:
         self.evidence_level_vicc_concept_mapping = self._evidence_level_to_vicc_concept_mapping()  # noqa: E501
         self.methods_mappping = {m["id"]: m for m in self._methods}
 
-    async def transform(self, *args, **kwargs):
+    async def transform(self, *args, **kwargs) -> None:
         """Transform harvested data to the Common Data Model."""
         raise NotImplementedError
 
@@ -278,20 +278,20 @@ class Transform:
         transform_dir.mkdir(exist_ok=True, parents=True)
 
         composite_dict = {
-            'statements': self.statements,
-            'propositions': self.propositions,
-            'variation_descriptors': self.variation_descriptors,
-            'gene_descriptors': self.gene_descriptors,
-            'therapeutic_descriptors': self.therapeutic_descriptors,
-            'therapeutic_collection_descriptors': self.therapeutic_collection_descriptors,  # noqa: E501
-            'disease_descriptors': self.disease_descriptors,
-            'methods': self.methods,
-            'documents': self.documents
+            "statements": self.statements,
+            "propositions": self.propositions,
+            "variation_descriptors": self.variation_descriptors,
+            "gene_descriptors": self.gene_descriptors,
+            "therapeutic_descriptors": self.therapeutic_descriptors,
+            "therapeutic_collection_descriptors": self.therapeutic_collection_descriptors,  # noqa: E501
+            "disease_descriptors": self.disease_descriptors,
+            "methods": self.methods,
+            "documents": self.documents
         }
 
         today = dt.strftime(dt.today(), DATE_FMT)
         if filename is None:
             filename = f"{self.name}_cdm_{today}.json"
         out = transform_dir / filename
-        with open(out, 'w+') as f:
+        with open(out, "w+") as f:
             json.dump(composite_dict, f, indent=4)

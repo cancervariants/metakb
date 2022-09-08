@@ -10,7 +10,7 @@ from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
     GeneDescriptor, DiseaseDescriptor, TherapeuticDescriptor, \
     TherapeuticCollectionDescriptor
 
-from metakb import APP_ROOT
+from metakb import APP_ROOT   # noqa: I202
 from metakb.normalizers import VICCNormalizers
 from metakb.transform.base import Transform
 from metakb.schemas import MoaEvidenceLevel, PredictivePredicate, VariationOrigin, \
@@ -18,7 +18,7 @@ from metakb.schemas import MoaEvidenceLevel, PredictivePredicate, VariationOrigi
     VariationNeoplasmTherapeuticResponseProposition, \
     VariationNeoplasmTherapeuticResponseStatement
 
-logger = logging.getLogger('metakb.transform.moa')
+logger = logging.getLogger("metakb.transform.moa")
 logger.setLevel(logging.DEBUG)
 
 
@@ -213,7 +213,7 @@ class MOATransform(Transform):
             origin = None
         return origin
 
-    async def _add_variation_descriptors(self, variants: List[Dict]):
+    async def _add_variation_descriptors(self, variants: List[Dict]) -> None:
         """Add variation descriptors to instance variable. Will also cache valid
         Variation Descriptors to `self.valid_ids["variation_descriptors"]`
 

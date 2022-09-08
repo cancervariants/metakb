@@ -10,7 +10,7 @@ from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
     Expression, GeneDescriptor, DiseaseDescriptor, TherapeuticDescriptor, \
     TherapeuticCollectionDescriptor
 
-from metakb import APP_ROOT
+from metakb import APP_ROOT  # noqa: I202
 from metakb.normalizers import VICCNormalizers
 from metakb.schemas import Direction, Document, MethodId, \
     Predicate, PredictivePredicate, SourcePrefix, TargetPropositionType, \
@@ -47,27 +47,27 @@ class CIViCTransform(Transform):
                          normalizers=normalizers)
         # Able to normalize these IDs
         self.valid_ids = {
-            'variation_descriptors': dict(),
-            'disease_descriptors': dict(),
-            'therapeutic_descriptors': dict(),
-            'therapeutic_collection_descriptors': dict()
+            "variation_descriptors": dict(),
+            "disease_descriptors": dict(),
+            "therapeutic_descriptors": dict(),
+            "therapeutic_collection_descriptors": dict()
         }
         # Unable to normalize these IDs
         self.invalid_ids = {
-            'therapeutic_descriptors': set(),
-            'therapeutic_collection_descriptors': set(),
-            'disease_descriptors': set()
+            "therapeutic_descriptors": set(),
+            "therapeutic_collection_descriptors": set(),
+            "disease_descriptors": set()
         }
 
     async def transform(self) -> None:
         """Transform CIViC harvested json to common data model."""
         data = self.extract_harvester()
-        evidence_items = data['evidence']
+        evidence_items = data["evidence"]
         logger.debug(f"TOTAL CIViC EIDs: {len(evidence_items)}")
-        # assertions = data['assertions']
-        variants = data['variants']
+        # assertions = data["assertions"]
+        variants = data["variants"]
         logger.debug(f"TOTAL CIViC Variants: {len(variants)}")
-        genes = data['genes']
+        genes = data["genes"]
 
         # TODO: Do filtering on assertions once we support them
 
@@ -79,19 +79,19 @@ class CIViCTransform(Transform):
         # Prognostic, Predictive, and Diagnostic evidence
         # TODO: Uncomment
         supported_evidence_types = [EvidenceType.PREDICTIVE]
-        # supported_evidence_types = ['Prognostic', 'PREDICTIVE', 'Diagnostic']
+        # supported_evidence_types = ["Prognostic", "PREDICTIVE", "Diagnostic"]
 
         # Only support certain CIViC Evidence Types
         evidence_items = [e for e in evidence_items
                           if e["evidence_type"].upper() in supported_evidence_types]
         logger.debug(f"TOTAL approved predictive CIViC EIDs: {len(evidence_items)}")
 
-        vids = {e['variant_id'] for e in evidence_items}
+        vids = {e["variant_id"] for e in evidence_items}
         logger.debug(f"TOTAL CIViC Variants in Approved Predictive Evidence: "
                      f"{len(vids)}")
         # TODO: Uncomment
-        # vids |= {a['variant']['id'] for a in assertions
-        #          if a['evidence_type'].upper() in supported_evidence_types}
+        # vids |= {a["variant"]["id"] for a in assertions
+        #          if a["evidence_type"].upper() in supported_evidence_types}
 
         await self._add_variation_descriptors(variants, vids)
         self._add_gene_descriptors(genes)
@@ -123,14 +123,14 @@ class CIViCTransform(Transform):
             #     if not r['disease']:
             #         continue
 
-            name_lower = r['name'].lower()
-            if name_lower.startswith('eid'):
-                civic_id = name_lower.replace('eid', 'civic.eid:')
+            name_lower = r["name"].lower()
+            if name_lower.startswith("eid"):
+                civic_id = name_lower.replace("eid", "civic.eid:")
             else:
-                civic_id = name_lower.replace('aid', 'civic.aid:')
+                civic_id = name_lower.replace("aid", "civic.aid:")
 
             # Omit entries that are not in an accepted state
-            if r['status'] != 'accepted':
+            if r["status"] != "accepted":
                 logger.debug(f"{civic_id} has status: {r['status']}")
                 continue
 
@@ -176,7 +176,7 @@ class CIViCTransform(Transform):
                 variation_descriptor_id = f"civic.vid:{r['variant_id']}"
             else:
                 variation_descriptor_id = f"civic.vid:{r['variant']['id']}"
-            variation_descriptor = self.valid_ids['variation_descriptors'].get(
+            variation_descriptor = self.valid_ids["variation_descriptors"].get(
                 variation_descriptor_id)
             if not variation_descriptor:
                 logger.debug(f"civic {r['name']} has no variation descriptor for "
@@ -205,14 +205,14 @@ class CIViCTransform(Transform):
                 evidence_level = Coding(**evidence_level_params).dict(exclude_none=True)
 
                 # Supported by evidence for evidence item
-                document = self._get_eid_document(r['source'])
+                document = self._get_eid_document(r["source"])
                 if document not in self.documents:
                     self.documents.append(document)
             else:
                 # Assertion's method
-                if r['amp_level'] and not r['acmg_codes']:
+                if r["amp_level"] and not r["acmg_codes"]:
                     method = MethodId.CIVIC_AID_AMP_ASCO_CAP.value
-                elif not r['amp_level'] and r['acmg_codes']:
+                elif not r["amp_level"] and r["acmg_codes"]:
                     method = MethodId.CIVIC_AID_ACMG.value
                 else:
                     # Statements are required to have a method
@@ -228,8 +228,8 @@ class CIViCTransform(Transform):
                 for d in documents:
                     if d not in self.documents:
                         self.documents.append(d)
-                    supported_by.append(d['id'])
-                for evidence_item in r['evidence_items']:
+                    supported_by.append(d["id"])
+                for evidence_item in r["evidence_items"]:
                     supported_by.append(f"civic.eid:{evidence_item['id']}")
 
             if evidence_type_upper == EvidenceType.PREDICTIVE:
@@ -256,9 +256,9 @@ class CIViCTransform(Transform):
         :return: `supports` or `does_not_support` or None
         """
         direction_upper = direction.upper()
-        if direction_upper == 'SUPPORTS':
+        if direction_upper == "SUPPORTS":
             return Direction.SUPPORTS.value
-        elif direction_upper == 'DOES_NOT_SUPPORT':
+        elif direction_upper == "DOES_NOT_SUPPORT":
             return Direction.OPPOSES.value
         elif direction_upper == "NA":
             # TODO: Check if NA == Uncertain
@@ -274,19 +274,19 @@ class CIViCTransform(Transform):
         """
         evidence_level = None
         # TODO: CHECK
-        if assertion['amp_level']:
-            if assertion['amp_level'] == 'Not Applicable':
+        if assertion["amp_level"]:
+            if assertion["amp_level"] == "Not Applicable":
                 evidence_level = None
             else:
-                tier, level = assertion['amp_level'].split(' - ')
+                tier, level = assertion["amp_level"].split(" - ")
                 tier = tier.split()[1]
-                if tier == 'I':
+                if tier == "I":
                     tier = 1
-                elif tier == 'II':
+                elif tier == "II":
                     tier = 2
-                elif tier == 'III':
+                elif tier == "III":
                     tier = 3
-                elif tier == 'IV':
+                elif tier == "IV":
                     tier = 4
                 evidence_level = f"amp_asco_cap_2017_level:{tier}{level.split()[1]}"
         return evidence_level
@@ -391,15 +391,15 @@ class CIViCTransform(Transform):
         :param str clin_sig: The evidence item's clinical significance
         :return: Predicate for proposition if valid
         """
-        if clin_sig is None or clin_sig.upper() in ['N/A', 'UNKNOWN']:
+        if clin_sig is None or clin_sig.upper() in ["N/A", "UNKNOWN"]:
             return None
 
         predicate = None
 
         if proposition_type == TargetPropositionType.VARIATION_NEOPLASM_THERAPEUTIC_RESPONSE:  # noqa: E501
-            if clin_sig == 'SENSITIVITYRESPONSE':
+            if clin_sig == "SENSITIVITYRESPONSE":
                 predicate = PredictivePredicate.SENSITIVITY
-            elif clin_sig == 'RESISTANCE':
+            elif clin_sig == "RESISTANCE":
                 predicate = PredictivePredicate.RESISTANCE
         # if proposition_type == TargetPropositionType.PREDICTIVE:
         #     if clin_sig == 'SENSITIVITY/RESPONSE':
@@ -515,29 +515,29 @@ class CIViCTransform(Transform):
         """
         extensions = [
             Extension(
-                name='civic_representative_coordinate',
-                value={k: v for k, v in variant['coordinates'].items() if v is not None}
+                name="civic_representative_coordinate",
+                value={k: v for k, v in variant["coordinates"].items() if v is not None}
             ).dict(exclude_none=True),
             Extension(
-                name='civic_actionability_score',
-                value=variant['civic_actionability_score']
+                name="civic_actionability_score",
+                value=variant["civic_actionability_score"]
             ).dict(exclude_none=True)
         ]
 
-        variant_groups = variant['variant_groups']
+        variant_groups = variant["variant_groups"]
         if variant_groups:
             v_groups = list()
             for v_group in variant_groups:
                 params = {
-                    'id': f"civic.variant_group:{v_group['id']}",
-                    'label': v_group['name'],
-                    'description': v_group['description'],
-                    'type': 'variant_group'
+                    "id": f"civic.variant_group:{v_group['id']}",
+                    "label": v_group["name"],
+                    "description": v_group["description"],
+                    "type": "variant_group"
                 }
-                if v_group['description'] == '':
-                    del params['description']
+                if v_group["description"] == "":
+                    del params["description"]
                 v_groups.append(params)
-            extensions.append(Extension(name='variant_group',
+            extensions.append(Extension(name="variant_group",
                                         value=v_groups).dict(exclude_none=True))
         return extensions
 
@@ -548,16 +548,16 @@ class CIViCTransform(Transform):
         :return: A list of xrefs
         """
         xrefs = []
-        for xref in ['clinvar_entries', 'allele_registry_id', 'variant_aliases']:
-            if xref == 'clinvar_entries':
-                for clinvar_entry in v['clinvar_entries']:
+        for xref in ["clinvar_entries", "allele_registry_id", "variant_aliases"]:
+            if xref == "clinvar_entries":
+                for clinvar_entry in v["clinvar_entries"]:
                     if clinvar_entry and clinvar_entry not in {"N/A", "NONE FOUND"}:
                         xrefs.append(f"{XrefSystem.CLINVAR.value}:{clinvar_entry}")
-            elif xref == 'allele_registry_id' and v['allele_registry_id']:
+            elif xref == "allele_registry_id" and v["allele_registry_id"]:
                 xrefs.append(f"{XrefSystem.CLINGEN.value}:{v['allele_registry_id']}")
-            elif xref == 'variant_aliases':
-                dbsnp_xrefs = [item for item in v['variant_aliases']
-                               if item.startswith('RS')]
+            elif xref == "variant_aliases":
+                dbsnp_xrefs = [item for item in v["variant_aliases"]
+                               if item.startswith("RS")]
                 for dbsnp_xref in dbsnp_xrefs:
                     xrefs.append(f"{XrefSystem.DB_SNP.value}:"
                                  f"{dbsnp_xref.split('RS')[-1]}")
@@ -570,14 +570,14 @@ class CIViCTransform(Transform):
         :return: A list of hgvs expressions
         """
         hgvs_expressions = list()
-        for hgvs_expr in variant['hgvs_expressions']:
-            if ':g.' in hgvs_expr:
-                syntax = 'hgvs.g'
-            elif ':c.' in hgvs_expr:
-                syntax = 'hgvs.c'
+        for hgvs_expr in variant["hgvs_expressions"]:
+            if ":g." in hgvs_expr:
+                syntax = "hgvs.g"
+            elif ":c." in hgvs_expr:
+                syntax = "hgvs.c"
             else:
-                syntax = 'hgvs.p'
-            if hgvs_expr != 'N/A':
+                syntax = "hgvs.p"
+            if hgvs_expr != "N/A":
                 hgvs_expressions.append(Expression(syntax=syntax,
                                                    value=hgvs_expr).dict(exclude_none=True))  # noqa: E501
         return hgvs_expressions
@@ -590,17 +590,17 @@ class CIViCTransform(Transform):
         for gene in genes:
             gene_id = f"civic.gid:{gene['id']}"
             ncbigene = f"ncbigene:{gene['entrez_id']}"
-            queries = [ncbigene, gene['name']] + gene['aliases']
+            queries = [ncbigene, gene["name"]] + gene["aliases"]
 
             _, normalized_gene_id = self.vicc_normalizers.normalize_gene(queries)
 
             if normalized_gene_id:
                 gene_descriptor = GeneDescriptor(
                     id=gene_id,
-                    label=gene['name'],
-                    description=gene['description'] if gene['description'] else None,
+                    label=gene["name"],
+                    description=gene["description"] if gene["description"] else None,
                     gene=normalized_gene_id,
-                    alternate_labels=gene['aliases'],
+                    alternate_labels=gene["aliases"],
                     xrefs=[ncbigene]
                 ).dict(exclude_none=True)
                 self.gene_descriptors.append(gene_descriptor)
@@ -616,18 +616,18 @@ class CIViCTransform(Transform):
         :param Dict record: CIViC AID or EID
         :return: A disease descriptor
         """
-        disease_descriptor = self.valid_ids['disease_descriptors'].get(disease_id)
+        disease_descriptor = self.valid_ids["disease_descriptors"].get(disease_id)
         if disease_descriptor:
             return disease_descriptor
         else:
             disease_descriptor = None
-            if disease_id not in self.invalid_ids['disease_descriptors']:
-                disease_descriptor = self._get_disease_descriptors(record['disease'])
+            if disease_id not in self.invalid_ids["disease_descriptors"]:
+                disease_descriptor = self._get_disease_descriptors(record["disease"])
                 if disease_descriptor:
-                    self.valid_ids['disease_descriptors'][disease_id] = \
+                    self.valid_ids["disease_descriptors"][disease_id] = \
                         disease_descriptor
                 else:
-                    self.invalid_ids['disease_descriptors'].add(disease_id)
+                    self.invalid_ids["disease_descriptors"].add(disease_id)
             return disease_descriptor
 
     def _get_disease_descriptors(self, disease: Dict) -> Optional[DiseaseDescriptor]:
@@ -640,8 +640,8 @@ class CIViCTransform(Transform):
             return None
 
         disease_id = f"civic.did:{disease['id']}"
-        display_name = disease['display_name']
-        doid = disease['doid']
+        display_name = disease["display_name"]
+        doid = disease["doid"]
 
         if not doid:
             logger.warning(f"{disease_id} ({display_name}) has null DOID")
@@ -676,19 +676,19 @@ class CIViCTransform(Transform):
         :return: A therapeutic descriptor
         """
         therapeutic_id = f"civic.tid:{drug['id']}"
-        therapeutic_descriptor = self.valid_ids['therapeutic_descriptors'].get(therapeutic_id)  # noqa: E501
+        therapeutic_descriptor = self.valid_ids["therapeutic_descriptors"].get(therapeutic_id)  # noqa: E501
         if therapeutic_descriptor:
             return therapeutic_descriptor
         else:
             therapeutic_descriptor = None
-            if therapeutic_id not in self.invalid_ids['therapeutic_descriptors']:
+            if therapeutic_id not in self.invalid_ids["therapeutic_descriptors"]:
                 therapeutic_descriptor = self._get_therapeutic_descriptor(
                     therapeutic_id, drug)
                 if therapeutic_descriptor:
-                    self.valid_ids['therapeutic_descriptors'][therapeutic_id] = \
+                    self.valid_ids["therapeutic_descriptors"][therapeutic_id] = \
                         therapeutic_descriptor
                 else:
-                    self.invalid_ids['therapeutic_descriptors'].add(therapeutic_id)
+                    self.invalid_ids["therapeutic_descriptors"].add(therapeutic_id)
             return therapeutic_descriptor
 
     def _get_therapeutic_descriptor(self, therapeutic_id: str,
@@ -698,10 +698,10 @@ class CIViCTransform(Transform):
         :param Dict drug: A CIViC drug record
         :return: A Therapeutic Descriptor
         """
-        label = drug['name']
+        label = drug["name"]
         queries = list()
         xrefs = list()
-        if drug['ncit_id']:
+        if drug["ncit_id"]:
             ncit_id = f"ncit:{drug['ncit_id']}"
             xrefs.append(ncit_id)
             queries.append(ncit_id)
@@ -718,7 +718,7 @@ class CIViCTransform(Transform):
         regulatory_approval_extension = \
             self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)
 
-        alternate_labels = drug['aliases']
+        alternate_labels = drug["aliases"]
 
         therapeutic_descriptor = TherapeuticDescriptor(
             id=therapeutic_id,
@@ -793,10 +793,10 @@ class CIViCTransform(Transform):
         self.therapeutic_collection_descriptors.append(tcd)
         return tcd
 
-    def _get_eid_document(self, source) -> Optional[Document]:
+    def _get_eid_document(self, source: Dict) -> Optional[Document]:
         """Get an EID's document.
 
-        :param dict source: An evidence item's source
+        :param Dict source: An evidence item's source
         :return: Document for EID
         """
         source_type = source["source_type"].upper()
@@ -823,7 +823,7 @@ class CIViCTransform(Transform):
     def _get_aid_document(self, assertion: Dict) -> List[Document]:
         """Get an AID's documents.
 
-        :param dict assertion: A CIViC Assertion
+        :param Dict assertion: A CIViC Assertion
         :return: A list of AID documents
         """
         # NCCN Guidlines
@@ -843,13 +843,13 @@ class CIViCTransform(Transform):
 
         # TODO: Check this after first pass
         # ACMG Codes
-        if assertion['acmg_codes']:
-            for acmg_code in assertion['acmg_codes']:
+        if assertion["acmg_codes"]:
+            for acmg_code in assertion["acmg_codes"]:
                 document_id = f"acmg:{acmg_code['code']}"
                 documents.append(Document(
                     id=document_id,
-                    label=acmg_code['code'],
-                    description=acmg_code['description'],
+                    label=acmg_code["code"],
+                    description=acmg_code["description"],
                     type="Document"
                 ).dict(exclude_none=True))
 
