@@ -69,6 +69,47 @@ def civic_eid9851_statement(method1, pmid_31566309):
         "object_descriptor": "civic.tcd:P1PY89shAjemg7jquQ0V9pg1VnYnkPeK",
         "neoplasm_type_descriptor": "civic.did:11",
         "specified_by": method1,
+        "contributions": [
+            {
+                "type": "Contribution",
+                "contributor": {
+                    "type": "Agent",
+                    "name": "Cam Grisdale",
+                    "id": "civic.user:968"
+                },
+                "date": "2021-11-09T20:40:42.744Z",
+                "activity": {
+                    "type": "Coding",
+                    "label": "submitted"
+                }
+            },
+            {
+                "type": "Contribution",
+                "contributor": {
+                    "type": "Agent",
+                    "name": "Cam Grisdale",
+                    "id": "civic.user:968"
+                },
+                "date": "2021-11-09T20:42:29.151Z",
+                "activity": {
+                    "type": "Coding",
+                    "label": "last_commented_on"
+                }
+            },
+            {
+                "type": "Contribution",
+                "contributor": {
+                    "type": "Agent",
+                    "name": "Kilannin Krysiak",
+                    "id": "civic.user:6"
+                },
+                "date": "2022-02-11T23:51:32.656Z",
+                "activity": {
+                    "type": "Coding",
+                    "label": "accepted"
+                }
+            }
+        ],
         "is_reported_in": [pmid_31566309]
     }
 
@@ -111,6 +152,60 @@ def civic_eid816_statement(method1, pmid_25989278):
         "object_descriptor": "civic.tcd:7IxyhCwID0QYyVCP2xuIyYvwwu-S_HrZ",
         "neoplasm_type_descriptor": "civic.did:11",
         "specified_by": method1,
+        "contributions": [
+            {
+                "type": "Contribution",
+                "contributor": {
+                    "type": "Agent",
+                    "name": "Damian Rieke",
+                    "id": "civic.user:100"
+                },
+                "date": "2016-01-12T10:25:26.787Z",
+                "activity": {
+                    "type": "Coding",
+                    "label": "submitted"
+                }
+            },
+            {
+                "type": "Contribution",
+                "contributor": {
+                    "type": "Agent",
+                    "name": "Obi Griffith",
+                    "id": "civic.user:3"
+                },
+                "date": "2016-02-18T19:55:57.565Z",
+                "activity": {
+                    "type": "Coding",
+                    "label": "last_modified"
+                }
+            },
+            {
+                "type": "Contribution",
+                "contributor": {
+                    "type": "Agent",
+                    "name": "Kilannin Krysiak",
+                    "id": "civic.user:6"
+                },
+                "date": "2016-02-18T19:56:58.994Z",
+                "activity": {
+                    "type": "Coding",
+                    "label": "last_reviewed"
+                }
+            },
+            {
+                "type": "Contribution",
+                "contributor": {
+                    "type": "Agent",
+                    "name": "Kilannin Krysiak",
+                    "id": "civic.user:6"
+                },
+                "date": "2016-01-28T04:23:37.049Z",
+                "activity": {
+                    "type": "Coding",
+                    "label": "accepted"
+                }
+            },
+        ],
         "is_reported_in": [pmid_25989278]
     }
 

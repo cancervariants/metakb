@@ -4,6 +4,7 @@ from typing import Optional, Dict, List, Set
 from pathlib import Path
 import logging
 
+import requests
 from ga4gh.vrsatile.pydantic.core_models import Extension, Disease, Therapeutic, \
     Coding, CombinationTherapeuticCollection, SubstituteTherapeuticCollection
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
@@ -15,7 +16,7 @@ from metakb.normalizers import VICCNormalizers
 from metakb.schemas import Direction, Document, MethodId, \
     Predicate, PredictivePredicate, SourcePrefix, TargetPropositionType, \
     VariationNeoplasmTherapeuticResponseProposition, XrefSystem, VariationOrigin, \
-    VariationNeoplasmTherapeuticResponseStatement
+    VariationNeoplasmTherapeuticResponseStatement, Contribution, Agent
 from metakb.transform.base import Transform
 
 
@@ -98,6 +99,38 @@ class CIViCTransform(Transform):
         self._transform_evidence_and_assertions(evidence_items)
         # TODO: Uncomment once we support CIViC Assertions
         # self._transform_evidence_and_assertions(assertions, is_evidence=False)
+
+    @staticmethod
+    def _eid_contributions(eid: str) -> List:
+        """Retrieve EID contribution information.
+        Note: This is only a TEMPORARY solution  # TODO: Use civicpy
+
+        :param str eid: CIViC Evidence Item ID
+        :return: List of contributions (lifecycle actions) for a civic evidence item
+        """
+        url = f"https://civicdb.org/api/evidence_items/{eid}"
+        r = requests.get(url)
+        contributions = list()
+        if r.status_code == 200:
+            data = r.json()
+            lifecycle_actions = data["lifecycle_actions"]
+
+            for k, v in lifecycle_actions.items():
+                user = v["user"]
+                contribution = Contribution(
+                    contributor=Agent(
+                        id=f"civic.user:{user['id']}",
+                        name=user["name"]
+                    ).dict(exclude_none=True),
+                    date=v["timestamp"],
+                    activity=Coding(
+                        label=k
+                    ).dict(exclude_none=True)
+                ).dict(exclude_none=True)
+                contributions.append(contribution)
+        else:
+            logger.debug(f"{url} returned status code {r.status_code}")
+        return contributions
 
     def _transform_evidence_and_assertions(self, records: List[Dict],
                                            is_evidence: bool = True) -> None:
@@ -233,6 +266,7 @@ class CIViCTransform(Transform):
                     supported_by.append(f"civic.eid:{evidence_item['id']}")
 
             if evidence_type_upper == EvidenceType.PREDICTIVE:
+                contributions = self._eid_contributions(civic_id.split(":")[-1])
                 statement = VariationNeoplasmTherapeuticResponseStatement(
                     id=civic_id,
                     description=r["description"],
@@ -244,6 +278,7 @@ class CIViCTransform(Transform):
                     neoplasm_type_descriptor=disease_descriptor_id,
                     object_descriptor=therapeutic_descriptor_id,
                     specified_by=method,
+                    contributions=contributions if contributions else None,
                     is_reported_in=[document]
                 ).dict(exclude_none=True)
 

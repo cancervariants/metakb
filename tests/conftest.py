@@ -129,6 +129,34 @@ def civic_eid2997_statement(pmid_23982599, method1):
         "object_descriptor": "civic.tid:146",
         "neoplasm_type_descriptor": "civic.did:8",
         "specified_by": method1,
+        "contributions": [
+            {
+                "type": "Contribution",
+                "contributor": {
+                    "type": "Agent",
+                    "name": "Paul Roepman",
+                    "id": "civic.user:418"
+                },
+                "date": "2017-05-10T13:09:08.566Z",
+                "activity": {
+                    "type": "Coding",
+                    "label": "submitted"
+                }
+            },
+            {
+                "type": "Contribution",
+                "contributor": {
+                    "type": "Agent",
+                    "name": "Erica Barnell",
+                    "id": "civic.user:179"
+                },
+                "date": "2017-05-18T20:22:52.896Z",
+                "activity": {
+                    "type": "Coding",
+                    "label": "accepted"
+                }
+            }
+        ],
         "is_reported_in": [pmid_23982599]
     }
 
