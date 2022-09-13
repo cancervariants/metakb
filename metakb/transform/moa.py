@@ -61,16 +61,24 @@ class MOATransform(Transform):
         data = self.extract_harvester()
 
         assertions = data["assertions"]
+        logger.debug(f"TOTAL MOA Assertions: {len(assertions)}")
         sources = data["sources"]
         variants = data["variants"]
+        logger.debug(f"TOTAL MOA Variants: {len(variants)}")
         genes = data["genes"]
+        logger.debug(f"TOTAL MOA Genes: {len(genes)}")
 
         self._add_gene_descriptors(genes)
+        logger.debug(f"TOTAL MOA Genes able to normalize: "
+                     f"{len(self.valid_ids['gene_descriptors'])}")
         await self._add_variation_descriptors(variants)
+        logger.debug(f"TOTAL MOA Variants able to normalize: "
+                     f"{len(self.valid_ids['variation_descriptors'])}")
         self._add_documents(sources)
 
         # Transform MOA assertions
         await self._transform_assertions(assertions)
+        logger.debug(f"TOTAL MOA assertions able to transform: {len(self.statements)}")
 
     async def _transform_assertions(self, assertions: List[Dict]) -> None:
         """Transform MOAlmanac assertions. Will add associated values to instance
@@ -79,14 +87,18 @@ class MOATransform(Transform):
         :param: A list of MOA assertion records
         """
         for record in assertions:
+            assertion_id = f"{SourceName.MOA.value}.assertion:{record['id']}"
             variant_id = record["variant"]["id"]
             variation_descriptor = self.valid_ids["variation_descriptors"].get(
                 variant_id)
             if not variation_descriptor:
+                logger.debug(f"{assertion_id} has no variation descriptor for "
+                             f"variant_id {variant_id}")
                 continue
 
             therapy_name = record["therapy_name"]
             if not therapy_name:
+                logger.debug(f"{assertion_id} has no therapy_name")
                 continue
 
             if "+" in therapy_name:
@@ -102,16 +114,21 @@ class MOATransform(Transform):
                 therapeutic_descriptor = self._add_therapeutic_descriptor(therapy_name)
 
             if not therapeutic_descriptor:
+                logger.debug(f"{assertion_id} has no therapeutic descriptor for "
+                             f"therapy_name {therapy_name}")
                 continue
 
             disease_descriptor = self._add_disease_descriptor(record["disease"])
             if not disease_descriptor:
+                logger.debug(f"{assertion_id} has no disease descriptor for disease "
+                             f"{record['disease']}")
                 continue
 
             proposition = self._get_proposition(
                 record, variation_descriptor, disease_descriptor,
                 therapeutic_descriptor)
             if not proposition:
+                logger.debug(f"{assertion_id} has no proposition")
                 continue
 
             document = self.valid_ids["documents"].get(record["source_ids"])
@@ -130,7 +147,7 @@ class MOATransform(Transform):
             variation_origin = self._get_variation_origin(record["variant"])
 
             statement = VariationNeoplasmTherapeuticResponseStatement(
-                id=f"{SourceName.MOA.value}.assertion:{record['id']}",
+                id=assertion_id,
                 description=record["description"],
                 evidence_level=evidence_level,
                 variation_origin=variation_origin,
@@ -157,10 +174,13 @@ class MOATransform(Transform):
         :return: Variation Neoplasm Therapeutic Response Proposition represented as a
             dict
         """
-        predicate = self._get_predicate(record["clinical_significance"])
+        clin_sig = record["clinical_significance"]
+        predicate = self._get_predicate(clin_sig)
 
         # Don't support TR that has  `None`, 'N/A', or 'Unknown' predicate
         if not predicate:
+            logger.debug(f"No predicate found for moa.assertion:{record['id']} with "
+                         f"clinical significance: {clin_sig}")
             return None
 
         params = {
@@ -220,37 +240,43 @@ class MOATransform(Transform):
         :param List[Dict] variants: All variants in MOAlmanac
         """
         for variant in variants:
+            variant_id = variant["id"]
+            moa_variant_id = f"moa.variant:{variant_id}"
+            feature = variant["feature"]
             # Skipping Fusion + Translocation + rearrangements that variation normalizer
             # does not support
             if "rearrangement_type" in variant:
+                logger.debug(f"Variation Normalizer does not support {moa_variant_id}:"
+                             f" {feature}")
                 continue
 
             gene = variant.get("gene")
             if not gene:
+                logger.debug(f"Variation Normalizer does not support {moa_variant_id}: "
+                             f"{feature} (no gene provided)")
                 continue
 
             gene_descriptor = self.valid_ids["gene_descriptors"].get(gene)
             if not gene_descriptor:
+                logger.debug(f"moa.variant:{variant_id} has no gene descriptor for "
+                             f"gene, {gene}")
                 continue
 
-            vrs_ref_allele_seq = variant["protein_change"][2] \
-                if "protein_change" in variant and variant["protein_change"] else None
-
             v_norm_resp = None
-            variant_id = variant["id"]
             # For now, the normalizer only support a.a substitution
-            if gene_descriptor and variant.get("protein_change"):
+            if variant.get("protein_change"):
+                vrs_ref_allele_seq = variant["protein_change"][2]
                 gene = gene_descriptor["label"]
                 query = f"{gene} {variant['protein_change'][2:]}"
                 v_norm_resp = await self.vicc_normalizers.normalize_variation([query])
 
                 if not v_norm_resp:
-                    logger.warning(f"Variant Normalizer unable to normalize: "
-                                   f"moa.variant:{variant_id}.")
+                    logger.warning(f"Variation Normalizer unable to normalize: "
+                                   f"moa.variant:{variant_id} using query: {query}")
                     continue
             else:
                 logger.warning(f"Variation Normalizer does not support "
-                               f"moa.variant:{variant_id}: {variant}")
+                               f"{moa_variant_id}: {feature}")
                 continue
 
             extensions = self._get_variant_extensions(variant)
@@ -385,8 +411,7 @@ class MOATransform(Transform):
         if not normalized_therapeutic_id:
             logger.warning(f"Therapy Normalizer unable to normalize: {label}")
             return None
-
-        if normalized_therapeutic_id:
+        else:
             regulatory_approval_extension = \
                 self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)  # noqa: E501
             therapeutic_descriptor = TherapeuticDescriptor(
@@ -398,8 +423,6 @@ class MOATransform(Transform):
             ).dict(exclude_none=True)
             self.therapeutic_descriptors.append(therapeutic_descriptor)
             return therapeutic_descriptor
-        else:
-            return None
 
     def _add_therapeutic_collection_descriptor(
         self, therapeutic_descriptor_id: str, therapy_names: List[str],
@@ -537,7 +560,7 @@ class MOATransform(Transform):
             self.vicc_normalizers.normalize_disease(queries)
 
         if not normalized_disease_id:
-            logger.warning(f"Disease Normalize unable to normalize: {queries}")
+            logger.warning(f"Disease Normalizer unable to normalize: {queries}")
             return None
 
         disease_descriptor = DiseaseDescriptor(
