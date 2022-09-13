@@ -1,0 +1,263 @@
+moa.variant:1 : BCR--ABL1 Fusion
+moa.variant:12 : ALK Fusion
+moa.variant:15 : ALK
+moa.variant:18 : ALK Translocation
+moa.variant:21 : BRD4 Translocation
+moa.variant:22 : CCND1 Translocation
+moa.variant:24 : CCND3 Translocation
+moa.variant:25 : COL1A1--PDGFB Fusion
+moa.variant:26 : EML4--ALK Fusion
+moa.variant:28 : ESRP1--RAF1 Fusion
+moa.variant:30 : EWSR1--FLI1 Fusion
+moa.variant:31 : FGFR2--TACC3 Fusion
+moa.variant:32 : FGFR2 Fusion
+moa.variant:34 : FGFR2
+moa.variant:36 : FGFR3 Fusion
+moa.variant:37 : FGFR3--NSD2 Fusion
+moa.variant:38 : IGH Translocation
+moa.variant:39 : IGH Translocation
+moa.variant:40 : NTRK1 Translocation
+moa.variant:42 : NTRK2 Fusion
+moa.variant:43 : NTRK2 Translocation
+moa.variant:46 : NTRK3 Translocation
+moa.variant:48 : NTRK3 Fusion
+moa.variant:49 : PDGFRA
+moa.variant:50 : FIP1L1--PDGFRA Fusion
+moa.variant:51 : BCR--PDGFRA Fusion
+moa.variant:52 : PDGFRB
+moa.variant:53 : PDGFRB Translocation
+moa.variant:54 : PDGFRB Translocation
+moa.variant:55 : RET
+moa.variant:57 : RET Fusion
+moa.variant:62 : ROS1 Fusion
+moa.variant:64 : RUNX1--RUNX1T1 Fusion
+moa.variant:65 : SLC45A3--BRAF Fusion
+moa.variant:67 : TMPRSS2--ERG Fusion
+moa.variant:72 : ABL1 (Missense)
+moa.variant:79 : ABL1
+moa.variant:111 : AKT1 (Missense)
+moa.variant:113 : AKT2 (Missense)
+moa.variant:114 : AKT3 (Missense)
+moa.variant:123 : ARID1A (Nonsense)
+moa.variant:124 : ARID1A (Frameshift)
+moa.variant:125 : ARID1A
+moa.variant:126 : ASXL1 (Nonsense)
+moa.variant:127 : ASXL1 (Frameshift)
+moa.variant:128 : ATM (Frameshift)
+moa.variant:129 : ATM (Splice Site)
+moa.variant:130 : ATM (Nonsense)
+moa.variant:135 : ATM
+moa.variant:136 : BARD1
+moa.variant:143 : BCOR (Nonsense)
+moa.variant:144 : BCOR (Frameshift)
+moa.variant:145 : BCOR (Splice Site)
+moa.variant:147 : BCR
+moa.variant:148 : BLM
+moa.variant:172 : BRAF
+moa.variant:193 : BRCA1
+moa.variant:196 : BRCA1 (Oncogenic Mutations)
+moa.variant:209 : BRCA2
+moa.variant:215 : BRCA2 (Oncogenic Mutations)
+moa.variant:222 : BRCA2 (Nonsense)
+moa.variant:227 : BRIP1
+moa.variant:234 : CDK12
+moa.variant:235 : CHEK1
+moa.variant:242 : CHEK2
+moa.variant:249 : CTNNB1
+moa.variant:251 : DNMT3A (Nonsense)
+moa.variant:252 : DNMT3A (Frameshift)
+moa.variant:253 : DNMT3A (Splice Site)
+moa.variant:255 : EGFR
+moa.variant:260 : EGFR (Insertion)
+moa.variant:280 : EGFR (Nonsense)
+moa.variant:283 : EGFR (Nonsense)
+moa.variant:285 : EGFR (Deletion)
+moa.variant:289 : ERBB2 (Missense)
+moa.variant:290 : ERBB2
+moa.variant:291 : ERBB3 (Missense)
+moa.variant:292 : ERCC2 (Missense)
+moa.variant:295 : ESR1
+moa.variant:296 : ETV6 (Nonsense)
+moa.variant:297 : ETV6 (Frameshift)
+moa.variant:298 : EZH2 (Nonsense)
+moa.variant:299 : EZH2 (Frameshift)
+moa.variant:305 : FANCL
+moa.variant:306 : FBXW7 (Missense)
+moa.variant:311 : FLCN (Nonsense)
+moa.variant:314 : FLCN (Frameshift)
+moa.variant:320 : IDH1
+moa.variant:332 : IDH2
+moa.variant:337 : JAK1
+moa.variant:340 : JAK2
+moa.variant:348 : KIT
+moa.variant:349 : KIT (Oncogenic Mutations)
+moa.variant:359 : KIT
+moa.variant:360 : KIT
+moa.variant:368 : KIT
+moa.variant:372 : KIT
+moa.variant:378 : KRAS
+moa.variant:380 : KRAS
+moa.variant:382 : KRAS
+moa.variant:384 : KRAS
+moa.variant:412 : MC1R
+moa.variant:414 : MET (Splice Site)
+moa.variant:415 : MET (Deletion)
+moa.variant:416 : MET (Nonsense)
+moa.variant:420 : MLH3
+moa.variant:422 : MSH2
+moa.variant:423 : MSH6
+moa.variant:424 : MTOR
+moa.variant:425 : MYH
+moa.variant:426 : NFE2L2 (Activating mutation)
+moa.variant:427 : NRAS
+moa.variant:429 : NRAS (Missense)
+moa.variant:449 : PALB2
+moa.variant:457 : PBRM1 (Nonsense)
+moa.variant:458 : PDGFRA
+moa.variant:461 : PDGFRA
+moa.variant:463 : PBRM1 (Frameshift)
+moa.variant:464 : PIK3CA
+moa.variant:465 : PIK3CA
+moa.variant:487 : PIK3CB
+moa.variant:492 : POLD1
+moa.variant:496 : POLE
+moa.variant:499 : PRPF8
+moa.variant:500 : PTEN (Nonsense)
+moa.variant:501 : PTEN (Frameshift)
+moa.variant:502 : PTEN (Splice Site)
+moa.variant:506 : PTEN
+moa.variant:511 : PTPN11
+moa.variant:512 : RAD51B
+moa.variant:513 : RAD51C
+moa.variant:520 : RAD51D
+moa.variant:527 : RAD54L
+moa.variant:528 : RBM10
+moa.variant:531 : RET
+moa.variant:533 : RUNX1 (Nonsense)
+moa.variant:534 : RUNX1 (Frameshift)
+moa.variant:537 : SETBP1 (Missense)
+moa.variant:542 : SETBP1
+moa.variant:557 : SF3B1 (Missense)
+moa.variant:562 : SMARCA4 (Nonsense)
+moa.variant:563 : SMARCA4 (Frameshift)
+moa.variant:564 : SMARCA4 (Splice Site)
+moa.variant:565 : SPOP (Missense)
+moa.variant:568 : STAG2 (Nonsense)
+moa.variant:569 : STAG2 (Frameshift)
+moa.variant:570 : STAG2 (Splice Site)
+moa.variant:571 : TET2
+moa.variant:572 : TP53
+moa.variant:573 : TP53 (Nonsense)
+moa.variant:574 : TP53 (Frameshift)
+moa.variant:575 : TP53 (Splice Site)
+moa.variant:576 : TP53 (Missense)
+moa.variant:580 : TSC1 (Oncogenic Mutations)
+moa.variant:581 : TSC1 (Nonsense)
+moa.variant:582 : TSC1 (Frameshift)
+moa.variant:585 : TSC1
+moa.variant:586 : TSC2
+moa.variant:587 : TSC2 (Oncogenic Mutations)
+moa.variant:588 : TSC2 (Nonsense)
+moa.variant:589 : TSC2 (Frameshift)
+moa.variant:592 : ZRSR2 (Nonsense)
+moa.variant:593 : ZRSR2 (Frameshift)
+moa.variant:594 : ATM
+moa.variant:595 : ATM
+moa.variant:596 : ATM
+moa.variant:597 : BARD1
+moa.variant:603 : BRCA1
+moa.variant:612 : BRCA1
+moa.variant:622 : BRCA2
+moa.variant:634 : BRCA2
+moa.variant:640 : CHEK1
+moa.variant:646 : CHEK2
+moa.variant:652 : CHEK2
+moa.variant:653 : EPCAM
+moa.variant:659 : MLH1
+moa.variant:660 : MLH3
+moa.variant:664 : MSH2
+moa.variant:666 : MSH6
+moa.variant:668 : NF1
+moa.variant:669 : PALB2
+moa.variant:676 : PALB2
+moa.variant:677 : PMS2
+moa.variant:682 : RAD51C
+moa.variant:688 : RAD51D
+moa.variant:694 : RB1
+moa.variant:695 : TP53
+moa.variant:696 : AR Amplification
+moa.variant:700 : ARID1A Deletion
+moa.variant:701 : AURKA Amplification
+moa.variant:703 : AURKB Amplification
+moa.variant:704 : BRAF Amplification
+moa.variant:706 : BRCA2 Deletion
+moa.variant:707 : CCND1 Amplification
+moa.variant:708 : CCND1 Amplification
+moa.variant:709 : CCNE1 Amplification
+moa.variant:710 : CD274 Amplification
+moa.variant:716 : CDK4 Amplification
+moa.variant:720 : CDKN2A Deletion
+moa.variant:722 : CDKN2C Deletion
+moa.variant:723 : CDKN2C Deletion
+moa.variant:724 : CRKL Amplification
+moa.variant:725 : EGFR Amplification
+moa.variant:726 : ERBB2 Amplification
+moa.variant:744 : ESR1 Amplification
+moa.variant:745 : FBXW7 Deletion
+moa.variant:746 : FGFR1 Amplification
+moa.variant:750 : FGFR2 Amplification
+moa.variant:754 : HIF1a Amplification
+moa.variant:755 : KEAP1 Deletion
+moa.variant:756 : KIT Amplification
+moa.variant:757 : MDM2 Amplification
+moa.variant:758 : MET Amplification
+moa.variant:762 : MIR17HG Amplification
+moa.variant:763 : MIR17HG Deletion
+moa.variant:764 : MRE11 Amplification
+moa.variant:765 : MYC Amplification
+moa.variant:766 : MYC Amplification
+moa.variant:767 : PAK1 Amplification
+moa.variant:769 : PBRM1 Deletion
+moa.variant:770 : PIK3CA Amplification
+moa.variant:771 : PTEN Deletion
+moa.variant:778 : RB1 Deletion
+moa.variant:779 : TP53 Deletion
+moa.variant:780 : TPX2 Amplification
+moa.variant:781 : MSI-High (no gene provided)
+moa.variant:786 : COSMIC Signature 10 (no gene provided)
+moa.variant:789 : COSMIC Signature 2 (no gene provided)
+moa.variant:791 : COSMIC Signature 3 (no gene provided)
+moa.variant:797 : COSMIC Signature 4 (no gene provided)
+moa.variant:799 : COSMIC Signature 5 (no gene provided)
+moa.variant:803 : High (no gene provided)
+moa.variant:805 : High (>= 178 mutations) (no gene provided)
+moa.variant:806 : High (>= 100 mutations) (no gene provided)
+moa.variant:808 : High (>= 10 mutations/Mb) (no gene provided)
+moa.variant:809 : High (no gene provided)
+moa.variant:810 : ATM (shRNA)
+moa.variant:811 : B2M (CRISPR-Cas9)
+moa.variant:812 : CDK12 (shRNA)
+moa.variant:813 : CDK12 (siRNA)
+moa.variant:814 : CPT1A (shRNA)
+moa.variant:815 : RAD17 (shRNA)
+moa.variant:817 : RAD50 (shRNA)
+moa.variant:818 : TAP2 (CRISPR-Cas9)
+moa.variant:819 : PPARGC1A (CRSPR-Cas9)
+moa.variant:820 : Whole genome doubling (no gene provided)
+moa.variant:834 : RB1 (shRNA)
+moa.variant:835 : USP11 (siRNA)
+moa.variant:836 : ALK--EML4 Fusion
+moa.variant:837 : BRCA1 (Nonsense)
+moa.variant:838 : BRCA1 (Frameshift)
+moa.variant:842 : BRCA2 (Frameshift)
+moa.variant:847 : RB1 (Nonsense)
+moa.variant:848 : RB1 (Frameshift)
+moa.variant:849 : ATRX Deletion
+moa.variant:850 : BRCA1 Deletion
+moa.variant:854 : CDKN2C Deletion
+moa.variant:855 : MAP2K4 Amplification
+moa.variant:858 : MAPK7 Amplification
+moa.variant:859 : MYOCD Amplification
+moa.variant:860 : PDGFRA Amplification
+moa.variant:863 : RB1 Deletion
+moa.variant:864 : FGFR1
