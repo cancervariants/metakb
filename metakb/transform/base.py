@@ -34,11 +34,11 @@ class Transform:
         Method(
             id=MethodId.MOA_ASSERTION_BIORXIV.value,
             is_reported_in=Document(
-                xrefs=["doi:10.1101/2020.09.22.308833"],
-                # TODO: Check label
-                label="Reardon, B., Moore, N.D., Moore, N. et al., 2020, bioRxiv",
-                title="Clinical interpretation of integrative molecular profiles to "
-                      "guide precision cancer medicine"
+                xrefs=["doi:10.1038/s43018-021-00243-3"],
+                label="Reardon, B., Moore, N.D., Moore, N.S. et al., 2021, Nature Cancer",  # noqa: E501
+                title="Integrating molecular profiles into clinical frameworks through "
+                      "the Molecular Oncology Almanac to prospectively guide precision "
+                      "oncology"
             ).dict(exclude_none=True)).dict(exclude_none=True)
     ]
 
