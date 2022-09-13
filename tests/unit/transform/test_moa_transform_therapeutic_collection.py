@@ -35,7 +35,7 @@ def moa_source62():
             {"name": "source_url", "value": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf", "type": "Extension"},  # noqa: E501
             {"name": "source_type", "value": "FDA", "type": "Extension"}
         ],
-        "title": "Array BioPharma Inc. Braftovi (encorafenib) [package insert]. U.S. Food and Drug Administration website. www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf. Revised April 2020. Accessed October 15, 2020.",  # noqa: E501
+        "label": "Array BioPharma Inc. Braftovi (encorafenib) [package insert]. U.S. Food and Drug Administration website. www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf. Revised April 2020. Accessed October 15, 2020.",  # noqa: E501
         "type": "Document"
     }
 

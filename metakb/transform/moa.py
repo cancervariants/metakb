@@ -368,7 +368,7 @@ class MOATransform(Transform):
 
             document = Document(
                 id=f"moa.source:{source_id}",
-                title=source["citation"],  # TODO: Should this be label?
+                label=source["citation"],
                 xrefs=xrefs if xrefs else None,
                 extensions=extensions
             ).dict(exclude_none=True)
