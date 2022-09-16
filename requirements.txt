@@ -71,7 +71,7 @@ mypy-extensions==0.4.3
 neo4j==4.4.4
 networkx==2.8.3
 numpy==1.22.4
-oauthlib==3.2.0
+oauthlib==3.2.1
 obonet==0.3.0
 owlready2==0.38
 packaging==21.3
