@@ -1,10 +1,10 @@
 """A module for the CIViC harvester."""
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from civicpy import civic as civicpy
 
-from metakb.harvesters.base import Harvester
+from metakb.harvesters.base import Harvester  # noqa: I202
 
 logger = logging.getLogger("metakb.harvesters.civic")
 logger.setLevel(logging.DEBUG)
@@ -43,17 +43,17 @@ class CIViCHarvester(Harvester):
                 filename
             )
             if not json_created:
-                logger.error('CIViC Harvester was not successful.')
+                logger.error("CIViC Harvester was not successful.")
                 return False
         except Exception as e:  # noqa: E722
-            logger.error(f'CIViC Harvester was not successful: {e}')
+            logger.error(f"CIViC Harvester was not successful: {e}")
             return False
         else:
-            logger.info('CIViC Harvester was successful.')
+            logger.info("CIViC Harvester was successful.")
             return True
 
     @staticmethod
-    def _get_all_evidence(update_cache: bool = False):
+    def _get_all_evidence(update_cache: bool = False) -> List[civicpy.Evidence]:
         """Return all evidence item records.
 
         :param bool update_cache: `True` if civicpy cache should be updated.
@@ -62,7 +62,7 @@ class CIViCHarvester(Harvester):
         """
         return civicpy.get_all_evidence(allow_cached=not update_cache)
 
-    def harvest_evidence(self, update_cache: bool = False) -> List:
+    def harvest_evidence(self, update_cache: bool = False) -> List[Dict]:
         """Harvest all CIViC evidence item records.
 
         :param bool update_cache: `True` if civicpy cache should be updated.
@@ -78,7 +78,7 @@ class CIViCHarvester(Harvester):
         return evidence
 
     @staticmethod
-    def _get_all_genes(update_cache: bool = False):
+    def _get_all_genes(update_cache: bool = False) -> List[civicpy.Gene]:
         """Return all gene records.
 
         :param bool update_cache: `True` if civicpy cache should be updated.
@@ -87,7 +87,7 @@ class CIViCHarvester(Harvester):
         """
         return civicpy.get_all_genes(allow_cached=not update_cache)
 
-    def harvest_genes(self, update_cache: bool = False) -> List:
+    def harvest_genes(self, update_cache: bool = False) -> List[Dict]:
         """Harvest all CIViC gene records.
 
         :param bool update_cache: `True` if civicpy cache should be updated.
@@ -102,7 +102,7 @@ class CIViCHarvester(Harvester):
         return genes_list
 
     @staticmethod
-    def _get_all_variants(update_cache: bool = False):
+    def _get_all_variants(update_cache: bool = False) -> List[civicpy.Variant]:
         """Return all variant records.
 
         :param bool update_cache: `True` if civicpy cache should be updated.
@@ -111,7 +111,7 @@ class CIViCHarvester(Harvester):
         """
         return civicpy.get_all_variants(allow_cached=not update_cache)
 
-    def harvest_variants(self, update_cache: bool = False) -> List:
+    def harvest_variants(self, update_cache: bool = False) -> List[Dict]:
         """Harvest all CIViC variant records.
 
         :param bool update_cache: `True` if civicpy cache should be updated.
@@ -127,27 +127,7 @@ class CIViCHarvester(Harvester):
         return variants_list
 
     @staticmethod
-    def _get_all_variant_groups(update_cache: bool = False):
-        """Return all variant groups.
-
-        :param bool update_cache: `True` if civicpy cache should be updated.
-            `False` if to use local cache.
-        :return: All civicpy variant group records
-        """
-        return civicpy.get_all_variant_groups(allow_cached=not update_cache)
-
-    def harvest_variant_groups(self, update_cache: bool = False):
-        """Return all variant group records.
-
-        :param bool update_cache: `True` if civicpy cache should be updated.
-            `False` if to use local cache.
-        :return: All civicpy variant group records
-        """
-        # TODO
-        pass
-
-    @staticmethod
-    def _get_all_assertions(update_cache: bool = False):
+    def _get_all_assertions(update_cache: bool = False) -> List[civicpy.Assertion]:
         """Return all assertion records.
 
         :param bool update_cache: `True` if civicpy cache should be updated.
@@ -156,7 +136,7 @@ class CIViCHarvester(Harvester):
         """
         return civicpy.get_all_assertions(allow_cached=not update_cache)
 
-    def harvest_assertions(self, update_cache: bool = False) -> List:
+    def harvest_assertions(self, update_cache: bool = False) -> List[Dict]:
         """Harvest all CIViC assertion records.
 
         :param bool update_cache: `True` if civicpy cache should be updated.
@@ -171,10 +151,10 @@ class CIViCHarvester(Harvester):
             assertions_list.append(a)
         return assertions_list
 
-    def _harvest_gene(self, gene) -> Dict:
+    def _harvest_gene(self, gene: Dict) -> Dict:
         """Harvest an individual CIViC gene record.
 
-        :param Gene gene: A CIViC gene object
+        :param Dict gene: A CIViC gene object represented as a dictionary
         :return: A dictionary containing CIViC gene data
         """
         g = {
@@ -213,10 +193,10 @@ class CIViCHarvester(Harvester):
 
         return g
 
-    def _harvest_variant(self, variant) -> Dict:
+    def _harvest_variant(self, variant: Dict) -> Dict:
         """Harvest an individual CIViC variant record.
 
-        :param Gene variant: A CIViC variant object
+        :param Dict variant: A CIViC variant object represented as a dictionary
         :return: A dictionary containing CIViC variant data
         """
         v = self._variant(variant)
@@ -255,13 +235,18 @@ class CIViCHarvester(Harvester):
         v.update(v_extra)
         return v
 
-    def _harvest_assertion(self, assertion) -> Dict:
+    def _harvest_assertion(self, assertion: Dict) -> Dict:
         """Harvest an individual CIViC assertion record.
 
-        :param Gene assertion: A CIViC variant object
+        :param Dict assertion: A CIViC assertion object represented as a dictionary
         :return: A dictionary containing CIViC assertion data
         """
-        def _acmg_code(obj) -> Dict:
+        def _acmg_code(obj: civicpy.CivicAttribute) -> Dict:
+            """Get dictionary representation of CIViC ACMG Code
+
+            :param civicpy.CivicAttribute obj: CIViC ACMG Code
+            :return: ACMG Code represented as a dictionary
+            """
             acmg_code = self._get_dict(obj)
             return {
                 "id": acmg_code["id"],
@@ -276,7 +261,6 @@ class CIViCHarvester(Harvester):
             "nccn_guideline": assertion["nccn_guideline"],
             "nccn_guideline_version": assertion["nccn_guideline_version"],
             "amp_level": assertion["amp_level"],
-            # "evidence_ids": assertion["evidence_ids"],
             "evidence_items": [
                 self._evidence_item(self._get_dict(evidence_item), is_assertion=True)
                 for evidence_item in assertion["_evidence_items"]
@@ -292,11 +276,11 @@ class CIViCHarvester(Harvester):
         a.update(a_extra)
         return a
 
-    def _evidence_item(self, evidence_item, is_evidence=False,
-                       is_assertion=False) -> Dict:
+    def _evidence_item(self, evidence_item: Dict, is_evidence: bool = False,
+                       is_assertion: bool = False) -> Dict:
         """Get evidence item data.
 
-        :param Evidence evidence_item: A CIViC Evidence record
+        :param Dict evidence_item: A CIViC Evidence record represented as a dictionary
         :param bool is_evidence: Whether or not the evidence item is
                                  being harvested in an evidence record
         :param bool is_assertion: Whether or not the evidence item is
@@ -324,13 +308,10 @@ class CIViCHarvester(Harvester):
             "source_type": source["source_type"],
             "asco_abstract_id": source["asco_abstract_id"],
             "source_url": source["source_url"],
-            # "open_access": source["open_access"],
             "pmc_id": source["pmc_id"],
             "publication_date": source["publication_date"],
             "journal": source["journal"],
             "full_journal_title": source["full_journal_title"],
-            # "status": source["status"],
-            # "is_review": source["is_review"],
             "clinical_trials": [ct for ct in source["clinical_trials"]]
         }
 
@@ -390,10 +371,10 @@ class CIViCHarvester(Harvester):
             })
         return transformed_phenotypes
 
-    def _variant(self, variant) -> Dict:
+    def _variant(self, variant: Dict) -> Dict:
         """Get basic variant data.
 
-        :param Variant variant: A CIViC Variant record
+        :param Dict variant: A CIViC Variant record represented as a dictionary
         :return: A dictionary containing variant data
         """
         return {
@@ -413,10 +394,10 @@ class CIViCHarvester(Harvester):
             "coordinates": self._variant_coordinates(variant)
         }
 
-    def _assertion(self, assertion) -> Dict:
+    def _assertion(self, assertion: Dict) -> Dict:
         """Get assertion data.
 
-        :param Assertion assertion: A CIViC Assertion record
+        :param Dict assertion: A CIViC Assertion record represented as a dictionary
         :return: A dictionary containing assertion data
         """
         disease = self._get_dict(assertion["disease"])
@@ -449,10 +430,10 @@ class CIViCHarvester(Harvester):
             # TODO: Add open_change_count, pending_evidence_count
         }
 
-    def _variant_coordinates(self, variant) -> Dict:
+    def _variant_coordinates(self, variant: Dict) -> Dict:
         """Get a variant's coordinates.
 
-        :param Variant variant: A CIViC variant record
+        :param Dict variant: A CIViC variant record represented as a dictionary
         :return: A dictionary containing a variant's coordinates
         """
         coordinates = self._get_dict(variant["coordinates"])
@@ -471,10 +452,11 @@ class CIViCHarvester(Harvester):
             "reference_build": coordinates["reference_build"]
         }
 
-    def _variant_types(self, variant_type) -> Dict:
+    def _variant_types(self, variant_type: Dict) -> Dict:
         """Get variant_type data.
 
-        :param CivicAttribute variant_type: A CIViC variant_type record
+        :param Dict variant_type: A CIViC variant_type record represented as a
+            dictionary
         :return: A dictionary containing variant_type data
         """
         return {
@@ -485,10 +467,10 @@ class CIViCHarvester(Harvester):
             "url": variant_type["url"]
         }
 
-    def _drug(self, drug) -> Dict:
+    def _drug(self, drug: Dict) -> Dict:
         """Get drug data.
 
-        :param Drug drug: A CIViC Drug record
+        :param Dict drug: A CIViC Drug record represented as a dictionary
         :return: A dictionary containing drug data.
         """
         drug = self._get_dict(drug)
@@ -499,10 +481,11 @@ class CIViCHarvester(Harvester):
             "aliases": drug["aliases"]
         }
 
-    def _get_dict(self, obj) -> Dict:
+    def _get_dict(self, obj: Union[Dict, civicpy.CivicRecord]) -> Dict:
         """Return the __dict__ attribute for an object.
 
         :param obj: The civicpy object
+        :type obj: Dict or civicpy.CivicRecord
         :return: A dictionary for the object
         """
         return vars(obj) if isinstance(obj, civicpy.CivicRecord) else obj
