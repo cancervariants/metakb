@@ -261,16 +261,6 @@ class CIViCHarvester(Harvester):
         :param Gene assertion: A CIViC variant object
         :return: A dictionary containing CIViC assertion data
         """
-
-        def _phenotype(obj) -> Dict:
-            phenotype = self._get_dict(obj)
-            return {
-                "id": phenotype["id"],
-                "name": phenotype["name"],
-                "hpo_id": phenotype["hpo_id"],
-                "url": phenotype["url"]
-            }
-
         def _acmg_code(obj) -> Dict:
             acmg_code = self._get_dict(obj)
             return {
@@ -295,9 +285,7 @@ class CIViCHarvester(Harvester):
                            for acmg_code in assertion["acmg_codes"]],
             "drug_interaction_type": assertion["drug_interaction_type"],
             "fda_companion_test": assertion["fda_companion_test"],
-            # "allele_registry_id": assertion["allele_registry_id"],
-            "phenotypes": [_phenotype(phenotype)
-                           for phenotype in assertion["phenotypes"]],
+            "phenotypes": self._phenotypes(assertion["phenotypes"]),
             "variant_origin": assertion["variant_origin"]
             # TODO: Add lifecycle_actions
         }
@@ -367,8 +355,7 @@ class CIViCHarvester(Harvester):
             "type": evidence_item["type"],
             "source": source,
             "variant_id": evidence_item["variant_id"],
-            # TODO: Find variant w phenotypes
-            "phenotypes": []
+            "phenotypes": self._phenotypes(evidence_item["phenotypes"])
         }
 
         # Assertions and Evidence Items contain more attributes
@@ -384,6 +371,24 @@ class CIViCHarvester(Harvester):
                 pass
 
         return e
+
+    def _phenotypes(self, phenotypes: List) -> List[Dict]:
+        """Get phenotype data
+
+        :param List phenotypes: List of civic phenotype records
+        :return: List of transformed phenotypes represented as dictionaries
+        """
+        transformed_phenotypes = list()
+        for p in phenotypes:
+            p = self._get_dict(p)
+            transformed_phenotypes.append({
+                "id": p["id"],
+                "name": p["name"],
+                "hpo_id": p["hpo_id"],
+                "url": p["url"],
+                "type": p["type"]
+            })
+        return transformed_phenotypes
 
     def _variant(self, variant) -> Dict:
         """Get basic variant data.
