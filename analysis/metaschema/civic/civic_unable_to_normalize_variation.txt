@@ -105,6 +105,7 @@ civic.vid:307 : ALK EML4::ALK L1152R
 civic.vid:7 : ALK EML4::ALK L1196M
 civic.vid:172 : ALK EML4::ALK S1206Y
 civic.vid:173 : ALK EML4::ALK T1151INST
+civic.vid:170 : ALK EML4::ALK and Amplification
 civic.vid:2575 : ABL1 ETV6::ABL1
 civic.vid:2396 : NTRK2 ETV6::NTRK2
 civic.vid:801 : NTRK3 ETV6::NTRK3
@@ -204,6 +205,7 @@ civic.vid:729 : UGT1A1 UGT1A1*28
 civic.vid:732 : UGT1A1 UGT1A1*60
 civic.vid:605 : PTEN V317FS
 civic.vid:17 : BRAF V600
+civic.vid:14 : BRAF V600E and Amplification
 civic.vid:13 : BRAF V600E and V600M
 civic.vid:2820 : BRAF V600_K601>E
 civic.vid:312 : EGFR VIII

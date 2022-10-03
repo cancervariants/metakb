@@ -494,7 +494,7 @@ class CIViCTransform(Transform):
                     continue
 
             unable_to_normalize = {
-                "mutation", "amplification", "exon", "overexpression",
+                "mutation", "exon", "overexpression",
                 "frameshift", "promoter", "deletion", "type", "insertion",
                 "expression", "duplication", "copy", "underexpression",
                 "number", "variation", "repeat", "rearrangement", "activation",

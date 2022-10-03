@@ -6,36 +6,6 @@ civic.vid:552 : ALK ALK Fusion G1269A
 civic.vid:527 : ALK ALK Fusion I1171
 civic.vid:1296 : CTNNB1 Activating Mutation
 civic.vid:3737 : EZH2 Activating Mutation
-civic.vid:18 : CCND1 Amplification
-civic.vid:180 : AURKA Amplification
-civic.vid:187 : CCNE1 Amplification
-civic.vid:190 : EGFR Amplification
-civic.vid:212 : PIK3CA Amplification
-civic.vid:251 : BIRC7 Amplification
-civic.vid:267 : FGFR1 Amplification
-civic.vid:270 : MET Amplification
-civic.vid:298 : MYCN Amplification
-civic.vid:306 : ERBB2 Amplification
-civic.vid:321 : MAPK1 Amplification
-civic.vid:330 : NOTCH1 Amplification
-civic.vid:358 : RSF1 Amplification
-civic.vid:371 : TOP1 Amplification
-civic.vid:379 : TYMS Amplification
-civic.vid:407 : ABCC3 Amplification
-civic.vid:409 : ASNS Amplification
-civic.vid:553 : CDK4 Amplification
-civic.vid:573 : RICTOR Amplification
-civic.vid:586 : KIT Amplification
-civic.vid:591 : RAF1 Amplification
-civic.vid:592 : KRAS Amplification
-civic.vid:629 : FGFR2 Amplification
-civic.vid:630 : FGF3 Amplification
-civic.vid:635 : AKT2 Amplification
-civic.vid:716 : PDGFRA Amplification
-civic.vid:1269 : BRAF Amplification
-civic.vid:1280 : NTRK1 Amplification
-civic.vid:1281 : NTRK3 Amplification
-civic.vid:2240 : TLK2 Amplification
 civic.vid:461 : PML B2 DOMAIN MUTATION
 civic.vid:532 : PALB2 Biallelic Inactivation
 civic.vid:341 : CD44 CD44s Expression
@@ -53,7 +23,6 @@ civic.vid:696 : SMARCB1 Deletion
 civic.vid:3309 : ATRX Deletion
 civic.vid:526 : BCL2L11 Deletion Polymorphism
 civic.vid:352 : ALK C1156Y-L1198F
-civic.vid:170 : ALK and Amplification
 civic.vid:501 : ALK e2-e20
 civic.vid:500 : ALK e20-e20
 civic.vid:503 : ALK e6-e20
@@ -63,7 +32,6 @@ civic.vid:266 : LRP1B EXON 12-22 DELETION
 civic.vid:464 : MET EXON 14 MUTATION and AMPLIFICATION
 civic.vid:324 : MET EXON 14 SKIPPING MUTATION
 civic.vid:74 : KRAS EXON 2 Mutations
-civic.vid:129 : WT1 EXON 7 MUTATION
 civic.vid:559 : CALR EXON 9 FRAMESHIFT
 civic.vid:25 : CDK4 EXPRESSION
 civic.vid:57 : GATA2 EXPRESSION
@@ -126,6 +94,7 @@ civic.vid:2854 : ERBB2 Exon 20 Insertion
 civic.vid:105 : PIK3CA Exon 21 Mutation
 civic.vid:252 : EGFR Exon 4 Deletion
 civic.vid:550 : ALK Exon 4-11 Deletion
+civic.vid:129 : WT1 Exon 7 Mutation
 civic.vid:509 : KIT Exon 9 Mutation
 civic.vid:210 : PGR Expression
 civic.vid:268 : FGFR1 Expression
@@ -328,7 +297,6 @@ civic.vid:868 : VPS37A Underexpression
 civic.vid:1255 : MGMT Underexpression
 civic.vid:1257 : RRM1 Underexpression
 civic.vid:2409 : ERCC1 Underexpression
-civic.vid:14 : BRAF V600E and Amplification
 civic.vid:2361 : BRAF V600E/K and Amplification
 civic.vid:362 : AR V7 EXPRESSION
 civic.vid:426 : BRAF WILD TYPE

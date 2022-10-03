@@ -1,106 +1,106 @@
-moa.variant:603 (count of AIDs 18) : {'moa.assertion:606', 'moa.assertion:603', 'moa.assertion:621', 'moa.assertion:613', 'moa.assertion:620', 'moa.assertion:615', 'moa.assertion:605', 'moa.assertion:608', 'moa.assertion:616', 'moa.assertion:617', 'moa.assertion:618', 'moa.assertion:607', 'moa.assertion:610', 'moa.assertion:614', 'moa.assertion:604', 'moa.assertion:609', 'moa.assertion:611', 'moa.assertion:619'}
-moa.variant:726 (count of AIDs 18) : {'moa.assertion:734', 'moa.assertion:731', 'moa.assertion:740', 'moa.assertion:726', 'moa.assertion:743', 'moa.assertion:742', 'moa.assertion:728', 'moa.assertion:732', 'moa.assertion:736', 'moa.assertion:727', 'moa.assertion:737', 'moa.assertion:739', 'moa.assertion:741', 'moa.assertion:738', 'moa.assertion:730', 'moa.assertion:735', 'moa.assertion:729', 'moa.assertion:733'}
-moa.variant:209 (count of AIDs 14) : {'moa.assertion:209', 'moa.assertion:220', 'moa.assertion:224', 'moa.assertion:226', 'moa.assertion:218', 'moa.assertion:211', 'moa.assertion:223', 'moa.assertion:212', 'moa.assertion:214', 'moa.assertion:213', 'moa.assertion:210', 'moa.assertion:221', 'moa.assertion:225', 'moa.assertion:219'}
-moa.variant:193 (count of AIDs 13) : {'moa.assertion:195', 'moa.assertion:202', 'moa.assertion:201', 'moa.assertion:203', 'moa.assertion:207', 'moa.assertion:206', 'moa.assertion:205', 'moa.assertion:200', 'moa.assertion:199', 'moa.assertion:204', 'moa.assertion:193', 'moa.assertion:194', 'moa.assertion:208'}
-moa.variant:622 (count of AIDs 13) : {'moa.assertion:630', 'moa.assertion:627', 'moa.assertion:629', 'moa.assertion:631', 'moa.assertion:633', 'moa.assertion:622', 'moa.assertion:632', 'moa.assertion:625', 'moa.assertion:639', 'moa.assertion:624', 'moa.assertion:623', 'moa.assertion:626', 'moa.assertion:628'}
-moa.variant:255 (count of AIDs 12) : {'moa.assertion:265', 'moa.assertion:271', 'moa.assertion:268', 'moa.assertion:282', 'moa.assertion:262', 'moa.assertion:256', 'moa.assertion:279', 'moa.assertion:258', 'moa.assertion:255', 'moa.assertion:266', 'moa.assertion:264', 'moa.assertion:259'}
-moa.variant:378 (count of AIDs 12) : {'moa.assertion:397', 'moa.assertion:394', 'moa.assertion:395', 'moa.assertion:379', 'moa.assertion:386', 'moa.assertion:401', 'moa.assertion:398', 'moa.assertion:396', 'moa.assertion:389', 'moa.assertion:399', 'moa.assertion:400', 'moa.assertion:378'}
-moa.variant:1 (count of AIDs 11) : {'moa.assertion:2', 'moa.assertion:1', 'moa.assertion:4', 'moa.assertion:8', 'moa.assertion:5', 'moa.assertion:10', 'moa.assertion:11', 'moa.assertion:6', 'moa.assertion:9', 'moa.assertion:3', 'moa.assertion:7'}
-moa.variant:771 (count of AIDs 9) : {'moa.assertion:775', 'moa.assertion:777', 'moa.assertion:861', 'moa.assertion:774', 'moa.assertion:776', 'moa.assertion:771', 'moa.assertion:772', 'moa.assertion:862', 'moa.assertion:773'}
-moa.variant:791 (count of AIDs 9) : {'moa.assertion:794', 'moa.assertion:791', 'moa.assertion:796', 'moa.assertion:802', 'moa.assertion:792', 'moa.assertion:801', 'moa.assertion:793', 'moa.assertion:800', 'moa.assertion:795'}
-moa.variant:449 (count of AIDs 8) : {'moa.assertion:456', 'moa.assertion:454', 'moa.assertion:451', 'moa.assertion:450', 'moa.assertion:449', 'moa.assertion:455', 'moa.assertion:452', 'moa.assertion:453'}
-moa.variant:634 (count of AIDs 8) : {'moa.assertion:634', 'moa.assertion:635', 'moa.assertion:832', 'moa.assertion:638', 'moa.assertion:637', 'moa.assertion:833', 'moa.assertion:831', 'moa.assertion:636'}
-moa.variant:136 (count of AIDs 7) : {'moa.assertion:137', 'moa.assertion:136', 'moa.assertion:139', 'moa.assertion:141', 'moa.assertion:140', 'moa.assertion:142', 'moa.assertion:138'}
-moa.variant:227 (count of AIDs 7) : {'moa.assertion:228', 'moa.assertion:227', 'moa.assertion:232', 'moa.assertion:230', 'moa.assertion:233', 'moa.assertion:229', 'moa.assertion:231'}
-moa.variant:235 (count of AIDs 7) : {'moa.assertion:235', 'moa.assertion:240', 'moa.assertion:236', 'moa.assertion:239', 'moa.assertion:241', 'moa.assertion:238', 'moa.assertion:237'}
-moa.variant:242 (count of AIDs 7) : {'moa.assertion:248', 'moa.assertion:246', 'moa.assertion:245', 'moa.assertion:244', 'moa.assertion:243', 'moa.assertion:247', 'moa.assertion:242'}
-moa.variant:348 (count of AIDs 7) : {'moa.assertion:358', 'moa.assertion:370', 'moa.assertion:373', 'moa.assertion:376', 'moa.assertion:350', 'moa.assertion:348', 'moa.assertion:357'}
-moa.variant:513 (count of AIDs 7) : {'moa.assertion:513', 'moa.assertion:514', 'moa.assertion:516', 'moa.assertion:518', 'moa.assertion:517', 'moa.assertion:519', 'moa.assertion:515'}
-moa.variant:520 (count of AIDs 7) : {'moa.assertion:522', 'moa.assertion:523', 'moa.assertion:520', 'moa.assertion:526', 'moa.assertion:524', 'moa.assertion:525', 'moa.assertion:521'}
-moa.variant:669 (count of AIDs 7) : {'moa.assertion:671', 'moa.assertion:670', 'moa.assertion:672', 'moa.assertion:673', 'moa.assertion:675', 'moa.assertion:674', 'moa.assertion:669'}
-moa.variant:781 (count of AIDs 7) : {'moa.assertion:783', 'moa.assertion:826', 'moa.assertion:827', 'moa.assertion:785', 'moa.assertion:784', 'moa.assertion:781', 'moa.assertion:782'}
-moa.variant:597 (count of AIDs 6) : {'moa.assertion:599', 'moa.assertion:602', 'moa.assertion:598', 'moa.assertion:597', 'moa.assertion:601', 'moa.assertion:600'}
-moa.variant:640 (count of AIDs 6) : {'moa.assertion:640', 'moa.assertion:642', 'moa.assertion:641', 'moa.assertion:643', 'moa.assertion:644', 'moa.assertion:645'}
-moa.variant:646 (count of AIDs 6) : {'moa.assertion:646', 'moa.assertion:650', 'moa.assertion:647', 'moa.assertion:651', 'moa.assertion:649', 'moa.assertion:648'}
-moa.variant:682 (count of AIDs 6) : {'moa.assertion:687', 'moa.assertion:684', 'moa.assertion:683', 'moa.assertion:685', 'moa.assertion:686', 'moa.assertion:682'}
-moa.variant:688 (count of AIDs 6) : {'moa.assertion:689', 'moa.assertion:690', 'moa.assertion:693', 'moa.assertion:688', 'moa.assertion:691', 'moa.assertion:692'}
-moa.variant:710 (count of AIDs 6) : {'moa.assertion:715', 'moa.assertion:714', 'moa.assertion:711', 'moa.assertion:712', 'moa.assertion:713', 'moa.assertion:710'}
-moa.variant:57 (count of AIDs 5) : {'moa.assertion:61', 'moa.assertion:59', 'moa.assertion:57', 'moa.assertion:58', 'moa.assertion:60'}
-moa.variant:172 (count of AIDs 5) : {'moa.assertion:172', 'moa.assertion:184', 'moa.assertion:185', 'moa.assertion:186', 'moa.assertion:187'}
-moa.variant:320 (count of AIDs 5) : {'moa.assertion:321', 'moa.assertion:328', 'moa.assertion:320', 'moa.assertion:327', 'moa.assertion:322'}
-moa.variant:12 (count of AIDs 4) : {'moa.assertion:14', 'moa.assertion:13', 'moa.assertion:12', 'moa.assertion:16'}
-moa.variant:67 (count of AIDs 4) : {'moa.assertion:67', 'moa.assertion:68', 'moa.assertion:69', 'moa.assertion:70'}
-moa.variant:222 (count of AIDs 4) : {'moa.assertion:222', 'moa.assertion:845', 'moa.assertion:843', 'moa.assertion:841'}
-moa.variant:500 (count of AIDs 4) : {'moa.assertion:500', 'moa.assertion:503', 'moa.assertion:507', 'moa.assertion:510'}
-moa.variant:572 (count of AIDs 4) : {'moa.assertion:577', 'moa.assertion:579', 'moa.assertion:578', 'moa.assertion:572'}
-moa.variant:612 (count of AIDs 4) : {'moa.assertion:829', 'moa.assertion:830', 'moa.assertion:612', 'moa.assertion:828'}
-moa.variant:696 (count of AIDs 4) : {'moa.assertion:696', 'moa.assertion:698', 'moa.assertion:697', 'moa.assertion:699'}
-moa.variant:716 (count of AIDs 4) : {'moa.assertion:717', 'moa.assertion:716', 'moa.assertion:719', 'moa.assertion:718'}
-moa.variant:746 (count of AIDs 4) : {'moa.assertion:747', 'moa.assertion:749', 'moa.assertion:746', 'moa.assertion:748'}
-moa.variant:750 (count of AIDs 4) : {'moa.assertion:751', 'moa.assertion:753', 'moa.assertion:752', 'moa.assertion:750'}
-moa.variant:758 (count of AIDs 4) : {'moa.assertion:759', 'moa.assertion:758', 'moa.assertion:760', 'moa.assertion:761'}
-moa.variant:18 (count of AIDs 3) : {'moa.assertion:20', 'moa.assertion:18', 'moa.assertion:19'}
-moa.variant:32 (count of AIDs 3) : {'moa.assertion:35', 'moa.assertion:32', 'moa.assertion:33'}
+moa.variant:603 (count of AIDs 18) : {'moa.assertion:613', 'moa.assertion:614', 'moa.assertion:619', 'moa.assertion:611', 'moa.assertion:617', 'moa.assertion:607', 'moa.assertion:620', 'moa.assertion:618', 'moa.assertion:608', 'moa.assertion:603', 'moa.assertion:621', 'moa.assertion:615', 'moa.assertion:605', 'moa.assertion:606', 'moa.assertion:616', 'moa.assertion:610', 'moa.assertion:609', 'moa.assertion:604'}
+moa.variant:726 (count of AIDs 18) : {'moa.assertion:734', 'moa.assertion:736', 'moa.assertion:739', 'moa.assertion:741', 'moa.assertion:735', 'moa.assertion:737', 'moa.assertion:732', 'moa.assertion:726', 'moa.assertion:740', 'moa.assertion:733', 'moa.assertion:742', 'moa.assertion:729', 'moa.assertion:727', 'moa.assertion:728', 'moa.assertion:731', 'moa.assertion:743', 'moa.assertion:738', 'moa.assertion:730'}
+moa.variant:209 (count of AIDs 14) : {'moa.assertion:219', 'moa.assertion:224', 'moa.assertion:211', 'moa.assertion:210', 'moa.assertion:209', 'moa.assertion:223', 'moa.assertion:221', 'moa.assertion:225', 'moa.assertion:218', 'moa.assertion:214', 'moa.assertion:220', 'moa.assertion:213', 'moa.assertion:226', 'moa.assertion:212'}
+moa.variant:193 (count of AIDs 13) : {'moa.assertion:208', 'moa.assertion:199', 'moa.assertion:195', 'moa.assertion:204', 'moa.assertion:193', 'moa.assertion:205', 'moa.assertion:201', 'moa.assertion:207', 'moa.assertion:200', 'moa.assertion:203', 'moa.assertion:202', 'moa.assertion:194', 'moa.assertion:206'}
+moa.variant:622 (count of AIDs 13) : {'moa.assertion:630', 'moa.assertion:631', 'moa.assertion:629', 'moa.assertion:628', 'moa.assertion:632', 'moa.assertion:639', 'moa.assertion:623', 'moa.assertion:627', 'moa.assertion:633', 'moa.assertion:625', 'moa.assertion:626', 'moa.assertion:622', 'moa.assertion:624'}
+moa.variant:255 (count of AIDs 12) : {'moa.assertion:271', 'moa.assertion:279', 'moa.assertion:264', 'moa.assertion:282', 'moa.assertion:265', 'moa.assertion:256', 'moa.assertion:255', 'moa.assertion:259', 'moa.assertion:262', 'moa.assertion:258', 'moa.assertion:266', 'moa.assertion:268'}
+moa.variant:378 (count of AIDs 12) : {'moa.assertion:378', 'moa.assertion:394', 'moa.assertion:399', 'moa.assertion:395', 'moa.assertion:379', 'moa.assertion:397', 'moa.assertion:400', 'moa.assertion:398', 'moa.assertion:389', 'moa.assertion:396', 'moa.assertion:386', 'moa.assertion:401'}
+moa.variant:1 (count of AIDs 11) : {'moa.assertion:9', 'moa.assertion:6', 'moa.assertion:2', 'moa.assertion:3', 'moa.assertion:10', 'moa.assertion:5', 'moa.assertion:1', 'moa.assertion:11', 'moa.assertion:8', 'moa.assertion:7', 'moa.assertion:4'}
+moa.variant:771 (count of AIDs 9) : {'moa.assertion:773', 'moa.assertion:771', 'moa.assertion:861', 'moa.assertion:776', 'moa.assertion:772', 'moa.assertion:777', 'moa.assertion:862', 'moa.assertion:774', 'moa.assertion:775'}
+moa.variant:791 (count of AIDs 9) : {'moa.assertion:800', 'moa.assertion:795', 'moa.assertion:793', 'moa.assertion:796', 'moa.assertion:792', 'moa.assertion:802', 'moa.assertion:801', 'moa.assertion:791', 'moa.assertion:794'}
+moa.variant:449 (count of AIDs 8) : {'moa.assertion:454', 'moa.assertion:450', 'moa.assertion:449', 'moa.assertion:453', 'moa.assertion:455', 'moa.assertion:452', 'moa.assertion:456', 'moa.assertion:451'}
+moa.variant:634 (count of AIDs 8) : {'moa.assertion:832', 'moa.assertion:833', 'moa.assertion:831', 'moa.assertion:634', 'moa.assertion:638', 'moa.assertion:637', 'moa.assertion:636', 'moa.assertion:635'}
+moa.variant:136 (count of AIDs 7) : {'moa.assertion:136', 'moa.assertion:138', 'moa.assertion:139', 'moa.assertion:137', 'moa.assertion:141', 'moa.assertion:140', 'moa.assertion:142'}
+moa.variant:227 (count of AIDs 7) : {'moa.assertion:228', 'moa.assertion:230', 'moa.assertion:229', 'moa.assertion:233', 'moa.assertion:232', 'moa.assertion:227', 'moa.assertion:231'}
+moa.variant:235 (count of AIDs 7) : {'moa.assertion:236', 'moa.assertion:239', 'moa.assertion:240', 'moa.assertion:237', 'moa.assertion:238', 'moa.assertion:235', 'moa.assertion:241'}
+moa.variant:242 (count of AIDs 7) : {'moa.assertion:244', 'moa.assertion:248', 'moa.assertion:245', 'moa.assertion:242', 'moa.assertion:247', 'moa.assertion:243', 'moa.assertion:246'}
+moa.variant:348 (count of AIDs 7) : {'moa.assertion:358', 'moa.assertion:373', 'moa.assertion:348', 'moa.assertion:370', 'moa.assertion:376', 'moa.assertion:350', 'moa.assertion:357'}
+moa.variant:513 (count of AIDs 7) : {'moa.assertion:518', 'moa.assertion:513', 'moa.assertion:519', 'moa.assertion:514', 'moa.assertion:517', 'moa.assertion:515', 'moa.assertion:516'}
+moa.variant:520 (count of AIDs 7) : {'moa.assertion:522', 'moa.assertion:520', 'moa.assertion:521', 'moa.assertion:525', 'moa.assertion:526', 'moa.assertion:524', 'moa.assertion:523'}
+moa.variant:669 (count of AIDs 7) : {'moa.assertion:674', 'moa.assertion:673', 'moa.assertion:672', 'moa.assertion:669', 'moa.assertion:670', 'moa.assertion:675', 'moa.assertion:671'}
+moa.variant:781 (count of AIDs 7) : {'moa.assertion:783', 'moa.assertion:784', 'moa.assertion:785', 'moa.assertion:782', 'moa.assertion:826', 'moa.assertion:827', 'moa.assertion:781'}
+moa.variant:597 (count of AIDs 6) : {'moa.assertion:597', 'moa.assertion:598', 'moa.assertion:601', 'moa.assertion:602', 'moa.assertion:600', 'moa.assertion:599'}
+moa.variant:640 (count of AIDs 6) : {'moa.assertion:641', 'moa.assertion:642', 'moa.assertion:640', 'moa.assertion:645', 'moa.assertion:643', 'moa.assertion:644'}
+moa.variant:646 (count of AIDs 6) : {'moa.assertion:650', 'moa.assertion:648', 'moa.assertion:651', 'moa.assertion:649', 'moa.assertion:646', 'moa.assertion:647'}
+moa.variant:682 (count of AIDs 6) : {'moa.assertion:686', 'moa.assertion:687', 'moa.assertion:685', 'moa.assertion:682', 'moa.assertion:683', 'moa.assertion:684'}
+moa.variant:688 (count of AIDs 6) : {'moa.assertion:688', 'moa.assertion:692', 'moa.assertion:690', 'moa.assertion:693', 'moa.assertion:689', 'moa.assertion:691'}
+moa.variant:710 (count of AIDs 6) : {'moa.assertion:714', 'moa.assertion:712', 'moa.assertion:711', 'moa.assertion:715', 'moa.assertion:710', 'moa.assertion:713'}
+moa.variant:57 (count of AIDs 5) : {'moa.assertion:58', 'moa.assertion:61', 'moa.assertion:59', 'moa.assertion:60', 'moa.assertion:57'}
+moa.variant:172 (count of AIDs 5) : {'moa.assertion:187', 'moa.assertion:172', 'moa.assertion:185', 'moa.assertion:184', 'moa.assertion:186'}
+moa.variant:320 (count of AIDs 5) : {'moa.assertion:322', 'moa.assertion:321', 'moa.assertion:328', 'moa.assertion:327', 'moa.assertion:320'}
+moa.variant:12 (count of AIDs 4) : {'moa.assertion:16', 'moa.assertion:12', 'moa.assertion:14', 'moa.assertion:13'}
+moa.variant:67 (count of AIDs 4) : {'moa.assertion:68', 'moa.assertion:70', 'moa.assertion:67', 'moa.assertion:69'}
+moa.variant:222 (count of AIDs 4) : {'moa.assertion:843', 'moa.assertion:841', 'moa.assertion:222', 'moa.assertion:845'}
+moa.variant:500 (count of AIDs 4) : {'moa.assertion:500', 'moa.assertion:507', 'moa.assertion:503', 'moa.assertion:510'}
+moa.variant:572 (count of AIDs 4) : {'moa.assertion:579', 'moa.assertion:577', 'moa.assertion:572', 'moa.assertion:578'}
+moa.variant:612 (count of AIDs 4) : {'moa.assertion:829', 'moa.assertion:830', 'moa.assertion:828', 'moa.assertion:612'}
+moa.variant:696 (count of AIDs 4) : {'moa.assertion:697', 'moa.assertion:696', 'moa.assertion:699', 'moa.assertion:698'}
+moa.variant:716 (count of AIDs 4) : {'moa.assertion:718', 'moa.assertion:717', 'moa.assertion:719', 'moa.assertion:716'}
+moa.variant:746 (count of AIDs 4) : {'moa.assertion:748', 'moa.assertion:746', 'moa.assertion:749', 'moa.assertion:747'}
+moa.variant:750 (count of AIDs 4) : {'moa.assertion:750', 'moa.assertion:752', 'moa.assertion:751', 'moa.assertion:753'}
+moa.variant:758 (count of AIDs 4) : {'moa.assertion:759', 'moa.assertion:760', 'moa.assertion:761', 'moa.assertion:758'}
+moa.variant:18 (count of AIDs 3) : {'moa.assertion:18', 'moa.assertion:19', 'moa.assertion:20'}
+moa.variant:32 (count of AIDs 3) : {'moa.assertion:33', 'moa.assertion:35', 'moa.assertion:32'}
 moa.variant:196 (count of AIDs 3) : {'moa.assertion:197', 'moa.assertion:198', 'moa.assertion:196'}
-moa.variant:215 (count of AIDs 3) : {'moa.assertion:216', 'moa.assertion:215', 'moa.assertion:217'}
-moa.variant:260 (count of AIDs 3) : {'moa.assertion:260', 'moa.assertion:287', 'moa.assertion:288'}
-moa.variant:311 (count of AIDs 3) : {'moa.assertion:312', 'moa.assertion:311', 'moa.assertion:313'}
-moa.variant:314 (count of AIDs 3) : {'moa.assertion:315', 'moa.assertion:314', 'moa.assertion:316'}
-moa.variant:349 (count of AIDs 3) : {'moa.assertion:349', 'moa.assertion:354', 'moa.assertion:351'}
-moa.variant:359 (count of AIDs 3) : {'moa.assertion:359', 'moa.assertion:377', 'moa.assertion:371'}
+moa.variant:215 (count of AIDs 3) : {'moa.assertion:216', 'moa.assertion:217', 'moa.assertion:215'}
+moa.variant:260 (count of AIDs 3) : {'moa.assertion:288', 'moa.assertion:287', 'moa.assertion:260'}
+moa.variant:311 (count of AIDs 3) : {'moa.assertion:313', 'moa.assertion:311', 'moa.assertion:312'}
+moa.variant:314 (count of AIDs 3) : {'moa.assertion:316', 'moa.assertion:315', 'moa.assertion:314'}
+moa.variant:349 (count of AIDs 3) : {'moa.assertion:351', 'moa.assertion:349', 'moa.assertion:354'}
+moa.variant:359 (count of AIDs 3) : {'moa.assertion:371', 'moa.assertion:377', 'moa.assertion:359'}
 moa.variant:427 (count of AIDs 3) : {'moa.assertion:448', 'moa.assertion:427', 'moa.assertion:428'}
-moa.variant:429 (count of AIDs 3) : {'moa.assertion:429', 'moa.assertion:430', 'moa.assertion:431'}
-moa.variant:492 (count of AIDs 3) : {'moa.assertion:493', 'moa.assertion:492', 'moa.assertion:494'}
+moa.variant:429 (count of AIDs 3) : {'moa.assertion:430', 'moa.assertion:431', 'moa.assertion:429'}
+moa.variant:492 (count of AIDs 3) : {'moa.assertion:493', 'moa.assertion:494', 'moa.assertion:492'}
 moa.variant:496 (count of AIDs 3) : {'moa.assertion:498', 'moa.assertion:496', 'moa.assertion:497'}
 moa.variant:501 (count of AIDs 3) : {'moa.assertion:504', 'moa.assertion:508', 'moa.assertion:501'}
-moa.variant:502 (count of AIDs 3) : {'moa.assertion:505', 'moa.assertion:509', 'moa.assertion:502'}
-moa.variant:565 (count of AIDs 3) : {'moa.assertion:567', 'moa.assertion:566', 'moa.assertion:565'}
-moa.variant:706 (count of AIDs 3) : {'moa.assertion:706', 'moa.assertion:851', 'moa.assertion:852'}
-moa.variant:720 (count of AIDs 3) : {'moa.assertion:853', 'moa.assertion:720', 'moa.assertion:721'}
-moa.variant:786 (count of AIDs 3) : {'moa.assertion:788', 'moa.assertion:786', 'moa.assertion:787'}
-moa.variant:842 (count of AIDs 3) : {'moa.assertion:846', 'moa.assertion:842', 'moa.assertion:844'}
+moa.variant:502 (count of AIDs 3) : {'moa.assertion:502', 'moa.assertion:505', 'moa.assertion:509'}
+moa.variant:565 (count of AIDs 3) : {'moa.assertion:565', 'moa.assertion:567', 'moa.assertion:566'}
+moa.variant:706 (count of AIDs 3) : {'moa.assertion:851', 'moa.assertion:706', 'moa.assertion:852'}
+moa.variant:720 (count of AIDs 3) : {'moa.assertion:720', 'moa.assertion:853', 'moa.assertion:721'}
+moa.variant:786 (count of AIDs 3) : {'moa.assertion:787', 'moa.assertion:788', 'moa.assertion:786'}
+moa.variant:842 (count of AIDs 3) : {'moa.assertion:844', 'moa.assertion:842', 'moa.assertion:846'}
 moa.variant:855 (count of AIDs 3) : {'moa.assertion:857', 'moa.assertion:855', 'moa.assertion:856'}
 moa.variant:15 (count of AIDs 2) : {'moa.assertion:15', 'moa.assertion:17'}
-moa.variant:22 (count of AIDs 2) : {'moa.assertion:22', 'moa.assertion:23'}
-moa.variant:26 (count of AIDs 2) : {'moa.assertion:26', 'moa.assertion:27'}
-moa.variant:28 (count of AIDs 2) : {'moa.assertion:29', 'moa.assertion:28'}
+moa.variant:22 (count of AIDs 2) : {'moa.assertion:23', 'moa.assertion:22'}
+moa.variant:26 (count of AIDs 2) : {'moa.assertion:27', 'moa.assertion:26'}
+moa.variant:28 (count of AIDs 2) : {'moa.assertion:28', 'moa.assertion:29'}
 moa.variant:40 (count of AIDs 2) : {'moa.assertion:41', 'moa.assertion:40'}
-moa.variant:42 (count of AIDs 2) : {'moa.assertion:42', 'moa.assertion:45'}
-moa.variant:43 (count of AIDs 2) : {'moa.assertion:44', 'moa.assertion:43'}
-moa.variant:46 (count of AIDs 2) : {'moa.assertion:47', 'moa.assertion:46'}
+moa.variant:42 (count of AIDs 2) : {'moa.assertion:45', 'moa.assertion:42'}
+moa.variant:43 (count of AIDs 2) : {'moa.assertion:43', 'moa.assertion:44'}
+moa.variant:46 (count of AIDs 2) : {'moa.assertion:46', 'moa.assertion:47'}
 moa.variant:55 (count of AIDs 2) : {'moa.assertion:56', 'moa.assertion:55'}
-moa.variant:62 (count of AIDs 2) : {'moa.assertion:62', 'moa.assertion:63'}
-moa.variant:65 (count of AIDs 2) : {'moa.assertion:65', 'moa.assertion:66'}
+moa.variant:62 (count of AIDs 2) : {'moa.assertion:63', 'moa.assertion:62'}
+moa.variant:65 (count of AIDs 2) : {'moa.assertion:66', 'moa.assertion:65'}
 moa.variant:128 (count of AIDs 2) : {'moa.assertion:128', 'moa.assertion:131'}
 moa.variant:129 (count of AIDs 2) : {'moa.assertion:129', 'moa.assertion:132'}
 moa.variant:130 (count of AIDs 2) : {'moa.assertion:133', 'moa.assertion:130'}
-moa.variant:292 (count of AIDs 2) : {'moa.assertion:292', 'moa.assertion:293'}
+moa.variant:292 (count of AIDs 2) : {'moa.assertion:293', 'moa.assertion:292'}
 moa.variant:332 (count of AIDs 2) : {'moa.assertion:333', 'moa.assertion:332'}
 moa.variant:368 (count of AIDs 2) : {'moa.assertion:368', 'moa.assertion:375'}
-moa.variant:380 (count of AIDs 2) : {'moa.assertion:380', 'moa.assertion:381'}
-moa.variant:382 (count of AIDs 2) : {'moa.assertion:382', 'moa.assertion:383'}
-moa.variant:384 (count of AIDs 2) : {'moa.assertion:384', 'moa.assertion:385'}
+moa.variant:380 (count of AIDs 2) : {'moa.assertion:381', 'moa.assertion:380'}
+moa.variant:382 (count of AIDs 2) : {'moa.assertion:383', 'moa.assertion:382'}
+moa.variant:384 (count of AIDs 2) : {'moa.assertion:385', 'moa.assertion:384'}
 moa.variant:414 (count of AIDs 2) : {'moa.assertion:417', 'moa.assertion:414'}
-moa.variant:415 (count of AIDs 2) : {'moa.assertion:415', 'moa.assertion:418'}
-moa.variant:416 (count of AIDs 2) : {'moa.assertion:419', 'moa.assertion:416'}
+moa.variant:415 (count of AIDs 2) : {'moa.assertion:418', 'moa.assertion:415'}
+moa.variant:416 (count of AIDs 2) : {'moa.assertion:416', 'moa.assertion:419'}
 moa.variant:465 (count of AIDs 2) : {'moa.assertion:466', 'moa.assertion:465'}
-moa.variant:531 (count of AIDs 2) : {'moa.assertion:531', 'moa.assertion:532'}
-moa.variant:581 (count of AIDs 2) : {'moa.assertion:583', 'moa.assertion:581'}
+moa.variant:531 (count of AIDs 2) : {'moa.assertion:532', 'moa.assertion:531'}
+moa.variant:581 (count of AIDs 2) : {'moa.assertion:581', 'moa.assertion:583'}
 moa.variant:582 (count of AIDs 2) : {'moa.assertion:582', 'moa.assertion:584'}
 moa.variant:588 (count of AIDs 2) : {'moa.assertion:588', 'moa.assertion:590'}
 moa.variant:589 (count of AIDs 2) : {'moa.assertion:589', 'moa.assertion:591'}
-moa.variant:664 (count of AIDs 2) : {'moa.assertion:664', 'moa.assertion:665'}
+moa.variant:664 (count of AIDs 2) : {'moa.assertion:665', 'moa.assertion:664'}
 moa.variant:666 (count of AIDs 2) : {'moa.assertion:667', 'moa.assertion:666'}
 moa.variant:701 (count of AIDs 2) : {'moa.assertion:702', 'moa.assertion:701'}
-moa.variant:704 (count of AIDs 2) : {'moa.assertion:704', 'moa.assertion:705'}
+moa.variant:704 (count of AIDs 2) : {'moa.assertion:705', 'moa.assertion:704'}
 moa.variant:767 (count of AIDs 2) : {'moa.assertion:768', 'moa.assertion:767'}
 moa.variant:789 (count of AIDs 2) : {'moa.assertion:790', 'moa.assertion:789'}
 moa.variant:797 (count of AIDs 2) : {'moa.assertion:797', 'moa.assertion:798'}
-moa.variant:803 (count of AIDs 2) : {'moa.assertion:803', 'moa.assertion:804'}
+moa.variant:803 (count of AIDs 2) : {'moa.assertion:804', 'moa.assertion:803'}
 moa.variant:806 (count of AIDs 2) : {'moa.assertion:806', 'moa.assertion:807'}
-moa.variant:815 (count of AIDs 2) : {'moa.assertion:816', 'moa.assertion:815'}
+moa.variant:815 (count of AIDs 2) : {'moa.assertion:815', 'moa.assertion:816'}
 moa.variant:837 (count of AIDs 2) : {'moa.assertion:837', 'moa.assertion:839'}
-moa.variant:838 (count of AIDs 2) : {'moa.assertion:838', 'moa.assertion:840'}
+moa.variant:838 (count of AIDs 2) : {'moa.assertion:840', 'moa.assertion:838'}
 moa.variant:21 (count of AIDs 1) : {'moa.assertion:21'}
 moa.variant:24 (count of AIDs 1) : {'moa.assertion:24'}
 moa.variant:25 (count of AIDs 1) : {'moa.assertion:25'}
