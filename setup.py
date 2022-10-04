@@ -1,12 +1,5 @@
-"""Defines how metakb is packaged and distributed."""
+"""Module for package and distribution."""
 from setuptools import setup
 
-setup(name='metakb',
-      version='0.0.0',
-      description='Central repository for the VICC metakb web application',
-      url='https://github.com/cancervariants/metakb',
-      author='VICC',
-      author_email='help@cancervariants.org',
-      license='MIT',
-      packages=['metakb'],
-      zip_safe=False)
+exec(open('metakb/version.py').read())
+setup(version=__version__)  # noqa: F821

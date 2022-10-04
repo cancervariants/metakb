@@ -1,0 +1,4 @@
+"""MetaKB version"""
+# REQ: EACH TIME VERSION IS UPDATED, MUST ALSO UPDATE LAST_UPDATED
+__version__ = "1.1.0-alpha.9"
+LAST_UPDATED = "2022-06-13"

@@ -1,15 +1,15 @@
 """A module for computing deltas."""
-from metakb import PROJECT_ROOT
+from metakb import APP_ROOT
 import json
 import logging
 from jsondiff import diff
 from datetime import date
-from metakb.harvesters import CIViC, MOAlmanac
+from metakb.harvesters import CIViCHarvester, MOAHarvester
 HARVESTER_CLASS = {
-    'civic': CIViC,
-    'moa': MOAlmanac
+    'civic': CIViCHarvester,
+    'moa': MOAHarvester
 }
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.delta')
 logger.setLevel(logging.DEBUG)
 
 
@@ -51,8 +51,8 @@ class Delta:
         else:
             # Want to create updated harvester file
             fn = f"{self._src}_harvester_{current_date}.json"
-            HARVESTER_CLASS[self._src]().harvest(fn=fn)
-            with open(f"{PROJECT_ROOT}/data/{self._src}/{fn}", 'r') as f:
+            HARVESTER_CLASS[self._src]().harvest(filename=fn)
+            with open(f"{APP_ROOT}/data/{self._src}/harvester/{fn}", 'r') as f:
                 updated_json = json.load(f)
 
         delta = {
@@ -140,9 +140,9 @@ class Delta:
         :param dict delta: A dictionary containing deltas.
         :param str current_date: The current date
         """
-        src_dir = PROJECT_ROOT / 'data' / self._src
+        src_dir = APP_ROOT / 'data' / self._src / 'delta'
         src_dir.mkdir(exist_ok=True, parents=True)
 
         with open(f"{src_dir}/{self._src}_deltas_{current_date}.json",
                   'w+') as f:
-            json.dump(delta, f)
+            json.dump(delta, f, indent=4)

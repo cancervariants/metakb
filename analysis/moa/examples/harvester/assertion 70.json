@@ -1,0 +1,49 @@
+{
+    "ASSERTIONS": {
+        "id": 70,
+        "context": null,
+        "description": "ETS fusions did not have a better response to AR suppression and PARP inhibition.",
+        "disease": {
+            "name": "Prostate Adenocarcinoma",
+            "oncotree_code": "PRAD",
+            "oncotree_term": "Prostate Adenocarcinoma"
+        },
+        "therapy_name": "Veliparib",
+        "therapy_type": "Targeted therapy",
+        "clinical_significance": null,
+        "predictive_implication": "Clinical trial",
+        "favorable_prognosis": null,
+        "created_on": "11/04/21",
+        "last_updated": "2019-01-29",
+        "submitted_by": "breardon@broadinstitute.org",
+        "validated": true,
+        "source_ids": 43,
+        "variant": {
+            "id": 67,
+            "feature_type": "rearrangement",
+            "gene1": "TMPRSS2",
+            "gene2": "ERG",
+            "locus": null,
+            "rearrangement_type": "Fusion",
+            "feature": "TMPRSS2--ERG Fusion"
+        }
+    },
+    "SOURCES": {
+        "id": 43,
+        "type": "Journal",
+        "doi": "10.1200/JCO.2017.75.7310",
+        "nct": "NCT01576172",
+        "pmid": 29261439,
+        "url": "https://doi.org/10.1200/JCO.2017.75.7310",
+        "citation": "Hussain M, Daignault-newton S, Twardowski PW, et al. Targeting Androgen Receptor and DNA Repair in Metastatic Castration-Resistant Prostate Cancer: Results From NCI 9012. J Clin Oncol. 2018;36(10):991-999."
+    },
+    "VARIANTS": {
+        "id": 67,
+        "feature_type": "rearrangement",
+        "gene1": "TMPRSS2",
+        "gene2": "ERG",
+        "locus": null,
+        "rearrangement_type": "Fusion",
+        "feature": "TMPRSS2--ERG Fusion"
+    }
+}

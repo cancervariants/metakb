@@ -1,7 +1,7 @@
 """Test CIViC source"""
 import pytest
 from metakb import PROJECT_ROOT
-from metakb.harvesters.civic import CIViC
+from metakb.harvesters import CIViCHarvester
 from mock import patch
 import json
 
@@ -92,14 +92,14 @@ def aid40():
     }
 
 
-@patch.object(CIViC, '_get_all_assertions')
+@patch.object(CIViCHarvester, '_get_all_assertions')
 def test_assertions(test_get_all_assertions, aid40):
     """Test that CIViC harvest assertions method is correct."""
     with open(f"{PROJECT_ROOT}/tests/data/"
               f"harvesters/civic/assertions.json") as f:
         data = json.load(f)
     test_get_all_assertions.return_value = data
-    assertions = CIViC()._harvest_assertions()
+    assertions = CIViCHarvester()._harvest_assertions()
     c_assertion = None
     for assertion in assertions:
         if assertion['id'] == 40:

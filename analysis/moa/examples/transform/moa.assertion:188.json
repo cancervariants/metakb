@@ -1,0 +1,132 @@
+{
+    "statements": [
+        {
+            "id": "moa.assertion:188",
+            "description": "BRAF V600E mutations were associated with sensitivity to the BRAF inhibitor PLX-4032 in a study of 109 microdissected pancreatic ductal adenocarcinoma patients.",
+            "evidence_level": "moa.evidence_level:Clinical_evidence",
+            "proposition": "proposition:9ANCRsSADNsbWMfmqCFFpPQfFr7-Pum1",
+            "variation_origin": "somatic",
+            "variation_descriptor": "moa.variant:149",
+            "therapy_descriptor": "moa.normalize.therapy:Vemurafenib",
+            "disease_descriptor": "moa.normalize.disease:oncotree%3APAAD",
+            "method": "method:4",
+            "supported_by": [
+                "pmid:25855536"
+            ],
+            "type": "Statement"
+        }
+    ],
+    "propositions": [
+        {
+            "id": "proposition:9ANCRsSADNsbWMfmqCFFpPQfFr7-Pum1",
+            "type": "therapeutic_response_proposition",
+            "predicate": "predicts_sensitivity_to",
+            "subject": "ga4gh:VA.8JkgnqIgYqufNl-OV_hpRG_aWF9UFQCE",
+            "object_qualifier": "ncit:C8294",
+            "object": "rxcui:1147220"
+        }
+    ],
+    "variation_descriptors": [
+        {
+            "id": "moa.variant:149",
+            "type": "VariationDescriptor",
+            "label": "BRAF p.V600E (Missense)",
+            "extensions": [
+                {
+                    "type": "Extension",
+                    "name": "moa_representative_coordinate",
+                    "value": {
+                        "chromosome": "7",
+                        "start_position": "140453136.0",
+                        "end_position": "140453136.0",
+                        "reference_allele": "A",
+                        "alternate_allele": "T",
+                        "cdna_change": "c.1799T>A",
+                        "protein_change": "p.V600E",
+                        "exon": "15.0"
+                    }
+                },
+                {
+                    "type": "Extension",
+                    "name": "moa_rsid",
+                    "value": "rs113488022"
+                }
+            ],
+            "variation_id": "ga4gh:VA.8JkgnqIgYqufNl-OV_hpRG_aWF9UFQCE",
+            "variation": {
+                "_id": "ga4gh:VA.8JkgnqIgYqufNl-OV_hpRG_aWF9UFQCE",
+                "type": "Allele",
+                "location": {
+                    "_id": "ga4gh:VSL.AqrQ-EkAvTrXOFn70_8i3dXF5shBBZ5i",
+                    "type": "SequenceLocation",
+                    "sequence_id": "ga4gh:SQ.WaAJ_cXXn9YpMNfhcq9lnzIvaB9ALawo",
+                    "interval": {
+                        "type": "SequenceInterval",
+                        "start": {
+                            "type": "Number",
+                            "value": 639
+                        },
+                        "end": {
+                            "type": "Number",
+                            "value": 640
+                        }
+                    }
+                },
+                "state": {
+                    "type": "LiteralSequenceExpression",
+                    "sequence": "E"
+                }
+            },
+            "gene_context": "moa.normalize.gene:BRAF",
+            "vrs_ref_allele_seq": "V"
+        }
+    ],
+    "gene_descriptors": [
+        {
+            "id": "moa.normalize.gene:BRAF",
+            "type": "GeneDescriptor",
+            "label": "BRAF",
+            "gene_id": "hgnc:1097"
+        }
+    ],
+    "therapy_descriptors": [
+        {
+            "id": "moa.normalize.therapy:Vemurafenib",
+            "type": "TherapyDescriptor",
+            "label": "Vemurafenib",
+            "therapy_id": "rxcui:1147220"
+        }
+    ],
+    "disease_descriptors": [
+        {
+            "id": "moa.normalize.disease:oncotree%3APAAD",
+            "type": "DiseaseDescriptor",
+            "label": "Pancreatic Adenocarcinoma",
+            "disease_id": "ncit:C8294"
+        }
+    ],
+    "methods": [
+        {
+            "id": "method:4",
+            "label": "Clinical interpretation of integrative molecular profiles to guide precision cancer medicine",
+            "url": "https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1",
+            "version": {
+                "year": 2020,
+                "month": 9,
+                "day": 22
+            },
+            "authors": "Reardon, B., Moore, N.D., Moore, N. et al.",
+            "type": "Method"
+        }
+    ],
+    "documents": [
+        {
+            "id": "pmid:25855536",
+            "label": "Witkiewicz AK, Mcmillan EA, Balaji U, et al. Whole-exome sequencing of pancreatic cancer defines genetic diversity and therapeutic targets. Nat Commun. 2015;6:6744.",
+            "xrefs": [
+                "doi:10.1038/ncomms7744"
+            ],
+            "type": "Document"
+        }
+    ]
+}

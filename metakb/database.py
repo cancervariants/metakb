@@ -1,7 +1,7 @@
 """Graph database for storing harvested data."""
 from neo4j import GraphDatabase
-from neo4j.exceptions import ServiceUnavailable
-from typing import Tuple, Dict
+from neo4j.exceptions import ServiceUnavailable, ConstraintError
+from typing import Tuple, Dict, Set
 import logging
 import json
 from pathlib import Path
@@ -11,7 +11,7 @@ import base64
 from botocore.exceptions import ClientError
 import ast
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger('metakb.database')
 logger.setLevel(logging.DEBUG)
 
 
@@ -63,113 +63,158 @@ class Graph:
         with self.driver.session() as session:
             session.write_transaction(delete_all)
 
-    def load_from_json(self, infile_path: Path):
+    def load_from_json(self, src_transformed_cdm: Path):
         """Load evidence into DB from given JSON file.
-        :param Path infile_path: path to file formatted as array of successive
-            collections of evidence, disease/therapy/gene/variation objects,
-            statements, etc
+        :param Path src_transformed_cdm: path to file for a source's
+            transformed data to common data model containing statements,
+            propositions, variation/therapy/disease/gene descriptors,
+            methods, and documents
         """
-        logger.info(f"Loading data from {infile_path}")
-        with open(infile_path, 'r') as f:
+        logger.info(f"Loading data from {src_transformed_cdm}")
+        with open(src_transformed_cdm, 'r') as f:
             items = json.load(f)
-            loaded_count = 0
-            for item in items:
-                self.add_transformed_data(item)
-                loaded_count += 1
-        logger.info(f"Successfully loaded {loaded_count} statements.")
+            self.add_transformed_data(items)
 
     @staticmethod
     def _create_constraints(tx):
         """Create unique property constraints for ID values"""
-        try:
-            tx.run("CREATE CONSTRAINT gene_id_constraint IF NOT EXISTS ON (n:Gene) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT disease_id_constraint IF NOT EXISTS ON (n:Disease) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT therapy_id_constraint IF NOT EXISTS ON (n:Therapy) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT variation_id_constraint IF NOT EXISTS ON (n:Variation) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT gene_desc_id_constraint IF NOT EXISTS ON (n:GeneDescriptor) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT therapy_desc_id_constraint IF NOT EXISTS ON (n:TherapyDescriptor) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT disease_desc_id_constraint IF NOT EXISTS ON (n:DiseaseDescriptor) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT variation_desc_id_constraint IF NOT EXISTS ON (n:VariationDescriptor) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT variation_grp_id_constraint IF NOT EXISTS ON (n:VariationGroup) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT proposition_id_constraint IF NOT EXISTS ON (n:Proposition) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT document_id_constraint IF NOT EXISTS ON (n:Document) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT statement_id_constraint IF NOT EXISTS ON (n:Statement) ASSERT n.id IS UNIQUE;")  # noqa: E501
-            tx.run("CREATE CONSTRAINT method_id_constraint IF NOT EXISTS ON (n:Method) ASSERT n.id IS UNIQUE;")  # noqa: E501
-        except ServiceUnavailable as exception:
-            logging.error("Failed to generate ID property constraints.")
-            raise exception
+        for label in [
+            'Gene', 'Disease', 'Therapy', 'Variation', 'GeneDescriptor',
+            'TherapyDescriptor', 'DiseaseDescriptor',
+            'VariationDescriptor', 'VariationGroup', 'Proposition',
+            'Document', 'Statement', 'Method'
+        ]:
+            query = (
+                f"CREATE CONSTRAINT {label.lower()}_id_constraint "
+                f"IF NOT EXISTS ON (n:{label}) "
+                "ASSERT n.id IS UNIQUE;"
+            )
+            try:
+                tx.run(query)
+            except ServiceUnavailable as exception:
+                logging.error(f"Failed to generate ID property "
+                              f"constraint for {label}.")
+                raise exception
 
     def add_transformed_data(self, data: Dict):
         """Add set of data formatted per Common Data Model to DB.
         :param Dict data: contains key/value pairs for data objects to add
-            to DB, including Assertions, Therapies, Diseases, Genes,
-            Variations, Propositions, and Evidence
+            to DB, including statements, propositions,
+            variation/therapy/disease/gene descriptors, methods, and documents
         """
+        added_ids = set()  # Used to keep track of IDs that are in statements
         with self.driver.session() as session:
-            for method in data.get('methods', []):
-                session.write_transaction(self._add_method, method)
-            for descr in data.get('therapy_descriptors', []):
-                session.write_transaction(self._add_descriptor, descr)
-            for descr in data.get('disease_descriptors', []):
-                session.write_transaction(self._add_descriptor, descr)
-            for descr in data.get('gene_descriptors', []):
-                session.write_transaction(self._add_descriptor, descr)
-            for var_descr in data.get('variation_descriptors', []):
-                session.write_transaction(self._add_variation_descriptor,
-                                          var_descr)
-            for doc in data.get('documents'):
-                session.write_transaction(self._add_document, doc)
-            for proposition in data.get('propositions', []):
-                session.write_transaction(self._add_proposition,
-                                          proposition)
+            loaded_count = 0
             for ev in data.get('statements', []):
-                session.write_transaction(self._add_statement, ev)
+                self._get_ids_from_statement(ev, added_ids)
+            for var_descr in data.get('variation_descriptors', []):
+                if var_descr['id'] in added_ids:
+                    gc = var_descr['gene_context']
+                    if gc:
+                        added_ids.add(gc)
+            for method in data.get('methods', []):
+                try:
+                    session.write_transaction(self._add_method, method,
+                                              added_ids)
+                except ConstraintError:
+                    logger.warning(f"{method['id']} exists already.")
+                    continue
+            for descriptor in ['therapy_descriptors', 'disease_descriptors',
+                               'gene_descriptors']:
+                for d in data.get(descriptor, []):
+                    try:
+                        session.write_transaction(
+                            self._add_descriptor, d, added_ids
+                        )
+                    except ConstraintError:
+                        logger.warning(f"{d['id']} exists already.")
+                        continue
+            for var_descr in data.get('variation_descriptors', []):
+                try:
+                    session.write_transaction(self._add_variation_descriptor,
+                                              var_descr, added_ids)
+                except ConstraintError:
+                    logger.warning(f"{var_descr['id']} exists already.")
+                    continue
+            for doc in data.get('documents'):
+                try:
+                    session.write_transaction(self._add_document, doc)
+                except ConstraintError:
+                    logger.warning(f"{doc['id']} exists already.")
+                    continue
+            for proposition in data.get('propositions', []):
+                try:
+                    session.write_transaction(self._add_proposition,
+                                              proposition)
+                except ConstraintError:
+                    logger.warning(f"{proposition['id']} exists already.")
+                    continue
+            for s in data.get('statements', []):
+                loaded_count += 1
+                try:
+                    session.write_transaction(self._add_statement, s,
+                                              added_ids)
+                except ConstraintError:
+                    logger.warning(f"{s['id']} exists already.")
+            logger.info(f"Successfully loaded {loaded_count} statements.")
 
     @staticmethod
-    def _add_method(tx, method: Dict):
+    def _add_method(tx, method: Dict, added_ids: Set[str]):
         """Add Method object to DB.
         :param Dict method: must include `id`, `label`, `url`,
             `version`, and `authors` values.
+        :param set added_ids: IDs found in statements
         """
         method['version'] = json.dumps(method['version'])
         query = """
         MERGE (n:Method {id:$id, label:$label, url:$url,
             version:$version, authors: $authors});
         """
-        try:
-            tx.run(query, **method)
-        except ServiceUnavailable as exception:
-            logging.error(f"Failed to add Method object\nQuery: "
-                          f"{query}\nAssertionMethod: {method}")
-            raise exception
+        if method['id'] in added_ids:
+            try:
+                tx.run(query, **method)
+            except ServiceUnavailable as exception:
+                logging.error(f"Failed to add Method object\nQuery: "
+                              f"{query}\nAssertionMethod: {method}")
+                raise exception
 
     @staticmethod
-    def _add_descriptor(tx, descriptor: Dict):
+    def _add_descriptor(tx, descriptor: Dict, added_ids: Set[str]):
         """Add gene, therapy, or disease descriptor object to DB.
         :param Dict descriptor: must contain a `value` field with `type`
             and `<type>_id` fields. `type` field must be one of
             {'TherapyDescriptor', 'DiseaseDescriptor', 'GeneDescriptor'}
+        :param set added_ids: IDs found in statements
         """
+        if descriptor['id'] not in added_ids:
+            return
         descr_type = descriptor['type']
         if descr_type == 'TherapyDescriptor':
             value_type = 'Therapy'
-            descriptor['value_id'] = descriptor['value']['id']
         elif descr_type == 'DiseaseDescriptor':
             value_type = 'Disease'
-            descriptor['value_id'] = descriptor['value']['id']
         elif descr_type == 'GeneDescriptor':
             value_type = 'Gene'
-            descriptor['value_id'] = descriptor['value']['id']
         else:
             raise TypeError(f"Invalid Descriptor type: {descr_type}")
 
+        value_id = f"{value_type.lower()}_id"
         descr_keys = _create_keys_string(descriptor, ('id', 'label',
                                                       'description', 'xrefs',
                                                       'alternate_labels'))
 
+        if descr_type == 'TherapyDescriptor':
+            # capture regulatory_approval field in therapy descriptor extensions
+            extensions = descriptor.get('extensions', [])
+            for ext in extensions:
+                name = ext['name']
+                if name == 'regulatory_approval':
+                    descriptor[name] = json.dumps(ext['value'])
+                    descr_keys += f", {name}:${name}"
+
         query = f'''
         MERGE (descr:{descr_type} {{ {descr_keys} }})
-        MERGE (value:{value_type} {{ id:$value_id }})
+        MERGE (value:{value_type} {{ id:${value_id} }})
         MERGE (descr) -[:DESCRIBES]-> (value)
         '''
         try:
@@ -180,30 +225,26 @@ class Graph:
             raise exception
 
     @staticmethod
-    def _add_variation_descriptor(tx, descriptor_in: Dict):
+    def _add_variation_descriptor(tx, descriptor_in: Dict,
+                                  added_ids: Set[str]):
         """Add variant descriptor object to DB.
         :param Dict descriptor_in: must include a `value_id` field and a
             `value` object containing `type`, `state`, and `location` objects.
+        :param set added_ids: IDs found in statements
         """
         descriptor = descriptor_in.copy()
 
-        # prepare value properties
-        value_type = descriptor['value']['type']
-        descriptor['value_state'] = json.dumps(descriptor['value']['state'])
-        location = descriptor['value']['location']
-        descriptor['value_location_type'] = location['type']
-        descriptor['value_location_sequence_id'] = location['sequence_id']
-        descriptor['value_location_interval_start'] = \
-            location['interval']['start']
-        descriptor['value_location_interval_end'] = location['interval']['end']
-        descriptor['value_location_interval_type'] = \
-            location['interval']['type']
+        if descriptor['id'] not in added_ids:
+            return
 
+        # prepare value properties
+        variation_type = descriptor['variation']['type']
+        descriptor['variation'] = json.dumps(descriptor['variation'])
         # prepare descriptor properties
         expressions = descriptor.get('expressions')
         if expressions:
             for expression in expressions:
-                syntax = expression['syntax'].split(':')[1]
+                syntax = expression['syntax'].split('.')[1]
                 key = f"expressions_{syntax}"
                 if key in descriptor:
                     descriptor[key].append(expression['value'])
@@ -215,10 +256,10 @@ class Graph:
                                              'xrefs', 'alternate_labels',
                                              'structural_type',
                                              'molecule_context',
-                                             'expressions_transcript',
-                                             'expressions_genomic',
-                                             'expressions_protein',
-                                             'ref_allele_seq'))]
+                                             'expressions_c',
+                                             'expressions_g',
+                                             'expressions_p',
+                                             'vrs_ref_allele_seq'))]
 
         # handle extensions
         variant_groups = None
@@ -237,14 +278,9 @@ class Graph:
         query = f"""
         MERGE (descr:VariationDescriptor
             {{ {descriptor_keys} }})
-        MERGE (value:{value_type}:Variation
-            {{id:$value_id,
-              state:$value_state,
-              location_type:$value_location_type,
-              location_sequence_id:$value_location_sequence_id,
-              location_interval_start:$value_location_interval_start,
-              location_interval_end:$value_location_interval_end,
-              location_interval_type:$value_location_interval_type
+        MERGE (value:{variation_type}:Variation
+            {{id:$variation_id,
+              variation:$variation
               }})
         MERGE (gene_context:GeneDescriptor {{id:$gene_context}} )
         MERGE (descr) -[:DESCRIBES]-> (value)
@@ -261,7 +297,7 @@ class Graph:
                 params = descriptor.copy()
                 params['group_id'] = grp['id']
                 params['group_label'] = grp['label']
-                params['group_description'] = grp['description']
+                params['group_description'] = grp.get('description', '')
 
                 query = f"""
                 MERGE (grp:VariationGroup {{id:$group_id, label:$group_label,
@@ -279,6 +315,7 @@ class Graph:
     @staticmethod
     def _add_proposition(tx, proposition: Dict):
         """Add Proposition object to DB.
+
         :param Dict proposition: must include `disease_context`, `therapy`,
             and `has_originating_context` fields.
         """
@@ -287,22 +324,31 @@ class Graph:
         prop_type = proposition.get('type')
         if prop_type == "therapeutic_response_proposition":
             prop_label = ":TherapeuticResponse"
+            therapy_obj = "MERGE (therapy:Therapy {id:$object})"
+            therapy_rel = """MERGE (response) -[:HAS_OBJECT]-> (therapy)
+            MERGE (therapy)-[:IS_OBJECT_OF]->(response)"""
         else:
-            prop_label = ""
+            therapy_obj, therapy_rel = "", ""
+            if prop_type == "prognostic_proposition":
+                prop_label = ":Prognostic"
+            elif prop_type == "diagnostic_proposition":
+                prop_label = ":Diagnostic"
+            else:
+                prop_label = ""
 
         query = f"""
         MERGE (response{prop_label}:Proposition
             {{ {formatted_keys} }})
         MERGE (disease:Disease {{id:$object_qualifier}})
-        MERGE (therapy:Therapy {{id:$object}})
+        {therapy_obj}
         MERGE (variation:Variation {{id:$subject}})
         MERGE (response) -[:HAS_SUBJECT]-> (variation)
         MERGE (variation) -[:IS_SUBJECT_OF]-> (response)
-        MERGE (response) -[:HAS_OBJECT]-> (therapy)
-        MERGE (therapy) -[:IS_OBJECT_OF]-> (response)
+        {therapy_rel}
         MERGE (response) -[:HAS_OBJECT_QUALIFIER]-> (disease)
         MERGE (disease) -[:IS_OBJECT_QUALIFIER_OF]-> (response)
         """
+
         try:
             tx.run(query, **proposition)
         except ServiceUnavailable as exception:
@@ -341,12 +387,26 @@ class Graph:
                               f"{document}")
                 raise exception
 
+    def _get_ids_from_statement(self, statement, added_ids):
+        """Add descriptors and method IDs to list of added_ids.
+
+        :param Node statement: Statement node
+        :param set added_ids: IDs found in statements
+        """
+        for node_id in [statement.get('therapy_descriptor'),
+                        statement.get('variation_descriptor'),
+                        statement.get('disease_descriptor'),
+                        statement.get('method')]:
+            if node_id:
+                added_ids.add(node_id)
+
     @staticmethod
-    def _add_statement(tx, statement: Dict):
+    def _add_statement(tx, statement: Dict, added_ids: Set[str]):
         """Add Statement object to DB.
         :param Dict statement: must include `id`, `variation_descriptor`,
-            `therapy_descriptor`, `disease_descriptor`, `method`, and
-            `supported_by` fields.
+            `disease_descriptor`, `method`, and `supported_by` fields as well
+            as optional `therapy_descriptor` field
+        :param set added_ids: IDs found in statements
         """
         formatted_keys = _create_keys_string(statement, ('id', 'description',
                                                          'direction',
@@ -362,17 +422,26 @@ class Graph:
                 match_line += f"MERGE ({name} {{ id:${name} }})\n"
                 rel_line += f"MERGE (ev) -[:CITES]-> ({name})\n"
 
+        td = statement.get('therapy_descriptor')
+        if td:
+            therapy_descriptor = \
+                f"MERGE (ther:TherapyDescriptor {{id:$therapy_descriptor}})"  # noqa: F541, E501
+            therapy_obj = f"MERGE (ev) -[:HAS_THERAPY]-> (ther)"  # noqa: F541
+            added_ids.add(td)
+        else:
+            therapy_descriptor, therapy_obj = "", ""
+
         query = f"""
         MERGE (ev:Statement {{ {formatted_keys} }})
         MERGE (prop:Proposition {{id:$proposition}})
         MERGE (var:VariationDescriptor {{id:$variation_descriptor}})
-        MERGE (ther:TherapyDescriptor {{id:$therapy_descriptor}})
+        {therapy_descriptor}
         MERGE (dis:DiseaseDescriptor {{id:$disease_descriptor}})
         MERGE (method:Method {{id:$method}})
         {match_line}
         MERGE (ev) -[:DEFINED_BY]-> (prop)
         MERGE (ev) -[:HAS_VARIATION]-> (var)
-        MERGE (ev) -[:HAS_THERAPY]-> (ther)
+        {therapy_obj}
         MERGE (ev) -[:HAS_DISEASE]-> (dis)
         MERGE (ev) -[:USES_METHOD]-> (method)
         {rel_line}
@@ -403,6 +472,7 @@ class Graph:
                 SecretId=secret_name
             )
         except ClientError as e:
+            logger.warning(e)
             if e.response['Error']['Code'] == 'DecryptionFailureException':
                 # Secrets Manager can't decrypt the protected
                 # secret text using the provided KMS key.

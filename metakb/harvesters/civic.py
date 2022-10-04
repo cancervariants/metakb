@@ -1,22 +1,23 @@
 """A module for the CIViC harvester."""
-from .base import Harvester
-from metakb import PROJECT_ROOT
-from civicpy import civic as civicpy
-import json
 import logging
+from typing import Optional
 
-logger = logging.getLogger('metakb')
+from civicpy import civic as civicpy
+
+from metakb.harvesters.base import Harvester
+
+logger = logging.getLogger('metakb.harvesters.civic')
 logger.setLevel(logging.DEBUG)
 
 
-class CIViC(Harvester):
+class CIViCHarvester(Harvester):
     """A class for the CIViC harvester."""
 
-    def harvest(self, fn='civic_harvester.json'):
+    def harvest(self, filename: Optional[str] = None):
         """Retrieve and store evidence, gene, variant, and assertion
         records from CIViC in composite and individual JSON files.
 
-        :param str fn: File name for composite json
+        :param Optional[str] filename: File name for composite json
         :return: `True` if operation was successful, `False` otherwise.
         :rtype: bool
         """
@@ -27,57 +28,24 @@ class CIViC(Harvester):
             variants = self._harvest_variants()
             assertions = self._harvest_assertions()
             self.assertions = assertions
-            json_created = \
-                self._create_json(evidence, genes, variants, assertions, fn)
+            json_created = self.create_json(
+                {
+                    "evidence": evidence,
+                    "genes": genes,
+                    "variants": variants,
+                    "assertions": assertions
+                },
+                filename
+            )
             if not json_created:
                 logger.error('CIViC Harvester was not successful.')
                 return False
-        except:  # noqa: E722 # TODO: Add specific exception error
-            logger.error('CIViC Harvester was not successful.')
+        except Exception as e:  # noqa: E722
+            logger.error(f'CIViC Harvester was not successful: {e}')
             return False
         else:
             logger.info('CIViC Harvester was successful.')
             return True
-
-    def _create_json(self, evidence, genes, variants, assertions, fn):
-        """Create a composite JSON file containing evidence, genes, variants,
-        and assertions and individual JSON files for each CIViC record.
-
-        :param list evidence: A list of CIViC evidence item records
-        :param list genes: A list of CIViC gene records
-        :param list variants: A list of CIViC variant records
-        :param list assertions: A list of CIViC assertion records
-        :param str fn: File name for harvester
-        :return: `True` if operation was successful, `False` otherwise.
-        """
-        composite_dict = {
-            'evidence': evidence,
-            'genes': genes,
-            'variants': variants,
-            'assertions': assertions
-        }
-
-        civic_dir = PROJECT_ROOT / 'data' / 'civic'
-        civic_dir.mkdir(exist_ok=True, parents=True)
-
-        # Create composite json
-        try:
-            with open(f'{PROJECT_ROOT}/data/civic/{fn}', 'w+') as f:
-                json.dump(composite_dict, f)
-                f.close()
-
-            # Create json for evidence, genes, variants, and assertions
-            data = ['evidence', 'genes', 'variants', 'assertions']
-            for d in data:
-                with open(f'{PROJECT_ROOT}/data/civic/{d}.json',
-                          'w+') as f:
-                    f.write(json.dumps(composite_dict[d]))
-                    f.close()
-        except:  # noqa: E722
-            logger.error("Could not create json.")
-            return False
-
-        return True
 
     def _get_all_evidence(self):
         """Return all evidence item records.

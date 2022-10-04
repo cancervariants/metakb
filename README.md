@@ -1,4 +1,4 @@
-[![Documentation Status](https://readthedocs.org/projects/vicc-metakb/badge/?version=latest)](https://vicc-metakb.readthedocs.io/en/latest/?badge=latest) [![Build Status](https://travis-ci.org/cancervariants/metakb.svg?branch=master)](https://travis-ci.org/cancervariants/metakb) [![Coverage Status](https://coveralls.io/repos/github/cancervariants/metakb/badge.svg?branch=master)](https://coveralls.io/github/cancervariants/metakb?branch=master)
+[![Documentation Status](https://readthedocs.org/projects/vicc-metakb/badge/?version=latest)](https://vicc-metakb.readthedocs.io/en/latest/?badge=latest) [![Build Status](https://travis-ci.org/cancervariants/metakb.svg?branch=main)](https://travis-ci.org/cancervariants/metakb) [![Coverage Status](https://coveralls.io/repos/github/cancervariants/metakb/badge.svg?branch=main)](https://coveralls.io/github/cancervariants/metakb?branch=main)
 
 # metakb
 
@@ -10,7 +10,7 @@ The intent of the project is to leverage the collective knowledge of the dispara
 
 ### Prerequisites
 
-* A newer version of Python 3, preferably 3.6 or greater. To confirm on your system, run:
+* A newer version of Python 3, preferably 3.8 or greater. To confirm on your system, run:
 
 ```
 python3 --version
@@ -41,8 +41,6 @@ pipenv lock --dev
 pipenv sync
 ```
 
-TODO CIViCPy installation instructions
-
 ### Setting up Neo4j
 
 The MetaKB uses [Neo4j](https://neo4j.com/) for its database backend. To run a local MetaKB instance, you'll need to run a Neo4j database instance as well. The easiest way to do this is from Neo4j Desktop.
@@ -51,7 +49,7 @@ First, follow the [desktop setup instructions](https://neo4j.com/developer/neo4j
 
 Once you have opened Neo4j desktop, use the "New" button in the upper-left region of the window to create a new project. Within that project, click the "Add" button in the upper-right region of the window and select "Local DBMS". The name of the DBMS doesn't matter, but the password will be used later to connect the database to MetaKB (we have been using "admin" by default). Click "Create". Then, click the row within the project screen corresponding to your newly-created DBMS, and click the green "Start" button to start the database service.
 
-The graph will initially be empty, but once you have successfully loaded data, Neo4j Desktop provides an interface for exploring and visualizing relationships within the graph. To access it, click the blue "Open" button. The prompt at the top of this window processes [Cypher queries](https://neo4j.com/docs/cypher-refcard/current/); to start, try `MATCH (n:Statement {id:"civic:eid5818"}) RETURN n`. Buttons on the left-hand edge of the results pane let you select graph, tabular, or textual output.
+The graph will initially be empty, but once you have successfully loaded data, Neo4j Desktop provides an interface for exploring and visualizing relationships within the graph. To access it, click the blue "Open" button. The prompt at the top of this window processes [Cypher queries](https://neo4j.com/docs/cypher-refcard/current/); to start, try `MATCH (n:Statement {id:"civic.eid:5818"}) RETURN n`. Buttons on the left-hand edge of the results pane let you select graph, tabular, or textual output.
 
 
 ### Setting up normalizers
@@ -70,17 +68,8 @@ Next, navigate to the `site-packages` directory of your virtual environment. Ass
 cd ~/.local/share/virtualenvs/metakb-<various characters>/python3.7/site-packages/  # replace <various characters>
 ```
 
-Next, initialize the [Variant Normalizer](https://github.com/cancervariants/variant-normalization).
+Next, initialize the [Variation Normalizer](https://github.com/cancervariants/variation-normalization) by following the instructions in the [README](https://github.com/cancervariants/variation-normalization#installation).
 
-```sh
-cd variant/  # starting from the site-packages dir of your virtual environment's Python instance
-mkdir -p data/seqrepo
-curl ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/tsv/non_alt_loci_set.txt > data/gene_symbols.txt
-seqrepo --root-directory data/seqrepo pull
-chmod -R u+w data/seqrepo/<DATE>  # replace <DATE>
-ln -s data/seqrepo/<DATE> latest  # replace <DATE>
-cd ../../  # return to site-packages
-```
 
 The MetaKB can acquire all other needed normalizer data, except for that of [OMIM](https://www.omim.org/downloads), which must be manually placed:
 
@@ -98,7 +87,7 @@ In the MetaKB project root, run the following:
 
 ```sh
 pipenv shell
-python3 -m metakb.cli --db_url=bolt://localhost:7687 --db_username=neo4j --db_password=<neo4j-password-here> --initialize_normalizers
+python3 -m metakb.cli --db_url=bolt://localhost:7687 --db_username=neo4j --db_password=<neo4j-password-here> --load_normalizers_db
 ```
 
 ### Starting the server

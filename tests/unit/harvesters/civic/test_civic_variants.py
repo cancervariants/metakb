@@ -1,7 +1,7 @@
 """Test CIViC source"""
 import pytest
 from metakb import PROJECT_ROOT
-from metakb.harvesters.civic import CIViC
+from metakb.harvesters import CIViCHarvester
 from mock import patch
 import json
 
@@ -612,14 +612,14 @@ def pdgfra():
     }
 
 
-@patch.object(CIViC, '_get_all_variants')
+@patch.object(CIViCHarvester, '_get_all_variants')
 def test_variants(test_get_all_variants, pdgfra):
     """Test that CIViC harvest variants method is correct."""
     with open(f"{PROJECT_ROOT}/tests/data/"
               f"harvesters/civic/variants.json") as f:
         data = json.load(f)
     test_get_all_variants.return_value = data
-    variants = CIViC()._harvest_variants()
+    variants = CIViCHarvester()._harvest_variants()
     actul_pdgfra = None
     for v in variants:
         if v['id'] == 100:

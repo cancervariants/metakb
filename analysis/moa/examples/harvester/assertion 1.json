@@ -1,51 +1,49 @@
 {
-	"ASSERTIONS": {
-		"id": 1, 
-		"context": "Chronic, accelerated, or blast phase", 
-		"description": "The U.S. Food and Drug Administration (FDA) granted approval for bosutinib for adult patients with chronic, accelerated, or blast phase Philidelphia chromosome-positive (Ph+) CML with resistance or intolernace to prior therapy.", 
-		"disease": {
-			"name": "Chronic Myelogenous Leukemia", 
-			"oncotree_code": "CML", 
-			"oncotree_term": "Chronic Myelogenous Leukemia"
-		}, 
-		"therapy_name": "Bosutinib", 
-		"therapy_type": "Targeted therapy", 
-		"clinical_significance": "sensitivity", 
-		"predictive_implication": "FDA-Approved", 
-		"feature_ids": [1], 
-		"favorable_prognosis": null, 
-		"created_on": "01/07/21", 
-		"last_updated": "2020-11-12", 
-		"submitted_by": "breardon@broadinstitute.org", 
-		"validated": true, 
-		"source_ids": [1], 
-		"variant": {
-			"id": 1, 
-			"feature_type": "rearrangement", 
-			"rearrangement_type": "Fusion", 
-			"gene1": "BCR", 
-			"gene2": "ABL1", 
-			"locus": null, 
-			"feature": "BCR--ABL1 Fusion"
-		}
-	}, 
-	"SOURCES": {
-		"id": 1, 
-		"type": "FDA", 
-		"assertion_id": [1], 
-		"doi": null, 
-		"nct": null, 
-		"pmid": "None", 
-		"url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/203441s018lbl.pdf", 
-		"citation": "Pfizer Inc. Bosulif (bosutinib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/203441s018lbl.pdf. Revised June 2020. Accessed November 12, 2020."
-	}, 
-	"VARIANTS": {
-		"id": 1,
-		"feature_type": "rearrangement", 
-		"rearrangement_type": "Fusion", 
-		"gene1": "BCR", 
-		"gene2": "ABL1", 
-		"locus": null, 
-		"feature": "BCR--ABL1 Fusion"
-	}
+    "ASSERTIONS": {
+        "id": 1,
+        "context": "Chronic, accelerated, or blast phase",
+        "description": "The U.S. Food and Drug Administration (FDA) granted approval for bosutinib for adult patients with chronic, accelerated, or blast phase Philidelphia chromosome-positive (Ph+) CML with resistance or intolernace to prior therapy.",
+        "disease": {
+            "name": "Chronic Myelogenous Leukemia",
+            "oncotree_code": "CML",
+            "oncotree_term": "Chronic Myelogenous Leukemia"
+        },
+        "therapy_name": "Bosutinib",
+        "therapy_type": "Targeted therapy",
+        "clinical_significance": "sensitivity",
+        "predictive_implication": "FDA-Approved",
+        "favorable_prognosis": null,
+        "created_on": "11/04/21",
+        "last_updated": "2021-09-16",
+        "submitted_by": "breardon@broadinstitute.org",
+        "validated": true,
+        "source_ids": 1,
+        "variant": {
+            "id": 1,
+            "feature_type": "rearrangement",
+            "gene1": "BCR",
+            "gene2": "ABL1",
+            "locus": null,
+            "rearrangement_type": "Fusion",
+            "feature": "BCR--ABL1 Fusion"
+        }
+    },
+    "SOURCES": {
+        "id": 1,
+        "type": "FDA",
+        "doi": null,
+        "nct": "None",
+        "pmid": "None",
+        "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2021/203341s020lbl.pdf",
+        "citation": "Pfizer Inc. Bosulif (bosutinib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2021/203341s020lbl.pdf. Revised May 2021. Accessed September 16, 2021."
+    },
+    "VARIANTS": {
+        "id": 1,
+        "feature_type": "rearrangement",
+        "gene1": "BCR",
+        "gene2": "ABL1",
+        "locus": null,
+        "rearrangement_type": "Fusion",
+        "feature": "BCR--ABL1 Fusion"
+    }
 }
