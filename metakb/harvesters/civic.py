@@ -19,19 +19,21 @@ class CIViCHarvester(Harvester):
         records from CIViC in composite and individual JSON files.
 
         :param Optional[str] filename: File name for composite json
-        :param bool update_cache: `True` if civicpy cache should be updated.
-            `False` if to use local cache.
+        :param bool update_cache: `True` if civicpy cache should be updated. Note
+            this will take several minutes. `False` if to use local cache.
         :return: `True` if operation was successful, `False` otherwise.
         :rtype: bool
         """
         try:
-            if not update_cache:
-                civicpy.load_cache(on_stale="ignore")
+            if update_cache:
+                civicpy.update_cache(from_remote_cache=False)
 
-            self.evidence = self.harvest_evidence(update_cache)
-            self.genes = self.harvest_genes(update_cache)
-            self.variants = self.harvest_variants(update_cache)
-            self.assertions = self.harvest_assertions(update_cache)
+            civicpy.load_cache(on_stale="ignore")
+
+            self.evidence = self.harvest_evidence()
+            self.genes = self.harvest_genes()
+            self.variants = self.harvest_variants()
+            self.assertions = self.harvest_assertions()
 
             json_created = self.create_json(
                 {
@@ -53,23 +55,19 @@ class CIViCHarvester(Harvester):
             return True
 
     @staticmethod
-    def _get_all_evidence(update_cache: bool = False) -> List[civicpy.Evidence]:
+    def _get_all_evidence() -> List[civicpy.Evidence]:
         """Return all evidence item records.
 
-        :param bool update_cache: `True` if civicpy cache should be updated.
-            `False` if to use local cache.
         :return: All civicpy evidence item records
         """
-        return civicpy.get_all_evidence(allow_cached=not update_cache)
+        return civicpy.get_all_evidence()
 
-    def harvest_evidence(self, update_cache: bool = False) -> List[Dict]:
+    def harvest_evidence(self) -> List[Dict]:
         """Harvest all CIViC evidence item records.
 
-        :param bool update_cache: `True` if civicpy cache should be updated.
-            `False` if to use local cache.
         :return: A list of all CIViC evidence item records.
         """
-        evidence_items = self._get_all_evidence(update_cache)
+        evidence_items = self._get_all_evidence()
         evidence = list()
 
         for ev in evidence_items:
@@ -78,23 +76,19 @@ class CIViCHarvester(Harvester):
         return evidence
 
     @staticmethod
-    def _get_all_genes(update_cache: bool = False) -> List[civicpy.Gene]:
+    def _get_all_genes() -> List[civicpy.Gene]:
         """Return all gene records.
 
-        :param bool update_cache: `True` if civicpy cache should be updated.
-            `False` if to use local cache.
         :return: All civicpy gene records
         """
-        return civicpy.get_all_genes(allow_cached=not update_cache)
+        return civicpy.get_all_genes()
 
-    def harvest_genes(self, update_cache: bool = False) -> List[Dict]:
+    def harvest_genes(self) -> List[Dict]:
         """Harvest all CIViC gene records.
 
-        :param bool update_cache: `True` if civicpy cache should be updated.
-            `False` if to use local cache.
         :return: A list of all CIViC gene records.
         """
-        genes = self._get_all_genes(update_cache)
+        genes = self._get_all_genes()
         genes_list = list()
         for gene in genes:
             g = self._harvest_gene(self._get_dict(gene))
@@ -102,23 +96,19 @@ class CIViCHarvester(Harvester):
         return genes_list
 
     @staticmethod
-    def _get_all_variants(update_cache: bool = False) -> List[civicpy.Variant]:
+    def _get_all_variants() -> List[civicpy.Variant]:
         """Return all variant records.
 
-        :param bool update_cache: `True` if civicpy cache should be updated.
-            `False` if to use local cache.
         :return: All civicpy variant records
         """
-        return civicpy.get_all_variants(allow_cached=not update_cache)
+        return civicpy.get_all_variants()
 
-    def harvest_variants(self, update_cache: bool = False) -> List[Dict]:
+    def harvest_variants(self) -> List[Dict]:
         """Harvest all CIViC variant records.
 
-        :param bool update_cache: `True` if civicpy cache should be updated.
-            `False` if to use local cache.
         :return: A list of all CIViC variant records.
         """
-        variants = self._get_all_variants(update_cache)
+        variants = self._get_all_variants()
         variants_list = list()
 
         for variant in variants:
@@ -127,23 +117,19 @@ class CIViCHarvester(Harvester):
         return variants_list
 
     @staticmethod
-    def _get_all_assertions(update_cache: bool = False) -> List[civicpy.Assertion]:
+    def _get_all_assertions() -> List[civicpy.Assertion]:
         """Return all assertion records.
 
-        :param bool update_cache: `True` if civicpy cache should be updated.
-            `False` if to use local cache.
         :return: All civicpy assertion records
         """
-        return civicpy.get_all_assertions(allow_cached=not update_cache)
+        return civicpy.get_all_assertions()
 
-    def harvest_assertions(self, update_cache: bool = False) -> List[Dict]:
+    def harvest_assertions(self) -> List[Dict]:
         """Harvest all CIViC assertion records.
 
-        :param bool update_cache: `True` if civicpy cache should be updated.
-            `False` if to use local cache.
         :return: A list of all CIViC assertion records.
         """
-        assertions = self._get_all_assertions(update_cache)
+        assertions = self._get_all_assertions()
         assertions_list = list()
 
         for assertion in assertions:
