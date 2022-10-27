@@ -57,7 +57,7 @@ def method1():
         "is_reported_in": {
             "type": "Document",
             "label": "Danos AM, Krysiak K, Barnell EK, et al., 2019, Genome Medicine",
-            "xrefs": ["pmid:31779674"],
+            "xrefs": ["doi:10.1186/s13073-019-0687-x", "pmid:31779674"],
             "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer"  # noqa: E501
         },
         "label": "CIViC Curation SOP (2019)",
@@ -95,7 +95,7 @@ def method4():
         "is_reported_in": {
             "type": "Document",
             "label": "Reardon, B., Moore, N.D., Moore, N.S. et al., 2021, Nature Cancer",  # noqa: E501
-            "xrefs": ["doi:10.1038/s43018-021-00243-3"],
+            "xrefs": ["doi:10.1038/s43018-021-00243-3", "pmid:35121878"],
             "title": "Integrating molecular profiles into clinical frameworks through "
                      "the Molecular Oncology Almanac to prospectively guide precision "
                      "oncology",

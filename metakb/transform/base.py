@@ -25,7 +25,7 @@ class Transform:
         Method(
             id=MethodId.CIVIC_EID_SOP.value,
             is_reported_in=Document(
-                xrefs=["pmid:31779674"],
+                xrefs=["doi:10.1186/s13073-019-0687-x", "pmid:31779674"],
                 label="Danos AM, Krysiak K, Barnell EK, et al., 2019, Genome Medicine",
                 title="Standard operating procedure for curation and clinical "
                       "interpretation of variants in cancer",
@@ -34,7 +34,7 @@ class Transform:
         Method(
             id=MethodId.MOA_ASSERTION_BIORXIV.value,
             is_reported_in=Document(
-                xrefs=["doi:10.1038/s43018-021-00243-3"],
+                xrefs=["doi:10.1038/s43018-021-00243-3", "pmid:35121878"],
                 label="Reardon, B., Moore, N.D., Moore, N.S. et al., 2021, Nature Cancer",  # noqa: E501
                 title="Integrating molecular profiles into clinical frameworks through "
                       "the Molecular Oncology Almanac to prospectively guide precision "
@@ -255,14 +255,14 @@ class Transform:
         return f"document:{sha512t24u(blob=blob)}"
 
     @staticmethod
-    def _get_digest_for_str_lists(l: List[str]) -> str:  # noqa: E741
+    def _get_digest_for_str_lists(str_list: List[str]) -> str:  # noqa: E741
         """Create digest for a list of strings
 
-        :param List[str] l: List of strings to get digest for
+        :param List[str] str_list: List of strings to get digest for
         :return: Digest
         """
-        l.sort()
-        blob = json.dumps(l, separators=(",", ":")).encode("ascii")
+        str_list.sort()
+        blob = json.dumps(str_list, separators=(",", ":")).encode("ascii")
         return sha512t24u(blob)
 
     def create_json(self, transform_dir: Optional[Path] = None,
