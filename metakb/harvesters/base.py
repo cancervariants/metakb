@@ -6,18 +6,18 @@ from datetime import datetime as dt
 
 from metakb import APP_ROOT, DATE_FMT
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger("metakb.harvesters.base")
 logger.setLevel(logging.DEBUG)
 
 
 class Harvester:
     """A base class for content harvesters."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize Harvester class."""
         self.assertions = []
 
-    def harvest(self):
+    def harvest(self) -> bool:
         """
         Retrieve and store records from a resource. Records may be stored in
         any manner, but must be retrievable by :method:`iterate_records`.
@@ -26,16 +26,6 @@ class Harvester:
         :rtype: bool
         """
         raise NotImplementedError
-
-    def iter_assertions(self):
-        """
-        Yield all :class:`ClinSigAssertion` records for the resource.
-
-        :return: An iterator
-        :rtype: Iterator[:class:`ClinSigAssertion`]
-        """
-        for statement in self.assertions:
-            yield statement
 
     def create_json(self, items: Dict[str, List],
                     filename: Optional[str] = None) -> bool:

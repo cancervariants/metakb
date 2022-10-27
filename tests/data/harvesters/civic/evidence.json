@@ -8,7 +8,7 @@
             "name": "Lung Non-small Cell Carcinoma",
             "display_name": "Lung Non-small Cell Carcinoma",
             "doid": "3908",
-            "url": "http://www.disease-ontology.org/?id=DOID:3908"
+            "disease_url": "http://www.disease-ontology.org/?id=DOID:3908"
         },
         "drugs": [
             {
@@ -54,7 +54,6 @@
             "source_type": "PubMed",
             "asco_abstract_id": null,
             "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/27283860",
-            "open_access": true,
             "pmc_id": "PMC4993103",
             "publication_date": {
                 "year": 2016,
@@ -62,8 +61,6 @@
             },
             "journal": "Lancet Oncol.",
             "full_journal_title": "The Lancet. Oncology",
-            "status": "partially curated",
-            "is_review": false,
             "clinical_trials": [
                 {
                     "nct_id": "NCT01336634",

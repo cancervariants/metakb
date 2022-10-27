@@ -1,5 +1,5 @@
 [flake8]
-ignore = D205, D400, W503
+ignore = D205, D400, W503, I101, ANN101, ANN002, ANN003
 max-line-length = 88
 exclude =
   .git
@@ -8,5 +8,11 @@ exclude =
   source
   outputs
   docs/*
+  analysis/*
+  codebuild/*
+  build/*
 per-file-ignores =
     *__init__.py:F401
+    tests/*:ANN001, ANN2
+inline-quotes = "
+import-order-style = pep8

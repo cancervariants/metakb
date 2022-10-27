@@ -1,9 +1,12 @@
 """Test MOA Transformation to common data model"""
+import json
+
 import pytest
 import pytest_asyncio
+
+from metakb import PROJECT_ROOT  # noqa: I202
 from metakb.transform.moa import MOATransform
-from metakb import PROJECT_ROOT
-import json
+
 
 DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform"
 FILENAME = "moa_cdm.json"
@@ -13,7 +16,7 @@ FILENAME = "moa_cdm.json"
 @pytest.mark.asyncio
 async def data(normalizers):
     """Create a MOA Transform test fixture."""
-    harvester_path = DATA_DIR / "moa_harvester.json"
+    harvester_path = DATA_DIR / "therapeutic" / "moa_harvester.json"
     moa = MOATransform(data_dir=DATA_DIR, harvester_path=harvester_path,
                        normalizers=normalizers)
     await moa.transform()
@@ -62,28 +65,27 @@ def asst71_disease_descriptors(moa_chronic_myelogenous_leukemia):
 @pytest.fixture(scope="module")
 def asst71_methods(method4):
     """Create assertion71 methods test fixture."""
-    return[method4]
+    return [method4]
 
 
 @pytest.fixture(scope="module")
-def asst71_documents(pmid_11423618):
+def asst71_documents(moa_source44):
     """Create assertion71 documents test fixture."""
-    return [pmid_11423618]
+    return [moa_source44]
 
 
 def test_moa_cdm(data, asst71_statements, asst71_propositions,
                  asst71_variation_descriptors, asst71_gene_descriptors,
-                 asst71_disease_descriptors, asst71_therapy_descriptors,
-                 asst71_methods, asst71_documents, check_statement,
-                 check_proposition, check_variation_descriptor,
+                 asst71_disease_descriptors, asst71_methods, asst71_documents,
+                 check_statement, check_proposition, check_variation_descriptor,
                  check_descriptor, check_document, check_method,
-                 check_transformed_cdm):
+                 asst71_therapy_descriptors, check_transformed_cdm):
     """Test that moa transform works correctly."""
     check_transformed_cdm(
-        data, asst71_statements, asst71_propositions,
-        asst71_variation_descriptors, asst71_gene_descriptors,
-        asst71_disease_descriptors, asst71_therapy_descriptors, asst71_methods,
+        data, asst71_statements, asst71_propositions, asst71_variation_descriptors,
+        asst71_gene_descriptors, asst71_disease_descriptors, asst71_methods,
         asst71_documents, check_statement, check_proposition,
         check_variation_descriptor, check_descriptor, check_document,
-        check_method, DATA_DIR / FILENAME
+        check_method, DATA_DIR / FILENAME,
+        therapeutic_descriptors=asst71_therapy_descriptors
     )

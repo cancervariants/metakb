@@ -1,0 +1,87 @@
+civic.drug:199 (count of EIDs 23) : {'EID3917', 'EID36', 'EID1139', 'EID2187', 'EID3987', 'EID3872', 'EID1866', 'EID3861', 'EID1493', 'EID138', 'EID3704', 'EID134', 'EID3867', 'EID3939', 'EID8260', 'EID2189', 'EID2210', 'EID3732', 'EID850', 'EID906', 'EID123', 'EID3967', 'EID3845'}
+civic.drug:16 (count of EIDs 19) : {'EID3917', 'EID36', 'EID3858', 'EID2187', 'EID3987', 'EID3872', 'EID3861', 'EID3704', 'EID138', 'EID134', 'EID3867', 'EID3939', 'EID3739', 'EID2189', 'EID2210', 'EID3732', 'EID123', 'EID3967', 'EID3845'}
+civic.drug:19832 (count of EIDs 7) : {'EID8020', 'EID8016', 'EID8019', 'EID8013', 'EID8022', 'EID8018', 'EID8017'}
+civic.drug:306 (count of EIDs 5) : {'EID1211', 'EID1781', 'EID1706', 'EID1210', 'EID6019'}
+civic.drug:19835 (count of EIDs 5) : {'EID10355', 'EID10354', 'EID8321', 'EID10353', 'EID10352'}
+civic.drug:360 (count of EIDs 3) : {'EID3000', 'EID1653', 'EID1490'}
+civic.drug:167 (count of EIDs 3) : {'EID942', 'EID874', 'EID921'}
+civic.drug:468 (count of EIDs 3) : {'EID2310', 'EID2818', 'EID2819'}
+civic.drug:88 (count of EIDs 3) : {'EID635', 'EID636', 'EID633'}
+civic.drug:89 (count of EIDs 3) : {'EID635', 'EID636', 'EID633'}
+civic.drug:33 (count of EIDs 2) : {'EID1325', 'EID1139'}
+civic.drug:538 (count of EIDs 2) : {'EID3858', 'EID3739'}
+civic.drug:103 (count of EIDs 2) : {'EID942', 'EID874'}
+civic.drug:288 (count of EIDs 2) : {'EID1149', 'EID1148'}
+civic.drug:326 (count of EIDs 2) : {'EID1653', 'EID8112'}
+civic.drug:5 (count of EIDs 2) : {'EID8260', 'EID3029'}
+civic.drug:35 (count of EIDs 2) : {'EID131', 'EID1037'}
+civic.drug:38 (count of EIDs 2) : {'EID152', 'EID149'}
+civic.drug:154 (count of EIDs 2) : {'EID807', 'EID817'}
+civic.drug:145 (count of EIDs 2) : {'EID943', 'EID1173'}
+civic.drug:452 (count of EIDs 2) : {'EID6408', 'EID2915'}
+civic.drug:341 (count of EIDs 2) : {'EID1417', 'EID1418'}
+civic.drug:268 (count of EIDs 2) : {'EID151', 'EID150'}
+civic.drug:579 (count of EIDs 1) : {'EID670'}
+civic.drug:688 (count of EIDs 1) : {'EID5923'}
+civic.drug:689 (count of EIDs 1) : {'EID5923'}
+civic.drug:9809 (count of EIDs 1) : {'EID1647'}
+civic.drug:11 (count of EIDs 1) : {'EID1647'}
+civic.drug:420 (count of EIDs 1) : {'EID1653'}
+civic.drug:9775 (count of EIDs 1) : {'EID10367'}
+civic.drug:253 (count of EIDs 1) : {'EID924'}
+civic.drug:332 (count of EIDs 1) : {'EID1325'}
+civic.drug:516 (count of EIDs 1) : {'EID3045'}
+civic.drug:406 (count of EIDs 1) : {'EID454'}
+civic.drug:405 (count of EIDs 1) : {'EID454'}
+civic.drug:510 (count of EIDs 1) : {'EID5505'}
+civic.drug:76 (count of EIDs 1) : {'EID446'}
+civic.drug:271 (count of EIDs 1) : {'EID747'}
+civic.drug:47 (count of EIDs 1) : {'EID747'}
+civic.drug:302 (count of EIDs 1) : {'EID1192'}
+civic.drug:408 (count of EIDs 1) : {'EID1731'}
+civic.drug:570 (count of EIDs 1) : {'EID1731'}
+civic.drug:265 (count of EIDs 1) : {'EID149'}
+civic.drug:75 (count of EIDs 1) : {'EID445'}
+civic.drug:195 (count of EIDs 1) : {'EID732'}
+civic.drug:169 (count of EIDs 1) : {'EID760'}
+civic.drug:240 (count of EIDs 1) : {'EID825'}
+civic.drug:247 (count of EIDs 1) : {'EID865'}
+civic.drug:248 (count of EIDs 1) : {'EID865'}
+civic.drug:172 (count of EIDs 1) : {'EID897'}
+civic.drug:285 (count of EIDs 1) : {'EID1140'}
+civic.drug:284 (count of EIDs 1) : {'EID1140'}
+civic.drug:297 (count of EIDs 1) : {'EID1173'}
+civic.drug:338 (count of EIDs 1) : {'EID1382'}
+civic.drug:660 (count of EIDs 1) : {'EID1490'}
+civic.drug:414 (count of EIDs 1) : {'EID1743'}
+civic.drug:659 (count of EIDs 1) : {'EID2332'}
+civic.drug:433 (count of EIDs 1) : {'EID2915'}
+civic.drug:480 (count of EIDs 1) : {'EID2915'}
+civic.drug:497 (count of EIDs 1) : {'EID2991'}
+civic.drug:511 (count of EIDs 1) : {'EID3034'}
+civic.drug:58 (count of EIDs 1) : {'EID3034'}
+civic.drug:567 (count of EIDs 1) : {'EID6000'}
+civic.drug:566 (count of EIDs 1) : {'EID6000'}
+civic.drug:445 (count of EIDs 1) : {'EID6019'}
+civic.drug:5509 (count of EIDs 1) : {'EID8112'}
+civic.drug:683 (count of EIDs 1) : {'EID811'}
+civic.drug:231 (count of EIDs 1) : {'EID817'}
+civic.drug:256 (count of EIDs 1) : {'EID932'}
+civic.drug:179 (count of EIDs 1) : {'EID932'}
+civic.drug:343 (count of EIDs 1) : {'EID932'}
+civic.drug:182 (count of EIDs 1) : {'EID943'}
+civic.drug:283 (count of EIDs 1) : {'EID1138'}
+civic.drug:63 (count of EIDs 1) : {'EID1138'}
+civic.drug:337 (count of EIDs 1) : {'EID1381'}
+civic.drug:456 (count of EIDs 1) : {'EID2040'}
+civic.drug:503 (count of EIDs 1) : {'EID3029'}
+civic.drug:507 (count of EIDs 1) : {'EID3029'}
+civic.drug:20 (count of EIDs 1) : {'EID3029'}
+civic.drug:157 (count of EIDs 1) : {'EID3029'}
+civic.drug:591 (count of EIDs 1) : {'EID6408'}
+civic.drug:36 (count of EIDs 1) : {'EID6408'}
+civic.drug:536 (count of EIDs 1) : {'EID1641'}
+civic.drug:393 (count of EIDs 1) : {'EID1641'}
+civic.drug:402 (count of EIDs 1) : {'EID1706'}
+civic.drug:269 (count of EIDs 1) : {'EID150'}
+civic.drug:255 (count of EIDs 1) : {'EID913'}

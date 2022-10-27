@@ -27,7 +27,7 @@ def lnscc():
             "name": "Lung Non-small Cell Carcinoma",
             "display_name": "Lung Non-small Cell Carcinoma",
             "doid": "3908",
-            "url": "http://www.disease-ontology.org/?id=DOID:3908"
+            "disease_url": "http://www.disease-ontology.org/?id=DOID:3908"
         },
         "drugs": [
             {
@@ -71,7 +71,6 @@ def lnscc():
             "source_type": "PubMed",
             "asco_abstract_id": None,
             "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/27283860",
-            "open_access": True,
             "pmc_id": "PMC4993103",
             "publication_date": {
                 "year": 2016,
@@ -79,8 +78,6 @@ def lnscc():
             },
             "journal": "Lancet Oncol.",
             "full_journal_title": "The Lancet. Oncology",
-            "status": "partially curated",
-            "is_review": False,
             "clinical_trials": [{
                 "nct_id": "NCT01336634",
                 "name": "Study of Selective BRAF Kinase Inhibitor Dabrafenib "
@@ -123,7 +120,7 @@ def test_evidence(test_get_all_evidence, lnscc):
               f"harvesters/civic/evidence.json") as f:
         data = json.load(f)
     test_get_all_evidence.return_value = data
-    evidence = CIViCHarvester()._harvest_evidence()
+    evidence = CIViCHarvester().harvest_evidence()
     evidence_item = None
     for ev in evidence:
         if ev['id'] == 3017:

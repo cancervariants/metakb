@@ -28,7 +28,6 @@ def pdgfra():
             {
                 'id': 47,
                 'name': "missense_variant",
-                'display_name': "Missense Variant",
                 'so_id': "SO:0001583",
                 'description': "A sequence variant, that changes one or more"
                                " bases, resulting in a different amino acid "
@@ -66,7 +65,7 @@ def pdgfra():
                     'name': "Gastrointestinal Stromal Tumor",
                     'display_name': "Gastrointestinal Stromal Tumor",
                     'doid': "9253",
-                    'url': "http://www.disease-ontology.org/?id=DOID:9253"
+                    'disease_url': "http://www.disease-ontology.org/?id=DOID:9253"
                 },
                 'drugs': [
                     {
@@ -105,7 +104,6 @@ def pdgfra():
                     'asco_abstract_id': None,
                     'source_url':
                         "http://www.ncbi.nlm.nih.gov/pubmed/22745105",
-                    'open_access': None,
                     'pmc_id': None,
                     'publication_date': {
                         'year': 2012,
@@ -117,8 +115,6 @@ def pdgfra():
                         "Clinical cancer research : an official"
                         " journal of the American Association"
                         " for Cancer Research",
-                    'status': "fully curated",
-                    'is_review': False,
                     'clinical_trials': []
                 },
                 'variant_id': 100,
@@ -168,7 +164,6 @@ def pdgfra():
                             {
                                 'id': 47,
                                 'name': "missense_variant",
-                                'display_name': "Missense Variant",
                                 'so_id': "SO:0001583",
                                 'description': "A sequence variant, that "
                                                "changes one or more bases, "
@@ -182,7 +177,6 @@ def pdgfra():
                             {
                                 'id': 120,
                                 'name': "transcript_fusion",
-                                'display_name': "Transcript Fusion",
                                 'so_id': "SO:0001886",
                                 'description': "A feature fusion where the"
                                                " deletion brings together "
@@ -233,7 +227,6 @@ def pdgfra():
                             {
                                 'id': 47,
                                 'name': "missense_variant",
-                                'display_name': "Missense Variant",
                                 'so_id': "SO:0001583",
                                 'description': "A sequence variant, that "
                                                "changes one or more bases, "
@@ -246,7 +239,6 @@ def pdgfra():
                             {
                                 'id': 120,
                                 'name': "transcript_fusion",
-                                'display_name': "Transcript Fusion",
                                 'so_id': "SO:0001886",
                                 'description': "A feature fusion where the "
                                                "deletion brings together "
@@ -294,7 +286,6 @@ def pdgfra():
                             {
                                 'id': 47,
                                 'name': "missense_variant",
-                                'display_name': "Missense Variant",
                                 'so_id': "SO:0001583",
                                 'description': "A sequence variant, that "
                                                "changes one or more bases, "
@@ -352,7 +343,6 @@ def pdgfra():
                             {
                                 'id': 47,
                                 'name': "missense_variant",
-                                'display_name': "Missense Variant",
                                 'so_id': "SO:0001583",
                                 'description': "A sequence variant, that "
                                                "changes one or more bases,"
@@ -403,7 +393,6 @@ def pdgfra():
                             {
                                 'id': 47,
                                 'name': "missense_variant",
-                                'display_name': "Missense Variant",
                                 'so_id': "SO:0001583",
                                 'description': "A sequence variant, that "
                                                "changes one or more bases, "
@@ -454,7 +443,6 @@ def pdgfra():
                             {
                                 'id': 107,
                                 'name': "inframe_deletion",
-                                'display_name': "Inframe Deletion",
                                 'so_id': "SO:0001822",
                                 'description': "An inframe non synonymous "
                                                "variant that deletes bases "
@@ -505,7 +493,6 @@ def pdgfra():
                             {
                                 'id': 47,
                                 'name': "missense_variant",
-                                'display_name': "Missense Variant",
                                 'so_id': "SO:0001583",
                                 'description': "A sequence variant, that "
                                                "changes one or more bases, "
@@ -552,7 +539,6 @@ def pdgfra():
                             {
                                 'id': 47,
                                 'name': "missense_variant",
-                                'display_name': "Missense Variant",
                                 'so_id': "SO:0001583",
                                 'description': "A sequence variant, that "
                                                "changes one or more bases,"
@@ -565,7 +551,6 @@ def pdgfra():
                             {
                                 'id': 120,
                                 'name': "transcript_fusion",
-                                'display_name': "Transcript Fusion",
                                 'so_id': "SO:0001886",
                                 'description': "A feature fusion where the"
                                                " deletion brings together "
@@ -619,7 +604,7 @@ def test_variants(test_get_all_variants, pdgfra):
               f"harvesters/civic/variants.json") as f:
         data = json.load(f)
     test_get_all_variants.return_value = data
-    variants = CIViCHarvester()._harvest_variants()
+    variants = CIViCHarvester().harvest_variants()
     actul_pdgfra = None
     for v in variants:
         if v['id'] == 100:

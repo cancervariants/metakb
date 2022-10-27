@@ -1,0 +1,72 @@
+{
+	"assertions": [
+		{
+			"id": 71,
+			"context": "",
+			"description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
+			"disease": {
+				"name": "Chronic Myelogenous Leukemia",
+				"oncotree_code": "CML",
+				"oncotree_term": "Chronic Myelogenous Leukemia"
+			},
+			"therapy_name": "Imatinib",
+			"therapy_type": "Targeted therapy",
+			"clinical_significance": "resistance",
+			"predictive_implication": "Preclinical",
+			"favorable_prognosis": false,
+			"created_on": "09/08/22",
+			"last_updated": "2019-06-13",
+			"submitted_by": "breardon@broadinstitute.org",
+			"validated": true,
+			"source_ids": 44,
+			"variant": {
+				"id": 71,
+				"alternate_allele": "T",
+				"cdna_change": "c.944C>T",
+				"chromosome": "9",
+				"end_position": "133747580",
+				"exon": "5",
+				"feature_type": "somatic_variant",
+				"gene": "ABL1",
+				"protein_change": "p.T315I",
+				"reference_allele": "C",
+				"rsid": null,
+				"start_position": "133747580",
+				"variant_annotation": "Missense",
+				"feature": "ABL1 p.T315I (Missense)"
+			}
+		}
+	],
+	"sources": [
+		{
+			"id": 44,
+			"type": "Journal",
+			"doi": "10.1126/science.1062538",
+			"nct": "",
+			"pmid": 11423618,
+			"url": "https://doi.org/10.1126/science.1062538",
+			"citation": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880."
+		}
+	],
+	"variants": [
+		{
+			"id": 71,
+			"alternate_allele": "T",
+			"cdna_change": "c.944C>T",
+			"chromosome": "9",
+			"end_position": "133747580",
+			"exon": "5",
+			"feature_type": "somatic_variant",
+			"gene": "ABL1",
+			"protein_change": "p.T315I",
+			"reference_allele": "C",
+			"rsid": null,
+			"start_position": "133747580",
+			"variant_annotation": "Missense",
+			"feature": "ABL1 p.T315I (Missense)"
+		}
+	],
+	"genes": [
+		"ABL1"
+	]
+}
