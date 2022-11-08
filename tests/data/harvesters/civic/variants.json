@@ -11,7 +11,6 @@
             {
                 "id": 47,
                 "name": "missense_variant",
-                "display_name": "Missense Variant",
                 "so_id": "SO:0001583",
                 "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
@@ -48,7 +47,7 @@
                     "name": "Gastrointestinal Stromal Tumor",
                     "display_name": "Gastrointestinal Stromal Tumor",
                     "doid": "9253",
-                    "url": "http://www.disease-ontology.org/?id=DOID:9253"
+                    "disease_url": "http://www.disease-ontology.org/?id=DOID:9253"
                 },
                 "drugs": [
                     {
@@ -82,7 +81,6 @@
                     "source_type": "PubMed",
                     "asco_abstract_id": null,
                     "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/22745105",
-                    "open_access": null,
                     "pmc_id": null,
                     "publication_date": {
                         "year": 2012,
@@ -91,8 +89,6 @@
                     },
                     "journal": "Clin. Cancer Res.",
                     "full_journal_title": "Clinical cancer research : an official journal of the American Association for Cancer Research",
-                    "status": "fully curated",
-                    "is_review": false,
                     "clinical_trials": []
                 },
                 "flagged": false,
@@ -101,12 +97,12 @@
                 "updated_at": "2016-02-17T19:50:06.701Z"
             }
         ],
-        "variant_groups": [
+        "_variant_groups": [
             {
                 "id": 1,
                 "name": "Imatinib Resistance",
                 "description": "While imatinib has shown to be incredibly successful in treating philadelphia chromosome positive CML, patients that have shown primary or secondary resistance to the drug have been observed to harbor T315I and E255K ABL kinase domain mutations. These mutations, among others, have been observed both in primary refractory disease and acquired resistance. In gastrointestinal stromal tumors (GIST), PDGFRA 842 mutations have also been shown to confer resistance to imatinib. ",
-                "variants": [
+                "_variants": [
                     {
                         "id": 2,
                         "entrez_name": "ABL1",
@@ -119,7 +115,6 @@
                             {
                                 "id": 47,
                                 "name": "missense_variant",
-                                "display_name": "Missense Variant",
                                 "so_id": "SO:0001583",
                                 "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
                                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
@@ -131,7 +126,6 @@
                             {
                                 "id": 120,
                                 "name": "transcript_fusion",
-                                "display_name": "Transcript Fusion",
                                 "so_id": "SO:0001886",
                                 "description": "A feature fusion where the deletion brings together transcript regions.",
                                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886",
@@ -171,7 +165,6 @@
                             {
                                 "id": 47,
                                 "name": "missense_variant",
-                                "display_name": "Missense Variant",
                                 "so_id": "SO:0001583",
                                 "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
                                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
@@ -183,7 +176,6 @@
                             {
                                 "id": 120,
                                 "name": "transcript_fusion",
-                                "display_name": "Transcript Fusion",
                                 "so_id": "SO:0001886",
                                 "description": "A feature fusion where the deletion brings together transcript regions.",
                                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886",
@@ -223,7 +215,6 @@
                             {
                                 "id": 47,
                                 "name": "missense_variant",
-                                "display_name": "Missense Variant",
                                 "so_id": "SO:0001583",
                                 "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
                                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
@@ -263,7 +254,6 @@
                             {
                                 "id": 47,
                                 "name": "missense_variant",
-                                "display_name": "Missense Variant",
                                 "so_id": "SO:0001583",
                                 "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
                                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
@@ -303,7 +293,6 @@
                             {
                                 "id": 47,
                                 "name": "missense_variant",
-                                "display_name": "Missense Variant",
                                 "so_id": "SO:0001583",
                                 "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
                                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
@@ -343,7 +332,6 @@
                             {
                                 "id": 107,
                                 "name": "inframe_deletion",
-                                "display_name": "Inframe Deletion",
                                 "so_id": "SO:0001822",
                                 "description": "An inframe non synonymous variant that deletes bases from the coding sequence.",
                                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001822",
@@ -383,7 +371,6 @@
                             {
                                 "id": 47,
                                 "name": "missense_variant",
-                                "display_name": "Missense Variant",
                                 "so_id": "SO:0001583",
                                 "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
                                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
@@ -423,7 +410,6 @@
                             {
                                 "id": 47,
                                 "name": "missense_variant",
-                                "display_name": "Missense Variant",
                                 "so_id": "SO:0001583",
                                 "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
                                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
@@ -435,7 +421,6 @@
                             {
                                 "id": 120,
                                 "name": "transcript_fusion",
-                                "display_name": "Transcript Fusion",
                                 "so_id": "SO:0001886",
                                 "description": "A feature fusion where the deletion brings together transcript regions.",
                                 "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001886",
