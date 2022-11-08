@@ -1,7 +1,6 @@
 """Module for VICC normalizers."""
 from typing import Optional, Tuple
 
-from ga4gh.vrsatile.pydantic.vrs_models import VRSTypes
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, Extension
 from variation.query import QueryHandler as VariationQueryHandler
 from therapy.query import QueryHandler as TherapyQueryHandler
@@ -30,23 +29,20 @@ class VICCNormalizers:
                                   queries) -> Optional[VariationDescriptor]:
         """Normalize variation queries.
 
-        :param list queries: Possible query strings to try to normalize
+        :param List[str] queries: Possible query strings to try to normalize
             which are used in the event that a MANE transcript cannot be found
         :return: A normalized variation
         """
         for query in queries:
             if not query:
                 continue
-
             try:
-                variation_norm_resp = \
-                    await self.variation_normalizer.normalize(query)
-                if variation_norm_resp:
-                    if variation_norm_resp.variation.type != VRSTypes.TEXT:
-                        return variation_norm_resp
+                variation_norm_resp = await self.variation_normalizer.normalize_handler.normalize(query)  # noqa: E501
+                if variation_norm_resp and variation_norm_resp.variation_descriptor:
+                    return variation_norm_resp.variation_descriptor
             except Exception as e:  # noqa: E722
-                logger.warning(f"Variation Normalizer raised an exception "
-                               f"using query {query}: {e}")
+                logger.warning(f"Variation Normalizer raised an exception using query"
+                               f" {query}: {e}")
         return None
 
     def normalize_gene(self, queries)\
@@ -66,8 +62,8 @@ class VICCNormalizers:
             try:
                 gene_norm_resp = self.gene_query_handler.normalize(query_str)
             except Exception as e:
-                logger.warning(f"Gene Normalizer raised an exception using "
-                               f"query {query_str}: {e}")
+                logger.warning(f"Gene Normalizer raised an exception using query "
+                               f"{query_str}: {e}")
             else:
                 if gene_norm_resp.match_type > highest_match:
                     highest_match = gene_norm_resp.match_type
@@ -95,8 +91,8 @@ class VICCNormalizers:
             try:
                 disease_norm_resp = self.disease_query_handler.normalize(query)
             except Exception as e:
-                logger.warning(f"Disease Normalizer raised an exception using "
-                               f"query {query}: {e}")
+                logger.warning(f"Disease Normalizer raised an exception using query "
+                               f"{query}: {e}")
             else:
                 if disease_norm_resp.match_type > highest_match:
                     highest_match = disease_norm_resp.match_type
