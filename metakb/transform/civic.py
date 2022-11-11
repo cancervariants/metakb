@@ -2,6 +2,7 @@
 from typing import Optional, Dict, List, Set
 from pathlib import Path
 import logging
+import re
 
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
     Extension, Expression, GeneDescriptor, ValueObjectDescriptor
@@ -51,13 +52,17 @@ class CIViCTransform(Transform):
         variants = data['variants']
         genes = data['genes']
 
-        # Filter Variant IDs for
-        # Prognostic, Predictive, and Diagnostic evidence
-        supported_evidence_types = ['Prognostic', 'Predictive', 'Diagnostic']
-        vids = {e['variant_id'] for e in evidence_items
-                if e['evidence_type'] in supported_evidence_types}
-        vids |= {a['variant']['id'] for a in assertions
-                 if a['evidence_type'] in supported_evidence_types}
+        # Only want evidence with approved status
+        evidence_items = [e for e in evidence_items if e["status"] == "accepted"]
+
+        # Filter Variant IDs for Prognostic, Predictive, and Diagnostic evidence
+        supported_evidence_types = ['PROGNOSTIC', 'PREDICTIVE', 'DIAGNOSTIC']
+        evidence_items = [e for e in evidence_items
+                          if e["evidence_type"].upper() in supported_evidence_types]
+        assertions = [a for a in assertions
+                      if a["evidence_type"].upper() in supported_evidence_types]
+        vids = {e["variant_id"] for e in evidence_items}
+        vids |= {a["variant_id"] for a in assertions}
 
         await self._add_variation_descriptors(variants, vids)
         self._add_gene_descriptors(genes)
@@ -86,15 +91,15 @@ class CIViCTransform(Transform):
                 logger.warning(f"{civic_id} has status: {r['status']}")
                 continue
 
-            if r['evidence_type'] not in ['Predictive', 'Prognostic',
-                                          'Diagnostic']:
+            if r['evidence_type'] not in ['PREDICTIVE', 'PROGNOSTIC',
+                                          'DIAGNOSTIC']:
                 continue
             else:
                 # Functional Evidence types do not have a disease
                 if not r['disease']:
                     continue
 
-            if r['evidence_type'] == 'Predictive':
+            if r['evidence_type'] == 'PREDICTIVE':
                 if len(r['drugs']) != 1:
                     continue
                 else:
@@ -118,10 +123,7 @@ class CIViCTransform(Transform):
             if disease_descriptor not in self.disease_descriptors:
                 self.disease_descriptors.append(disease_descriptor)
 
-            if is_evidence:
-                variant_id = f"civic.vid:{r['variant_id']}"
-            else:
-                variant_id = f"civic.vid:{r['variant']['id']}"
+            variant_id = f"civic.vid:{r['variant_id']}"
             variation_descriptor = \
                 self.valid_ids['variation_descriptors'].get(variant_id)
             if not variation_descriptor:
@@ -201,9 +203,10 @@ class CIViCTransform(Transform):
         :param str direction: The civic evidence_direction value
         :return: `supports` or `does_not_support` or None
         """
-        if direction == 'Supports':
+        direction_upper = direction.upper()
+        if direction_upper == "SUPPORTS":
             return schemas.Direction.SUPPORTS.value
-        elif direction == 'Does Not Support':
+        elif direction_upper == "DOES_NOT_SUPPORT":
             return schemas.Direction.DOES_NOT_SUPPORT.value
         else:
             return None
@@ -220,18 +223,27 @@ class CIViCTransform(Transform):
             if assertion['amp_level'] == 'Not Applicable':
                 evidence_level = None
             else:
-                tier, level = assertion['amp_level'].split(' - ')
-                tier = tier.split()[1]
-                if tier == 'I':
-                    tier = 1
-                elif tier == 'II':
-                    tier = 2
-                elif tier == 'III':
-                    tier = 3
-                elif tier == 'IV':
-                    tier = 4
-                evidence_level = f"amp_asco_cap_2017_level:" \
-                                 f"{tier}{level.split()[1]}"
+                amp_level = assertion["amp_level"]
+                regex = re.compile(r"TIER_(?P<tier>\w+)_LEVEL_(?P<level>\w+)")
+                match = regex.match(amp_level)
+                if match:
+                    match = match.groupdict()
+                    tier = match["tier"]
+                    level = match["level"]
+
+                    if tier == 'I':
+                        tier = 1
+                    elif tier == 'II':
+                        tier = 2
+                    elif tier == 'III':
+                        tier = 3
+                    elif tier == 'IV':
+                        tier = 4
+
+                    evidence_level = f"amp_asco_cap_2017_level:" \
+                                     f"{tier}{level}"
+                else:
+                    raise Exception(f"{amp_level} not supported with regex")
         return evidence_level
 
     def _get_proposition(self, record, variation_descriptor,
@@ -333,11 +345,12 @@ class CIViCTransform(Transform):
         :param str variant_origin: CIViC variant origin
         :return: Variation origin
         """
-        if variant_origin == 'Somatic':
+        variant_origin = variant_origin.upper()
+        if variant_origin == "SOMATIC":
             origin = schemas.VariationOrigin.SOMATIC.value
-        elif variant_origin in ['Rare Germline', 'Common Germline']:
+        elif variant_origin in ["RARE_GERMLINE", "COMMON_GERMLINE"]:
             origin = schemas.VariationOrigin.GERMLINE.value
-        elif variant_origin == 'N/A':
+        elif variant_origin == "NA":
             origin = schemas.VariationOrigin.NOT_APPLICABLE.value
         else:
             origin = None
@@ -355,10 +368,13 @@ class CIViCTransform(Transform):
             return None
 
         clin_sig = '_'.join(clin_sig.upper().split())
+        if clin_sig == "NA":
+            logger.info("NA predicate not supported")
+            return None
         predicate = None
 
         if proposition_type == schemas.PropositionType.PREDICTIVE:
-            if clin_sig == 'SENSITIVITY/RESPONSE':
+            if clin_sig == 'SENSITIVITYRESPONSE':
                 predicate = schemas.PredictivePredicate.SENSITIVITY
             elif clin_sig == 'RESISTANCE':
                 predicate = schemas.PredictivePredicate.RESISTANCE
@@ -416,7 +432,7 @@ class CIViCTransform(Transform):
                     continue
 
             unable_to_normalize = {
-                "mutation", "amplification", "exon", "overexpression",
+                "mutation", "exon", "overexpression",
                 "frameshift", "promoter", "deletion", "type", "insertion",
                 "expression", "duplication", "copy", "underexpression",
                 "number", "variation", "repeat", "rearrangement", "activation",
@@ -431,12 +447,12 @@ class CIViCTransform(Transform):
                                f"{variant_id}: {variant_query}")
                 continue
 
-            variation_norm_resp = await self.vicc_normalizers.normalize_variation(
+            variation_descriptor = await self.vicc_normalizers.normalize_variation(
                 [variant_query]
             )
 
             # Couldn't find normalized concept
-            if not variation_norm_resp:
+            if not variation_descriptor:
                 logger.warning("Variation Normalizer unable to normalize "
                                f"civic.vid:{variant['id']} using query "
                                f"{variant_query}")
@@ -451,8 +467,8 @@ class CIViCTransform(Transform):
                 id=variant_id,
                 label=variant["name"],
                 description=variant["description"] if variant["description"] else None,  # noqa: E501
-                variation_id=variation_norm_resp.variation_id,
-                variation=variation_norm_resp.variation,
+                variation_id=variation_descriptor.variation_id,
+                variation=variation_descriptor.variation,
                 gene_context=f"civic.gid:{variant['gene_id']}",
                 structural_type=structural_type,
                 expressions=hgvs_exprs,
@@ -618,11 +634,20 @@ class CIViCTransform(Transform):
         doid = disease['doid']
 
         if not doid:
-            logger.warning(f"{disease_id} ({display_name}) has null DOID")
+            logger.debug(f"{disease_id} ({display_name}) has null DOID")
             queries = [display_name]
             xrefs = []
         else:
-            doid = f"DOID:{disease['doid']}"
+            doid = f"DOID:{doid}"
+            # TODO: DOIDs might be wrong if there are leading zeros
+            # Will be fixed in https://github.com/griffithlab/civic-v2/issues/653
+            # Once fixed, we can remove this code
+            if "DOID:" in disease["disease_url"]:
+                if not disease["disease_url"].endswith(doid):
+                    logger.debug(f"DOID mismatch for civic disease id, {disease['id']}."
+                                 f" DOID={doid}. Name={display_name}")
+                    doid = disease["disease_url"].split("?id=")[-1]
+
             queries = [doid, display_name]
             xrefs = [doid]
 
@@ -779,7 +804,8 @@ class CIViCTransform(Transform):
         """
         # NCCN Guidlines
         documents = list()
-        label = assertion["nccn_guideline"]
+        nccn_guideline = assertion["nccn_guideline"] or dict()
+        label = nccn_guideline.get("name")
         version = assertion["nccn_guideline_version"]
         if label and version:
             doc_id = "https://www.nccn.org/professionals/physician_gls/default.aspx"  # noqa: E501
