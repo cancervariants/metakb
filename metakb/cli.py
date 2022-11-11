@@ -114,11 +114,21 @@ class CLI:
               "from VICC S3 bucket, and load the database with retrieved "
               "data. Exclusive with --load_latest_cdms and load_target_cdm.")
     )
+    @click.option(
+        "--update_cached",
+        "-u",
+        is_flag=True,
+        default=False,
+        required=False,
+        help=("`True` if civicpy cache should be updated. Note this will take serveral"
+              "minutes. `False` if local cache should be used")
+    )
     async def update_metakb_db(
         db_url: str, db_username: str, db_password: str,
         load_normalizers_db: bool, force_load_normalizers_db: bool,
         normalizers_db_url: str, load_latest_cdms: bool,
-        load_target_cdm: Optional[Path], load_latest_s3_cdms: bool
+        load_target_cdm: Optional[Path], load_latest_s3_cdms: bool,
+        update_cached: bool
     ):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
@@ -141,7 +151,7 @@ class CLI:
             if load_normalizers_db or force_load_normalizers_db:
                 CLI()._load_normalizers_db(force_load_normalizers_db)
 
-            CLI()._harvest_sources()
+            CLI()._harvest_sources(update_cached)
             await CLI()._transform_sources()
 
         # Load neo4j database
@@ -225,7 +235,7 @@ class CLI:
         return newest_version
 
     @staticmethod
-    def _harvest_sources() -> None:
+    def _harvest_sources(update_cached) -> None:
         """Run harvesting procedure for all sources."""
         echo_info("Harvesting sources...")
         # TODO: Switch to using constant
@@ -238,7 +248,12 @@ class CLI:
             echo_info(f"Harvesting {source_str}...")
             start = timer()
             source: Harvester = source_class()
-            source_successful = source.harvest()
+            if source_str == "civic" and update_cached:
+                # Use latest civic data
+                echo_info("(civicpy cache is also being updated)")
+                source_successful = source.harvest(update_cache=True)
+            else:
+                source_successful = source.harvest()
             end = timer()
             if not source_successful:
                 echo_info(f'{source_str} harvest failed.')
