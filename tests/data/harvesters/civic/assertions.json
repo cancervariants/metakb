@@ -5,20 +5,14 @@
         "name": "AID40",
         "summary": "FLT3 tyrosine kinase domain mutations at residue I836 in relapsed / refractory acute myeloid leukemia (AML) are sensitive to Gilteritinib, a Type I FLT3 inhibitor.",
         "description": "Mutations in the FMS-like tyrosine kinase 3 (FLT3) gene are the most common mutations in acute myeloid leukemia (AML). 5 to 10% of AML is associated with activating point mutations in the FLT3 tyrosine kinase domain (TKD), including at the residue I836. FLT3 TKD mutations, such as I836 are a commonly reported mechanism of clinical resistance to type II FLT3 inhibitors (sorafenib, quizartinib and ponatinib), which bind only the inactive kinase conformation. However, Gilteritinib (an oral inhibitor of FLT3 and AXL) demonstrated significant single-agent activity in R/R (Relapsed or Refractory) AML with FLT3 ITD, D835, I836 mutations, achieving an overall response rate of 40%. A randomized phase 3 study of Gilteritinib (ADMIRAL trial, NCT02421939) compared with salvage chemotherapy in AML demonstrated a significant overall survival benefit in the gilteritinib arm (9.3 months) compared with chemotherapy (5.6 months). Event-free survival in the gilteritinib arm was also superior (Perl AE, et al., 2019). Based on findings from this study, the US Food and Drug Administration (FDA) approved Gilteritinib as the first FLT3 inhibitor indicated for use as monotherapy R/R AML with FLT3 ITD mutations or TKD D835 or I836 mutations.",
-        "gene": {
-            "name": "FLT3",
-            "id": 24
-        },
-        "variant": {
-            "name": "I836",
-            "id": 3232
-        },
+        "gene_id": 24,
+        "variant_id": 3232,
         "disease": {
             "id": 3,
             "name": "Acute Myeloid Leukemia",
             "display_name": "Acute Myeloid Leukemia",
             "doid": "9119",
-            "url": "http://www.disease-ontology.org/?id=DOID:9119"
+            "disease_url": "http://www.disease-ontology.org/?id=DOID:9119"
         },
         "drugs": [
             {
@@ -46,7 +40,7 @@
         "nccn_guideline": "Acute Myeloid Leukemia",
         "nccn_guideline_version": "v1.2020",
         "amp_level": "Tier I - Level A",
-        "evidence_items": [
+        "_evidence_items": [
             {
                 "id": 7283,
                 "name": "EID7283",
@@ -56,7 +50,7 @@
                     "name": "Acute Myeloid Leukemia",
                     "display_name": "Acute Myeloid Leukemia",
                     "doid": "9119",
-                    "url": "http://www.disease-ontology.org/?id=DOID:9119"
+                    "disease_url": "http://www.disease-ontology.org/?id=DOID:9119"
                 },
                 "drugs": [
                     {
@@ -118,20 +112,14 @@
                         "name": "AID33",
                         "summary": "FLT3 tyrosine kinase domain mutations at residue D835 in relapsed / refractory acute myeloid leukemia (AML) are sensitive to Gilteritinib, a Type I FLT3 inhibitor.",
                         "description": "Mutations in the FMS-like tyrosine kinase 3 (FLT3) gene are the most common mutations in acute myeloid leukemia (AML). 5 to 10% of AML is associated with activating point mutations in the FLT3 tyrosine kinase domain (TKD), particularly at the residue D835. FLT3 TKD mutations at the D835 residue are a commonly reported mechanism of clinical resistance to type II FLT3 inhibitors (sorafenib, quizartinib and ponatinib), which bind only the inactive kinase conformation. However, Gilteritinib, an oral inhibitor of FLT3 and AXL demonstrated preclinical activity against type II FLT3 inhibitor resistance-conferring D835 mutations and clinical activity as monotherapy in Relapsed/Refractory (R/R) FLT3-mutated AML. In the phase 1/2 CHRYSALIS clinical trial (Perl AE, et al., 2017), Gilteritinib demonstrated significant single-agent activity in R/R AML with FLT3 ITD, D835, I836 mutations, achieving an overall response rate of 40%. A randomized phase 3 study of Gilteritinib (ADMIRAL trial, NCT02421939) compared with salvage chemotherapy in AML demonstrated a significant overall survival benefit in the gilteritinib arm (9.3 months) compared with chemotherapy (5.6 months). Event-free survival in the gilteritinib arm was also superior (Perl AE, et al., 2019). Based on findings from this study, the US Food and Drug Administration (FDA) approved Gilteritinib as the first FLT3 inhibitor indicated for use as monotherapy R/R AML with FLT3 ITD mutations or TKD D835 or I836 mutations.",
-                        "gene": {
-                            "name": "FLT3",
-                            "id": 24
-                        },
-                        "variant": {
-                            "name": "D835",
-                            "id": 437
-                        },
+                        "gene_id": 24,
+                        "variant_id": 437,
                         "disease": {
                             "id": 3,
                             "name": "Acute Myeloid Leukemia",
                             "display_name": "Acute Myeloid Leukemia",
                             "doid": "9119",
-                            "url": "http://www.disease-ontology.org/?id=DOID:9119"
+                            "disease_url": "http://www.disease-ontology.org/?id=DOID:9119"
                         },
                         "drugs": [
                             {
@@ -163,20 +151,14 @@
                         "name": "AID40",
                         "summary": "FLT3 tyrosine kinase domain mutations at residue I836 in relapsed / refractory acute myeloid leukemia (AML) are sensitive to Gilteritinib, a Type I FLT3 inhibitor.",
                         "description": "Mutations in the FMS-like tyrosine kinase 3 (FLT3) gene are the most common mutations in acute myeloid leukemia (AML). 5 to 10% of AML is associated with activating point mutations in the FLT3 tyrosine kinase domain (TKD), including at the residue I836. FLT3 TKD mutations, such as I836 are a commonly reported mechanism of clinical resistance to type II FLT3 inhibitors (sorafenib, quizartinib and ponatinib), which bind only the inactive kinase conformation. However, Gilteritinib (an oral inhibitor of FLT3 and AXL) demonstrated significant single-agent activity in R/R (Relapsed or Refractory) AML with FLT3 ITD, D835, I836 mutations, achieving an overall response rate of 40%. A randomized phase 3 study of Gilteritinib (ADMIRAL trial, NCT02421939) compared with salvage chemotherapy in AML demonstrated a significant overall survival benefit in the gilteritinib arm (9.3 months) compared with chemotherapy (5.6 months). Event-free survival in the gilteritinib arm was also superior (Perl AE, et al., 2019). Based on findings from this study, the US Food and Drug Administration (FDA) approved Gilteritinib as the first FLT3 inhibitor indicated for use as monotherapy R/R AML with FLT3 ITD mutations or TKD D835 or I836 mutations.",
-                        "gene": {
-                            "name": "FLT3",
-                            "id": 24
-                        },
-                        "variant": {
-                            "name": "I836",
-                            "id": 3232
-                        },
+                        "gene_id": 24,
+                        "variant_id": 3232,
                         "disease": {
                             "id": 3,
                             "name": "Acute Myeloid Leukemia",
                             "display_name": "Acute Myeloid Leukemia",
                             "doid": "9119",
-                            "url": "http://www.disease-ontology.org/?id=DOID:9119"
+                            "disease_url": "http://www.disease-ontology.org/?id=DOID:9119"
                         },
                         "drugs": [
                             {
@@ -208,20 +190,14 @@
                         "name": "AID38",
                         "summary": "FLT3 internal tandem duplication (ITD) mutations in relapsed / refractory acute myeloid leukemia (AML) are sensitive to Gilteritinib, a Type I FLT3 inhibitor.",
                         "description": "The constitutively activating FLT3 internal tandem duplication (ITD) mutation appears in approximately 20-30% of AML patients and are associated with high risk, high relapse rates and poor clinical outcome. The type I selective second-generation oral inhibitor, gilteritinib, received initial global approval for use to treat adults with relapsed or refractory (R/R) FLT3 ITD positive AML in Japan in September 2018. Based on interim results of the ADMIRAL trail (Perl AE, et al., 2019), the FDA approved the drug for treatment of adult R/R AML with FLT3 ITD mutations in November 2018. The FDA approved companion diagnostic, LeukoStrat CDx FLT3 Mutation assay. NCCN AML guidelines classify gilteritinib as a category 1 recommendation for R/R AML patients harboring FLT3 ITD.",
-                        "gene": {
-                            "name": "FLT3",
-                            "id": 24
-                        },
-                        "variant": {
-                            "name": "ITD",
-                            "id": 55
-                        },
+                        "gene_id": 24,
+                        "variant_id": 55,
                         "disease": {
                             "id": 3,
                             "name": "Acute Myeloid Leukemia",
                             "display_name": "Acute Myeloid Leukemia",
                             "doid": "9119",
-                            "url": "http://www.disease-ontology.org/?id=DOID:9119"
+                            "disease_url": "http://www.disease-ontology.org/?id=DOID:9119"
                         },
                         "drugs": [
                             {
@@ -989,7 +965,7 @@
                     "name": "Acute Myeloid Leukemia",
                     "display_name": "Acute Myeloid Leukemia",
                     "doid": "9119",
-                    "url": "http://www.disease-ontology.org/?id=DOID:9119"
+                    "disease_url": "http://www.disease-ontology.org/?id=DOID:9119"
                 },
                 "drugs": [
                     {
@@ -1052,20 +1028,14 @@
                         "name": "AID33",
                         "summary": "FLT3 tyrosine kinase domain mutations at residue D835 in relapsed / refractory acute myeloid leukemia (AML) are sensitive to Gilteritinib, a Type I FLT3 inhibitor.",
                         "description": "Mutations in the FMS-like tyrosine kinase 3 (FLT3) gene are the most common mutations in acute myeloid leukemia (AML). 5 to 10% of AML is associated with activating point mutations in the FLT3 tyrosine kinase domain (TKD), particularly at the residue D835. FLT3 TKD mutations at the D835 residue are a commonly reported mechanism of clinical resistance to type II FLT3 inhibitors (sorafenib, quizartinib and ponatinib), which bind only the inactive kinase conformation. However, Gilteritinib, an oral inhibitor of FLT3 and AXL demonstrated preclinical activity against type II FLT3 inhibitor resistance-conferring D835 mutations and clinical activity as monotherapy in Relapsed/Refractory (R/R) FLT3-mutated AML. In the phase 1/2 CHRYSALIS clinical trial (Perl AE, et al., 2017), Gilteritinib demonstrated significant single-agent activity in R/R AML with FLT3 ITD, D835, I836 mutations, achieving an overall response rate of 40%. A randomized phase 3 study of Gilteritinib (ADMIRAL trial, NCT02421939) compared with salvage chemotherapy in AML demonstrated a significant overall survival benefit in the gilteritinib arm (9.3 months) compared with chemotherapy (5.6 months). Event-free survival in the gilteritinib arm was also superior (Perl AE, et al., 2019). Based on findings from this study, the US Food and Drug Administration (FDA) approved Gilteritinib as the first FLT3 inhibitor indicated for use as monotherapy R/R AML with FLT3 ITD mutations or TKD D835 or I836 mutations.",
-                        "gene": {
-                            "name": "FLT3",
-                            "id": 24
-                        },
-                        "variant": {
-                            "name": "D835",
-                            "id": 437
-                        },
+                        "gene_id": 24,
+                        "variant_id": 437,
                         "disease": {
                             "id": 3,
                             "name": "Acute Myeloid Leukemia",
                             "display_name": "Acute Myeloid Leukemia",
                             "doid": "9119",
-                            "url": "http://www.disease-ontology.org/?id=DOID:9119"
+                            "disease_url": "http://www.disease-ontology.org/?id=DOID:9119"
                         },
                         "drugs": [
                             {
@@ -1097,20 +1067,14 @@
                         "name": "AID40",
                         "summary": "FLT3 tyrosine kinase domain mutations at residue I836 in relapsed / refractory acute myeloid leukemia (AML) are sensitive to Gilteritinib, a Type I FLT3 inhibitor.",
                         "description": "Mutations in the FMS-like tyrosine kinase 3 (FLT3) gene are the most common mutations in acute myeloid leukemia (AML). 5 to 10% of AML is associated with activating point mutations in the FLT3 tyrosine kinase domain (TKD), including at the residue I836. FLT3 TKD mutations, such as I836 are a commonly reported mechanism of clinical resistance to type II FLT3 inhibitors (sorafenib, quizartinib and ponatinib), which bind only the inactive kinase conformation. However, Gilteritinib (an oral inhibitor of FLT3 and AXL) demonstrated significant single-agent activity in R/R (Relapsed or Refractory) AML with FLT3 ITD, D835, I836 mutations, achieving an overall response rate of 40%. A randomized phase 3 study of Gilteritinib (ADMIRAL trial, NCT02421939) compared with salvage chemotherapy in AML demonstrated a significant overall survival benefit in the gilteritinib arm (9.3 months) compared with chemotherapy (5.6 months). Event-free survival in the gilteritinib arm was also superior (Perl AE, et al., 2019). Based on findings from this study, the US Food and Drug Administration (FDA) approved Gilteritinib as the first FLT3 inhibitor indicated for use as monotherapy R/R AML with FLT3 ITD mutations or TKD D835 or I836 mutations.",
-                        "gene": {
-                            "name": "FLT3",
-                            "id": 24
-                        },
-                        "variant": {
-                            "name": "I836",
-                            "id": 3232
-                        },
+                        "gene_id": 24,
+                        "variant_id": 3232,
                         "disease": {
                             "id": 3,
                             "name": "Acute Myeloid Leukemia",
                             "display_name": "Acute Myeloid Leukemia",
                             "doid": "9119",
-                            "url": "http://www.disease-ontology.org/?id=DOID:9119"
+                            "disease_url": "http://www.disease-ontology.org/?id=DOID:9119"
                         },
                         "drugs": [
                             {
@@ -1142,20 +1106,14 @@
                         "name": "AID38",
                         "summary": "FLT3 internal tandem duplication (ITD) mutations in relapsed / refractory acute myeloid leukemia (AML) are sensitive to Gilteritinib, a Type I FLT3 inhibitor.",
                         "description": "The constitutively activating FLT3 internal tandem duplication (ITD) mutation appears in approximately 20-30% of AML patients and are associated with high risk, high relapse rates and poor clinical outcome. The type I selective second-generation oral inhibitor, gilteritinib, received initial global approval for use to treat adults with relapsed or refractory (R/R) FLT3 ITD positive AML in Japan in September 2018. Based on interim results of the ADMIRAL trail (Perl AE, et al., 2019), the FDA approved the drug for treatment of adult R/R AML with FLT3 ITD mutations in November 2018. The FDA approved companion diagnostic, LeukoStrat CDx FLT3 Mutation assay. NCCN AML guidelines classify gilteritinib as a category 1 recommendation for R/R AML patients harboring FLT3 ITD.",
-                        "gene": {
-                            "name": "FLT3",
-                            "id": 24
-                        },
-                        "variant": {
-                            "name": "ITD",
-                            "id": 55
-                        },
+                        "gene_id": 24,
+                        "variant_id": 55,
                         "disease": {
                             "id": 3,
                             "name": "Acute Myeloid Leukemia",
                             "display_name": "Acute Myeloid Leukemia",
                             "doid": "9119",
-                            "url": "http://www.disease-ontology.org/?id=DOID:9119"
+                            "disease_url": "http://www.disease-ontology.org/?id=DOID:9119"
                         },
                         "drugs": [
                             {

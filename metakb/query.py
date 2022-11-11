@@ -8,8 +8,7 @@ from urllib.parse import quote
 from ga4gh.vrsatile.pydantic.vrsatile_models import Extension, Expression
 from neo4j.graph import Node
 from neo4j.data import Record
-from neo4j.work.transaction import Transaction
-from neo4j.work.simple import Session
+from neo4j import Transaction, Session
 
 from metakb.database import Graph
 from metakb.normalizers import VICCNormalizers
