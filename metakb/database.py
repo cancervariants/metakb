@@ -457,7 +457,7 @@ class Graph:
     @staticmethod
     def get_secret():
         """Get secrets for MetaKB instances."""
-        secret_name = environ['METAKB_DB_PASSWORD']
+        secret_name = environ['METAKB_DB_SECRET']
         region_name = "us-east-2"
 
         # Create a Secrets Manager client

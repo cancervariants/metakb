@@ -140,17 +140,17 @@ def civic_gid19():
         "id": "civic.gid:19",
         "type": "GeneDescriptor",
         "label": "EGFR",
-        "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
+        "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. Overproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
         "gene_id": "hgnc:3236",
         "alternate_labels": [
-            "ERRP",
             "EGFR",
-            "mENA",
-            "PIG61",
-            "NISBD2",
-            "HER1",
+            "ERBB",
             "ERBB1",
-            "ERBB"
+            "ERRP",
+            "HER1",
+            "NISBD2",
+            "PIG61",
+            "mENA"
         ],
         "xrefs": [
             "ncbigene:1956"
@@ -933,7 +933,7 @@ def civic_eid1756_statement():
     """Create test fixture for CIViC EID1756 statement."""
     return {
         "id": "civic.eid:1756",
-        "description": "Study of 1817 PCa cases and 2026 cancer free controls to clarify the association of (MTHFR)c.677C>T  (and c.1298A>C ) of pancreatic cancer risk in a population of Han Chinese in Shanghai.  Results indicated a lower risk for the heterozygous CT genotype and homozygous TT genotype carriers of (MTHFR)c.677C>T  which had a significantly lower risk of developing pancreatic cancer compared with the wild-type CC genotype.",  # noqa: E501
+        "description": "Study of 1817 PCa cases and 2026 cancer free controls to clarify the association of (MTHFR)c.677C>T (and c.1298A>C ) of pancreatic cancer risk in a population of Han Chinese in Shanghai. Results indicated a lower risk for the heterozygous CT genotype and homozygous TT genotype carriers of (MTHFR)c.677C>T which had a significantly lower risk of developing pancreatic cancer compared with the wild-type CC genotype.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "civic.evidence_level:B",
         "proposition": "proposition:cDLAt3AJPrHQPQ--JpKU4MkU528_kE-a",
@@ -1181,13 +1181,13 @@ def moa_vid71():
                 "name": "moa_representative_coordinate",
                 "value": {
                     "chromosome": "9",
-                    "start_position": "133747580.0",
-                    "end_position": "133747580.0",
+                    "start_position": "133747580",
+                    "end_position": "133747580",
                     "reference_allele": "C",
                     "alternate_allele": "T",
                     "cdna_change": "c.944C>T",
                     "protein_change": "p.T315I",
-                    "exon": "5.0"
+                    "exon": "5"
                 },
                 "type": "Extension"
             }

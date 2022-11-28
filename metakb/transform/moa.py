@@ -234,15 +234,15 @@ class MOATransform(Transform):
         vrs_ref_allele_seq = variant['protein_change'][2] \
             if 'protein_change' in variant and variant['protein_change'] else None  # noqa: E501
 
-        v_norm_resp = None
+        variation_descriptor = None
         # For now, the normalizer only support a.a substitution
         if g_descriptors and 'protein_change' in variant and variant['protein_change']:  # noqa: E501
             gene = g_descriptors[0]['label']
             query = f"{gene} {variant['protein_change'][2:]}"
-            v_norm_resp = \
+            variation_descriptor = \
                 await self.vicc_normalizers.normalize_variation([query])
 
-            if not v_norm_resp:
+            if not variation_descriptor:
                 logger.warning(f"Variant Normalizer unable to normalize: "
                                f"moa.variant:{variant['id']}.")
                 return []
@@ -256,8 +256,8 @@ class MOATransform(Transform):
         variation_descriptor = VariationDescriptor(
             id=f"moa.variant:{variant['id']}",
             label=variant['feature'],
-            variation_id=v_norm_resp.variation_id,
-            variation=v_norm_resp.variation,
+            variation_id=variation_descriptor.variation_id,
+            variation=variation_descriptor.variation,
             gene_context=gene_context,
             vrs_ref_allele_seq=vrs_ref_allele_seq,
             extensions=self._get_variant_extensions(variant)
@@ -327,7 +327,7 @@ class MOATransform(Transform):
         :param: An evidence source
         :param: Keeps track of proposition and documents indexes
         """
-        if source['pmid'] != "None":
+        if source['pmid']:
             documents_id = f"pmid:{source['pmid']}"
         else:
             documents_id = source['url']
@@ -335,7 +335,7 @@ class MOATransform(Transform):
         xrefs = []
         if source['doi']:
             xrefs.append(f"doi:{source['doi']}")
-        if source['nct'] != "None":
+        if source['nct']:
             xrefs.append(f"nct:{source['nct']}")
 
         documents = schemas.Document(
