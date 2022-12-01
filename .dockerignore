@@ -1,0 +1,5 @@
+# Have Docker CLI exclude the following before sending context to Docker
+# daemon for building image.
+metakb/data
+Pipfile.lock
+.env
