@@ -51,9 +51,14 @@ RUN pipenv run ./discover_normalizer_paths.sh > /tmp/normalizer_paths ; \
    # to the newly created path stored in $SEQREPO_DATA_PATH to put \
    # seqrepo data at the correct location in the container. \
    ln -s /app/gene/data/seqrepo/latest $SEQREPO_DATA_PATH ; \
-#    mkdir -p $DISEASE_PROJECT_ROOT/data/omim ; \
-#    ln -s /app/disease/data/omim/mimTitles.txt $DISEASE_PROJECT_ROOT/data/omim/omim_$(date '+%Y%m%d').tsv ;
+   # A TSV file from Online Mendelian Inheritance in Man (omim.org) must \
+   # be manually copied to the disease-normalizer PyPI package in the \
+   # site-packages/ directory of the metakb virtual environment. The \
+   # appropriate directory for the TSV file is first created in the \
+   # container, and then a symbolic link whose source file is the \
+   # bind-mounted TSV file is created in the container's newly created \
+   # directory. \
+   mkdir -p $DISEASE_PROJECT_ROOT/data/omim ; \
+   ln -s /app/disease/data/omim/mimTitles.txt $DISEASE_PROJECT_ROOT/data/omim/omim_$(date '+%Y%m%d').tsv ;
+
 # CMD pipenv run uvicorn metakb.main:app --port 80 --host 0.0.0.0
-
-
-
