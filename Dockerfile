@@ -59,6 +59,15 @@ RUN pipenv run ./discover_normalizer_paths.sh > /tmp/normalizer_paths ; \
    # bind-mounted TSV file is created in the container's newly created \
    # directory. \
    mkdir -p $DISEASE_PROJECT_ROOT/data/omim ; \
-   ln -s /app/disease/data/omim/mimTitles.txt $DISEASE_PROJECT_ROOT/data/omim/omim_$(date '+%Y%m%d').tsv ;
+   ln -s /app/disease/data/omim/mimTitles.txt $DISEASE_PROJECT_ROOT/data/omim/omim_$(date '+%Y%m%d').tsv ; \
+   # The ETL file for National Cancer Institute Thesaurus (NCIT), which \
+   # is part of the disease-normalizer PyPI package, contains an \
+   # obsolete file path on the NCIT server for disease-normalizer <= 0.2.15. \
+   # Since the metakb Pipfile has not been updated yet to include v0.2.16+ \
+   # of disease-normalizer, the NCIT ETL file must be replaced in the \
+   # container with a file that has been hardcoded to include the \
+   # correct file path. The replacing file comes from a bind mount. \
+   rm $DISEASE_PROJECT_ROOT/etl/ncit.py ; \
+   ln -s /app/disease/etl/ncit.py $DISEASE_PROJECT_ROOT/etl/ncit.py ; 
 
 # CMD pipenv run uvicorn metakb.main:app --port 80 --host 0.0.0.0
