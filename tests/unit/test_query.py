@@ -1,4 +1,5 @@
 """Test the MetaKB search method."""
+from metakb.schemas import SourceName
 import pytest
 
 from metakb.version import __version__, LAST_UPDATED
@@ -67,9 +68,13 @@ def assert_keys_for_detail_true(response_keys, response, is_evidence=True,
         assert field in response_keys
         if is_evidence:
             # Evidence only does not have supported_by with other statements
-            assert len(response[field]) == 1
+            if field == "documents" and response["statements"][0]["id"].startswith(SourceName.ONCOKB):  # noqa: E501
+                # OncoKB can have multiple documents, which differs from CIViC + MOA
+                assert len(response[field]) > 0
+            else:
+                assert len(response[field]) == 1, field
         else:
-            assert len(response[field]) > 1
+            assert len(response[field]) > 1, field
 
 
 def assert_response_items(response, statement, proposition,
@@ -97,7 +102,6 @@ def assert_response_items(response, statement, proposition,
         response_therapy_descriptor = None
     response_disease_descriptor = response['disease_descriptors'][0]
     response_method = response['methods'][0]
-    response_document = response['documents'][0]
 
     check_statement(response_statement, statement)
     check_proposition(response_proposition, proposition)
@@ -108,7 +112,20 @@ def assert_response_items(response, statement, proposition,
     if therapy_descriptor:
         check_descriptor(therapy_descriptor, response_therapy_descriptor)
     check_method(response_method, method)
-    check_document(response_document, document)
+
+    if response_statement["id"].startswith(SourceName.ONCOKB):
+        # `documents` can be more than one
+        assert len(response["documents"]) == len(document)
+        doc_ids = [d["id"] for d in document]
+        for actual_d in response["documents"]:
+            for test_d in document:
+                if actual_d["id"] == test_d["id"]:
+                    doc_ids.remove(test_d["id"])
+                    check_document(actual_d, test_d)
+        assert doc_ids == [], "Document IDs were all not checked"
+    else:
+        response_document = response['documents'][0]
+        check_document(response_document, document)
 
     # Assert that IDs match in response items
     assert response_statement['proposition'] == response_proposition['id']
@@ -120,7 +137,13 @@ def assert_response_items(response, statement, proposition,
     assert response_statement['disease_descriptor'] == \
            response_disease_descriptor['id']
     assert response_statement['method'] == response_method['id']
-    assert response_statement['supported_by'][0] == response_document['id']
+
+    if response_statement["id"].startswith(SourceName.ONCOKB):
+        supported_by = response_statement['supported_by']
+        documents_ids = [d["id"] for d in response["documents"]]
+        assert set(supported_by) == set(documents_ids)
+    else:
+        assert response_statement['supported_by'][0] == response_document['id']
 
     assert proposition['subject'] == \
            response_variation_descriptor['variation_id']
@@ -559,6 +582,43 @@ async def test_moa_detail_flag(
                           pmid_11423618, moa_imatinib, check_statement,
                           check_proposition, check_variation_descriptor,
                           check_descriptor, check_method, check_document)
+
+
+@pytest.mark.asyncio
+async def test_oncokb_braf_v600e(
+    query_handler, oncokb_diagnostic_statement1,
+    oncokb_diagnostic_proposition1, oncokb_therapeutic_statement1,
+    oncokb_therapeutic_proposition1, oncokb_braf_v600e_vd, oncokb_braf_gene_descriptor,
+    oncokb_trametinib_therapy_descriptor, oncokb_ecd_disease_descriptor,
+    oncokb_mel_disease_descriptor, oncokb_method, oncokb_diagnostic1_documents,
+    oncokb_therapeutic1_documents_query, check_statement, check_proposition,
+    check_variation_descriptor, check_descriptor, check_method, check_document
+):
+    """Test that OncoKB queries work as expected"""
+    statement_id = oncokb_diagnostic_statement1["id"]
+    response = await query_handler.search(statement_id=statement_id,
+                                          variation="BRAF V600E", detail=True)
+    assert_keys_for_detail_true(response.keys(), response, tr_response=False)
+    assert_response_items(
+        response, oncokb_diagnostic_statement1, oncokb_diagnostic_proposition1,
+        oncokb_braf_v600e_vd, oncokb_braf_gene_descriptor,
+        oncokb_ecd_disease_descriptor, oncokb_method, oncokb_diagnostic1_documents,
+        None, check_statement, check_proposition, check_variation_descriptor,
+        check_descriptor, check_method, check_document
+    )
+
+    statement_id = oncokb_therapeutic_statement1["id"]
+    response = await query_handler.search(statement_id=statement_id,
+                                          variation="BRAF V600E", detail=True)
+    assert_keys_for_detail_true(response.keys(), response, tr_response=True)
+    assert_response_items(
+        response, oncokb_therapeutic_statement1, oncokb_therapeutic_proposition1,
+        oncokb_braf_v600e_vd, oncokb_braf_gene_descriptor,
+        oncokb_mel_disease_descriptor, oncokb_method,
+        oncokb_therapeutic1_documents_query, oncokb_trametinib_therapy_descriptor,
+        check_statement, check_proposition, check_variation_descriptor,
+        check_descriptor, check_method, check_document
+    )
 
 
 @pytest.mark.asyncio

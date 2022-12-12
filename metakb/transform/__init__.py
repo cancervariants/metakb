@@ -2,3 +2,4 @@
 from .base import Transform  # noqa: F401
 from .civic import CIViCTransform  # noqa: F401
 from .moa import MOATransform  # noqa: F401
+from .oncokb import OncoKBTransform  # noqa: F401

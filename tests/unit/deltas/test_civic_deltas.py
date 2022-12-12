@@ -1,10 +1,15 @@
 """Test CIViC deltas."""
-import pytest
-from metakb import PROJECT_ROOT, APP_ROOT
-from metakb.delta import Delta
-from datetime import date
 import json
 import os
+from datetime import date
+
+import pytest
+from civicpy.__version__ import __version__ as civicpy_version
+
+from metakb import PROJECT_ROOT, APP_ROOT
+from metakb.delta import Delta
+from metakb.version import __version__
+
 
 MAIN_JSON = PROJECT_ROOT / 'tests' / 'data' / 'deltas' / 'main_civic.json'
 UPDATED_JSON = \
@@ -38,8 +43,8 @@ def diff():
     """Create a test fixture for CIViC deltas."""
     return {
         '_meta': {
-            'civicpy_version': '1.1.2',
-            'metakb_version': '1.0.1',
+            'civicpy_version': civicpy_version,
+            'metakb_version': __version__,
             'date_harvested': date.today().strftime('%Y%m%d')
         },
         'genes': {
