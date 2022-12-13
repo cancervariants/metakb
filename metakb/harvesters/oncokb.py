@@ -163,8 +163,7 @@ class OncoKBHarvester(Harvester):
         with open(variants_by_protein_change_path, "r") as f:
             reader = csv.reader(f)
             next(reader)  # skip header
-            for row in reader:
-                symbol, p_change = row
+            for symbol, p_change in reader:
                 endpoint = f"/annotate/mutations/byProteinChange?hugoSymbol={symbol}&"\
                            f"alteration={p_change}&referenceGenome=GRCh38"
                 resp = self._get_api_response(endpoint)

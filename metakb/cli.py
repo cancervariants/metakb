@@ -126,6 +126,7 @@ class CLI:
     )
     @click.option(
         "--oncokb_variants_by_protein_change_path",
+        "-k",
         required=False,
         type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
         help=("Path to CSV file containing header row with `hugo_symbol` and "
