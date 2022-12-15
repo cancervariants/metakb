@@ -4,7 +4,7 @@ from typing import List, Optional, Union, Dict, Any, Type
 
 from ga4gh.vrsatile.pydantic.vrs_models import CURIE
 from ga4gh.vrsatile.pydantic.vrsatile_models import ValueObjectDescriptor, \
-    GeneDescriptor, VariationDescriptor
+    GeneDescriptor, VariationDescriptor, Extension
 from pydantic import BaseModel
 from pydantic.types import StrictBool
 
@@ -12,10 +12,11 @@ from metakb.version import __version__, LAST_UPDATED
 
 
 class SourceName(str, Enum):
-    """Resources we import directly."""
+    """Resources we import directly. Values are all lowercase."""
 
-    CIVIC = 'civic'
-    MOA = 'moa'
+    CIVIC = "civic"
+    MOA = "moa"
+    ONCOKB = "oncokb"
 
 
 class XrefSystem(str, Enum):
@@ -180,6 +181,7 @@ class MethodID(IntEnum):
     CIVIC_AID_AMP_ASCO_CAP = 2
     CIVIC_AID_ACMG = 3
     MOA_ASSERTION_BIORXIV = 4
+    ONCOKB_SOP = 5
 
 
 class Statement(BaseModel):
@@ -187,7 +189,7 @@ class Statement(BaseModel):
 
     id: CURIE
     type = 'Statement'
-    description: str
+    description: Optional[str]
     direction: Optional[Direction]
     evidence_level: CURIE
     proposition: CURIE
@@ -198,6 +200,7 @@ class Statement(BaseModel):
     method: CURIE
     supported_by: List[CURIE]
     # contribution: str  TODO: After metakb first pass
+    extensions: Optional[List[Extension]]
 
 
 class Document(BaseModel):
@@ -267,7 +270,7 @@ class StatementResponse(BaseModel):
 
     id: CURIE
     type = 'Statement'
-    description: str
+    description: Optional[str]
     direction: Optional[Direction]
     evidence_level: CURIE
     variation_origin: Optional[VariationOrigin]
@@ -277,6 +280,7 @@ class StatementResponse(BaseModel):
     disease_descriptor: CURIE
     method: CURIE
     supported_by: List[CURIE]
+    extensions: Optional[List[Extension]]
 
     class Config:
         """Configure examples."""
@@ -312,7 +316,7 @@ class NestedStatementResponse(BaseModel):
 
     id: CURIE
     type = 'Statement'
-    description: str
+    description: Optional[str]
     direction: Optional[Direction]
     evidence_level: CURIE
     variation_origin: Optional[VariationOrigin]
@@ -324,6 +328,7 @@ class NestedStatementResponse(BaseModel):
     disease_descriptor: ValueObjectDescriptor
     method: Method
     supported_by: List[Union[Document, CURIE]]
+    extensions: Optional[List[Extension]]
 
     class Config:
         """Configure examples."""

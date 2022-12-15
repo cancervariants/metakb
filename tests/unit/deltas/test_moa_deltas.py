@@ -1,10 +1,14 @@
 """Test MOAlmanac deltas."""
-import pytest
-from metakb import PROJECT_ROOT, APP_ROOT
-from metakb.delta import Delta
 from datetime import date
 import json
 import os
+
+import pytest
+
+from metakb import PROJECT_ROOT, APP_ROOT
+from metakb.delta import Delta
+from metakb.version import __version__
+
 
 MAIN_JSON = PROJECT_ROOT / 'tests' / 'data' / 'deltas' / 'main_moa.json'
 UPDATED_JSON = \
@@ -38,7 +42,7 @@ def diff():
     """Create a test fixture for MOAlmanac deltas."""
     return {
         '_meta': {
-            'metakb_version': '1.0.1',
+            'metakb_version': __version__,
             'date_harvested': date.today().strftime('%Y%m%d'),
             'moa_api_version': '0.2'
         },

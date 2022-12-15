@@ -263,18 +263,6 @@ def test_statement_rules(graph: Graph, check_unique_property,
     check_relation_count("Statement", "Proposition", "DEFINED_BY")
     check_relation_count("Statement", "Method", "USES_METHOD")
 
-    cite_query = """
-    MATCH (s:Statement)
-    OPTIONAL MATCH (s)-[:CITES]->(d:Document)
-    OPTIONAL MATCH (s)-[:CITES]->(e:Statement)
-    WITH s, COUNT(d) as d_count, COUNT(e) as e_count
-    WHERE (d_count + e_count) < 1
-    RETURN COUNT(s)
-    """
-    with graph.driver.session() as s:
-        record = s.run(cite_query).single()
-    assert record.values()[0] == 0
-
 
 def test_proposition_rules(graph, check_unique_property):
     """Verify property and relationship rules for Proposition nodes."""

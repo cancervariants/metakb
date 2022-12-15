@@ -1,7 +1,7 @@
 """Graph database for storing harvested data."""
 from neo4j import GraphDatabase
 from neo4j.exceptions import ServiceUnavailable, ConstraintError
-from typing import Tuple, Dict, Set
+from typing import List, Tuple, Dict, Set
 import logging
 import json
 from pathlib import Path
@@ -179,7 +179,24 @@ class Graph:
                 raise exception
 
     @staticmethod
-    def _add_descriptor(tx, descriptor: Dict, added_ids: Set[str]):
+    def _update_fmt_key_extensions(fmt_keys: str, extensions: List[Dict],
+                                   obj: Dict) -> str:
+        """Return an updated formatted string containing extensions data.
+        Will mutate `obj` with extensions names + values.
+
+        :param str fmt_keys: Formatted String for use in Cypher query
+        :param List[Dict] extensions: List of extensions represented as dicts
+        :param Dict obj: The object to update with the extension name and value. This
+            will be mutated.
+        :return: Updated formatted string that includes extension data
+        """
+        for ext in extensions:
+            name = ext["name"]
+            obj[name] = json.dumps(ext["value"])
+            fmt_keys += f", {name}:${name}"
+        return fmt_keys
+
+    def _add_descriptor(self, tx, descriptor: Dict, added_ids: Set[str]):
         """Add gene, therapy, or disease descriptor object to DB.
         :param Dict descriptor: must contain a `value` field with `type`
             and `<type>_id` fields. `type` field must be one of
@@ -203,14 +220,10 @@ class Graph:
                                                       'description', 'xrefs',
                                                       'alternate_labels'))
 
-        if descr_type == 'TherapyDescriptor':
-            # capture regulatory_approval field in therapy descriptor extensions
-            extensions = descriptor.get('extensions', [])
-            for ext in extensions:
-                name = ext['name']
-                if name == 'regulatory_approval':
-                    descriptor[name] = json.dumps(ext['value'])
-                    descr_keys += f", {name}:${name}"
+        extensions = descriptor.get('extensions', [])
+        if descr_type in {"TherapyDescriptor", "GeneDescriptor", "DiseaseDescriptor"}:
+            descr_keys = self._update_fmt_key_extensions(descr_keys, extensions,
+                                                         descriptor)
 
         query = f'''
         MERGE (descr:{descr_type} {{ {descr_keys} }})
@@ -400,8 +413,7 @@ class Graph:
             if node_id:
                 added_ids.add(node_id)
 
-    @staticmethod
-    def _add_statement(tx, statement: Dict, added_ids: Set[str]):
+    def _add_statement(self, tx, statement: Dict, added_ids: Set[str]):
         """Add Statement object to DB.
         :param Dict statement: must include `id`, `variation_descriptor`,
             `disease_descriptor`, `method`, and `supported_by` fields as well
@@ -412,6 +424,11 @@ class Graph:
                                                          'direction',
                                                          'variation_origin',
                                                          'evidence_level'))
+
+        extensions = statement.get("extensions", [])
+        formatted_keys = self._update_fmt_key_extensions(formatted_keys, extensions,
+                                                         statement)
+
         match_line = ""
         rel_line = ""
         supported_by = statement.get('supported_by', [])

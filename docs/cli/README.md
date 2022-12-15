@@ -27,4 +27,7 @@ More information on MetaKB CLI arguments
   * Load a source's transformed CDM file at specified path. This bypasses having to run the source harvest and transform steps. Exclusive with `--load_latest_cdms` and `--load_latest_s3_cdms`.
 
 * `--load_latest_s3_cdms`
-  * Deletes all nodes from the MetaKB Neo4j database, retrieves latest source transformed CDM files from public s3 bucket, and loads the Neo4j database with the retrieved data. This bypasses having to run the source harvest and transform steps Exclusive with `--load_latest_cdms` and `--load_target_cdms`.
+  * Deletes all nodes from the MetaKB Neo4j database, retrieves latest source transformed CDM files from public s3 bucket, and loads the Neo4j database with the retrieved data. This bypasses having to run the source harvest and transform steps. Exclusive with `--load_latest_cdms` and `--load_target_cdms`. Will not download OncoKB transformed data.
+
+* `--oncokb_variants_by_protein_change_path`
+  * Path to CSV file containing header row with `hugo_symbol` and `protein_change` and associated rows containing protein variants you wish to harvest using a comma as the delimiter. Not required if using `--load_latest_cdms`, `--load_target_cdm`, or `--load_latest_s3_cdms`"

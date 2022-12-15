@@ -1,6 +1,7 @@
 """A module for the Transform base class."""
 from typing import Dict, Optional, List
 import json
+import canonicaljson
 import logging
 from pathlib import Path
 from datetime import datetime as dt
@@ -8,9 +9,10 @@ from datetime import datetime as dt
 from ga4gh.core import sha512t24u
 
 from metakb import APP_ROOT, DATE_FMT
-from metakb.schemas import PropositionType, Predicate, DiagnosticPredicate, \
+from metakb.schemas import DiagnosticProposition, PrognosticProposition, \
+    PropositionType, Predicate, DiagnosticPredicate, \
     PrognosticPredicate, PredictivePredicate, FunctionalPredicate, \
-    PathogenicPredicate
+    PathogenicPredicate, TherapeuticResponseProposition
 from metakb.normalizers import VICCNormalizers
 
 logger = logging.getLogger('metakb')
@@ -85,6 +87,16 @@ class Transform:
         PropositionType.FUNCTIONAL: FunctionalPredicate
     }
 
+    @staticmethod
+    def _generate_digest(data: Dict) -> str:
+        """Generate digest given dictionary
+
+        :param Dict data: Data to generate digest for
+        :return: Digest
+        """
+        blob = canonicaljson.encode_canonical_json(data)
+        return sha512t24u(blob)
+
     def _get_proposition_id(
         self,
         prop_type: PropositionType,
@@ -114,6 +126,64 @@ class Transform:
         blob = json.dumps(terms_sorted).encode("ascii")
         digest = sha512t24u(blob=blob)
         return f"proposition:{digest}"
+
+    def _get_proposition(
+        self, proposition_type: PropositionType, predicate: Predicate, subject: str,
+        object_qualifier: str, object: Optional[str] = None
+    ) -> Optional[Dict]:
+        """Get proposition parameters. Updates the `propositions` instance variable
+        if proposition params were successfully created.
+
+        :param PropositionType proposition_type: Proposition type for evidence
+        :param Predicate predicate: Predicate for evidence
+        :param str subject: Subject (variation) for proposition
+        :param str object_qualifier: Object qualifier (disease) for proposition
+        :param Optional[str] object: Object (therapy) for proposition. Only required
+            if Therapeutic proposition
+        :return: Proposition represented as dict if valid, else None
+        """
+        params = {
+            "id": "",
+            "type": proposition_type,
+            "predicate": predicate,
+            "subject": subject,
+            "object_qualifier": object_qualifier
+        }
+
+        if proposition_type == PropositionType.PREDICTIVE:
+            params["object"] = object
+            proposition_id = self._get_proposition_id(
+                params["type"],
+                params["predicate"],
+                [params["subject"]],
+                [params["object_qualifier"]],
+                [params["object"]]
+            )
+        else:
+            proposition_id = self._get_proposition_id(
+                params["type"],
+                params["predicate"],
+                [params["subject"]],
+                [params["object_qualifier"]]
+            )
+        if proposition_id is None:
+            return None
+        else:
+            params["id"] = proposition_id
+
+        if proposition_type == PropositionType.PROGNOSTIC.value:
+            proposition = PrognosticProposition(**params).dict(exclude_none=True)
+        elif proposition_type == PropositionType.PREDICTIVE.value:
+            proposition = TherapeuticResponseProposition(**params).dict(
+                exclude_none=True)
+        elif proposition_type == PropositionType.DIAGNOSTIC.value:
+            proposition = DiagnosticProposition(**params).dict(exclude_none=True)
+        else:
+            proposition = None
+
+        if proposition and proposition not in self.propositions:
+            self.propositions.append(proposition)
+        return proposition
 
     @staticmethod
     def _get_document_id(**parameters) -> str:

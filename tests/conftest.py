@@ -184,7 +184,7 @@ def civic_tid146():
                         {
                             "id": "hemonc:25316",
                             "type": "DiseaseDescriptor",
-                            "label": "Non-small cell lung cancer Squamous",
+                            "label": "Non-small cell lung cancer squamous",
                             "disease_id": None
                         },
                         {
@@ -1263,6 +1263,12 @@ def moa_imatinib():
                         "type": "DiseaseDescriptor",
                         "label": "Gastrointestinal stromal tumor",
                         "disease_id": "ncit:C3868"
+                    },
+                    {
+                        "id": "hemonc:33893",
+                        "type": "DiseaseDescriptor",
+                        "label": "Chronic myelogenous leukemia pediatric",
+                        "disease_id": None
                     }
                 ]
             }
@@ -1367,6 +1373,407 @@ def pmid_11423618():
 
 
 @pytest.fixture(scope="session")
+def oncokb_diagnostic_statement1():
+    """Create test fixture for OncoKB BRAF V600E diagnostic evidence"""
+    return {
+        "id": "oncokb.evidence:1Aj9eQzlxTuA5SU4pawmBSLhB1Z-XN88",
+        "type": "Statement",
+        "evidence_level": "oncokb.evidence_level:LEVEL_Dx3",
+        "proposition": "proposition:aLUHxB-FSxQp8hvWKw0JWTdmVZUgkF2f",
+        "variation_descriptor": "oncokb.variant:BRAF%20V600E",
+        "disease_descriptor": "oncokb.disease:611",
+        "method": "method:5",
+        "supported_by": ["pmid:25422482", "pmid:26637772"]
+    }
+
+
+@pytest.fixture(scope="session")
+def oncokb_diagnostic_proposition1():
+    """Create test fixture for OncoKB BRAF V600E diagnostic proposition"""
+    return {
+        "id": "proposition:aLUHxB-FSxQp8hvWKw0JWTdmVZUgkF2f",
+        "type": "diagnostic_proposition",
+        "predicate": "is_diagnostic_inclusion_criterion_for",
+        "subject": "ga4gh:VA.ZDdoQdURgO2Daj2NxLj4pcDnjiiAsfbO",
+        "object_qualifier": "ncit:C53972"
+    }
+
+
+@pytest.fixture(scope="session")
+def oncokb_therapeutic_statement1():
+    """Create test fixture for OncoKB BRAF V600E therapeutic evidence"""
+    return {
+        "id": "oncokb.evidence:EkQhm6lSDcynRuNQRL73HFod5sSmCx93",
+        "type": "Statement",
+        "evidence_level": "oncokb.evidence_level:LEVEL_1",
+        "proposition": "proposition:EOEfYXjsyQmgV2sNA-gfK5i0Cj8WGGuw",
+        "variation_descriptor": "oncokb.variant:BRAF%20V600E",
+        "disease_descriptor": "oncokb.disease:453",
+        "therapy_descriptor": "oncokb.normalize.therapy:Trametinib",
+        "method": "method:5",
+        "supported_by": ["pmid:29361468", "pmid:25399551", "pmid:22663011",
+                         "pmid:25265492"],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "onckb_fda_level",
+                "value": {
+                    "level": "LEVEL_Fda2",
+                    "description": "Cancer Mutations with Evidence of Clinical Significance"  # noqa: E501
+                }
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def oncokb_therapeutic_proposition1():
+    """Create test fixture for OncoKB BRAF V600E therapeutic proposition"""
+    return {
+        "id": "proposition:EOEfYXjsyQmgV2sNA-gfK5i0Cj8WGGuw",
+        "type": "therapeutic_response_proposition",
+        "predicate": "predicts_sensitivity_to",
+        "subject": "ga4gh:VA.ZDdoQdURgO2Daj2NxLj4pcDnjiiAsfbO",
+        "object_qualifier": "ncit:C3224",
+        "object": "rxcui:1425098"
+    }
+
+
+@pytest.fixture(scope="session")
+def oncokb_braf_v600e_vd():
+    """Create test fixture for BRAF V600E Variation Descriptor"""
+    return {
+        "type": "VariationDescriptor",
+        "id": "oncokb.variant:BRAF%20V600E",
+        "label": "BRAF V600E",
+        "description": "The BRAF V600E mutation is known to be oncogenic.",
+        "variation_id": "ga4gh:VA.ZDdoQdURgO2Daj2NxLj4pcDnjiiAsfbO",
+        "variation": {
+            "_id": "ga4gh:VA.ZDdoQdURgO2Daj2NxLj4pcDnjiiAsfbO",
+            "location": {
+                "_id": "ga4gh:VSL.2cHIgn7iLKk4x9z3zLkSTTFMV0e48DR4",
+                "interval": {
+                    "end": {"value": 600, "type": "Number"},
+                    "start": {"value": 599, "type": "Number"},
+                    "type": "SequenceInterval"
+                },
+                "sequence_id": "ga4gh:SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y",
+                "type": "SequenceLocation"
+            },
+            "state": {
+                "sequence": "E",
+                "type": "LiteralSequenceExpression"
+            },
+            "type": "Allele"
+        },
+        "gene_context": "oncokb.normalize.gene:BRAF",
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "oncogenic",
+                "value": "Oncogenic"
+            },
+            {
+                "type": "Extension",
+                "name": "mutation_effect",
+                "value": {
+                    "knownEffect": "Gain-of-function",
+                    "description": "",
+                    "citations": {
+                        "pmids": [
+                            "25417114",
+                            "20179705",
+                            "23833300",
+                            "26091043",
+                            "26343582",
+                            "12068308",
+                            "30351999",
+                            "25079552",
+                            "28783719",
+                            "19251651",
+                            "15035987"
+                        ],
+                        "abstracts": []
+                    }
+                }
+            },
+            {
+                "type": "Extension",
+                "name": "hotspot",
+                "value": True
+            },
+            {
+                "type": "Extension",
+                "name": "vus",
+                "value": False
+            },
+            {
+                "type": "Extension",
+                "name": "oncokb_highest_sensitive_level",
+                "value": "LEVEL_1"
+            },
+            {
+                "type": "Extension",
+                "name": "oncokb_highest_diagnostic_implication_level",
+                "value": "LEVEL_Dx2"
+            },
+            {
+                "type": "Extension",
+                "name": "oncokb_highest_fda_level",
+                "value": "LEVEL_Fda2"
+            },
+            {
+                "type": "Extension",
+                "name": "allele_exist",
+                "value": True
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def oncokb_braf_gene_descriptor():
+    """Create test fixture for BRAF gene descriptor"""
+    return {
+        "id": "oncokb.normalize.gene:BRAF",
+        "type": "GeneDescriptor",
+        "label": "BRAF",
+        "gene_id": "hgnc:1097",
+        "description": "BRAF, an intracellular kinase, is frequently mutated in melanoma, thyroid and lung cancers among others.",  # noqa: E501
+        "xrefs": ["ncbigene:673"],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "ensembl_transcript_GRCh37",
+                "value": "ENST00000288602"
+            },
+            {
+                "type": "Extension",
+                "name": "refseq_transcript_GRCh37",
+                "value": "NM_004333.4"
+            },
+            {
+                "type": "Extension",
+                "name": "ensembl_transcript_GRCh38",
+                "value": "ENST00000646891"
+            },
+            {
+                "type": "Extension",
+                "name": "refseq_transcript_GRCh38",
+                "value": "NM_004333.4"
+            },
+            {
+                "type": "Extension",
+                "name": "oncogene",
+                "value": True
+            },
+            {
+                "type": "Extension",
+                "name": "oncokb_highest_sensitive_level",
+                "value": "1"
+            },
+            {
+                "type": "Extension",
+                "name": "oncokb_background",
+                "value": "BRAF is a serine/threonine kinase that plays a key role in the regulation of the mitogen-activated protein kinase (MAPK) cascade (PMID: 15520807), which under physiologic conditions regulates the expression of genes involved in cellular functions, including proliferation (PMID: 24202393). Genetic alterations in BRAF are found in a large percentage of melanomas, thyroid cancers and histiocytic neoplasms as well as a small fraction of lung and colorectal cancers. The most common BRAF point mutation is V600E, which deregulates the protein's kinase activity leading to constitutive BRAF activation, as BRAF V600E can signal as a monomer independently of RAS or upstream activation (PMID: 20179705). Other BRAF mutations have been found that affect the protein's propensity to dimerize (PMID: 16858395, 26343582, 12068308). The product of these alterations is a BRAF kinase that can activate MAPK signaling in an unregulated manner and, in some instances, is directly responsible for cancer growth (PMID: 15520807). Inhibitors of mutant BRAF, including vemurafenib and dabrafenib, are FDA-approved for the treatment of late-stage or unresectable melanoma.",  # noqa: E501
+            },
+            {
+                "type": "Extension",
+                "name": "tumor_suppressor_gene",
+                "value": False
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def oncokb_trametinib_therapy_descriptor():
+    """Create OncoKB therapy descriptor for Trametinib"""
+    return {
+        "id": "oncokb.normalize.therapy:Trametinib",
+        "type": "TherapyDescriptor",
+        "label": "Trametinib",
+        "therapy_id": "rxcui:1425098",
+        "alternate_labels": [
+            "JTP-74057",
+            "MEK Inhibitor GSK1120212",
+            "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide",  # noqa: E501
+            "GSK1120212",
+            "TRAMETINIB",
+            "Trametinib"
+        ],
+        "xrefs": ["ncit:C77908"],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "regulatory_approval",
+                "value": {
+                    "approval_rating": "ChEMBL",
+                    "has_indications": [
+                        {
+                            "id": "mesh:D009369",
+                            "type": "DiseaseDescriptor",
+                            "label": "Neoplasms",
+                            "disease_id": "ncit:C3262"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def oncokb_ecd_disease_descriptor():
+    """Create OncoKB disease descriptor for ECD"""
+    return {
+        "type": "DiseaseDescriptor",
+        "id": "oncokb.disease:611",
+        "label": "Erdheim-Chester Disease",
+        "disease_id": "ncit:C53972",
+        "xrefs": ["oncotree:ECD"],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "oncotree_main_type",
+                "value": {
+                    "id": None,
+                    "name": "Histiocytosis",
+                    "tumor_form": "LIQUID"
+                }
+            },
+            {
+                "type": "Extension",
+                "name": "tissue",
+                "value": "Myeloid"
+            },
+            {
+                "type": "Extension",
+                "name": "parent",
+                "value": "HDCN"
+            },
+            {
+                "type": "Extension",
+                "name": "level",
+                "value": 4
+            },
+            {
+                "type": "Extension",
+                "name": "tumor_form",
+                "value": "LIQUID"
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def oncokb_mel_disease_descriptor():
+    """Create OncoKB disease descriptor for MEL"""
+    return {
+        "type": "DiseaseDescriptor",
+        "id": "oncokb.disease:453",
+        "label": "Melanoma",
+        "disease_id": "ncit:C3224",
+        "xrefs": ["oncotree:MEL"],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "oncotree_main_type",
+                "value": {
+                    "id": None,
+                    "name": "Melanoma",
+                    "tumor_form": "SOLID"
+                }
+            },
+            {
+                "type": "Extension",
+                "name": "tissue",
+                "value": "Skin"
+            },
+            {
+                "type": "Extension",
+                "name": "parent",
+                "value": "SKIN"
+            },
+            {
+                "type": "Extension",
+                "name": "level",
+                "value": 2
+            },
+            {
+                "type": "Extension",
+                "name": "tumor_form",
+                "value": "SOLID"
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def oncokb_diagnostic1_documents():
+    """Create test fixture for OncoKB diagnostic evidence 1 documents"""
+    return [
+        {
+            "id": "pmid:25422482",
+            "label": "PubMed 25422482",
+            "type": "Document"
+        },
+        {
+            "id": "pmid:26637772",
+            "label": "PubMed 26637772",
+            "type": "Document"
+        }
+    ]
+
+
+@pytest.fixture(scope="session")
+def oncokb_therapeutic1_documents_query():
+    """Create test fixture for OncoKB therapeutic evidence 1 documents during queries.
+    Since CIViC provided more information, we now have a description
+    and a more detailed label for pmid:22663011
+    """
+    return [
+        {
+            "id": "pmid:29361468",
+            "label": "PubMed 29361468",
+            "type": "Document"
+        },
+        {
+            "id": "pmid:25399551",
+            "label": "PubMed 25399551",
+            "type": "Document"
+        },
+        {
+            "id": "pmid:22663011",
+            "label": "Flaherty et al., 2012, N. Engl. J. Med.",
+            "description": "Improved survival with MEK inhibition in BRAF-mutated melanoma.",  # noqa: E501
+            "type": "Document"
+        },
+        {
+            "id": "pmid:25265492",
+            "label": "PubMed 25265492",
+            "type": "Document"
+        }
+    ]
+
+
+@pytest.fixture(scope="session")
+def oncokb_method():
+    """Create test fixture for OncoKB method"""
+    return {
+        "id": "method:5",
+        "label": "OncoKB Curation Standard Operating Procedure",
+        "url": "https://sop.oncokb.org/",
+        "version": {
+            "year": 2021,
+            "month": 11
+        },
+        "authors": "OncoKB",
+        "type": "Method"
+    }
+
+
+@pytest.fixture(scope="session")
 def sources_count() -> int:
     """Provide number of currently-implemented sources."""
     return len(SourceName.__members__)
@@ -1379,13 +1786,19 @@ def check_statement():
         """Check that statements are match."""
         assert actual.keys() == test.keys()
         assert actual["id"] == test["id"]
-        assert actual["description"] == test["description"]
+        if "description" in test:
+            assert actual["description"] == test["description"]
+        else:
+            assert "description" not in actual
         if "direction" in test.keys():
             # MOA doesn"t have direction?
             assert actual["direction"] == test["direction"]
         assert actual["evidence_level"] == test["evidence_level"]
         assert actual["proposition"].startswith("proposition:")
-        assert actual["variation_origin"] == test["variation_origin"]
+        if "variation_origin" in test:
+            assert actual["variation_origin"] == test["variation_origin"]
+        else:
+            assert "variation_origin" not in actual
         assert actual["variation_descriptor"] == test["variation_descriptor"]
         if "therapy_descriptor" not in test.keys():
             assert "therapy_descriptor" not in actual.keys()
@@ -1419,22 +1832,26 @@ def check_proposition():
 @pytest.fixture(scope="session")
 def check_variation_descriptor():
     """Create a test fixture to compare variation descriptors."""
-    def check_variation_descriptor(actual, test):
+    def check_variation_descriptor(actual, test, check_descriptor=None, nested=False):
         """Check that variation descriptors match."""
         actual_keys = actual.keys()
         test_keys = test.keys()
         assert actual_keys == test_keys
         for key in test_keys:
             if key in ["id", "type", "label", "description", "variation_id",
-                       "structural_type", "vrs_ref_allele_seq",
-                       "gene_context"]:
+                       "structural_type", "vrs_ref_allele_seq"]:
                 assert actual[key] == test[key]
+            elif key == "gene_context":
+                if nested:
+                    check_descriptor(actual["gene_context"], test["gene_context"])
+                else:
+                    assert actual[key] == test[key]
             elif key in ["xrefs", "alternate_labels"]:
                 assert set(actual[key]) == set(test[key])
             elif key == "variation":
                 assert actual["variation"] == test["variation"]
             elif key == "extensions":
-                assert len(actual) == len(test)
+                assert len(actual["extensions"]) == len(test["extensions"])
                 for test_extension in test["extensions"]:
                     for actual_extension in actual["extensions"]:
                         if test_extension["name"] == actual_extension["name"]:
@@ -1466,6 +1883,20 @@ def check_descriptor():
         for key in test_keys:
             if key in ["alternate_labels", "xrefs"]:
                 assert set(actual[key]) == set(test[key])
+            elif key == "extensions":
+                assert len(actual["extensions"]) == len(test["extensions"])
+                if test["type"] == "TherapyDescriptor":
+                    # Therapy only has regulatory approval extension
+                    assert len(actual["extensions"]) == 1
+                    actual_ext = actual["extensions"][0]
+                    test_ext = test["extensions"][0]
+                    assert actual_ext["value"]["approval_rating"] == test_ext["value"]["approval_rating"]  # noqa: E501
+                    assert len(actual_ext["value"]["has_indications"]) == len(test_ext["value"]["has_indications"])  # noqa: E501
+                    for x in test_ext["value"]["has_indications"]:
+                        assert x in actual_ext["value"]["has_indications"], x
+                else:
+                    for x in test[key]:
+                        assert x in actual[key], x
             else:
                 assert actual[key] == test[key]
     return check_descriptor

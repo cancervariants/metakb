@@ -129,17 +129,29 @@ class CIViCTransform(Transform):
             if not variation_descriptor:
                 continue
 
+            try:
+                proposition_type = self._get_proposition_type(r["evidence_type"])
+            except KeyError:
+                continue
+
+            predicate = self._get_predicate(proposition_type,
+                                            r["clinical_significance"])
+
+            # Don't support TR that has  `None`, "N/A", or "Unknown" predicate
+            if not predicate:
+                continue
+
+            object = None
+            if therapy_descriptor:
+                object = therapy_descriptor["therapy_id"]
+
             proposition = self._get_proposition(
-                r, variation_descriptor, disease_descriptor,
-                therapy_descriptor
-            )
+                proposition_type, predicate, variation_descriptor["variation_id"],
+                disease_descriptor["disease_id"], object)
 
             # Only support Therapeutic Response and Prognostic
             if not proposition:
                 continue
-
-            if proposition not in self.propositions:
-                self.propositions.append(proposition)
 
             if is_evidence:
                 # Evidence items's method and evidence level
@@ -245,76 +257,6 @@ class CIViCTransform(Transform):
                 else:
                     raise Exception(f"{amp_level} not supported with regex")
         return evidence_level
-
-    def _get_proposition(self, record, variation_descriptor,
-                         disease_descriptor, therapy_descriptor
-                         ) -> Optional[dict]:
-        """Return a proposition for a record.
-
-        :param dict record: CIViC EID or AID
-        :param dict variation_descriptor: The record's variation descriptor
-        :param dict disease_descriptor: The record's disease descriptor
-        :param dict therapy_descriptor: The record's therapy descriptor
-        :return: A proposition
-        """
-        try:
-            proposition_type = \
-                self._get_proposition_type(record["evidence_type"])
-        except KeyError:
-            return None
-
-        predicate = self._get_predicate(proposition_type,
-                                        record["clinical_significance"])
-
-        # Don't support TR that has  `None`, "N/A", or "Unknown" predicate
-        if not predicate:
-            return None
-
-        params = {
-            "id": "",
-            "type": proposition_type,
-            "predicate": predicate,
-            "subject": variation_descriptor["variation_id"],
-            "object_qualifier": disease_descriptor["disease_id"]
-        }
-
-        if proposition_type == schemas.PropositionType.PREDICTIVE:
-            params["object"] = therapy_descriptor["therapy_id"]
-            proposition_id = self._get_proposition_id(
-                params["type"],
-                params["predicate"],
-                [params["subject"]],
-                [params["object_qualifier"]],
-                [params["object"]]
-            )
-        else:
-            proposition_id = self._get_proposition_id(
-                params["type"],
-                params["predicate"],
-                [params["subject"]],
-                [params["object_qualifier"]]
-            )
-        if proposition_id is None:
-            return None
-        else:
-            params["id"] = proposition_id
-
-        if proposition_type == schemas.PropositionType.PROGNOSTIC.value:
-            proposition = \
-                schemas.PrognosticProposition(**params).dict(exclude_none=True)
-        elif proposition_type == schemas.PropositionType.PREDICTIVE.value:
-            params["object"] = therapy_descriptor["therapy_id"]
-            proposition =\
-                schemas.TherapeuticResponseProposition(**params).dict(
-                    exclude_none=True
-                )
-        elif proposition_type == schemas.PropositionType.DIAGNOSTIC.value:
-            proposition = \
-                schemas.DiagnosticProposition(**params).dict(
-                    exclude_none=True)
-        else:
-            proposition = None
-        return proposition
 
     def _get_proposition_type(self,
                               evidence_type,
@@ -439,7 +381,7 @@ class CIViCTransform(Transform):
                 "expression", "mislocalization", "translocation", "wild",
                 "polymorphism", "frame", "shift", "loss", "function", "levels",
                 "inactivation", "snp", "fusion", "dup", "truncation",
-                "homozygosity", "gain", "phosphorylation",
+                "homozygosity", "gain", "phosphorylation", "amplification",
             }
 
             if set(vname_lower.split()) & unable_to_normalize:

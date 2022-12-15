@@ -7,20 +7,26 @@ from urllib.parse import quote
 
 from ga4gh.vrsatile.pydantic.vrsatile_models import Extension, Expression
 from neo4j.graph import Node
-from neo4j.data import Record
-from neo4j import Transaction, Session
+from neo4j import Transaction, Session, Record
 
 from metakb.database import Graph
 from metakb.normalizers import VICCNormalizers
-from metakb.schemas import SearchService, StatementResponse, \
+from metakb.schemas import SearchService, SourceName, StatementResponse, \
     TherapeuticResponseProposition, VariationDescriptor, \
     ValueObjectDescriptor, GeneDescriptor, Method, \
     Document, SearchIDService, DiagnosticProposition, PrognosticProposition, \
     SearchStatementsService, NestedStatementResponse, PropositionType, \
     Proposition, ServiceMeta, Predicate
+from metakb.transform.oncokb import GENE_EXT_CONVERSIONS, VARIATION_EXT_CONVERSIONS, \
+    DISEASE_EXT_CONVERSIONS
 
 logger = logging.getLogger("metakb.query")
 logger.setLevel(logging.DEBUG)
+
+
+ONCOKB_GENE_EXT_NAMES = [i[1] for i in GENE_EXT_CONVERSIONS]
+ONCOKB_VARIATION_EXT_NAMES = [i[1] for i in VARIATION_EXT_CONVERSIONS]
+ONCOKB_DISEASE_EXT_NAMES = [i[1] for i in DISEASE_EXT_CONVERSIONS]
 
 
 class QueryHandler:
@@ -680,7 +686,6 @@ class QueryHandler:
             "expressions": [],
             "xrefs": variation_descriptor.get("xrefs"),
             "alternate_labels": variation_descriptor.get("alternate_labels"),
-            "extensions": []
         }
 
         # Get Gene Descriptor / gene context
@@ -722,12 +727,13 @@ class QueryHandler:
         if not vd_params["expressions"]:
             del vd_params["expressions"]
 
+        extensions = []
         # Get Variation Descriptor Extensions
         if vd_params["id"].startswith("civic.vid"):
             for field in ["civic_representative_coordinate",
                           "civic_actionability_score"]:
                 if field in keys:
-                    vd_params["extensions"].append(
+                    extensions.append(
                         Extension(
                             name=field,
                             value=json.loads(variation_descriptor.get(field))
@@ -751,16 +757,28 @@ class QueryHandler:
                     for v in vg["value"]:
                         if not v["description"]:
                             del v["description"]
-                    vd_params["extensions"].append(vg)
+                    extensions.append(vg)
         elif vd_params["id"].startswith("moa.variant"):
             for field in ["moa_representative_coordinate", "moa_rsid"]:
                 if field in keys:
-                    vd_params["extensions"].append(
+                    extensions.append(
                         Extension(
                             name=field,
                             value=json.loads(variation_descriptor.get(field))
                         ).dict()
                     )
+        elif vd_params["id"].startswith("oncokb.variant"):
+            for field in ONCOKB_VARIATION_EXT_NAMES:
+                if field in keys:
+                    extensions.append(
+                        Extension(
+                            name=field,
+                            value=json.loads(variation_descriptor[field])
+                        ).dict()
+                    )
+
+        if extensions:
+            vd_params["extensions"] = extensions
 
         with self.driver.session() as session:
             value_object = session.read_transaction(
@@ -816,8 +834,23 @@ class QueryHandler:
             "description": gene_descriptor.get("description"),
             "gene_id": gene_value_object.get("id"),
             "alternate_labels": gene_descriptor.get("alternate_labels"),
-            "xrefs": gene_descriptor.get("xrefs")
+            "xrefs": gene_descriptor.get("xrefs"),
         }
+
+        extensions = []
+        if gd_params["id"].startswith(SourceName.ONCOKB):
+            keys = gene_descriptor.keys()
+            for field in ONCOKB_GENE_EXT_NAMES:
+                if field in keys:
+                    extensions.append(
+                        Extension(
+                            name=field,
+                            value=json.loads(gene_descriptor[field])
+                        ).dict()
+                    )
+
+            if extensions:
+                gd_params["extensions"] = extensions
 
         return GeneDescriptor(**gd_params)
 
@@ -867,8 +900,23 @@ class QueryHandler:
             "type": "DiseaseDescriptor",
             "label": disease_descriptor.get("label"),
             "disease_id": None,
-            "xrefs": disease_descriptor.get("xrefs")
+            "xrefs": disease_descriptor.get("xrefs"),
+            "extensions": []
         }
+        keys = disease_descriptor.keys()
+
+        if dd_params["id"].startswith(SourceName.ONCOKB):
+            for field in ONCOKB_DISEASE_EXT_NAMES:
+                if field in keys:
+                    dd_params["extensions"].append(
+                        Extension(
+                            name=field,
+                            value=json.loads(disease_descriptor[field])
+                        ).dict()
+                    )
+
+        if not dd_params["extensions"]:
+            del dd_params["extensions"]
 
         with self.driver.session() as session:
             value_object = session.read_transaction(
@@ -1247,6 +1295,17 @@ class QueryHandler:
             se_list = session.read_transaction(
                 self._find_and_return_supported_by, statement_id)
 
+            extensions = []
+            # Right now, only OncoKB has Statement extensions
+            if statement_id.startswith(SourceName.ONCOKB):
+                if "onckb_fda_level" in s.keys():
+                    extensions.append(
+                        Extension(
+                            name="onckb_fda_level",
+                            value=json.loads(s["onckb_fda_level"])
+                        ).dict()
+                    )
+
             statement = StatementResponse(
                 id=statement_id,
                 description=s.get("description"),
@@ -1258,7 +1317,8 @@ class QueryHandler:
                 therapy_descriptor=response["tid"] if "tid" in response.keys() else None,  # noqa: E501
                 disease_descriptor=response["did"],
                 method=response["m"]["id"],
-                supported_by=[se["id"] for se in se_list]
+                supported_by=[se["id"] for se in se_list],
+                extensions=extensions if extensions else None
             ).dict(exclude_none=True)
             return statement
 

@@ -93,6 +93,20 @@ MetaKB relies on environment variables to set in order to work.
     export UTA_DB_URL=postgresql://uta_admin:password@localhost:5432/uta/uta_20210129
     ```
 
+  * `ONCOKB_API_TOKEN`
+    * Required to harvest OncoKB data. If you do not set this environment variable, you can set during the initialization of the OncoKBHarvester.
+    * Used to access OncoKB data via their REST API. See [here](https://www.oncokb.org/apiAccess) for more information on how to register an account and get an OncoKB API token.
+
+    Example for setting environment variable:
+    ```shell script
+    export ONCOKB_API_TOKEN={api_token}
+    ```
+
+    Example for setting during OncoKB Harvester initialization:
+    ```python
+    OncoKBHarvester(api_token={api_token})
+    ```
+
 * Required when using the `--load_normalizers_db` or `--force_load_normalizers_db` arguments in CLI commands
   * `RXNORM_API_KEY`
     * Used in Therapy Normalizer to retrieve RxNorm data
@@ -113,6 +127,20 @@ MetaKB relies on environment variables to set in order to work.
     ```shell script
     export DATAVERSE_API_KEY={dataverse_api_key}
     ```
+
+### Data files
+
+Some sources in MetaKB require user provided files to harvest data.
+
+* OncoKB
+  * In addition to setting the `ONCOKB_API_TOKEN` environment variable to harvest OncoKB data, you also need to provide a CSV file containing a header row with `hugo_symbol` and `protein_change`, associated rows containing protein variants you wish to harvest, and using a comma as the delimiter. The file will look something like:
+
+    ```csv
+    hugo_symbol,protein_change
+    BRAF,V600E
+    ...
+    ```
+  * This file will harvest OncoKB evidence based on the variants provided.
 
 ### Loading data
 

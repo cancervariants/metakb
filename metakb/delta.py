@@ -1,13 +1,21 @@
 """A module for computing deltas."""
-from metakb import APP_ROOT
 import json
 import logging
-from jsondiff import diff
 from datetime import date
-from metakb.harvesters import CIViCHarvester, MOAHarvester
+
+from jsondiff import diff
+from civicpy.__version__ import __version__ as civicpy_version
+
+from metakb import APP_ROOT
+from metakb.schemas import SourceName
+from metakb.version import __version__
+from metakb.harvesters import CIViCHarvester, MOAHarvester, OncoKBHarvester
+
+
 HARVESTER_CLASS = {
-    'civic': CIViCHarvester,
-    'moa': MOAHarvester
+    SourceName.CIVIC.value: CIViCHarvester,
+    SourceName.MOA.value: MOAHarvester,
+    SourceName.ONCOKB.value: OncoKBHarvester
 }
 logger = logging.getLogger('metakb.delta')
 logger.setLevel(logging.DEBUG)
@@ -57,15 +65,20 @@ class Delta:
 
         delta = {
             '_meta': {
-                'metakb_version': '1.0.1',
+                'metakb_version': __version__,
                 'date_harvested': current_date
             }
         }
 
-        if self._src == 'civic':
-            delta['_meta']['civicpy_version'] = '1.1.2'
-        elif self._src == 'moa':
+        if self._src == SourceName.CIVIC:
+            delta['_meta']['civicpy_version'] = civicpy_version
+        elif self._src == SourceName.MOA:
             delta['_meta']['moa_api_version'] = '0.2'
+        elif self._src == SourceName.ONCOKB:
+            delta["_meta"]["oncokb_app_version"] = updated_json["appVersion"]["version"]
+            delta["_meta"]["oncokb_api_version"] = updated_json["apiVersion"]["version"]
+            delta["_meta"]["oncokb_data_version"] = \
+                updated_json["dataVersion"]["version"]
 
         for record_type in main_json.keys():
             delta[record_type] = {

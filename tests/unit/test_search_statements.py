@@ -85,6 +85,50 @@ def moa_aid71(moa_aid71_proposition, moa_vid71_with_gene, moa_imatinib,
     }
 
 
+@pytest.fixture(scope="module")
+def oncokb_diagnostic1(
+    oncokb_diagnostic_statement1, oncokb_diagnostic_proposition1, oncokb_braf_v600e_vd,
+    oncokb_braf_gene_descriptor, oncokb_ecd_disease_descriptor, oncokb_method,
+    oncokb_diagnostic1_documents
+):
+    """Create test fixture for OncoKB Diagnostic evidence for BRAF V600E"""
+    vd = copy.deepcopy(oncokb_braf_v600e_vd)
+    vd["gene_context"] = oncokb_braf_gene_descriptor
+    return {
+        "id": oncokb_diagnostic_statement1["id"],
+        "type": "Statement",
+        "evidence_level": oncokb_diagnostic_statement1["evidence_level"],
+        "proposition": oncokb_diagnostic_proposition1,
+        "variation_descriptor": vd,
+        "disease_descriptor": oncokb_ecd_disease_descriptor,
+        "method": oncokb_method,
+        "supported_by": oncokb_diagnostic1_documents
+    }
+
+
+@pytest.fixture(scope="module")
+def oncokb_therapeutic1(
+    oncokb_therapeutic_statement1, oncokb_therapeutic_proposition1,
+    oncokb_braf_v600e_vd, oncokb_braf_gene_descriptor, oncokb_mel_disease_descriptor,
+    oncokb_trametinib_therapy_descriptor, oncokb_method,
+    oncokb_therapeutic1_documents_query
+):
+    """Create test fixture for OncoKB Therapeutic evidence for BRAF V600E"""
+    vd = copy.deepcopy(oncokb_braf_v600e_vd)
+    vd["gene_context"] = oncokb_braf_gene_descriptor
+    return {
+        "id": oncokb_therapeutic_statement1["id"],
+        "type": "Statement",
+        "evidence_level": oncokb_therapeutic_statement1["evidence_level"],
+        "proposition": oncokb_therapeutic_proposition1,
+        "variation_descriptor": vd,
+        "disease_descriptor": oncokb_mel_disease_descriptor,
+        "therapy_descriptor": oncokb_trametinib_therapy_descriptor,
+        "method": oncokb_method,
+        "supported_by": oncokb_therapeutic1_documents_query
+    }
+
+
 def assert_general_search_statements(response):
     """Check that general search statement queries return a valid response"""
     assert response["matches"]
@@ -108,18 +152,19 @@ def check_statement_assertions(
         actual, test, check_proposition, check_variation_descriptor,
         check_descriptor, check_method):
     """Check that statement response is correct"""
-    for key in ["id", "type", "description", "evidence_level",
-                "variation_origin", "method"]:
-        assert actual[key] == test[key]
-    if "direction" in test.keys():
-        # MOA doesn"t have direction
-        assert actual["direction"] == test["direction"]
-    else:
-        assert "direction" not in actual.keys()
+    for key in {"id", "type", "evidence_level", "method"}:
+        assert actual[key] == test[key], key
+
+    for key in {"direction", "description", "variation_origin"}:
+        if key in test.keys():
+            assert actual[key] == test[key], key
+        else:
+            assert key not in actual.keys(), key
 
     check_proposition(actual["proposition"], test["proposition"])
     check_variation_descriptor(actual["variation_descriptor"],
-                               test["variation_descriptor"])
+                               test["variation_descriptor"],
+                               check_descriptor=check_descriptor, nested=True)
     check_descriptor(actual["disease_descriptor"], test["disease_descriptor"])
     if test.get("therapy_descriptor"):
         check_descriptor(actual["therapy_descriptor"],
@@ -184,6 +229,40 @@ async def test_moa(query_handler, moa_aid71, check_proposition,
     assert len(resp["statements"]) == 1
     check_statement_assertions(
         resp["statements"][0], moa_aid71, check_proposition,
+        check_variation_descriptor, check_descriptor, check_method)
+    assert resp["warnings"] == []
+
+
+@pytest.mark.asyncio
+async def test_oncokb_diagnostic(
+    query_handler, oncokb_diagnostic1, check_proposition, check_variation_descriptor,
+    check_descriptor, check_method
+):
+    """Test that search_statements works correctly for OncoKB Diagnostic evidence
+    for BRAF V600E
+    """
+    resp = await query_handler.search_statements(
+        statement_id=oncokb_diagnostic1["id"], variation="BRAF V600E")
+    assert len(resp["statements"]) == 1
+    check_statement_assertions(
+        resp["statements"][0], oncokb_diagnostic1, check_proposition,
+        check_variation_descriptor, check_descriptor, check_method)
+    assert resp["warnings"] == []
+
+
+@pytest.mark.asyncio
+async def test_oncokb_therapeutic(
+    query_handler, oncokb_therapeutic1, check_proposition, check_variation_descriptor,
+    check_descriptor, check_method
+):
+    """Test that search_statements works correctly for OncoKB Therapeutic evidence
+    for BRAF V600E
+    """
+    resp = await query_handler.search_statements(
+        statement_id=oncokb_therapeutic1["id"], variation="BRAF V600E")
+    assert len(resp["statements"]) == 1
+    check_statement_assertions(
+        resp["statements"][0], oncokb_therapeutic1, check_proposition,
         check_variation_descriptor, check_descriptor, check_method)
     assert resp["warnings"] == []
 

@@ -28,8 +28,8 @@ from botocore.config import Config
 from metakb import APP_ROOT
 from metakb.database import Graph
 from metakb.schemas import SourceName
-from metakb.harvesters import Harvester, CIViCHarvester, MOAHarvester
-from metakb.transform import Transform, CIViCTransform, MOATransform
+from metakb.harvesters import Harvester, CIViCHarvester, MOAHarvester, OncoKBHarvester
+from metakb.transform import Transform, CIViCTransform, MOATransform, OncoKBTransform
 
 
 logger = logging.getLogger('metakb.cli')
@@ -112,7 +112,8 @@ class CLI:
         required=False,
         help=("Clear MetaKB database, retrieve most recent data available "
               "from VICC S3 bucket, and load the database with retrieved "
-              "data. Exclusive with --load_latest_cdms and load_target_cdm.")
+              "data. Will not download OncoKB transformed data. Exclusive with"
+              " --load_latest_cdms and load_target_cdm.")
     )
     @click.option(
         "--update_cached",
@@ -123,12 +124,22 @@ class CLI:
         help=("`True` if civicpy cache should be updated. Note this will take serveral"
               "minutes. `False` if local cache should be used")
     )
+    @click.option(
+        "--oncokb_variants_by_protein_change_path",
+        "-k",
+        required=False,
+        type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
+        help=("Path to CSV file containing header row with `hugo_symbol` and "
+              "`protein_change` and associated rows containing protein variants you "
+              "wish to harvest using a comma as the delimiter. Not required if using "
+              "`--load_latest_cdms`, `--load_target_cdm`, or `--load_latest_s3_cdms`")
+    )
     async def update_metakb_db(
         db_url: str, db_username: str, db_password: str,
         load_normalizers_db: bool, force_load_normalizers_db: bool,
         normalizers_db_url: str, load_latest_cdms: bool,
         load_target_cdm: Optional[Path], load_latest_s3_cdms: bool,
-        update_cached: bool
+        update_cached: bool, oncokb_variants_by_protein_change_path: Optional[Path]
     ):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
@@ -151,7 +162,12 @@ class CLI:
             if load_normalizers_db or force_load_normalizers_db:
                 CLI()._load_normalizers_db(force_load_normalizers_db)
 
-            CLI()._harvest_sources(update_cached)
+            if not oncokb_variants_by_protein_change_path:
+                CLI()._help_msg(
+                    "Error: Must provide `--oncokb_variants_by_protein_change_path`")
+
+            CLI()._harvest_sources(update_cached,
+                                   oncokb_variants_by_protein_change_path)
             await CLI()._transform_sources()
 
         # Load neo4j database
@@ -178,6 +194,7 @@ class CLI:
                 except IndexError:
                     raise FileNotFoundError(f"No valid transform file found "
                                             f"matching pattern: {pattern}")
+                click.echo(f"\tLoading {src} CDM from path...: {path}")
                 g.load_from_json(path)
         g.close()
         end = timer()
@@ -235,23 +252,27 @@ class CLI:
         return newest_version
 
     @staticmethod
-    def _harvest_sources(update_cached) -> None:
+    def _harvest_sources(update_cached, oncokb_variants_by_protein_change_path) -> None:
         """Run harvesting procedure for all sources."""
         echo_info("Harvesting sources...")
         # TODO: Switch to using constant
         harvester_sources = {
-            'civic': CIViCHarvester,
-            'moa': MOAHarvester
+            SourceName.CIVIC.value: CIViCHarvester,
+            SourceName.MOA.value: MOAHarvester,
+            SourceName.ONCOKB.value: OncoKBHarvester
         }
         total_start = timer()
         for source_str, source_class in harvester_sources.items():
             echo_info(f"Harvesting {source_str}...")
             start = timer()
             source: Harvester = source_class()
-            if source_str == "civic" and update_cached:
+            if source_str == SourceName.CIVIC and update_cached:
                 # Use latest civic data
                 echo_info("(civicpy cache is also being updated)")
                 source_successful = source.harvest(update_cache=True)
+            elif source_str == SourceName.ONCOKB:
+                source_successful = source.harvest(
+                    oncokb_variants_by_protein_change_path)
             else:
                 source_successful = source.harvest()
             end = timer()
@@ -272,8 +293,9 @@ class CLI:
         echo_info("Transforming harvested data to CDM...")
         # TODO: Switch to using constant
         transform_sources = {
-            'civic': CIViCTransform,
-            'moa': MOATransform
+            SourceName.CIVIC.value: CIViCTransform,
+            SourceName.MOA.value: MOATransform,
+            SourceName.ONCOKB.value: OncoKBTransform
         }
         total_start = timer()
         for src_str, src_name in transform_sources.items():

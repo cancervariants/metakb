@@ -137,3 +137,5 @@ dynamodb_local_latest/
 
 # Zip
 *.zip
+
+notebooks
