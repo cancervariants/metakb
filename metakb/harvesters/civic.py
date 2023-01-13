@@ -68,10 +68,10 @@ class CIViCHarvester(Harvester):
         :return: A list of all CIViC evidence item records.
         """
         evidence_items = self._get_all_evidence()
-        evidence = list()
+        evidence = []
 
         for ev in evidence_items:
-            ev_record = self._evidence_item(self._get_dict(ev), is_evidence=True)
+            ev_record = self._evidence_item(self._get_dict(ev))
             evidence.append(ev_record)
         return evidence
 
@@ -89,7 +89,7 @@ class CIViCHarvester(Harvester):
         :return: A list of all CIViC gene records.
         """
         genes = self._get_all_genes()
-        genes_list = list()
+        genes_list = []
         for gene in genes:
             g = self._harvest_gene(self._get_dict(gene))
             genes_list.append(g)
@@ -109,12 +109,33 @@ class CIViCHarvester(Harvester):
         :return: A list of all CIViC variant records.
         """
         variants = self._get_all_variants()
-        variants_list = list()
+        variants_list = []
 
         for variant in variants:
             v = self._harvest_variant(self._get_dict(variant))
             variants_list.append(v)
         return variants_list
+
+    @staticmethod
+    def _get_all_molecular_profiles() -> List[civicpy.MolecularProfile]:
+        """Return all Molecular Profiles
+
+        :return: All civicpy molecular profile records
+        """
+        return civicpy.get_all_molecular_profiles()
+
+    def harvest_molecular_profiles(self) -> List[Dict]:
+        """Harvest all CIViC Molecular Profile records
+
+        :return: A list of all CIViC molecular profile records
+        """
+        molecular_profiles = self._get_all_molecular_profiles()
+        molecular_profiles_list = []
+
+        for molecular_profile in molecular_profiles:
+            mp = self._harvest_molecular_profile(self._get_dict(molecular_profile))
+            molecular_profiles_list.append(mp)
+        return molecular_profiles_list
 
     @staticmethod
     def _get_all_assertions() -> List[civicpy.Assertion]:
@@ -130,7 +151,7 @@ class CIViCHarvester(Harvester):
         :return: A list of all CIViC assertion records.
         """
         assertions = self._get_all_assertions()
-        assertions_list = list()
+        assertions_list = []
 
         for assertion in assertions:
             a = self._harvest_assertion(self._get_dict(assertion))
@@ -143,83 +164,52 @@ class CIViCHarvester(Harvester):
         :param Dict gene: A CIViC gene object represented as a dictionary
         :return: A dictionary containing CIViC gene data
         """
-        g = {
+        def _variant(variant: Dict) -> Dict:
+            """Get a gene's variant data
+
+            :param Dict variant: CIViC variant
+            :return: CIViC variant data for a gene
+            """
+            v = self._get_dict(variant)
+            return {
+                "name": v["name"],
+                "id": v["id"],
+                "single_variant_molecular_profile_id": v["single_variant_molecular_profile_id"]  # noqa: E501
+            }
+
+        return {
             "id": gene["id"],
             "name": gene["name"],
             "entrez_id": gene["entrez_id"],
             "description": gene["description"],
             "variants": [
-                {
-                    "name": self._get_dict(variant)["name"],
-                    "id": self._get_dict(variant)["id"],
-                    "evidence_items": self._get_dict(variant)["_evidence_items"]
-                }
-                for variant in gene["_variants"]
+                _variant(variant) for variant in gene["_variants"]
             ],
             "aliases": gene["aliases"],
-            # TODO: Add lifecycle_actions, sources
             "type": gene["type"]
         }
 
-        for v in g["variants"]:
-            evidence_items = {
-                "accepted_count": 0,
-                "rejected_count": 0,
-                "submitted_count": 0
-            }
-            for e in v["evidence_items"]:
-                e = self._get_dict(e)
-                if e["status"] == "submitted":
-                    evidence_items["submitted_count"] += 1
-                elif e["status"] == "rejected":
-                    evidence_items["rejected_count"] += 1
-                elif e["status"] == "accepted":
-                    evidence_items["accepted_count"] += 1
-            v["evidence_items"] = evidence_items
+    def _harvest_molecular_profile(self, molecular_profile: Dict) -> Dict:
+        """Harvest an individual CIViC molecular profile record.
 
-        return g
-
-    def _harvest_variant(self, variant: Dict) -> Dict:
-        """Harvest an individual CIViC variant record.
-
-        :param Dict variant: A CIViC variant object represented as a dictionary
-        :return: A dictionary containing CIViC variant data
+        :param Dict molecular_profile: A CIViC molecular profile represented as a
+            dictionary
+        :return: A dictionary containing CIViC molecular profile data
         """
-        v = self._variant(variant)
-
-        # Add more attributes to variant data
-        v_extra = {
-            "evidence_items": [
-                self._evidence_item(self._get_dict(evidence_item))
-                for evidence_item in variant["_evidence_items"]
-            ],
-            "variant_groups": [
-                {
-                    "id": self._get_dict(variant_group)["id"],
-                    "name": self._get_dict(variant_group)["name"],
-                    "description":
-                        self._get_dict(variant_group)["description"],
-                    "variants": [
-                        self._variant(self._get_dict(variant))
-                        for variant in self._get_dict(variant_group)["_variants"]
-                    ],
-                    "type": self._get_dict(variant_group)["type"]
-                }
-                for variant_group in variant["_variant_groups"]
-            ],
-            "assertions": [
-                self._assertion(self._get_dict(assertion))
-                for assertion in variant["_assertions"]
-            ],
-            "variant_aliases": variant["variant_aliases"],
-            "hgvs_expressions": variant["hgvs_expressions"],
-            "clinvar_entries": variant["clinvar_entries"],
-            # TODO: Add lifecycle_actions
-            "allele_registry_id": variant["allele_registry_id"],
-            # TODO: Add allele_registry_hgvs
+        return {
+            "evidence_items": [self._get_dict(ev)["id"]
+                               for ev in molecular_profile["_evidence_items"]],
+            "assertions": [self._get_dict(a)["id"]
+                           for a in molecular_profile["_assertions"]],
+            "variant_ids": molecular_profile["variant_ids"],
+            "type": molecular_profile["type"],
+            "id": molecular_profile["id"],
+            "name": molecular_profile["name"],
+            "molecular_profile_score": molecular_profile["molecular_profile_score"],
+            "description": molecular_profile["description"],
+            "aliases": molecular_profile["aliases"],
+            "sources": molecular_profile["sources"]
         }
-        v.update(v_extra)
-        return v
 
     def _harvest_assertion(self, assertion: Dict) -> Dict:
         """Harvest an individual CIViC assertion record.
@@ -227,68 +217,24 @@ class CIViCHarvester(Harvester):
         :param Dict assertion: A CIViC assertion object represented as a dictionary
         :return: A dictionary containing CIViC assertion data
         """
-        def _acmg_code(obj: civicpy.CivicAttribute) -> Dict:
-            """Get dictionary representation of CIViC ACMG Code
-
-            :param civicpy.CivicAttribute obj: CIViC ACMG Code
-            :return: ACMG Code represented as a dictionary
-            """
-            acmg_code = self._get_dict(obj)
-            return {
-                "id": acmg_code["id"],
-                "code": acmg_code["code"],
-                "description": acmg_code["description"]
-            }
-
         a = self._assertion(assertion)
-
-        # Add more attributes to assertion data
-        a_extra = {
-            "nccn_guideline": assertion["nccn_guideline"],
-            "nccn_guideline_version": assertion["nccn_guideline_version"],
-            "amp_level": assertion["amp_level"],
-            "evidence_items": [
-                self._evidence_item(self._get_dict(evidence_item), is_assertion=True)
-                for evidence_item in assertion["_evidence_items"]
-            ],
-            "acmg_codes": [_acmg_code(acmg_code)
-                           for acmg_code in assertion["acmg_codes"]],
-            "drug_interaction_type": assertion["drug_interaction_type"],
-            "fda_companion_test": assertion["fda_companion_test"],
-            "phenotypes": self._phenotypes(assertion["phenotypes"]),
-            "variant_origin": assertion["variant_origin"]
-            # TODO: Add lifecycle_actions
-        }
-        a.update(a_extra)
+        a["evidence_items"] = [
+            self._evidence_item(self._get_dict(evidence_item))
+            for evidence_item in assertion["_evidence_items"]
+        ]
         return a
 
-    def _evidence_item(self, evidence_item: Dict, is_evidence: bool = False,
-                       is_assertion: bool = False) -> Dict:
+    def _evidence_item(self, evidence_item: Dict) -> Dict:
         """Get evidence item data.
 
         :param Dict evidence_item: A CIViC Evidence record represented as a dictionary
-        :param bool is_evidence: Whether or not the evidence item is
-                                 being harvested in an evidence record
-        :param bool is_assertion: Whether or not the evidence item is
-                                  being harvested in an assertion record
         :return: A dictionary containing evidence item data
         """
-        disease = self._get_dict(evidence_item["disease"])
-        if not disease:
-            disease = None
-        else:
-            disease = {
-                "id": disease["id"],
-                "name": disease["name"],
-                "display_name": disease["display_name"],
-                "doid": disease["doid"],
-                "disease_url": disease["disease_url"]
-            }
-
         source = self._get_dict(evidence_item["source"])
         source = {
             "id": source["id"],
             "name": source["name"],
+            "type": source["type"],
             "citation": source["citation"],
             "citation_id": source["citation_id"],
             "source_type": source["source_type"],
@@ -301,43 +247,32 @@ class CIViCHarvester(Harvester):
             "clinical_trials": [ct for ct in source["clinical_trials"]]
         }
 
-        e = {
+        return {
             "id": evidence_item["id"],
             "name": evidence_item["name"],
             "description": evidence_item["description"],
-            "disease": disease,
-            "drugs": [
-                self._drug(self._get_dict(drug))
-                for drug in evidence_item["drugs"]
+            "disease": self._disease(evidence_item["disease"]) if evidence_item["disease"] else None,  # noqa: E501
+            "therapies": [
+                self._therapy(self._get_dict(therapy))
+                for therapy in evidence_item["therapies"]
             ],
             "rating": evidence_item["rating"],
             "evidence_level": evidence_item["evidence_level"],
             "evidence_type": evidence_item["evidence_type"],
-            "clinical_significance": evidence_item["clinical_significance"],
+            "significance": evidence_item["significance"],
             "evidence_direction": evidence_item["evidence_direction"],
             "variant_origin": evidence_item["variant_origin"],
-            "drug_interaction_type": evidence_item["drug_interaction_type"],
+            "therapy_interaction_type": evidence_item["therapy_interaction_type"],
             "status": evidence_item["status"],
-            # TODO: Add open_change_count
             "type": evidence_item["type"],
             "source": source,
-            "variant_id": evidence_item["variant_id"],
-            "phenotypes": self._phenotypes(evidence_item["phenotypes"])
-        }
-
-        # Assertions and Evidence Items contain more attributes
-        if is_assertion or is_evidence:
-            e["assertions"] = [
+            "molecular_profile_id": evidence_item["molecular_profile_id"],
+            "phenotypes": self._phenotypes(evidence_item["phenotypes"]),
+            "assertions": [
                 self._assertion(self._get_dict(assertion))
                 for assertion in evidence_item["_assertions"]
             ]
-            # TODO: Add lifecycle_actions, fields_with_pending_changes
-            e["gene_id"] = evidence_item["gene_id"]
-            if is_assertion:
-                # TODO: Add state_params
-                pass
-
-        return e
+        }
 
     def _phenotypes(self, phenotypes: List) -> List[Dict]:
         """Get phenotype data
@@ -345,7 +280,7 @@ class CIViCHarvester(Harvester):
         :param List phenotypes: List of civic phenotype records
         :return: List of transformed phenotypes represented as dictionaries
         """
-        transformed_phenotypes = list()
+        transformed_phenotypes = []
         for p in phenotypes:
             p = self._get_dict(p)
             transformed_phenotypes.append({
@@ -357,27 +292,50 @@ class CIViCHarvester(Harvester):
             })
         return transformed_phenotypes
 
-    def _variant(self, variant: Dict) -> Dict:
-        """Get basic variant data.
+    def _harvest_variant(self, variant: Dict) -> Dict:
+        """Harvest an individual CIViC variant record.
 
-        :param Dict variant: A CIViC Variant record represented as a dictionary
-        :return: A dictionary containing variant data
+        :param Dict variant: A CIViC variant object represented as a dictionary
+        :return: A dictionary containing CIViC variant data
         """
+        def _variant_groups(variant_groups: List) -> List[Dict]:
+            """Get variant group data
+
+            :param List variant_groups: List of CIViC Variant Group records
+            :return: List of transformed variant groups represented as dictionaries
+            """
+            transformed_variant_groups = []
+            for vg in variant_groups:
+                vg = self._get_dict(vg)
+                transformed_variant_groups.append(
+                    {
+                        "id": vg["id"],
+                        "name": vg["name"],
+                        "description": vg["description"],
+                        "variant_ids": vg["variant_ids"],
+                        "type": vg["type"]
+                    }
+                )
+            return transformed_variant_groups
+
         return {
             "id": variant["id"],
             "entrez_name": variant["entrez_name"],
             "entrez_id": variant["entrez_id"],
             "name": variant["name"],
-            "description": variant["description"],
             "gene_id": variant["gene_id"],
             "type": variant["type"],
             "variant_types": [
                 self._variant_types(self._get_dict(variant_type))
                 for variant_type in variant["variant_types"]
             ],
-            "civic_actionability_score":
-                int(variant["civic_actionability_score"]) if int(variant["civic_actionability_score"]) == variant["civic_actionability_score"] else variant["civic_actionability_score"],  # noqa: E501
-            "coordinates": self._variant_coordinates(variant)
+            "variant_groups": _variant_groups(variant["_variant_groups"]),
+            "coordinates": self._variant_coordinates(variant),
+            "single_variant_molecular_profile_id": variant["single_variant_molecular_profile_id"],  # noqa: E501
+            "variant_aliases": variant["variant_aliases"],
+            "hgvs_expressions": variant["hgvs_expressions"],
+            "clinvar_entries": variant["clinvar_entries"],
+            "allele_registry_id": variant["allele_registry_id"]
         }
 
     def _assertion(self, assertion: Dict) -> Dict:
@@ -386,34 +344,47 @@ class CIViCHarvester(Harvester):
         :param Dict assertion: A CIViC Assertion record represented as a dictionary
         :return: A dictionary containing assertion data
         """
-        disease = self._get_dict(assertion["disease"])
+        def _acmg_code(obj: civicpy.CivicAttribute) -> Dict:
+            """Get dictionary representation of CIViC ACMG Code
+
+            :param civicpy.CivicAttribute obj: CIViC ACMG Code
+            :return: ACMG Code represented as a dictionary
+            """
+            acmg_code = self._get_dict(obj)
+            return {
+                "id": acmg_code["id"],
+                "code": acmg_code["code"],
+                "description": acmg_code["description"],
+                "type": acmg_code["type"]
+            }
+
         return {
             "id": assertion["id"],
             "type": assertion["type"],
             "name": assertion["name"],
             "summary": assertion["summary"],
             "description": assertion["description"],
-            "gene_id": assertion["gene_id"],
-            "variant_id": assertion["variant_id"],
-            "disease": {
-                "id": disease["id"],
-                "name": disease["name"],
-                "display_name": disease["display_name"],
-                "doid": disease["doid"],
-                "disease_url": disease["disease_url"]
-            },
-            "drugs": [
-                self._drug(self._get_dict(drug))
-                for drug in assertion["drugs"]
+            "molecular_profile_id": assertion["molecular_profile_id"],
+            "disease": self._disease(assertion["disease"]) if assertion["disease"] else None,  # noqa: E501
+            "therapies": [
+                self._therapy(self._get_dict(therapy))
+                for therapy in assertion["therapies"]
             ],
-            "evidence_type": assertion["evidence_type"],
-            "evidence_direction": assertion["evidence_direction"],
-            "clinical_significance": assertion["clinical_significance"],
-            # TODO: Add evidence_item_count
+            "assertion_type": assertion["assertion_type"],
+            "assertion_direction": assertion["assertion_direction"],
+            "significance": assertion["significance"],
             "fda_regulatory_approval":
                 assertion["fda_regulatory_approval"],
             "status": assertion["status"],
-            # TODO: Add open_change_count, pending_evidence_count
+            "nccn_guideline": assertion["nccn_guideline"],
+            "nccn_guideline_version": assertion["nccn_guideline_version"],
+            "amp_level": assertion["amp_level"],
+            "therapy_interaction_type": assertion["therapy_interaction_type"],
+            "fda_companion_test": assertion["fda_companion_test"],
+            "variant_origin": assertion["variant_origin"],
+            "acmg_codes": [_acmg_code(acmg_code)
+                           for acmg_code in assertion["acmg_codes"]],
+            "phenotypes": self._phenotypes(assertion["phenotypes"])
         }
 
     def _variant_coordinates(self, variant: Dict) -> Dict:
@@ -435,7 +406,8 @@ class CIViCHarvester(Harvester):
             "stop2": coordinates["stop2"],
             "representative_transcript2": coordinates["representative_transcript2"],
             "ensembl_version": coordinates["ensembl_version"],
-            "reference_build": coordinates["reference_build"]
+            "reference_build": coordinates["reference_build"],
+            "type": coordinates["type"]
         }
 
     def _variant_types(self, variant_type: Dict) -> Dict:
@@ -447,24 +419,43 @@ class CIViCHarvester(Harvester):
         """
         return {
             "id": variant_type["id"],
+            "type": variant_type["type"],
             "name": variant_type["name"],
             "so_id": variant_type["so_id"],
             "description": variant_type["description"],
             "url": variant_type["url"]
         }
 
-    def _drug(self, drug: Dict) -> Dict:
-        """Get drug data.
+    def _disease(self, disease: Dict) -> Dict:
+        """Get disease data
 
-        :param Dict drug: A CIViC Drug record represented as a dictionary
-        :return: A dictionary containing drug data.
+        :param Dict disease: A CIViC Disease record represented as a dictionary
+        :return: A dictionary containing disease data
         """
-        drug = self._get_dict(drug)
+        disease = self._get_dict(disease)
         return {
-            "id": drug["id"],
-            "name": drug["name"],
-            "ncit_id": drug["ncit_id"],
-            "aliases": drug["aliases"]
+            "id": disease["id"],
+            "type": disease["type"],
+            "name": disease["name"],
+            "display_name": disease["display_name"],
+            "doid": disease["doid"],
+            "disease_url": disease["disease_url"],
+            "aliases": disease["aliases"]
+        }
+
+    def _therapy(self, therapy: Dict) -> Dict:
+        """Get therapy data.
+
+        :param Dict therapy: A CIViC Therapy record represented as a dictionary
+        :return: A dictionary containing therapy data.
+        """
+        therapy = self._get_dict(therapy)
+        return {
+            "id": therapy["id"],
+            "type": therapy["type"],
+            "name": therapy["name"],
+            "ncit_id": therapy["ncit_id"],
+            "aliases": therapy["aliases"]
         }
 
     def _get_dict(self, obj: Union[Dict, civicpy.CivicRecord]) -> Dict:

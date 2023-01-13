@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 "ga4gh.vrs" = "==0.8.0dev0"
-civicpy = ">=2.0.0"
+civicpy = "~=3.0.0"
 requests = "*"
 jsondiff = "*"
 pydantic = "*"
