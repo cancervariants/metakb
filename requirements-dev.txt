@@ -79,7 +79,7 @@ importlib-metadata==5.1.0 ; python_version >= '3.7'
 inflection==0.5.1 ; python_version >= '3.5'
 iniconfig==1.1.1
 ipykernel==6.19.2
-ipython==8.7.0 ; python_version >= '3.8'
+ipython==8.10.0 ; python_version >= '3.8'
 ipython-genutils==0.2.0
 ipywidgets==8.0.3 ; python_version >= '3.7'
 isodate==0.6.1

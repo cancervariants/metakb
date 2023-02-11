@@ -69,7 +69,7 @@ idna==3.4 ; python_version >= '3.5'
 importlib-metadata==5.1.0 ; python_version >= '3.7'
 inflection==0.5.1 ; python_version >= '3.5'
 ipykernel==6.19.2
-ipython==8.7.0 ; python_version >= '3.8'
+ipython==8.10.0 ; python_version >= '3.8'
 isodate==0.6.1
 jedi==0.18.2 ; python_version >= '3.6'
 jmespath==1.0.1 ; python_version >= '3.7'
