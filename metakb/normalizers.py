@@ -7,6 +7,7 @@ from therapy.query import QueryHandler as TherapyQueryHandler
 from therapy.schemas import NormalizationService as NormalizedTherapy, ApprovalRating
 from disease.query import QueryHandler as DiseaseQueryHandler
 from disease.schemas import NormalizationService as NormalizedDisease
+from gene.database.dynamodb import DynamoDbDatabase
 from gene.query import QueryHandler as GeneQueryHandler
 from gene.schemas import NormalizeService as NormalizedGene
 import logging
@@ -20,7 +21,8 @@ class VICCNormalizers:
 
     def __init__(self):
         """Initialize the VICC Normalizers."""
-        self.gene_query_handler = GeneQueryHandler()
+        # TODO: Allow Query Handlers to be passed as a param
+        self.gene_query_handler = GeneQueryHandler(DynamoDbDatabase())
         self.variation_normalizer = VariationQueryHandler()
         self.disease_query_handler = DiseaseQueryHandler()
         self.therapy_query_handler = TherapyQueryHandler()

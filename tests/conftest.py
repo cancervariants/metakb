@@ -1,6 +1,7 @@
 """Module for pytest fixtures."""
-import pytest
 import os
+
+import pytest
 import asyncio
 
 from metakb.query import QueryHandler
