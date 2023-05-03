@@ -1,5 +1,6 @@
 """Module for VICC normalizers."""
-from typing import Optional, Tuple
+import logging
+from typing import List, Optional, Tuple
 
 from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, Extension
 from variation.query import QueryHandler as VariationQueryHandler
@@ -10,28 +11,44 @@ from disease.schemas import NormalizationService as NormalizedDisease
 from gene.database.dynamodb import DynamoDbDatabase
 from gene.query import QueryHandler as GeneQueryHandler
 from gene.schemas import NormalizeService as NormalizedGene
-import logging
 
-logger = logging.getLogger('metakb.normalizers')
-logger.setLevel(logging.DEBUG)
+
+logger = logging.getLogger(__name__)
 
 
 class VICCNormalizers:
     """A class for normalizing terms using VICC normalizers."""
 
-    def __init__(self):
-        """Initialize the VICC Normalizers."""
-        # TODO: Allow Query Handlers to be passed as a param
-        self.gene_query_handler = GeneQueryHandler(DynamoDbDatabase())
-        self.variation_normalizer = VariationQueryHandler()
-        self.disease_query_handler = DiseaseQueryHandler()
-        self.therapy_query_handler = TherapyQueryHandler()
+    def __init__(
+        self, gene_query_handler: Optional[GeneQueryHandler] = None,
+        variation_query_handler: Optional[VariationQueryHandler] = None,
+        disease_query_handler: Optional[DiseaseQueryHandler] = None,
+        therapy_query_handler: Optional[TherapyQueryHandler] = None
+    ) -> None:
+        """Initialize the VICC Normalizers.
 
-    async def normalize_variation(self,
-                                  queries) -> Optional[VariationDescriptor]:
+        :param gene_query_handler: Gene QueryHandler instance
+        :param variation_query_handler: Variation QueryHandler instance
+        :param disease_query_handler: Disease QueryHandler instance
+        :param therapy_query_handler: Therapy QueryHandler instance
+        """
+        self.disease_query_handler = disease_query_handler or DiseaseQueryHandler()
+        self.therapy_query_handler = therapy_query_handler or TherapyQueryHandler()
+        self.gene_query_handler = (gene_query_handler or GeneQueryHandler(DynamoDbDatabase()))  # noqa: E501
+
+        if variation_query_handler:
+            self.variation_query_handler = variation_query_handler
+        else:
+            self.variation_query_handler = VariationQueryHandler(
+                gene_query_handler=self.gene_query_handler
+            )
+
+    async def normalize_variation(
+        self, queries: List[str]
+    ) -> Optional[VariationDescriptor]:
         """Normalize variation queries.
 
-        :param List[str] queries: Possible query strings to try to normalize
+        :param queries: Possible query strings to try to normalize
             which are used in the event that a MANE transcript cannot be found
         :return: A normalized variation
         """
@@ -39,7 +56,7 @@ class VICCNormalizers:
             if not query:
                 continue
             try:
-                variation_norm_resp = await self.variation_normalizer.normalize_handler.normalize(query)  # noqa: E501
+                variation_norm_resp = await self.variation_query_handler.normalize_handler.normalize(query)  # noqa: E501
                 if variation_norm_resp and variation_norm_resp.variation_descriptor:
                     return variation_norm_resp.variation_descriptor
             except Exception as e:  # noqa: E722
@@ -47,12 +64,13 @@ class VICCNormalizers:
                                f" {query}: {e}")
         return None
 
-    def normalize_gene(self, queries)\
-            -> Tuple[Optional[NormalizedGene], Optional[str]]:
+    def normalize_gene(
+        self, queries: List[str]
+    ) -> Tuple[Optional[NormalizedGene], Optional[str]]:
         """Normalize gene queries
 
-        :param list queries: Gene queries to normalize
-        :return: The highest matched gene's normalized response and ID
+        :param queries: Gene queries to normalize
+        :return: The highest matched gene's normalized response and ID, if successful
         """
         gene_norm_resp = None
         normalized_gene_id = None
@@ -75,8 +93,9 @@ class VICCNormalizers:
                         break
         return gene_norm_resp, normalized_gene_id
 
-    def normalize_disease(self, queries)\
-            -> Tuple[Optional[NormalizedDisease], Optional[str]]:
+    def normalize_disease(
+        self, queries: List[str]
+    ) -> Tuple[Optional[NormalizedDisease], Optional[str]]:
         """Normalize disease queries
 
         :param list queries: Disease queries to normalize
@@ -104,8 +123,9 @@ class VICCNormalizers:
                         break
         return disease_norm_resp, normalized_disease_id
 
-    def normalize_therapy(self, queries)\
-            -> Tuple[Optional[NormalizedTherapy], Optional[str]]:
+    def normalize_therapy(
+        self, queries: List[str]
+    ) -> Tuple[Optional[NormalizedTherapy], Optional[str]]:
         """Normalize therapy queries
 
         :param list queries: Therapy queries to normalize
