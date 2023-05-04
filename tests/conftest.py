@@ -56,7 +56,6 @@ def civic_vid33():
         "id": "civic.vid:33",
         "type": "VariationDescriptor",
         "label": "L858R",
-        "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
         "variation_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
         "variation": {
             "_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
@@ -97,13 +96,9 @@ def civic_vid33():
                     "variant_bases": "G",
                     "representative_transcript": "ENST00000275493.2",
                     "ensembl_version": 75,
-                    "reference_build": "GRCh37"
+                    "reference_build": "GRCh37",
+                    "type": "coordinates"
                 },
-                "type": "Extension"
-            },
-            {
-                "name": "civic_actionability_score",
-                "value": "352.5",
                 "type": "Extension"
             }
         ],
@@ -250,7 +245,7 @@ def civic_aid6_statement():
     """Create CIViC AID 6 test fixture."""
     return {
         "id": "civic.aid:6",
-        "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",  # noqa: E501
+        "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved as a first line systemic therapy in NSCLC with sensitizing EGFR mutation.",  # noqa: E501
         "direction": "supports",
         "evidence_level": "amp_asco_cap_2017_level:1A",
         "proposition": "proposition:Zfp_VG0uvxwteCcJYO6_AJv1KDmJlFjs",
@@ -318,7 +313,6 @@ def civic_vid99():
         "id": "civic.vid:99",
         "type": "VariationDescriptor",
         "label": "D842V",
-        "description": "PDGFRA D842 mutations are characterized broadly as imatinib resistance mutations. This is most well characterized in gastrointestinal stromal tumors, but other cell lines containing these mutations have been shown to be resistant as well. Exogenous expression of the A842V mutation resulted in constitutive tyrosine phosphorylation of PDGFRA in the absence of ligand in 293T cells and cytokine-independent proliferation of the IL-3-dependent Ba/F3 cell line, both evidence that this is an activating mutation. In imatinib resistant cell lines, a number of other therapeutics have demonstrated efficacy. These include; crenolanib, sirolimus, and midostaurin (PKC412).",  # noqa: E501
         "variation_id": "ga4gh:VA.bjWVYvXPaPbIRAfZvE0Uw_P-i36PGkAz",
         "variation": {
             "_id": "ga4gh:VA.bjWVYvXPaPbIRAfZvE0Uw_P-i36PGkAz",
@@ -357,25 +351,9 @@ def civic_vid99():
                     "variant_bases": "T",
                     "representative_transcript": "ENST00000257290.5",
                     "ensembl_version": 75,
-                    "reference_build": "GRCh37"
+                    "reference_build": "GRCh37",
+                    "type": "coordinates"
                 },
-                "type": "Extension"
-            },
-            {
-                "name": "civic_actionability_score",
-                "value": "100.5",
-                "type": "Extension"
-            },
-            {
-                "name": "variant_group",
-                "value": [
-                    {
-                        "id": "civic.variant_group:1",
-                        "label": "Imatinib Resistance",
-                        "description": "While imatinib has shown to be incredibly successful in treating philadelphia chromosome positive CML, patients that have shown primary or secondary resistance to the drug have been observed to harbor T315I and E255K ABL kinase domain mutations. These mutations, among others, have been observed both in primary refractory disease and acquired resistance. In gastrointestinal stromal tumors (GIST), PDGFRA 842 mutations have also been shown to confer resistance to imatinib. ",  # noqa: E501
-                        "type": "variant_group"
-                    }
-                ],
                 "type": "Extension"
             }
         ],
@@ -478,7 +456,6 @@ def civic_vid113():
         "id": "civic.vid:113",
         "type": "VariationDescriptor",
         "label": "M918T",
-        "description": "RET M819T is the most common somatically acquired mutation in medullary thyroid cancer (MTC). While there currently are no RET-specific inhibiting agents, promiscuous kinase inhibitors have seen some success in treating RET overactivity. Data suggests however, that the M918T mutation may lead to drug resistance, especially against the VEGFR-inhibitor motesanib. It has also been suggested that RET M819T leads to more aggressive MTC with a poorer prognosis.",  # noqa: E501
         "variation_id": "ga4gh:VA.GweduWrfxV58YnSvUBfHPGOA-KCH_iIl",
         "variation": {
             "_id": "ga4gh:VA.GweduWrfxV58YnSvUBfHPGOA-KCH_iIl",
@@ -517,25 +494,9 @@ def civic_vid113():
                     "variant_bases": "C",
                     "representative_transcript": "ENST00000355710.3",
                     "ensembl_version": 75,
-                    "reference_build": "GRCh37"
+                    "reference_build": "GRCh37",
+                    "type": "coordinates"
                 },
-                "type": "Extension"
-            },
-            {
-                "name": "civic_actionability_score",
-                "value": "86",
-                "type": "Extension"
-            },
-            {
-                "name": "variant_group",
-                "value": [
-                    {
-                        "id": "civic.variant_group:6",
-                        "label": "Motesanib Resistance",
-                        "description": "RET activation is a common oncogenic marker of medullary thyroid carcinoma. Treatment of these patients with the targeted therapeutic motesanib has shown to be effective. However, the missense mutations C634W and M918T have shown to confer motesanib resistance in cell lines. ",  # noqa: E501
-                        "type": "variant_group"
-                    }
-                ],
                 "type": "Extension"
             }
         ],
@@ -682,24 +643,9 @@ def civic_vid1686():
                     "variant_bases": "A",
                     "representative_transcript": "ENST00000434821.1",
                     "ensembl_version": 75,
-                    "reference_build": "GRCh37"
+                    "reference_build": "GRCh37",
+                    "type": "coordinates"
                 },
-                "type": "Extension"
-            },
-            {
-                "name": "civic_actionability_score",
-                "value": "30",
-                "type": "Extension"
-            },
-            {
-                "name": "variant_group",
-                "value": [
-                    {
-                        "id": "civic.variant_group:23",
-                        "label": "ACVR1 kinase domain mutation",
-                        "type": "variant_group"
-                    }
-                ],
                 "type": "Extension"
             }
         ],
@@ -805,7 +751,6 @@ def civic_vid65():
         "id": "civic.vid:65",
         "type": "VariationDescriptor",
         "label": "D816V",
-        "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",  # noqa: E501
         "variation_id": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
         "variation": {
             "_id": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
@@ -844,24 +789,9 @@ def civic_vid65():
                     "variant_bases": "T",
                     "representative_transcript": "ENST00000288135.5",
                     "ensembl_version": 75,
-                    "reference_build": "GRCh37"
+                    "reference_build": "GRCh37",
+                    "type": "coordinates"
                 },
-                "type": "Extension"
-            },
-            {
-                "name": "civic_actionability_score",
-                "value": "67",
-                "type": "Extension"
-            },
-            {
-                "name": "variant_group",
-                "value": [
-                    {
-                        "id": "civic.variant_group:2",
-                        "label": "KIT Exon 17",
-                        "type": "variant_group"
-                    }
-                ],
                 "type": "Extension"
             }
         ],
@@ -1005,13 +935,9 @@ def civic_vid258():
                     "variant_bases": "A",
                     "representative_transcript": "ENST00000376592.1",
                     "ensembl_version": 75,
-                    "reference_build": "GRCh37"
+                    "reference_build": "GRCh37",
+                    "type": "coordinates"
                 },
-                "type": "Extension"
-            },
-            {
-                "name": "civic_actionability_score",
-                "value": "55",
                 "type": "Extension"
             }
         ],
