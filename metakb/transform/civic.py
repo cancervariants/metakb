@@ -53,11 +53,12 @@ class CIViCTransform(Transform):
         :return: Molecular Profile ID to Variant ID mapping {mp_id: v_id}
         """
         mapping: Dict = {}
-        not_supported_mps: Set = {}
+        not_supported_mps = set()
         for mp in molecular_profiles:
             mp_id = mp["id"]
             mp_variant_ids = mp["variant_ids"]
             if len(mp_variant_ids) != 1:
+                mapping[mp_id] = None
                 not_supported_mps.add(mp_id)
             else:
                 mapping[mp_id] = mp_variant_ids[0]
@@ -87,8 +88,9 @@ class CIViCTransform(Transform):
                       if a["assertion_type"].upper() in supported_evidence_types]
 
         vids = {mp_id_to_v_id_mapping[e["molecular_profile_id"]]
-                for e in evidence_items}
-        vids |= {mp_id_to_v_id_mapping[a["molecular_profile_id"]] for a in assertions}
+                for e in evidence_items if e["molecular_profile_id"]}
+        vids |= {mp_id_to_v_id_mapping[a["molecular_profile_id"]]
+                 for a in assertions if a["molecular_profile_id"]}
 
         await self._add_variation_descriptors(variants, vids)
         self._add_gene_descriptors(genes)
