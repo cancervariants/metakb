@@ -18,9 +18,9 @@ from disease.cli import CLI as DiseaseCLI
 from therapy.database import Database as TherapyDatabase
 from therapy.schemas import SourceName as TherapySources
 from therapy.cli import CLI as TherapyCLI
-from gene.database import Database as GeneDatabase
+from gene.database.dynamodb import DynamoDbDatabase as GeneDatabase
 from gene.schemas import SourceName as GeneSources
-from gene.cli import CLI as GeneCLI
+import gene.cli as GeneCLI
 import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore.config import Config
