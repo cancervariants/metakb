@@ -71,7 +71,7 @@ def civic_gene_5():
 
 @pytest.fixture(scope="module")
 def civic_eid_3017():
-    """Create test fixture for CIViC EID 5"""
+    """Create test fixture for CIViC EID 3017"""
     with open(TEST_DATA_PATH / "civic_eid_3017.json", "r") as f:
         return json.load(f)
 
