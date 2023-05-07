@@ -107,10 +107,10 @@ class CIViCTransform(Transform):
         from CIViC evidence items and assertions.
 
         :param records: CIViC Evidence Items or Assertions
-        :param is_evidence: `True` if records are evidence items.
-            `False` if records are assertions.
         :param mp_id_to_v_id_mapping: Molecular Profile ID to Variant ID mappin
             {mp_id: v_id}
+        :param is_evidence: `True` if records are evidence items.
+            `False` if records are assertions.
         """
         for r in records:
             name_lower = r['name'].lower()
@@ -132,7 +132,7 @@ class CIViCTransform(Transform):
                 if not r['disease']:
                     continue
 
-            if record_type == 'PREDICTIVE':
+            if record_type == "PREDICTIVE":
                 if len(r["therapies"]) != 1:
                     continue
                 else:
