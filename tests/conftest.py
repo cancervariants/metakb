@@ -1330,7 +1330,8 @@ def oncokb_diagnostic_proposition1():
 def oncokb_therapeutic_statement1():
     """Create test fixture for OncoKB BRAF V600E therapeutic evidence"""
     return {
-        "id": "oncokb.evidence:EkQhm6lSDcynRuNQRL73HFod5sSmCx93",
+        "id": "oncokb.evidence:xKWfpPS0aNLElHg9v3mwmb9WMaT8P1pf",
+        "description": "Trametinib is an oral small molecule inhibitor of MEK1/2 that is FDA-approved alone or with dabrafenib for the treatment of patients with metastatic melanoma harboring a V600E or V600K BRAF mutation. In an open-label, randomized Phase III trial, patients with BRAF V600E/K-mutated unresectable, metastatic melanoma received oral trametinib (2 mg once daily) or an intravenous regimen of either dacarbazine (1000 mg/m2) or paclitaxel (175 mg/m2) every three weeks. Trametinib demonstrated improved progression-free survival (HR for disease progression or death = 0.45) and six-month overall survival (81% vs. 67%; death HR = 0.54; p=0.01) (PMID: 22663011). However, like other MEK inhibitors, the benefit of trametinib is limited by adverse reactions, most notably grade three or four rash and diarrhea (PMID: 22663011). Trametinib is not typically used as monotherapy for patients with BRAF V600K melanoma given its lower response rate compared to BRAF inhibitors and combined BRAF and MEK inhibitors. Patients previously treated with a RAF inhibitor appear to be less likely than untreated patients to respond to trametinib treatment (PMID: 22663011), and FDA guidelines state that trametinib as a monotherapy is not indicated for these patients. Dabrafenib and trametinib are FDA-approved as a combination therapy, which has superior clinical outcomes compared to dabrafenib or trametinib monotherapy (PMID: 25399551, 25265492). Additionally, patients with melanoma treated with dabrafenib and trametinib in both the neoadjuvant and adjuvant settings had improved survival over patients given standard of care (PMID: 29361468).",  # noqa: E501
         "type": "Statement",
         "evidence_level": "oncokb.evidence_level:LEVEL_1",
         "proposition": "proposition:EOEfYXjsyQmgV2sNA-gfK5i0Cj8WGGuw",
@@ -1405,7 +1406,7 @@ def oncokb_braf_v600e_vd():
                 "name": "mutation_effect",
                 "value": {
                     "knownEffect": "Gain-of-function",
-                    "description": "",
+                    "description": "The class I activating exon 15 BRAF V600E mutation is located in the kinase domain of the BRAF protein and is highly recurrent in melanoma, lung and thyroid cancer, among others (PMID: 28783719, 26091043, 25079552, 23833300, 25417114, 28783719, 12068308). This mutation has been comprehensively biologically characterized and has been shown to activate the downstream MAPK pathway independent of RAS (PMID: 15035987, 12068308, 19251651, 26343582), to render BRAF constitutively activated in monomeric form (PMID: 20179705), and to retain sensitivity to RAF monomer inhibitors such as vemurafenib and dabrafenib (PMID:26343582, 28783719, 20179705, 30351999).",  # noqa: E501
                     "citations": {
                         "pmids": [
                             "25417114",
@@ -1892,7 +1893,7 @@ def check_transformed_cdm():
                     if test_id == actual_id:
                         checked_id = actual_id
                         test_fixture(actual, test)
-                assert checked_id == test_id
+                assert checked_id == test_id, f"{actual_id} does not match expected"
 
         os.remove(transformed_file)
     return check_transformed_cdm
