@@ -7,8 +7,8 @@ name = "pypi"
 civicpy = "~=3.0.0"
 "ga4gh.vrs" = "~=0.8.1"
 "ga4gh.vrsatile.pydantic" = "~=0.0.12"
-gene-normalizer = {version = "~=0.1.35", extras = ["dev"]}
-variation-normalizer = "~=0.5.4"
+gene-normalizer = {version = "~=0.1.36", extras = ["etl"]}
+variation-normalizer = "~=0.5.5"
 disease-normalizer = {version = "~=0.2.20", extras = ["dev"]}
 thera-py = {version = "~=0.3.10", extras = ["dev"]}
 requests = "*"
