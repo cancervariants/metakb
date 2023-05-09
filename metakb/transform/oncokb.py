@@ -125,8 +125,7 @@ class OncoKBTransform(Transform):
             # Exclude trying on variants we know we can't normalize
             unable_to_normalize_variant = {
                 "fusion", "fusions", "mutation", "mutations", "tandem", "domain",
-                "splice", "deletion", "hypermethylation", "silencing", "overexpression",
-                "amplification"
+                "splice", "deletion", "hypermethylation", "silencing", "overexpression"
             }
 
             alt = data["query"]["alteration"]
@@ -275,18 +274,18 @@ class OncoKBTransform(Transform):
         """
         # Since we only support 1 therapeutic we can get the first element
         drug = drugs_data[0]
-        uuid = drug["uuid"]
-        if uuid in self.valid_ids["therapy_descriptors"]:
-            therapy_descriptor = self.valid_ids["therapy_descriptors"][uuid]
+        ncit_code = drug["ncitCode"]
+        if ncit_code in self.valid_ids["therapy_descriptors"]:
+            therapy_descriptor = self.valid_ids["therapy_descriptors"][ncit_code]
         else:
             therapy_descriptor = None
-            if uuid not in self.invalid_ids["therapy_descriptors"]:
+            if ncit_code not in self.invalid_ids["therapy_descriptors"]:
                 therapy_descriptor = self._get_therapy_descriptor(drugs_data)
                 if therapy_descriptor:
-                    self.valid_ids["therapy_descriptors"][uuid] = therapy_descriptor
+                    self.valid_ids["therapy_descriptors"][ncit_code] = therapy_descriptor  # noqa: E501
                     self.therapy_descriptors.append(therapy_descriptor)
                 else:
-                    self.invalid_ids["therapy_descriptors"].add(uuid)
+                    self.invalid_ids["therapy_descriptors"].add(ncit_code)
         return therapy_descriptor
 
     def _get_therapy_descriptor(self, drugs_data: List[Dict]) -> Optional[Dict]:

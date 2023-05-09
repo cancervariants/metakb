@@ -359,7 +359,6 @@ class NestedStatementResponse(BaseModel):
                     "id": "civic.vid:33",
                     "type": "VariationDescriptor",
                     "label": "L858R",
-                    "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
                     "xrefs": [
                         "clinvar:376280",
                         "clinvar:16609",
@@ -383,13 +382,9 @@ class NestedStatementResponse(BaseModel):
                                 "representative_transcript":
                                     "ENST00000275493.2",
                                 "ensembl_version": 75,
-                                "reference_build": "GRCh37"
+                                "reference_build": "GRCh37",
+                                "type": "coordinates"
                             }
-                        },
-                        {
-                            "type": "Extension",
-                            "name": "civic_actionability_score",
-                            "value": 375
                         }
                     ],
                     "variation_id":
@@ -739,27 +734,6 @@ class SearchIDService(BaseModel):
                         "id": "civic.vid:33",
                         "type": "VariationDescriptor",
                         "label": "L858R",
-                        "description": "EGFR L858R has long been recognized "
-                                       "as a functionally significant "
-                                       "mutation in cancer, and is one of "
-                                       "he most prevalent single mutations in"
-                                       " lung cancer. Best described in "
-                                       "non-small cell lung cancer (NSCLC), "
-                                       "the mutation seems to confer "
-                                       "sensitivity to first and second "
-                                       "generation TKI's like gefitinib and"
-                                       " neratinib. NSCLC patients with this"
-                                       " mutation treated with TKI's show "
-                                       "increased overall and "
-                                       "progression-free survival, as "
-                                       "compared to chemotherapy alone. "
-                                       "Third generation TKI's are currently"
-                                       " in clinical trials that specifically"
-                                       " focus on mutant forms of EGFR, a few"
-                                       " of which have shown efficacy in "
-                                       "treating patients that failed to "
-                                       "respond to earlier generation "
-                                       "TKI therapies.",
                         "value_id": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",  # noqa: E501
                         "value": {
                             "location": {
@@ -798,13 +772,9 @@ class SearchIDService(BaseModel):
                                     "variant_bases": "G",
                                     "representative_transcript": "ENST00000275493.2",  # noqa: E501
                                     "ensembl_version": 75,
-                                    "reference_build": "GRCh37"
+                                    "reference_build": "GRCh37",
+                                    "type": "coordinates"
                                 },
-                                "type": "Extension"
-                            },
-                            {
-                                "name": "civic_actionability_score",
-                                "value": "352.5",
                                 "type": "Extension"
                             }
                         ],
@@ -894,7 +864,6 @@ class SearchStatementsService(BaseModel):
                             "id": "civic.vid:33",
                             "type": "VariationDescriptor",
                             "label": "L858R",
-                            "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
                             "xrefs": [
                                 "clinvar:376280",
                                 "clinvar:16609",
@@ -918,13 +887,9 @@ class SearchStatementsService(BaseModel):
                                         "representative_transcript":
                                             "ENST00000275493.2",
                                         "ensembl_version": 75,
-                                        "reference_build": "GRCh37"
+                                        "reference_build": "GRCh37",
+                                        "type": "coordinates"
                                     }
-                                },
-                                {
-                                    "type": "Extension",
-                                    "name": "civic_actionability_score",
-                                    "value": 375
                                 }
                             ],
                             "variation_id":

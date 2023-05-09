@@ -1,5 +1,5 @@
 """Main application for FastAPI."""
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Path
 from fastapi.openapi.utils import get_openapi
 from metakb.query import QueryHandler
 from metakb.version import __version__
@@ -108,6 +108,6 @@ id_description = "Node ID to search"
          response_model=SearchIDService,
          description=id_search_description,
          response_model_exclude_none=True)
-async def search_by_id(id: str = Query(None, description=id_description)):
+async def search_by_id(id: str = Path(description=id_description)):
     """Search by ID endpoint"""
     return query.search_by_id(id)

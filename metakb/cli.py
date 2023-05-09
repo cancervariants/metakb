@@ -18,9 +18,9 @@ from disease.cli import CLI as DiseaseCLI
 from therapy.database import Database as TherapyDatabase
 from therapy.schemas import SourceName as TherapySources
 from therapy.cli import CLI as TherapyCLI
-from gene.database import Database as GeneDatabase
+from gene.database.dynamodb import DynamoDbDatabase as GeneDatabase
 from gene.schemas import SourceName as GeneSources
-from gene.cli import CLI as GeneCLI
+import gene.cli as GeneCLI
 import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore.config import Config
@@ -117,12 +117,22 @@ class CLI:
     )
     @click.option(
         "--update_cached",
-        "-u",
+        "-uc",
         is_flag=True,
         default=False,
         required=False,
         help=("`True` if civicpy cache should be updated. Note this will take serveral"
               "minutes. `False` if local cache should be used")
+    )
+    @click.option(
+        "--update_from_remote",
+        "-ur",
+        is_flag=True,
+        default=False,
+        required=False,
+        help=("If set to `True`, civicpy.update_cache will first download the remote "
+              "cache designated by REMOTE_CACHE_URL, store it to LOCAL_CACHE_PATH, "
+              "and then load the downloaded cache into memory.")
     )
     @click.option(
         "--oncokb_variants_by_protein_change_path",
@@ -139,7 +149,8 @@ class CLI:
         load_normalizers_db: bool, force_load_normalizers_db: bool,
         normalizers_db_url: str, load_latest_cdms: bool,
         load_target_cdm: Optional[Path], load_latest_s3_cdms: bool,
-        update_cached: bool, oncokb_variants_by_protein_change_path: Optional[Path]
+        update_cached: bool, update_from_remote: bool,
+        oncokb_variants_by_protein_change_path: Optional[Path]
     ):
         """Execute data harvest and transformation from resources and upload
         to graph datastore.
@@ -166,7 +177,7 @@ class CLI:
                 CLI()._help_msg(
                     "Error: Must provide `--oncokb_variants_by_protein_change_path`")
 
-            CLI()._harvest_sources(update_cached,
+            CLI()._harvest_sources(update_cached, update_from_remote,
                                    oncokb_variants_by_protein_change_path)
             await CLI()._transform_sources()
 
@@ -252,7 +263,9 @@ class CLI:
         return newest_version
 
     @staticmethod
-    def _harvest_sources(update_cached, oncokb_variants_by_protein_change_path) -> None:
+    def _harvest_sources(
+        update_cached, update_from_remote, oncokb_variants_by_protein_change_path
+    ) -> None:
         """Run harvesting procedure for all sources."""
         echo_info("Harvesting sources...")
         # TODO: Switch to using constant
@@ -265,16 +278,23 @@ class CLI:
         for source_str, source_class in harvester_sources.items():
             echo_info(f"Harvesting {source_str}...")
             start = timer()
-            source: Harvester = source_class()
+
             if source_str == SourceName.CIVIC and update_cached:
-                # Use latest civic data
                 echo_info("(civicpy cache is also being updated)")
-                source_successful = source.harvest(update_cache=True)
-            elif source_str == SourceName.ONCOKB:
-                source_successful = source.harvest(
-                    oncokb_variants_by_protein_change_path)
-            else:
+                source: Harvester = source_class(
+                    update_cache=update_cached, update_from_remote=update_from_remote
+                )
+                # Use latest civic data
                 source_successful = source.harvest()
+            else:
+                source: Harvester = source_class()
+                if source_str == SourceName.ONCOKB:
+                    source_successful = source.harvest(
+                        oncokb_variants_by_protein_change_path
+                    )
+                else:
+                    source_successful = source.harvest()
+
             end = timer()
             if not source_successful:
                 echo_info(f'{source_str} harvest failed.')

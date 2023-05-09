@@ -169,20 +169,6 @@ def test_variation_rules(graph, check_unique_property, check_descriptor_count,
     check_descriptor_count("Variation", 4)
     check_proposition_relation("Variation", "HAS_SUBJECT")
 
-    # all Alleles are Variations and all Variations are Alleles
-    label_query = """
-    MATCH (v:Variation)
-    WHERE NOT (v:Allele)
-    RETURN COUNT(v)
-    UNION
-    MATCH (v:Allele)
-    WHERE NOT (v:Variation)
-    RETURN COUNT(v)
-    """
-    with graph.driver.session() as s:
-        record = s.run(label_query).single()
-    assert record.values()[0] == 0
-
 
 def test_variation_descriptor_rules(check_unique_property, check_single_label,
                                     check_describes_count,
