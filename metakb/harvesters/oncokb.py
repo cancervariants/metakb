@@ -70,10 +70,10 @@ class OncoKBHarvester(Harvester):
             self.genes = self.harvest_genes()
             self.variants = self.harvest_variants(variants_by_protein_change_path)
             self.metadata = self.get_metadata()
-            self.diagnostic_levels = self._get_api_response(f"/levels/{OncoKBLevels.DIAGNOSTIC}")  # noqa: E501
-            self.prognostic_levels = self._get_api_response(f"/levels/{OncoKBLevels.PROGNOSTIC}")  # noqa: E501
-            self.resistance_levels = self._get_api_response(f"/levels/{OncoKBLevels.RESISTANCE}")  # noqa: E501
-            self.sensitive_levels = self._get_api_response(f"/levels/{OncoKBLevels.SENSITIVE}")  # noqa: E501
+            self.diagnostic_levels = self._get_api_response(f"/levels/{OncoKBLevels.DIAGNOSTIC.value}")  # noqa: E501
+            self.prognostic_levels = self._get_api_response(f"/levels/{OncoKBLevels.PROGNOSTIC.value}")  # noqa: E501
+            self.resistance_levels = self._get_api_response(f"/levels/{OncoKBLevels.RESISTANCE.value}")  # noqa: E501
+            self.sensitive_levels = self._get_api_response(f"/levels/{OncoKBLevels.SENSITIVE.value}")  # noqa: E501
 
             json_created = self.create_json(
                 {

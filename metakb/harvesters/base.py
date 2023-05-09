@@ -13,10 +13,6 @@ logger.setLevel(logging.DEBUG)
 class Harvester:
     """A base class for content harvesters."""
 
-    def __init__(self) -> None:
-        """Initialize Harvester class."""
-        self.assertions = []
-
     def harvest(self) -> bool:
         """
         Retrieve and store records from a resource. Records may be stored in
@@ -46,7 +42,7 @@ class Harvester:
 
                 with open(src_dir / f"{item_type}_{today}.json", "w+") as f:
                     f.write(json.dumps(item_list, indent=4))
-            if filename is None:
+            if not filename:
                 filename = f"{src}_harvester_{today}.json"
             with open(src_dir / filename, "w+") as f:
                 f.write(json.dumps(composite_dict, indent=4))
