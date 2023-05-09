@@ -2,7 +2,7 @@
 from metakb.schemas import SourceName
 import pytest
 
-from metakb.version import __version__, LAST_UPDATED
+from metakb.version import __version__
 
 # TODO:
 #  Commented out tests to be fixed after first pass
@@ -728,7 +728,6 @@ async def test_service_meta(query_handler):
         service_meta_ = response["service_meta_"]
         assert service_meta_["name"] == "metakb"
         assert service_meta_["version"] == __version__
-        assert service_meta_["last_updated"] == LAST_UPDATED
         assert service_meta_["url"] == \
                "https://github.com/cancervariants/metakb"
 

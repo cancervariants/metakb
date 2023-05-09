@@ -8,7 +8,7 @@ from ga4gh.vrsatile.pydantic.vrsatile_models import ValueObjectDescriptor, \
 from pydantic import BaseModel
 from pydantic.types import StrictBool
 
-from metakb.version import __version__, LAST_UPDATED
+from metakb.version import __version__
 
 
 class SourceName(str, Enum):
@@ -592,7 +592,6 @@ class ServiceMeta(BaseModel):
 
     name = "metakb"
     version = __version__
-    last_updated = LAST_UPDATED
     url = "https://github.com/cancervariants/metakb"
 
     class Config:
@@ -609,7 +608,6 @@ class ServiceMeta(BaseModel):
             schema["example"] = {
                 "name": "metakb",
                 "version": "1.1.0-alpha.4",
-                "last_updated": "2021-12-16",
                 "url": "https://github.com/cancervariants/metakb"
             }
 
