@@ -642,9 +642,14 @@ class CIViCTransform(Transform):
         :return: A Therapy Descriptor
         """
         therapy_id = f"civic.tid:{drug['id']}"
-        label = drug['name']
-        ncit_id = f"ncit:{drug['ncit_id']}"
-        queries = [ncit_id, label]
+        label = drug["name"]
+        queries = []
+        ncit_id = drug["ncit_id"]
+        if ncit_id:
+            ncit_id = f"ncit:{ncit_id}"
+            queries.append(ncit_id)  # want to try ncit id first if provided
+
+        queries.append(label)
 
         therapy_norm_resp, normalized_therapy_id = \
             self.vicc_normalizers.normalize_therapy(queries)
@@ -663,7 +668,7 @@ class CIViCTransform(Transform):
             label=label,
             therapy_id=normalized_therapy_id,
             alternate_labels=drug['aliases'],
-            xrefs=[ncit_id],
+            xrefs=[ncit_id] if ncit_id else None,
             extensions=[regulatory_approval_extension] if regulatory_approval_extension else None  # noqa: E501
         ).dict(exclude_none=True)
         return therapy_descriptor
