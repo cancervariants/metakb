@@ -643,13 +643,12 @@ class CIViCTransform(Transform):
         """
         therapy_id = f"civic.tid:{drug['id']}"
         label = drug["name"]
-        queries = []
         ncit_id = drug["ncit_id"]
         if ncit_id:
             ncit_id = f"ncit:{ncit_id}"
-            queries.append(ncit_id)  # want to try ncit id first if provided
-
-        queries.append(label)
+            queries = [ncit_id, label]
+        else:
+            queries = [label]
 
         therapy_norm_resp, normalized_therapy_id = \
             self.vicc_normalizers.normalize_therapy(queries)
