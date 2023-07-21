@@ -77,8 +77,9 @@ class CIViCTransform(Transform):
         genes = data['genes']
         mp_id_to_v_id_mapping = self._mp_to_variant_mapping(molecular_profiles)
 
-        # Only want evidence with approved status
+        # Only want evidence and assertions with approved status
         evidence_items = [e for e in evidence_items if e["status"] == "accepted"]
+        assertions = [a for a in assertions if a["status"] == "accepted"]
 
         # Filter Variant IDs for Prognostic, Predictive, and Diagnostic evidence
         supported_evidence_types = ['PROGNOSTIC', 'PREDICTIVE', 'DIAGNOSTIC']
@@ -118,11 +119,6 @@ class CIViCTransform(Transform):
                 civic_id = name_lower.replace('eid', 'civic.eid:')
             else:
                 civic_id = name_lower.replace('aid', 'civic.aid:')
-
-            # Omit entries that are not in an accepted state
-            if r['status'] != 'accepted':
-                logger.warning(f"{civic_id} has status: {r['status']}")
-                continue
 
             record_type = r["evidence_type"] if is_evidence else r["assertion_type"]
             if record_type not in ["PREDICTIVE", "PROGNOSTIC", "DIAGNOSTIC"]:
@@ -642,9 +638,13 @@ class CIViCTransform(Transform):
         :return: A Therapy Descriptor
         """
         therapy_id = f"civic.tid:{drug['id']}"
-        label = drug['name']
-        ncit_id = f"ncit:{drug['ncit_id']}"
-        queries = [ncit_id, label]
+        label = drug["name"]
+        ncit_id = drug["ncit_id"]
+        if ncit_id:
+            ncit_id = f"ncit:{ncit_id}"
+            queries = [ncit_id, label]
+        else:
+            queries = [label]
 
         therapy_norm_resp, normalized_therapy_id = \
             self.vicc_normalizers.normalize_therapy(queries)
@@ -663,7 +663,7 @@ class CIViCTransform(Transform):
             label=label,
             therapy_id=normalized_therapy_id,
             alternate_labels=drug['aliases'],
-            xrefs=[ncit_id],
+            xrefs=[ncit_id] if ncit_id else None,
             extensions=[regulatory_approval_extension] if regulatory_approval_extension else None  # noqa: E501
         ).dict(exclude_none=True)
         return therapy_descriptor
