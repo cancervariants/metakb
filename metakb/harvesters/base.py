@@ -6,16 +6,11 @@ from datetime import datetime as dt
 
 from metakb import APP_ROOT, DATE_FMT
 
-logger = logging.getLogger("metakb.harvesters.base")
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class Harvester:
     """A base class for content harvesters."""
-
-    def __init__(self) -> None:
-        """Initialize Harvester class."""
-        self.assertions = []
 
     def harvest(self) -> bool:
         """
@@ -46,7 +41,7 @@ class Harvester:
 
                 with open(src_dir / f"{item_type}_{today}.json", "w+") as f:
                     f.write(json.dumps(item_list, indent=4))
-            if filename is None:
+            if not filename:
                 filename = f"{src}_harvester_{today}.json"
             with open(src_dir / filename, "w+") as f:
                 f.write(json.dumps(composite_dict, indent=4))

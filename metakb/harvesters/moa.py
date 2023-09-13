@@ -8,8 +8,7 @@ import requests_cache
 from metakb.harvesters.base import Harvester  # noqa: I202
 
 
-logger = logging.getLogger("metakb.harvesters.moa")
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class MOAHarvester(Harvester):
@@ -21,7 +20,7 @@ class MOAHarvester(Harvester):
         records from MOAlmanac in composite and individual JSON files.
 
         :param Optional[str] filename: File name for composite json
-        :return: True if successfully retreived, False otherwise
+        :return: True if successfully retrieved, False otherwise
         :rtype: bool
         """
         try:
@@ -51,7 +50,7 @@ class MOAHarvester(Harvester):
 
     @staticmethod
     def _harvest_genes() -> List[Dict]:
-        """Harvest all genes from MOAlamanc
+        """Harvest all genes from MOAlmanac
 
         :return: List of MOA gene records
         """
@@ -63,8 +62,7 @@ class MOAHarvester(Harvester):
         return genes
 
     def _harvest_sources(self, assertion_resp: List[Dict]) -> List[Dict]:
-        """
-        Harvest all MOA sources
+        """Harvest all MOA sources
 
         :param List[Dict] assertion_resp: A list of MOA assertion records
         :return: A list of sources
@@ -81,8 +79,7 @@ class MOAHarvester(Harvester):
         return sources
 
     def harvest_variants(self) -> List[Dict]:
-        """
-        Harvest all MOA variants
+        """Harvest all MOA variants
 
         :return: A list of variants
         :rtype: list
@@ -98,8 +95,7 @@ class MOAHarvester(Harvester):
 
     def harvest_assertions(self, assertion_resp: List[Dict],
                            variants_list: List[Dict]) -> List[Dict]:
-        """
-        Harvest all MOA assertions
+        """Harvest all MOA assertions
 
         :param List[Dict] assertion_resp: A list of MOA assertion records
         :param List[Dict] variants_list: A list of MOA variant records
@@ -114,8 +110,7 @@ class MOAHarvester(Harvester):
         return assertions
 
     def _get_all_assertions(self) -> List[Dict]:
-        """
-        Return all assertion records.
+        """Return all assertion records.
 
         :return: All moa assertion records
         """
@@ -126,8 +121,7 @@ class MOAHarvester(Harvester):
         return assertions
 
     def _get_all_variants(self) -> List[Dict]:
-        """
-        Return all variant records
+        """Return all variant records
 
         :return: All moa variant records
         """
@@ -138,8 +132,7 @@ class MOAHarvester(Harvester):
         return variants
 
     def _source_item(self, source: Dict) -> Dict:
-        """
-        Harvest an individual MOA source of evidence
+        """Harvest an individual MOA source of evidence
 
         :param Dict source: source record of each assertion record
         :return: a dictionary containing MOA source of evidence data
@@ -173,8 +166,7 @@ class MOAHarvester(Harvester):
         return variant_record
 
     def _harvest_assertion(self, assertion: Dict, variants_list: List[Dict]) -> Dict:
-        """
-        Harvest an individual MOA assertion record
+        """Harvest an individual MOA assertion record
 
         :param Dict assertion: a MOA assertion record
         :param List[Dict] variants_list: a list of MOA variant records
@@ -211,8 +203,7 @@ class MOAHarvester(Harvester):
         return assertion_record
 
     def _get_therapy(self, resistance: bool, sensitivity: bool) -> Optional[str]:
-        """
-        Get therapy response data.
+        """Get therapy response data.
 
         :param bool resistance: `True` if Therapy Resistance.
             `False` if not Therapy Resistance
