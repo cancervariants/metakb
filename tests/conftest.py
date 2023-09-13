@@ -3,9 +3,9 @@ import pytest
 import os
 import asyncio
 
-from metakb.query import QueryHandler
-from metakb.normalizers import VICCNormalizers
-from metakb.schemas import SourceName
+# from metakb.query import QueryHandler
+# from metakb.normalizers import VICCNormalizers
+# from metakb.schemas import SourceName
 
 
 @pytest.fixture(scope="session")
@@ -1366,10 +1366,10 @@ def pmid_11423618():
     }
 
 
-@pytest.fixture(scope="session")
-def sources_count() -> int:
-    """Provide number of currently-implemented sources."""
-    return len(SourceName.__members__)
+# @pytest.fixture(scope="session")
+# def sources_count() -> int:
+#     """Provide number of currently-implemented sources."""
+#     return len(SourceName.__members__)
 
 
 @pytest.fixture(scope="session")
@@ -1540,13 +1540,13 @@ def check_transformed_cdm():
     return check_transformed_cdm
 
 
-@pytest.fixture(scope="session")
-def normalizers():
-    """Provide normalizers to querying/transformation tests."""
-    return VICCNormalizers()
+# @pytest.fixture(scope="session")
+# def normalizers():
+#     """Provide normalizers to querying/transformation tests."""
+#     return VICCNormalizers()
 
 
-@pytest.fixture(scope="session")
-def query_handler(normalizers):
-    """Create query handler test fixture"""
-    return QueryHandler(normalizers=normalizers)
+# @pytest.fixture(scope="session")
+# def query_handler(normalizers):
+#     """Create query handler test fixture"""
+#     return QueryHandler(normalizers=normalizers)
