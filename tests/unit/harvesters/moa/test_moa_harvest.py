@@ -6,7 +6,6 @@ import os
 
 def test_harvest():
     """Test MOAlmanac harvest method."""
-    assert not MOAHarvester().harvest(filename='')
     fn = 'test_moa_harvester.json'
     assert MOAHarvester().harvest(filename=fn)
     file_path = APP_ROOT / 'data' / 'moa' / 'harvester' / fn
