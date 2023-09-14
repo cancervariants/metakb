@@ -12,7 +12,7 @@ from neo4j import Transaction, Session
 
 from metakb.database import Graph
 from metakb.normalizers import VICCNormalizers
-from metakb.schemas import SearchService, StatementResponse, \
+from metakb.schemas.app import SearchService, StatementResponse, \
     TherapeuticResponseProposition, VariationDescriptor, \
     ValueObjectDescriptor, GeneDescriptor, Method, \
     Document, SearchIDService, DiagnosticProposition, PrognosticProposition, \

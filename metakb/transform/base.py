@@ -5,20 +5,122 @@ import logging
 from pathlib import Path
 from datetime import datetime as dt
 
-from ga4gh.core import sha512t24u
+from ga4gh.core import sha512t24u, core_models
+from pydantic import StrictStr
 
 from metakb import APP_ROOT, DATE_FMT
-from metakb.schemas import PropositionType, Predicate, DiagnosticPredicate, \
-    PrognosticPredicate, PredictivePredicate, FunctionalPredicate, \
-    PathogenicPredicate
-from metakb.normalizers import VICCNormalizers
+from metakb.schemas.annotation import Method, Document
+from metakb.schemas.app import ViccConceptVocab, MethodId, CivicEvidenceLevel, MoaEvidenceLevel, EcoLevel
+from metakb.normalizers import  VICCNormalizers
 
-logger = logging.getLogger('metakb')
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class Transform:
     """A base class for transforming harvester data."""
+
+    _methods: List[Method] = [
+        Method(
+            id=MethodId.CIVIC_EID_SOP,
+            label="CIViC Curation SOP (2019)",
+            isReportedIn=Document(
+                label="Danos et al., 2019, Genome Med.",
+                title="Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
+                doi="10.1186/s13073-019-0687-x",
+                pmid=31779674
+            )
+        ).model_dump(exclude_none=True),
+        Method(
+            id=MethodId.MOA_ASSERTION_BIORXIV,
+            label="MOAlmanac (2021)",  # FIXME: Should this be something else?
+            isReportedIn=Document(
+                label="Reardon, B., Moore, N.D., Moore, N.S. et al.",
+                title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",  # noqa: E501
+                doi="10.1038/s43018-021-00243-3",
+                pmid=35121878
+            )
+        ).model_dump(exclude_none=True),
+    ]
+
+    _vicc_evidence_vocabs: List[ViccConceptVocab] = [
+        ViccConceptVocab(
+            id="vicc:e00000",
+            domain="Evidence",
+            term="evidence",
+            parents=[],
+            exact_mappings={EcoLevel.EVIDENCE},
+            definition="A type of information that is used to support statements."),
+        ViccConceptVocab(
+            id="vicc:e00001",
+            domain="Evidence",
+            term="authoritative evidence",
+            parents=["e00000"],
+            exact_mappings={CivicEvidenceLevel.A},
+            definition="Evidence derived from an authoritative source describing a proven or consensus statement."),  # noqa: E501
+        ViccConceptVocab(
+            id="vicc:e00002",
+            domain="Evidence",
+            term="FDA recognized evidence",
+            parents=["e00001"],
+            exact_mappings={MoaEvidenceLevel.FDA_APPROVED},
+            definition="Evidence derived from statements recognized by the US Food and Drug Administration."),  # noqa: E501
+        ViccConceptVocab(
+            id="vicc:e00003",
+            domain="Evidence",
+            term="professional guideline evidence",
+            parents=["e00001"],
+            exact_mappings={MoaEvidenceLevel.GUIDELINE},
+            definition="Evidence derived from statements by professional society guidelines"),  # noqa: E501
+        ViccConceptVocab(
+            id="vicc:e00004",
+            domain="Evidence",
+            term="clinical evidence",
+            parents=["e00000"],
+            exact_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
+            definition="Evidence derived from clinical research studies"),
+        ViccConceptVocab(
+            id="vicc:e00005",
+            domain="Evidence",
+            term="clinical cohort evidence",
+            parents=["e00004"],
+            exact_mappings={CivicEvidenceLevel.B},
+            definition="Evidence derived from the clinical study of a participant cohort"),  # noqa: E501
+        ViccConceptVocab(
+            id="vicc:e00006",
+            domain="Evidence",
+            term="interventional study evidence",
+            parents=["e00005"],
+            exact_mappings={MoaEvidenceLevel.CLINICAL_TRIAL},
+            definition="Evidence derived from interventional studies of clinical cohorts (clinical trials)"),  # noqa: E501
+        ViccConceptVocab(
+            id="vicc:e00007",
+            domain="Evidence",
+            term="observational study evidence",
+            parents=["e00005"],
+            exact_mappings={MoaEvidenceLevel.CLINICAL_EVIDENCE},
+            definition="Evidence derived from observational studies of clinical cohorts"),  # noqa: E501
+        ViccConceptVocab(
+            id="vicc:e00008",
+            domain="Evidence",
+            term="case study evidence",
+            parents=["e00004"],
+            exact_mappings={CivicEvidenceLevel.C},
+            definition="Evidence derived from clinical study of a single participant"),
+        ViccConceptVocab(
+            id="vicc:e00009",
+            domain="Evidence",
+            term="preclinical evidence",
+            parents=["e00000"],
+            exact_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
+            definition="Evidence derived from the study of model organisms"),
+        ViccConceptVocab(
+            id="vicc:e00010",
+            domain="Evidence",
+            term="inferential evidence",
+            parents=["e00000"],
+            exact_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
+            definition="Evidence derived by inference")
+    ]
 
     def __init__(self,
                  data_dir: Path = APP_ROOT / "data",
@@ -39,16 +141,17 @@ class Transform:
         else:
             self.vicc_normalizers = normalizers
 
-        self.statements = list()
-        self.propositions = list()
-        self.variation_descriptors = list()
-        self.gene_descriptors = list()
-        self.therapy_descriptors = list()
-        self.disease_descriptors = list()
-        self.methods = list()
-        self.documents = list()
-
+        self.statements = []
+        self.molecular_profiles = []
+        self.variations = []
+        self.genes = []
+        self.therapeutics = []
+        self.diseases = []
+        self.methods = []
+        self.documents = []
         self.next_node_id = {}
+        self.evidence_level_vicc_concept_mapping = self._evidence_level_to_vicc_concept_mapping()  # noqa: E501
+        self.methods_mapping = {m["id"]: m for m in self._methods}
 
     async def transform(self, *args, **kwargs):
         """Transform harvested data to the Common Data Model."""
@@ -77,43 +180,20 @@ class Transform:
         with open(self.harvester_path, "r") as f:
             return json.load(f)
 
-    predicate_validation = {
-        PropositionType.PREDICTIVE: PredictivePredicate,
-        PropositionType.DIAGNOSTIC: DiagnosticPredicate,
-        PropositionType.PROGNOSTIC: PrognosticPredicate,
-        PropositionType.PATHOGENIC: PathogenicPredicate,
-        PropositionType.FUNCTIONAL: FunctionalPredicate
-    }
+    def _evidence_level_to_vicc_concept_mapping(self) -> Dict:
+        """Return source evidence level to vicc concept vocab mapping
 
-    def _get_proposition_id(
-        self,
-        prop_type: PropositionType,
-        pred: Predicate,
-        variation_ids: List[str] = [],
-        disease_ids: List[str] = [],
-        therapy_ids: List[str] = []
-    ) -> Optional[str]:
-        """Retrieve stable ID for a proposition
-
-        :param PropositionType prop_type: type of Proposition
-        :param Predicate pred: proposition predicate value
-        :param str variation_id: VRS ID
-        :param str disease_id: normalized disease ID
-        :param str therapy_id: normalized therapy ID
-        :return: proposition ID, or None if prop_type and pred conflict or
-            if provided parameters cannot determine correct proposition ID
+        :return: Dictionary of evidence level to coding concept
         """
-        if not isinstance(pred, self.predicate_validation[prop_type]):
-            msg = f"{prop_type} in query conflicts with {pred}"
-            logger.error(msg)
-            raise ValueError(msg)
-
-        concept_ids = variation_ids + disease_ids + therapy_ids
-        terms = [prop_type.value, pred.value] + concept_ids
-        terms_sorted = sorted([t.lower() for t in terms])
-        blob = json.dumps(terms_sorted).encode("ascii")
-        digest = sha512t24u(blob=blob)
-        return f"proposition:{digest}"
+        mappings = dict()
+        for item in self._vicc_evidence_vocabs:
+            for exact_mapping in item.exact_mappings:
+                mappings[exact_mapping] = core_models.Coding(
+                    code=item.id.split(":")[-1],
+                    label=item.term,
+                    system="https://go.osu.edu/evidence-codes"
+                )
+        return mappings
 
     @staticmethod
     def _get_document_id(**parameters) -> str:
@@ -142,11 +222,11 @@ class Transform:
 
         composite_dict = {
             'statements': self.statements,
-            'propositions': self.propositions,
-            'variation_descriptors': self.variation_descriptors,
-            'gene_descriptors': self.gene_descriptors,
-            'therapy_descriptors': self.therapy_descriptors,
-            'disease_descriptors': self.disease_descriptors,
+            'variations': self.variations,
+            'molecular_profiles': self.molecular_profiles,
+            'genes': self.genes,
+            'therapeutics': self.therapeutics,
+            'diseases': self.diseases,
             'methods': self.methods,
             'documents': self.documents
         }

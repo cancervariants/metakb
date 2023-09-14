@@ -1,18 +1,20 @@
 """Module for VICC normalizers."""
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
-from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, Extension
+from ga4gh.core import core_models
+from ga4gh.vrs import models
 from variation.query import QueryHandler as VariationQueryHandler
 from therapy.query import QueryHandler as TherapyQueryHandler
 from therapy.schemas import NormalizationService as NormalizedTherapy, ApprovalRating
+from disease.database import create_db as create_disease_db
 from disease.query import QueryHandler as DiseaseQueryHandler
 from disease.schemas import NormalizationService as NormalizedDisease
+from gene.database import create_db as create_gene_db
 from gene.query import QueryHandler as GeneQueryHandler
 from gene.schemas import NormalizeService as NormalizedGene
 import logging
 
-logger = logging.getLogger('metakb.normalizers')
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class VICCNormalizers:
@@ -20,13 +22,13 @@ class VICCNormalizers:
 
     def __init__(self):
         """Initialize the VICC Normalizers."""
-        self.gene_query_handler = GeneQueryHandler()
+        self.gene_query_handler = GeneQueryHandler(create_gene_db())
         self.variation_normalizer = VariationQueryHandler()
-        self.disease_query_handler = DiseaseQueryHandler()
+        self.disease_query_handler = DiseaseQueryHandler(create_disease_db())
         self.therapy_query_handler = TherapyQueryHandler()
 
     async def normalize_variation(self,
-                                  queries) -> Optional[VariationDescriptor]:
+                                  queries: List[str]) -> Optional[models.Variation]:
         """Normalize variation queries.
 
         :param List[str] queries: Possible query strings to try to normalize
@@ -38,8 +40,8 @@ class VICCNormalizers:
                 continue
             try:
                 variation_norm_resp = await self.variation_normalizer.normalize_handler.normalize(query)  # noqa: E501
-                if variation_norm_resp and variation_norm_resp.variation_descriptor:
-                    return variation_norm_resp.variation_descriptor
+                if variation_norm_resp and variation_norm_resp.variation:
+                    return variation_norm_resp.variation
             except Exception as e:  # noqa: E722
                 logger.warning(f"Variation Normalizer raised an exception using query"
                                f" {query}: {e}")
@@ -67,8 +69,7 @@ class VICCNormalizers:
             else:
                 if gene_norm_resp.match_type > highest_match:
                     highest_match = gene_norm_resp.match_type
-                    normalized_gene_id = \
-                        gene_norm_resp.gene_descriptor.gene_id
+                    normalized_gene_id = gene_norm_resp.normalized_id
                     if highest_match == 100:
                         break
         return gene_norm_resp, normalized_gene_id
@@ -96,8 +97,7 @@ class VICCNormalizers:
             else:
                 if disease_norm_resp.match_type > highest_match:
                     highest_match = disease_norm_resp.match_type
-                    normalized_disease_id = \
-                        disease_norm_resp.disease_descriptor.disease_id
+                    normalized_disease_id = disease_norm_resp.normalized_id
                     if highest_match == 100:
                         break
         return disease_norm_resp, normalized_disease_id
@@ -125,7 +125,7 @@ class VICCNormalizers:
             else:
                 if therapy_norm_resp.match_type > highest_match:
                     highest_match = therapy_norm_resp.match_type
-                    normalized_therapy_id = therapy_norm_resp.therapy_descriptor.therapy_id  # noqa: E501
+                    normalized_therapy_id = therapy_norm_resp.normalized_id
                     if highest_match == 100:
                         break
         return therapy_norm_resp, normalized_therapy_id
@@ -133,7 +133,7 @@ class VICCNormalizers:
     @staticmethod
     def get_regulatory_approval_extension(
         therapy_norm_resp: NormalizedTherapy
-    ) -> Optional[Extension]:
+    ) -> Optional[core_models.Extension]:
         """Given therapy normalization service response, extract out the regulatory
         approval extension
 
@@ -173,7 +173,7 @@ class VICCNormalizers:
                                 "disease_id": indication["disease_id"]
                             })
 
-                regulatory_approval_extension = Extension(
+                regulatory_approval_extension = core_models.Extension(
                     name="regulatory_approval",
                     value={
                         "approval_rating": "FDA" if matched_ext_value == "FDA" else "ChEMBL",  # noqa: E501

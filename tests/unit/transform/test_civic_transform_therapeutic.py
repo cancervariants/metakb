@@ -31,12 +31,6 @@ def statements(civic_eid2997_statement, civic_aid6_statement):
 
 
 @pytest.fixture(scope="module")
-def propositions(civic_eid2997_proposition):
-    """Create test fixture for proposition."""
-    return [civic_eid2997_proposition]
-
-
-@pytest.fixture(scope="module")
 def variation_descriptors(civic_vid33):
     """Create test fixture for variants."""
     return [civic_vid33]
@@ -66,7 +60,7 @@ def documents(pmid_23982599, civic_aid6_document):
     return [pmid_23982599, civic_aid6_document]
 
 
-def test_civic_cdm(data, statements, propositions, variation_descriptors,
+def test_civic_cdm(data, statements, variation_descriptors,
                    gene_descriptors, disease_descriptors, therapy_descriptors,
                    civic_methods, documents, check_statement,
                    check_proposition, check_variation_descriptor,
@@ -74,7 +68,7 @@ def test_civic_cdm(data, statements, propositions, variation_descriptors,
                    check_transformed_cdm):
     """Test that civic transform works correctly."""
     check_transformed_cdm(
-        data, statements, propositions, variation_descriptors,
+        data, statements, variation_descriptors,
         gene_descriptors, disease_descriptors, therapy_descriptors,
         civic_methods, documents, check_statement, check_proposition,
         check_variation_descriptor, check_descriptor, check_document,

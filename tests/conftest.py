@@ -4,8 +4,7 @@ import os
 import asyncio
 
 # from metakb.query import QueryHandler
-# from metakb.normalizers import VICCNormalizers
-# from metakb.schemas import SourceName
+from metakb.normalizers import VICCNormalizers
 
 
 @pytest.fixture(scope="session")
@@ -17,77 +16,41 @@ def event_loop(request):
 
 
 @pytest.fixture(scope="module")
-def civic_eid2997_statement():
-    """Create CIVIC EID2997 Statement test fixture."""
+def civic_mpid33(civic_vid33):
+    """Create CIViC MPID 33"""
     return {
-        "id": "civic.eid:2997",
-        "type": "Statement",
-        "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
-        "direction": "supports",
-        "evidence_level": "civic.evidence_level:A",
-        "proposition": "proposition:Zfp_VG0uvxwteCcJYO6_AJv1KDmJlFjs",
-        "variation_origin": "somatic",
-        "variation_descriptor": "civic.vid:33",
-        "therapy_descriptor": "civic.tid:146",
-        "disease_descriptor": "civic.did:8",
-        "method": "method:1",
-        "supported_by": ["pmid:23982599"]
-    }
-
-
-@pytest.fixture(scope="module")
-def civic_eid2997_proposition():
-    """Create a test fixture for EID2997 proposition."""
-    return {
-        "id": "proposition:Zfp_VG0uvxwteCcJYO6_AJv1KDmJlFjs",
-        "type": "therapeutic_response_proposition",
-        "predicate": "predicts_sensitivity_to",
-        "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
-        "object_qualifier": "ncit:C2926",
-        "object": "rxcui:1430438",
-    }
-
-
-@pytest.fixture(scope="module")
-def civic_vid33():
-    """Create a test fixture for CIViC VID33."""
-    return {
-        "id": "civic.vid:33",
-        "type": "VariationDescriptor",
-        "label": "L858R",
-        "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
-        "variation_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
-        "variation": {
-            "_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
-            "location": {
-                "_id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",
-                "interval": {
-                    "end": {"value": 858, "type": "Number"},
-                    "start": {"value": 857, "type": "Number"},
-                    "type": "SequenceInterval"
-                },
-                "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
-                "type": "SequenceLocation"
+        "id": "civic.mpid:33",
+        "type": "ProteinSequenceConsequence",
+        "description": " EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
+        "label": "EGFR L858R",
+        "definingContext": civic_vid33,
+        "members": [],  # FIXME:
+        "aliases": ["LEU858ARG", "rs121434568"],
+        "mappings": [
+            {
+                "coding": {"code": "CA126713", "system": "https://reg.clinicalgenome.org/"},
+                "relation": "relatedMatch"
             },
-            "state": {
-                "sequence": "R",
-                "type": "LiteralSequenceExpression"
+            {
+                "coding": {"code": "16609", "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"},
+                "relation": "relatedMatch"
             },
-            "type": "Allele"
-        },
-        "xrefs": [
-            "clinvar:376280",
-            "clinvar:376282",
-            "clinvar:16609",
-            "caid:CA126713",
-            "dbsnp:121434568"
-        ],
-        "alternate_labels": [
-            "LEU858ARG"
+            {
+                "coding": {"code": "376282", "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"},
+                "relation": "relatedMatch"
+            },
+            {
+                "coding": {"code": "376280", "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"},
+                "relation": "relatedMatch"
+            },
+            {
+                "coding": {"code": "rs121434568", "system": "https://www.ncbi.nlm.nih.gov/snp/"},
+                "relation": "relatedMatch"
+            }
         ],
         "extensions": [
             {
-                "name": "civic_representative_coordinate",
+                "name": "CIViC representative coordinate",
                 "value": {
                     "chromosome": "7",
                     "start": 55259515,
@@ -97,39 +60,117 @@ def civic_vid33():
                     "representative_transcript": "ENST00000275493.2",
                     "ensembl_version": 75,
                     "reference_build": "GRCh37"
-                },
-                "type": "Extension"
+                }
             },
             {
-                "name": "civic_actionability_score",
-                "value": "352.5",
-                "type": "Extension"
+                "name": "CIViC Molecular Profile Score",
+                "value": 379
+            },
+            {
+                "name": "Variant Type",
+                "value": {
+                    "code": "SO:SO:0001583",
+                    "system": "http://www.sequenceontology.org/browser/current_release/term/",
+                    "label": "missense_variant"
+                }
             }
-        ],
-        "structural_type": "SO:0001583",
-        "expressions": [
-            {
-                "syntax": "hgvs.p",
-                "value": "NP_005219.2:p.Leu858Arg",
-                "type": "Expression"
+        ]
+    }
+
+
+@pytest.fixture(scope="module")
+def civic_eid2997_qualifier(civic_gid19):
+    """Create qualifier for civic eid 2997"""
+    return {
+        "alleleOrigin": "somatic",
+        "gene_context": civic_gid19
+    }
+
+
+
+@pytest.fixture(scope="module")
+def civic_source592():
+    """Create fixture for civic source 592"""
+    return {
+        "id": "civic.source:1725",
+        "label": "Dungo et al., 2013, Drugs",
+        "title": "Afatinib: first global approval.",
+        "pmid": 23982599,
+        "type": "Document"
+    }
+
+
+@pytest.fixture(scope="module")
+def civic_eid2997_statement(civic_mpid33, civic_tid146, civic_did8, civic_eid2997_qualifier, method1):
+    """Create CIVIC EID2997 Statement test fixture."""
+    return {
+        "id": "civic.eid:2997",
+        "type": "VariantTherapeuticResponseStudy",
+        "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
+        "direction": "supports",
+        "strength": {
+            "code": "e000001",
+            "label": "clinical cohort evidence",
+            "system": "https://go.osu.edu/evidence-codes"
+        },
+        "predicate": "predictsSensitivityTo",
+        "variant": civic_mpid33,
+        "therapeutic": civic_tid146,
+        "tumorType": civic_did8,
+        "qualifiers": civic_eid2997_qualifier,
+        "specifiedBy": method1,
+        "isReportedIn": civic_source592
+    }
+
+
+@pytest.fixture(scope="module")
+def civic_vid33():
+    """Create a test fixture for CIViC VID33."""
+    return {
+        "id": "civic.vid:33",
+        "type": "Allele",
+        "label": "L858R",
+        "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
+        "digest": "kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
+        "location": {
+            "id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",
+            "digest": "Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",
+            "type": "SequenceLocation",
+            "sequenceReference": {
+                "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
+                "digest": "vyo55F6mA6n2LgN4cagcdRzOuh38V4mE"
             },
+            "start": 857,
+            "end": 858
+        },
+        "state": {
+            "sequence": "R",
+            "type": "LiteralSequenceExpression"
+        },
+        "extensions": [
             {
-                "syntax": "hgvs.c",
-                "value": "ENST00000275493.2:c.2573T>G",
-                "type": "Expression"
-            },
-            {
-                "syntax": "hgvs.c",
-                "value": "NM_005228.4:c.2573T>G",
-                "type": "Expression"
-            },
-            {
-                "syntax": "hgvs.g",
-                "value": "NC_000007.13:g.55259515T>G",
-                "type": "Expression"
+                "name": "expressions",
+                "value": [
+                    {
+                        "syntax": "hgvs.p",
+                        "value": "NP_005219.2:p.Leu858Arg"
+                    },
+                    {
+                        "syntax": "hgvs.c",
+                        "value": "ENST00000275493.2:c.2573T>G"
+                    },
+                    {
+                        "syntax": "hgvs.c",
+                        "value": "NM_005228.4:c.2573T>G",
+                    },
+                    {
+                        "syntax": "hgvs.g",
+                        "value": "NC_000007.13:g.55259515T>G",
+                    }
+                ]
             }
-        ],
-        "gene_context": "civic.gid:19"
+
+        ]
     }
 
 
@@ -138,11 +179,16 @@ def civic_gid19():
     """Create test fixture for CIViC GID19."""
     return {
         "id": "civic.gid:19",
-        "type": "GeneDescriptor",
+        "type": "Gene",
         "label": "EGFR",
         "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. Overproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
-        "gene_id": "hgnc:3236",
-        "alternate_labels": [
+        "mappings": [
+            {
+                "coding": {"code": "ncbigene:1956", "system": "https://www.ncbi.nlm.nih.gov/gene/"},
+                "relation": "exactMatch"
+            }
+        ],
+        "aliases": [
             "EGFR",
             "ERBB",
             "ERBB1",
@@ -152,9 +198,6 @@ def civic_gid19():
             "PIG61",
             "mENA"
         ],
-        "xrefs": [
-            "ncbigene:1956"
-        ]
     }
 
 
@@ -163,16 +206,22 @@ def civic_tid146():
     """Create test fixture for CIViC TID146."""
     return {
         "id": "civic.tid:146",
-        "type": "TherapyDescriptor",
+        "type": "TherapeuticAgent",
         "label": "Afatinib",
-        "therapy_id": "rxcui:1430438",
-        "alternate_labels": [
+        "mappings": [
+            {
+                "coding": {"code": "C66940", "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code="},
+                "relation": "exactMatch"
+            },
+            {
+                "coding": {"code": "1430438", "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm="},
+                "relation": "exactMatch"
+            }
+        ],
+        "aliases": [
             "BIBW2992",
             "BIBW 2992",
             "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"  # noqa: E501
-        ],
-        "xrefs": [
-            "ncit:C66940"
         ],
         "extensions": [
             {
@@ -183,15 +232,19 @@ def civic_tid146():
                     "has_indications": [
                         {
                             "id": "hemonc:25316",
-                            "type": "DiseaseDescriptor",
+                            "type": "Disease",
                             "label": "Non-small cell lung cancer Squamous",
-                            "disease_id": None
                         },
                         {
                             "id": "hemonc:642",
                             "type": "DiseaseDescriptor",
                             "label": "Non-small cell lung cancer",
-                            "disease_id": "ncit:C2926"
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C2926", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
                         }
                     ]
                 }
@@ -205,11 +258,13 @@ def civic_did8():
     """Create test fixture for CIViC DID8."""
     return {
         "id": "civic.did:8",
-        "type": "DiseaseDescriptor",
+        "type": "Disease",
         "label": "Lung Non-small Cell Carcinoma",
-        "disease_id": "ncit:C2926",
-        "xrefs": [
-            "DOID:3908"
+        "mappings": [
+            {
+                "coding": {"code": "DOID:3908", "system": "https://www.disease-ontology.org/"},
+                "relation": "exactMatch"
+            }
         ]
     }
 
@@ -1285,15 +1340,14 @@ def moa_chronic_myelogenous_leukemia():
 def method1():
     """Create test fixture for method:1."""
     return {
-        "id": "method:1",
-        "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
-        "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
-        "version": {
-            "year": 2019,
-            "month": 11,
-            "day": 29
+        "id": "civic.method:2019",
+        "label": "CIViC Curation SOP (2019)",
+        "isReportedIn": {
+            "label": "Danos et al., 2019, Genome Med.",
+            "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
+            "doid": "10.1186/s13073-019-0687-x",
+            "pmid": 31779674
         },
-        "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al.",
         "type": "Method"
     }
 
@@ -1500,7 +1554,7 @@ def check_document():
 @pytest.fixture(scope="session")
 def check_transformed_cdm():
     """Test fixture to compare CDM transformations."""
-    def check_transformed_cdm(data, statements, propositions,
+    def check_transformed_cdm(data, statements,
                               variation_descriptors, gene_descriptors,
                               disease_descriptors, therapy_descriptors,
                               civic_methods, documents, check_statement,
@@ -1510,7 +1564,6 @@ def check_transformed_cdm():
         """Test that transform to CDM works correctly."""
         tests = (
             (data["statements"], statements, check_statement),
-            (data["propositions"], propositions, check_proposition),
             (data["variation_descriptors"], variation_descriptors,
              check_variation_descriptor),
             (data["gene_descriptors"], gene_descriptors, check_descriptor),
@@ -1536,14 +1589,14 @@ def check_transformed_cdm():
                         test_fixture(actual, test)
                 assert checked_id == test_id
 
-        os.remove(transformed_file)
+        #os.remove(transformed_file)
     return check_transformed_cdm
 
 
-# @pytest.fixture(scope="session")
-# def normalizers():
-#     """Provide normalizers to querying/transformation tests."""
-#     return VICCNormalizers()
+@pytest.fixture(scope="session")
+def normalizers():
+    """Provide normalizers to querying/transformation tests."""
+    return VICCNormalizers()
 
 
 # @pytest.fixture(scope="session")
