@@ -251,6 +251,11 @@ class CIViCTransform(Transform):
 
     def _add_molecular_profiles(self, molecular_profiles, mp_id_to_v_id_mapping):
         for mp in molecular_profiles:
+            mp_id = f"civic.mpid:{mp['id']}"
+            vid = f"civic.vid:{mp_id_to_v_id_mapping[mp['id']]}"
+            civic_variation_data = self.able_to_normalize["variations"][vid]
+            aliases = (mp["aliases"] or []) + civic_variation_data["aliases"]
+
             mp_score = mp["molecular_profile_score"]
             if mp_score:
                 extensions = [
@@ -260,18 +265,26 @@ class CIViCTransform(Transform):
                     )
                 ]
             else:
-                extensions = None
+                extensions = []
 
-            mp_id = f"civic.mpid:{mp['id']}"
-            vid = f"civic.vid:{mp_id_to_v_id_mapping[mp['id']]}"
-            defining_context = self.able_to_normalize["variations"][vid]["vrs_variation"]
+            for ext_key, var_key in [
+                ("CIViC representative coordinate", "coordinates"),
+                ("Variant types", "variant_types")
+            ]:
+                if civic_variation_data[var_key]:
+                    extensions.append(core_models.Extension(
+                        name=ext_key,
+                        value=civic_variation_data[var_key]
+                    ))
+
             psc = ProteinSequenceConsequence(
                 id=mp_id,
                 description=mp["description"],
                 label=mp["name"],
-                definingContext=defining_context,
-                aliases=mp["aliases"] if mp["aliases"] else None,
-                extensions=extensions
+                definingContext=civic_variation_data["vrs_variation"],
+                aliases=aliases or None,
+                mappings=civic_variation_data["mappings"],
+                extensions=extensions or None
             ).model_dump(exclude_none=True)
             self.molecular_profiles.append(psc)
             self.able_to_normalize["molecular_profiles"][mp_id] = psc
@@ -359,57 +372,45 @@ class CIViCTransform(Transform):
                         label="_".join(vt["name"].lower().split())
                     )
                 )
-            if variant_types_value:
-                extensions.append(core_models.Extension(
-                    name="variant_types",
-                    value=variant_types_value
-                ))
 
             mappings = []
             if variant["allele_registry_id"]:
-                mappings.append(core_models.Coding(
-                    code=variant["allele_registry_id"],
-                    system="https://reg.clinicalgenome.org/",
-                    relation=core_models.Relation.RELATED_MATCH
+                mappings.append(core_models.Mapping(
+                    coding=core_models.Coding(
+                        code=variant["allele_registry_id"],
+                        system="https://reg.clinicalgenome.org/",
+                    ),
+                     relation=core_models.Relation.RELATED_MATCH
                 ))
 
             for ce in variant["clinvar_entries"]:
-                mappings.append(core_models.Coding(
-                    code=ce,
-                    system="https://www.ncbi.nlm.nih.gov/clinvar/variation/",
-                    relation=core_models.Relation.RELATED_MATCH
+                mappings.append(core_models.Mapping(
+                    coding=core_models.Coding(
+                        code=ce,
+                        system="https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+                    ),
+                     relation=core_models.Relation.RELATED_MATCH
                 ))
 
             aliases = []
             for a in variant["variant_aliases"]:
                 if SNP_RE.match(a):
-                    mappings.append(core_models.Coding(
-                        code=a,
-                        system="https://www.ncbi.nlm.nih.gov/snp/",
+                    mappings.append(core_models.Mapping(
+                        coding=core_models.Coding(
+                            code=a,
+                            system="https://www.ncbi.nlm.nih.gov/snp/",
+                        ),
                         relation=core_models.Relation.RELATED_MATCH
                     ))
                 else:
                     aliases.append(a)
 
-            if mappings:
-                extensions.append(core_models.Extension(
-                    name="mappings",
-                    value=mappings
-                ))
-
-            if aliases:
-                extensions.append(core_models.Extension(
-                    name="aliases",
-                    value=aliases
-                ))
-
             if variant["coordinates"]:
-                extensions.append(core_models.Extension(
-                    name="CIViC representative coordinate",
-                    value={
-                        k: v for k,v in variant["coordinates"].items() if v is not None
-                    }
-                ))
+                coordinates = {
+                    k: v for k,v in variant["coordinates"].items() if v is not None
+                }
+            else:
+                coordinates = None
 
             if extensions:
                 civic_variation.root.extensions = extensions
@@ -418,7 +419,11 @@ class CIViCTransform(Transform):
 
             self.able_to_normalize["variations"][variant_id] = {
                 "vrs_variation": civic_variation_dict,
-                "civic_gene_id": f"civic.gid:{variant['gene_id']}"
+                "civic_gene_id": f"civic.gid:{variant['gene_id']}",
+                "variant_types": variant_types_value or None,
+                "mappings": mappings or None,
+                "aliases": aliases,
+                "coordinates": coordinates or None
             }
             self.variations.append(civic_variation_dict)
 
