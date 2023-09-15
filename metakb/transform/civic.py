@@ -1,5 +1,5 @@
 """A module for to transform CIViC."""
-from typing import Optional, Dict, List, Set
+from typing import Optional, Dict, List, Set, Tuple
 from pathlib import Path
 import logging
 import re
@@ -57,7 +57,7 @@ class CIViCTransform(Transform):
         }
 
     @staticmethod
-    def _mp_to_variant_mapping(molecular_profiles: List[Dict]) -> Dict:
+    def _mp_to_variant_mapping(molecular_profiles: List[Dict]) -> Tuple[List, Dict]:
         """Get mapping from Molecular Profile ID to Variant ID. We currently do not
         handle complex molecular profiles (> 1 variant associated).
 
@@ -66,6 +66,7 @@ class CIViCTransform(Transform):
         :return: Molecular Profile ID to Variant ID mapping {mp_id: v_id}
         """
         mapping: Dict = {}
+        supported_mps = []
         not_supported_mps = set()
         for mp in molecular_profiles:
             mp_id = mp["id"]
@@ -74,11 +75,12 @@ class CIViCTransform(Transform):
                 mapping[mp_id] = None
                 not_supported_mps.add(mp_id)
             else:
+                supported_mps.append(mp)
                 mapping[mp_id] = mp_variant_ids[0]
 
         logger.debug(f"{len(not_supported_mps)} Molecular Profiles not supported: "
                      f"{not_supported_mps}")
-        return mapping
+        return supported_mps, mapping
 
     async def transform(self):
         """Transform CIViC harvested json to common data model.
@@ -89,10 +91,12 @@ class CIViCTransform(Transform):
         """
         data = self.extract_harvester()
         evidence_items = data['evidence']
-        molecular_profiles = data["molecular_profiles"]
         variants = data['variants']
         genes = data['genes']
-        mp_id_to_v_id_mapping = self._mp_to_variant_mapping(molecular_profiles)
+
+        molecular_profiles, mp_id_to_v_id_mapping = self._mp_to_variant_mapping(
+            data["molecular_profiles"]
+        )
 
         # Only want evidence with approved status
         evidence_items = [e for e in evidence_items if e["status"] == "accepted"]
@@ -173,10 +177,16 @@ class CIViCTransform(Transform):
             strength = self.evidence_level_vicc_concept_mapping[evidence_level]
 
             # Get variation and gene
-            mp = self.able_to_normalize["molecular_profiles"][f"civic.mpid:{r['molecular_profile_id']}"]
+            mp_id = f"civic.mpid:{r['molecular_profile_id']}"
+            mp = self.able_to_normalize["molecular_profiles"].get(mp_id)
+            if not mp:
+                logger.debug(f"mp_id not supported: {mp_id}")
+                continue
+
             variant_id = f"civic.vid:{mp_id_to_v_id_mapping[r['molecular_profile_id']]}"
             variation_gene_map = self.able_to_normalize['variations'].get(variant_id)
             if not variation_gene_map:
+                logger.debug("variant_id not supported: {variant_id}")
                 continue
 
             gene_id = variation_gene_map["civic_gene_id"]
@@ -228,9 +238,9 @@ class CIViCTransform(Transform):
         if direction_upper == "SUPPORTS":
             return Direction.SUPPORTS
         elif direction_upper == "DOES_NOT_SUPPORT":
-            return Direction.DOES_NOT_SUPPORT
+            return Direction.REFUTES
         else:
-            return None
+            return Direction.NONE
 
     def _get_predicate(self, record_type,
                        clin_sig) -> Optional[VariantTherapeuticResponseStudyPredicate]:
@@ -277,17 +287,19 @@ class CIViCTransform(Transform):
                         value=civic_variation_data[var_key]
                     ))
 
-            psc = ProteinSequenceConsequence(
-                id=mp_id,
-                description=mp["description"],
-                label=mp["name"],
-                definingContext=civic_variation_data["vrs_variation"],
-                aliases=aliases or None,
-                mappings=civic_variation_data["mappings"],
-                extensions=extensions or None
-            ).model_dump(exclude_none=True)
-            self.molecular_profiles.append(psc)
-            self.able_to_normalize["molecular_profiles"][mp_id] = psc
+            # TODO: Add support for CNVs
+            if civic_variation_data["vrs_variation"]["type"] == "Allele":
+                psc = ProteinSequenceConsequence(
+                    id=mp_id,
+                    description=mp["description"],
+                    label=mp["name"],
+                    definingContext=civic_variation_data["vrs_variation"],
+                    aliases=aliases or None,
+                    mappings=civic_variation_data["mappings"],
+                    extensions=extensions or None
+                ).model_dump(exclude_none=True)
+                self.molecular_profiles.append(psc)
+                self.able_to_normalize["molecular_profiles"][mp_id] = psc
 
     async def _add_variations(self, variants: List, vids: Set) -> None:
         """Add variations to instance variables `able_to_normalize['variations']` and
@@ -354,14 +366,9 @@ class CIViCTransform(Transform):
 
             # Get extensions
             extensions = []
-            hgvs_exprs = self._get_hgvs_exprs(variant)
+            hgvs_exprs = self._get_expressions(variant)
             if hgvs_exprs:
-                extensions.append(
-                    core_models.Extension(
-                        name="expressions",
-                        value=hgvs_exprs
-                    )
-                )
+                civic_variation.root.expressions = hgvs_exprs
 
             variant_types_value = []
             for vt in variant["variant_types"]:
@@ -427,28 +434,27 @@ class CIViCTransform(Transform):
             }
             self.variations.append(civic_variation_dict)
 
-    def _get_hgvs_exprs(self, variant) -> Optional[List[Dict[str, str]]]:
-        """Return a list of hgvs expressions for a given variant.
+    def _get_expressions(self, variant) -> Optional[List[Dict[str, str]]]:
+        """Return a list of expressions for a given variant.
 
         :param dict variant: A CIViC variant record
-        :return: A list of hgvs expressions
+        :return: A list of expressions
         """
-        hgvs_expressions = list()
+        expressions = []
         for hgvs_expr in variant['hgvs_expressions']:
             if ':g.' in hgvs_expr:
-                syntax = 'hgvs.g'
+                syntax = models.Syntax.HGVS_G
             elif ':c.' in hgvs_expr:
-                syntax = 'hgvs.c'
+                syntax = models.Syntax.HGVS_C
             else:
-                syntax = 'hgvs.p'
+                syntax = models.Syntax.HGVS_P
+
             if hgvs_expr != 'N/A':
-                hgvs_expressions.append(
-                    {
-                        "syntax": syntax,
-                        "value": hgvs_expr
-                    }
-                )
-        return hgvs_expressions
+                expressions.append(models.Expression(
+                    syntax=syntax,
+                    value=hgvs_expr
+                ))
+        return expressions
 
     def _add_genes(self, genes) -> None:
         """Add genes to instance variables `able_to_normalize['genes']` and `genes`, if
