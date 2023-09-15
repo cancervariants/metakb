@@ -23,6 +23,9 @@ from metakb.schemas.categorical_variation import ProteinSequenceConsequence
 logger = logging.getLogger(__name__)
 
 
+SNP_RE = re.compile(r"RS\d+")
+
+
 class CIViCTransform(Transform):
     """A class for transforming CIViC to the common data model."""
 
@@ -117,14 +120,11 @@ class CIViCTransform(Transform):
     def _transform_evidence(
         self, records: List[Dict], mp_id_to_v_id_mapping: Dict
     ) -> None:
-        """Transform statements, propositions, descriptors, and documents
-        from CIViC evidence items and assertions.
+        """Transform statements, vrs objects, and documents from CIViC evidence items.
 
-        :param records: CIViC Evidence Items or Assertions
+        :param records: CIViC Evidence Items
         :param mp_id_to_v_id_mapping: Molecular Profile ID to Variant ID mapping
             {mp_id: v_id}
-        :param is_evidence: `True` if records are evidence items.
-            `False` if records are assertions.
         """
         for r in records:
             # Get predicate
@@ -232,46 +232,11 @@ class CIViCTransform(Transform):
         else:
             return None
 
-    def _get_assertion_evidence_level(self, assertion) -> Optional[str]:
-        """Return evidence_level for CIViC assertion.
-
-        :param dict assertion: CIViC Assertion
-        :return: CIViC assertion evidence_level
-        """
-        evidence_level = None
-        # TODO: CHECK
-        if assertion['amp_level']:
-            if assertion['amp_level'] == 'Not Applicable':
-                evidence_level = None
-            else:
-                amp_level = assertion["amp_level"]
-                regex = re.compile(r"TIER_(?P<tier>\w+)_LEVEL_(?P<level>\w+)")
-                match = regex.match(amp_level)
-                if match:
-                    match = match.groupdict()
-                    tier = match["tier"]
-                    level = match["level"]
-
-                    if tier == 'I':
-                        tier = 1
-                    elif tier == 'II':
-                        tier = 2
-                    elif tier == 'III':
-                        tier = 3
-                    elif tier == 'IV':
-                        tier = 4
-
-                    evidence_level = f"amp_asco_cap_2017_level:" \
-                                     f"{tier}{level}"
-                else:
-                    raise Exception(f"{amp_level} not supported with regex")
-        return evidence_level
-
     def _get_predicate(self, record_type,
                        clin_sig) -> Optional[VariantTherapeuticResponseStudyPredicate]:
         """Return predicate for an evidence item.
 
-        :param str record_type: The evidence or assertion type
+        :param str record_type: The evidence type
         :param str clin_sig: The evidence item's clinical significance
         :return: Predicate for proposition if valid
         """
@@ -333,8 +298,8 @@ class CIViCTransform(Transform):
 
             variant_query = f"{variant['entrez_name']} {variant_name}"
 
-            # TODO: Remove as more get implemented in variation normalizer
-            #  Filtering to speed up transformation
+            # Will remove as more get implemented in variation normalizer
+            # Filtering to speed up transformation
             vname_lower = variant["name"].lower()
 
             if vname_lower.endswith("fs") or "-" in vname_lower or "/" in vname_lower:
@@ -370,6 +335,7 @@ class CIViCTransform(Transform):
 
             params = vrs_variation.model_dump(exclude_none=True)
             params["id"] = variant_id
+            params["digest"] = vrs_variation.id.split(".")[-1]
             params["label"] = variant["name"]
             civic_variation = models.Variation(**params)
 
@@ -384,21 +350,66 @@ class CIViCTransform(Transform):
                     )
                 )
 
-            if variant["variant_types"]:
-                extensions.append(
-                    core_models.Extension(
-                        name="structural_type",
-                        value=variant["variant_types"][0]["so_id"]
+            variant_types_value = []
+            for vt in variant["variant_types"]:
+                variant_types_value.append(
+                    core_models.Coding(
+                        code=vt["so_id"],
+                        system=f"{vt['url'].rsplit('/', 1)[0]}/",
+                        label="_".join(vt["name"].lower().split())
                     )
                 )
+            if variant_types_value:
+                extensions.append(core_models.Extension(
+                    name="variant_types",
+                    value=variant_types_value
+                ))
 
-            # TODO: alises, xrefs, representative coordinate
-            # xrefs = self._get_variant_xrefs(variant)
-            # aliases = [
-            #     v_alias for v_alias
-            #     in variant["variant_aliases"]
-            #     if not v_alias.startswith("RS")
-            # ]
+            mappings = []
+            if variant["allele_registry_id"]:
+                mappings.append(core_models.Coding(
+                    code=variant["allele_registry_id"],
+                    system="https://reg.clinicalgenome.org/",
+                    relation=core_models.Relation.RELATED_MATCH
+                ))
+
+            for ce in variant["clinvar_entries"]:
+                mappings.append(core_models.Coding(
+                    code=ce,
+                    system="https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+                    relation=core_models.Relation.RELATED_MATCH
+                ))
+
+            aliases = []
+            for a in variant["variant_aliases"]:
+                if SNP_RE.match(a):
+                    mappings.append(core_models.Coding(
+                        code=a,
+                        system="https://www.ncbi.nlm.nih.gov/snp/",
+                        relation=core_models.Relation.RELATED_MATCH
+                    ))
+                else:
+                    aliases.append(a)
+
+            if mappings:
+                extensions.append(core_models.Extension(
+                    name="mappings",
+                    value=mappings
+                ))
+
+            if aliases:
+                extensions.append(core_models.Extension(
+                    name="aliases",
+                    value=aliases
+                ))
+
+            if variant["coordinates"]:
+                extensions.append(core_models.Extension(
+                    name="CIViC representative coordinate",
+                    value={
+                        k: v for k,v in variant["coordinates"].items() if v is not None
+                    }
+                ))
 
             if extensions:
                 civic_variation.root.extensions = extensions
@@ -410,47 +421,6 @@ class CIViCTransform(Transform):
                 "civic_gene_id": f"civic.gid:{variant['gene_id']}"
             }
             self.variations.append(civic_variation_dict)
-
-
-    def _get_variant_extensions(self, variant) -> list:
-        """Return a list of extensions for a variant.
-
-        :param dict variant: A CIViC variant record
-        :return: A list of extensions
-        """
-        return [
-            core_models.Extension(
-                name='civic_representative_coordinate',
-                value={k: v for k, v in variant['coordinates'].items()
-                       if v is not None}
-            ).dict(exclude_none=True)
-        ]
-
-    # def _get_variant_xrefs(self, v) -> Optional[List[str]]:
-    #     """Return a list of xrefs for a variant.
-
-    #     :param dict v: A CIViC variant record
-    #     :return: A dictionary of xrefs
-    #     """
-    #     xrefs = []
-    #     for xref in ['clinvar_entries', 'allele_registry_id',
-    #                  'variant_aliases']:
-    #         if xref == 'clinvar_entries':
-    #             for clinvar_entry in v['clinvar_entries']:
-    #                 if clinvar_entry and clinvar_entry not in ['N/A',
-    #                                                            "NONE FOUND"]:
-    #                     xrefs.append(f"{schemas.XrefSystem.CLINVAR.value}:"
-    #                                  f"{clinvar_entry}")
-    #         elif xref == 'allele_registry_id' and v['allele_registry_id']:
-    #             xrefs.append(f"{schemas.XrefSystem.CLINGEN.value}:"
-    #                          f"{v['allele_registry_id']}")
-    #         elif xref == 'variant_aliases':
-    #             dbsnp_xrefs = [item for item in v['variant_aliases']
-    #                            if item.startswith('RS')]
-    #             for dbsnp_xref in dbsnp_xrefs:
-    #                 xrefs.append(f"{schemas.XrefSystem.DB_SNP.value}:"
-    #                              f"{dbsnp_xref.split('RS')[-1]}")
-    #     return xrefs
 
     def _get_hgvs_exprs(self, variant) -> Optional[List[Dict[str, str]]]:
         """Return a list of hgvs expressions for a given variant.
@@ -497,13 +467,17 @@ class CIViCTransform(Transform):
                     mappings=[
                         core_models.Mapping(
                             coding=core_models.Coding(
-                                code=str(gene["entrez_id"]),
+                                code=f"ncbigene:{gene['entrez_id']}",
                                 system="https://www.ncbi.nlm.nih.gov/gene/"
                             ),
                             relation=core_models.Relation.EXACT_MATCH
                         )
                     ],
-                    aliases=gene["aliases"] if gene["aliases"] else None
+                    aliases=gene["aliases"] if gene["aliases"] else None,
+                    extensions=[core_models.Extension(
+                        name="gene_normalizer_id",
+                        value=normalized_gene_id
+                    )]
                 ).model_dump(exclude_none=True)
                 self.able_to_normalize["genes"][gene_id] = civic_gene
                 self.genes.append(civic_gene)
@@ -647,7 +621,8 @@ class CIViCTransform(Transform):
             id=therapy_id,
             label=label,
             mappings=mappings if mappings else None,
-            aliases=drug["aliases"] if drug["aliases"] else None
+            aliases=drug["aliases"] if drug["aliases"] else None,
+            extensions=extensions
         ).model_dump(exclude_none=True)
 
     def _get_eid_document(self, source) -> Optional[Document]:
