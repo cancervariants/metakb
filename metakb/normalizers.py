@@ -142,7 +142,7 @@ class VICCNormalizers:
             data if it `regulatory_approval` extensions exists in therapy normalizer
         """
         regulatory_approval_extension = None
-        tn_resp_exts = therapy_norm_resp.dict().get("therapy_descriptor", {}).get("extensions") or []  # noqa: E501
+        tn_resp_exts = therapy_norm_resp.model_dump().get("therapeutic_agent", {}).get("extensions") or []  # noqa: E501
         tn_ext = [v for v in tn_resp_exts if v["name"] == "regulatory_approval"]
 
         if tn_ext:
@@ -166,12 +166,16 @@ class VICCNormalizers:
                     indication_exts = indication.get("extensions", [])
                     for indication_ext in indication_exts:
                         if indication_ext["value"] == matched_ext_value:
-                            matched_indications.append({
+                            matched_ind = {
                                 "id": indication["id"],
                                 "type": indication["type"],
                                 "label": indication["label"],
-                                "disease_id": indication["disease_id"]
-                            })
+                            }
+
+                            if indication.get("mappings"):
+                                matched_ind["mappings"] = indication["mappings"]
+
+                            matched_indications.append(matched_ind)
 
                 regulatory_approval_extension = core_models.Extension(
                     name="regulatory_approval",
