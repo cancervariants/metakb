@@ -147,9 +147,6 @@ class CIViCTransform(Transform):
             if not civic_disease:
                 continue
 
-            if civic_disease not in self.diseases:
-                self.diseases.append(civic_disease)
-
             # Get therapy
             if len(r["therapies"]) != 1:
                 continue
@@ -158,9 +155,6 @@ class CIViCTransform(Transform):
                 civic_therapeutic = self._add_therapeutic(therapy_id, r)
                 if not civic_therapeutic:
                     continue
-
-                if civic_therapeutic not in self.therapeutics:
-                    self.therapeutics.append(civic_therapeutic)
 
             # Get method and add to instance variable
             method = self.methods_mapping[MethodId.CIVIC_EID_SOP.value]
@@ -512,6 +506,7 @@ class CIViCTransform(Transform):
                 vrs_disease = self._get_diseases(record['disease'])
                 if vrs_disease:
                     self.able_to_normalize['diseases'][disease_id] = vrs_disease
+                    self.diseases.append(vrs_disease)
                 else:
                     self.unable_to_normalize['diseases'].append(disease_id)
             return vrs_disease
@@ -580,6 +575,7 @@ class CIViCTransform(Transform):
                 vrs_therapeutic = self._get_therapeutic(record["therapies"][0])
                 if vrs_therapeutic:
                     self.able_to_normalize['therapeutics'][therapy_id] = vrs_therapeutic
+                    self.therapeutics.append(vrs_therapeutic)
                 else:
                     self.unable_to_normalize['therapeutics'].append(therapy_id)
             return vrs_therapeutic
