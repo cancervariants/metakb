@@ -196,7 +196,7 @@ class CIViCTransform(Transform):
                 therapeutic=civic_therapeutic,
                 tumorType=civic_disease,
                 qualifiers=qualifiers,
-                specified_by=method,
+                specifiedBy=method,
                 isReportedIn=[document]
             ).model_dump(exclude_none=True)
             self.statements.append(statement)
@@ -288,7 +288,7 @@ class CIViCTransform(Transform):
                     description=mp["description"],
                     label=mp["name"],
                     definingContext=civic_variation_data["vrs_variation"],
-                    aliases=aliases or None,
+                    aliases=list(set(aliases)) or None,
                     mappings=civic_variation_data["mappings"],
                     extensions=extensions or None
                 ).model_dump(exclude_none=True)
@@ -353,7 +353,7 @@ class CIViCTransform(Transform):
                 continue
 
             params = vrs_variation.model_dump(exclude_none=True)
-            params["id"] = variant_id
+            params["id"] = vrs_variation.id
             params["digest"] = vrs_variation.id.split(".")[-1]
             params["label"] = variant["name"]
             civic_variation = models.Variation(**params)
@@ -374,7 +374,16 @@ class CIViCTransform(Transform):
                     )
                 )
 
-            mappings = []
+            mappings = [
+                core_models.Mapping(
+                    coding=core_models.Coding(
+                        code=str(variant["id"]),
+                        system="https://civicdb.org/variants/",
+                    ),
+                    relation=core_models.Relation.EXACT_MATCH
+                )
+            ]
+
             if variant["allele_registry_id"]:
                 mappings.append(core_models.Mapping(
                     coding=core_models.Coding(

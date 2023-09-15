@@ -208,6 +208,17 @@ class Transform:
         blob = json.dumps(params_sorted).encode("ascii")
         return f"document:{sha512t24u(blob=blob)}"
 
+    @staticmethod
+    def _get_digest_for_str_lists(str_list: List[str]) -> str:  # noqa: E741
+        """Create digest for a list of strings
+
+        :param List[str] str_list: List of strings to get digest for
+        :return: Digest
+        """
+        str_list.sort()
+        blob = json.dumps(str_list, separators=(",", ":")).encode("ascii")
+        return sha512t24u(blob)
+
     def create_json(self, transform_dir: Optional[Path] = None,
                     filename: Optional[str] = None) -> None:
         """Create a composite JSON for transformed data.
