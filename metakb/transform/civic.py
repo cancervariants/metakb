@@ -290,7 +290,8 @@ class CIViCTransform(Transform):
                     definingContext=civic_variation_data["vrs_variation"],
                     aliases=list(set(aliases)) or None,
                     mappings=civic_variation_data["mappings"],
-                    extensions=extensions or None
+                    extensions=extensions or None,
+                    members=civic_variation_data["members"]
                 ).model_dump(exclude_none=True)
                 self.molecular_profiles.append(psc)
                 self.able_to_normalize["molecular_profiles"][mp_id] = psc
@@ -351,6 +352,23 @@ class CIViCTransform(Transform):
                 logger.warning("Variation Normalizer unable to normalize "
                                f"{variant_id} using query {variant_query}")
                 continue
+
+            # Get members
+            members = None
+            genomic_hgvs = (
+                [expr for expr in variant["hgvs_expressions"] if "g." in expr] or [None]
+            )[0]
+            if genomic_hgvs:
+                vrs_genomic_variation = await self.vicc_normalizers.normalize_variation(
+                    [genomic_hgvs]
+                )
+
+                if vrs_genomic_variation:
+                    genomic_params = vrs_genomic_variation.model_dump(exclude_none=True)
+                    genomic_params["id"] = vrs_genomic_variation.id
+                    genomic_params["digest"] = vrs_genomic_variation.id.split(".")[-1]
+                    genomic_params["label"] = genomic_hgvs
+                    members = [models.Variation(**genomic_params)]
 
             params = vrs_variation.model_dump(exclude_none=True)
             params["id"] = vrs_variation.id
@@ -433,7 +451,8 @@ class CIViCTransform(Transform):
                 "variant_types": variant_types_value or None,
                 "mappings": mappings or None,
                 "aliases": aliases,
-                "coordinates": coordinates or None
+                "coordinates": coordinates or None,
+                "members": members
             }
             self.variations.append(civic_variation_dict)
 
