@@ -4,11 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-"ga4gh.vrs" = "~=2.0.0.dev1"
+"ga4gh.vrs" = "~=2.0.0a1"
+gene-normalizer = "~=0.3.0-dev1"
+disease-normalizer = "~=0.4.0.dev0"
 civicpy = "~=3.0.0"
 requests = "*"
 jsondiff = "*"
-pydantic = "*"
+pydantic = "==2.*"
 requests-cache = "*"
 neo4j = "*"
 uvicorn = "*"
@@ -19,10 +21,8 @@ asyncclick = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
-gene-normalizer = {editable = true, path = "cancervariants/gene-normalization"}
-disease-normalizer = {editable = true, path = "cancervariants/disease-normalization"}
 thera-py = {editable = true, path = "cancervariants/therapy-normalization"}
-variation-normalizer = {editable = true, path = "variation-normalization-main"}
+variation-normalizer = {editable = true, path = "cancervariants/variation-normalization-main"}
 mock = "*"
 pytest = "*"
 pre-commit = "*"
