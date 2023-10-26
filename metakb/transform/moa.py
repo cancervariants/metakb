@@ -3,8 +3,9 @@ from pathlib import Path
 from typing import Optional, List, Dict
 import logging
 from urllib.parse import quote
+import json
 
-from ga4gh.core import core_models
+from ga4gh.core import core_models, sha512t24u
 from ga4gh.vrs import models
 
 from metakb import APP_ROOT   # noqa: I202
@@ -59,24 +60,16 @@ class MOATransform(Transform):
         data = self.extract_harvester()
 
         assertions = data["assertions"]
-        logger.debug(f"TOTAL MOA Assertions: {len(assertions)}")
         sources = data["sources"]
         variants = data["variants"]
-        logger.debug(f"TOTAL MOA Variants: {len(variants)}")
         genes = data["genes"]
-        logger.debug(f"TOTAL MOA Genes: {len(genes)}")
 
         self._add_genes(genes)
-        logger.debug(f"TOTAL MOA Genes able to normalize: "
-                     f"{len(self.able_to_normalize['genes'])}")
         await self._add_variations(variants)
-        logger.debug(f"TOTAL MOA Variants able to normalize: "
-                     f"{len(self.able_to_normalize['variations'])}")
         self._add_documents(sources)
 
         # Transform MOA assertions
         await self._transform_assertions(assertions)
-        logger.debug(f"TOTAL MOA assertions able to transform: {len(self.statements)}")
 
     async def _transform_assertions(self, assertions: List[Dict]) -> None:
         """Transform MOAlmanac assertions. Will add associated values to instance
@@ -98,6 +91,7 @@ class MOATransform(Transform):
                 continue
 
             if "+" in therapy_name:
+                # Indicates multiple therapies
                 continue
             else:
                 moa_therapeutic = self._add_therapeutic(therapy_name)
@@ -126,6 +120,7 @@ class MOATransform(Transform):
                 predicate = VariantTherapeuticResponseStudyPredicate.PREDICTS_SENSITIVITY_TO
             else:
                 logger.debug(f"clinical_significance not supported: {record['clinical_significance']}")
+                continue
 
             predictive_implication = record["predictive_implication"].strip().replace(" ", "_").replace("-", "_").upper()  # noqa: E501
             moa_evidence_level = MoaEvidenceLevel[predictive_implication]
@@ -148,7 +143,15 @@ class MOATransform(Transform):
             ).model_dump(exclude_none=True)
             self.statements.append(statement)
 
-    def _get_qualifiers(self, feature_type, gene):
+    def _get_qualifiers(
+        self, feature_type: str, gene: str
+    ) -> Optional[VariantOncogenicityStudyQualifier]:
+        """Get qualifiers for a Statement
+
+        :param feature_type: MOA feature type
+        :param gene: Gene name
+        :return: VariantOncogenicityStudyQualifier for a Statement
+        """
         if feature_type == "somatic_variant":
             allele_origin = AlleleOrigin.SOMATIC
         elif feature_type == "germline_variant":
@@ -167,9 +170,9 @@ class MOATransform(Transform):
 
     async def _add_variations(self, variants: List[Dict]) -> None:
         """Add variations to instance variables `able_to_normalize['variations']` and
-        `variations`, if the variation-normalizer can successfully normalize
+        `variations`, if the variation-normalizer can successfully normalize the variant
 
-        :param List[Dict] variants: All variants in MOAlmanac
+        :param variants: All variants in MOAlmanac
         """
         for variant in variants:
             variant_id = variant["id"]
@@ -202,11 +205,11 @@ class MOATransform(Transform):
                 vrs_variation = await self.vicc_normalizers.normalize_variation([query])
 
                 if not vrs_variation:
-                    logger.warning(f"Variation Normalizer unable to normalize: "
+                    logger.debug(f"Variation Normalizer unable to normalize: "
                                    f"moa.variant:{variant_id} using query: {query}")
                     continue
             else:
-                logger.warning(f"Variation Normalizer does not support "
+                logger.debug(f"Variation Normalizer does not support "
                                f"{moa_variant_id}: {feature}")
                 continue
 
@@ -219,7 +222,6 @@ class MOATransform(Transform):
             coordinates_keys = [
                 "chromosome", "start_position", "end_position", "reference_allele",
                 "alternate_allele", "cdna_change", "protein_change", "exon"
-
             ]
             extensions = [
                 core_models.Extension(
@@ -262,7 +264,7 @@ class MOATransform(Transform):
 
     def _add_genes(self, genes: List[str]) -> None:
         """Add genes to instance variables `able_to_normalize['genes']` and `genes`, if
-        the gene-normalizer can successfully normalize
+        the gene-normalizer can successfully normalize the gene
 
         :param List[Dict] genes: All genes in MOAlmanac
         """
@@ -280,11 +282,13 @@ class MOATransform(Transform):
                 self.able_to_normalize["genes"][quote(gene)] = moa_gene
                 self.genes.append(moa_gene)
             else:
-                logger.warning(f"Gene Normalizer unable to normalize: {gene}")
+                logger.debug(f"Gene Normalizer unable to normalize: {gene}")
 
     def _add_documents(self, sources: List) -> None:
         """Add documents to instance variable. Will also cache valid documents to
         `self.able_to_normalize["documents"]`
+
+        :param sources: All sources in MOA
         """
         for source in sources:
             source_id = source["id"]
@@ -340,8 +344,9 @@ class MOATransform(Transform):
     def _get_therapeutic(self, label: str) -> Optional[Dict]:
         """Return a therapeutic agent for a given `label`
 
-        :param str label: Therapy name to get therapeutic agent for
-        :return: A Therapeutic agent represented as a dict
+        :param label: Therapy name to get therapeutic agent for
+        :return: If able to normalize therapy, returns therapeutic agent represented as
+            a dict. Otherwise, `None`
         """
         if not label:
             return None
@@ -350,7 +355,7 @@ class MOATransform(Transform):
             self.vicc_normalizers.normalize_therapy([label])
 
         if not normalized_therapeutic_id:
-            logger.warning(f"Therapy Normalizer unable to normalize: {label}")
+            logger.debug(f"Therapy Normalizer unable to normalize: {label}")
             return None
         else:
             extensions = [
@@ -377,16 +382,17 @@ class MOATransform(Transform):
         (generated digest) to valid or invalid cache if able to return disease or not.
         Will add valid disease to instance variable.
 
-        :param Dict disease: MOA Disease
-        :return: Disease represented as a dict
+        :param disease: MOA Disease
+        :return: If able to normalize, disease represented as a dict. Otherwise, `None`
         """
         if not all(value for value in disease.values()):
             return None
 
-        disease_list = [f"{k}:{v}" for k, v in disease.items() if v]
-        disease_id = self._get_digest_for_str_lists(disease_list)
+        disease_list = sorted([f"{k}:{v}" for k, v in disease.items() if v])
+        blob = json.dumps(disease_list, separators=(",", ":")).encode("ascii")
+        disease_id = sha512t24u(blob)
 
-        vrs_disease = self.able_to_normalize["diseases"].get(disease_id)  # noqa: E501
+        vrs_disease = self.able_to_normalize["diseases"].get(disease_id)
         if vrs_disease:
             return vrs_disease
         else:
@@ -403,8 +409,8 @@ class MOATransform(Transform):
     def _get_disease(self, disease: Dict) -> Optional[Dict]:
         """Return a Disease
 
-        :param Dict disease: an MOA disease record
-        :return: A Disease
+        :param disease: an MOA disease record
+        :return: If able to normalize, disease represented as a dict. Otherwise, `None`
         """
         queries = []
         mappings = []
@@ -433,7 +439,7 @@ class MOATransform(Transform):
             self.vicc_normalizers.normalize_disease(queries)
 
         if not normalized_disease_id:
-            logger.warning(f"Disease Normalizer unable to normalize: {queries}")
+            logger.debug(f"Disease Normalizer unable to normalize: {queries}")
             return None
 
         return core_models.Disease(

@@ -5,8 +5,7 @@ import logging
 from pathlib import Path
 from datetime import datetime as dt
 
-from ga4gh.core import sha512t24u, core_models
-from pydantic import StrictStr
+from ga4gh.core import core_models
 
 from metakb import APP_ROOT, DATE_FMT
 from metakb.schemas.annotation import Method, Document
@@ -194,30 +193,6 @@ class Transform:
                     system="https://go.osu.edu/evidence-codes"
                 )
         return mappings
-
-    @staticmethod
-    def _get_document_id(**parameters) -> str:
-        """Retrieve stable ID for a document.
-        :parameters: property names and values to get ID for. Assumes values
-            are strings.
-        :return: identifying document ID value
-        """
-        params_sorted = {
-            key.lower(): parameters[key].lower() for key in sorted(parameters)
-        }
-        blob = json.dumps(params_sorted).encode("ascii")
-        return f"document:{sha512t24u(blob=blob)}"
-
-    @staticmethod
-    def _get_digest_for_str_lists(str_list: List[str]) -> str:  # noqa: E741
-        """Create digest for a list of strings
-
-        :param List[str] str_list: List of strings to get digest for
-        :return: Digest
-        """
-        str_list.sort()
-        blob = json.dumps(str_list, separators=(",", ":")).encode("ascii")
-        return sha512t24u(blob)
 
     def create_json(self, transform_dir: Optional[Path] = None,
                     filename: Optional[str] = None) -> None:
