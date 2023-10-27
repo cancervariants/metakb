@@ -251,6 +251,7 @@ class MOATransform(Transform):
 
             psc = ProteinSequenceConsequence(
                 id=moa_variant_id,
+                label=feature,
                 definingContext=moa_variation.root,
                 mappings=mappings or None,
                 extensions=extensions

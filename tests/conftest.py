@@ -1205,35 +1205,30 @@ def pmid_27819322():
 
 
 @pytest.fixture(scope="module")
-def moa_aid71_statement():
+def moa_aid71_statement(
+    moa_vid71, moa_abl1, moa_imatinib, moa_chronic_myelogenous_leukemia, method2,
+    moa_source44
+):
     """Create a MOA Statement 71 test fixture."""
     return {
         "id": "moa.assertion:71",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
-        "evidence_level": "moa.evidence_level:Preclinical",
-        "proposition": "proposition:4BRAy5ckYBfbzLHr95Xz3M9D9mJpTRxr",
-        "variation_origin": "somatic",
-        "variation_descriptor": "moa.variant:71",
-        "therapy_descriptor": "moa.normalize.therapy:Imatinib",
-        "disease_descriptor": "moa.normalize.disease:oncotree%3ACML",
-        "method": "method:4",
-        "supported_by": [
-            "pmid:11423618"
-        ],
-        "type": "Statement"
-    }
-
-
-@pytest.fixture(scope="module")
-def moa_aid71_proposition():
-    """Create a test fixture for MOA AID71 proposition."""
-    return {
-        "id": "proposition:4BRAy5ckYBfbzLHr95Xz3M9D9mJpTRxr",
-        "predicate": "predicts_resistance_to",
-        "subject": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
-        "object_qualifier": "ncit:C3174",
-        "object": "rxcui:282388",
-        "type": "therapeutic_response_proposition"
+        "strength": {
+            "code": "e000009",
+            "label": "preclinical evidence",
+            "system": "https://go.osu.edu/evidence-codes"
+        },
+        "predicate": "predictsResistanceTo",
+        "variant": moa_vid71,
+        "therapeutic": moa_imatinib,
+        "tumorType": moa_chronic_myelogenous_leukemia,
+        "qualifiers": {
+            "alleleOrigin": "somatic",
+            "geneContext": moa_abl1
+        },
+        "specifiedBy": method2,
+        "isReportedIn": [moa_source44],
+        "type": "VariantTherapeuticResponseStudy"
     }
 
 
@@ -1242,30 +1237,30 @@ def moa_vid71():
     """Create a test fixture for MOA VID71."""
     return {
         "id": "moa.variant:71",
-        "type": "VariationDescriptor",
+        "type": "ProteinSequenceConsequence",
         "label": "ABL1 p.T315I (Missense)",
-        "variation_id": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
-        "variation": {
-            "_id": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
+        "definingContext": {
+            "id": "ga4gh:VA.EbGZQl1LnjzDCTbjF2VtPbvgMsPWfBOq",
+            "digest": "EbGZQl1LnjzDCTbjF2VtPbvgMsPWfBOq",
+            "type": "Allele",
             "location": {
-                "_id": "ga4gh:VSL.JkBiKTd3Kq-l0ZSOzCOJ1i60mh03hXb5",
-                "interval": {
-                    "end": {"value": 315, "type": "Number"},
-                    "start": {"value": 314, "type": "Number"},
-                    "type": "SequenceInterval"
+                "id": "ga4gh:SL.2UGEX11rbVdN0Nbzc5RU0G0A5elENRTH",
+                "type": "SequenceLocation",
+                "sequenceReference": {
+                    "type": "SequenceReference",
+                    "refgetAccession": "SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg"
                 },
-                "sequence_id": "ga4gh:SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg",
-                "type": "SequenceLocation"
+                "start": 314,
+                "end": 315
             },
             "state": {
-                "sequence": "I",
-                "type": "LiteralSequenceExpression"
-            },
-            "type": "Allele"
+                "type": "LiteralSequenceExpression",
+                "sequence": "I"
+            }
         },
         "extensions": [
             {
-                "name": "moa_representative_coordinate",
+                "name": "MOA representative coordinate",
                 "value": {
                     "chromosome": "9",
                     "start_position": "133747580",
@@ -1279,92 +1274,167 @@ def moa_vid71():
                 "type": "Extension"
             }
         ],
-        "vrs_ref_allele_seq": "T",
-        "gene_context": "moa.normalize.gene:ABL1"
+        "mappings": [
+            {
+                "coding": {
+                    "system": "https://moalmanac.org/api/features/",
+                    "code": "71"
+                },
+                "relation": "exactMatch"
+            }
+        ],
     }
 
 
 @pytest.fixture(scope="module")
 def moa_abl1():
-    """Create a test fixture for MOA ABL1 Gene Descriptor."""
+    """Create a test fixture for MOA ABL1 Gene."""
     return {
         "id": "moa.normalize.gene:ABL1",
-        "type": "GeneDescriptor",
+        "type": "Gene",
         "label": "ABL1",
-        "gene_id": "hgnc:76"
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "gene_normalizer_id",
+                "value": "hgnc:76"
+            }
+        ]
     }
 
 
 @pytest.fixture(scope="module")
 def moa_imatinib():
-    """Create a test fixture for MOA Imatinib Therapy Descriptor."""
+    """Create a test fixture for MOA Imatinib Therapy."""
     return {
-        "id": "moa.normalize.therapy:Imatinib",
-        "type": "TherapyDescriptor",
+        "id": "moa.normalize.therapy.rxcui:282388",
+        "type": "TherapeuticAgent",
         "label": "Imatinib",
-        "therapy_id": "rxcui:282388",
-        "extensions": [{
-            "type": "Extension",
-            "name": "regulatory_approval",
-            "value": {
-                "approval_rating": "FDA",
-                "has_indications": [
-                    {
-                        "id": "hemonc:634",
-                        "type": "DiseaseDescriptor",
-                        "label": "Myelodysplastic syndrome",
-                        "disease_id": "ncit:C3247"
-                    },
-                    {
-                        "id": "hemonc:616",
-                        "type": "DiseaseDescriptor",
-                        "label": "Hypereosinophilic syndrome",
-                        "disease_id": "ncit:C27038"
-                    },
-                    {
-                        "id": "hemonc:582",
-                        "type": "DiseaseDescriptor",
-                        "label": "Chronic myelogenous leukemia",
-                        "disease_id": "ncit:C3174"
-                    },
-                    {
-                        "id": "hemonc:669",
-                        "type": "DiseaseDescriptor",
-                        "label": "Systemic mastocytosis",
-                        "disease_id": "ncit:C9235"
-                    },
-                    {
-                        "id": "hemonc:24309",
-                        "type": "DiseaseDescriptor",
-                        "label": "Acute lymphoblastic leukemia",
-                        "disease_id": "ncit:C3167"
-                    },
-                    {
-                        "id": "hemonc:667",
-                        "type": "DiseaseDescriptor",
-                        "label": "Soft tissue sarcoma",
-                        "disease_id": "ncit:C9306"
-                    },
-                    {
-                        "id": "hemonc:602",
-                        "type": "DiseaseDescriptor",
-                        "label": "Gastrointestinal stromal tumor",
-                        "disease_id": "ncit:C3868"
-                    }
-                ]
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "regulatory_approval",
+                "value": {
+                    "approval_rating": "FDA",
+                    "has_indications": [
+                        {
+                            "id": "hemonc:669",
+                            "type": "Disease",
+                            "label": "Systemic mastocytosis",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C9235", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "hemonc:582",
+                            "type": "Disease",
+                            "label": "Chronic myelogenous leukemia",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C3174", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "hemonc:24309",
+                            "type": "Disease",
+                            "label": "Acute lymphoblastic leukemia",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C3167", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "hemonc:634",
+                            "type": "Disease",
+                            "label": "Myelodysplastic syndrome",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C3247", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "hemonc:602",
+                            "type": "Disease",
+                            "label": "Gastrointestinal stromal tumor",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C3868", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "hemonc:33893",
+                            "type": "Disease",
+                            "label": "Chronic myelogenous leukemia pediatric"
+                        },
+                        {
+                            "id": "hemonc:667",
+                            "type": "Disease",
+                            "label": "Soft tissue sarcoma",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C9306", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "hemonc:616",
+                            "type": "Disease",
+                            "label": "Hypereosinophilic syndrome",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C27038", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "type": "Extension",
+                "name": "therapy_normalizer_id",
+                "value": "rxcui:282388"
             }
-        }]
+        ]
     }
 
 
 @pytest.fixture(scope="module")
 def moa_chronic_myelogenous_leukemia():
-    """Create test fixture for MOA Chronic Myelogenous Leukemia Descriptor."""
+    """Create test fixture for MOA Chronic Myelogenous Leukemia."""
     return {
-        "id": "moa.normalize.disease:oncotree%3ACML",
-        "type": "DiseaseDescriptor",
+        "id": "moa.normalize.disease.ncit:C3174",
+        "type": "Disease",
         "label": "Chronic Myelogenous Leukemia",
-        "disease_id": "ncit:C3174"
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "disease_normalizer_id",
+                "value": "ncit:C3174"
+            }
+        ],
+        "mappings": [
+            {
+                "coding": {
+                    "label": "Chronic Myelogenous Leukemia",
+                    "system": "https://oncotree.mskcc.org/",
+                    "code": "CML"
+                },
+                "relation": "exactMatch"
+            }
+        ]
     }
 
 
@@ -1388,15 +1458,15 @@ def method1():
 def method2():
     """Create test fixture for method:2."""
     return {
-        "id": "method:2",
-        "type": "Method",
-        "label": "Standards and Guidelines for the Interpretation and Reporting of Sequence Variants in Cancer: A Joint Consensus Recommendation of the Association for Molecular Pathology, American Society of Clinical Oncology, and College of American Pathologists",  # noqa: E501
-        "url": "https://pubmed.ncbi.nlm.nih.gov/27993330/",
-        "version": {
-            "year": 2017,
-            "month": 1
+        "id": "metakb.method:4",
+        "label": "MOAlmanac (2021)",
+        "isReportedIn": {
+            "label": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
+            "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",  # noqa: E501
+            "doi": "10.1038/s43018-021-00243-3",
+            "pmid": 35121878
         },
-        "authors": "Li MM, Datto M, Duncavage EJ, et al."
+        "type": "Method"
     }
 
 
@@ -1440,15 +1510,22 @@ def civic_methods(method1, method2, method3):
 
 
 @pytest.fixture(scope="module")
-def pmid_11423618():
-    """Create a test fixture for PMID 11423618."""
+def moa_source44():
+    """Create a test fixture for MOA source 44."""
     return {
-        "id": "pmid:11423618",
-        "label": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501
-        "xrefs": [
-            "doi:10.1126/science.1062538"
+        "id": "moa.source:44",
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "source_type",
+                "value": "Journal"
+            }
         ],
-        "type": "Document"
+        "type": "Document",
+        "title": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",
+        "url": "https://doi.org/10.1126/science.1062538",
+        "doi": "10.1126/science.1062538",
+        "pmid": 11423618
     }
 
 

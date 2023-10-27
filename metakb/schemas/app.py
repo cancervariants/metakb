@@ -11,7 +11,7 @@ from pydantic import BaseModel, StrictBool, Field, constr, StrictInt, StrictStr
 class MethodId(str, Enum):
     """Create method id constants"""
 
-    CIVIC_EID_SOP = "civic.methods:2019"
+    CIVIC_EID_SOP = "civic.method:2019"
     CIVIC_AID_AMP_ASCO_CAP = "metakb.method:2"
     CIVIC_AID_ACMG = "metakb.method:3"
     MOA_ASSERTION_BIORXIV = "metakb.method:4"

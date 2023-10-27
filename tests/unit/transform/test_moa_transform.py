@@ -29,55 +29,8 @@ def asst71_statements(moa_aid71_statement):
     return [moa_aid71_statement]
 
 
-@pytest.fixture(scope="module")
-def asst71_variation_descriptors(moa_vid71):
-    """Create assertion71 variation_descriptors test fixture."""
-    return [moa_vid71]
-
-
-@pytest.fixture(scope="module")
-def asst71_gene_descriptors(moa_abl1):
-    """Create assertion71 gene_descriptors test fixture."""
-    return [moa_abl1]
-
-
-@pytest.fixture(scope="module")
-def asst71_therapy_descriptors(moa_imatinib):
-    """Create assertion71 therapy_descriptors test fixture."""
-    return [moa_imatinib]
-
-
-@pytest.fixture(scope="module")
-def asst71_disease_descriptors(moa_chronic_myelogenous_leukemia):
-    """Create assertion71 disease_descriptors test fixture."""
-    return [moa_chronic_myelogenous_leukemia]
-
-
-@pytest.fixture(scope="module")
-def asst71_methods(method4):
-    """Create assertion71 methods test fixture."""
-    return[method4]
-
-
-@pytest.fixture(scope="module")
-def asst71_documents(pmid_11423618):
-    """Create assertion71 documents test fixture."""
-    return [pmid_11423618]
-
-
-def test_moa_cdm(data, asst71_statements,
-                 asst71_variation_descriptors, asst71_gene_descriptors,
-                 asst71_disease_descriptors, asst71_therapy_descriptors,
-                 asst71_methods, asst71_documents, check_statement,
-                 check_proposition, check_variation_descriptor,
-                 check_descriptor, check_document, check_method,
-                 check_transformed_cdm):
+def test_moa_cdm(data, asst71_statements, check_transformed_cdm):
     """Test that moa transform works correctly."""
     check_transformed_cdm(
-        data, asst71_statements,
-        asst71_variation_descriptors, asst71_gene_descriptors,
-        asst71_disease_descriptors, asst71_therapy_descriptors, asst71_methods,
-        asst71_documents, check_statement, check_proposition,
-        check_variation_descriptor, check_descriptor, check_document,
-        check_method, DATA_DIR / FILENAME
+        data, asst71_statements, DATA_DIR / FILENAME
     )
