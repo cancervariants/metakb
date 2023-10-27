@@ -2,6 +2,7 @@
 import pytest
 import os
 import asyncio
+import json
 
 # from metakb.query import QueryHandler
 from metakb.normalizers import VICCNormalizers
@@ -21,13 +22,32 @@ def civic_mpid33(civic_vid33):
     return {
         "id": "civic.mpid:33",
         "type": "ProteinSequenceConsequence",
-        "description": " EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
+        "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
         "label": "EGFR L858R",
         "definingContext": civic_vid33,
         "members": [
-            "NC_000007.13:g.55259515T>G (VRS ID)"
-        ],  # FIXME:
-        "aliases": ["LEU858ARG", "rs121434568"],
+            {
+                "id": "ga4gh:VA.TAARa2cxRHmOiij9UBwvW-noMDoOq2x9",
+                "label": "NC_000007.13:g.55259515T>G",
+                "digest": "TAARa2cxRHmOiij9UBwvW-noMDoOq2x9",
+                "type": "Allele",
+                "location": {
+                    "id": "ga4gh:SL.ulUNwZvajob7nzyrlpOd6uUWZIYCsoWb",
+                    "type": "SequenceLocation",
+                    "sequenceReference": {
+                        "type": "SequenceReference",
+                        "refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul"
+                    },
+                    "start": 55191821,
+                    "end": 55191822
+                },
+                "state": {
+                    "type": "LiteralSequenceExpression",
+                    "sequence": "G"
+                }
+            }
+        ],
+        "aliases": ["LEU858ARG"],
         "mappings": [
             {
                 "coding": {"code": "CA126713", "system": "https://reg.clinicalgenome.org/"},
@@ -48,6 +68,10 @@ def civic_mpid33(civic_vid33):
             {
                 "coding": {"code": "rs121434568", "system": "https://www.ncbi.nlm.nih.gov/snp/"},
                 "relation": "relatedMatch"
+            },
+            {
+                "coding": {"code": "33", "system": "https://civicdb.org/variants/"},
+                "relation": "exactMatch"
             }
         ],
         "extensions": [
@@ -61,20 +85,26 @@ def civic_mpid33(civic_vid33):
                     "variant_bases": "G",
                     "representative_transcript": "ENST00000275493.2",
                     "ensembl_version": 75,
-                    "reference_build": "GRCh37"
-                }
+                    "reference_build": "GRCh37",
+                    "type": "coordinates"
+                },
+                "type": "Extension"
             },
             {
                 "name": "CIViC Molecular Profile Score",
-                "value": 379
+                "value": 378.0,
+                "type": "Extension"
             },
             {
-                "name": "Variant Type",
-                "value": {
-                    "code": "SO:SO:0001583",
-                    "system": "http://www.sequenceontology.org/browser/current_release/term/",
-                    "label": "missense_variant"
-                }
+                "name": "Variant types",
+                "value": [
+                    {
+                        "code": "SO:0001583",
+                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                        "label": "missense_variant"
+                    }
+                ],
+                "type": "Extension"
             }
         ]
     }
@@ -85,7 +115,7 @@ def civic_eid2997_qualifier(civic_gid19):
     """Create qualifier for civic eid 2997"""
     return {
         "alleleOrigin": "somatic",
-        "gene_context": civic_gid19
+        "geneContext": civic_gid19
     }
 
 
@@ -103,7 +133,7 @@ def civic_source592():
 
 
 @pytest.fixture(scope="module")
-def civic_eid2997_statement(civic_mpid33, civic_tid146, civic_did8, civic_eid2997_qualifier, method1):
+def civic_eid2997_statement(civic_mpid33, civic_tid146, civic_did8, civic_eid2997_qualifier, method1, civic_source592):
     """Create CIVIC EID2997 Statement test fixture."""
     return {
         "id": "civic.eid:2997",
@@ -112,7 +142,7 @@ def civic_eid2997_statement(civic_mpid33, civic_tid146, civic_did8, civic_eid299
         "direction": "supports",
         "strength": {
             "code": "e000001",
-            "label": "clinical cohort evidence",
+            "label": "authoritative evidence",
             "system": "https://go.osu.edu/evidence-codes"
         },
         "predicate": "predictsSensitivityTo",
@@ -121,7 +151,7 @@ def civic_eid2997_statement(civic_mpid33, civic_tid146, civic_did8, civic_eid299
         "tumorType": civic_did8,
         "qualifiers": civic_eid2997_qualifier,
         "specifiedBy": method1,
-        "isReportedIn": civic_source592
+        "isReportedIn": [civic_source592]
     }
 
 
@@ -129,18 +159,16 @@ def civic_eid2997_statement(civic_mpid33, civic_tid146, civic_did8, civic_eid299
 def civic_vid33():
     """Create a test fixture for CIViC VID33."""
     return {
-        "id": "civic.vid:33",
+        "id": "ga4gh:VA.z7c2S8QzZ3yL2UjV_xP7zP913BrYYFGn",
         "type": "Allele",
         "label": "L858R",
-        "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
-        "digest": "kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
+        "digest": "z7c2S8QzZ3yL2UjV_xP7zP913BrYYFGn",
         "location": {
-            "id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",
-            "digest": "Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",
+            "id": "ga4gh:SL.yVGJnwqxV6oCGqC_8nNb58D_wPXJeNJo",
             "type": "SequenceLocation",
             "sequenceReference": {
                 "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
-                "digest": "vyo55F6mA6n2LgN4cagcdRzOuh38V4mE"
+                "type": "SequenceReference",
             },
             "start": 857,
             "end": 858
@@ -149,29 +177,23 @@ def civic_vid33():
             "sequence": "R",
             "type": "LiteralSequenceExpression"
         },
-        "extensions": [
+        "expressions": [
             {
-                "name": "expressions",
-                "value": [
-                    {
-                        "syntax": "hgvs.p",
-                        "value": "NP_005219.2:p.Leu858Arg"
-                    },
-                    {
-                        "syntax": "hgvs.c",
-                        "value": "ENST00000275493.2:c.2573T>G"
-                    },
-                    {
-                        "syntax": "hgvs.c",
-                        "value": "NM_005228.4:c.2573T>G",
-                    },
-                    {
-                        "syntax": "hgvs.g",
-                        "value": "NC_000007.13:g.55259515T>G",
-                    }
-                ]
+                "syntax": "hgvs.p",
+                "value": "NP_005219.2:p.Leu858Arg"
+            },
+            {
+                "syntax": "hgvs.c",
+                "value": "ENST00000275493.2:c.2573T>G"
+            },
+            {
+                "syntax": "hgvs.c",
+                "value": "NM_005228.4:c.2573T>G",
+            },
+            {
+                "syntax": "hgvs.g",
+                "value": "NC_000007.13:g.55259515T>G",
             }
-
         ]
     }
 
@@ -214,10 +236,6 @@ def civic_tid146():
             {
                 "coding": {"code": "C66940", "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code="},
                 "relation": "exactMatch"
-            },
-            {
-                "coding": {"code": "1430438", "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm="},
-                "relation": "exactMatch"
             }
         ],
         "aliases": [
@@ -233,13 +251,8 @@ def civic_tid146():
                     "approval_rating": "FDA",
                     "has_indications": [
                         {
-                            "id": "hemonc:25316",
-                            "type": "Disease",
-                            "label": "Non-small cell lung cancer Squamous",
-                        },
-                        {
                             "id": "hemonc:642",
-                            "type": "DiseaseDescriptor",
+                            "type": "Disease",
                             "label": "Non-small cell lung cancer",
                             "mappings": [
                                 {
@@ -247,9 +260,19 @@ def civic_tid146():
                                     "relation": "relatedMatch"
                                 }
                             ]
+                        },
+                        {
+                            "id": "hemonc:25316",
+                            "type": "Disease",
+                            "label": "Non-small cell lung cancer squamous",
                         }
                     ]
                 }
+            },
+            {
+                "type": "Extension",
+                "name": "therapy_normalizer_id",
+                "value": "rxcui:1430438"
             }
         ]
     }
@@ -266,6 +289,13 @@ def civic_did8():
             {
                 "coding": {"code": "DOID:3908", "system": "https://www.disease-ontology.org/"},
                 "relation": "exactMatch"
+            }
+        ],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "disease_normalizer_id",
+                "value": "ncit:C2926"
             }
         ]
     }
@@ -1347,7 +1377,7 @@ def method1():
         "isReportedIn": {
             "label": "Danos et al., 2019, Genome Med.",
             "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
-            "doid": "10.1186/s13073-019-0687-x",
+            "doi": "10.1186/s13073-019-0687-x",
             "pmid": 31779674
         },
         "type": "Method"
@@ -1428,171 +1458,40 @@ def pmid_11423618():
 #     return len(SourceName.__members__)
 
 
-@pytest.fixture(scope="session")
-def check_statement():
-    """Create a test fixture to compare statements."""
-    def check_statement(actual, test):
-        """Check that statements are match."""
-        assert actual.keys() == test.keys()
-        assert actual["id"] == test["id"]
-        assert actual["description"] == test["description"]
-        if "direction" in test.keys():
-            # MOA doesn"t have direction?
-            assert actual["direction"] == test["direction"]
-        assert actual["evidence_level"] == test["evidence_level"]
-        assert actual["proposition"].startswith("proposition:")
-        assert actual["variation_origin"] == test["variation_origin"]
-        assert actual["variation_descriptor"] == test["variation_descriptor"]
-        if "therapy_descriptor" not in test.keys():
-            assert "therapy_descriptor" not in actual.keys()
+def _dict_check(expected_d: dict, actual_d: dict):
+    for k, v in expected_d.items():
+        if isinstance(v, dict):
+            _dict_check(v, actual_d[k])
+        elif isinstance(v, list):
+            actual_l = [json.dumps(v, sort_keys=True) for v in actual_d[k]]
+            expected_l = [json.dumps(v, sort_keys=True) for v in expected_d[k]]
+            assert set(actual_l) == set(expected_l), k
         else:
-            assert actual["therapy_descriptor"] == test["therapy_descriptor"]
-        assert actual["disease_descriptor"] == test["disease_descriptor"]
-        assert actual["method"] == test["method"]
-        assert set(actual["supported_by"]) == set(test["supported_by"])
-        assert actual["type"] == test["type"]
-    return check_statement
+            assert actual_d[k] == expected_d[k], k
 
+def assertion_checks(actual_data: list, test_data: list):
+    assert len(actual_data) == len(test_data)
+    for expected in test_data:
+        found_match = False
+        for actual in actual_data:
+            if actual["id"] == expected["id"]:
+                found_match = True
+                assert actual.keys() == expected.keys()
+                _dict_check(expected, actual)
+                continue
 
-@pytest.fixture(scope="session")
-def check_proposition():
-    """Create a test fixture to compare propositions."""
-    def check_proposition(actual, test):
-        """Check that propositions match."""
-        assert actual.keys() == test.keys()
-        assert actual["id"].startswith("proposition:")
-        assert actual["type"] == test["type"]
-        if test["type"] == "therapeutic_response_proposition":
-            assert actual["object"] == test["object"]
-        else:
-            assert "object" not in actual.keys()
-        assert actual["predicate"] == test["predicate"]
-        assert actual["subject"] == test["subject"]
-        assert actual["object_qualifier"] == test["object_qualifier"]
-    return check_proposition
-
-
-@pytest.fixture(scope="session")
-def check_variation_descriptor():
-    """Create a test fixture to compare variation descriptors."""
-    def check_variation_descriptor(actual, test):
-        """Check that variation descriptors match."""
-        actual_keys = actual.keys()
-        test_keys = test.keys()
-        assert actual_keys == test_keys
-        for key in test_keys:
-            if key in ["id", "type", "label", "description", "variation_id",
-                       "structural_type", "vrs_ref_allele_seq",
-                       "gene_context"]:
-                assert actual[key] == test[key]
-            elif key in ["xrefs", "alternate_labels"]:
-                assert set(actual[key]) == set(test[key])
-            elif key == "variation":
-                assert actual["variation"] == test["variation"]
-            elif key == "extensions":
-                assert len(actual) == len(test)
-                for test_extension in test["extensions"]:
-                    for actual_extension in actual["extensions"]:
-                        if test_extension["name"] == actual_extension["name"]:
-                            if test_extension["name"] != \
-                                    "civic_actionability_score":
-                                assert actual_extension == test_extension
-                            else:
-                                try:
-                                    float(actual_extension["value"])
-                                except ValueError:
-                                    assert False
-                                else:
-                                    assert True
-            elif key == "expressions":
-                assert len(actual["expressions"]) == len(test["expressions"])
-                for expression in test["expressions"]:
-                    assert expression in actual["expressions"]
-    return check_variation_descriptor
-
-
-@pytest.fixture(scope="session")
-def check_descriptor():
-    """Test fixture to compare gene, therapy, and disease descriptors."""
-    def check_descriptor(actual, test):
-        """Check that gene, therapy, and disease descriptors match."""
-        actual_keys = actual.keys()
-        test_keys = test.keys()
-        assert actual_keys == test_keys
-        for key in test_keys:
-            if key in ["alternate_labels", "xrefs"]:
-                assert set(actual[key]) == set(test[key])
-            else:
-                assert actual[key] == test[key]
-    return check_descriptor
-
-
-@pytest.fixture(scope="session")
-def check_method():
-    """Create a test fixture to compare methods."""
-    def check_method(actual, test):
-        """Check that methods match."""
-        assert actual == test
-    return check_method
-
-
-@pytest.fixture(scope="session")
-def check_document():
-    """Create a test fixture to compare documents."""
-    def check_document(actual, test):
-        """Check that documents match."""
-        actual_keys = actual.keys()
-        test_keys = test.keys()
-        assert actual_keys == test_keys
-        for key in test_keys:
-            assert key in actual_keys
-            if key == "xrefs":
-                assert set(actual[key]) == set(test[key])
-            else:
-                assert actual == test
-    return check_document
+        assert found_match, f"Did not find {expected['id']} in response"
 
 
 @pytest.fixture(scope="session")
 def check_transformed_cdm():
     """Test fixture to compare CDM transformations."""
-    def check_transformed_cdm(data, statements,
-                              variation_descriptors, gene_descriptors,
-                              disease_descriptors, therapy_descriptors,
-                              civic_methods, documents, check_statement,
-                              check_proposition, check_variation_descriptor,
-                              check_descriptor, check_document, check_method,
-                              transformed_file):
+    def check_transformed_cdm(
+        data, statements, transformed_file
+    ):
         """Test that transform to CDM works correctly."""
-        pass
-        # tests = (
-        #     (data["statements"], statements, check_statement),
-        #     (data["variation_descriptors"], variation_descriptors,
-        #      check_variation_descriptor),
-        #     (data["gene_descriptors"], gene_descriptors, check_descriptor),
-        #     (data["disease_descriptors"], disease_descriptors,
-        #      check_descriptor),
-        #     (data["methods"], civic_methods, check_method),
-        #     (data["documents"], documents, check_document)
-        # )
-
-        # if therapy_descriptors:
-        #     tests += (data["therapy_descriptors"], therapy_descriptors,
-        #               check_descriptor),
-
-        # for actual_data, test_data, test_fixture in tests:
-        #     assert len(actual_data) == len(test_data)
-        #     for test in test_data:
-        #         test_id = test["id"]
-        #         checked_id = None
-        #         for actual in actual_data:
-        #             actual_id = actual["id"]
-        #             if test_id == actual_id:
-        #                 checked_id = actual_id
-        #                 test_fixture(actual, test)
-        #         assert checked_id == test_id
-
-        #os.remove(transformed_file)
+        assertion_checks(data["statements"], statements)
+        os.remove(transformed_file)
     return check_transformed_cdm
 
 

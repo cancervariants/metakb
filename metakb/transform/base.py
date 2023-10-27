@@ -43,80 +43,80 @@ class Transform:
 
     _vicc_evidence_vocabs: List[ViccConceptVocab] = [
         ViccConceptVocab(
-            id="vicc:e00000",
+            id="vicc:e000000",
             domain="Evidence",
             term="evidence",
             parents=[],
             exact_mappings={EcoLevel.EVIDENCE},
             definition="A type of information that is used to support statements."),
         ViccConceptVocab(
-            id="vicc:e00001",
+            id="vicc:e000001",
             domain="Evidence",
             term="authoritative evidence",
-            parents=["e00000"],
+            parents=["vicc:e000000"],
             exact_mappings={CivicEvidenceLevel.A},
             definition="Evidence derived from an authoritative source describing a proven or consensus statement."),  # noqa: E501
         ViccConceptVocab(
-            id="vicc:e00002",
+            id="vicc:e000002",
             domain="Evidence",
             term="FDA recognized evidence",
-            parents=["e00001"],
+            parents=["vicc:e000001"],
             exact_mappings={MoaEvidenceLevel.FDA_APPROVED},
             definition="Evidence derived from statements recognized by the US Food and Drug Administration."),  # noqa: E501
         ViccConceptVocab(
-            id="vicc:e00003",
+            id="vicc:e000003",
             domain="Evidence",
             term="professional guideline evidence",
-            parents=["e00001"],
+            parents=["vicc:e000001"],
             exact_mappings={MoaEvidenceLevel.GUIDELINE},
             definition="Evidence derived from statements by professional society guidelines"),  # noqa: E501
         ViccConceptVocab(
-            id="vicc:e00004",
+            id="vicc:e000004",
             domain="Evidence",
             term="clinical evidence",
-            parents=["e00000"],
+            parents=["vicc:e000000"],
             exact_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
             definition="Evidence derived from clinical research studies"),
         ViccConceptVocab(
-            id="vicc:e00005",
+            id="vicc:e000005",
             domain="Evidence",
             term="clinical cohort evidence",
-            parents=["e00004"],
+            parents=["vicc:e000004"],
             exact_mappings={CivicEvidenceLevel.B},
             definition="Evidence derived from the clinical study of a participant cohort"),  # noqa: E501
         ViccConceptVocab(
-            id="vicc:e00006",
+            id="vicc:e000006",
             domain="Evidence",
             term="interventional study evidence",
-            parents=["e00005"],
+            parents=["vicc:e000005"],
             exact_mappings={MoaEvidenceLevel.CLINICAL_TRIAL},
             definition="Evidence derived from interventional studies of clinical cohorts (clinical trials)"),  # noqa: E501
         ViccConceptVocab(
-            id="vicc:e00007",
+            id="vicc:e000007",
             domain="Evidence",
             term="observational study evidence",
-            parents=["e00005"],
+            parents=["vicc:e000005"],
             exact_mappings={MoaEvidenceLevel.CLINICAL_EVIDENCE},
             definition="Evidence derived from observational studies of clinical cohorts"),  # noqa: E501
         ViccConceptVocab(
-            id="vicc:e00008",
+            id="vicc:e000008",
             domain="Evidence",
             term="case study evidence",
-            parents=["e00004"],
+            parents=["vicc:e000004"],
             exact_mappings={CivicEvidenceLevel.C},
             definition="Evidence derived from clinical study of a single participant"),
         ViccConceptVocab(
-            id="vicc:e00009",
+            id="vicc:e000009",
             domain="Evidence",
             term="preclinical evidence",
-            parents=["e00000"],
+            parents=["vicc:e000000"],
             exact_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
             definition="Evidence derived from the study of model organisms"),
         ViccConceptVocab(
-            id="vicc:e00010",
+            id="vicc:e000010",
             domain="Evidence",
             term="inferential evidence",
-            parents=["e00000"],
+            parents=["vicc:e000000"],
             exact_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
             definition="Evidence derived by inference")
     ]

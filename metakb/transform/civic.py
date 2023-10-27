@@ -82,13 +82,8 @@ class CIViCTransform(Transform):
                      f"{not_supported_mps}")
         return supported_mps, mapping
 
-    async def transform(self):
-        """Transform CIViC harvested json to common data model.
-
-        TODO:
-        Add support for assertions
-        Add support for Prognostic + Diagnostic evidence types
-        """
+    async def transform(self) -> None:
+        """Transform CIViC harvested json to common data model."""
         data = self.extract_harvester()
         evidence_items = data['evidence']
         variants = data['variants']
@@ -425,7 +420,7 @@ class CIViCTransform(Transform):
                 if SNP_RE.match(a):
                     mappings.append(core_models.Mapping(
                         coding=core_models.Coding(
-                            code=a,
+                            code=a.lower(),
                             system="https://www.ncbi.nlm.nih.gov/snp/",
                         ),
                         relation=core_models.Relation.RELATED_MATCH
@@ -619,8 +614,7 @@ class CIViCTransform(Transform):
         ncit_id = drug["ncit_id"]
         mappings = []
         if ncit_id:
-            ncit_id = f"ncit:{ncit_id}"
-            queries = [ncit_id, label]
+            queries = [f"ncit:{ncit_id}", label]
             mappings.append(core_models.Mapping(
                 coding=core_models.Coding(
                     code=ncit_id,
@@ -636,7 +630,7 @@ class CIViCTransform(Transform):
 
         if not normalized_therapy_id:
             logger.warning(f"Therapy Normalizer unable to normalize: "
-                           f"using queries {ncit_id} and {label}")
+                           f"using queries ncit:{ncit_id} and {label}")
             return None
 
         regulatory_approval_extension = \
@@ -660,10 +654,10 @@ class CIViCTransform(Transform):
             extensions=extensions
         ).model_dump(exclude_none=True)
 
-    def _get_eid_document(self, source) -> Optional[Document]:
+    def _get_eid_document(self, source: Dict) -> Optional[Document]:
         """Get an EID's document.
 
-        :param dict source: An evidence item's source
+        :param source: An evidence item's source
         :return: Document for EID
         """
         source_type = source['source_type'].upper()
@@ -671,7 +665,7 @@ class CIViCTransform(Transform):
             document = Document(
                 id=f"civic.source:{source['id']}",
                 label=source["citation"],
-                title=source["name"],
+                title=source["title"],
             ).model_dump(exclude_none=True)
 
             if source["source_type"] == SourcePrefix.PUBMED:
