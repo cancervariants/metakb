@@ -47,7 +47,7 @@ def civic_mpid33(civic_vid33):
                 }
             }
         ],
-        "aliases": ["LEU858ARG"],
+        "aliases": ["LEU858ARG", "rs121434568"],
         "mappings": [
             {
                 "coding": {"code": "CA126713", "system": "https://reg.clinicalgenome.org/"},

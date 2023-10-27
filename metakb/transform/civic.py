@@ -418,13 +418,15 @@ class CIViCTransform(Transform):
             aliases = []
             for a in variant["variant_aliases"]:
                 if SNP_RE.match(a):
+                    snp_lower = a.lower()
                     mappings.append(core_models.Mapping(
                         coding=core_models.Coding(
-                            code=a.lower(),
+                            code=snp_lower,
                             system="https://www.ncbi.nlm.nih.gov/snp/",
                         ),
                         relation=core_models.Relation.RELATED_MATCH
                     ))
+                    aliases.append(snp_lower)
                 else:
                     aliases.append(a)
 
