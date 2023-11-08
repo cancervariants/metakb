@@ -1,24 +1,65 @@
 """A module for the Transform base class."""
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Set, Union
 import json
 import logging
 from pathlib import Path
 from datetime import datetime as dt
+from enum import StrEnum
 
 from ga4gh.core import core_models
+from pydantic import BaseModel, StrictStr
 
 from metakb import APP_ROOT, DATE_FMT
 from metakb.schemas.annotation import Method, Document
-from metakb.schemas.app import (
-    ViccConceptVocab,
-    MethodId,
-    CivicEvidenceLevel,
-    MoaEvidenceLevel,
-    EcoLevel
-)
 from metakb.normalizers import VICCNormalizers
 
 logger = logging.getLogger(__name__)
+
+
+class EcoLevel(StrEnum):
+    """Define constraints for Evidence Ontology levels"""
+
+    EVIDENCE = "ECO:0000000"
+    CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
+
+
+class MethodId(StrEnum):
+    """Create method id constants"""
+
+    CIVIC_EID_SOP = "civic.method:2019"
+    MOA_ASSERTION_BIORXIV = "moa.method:2021"
+
+
+class CivicEvidenceLevel(StrEnum):
+    """Define constraints for CIViC evidence levels"""
+
+    A = "civic.evidence_level:A"
+    B = "civic.evidence_level:B"
+    C = "civic.evidence_level:C"
+    D = "civic.evidence_level:D"
+    E = "civic.evidence_level:E"
+
+
+class MoaEvidenceLevel(StrEnum):
+    """Define constraints MOAlmanac evidence levels"""
+
+    FDA_APPROVED = "moa.evidence_level:fda_approved"
+    GUIDELINE = "moa.evidence_level:guideline"
+    CLINICAL_TRIAL = "moa.evidence_level:clinical_trial"
+    CLINICAL_EVIDENCE = "moa.evidence_level:clinical_evidence"
+    PRECLINICAL = "moa.evidence_level:preclinical_evidence"
+    INFERENTIAL = "moa.evidence_level:inferential_evidence"
+
+
+class ViccConceptVocab(BaseModel):
+    """Define VICC Concept Vocab model"""
+
+    id: StrictStr
+    domain: StrictStr
+    term: StrictStr
+    parents: List[StrictStr] = []
+    exact_mappings: Set[Union[CivicEvidenceLevel, MoaEvidenceLevel, EcoLevel]] = {}
+    definition: StrictStr
 
 
 class Transform:
@@ -156,7 +197,7 @@ class Transform:
         self.methods = []
         self.documents = []
 
-        # Cache for concepts that were unable to normalize. Set of MOA IDs
+        # Cache for concepts that were unable to normalize. Set of source concept IDs
         self.unable_to_normalize = {
             "diseases": set(),
             "therapeutics": set()

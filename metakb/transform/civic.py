@@ -1,4 +1,5 @@
 """A module for to transform CIViC."""
+from enum import StrEnum
 from typing import Optional, Dict, List, Tuple
 from pathlib import Path
 import logging
@@ -10,8 +11,7 @@ from pydantic import BaseModel
 
 from metakb import APP_ROOT
 from metakb.normalizers import VICCNormalizers
-from metakb.transform.base import Transform
-from metakb.schemas.app import MethodId, SourcePrefix
+from metakb.transform.base import Transform, MethodId, CivicEvidenceLevel
 from metakb.schemas.annotation import Direction, Document
 from metakb.schemas.variation_statement import (
     AlleleOrigin,
@@ -51,6 +51,13 @@ class _VariationCache(BaseModel):
     aliases: Optional[List[str]] = None
     coordinates: Optional[Dict]
     members: Optional[List[models.Variation]] = None
+
+
+class SourcePrefix(StrEnum):
+    """Define constraints for source prefixes."""
+
+    PUBMED = "PUBMED"
+    ASCO = "asco"
 
 
 class CIViCTransform(Transform):
@@ -204,7 +211,7 @@ class CIViCTransform(Transform):
 
             # Get strength
             direction = self._get_evidence_direction(r["evidence_direction"])
-            evidence_level = f"civic.evidence_level:{r['evidence_level']}"
+            evidence_level = CivicEvidenceLevel[r["evidence_level"]]
             strength = self.evidence_level_to_vicc_concept_mapping[evidence_level]
 
             # Get qualifier

@@ -149,7 +149,7 @@ def civic_source592():
 
 @pytest.fixture(scope="module")
 def civic_eid2997_study(
-    civic_mpid33, civic_tid146, civic_did8, civic_eid2997_qualifier, method1,
+    civic_mpid33, civic_tid146, civic_did8, civic_eid2997_qualifier, civi_method,
     civic_source592
 ):
     """Create CIVIC EID2997 Statement test fixture."""
@@ -168,7 +168,7 @@ def civic_eid2997_study(
         "therapeutic": civic_tid146,
         "tumorType": civic_did8,
         "qualifiers": civic_eid2997_qualifier,
-        "specifiedBy": method1,
+        "specifiedBy": civi_method,
         "isReportedIn": [civic_source592]
     }
 
@@ -1233,7 +1233,7 @@ def pmid_27819322():
 
 @pytest.fixture(scope="module")
 def moa_aid71_study(
-    moa_vid71, moa_abl1, moa_imatinib, moa_chronic_myelogenous_leukemia, method2,
+    moa_vid71, moa_abl1, moa_imatinib, moa_chronic_myelogenous_leukemia, moa_method,
     moa_source44
 ):
     """Create a Variant Therapeutic Response Study test fixture for MOA Assertion 71."""
@@ -1253,7 +1253,7 @@ def moa_aid71_study(
             "alleleOrigin": "somatic",
             "geneContext": moa_abl1
         },
-        "specifiedBy": method2,
+        "specifiedBy": moa_method,
         "isReportedIn": [moa_source44],
         "type": "VariantTherapeuticResponseStudy"
     }
@@ -1466,7 +1466,7 @@ def moa_chronic_myelogenous_leukemia():
 
 
 @pytest.fixture(scope="module")
-def method1():
+def civi_method():
     """Create test fixture for method:1."""
     return {
         "id": "civic.method:2019",
@@ -1482,10 +1482,10 @@ def method1():
 
 
 @pytest.fixture(scope="module")
-def method2():
-    """Create test fixture for method:2."""
+def moa_method():
+    """Create test fixture for MOA."""
     return {
-        "id": "metakb.method:4",
+        "id": "moa.method:2021",
         "label": "MOAlmanac (2021)",
         "isReportedIn": {
             "label": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
@@ -1531,9 +1531,9 @@ def method4():
 
 
 @pytest.fixture(scope="module")
-def civic_methods(method1, method2, method3):
+def civic_methods(civi_method, moa_method, method3):
     """Create test fixture for methods."""
-    return [method1, method2, method3]
+    return [civi_method, moa_method, method3]
 
 
 @pytest.fixture(scope="module")

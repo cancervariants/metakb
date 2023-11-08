@@ -10,8 +10,7 @@ from ga4gh.vrs import models
 
 from metakb import APP_ROOT   # noqa: I202
 from metakb.normalizers import VICCNormalizers
-from metakb.transform.base import Transform
-from metakb.schemas.app import MethodId, MoaEvidenceLevel
+from metakb.transform.base import Transform, MethodId, MoaEvidenceLevel
 from metakb.schemas.annotation import Document
 from metakb.schemas.variation_statement import (
     AlleleOrigin,
