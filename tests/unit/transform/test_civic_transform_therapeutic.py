@@ -25,13 +25,13 @@ async def data(normalizers):
 
 
 @pytest.fixture(scope="module")
-def statements(civic_eid2997_statement):
-    """Create test fixture for statements."""
-    return [civic_eid2997_statement]
+def studies(civic_eid2997_study):
+    """Create test fixture for CIViC therapeutic studies."""
+    return [civic_eid2997_study]
 
 
-def test_civic_cdm(data, statements, check_transformed_cdm):
+def test_civic_cdm(data, studies, check_transformed_cdm):
     """Test that civic transform works correctly."""
     check_transformed_cdm(
-        data, statements, DATA_DIR / FILENAME
+        data, studies, DATA_DIR / FILENAME
     )

@@ -25,7 +25,7 @@ async def data(normalizers):
 
 @pytest.fixture(scope="module")
 def asst71_studies(moa_aid71_study):
-    """Create assertion71 studies test fixture."""
+    """Create test fixture for MOA therapeutic studies."""
     return [moa_aid71_study]
 
 

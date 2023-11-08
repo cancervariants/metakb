@@ -148,7 +148,7 @@ def civic_source592():
 
 
 @pytest.fixture(scope="module")
-def civic_eid2997_statement(
+def civic_eid2997_study(
     civic_mpid33, civic_tid146, civic_did8, civic_eid2997_qualifier, method1,
     civic_source592
 ):
