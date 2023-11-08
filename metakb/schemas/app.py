@@ -48,8 +48,8 @@ class ViccConceptVocab(BaseModel):
     id: StrictStr
     domain: StrictStr
     term: StrictStr
-    parents: List[StrictStr]
-    exact_mappings: Set[Union[CivicEvidenceLevel, MoaEvidenceLevel, EcoLevel]]
+    parents: List[StrictStr] = []
+    exact_mappings: Set[Union[CivicEvidenceLevel, MoaEvidenceLevel, EcoLevel]] = {}
     definition: StrictStr
 
 

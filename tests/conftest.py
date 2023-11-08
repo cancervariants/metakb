@@ -50,23 +50,38 @@ def civic_mpid33(civic_vid33):
         "aliases": ["LEU858ARG", "rs121434568"],
         "mappings": [
             {
-                "coding": {"code": "CA126713", "system": "https://reg.clinicalgenome.org/"},
+                "coding": {
+                    "code": "CA126713",
+                    "system": "https://reg.clinicalgenome.org/"
+                },
                 "relation": "relatedMatch"
             },
             {
-                "coding": {"code": "16609", "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"},
+                "coding": {
+                    "code": "16609",
+                    "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"
+                },
                 "relation": "relatedMatch"
             },
             {
-                "coding": {"code": "376282", "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"},
+                "coding": {
+                    "code": "376282",
+                    "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"
+                },
                 "relation": "relatedMatch"
             },
             {
-                "coding": {"code": "376280", "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"},
+                "coding": {
+                    "code": "376280",
+                    "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"
+                },
                 "relation": "relatedMatch"
             },
             {
-                "coding": {"code": "rs121434568", "system": "https://www.ncbi.nlm.nih.gov/snp/"},
+                "coding": {
+                    "code": "rs121434568",
+                    "system": "https://www.ncbi.nlm.nih.gov/snp/"
+                },
                 "relation": "relatedMatch"
             },
             {
@@ -100,8 +115,9 @@ def civic_mpid33(civic_vid33):
                 "value": [
                     {
                         "code": "SO:0001583",
-                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "label": "missense_variant"
+                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",  # noqa: E501
+                        "label": "missense_variant",
+                        "version": None
                     }
                 ],
                 "type": "Extension"
@@ -119,7 +135,6 @@ def civic_eid2997_qualifier(civic_gid19):
     }
 
 
-
 @pytest.fixture(scope="module")
 def civic_source592():
     """Create fixture for civic source 592"""
@@ -133,7 +148,10 @@ def civic_source592():
 
 
 @pytest.fixture(scope="module")
-def civic_eid2997_statement(civic_mpid33, civic_tid146, civic_did8, civic_eid2997_qualifier, method1, civic_source592):
+def civic_eid2997_statement(
+    civic_mpid33, civic_tid146, civic_did8, civic_eid2997_qualifier, method1,
+    civic_source592
+):
     """Create CIVIC EID2997 Statement test fixture."""
     return {
         "id": "civic.eid:2997",
@@ -208,7 +226,10 @@ def civic_gid19():
         "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. Overproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
         "mappings": [
             {
-                "coding": {"code": "ncbigene:1956", "system": "https://www.ncbi.nlm.nih.gov/gene/"},
+                "coding": {
+                    "code": "ncbigene:1956",
+                    "system": "https://www.ncbi.nlm.nih.gov/gene/"
+                },
                 "relation": "exactMatch"
             }
         ],
@@ -234,7 +255,10 @@ def civic_tid146():
         "label": "Afatinib",
         "mappings": [
             {
-                "coding": {"code": "C66940", "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code="},
+                "coding": {
+                    "code": "C66940",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code="  # noqa: E501
+                },
                 "relation": "exactMatch"
             }
         ],
@@ -287,7 +311,10 @@ def civic_did8():
         "label": "Lung Non-small Cell Carcinoma",
         "mappings": [
             {
-                "coding": {"code": "DOID:3908", "system": "https://www.disease-ontology.org/"},
+                "coding": {
+                    "code": "DOID:3908",
+                    "system": "https://www.disease-ontology.org/"
+                },
                 "relation": "exactMatch"
             }
         ],
@@ -1205,11 +1232,11 @@ def pmid_27819322():
 
 
 @pytest.fixture(scope="module")
-def moa_aid71_statement(
+def moa_aid71_study(
     moa_vid71, moa_abl1, moa_imatinib, moa_chronic_myelogenous_leukemia, method2,
     moa_source44
 ):
-    """Create a MOA Statement 71 test fixture."""
+    """Create a Variant Therapeutic Response Study test fixture for MOA Assertion 71."""
     return {
         "id": "moa.assertion:71",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
@@ -1522,7 +1549,7 @@ def moa_source44():
             }
         ],
         "type": "Document",
-        "title": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",
+        "title": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501
         "url": "https://doi.org/10.1126/science.1062538",
         "doi": "10.1126/science.1062538",
         "pmid": 11423618
@@ -1535,7 +1562,12 @@ def moa_source44():
 #     return len(SourceName.__members__)
 
 
-def _dict_check(expected_d: dict, actual_d: dict):
+def _dict_check(expected_d: dict, actual_d: dict) -> None:
+    """Make dictionary assertion checks. Check that actual matches expected data.
+
+    :param expected_d: Expected dictionary
+    :param actual_d: Actual dictionary
+    """
     for k, v in expected_d.items():
         if isinstance(v, dict):
             _dict_check(v, actual_d[k])
@@ -1546,7 +1578,13 @@ def _dict_check(expected_d: dict, actual_d: dict):
         else:
             assert actual_d[k] == expected_d[k], k
 
-def assertion_checks(actual_data: list, test_data: list):
+
+def assertion_checks(actual_data: list, test_data: list) -> None:
+    """Check that actual data matches expected data
+
+    :param actual_data: List of actual data
+    :param test_data: List of expected data
+    """
     assert len(actual_data) == len(test_data)
     for expected in test_data:
         found_match = False
@@ -1564,10 +1602,10 @@ def assertion_checks(actual_data: list, test_data: list):
 def check_transformed_cdm():
     """Test fixture to compare CDM transformations."""
     def check_transformed_cdm(
-        data, statements, transformed_file
+        data, studies, transformed_file
     ):
         """Test that transform to CDM works correctly."""
-        assertion_checks(data["statements"], statements)
+        assertion_checks(data["studies"], studies)
         os.remove(transformed_file)
     return check_transformed_cdm
 

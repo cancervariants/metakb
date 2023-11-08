@@ -24,13 +24,13 @@ async def data(normalizers):
 
 
 @pytest.fixture(scope="module")
-def asst71_statements(moa_aid71_statement):
-    """Create assertion71 statements test fixture."""
-    return [moa_aid71_statement]
+def asst71_studies(moa_aid71_study):
+    """Create assertion71 studies test fixture."""
+    return [moa_aid71_study]
 
 
-def test_moa_cdm(data, asst71_statements, check_transformed_cdm):
+def test_moa_cdm(data, asst71_studies, check_transformed_cdm):
     """Test that moa transform works correctly."""
     check_transformed_cdm(
-        data, asst71_statements, DATA_DIR / FILENAME
+        data, asst71_studies, DATA_DIR / FILENAME
     )

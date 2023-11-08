@@ -9,8 +9,14 @@ from ga4gh.core import core_models
 
 from metakb import APP_ROOT, DATE_FMT
 from metakb.schemas.annotation import Method, Document
-from metakb.schemas.app import ViccConceptVocab, MethodId, CivicEvidenceLevel, MoaEvidenceLevel, EcoLevel
-from metakb.normalizers import  VICCNormalizers
+from metakb.schemas.app import (
+    ViccConceptVocab,
+    MethodId,
+    CivicEvidenceLevel,
+    MoaEvidenceLevel,
+    EcoLevel
+)
+from metakb.normalizers import VICCNormalizers
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +37,7 @@ class Transform:
         ).model_dump(exclude_none=True),
         Method(
             id=MethodId.MOA_ASSERTION_BIORXIV,
-            label="MOAlmanac (2021)",  # FIXME: Should this be something else?
+            label="MOAlmanac (2021)",
             isReportedIn=Document(
                 label="Reardon, B., Moore, N.D., Moore, N.S. et al.",
                 title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",  # noqa: E501
@@ -40,81 +46,82 @@ class Transform:
             )
         ).model_dump(exclude_none=True),
     ]
+    methods_mapping = {m["id"]: m for m in _methods}
 
-    _vicc_evidence_vocabs: List[ViccConceptVocab] = [
+    _vicc_concept_vocabs: List[ViccConceptVocab] = [
         ViccConceptVocab(
             id="vicc:e000000",
-            domain="Evidence",
+            domain="EvidenceStrength",
             term="evidence",
             parents=[],
             exact_mappings={EcoLevel.EVIDENCE},
             definition="A type of information that is used to support statements."),
         ViccConceptVocab(
             id="vicc:e000001",
-            domain="Evidence",
+            domain="EvidenceStrength",
             term="authoritative evidence",
             parents=["vicc:e000000"],
             exact_mappings={CivicEvidenceLevel.A},
             definition="Evidence derived from an authoritative source describing a proven or consensus statement."),  # noqa: E501
         ViccConceptVocab(
             id="vicc:e000002",
-            domain="Evidence",
+            domain="EvidenceStrength",
             term="FDA recognized evidence",
             parents=["vicc:e000001"],
             exact_mappings={MoaEvidenceLevel.FDA_APPROVED},
             definition="Evidence derived from statements recognized by the US Food and Drug Administration."),  # noqa: E501
         ViccConceptVocab(
             id="vicc:e000003",
-            domain="Evidence",
+            domain="EvidenceStrength",
             term="professional guideline evidence",
             parents=["vicc:e000001"],
             exact_mappings={MoaEvidenceLevel.GUIDELINE},
             definition="Evidence derived from statements by professional society guidelines"),  # noqa: E501
         ViccConceptVocab(
             id="vicc:e000004",
-            domain="Evidence",
+            domain="EvidenceStrength",
             term="clinical evidence",
             parents=["vicc:e000000"],
             exact_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
             definition="Evidence derived from clinical research studies"),
         ViccConceptVocab(
             id="vicc:e000005",
-            domain="Evidence",
+            domain="EvidenceStrength",
             term="clinical cohort evidence",
             parents=["vicc:e000004"],
             exact_mappings={CivicEvidenceLevel.B},
             definition="Evidence derived from the clinical study of a participant cohort"),  # noqa: E501
         ViccConceptVocab(
             id="vicc:e000006",
-            domain="Evidence",
+            domain="EvidenceStrength",
             term="interventional study evidence",
             parents=["vicc:e000005"],
             exact_mappings={MoaEvidenceLevel.CLINICAL_TRIAL},
             definition="Evidence derived from interventional studies of clinical cohorts (clinical trials)"),  # noqa: E501
         ViccConceptVocab(
             id="vicc:e000007",
-            domain="Evidence",
+            domain="EvidenceStrength",
             term="observational study evidence",
             parents=["vicc:e000005"],
             exact_mappings={MoaEvidenceLevel.CLINICAL_EVIDENCE},
             definition="Evidence derived from observational studies of clinical cohorts"),  # noqa: E501
         ViccConceptVocab(
             id="vicc:e000008",
-            domain="Evidence",
+            domain="EvidenceStrength",
             term="case study evidence",
             parents=["vicc:e000004"],
             exact_mappings={CivicEvidenceLevel.C},
             definition="Evidence derived from clinical study of a single participant"),
         ViccConceptVocab(
             id="vicc:e000009",
-            domain="Evidence",
+            domain="EvidenceStrength",
             term="preclinical evidence",
             parents=["vicc:e000000"],
             exact_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
             definition="Evidence derived from the study of model organisms"),
         ViccConceptVocab(
             id="vicc:e000010",
-            domain="Evidence",
+            domain="EvidenceStrength",
             term="inferential evidence",
             parents=["vicc:e000000"],
             exact_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
@@ -140,7 +147,7 @@ class Transform:
         else:
             self.vicc_normalizers = normalizers
 
-        self.statements = []
+        self.studies = []
         self.molecular_profiles = []
         self.variations = []
         self.genes = []
@@ -148,9 +155,15 @@ class Transform:
         self.diseases = []
         self.methods = []
         self.documents = []
+
+        # Cache for concepts that were unable to normalize. Set of MOA IDs
+        self.unable_to_normalize = {
+            "diseases": set(),
+            "therapeutics": set()
+        }
+
         self.next_node_id = {}
-        self.evidence_level_vicc_concept_mapping = self._evidence_level_to_vicc_concept_mapping()  # noqa: E501
-        self.methods_mapping = {m["id"]: m for m in self._methods}
+        self.evidence_level_to_vicc_concept_mapping = self._evidence_level_to_vicc_concept_mapping()  # noqa: E501
 
     async def transform(self, *args, **kwargs):
         """Transform harvested data to the Common Data Model."""
@@ -180,12 +193,13 @@ class Transform:
             return json.load(f)
 
     def _evidence_level_to_vicc_concept_mapping(self) -> Dict:
-        """Return source evidence level to vicc concept vocab mapping
+        """Get mapping of source evidence level to vicc concept vocab
 
-        :return: Dictionary of evidence level to coding concept
+        :return: Dictionary containing mapping from source evidence level (key)
+            to corresponding vicc concept vocab (value) represented as Coding object
         """
-        mappings = dict()
-        for item in self._vicc_evidence_vocabs:
+        mappings = {}
+        for item in self._vicc_concept_vocabs:
             for exact_mapping in item.exact_mappings:
                 mappings[exact_mapping] = core_models.Coding(
                     code=item.id.split(":")[-1],
@@ -207,7 +221,7 @@ class Transform:
         transform_dir.mkdir(exist_ok=True, parents=True)
 
         composite_dict = {
-            'statements': self.statements,
+            'studies': self.studies,
             'variations': self.variations,
             'molecular_profiles': self.molecular_profiles,
             'genes': self.genes,
