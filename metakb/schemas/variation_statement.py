@@ -1,5 +1,5 @@
 """Module containing variant statement definitions"""
-from enum import Enum
+from enum import StrEnum
 from typing import Literal, Optional, Union, List
 
 from ga4gh.core import core_models
@@ -13,7 +13,7 @@ from metakb.schemas.categorical_variation import CategoricalVariation
 # - [ ] extends: (for fields)
 
 
-class Penetrance(str, Enum):
+class Penetrance(StrEnum):
     """The extent to which the variant impact is expressed by individuals carrying it as
     a measure of the proportion of carriers exhibiting the condition.
     """
@@ -23,7 +23,7 @@ class Penetrance(str, Enum):
     RISK_ALLELE = "risk allele"
 
 
-class ModeOfInheritance(str, Enum):
+class ModeOfInheritance(StrEnum):
     """The pattern of inheritance expected for the pathogenic effect of this variant."""
 
     AUTOSOMAL_DOMINANT = "autosomal dominant"
@@ -33,7 +33,7 @@ class ModeOfInheritance(str, Enum):
     MITOCHONDRIAL = "mitochondrial"
 
 
-class Predicate(str, Enum):
+class Predicate(StrEnum):
     """Define constraints for predicate"""
 
     IS_ONCOGENIC_FOR = "isOncogenicFor"
@@ -41,7 +41,7 @@ class Predicate(str, Enum):
     IS_PREDISPOSING_FOR = "isPredisposingFor"
 
 
-class AlleleOrigin(str, Enum):
+class AlleleOrigin(StrEnum):
     """Whether the statement should be interpreted in the context of an inherited
     (germline) variant, an acquired (somatic) mutation, or both (combined).
     """
@@ -51,7 +51,7 @@ class AlleleOrigin(str, Enum):
     COMBINED = "combined"
 
 
-class AllelePrevalence(str, Enum):
+class AllelePrevalence(StrEnum):
     """Whether the statement should be interpreted in the context of the variant being
     rare or common.
     """
@@ -155,7 +155,7 @@ class VariantOncogenicityStudy(VariantStudySummary):
 
 
 # FIXME:
-class VariantTherapeuticResponseStudyPredicate(str, Enum):
+class VariantTherapeuticResponseStudyPredicate(StrEnum):
     """Predicate for Variant Therapeutic Response Study"""
 
     PREDICTS_SENSITIVITY_TO = "predictsSensitivityTo"

@@ -1,12 +1,12 @@
 """Module containing GK pilot annotation definitions"""
-from enum import Enum
+from enum import StrEnum
 from typing import Dict, List, Literal, Optional, Union
 
 from ga4gh.core import core_models
 from pydantic import Field, StrictInt, StrictStr, constr
 
 
-class AgentSubtype(str, Enum):
+class AgentSubtype(StrEnum):
     """Define constraints for agent subtype"""
 
     PERSON = "person"
@@ -14,7 +14,7 @@ class AgentSubtype(str, Enum):
     COMPUTER = "computer"
 
 
-class Direction(str, Enum):
+class Direction(StrEnum):
     """Define constraints for direction"""
 
     SUPPORTS = "supports"
