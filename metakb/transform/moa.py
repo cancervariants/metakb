@@ -11,7 +11,7 @@ from ga4gh.vrs import models
 from metakb import APP_ROOT   # noqa: I202
 from metakb.normalizers import VICCNormalizers
 from metakb.transform.base import Transform, MethodId, MoaEvidenceLevel
-from metakb.schemas.annotation import Document
+from metakb.schemas.annotation import Document, Direction
 from metakb.schemas.variation_statement import (
     AlleleOrigin,
     VariantTherapeuticResponseStudy,
@@ -147,6 +147,7 @@ class MOATransform(Transform):
             )
 
             statement = VariantTherapeuticResponseStudy(
+                direction=Direction.NONE,
                 id=assertion_id,
                 description=record["description"],
                 strength=strength,
