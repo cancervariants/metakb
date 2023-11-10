@@ -5,8 +5,10 @@ name = "pypi"
 
 [packages]
 "ga4gh.vrs" = "~=2.0.0a1"
-gene-normalizer = "~=0.3.0-dev1"
-disease-normalizer = "~=0.4.0.dev0"
+gene-normalizer = {version = "~=0.3.0-dev1", extras = ["etl"]}
+variation-normalizer = "~=0.8.0.dev0"
+disease-normalizer = {version = "~=0.4.0.dev0", extras = ["etl"]}
+thera-py = {version = "~=0.5.0.dev0", extras = ["etl"]}
 civicpy = "~=3.0.0"
 requests = "*"
 jsondiff = "*"
@@ -21,8 +23,6 @@ asyncclick = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
-thera-py = {editable = true, path = "cancervariants/therapy-normalization"}
-variation-normalizer = {editable = true, path = "cancervariants/variation-normalization-main"}
 mock = "*"
 pytest = "*"
 pre-commit = "*"
