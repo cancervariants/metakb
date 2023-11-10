@@ -6,11 +6,8 @@ from ga4gh.core import core_models
 from ga4gh.vrs import models
 from pydantic import BaseModel, Field
 
-from metakb.schemas.annotation import Document, Statement
+from metakb.schemas.annotation import Document, _StatementBase
 from metakb.schemas.categorical_variation import CategoricalVariation
-
-# TODO:
-# - [ ] extends: (for fields)
 
 
 class Penetrance(StrEnum):
@@ -33,8 +30,8 @@ class ModeOfInheritance(StrEnum):
     MITOCHONDRIAL = "mitochondrial"
 
 
-class Predicate(StrEnum):
-    """Define constraints for predicate"""
+class VariantOncogenicityStudyPredicate(StrEnum):
+    """Define constraints for Variant Oncogenicity Study predicate"""
 
     IS_ONCOGENIC_FOR = "isOncogenicFor"
     IS_PROTECTIVE_FOR = "isProtectiveFor"
@@ -60,10 +57,10 @@ class AllelePrevalence(StrEnum):
     COMMON = "common"
 
 
-class VariantStatement(Statement):
+class VariantStatement(_StatementBase):
     """A `Statement` describing the impact of a variant."""
 
-    subject: None = None
+    # extends subject
     variant: Optional[
         Union[models.Variation, CategoricalVariation, core_models.IRI]
     ] = Field(
@@ -76,23 +73,23 @@ class VariantClassification(VariantStatement):
 
     classification: Union[core_models.Coding, core_models.IRI] = Field(
         ...,
-        description="A methodological, summary classification about the impact of a variant.",
+        description="A methodological, summary classification about the impact of a variant.",  # noqa: E501
     )
 
 
-class Qualifier(BaseModel):
-    """Qualifier"""
+class VariantPathogenicityQualifier(BaseModel):
+    """VariantPathogenicity Qualifier"""
 
-    penetrance: Penetrance = Field(
-        ...,
-        description="The extent to which the variant impact is expressed by individuals carrying it as a measure of the proportion of carriers exhibiting the condition.",
+    penetrance: Optional[Penetrance] = Field(
+        None,
+        description="The extent to which the variant impact is expressed by individuals carrying it as a measure of the proportion of carriers exhibiting the condition.",  # noqa: E501
     )
-    modeOfInheritance: ModeOfInheritance = Field(
-        ...,
-        description="The pattern of inheritance expected for the pathogenic effect of this variant.",
+    modeOfInheritance: Optional[ModeOfInheritance] = Field(
+        None,
+        description="The pattern of inheritance expected for the pathogenic effect of this variant.",  # noqa: E501
     )
-    geneContext: core_models.Gene = Field(
-        ..., description="A gene context that qualifies the Statement."
+    geneContext: Optional[core_models.Gene] = Field(
+        None, description="A gene context that qualifies the Statement."
     )
 
 
@@ -104,12 +101,14 @@ class VariantPathogenicity(VariantClassification):
     type: Literal["VariantPathogenicity"] = Field(
         "VariantPathogenicity", description="MUST be 'VariantPathogenicity'."
     )
-    predicate: Literal["isCausalFor"] = "isCausalFor"
-    object: None = None
+    # extends predicate
+    predicate: Optional[Literal["isCausalFor"]] = None
+    # extends object
     condition: Union[core_models.Condition, core_models.IRI] = Field(
         ..., description="The `Condition` for which the variant impact is stated."
     )
-    qualifiers: Optional[Qualifier] = None
+    # extends qualifiers
+    qualifiers: Optional[VariantPathogenicityQualifier] = None
 
 
 class VariantStudySummary(VariantStatement):
@@ -117,8 +116,9 @@ class VariantStudySummary(VariantStatement):
     studies.
     """
 
+    # extends isReportedIn
     isReportedIn: List[Union[Document, core_models.IRI]] = Field(
-        None,
+        ...,
         description="A document in which the information content is expressed.",
         min_items=1,
     )
@@ -129,15 +129,14 @@ class VariantOncogenicityStudyQualifier(BaseModel):
 
     alleleOrigin: Optional[AlleleOrigin] = Field(
         None,
-        description="Whether the statement should be interpreted in the context of an inherited (germline) variant, an acquired (somatic) mutation, or both (combined).",
+        description="Whether the statement should be interpreted in the context of an inherited (germline) variant, an acquired (somatic) mutation, or both (combined).",  # noqa: E501
     )
     allelePrevalence: Optional[AllelePrevalence] = Field(
         None,
-        description="Whether the statement should be interpreted in the context of the variant being rare or common.",
+        description="Whether the statement should be interpreted in the context of the variant being rare or common.",  # noqa: E501
     )
     geneContext: Optional[core_models.Gene] = Field(
-        None,
-        description="A gene context that qualifies the Statement."
+        None, description="A gene context that qualifies the Statement."
     )
 
 
@@ -147,14 +146,16 @@ class VariantOncogenicityStudy(VariantStudySummary):
     """
 
     type: Literal["VariantOncogenicity"] = "VariantOncogenicity"
-    predicate: Predicate
-    object: None = None
+    # extends predicate
+    predicate: VariantOncogenicityStudyPredicate
+    # extends object
     tumorType: Union[core_models.Condition, core_models.IRI] = Field(
         ..., description="The tumor type for which the variant impact is evaluated."
     )
+    # extends qualifiers
+    qualifiers: Optional[VariantOncogenicityStudyQualifier] = None
 
 
-# FIXME:
 class VariantTherapeuticResponseStudyPredicate(StrEnum):
     """Predicate for Variant Therapeutic Response Study"""
 
@@ -171,14 +172,16 @@ class VariantTherapeuticResponseStudy(VariantStudySummary):
         "VariantTherapeuticResponseStudy",
         description="MUST be 'VariantTherapeuticResponseStudy'.",
     )
+    # extends predicate
     predicate: VariantTherapeuticResponseStudyPredicate
-    object: None = None
+    # extends object
     therapeutic: Union[core_models.TherapeuticProcedure, core_models.IRI] = Field(
         ...,
-        description="A drug administration or other therapeutic procedure that the neoplasm is intended to respond to.",
+        description="A drug administration or other therapeutic procedure that the neoplasm is intended to respond to.",  # noqa: E501
     )
     tumorType: Union[core_models.Condition, core_models.IRI] = Field(
         ...,
         description="The tumor type context in which the variant impact is evaluated.",
     )
+    # extends qualifiers
     qualifiers: Optional[VariantOncogenicityStudyQualifier] = None

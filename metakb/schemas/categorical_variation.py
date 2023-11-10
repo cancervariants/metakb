@@ -20,7 +20,7 @@ class LocationMatchCharacteristic(StrEnum):
     EXACT = "exact"
     PARTIAL = "partial"
     SUBINTERVAL = "subinterval"
-    SUPERINTEVERAL = "superinteveral"
+    SUPERINTERVAL = "superinterval"
 
 
 class _CategoricalVariationBase(core_models._DomainEntity):
@@ -28,7 +28,7 @@ class _CategoricalVariationBase(core_models._DomainEntity):
 
     members: Optional[List[Union[models.Variation, core_models.IRI]]] = Field(
         None,
-        description="A non-exhaustive list of VRS variation contexts that satisfy the constraints of this categorical variant.",
+        description="A non-exhaustive list of VRS variation contexts that satisfy the constraints of this categorical variant.",  # noqa: E501
     )
 
 
@@ -48,7 +48,7 @@ class ProteinSequenceConsequence(_CategoricalVariationBase):
     )
     definingContext: Union[models.Allele, core_models.IRI] = Field(
         ...,
-        description="The `VRS Allele <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#allele>`_  object that is congruent with (projects to the same codons) as alleles on other protein reference sequences.",
+        description="The `VRS Allele <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#allele>`_  object that is congruent with (projects to the same codons) as alleles on other protein reference sequences.",  # noqa: E501
     )
 
 
@@ -66,7 +66,7 @@ class CanonicalAllele(_CategoricalVariationBase):
     )
     definingContext: Union[models.Allele, core_models.IRI] = Field(
         ...,
-        description="The `VRS Allele <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#allele>`_ object that is congruent with variants on alternate reference sequences.",
+        description="The `VRS Allele <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#allele>`_ object that is congruent with variants on alternate reference sequences.",  # noqa: E501
     )
 
 
@@ -85,15 +85,15 @@ class CategoricalCnv(_CategoricalVariationBase):
     )
     location: models.Location = Field(
         ...,
-        description="A `VRS Location <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#location>`_ object that represents a sequence derived from that location, and is congruent with locations on alternate reference sequences.",
+        description="A `VRS Location <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#location>`_ object that represents a sequence derived from that location, and is congruent with locations on alternate reference sequences.",  # noqa: E501
     )
     locationMatchCharacteristic: Optional[LocationMatchCharacteristic] = Field(
         None,
-        description="The characteristics of a valid match between a contextual CNV location (the query) and the Categorical CNV location (the domain), when both query and domain are represented on the same reference sequence. An `exact` match requires the location of the query and domain to be identical. A `subinterval` match requires the query to be a subinterval of the domain. A `superinterval` match requires the query to be a superinterval of the domain. A `partial` match requires at least 1 residue of overlap between the query and domain.",
+        description="The characteristics of a valid match between a contextual CNV location (the query) and the Categorical CNV location (the domain), when both query and domain are represented on the same reference sequence. An `exact` match requires the location of the query and domain to be identical. A `subinterval` match requires the query to be a subinterval of the domain. A `superinterval` match requires the query to be a superinterval of the domain. A `partial` match requires at least 1 residue of overlap between the query and domain.",  # noqa: E501
     )
     copyChange: Optional[models.CopyChange] = Field(
         None,
-        description="A representation of the change in copies of a sequence in a system. MUST be one of 'efo:0030069' (complete genomic loss), 'efo:0020073' (high-level loss), 'efo:0030068' (low-level loss), 'efo:0030067' (loss), 'efo:0030064' (regional base ploidy), 'efo:0030070' (gain), 'efo:0030071' (low-level gain), 'efo:0030072' (high-level gain).",
+        description="A representation of the change in copies of a sequence in a system. MUST be one of 'efo:0030069' (complete genomic loss), 'efo:0020073' (high-level loss), 'efo:0030068' (low-level loss), 'efo:0030067' (loss), 'efo:0030064' (regional base ploidy), 'efo:0030070' (gain), 'efo:0030071' (low-level gain), 'efo:0030072' (high-level gain).",  # noqa: E501
     )
     copies: Optional[Union[int, models.Range]] = Field(
         None, description="The integral number of copies of the subject in a system."
@@ -113,11 +113,11 @@ class DescribedVariation(_CategoricalVariationBase):
     )
     label: StrictStr = Field(
         ...,
-        description="A primary label for the categorical variation. This required property should provide a short and descriptive textual representation of the concept.",
+        description="A primary label for the categorical variation. This required property should provide a short and descriptive textual representation of the concept.",  # noqa: E501
     )
-    description: StrictStr = Field(
+    description: Optional[StrictStr] = Field(
         None,
-        description="A textual description of the domain of variation that should match the categorical variation entity.",
+        description="A textual description of the domain of variation that should match the categorical variation entity.",  # noqa: E501
     )
 
 
@@ -130,6 +130,6 @@ class CategoricalVariation(RootModel):
         CanonicalAllele, CategoricalCnv, DescribedVariation, ProteinSequenceConsequence
     ] = Field(
         ...,
-        description="A representation of a categorically-defined domain for variation, in which individual contextual variation instances may be members of the domain.",
+        description="A representation of a categorically-defined domain for variation, in which individual contextual variation instances may be members of the domain.",  # noqa: E501
         discriminator="type",
     )
