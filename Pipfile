@@ -12,7 +12,7 @@ thera-py = {version = "~=0.5.0.dev0", extras = ["etl"]}
 civicpy = "~=3.0.0"
 requests = "*"
 jsondiff = "*"
-pydantic = "==2.*"
+pydantic = "~=2.1"
 requests-cache = "*"
 neo4j = "*"
 uvicorn = "*"

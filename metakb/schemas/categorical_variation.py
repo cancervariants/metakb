@@ -130,6 +130,8 @@ class CategoricalVariation(RootModel):
         CanonicalAllele, CategoricalCnv, DescribedVariation, ProteinSequenceConsequence
     ] = Field(
         ...,
-        description="A representation of a categorically-defined domain for variation, in which individual contextual variation instances may be members of the domain.",  # noqa: E501
+        json_schema_extra={
+            "description": "A representation of a categorically-defined domain for variation, in which individual contextual variation instances may be members of the domain.",  # noqa: E501
+        },
         discriminator="type",
     )

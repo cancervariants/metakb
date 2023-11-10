@@ -31,7 +31,9 @@ class Document(core_models._MappableEntity):
     url: Optional[constr(pattern=r"^(https?|s?ftp)://")] = Field(  # noqa: F722
         None, description="A URL at which the document may be retrieved."
     )
-    doi: Optional[constr(pattern=r"^10.(\d+)(\.\d+)*\/[\w\-\.]+")] = Field(  # noqa: F722, E501
+    doi: Optional[
+        constr(pattern=r"^10.(\d+)(\.\d+)*\/[\w\-\.]+")  # noqa: F722
+    ] = Field(
         None,
         description="A `Digital Object Identifier <https://www.doi.org/the-identifier/what-is-a-doi/>_` for the document.",  # noqa: E501
     )
