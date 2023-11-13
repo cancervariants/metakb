@@ -57,7 +57,14 @@ class AllelePrevalence(StrEnum):
     COMMON = "common"
 
 
-class VariantStatement(_StatementBase):
+class VariantTherapeuticResponseStudyPredicate(StrEnum):
+    """Predicate for Variant Therapeutic Response Study"""
+
+    PREDICTS_SENSITIVITY_TO = "predictsSensitivityTo"
+    PREDICTS_RESISTANCE_TO = "predictsResistanceTo"
+
+
+class _VariantStatement(_StatementBase):
     """A `Statement` describing the impact of a variant."""
 
     # extends subject
@@ -68,7 +75,7 @@ class VariantStatement(_StatementBase):
     )
 
 
-class VariantClassification(VariantStatement):
+class _VariantClassification(_VariantStatement):
     """A `VariantStatement` classifying the impact of a variant."""
 
     classification: Union[core_models.Coding, core_models.IRI] = Field(
@@ -93,7 +100,7 @@ class VariantPathogenicityQualifier(BaseModel):
     )
 
 
-class VariantPathogenicity(VariantClassification):
+class VariantPathogenicity(_VariantClassification):
     """A `VariantClassification` describing the role of a variant in causing an
     inherited disorder.
     """
@@ -111,7 +118,7 @@ class VariantPathogenicity(VariantClassification):
     qualifiers: Optional[VariantPathogenicityQualifier] = None
 
 
-class VariantStudySummary(VariantStatement):
+class _VariantStudySummary(_VariantStatement):
     """A `Statement` summarizing evidence about the impact of a variant from one or more
     studies.
     """
@@ -124,7 +131,7 @@ class VariantStudySummary(VariantStatement):
     )
 
 
-class VariantOncogenicityStudyQualifier(BaseModel):
+class _VariantOncogenicityStudyQualifier(BaseModel):
     """Qualifier for Variant Oncogenicity Study"""
 
     alleleOrigin: Optional[AlleleOrigin] = Field(
@@ -140,7 +147,7 @@ class VariantOncogenicityStudyQualifier(BaseModel):
     )
 
 
-class VariantOncogenicityStudy(VariantStudySummary):
+class VariantOncogenicityStudy(_VariantStudySummary):
     """A study summarization supporting or refuting the effect of variation on
     oncogenesis of a tumor type.
     """
@@ -153,17 +160,10 @@ class VariantOncogenicityStudy(VariantStudySummary):
         ..., description="The tumor type for which the variant impact is evaluated."
     )
     # extends qualifiers
-    qualifiers: Optional[VariantOncogenicityStudyQualifier] = None
+    qualifiers: Optional[_VariantOncogenicityStudyQualifier] = None
 
 
-class VariantTherapeuticResponseStudyPredicate(StrEnum):
-    """Predicate for Variant Therapeutic Response Study"""
-
-    PREDICTS_SENSITIVITY_TO = "predictsSensitivityTo"
-    PREDICTS_RESISTANCE_TO = "predictsResistanceTo"
-
-
-class VariantTherapeuticResponseStudy(VariantStudySummary):
+class VariantTherapeuticResponseStudy(_VariantStudySummary):
     """A study summarization describing the role of a variation in modulating the
     response of a neoplasm to drug administration or other therapeutic procedure.
     """
@@ -184,4 +184,4 @@ class VariantTherapeuticResponseStudy(VariantStudySummary):
         description="The tumor type context in which the variant impact is evaluated.",
     )
     # extends qualifiers
-    qualifiers: Optional[VariantOncogenicityStudyQualifier] = None
+    qualifiers: Optional[_VariantOncogenicityStudyQualifier] = None

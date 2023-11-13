@@ -98,7 +98,7 @@ class Contribution(core_models._Entity):
         return v
 
 
-class InformationEntity(core_models._Entity):
+class _InformationEntity(core_models._Entity):
     """InformationEntities are abstract (non-physical) entities that are about something
     (i.e. they carry information about things in the real world).
     """
@@ -115,7 +115,7 @@ class InformationEntity(core_models._Entity):
     # recordMetadata (might be added in the future)
 
 
-class DataItem(InformationEntity):
+class DataItem(_InformationEntity):
     """An InformationEntity representing an individual piece of data, generated/acquired
     through methods which reliably produce truthful information about something.
     """
@@ -129,7 +129,7 @@ class DataItem(InformationEntity):
     unit: Optional[core_models.Coding] = None
 
 
-class _StatementBase(InformationEntity):
+class _StatementBase(_InformationEntity):
     """Base class for Statement model. Excludes fields that get extended with a
     different name in child classes (subject, object, qualifiers)
     """
@@ -146,7 +146,7 @@ class _StatementBase(InformationEntity):
     )
 
 
-class Statement(_StatementBase):
+class _Statement(_StatementBase):
     """A Statement (aka `Assertion`) represents a claim of purported truth as made by a
     particular agent, on a particular occasion.
     """

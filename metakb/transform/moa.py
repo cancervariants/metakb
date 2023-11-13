@@ -16,7 +16,7 @@ from metakb.schemas.variation_statement import (
     AlleleOrigin,
     VariantTherapeuticResponseStudy,
     VariantTherapeuticResponseStudyPredicate,
-    VariantOncogenicityStudyQualifier
+    _VariantOncogenicityStudyQualifier
 )
 from metakb.schemas.categorical_variation import ProteinSequenceConsequence
 
@@ -163,7 +163,7 @@ class MOATransform(Transform):
 
     def _get_variant_onco_study_qualifier(
         self, feature_type: str, gene: Optional[core_models.Gene] = None
-    ) -> Optional[VariantOncogenicityStudyQualifier]:
+    ) -> Optional[_VariantOncogenicityStudyQualifier]:
         """Get Variant Oncogenicity Study Qualifier
 
         :param feature_type: MOA feature type
@@ -179,7 +179,7 @@ class MOATransform(Transform):
             allele_origin = None
 
         if allele_origin or gene:
-            qualifier = VariantOncogenicityStudyQualifier(
+            qualifier = _VariantOncogenicityStudyQualifier(
                 alleleOrigin=allele_origin,
                 geneContext=gene
             )

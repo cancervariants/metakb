@@ -17,7 +17,7 @@ from metakb.schemas.variation_statement import (
     AlleleOrigin,
     VariantTherapeuticResponseStudy,
     VariantTherapeuticResponseStudyPredicate,
-    VariantOncogenicityStudyQualifier
+    _VariantOncogenicityStudyQualifier
 )
 from metakb.schemas.categorical_variation import ProteinSequenceConsequence
 
@@ -242,7 +242,7 @@ class CIViCTransform(Transform):
         self,
         variant_origin: str,
         gene: Optional[core_models.Gene] = None
-    ) -> Optional[VariantOncogenicityStudyQualifier]:
+    ) -> Optional[_VariantOncogenicityStudyQualifier]:
         """Get Variant Oncogenicity Study Qualifier
 
         :param variant_origin: CIViC evidence item's variant origin
@@ -259,7 +259,7 @@ class CIViCTransform(Transform):
             allele_origin = None
 
         if allele_origin or gene:
-            qualifier = VariantOncogenicityStudyQualifier(
+            qualifier = _VariantOncogenicityStudyQualifier(
                 alleleOrigin=allele_origin,
                 geneContext=gene
             )
