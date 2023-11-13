@@ -395,6 +395,8 @@ class CIViCTransform(Transform):
 
         :param variant_name: Variant name in CIViC
         :param variant_id: CIViC Variant ID
+        :return: `True` if the variant_name is supported in the variation-normalizer.
+            `False` otherwise
         """
         # Will remove as more get implemented in variation normalizer
         # Filtering to speed up transformation
