@@ -20,10 +20,12 @@ logger = logging.getLogger(__name__)
 class VICCNormalizers:
     """A class for normalizing terms using VICC normalizers."""
 
-    def __init__(self):
-        """Initialize the VICC Normalizers."""
+    def __init__(self) -> None:
+        """Initialize the VICC normalizers query handler instances."""
         self.gene_query_handler = GeneQueryHandler(create_gene_db())
-        self.variation_normalizer = VariationQueryHandler()
+        self.variation_normalizer = VariationQueryHandler(
+            gene_query_handler=self.gene_query_handler
+        )
         self.disease_query_handler = DiseaseQueryHandler(create_disease_db())
         self.therapy_query_handler = TherapyQueryHandler()
 
