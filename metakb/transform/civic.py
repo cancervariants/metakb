@@ -81,9 +81,9 @@ class CIViCTransform(Transform):
         self.methods = [self.methods_mapping[MethodId.CIVIC_EID_SOP.value]]
 
         # Cache for normalized concepts. The key is the concept type and value is a
-        # dictionary of mappings from CIViC ID (key) to transformed concept (value)
+        # dictionary of mappings from CIViC concept (key) to transformed concept (value)
         self.able_to_normalize = {
-            "variations": {},
+            "variations": {},  # will store _VariationCache data
             "molecular_profiles": {},
             "diseases": {},
             "therapeutics": {},
@@ -118,7 +118,9 @@ class CIViCTransform(Transform):
         return supported_mps, mp_id_to_v_id
 
     async def transform(self) -> None:
-        """Transform CIViC harvested json to common data model."""
+        """Transform CIViC harvested json to common data model. Will store transformed
+        results in instance variables.
+        """
         data = self.extract_harvester()
         evidence_items = data['evidence']
 
@@ -137,7 +139,8 @@ class CIViCTransform(Transform):
         vids = {mp_id_to_v_id_mapping[e["molecular_profile_id"]]
                 for e in evidence_items if e["molecular_profile_id"]}
 
-        # Add variant and gene data (mutates `variations` and `genes`)
+        # Add variant (only supported) and gene (all) data
+        # (mutates `variations` and `genes`)
         variants = data["variants"]
         variants = [v for v in variants if v["id"] in vids]
         await self._add_variations(variants)
@@ -152,6 +155,8 @@ class CIViCTransform(Transform):
             if f"civic.vid:{mp['variant_ids'][0]}" in able_to_normalize_vids
         ]
         self._add_protein_consequences(mps, mp_id_to_v_id_mapping)
+
+        # Add variant therapeutic response study data. Will update `studies`
         self._add_variant_therapeutic_response_studies(
             evidence_items,
             mp_id_to_v_id_mapping

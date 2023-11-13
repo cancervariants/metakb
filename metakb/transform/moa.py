@@ -46,8 +46,7 @@ class MOATransform(Transform):
         self.methods = [self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]]
 
         # Cache for normalized concepts. The key is the concept type and value is a
-        # dictionary of mappings from MOA ID or label if no ID exists (key) to
-        # transformed concept (value)
+        # dictionary of mappings from MOA concept (key) to transformed concept (value)
         self.able_to_normalize = {
             "variations": {},
             "diseases": {},
@@ -68,7 +67,7 @@ class MOATransform(Transform):
         await self._add_protein_consequences(data["variants"])
         self._add_documents(data["sources"])
 
-        # Add variant therapeutic response study data
+        # Add variant therapeutic response study data. Will update `studies`
         await self._add_variant_therapeutic_response_studies(data["assertions"])
 
     async def _add_variant_therapeutic_response_studies(
