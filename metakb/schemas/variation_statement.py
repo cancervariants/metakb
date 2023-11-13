@@ -68,10 +68,8 @@ class _VariantStatement(_StatementBase):
     """A `Statement` describing the impact of a variant."""
 
     # extends subject
-    variant: Optional[
-        Union[models.Variation, CategoricalVariation, core_models.IRI]
-    ] = Field(
-        None, description="A variation object that is the subject of the Statement."
+    variant: Union[models.Variation, CategoricalVariation, core_models.IRI] = Field(
+        ..., description="A variation object that is the subject of the Statement."
     )
 
 
