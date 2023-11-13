@@ -103,6 +103,7 @@ class _InformationEntity(core_models._Entity):
     (i.e. they carry information about things in the real world).
     """
 
+    id: StrictStr
     type: StrictStr
     specifiedBy: Optional[Union[Method, core_models.IRI]] = Field(
         None,
