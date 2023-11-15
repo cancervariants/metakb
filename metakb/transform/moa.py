@@ -1,436 +1,489 @@
 """A module to convert MOA resources to common data model"""
-from typing import Optional
+from pathlib import Path
+from typing import Optional, List, Dict
 import logging
 from urllib.parse import quote
+import json
 
-from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor,\
-    Extension, GeneDescriptor, ValueObjectDescriptor
+from ga4gh.core import core_models, sha512t24u
+from ga4gh.vrs import models
 
-import metakb.schemas as schemas
-from metakb.transform.base import Transform
+from metakb import APP_ROOT   # noqa: I202
+from metakb.normalizers import VICCNormalizers
+from metakb.transform.base import Transform, MethodId, MoaEvidenceLevel
+from metakb.schemas.annotation import Document, Direction
+from metakb.schemas.variation_statement import (
+    AlleleOrigin,
+    VariantTherapeuticResponseStudy,
+    VariantTherapeuticResponseStudyPredicate,
+    _VariantOncogenicityStudyQualifier
+)
+from metakb.schemas.categorical_variation import ProteinSequenceConsequence
 
-logger = logging.getLogger('metakb.transform.moa')
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class MOATransform(Transform):
     """A class for transforming MOA resources to common data model."""
 
-    async def transform(self):
-        """Transform MOA harvested JSON to common date model.
-        Saves output in MOA transform directory.
+    def __init__(self,
+                 data_dir: Path = APP_ROOT / "data",
+                 harvester_path: Optional[Path] = None,
+                 normalizers: Optional[VICCNormalizers] = None) -> None:
+        """Initialize MOAlmanac Transform class.
+
+        :param data_dir: Path to source data directory
+        :param harvester_path: Path to previously harvested MOA data
+        :param normalizers: normalizer collection instance
         """
-        data = self.extract_harvester()
-        cdm_assertions = {}  # assertions that have been transformed to CDM
+        super().__init__(
+            data_dir=data_dir,
+            harvester_path=harvester_path,
+            normalizers=normalizers
+        )
 
-        assertions = data['assertions']
-        sources = data['sources']
-        variants = data['variants']
+        # Method will always be the same
+        self.methods = [self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]]
 
-        # Transform MOA assertions
-        await self._transform_statements(assertions, variants, sources,
-                                         cdm_assertions)
-
-    async def _transform_statements(self, records, variants, sources,
-                                    cdm_assertions):
-        """Add transformed assertions to the response list.
-
-        :param: A list of MOA assertion records
-        :param: A dict of MOA variant records
-        :param: A dict of MOA source records
-        :param: Keeps track of proposition and support_evidence indexes
-        :param: A dict containing assertions that have been
-            transformed to the CDM
-        """
-        for record in records:
-            gene_descriptors = self._get_gene_descriptors(
-                self._get_record(record['variant']['id'], variants))
-            descriptors = \
-                await self._get_descriptors(record, variants, gene_descriptors)
-            if not descriptors:
-                continue
-            else:
-                therapy_descriptors, variation_descriptors, disease_descriptors = descriptors  # noqa: E501
-
-            propositions = \
-                self._get_tr_propositions(record, variation_descriptors,
-                                          disease_descriptors,
-                                          therapy_descriptors)
-
-            # We only want therapeutic response for now
-            if not propositions:
-                continue
-
-            documents = self._get_documents(
-                self._get_record(record['source_ids'], sources))
-
-            methods = self._get_method()
-            statements = self._get_statement(record, propositions,
-                                             variation_descriptors,
-                                             therapy_descriptors,
-                                             disease_descriptors,
-                                             methods, documents)
-
-            response = schemas.Response(
-                statements=statements,
-                propositions=propositions,
-                variation_descriptors=variation_descriptors,
-                gene_descriptors=gene_descriptors,
-                therapy_descriptors=therapy_descriptors,
-                disease_descriptors=disease_descriptors,
-                methods=methods,
-                documents=documents
-            ).dict(by_alias=True, exclude_none=True)
-
-            cdm_assertions[f"moa:assertion_{record['id']}"] = response
-
-            for field in ['statements', 'propositions',
-                          'variation_descriptors', 'gene_descriptors',
-                          'therapy_descriptors', 'disease_descriptors',
-                          'methods', 'documents']:
-                attr = getattr(self, field)
-                var = response[field]
-                for el in var:
-                    if el not in attr:
-                        attr.append(el)
-
-    async def _get_descriptors(self, record, variants, gene_descriptors):
-        """Return tuple of descriptors if one exists for each type.
-
-        :param: A MOA assertion record
-        :param: MOA variant records
-        :param: The corresponding gene descriptors
-        :return: a tuple Descriptors
-        """
-        therapy_descriptors = self._get_therapy_descriptors(record)
-        len_td = len(therapy_descriptors)
-        if len_td != 1:
-            logger.warning(f"Expected 1 therapy_descriptor for"
-                           f" {record['therapy_name']} but found {len_td}")
-            return None
-
-        variation_descriptors = await self._get_variation_descriptors(
-            self._get_record(record['variant']['id'], variants),
-            gene_descriptors)
-        len_vd = len(variation_descriptors)
-        if len_vd != 1:
-            logger.warning(f"Expected 1 variation descriptor for"
-                           f" {record['variant']} but found {len_vd}")
-            return None
-
-        disease_descriptors = self._get_disease_descriptors(record)
-        len_dd = len(disease_descriptors)
-        if len_dd != 1:
-            logger.warning(f"Expected 1 disease descriptor for"
-                           f" {record['disease']} but found {len_dd}")
-            return None
-
-        return therapy_descriptors, variation_descriptors, disease_descriptors
-
-    def _get_statement(self, record, propositions, variant_descriptors,
-                       therapy_descriptors, disease_descriptors,
-                       methods, documents):
-        """Get a statement for an assertion.
-
-        :param dict record: A MOA assertion record
-        :param list propositions: Propositions for the record
-        :param list variant_descriptors: Variant Descriptors for the record
-        :param list therapy_descriptors: Therapy Descriptors for the record
-        :param list disease_descriptors: Disease Descriptors for the record
-        :param list methods: Assertion methods for the record
-        :param list documents: Supporting evidence for the rcord
-        :return: A list of statement
-        """
-        evidence_level = record['predictive_implication'].strip().replace(' ', '_')  # noqa: E501
-
-        statement = schemas.Statement(
-            id=f"{schemas.SourceName.MOA.value}.assertion:{record['id']}",
-            description=record['description'],
-            evidence_level=f"moa.evidence_level:"
-                           f"{evidence_level}",
-            proposition=propositions[0]['id'],
-            variation_origin=self._get_variation_origin(record['variant']),
-            variation_descriptor=variant_descriptors[0]['id'],
-            therapy_descriptor=therapy_descriptors[0]['id'],
-            disease_descriptor=disease_descriptors[0]['id'],
-            method=methods[0]['id'],
-            supported_by=[se['id'] for se in documents]
-        ).dict(exclude_none=True)
-
-        return [statement]
-
-    def _get_tr_propositions(self, record, variation_descriptors,
-                             disease_descriptors, therapy_descriptors):
-        """Return a list of propositions.
-
-        :param: MOA assertion
-        :param: A list of Variation Descriptors
-        :param: A list of Disease Descriptors
-        :param: A list of therapy_descriptors
-        :return: A list of therapeutic propositions.
-        """
-        predicate = self._get_predicate(record['clinical_significance'])
-
-        # Don't support TR that has  `None`, 'N/A', or 'Unknown' predicate
-        if not predicate:
-            return []
-
-        params = {
-            'id': '',
-            'type': schemas.PropositionType.PREDICTIVE,
-            'predicate': predicate,
-            'subject': variation_descriptors[0]['variation_id'],
-            'object_qualifier': disease_descriptors[0]['disease_id'],
-            'object': therapy_descriptors[0]['therapy_id']
+        # Cache for normalized concepts. The key is the concept type and value is a
+        # dictionary of mappings from MOA concept (key) to transformed concept (value)
+        self.able_to_normalize = {
+            "variations": {},
+            "diseases": {},
+            "therapeutics": {},
+            "genes": {},
+            "documents": {}
         }
 
-        # Get corresponding id for proposition
-        params["id"] = self._get_proposition_id(
-            params["type"],
-            params["predicate"],
-            variation_ids=[params["subject"]],
-            disease_ids=[params["object_qualifier"]],
-            therapy_ids=[params["object"]]
-        )
-        proposition = schemas.TherapeuticResponseProposition(
-            **params).dict(exclude_none=True)
-        return [proposition]
-
-    def _get_predicate(self,
-                       clin_sig) -> Optional[schemas.PredictivePredicate]:
-        """Get the predicate of this record
-
-        :param: clinical significance of the assertion
-        :return: predicate if valid, None otherwise
+    async def transform(self) -> None:
+        """Transform MOA harvested JSON to common data model. Will store transformed
+        results in instance variables.
         """
-        if not clin_sig:
-            return None
-        try:
-            return schemas.PredictivePredicate[clin_sig.upper()]
-        except KeyError:
-            return None
+        data = self.extract_harvester()
 
-    def _get_variation_origin(self, variant):
-        """Return variant origin.
+        # Add gene, variant, and source data to instance variables (`genes`,
+        # `variations`, and `documents`)
+        self._add_genes(data["genes"])
+        await self._add_protein_consequences(data["variants"])
+        self._add_documents(data["sources"])
 
-        :param: A MOA variant record
-        :return: A str representation of variation origin
+        # Add variant therapeutic response study data. Will update `studies`
+        await self._add_variant_therapeutic_response_studies(data["assertions"])
+
+    async def _add_variant_therapeutic_response_studies(
+        self,
+        assertions: List[Dict]
+    ) -> None:
+        """Create Variant Therapeutic Response Studies from MOA assertions.
+        Will add associated values to instances variables (`therapeutics`, `diseases`,
+        and `studies`). `able_to_normalize` and `unable_to_normalize` will also be
+        mutated for associated therapeutics and diseases.
+
+        :param assertions: A list of MOA assertion records
         """
-        if variant['feature_type'] == 'somatic_variant':
-            origin = schemas.VariationOrigin.SOMATIC.value
-        elif variant['feature_type'] == 'germline_variant':
-            origin = schemas.VariationOrigin.GERMLINE.value
-        else:
-            origin = None
+        for record in assertions:
+            assertion_id = f"moa.assertion:{record['id']}"
+            variant_id = record["variant"]["id"]
 
-        return origin
+            # Check cache for variation record (which contains gene information)
+            variation_gene_map = self.able_to_normalize["variations"].get(variant_id)
+            if not variation_gene_map:
+                logger.debug(
+                    f"{assertion_id} has no variation for variant_id {variant_id}"
+                )
+                continue
 
-    async def _get_variation_descriptors(self, variant, g_descriptors):
-        """Add variation descriptor to therapeutic response
+            # Get predicate. We only support therapeutic resistance/sensitivity
+            if record["clinical_significance"] == "resistance":
+                predicate = VariantTherapeuticResponseStudyPredicate.PREDICTS_RESISTANCE_TO  # noqa: E501
+            elif record["clinical_significance"] == "sensitivity":
+                predicate = VariantTherapeuticResponseStudyPredicate.PREDICTS_SENSITIVITY_TO  # noqa: E501
+            else:
+                logger.debug(
+                    "clinical_significance not supported: "
+                    f"{record['clinical_significance']}"
+                )
+                continue
 
-        :param: single assertion record from MOA
-        :return: list of variation descriptor
-        """
-        vrs_ref_allele_seq = variant['protein_change'][2] \
-            if 'protein_change' in variant and variant['protein_change'] else None  # noqa: E501
+            # Get strength
+            predictive_implication = record["predictive_implication"].strip().replace(" ", "_").replace("-", "_").upper()  # noqa: E501
+            moa_evidence_level = MoaEvidenceLevel[predictive_implication]
+            strength = self.evidence_level_to_vicc_concept_mapping[moa_evidence_level]
 
-        variation_descriptor = None
-        # For now, the normalizer only support a.a substitution
-        if g_descriptors and 'protein_change' in variant and variant['protein_change']:  # noqa: E501
-            gene = g_descriptors[0]['label']
-            query = f"{gene} {variant['protein_change'][2:]}"
-            variation_descriptor = \
-                await self.vicc_normalizers.normalize_variation([query])
+            # Add therapeutic agent. We only support one therapy, so we will skip others
+            therapy_name = record["therapy_name"]
+            if not therapy_name:
+                logger.debug(f"{assertion_id} has no therapy_name")
+                continue
 
-            if not variation_descriptor:
-                logger.warning(f"Variant Normalizer unable to normalize: "
-                               f"moa.variant:{variant['id']}.")
-                return []
-        else:
-            logger.warning(f"Variation Normalizer does not support "
-                           f"moa.variant:{variant['id']}: {variant}")
-            return []
+            if "+" in therapy_name:
+                # Indicates multiple therapies (will be supported later)
+                continue
+            else:
+                moa_therapeutic = self._add_therapeutic(therapy_name)
 
-        gene_context = g_descriptors[0]['id'] if g_descriptors else None
+            if not moa_therapeutic:
+                logger.debug(
+                    f"{assertion_id} has no therapeutic agent for therapy_name "
+                    f"{therapy_name}"
+                )
+                continue
 
-        variation_descriptor = VariationDescriptor(
-            id=f"moa.variant:{variant['id']}",
-            label=variant['feature'],
-            variation_id=variation_descriptor.variation_id,
-            variation=variation_descriptor.variation,
-            gene_context=gene_context,
-            vrs_ref_allele_seq=vrs_ref_allele_seq,
-            extensions=self._get_variant_extensions(variant)
-        ).dict(by_alias=True, exclude_none=True)
-        return [variation_descriptor]
+            # Add disease
+            moa_disease = self._add_disease(record["disease"])
+            if not moa_disease:
+                logger.debug(f"{assertion_id} has no disease for disease "
+                             f"{record['disease']}")
+                continue
 
-    def _get_variant_extensions(self, variant):
-        """Return a list of extensions for a variant.
+            # Add document
+            document = self.able_to_normalize["documents"].get(record["source_ids"])
 
-        :param dict variant: A MOA variant record
-        :return: A list of extensions
-        """
-        coordinate = ['chromosome', 'start_position', 'end_position',
-                      'reference_allele', 'alternate_allele',
-                      'cdna_change', 'protein_change', 'exon']
-
-        extensions = [
-            Extension(
-                name='moa_representative_coordinate',
-                value={c: variant[c] for c in coordinate}
-            ).dict(exclude_none=True)
-        ]
-
-        if variant['rsid']:
-            extensions.append(
-                Extension(
-                    name='moa_rsid',
-                    value=variant['rsid']
-                ).dict(exclude_none=True)
+            # Get qualifier
+            gene = variation_gene_map["moa_gene"]
+            qualifiers = self._get_variant_onco_study_qualifier(
+                record["variant"]["feature_type"], gene
             )
-        return extensions
 
-    def _get_gene_descriptors(self, variant):
-        """Return a Gene Descriptor.
+            statement = VariantTherapeuticResponseStudy(
+                direction=Direction.NONE,
+                id=assertion_id,
+                description=record["description"],
+                strength=strength,
+                predicate=predicate,
+                variant=variation_gene_map["psc"],
+                therapeutic=moa_therapeutic,
+                tumorType=moa_disease,
+                qualifiers=qualifiers,
+                specifiedBy=self.methods[0],
+                isReportedIn=[document]
+            ).model_dump(exclude_none=True)
+            self.studies.append(statement)
 
-        :param: A MOA variant record
-        :return: A Gene Descriptor
+    def _get_variant_onco_study_qualifier(
+        self, feature_type: str, gene: Optional[core_models.Gene] = None
+    ) -> Optional[_VariantOncogenicityStudyQualifier]:
+        """Get Variant Oncogenicity Study Qualifier
+
+        :param feature_type: MOA feature type
+        :param gene: MOA gene data
+        :return: Variant Oncogenicity Study Qualifier for a Variant Therapeutic Response
+            Study, if allele origin or gene exists
         """
-        genes = [value for key, value in variant.items()
-                 if key.startswith('gene')]
-        genes = list(filter(None, genes))
-
-        gene_descriptors = []  # for fusion protein, we would include both genes  # noqa: E501
-        if genes:
-            for gene in genes:
-                _, normalized_gene_id = \
-                    self.vicc_normalizers.normalize_gene([gene])
-                if normalized_gene_id:
-                    gene_descriptor = GeneDescriptor(
-                        id=f"{schemas.SourceName.MOA.value}.normalize."
-                           f"{schemas.NormalizerPrefix.GENE.value}:{quote(gene)}",  # noqa: E501
-                        label=gene,
-                        gene_id=normalized_gene_id,
-                    ).dict(exclude_none=True)
-                else:
-                    logger.warning(f"Gene Normalizer unable to "
-                                   f"normalize: {gene}")
-                    gene_descriptor = {}
-
-                gene_descriptors.append(gene_descriptor)
-
-        return gene_descriptors
-
-    def _get_documents(self, source):
-        """Get an assertion's documents.
-
-        :param: An evidence source
-        :param: Keeps track of proposition and documents indexes
-        """
-        if source['pmid']:
-            documents_id = f"pmid:{source['pmid']}"
+        if feature_type == "somatic_variant":
+            allele_origin = AlleleOrigin.SOMATIC
+        elif feature_type == "germline_variant":
+            allele_origin = AlleleOrigin.GERMLINE
         else:
-            documents_id = source['url']
+            allele_origin = None
 
-        xrefs = []
-        if source['doi']:
-            xrefs.append(f"doi:{source['doi']}")
-        if source['nct']:
-            xrefs.append(f"nct:{source['nct']}")
+        if allele_origin or gene:
+            qualifier = _VariantOncogenicityStudyQualifier(
+                alleleOrigin=allele_origin,
+                geneContext=gene
+            )
+        else:
+            qualifier = None
+        return qualifier
 
-        documents = schemas.Document(
-            id=documents_id,
-            label=source['citation'],
-            xrefs=xrefs if xrefs else None
-        ).dict(exclude_none=True)
+    async def _add_protein_consequences(self, variants: List[Dict]) -> None:
+        """Create Protein Sequence Consequence objects for all MOA variant records.
+        Mutates instance variables `able_to_normalize['variations']` and
+        `variations`, if the variation-normalizer can successfully normalize the variant
 
-        return [documents]
-
-    def _get_method(self):
-        """Get methods for a given record.
-
-        :return: A list of methods
+        :param variants: All variants in MOAlmanac
         """
-        methods = [schemas.Method(
-            id=f'method:'
-               f'{schemas.MethodID.MOA_ASSERTION_BIORXIV}',
-            label='Clinical interpretation of integrative molecular profiles to guide precision cancer medicine',  # noqa:E501
-            url='https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1',  # noqa:E501
-            version=schemas.Date(year=2020, month=9, day=22),
-            authors='Reardon, B., Moore, N.D., Moore, N. et al.'
-        ).dict()]
+        for variant in variants:
+            variant_id = variant["id"]
+            moa_variant_id = f"moa.variant:{variant_id}"
+            feature = variant["feature"]
+            # Skipping Fusion + Translocation + rearrangements that variation normalizer
+            # does not support
+            if "rearrangement_type" in variant:
+                logger.debug(f"Variation Normalizer does not support {moa_variant_id}:"
+                             f" {feature}")
+                continue
 
-        return methods
+            # Gene is required to form query
+            gene = variant.get("gene")
+            if not gene:
+                logger.debug(f"Variation Normalizer does not support {moa_variant_id}: "
+                             f"{feature} (no gene provided)")
+                continue
 
-    def _get_therapy_descriptors(self, assertion):
-        """Return a list of Therapy Descriptors.
+            moa_gene = self.able_to_normalize["genes"].get(quote(gene))
+            if not moa_gene:
+                logger.debug(f"moa.variant:{variant_id} has no gene for "
+                             f"gene, {gene}")
+                continue
 
-        :param: an MOA assertion record
-        :return: A list of Therapy Descriptors
+            # Form query and run through variation-normalizer
+            # For now, the normalizer only support amino acid substitution
+            vrs_variation = None
+            if variant.get("protein_change"):
+                gene = moa_gene["label"]
+                query = f"{gene} {variant['protein_change'][2:]}"
+                vrs_variation = await self.vicc_normalizers.normalize_variation([query])
+
+                if not vrs_variation:
+                    logger.debug("Variation Normalizer unable to normalize: "
+                                 f"moa.variant:{variant_id} using query: {query}")
+                    continue
+            else:
+                logger.debug("Variation Normalizer does not support "
+                             f"{moa_variant_id}: {feature}")
+                continue
+
+            # Create VRS Variation object
+            params = vrs_variation.model_dump(exclude_none=True)
+            moa_variant_id = f"moa.variant:{variant_id}"
+            params["id"] = vrs_variation.id
+            params["digest"] = vrs_variation.id.split(".")[-1]
+            moa_variation = models.Variation(**params)
+
+            # Add MOA representative coordinate data to extensions
+            coordinates_keys = [
+                "chromosome", "start_position", "end_position", "reference_allele",
+                "alternate_allele", "cdna_change", "protein_change", "exon"
+            ]
+            extensions = [
+                core_models.Extension(
+                    name="MOA representative coordinate",
+                    value={k: variant[k] for k in coordinates_keys}
+                )
+            ]
+
+            # Add mappings data
+            mappings = [
+                core_models.Mapping(
+                    coding=core_models.Coding(
+                        code=str(variant_id),
+                        system="https://moalmanac.org/api/features/",
+                    ),
+                    relation=core_models.Relation.EXACT_MATCH
+                )
+            ]
+
+            if variant["rsid"]:
+                mappings.append(core_models.Mapping(
+                    coding=core_models.Coding(
+                        code=variant["rsid"],
+                        system="https://www.ncbi.nlm.nih.gov/snp/"
+                    ),
+                    relation=core_models.Relation.RELATED_MATCH
+                ))
+
+            psc = ProteinSequenceConsequence(
+                id=moa_variant_id,
+                label=feature,
+                definingContext=moa_variation.root,
+                mappings=mappings or None,
+                extensions=extensions
+            ).model_dump(exclude_none=True)
+
+            self.able_to_normalize["variations"][variant_id] = {
+                "psc": psc,
+                "moa_gene": moa_gene
+            }
+            self.variations.append(psc)
+
+    def _add_genes(self, genes: List[str]) -> None:
+        """Create gene objects for all MOA gene records.
+        Mutates instance variables `able_to_normalize['genes']` and `genes`, if
+        the gene-normalizer can successfully normalize the gene
+
+        :param genes: All genes in MOAlmanac
         """
-        label = assertion['therapy_name']
+        for gene in genes:
+            _, normalized_gene_id = self.vicc_normalizers.normalize_gene([gene])
+            if normalized_gene_id:
+                moa_gene = core_models.Gene(
+                    id=f"moa.normalize.gene:{quote(gene)}",
+                    label=gene,
+                    extensions=[core_models.Extension(
+                        name="gene_normalizer_id",
+                        value=normalized_gene_id
+                    )]
+                ).model_dump(exclude_none=True)
+                self.able_to_normalize["genes"][quote(gene)] = moa_gene
+                self.genes.append(moa_gene)
+            else:
+                logger.debug(f"Gene Normalizer unable to normalize: {gene}")
 
-        if not label:
-            return []
+    def _add_documents(self, sources: List) -> None:
+        """Create document objects for all MOA sources.
+        Mutates instance variables `documents` and `self.able_to_normalize["documents"]`
 
-        therapy_norm_resp, normalized_therapy_id = \
+        :param sources: All sources in MOA
+        """
+        for source in sources:
+            source_id = source["id"]
+
+            if source["nct"]:
+                mappings = [
+                    core_models.Mapping(
+                        coding=core_models.Coding(
+                            code=source["nct"],
+                            system="https://clinicaltrials.gov/search?term="
+                        ),
+                        relation=core_models.Relation.EXACT_MATCH
+                    )
+                ]
+            else:
+                mappings = None
+
+            document = Document(
+                id=f"moa.source:{source_id}",
+                title=source["citation"],
+                url=source["url"] if source["url"] else None,
+                pmid=source["pmid"] if source["pmid"] else None,
+                doi=source["doi"] if source["doi"] else None,
+                mappings=mappings,
+                extensions=[core_models.Extension(
+                    name="source_type", value=source["type"]
+                )]
+            ).model_dump(exclude_none=True)
+            self.able_to_normalize["documents"][source_id] = document
+            self.documents.append(document)
+
+    def _add_therapeutic(self, label: str) -> Optional[Dict]:
+        """Create or get Therapeutic Agent given a therapy name.
+        First looks in cache for existing therapeutic agent, if not found will attempt
+        to normalize. Will add `label` to `therapeutics` and
+        `able_to_normalize['therapeutics']` if therapy-normalizer is able to normalize.
+        Else will add `label` to `unable_to_normalize['therapeutics']`.
+
+        :param label: MOA therapy name
+        :return: Therapeutic Agent if therapy-normalizer was able to normalize `label`
+        """
+        vrs_therapeutic = self.able_to_normalize["therapeutics"].get(label)
+        if vrs_therapeutic:
+            return vrs_therapeutic
+        else:
+            vrs_therapeutic = None
+            if label not in self.unable_to_normalize["therapeutics"]:
+                vrs_therapeutic = self._get_therapeutic(label)
+                if vrs_therapeutic:
+                    self.able_to_normalize["therapeutics"][label] = vrs_therapeutic
+                    self.therapeutics.append(vrs_therapeutic)
+                else:
+                    self.unable_to_normalize["therapeutics"].add(label)
+        return vrs_therapeutic
+
+    def _get_therapeutic(self, label: str) -> Optional[Dict]:
+        """Get Therapeutic Agent for a MOA therapy name.
+        Will run `label` through therapy-normalizer.
+
+        :param label: MOA therapy name
+        :return: If able to normalize therapy, returns therapeutic agent represented as
+            a dict
+        """
+        therapy_norm_resp, normalized_therapeutic_id = \
             self.vicc_normalizers.normalize_therapy([label])
 
-        if not normalized_therapy_id:
-            logger.warning(f"Therapy Normalizer unable to normalize: {label}")
-            return []
+        if not normalized_therapeutic_id:
+            logger.debug(f"Therapy Normalizer unable to normalize: {label}")
+            return None
 
-        if normalized_therapy_id:
-            regulatory_approval_extension = \
-                self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)  # noqa: E501
-            therapy_descriptor = ValueObjectDescriptor(
-                id=f"{schemas.SourceName.MOA.value}."
-                   f"{therapy_norm_resp.therapy_descriptor.id}",
-                type="TherapyDescriptor",
-                label=label,
-                therapy_id=normalized_therapy_id,
-                extensions=[regulatory_approval_extension] if regulatory_approval_extension else None  # noqa: E501
-            ).dict(exclude_none=True)
-        else:
-            return []
+        extensions = [
+            core_models.Extension(
+                name="therapy_normalizer_id",
+                value=normalized_therapeutic_id
+            )
+        ]
 
-        return [therapy_descriptor]
+        regulatory_approval_extension = \
+            self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)
 
-    def _get_disease_descriptors(self, assertion):
-        """Return A list of Disease Descriptors.
+        if regulatory_approval_extension:
+            extensions.append(regulatory_approval_extension)
 
-        :param: an MOA assertion record
-        :return: A list of Therapy Descriptors
+        return core_models.TherapeuticAgent(
+            id=f"moa.{therapy_norm_resp.therapeutic_agent.id}",
+            label=label,
+            extensions=extensions
+        ).model_dump(exclude_none=True)
+
+    def _add_disease(self, disease: Dict) -> Optional[Dict]:
+        """Create or get disease given MOA disease.
+        First looks in cache for existing disease, if not found will attempt to
+        normalize. Will generate a digest from the original MOA disease object. This
+        will be used as the key in the caches. Will add the generated digest to
+        `diseases` and `able_to_normalize['diseases']` if disease-normalizer is able to
+        normalize. Else will add the generated digest to
+        `unable_to_normalize['disease']`
+
+        :param disease: MOA disease object
+        :return: Disease object if disease-normalizer was able to normalize
         """
-        ot_code = assertion['disease']['oncotree_code']
+        if not all(value for value in disease.values()):
+            return None
+
+        # Since MOA disease objects do not have an ID, we will create a digest from
+        # the original MOA disease object
+        disease_list = sorted([f"{k}:{v}" for k, v in disease.items() if v])
+        blob = json.dumps(disease_list, separators=(",", ":")).encode("ascii")
+        disease_id = sha512t24u(blob)
+
+        vrs_disease = self.able_to_normalize["diseases"].get(disease_id)
+        if vrs_disease:
+            return vrs_disease
+        else:
+            vrs_disease = None
+            if disease_id not in self.unable_to_normalize["diseases"]:
+                vrs_disease = self._get_disease(disease)
+                if vrs_disease:
+                    self.able_to_normalize["diseases"][disease_id] = vrs_disease
+                    self.diseases.append(vrs_disease)
+                else:
+                    self.unable_to_normalize["diseases"].add(disease_id)
+            return vrs_disease
+
+    def _get_disease(self, disease: Dict) -> Optional[Dict]:
+        """Get core_models.Disease object for a MOA disease
+
+        :param disease: MOA disease record
+        :return: If able to normalize, core_models.Disease represented as a dict.
+            Otherwise, `None`
+        """
+        queries = []
+        mappings = []
+
+        ot_code = disease["oncotree_code"]
+        ot_term = disease["oncotree_term"]
         if ot_code:
-            ot_code = f"oncotree:{ot_code}"
-        disease_name = assertion['disease']['name']
+            mappings.append(core_models.Mapping(
+                coding=core_models.Coding(
+                    code=ot_code,
+                    system="https://oncotree.mskcc.org/",
+                    label=ot_term
+                ),
+                relation=core_models.Relation.EXACT_MATCH
+            ))
+            queries.append(f"oncotree:{disease['oncotree_code']}")
+
+        disease_name = disease["name"]
+        if ot_term:
+            queries.append(ot_term)
+
+        if disease_name:
+            queries.append(disease_name)
 
         disease_norm_resp, normalized_disease_id = \
-            self.vicc_normalizers.normalize_disease([ot_code, disease_name])
+            self.vicc_normalizers.normalize_disease(queries)
 
         if not normalized_disease_id:
-            logger.warning(f"Disease Normalize unable to normalize: "
-                           f"{ot_code} and {disease_name}")
-            return []
+            logger.debug(f"Disease Normalizer unable to normalize: {queries}")
+            return None
 
-        disease_descriptor = ValueObjectDescriptor(
-            id=f"{schemas.SourceName.MOA.value}."
-               f"{disease_norm_resp.disease_descriptor.id}",
-            type="DiseaseDescriptor",
+        return core_models.Disease(
+            id=f"moa.{disease_norm_resp.disease.id}",
             label=disease_name,
-            disease_id=normalized_disease_id,
-        ).dict(exclude_none=True)
-
-        return [disease_descriptor]
-
-    def _get_record(self, record_id, records):
-        """Get a MOA record by ID.
-
-        :param: The ID of the record we are searching for
-        :param: A dict of records for a given MOA record type
-        """
-        for r in records:
-            if r['id'] == record_id:
-                return r
+            mappings=mappings if mappings else None,
+            extensions=[
+                core_models.Extension(
+                    name="disease_normalizer_id",
+                    value=normalized_disease_id
+                )
+            ]
+        ).model_dump(exclude_none=True)

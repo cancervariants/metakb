@@ -3,7 +3,7 @@ from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
 from metakb.query import QueryHandler
 from metakb.version import __version__
-from metakb.schemas import SearchService, SearchIDService, \
+from metakb.schemas.app import SearchService, SearchIDService, \
     SearchStatementsService
 from typing import Optional
 

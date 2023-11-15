@@ -27,7 +27,7 @@ from botocore.config import Config
 
 from metakb import APP_ROOT
 from metakb.database import Graph
-from metakb.schemas import SourceName
+from metakb.schemas.app import SourceName
 from metakb.harvesters import Harvester, CIViCHarvester, MOAHarvester
 from metakb.transform import Transform, CIViCTransform, MOATransform
 
