@@ -2,10 +2,10 @@
 import pytest
 import os
 import asyncio
+import json
 
 # from metakb.query import QueryHandler
-# from metakb.normalizers import VICCNormalizers
-# from metakb.schemas import SourceName
+from metakb.normalizers import VICCNormalizers
 
 
 @pytest.fixture(scope="session")
@@ -17,77 +17,81 @@ def event_loop(request):
 
 
 @pytest.fixture(scope="module")
-def civic_eid2997_statement():
-    """Create CIVIC EID2997 Statement test fixture."""
+def civic_mpid33(civic_vid33):
+    """Create CIViC MPID 33"""
     return {
-        "id": "civic.eid:2997",
-        "type": "Statement",
-        "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
-        "direction": "supports",
-        "evidence_level": "civic.evidence_level:A",
-        "proposition": "proposition:Zfp_VG0uvxwteCcJYO6_AJv1KDmJlFjs",
-        "variation_origin": "somatic",
-        "variation_descriptor": "civic.vid:33",
-        "therapy_descriptor": "civic.tid:146",
-        "disease_descriptor": "civic.did:8",
-        "method": "method:1",
-        "supported_by": ["pmid:23982599"]
-    }
-
-
-@pytest.fixture(scope="module")
-def civic_eid2997_proposition():
-    """Create a test fixture for EID2997 proposition."""
-    return {
-        "id": "proposition:Zfp_VG0uvxwteCcJYO6_AJv1KDmJlFjs",
-        "type": "therapeutic_response_proposition",
-        "predicate": "predicts_sensitivity_to",
-        "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
-        "object_qualifier": "ncit:C2926",
-        "object": "rxcui:1430438",
-    }
-
-
-@pytest.fixture(scope="module")
-def civic_vid33():
-    """Create a test fixture for CIViC VID33."""
-    return {
-        "id": "civic.vid:33",
-        "type": "VariationDescriptor",
-        "label": "L858R",
+        "id": "civic.mpid:33",
+        "type": "ProteinSequenceConsequence",
         "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",  # noqa: E501
-        "variation_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
-        "variation": {
-            "_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
-            "location": {
-                "_id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",
-                "interval": {
-                    "end": {"value": 858, "type": "Number"},
-                    "start": {"value": 857, "type": "Number"},
-                    "type": "SequenceInterval"
+        "label": "EGFR L858R",
+        "definingContext": civic_vid33,
+        "members": [
+            {
+                "id": "ga4gh:VA.TAARa2cxRHmOiij9UBwvW-noMDoOq2x9",
+                "label": "NC_000007.13:g.55259515T>G",
+                "digest": "TAARa2cxRHmOiij9UBwvW-noMDoOq2x9",
+                "type": "Allele",
+                "location": {
+                    "id": "ga4gh:SL.ulUNwZvajob7nzyrlpOd6uUWZIYCsoWb",
+                    "type": "SequenceLocation",
+                    "sequenceReference": {
+                        "type": "SequenceReference",
+                        "refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul"
+                    },
+                    "start": 55191821,
+                    "end": 55191822
                 },
-                "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
-                "type": "SequenceLocation"
-            },
-            "state": {
-                "sequence": "R",
-                "type": "LiteralSequenceExpression"
-            },
-            "type": "Allele"
-        },
-        "xrefs": [
-            "clinvar:376280",
-            "clinvar:376282",
-            "clinvar:16609",
-            "caid:CA126713",
-            "dbsnp:121434568"
+                "state": {
+                    "type": "LiteralSequenceExpression",
+                    "sequence": "G"
+                }
+            }
         ],
-        "alternate_labels": [
-            "LEU858ARG"
+        "aliases": ["LEU858ARG", "rs121434568"],
+        "mappings": [
+            {
+                "coding": {
+                    "code": "CA126713",
+                    "system": "https://reg.clinicalgenome.org/"
+                },
+                "relation": "relatedMatch"
+            },
+            {
+                "coding": {
+                    "code": "16609",
+                    "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"
+                },
+                "relation": "relatedMatch"
+            },
+            {
+                "coding": {
+                    "code": "376282",
+                    "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"
+                },
+                "relation": "relatedMatch"
+            },
+            {
+                "coding": {
+                    "code": "376280",
+                    "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"
+                },
+                "relation": "relatedMatch"
+            },
+            {
+                "coding": {
+                    "code": "rs121434568",
+                    "system": "https://www.ncbi.nlm.nih.gov/snp/"
+                },
+                "relation": "relatedMatch"
+            },
+            {
+                "coding": {"code": "33", "system": "https://civicdb.org/variants/"},
+                "relation": "exactMatch"
+            }
         ],
         "extensions": [
             {
-                "name": "civic_representative_coordinate",
+                "name": "CIViC representative coordinate",
                 "value": {
                     "chromosome": "7",
                     "start": 55259515,
@@ -96,40 +100,119 @@ def civic_vid33():
                     "variant_bases": "G",
                     "representative_transcript": "ENST00000275493.2",
                     "ensembl_version": 75,
-                    "reference_build": "GRCh37"
+                    "reference_build": "GRCh37",
+                    "type": "coordinates"
                 },
                 "type": "Extension"
             },
             {
-                "name": "civic_actionability_score",
-                "value": "352.5",
+                "name": "CIViC Molecular Profile Score",
+                "value": 378.0,
+                "type": "Extension"
+            },
+            {
+                "name": "Variant types",
+                "value": [
+                    {
+                        "code": "SO:0001583",
+                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",  # noqa: E501
+                        "label": "missense_variant",
+                        "version": None
+                    }
+                ],
                 "type": "Extension"
             }
-        ],
-        "structural_type": "SO:0001583",
+        ]
+    }
+
+
+@pytest.fixture(scope="module")
+def civic_eid2997_qualifier(civic_gid19):
+    """Create qualifier for civic eid 2997"""
+    return {
+        "alleleOrigin": "somatic",
+        "geneContext": civic_gid19
+    }
+
+
+@pytest.fixture(scope="module")
+def civic_source592():
+    """Create fixture for civic source 592"""
+    return {
+        "id": "civic.source:1725",
+        "label": "Dungo et al., 2013, Drugs",
+        "title": "Afatinib: first global approval.",
+        "pmid": 23982599,
+        "type": "Document"
+    }
+
+
+@pytest.fixture(scope="module")
+def civic_eid2997_study(
+    civic_mpid33, civic_tid146, civic_did8, civic_eid2997_qualifier, civi_method,
+    civic_source592
+):
+    """Create CIVIC EID2997 Statement test fixture."""
+    return {
+        "id": "civic.eid:2997",
+        "type": "VariantTherapeuticResponseStudy",
+        "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
+        "direction": "supports",
+        "strength": {
+            "code": "e000001",
+            "label": "authoritative evidence",
+            "system": "https://go.osu.edu/evidence-codes"
+        },
+        "predicate": "predictsSensitivityTo",
+        "variant": civic_mpid33,
+        "therapeutic": civic_tid146,
+        "tumorType": civic_did8,
+        "qualifiers": civic_eid2997_qualifier,
+        "specifiedBy": civi_method,
+        "isReportedIn": [civic_source592]
+    }
+
+
+@pytest.fixture(scope="module")
+def civic_vid33():
+    """Create a test fixture for CIViC VID33."""
+    return {
+        "id": "ga4gh:VA.z7c2S8QzZ3yL2UjV_xP7zP913BrYYFGn",
+        "type": "Allele",
+        "label": "L858R",
+        "digest": "z7c2S8QzZ3yL2UjV_xP7zP913BrYYFGn",
+        "location": {
+            "id": "ga4gh:SL.yVGJnwqxV6oCGqC_8nNb58D_wPXJeNJo",
+            "type": "SequenceLocation",
+            "sequenceReference": {
+                "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
+                "type": "SequenceReference",
+            },
+            "start": 857,
+            "end": 858
+        },
+        "state": {
+            "sequence": "R",
+            "type": "LiteralSequenceExpression"
+        },
         "expressions": [
             {
                 "syntax": "hgvs.p",
-                "value": "NP_005219.2:p.Leu858Arg",
-                "type": "Expression"
+                "value": "NP_005219.2:p.Leu858Arg"
             },
             {
                 "syntax": "hgvs.c",
-                "value": "ENST00000275493.2:c.2573T>G",
-                "type": "Expression"
+                "value": "ENST00000275493.2:c.2573T>G"
             },
             {
                 "syntax": "hgvs.c",
                 "value": "NM_005228.4:c.2573T>G",
-                "type": "Expression"
             },
             {
                 "syntax": "hgvs.g",
                 "value": "NC_000007.13:g.55259515T>G",
-                "type": "Expression"
             }
-        ],
-        "gene_context": "civic.gid:19"
+        ]
     }
 
 
@@ -138,11 +221,19 @@ def civic_gid19():
     """Create test fixture for CIViC GID19."""
     return {
         "id": "civic.gid:19",
-        "type": "GeneDescriptor",
+        "type": "Gene",
         "label": "EGFR",
         "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. Overproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
-        "gene_id": "hgnc:3236",
-        "alternate_labels": [
+        "mappings": [
+            {
+                "coding": {
+                    "code": "ncbigene:1956",
+                    "system": "https://www.ncbi.nlm.nih.gov/gene/"
+                },
+                "relation": "exactMatch"
+            }
+        ],
+        "aliases": [
             "EGFR",
             "ERBB",
             "ERBB1",
@@ -152,9 +243,6 @@ def civic_gid19():
             "PIG61",
             "mENA"
         ],
-        "xrefs": [
-            "ncbigene:1956"
-        ]
     }
 
 
@@ -163,16 +251,21 @@ def civic_tid146():
     """Create test fixture for CIViC TID146."""
     return {
         "id": "civic.tid:146",
-        "type": "TherapyDescriptor",
+        "type": "TherapeuticAgent",
         "label": "Afatinib",
-        "therapy_id": "rxcui:1430438",
-        "alternate_labels": [
+        "mappings": [
+            {
+                "coding": {
+                    "code": "C66940",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code="  # noqa: E501
+                },
+                "relation": "exactMatch"
+            }
+        ],
+        "aliases": [
             "BIBW2992",
             "BIBW 2992",
             "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"  # noqa: E501
-        ],
-        "xrefs": [
-            "ncit:C66940"
         ],
         "extensions": [
             {
@@ -182,19 +275,28 @@ def civic_tid146():
                     "approval_rating": "FDA",
                     "has_indications": [
                         {
-                            "id": "hemonc:25316",
-                            "type": "DiseaseDescriptor",
-                            "label": "Non-small cell lung cancer Squamous",
-                            "disease_id": None
+                            "id": "hemonc:642",
+                            "type": "Disease",
+                            "label": "Non-small cell lung cancer",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C2926", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
                         },
                         {
-                            "id": "hemonc:642",
-                            "type": "DiseaseDescriptor",
-                            "label": "Non-small cell lung cancer",
-                            "disease_id": "ncit:C2926"
+                            "id": "hemonc:25316",
+                            "type": "Disease",
+                            "label": "Non-small cell lung cancer squamous",
                         }
                     ]
                 }
+            },
+            {
+                "type": "Extension",
+                "name": "therapy_normalizer_id",
+                "value": "rxcui:1430438"
             }
         ]
     }
@@ -205,11 +307,23 @@ def civic_did8():
     """Create test fixture for CIViC DID8."""
     return {
         "id": "civic.did:8",
-        "type": "DiseaseDescriptor",
+        "type": "Disease",
         "label": "Lung Non-small Cell Carcinoma",
-        "disease_id": "ncit:C2926",
-        "xrefs": [
-            "DOID:3908"
+        "mappings": [
+            {
+                "coding": {
+                    "code": "DOID:3908",
+                    "system": "https://www.disease-ontology.org/"
+                },
+                "relation": "exactMatch"
+            }
+        ],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "disease_normalizer_id",
+                "value": "ncit:C2926"
+            }
         ]
     }
 
@@ -1118,35 +1232,31 @@ def pmid_27819322():
 
 
 @pytest.fixture(scope="module")
-def moa_aid71_statement():
-    """Create a MOA Statement 71 test fixture."""
+def moa_aid71_study(
+    moa_vid71, moa_abl1, moa_imatinib, moa_chronic_myelogenous_leukemia, moa_method,
+    moa_source44
+):
+    """Create a Variant Therapeutic Response Study test fixture for MOA Assertion 71."""
     return {
         "id": "moa.assertion:71",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
-        "evidence_level": "moa.evidence_level:Preclinical",
-        "proposition": "proposition:4BRAy5ckYBfbzLHr95Xz3M9D9mJpTRxr",
-        "variation_origin": "somatic",
-        "variation_descriptor": "moa.variant:71",
-        "therapy_descriptor": "moa.normalize.therapy:Imatinib",
-        "disease_descriptor": "moa.normalize.disease:oncotree%3ACML",
-        "method": "method:4",
-        "supported_by": [
-            "pmid:11423618"
-        ],
-        "type": "Statement"
-    }
-
-
-@pytest.fixture(scope="module")
-def moa_aid71_proposition():
-    """Create a test fixture for MOA AID71 proposition."""
-    return {
-        "id": "proposition:4BRAy5ckYBfbzLHr95Xz3M9D9mJpTRxr",
-        "predicate": "predicts_resistance_to",
-        "subject": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
-        "object_qualifier": "ncit:C3174",
-        "object": "rxcui:282388",
-        "type": "therapeutic_response_proposition"
+        "direction": "none",
+        "strength": {
+            "code": "e000009",
+            "label": "preclinical evidence",
+            "system": "https://go.osu.edu/evidence-codes"
+        },
+        "predicate": "predictsResistanceTo",
+        "variant": moa_vid71,
+        "therapeutic": moa_imatinib,
+        "tumorType": moa_chronic_myelogenous_leukemia,
+        "qualifiers": {
+            "alleleOrigin": "somatic",
+            "geneContext": moa_abl1
+        },
+        "specifiedBy": moa_method,
+        "isReportedIn": [moa_source44],
+        "type": "VariantTherapeuticResponseStudy"
     }
 
 
@@ -1155,30 +1265,30 @@ def moa_vid71():
     """Create a test fixture for MOA VID71."""
     return {
         "id": "moa.variant:71",
-        "type": "VariationDescriptor",
+        "type": "ProteinSequenceConsequence",
         "label": "ABL1 p.T315I (Missense)",
-        "variation_id": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
-        "variation": {
-            "_id": "ga4gh:VA.M3CbaYfwomLqvJbdK4w-W7V-zw7LdjGj",
+        "definingContext": {
+            "id": "ga4gh:VA.EbGZQl1LnjzDCTbjF2VtPbvgMsPWfBOq",
+            "digest": "EbGZQl1LnjzDCTbjF2VtPbvgMsPWfBOq",
+            "type": "Allele",
             "location": {
-                "_id": "ga4gh:VSL.JkBiKTd3Kq-l0ZSOzCOJ1i60mh03hXb5",
-                "interval": {
-                    "end": {"value": 315, "type": "Number"},
-                    "start": {"value": 314, "type": "Number"},
-                    "type": "SequenceInterval"
+                "id": "ga4gh:SL.2UGEX11rbVdN0Nbzc5RU0G0A5elENRTH",
+                "type": "SequenceLocation",
+                "sequenceReference": {
+                    "type": "SequenceReference",
+                    "refgetAccession": "SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg"
                 },
-                "sequence_id": "ga4gh:SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg",
-                "type": "SequenceLocation"
+                "start": 314,
+                "end": 315
             },
             "state": {
-                "sequence": "I",
-                "type": "LiteralSequenceExpression"
-            },
-            "type": "Allele"
+                "type": "LiteralSequenceExpression",
+                "sequence": "I"
+            }
         },
         "extensions": [
             {
-                "name": "moa_representative_coordinate",
+                "name": "MOA representative coordinate",
                 "value": {
                     "chromosome": "9",
                     "start_position": "133747580",
@@ -1192,125 +1302,199 @@ def moa_vid71():
                 "type": "Extension"
             }
         ],
-        "vrs_ref_allele_seq": "T",
-        "gene_context": "moa.normalize.gene:ABL1"
+        "mappings": [
+            {
+                "coding": {
+                    "system": "https://moalmanac.org/api/features/",
+                    "code": "71"
+                },
+                "relation": "exactMatch"
+            }
+        ],
     }
 
 
 @pytest.fixture(scope="module")
 def moa_abl1():
-    """Create a test fixture for MOA ABL1 Gene Descriptor."""
+    """Create a test fixture for MOA ABL1 Gene."""
     return {
         "id": "moa.normalize.gene:ABL1",
-        "type": "GeneDescriptor",
+        "type": "Gene",
         "label": "ABL1",
-        "gene_id": "hgnc:76"
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "gene_normalizer_id",
+                "value": "hgnc:76"
+            }
+        ]
     }
 
 
 @pytest.fixture(scope="module")
 def moa_imatinib():
-    """Create a test fixture for MOA Imatinib Therapy Descriptor."""
+    """Create a test fixture for MOA Imatinib Therapy."""
     return {
-        "id": "moa.normalize.therapy:Imatinib",
-        "type": "TherapyDescriptor",
+        "id": "moa.normalize.therapy.rxcui:282388",
+        "type": "TherapeuticAgent",
         "label": "Imatinib",
-        "therapy_id": "rxcui:282388",
-        "extensions": [{
-            "type": "Extension",
-            "name": "regulatory_approval",
-            "value": {
-                "approval_rating": "FDA",
-                "has_indications": [
-                    {
-                        "id": "hemonc:634",
-                        "type": "DiseaseDescriptor",
-                        "label": "Myelodysplastic syndrome",
-                        "disease_id": "ncit:C3247"
-                    },
-                    {
-                        "id": "hemonc:616",
-                        "type": "DiseaseDescriptor",
-                        "label": "Hypereosinophilic syndrome",
-                        "disease_id": "ncit:C27038"
-                    },
-                    {
-                        "id": "hemonc:582",
-                        "type": "DiseaseDescriptor",
-                        "label": "Chronic myelogenous leukemia",
-                        "disease_id": "ncit:C3174"
-                    },
-                    {
-                        "id": "hemonc:669",
-                        "type": "DiseaseDescriptor",
-                        "label": "Systemic mastocytosis",
-                        "disease_id": "ncit:C9235"
-                    },
-                    {
-                        "id": "hemonc:24309",
-                        "type": "DiseaseDescriptor",
-                        "label": "Acute lymphoblastic leukemia",
-                        "disease_id": "ncit:C3167"
-                    },
-                    {
-                        "id": "hemonc:667",
-                        "type": "DiseaseDescriptor",
-                        "label": "Soft tissue sarcoma",
-                        "disease_id": "ncit:C9306"
-                    },
-                    {
-                        "id": "hemonc:602",
-                        "type": "DiseaseDescriptor",
-                        "label": "Gastrointestinal stromal tumor",
-                        "disease_id": "ncit:C3868"
-                    }
-                ]
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "regulatory_approval",
+                "value": {
+                    "approval_rating": "FDA",
+                    "has_indications": [
+                        {
+                            "id": "hemonc:669",
+                            "type": "Disease",
+                            "label": "Systemic mastocytosis",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C9235", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "hemonc:582",
+                            "type": "Disease",
+                            "label": "Chronic myelogenous leukemia",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C3174", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "hemonc:24309",
+                            "type": "Disease",
+                            "label": "Acute lymphoblastic leukemia",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C3167", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "hemonc:634",
+                            "type": "Disease",
+                            "label": "Myelodysplastic syndrome",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C3247", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "hemonc:602",
+                            "type": "Disease",
+                            "label": "Gastrointestinal stromal tumor",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C3868", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "hemonc:33893",
+                            "type": "Disease",
+                            "label": "Chronic myelogenous leukemia pediatric"
+                        },
+                        {
+                            "id": "hemonc:667",
+                            "type": "Disease",
+                            "label": "Soft tissue sarcoma",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C9306", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "hemonc:616",
+                            "type": "Disease",
+                            "label": "Hypereosinophilic syndrome",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C27038", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "type": "Extension",
+                "name": "therapy_normalizer_id",
+                "value": "rxcui:282388"
             }
-        }]
+        ]
     }
 
 
 @pytest.fixture(scope="module")
 def moa_chronic_myelogenous_leukemia():
-    """Create test fixture for MOA Chronic Myelogenous Leukemia Descriptor."""
+    """Create test fixture for MOA Chronic Myelogenous Leukemia."""
     return {
-        "id": "moa.normalize.disease:oncotree%3ACML",
-        "type": "DiseaseDescriptor",
+        "id": "moa.normalize.disease.ncit:C3174",
+        "type": "Disease",
         "label": "Chronic Myelogenous Leukemia",
-        "disease_id": "ncit:C3174"
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "disease_normalizer_id",
+                "value": "ncit:C3174"
+            }
+        ],
+        "mappings": [
+            {
+                "coding": {
+                    "label": "Chronic Myelogenous Leukemia",
+                    "system": "https://oncotree.mskcc.org/",
+                    "code": "CML"
+                },
+                "relation": "exactMatch"
+            }
+        ]
     }
 
 
 @pytest.fixture(scope="module")
-def method1():
+def civi_method():
     """Create test fixture for method:1."""
     return {
-        "id": "method:1",
-        "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
-        "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
-        "version": {
-            "year": 2019,
-            "month": 11,
-            "day": 29
+        "id": "civic.method:2019",
+        "label": "CIViC Curation SOP (2019)",
+        "isReportedIn": {
+            "label": "Danos et al., 2019, Genome Med.",
+            "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
+            "doi": "10.1186/s13073-019-0687-x",
+            "pmid": 31779674
         },
-        "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al.",
         "type": "Method"
     }
 
 
 @pytest.fixture(scope="module")
-def method2():
-    """Create test fixture for method:2."""
+def moa_method():
+    """Create test fixture for MOA."""
     return {
-        "id": "method:2",
-        "type": "Method",
-        "label": "Standards and Guidelines for the Interpretation and Reporting of Sequence Variants in Cancer: A Joint Consensus Recommendation of the Association for Molecular Pathology, American Society of Clinical Oncology, and College of American Pathologists",  # noqa: E501
-        "url": "https://pubmed.ncbi.nlm.nih.gov/27993330/",
-        "version": {
-            "year": 2017,
-            "month": 1
+        "id": "moa.method:2021",
+        "label": "MOAlmanac (2021)",
+        "isReportedIn": {
+            "label": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
+            "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",  # noqa: E501
+            "doi": "10.1038/s43018-021-00243-3",
+            "pmid": 35121878
         },
-        "authors": "Li MM, Datto M, Duncavage EJ, et al."
+        "type": "Method"
     }
 
 
@@ -1348,21 +1532,28 @@ def method4():
 
 
 @pytest.fixture(scope="module")
-def civic_methods(method1, method2, method3):
+def civic_methods(civi_method, moa_method, method3):
     """Create test fixture for methods."""
-    return [method1, method2, method3]
+    return [civi_method, moa_method, method3]
 
 
 @pytest.fixture(scope="module")
-def pmid_11423618():
-    """Create a test fixture for PMID 11423618."""
+def moa_source44():
+    """Create a test fixture for MOA source 44."""
     return {
-        "id": "pmid:11423618",
-        "label": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501
-        "xrefs": [
-            "doi:10.1126/science.1062538"
+        "id": "moa.source:44",
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "source_type",
+                "value": "Journal"
+            }
         ],
-        "type": "Document"
+        "type": "Document",
+        "title": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501
+        "url": "https://doi.org/10.1126/science.1062538",
+        "doi": "10.1126/science.1062538",
+        "pmid": 11423618
     }
 
 
@@ -1372,178 +1563,58 @@ def pmid_11423618():
 #     return len(SourceName.__members__)
 
 
-@pytest.fixture(scope="session")
-def check_statement():
-    """Create a test fixture to compare statements."""
-    def check_statement(actual, test):
-        """Check that statements are match."""
-        assert actual.keys() == test.keys()
-        assert actual["id"] == test["id"]
-        assert actual["description"] == test["description"]
-        if "direction" in test.keys():
-            # MOA doesn"t have direction?
-            assert actual["direction"] == test["direction"]
-        assert actual["evidence_level"] == test["evidence_level"]
-        assert actual["proposition"].startswith("proposition:")
-        assert actual["variation_origin"] == test["variation_origin"]
-        assert actual["variation_descriptor"] == test["variation_descriptor"]
-        if "therapy_descriptor" not in test.keys():
-            assert "therapy_descriptor" not in actual.keys()
+def _dict_check(expected_d: dict, actual_d: dict) -> None:
+    """Make dictionary assertion checks. Check that actual matches expected data.
+
+    :param expected_d: Expected dictionary
+    :param actual_d: Actual dictionary
+    """
+    for k, v in expected_d.items():
+        if isinstance(v, dict):
+            _dict_check(v, actual_d[k])
+        elif isinstance(v, list):
+            actual_l = [json.dumps(v, sort_keys=True) for v in actual_d[k]]
+            expected_l = [json.dumps(v, sort_keys=True) for v in expected_d[k]]
+            assert set(actual_l) == set(expected_l), k
         else:
-            assert actual["therapy_descriptor"] == test["therapy_descriptor"]
-        assert actual["disease_descriptor"] == test["disease_descriptor"]
-        assert actual["method"] == test["method"]
-        assert set(actual["supported_by"]) == set(test["supported_by"])
-        assert actual["type"] == test["type"]
-    return check_statement
+            assert actual_d[k] == expected_d[k], k
 
 
-@pytest.fixture(scope="session")
-def check_proposition():
-    """Create a test fixture to compare propositions."""
-    def check_proposition(actual, test):
-        """Check that propositions match."""
-        assert actual.keys() == test.keys()
-        assert actual["id"].startswith("proposition:")
-        assert actual["type"] == test["type"]
-        if test["type"] == "therapeutic_response_proposition":
-            assert actual["object"] == test["object"]
-        else:
-            assert "object" not in actual.keys()
-        assert actual["predicate"] == test["predicate"]
-        assert actual["subject"] == test["subject"]
-        assert actual["object_qualifier"] == test["object_qualifier"]
-    return check_proposition
+def assertion_checks(actual_data: list, test_data: list) -> None:
+    """Check that actual data matches expected data
 
+    :param actual_data: List of actual data
+    :param test_data: List of expected data
+    """
+    assert len(actual_data) == len(test_data)
+    for expected in test_data:
+        found_match = False
+        for actual in actual_data:
+            if actual["id"] == expected["id"]:
+                found_match = True
+                assert actual.keys() == expected.keys()
+                _dict_check(expected, actual)
+                continue
 
-@pytest.fixture(scope="session")
-def check_variation_descriptor():
-    """Create a test fixture to compare variation descriptors."""
-    def check_variation_descriptor(actual, test):
-        """Check that variation descriptors match."""
-        actual_keys = actual.keys()
-        test_keys = test.keys()
-        assert actual_keys == test_keys
-        for key in test_keys:
-            if key in ["id", "type", "label", "description", "variation_id",
-                       "structural_type", "vrs_ref_allele_seq",
-                       "gene_context"]:
-                assert actual[key] == test[key]
-            elif key in ["xrefs", "alternate_labels"]:
-                assert set(actual[key]) == set(test[key])
-            elif key == "variation":
-                assert actual["variation"] == test["variation"]
-            elif key == "extensions":
-                assert len(actual) == len(test)
-                for test_extension in test["extensions"]:
-                    for actual_extension in actual["extensions"]:
-                        if test_extension["name"] == actual_extension["name"]:
-                            if test_extension["name"] != \
-                                    "civic_actionability_score":
-                                assert actual_extension == test_extension
-                            else:
-                                try:
-                                    float(actual_extension["value"])
-                                except ValueError:
-                                    assert False
-                                else:
-                                    assert True
-            elif key == "expressions":
-                assert len(actual["expressions"]) == len(test["expressions"])
-                for expression in test["expressions"]:
-                    assert expression in actual["expressions"]
-    return check_variation_descriptor
-
-
-@pytest.fixture(scope="session")
-def check_descriptor():
-    """Test fixture to compare gene, therapy, and disease descriptors."""
-    def check_descriptor(actual, test):
-        """Check that gene, therapy, and disease descriptors match."""
-        actual_keys = actual.keys()
-        test_keys = test.keys()
-        assert actual_keys == test_keys
-        for key in test_keys:
-            if key in ["alternate_labels", "xrefs"]:
-                assert set(actual[key]) == set(test[key])
-            else:
-                assert actual[key] == test[key]
-    return check_descriptor
-
-
-@pytest.fixture(scope="session")
-def check_method():
-    """Create a test fixture to compare methods."""
-    def check_method(actual, test):
-        """Check that methods match."""
-        assert actual == test
-    return check_method
-
-
-@pytest.fixture(scope="session")
-def check_document():
-    """Create a test fixture to compare documents."""
-    def check_document(actual, test):
-        """Check that documents match."""
-        actual_keys = actual.keys()
-        test_keys = test.keys()
-        assert actual_keys == test_keys
-        for key in test_keys:
-            assert key in actual_keys
-            if key == "xrefs":
-                assert set(actual[key]) == set(test[key])
-            else:
-                assert actual == test
-    return check_document
+        assert found_match, f"Did not find {expected['id']} in response"
 
 
 @pytest.fixture(scope="session")
 def check_transformed_cdm():
     """Test fixture to compare CDM transformations."""
-    def check_transformed_cdm(data, statements, propositions,
-                              variation_descriptors, gene_descriptors,
-                              disease_descriptors, therapy_descriptors,
-                              civic_methods, documents, check_statement,
-                              check_proposition, check_variation_descriptor,
-                              check_descriptor, check_document, check_method,
-                              transformed_file):
+    def check_transformed_cdm(
+        data, studies, transformed_file
+    ):
         """Test that transform to CDM works correctly."""
-        tests = (
-            (data["statements"], statements, check_statement),
-            (data["propositions"], propositions, check_proposition),
-            (data["variation_descriptors"], variation_descriptors,
-             check_variation_descriptor),
-            (data["gene_descriptors"], gene_descriptors, check_descriptor),
-            (data["disease_descriptors"], disease_descriptors,
-             check_descriptor),
-            (data["methods"], civic_methods, check_method),
-            (data["documents"], documents, check_document)
-        )
-
-        if therapy_descriptors:
-            tests += (data["therapy_descriptors"], therapy_descriptors,
-                      check_descriptor),
-
-        for actual_data, test_data, test_fixture in tests:
-            assert len(actual_data) == len(test_data)
-            for test in test_data:
-                test_id = test["id"]
-                checked_id = None
-                for actual in actual_data:
-                    actual_id = actual["id"]
-                    if test_id == actual_id:
-                        checked_id = actual_id
-                        test_fixture(actual, test)
-                assert checked_id == test_id
-
+        assertion_checks(data["studies"], studies)
         os.remove(transformed_file)
     return check_transformed_cdm
 
 
-# @pytest.fixture(scope="session")
-# def normalizers():
-#     """Provide normalizers to querying/transformation tests."""
-#     return VICCNormalizers()
+@pytest.fixture(scope="session")
+def normalizers():
+    """Provide normalizers to querying/transformation tests."""
+    return VICCNormalizers()
 
 
 # @pytest.fixture(scope="session")
