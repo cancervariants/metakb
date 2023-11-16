@@ -1,7 +1,7 @@
 """Test CIViC Transformation to common data model for Therapeutic Response."""
 import pytest
 import pytest_asyncio
-from metakb.transform.civic import CIViCTransform
+from metakb.transform.civic import CivicTransform
 from metakb import PROJECT_ROOT
 import json
 
@@ -15,7 +15,7 @@ FILENAME = "civic_cdm.json"
 async def data(normalizers):
     """Create a CIViC Transform test fixture."""
     harvester_path = DATA_DIR / "civic_harvester.json"
-    c = CIViCTransform(data_dir=DATA_DIR, harvester_path=harvester_path,
+    c = CivicTransform(data_dir=DATA_DIR, harvester_path=harvester_path,
                        normalizers=normalizers)
     await c.transform()
     c.create_json(transform_dir=DATA_DIR, filename=FILENAME)

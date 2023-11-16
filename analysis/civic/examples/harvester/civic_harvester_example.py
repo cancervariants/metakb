@@ -2,7 +2,7 @@
 import json
 
 from metakb import APP_ROOT, PROJECT_ROOT
-from metakb.harvesters import CIViCHarvester
+from metakb.harvesters import CivicHarvester
 
 
 def create_evidence_examples(data):
@@ -57,7 +57,7 @@ def create_variant_examples(data):
 
 
 if __name__ == '__main__':
-    c = CIViCHarvester()
+    c = CivicHarvester()
     c.harvest()
     latest = sorted((APP_ROOT / "data" / "civic" / "harvester").glob("civic_harvester_*.json"))[-1]  # noqa: E501
     with open(latest, "r") as f:

@@ -1,7 +1,7 @@
 """Test MOA Transformation to common data model"""
 import pytest
 import pytest_asyncio
-from metakb.transform.moa import MOATransform
+from metakb.transform.moa import MoaTransform
 from metakb import PROJECT_ROOT
 import json
 
@@ -14,7 +14,7 @@ FILENAME = "moa_cdm.json"
 async def data(normalizers):
     """Create a MOA Transform test fixture."""
     harvester_path = DATA_DIR / "moa_harvester.json"
-    moa = MOATransform(data_dir=DATA_DIR, harvester_path=harvester_path,
+    moa = MoaTransform(data_dir=DATA_DIR, harvester_path=harvester_path,
                        normalizers=normalizers)
     await moa.transform()
     moa.create_json(transform_dir=DATA_DIR, filename=FILENAME)

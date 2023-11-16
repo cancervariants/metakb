@@ -11,7 +11,7 @@ from metakb.harvesters.base import Harvester  # noqa: I202
 logger = logging.getLogger(__name__)
 
 
-class MOAHarvester(Harvester):
+class MoaHarvester(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
     def harvest(self, filename: Optional[str] = None) -> bool:

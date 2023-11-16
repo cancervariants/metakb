@@ -2,7 +2,7 @@
 import json
 
 from metakb import PROJECT_ROOT, APP_ROOT
-from metakb.transform import MOATransform
+from metakb.transform import MoaTransform
 
 
 def create_moa_example(moa_data):
@@ -63,7 +63,7 @@ def create_moa_example(moa_data):
 
 
 if __name__ == '__main__':
-    moa = MOATransform()
+    moa = MoaTransform()
     moa.transform()
     moa.create_json()
     latest = sorted((APP_ROOT / "data" / "moa" / "transform").glob("moa_cdm_*.json"))[-1]  # noqa: E501

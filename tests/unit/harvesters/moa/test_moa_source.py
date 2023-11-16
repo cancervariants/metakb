@@ -5,13 +5,13 @@ from mock import patch
 import pytest
 
 from metakb import PROJECT_ROOT  # noqa: I202
-from metakb.harvesters import MOAHarvester
+from metakb.harvesters import MoaHarvester
 
 
 @pytest.fixture(scope="module")
 def sources():
     """Create a list of sources."""
-    moa = MOAHarvester()
+    moa = MoaHarvester()
 
     return moa._harvest_sources()
 
@@ -33,7 +33,7 @@ def source68():
     }
 
 
-@patch.object(MOAHarvester, "_get_all_assertions")
+@patch.object(MoaHarvester, "_get_all_assertions")
 def test_source68(test_get_all_assertions, source68):
     """Test moa harvester works correctly for evidence."""
     with open(f"{PROJECT_ROOT}/tests/data/"
@@ -41,8 +41,8 @@ def test_source68(test_get_all_assertions, source68):
         data = json.load(f)
     test_get_all_assertions.return_value = data
 
-    assertion_resp = MOAHarvester()._get_all_assertions()
-    sources = MOAHarvester()._harvest_sources(assertion_resp)
+    assertion_resp = MoaHarvester()._get_all_assertions()
+    sources = MoaHarvester()._harvest_sources(assertion_resp)
 
     actual = None
     for s in sources:
