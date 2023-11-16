@@ -11,7 +11,7 @@ from pydantic import BaseModel, StrictStr
 
 from metakb import APP_ROOT, DATE_FMT
 from metakb.schemas.annotation import Method, Document
-from metakb.normalizers import VICCNormalizers
+from metakb.normalizers import ViccNormalizers
 
 logger = logging.getLogger(__name__)
 
@@ -172,19 +172,19 @@ class Transform:
     def __init__(self,
                  data_dir: Path = APP_ROOT / "data",
                  harvester_path: Optional[Path] = None,
-                 normalizers: Optional[VICCNormalizers] = None) -> None:
+                 normalizers: Optional[ViccNormalizers] = None) -> None:
         """Initialize Transform base class.
 
         :param Path data_dir: Path to source data directory
         :param Optional[Path] harvester_path: Path to previously harvested data
-        :param VICCNormalizers normalizers: normalizer collection instance
+        :param ViccNormalizers normalizers: normalizer collection instance
         """
         self.name = self.__class__.__name__.lower().split("transform")[0]
         self.data_dir = data_dir / self.name
         self.harvester_path = harvester_path
 
         if normalizers is None:
-            self.vicc_normalizers = VICCNormalizers()
+            self.vicc_normalizers = ViccNormalizers()
         else:
             self.vicc_normalizers = normalizers
 

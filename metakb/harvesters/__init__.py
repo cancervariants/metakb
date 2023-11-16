@@ -1,3 +1,3 @@
 """A package for metakb harvester routines."""
-from .civic import CIViCHarvester
-from .moa import MOAHarvester
+from .civic import CivicHarvester
+from .moa import MoaHarvester

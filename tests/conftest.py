@@ -5,7 +5,7 @@ import asyncio
 import json
 
 # from metakb.query import QueryHandler
-from metakb.normalizers import VICCNormalizers
+from metakb.normalizers import ViccNormalizers
 
 
 @pytest.fixture(scope="session")
@@ -1614,7 +1614,7 @@ def check_transformed_cdm():
 @pytest.fixture(scope="session")
 def normalizers():
     """Provide normalizers to querying/transformation tests."""
-    return VICCNormalizers()
+    return ViccNormalizers()
 
 
 # @pytest.fixture(scope="session")
