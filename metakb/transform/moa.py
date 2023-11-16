@@ -9,7 +9,7 @@ from ga4gh.core import core_models, sha512t24u
 from ga4gh.vrs import models
 
 from metakb import APP_ROOT   # noqa: I202
-from metakb.normalizers import VICCNormalizers
+from metakb.normalizers import ViccNormalizers
 from metakb.transform.base import Transform, MethodId, MoaEvidenceLevel
 from metakb.schemas.annotation import Document, Direction
 from metakb.schemas.variation_statement import (
@@ -23,13 +23,13 @@ from metakb.schemas.categorical_variation import ProteinSequenceConsequence
 logger = logging.getLogger(__name__)
 
 
-class MOATransform(Transform):
+class MoaTransform(Transform):
     """A class for transforming MOA resources to common data model."""
 
     def __init__(self,
                  data_dir: Path = APP_ROOT / "data",
                  harvester_path: Optional[Path] = None,
-                 normalizers: Optional[VICCNormalizers] = None) -> None:
+                 normalizers: Optional[ViccNormalizers] = None) -> None:
         """Initialize MOAlmanac Transform class.
 
         :param data_dir: Path to source data directory

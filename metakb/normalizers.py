@@ -17,7 +17,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class VICCNormalizers:
+class ViccNormalizers:
     """A class for normalizing terms using VICC normalizers."""
 
     def __init__(self) -> None:

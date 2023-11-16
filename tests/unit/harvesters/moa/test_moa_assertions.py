@@ -5,7 +5,7 @@ import pytest
 from mock import patch
 
 from metakb import PROJECT_ROOT  # noqa: I202
-from metakb.harvesters import MOAHarvester
+from metakb.harvesters import MoaHarvester
 
 
 @pytest.fixture(scope="module")
@@ -51,8 +51,8 @@ def assertion170():
     }
 
 
-@patch.object(MOAHarvester, "_get_all_variants")
-@patch.object(MOAHarvester, "_get_all_assertions")
+@patch.object(MoaHarvester, "_get_all_variants")
+@patch.object(MoaHarvester, "_get_all_assertions")
 def test_assertion_170(test_get_all_assertions, test_get_all_variants,
                        assertion170):
     """Test moa harvester works correctly for assertions."""
@@ -66,9 +66,9 @@ def test_assertion_170(test_get_all_assertions, test_get_all_variants,
         data = json.load(f)
     test_get_all_variants.return_value = data
 
-    assertion_resp = MOAHarvester()._get_all_assertions()
-    _, variants_list = MOAHarvester().harvest_variants()
-    assertions = MOAHarvester().harvest_assertions(
+    assertion_resp = MoaHarvester()._get_all_assertions()
+    _, variants_list = MoaHarvester().harvest_variants()
+    assertions = MoaHarvester().harvest_assertions(
         assertion_resp, variants_list)
 
     actual = None

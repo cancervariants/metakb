@@ -2,7 +2,7 @@
 import json
 
 from metakb import PROJECT_ROOT, APP_ROOT
-from metakb.transform import CIViCTransform
+from metakb.transform import CivicTransform
 
 
 def create_civic_example(civic_data):
@@ -78,7 +78,7 @@ def create_civic_example(civic_data):
 
 
 if __name__ == '__main__':
-    civic = CIViCTransform()
+    civic = CivicTransform()
     civic.transform()
     civic.create_json()
     latest = sorted((APP_ROOT / "data" / "civic" / "transform").glob("civic_cdm_*.json"))[-1]  # noqa: E501

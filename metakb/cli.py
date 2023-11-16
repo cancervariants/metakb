@@ -28,8 +28,8 @@ from botocore.config import Config
 from metakb import APP_ROOT
 from metakb.database import Graph
 from metakb.schemas.app import SourceName
-from metakb.harvesters import Harvester, CIViCHarvester, MOAHarvester
-from metakb.transform import Transform, CIViCTransform, MOATransform
+from metakb.harvesters import Harvester, CivicHarvester, MoaHarvester
+from metakb.transform import Transform, CivicTransform, MoaTransform
 
 
 logger = logging.getLogger('metakb.cli')
@@ -240,8 +240,8 @@ class CLI:
         echo_info("Harvesting sources...")
         # TODO: Switch to using constant
         harvester_sources = {
-            'civic': CIViCHarvester,
-            'moa': MOAHarvester
+            'civic': CivicHarvester,
+            'moa': MoaHarvester
         }
         total_start = timer()
         for source_str, source_class in harvester_sources.items():
@@ -272,8 +272,8 @@ class CLI:
         echo_info("Transforming harvested data to CDM...")
         # TODO: Switch to using constant
         transform_sources = {
-            'civic': CIViCTransform,
-            'moa': MOATransform
+            'civic': CivicTransform,
+            'moa': MoaTransform
         }
         total_start = timer()
         for src_str, src_name in transform_sources.items():

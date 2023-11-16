@@ -5,7 +5,7 @@ import json
 import pytest
 
 from metakb import PROJECT_ROOT, APP_ROOT
-from metakb.harvesters import CIViCHarvester
+from metakb.harvesters import CivicHarvester
 
 
 TEST_DATA_PATH = PROJECT_ROOT / "tests" / "data" / "harvesters" / "civic"
@@ -14,8 +14,8 @@ TEST_CIVICPY_CACHE_PATH = list(sorted(TEST_DATA_PATH.glob("civicpy_cache_*.pkl")
 
 @pytest.fixture(scope="module")
 def harvester():
-    """Create test fixture for CIViCHarvester"""
-    return CIViCHarvester(local_cache_path=TEST_CIVICPY_CACHE_PATH)
+    """Create test fixture for CivicHarvester"""
+    return CivicHarvester(local_cache_path=TEST_CIVICPY_CACHE_PATH)
 
 
 @pytest.fixture(scope="module")

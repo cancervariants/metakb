@@ -11,7 +11,7 @@ from neo4j.data import Record
 from neo4j import Transaction, Session
 
 from metakb.database import Graph
-from metakb.normalizers import VICCNormalizers
+from metakb.normalizers import ViccNormalizers
 from metakb.schemas.app import SearchService, StatementResponse, \
     TherapeuticResponseProposition, VariationDescriptor, \
     ValueObjectDescriptor, GeneDescriptor, Method, \
@@ -28,12 +28,12 @@ class QueryHandler:
 
     def __init__(self, uri: str = "",
                  creds: Tuple[str, str] = ("", ""),
-                 normalizers: VICCNormalizers = VICCNormalizers()) -> None:
+                 normalizers: ViccNormalizers = ViccNormalizers()) -> None:
         """Initialize neo4j driver and the VICC normalizers.
         :param str uri: address of Neo4j DB
         :param Tuple[str, str] credentials: tuple containing username and
             password
-        :param VICCNormalizers normalizers: normalizer collection instance
+        :param ViccNormalizers normalizers: normalizer collection instance
         """
         self.driver = Graph(uri, creds).driver
         self.vicc_normalizers = normalizers

@@ -10,7 +10,7 @@ from ga4gh.vrs import models
 from pydantic import BaseModel
 
 from metakb import APP_ROOT
-from metakb.normalizers import VICCNormalizers
+from metakb.normalizers import ViccNormalizers
 from metakb.transform.base import Transform, MethodId, CivicEvidenceLevel
 from metakb.schemas.annotation import Direction, Document
 from metakb.schemas.variation_statement import (
@@ -60,13 +60,13 @@ class SourcePrefix(StrEnum):
     ASCO = "asco"
 
 
-class CIViCTransform(Transform):
+class CivicTransform(Transform):
     """A class for transforming CIViC to the common data model."""
 
     def __init__(self,
                  data_dir: Path = APP_ROOT / "data",
                  harvester_path: Optional[Path] = None,
-                 normalizers: Optional[VICCNormalizers] = None) -> None:
+                 normalizers: Optional[ViccNormalizers] = None) -> None:
         """Initialize CIViC Transform class.
 
         :param data_dir: Path to source data directory

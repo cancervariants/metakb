@@ -10,7 +10,7 @@ from metakb.harvesters.base import Harvester  # noqa: I202
 logger = logging.getLogger(__name__)
 
 
-class CIViCHarvester(Harvester):
+class CivicHarvester(Harvester):
     """A class for the CIViC harvester."""
 
     def __init__(
@@ -19,7 +19,7 @@ class CIViCHarvester(Harvester):
         update_from_remote: bool = True,
         local_cache_path: Optional[Path] = LOCAL_CACHE_PATH
     ) -> None:
-        """Initialize CIViCHarvester class.
+        """Initialize CivicHarvester class.
 
         :param update_cache: `True` if civicpy cache should be updated. Note
             this will take several minutes. `False` if to use local cache.
