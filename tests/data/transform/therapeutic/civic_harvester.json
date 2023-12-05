@@ -63,6 +63,88 @@
           "type": "therapie"
         }
       ]
+    },
+    {
+      "type": "evidence",
+      "id": 816,
+      "variant_origin": "SOMATIC",
+      "therapy_interaction_type": "SUBSTITUTES",
+      "status": "accepted",
+      "significance": "RESISTANCE",
+      "rating": 4,
+      "name": "EID816",
+      "molecular_profile_id": 12,
+      "evidence_type": "PREDICTIVE",
+      "evidence_level": "B",
+      "evidence_direction": "DOES_NOT_SUPPORT",
+      "description": "This meta-analysis of 7 randomized control trials evaluating overall survival (OS) (8 for progression free survival) could not definitely state that survival benefit of anti-EGFR monoclonal antibodies is limited to patients with wild type BRAF. In other words, the authors believe that there is insufficient data to justify the exclusion of anti-EGFR monoclonal antibody therapy for patients with mutant BRAF. In these studies, mutant BRAF specifically meant the V600E mutation.",
+      "assertion_ids": [],
+      "source": {
+        "id": 548,
+        "name": "PubMed: Rowland et al., 2015, Br. J. Cancer",
+        "title": "Meta-analysis of BRAF mutation as a predictive biomarker of benefit from anti-EGFR monoclonal antibody therapy for RAS wild-type metastatic colorectal cancer.",
+        "citation": "Rowland et al., 2015, Br. J. Cancer",
+        "citation_id": "25989278",
+        "source_type": "PUBMED",
+        "abstract": "Metastatic colorectal cancer (mCRC) that harbours a BRAF V600E mutation (BRAF MT) is associated with poorer outcomes. However, whether this mutation is predictive of treatment benefit from anti-epidermal growth factor receptor (EGFR) monoclonal antibodies (mAbs) is uncertain.We conducted a systematic review and meta-analysis of randomised controlled trials (RCTs) published up to July 2014 that evaluated the effect of BRAF MT on the treatment benefit from anti-EGFR mAbs for mCRC.Seven RCTs met the inclusion criteria for assessment of overall survival (OS), whereas eight RCTs met the inclusion criteria for assessment of progression-free survival (PFS). For RAS WT/BRAF MT tumours, the hazard ratio for OS benefit with anti-EGFR mAbs was 0.97 (95% CI; 0.67-1.41), whereas the hazard ratio was 0.81 (95% CI; 0.70-0.95) for RAS WT/BRAF WT tumours. However, the test of interaction (P=0.43) was not statistically significant, highlighting that the observed differences in the effect of anti-EGFR mAbs on OS according to the BRAF mutation status may be due to chance alone. Regarding PFS benefit with anti-EGFR mAbs, the hazard ratio was 0.86 (95% CI; 0.61-1.21) for RAS WT/BRAF MT tumours as compared with 0.62 (95% CI; 0.50-0.77) for RAS WT/BRAF WT tumours (test of interaction, P=0.07).This meta-analysis demonstrates that there is insufficient evidence to definitively state that RAS WT/BRAF MT individuals attain a different treatment benefit from anti-EGFR mAbs for mCRC compared with RAS WT/BRAF WT individuals. As such, there are insufficient data to justify the exclusion of anti-EGFR mAb therapy for patients with RAS WT/BRAF MT mCRC.",
+        "asco_abstract_id": null,
+        "author_string": "A Rowland, M M Dias, M D Wiese, G Kichenadasse, R A McKinnon, C S Karapetis, M J Sorich",
+        "full_journal_title": "British journal of cancer",
+        "journal": "Br. J. Cancer",
+        "pmc_id": "PMC4580381",
+        "publication_date": "2015-6-9",
+        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/25989278",
+        "clinical_trials": [],
+        "type": "source"
+      },
+      "disease": {
+        "id": 11,
+        "name": "Colorectal Cancer",
+        "display_name": "Colorectal Cancer",
+        "doid": "9256",
+        "disease_url": "https://www.disease-ontology.org/?id=DOID:9256",
+        "aliases": [],
+        "type": "disease"
+      },
+      "phenotypes": [],
+      "therapies": [
+        {
+          "id": 16,
+          "name": "Cetuximab",
+          "ncit_id": "C1723",
+          "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C1723",
+          "aliases": [
+            "Cetuximab Biosimilar CDP-1",
+            "Cetuximab Biosimilar CMAB009",
+            "Cetuximab Biosimilar KL 140",
+            "Chimeric Anti-EGFR Monoclonal Antibody",
+            "Chimeric MoAb C225",
+            "Chimeric Monoclonal Antibody C225",
+            "Erbitux",
+            "IMC-C225"
+          ],
+          "type": "therapie"
+        },
+        {
+          "id": 28,
+          "name": "Panitumumab",
+          "ncit_id": "C1857",
+          "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C1857",
+          "aliases": [
+            "ABX-EGF",
+            "ABX-EGF Monoclonal Antibody",
+            "ABX-EGF, Clone E7.6.3",
+            "E7.6.3",
+            "Human IgG2K Monoclonal Antibody",
+            "MoAb ABX-EGF",
+            "MoAb E7.6.3",
+            "Monoclonal Antibody ABX-EGF",
+            "Monoclonal Antibody E7.6.3",
+            "Vectibix"
+          ],
+          "type": "therapie"
+        }
+      ]
     }
   ],
   "assertions": [
@@ -199,6 +281,78 @@
         "PIG61",
         "mENA"
       ]
+    },
+    {
+      "type": "gene",
+      "id": 5,
+      "name": "BRAF",
+      "entrez_id": 673,
+      "description": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase.",
+      "sources": [
+        {
+          "id": 9,
+          "name": "PubMed: Li et al., 2009, Oncol. Rep.",
+          "title": "Targeting of the BRAF gene in papillary thyroid carcinoma (review).",
+          "citation": "Li et al., 2009, Oncol. Rep.",
+          "citation_id": "19724843",
+          "source_type": "PUBMED",
+          "abstract": "Papillary thyroid carcinoma (PTC) is the most common type of thyroid malignancy and includes several histological variants. Patients suffering from PTC usually have a good outcome. However, a group of PTC patients still encounter high rates of recurrence and mortality. The BRAFV600E mutation is the most common genetic alteration identified in PTC, ranging from 29 to 83%, with the average rate about 40%. To date, a growing body of evidence has suggested that the BRAFV600E mutation plays an important role in the carcinogenesis of PTC, and it tends to be associated with special subtypes of PTC and predicts poor prognosis. Therefore, mutant BRAF has become an attractive cancer target for PTC. This article is focuses on reviewing the impact of the BRAFV600E mutation in the tumorigenesis of PTC, differences in the prevalence of the BRAFV600E mutation in variants of PTC, and its detection methods. The novel advantages of the BRAFV600E mutation-targeted therapies in studies of PTC are also discussed.",
+          "asco_abstract_id": null,
+          "author_string": "Yaqiong Li, Misa Nakamura, Kennichi Kakudo",
+          "full_journal_title": "Oncology reports",
+          "journal": "Oncol. Rep.",
+          "pmc_id": null,
+          "publication_date": "2009-10",
+          "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/19724843",
+          "clinical_trials": [],
+          "type": "source"
+        },
+        {
+          "id": 10,
+          "name": "PubMed: Pakneshan et al., 2013, Pathology",
+          "title": "Clinicopathological relevance of BRAF mutations in human cancer.",
+          "citation": "Pakneshan et al., 2013, Pathology",
+          "citation_id": "23594689",
+          "source_type": "PUBMED",
+          "abstract": "BRAF represents one of the most frequently mutated protein kinase genes in human tumours. The mutation is commonly tested in pathology practice. BRAF mutation is seen in melanoma, papillary thyroid carcinoma (including papillary thyroid carcinoma arising from ovarian teratoma), ovarian serous tumours, colorectal carcinoma, gliomas, hepatobiliary carcinomas and hairy cell leukaemia. In these cancers, various genetic aberrations of the BRAF proto-oncogene, such as different point mutations and chromosomal rearrangements, have been reported. The most common mutation, BRAF V600E, can be detected by DNA sequencing and immunohistochemistry on formalin fixed, paraffin embedded tumour tissue. Detection of BRAF V600E mutation has the potential for clinical use as a diagnostic and prognostic marker. In addition, a great deal of research effort has been spent in strategies inhibiting its activity. Indeed, recent clinical trials involving BRAF selective inhibitors exhibited promising response rates in metastatic melanoma patients. Clinical trials are underway for other cancers. However, cutaneous side effects of treatment have been reported and therapeutic response to cancer is short-lived due to the emergence of several resistance mechanisms. In this review, we give an update on the clinical pathological relevance of BRAF mutation in cancer. It is hoped that the review will enhance the direction of future research and assist in more effective use of the knowledge of BRAF mutation in clinical practice.",
+          "asco_abstract_id": null,
+          "author_string": "Sahar Pakneshan, Ali Salajegheh, Robert Anthony Smith, Alfred King-Yin Lam",
+          "full_journal_title": "Pathology",
+          "journal": "Pathology",
+          "pmc_id": null,
+          "publication_date": "2013-6",
+          "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23594689",
+          "clinical_trials": [],
+          "type": "source"
+        },
+        {
+          "id": 3005,
+          "name": "PubMed: Yao et al., 2017, Nature",
+          "title": "Tumours with class 3 BRAF mutants are sensitive to the inhibition of activated RAS.",
+          "citation": "Yao et al., 2017, Nature",
+          "citation_id": "28783719",
+          "source_type": "PUBMED",
+          "abstract": "Approximately 200 BRAF mutant alleles have been identified in human tumours. Activating BRAF mutants cause feedback inhibition of GTP-bound RAS, are RAS-independent and signal either as active monomers (class 1) or constitutively active dimers (class 2). Here we characterize a third class of BRAF mutants-those that have impaired kinase activity or are kinase-dead. These mutants are sensitive to ERK-mediated feedback and their activation of signalling is RAS-dependent. The mutants bind more tightly than wild-type BRAF to RAS-GTP, and their binding to and activation of wild-type CRAF is enhanced, leading to increased ERK signalling. The model suggests that dysregulation of signalling by these mutants in tumours requires coexistent mechanisms for maintaining RAS activation despite ERK-dependent feedback. Consistent with this hypothesis, melanomas with these class 3 BRAF mutations also harbour RAS mutations or NF1 deletions. By contrast, in lung and colorectal cancers with class 3 BRAF mutants, RAS is typically activated by receptor tyrosine kinase signalling. These tumours are sensitive to the inhibition of RAS activation by inhibitors of receptor tyrosine kinases. We have thus defined three distinct functional classes of BRAF mutants in human tumours. The mutants activate ERK signalling by different mechanisms that dictate their sensitivity to therapeutic inhibitors of the pathway.",
+          "asco_abstract_id": null,
+          "author_string": "Zhan Yao, Rona Yaeger, Vanessa S Rodrik-Outmezguine, Anthony Tao, Neilawattie M Torres, Matthew T Chang, Matthias Drosten, Huiyong Zhao, Fabiola Cecchi, Todd Hembrough, Judith Michels, Herv\u00e9 Baumert, Linde Miles, Naomi M Campbell, Elisa de Stanchina, David B Solit, Mariano Barbacid, Barry S Taylor, Neal Rosen",
+          "full_journal_title": "Nature",
+          "journal": "Nature",
+          "pmc_id": "PMC5648058",
+          "publication_date": "2017",
+          "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/28783719",
+          "clinical_trials": [],
+          "type": "source"
+        }
+      ],
+      "aliases": [
+        "B-RAF1",
+        "B-raf",
+        "BRAF",
+        "BRAF-1",
+        "BRAF1",
+        "NS7",
+        "RAFB1"
+      ]
     }
   ],
   "variants": [
@@ -251,6 +405,57 @@
         "ENST00000275493.2:c.2573T>G",
         "NP_005219.2:p.Leu858Arg"
       ]
+    },
+    {
+      "type": "variant",
+      "id": 12,
+      "single_variant_molecular_profile_id": 12,
+      "name": "V600E",
+      "gene_id": 5,
+      "entrez_name": "BRAF",
+      "entrez_id": 673,
+      "allele_registry_id": "CA123643",
+      "variant_types": [
+        {
+          "id": 47,
+          "name": "Missense Variant",
+          "so_id": "SO:0001583",
+          "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+          "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
+          "type": "variant_type"
+        }
+      ],
+      "clinvar_entries": [
+        "13961",
+        "376069"
+      ],
+      "variant_aliases": [
+        "RS113488022",
+        "VAL600GLU",
+        "V640E",
+        "VAL640GLU"
+      ],
+      "coordinates": {
+        "ensembl_version": 75,
+        "reference_build": "GRCh37",
+        "reference_bases": "A",
+        "variant_bases": "T",
+        "representative_transcript": "ENST00000288602.6",
+        "chromosome": "7",
+        "start": 140453136,
+        "stop": 140453136,
+        "representative_transcript2": null,
+        "chromosome2": null,
+        "start2": null,
+        "stop2": null,
+        "type": "coordinates"
+      },
+      "hgvs_expressions": [
+        "NM_004333.4:c.1799T>A",
+        "NP_004324.2:p.Val600Glu",
+        "NC_000007.13:g.140453136A>T",
+        "ENST00000288602.6:c.1799T>A"
+      ]
     }
   ],
   "molecular_profiles": [
@@ -263,6 +468,18 @@
       "name": "EGFR L858R",
       "molecular_profile_score": 378.0,
       "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",
+      "sources": [],
+      "aliases": []
+    },
+    {
+      "type": "molecular_profile",
+      "id": 12,
+      "variant_ids": [
+        12
+      ],
+      "name": "BRAF V600E",
+      "molecular_profile_score": 1353.5,
+      "description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
       "sources": [],
       "aliases": []
     }
