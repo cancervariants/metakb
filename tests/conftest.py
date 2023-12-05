@@ -149,7 +149,7 @@ def civic_source592():
 
 @pytest.fixture(scope="module")
 def civic_eid2997_study(
-    civic_mpid33, civic_tid146, civic_did8, civic_eid2997_qualifier, civi_method,
+    civic_mpid33, civic_tid146, civic_did8, civic_eid2997_qualifier, civic_method,
     civic_source592
 ):
     """Create CIVIC EID2997 Statement test fixture."""
@@ -168,7 +168,7 @@ def civic_eid2997_study(
         "therapeutic": civic_tid146,
         "tumorType": civic_did8,
         "qualifiers": civic_eid2997_qualifier,
-        "specifiedBy": civi_method,
+        "specifiedBy": civic_method,
         "isReportedIn": [civic_source592]
     }
 
@@ -1467,7 +1467,7 @@ def moa_chronic_myelogenous_leukemia():
 
 
 @pytest.fixture(scope="module")
-def civi_method():
+def civic_method():
     """Create test fixture for method:1."""
     return {
         "id": "civic.method:2019",
@@ -1532,9 +1532,9 @@ def method4():
 
 
 @pytest.fixture(scope="module")
-def civic_methods(civi_method, moa_method, method3):
+def civic_methods(civic_method, moa_method, method3):
     """Create test fixture for methods."""
-    return [civi_method, moa_method, method3]
+    return [civic_method, moa_method, method3]
 
 
 @pytest.fixture(scope="module")

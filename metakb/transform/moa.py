@@ -120,7 +120,7 @@ class MoaTransform(Transform):
                 # Indicates multiple therapies (will be supported later)
                 continue
             else:
-                moa_therapeutic = self._add_therapeutic(therapy_name)
+                moa_therapeutic = self._add_therapeutic_agent(therapy_name)
 
             if not moa_therapeutic:
                 logger.debug(
@@ -346,7 +346,7 @@ class MoaTransform(Transform):
             self.able_to_normalize["documents"][source_id] = document
             self.documents.append(document)
 
-    def _add_therapeutic(self, label: str) -> Optional[Dict]:
+    def _add_therapeutic_agent(self, label: str) -> Optional[Dict]:
         """Create or get Therapeutic Agent given a therapy name.
         First looks in cache for existing therapeutic agent, if not found will attempt
         to normalize. Will add `label` to `therapeutics` and
@@ -362,7 +362,7 @@ class MoaTransform(Transform):
         else:
             vrs_therapeutic = None
             if label not in self.unable_to_normalize["therapeutics"]:
-                vrs_therapeutic = self._get_therapeutic(label)
+                vrs_therapeutic = self._get_therapeutic_agent(label)
                 if vrs_therapeutic:
                     self.able_to_normalize["therapeutics"][label] = vrs_therapeutic
                     self.therapeutics.append(vrs_therapeutic)
@@ -370,7 +370,7 @@ class MoaTransform(Transform):
                     self.unable_to_normalize["therapeutics"].add(label)
         return vrs_therapeutic
 
-    def _get_therapeutic(self, label: str) -> Optional[Dict]:
+    def _get_therapeutic_agent(self, label: str) -> Optional[Dict]:
         """Get Therapeutic Agent for a MOA therapy name.
         Will run `label` through therapy-normalizer.
 

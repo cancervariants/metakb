@@ -6,7 +6,7 @@ from pathlib import Path
 from datetime import datetime as dt
 from enum import StrEnum
 
-from ga4gh.core import core_models
+from ga4gh.core import core_models, sha512t24u
 from pydantic import BaseModel, StrictStr
 
 from metakb import APP_ROOT, DATE_FMT
@@ -248,6 +248,17 @@ class Transform:
                     system="https://go.osu.edu/evidence-codes"
                 )
         return mappings
+
+    @staticmethod
+    def _get_digest_for_str_lists(str_list: List[str]) -> str:  # noqa: E741
+        """Create digest for a list of strings
+
+        :param List[str] str_list: List of strings to get digest for
+        :return: Digest
+        """
+        str_list.sort()
+        blob = json.dumps(str_list, separators=(",", ":")).encode("ascii")
+        return sha512t24u(blob)
 
     def create_json(self, transform_dir: Optional[Path] = None,
                     filename: Optional[str] = None) -> None:
