@@ -152,7 +152,7 @@ def civic_eid2997_study(
     civic_mpid33, civic_tid146, civic_did8, civic_eid2997_qualifier, civic_method,
     civic_source592
 ):
-    """Create CIVIC EID2997 Statement test fixture."""
+    """Create CIVIC EID2997 Statement test fixture. Uses TherapeuticAgent."""
     return {
         "id": "civic.eid:2997",
         "type": "VariantTherapeuticResponseStudy",

@@ -722,13 +722,15 @@ class CivicTransform(Transform):
     ) -> Optional[Union[core_models.TherapeuticAgent, core_models.TherapeuticSubstituteGroup]]:  # noqa: E501
         """Create or get Therapeutic Procedure given therapies
         First look in cache for existing Therapeutic Procedure, if not found will
-        attempt to normalize. Will add Therapeutic Procedure ID to `therapeutics` and
-        `able_to_normalize['therapeutics']` if therapy-normalize is able to normalize
-        all `therapies`. Else, will add the Therapeutic Procedure ID to
+        attempt to normalize. Will add `therapeutic_procedure_id` to `therapeutics` and
+        `able_to_normalize['therapeutics']` if therapy-normalizer is able to normalize
+        all `therapies`. Else, will add the `therapeutic_procedure_id` to
         `unable_to_normalize['therapeutics']`
 
         :param therapeutic_procedure_id: ID for therapeutic procedure
-        :param therapies: List of CIViC therapy objects
+        :param therapies: List of CIViC therapy objects. If `therapeutic_procedure_type`
+            is `TherapeuticProcedureType.THERAPEUTIC_AGENT`, the list will only contain
+            a single therapy.
         :param therapeutic_procedure_type: The type of therapeutic procedure
         :param therapy_interaction_type: CIViC drug interaction type
         """
@@ -762,6 +764,14 @@ class CivicTransform(Transform):
         therapies: List[Dict],
         therapy_interaction_type: str
     ) -> Optional[core_models.TherapeuticSubstituteGroup]:
+        """Get Therapeutic Substitute Group for CIViC therapies
+
+        :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
+        :param therapies: List of CIViC therapy objects
+        :param therapy_interaction_type: Therapy interaction type provided by CIViC
+        :return: If able to normalize all therapy objects in `therapies`, returns
+            Therapeutic Substitute Group represented as a dict
+        """
         substitutes = []
 
         for therapy in therapies:
@@ -789,7 +799,12 @@ class CivicTransform(Transform):
                 substitutes=substitutes,
                 extensions=extensions
             ).model_dump(exclude_none=True)
-        except ValidationError:
+        except ValidationError as e:
+            # If substitutes validation checks fail
+            logger.debug(
+                "ValidationError raised when attempting to create "
+                f"TherapeuticSubstituteGroup: {e}"
+            )
             tsg = None
 
         return tsg

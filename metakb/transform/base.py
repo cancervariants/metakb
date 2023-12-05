@@ -253,7 +253,7 @@ class Transform:
     def _get_digest_for_str_lists(str_list: List[str]) -> str:
         """Create digest for a list of strings
 
-        :param List[str] str_list: List of strings to get digest for
+        :param str_list: List of strings to get digest for
         :return: Digest
         """
         str_list.sort()
