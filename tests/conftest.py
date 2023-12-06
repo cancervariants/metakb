@@ -16,6 +16,114 @@ def event_loop(request):
     loop.close()
 
 
+@pytest.fixture(scope="session")
+def cetuximab_extensions():
+    """Create test fixture for cetuximab extensions"""
+    return [
+        {
+            "type": "Extension",
+            "name": "therapy_normalizer_id",
+            "value": "rxcui:318341"
+        },
+        {
+            "type": "Extension",
+            "name": "regulatory_approval",
+            "value": {
+                "approval_rating": "ChEMBL",
+                "has_indications": [
+                    {
+                        "id": "mesh:D009369",
+                        "type": "Disease",
+                        "label": "Neoplasms",
+                        "mappings": [
+                            {
+                                "coding": {"code": "C3262", "system": "ncit"},
+                                "relation": "relatedMatch"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "mesh:D015179",
+                        "type": "Disease",
+                        "label": "Colorectal Neoplasms",
+                        "mappings": [
+                            {
+                                "coding": {"code": "C2956", "system": "ncit"},
+                                "relation": "relatedMatch"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "mesh:D006258",
+                        "type": "Disease",
+                        "label": "Head and Neck Neoplasms",
+                        "mappings": [
+                            {
+                                "coding": {"code": "C4013", "system": "ncit"},
+                                "relation": "relatedMatch"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "mesh:D002294",
+                        "type": "Disease",
+                        "label": "Carcinoma, Squamous Cell",
+                        "mappings": [
+                            {
+                                "coding": {"code": "C2929", "system": "ncit"},
+                                "relation": "relatedMatch"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+
+
+@pytest.fixture(scope="session")
+def encorafenib_extensions():
+    """Create test fixture for encorafenib extensions"""
+    return [
+        {
+            "type": "Extension",
+            "name": "therapy_normalizer_id",
+            "value": "rxcui:2049106"
+        },
+        {
+            "type": "Extension",
+            "name": "regulatory_approval",
+            "value": {
+                "approval_rating": "ChEMBL",
+                "has_indications": [
+                    {
+                        "id": "mesh:D008545",
+                        "type": "Disease",
+                        "label": "Melanoma",
+                        "mappings": [
+                            {
+                                "coding": {"code": "C3224", "system": "ncit"},
+                                "relation": "relatedMatch"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "mesh:D009369",
+                        "type": "Disease",
+                        "label": "Neoplasms",
+                        "mappings": [
+                            {
+                                "coding": {"code": "C3262", "system": "ncit"},
+                                "relation": "relatedMatch"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+
+
 @pytest.fixture(scope="module")
 def civic_mpid33(civic_vid33):
     """Create CIViC MPID 33"""

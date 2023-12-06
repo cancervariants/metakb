@@ -1,4 +1,5 @@
 """A module for the Transform base class."""
+from abc import abstractmethod
 from typing import Dict, Optional, List, Set, Union
 import json
 import logging
@@ -7,7 +8,7 @@ from datetime import datetime as dt
 from enum import StrEnum
 
 from ga4gh.core import core_models, sha512t24u
-from pydantic import BaseModel, StrictStr
+from pydantic import BaseModel, StrictStr, ValidationError
 
 from metakb import APP_ROOT, DATE_FMT
 from metakb.schemas.annotation import Method, Document
@@ -49,6 +50,14 @@ class MoaEvidenceLevel(StrEnum):
     CLINICAL_EVIDENCE = "moa.evidence_level:clinical_evidence"
     PRECLINICAL = "moa.evidence_level:preclinical_evidence"
     INFERENTIAL = "moa.evidence_level:inferential_evidence"
+
+
+class TherapeuticProcedureType(StrEnum):
+    """Define types for supported Therapeutic Procedures"""
+
+    THERAPEUTIC_AGENT = "TherapeuticAgent"
+    THERAPEUTIC_SUBSTITUTE_GROUP = "TherapeuticSubstituteGroup"
+    COMBINATION_THERAPY = "CombinationTherapy"
 
 
 class ViccConceptVocab(BaseModel):
@@ -259,6 +268,140 @@ class Transform:
         str_list.sort()
         blob = json.dumps(str_list, separators=(",", ":")).encode("ascii")
         return sha512t24u(blob)
+
+    @abstractmethod
+    def _get_therapeutic_agent(
+        self,
+        therapy: Dict
+    ) -> Optional[core_models.TherapeuticAgent]:
+        """Get Therapeutic Agent for therapy
+
+        :param therapy: therapy object
+        :return: If able to normalize therapy, returns therapeutic agent represented as
+            a dict
+        """
+
+    @abstractmethod
+    def _get_therapeutic_substitute_group(
+        self,
+        therapeutic_sub_group_id: str,
+        therapies: List[Dict],
+        therapy_interaction_type: str
+    ) -> Optional[core_models.TherapeuticSubstituteGroup]:
+        """Get Therapeutic Substitute Group for therapies
+
+        :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
+        :param therapies: List of therapy objects
+        :param therapy_interaction_type: Therapy interaction type
+        :return: If able to normalize all therapy objects in `therapies`, returns
+            Therapeutic Substitute Group represented as a dict
+        """
+
+    def _get_combination_therapy(
+        self,
+        combination_therapy_id: str,
+        therapies: List[Dict],
+        therapy_interaction_type: str,
+    ) -> Optional[core_models.CombinationTherapy]:
+        """Get combination group for source therapies
+
+        :param combination_therapy_id: ID for Combination Therapy
+        :param therapies: List of source therapy objects
+        :param therapy_interaction_type: Therapy type provided by source
+        :return: If able to normalize all therapy objects in `therapies`, returns
+            Combination Therapy represented as a dict
+        """
+        components = []
+        source_name = type(self).__name__.lower().replace("transform", "")
+
+        for therapy in therapies:
+            if source_name == "moa":
+                therapeutic_procedure_id = f"moa.therapy:{therapy}"
+            else:
+                therapeutic_procedure_id = f"civic.tid:{therapy['id']}"
+            ta = self._add_therapeutic_procedure(
+                therapeutic_procedure_id,
+                [therapy],
+                TherapeuticProcedureType.THERAPEUTIC_AGENT
+            )
+            if not ta:
+                return None
+
+            components.append(ta)
+
+        extensions = [
+            core_models.Extension(
+                name="moa_therapy_type" if source_name == "moa" else "civic_therapy_interaction_type",  # noqa: E501
+                value=therapy_interaction_type
+            ).model_dump(exclude_none=True)
+        ]
+
+        try:
+            ct = core_models.CombinationTherapy(
+                id=combination_therapy_id,
+                components=components,
+                extensions=extensions
+            ).model_dump(exclude_none=True)
+        except ValidationError as e:
+            # if combination validation checks fail
+            logger.debug(
+                "ValidationError raised when attempting to create CombinationTherapy: "
+                f"{e}"
+            )
+            ct = None
+
+        return ct
+
+    def _add_therapeutic_procedure(
+        self,
+        therapeutic_procedure_id: str,
+        therapies: List[Dict],
+        therapeutic_procedure_type: TherapeuticProcedureType,
+        therapy_interaction_type: Optional[str] = None,
+    ) -> Optional[Union[core_models.TherapeuticAgent, core_models.TherapeuticSubstituteGroup]]:  # noqa: E501
+        """Create or get Therapeutic Procedure given therapies
+        First look in cache for existing Therapeutic Procedure, if not found will
+        attempt to normalize. Will add `therapeutic_procedure_id` to `therapeutics` and
+        `able_to_normalize['therapeutics']` if therapy-normalizer is able to normalize
+        all `therapies`. Else, will add the `therapeutic_procedure_id` to
+        `unable_to_normalize['therapeutics']`
+
+        :param therapeutic_procedure_id: ID for therapeutic procedure
+        :param therapies: List of therapy objects. If `therapeutic_procedure_type`
+            is `TherapeuticProcedureType.THERAPEUTIC_AGENT`, the list will only contain
+            a single therapy.
+        :param therapeutic_procedure_type: The type of therapeutic procedure
+        :param therapy_interaction_type: drug interaction type
+        """
+        tp = self.able_to_normalize["therapeutics"].get(therapeutic_procedure_id)
+        if tp:
+            return tp
+
+        if therapeutic_procedure_id not in self.unable_to_normalize["therapeutics"]:
+            if therapeutic_procedure_type == TherapeuticProcedureType.THERAPEUTIC_AGENT:
+                tp = self._get_therapeutic_agent(therapies[0])
+            elif therapeutic_procedure_type == TherapeuticProcedureType.THERAPEUTIC_SUBSTITUTE_GROUP:  # noqa: E501
+                tp = self._get_therapeutic_substitute_group(
+                    therapeutic_procedure_id,
+                    therapies,
+                    therapy_interaction_type
+                )
+            elif therapeutic_procedure_type == TherapeuticProcedureType.COMBINATION_THERAPY:  # noqa: E501
+                tp = self._get_combination_therapy(
+                    therapeutic_procedure_id,
+                    therapies,
+                    therapy_interaction_type
+                )
+            else:
+                # not supported
+                return None
+
+            if tp:
+                self.able_to_normalize["therapeutics"][therapeutic_procedure_id] = tp
+                self.therapeutics.append(tp)
+            else:
+                self.unable_to_normalize["therapeutics"].add(therapeutic_procedure_id)
+        return tp
 
     def create_json(self, transform_dir: Optional[Path] = None,
                     filename: Optional[str] = None) -> None:

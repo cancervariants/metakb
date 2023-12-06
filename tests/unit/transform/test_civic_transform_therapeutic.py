@@ -245,7 +245,7 @@ def civic_tid28():
 
 
 @pytest.fixture(scope="module")
-def civic_tid16():
+def civic_tid16(cetuximab_extensions):
     """Create test fixture for CIViC therapy ID 16"""
     return {
         "id": "civic.tid:16",
@@ -270,66 +270,7 @@ def civic_tid16():
             "Erbitux",
             "IMC-C225"
         ],
-        "extensions": [
-            {
-                "type": "Extension",
-                "name": "therapy_normalizer_id",
-                "value": "rxcui:318341"
-            },
-            {
-                "type": "Extension",
-                "name": "regulatory_approval",
-                "value": {
-                    "approval_rating": "ChEMBL",
-                    "has_indications": [
-                        {
-                            "id": "mesh:D009369",
-                            "type": "Disease",
-                            "label": "Neoplasms",
-                            "mappings": [
-                                {
-                                    "coding": {"code": "C3262", "system": "ncit"},
-                                    "relation": "relatedMatch"
-                                }
-                            ]
-                        },
-                        {
-                            "id": "mesh:D015179",
-                            "type": "Disease",
-                            "label": "Colorectal Neoplasms",
-                            "mappings": [
-                                {
-                                    "coding": {"code": "C2956", "system": "ncit"},
-                                    "relation": "relatedMatch"
-                                }
-                            ]
-                        },
-                        {
-                            "id": "mesh:D006258",
-                            "type": "Disease",
-                            "label": "Head and Neck Neoplasms",
-                            "mappings": [
-                                {
-                                    "coding": {"code": "C4013", "system": "ncit"},
-                                    "relation": "relatedMatch"
-                                }
-                            ]
-                        },
-                        {
-                            "id": "mesh:D002294",
-                            "type": "Disease",
-                            "label": "Carcinoma, Squamous Cell",
-                            "mappings": [
-                                {
-                                    "coding": {"code": "C2929", "system": "ncit"},
-                                    "relation": "relatedMatch"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            }
-        ]
+        "extensions": cetuximab_extensions
     }
 
 
@@ -363,10 +304,37 @@ def civic_gid5():
 
 
 @pytest.fixture(scope="module")
+def civic_did11():
+    """Create test fixture for CIViC Disease ID 11"""
+    return {
+        "id": "civic.did:11",
+        "type": "Disease",
+        "label": "Colorectal Cancer",
+        "mappings": [
+            {
+                "coding": {
+                    "code": "DOID:9256",
+                    "system": "https://www.disease-ontology.org/"
+                },
+                "relation": "exactMatch"
+            }
+        ],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "disease_normalizer_id",
+                "value": "ncit:C4978"
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="module")
 def civic_eid816_study(
     civic_mpid12,
     civic_tid28,
     civic_tid16,
+    civic_did11,
     civic_gid5,
     civic_method
 ):
@@ -395,27 +363,7 @@ def civic_eid816_study(
                 }
             ]
         },
-        "tumorType": {
-            "id": "civic.did:11",
-            "type": "Disease",
-            "label": "Colorectal Cancer",
-            "mappings": [
-                {
-                    "coding": {
-                        "code": "DOID:9256",
-                        "system": "https://www.disease-ontology.org/"
-                    },
-                    "relation": "exactMatch"
-                }
-            ],
-            "extensions": [
-                {
-                    "type": "Extension",
-                    "name": "disease_normalizer_id",
-                    "value": "ncit:C4978"
-                }
-            ]
-        },
+        "tumorType": civic_did11,
         "qualifiers": {
             "alleleOrigin": "somatic",
             "geneContext": civic_gid5
@@ -434,9 +382,87 @@ def civic_eid816_study(
 
 
 @pytest.fixture(scope="module")
-def studies(civic_eid2997_study, civic_eid816_study):
+def civic_tid483(encorafenib_extensions):
+    """Create test fixture for CIViC Therapy ID 483"""
+    return {
+        "id": "civic.tid:483",
+        "type": "TherapeuticAgent",
+        "label": "Encorafenib",
+        "mappings": [
+            {
+                "coding": {
+                    "code": "C98283",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code="  # noqa: E501
+                },
+                "relation": "exactMatch"
+            }
+        ],
+        "aliases": [
+            "Braftovi",
+            "LGX 818",
+            "LGX-818",
+            "LGX818"
+        ],
+        "extensions": encorafenib_extensions
+    }
+
+
+@pytest.fixture(scope="module")
+def civic_eid9851_study(
+    civic_mpid12,
+    civic_tid483,
+    civic_tid16,
+    civic_did11,
+    civic_gid5,
+    civic_method,
+):
+    """Create CIVIC EID9851 study test fixture. Uses CombinationTherapy."""
+    return {
+        "id": "civic.eid:9851",
+        "type": "VariantTherapeuticResponseStudy",
+        "description": "The open-label phase 3 BEACON CRC trial included 665 patients with BRAF V600E-mutated metastatic CRC. Patients were randomly assigned in a 1:1:1 ratio to receive encorafenib, binimetinib, and cetuximab (triplet-therapy group); encorafenib and cetuximab (doublet-therapy group); or the investigators\u2019 choice of either cetuximab and irinotecan or cetuximab and FOLFIRI. The median overall survival was 8.4 months (95% CI, 7.5 to 11.0) in the doublet-therapy group and 5.4 months (95% CI, 4.8 to 6.6) in the control group, with a significantly lower risk of death compared to the control group (hazard ratio for death doublet-group vs. control, 0.60; 95% CI, 0.45 to 0.79; P<0.001). The confirmed response rate was 26% (95% CI, 18 to 35) in the triplet-therapy group, 20% in the doublet-therapy group (95% CI 13 to 29) and 2% (95% CI, 0 to 7) in the control group (doublet group vs. control P<0.001). Median PFS was 4.2 months (95% CI, 3.7 to 5.4) in the doublet-therapy group, and 1.5 months (95% CI, 1.5 to 1.7) in the control group (hazard ratio for disease progression doublet-group vs control, 0.40; 95% CI, 0.31 to 0.52, P<0.001).",  # noqa: E501
+        "direction": "supports",
+        "strength": {
+            "code": "e000001",
+            "label": "authoritative evidence",
+            "system": "https://go.osu.edu/evidence-codes"
+        },
+        "predicate": "predictsSensitivityTo",
+        "variant": civic_mpid12,
+        "therapeutic": {
+            "type": "CombinationTherapy",
+            "id": "civic.ctid:P1PY89shAjemg7jquQ0V9pg1VnYnkPeK",
+            "components": [civic_tid483, civic_tid16],
+            "extensions": [
+                {
+                    "type": "Extension",
+                    "name": "civic_therapy_interaction_type",
+                    "value": "COMBINATION"
+                }
+            ]
+        },
+        "tumorType": civic_did11,
+        "qualifiers": {
+            "alleleOrigin": "somatic",
+            "geneContext": civic_gid5
+        },
+        "specifiedBy": civic_method,
+        "isReportedIn": [
+            {
+                "id": "civic.source:3025",
+                "label": "Kopetz et al., 2019, N. Engl. J. Med.",
+                "title": "Encorafenib, Binimetinib, and Cetuximab in BRAF V600E-Mutated Colorectal Cancer.",  # noqa: E501
+                "pmid": 31566309,
+                "type": "Document"
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="module")
+def studies(civic_eid2997_study, civic_eid816_study, civic_eid9851_study):
     """Create test fixture for CIViC therapeutic studies."""
-    return [civic_eid2997_study, civic_eid816_study]
+    return [civic_eid2997_study, civic_eid816_study, civic_eid9851_study]
 
 
 def test_civic_cdm(data, studies, check_transformed_cdm):

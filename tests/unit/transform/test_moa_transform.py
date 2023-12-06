@@ -24,13 +24,184 @@ async def data(normalizers):
 
 
 @pytest.fixture(scope="module")
-def asst71_studies(moa_aid71_study):
+def moa_vid149():
+    """Create a test fixture for MOA VID149."""
+    return {
+        "id": "moa.variant:149",
+        "type": "ProteinSequenceConsequence",
+        "label": "BRAF p.V600E (Missense)",
+        "definingContext": {
+            "id": "ga4gh:VA.4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
+            "digest": "4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
+            "type": "Allele",
+            "location": {
+                "id": "ga4gh:SL.ZA1XNKhCT_7m2UtmnYb8ZYOVS4eplMEK",
+                "type": "SequenceLocation",
+                "sequenceReference": {
+                    "type": "SequenceReference",
+                    "refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y"
+                },
+                "start": 599,
+                "end": 600
+            },
+            "state": {
+                "type": "LiteralSequenceExpression",
+                "sequence": "E"
+            }
+        },
+        "extensions": [
+            {
+                "name": "MOA representative coordinate",
+                "value": {
+                    "chromosome": "7",
+                    "start_position": "140453136",
+                    "end_position": "140453136",
+                    "reference_allele": "A",
+                    "alternate_allele": "T",
+                    "cdna_change": "c.1799T>A",
+                    "protein_change": "p.V600E",
+                    "exon": "15"
+                },
+                "type": "Extension"
+            }
+        ],
+        "mappings": [
+            {
+                "coding": {
+                    "system": "https://moalmanac.org/api/features/",
+                    "code": "149"
+                },
+                "relation": "exactMatch"
+            },
+            {
+                "coding": {
+                    "system": "https://www.ncbi.nlm.nih.gov/snp/",
+                    "code": "rs113488022"
+                },
+                "relation": "relatedMatch"
+            }
+        ],
+    }
+
+
+@pytest.fixture(scope="module")
+def moa_cetuximab(cetuximab_extensions):
+    """Create a test fixture for MOA Cetuximab"""
+    return {
+        "id": "moa.normalize.therapy.rxcui:318341",
+        "type": "TherapeuticAgent",
+        "label": "Cetuximab",
+        "extensions": cetuximab_extensions
+    }
+
+
+@pytest.fixture(scope="module")
+def moa_encorafenib(encorafenib_extensions):
+    """Create test fixture for MOA Encorafenib"""
+    return {
+        "id": "moa.normalize.therapy.rxcui:2049106",
+        "type": "TherapeuticAgent",
+        "label": "Encorafenib",
+        "extensions": encorafenib_extensions
+    }
+
+
+@pytest.fixture(scope="module")
+def moa_aid159_study(
+    moa_vid149,
+    moa_cetuximab,
+    moa_encorafenib,
+    moa_method
+):
+    """Create MOA AID 159 study test fixture. Uses CombinationTherapy."""
+    return {
+        "id": "moa.assertion:159",
+        "type": "VariantTherapeuticResponseStudy",
+        "description": "The U.S. Food and Drug Administration (FDA) granted regular approval to encorafenib in combination with cetuximab for the treatment of adult patients with metastatic colorectal cancer (CRC) with BRAF V600E mutation, as detected by an FDA-approved test, after prior therapy.",  # noqa: E501
+        "direction": "none",
+        "strength": {
+            "code": "e000002",
+            "label": "FDA recognized evidence",
+            "system": "https://go.osu.edu/evidence-codes"
+        },
+        "predicate": "predictsSensitivityTo",
+        "variant": moa_vid149,
+        "therapeutic": {
+            "type": "CombinationTherapy",
+            "id": "moa.ctid:zBda4sO3iQLExj5SB8VTPzPLaPoWefiP",
+            "components": [moa_cetuximab, moa_encorafenib],
+            "extensions": [
+                {
+                    "type": "Extension",
+                    "name": "moa_therapy_type",
+                    "value": "Targeted therapy"
+                }
+            ]
+        },
+        "tumorType": {
+            "id": "moa.normalize.disease.ncit:C5105",
+            "type": "Disease",
+            "label": "Colorectal Adenocarcinoma",
+            "extensions": [
+                {
+                    "type": "Extension",
+                    "name": "disease_normalizer_id",
+                    "value": "ncit:C5105"
+                }
+            ],
+            "mappings": [
+                {
+                    "coding": {
+                        "label": "Colorectal Adenocarcinoma",
+                        "system": "https://oncotree.mskcc.org/",
+                        "code": "COADREAD"
+                    },
+                    "relation": "exactMatch"
+                }
+            ]
+        },
+        "qualifiers": {
+            "alleleOrigin": "somatic",
+            "geneContext": {
+                "id": "moa.normalize.gene:BRAF",
+                "type": "Gene",
+                "label": "BRAF",
+                "extensions": [
+                    {
+                        "type": "Extension",
+                        "name": "gene_normalizer_id",
+                        "value": "hgnc:1097"
+                    }
+                ]
+            }
+        },
+        "specifiedBy": moa_method,
+        "isReportedIn": [
+            {
+                "id": "moa.source:63",
+                "extensions": [
+                    {
+                        "type": "Extension",
+                        "name": "source_type",
+                        "value": "FDA"
+                    }
+                ],
+                "type": "Document",
+                "title": "Array BioPharma Inc. Braftovi (encorafenib) [package insert]. U.S. Food and Drug Administration website. www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf. Revised April 2020. Accessed October 15, 2020.",  # noqa: E501
+                "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf",  # noqa: E501
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="module")
+def studies(moa_aid71_study, moa_aid159_study):
     """Create test fixture for MOA therapeutic studies."""
-    return [moa_aid71_study]
+    return [moa_aid71_study, moa_aid159_study]
 
 
-def test_moa_cdm(data, asst71_studies, check_transformed_cdm):
+def test_moa_cdm(data, studies, check_transformed_cdm):
     """Test that moa transform works correctly."""
     check_transformed_cdm(
-        data, asst71_studies, DATA_DIR / FILENAME
+        data, studies, DATA_DIR / FILENAME
     )

@@ -145,6 +145,91 @@
           "type": "therapie"
         }
       ]
+    },
+    {
+      "type": "evidence",
+      "id": 9851,
+      "variant_origin": "SOMATIC",
+      "therapy_interaction_type": "COMBINATION",
+      "status": "accepted",
+      "significance": "SENSITIVITYRESPONSE",
+      "rating": 5,
+      "name": "EID9851",
+      "molecular_profile_id": 12,
+      "evidence_type": "PREDICTIVE",
+      "evidence_level": "A",
+      "evidence_direction": "SUPPORTS",
+      "description": "The open-label phase 3 BEACON CRC trial included 665 patients with BRAF V600E-mutated metastatic CRC. Patients were randomly assigned in a 1:1:1 ratio to receive encorafenib, binimetinib, and cetuximab (triplet-therapy group); encorafenib and cetuximab (doublet-therapy group); or the investigators\u2019 choice of either cetuximab and irinotecan or cetuximab and FOLFIRI. The median overall survival was 8.4 months (95% CI, 7.5 to 11.0) in the doublet-therapy group and 5.4 months (95% CI, 4.8 to 6.6) in the control group, with a significantly lower risk of death compared to the control group (hazard ratio for death doublet-group vs. control, 0.60; 95% CI, 0.45 to 0.79; P<0.001). The confirmed response rate was 26% (95% CI, 18 to 35) in the triplet-therapy group, 20% in the doublet-therapy group (95% CI 13 to 29) and 2% (95% CI, 0 to 7) in the control group (doublet group vs. control P<0.001). Median PFS was 4.2 months (95% CI, 3.7 to 5.4) in the doublet-therapy group, and 1.5 months (95% CI, 1.5 to 1.7) in the control group (hazard ratio for disease progression doublet-group vs control, 0.40; 95% CI, 0.31 to 0.52, P<0.001).",
+      "assertion_ids": [],
+      "source": {
+        "id": 3025,
+        "name": "PubMed: Kopetz et al., 2019, N. Engl. J. Med.",
+        "title": "Encorafenib, Binimetinib, and Cetuximab in BRAF V600E-Mutated Colorectal Cancer.",
+        "citation": "Kopetz et al., 2019, N. Engl. J. Med.",
+        "citation_id": "31566309",
+        "source_type": "PUBMED",
+        "abstract": "Patients with metastatic colorectal cancer with the BRAF V600E mutation have a poor prognosis, with a median overall survival of 4 to 6 months after failure of initial therapy. Inhibition of BRAF alone has limited activity because of pathway reactivation through epidermal growth factor receptor signaling.In this open-label, phase 3 trial, we enrolled 665 patients with BRAF V600E-mutated metastatic colorectal cancer who had had disease progression after one or two previous regimens. Patients were randomly assigned in a 1:1:1 ratio to receive encorafenib, binimetinib, and cetuximab (triplet-therapy group); encorafenib and cetuximab (doublet-therapy group); or the investigators' choice of either cetuximab and irinotecan or cetuximab and FOLFIRI (folinic acid, fluorouracil, and irinotecan) (control group). The primary end points were overall survival and objective response rate in the triplet-therapy group as compared with the control group. A secondary end point was overall survival in the doublet-therapy group as compared with the control group. We report here the results of a prespecified interim analysis.The median overall survival was 9.0 months in the triplet-therapy group and 5.4 months in the control group (hazard ratio for death, 0.52; 95% confidence interval [CI], 0.39 to 0.70; P<0.001). The confirmed response rate was 26% (95% CI, 18 to 35) in the triplet-therapy group and 2% (95% CI, 0 to 7) in the control group (P<0.001). The median overall survival in the doublet-therapy group was 8.4 months (hazard ratio for death vs. control, 0.60; 95% CI, 0.45 to 0.79; P<0.001). Adverse events of grade 3 or higher occurred in 58% of patients in the triplet-therapy group, in 50% in the doublet-therapy group, and in 61% in the control group.A combination of encorafenib, cetuximab, and binimetinib resulted in significantly longer overall survival and a higher response rate than standard therapy in patients with metastatic colorectal cancer with the BRAF V600E mutation. (Funded by Array BioPharma and others; BEACON CRC ClinicalTrials.gov number, NCT02928224; EudraCT number, 2015-005805-35.).",
+        "asco_abstract_id": null,
+        "author_string": "Scott Kopetz, Axel Grothey, Rona Yaeger, Eric Van Cutsem, Jayesh Desai, Takayuki Yoshino, Harpreet Wasan, Fortunato Ciardiello, Fotios Loupakis, Yong Sang Hong, Neeltje Steeghs, Tormod K Guren, Hendrik-Tobias Arkenau, Pilar Garcia-Alfonso, Per Pfeiffer, Sergey Orlov, Sara Lonardi, Elena Elez, Tae-Won Kim, Jan H M Schellens, Christina Guo, Asha Krishnan, Jeroen Dekervel, Van Morris, Aitana Calvo Ferrandiz, L S Tarpgaard, Michael Braun, Ashwin Gollerkeri, Christopher Keir, Kati Maharry, Michael Pickard, Janna Christy-Bittel, Lisa Anderson, Victor Sandor, Josep Tabernero",
+        "full_journal_title": "The New England journal of medicine",
+        "journal": "N. Engl. J. Med.",
+        "pmc_id": null,
+        "publication_date": "2019",
+        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/31566309",
+        "clinical_trials": [
+          {
+            "id": 36,
+            "name": "Study of Encorafenib + Cetuximab Plus or Minus Binimetinib vs. Irinotecan/Cetuximab or Infusional 5-Fluorouracil (5-FU)/Folinic Acid (FA)/Irinotecan (FOLFIRI)/Cetuximab With a Safety Lead-in of Encorafenib + Binimetinib + Cetuximab in Patients With BRAF V600E-mutant Metastatic Colorectal Cancer",
+            "description": "This is a multicenter, randomized, open-label, 3-arm Phase 3 study to evaluate encorafenib + cetuximab plus or minus binimetinib versus Investigator's choice of either irinotecan/cetuximab or FOLFIRI/cetuximab, as controls, in patients with BRAFV600E mCRC whose disease has progressed after 1 or 2 prior regimens in the metastatic setting. The study contains a Safety Lead-in Phase in which the safety and tolerability of encorafenib + binimetinib + cetuximab will be assessed prior to the Phase 3 portion of the study.",
+            "nctId": "NCT02928224",
+            "url": "https://clinicaltrials.gov/ct2/show/NCT02928224",
+            "type": "clinical_trial"
+          }
+        ],
+        "type": "source"
+      },
+      "disease": {
+        "id": 11,
+        "name": "Colorectal Cancer",
+        "display_name": "Colorectal Cancer",
+        "doid": "9256",
+        "disease_url": "https://www.disease-ontology.org/?id=DOID:9256",
+        "aliases": [],
+        "type": "disease"
+      },
+      "phenotypes": [],
+      "therapies": [
+        {
+          "id": 483,
+          "name": "Encorafenib",
+          "ncit_id": "C98283",
+          "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C98283",
+          "aliases": [
+            "Braftovi",
+            "LGX 818",
+            "LGX-818",
+            "LGX818"
+          ],
+          "type": "therapie"
+        },
+        {
+          "id": 16,
+          "name": "Cetuximab",
+          "ncit_id": "C1723",
+          "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C1723",
+          "aliases": [
+            "Cetuximab Biosimilar CDP-1",
+            "Cetuximab Biosimilar CMAB009",
+            "Cetuximab Biosimilar KL 140",
+            "Chimeric Anti-EGFR Monoclonal Antibody",
+            "Chimeric MoAb C225",
+            "Chimeric Monoclonal Antibody C225",
+            "Erbitux",
+            "IMC-C225"
+          ],
+          "type": "therapie"
+        }
+      ]
     }
   ],
   "assertions": [
