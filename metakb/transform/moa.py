@@ -388,7 +388,7 @@ class MoaTransform(Transform):
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
         :param therapies: List of therapy objects
         :param therapy_interaction_type: Therapy type provided by MOA
-        :return: None
+        :return: None, since not supported by MOA
         """
 
     def _get_therapeutic_agent(self, label: str) -> Optional[Dict]:

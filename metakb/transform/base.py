@@ -274,9 +274,9 @@ class Transform:
         self,
         therapy: Dict
     ) -> Optional[core_models.TherapeuticAgent]:
-        """Get Therapeutic Agent for therapy
+        """Get Therapeutic Agent representation for source therapy object
 
-        :param therapy: therapy object
+        :param therapy: source therapy object
         :return: If able to normalize therapy, returns therapeutic agent represented as
             a dict
         """
@@ -303,7 +303,7 @@ class Transform:
         therapies: List[Dict],
         therapy_interaction_type: str,
     ) -> Optional[core_models.CombinationTherapy]:
-        """Get combination group for source therapies
+        """Get Combination Therapy representation for source therapies
 
         :param combination_therapy_id: ID for Combination Therapy
         :param therapies: List of source therapy objects
@@ -358,7 +358,13 @@ class Transform:
         therapies: List[Dict],
         therapeutic_procedure_type: TherapeuticProcedureType,
         therapy_interaction_type: Optional[str] = None,
-    ) -> Optional[Union[core_models.TherapeuticAgent, core_models.TherapeuticSubstituteGroup]]:  # noqa: E501
+    ) -> Optional[
+        Union[
+            core_models.TherapeuticAgent,
+            core_models.TherapeuticSubstituteGroup,
+            core_models.CombinationTherapy
+        ]
+    ]:
         """Create or get Therapeutic Procedure given therapies
         First look in cache for existing Therapeutic Procedure, if not found will
         attempt to normalize. Will add `therapeutic_procedure_id` to `therapeutics` and
@@ -372,6 +378,7 @@ class Transform:
             a single therapy.
         :param therapeutic_procedure_type: The type of therapeutic procedure
         :param therapy_interaction_type: drug interaction type
+        :return: Therapeutic procedure, if successful normalization
         """
         tp = self.able_to_normalize["therapeutics"].get(therapeutic_procedure_id)
         if tp:
