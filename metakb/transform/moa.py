@@ -10,7 +10,12 @@ from ga4gh.vrs import models
 
 from metakb import APP_ROOT   # noqa: I202
 from metakb.normalizers import ViccNormalizers
-from metakb.transform.base import Transform, MethodId, MoaEvidenceLevel
+from metakb.transform.base import (
+    Transform,
+    MethodId,
+    MoaEvidenceLevel,
+    TherapeuticProcedureType
+)
 from metakb.schemas.annotation import Document, Direction
 from metakb.schemas.variation_statement import (
     AlleleOrigin,
@@ -116,11 +121,37 @@ class MoaTransform(Transform):
                 logger.debug(f"{assertion_id} has no therapy_name")
                 continue
 
+            therapy_interaction_type = record["therapy_type"]
+
             if "+" in therapy_name:
-                # Indicates multiple therapies (will be supported later)
-                continue
+                # Indicates multiple therapies
+                if therapy_interaction_type.upper() in {
+                    "COMBINATION THERAPY",
+                    "IMMUNOTHERAPY",
+                    "RADIATION THERAPY",
+                    "TARGETED THERAPY"
+                }:
+                    therapeutic_procedure_type = TherapeuticProcedureType.COMBINATION_THERAPY  # noqa: E501
+                else:
+                    # skipping HORMONE and CHEMOTHERAPY for now
+                    continue
+
+                therapies = [tn.strip() for tn in therapy_name.split("+")]
+                therapeutic_digest = self._get_digest_for_str_lists(
+                    [f"moa.therapy:{tn}" for tn in therapies]
+                )
+                therapeutic_procedure_id = f"moa.ctid:{therapeutic_digest}"
             else:
-                moa_therapeutic = self._add_therapeutic_agent(therapy_name)
+                therapeutic_procedure_id = f"moa.therapy:{therapy_name}"
+                therapies = [therapy_name]
+                therapeutic_procedure_type = TherapeuticProcedureType.THERAPEUTIC_AGENT
+
+            moa_therapeutic = self._add_therapeutic_procedure(
+                therapeutic_procedure_id,
+                therapies,
+                therapeutic_procedure_type,
+                therapy_interaction_type
+            )
 
             if not moa_therapeutic:
                 logger.debug(
@@ -346,29 +377,19 @@ class MoaTransform(Transform):
             self.able_to_normalize["documents"][source_id] = document
             self.documents.append(document)
 
-    def _add_therapeutic_agent(self, label: str) -> Optional[Dict]:
-        """Create or get Therapeutic Agent given a therapy name.
-        First looks in cache for existing therapeutic agent, if not found will attempt
-        to normalize. Will add `label` to `therapeutics` and
-        `able_to_normalize['therapeutics']` if therapy-normalizer is able to normalize.
-        Else will add `label` to `unable_to_normalize['therapeutics']`.
+    def _get_therapeutic_substitute_group(
+        self,
+        therapeutic_sub_group_id: str,
+        therapies: List[Dict],
+        therapy_interaction_type: str
+    ) -> None:
+        """MOA does not support therapeutic substitute group
 
-        :param label: MOA therapy name
-        :return: Therapeutic Agent if therapy-normalizer was able to normalize `label`
+        :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
+        :param therapies: List of therapy objects
+        :param therapy_interaction_type: Therapy type provided by MOA
+        :return: None, since not supported by MOA
         """
-        vrs_therapeutic = self.able_to_normalize["therapeutics"].get(label)
-        if vrs_therapeutic:
-            return vrs_therapeutic
-        else:
-            vrs_therapeutic = None
-            if label not in self.unable_to_normalize["therapeutics"]:
-                vrs_therapeutic = self._get_therapeutic_agent(label)
-                if vrs_therapeutic:
-                    self.able_to_normalize["therapeutics"][label] = vrs_therapeutic
-                    self.therapeutics.append(vrs_therapeutic)
-                else:
-                    self.unable_to_normalize["therapeutics"].add(label)
-        return vrs_therapeutic
 
     def _get_therapeutic_agent(self, label: str) -> Optional[Dict]:
         """Get Therapeutic Agent for a MOA therapy name.
