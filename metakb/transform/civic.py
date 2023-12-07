@@ -362,7 +362,7 @@ class CivicTransform(Transform):
                 continue
 
             # Get aliases from MP and Variant record
-            aliases = (mp["aliases"] or []) + civic_variation_data["aliases"]
+            aliases = (mp["aliases"] or []) + (civic_variation_data["aliases"] or [])
 
             # Get molecular profile score data
             mp_score = mp["molecular_profile_score"]
