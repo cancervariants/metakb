@@ -1,6 +1,6 @@
 """A module for to transform CIViC."""
 from enum import StrEnum
-from typing import Optional, Dict, List, Tuple, Union
+from typing import Optional, Dict, List, Tuple
 from pathlib import Path
 import logging
 import re
@@ -11,7 +11,12 @@ from pydantic import BaseModel, ValidationError
 
 from metakb import APP_ROOT
 from metakb.normalizers import ViccNormalizers
-from metakb.transform.base import Transform, MethodId, CivicEvidenceLevel
+from metakb.transform.base import (
+    Transform,
+    MethodId,
+    CivicEvidenceLevel,
+    TherapeuticProcedureType
+)
 from metakb.schemas.annotation import Direction, Document
 from metakb.schemas.variation_statement import (
     AlleleOrigin,
@@ -37,13 +42,6 @@ UNABLE_TO_NORMALIZE_VAR_NAMES = {
     "inactivation", "snp", "fusion", "dup", "truncation",
     "homozygosity", "gain", "phosphorylation"
 }
-
-
-class TherapeuticProcedureType(StrEnum):
-    """Define types for supported Therapeutic Procedures"""
-
-    THERAPEUTIC_AGENT = "TherapeuticAgent"
-    THERAPEUTIC_SUBSTITUTE_GROUP = "TherapeuticSubstituteGroup"
 
 
 class _VariationCache(BaseModel):
@@ -219,14 +217,21 @@ class CivicTransform(Transform):
             else:
                 # Add TherapeuticSubstituteGroup
                 therapy_interaction_type = r["therapy_interaction_type"]
-
-                if therapy_interaction_type != "SUBSTITUTES":
-                    continue  # not yet supported
-
                 therapeutic_ids = [f"civic.tid:{t['id']}" for t in therapies]
                 therapeutic_digest = self._get_digest_for_str_lists(therapeutic_ids)
-                therapeutic_procedure_id = f"civic.tsgid:{therapeutic_digest}"
-                therapeutic_procedure_type = TherapeuticProcedureType.THERAPEUTIC_SUBSTITUTE_GROUP  # noqa: E501
+
+                if therapy_interaction_type == "SUBSTITUTES":
+                    therapeutic_procedure_id = f"civic.tsgid:{therapeutic_digest}"
+                    therapeutic_procedure_type = TherapeuticProcedureType.THERAPEUTIC_SUBSTITUTE_GROUP  # noqa: E501
+                elif therapy_interaction_type == "COMBINATION":
+                    therapeutic_procedure_id = f"civic.ctid:{therapeutic_digest}"
+                    therapeutic_procedure_type = TherapeuticProcedureType.COMBINATION_THERAPY  # noqa: E501
+                else:
+                    logger.debug(
+                        "civic therapy_interaction_type not supported: "
+                        f"{therapy_interaction_type}"
+                    )
+                    continue
 
             civic_therapeutic = self._add_therapeutic_procedure(
                 therapeutic_procedure_id,
@@ -712,51 +717,6 @@ class CivicTransform(Transform):
                 )
             ]
         ).model_dump(exclude_none=True)
-
-    def _add_therapeutic_procedure(
-        self,
-        therapeutic_procedure_id: str,
-        therapies: List[Dict],
-        therapeutic_procedure_type: TherapeuticProcedureType,
-        therapy_interaction_type: Optional[str] = None,
-    ) -> Optional[Union[core_models.TherapeuticAgent, core_models.TherapeuticSubstituteGroup]]:  # noqa: E501
-        """Create or get Therapeutic Procedure given therapies
-        First look in cache for existing Therapeutic Procedure, if not found will
-        attempt to normalize. Will add `therapeutic_procedure_id` to `therapeutics` and
-        `able_to_normalize['therapeutics']` if therapy-normalizer is able to normalize
-        all `therapies`. Else, will add the `therapeutic_procedure_id` to
-        `unable_to_normalize['therapeutics']`
-
-        :param therapeutic_procedure_id: ID for therapeutic procedure
-        :param therapies: List of CIViC therapy objects. If `therapeutic_procedure_type`
-            is `TherapeuticProcedureType.THERAPEUTIC_AGENT`, the list will only contain
-            a single therapy.
-        :param therapeutic_procedure_type: The type of therapeutic procedure
-        :param therapy_interaction_type: CIViC drug interaction type
-        """
-        tp = self.able_to_normalize["therapeutics"].get(therapeutic_procedure_id)
-        if tp:
-            return tp
-
-        if therapeutic_procedure_id not in self.unable_to_normalize["therapeutics"]:
-            if therapeutic_procedure_type == TherapeuticProcedureType.THERAPEUTIC_AGENT:
-                tp = self._get_therapeutic_agent(therapies[0])
-            elif therapeutic_procedure_type == TherapeuticProcedureType.THERAPEUTIC_SUBSTITUTE_GROUP:  # noqa: E501
-                tp = self._get_therapeutic_substitute_group(
-                    therapeutic_procedure_id,
-                    therapies,
-                    therapy_interaction_type
-                )
-            else:
-                # not supported
-                return None
-
-            if tp:
-                self.able_to_normalize["therapeutics"][therapeutic_procedure_id] = tp
-                self.therapeutics.append(tp)
-            else:
-                self.unable_to_normalize["therapeutics"].add(therapeutic_procedure_id)
-        return tp
 
     def _get_therapeutic_substitute_group(
         self,
