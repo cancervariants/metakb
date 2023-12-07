@@ -125,7 +125,7 @@ class _VariantStudySummary(_VariantStatement):
     isReportedIn: List[Union[Document, core_models.IRI]] = Field(
         ...,
         description="A document in which the information content is expressed.",
-        min_items=1,
+        min_length=1,
     )
 
 
