@@ -155,7 +155,7 @@ def civic_mpid33(civic_vid33):
                 }
             }
         ],
-        "aliases": ["LEU858ARG", "rs121434568"],
+        "aliases": ["LEU858ARG"],
         "mappings": [
             {
                 "coding": {
