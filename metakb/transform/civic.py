@@ -562,8 +562,8 @@ class CivicTransform(Transform):
                         ),
                         relation=core_models.Relation.RELATED_MATCH
                     ))
-
-                aliases.append(a)
+                else:
+                    aliases.append(a)
 
             if variant["coordinates"]:
                 coordinates = {
