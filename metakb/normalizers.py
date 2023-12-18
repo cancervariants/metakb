@@ -5,6 +5,7 @@ from ga4gh.core import core_models
 from ga4gh.vrs import models
 from variation.query import QueryHandler as VariationQueryHandler
 from therapy.query import QueryHandler as TherapyQueryHandler
+from therapy.database import create_db as create_therapy_db
 from therapy.schemas import NormalizationService as NormalizedTherapy, ApprovalRating
 from disease.database import create_db as create_disease_db
 from disease.query import QueryHandler as DiseaseQueryHandler
@@ -27,7 +28,7 @@ class ViccNormalizers:
             gene_query_handler=self.gene_query_handler
         )
         self.disease_query_handler = DiseaseQueryHandler(create_disease_db())
-        self.therapy_query_handler = TherapyQueryHandler()
+        self.therapy_query_handler = TherapyQueryHandler(create_therapy_db())
 
     async def normalize_variation(self,
                                   queries: List[str]) -> Optional[models.Variation]:
