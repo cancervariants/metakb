@@ -247,7 +247,7 @@ class MoaHarvester(Harvester):
         elif feature_type == "microsatellite_stability":
             feature = "{}".format(v.get("status"))
         elif feature_type == "mutational_signature":
-            csn = v["cosmic_signature_number"]
+            csn = v.get("cosmic_signature_number", "")
             feature = "COSMIC Signature {}".format(csn)
         elif feature_type == "mutational_burden":
             clss = v["classification"]
