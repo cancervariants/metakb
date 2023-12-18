@@ -101,8 +101,7 @@ def civic_mpid12(civic_vid12):
         "aliases": [
             "VAL600GLU",
             "V640E",
-            "VAL640GLU",
-            "rs113488022"
+            "VAL640GLU"
         ],
         "mappings": [
             {
