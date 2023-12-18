@@ -124,7 +124,7 @@ def encorafenib_extensions():
     ]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_mpid33(civic_vid33):
     """Create CIViC MPID 33"""
     return {
@@ -234,7 +234,7 @@ def civic_mpid33(civic_vid33):
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_eid2997_qualifier(civic_gid19):
     """Create qualifier for civic eid 2997"""
     return {
@@ -243,7 +243,7 @@ def civic_eid2997_qualifier(civic_gid19):
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_source592():
     """Create fixture for civic source 592"""
     return {
@@ -255,7 +255,7 @@ def civic_source592():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_eid2997_study(
     civic_mpid33, civic_tid146, civic_did8, civic_eid2997_qualifier, civic_method,
     civic_source592
@@ -281,7 +281,194 @@ def civic_eid2997_study(
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
+def civic_gid5():
+    """Create test fixture for CIViC GID5."""
+    return {
+        "id": "civic.gid:5",
+        "type": "Gene",
+        "label": "BRAF",
+        "description": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase.",  # noqa: E501
+        "mappings": [
+            {
+                "coding": {
+                    "code": "ncbigene:673",
+                    "system": "https://www.ncbi.nlm.nih.gov/gene/"
+                },
+                "relation": "exactMatch"
+            }
+        ],
+        "aliases": [
+            "B-RAF1",
+            "B-raf",
+            "BRAF",
+            "BRAF-1",
+            "BRAF1",
+            "NS7",
+            "RAFB1"
+        ],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "gene_normalizer_id",
+                "value": "hgnc:1097"
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def civic_vid12():
+    """Create test fixture for CIViC Variant ID 12"""
+    return {
+        "id": "ga4gh:VA.4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
+        "type": "Allele",
+        "label": "V600E",
+        "digest": "4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
+        "location": {
+            "id": "ga4gh:SL.ZA1XNKhCT_7m2UtmnYb8ZYOVS4eplMEK",
+            "type": "SequenceLocation",
+            "sequenceReference": {
+                "refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y",
+                "type": "SequenceReference",
+            },
+            "start": 599,
+            "end": 600
+        },
+        "state": {
+            "sequence": "E",
+            "type": "LiteralSequenceExpression"
+        },
+        "expressions": [
+            {
+                "syntax": "hgvs.p",
+                "value": "NP_004324.2:p.Val600Glu"
+            },
+            {
+                "syntax": "hgvs.c",
+                "value": "NM_004333.4:c.1799T>A"
+            },
+            {
+                "syntax": "hgvs.c",
+                "value": "ENST00000288602.6:c.1799T>A",
+            },
+            {
+                "syntax": "hgvs.g",
+                "value": "NC_000007.13:g.140453136A>T",
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def civic_mpid12(civic_vid12):
+    """Create test fixture for CIViC Molecular Profile ID 12"""
+    return {
+        "id": "civic.mpid:12",
+        "type": "ProteinSequenceConsequence",
+        "description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",  # noqa: E501
+        "label": "BRAF V600E",
+        "definingContext": civic_vid12,
+        "members": [
+            {
+                "id": "ga4gh:VA.LX3ooHBAiZdKY4RfTXcliUmkj48mnD_M",
+                "label": "NC_000007.13:g.140453136A>T",
+                "digest": "LX3ooHBAiZdKY4RfTXcliUmkj48mnD_M",
+                "type": "Allele",
+                "location": {
+                    "id": "ga4gh:SL.XutGzMvqbzN-vnxmPt2MJf7ehxmB0opi",
+                    "type": "SequenceLocation",
+                    "sequenceReference": {
+                        "type": "SequenceReference",
+                        "refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul"
+                    },
+                    "start": 140753335,
+                    "end": 140753336
+                },
+                "state": {
+                    "type": "LiteralSequenceExpression",
+                    "sequence": "T"
+                }
+            }
+        ],
+        "aliases": [
+            "VAL600GLU",
+            "V640E",
+            "VAL640GLU",
+            "rs113488022"
+        ],
+        "mappings": [
+            {
+                "coding": {
+                    "code": "CA123643",
+                    "system": "https://reg.clinicalgenome.org/"
+                },
+                "relation": "relatedMatch"
+            },
+            {
+                "coding": {
+                    "code": "13961",
+                    "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"
+                },
+                "relation": "relatedMatch"
+            },
+            {
+                "coding": {
+                    "code": "376069",
+                    "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/"
+                },
+                "relation": "relatedMatch"
+            },
+            {
+                "coding": {
+                    "code": "rs113488022",
+                    "system": "https://www.ncbi.nlm.nih.gov/snp/"
+                },
+                "relation": "relatedMatch"
+            },
+            {
+                "coding": {"code": "12", "system": "https://civicdb.org/variants/"},
+                "relation": "exactMatch"
+            }
+        ],
+        "extensions": [
+            {
+                "name": "CIViC representative coordinate",
+                "value": {
+                    "chromosome": "7",
+                    "start": 140453136,
+                    "stop": 140453136,
+                    "reference_bases": "A",
+                    "variant_bases": "T",
+                    "representative_transcript": "ENST00000288602.6",
+                    "ensembl_version": 75,
+                    "reference_build": "GRCh37",
+                    "type": "coordinates"
+                },
+                "type": "Extension"
+            },
+            {
+                "name": "CIViC Molecular Profile Score",
+                "value": 1353.5,
+                "type": "Extension"
+            },
+            {
+                "name": "Variant types",
+                "value": [
+                    {
+                        "code": "SO:0001583",
+                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",  # noqa: E501
+                        "label": "missense_variant",
+                        "version": None
+                    }
+                ],
+                "type": "Extension"
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
 def civic_vid33():
     """Create a test fixture for CIViC VID33."""
     return {
@@ -324,7 +511,7 @@ def civic_vid33():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_gid19():
     """Create test fixture for CIViC GID19."""
     return {
@@ -354,7 +541,7 @@ def civic_gid19():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_tid146():
     """Create test fixture for CIViC TID146."""
     return {
@@ -410,7 +597,7 @@ def civic_tid146():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_did8():
     """Create test fixture for CIViC DID8."""
     return {
@@ -436,7 +623,7 @@ def civic_did8():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def pmid_23982599():
     """Create test fixture for CIViC EID2997 document."""
     return {
@@ -447,7 +634,7 @@ def pmid_23982599():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_eid1409_statement():
     """Create test fixture for CIViC Evidence 1406."""
     return {
@@ -466,7 +653,7 @@ def civic_eid1409_statement():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_aid6_statement():
     """Create CIViC AID 6 test fixture."""
     return {
@@ -490,7 +677,7 @@ def civic_aid6_statement():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_aid6_document():
     """Create test fixture for civic aid6 document."""
     return {
@@ -502,7 +689,7 @@ def civic_aid6_document():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_eid2_statement():
     """Create a test fixture for CIViC EID2 statement."""
     return {
@@ -520,7 +707,7 @@ def civic_eid2_statement():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_eid2_proposition():
     """Create a test fixture for CIViC EID2 proposition."""
     return {
@@ -532,7 +719,7 @@ def civic_eid2_proposition():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_vid99():
     """Create a test fixture for CIViC VID99."""
     return {
@@ -627,7 +814,7 @@ def civic_vid99():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_did2():
     """Create a test fixture for CIViC DID2."""
     return {
@@ -641,7 +828,7 @@ def civic_did2():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_gid38():
     """Create a test fixture for CIViC GID38."""
     return {
@@ -662,7 +849,7 @@ def civic_gid38():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_eid74_statement():
     """Create a test fixture for CIViC EID74 statement."""
     return {
@@ -680,7 +867,7 @@ def civic_eid74_statement():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_eid74_proposition():
     """Create a test fixture for CIViC EID74 proposition."""
     return {
@@ -692,7 +879,7 @@ def civic_eid74_proposition():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_vid113():
     """Create a test fixture for CIViC VID113."""
     return {
@@ -787,7 +974,7 @@ def civic_vid113():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_did15():
     """Create test fixture for CIViC DID15."""
     return {
@@ -801,7 +988,7 @@ def civic_did15():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_gid42():
     """Create test fixture for CIViC GID42."""
     return {
@@ -827,7 +1014,7 @@ def civic_gid42():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_aid9_statement():
     """Create a test fixture for CIViC AID9 statement."""
     return {
@@ -846,7 +1033,7 @@ def civic_aid9_statement():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_aid9_proposition():
     """Create a test fixture for CIViC AID9 proposition."""
     return {
@@ -858,7 +1045,7 @@ def civic_aid9_proposition():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_vid1686():
     """Create a test fixture for CIViC VID1686."""
     return {
@@ -951,7 +1138,7 @@ def civic_vid1686():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_did2950():
     """Create a test fixture for CIViC DID2950."""
     return {
@@ -965,7 +1152,7 @@ def civic_did2950():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_gid154():
     """Create a test fixture for CIViC GID154."""
     return {
@@ -989,7 +1176,7 @@ def civic_gid154():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_eid26_statement():
     """Create a test fixture for CIViC EID26 statement."""
     return {
@@ -1007,7 +1194,7 @@ def civic_eid26_statement():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_eid26_proposition():
     """Create a test fixture for CIViC EID26 proposition."""
     return {
@@ -1019,7 +1206,7 @@ def civic_eid26_proposition():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_vid65():
     """Create a test fixture for CIViC VID65."""
     return {
@@ -1113,7 +1300,7 @@ def civic_vid65():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_did3():
     """Create test fixture for CIViC DID3."""
     return {
@@ -1127,7 +1314,7 @@ def civic_did3():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_gid29():
     """Create test fixture for CIViC GID29."""
     return {
@@ -1150,7 +1337,7 @@ def civic_gid29():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_eid1756_statement():
     """Create test fixture for CIViC EID1756 statement."""
     return {
@@ -1168,7 +1355,7 @@ def civic_eid1756_statement():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_eid1756_proposition():
     """Create a test fixture for CIViC EID1756 proposition."""
     return {
@@ -1180,7 +1367,7 @@ def civic_eid1756_proposition():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_vid258():
     """Create a test fixture for CIViC VID258."""
     return {
@@ -1263,7 +1450,7 @@ def civic_vid258():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_did556():
     """Create a test fixture for CIViC DID556."""
     return {
@@ -1277,7 +1464,7 @@ def civic_did556():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_gid3672():
     """Create test fixture for CIViC GID3672."""
     return {
@@ -1294,7 +1481,7 @@ def civic_gid3672():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def pmid_15146165():
     """Create a test fixture for PMID 15146165."""
     return {
@@ -1305,7 +1492,7 @@ def pmid_15146165():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def pmid_18073307():
     """Create a test fixture for PMID 18073307."""
     return {
@@ -1316,7 +1503,7 @@ def pmid_18073307():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def pmid_16384925():
     """Create a test fixture for PMID 16384925."""
     return {
@@ -1327,7 +1514,7 @@ def pmid_16384925():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def pmid_27819322():
     """Create a test fixture for PMID 27819322."""
     return {
@@ -1339,7 +1526,7 @@ def pmid_27819322():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def moa_aid71_study(
     moa_vid71, moa_abl1, moa_imatinib, moa_chronic_myelogenous_leukemia, moa_method,
     moa_source44
@@ -1368,7 +1555,7 @@ def moa_aid71_study(
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def moa_vid71():
     """Create a test fixture for MOA VID71."""
     return {
@@ -1422,7 +1609,7 @@ def moa_vid71():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def moa_abl1():
     """Create a test fixture for MOA ABL1 Gene."""
     return {
@@ -1439,7 +1626,7 @@ def moa_abl1():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def moa_imatinib():
     """Create a test fixture for MOA Imatinib Therapy."""
     return {
@@ -1547,7 +1734,7 @@ def moa_imatinib():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def moa_chronic_myelogenous_leukemia():
     """Create test fixture for MOA Chronic Myelogenous Leukemia."""
     return {
@@ -1574,7 +1761,7 @@ def moa_chronic_myelogenous_leukemia():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_method():
     """Create test fixture for method:1."""
     return {
@@ -1590,7 +1777,7 @@ def civic_method():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def moa_method():
     """Create test fixture for MOA."""
     return {
@@ -1606,7 +1793,7 @@ def moa_method():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def method3():
     """Create test fixture for method:3."""
     return {
@@ -1622,7 +1809,7 @@ def method3():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def method4():
     """Create a test fixture for MOA method:4."""
     return {
@@ -1639,13 +1826,13 @@ def method4():
     }
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def civic_methods(civic_method, moa_method, method3):
     """Create test fixture for methods."""
     return [civic_method, moa_method, method3]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def moa_source44():
     """Create a test fixture for MOA source 44."""
     return {
@@ -1658,7 +1845,7 @@ def moa_source44():
             }
         ],
         "type": "Document",
-        "title": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501
+        "title": "Gorre, Mercedes E., et al. Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification. Science 293.5531 (2001): 876-880.",  # noqa: E501
         "url": "https://doi.org/10.1126/science.1062538",
         "doi": "10.1126/science.1062538",
         "pmid": 11423618

@@ -1,6 +1,6 @@
 """Validate property and relationship rules for graph DB."""
 import json
-from typing import Optional
+from typing import List, Optional, Set
 
 import pytest
 
@@ -51,17 +51,33 @@ def check_unique_property(graph: Graph):
 
 
 @pytest.fixture(scope="module")
-def check_single_label(graph: Graph):
-    """Check that nodes don't contain additional labels"""
-    def _check_function(label: str):
+def get_node_labels(graph: Graph):
+    """Get node labels"""
+    def _get_labels_function(parent_label: str):
         query = f"""
-        MATCH (a:{label})
-        WHERE SIZE(LABELS(a)) > 1
-        RETURN COUNT(a)
+        MATCH (n:{parent_label})
+        RETURN collect(DISTINCT labels(n))
         """
         with graph.driver.session() as s:
             record = s.run(query).single()
-        assert record.values()[0] == 0
+        return record.values()[0]
+    return _get_labels_function
+
+
+@pytest.fixture(scope="module")
+def check_node_labels(graph: Graph, get_node_labels: callable):
+    """Check node labels match expected"""
+    def _check_function(
+        node_label: str,
+        expected: List[Set[str]],
+        expected_num_labels: int
+    ):
+        node_labels = get_node_labels(node_label)
+        assert len(node_labels) == expected_num_labels
+        node_labels_set = list(set(x) for x in node_labels)
+        for e in expected:
+            assert e in node_labels_set
+
     return _check_function
 
 
@@ -112,29 +128,80 @@ def check_relation_count(graph: Graph):
     return _check_function
 
 
-def test_gene_rules(check_unique_property, check_single_label, check_relation_count, get_node_by_id):
+def test_gene_rules(
+    check_unique_property,
+    check_node_labels,
+    check_relation_count,
+    get_node_by_id,
+    civic_gid5
+):
     """Verify property and relationship rules for Gene nodes."""
     check_unique_property("Gene", "id")
-    check_single_label("Gene")
-    check_relation_count("Gene", "Qualifier", "HAS_GENE_CONTEXT", direction="in", min=1, max=None)
+    check_relation_count(
+        "Gene", "Qualifier", "HAS_GENE_CONTEXT", direction="in", min=1, max=None
+    )
 
-    gene = get_node_by_id("civic.gid:5")
-    assert set(gene.keys()) == {"gene_normalizer_id", "label", "id"}
-    assert gene["gene_normalizer_id"] == "hgnc:1097"
-    assert gene["label"] == "BRAF"
+    expected_labels = [{"Gene"}]
+    check_node_labels("Gene", expected_labels, 1)
+
+    gene = get_node_by_id(civic_gid5["id"])
+    assert set(gene.keys()) == {
+        "gene_normalizer_id", "label", "id", "description", "mappings"
+    }
+    for k in gene.keys():
+        if k == "gene_normalizer_id":
+            assert gene[k] == civic_gid5["extensions"][0]["value"]
+        elif k == "mappings":
+            assert json.loads(gene[k]) == civic_gid5[k]
+        else:
+            assert gene[k] == civic_gid5[k]
 
 
-def test_qualifier_rules(check_unique_property, check_single_label, check_relation_count):
+def test_qualifier_rules(
+    graph,
+    check_unique_property,
+    check_node_labels,
+    check_relation_count
+):
     """Verify property and relationship rules for Qualifier nodes."""
     check_unique_property("Qualifier", "alleleOrigin")
-    check_single_label("Qualifier")
-    check_relation_count("Qualifier", "Gene", "HAS_GENE_CONTEXT", direction="out", max=None)
+    check_relation_count(
+        "Qualifier", "Gene", "HAS_GENE_CONTEXT", direction="out", max=None
+    )
+
+    expected_labels = [{"Qualifier"}]
+    check_node_labels("Qualifier", expected_labels, 1)
+
+    query = """
+    MATCH (q:Qualifier)
+    WITH q.alleleOrigin as allele_origin
+    RETURN collect(DISTINCT allele_origin)
+    """
+    with graph.driver.session() as s:
+        resp = s.run(query).single()
+    assert set(resp.values()[0]) == {"somatic", "germline", "none"}
 
 
-def test_variation_rules(graph, check_unique_property, check_relation_count, get_node_by_id):
+def test_variation_rules(
+    graph, check_unique_property,
+    check_relation_count,
+    get_node_by_id,
+    check_node_labels,
+    civic_vid12
+):
     """Verify property and relationship rules for Variation nodes."""
     check_unique_property("Variation", "id")
-    check_relation_count("CategoricalVariation", "Variation", "HAS_DEFINING_CONTEXT", max=1)
+    # members dont have defining context
+    check_relation_count(
+        "Variation", "CategoricalVariation", "HAS_DEFINING_CONTEXT", direction="in",
+        min=0, max=None)
+    check_relation_count(
+        "Variation", "CategoricalVariation", "HAS_MEMBERS", min=0, max=None,
+        direction="in"
+    )
+
+    expected_labels = [{"Variation", "Allele"}]
+    check_node_labels("Variation", expected_labels, 1)
 
     # all Alleles are Variations and all Variations are Alleles
     label_query = """
@@ -150,7 +217,51 @@ def test_variation_rules(graph, check_unique_property, check_relation_count, get
         record = s.run(label_query).single()
     assert record.values()[0] == 0
 
-    cv = get_node_by_id("civic.mpid:12")
+    v = get_node_by_id(civic_vid12["id"])
+    assert set(v.keys()) == {
+        "id", "label", "digest", "state", "expression_hgvs_p", "expression_hgvs_c",
+        "expression_hgvs_g"
+    }
+
+    assert v["label"] == civic_vid12["label"]
+    assert v["digest"] == civic_vid12["digest"]
+    assert json.loads(v["state"]) == civic_vid12["state"]
+    expected_p, expected_c, expected_g = [], [], []
+    for expr in civic_vid12["expressions"]:
+        syntax = expr["syntax"]
+        val = expr["value"]
+        if syntax == "hgvs.p":
+            expected_p.append(val)
+        elif syntax == "hgvs.c":
+            expected_c.append(val)
+        elif syntax == "hgvs.g":
+            expected_g.append(val)
+
+    assert v["expression_hgvs_p"] == expected_p
+    assert set(v["expression_hgvs_c"]) == set(expected_c)
+    assert v["expression_hgvs_g"] == expected_g
+
+
+def test_categorical_variation_rules(
+    check_unique_property,
+    check_relation_count,
+    check_node_labels,
+    get_node_by_id,
+    civic_mpid12
+):
+    """Verify property and relationship rules for Categorical Variation nodes."""
+    check_unique_property("CategoricalVariation", "id")
+    check_relation_count(
+        "CategoricalVariation", "Variation", "HAS_DEFINING_CONTEXT", max=1
+    )
+    check_relation_count(
+        "CategoricalVariation", "Variation", "HAS_MEMBERS", min=0, max=None
+    )
+
+    expected_node_labels = [{"CategoricalVariation", "ProteinSequenceConsequence"}]
+    check_node_labels("CategoricalVariation", expected_node_labels, 1)
+
+    cv = get_node_by_id(civic_mpid12["id"])
     assert set(cv.keys()) == {
         "id",
         "label",
@@ -161,9 +272,9 @@ def test_variation_rules(graph, check_unique_property, check_relation_count, get
         "mappings",
         "variant_types"
     }
-    assert cv["label"] == "BRAF V600E"
-    assert cv["description"] and isinstance(cv["description"], str)
-    assert cv["aliases"] and isinstance(cv["aliases"], list)
+    assert cv["label"] == civic_mpid12["label"]
+    assert cv["description"] == civic_mpid12["description"]
+    assert cv["aliases"] == civic_mpid12["aliases"]
     assert isinstance(cv["civic_molecular_profile_score"], float)
     crc = json.loads(cv["civic_representative_coordinate"])
     assert set(crc.keys()) == {
@@ -186,42 +297,143 @@ def test_variation_rules(graph, check_unique_property, check_relation_count, get
     for vt in variant_types:
         assert set(vt.keys()) == {"label", "system", "version", "code"}
 
-    v = get_node_by_id("ga4gh:VA.4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO")
-    assert set(v.keys()) == {"id", "label", "digest", "state", "expression_hgvs_p", "expression_hgvs_c", "expression_hgvs_g"}
 
-    assert v["label"] == "V600E"
-    assert v["digest"] == "4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO"
-    assert json.loads(v["state"]) == {"type": "LiteralSequenceExpression", "sequence": "E"}
-    assert v["expression_hgvs_p"] == ["NP_004324.2:p.Val600Glu"]
-    assert set(v["expression_hgvs_c"]) == {"NM_004333.4:c.1799T>A", "ENST00000288602.6:c.1799T>A"}
-    assert v["expression_hgvs_g"] == ["NC_000007.13:g.140453136A>T"]
-
-
-def test_location_rules(check_unique_property):
+def test_location_rules(
+    check_unique_property,
+    check_relation_count,
+    check_node_labels,
+    get_node_by_id
+):
     """Verify property and relationship rules for Location nodes."""
     check_unique_property("Location", "id")
+    check_relation_count(
+        "Location", "Variation", "HAS_LOCATION", direction="in", max=None
+    )
+
+    expected_labels = [{"Location", "SequenceLocation"}]
+    check_node_labels("Location", expected_labels, 1)
+
+    loc = get_node_by_id("ga4gh:SL.xdFHLf7Q45VKT57U4kwcDd7MUOtV2Bdz")
+    assert set(loc.keys()) == {"id", "sequence_reference", "start", "end"}
+    assert json.loads(loc["sequence_reference"]) == {
+        "type": "SequenceReference",
+        "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE"
+    }
+    assert loc["start"] == 766
+    assert loc["end"] == 769
 
 
-def test_therapeutic_procedure_rules(check_unique_property):
+def test_therapeutic_procedure_rules(
+    check_unique_property,
+    check_relation_count,
+    check_node_labels,
+    get_node_by_id,
+    civic_tid146
+):
     """Verify property and relationship rules for Therapeutic Procedure nodes."""
     check_unique_property("TherapeuticProcedure", "id")
+    # min is 0 because TherapeuticAgent may not be attached to study directly, but
+    # through CombinationTherapy and TherapeuticSubstituteGroup
+    check_relation_count(
+        "TherapeuticProcedure", "Study", "HAS_THERAPEUTIC", min=0, max=None,
+        direction="in"
+    )
+    check_relation_count(
+        "CombinationTherapy", "TherapeuticAgent", "HAS_COMPONENTS", max=None
+    )
+    check_relation_count(
+        "CombinationTherapy", "Study", "HAS_THERAPEUTIC", max=None, direction="in"
+    )
+    check_relation_count(
+        "TherapeuticSubstituteGroup", "TherapeuticAgent", "HAS_SUBSTITUTES", max=None
+    )
+    check_relation_count(
+        "TherapeuticSubstituteGroup", "Study", "HAS_THERAPEUTIC", max=None,
+        direction="in"
+    )
+
+    expected_node_labels = [
+        {"TherapeuticProcedure", "TherapeuticAgent"},
+        {"TherapeuticProcedure", "CombinationTherapy"},
+        {"TherapeuticProcedure", "TherapeuticSubstituteGroup"}
+    ]
+    check_node_labels("TherapeuticProcedure", expected_node_labels, 3)
+
+    # Test TherapeuticAgent
+    ta = get_node_by_id(civic_tid146["id"])
+    assert set(ta.keys()) == {
+        "id", "label", "aliases", "therapy_normalizer_id", "regulatory_approval",
+        "mappings"
+    }
+    assert ta["label"] == civic_tid146["label"]
+    assert set(ta["aliases"]) == set(civic_tid146["aliases"])
+    checked_therapy_normalizer_id = False
+    checked_regulatory_approval = False
+    for e in civic_tid146["extensions"]:
+        if e["name"] == "therapy_normalizer_id":
+            assert ta["therapy_normalizer_id"] == e["value"]
+            checked_therapy_normalizer_id = True
+        elif e["name"] == "regulatory_approval":
+            assert json.loads(ta["regulatory_approval"]) == e["value"]
+            checked_regulatory_approval = True
+    assert checked_therapy_normalizer_id
+    assert checked_regulatory_approval
+    expected_norm_id = [e["value"] for e in civic_tid146["extensions"] if e["name"] == "therapy_normalizer_id"][0]  # noqa: E501
+    assert ta["therapy_normalizer_id"] == expected_norm_id
+    assert json.loads(ta["mappings"]) == civic_tid146["mappings"]
+
+    # Test CombinationTherapy
+
+    # Test TherapeuticSubstituteGroup
 
 
-def test_disease_rules(check_unique_property):
-    """Verify property and relationship rules for disease nodes."""
-    check_unique_property("Disease", "id")
+def test_condition_rules(
+    check_unique_property,
+    check_relation_count,
+    check_node_labels,
+    get_node_by_id,
+    civic_did8
+):
+    """Verify property and relationship rules for condition nodes."""
+    check_unique_property("Condition", "id")
+    check_relation_count(
+        "Condition", "Study", "HAS_TUMOR_TYPE", max=None, direction="in"
+    )
+
+    expected_node_labels = [{"Disease", "Condition"}]
+    check_node_labels("Condition", expected_node_labels, 1)
+
+    disease = get_node_by_id(civic_did8["id"])
+    assert set(disease.keys()) == {"id", "label", "mappings", "disease_normalizer_id"}
+    for k in disease.keys():
+        if k == "disease_normalizer_id":
+            assert disease[k] == civic_did8["extensions"][0]["value"]
+        elif k == "mappings":
+            assert json.loads(disease[k]) == civic_did8[k]
+        else:
+            assert disease[k] == civic_did8[k]
 
 
-def test_study_rules(graph: Graph, check_unique_property, check_relation_count):
+def test_study_rules(
+    graph: Graph,
+    check_unique_property,
+    check_relation_count,
+    check_node_labels,
+    get_node_by_id,
+    civic_eid2997_study
+):
     """Verify property and relationship rules for Study nodes."""
     check_unique_property("Study", "id")
 
     check_relation_count("Study", "CategoricalVariation", "HAS_VARIANT")
     check_relation_count("Study", "Condition", "HAS_TUMOR_TYPE")
-    check_relation_count("Study", "TherapeuticProcedure", "HAS_THERAPEUTIC", min=1)
+    check_relation_count("Study", "TherapeuticProcedure", "HAS_THERAPEUTIC")
     check_relation_count("Study", "Coding", "HAS_STRENGTH")
     check_relation_count("Study", "Method", "IS_SPECIFIED_BY", max=None)
     check_relation_count("Study", "Qualifier", "HAS_QUALIFIERS")
+
+    expected_node_labels = [{"Study", "VariantTherapeuticResponseStudy"}]
+    check_node_labels("Study", expected_node_labels, 1)
 
     cite_query = """
     MATCH (s:Study)
@@ -234,13 +446,30 @@ def test_study_rules(graph: Graph, check_unique_property, check_relation_count):
         record = s.run(cite_query).single()
     assert record.values()[0] == 0
 
+    study = get_node_by_id(civic_eid2997_study["id"])
+    assert set(study.keys()) == {"id", "description", "direction", "predicate"}
+    for k in study.keys():
+        assert study[k] == civic_eid2997_study[k]
 
-def test_document_rules(graph, check_unique_property, check_single_label, check_relation_count):
+
+def test_document_rules(
+    graph,
+    check_unique_property,
+    check_node_labels,
+    check_relation_count,
+    get_node_by_id,
+    moa_source44
+):
     """Verify property and relationship rules for Document nodes."""
     check_unique_property("Document", "id")
-    check_single_label("Document")
+    check_relation_count(
+        "Document", "Study", "IS_REPORTED_IN", min=0, max=None, direction="in"
+    )
 
-    # PMIDs: 31779674 and 35121878 are do not have this relationship
+    expected_labels = [{"Document"}]
+    check_node_labels("Document", expected_labels, 1)
+
+    # PMIDs: 31779674 and 35121878 do not have this relationship
     is_reported_in_query = """
     MATCH (s:Document)
     OPTIONAL MATCH (s)<-[:IS_REPORTED_IN]-(d:Study)
@@ -252,13 +481,41 @@ def test_document_rules(graph, check_unique_property, check_single_label, check_
         record = s.run(is_reported_in_query).single()
     assert record.values()[0] == 0
 
+    # PMIDs: 31779674 and 35121878 are only used in methods
+    is_reported_in_query = """
+    MATCH (s)<-[:IS_REPORTED_IN]-(d:Method)
+    RETURN collect(s.pmid)
+    """
+    with graph.driver.session() as s:
+        record = s.run(is_reported_in_query).single()
+    assert set(record.values()[0]) == {31779674, 35121878}
 
-def test_method_rules(check_unique_property, check_single_label, check_relation_count):
+    doc = get_node_by_id(moa_source44["id"])
+    assert set(doc.keys()) == {"id", "title", "doi", "source_type", "url", "pmid"}
+    for k in doc:
+        if k != "source_type":
+            assert doc[k] == moa_source44[k]
+        else:
+            assert doc[k] == moa_source44["extensions"][0]["value"]
+
+
+def test_method_rules(
+    check_unique_property,
+    check_node_labels,
+    check_relation_count,
+    get_node_by_id,
+    civic_method
+):
     """Verify property and relationship rules for Method nodes."""
     check_unique_property("Method", "id")
-    check_single_label("Method")
-    check_relation_count("Method", "Study", "IS_SPECIFIED_BY", max=None,
-                         direction="in")
+    check_relation_count("Method", "Study", "IS_SPECIFIED_BY", max=None, direction="in")
+
+    expected_node_labels = [{"Method"}]
+    check_node_labels("Method", expected_node_labels, 1)
+
+    method = get_node_by_id(civic_method["id"])
+    assert set(method.keys()) == {"id", "label"}
+    assert method["label"] == civic_method["label"]
 
 
 def test_no_lost_nodes(graph: Graph):

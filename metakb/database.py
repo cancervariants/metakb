@@ -90,7 +90,9 @@ class Graph:
         logger.info(f"Loading data from {src_transformed_cdm}")
         with open(src_transformed_cdm, 'r') as f:
             items = json.load(f)
-            src_name = SourceName(str(src_transformed_cdm).split("/")[-1].split("_cdm")[0])
+            src_name = SourceName(
+                str(src_transformed_cdm).split("/")[-1].split("_cdm")[0]
+            )
             self.add_transformed_data(items, src_name)
 
     @staticmethod
@@ -100,8 +102,8 @@ class Graph:
         :param tx: Transaction object provided to transaction functions
         """
         queries = [
-            "CREATE CONSTRAINT coding_constraint IF NOT EXISTS FOR (c:Coding) REQUIRE (c.code, c.label, c.system) IS UNIQUE;",
-            "CREATE CONSTRAINT qualifier_constraint IF NOT EXISTS FOR (q:Qualifier) REQUIRE q.alleleOrigin IS UNIQUE;"
+            "CREATE CONSTRAINT coding_constraint IF NOT EXISTS FOR (c:Coding) REQUIRE (c.code, c.label, c.system) IS UNIQUE;",  # noqa: E501
+            "CREATE CONSTRAINT qualifier_constraint IF NOT EXISTS FOR (q:Qualifier) REQUIRE q.alleleOrigin IS UNIQUE;"  # noqa: E501
         ]
 
         for label in [
@@ -110,7 +112,7 @@ class Graph:
             "Method"
         ]:
             queries.append(
-                f"CREATE CONSTRAINT {label.lower()}_id_constraint IF NOT EXISTS FOR (n:{label}) REQUIRE n.id IS UNIQUE;"
+                f"CREATE CONSTRAINT {label.lower()}_id_constraint IF NOT EXISTS FOR (n:{label}) REQUIRE n.id IS UNIQUE;"  # noqa: E501
             )
 
         for query in queries:
@@ -151,7 +153,9 @@ class Graph:
 
             for obj_type in {"genes", "diseases"}:
                 for obj in data.get(obj_type, []):
-                        session.execute_write(self._add_gene_or_disease, obj, ids_in_studies)
+                    session.execute_write(
+                        self._add_gene_or_disease, obj, ids_in_studies
+                    )
 
             for tp in data.get("therapeutics", []):
                 session.execute_write(
@@ -196,7 +200,11 @@ class Graph:
         tx.run(query, **method)
 
     @staticmethod
-    def _add_gene_or_disease(tx: ManagedTransaction, obj_in: Dict, ids_in_studies: Set[str]) -> None:
+    def _add_gene_or_disease(
+        tx: ManagedTransaction,
+        obj_in: Dict,
+        ids_in_studies: Set[str]
+    ) -> None:
         """Add gene or disease node and its relationships to DB
 
         :param tx: Transaction object provided to transaction functions
@@ -215,10 +223,16 @@ class Graph:
                 obj,
                 (
                     "id",
-                    "label"
+                    "label",
+                    "description"
                 )
             )
         ]
+
+        mappings = obj.get("mappings", [])
+        if mappings:
+            obj["mappings"] = json.dumps(mappings)
+            obj_keys.append("mappings:$mappings")
 
         extensions = obj.get("extensions", [])
         for ext in extensions:
@@ -280,7 +294,7 @@ class Graph:
             query = f"MERGE (tp:{tp_type}:TherapeuticProcedure {{ {keys} }})"
             tx.run(query, **tp)
 
-            tas = tp["components"] if tp_type == "CombinationTherapy" else tp["substitutes"]
+            tas = tp["components"] if tp_type == "CombinationTherapy" else tp["substitutes"]  # noqa: E501
             for ta in tas:
                 ta_id = ta["id"]
                 self._add_therapeutic_agent(tx, ta)
@@ -412,7 +426,6 @@ class Graph:
 
         :param tx: Transaction object provided to transaction functions
         """
-        # TODO: Need to do HAS_MEMBERS
         if categorical_variation_in["id"] not in ids_in_studies:
             return
 
@@ -449,16 +462,28 @@ class Graph:
 
         mp_keys = ", ".join(mp_nonnull_keys)
 
-        # defining context part
+        # defining context
         defining_context = cv["definingContext"]
         self._add_variation(tx, defining_context)
         dc_type = defining_context["type"]
 
+        # members
+        members_match = ""
+        members_relation = ""
+        for ix, member in enumerate(cv.get("members", [])):
+            self._add_variation(tx, member)
+            name = f"member_{ix}"
+            cv[name] = member
+            members_match += f"MERGE ({name} {{ id: '{member['id']}' }})\n"
+            members_relation += f"MERGE (v) -[:HAS_MEMBERS] -> ({name})\n"
+
         query += f"""
+        {members_match}
         MERGE (dc:{dc_type}:Variation {{ id: '{defining_context['id']}' }})
         MERGE (dc) -[:HAS_LOCATION] -> (loc)
         MERGE (v:{cv['type']}:CategoricalVariation {{ {mp_keys} }})
         MERGE (v) -[:HAS_DEFINING_CONTEXT] -> (dc)
+        {members_relation}
         """
         tx.run(query, **cv)
 
@@ -589,7 +614,9 @@ class Graph:
         # qualifiers
         qualifiers = study.get("qualifiers")
         if qualifiers:
-            allele_origin = qualifiers.get("alleleOrigin", "none")  # FIXME: How to handle this
+            # neo4j nodes must have a property, so if alleleOrigin is not provided,
+            # we set to none represented as a string
+            allele_origin = qualifiers.get("alleleOrigin", "none")
             study["alleleOrigin"] = allele_origin
             match_line += "MERGE (q:Qualifier {alleleOrigin:$alleleOrigin})\n"
             rel_line += "MERGE (s) -[:HAS_QUALIFIERS] -> (q)"
