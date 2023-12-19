@@ -16,9 +16,10 @@ from metakb.schemas.app import SourceName
 logger = logging.getLogger(__name__)
 
 
+# Define keys for coding, location, and variation nodes
 CODING_KEYS = ("code", "label", "sytem")
 LOC_KEYS = ("id", "start", "end")
-DEFINING_CONTEXT_KEYS = ("id", "label", "digest")
+VARIATION_KEYS = ("id", "label", "digest")
 
 
 def _create_parameterized_query(
@@ -34,8 +35,7 @@ def _create_parameterized_query(
     :return: Parameterized query, such as (`name:$name`)
     """
     nonnull_keys = [
-        f"{key}:${entity_param_prefix}{key}"
-        for key in params if entity.get(key)
+        f"{key}:${entity_param_prefix}{key}" for key in params if entity.get(key)
     ]
     return ", ".join(nonnull_keys)
 
@@ -169,6 +169,31 @@ class Graph:
 
             logger.info(f"Successfully loaded {loaded_study_count} studies.")
 
+    @staticmethod
+    def _add_mappings_and_exts_to_obj(
+        obj: Dict, obj_keys: List[str]
+    ) -> None:
+        """Get mappings and extensions from object and add to `obj` and `obj_keys`
+
+        :param obj: Object to update with mappings and extensions (if found)
+        :param obj_keys: Parameterized queries. This will be mutated if
+            mappings and extensions exists
+        """
+        mappings = obj.get("mappings", [])
+        if mappings:
+            obj["mappings"] = json.dumps(mappings)
+            obj_keys.append("mappings:$mappings")
+
+        extensions = obj.get("extensions", [])
+        for ext in extensions:
+            name = "_".join(ext["name"].split()).lower()
+            val = ext["value"]
+            if isinstance(val, (dict, list)):
+                obj[name] = json.dumps(val)
+            else:
+                obj[name] = val
+            obj_keys.append(f"{name}:${name}")
+
     def _add_method(
         self,
         tx: ManagedTransaction,
@@ -190,6 +215,7 @@ class Graph:
 
         is_reported_in = method.get("isReportedIn")
         if is_reported_in:
+            # Method's documents are unique and do not currently have IDs
             self._add_document(tx, is_reported_in, ids_in_studies)
             doc_doi = is_reported_in["doi"]
             query += f"""
@@ -199,8 +225,8 @@ class Graph:
 
         tx.run(query, **method)
 
-    @staticmethod
     def _add_gene_or_disease(
+        self,
         tx: ManagedTransaction,
         obj_in: Dict,
         ids_in_studies: Set[str]
@@ -208,6 +234,9 @@ class Graph:
         """Add gene or disease node and its relationships to DB
 
         :param tx: Transaction object provided to transaction functions
+        :param obj_in: CDM gene or disease object
+        :param ids_in_studies: IDs found in studies
+        :raises TypeError: When `obj_in` is not a disease or gene
         """
         if obj_in["id"] not in ids_in_studies:
             return
@@ -229,21 +258,7 @@ class Graph:
             )
         ]
 
-        mappings = obj.get("mappings", [])
-        if mappings:
-            obj["mappings"] = json.dumps(mappings)
-            obj_keys.append("mappings:$mappings")
-
-        extensions = obj.get("extensions", [])
-        for ext in extensions:
-            name = "_".join(ext["name"].split()).lower()
-            val = ext["value"]
-            if isinstance(val, (dict, list)):
-                obj[name] = json.dumps(val)
-            else:
-                obj[name] = val
-            obj_keys.append(f"{name}:${name}")
-
+        self._add_mappings_and_exts_to_obj(obj, obj_keys)
         obj_keys = ", ".join(obj_keys)
 
         if obj_type == "Gene":
@@ -265,12 +280,14 @@ class Graph:
         """Add therapeutic procedure node and its relationships
 
         :param tx: Transaction object provided to transaction functions
+        :param therapeutic_procedure: Therapeutic procedure CDM object
+        :param ids_in_studies: IDs found in studies
         :raises TypeError: When therapeutic procedure type is invalid
         """
-        tp = therapeutic_procedure.copy()
-        tp_id = tp["id"]
-        if tp_id not in ids_in_studies:
+        if therapeutic_procedure["id"] not in ids_in_studies:
             return
+
+        tp = therapeutic_procedure.copy()
 
         tp_type = tp["type"]
         if tp_type == "TherapeuticAgent":
@@ -279,16 +296,7 @@ class Graph:
             keys = ["id:$id"]
 
             # handle extensions
-            extensions = tp.get("extensions", [])
-            for ext in extensions:
-                name = "_".join(ext["name"].split()).lower()
-                val = ext["value"]
-                if isinstance(val, (dict, list)):
-                    tp[name] = json.dumps(val)
-                else:
-                    tp[name] = val
-                keys.append(f"{name}:${name}")
-
+            self._add_mappings_and_exts_to_obj(tp, keys)
             keys = ", ".join(keys)
 
             query = f"MERGE (tp:{tp_type}:TherapeuticProcedure {{ {keys} }})"
@@ -296,11 +304,10 @@ class Graph:
 
             tas = tp["components"] if tp_type == "CombinationTherapy" else tp["substitutes"]  # noqa: E501
             for ta in tas:
-                ta_id = ta["id"]
                 self._add_therapeutic_agent(tx, ta)
                 query = f"""
-                MERGE (tp:{tp_type}:TherapeuticProcedure {{id: '{tp_id}'}})
-                MERGE (ta:TherapeuticAgent:TherapeuticProcedure {{id: '{ta_id}'}})
+                MERGE (tp:{tp_type}:TherapeuticProcedure {{id: '{tp['id']}'}})
+                MERGE (ta:TherapeuticAgent:TherapeuticProcedure {{id: '{ta['id']}'}})
                 """
 
                 if tp_type == "CombinationTherapy":
@@ -312,11 +319,13 @@ class Graph:
         else:
             raise TypeError(f"Invalid therapeutic procedure type: {tp_type}")
 
-    @staticmethod
-    def _add_therapeutic_agent(tx: ManagedTransaction, therapeutic_agent: Dict) -> None:
+    def _add_therapeutic_agent(
+        self, tx: ManagedTransaction, therapeutic_agent: Dict
+    ) -> None:
         """Add therapeutic agent node and its relationships
 
         :param tx: Transaction object provided to transaction functions
+        :param therapeutic_agent: Therapeutic Agent CDM object
         """
         ta = therapeutic_agent.copy()
         nonnull_keys = [
@@ -330,21 +339,7 @@ class Graph:
             )
         ]
 
-        extensions = ta.get("extensions", [])
-        for ext in extensions:
-            name = "_".join(ext["name"].split()).lower()
-            val = ext["value"]
-            if isinstance(val, (dict, list)):
-                ta[name] = json.dumps(val)
-            else:
-                ta[name] = val
-            nonnull_keys.append(f"{name}:${name}")
-
-        mappings = ta.get("mappings", [])
-        if mappings:
-            ta["mappings"] = json.dumps(mappings)
-            nonnull_keys.append("mappings:$mappings")
-
+        self._add_mappings_and_exts_to_obj(ta, nonnull_keys)
         nonnull_keys = ", ".join(nonnull_keys)
 
         query = f"""
@@ -357,11 +352,13 @@ class Graph:
         tx: ManagedTransaction,
         location_in: Dict
     ) -> None:
+        """Add location node and its relationships
+
+        :param tx: Transaction object provided to transaction functions
+        :param location_in: Location CDM object
+        """
         loc = location_in.copy()
-        loc_keys = [
-            f"loc.{key}=${key}"
-            for key in LOC_KEYS if loc.get(key)
-        ]
+        loc_keys = [f"loc.{key}=${key}" for key in LOC_KEYS if loc.get(key)]
         loc["sequence_reference"] = json.dumps(loc["sequenceReference"])
         loc_keys.append("loc.sequence_reference=$sequence_reference")
         loc_keys = ", ".join(loc_keys)
@@ -377,12 +374,13 @@ class Graph:
         tx: ManagedTransaction,
         variation_in: Dict
     ) -> None:
-        """Add variation objects to DB."""
+        """Add variation node and its relationships
+
+        :param tx: Transaction object provided to transaction functions
+        :param variation_in: Variation CDM object
+        """
         v = variation_in.copy()
-        v_keys = [
-            f"v.{key}=${key}"
-            for key in DEFINING_CONTEXT_KEYS if v.get(key)
-        ]
+        v_keys = [f"v.{key}=${key}" for key in VARIATION_KEYS if v.get(key)]
 
         expressions = v.get("expressions", [])
         for expr in expressions:
@@ -425,12 +423,13 @@ class Graph:
         """Add categorical variation objects to DB.
 
         :param tx: Transaction object provided to transaction functions
+        :param categorical_variation_in: Categorical variation CDM object
+        :param ids_in_studies: IDs found in studies
         """
         if categorical_variation_in["id"] not in ids_in_studies:
             return
 
         cv = categorical_variation_in.copy()
-        query = ""
 
         mp_nonnull_keys = [
             _create_parameterized_query(
@@ -444,22 +443,8 @@ class Graph:
             )
         ]
 
-        # handle extensions
-        extensions = cv.get("extensions", [])
-        for ext in extensions:
-            name = "_".join(ext["name"].split()).lower()
-            val = ext["value"]
-            if isinstance(val, (dict, list)):
-                cv[name] = json.dumps(val)
-            else:
-                cv[name] = val
-            mp_nonnull_keys.append(f"{name}:${name}")
-
-        mappings = cv.get("mappings", [])
-        if mappings:
-            cv["mappings"] = json.dumps(mappings)
-            mp_nonnull_keys.append("mappings:$mappings")
-
+        # mappings and extensions
+        self._add_mappings_and_exts_to_obj(cv, mp_nonnull_keys)
         mp_keys = ", ".join(mp_nonnull_keys)
 
         # defining context
@@ -477,7 +462,7 @@ class Graph:
             members_match += f"MERGE ({name} {{ id: '{member['id']}' }})\n"
             members_relation += f"MERGE (v) -[:HAS_MEMBERS] -> ({name})\n"
 
-        query += f"""
+        query = f"""
         {members_match}
         MERGE (dc:{dc_type}:Variation {{ id: '{defining_context['id']}' }})
         MERGE (dc) -[:HAS_LOCATION] -> (loc)
@@ -487,8 +472,8 @@ class Graph:
         """
         tx.run(query, **cv)
 
-    @staticmethod
     def _add_document(
+        self,
         tx: ManagedTransaction,
         document_in: Dict,
         ids_in_studies: Set[str]
@@ -496,9 +481,11 @@ class Graph:
         """Add Document object to DB.
 
         :param tx: Transaction object provided to transaction functions
-        :param document: must include `id` field.
+        :param document: Document CDM object
         :param ids_in_studies: IDs found in studies
         """
+        # Not all document's have IDs. These are the fields that can uniquely identify
+        # a document
         if "id" in document_in:
             query = "MATCH (n:Document {id:$id}) RETURN n"
             if document_in["id"] not in ids_in_studies:
@@ -524,21 +511,7 @@ class Graph:
                 )
             ]
 
-            extensions = document.get("extensions", [])
-            for ext in extensions:
-                name = "_".join(ext["name"].split()).lower()
-                val = ext["value"]
-                if isinstance(val, (dict, list)):
-                    document[name] = json.dumps(val)
-                else:
-                    document[name] = val
-                formatted_keys.append(f"{name}:${name}")
-
-            mappings = document.get("mappings", [])
-            if mappings:
-                document["mappings"] = json.dumps(mappings)
-                formatted_keys.append("mappings:$mappings")
-
+            self._add_mappings_and_exts_to_obj(document, formatted_keys)
             formatted_keys = ", ".join(formatted_keys)
 
             query = f"""
@@ -587,6 +560,7 @@ class Graph:
         """Add study node and its relationships
 
         :param tx: Transaction object provided to transaction functions
+        :param study_in: Study CDM object
         """
         study = study_in.copy()
         study_type = study["type"]
