@@ -295,7 +295,6 @@ class Graph:
         elif tp_type in {"CombinationTherapy", "TherapeuticSubstituteGroup"}:
             keys = ["id:$id"]
 
-            # handle extensions
             self._add_mappings_and_exts_to_obj(tp, keys)
             keys = ", ".join(keys)
 
@@ -443,16 +442,13 @@ class Graph:
             )
         ]
 
-        # mappings and extensions
         self._add_mappings_and_exts_to_obj(cv, mp_nonnull_keys)
         mp_keys = ", ".join(mp_nonnull_keys)
 
-        # defining context
         defining_context = cv["definingContext"]
         self._add_variation(tx, defining_context)
         dc_type = defining_context["type"]
 
-        # members
         members_match = ""
         members_relation = ""
         for ix, member in enumerate(cv.get("members", [])):
@@ -577,7 +573,6 @@ class Graph:
         match_line = ""
         rel_line = ""
 
-        # isReportedIn
         is_reported_in_docs = study.get("isReportedIn", [])
         for ri_doc in is_reported_in_docs:
             ri_doc_id = ri_doc["id"]
@@ -585,7 +580,6 @@ class Graph:
             match_line += f"MERGE ({name} {{ id: '{ri_doc_id}'}})\n"
             rel_line += f"MERGE (s) -[:IS_REPORTED_IN] -> ({name})\n"
 
-        # qualifiers
         qualifiers = study.get("qualifiers")
         if qualifiers:
             # neo4j nodes must have a property, so if alleleOrigin is not provided,
@@ -600,12 +594,10 @@ class Graph:
                 match_line += f"MERGE (g:Gene {{id: '{gene_context_id}'}})\n"
                 rel_line += "MERGE (q) -[:HAS_GENE_CONTEXT] -> (g)\n"
 
-        # specifiedBy
         method_id = study["specifiedBy"]["id"]
         match_line += f"MERGE (m {{ id: '{method_id}' }})\n"
         rel_line += "MERGE (s) -[:IS_SPECIFIED_BY] -> (m)\n"
 
-        # strength
         coding = study.get("strength")
         if coding:
             coding_keys = _create_parameterized_query(

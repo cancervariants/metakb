@@ -149,7 +149,9 @@ def check_extension_props():
 
 @pytest.fixture(scope="module")
 def check_node_props():
-    """Check that node properties match expected"""
+    """Check that node properties match expected. For extensions, use
+    `check_extension_props`
+    """
     def _check_function(
         node: Node, fixture: Dict, expected_keys: Set[str],
         extension_names: Set[str] = set()
