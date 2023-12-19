@@ -394,8 +394,7 @@ def civic_mpid12(civic_vid12):
         "aliases": [
             "VAL600GLU",
             "V640E",
-            "VAL640GLU",
-            "rs113488022"
+            "VAL640GLU"
         ],
         "mappings": [
             {
@@ -631,6 +630,165 @@ def pmid_23982599():
         "type": "Document",
         "label": "Dungo et al., 2013, Drugs",
         "description": "Afatinib: first global approval."
+    }
+
+
+@pytest.fixture(scope="session")
+def civic_tid28():
+    """Create test fixture for CIViC therapy ID 28"""
+    return {
+        "id": "civic.tid:28",
+        "type": "TherapeuticAgent",
+        "label": "Panitumumab",
+        "mappings": [
+            {
+                "coding": {
+                    "code": "C1857",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code="  # noqa: E501
+                },
+                "relation": "exactMatch"
+            }
+        ],
+        "aliases": [
+            "ABX-EGF",
+            "ABX-EGF Monoclonal Antibody",
+            "ABX-EGF, Clone E7.6.3",
+            "E7.6.3",
+            "Human IgG2K Monoclonal Antibody",
+            "MoAb ABX-EGF",
+            "MoAb E7.6.3",
+            "Monoclonal Antibody ABX-EGF",
+            "Monoclonal Antibody E7.6.3",
+            "Vectibix"
+        ],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "therapy_normalizer_id",
+                "value": "rxcui:263034"
+            },
+            {
+                "type": "Extension",
+                "name": "regulatory_approval",
+                "value": {
+                    "approval_rating": "ChEMBL",
+                    "has_indications": [
+                        {
+                            "id": "mesh:D009369",
+                            "type": "Disease",
+                            "label": "Neoplasms",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C3262", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "mesh:D015179",
+                            "type": "Disease",
+                            "label": "Colorectal Neoplasms",
+                            "mappings": [
+                                {
+                                    "coding": {"code": "C2956", "system": "ncit"},
+                                    "relation": "relatedMatch"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def civic_tid16(cetuximab_extensions):
+    """Create test fixture for CIViC therapy ID 16"""
+    return {
+        "id": "civic.tid:16",
+        "type": "TherapeuticAgent",
+        "label": "Cetuximab",
+        "mappings": [
+            {
+                "coding": {
+                    "code": "C1723",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code="  # noqa: E501
+                },
+                "relation": "exactMatch"
+            }
+        ],
+        "aliases": [
+            "Cetuximab Biosimilar CDP-1",
+            "Cetuximab Biosimilar CMAB009",
+            "Cetuximab Biosimilar KL 140",
+            "Chimeric Anti-EGFR Monoclonal Antibody",
+            "Chimeric MoAb C225",
+            "Chimeric Monoclonal Antibody C225",
+            "Erbitux",
+            "IMC-C225"
+        ],
+        "extensions": cetuximab_extensions
+    }
+
+
+@pytest.fixture(scope="session")
+def civic_tsg(civic_tid16, civic_tid28):
+    """Create test fixture for CIViC TherapeuticSubstituteGroup"""
+    return {
+        "type": "TherapeuticSubstituteGroup",
+        "id": "civic.tsgid:7IxyhCwID0QYyVCP2xuIyYvwwu-S_HrZ",
+        "substitutes": [civic_tid16, civic_tid28],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "civic_therapy_interaction_type",
+                "value": "SUBSTITUTES"
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def civic_tid483(encorafenib_extensions):
+    """Create test fixture for CIViC Therapy ID 483"""
+    return {
+        "id": "civic.tid:483",
+        "type": "TherapeuticAgent",
+        "label": "Encorafenib",
+        "mappings": [
+            {
+                "coding": {
+                    "code": "C98283",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code="  # noqa: E501
+                },
+                "relation": "exactMatch"
+            }
+        ],
+        "aliases": [
+            "Braftovi",
+            "LGX 818",
+            "LGX-818",
+            "LGX818"
+        ],
+        "extensions": encorafenib_extensions
+    }
+
+
+@pytest.fixture(scope="session")
+def civic_ct(civic_tid483, civic_tid16):
+    """Create test fixture for CIViC CombinationTherapy"""
+    return {
+        "type": "CombinationTherapy",
+        "id": "civic.ctid:P1PY89shAjemg7jquQ0V9pg1VnYnkPeK",
+        "components": [civic_tid483, civic_tid16],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "civic_therapy_interaction_type",
+                "value": "COMBINATION"
+            }
+        ]
     }
 
 

@@ -1,8 +1,9 @@
 """Validate property and relationship rules for graph DB."""
 import json
-from typing import List, Optional, Set
+from typing import Dict, List, Optional, Set
 
 import pytest
+from neo4j.graph import Node
 
 from metakb.database import Graph
 from metakb.schemas.app import SourceName
@@ -65,7 +66,7 @@ def get_node_labels(graph: Graph):
 
 
 @pytest.fixture(scope="module")
-def check_node_labels(graph: Graph, get_node_labels: callable):
+def check_node_labels(get_node_labels: callable):
     """Check node labels match expected"""
     def _check_function(
         node_label: str,
@@ -128,12 +129,50 @@ def check_relation_count(graph: Graph):
     return _check_function
 
 
+@pytest.fixture(scope="module")
+def check_extension_props():
+    """Check that node extension properties match expected"""
+    def _check_function(
+        node: Node, fixture_extensions: List[Dict], ext_names: Set[str]
+    ):
+        checked = set()
+        for ext in fixture_extensions:
+            if ext["name"] in ext_names:
+                try:
+                    assert json.loads(node[ext["name"]]) == ext["value"]
+                except json.decoder.JSONDecodeError:
+                    assert node[ext["name"]] == ext["value"]
+                checked.add(ext["name"])
+        assert checked == ext_names
+    return _check_function
+
+
+@pytest.fixture(scope="module")
+def check_node_props():
+    """Check that node properties match expected"""
+    def _check_function(
+        node: Node, fixture: Dict, expected_keys: Set[str],
+        extension_names: Set[str] = set()
+    ):
+        assert node.keys() == expected_keys
+        for k in expected_keys - extension_names:
+            if k == "mappings":
+                assert json.loads(node[k]) == fixture[k]
+            elif isinstance(fixture[k], list):
+                assert set(node[k]) == set(fixture[k])
+            else:
+                assert node[k] == fixture[k]
+    return _check_function
+
+
 def test_gene_rules(
     check_unique_property,
     check_node_labels,
     check_relation_count,
     get_node_by_id,
-    civic_gid5
+    civic_gid5,
+    check_node_props,
+    check_extension_props
 ):
     """Verify property and relationship rules for Gene nodes."""
     check_unique_property("Gene", "id")
@@ -145,16 +184,12 @@ def test_gene_rules(
     check_node_labels("Gene", expected_labels, 1)
 
     gene = get_node_by_id(civic_gid5["id"])
-    assert set(gene.keys()) == {
+    extension_names = {"gene_normalizer_id"}
+    check_extension_props(gene, civic_gid5["extensions"], extension_names)
+    expected_keys = {
         "gene_normalizer_id", "label", "id", "description", "mappings"
     }
-    for k in gene.keys():
-        if k == "gene_normalizer_id":
-            assert gene[k] == civic_gid5["extensions"][0]["value"]
-        elif k == "mappings":
-            assert json.loads(gene[k]) == civic_gid5[k]
-        else:
-            assert gene[k] == civic_gid5[k]
+    check_node_props(gene, civic_gid5, expected_keys, extension_names)
 
 
 def test_qualifier_rules(
@@ -194,7 +229,8 @@ def test_variation_rules(
     # members dont have defining context
     check_relation_count(
         "Variation", "CategoricalVariation", "HAS_DEFINING_CONTEXT", direction="in",
-        min=0, max=None)
+        min=0, max=None
+    )
     check_relation_count(
         "Variation", "CategoricalVariation", "HAS_MEMBERS", min=0, max=None,
         direction="in"
@@ -274,7 +310,7 @@ def test_categorical_variation_rules(
     }
     assert cv["label"] == civic_mpid12["label"]
     assert cv["description"] == civic_mpid12["description"]
-    assert cv["aliases"] == civic_mpid12["aliases"]
+    assert set(cv["aliases"]) == set(civic_mpid12["aliases"])
     assert isinstance(cv["civic_molecular_profile_score"], float)
     crc = json.loads(cv["civic_representative_coordinate"])
     assert set(crc.keys()) == {
@@ -328,7 +364,11 @@ def test_therapeutic_procedure_rules(
     check_relation_count,
     check_node_labels,
     get_node_by_id,
-    civic_tid146
+    civic_tid146,
+    check_node_props,
+    check_extension_props,
+    civic_ct,
+    civic_tsg
 ):
     """Verify property and relationship rules for Therapeutic Procedure nodes."""
     check_unique_property("TherapeuticProcedure", "id")
@@ -361,30 +401,25 @@ def test_therapeutic_procedure_rules(
 
     # Test TherapeuticAgent
     ta = get_node_by_id(civic_tid146["id"])
-    assert set(ta.keys()) == {
+    extension_names = {"therapy_normalizer_id", "regulatory_approval"}
+    check_extension_props(ta, civic_tid146["extensions"], extension_names)
+    expected_keys = {
         "id", "label", "aliases", "therapy_normalizer_id", "regulatory_approval",
         "mappings"
     }
-    assert ta["label"] == civic_tid146["label"]
-    assert set(ta["aliases"]) == set(civic_tid146["aliases"])
-    checked_therapy_normalizer_id = False
-    checked_regulatory_approval = False
-    for e in civic_tid146["extensions"]:
-        if e["name"] == "therapy_normalizer_id":
-            assert ta["therapy_normalizer_id"] == e["value"]
-            checked_therapy_normalizer_id = True
-        elif e["name"] == "regulatory_approval":
-            assert json.loads(ta["regulatory_approval"]) == e["value"]
-            checked_regulatory_approval = True
-    assert checked_therapy_normalizer_id
-    assert checked_regulatory_approval
-    expected_norm_id = [e["value"] for e in civic_tid146["extensions"] if e["name"] == "therapy_normalizer_id"][0]  # noqa: E501
-    assert ta["therapy_normalizer_id"] == expected_norm_id
-    assert json.loads(ta["mappings"]) == civic_tid146["mappings"]
+    check_node_props(ta, civic_tid146, expected_keys, extension_names)
 
     # Test CombinationTherapy
+    ct = get_node_by_id(civic_ct["id"])
+    check_extension_props(
+        ct, civic_ct["extensions"], {"civic_therapy_interaction_type"}
+    )
 
     # Test TherapeuticSubstituteGroup
+    tsg = get_node_by_id(civic_tsg["id"])
+    check_extension_props(
+        tsg, civic_tsg["extensions"], {"civic_therapy_interaction_type"}
+    )
 
 
 def test_condition_rules(
@@ -392,7 +427,9 @@ def test_condition_rules(
     check_relation_count,
     check_node_labels,
     get_node_by_id,
-    civic_did8
+    civic_did8,
+    check_node_props,
+    check_extension_props
 ):
     """Verify property and relationship rules for condition nodes."""
     check_unique_property("Condition", "id")
@@ -404,14 +441,10 @@ def test_condition_rules(
     check_node_labels("Condition", expected_node_labels, 1)
 
     disease = get_node_by_id(civic_did8["id"])
-    assert set(disease.keys()) == {"id", "label", "mappings", "disease_normalizer_id"}
-    for k in disease.keys():
-        if k == "disease_normalizer_id":
-            assert disease[k] == civic_did8["extensions"][0]["value"]
-        elif k == "mappings":
-            assert json.loads(disease[k]) == civic_did8[k]
-        else:
-            assert disease[k] == civic_did8[k]
+    extension_names = {"disease_normalizer_id"}
+    check_extension_props(disease, civic_did8["extensions"], extension_names)
+    expected_keys = {"id", "label", "mappings", "disease_normalizer_id"}
+    check_node_props(disease, civic_did8, expected_keys, extension_names)
 
 
 def test_study_rules(
@@ -420,7 +453,8 @@ def test_study_rules(
     check_relation_count,
     check_node_labels,
     get_node_by_id,
-    civic_eid2997_study
+    civic_eid2997_study,
+    check_node_props
 ):
     """Verify property and relationship rules for Study nodes."""
     check_unique_property("Study", "id")
@@ -447,9 +481,8 @@ def test_study_rules(
     assert record.values()[0] == 0
 
     study = get_node_by_id(civic_eid2997_study["id"])
-    assert set(study.keys()) == {"id", "description", "direction", "predicate"}
-    for k in study.keys():
-        assert study[k] == civic_eid2997_study[k]
+    expected_keys = {"id", "description", "direction", "predicate"}
+    check_node_props(study, civic_eid2997_study, expected_keys)
 
 
 def test_document_rules(
@@ -458,7 +491,9 @@ def test_document_rules(
     check_node_labels,
     check_relation_count,
     get_node_by_id,
-    moa_source44
+    moa_source44,
+    check_node_props,
+    check_extension_props
 ):
     """Verify property and relationship rules for Document nodes."""
     check_unique_property("Document", "id")
@@ -491,12 +526,10 @@ def test_document_rules(
     assert set(record.values()[0]) == {31779674, 35121878}
 
     doc = get_node_by_id(moa_source44["id"])
-    assert set(doc.keys()) == {"id", "title", "doi", "source_type", "url", "pmid"}
-    for k in doc:
-        if k != "source_type":
-            assert doc[k] == moa_source44[k]
-        else:
-            assert doc[k] == moa_source44["extensions"][0]["value"]
+    extension_names = {"source_type"}
+    check_extension_props(doc, moa_source44["extensions"], extension_names)
+    expected_keys = {"id", "title", "doi", "source_type", "url", "pmid"}
+    check_node_props(doc, moa_source44, expected_keys, extension_names)
 
 
 def test_method_rules(
@@ -504,7 +537,8 @@ def test_method_rules(
     check_node_labels,
     check_relation_count,
     get_node_by_id,
-    civic_method
+    civic_method,
+    check_node_props
 ):
     """Verify property and relationship rules for Method nodes."""
     check_unique_property("Method", "id")
@@ -514,8 +548,8 @@ def test_method_rules(
     check_node_labels("Method", expected_node_labels, 1)
 
     method = get_node_by_id(civic_method["id"])
-    assert set(method.keys()) == {"id", "label"}
-    assert method["label"] == civic_method["label"]
+    expected_keys = {"id", "label"}
+    check_node_props(method, civic_method, expected_keys)
 
 
 def test_no_lost_nodes(graph: Graph):
