@@ -582,8 +582,10 @@ class Graph:
 
         qualifiers = study.get("qualifiers")
         if qualifiers:
-            # neo4j nodes must have a property, so if alleleOrigin is not provided,
-            # we set to none represented as a string
+            # neo4j nodes must have a property for merging and it has trouble trying to
+            # match against a node with no property. So if alleleOrigin is not
+            # provided, we set to none represented as a string. This is a hacky thing.
+            # In the query handler, we must set it back to None in the response
             allele_origin = qualifiers.get("alleleOrigin", "none")
             study["alleleOrigin"] = allele_origin
             match_line += "MERGE (q:Qualifier {alleleOrigin:$alleleOrigin})\n"
