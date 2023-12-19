@@ -18,7 +18,7 @@ def sources_count():
 @pytest.fixture(scope="module")
 def graph():
     """Return graph object."""
-    g = Graph(uri="bolt://localhost:7687", credentials=("neo4j", "admin"))
+    g = Graph(uri="bolt://localhost:7687", credentials=("neo4j", "password"))
     yield g
     g.close()
 

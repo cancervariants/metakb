@@ -60,7 +60,7 @@ class Graph:
         elif not (uri and credentials[0] and credentials[1]):
             # Local
             uri = "bolt://localhost:7687"
-            credentials = ("neo4j", "admin")
+            credentials = ("neo4j", "password")
         self.driver = GraphDatabase.driver(uri, auth=credentials)
         with self.driver.session() as session:
             session.execute_write(self._create_constraints)
