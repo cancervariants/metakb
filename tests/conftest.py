@@ -2010,12 +2010,6 @@ def moa_source44():
     }
 
 
-# @pytest.fixture(scope="session")
-# def sources_count() -> int:
-#     """Provide number of currently-implemented sources."""
-#     return len(SourceName.__members__)
-
-
 def _dict_check(expected_d: dict, actual_d: dict) -> None:
     """Make dictionary assertion checks. Check that actual matches expected data.
 
