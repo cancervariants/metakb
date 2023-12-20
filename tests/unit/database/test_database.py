@@ -179,7 +179,7 @@ def test_gene_rules(
     """Verify property and relationship rules for Gene nodes."""
     check_unique_property("Gene", "id")
     check_relation_count(
-        "Gene", "Qualifier", "HAS_GENE_CONTEXT", direction="in", min=1, max=None
+        "Gene", "Study", "HAS_GENE_CONTEXT", direction="in", min=1, max=None
     )
 
     expected_labels = [{"Gene"}]
@@ -192,31 +192,6 @@ def test_gene_rules(
         "gene_normalizer_id", "label", "id", "description", "mappings"
     }
     check_node_props(gene, civic_gid5, expected_keys, extension_names)
-
-
-def test_qualifier_rules(
-    graph,
-    check_unique_property,
-    check_node_labels,
-    check_relation_count
-):
-    """Verify property and relationship rules for Qualifier nodes."""
-    check_unique_property("Qualifier", "alleleOrigin")
-    check_relation_count(
-        "Qualifier", "Gene", "HAS_GENE_CONTEXT", direction="out", max=None
-    )
-
-    expected_labels = [{"Qualifier"}]
-    check_node_labels("Qualifier", expected_labels, 1)
-
-    query = """
-    MATCH (q:Qualifier)
-    WITH q.alleleOrigin as allele_origin
-    RETURN collect(DISTINCT allele_origin)
-    """
-    with graph.driver.session() as s:
-        resp = s.run(query).single()
-    assert set(resp.values()[0]) == {"somatic", "germline", "none"}
 
 
 def test_variation_rules(
@@ -466,7 +441,7 @@ def test_study_rules(
     check_relation_count("Study", "TherapeuticProcedure", "HAS_THERAPEUTIC")
     check_relation_count("Study", "Coding", "HAS_STRENGTH")
     check_relation_count("Study", "Method", "IS_SPECIFIED_BY", max=None)
-    check_relation_count("Study", "Qualifier", "HAS_QUALIFIERS")
+    check_relation_count("Study", "Gene", "HAS_GENE_CONTEXT", max=None)
 
     expected_node_labels = [{"Study", "VariantTherapeuticResponseStudy"}]
     check_node_labels("Study", expected_node_labels, 1)
@@ -483,8 +458,10 @@ def test_study_rules(
     assert record.values()[0] == 0
 
     study = get_node_by_id(civic_eid2997_study["id"])
-    expected_keys = {"id", "description", "direction", "predicate"}
-    check_node_props(study, civic_eid2997_study, expected_keys)
+    expected_keys = {"id", "description", "direction", "predicate", "alleleOrigin"}
+    civic_eid2997_study_cp = civic_eid2997_study.copy()
+    civic_eid2997_study_cp["alleleOrigin"] = civic_eid2997_study_cp["qualifiers"]["alleleOrigin"]  # noqa: E501
+    check_node_props(study, civic_eid2997_study_cp, expected_keys)
 
 
 def test_document_rules(
