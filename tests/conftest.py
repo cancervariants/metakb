@@ -1658,7 +1658,7 @@ def moa_source44():
             }
         ],
         "type": "Document",
-        "title": "Gorre, Mercedes E., et al. \"Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification.\" Science 293.5531 (2001): 876-880.",  # noqa: E501
+        "title": "Gorre, Mercedes E., et al. Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification. Science 293.5531 (2001): 876-880.",  # noqa: E501
         "url": "https://doi.org/10.1126/science.1062538",
         "doi": "10.1126/science.1062538",
         "pmid": 11423618
