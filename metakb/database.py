@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 # Define keys for coding, location, and variation nodes
-CODING_KEYS = ("code", "label", "sytem")
+CODING_KEYS = ("code", "label", "system")
 LOC_KEYS = ("id", "start", "end")
 VARIATION_KEYS = ("id", "label", "digest")
 
@@ -103,7 +103,6 @@ class Graph:
         """
         queries = [
             "CREATE CONSTRAINT coding_constraint IF NOT EXISTS FOR (c:Coding) REQUIRE (c.code, c.label, c.system) IS UNIQUE;",  # noqa: E501
-            "CREATE CONSTRAINT qualifier_constraint IF NOT EXISTS FOR (q:Qualifier) REQUIRE q.alleleOrigin IS UNIQUE;"  # noqa: E501
         ]
 
         for label in [
@@ -582,17 +581,14 @@ class Graph:
 
         qualifiers = study.get("qualifiers")
         if qualifiers:
-            # neo4j nodes must have a property, so if alleleOrigin is not provided,
-            # we set to none represented as a string
-            allele_origin = qualifiers.get("alleleOrigin", "none")
+            allele_origin = qualifiers.get("alleleOrigin")
             study["alleleOrigin"] = allele_origin
-            match_line += "MERGE (q:Qualifier {alleleOrigin:$alleleOrigin})\n"
-            rel_line += "MERGE (s) -[:HAS_QUALIFIERS] -> (q)"
+            match_line += "SET s.alleleOrigin=$alleleOrigin\n"
 
             gene_context_id = qualifiers.get("geneContext", {}).get("id")
             if gene_context_id:
                 match_line += f"MERGE (g:Gene {{id: '{gene_context_id}'}})\n"
-                rel_line += "MERGE (q) -[:HAS_GENE_CONTEXT] -> (g)\n"
+                rel_line += "MERGE (s) -[:HAS_GENE_CONTEXT] -> (g)\n"
 
         method_id = study["specifiedBy"]["id"]
         match_line += f"MERGE (m {{ id: '{method_id}' }})\n"
