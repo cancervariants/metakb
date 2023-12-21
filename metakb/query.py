@@ -1,4 +1,5 @@
 """Module for queries."""
+from enum import StrEnum
 import json
 import logging
 from typing import Dict, List, Optional, Tuple
@@ -20,6 +21,27 @@ from metakb.schemas.variation_statement import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class VariationRelation(StrEnum):
+    """Create enum for relation between variation and categorical variation"""
+
+    HAS_MEMBERS = "HAS_MEMBERS"
+    HAS_DEFINING_CONTEXT = "HAS_DEFINING_CONTEXT"
+
+
+class TherapeuticRelation(StrEnum):
+    """Create enum for therapeutic relation"""
+
+    HAS_COMPONENTS = "HAS_COMPONENTS"
+    HAS_SUBSTITUTES = "HAS_SUBSTITUTES"
+
+
+class TherapeuticProcedureType(StrEnum):
+    """Create enum for therapeutic procedures"""
+
+    COMBINATION = "CombinationTherapy"
+    SUBSTITUTES = "TherapeuticSubstituteGroup"
 
 
 class QueryHandler:
@@ -231,7 +253,7 @@ class QueryHandler:
                     normalized_disease,
                     normalized_gene
                 )
-
+                response["matches"]["study_ids"] = [s["id"] for s in study_nodes]
             response["studies"] = self._get_studies_response(session, study_nodes)
 
         return SearchStudiesService(**response)
@@ -313,6 +335,7 @@ class QueryHandler:
     ) -> List[Dict]:
         """Return a list of studies.
 
+        :param tx: Neo4j session transaction object
         :param study_nodes: A list of Study Nodes
         :return: A list of dicts containing study response output
         """
@@ -331,6 +354,7 @@ class QueryHandler:
     def _get_study(self, tx: Transaction, s: Node) -> Dict:
         """Return a study.
 
+        :param tx: Neo4j session transaction object
         :param Node s: Study Node
         :return: Dict containing values from `s`
         """
@@ -369,15 +393,17 @@ class QueryHandler:
                 params["tumorType"] = core_models.Disease(**node)
             elif rel_type == "HAS_VARIANT":
                 node["mappings"] = json.loads(node["mappings"])
-                node["definingContext"] = self._get_defining_context(
-                    tx, node["id"]
-                ).model_dump()
-                params["members"] = self._get_variation_members(tx, node["id"])
+                node["definingContext"] = self._get_variations(
+                    tx, node["id"], VariationRelation.HAS_DEFINING_CONTEXT
+                )[0]
+                params["members"] = self._get_variations(
+                    tx, node["id"], VariationRelation.HAS_MEMBERS
+                )
                 params["variant"] = CategoricalVariation(**node)
             elif rel_type == "HAS_GENE_CONTEXT":
                 params["qualifiers"] = _VariantOncogenicityStudyQualifier(
                     alleleOrigin=s.get("alleleOrigin"),
-                    geneContext=self._get_gene_context(tx, study_id)
+                    geneContext=self._get_gene_context_for_study(tx, study_id)
                 )
             elif rel_type == "IS_SPECIFIED_BY":
                 node["isReportedIn"] = self._get_method_document(tx, node["id"])
@@ -389,10 +415,16 @@ class QueryHandler:
             elif rel_type == "HAS_THERAPEUTIC":
                 node_type = node["type"]
                 if node_type == "CombinationTherapy":
-                    node["components"] = self._get_components(tx, node["id"])
+                    node["components"] = self._get_therapeutic_agents(
+                        tx, node["id"], TherapeuticProcedureType.COMBINATION,
+                        TherapeuticRelation.HAS_COMPONENTS
+                    )
                     params["therapeutic"] = core_models.TherapeuticProcedure(**node)
                 elif node_type == "TherapeuticSubstituteGroup":
-                    node["substitutes"] = self._get_substitutes(tx, node["id"])
+                    node["substitutes"] = self._get_therapeutic_agents(
+                        tx, node["id"], TherapeuticProcedureType.SUBSTITUTES,
+                        TherapeuticRelation.HAS_SUBSTITUTES
+                    )
                     params["therapeutic"] = core_models.TherapeuticProcedure(**node)
                 elif node_type == "TherapeuticAgent":
                     params["therapeutic"] = self._get_ta(node)
@@ -400,7 +432,12 @@ class QueryHandler:
         return VariantTherapeuticResponseStudy(**params).model_dump()
 
     @staticmethod
-    def _get_ta(ta_params: Dict):
+    def _get_ta(ta_params: Dict) -> core_models.TherapeuticAgent:
+        """Transform parameters into TherapeuticAgent
+
+        :param ta_params: Therapeutic agent properties
+        :return: TherapeuticAgent
+        """
         mappings = ta_params.get("mappings")
         if mappings:
             ta_params["mappings"] = json.loads(mappings)
@@ -423,71 +460,74 @@ class QueryHandler:
         ta_params["extensions"] = extensions
         return core_models.TherapeuticAgent(**ta_params)
 
-    def _get_components(self, tx: Transaction, combination_id: str):
-        components = []
+    def _get_therapeutic_agents(
+        self,
+        tx: Transaction,
+        tp_id: str,
+        tp_type: TherapeuticProcedureType,
+        tp_relation: TherapeuticRelation
+    ) -> List[core_models.TherapeuticAgent]:
+        """Get list of components for therapeutic combination or substitute group
+
+        :param tp_id: ID for combination therapy or therapeutic substitute group
+        :param tp_type: Therapeutic Procedure type
+        :param tp_relation: Therapeutic procedure relation and therapeutic agent
+        :return: List of Therapeutic Agents for a combination therapy or therapeutic
+            substitute group
+        """
         query = f"""
-        MATCH (tp:CombinationTherapy {{ id: '{combination_id}' }}) -[:HAS_COMPONENTS]
+        MATCH (tp:{tp_type} {{ id: '{tp_id}' }}) -[:{tp_relation}]
             -> (ta:TherapeuticAgent)
         RETURN ta
         """
+        therapeutic_agents = []
         results = tx.run(query)
         for r in results:
             r_params = r.data()
             ta_params = r_params["ta"]
             ta = self._get_ta(ta_params)
-            components.append(ta)
-        return components
-
-    def _get_substitutes(self, tx: Transaction, substitutes_id: str):
-        substitutes = []
-        query = f"""
-        MATCH (tp: TherapeuticSubstituteGroup {{ id: '{substitutes_id}' }})
-            -[:HAS_SUBSTITUTES] -> (ta:TherapeuticAgent)
-        RETURN ta
-        """
-        results = tx.run(query)
-        for r in results:
-            r_params = r.data()
-            ta_params = r_params["ta"]
-            ta = self._get_ta(ta_params)
-            substitutes.append(ta)
-        return substitutes
+            therapeutic_agents.append(ta)
+        return therapeutic_agents
 
     @staticmethod
-    def _get_variation_members(tx: Transaction, cv_id: str) -> models.Variation:
+    def _get_variations(
+        tx: Transaction,
+        cv_id: str,
+        relation: VariationRelation
+    ) -> List[Dict]:
+        """Get list of variations associated to categorical variation
+
+        :param tx: Neo4j session transaction object
+        :param cv_id: ID for categorical variation
+        :param relation: Relation type for categorical variation and variation
+        :return: List of variations with `relation` to categorical variation. If
+            VariationRelation.HAS_MEMBERS, expects at least one variation. Otherwise,
+            expects exactly one variation
+        """
         query = f"""
-        MATCH (v:Variation) <- [:HAS_MEMBERS] - (cv:CategoricalVariation
+        MATCH (v:Variation) <- [:{relation}] - (cv:CategoricalVariation
             {{ id: '{cv_id}' }})
         MATCH (loc:Location) <- [:HAS_LOCATION] - (v)
         RETURN v, loc
         """
         results = tx.run(query)
-        members = []
+        variations = []
         for r in results:
             r_params = r.data()
             v_params = r_params["v"]
             v_params["state"] = json.loads(v_params["state"])
             v_params["location"] = r_params["loc"]
-            members.append(models.Variation(**v_params).model_dump())
-        return members
-
-    @staticmethod
-    def _get_defining_context(tx: Transaction, cv_id: str) -> models.Variation:
-        query = f"""
-        MATCH (v:Variation) <- [:HAS_DEFINING_CONTEXT] - (cv:CategoricalVariation
-            {{ id: '{cv_id}' }})
-        MATCH (loc:Location) <- [:HAS_LOCATION] - (v)
-        RETURN v, loc
-        """
-        v_loc_params = tx.run(query).single().data()
-
-        v_params = v_loc_params["v"]
-        v_params["state"] = json.loads(v_params["state"])
-        v_params["location"] = v_loc_params["loc"]
-        return models.Variation(**v_params)
+            variations.append(models.Variation(**v_params).model_dump())
+        return variations
 
     @staticmethod
     def _get_method_document(tx: Transaction, method_id: str) -> Document:
+        """Get document for a given method
+
+        :param tx: Neo4j session transaction object
+        :param method_id: ID for method
+        :return: Document
+        """
         query = f"""
         MATCH (m:Method {{ id: '{method_id}' }}) -[:IS_REPORTED_IN] -> (d:Document)
         RETURN d
@@ -496,10 +536,16 @@ class QueryHandler:
         return Document(**doc_params)
 
     @staticmethod
-    def _get_gene_context(
+    def _get_gene_context_for_study(
         tx: Transaction,
         study_id: str,
     ) -> core_models.Gene:
+        """Get gene context for a given study
+
+        :param tx: Neo4j session transaction object
+        :param study_id: ID for study
+        :return: Gene context associated to study
+        """
         query = f"""
         MATCH (s:Study {{ id: '{study_id}' }}) -[:HAS_GENE_CONTEXT] -> (g:Gene)
         RETURN g
@@ -522,12 +568,12 @@ class QueryHandler:
     @staticmethod
     def _get_related_studies(
         tx: Transaction,
-        normalized_variation: str = "",
-        normalized_therapy: str = "",
-        normalized_disease: str = "",
-        normalized_gene: str = ""
+        normalized_variation: Optional[str] = None,
+        normalized_therapy: Optional[str] = None,
+        normalized_disease: Optional[str] = None,
+        normalized_gene: Optional[str] = None
     ) -> List[Node]:
-        """Get studies that contain normalized concepts queried
+        """Get studies that contain queried normalized concepts
 
         :param tx: Neo4j session transaction object
         :param normalized_variation: variation VRS ID
