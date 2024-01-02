@@ -189,7 +189,7 @@ def test_gene_rules(
     extension_names = {"gene_normalizer_id"}
     check_extension_props(gene, civic_gid5["extensions"], extension_names)
     expected_keys = {
-        "gene_normalizer_id", "label", "id", "description", "mappings"
+        "gene_normalizer_id", "label", "id", "description", "mappings", "type"
     }
     check_node_props(gene, civic_gid5, expected_keys, extension_names)
 
@@ -233,9 +233,10 @@ def test_variation_rules(
     v = get_node_by_id(civic_vid12["id"])
     assert set(v.keys()) == {
         "id", "label", "digest", "state", "expression_hgvs_p", "expression_hgvs_c",
-        "expression_hgvs_g"
+        "expression_hgvs_g", "type"
     }
 
+    assert v["type"] == "Allele"
     assert v["label"] == civic_vid12["label"]
     assert v["digest"] == civic_vid12["digest"]
     assert json.loads(v["state"]) == civic_vid12["state"]
@@ -283,8 +284,10 @@ def test_categorical_variation_rules(
         "civic_molecular_profile_score",
         "civic_representative_coordinate",
         "mappings",
-        "variant_types"
+        "variant_types",
+        "type"
     }
+    assert cv["type"] == civic_mpid12["type"]
     assert cv["label"] == civic_mpid12["label"]
     assert cv["description"] == civic_mpid12["description"]
     assert set(cv["aliases"]) == set(civic_mpid12["aliases"])
@@ -327,13 +330,14 @@ def test_location_rules(
     check_node_labels("Location", expected_labels, 1)
 
     loc = get_node_by_id("ga4gh:SL.xdFHLf7Q45VKT57U4kwcDd7MUOtV2Bdz")
-    assert set(loc.keys()) == {"id", "sequence_reference", "start", "end"}
+    assert set(loc.keys()) == {"id", "sequence_reference", "start", "end", "type"}
     assert json.loads(loc["sequence_reference"]) == {
         "type": "SequenceReference",
         "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE"
     }
     assert loc["start"] == 766
     assert loc["end"] == 769
+    assert loc["type"] == "SequenceLocation"
 
 
 def test_therapeutic_procedure_rules(
@@ -382,7 +386,7 @@ def test_therapeutic_procedure_rules(
     check_extension_props(ta, civic_tid146["extensions"], extension_names)
     expected_keys = {
         "id", "label", "aliases", "therapy_normalizer_id", "regulatory_approval",
-        "mappings"
+        "mappings", "type"
     }
     check_node_props(ta, civic_tid146, expected_keys, extension_names)
 
@@ -391,12 +395,14 @@ def test_therapeutic_procedure_rules(
     check_extension_props(
         ct, civic_ct["extensions"], {"civic_therapy_interaction_type"}
     )
+    assert ct["type"] == civic_ct["type"]
 
     # Test TherapeuticSubstituteGroup
     tsg = get_node_by_id(civic_tsg["id"])
     check_extension_props(
         tsg, civic_tsg["extensions"], {"civic_therapy_interaction_type"}
     )
+    assert tsg["type"] == tsg["type"]
 
 
 def test_condition_rules(
@@ -420,7 +426,7 @@ def test_condition_rules(
     disease = get_node_by_id(civic_did8["id"])
     extension_names = {"disease_normalizer_id"}
     check_extension_props(disease, civic_did8["extensions"], extension_names)
-    expected_keys = {"id", "label", "mappings", "disease_normalizer_id"}
+    expected_keys = {"id", "label", "mappings", "disease_normalizer_id", "type"}
     check_node_props(disease, civic_did8, expected_keys, extension_names)
 
 
@@ -458,7 +464,9 @@ def test_study_rules(
     assert record.values()[0] == 0
 
     study = get_node_by_id(civic_eid2997_study["id"])
-    expected_keys = {"id", "description", "direction", "predicate", "alleleOrigin"}
+    expected_keys = {
+        "id", "description", "direction", "predicate", "alleleOrigin", "type"
+    }
     civic_eid2997_study_cp = civic_eid2997_study.copy()
     civic_eid2997_study_cp["alleleOrigin"] = civic_eid2997_study_cp["qualifiers"]["alleleOrigin"]  # noqa: E501
     check_node_props(study, civic_eid2997_study_cp, expected_keys)

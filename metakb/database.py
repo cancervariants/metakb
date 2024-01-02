@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 # Define keys for coding, location, and variation nodes
 CODING_KEYS = ("code", "label", "system")
-LOC_KEYS = ("id", "start", "end")
-VARIATION_KEYS = ("id", "label", "digest")
+LOC_KEYS = ("id", "start", "end", "type")
+VARIATION_KEYS = ("id", "label", "digest", "type")
 
 
 def _create_parameterized_query(
@@ -252,7 +252,8 @@ class Graph:
                 (
                     "id",
                     "label",
-                    "description"
+                    "description",
+                    "type"
                 )
             )
         ]
@@ -292,7 +293,15 @@ class Graph:
         if tp_type == "TherapeuticAgent":
             self._add_therapeutic_agent(tx, tp)
         elif tp_type in {"CombinationTherapy", "TherapeuticSubstituteGroup"}:
-            keys = ["id:$id"]
+            keys = [
+                _create_parameterized_query(
+                    tp,
+                    (
+                        "id",
+                        "type"
+                    )
+                )
+            ]
 
             self._add_mappings_and_exts_to_obj(tp, keys)
             keys = ", ".join(keys)
@@ -332,7 +341,8 @@ class Graph:
                 (
                     "id",
                     "label",
-                    "aliases"
+                    "aliases",
+                    "type"
                 )
             )
         ]
@@ -436,7 +446,8 @@ class Graph:
                     "id",
                     "label",
                     "description",
-                    "aliases"
+                    "aliases",
+                    "type"
                 )
             )
         ]
@@ -565,7 +576,8 @@ class Graph:
                 "id",
                 "description",
                 "direction",
-                "predicate"
+                "predicate",
+                "type"
             )
         )
 
