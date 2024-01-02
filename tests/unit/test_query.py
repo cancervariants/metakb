@@ -9,60 +9,48 @@ from metakb.version import __version__, LAST_UPDATED
 
 
 @pytest.mark.asyncio
-async def return_response(query_handler, statement_id, **kwargs):
-    """Return the statement given ID if it exists."""
+async def return_response(query_handler, study_id, **kwargs):
+    """Return the study given ID if it exists."""
     response = await query_handler.search(**kwargs)
-    statements = response['statements']
-    propositions = response['propositions']
-    assert len(statements) != 0
-    assert len(propositions) != 0
-    assert len(response['matches']['statements']) != 0
-    assert len(response['matches']['propositions']) != 0
+    studies = response["studies"]
+    assert len(studies) != 0
+    assert len(response["study_ids"]) != 0
     s = None
-    for statement in statements:
-        if statement['id'] == statement_id:
-            s = statement
+    for study in studies:
+        if study["id"] == study_id:
+            s = study
             break
-
-    p = None
-    for proposition in propositions:
-        if s['proposition'] == proposition['id']:
-            p = proposition
-            break
-    return s, p
+    return s
 
 
 def assert_no_match(response):
     """No match assertions for queried concepts in search."""
-    assert response['statements'] == []
-    assert response['propositions'] == []
-    assert len(response['warnings']) > 0
+    assert response["studies"] == []
+    assert len(response["warnings"]) > 0
 
 
 def assert_no_match_id(response):
     """No match assertions for search by id."""
     assert len(response.keys()) == 3
-    assert len(response['warnings']) > 0
+    assert len(response["warnings"]) > 0
 
 
 def assert_keys_for_detail_false(response_keys):
     """Check that keys aren't in response when detail is false."""
-    assert 'variation_descriptors' not in response_keys
-    assert 'gene_descriptors' not in response_keys
-    assert 'therapy_descriptors' not in response_keys
-    assert 'disease_descriptors' not in response_keys
-    assert 'methods' not in response_keys
-    assert 'documents' not in response_keys
+    assert "variations" not in response_keys
+    assert "genes" not in response_keys
+    assert "therapeutics" not in response_keys
+    assert "tumor_types" not in response_keys
+    assert "methods" not in response_keys
+    assert "documents" not in response_keys
 
 
 def assert_keys_for_detail_true(response_keys, response, is_evidence=True,
                                 tr_response=True):
-    """Check that keys are in response when detail is false."""
-    fields = ['variation_descriptors', 'gene_descriptors',
-              'disease_descriptors', 'methods',
-              'documents', 'statements', 'propositions']
+    """Check that keys are in response when detail is true."""
+    fields = ["variations", "genes", "diseases", "methods", "documents", "studies"]
     if tr_response:
-        fields += ['therapy_descriptors']
+        fields += ["therapeutics"]
     for field in fields:
         assert field in response_keys
         if is_evidence:
@@ -148,16 +136,40 @@ def assert_general_search_queries(response):
     assert len(response['documents']) > 0
 
 
-def test_search_id(query_handler):
+def test_search_id(query_handler, civic_mpid33):
     """Test that search id method works correctly."""
-    resp = query_handler.search_by_id(
-        "proposition:xsTCVDo1bo2P_6Sext0Y3ibU3MPbiyXE"
-    )
-    assert resp["proposition"]
-    assert not resp["warnings"]
-    assert query_handler.search_by_id("proposition:001")["warnings"]
-    assert query_handler.search_by_id("proposition:0")["warnings"]
-    assert query_handler.search_by_id("proposition:1")["warnings"]
+    resp = query_handler.search_by_id(civic_mpid33["id"])
+    assert set(resp.node_labels) == {
+        "ProteinSequenceConsequence",
+        "CategoricalVariation"
+    }
+    node = resp.node
+    assert node["mappings"]
+    assert set(node["aliases"]) == set(civic_mpid33["aliases"])
+    assert node["label"] == civic_mpid33["label"]
+    assert node["type"] == civic_mpid33["type"]
+    assert node["id"] == civic_mpid33["id"]
+    checked = {
+        "civic_representative_coordinate": False,
+        "civic_molecular_profile_score": False,
+        "variant_types": False
+    }
+    for ext in civic_mpid33["extensions"]:
+        if ext["name"] == "CIViC representative coordinate":
+            k = "civic_representative_coordinate"
+            assert node[k]
+            checked[k] = True
+        elif ext["name"] == "CIViC Molecular Profile Score":
+            k = "civic_molecular_profile_score"
+            assert isinstance(node[k], float)
+            checked[k] = True
+        elif ext["name"] == "Variant types":
+            k = "variant_types"
+            assert node[k]
+            checked[k] = True
+
+    assert all(checked.values()), checked
+    assert resp.warnings == []
 
 
 @pytest.mark.asyncio

@@ -4,7 +4,7 @@ import os
 import asyncio
 import json
 
-# from metakb.query import QueryHandler
+from metakb.query import QueryHandler
 from metakb.normalizers import ViccNormalizers
 
 
@@ -2064,7 +2064,7 @@ def normalizers():
     return ViccNormalizers()
 
 
-# @pytest.fixture(scope="session")
-# def query_handler(normalizers):
-#     """Create query handler test fixture"""
-#     return QueryHandler(normalizers=normalizers)
+@pytest.fixture(scope="session")
+def query_handler(normalizers):
+    """Create query handler test fixture"""
+    return QueryHandler(normalizers=normalizers)

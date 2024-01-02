@@ -1,5 +1,6 @@
 """Create schemas for API"""
 from typing import Dict, List, Literal, Optional
+from metakb.schemas.variation_statement import VariantTherapeuticResponseStudy
 
 from pydantic import BaseModel, ConfigDict, StrictBool, StrictStr
 
@@ -37,19 +38,13 @@ class SearchQuery(BaseModel):
     detail: StrictBool = False
 
 
-class Matches(BaseModel):
-    """Studies that match the queried parameters."""
-
-    study_ids: List[str]
-
-
 class SearchStudiesService(BaseModel):
     """Define model for Search Endpoint Response."""
 
     query: SearchQuery
     warnings: List[StrictStr] = []
-    matches: Matches
-    studies: List = []
+    study_ids: List[StrictStr] = []
+    studies: List[VariantTherapeuticResponseStudy] = []
     service_meta_: ServiceMeta
 
 

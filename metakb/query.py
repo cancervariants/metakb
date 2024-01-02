@@ -178,7 +178,7 @@ class QueryHandler:
         if study_id:
             response["query"]["study_id"] = study_id
             with self.driver.session() as session:
-                study = session.read_transaction(
+                study = session.execute_read(
                     self._get_study_by_id, study_id
                 )
                 if study:
@@ -224,9 +224,7 @@ class QueryHandler:
                 "detail": detail
             },
             "warnings": [],
-            "matches": {
-                "study_ids": []
-            },
+            "study_ids": [],
             "studies": [],
             "service_meta_": ServiceMeta()
         }
@@ -244,7 +242,7 @@ class QueryHandler:
         with self.driver.session() as session:
             if valid_study_id:
                 study_nodes = [study]
-                response["matches"]["study_ids"].append(study["id"])
+                response["study_ids"].append(study["id"])
             else:
                 study_nodes = self._get_related_studies(
                     session,
@@ -253,7 +251,7 @@ class QueryHandler:
                     normalized_disease,
                     normalized_gene
                 )
-                response["matches"]["study_ids"] = [s["id"] for s in study_nodes]
+                response["study_ids"] = [s["id"] for s in study_nodes]
             response["studies"] = self._get_studies_response(session, study_nodes)
 
         return SearchStudiesService(**response)
@@ -268,7 +266,7 @@ class QueryHandler:
         response = {
             "query": node_id,
             "warnings": [],
-            "service_meta_": ServiceMeta().dict()
+            "service_meta_": ServiceMeta().model_dump()
         }
 
         node_id = node_id.strip()
@@ -282,7 +280,7 @@ class QueryHandler:
                     f"{node_id.split(':', 1)[0]}" \
                     f":{concept_name}"
             with self.driver.session() as session:
-                node = session.read_transaction(
+                node = session.execute_read(
                     self._find_node_by_id, node_id
                 )
                 if node:
@@ -383,7 +381,9 @@ class QueryHandler:
             rel_type = item["r_type"]
             node = item["n"]
             if rel_type == "HAS_TUMOR_TYPE":
-                node["mappings"] = json.loads(node["mappings"])
+                mappings = node.get("mappings")
+                if mappings:
+                    node["mappings"] = json.loads(mappings)
                 node["extensions"] = [
                     core_models.Extension(
                         name="disease_normalizer_id",
@@ -392,11 +392,13 @@ class QueryHandler:
                 ]
                 params["tumorType"] = core_models.Disease(**node)
             elif rel_type == "HAS_VARIANT":
-                node["mappings"] = json.loads(node["mappings"])
+                mappings = node.get("mappings")
+                if mappings:
+                    node["mappings"] = json.loads(mappings)
                 node["definingContext"] = self._get_variations(
                     tx, node["id"], VariationRelation.HAS_DEFINING_CONTEXT
                 )[0]
-                params["members"] = self._get_variations(
+                node["members"] = self._get_variations(
                     tx, node["id"], VariationRelation.HAS_MEMBERS
                 )
                 params["variant"] = CategoricalVariation(**node)
@@ -407,8 +409,11 @@ class QueryHandler:
                 )
             elif rel_type == "IS_SPECIFIED_BY":
                 node["isReportedIn"] = self._get_method_document(tx, node["id"])
-                params["method"] = Method(**node)
+                params["specifiedBy"] = Method(**node)
             elif rel_type == "IS_REPORTED_IN":
+                mappings = node.get("mappings")
+                if mappings:
+                    node["mappings"] = json.loads(mappings)
                 params["isReportedIn"].append(Document(**node))
             elif rel_type == "HAS_STRENGTH":
                 params["strength"] = core_models.Coding(**node)
