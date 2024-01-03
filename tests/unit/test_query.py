@@ -548,10 +548,10 @@ async def test_moa_detail_flag(
     check_method, check_document
 ):
     """Test that detail flag works correctly for MOA."""
-    response = await query_handler.search(statement_id='moa.assertion:71', detail=False)
+    response = await query_handler.search(statement_id='moa.assertion:67', detail=False)
     assert_keys_for_detail_false(response.keys())
 
-    response = await query_handler.search(statement_id='moa.assertion:71', detail=True)
+    response = await query_handler.search(statement_id='moa.assertion:67', detail=True)
     assert_keys_for_detail_true(response.keys(), response)
     assert_response_items(response, moa_aid71_statement, moa_aid71_proposition,
                           moa_vid67, moa_abl1,
@@ -632,10 +632,10 @@ def test_moa_id_search(query_handler, moa_aid71_statement,
                        method4, check_statement, check_variation_descriptor,
                        check_descriptor, check_method, check_document):
     """Test search on moa node id"""
-    res = query_handler.search_by_id('moa.assertion:71')
+    res = query_handler.search_by_id('moa.assertion:67')
     check_statement(res['statement'], moa_aid71_statement)
 
-    res = query_handler.search_by_id('moa.variant:71')
+    res = query_handler.search_by_id('moa.variant:67')
     check_variation_descriptor(res['variation_descriptor'], moa_vid67)
 
     res = query_handler.search_by_id('moa.normalize.gene:ABL1')

@@ -4,7 +4,7 @@ import os
 import asyncio
 import json
 
-# from metakb.query import QueryHandler
+from metakb.query import QueryHandler
 from metakb.normalizers import ViccNormalizers
 
 
@@ -2034,27 +2034,30 @@ def _dict_check(expected_d: dict, actual_d: dict) -> None:
             assert actual_d[k] == expected_d[k], k
 
 
-def assertion_checks(actual_data: list, test_data: list) -> None:
+@pytest.fixture(scope="session")
+def assertion_checks():
     """Check that actual data matches expected data
 
     :param actual_data: List of actual data
     :param test_data: List of expected data
     """
-    assert len(actual_data) == len(test_data)
-    for expected in test_data:
-        found_match = False
-        for actual in actual_data:
-            if actual["id"] == expected["id"]:
-                found_match = True
-                assert actual.keys() == expected.keys()
-                _dict_check(expected, actual)
-                continue
+    def _check(actual_data: list, test_data: list) -> None:
+        assert len(actual_data) == len(test_data)
+        for expected in test_data:
+            found_match = False
+            for actual in actual_data:
+                if actual["id"] == expected["id"]:
+                    found_match = True
+                    assert actual.keys() == expected.keys()
+                    _dict_check(expected, actual)
+                    continue
 
-        assert found_match, f"Did not find {expected['id']} in response"
+            assert found_match, f"Did not find {expected['id']} in response"
+    return _check
 
 
 @pytest.fixture(scope="session")
-def check_transformed_cdm():
+def check_transformed_cdm(assertion_checks):
     """Test fixture to compare CDM transformations."""
     def check_transformed_cdm(
         data, studies, transformed_file
@@ -2071,7 +2074,7 @@ def normalizers():
     return ViccNormalizers()
 
 
-# @pytest.fixture(scope="session")
-# def query_handler(normalizers):
-#     """Create query handler test fixture"""
-#     return QueryHandler(normalizers=normalizers)
+@pytest.fixture(scope="module")
+def query_handler(normalizers):
+    """Create query handler test fixture"""
+    return QueryHandler(normalizers=normalizers)
