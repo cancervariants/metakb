@@ -253,6 +253,7 @@ class Graph:
                     "id",
                     "label",
                     "description",
+                    "aliases",
                     "type"
                 )
             )
