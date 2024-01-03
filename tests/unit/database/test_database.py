@@ -189,7 +189,8 @@ def test_gene_rules(
     extension_names = {"gene_normalizer_id"}
     check_extension_props(gene, civic_gid5["extensions"], extension_names)
     expected_keys = {
-        "gene_normalizer_id", "label", "id", "description", "mappings", "type"
+        "gene_normalizer_id", "label", "id", "description", "mappings", "type",
+        "aliases"
     }
     check_node_props(gene, civic_gid5, expected_keys, extension_names)
 
