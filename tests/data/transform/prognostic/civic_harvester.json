@@ -1,939 +1,140 @@
 {
     "evidence": [
         {
+            "type": "evidence",
             "id": 26,
+            "variant_origin": "SOMATIC",
+            "therapy_interaction_type": null,
+            "status": "accepted",
+            "significance": "POOR_OUTCOME",
+            "rating": 4,
             "name": "EID26",
+            "molecular_profile_id": 65,
+            "evidence_type": "PROGNOSTIC",
+            "evidence_level": "B",
+            "evidence_direction": "SUPPORTS",
             "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",
+            "assertion_ids": [],
+            "therapies": [],
             "disease": {
                 "id": 3,
                 "name": "Acute Myeloid Leukemia",
                 "display_name": "Acute Myeloid Leukemia",
-                "doid": 9119,
-                "disease_url": "https://www.disease-ontology.org/?id=DOID:9119"
+                "doid": "9119",
+                "disease_url": "https://www.disease-ontology.org/?id=DOID:9119",
+                "aliases": [
+                    "AML - Acute Myeloid Leukemia",
+                    "Acute Myeloblastic Leukaemia",
+                    "Acute Myeloblastic Leukemia",
+                    "Acute Myelogenous Leukaemia",
+                    "Acute Myelogenous Leukemia",
+                    "Acute Myeloid Leukaemia",
+                    "Leukemia, Myelocytic, Acute"
+                ],
+                "type": "disease"
             },
-            "drugs": [],
-            "rating": 4,
-            "evidence_level": "B",
-            "evidence_type": "PROGNOSTIC",
-            "clinical_significance": "POOR_OUTCOME",
-            "evidence_direction": "SUPPORTS",
-            "variant_origin": "SOMATIC",
-            "drug_interaction_type": null,
-            "status": "accepted",
-            "type": "evidence",
             "source": {
                 "id": 69,
-                "name": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study.",
-                "citation": "Cairoli et al., 2006, Blood",
-                "citation_id": 16384925,
+                "name": "PubMed: Cairoli et al., 2006",
+                "title": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study.",
+                "citation": "Cairoli et al., 2006",
+                "citation_id": "16384925",
                 "source_type": "PUBMED",
+                "abstract": "Distinct forms of tyrosine kinase domain (TKD), juxtamembrane domain, exon 8, and internal tandem duplication (ITD) mutations of c-KIT, were observed in about 46% of core binding factor leukemia (CBFL) patients. To evaluate their prognostic significance, 67 adult patients with CBFL were analyzed to ascertain the c-KIT mutation status. In acute myeloid leukemia (AML) with t(8;21), the presence of c-KIT TKD mutation at codon 816 (TKD(816)) was associated with a high white blood cell count at diagnosis (median, 29.60 x 10(9)/L) and a higher incidence (33%) of extramedullary leukemia (EML) during the course of the disease. Data also showed that the TKD(816) mutated patients (n = 12) had a significantly higher incidence of relapse and a lower overall survival (OS) at 24 months, compared with the 17 c-KIT unmutated (c-KIT(-)) patients (90% vs 35.3%, P = .002; 25% vs 76.5%, P = .006, respectively). No difference in relapse incidence (P = .126) and OS (P = .474) was observed between the c-KIT mutated other than TKD(816) (n = 7) and the c-KIT(-) patients. These findings indicate that c-KIT TKD(816) mutation has a negative impact on the outcome of AML with t(8;21).",
                 "asco_abstract_id": null,
-                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/16384925",
+                "author_string": "Roberto Cairoli, Alessandro Beghini, Giovanni Grillo, Gianpaolo Nadali, Francesca Elice, Carla Barbara Ripamonti, Patrizia Colapietro, Michele Nichelatti, Laura Pezzetti, Monia Lunghi, Antonio Cuneo, Assunta Viola, Felicetto Ferrara, Mario Lazzarino, Francesco Rodeghiero, Giovanni Pizzolo, Lidia Larizza, Enrica Morra",
+                "full_journal_title": "Blood",
+                "journal": "Blood",
                 "pmc_id": null,
                 "publication_date": "2006-5-1",
-                "journal": "Blood",
-                "full_journal_title": "Blood",
-                "clinical_trials": []
+                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/16384925",
+                "clinical_trials": [],
+                "type": "source"
             },
-            "variant_id": 65,
-            "phenotypes": [],
-            "assertions": [],
-            "gene_id": 29
+            "phenotypes": []
         },
         {
+            "type": "evidence",
             "id": 1756,
+            "variant_origin": "COMMON_GERMLINE",
+            "therapy_interaction_type": null,
+            "status": "accepted",
+            "significance": "BETTER_OUTCOME",
+            "rating": 4,
             "name": "EID1756",
+            "molecular_profile_id": 254,
+            "evidence_type": "PROGNOSTIC",
+            "evidence_level": "B",
+            "evidence_direction": "SUPPORTS",
             "description": "Study of 1817 PCa cases and 2026 cancer free controls to clarify the association of (MTHFR)c.677C>T (and c.1298A>C ) of pancreatic cancer risk in a population of Han Chinese in Shanghai. Results indicated a lower risk for the heterozygous CT genotype and homozygous TT genotype carriers of (MTHFR)c.677C>T which had a significantly lower risk of developing pancreatic cancer compared with the wild-type CC genotype.",
+            "assertion_ids": [],
+            "therapies": [],
             "disease": {
                 "id": 556,
                 "name": "Pancreatic Cancer",
                 "display_name": "Pancreatic Cancer",
-                "doid": 1793,
-                "disease_url": "https://www.disease-ontology.org/?id=DOID:1793"
+                "doid": "1793",
+                "disease_url": "https://www.disease-ontology.org/?id=DOID:1793",
+                "aliases": [
+                    "Ca Body Of Pancreas",
+                    "Ca Head Of Pancreas",
+                    "Ca Tail Of Pancreas",
+                    "Malignant Neoplasm Of Body Of Pancreas",
+                    "Malignant Neoplasm Of Head Of Pancreas",
+                    "Malignant Neoplasm Of Tail Of Pancreas",
+                    "Pancreas Neoplasm",
+                    "Pancreatic Neoplasm",
+                    "Pancreatic Tumor"
+                ],
+                "type": "disease"
             },
-            "drugs": [],
-            "rating": 4,
-            "evidence_level": "B",
-            "evidence_type": "PROGNOSTIC",
-            "clinical_significance": "BETTER_OUTCOME",
-            "evidence_direction": "SUPPORTS",
-            "variant_origin": "COMMON_GERMLINE",
-            "drug_interaction_type": null,
-            "status": "accepted",
-            "type": "evidence",
             "source": {
                 "id": 1218,
-                "name": "MTHFR c.677C>T Inhibits Cell Proliferation and Decreases Prostate Cancer Susceptibility in the Han Chinese Population in Shanghai.",
-                "citation": "Wu et al., 2016, Sci Rep",
-                "citation_id": 27819322,
+                "name": "PubMed: Wu et al., 2016",
+                "title": "MTHFR c.677C>T Inhibits Cell Proliferation and Decreases Prostate Cancer Susceptibility in the Han Chinese Population in Shanghai.",
+                "citation": "Wu et al., 2016",
+                "citation_id": "27819322",
                 "source_type": "PUBMED",
+                "abstract": "Methylenetetrahydrofolate reductase (MTHFR) c.677C>T and c.1298A>C variants were known to be associated with prostate cancer (PCa) risk with conflicting results, because of MTHFR and nutrient status interaction in the prostate development. In this large-scale, hospital-based, case-control study of 1817 PCa cases and 2026 cancer-free controls, we aimed to clarify the association between these two MTHFR variants and PCa risk in Shanghai and to explore the underlying molecular mechanisms. We found that both the heterozygous CT (adjusted OR\u2009=\u20090.78, 95% CI: 0.67-0.92) and the homozygous TT genotypes (adjusted OR\u2009=\u20090.68, 95% CI: 0.55-0.83) of c.677C>T were associated with a significantly decreased risk of PCa compared with homozygous wild-type CC genotype, respectively, using multivariate logistic regression. Furthermore, we confirmed that MTHFR c.677T allele was related to an increased serum homocysteine level in the Han Chinese population in Shanghai. In the cultured PCa cell lines, we observed that MTHFR c.677T could elevate the cellular homocysteine level and cause DNA damage, thus increasing cell apoptosis and finally inhibiting cell proliferation. In conclusion, MTHFR c.677T was a protective factor of PCa risk in ethnic Han Chinese males by inducing DNA damage and cell apoptosis.",
                 "asco_abstract_id": null,
-                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/27819322",
+                "author_string": "Jun-Long Wu, Shu-Xian Zhou, Rui Zhao, Xuan Zhang, Kun Chang, Cheng-Yuan Gu, Hua-Lei Gan, Bo Dai, Yao Zhu, Hai-Liang Zhang, Guo-Hai Shi, Yuan-Yuan Qu, Jian-Yuan Zhao, Ding-Wei Ye",
+                "full_journal_title": "Scientific reports",
+                "journal": "Sci Rep",
                 "pmc_id": "PMC5098242",
                 "publication_date": "2016-11-7",
-                "journal": "Sci Rep",
-                "full_journal_title": "Scientific reports",
-                "clinical_trials": []
+                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/27819322",
+                "clinical_trials": [],
+                "type": "source"
             },
-            "variant_id": 258,
-            "phenotypes": [],
-            "assertions": [],
-            "gene_id": 3672
+            "phenotypes": []
         }
     ],
     "assertions": [],
     "genes": [
         {
+            "type": "gene",
             "id": 29,
             "name": "KIT",
             "entrez_id": 3815,
             "description": "c-KIT activation has been shown to have oncogenic activity in gastrointestinal stromal tumors (GISTs), melanomas, lung cancer, and other tumor types. The targeted therapeutics nilotinib and sunitinib have shown efficacy in treating KIT overactive patients, and are in late-stage trials in melanoma and GIST. KIT overactivity can be the result of many genomic events from genomic amplification to overexpression to missense mutations. Missense mutations have been shown to be key players in mediating clinical response and acquired resistance in patients being treated with these targeted therapeutics.",
-            "variants": [
-                {
-                    "name": "A502_Y503insAY",
-                    "id": 1558,
-                    "evidence_items": {
-                        "accepted_count": 3,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "A829P",
-                    "id": 990,
-                    "evidence_items": {
-                        "accepted_count": 2,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "Amplification",
-                    "id": 586,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "C809G",
-                    "id": 1264,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "D419del",
-                    "id": 855,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "D579_H580insIDPTQLPYD",
-                    "id": 1547,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "D579del",
-                    "id": 977,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 3
-                    }
-                },
-                {
-                    "name": "D816E",
-                    "id": 1559,
-                    "evidence_items": {
-                        "accepted_count": 2,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "D816G",
-                    "id": 1402,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 3
-                    }
-                },
-                {
-                    "name": "D816H",
-                    "id": 983,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 6
-                    }
-                },
-                {
-                    "name": "D816V",
-                    "id": 65,
-                    "evidence_items": {
-                        "accepted_count": 5,
-                        "rejected_count": 0,
-                        "submitted_count": 9
-                    }
-                },
-                {
-                    "name": "D816Y",
-                    "id": 984,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "D820A",
-                    "id": 1265,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "D820E",
-                    "id": 2736,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "D820G",
-                    "id": 1266,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "D820Y",
-                    "id": 986,
-                    "evidence_items": {
-                        "accepted_count": 3,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "DEL 554-558",
-                    "id": 954,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "E554D",
-                    "id": 955,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "EXPRESSION",
-                    "id": 429,
-                    "evidence_items": {
-                        "accepted_count": 4,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "Exon 11 Mutation",
-                    "id": 66,
-                    "evidence_items": {
-                        "accepted_count": 13,
-                        "rejected_count": 1,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "Exon 13 Mutation",
-                    "id": 2643,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "Exon 14 Mutation",
-                    "id": 69,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "Exon 9 Mutation",
-                    "id": 509,
-                    "evidence_items": {
-                        "accepted_count": 8,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "F504A",
-                    "id": 3240,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "F506_F508DUP",
-                    "id": 2621,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "G3BP2::KIT",
-                    "id": 3742,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "Internal Duplication",
-                    "id": 67,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "K484_G487DEL",
-                    "id": 2622,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "K550_K558del",
-                    "id": 949,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "K550_K559DEL",
-                    "id": 2696,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "K550_W557del",
-                    "id": 948,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "K558NP",
-                    "id": 1549,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "K558Q",
-                    "id": 963,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "K558R",
-                    "id": 965,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "K558_V559del",
-                    "id": 964,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "K642E",
-                    "id": 978,
-                    "evidence_items": {
-                        "accepted_count": 4,
-                        "rejected_count": 1,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "K642R",
-                    "id": 2592,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "L576P",
-                    "id": 72,
-                    "evidence_items": {
-                        "accepted_count": 5,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "M541L",
-                    "id": 201,
-                    "evidence_items": {
-                        "accepted_count": 2,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "M552_W557DEL",
-                    "id": 951,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "Mutation",
-                    "id": 388,
-                    "evidence_items": {
-                        "accepted_count": 2,
-                        "rejected_count": 0,
-                        "submitted_count": 3
-                    }
-                },
-                {
-                    "name": "N505I",
-                    "id": 3237,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "N505R",
-                    "id": 3238,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "N822H",
-                    "id": 987,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "N822K",
-                    "id": 1263,
-                    "evidence_items": {
-                        "accepted_count": 8,
-                        "rejected_count": 1,
-                        "submitted_count": 4
-                    }
-                },
-                {
-                    "name": "Overexpression",
-                    "id": 3731,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "P551L",
-                    "id": 950,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "P551_E554delPMYE",
-                    "id": 1497,
-                    "evidence_items": {
-                        "accepted_count": 2,
-                        "rejected_count": 0,
-                        "submitted_count": 3
-                    }
-                },
-                {
-                    "name": "P577L",
-                    "id": 976,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "P577_D579DEL",
-                    "id": 2738,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "Q556_I571DEL",
-                    "id": 1541,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "Q575L",
-                    "id": 975,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "Q694K",
-                    "id": 981,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 5
-                    }
-                },
-                {
-                    "name": "RS3733542",
-                    "id": 482,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "S501_A502INSAY",
-                    "id": 1206,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 10
-                    }
-                },
-                {
-                    "name": "S628N",
-                    "id": 1659,
-                    "evidence_items": {
-                        "accepted_count": 2,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "S692L",
-                    "id": 980,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 5
-                    }
-                },
-                {
-                    "name": "T417_D419DELTYDINSI",
-                    "id": 1546,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "T417_D419delinsY",
-                    "id": 2620,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "T574A",
-                    "id": 974,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "T661I",
-                    "id": 979,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 4
-                    }
-                },
-                {
-                    "name": "T670I",
-                    "id": 1267,
-                    "evidence_items": {
-                        "accepted_count": 4,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "V555_I571DEL",
-                    "id": 1543,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "V555_P573DEL",
-                    "id": 957,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "V555_Q556DEL",
-                    "id": 956,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "V555_V559DEL",
-                    "id": 2695,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "V559",
-                    "id": 1316,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "V559A",
-                    "id": 969,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "V559D",
-                    "id": 968,
-                    "evidence_items": {
-                        "accepted_count": 3,
-                        "rejected_count": 1,
-                        "submitted_count": 7
-                    }
-                },
-                {
-                    "name": "V559DEL",
-                    "id": 966,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "V559G",
-                    "id": 970,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 3
-                    }
-                },
-                {
-                    "name": "V559_V560DEL",
-                    "id": 967,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 3
-                    }
-                },
-                {
-                    "name": "V560D",
-                    "id": 971,
-                    "evidence_items": {
-                        "accepted_count": 4,
-                        "rejected_count": 0,
-                        "submitted_count": 3
-                    }
-                },
-                {
-                    "name": "V560DEL",
-                    "id": 202,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 4
-                    }
-                },
-                {
-                    "name": "V560G",
-                    "id": 972,
-                    "evidence_items": {
-                        "accepted_count": 2,
-                        "rejected_count": 2,
-                        "submitted_count": 6
-                    }
-                },
-                {
-                    "name": "V560_L576DEL",
-                    "id": 1550,
-                    "evidence_items": {
-                        "accepted_count": 2,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "V569_L576DEL",
-                    "id": 1551,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "V654A",
-                    "id": 73,
-                    "evidence_items": {
-                        "accepted_count": 2,
-                        "rejected_count": 0,
-                        "submitted_count": 3
-                    }
-                },
-                {
-                    "name": "W557G",
-                    "id": 959,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "W557R",
-                    "id": 958,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "W557T",
-                    "id": 960,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "W557_E561del",
-                    "id": 962,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 3
-                    }
-                },
-                {
-                    "name": "W557_K558del",
-                    "id": 961,
-                    "evidence_items": {
-                        "accepted_count": 4,
-                        "rejected_count": 0,
-                        "submitted_count": 3
-                    }
-                },
-                {
-                    "name": "W557_V559insC",
-                    "id": 1498,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "WILDTYPE",
-                    "id": 2651,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "Y503A",
-                    "id": 3239,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "Y503_F504insAY",
-                    "id": 946,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "Y553D",
-                    "id": 952,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "Y553N",
-                    "id": 2737,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "Y553_K558DEL",
-                    "id": 953,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 3
-                    }
-                },
-                {
-                    "name": "Y553_W557DELYEVQW",
-                    "id": 1542,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 1
-                    }
-                },
-                {
-                    "name": "Y570_L576DEL",
-                    "id": 1548,
-                    "evidence_items": {
-                        "accepted_count": 0,
-                        "rejected_count": 0,
-                        "submitted_count": 2
-                    }
-                },
-                {
-                    "name": "Y823D",
-                    "id": 989,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                },
-                {
-                    "name": "rs17084733",
-                    "id": 256,
-                    "evidence_items": {
-                        "accepted_count": 1,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
+            "sources": [
+                {
+                    "id": 41,
+                    "name": "PubMed: Stankov et al., 2014",
+                    "title": "C-KIT signaling in cancer treatment.",
+                    "citation": "Stankov et al., 2014",
+                    "citation_id": "23944364",
+                    "source_type": "PUBMED",
+                    "abstract": "Tumor progression is strongly associated with the activity of receptor tyrosine kinases (RTKs) and their intracellular signal transduction pathways, which regulate several cell functions including proliferation, apoptosis, motility, adhesion and angiogenesis. Detailed structural and functional studies of RTKs, including the stem cell factor receptor c-KIT, revealed the complexity of these receptor systems and contributed to development of targeted clinical approaches with relevance in both prognosis and therapy. C-KIT signaling network has been the subject of intense research and pharmaceutical strategies to identify novel target-based approaches for cancer treatment. Evidence that c-KIT signaling promotes cell proliferation and survival, along with the frequency in which this pathway is aberrantly activated in cancer, support the current efforts to identify approaches for its efficient inhibition. C-KIT mutations are associatied with several human malignancies, such as gastrointestinal stromal tumors, acute myeloid leukemia, mast cell leukemia, and melanoma. Novel therapies are developed that target some of the identified genetic defects. It is therefore anticipated that newly-identified genetic markers will acquire a predictive value, that is, the ability to predict differential efficacy of a therapy. This review describes the evolving understanding of c-KIT/SCF axis and their downstream signaling in cancer, and the strategies for c-KIT-directed targeted cancer therapy.",
+                    "asco_abstract_id": null,
+                    "author_string": "Karmen Stankov, Stevan Popovic, Momir Mikov",
+                    "full_journal_title": "Current pharmaceutical design",
+                    "journal": "Curr Pharm Des",
+                    "pmc_id": null,
+                    "publication_date": "2014",
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23944364",
+                    "clinical_trials": [],
+                    "type": "source"
                 }
             ],
             "aliases": [
@@ -943,1297 +144,117 @@
                 "MASTC",
                 "PBT",
                 "SCFR"
-            ],
-            "type": "gene"
+            ]
         },
         {
+            "type": "gene",
             "id": 3672,
             "name": "MTHFR",
             "entrez_id": 4524,
             "description": "",
-            "variants": [
-                {
-                    "name": "A222V",
-                    "id": 258,
-                    "evidence_items": {
-                        "accepted_count": 3,
-                        "rejected_count": 0,
-                        "submitted_count": 0
-                    }
-                }
-            ],
+            "sources": [],
             "aliases": [
                 "MTHFR"
-            ],
-            "type": "gene"
+            ]
         }
     ],
     "variants": [
         {
+            "type": "variant",
             "id": 65,
+            "single_variant_molecular_profile_id": 65,
+            "name": "D816V",
+            "gene_id": 29,
             "entrez_name": "KIT",
             "entrez_id": 3815,
-            "name": "D816V",
-            "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",
-            "gene_id": 29,
-            "type": "variant",
-            "variant_types": [
-                {
-                    "id": 47,
-                    "name": "Missense Variant",
-                    "so_id": "SO:0001583",
-                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
-                }
-            ],
-            "civic_actionability_score": 67,
-            "coordinates": {
-                "chromosome": "4",
-                "start": 55599321,
-                "stop": 55599321,
-                "reference_bases": "A",
-                "variant_bases": "T",
-                "representative_transcript": "ENST00000288135.5",
-                "chromosome2": null,
-                "start2": null,
-                "stop2": null,
-                "representative_transcript2": null,
-                "ensembl_version": 75,
-                "reference_build": "GRCh37"
-            },
-            "evidence_items": [
-                {
-                    "id": 26,
-                    "name": "EID26",
-                    "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",
-                    "disease": {
-                        "id": 3,
-                        "name": "Acute Myeloid Leukemia",
-                        "display_name": "Acute Myeloid Leukemia",
-                        "doid": 9119,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:9119"
-                    },
-                    "drugs": [],
-                    "rating": 4,
-                    "evidence_level": "B",
-                    "evidence_type": "PROGNOSTIC",
-                    "clinical_significance": "POOR_OUTCOME",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": null,
-                    "status": "accepted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 69,
-                        "name": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study.",
-                        "citation": "Cairoli et al., 2006, Blood",
-                        "citation_id": 16384925,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/16384925",
-                        "pmc_id": null,
-                        "publication_date": "2006-5-1",
-                        "journal": "Blood",
-                        "full_journal_title": "Blood",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                },
-                {
-                    "id": 1725,
-                    "name": "EID1725",
-                    "description": "In a phase II clinical trial, 60% of patients (N=89) with advanced systemic mastocytosis responded to treatment with midostaurin.",
-                    "disease": {
-                        "id": 2150,
-                        "name": "Systemic Mastocytosis",
-                        "display_name": "Systemic Mastocytosis",
-                        "doid": 349,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:349"
-                    },
-                    "drugs": [
-                        {
-                            "id": 323,
-                            "name": "Midostaurin",
-                            "ncit_id": "C1872",
-                            "aliases": [
-                                "CGP 41251",
-                                "CGP41251",
-                                "N-Benzoyl-Staurosporine",
-                                "N-Benzoylstaurosporine",
-                                "PKC-412",
-                                "PKC412",
-                                "Rydapt"
-                            ]
-                        }
-                    ],
-                    "rating": 4,
-                    "evidence_level": "B",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "SENSITIVITYRESPONSE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": null,
-                    "status": "accepted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 1170,
-                        "name": "Efficacy and Safety of Midostaurin in Advanced Systemic Mastocytosis.",
-                        "citation": "Gotlib et al., 2016, N. Engl. J. Med.",
-                        "citation_id": 27355533,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/27355533",
-                        "pmc_id": null,
-                        "publication_date": "2016-6-30",
-                        "journal": "N. Engl. J. Med.",
-                        "full_journal_title": "The New England journal of medicine",
-                        "clinical_trials": [
-                            {}
-                        ]
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                },
-                {
-                    "id": 1726,
-                    "name": "EID1726",
-                    "description": "The D816V+ advanced systemic mastocytosis patients with additional mutations in SRSF2 (N=30), ASLX1 (N=20), or RUNX1 (N=16) exhibited lower overall survival over 14 years as compared to D816V+ patients with wildtype SRSF2 (N=40), ASXL1(N=50), or RUNX1 (N=54).",
-                    "disease": {
-                        "id": 2150,
-                        "name": "Systemic Mastocytosis",
-                        "display_name": "Systemic Mastocytosis",
-                        "doid": 349,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:349"
-                    },
-                    "drugs": [],
-                    "rating": 4,
-                    "evidence_level": "B",
-                    "evidence_type": "PROGNOSTIC",
-                    "clinical_significance": "POOR_OUTCOME",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": null,
-                    "status": "accepted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 1171,
-                        "name": "Additional mutations in SRSF2, ASXL1 and/or RUNX1 identify a high-risk group of patients with KIT D816V(+) advanced systemic mastocytosis.",
-                        "citation": "Jawhar et al., 2016, Leukemia",
-                        "citation_id": 26464169,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/26464169",
-                        "pmc_id": null,
-                        "publication_date": "2016-1",
-                        "journal": "Leukemia",
-                        "full_journal_title": "Leukemia",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                },
-                {
-                    "id": 4159,
-                    "name": "EID4159",
-                    "description": "In a systemic mastocytosis (SM) and acute myelogeneous leukemia (AML) patient harboring KIT D816V mutation, KIT D816V was associated with improved response to dasatinib therapy. The patient initially achieved a hematologic complete remission (HCR) with persistent mastocytes in the bone marrow with cytarbine treatment. Subsequently, the patient received dasatinib in combination with chemotherapy, followed by dasatinib monotherapy, experiencing HCR and eventual extinguishment of the KIT D816V mutation.",
-                    "disease": {
-                        "id": 3,
-                        "name": "Acute Myeloid Leukemia",
-                        "display_name": "Acute Myeloid Leukemia",
-                        "doid": 9119,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:9119"
-                    },
-                    "drugs": [
-                        {
-                            "id": 20,
-                            "name": "Dasatinib",
-                            "ncit_id": "C38713",
-                            "aliases": [
-                                "5-Thiazolecarboxamide, N-(2-chloro-6-methylphenyl)-2-((6-(4-(2-hydroxyethyl)-1-piperazinyl)-2-methyl-4-pyrimidinyl)amino)-, Monohydrate",
-                                "BMS-354825",
-                                "Dasatinib Hydrate",
-                                "Dasatinib Monohydrate",
-                                "Sprycel"
-                            ]
-                        }
-                    ],
-                    "rating": null,
-                    "evidence_level": "C",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "SENSITIVITYRESPONSE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": null,
-                    "status": "submitted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 2059,
-                        "name": "Chemotherapy and dasatinib induce long-term hematologic and molecular remission in systemic mastocytosis with acute myeloid leukemia with KIT D816V.",
-                        "citation": "Ustun et al., 2009, Leuk. Res.",
-                        "citation_id": 18986703,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/18986703",
-                        "pmc_id": null,
-                        "publication_date": "2009-5",
-                        "journal": "Leuk. Res.",
-                        "full_journal_title": "Leukemia research",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                },
-                {
-                    "id": 7465,
-                    "name": "EID7465",
-                    "description": "In an in vitro study, COS-7 cells expressing KIT D816V activating mutation demonstrated resistance to 1uM dasatinib treatment. In a separate in vitro study, TF-1 cells expressing KIT D816V activating mutation demonstrated resistance to 1 and 10 uM imatinib treatment. Sensitivity was determined by assessing reduced mutant KIT auto-phosphorylation with addition of inhibitors. No reduction in D816V autophosphorylation was observed with inhibitor treatment.",
-                    "disease": {
-                        "id": 216,
-                        "name": "Cancer",
-                        "display_name": "Cancer",
-                        "doid": 162,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:162"
-                    },
-                    "drugs": [
-                        {
-                            "id": 5,
-                            "name": "Imatinib",
-                            "ncit_id": "C62035",
-                            "aliases": [
-                                "4-[(4-Methyl-1-piperazinyl)methyl]-N-[4-methyl-3-[[4-(3-pyridinyl)-2-pyrimidinyl]amino]phenyl]benzamide"
-                            ]
-                        },
-                        {
-                            "id": 20,
-                            "name": "Dasatinib",
-                            "ncit_id": "C38713",
-                            "aliases": [
-                                "5-Thiazolecarboxamide, N-(2-chloro-6-methylphenyl)-2-((6-(4-(2-hydroxyethyl)-1-piperazinyl)-2-methyl-4-pyrimidinyl)amino)-, Monohydrate",
-                                "BMS-354825",
-                                "Dasatinib Hydrate",
-                                "Dasatinib Monohydrate",
-                                "Sprycel"
-                            ]
-                        }
-                    ],
-                    "rating": 2,
-                    "evidence_level": "C",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "RESISTANCE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": "SUBSTITUTES",
-                    "status": "accepted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 2054,
-                        "name": "Characterization of S628N: a novel KIT mutation found in a metastatic melanoma.",
-                        "citation": "Vita et al., 2014, JAMA Dermatol",
-                        "citation_id": 25317746,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/25317746",
-                        "pmc_id": null,
-                        "publication_date": "2014-12",
-                        "journal": "JAMA Dermatol",
-                        "full_journal_title": "JAMA dermatology",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                },
-                {
-                    "id": 4160,
-                    "name": "EID4160",
-                    "description": "In an in vitro study, a 32D cell line expressing KIT D816V mutation (overexpression) demonstrated reduced sensitivity to sunitinib treatment (IC50: 294.7nM) compared to 32D cells expressing wild-type KIT (overexpression, IC50: 16.3nM). Sensitivity was determined by assessing cell proliferation.",
-                    "disease": {
-                        "id": 2,
-                        "name": "Gastrointestinal Stromal Tumor",
-                        "display_name": "Gastrointestinal Stromal Tumor",
-                        "doid": 9253,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:9253"
-                    },
-                    "drugs": [
-                        {
-                            "id": 157,
-                            "name": "Sunitinib",
-                            "ncit_id": "C71622",
-                            "aliases": [
-                                "1H-Pyrrole-3-carboxamide, N-(2-(diethylamino)ethyl)-5-((Z)-(5-fluoro-1,2-dihydro-2-oxo-3H-indol-3-ylidene)methyl)-2,4-dimethyl-"
-                            ]
-                        }
-                    ],
-                    "rating": null,
-                    "evidence_level": "D",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "RESISTANCE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": null,
-                    "status": "submitted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 2049,
-                        "name": "Flumatinib, a selective inhibitor of BCR-ABL/PDGFR/KIT, effectively overcomes drug resistance of certain KIT mutants.",
-                        "citation": "Zhao et al., 2014, Cancer Sci.",
-                        "citation_id": 24205792,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/24205792",
-                        "pmc_id": "PMC4317885",
-                        "publication_date": "2014-1",
-                        "journal": "Cancer Sci.",
-                        "full_journal_title": "Cancer science",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                },
-                {
-                    "id": 4161,
-                    "name": "EID4161",
-                    "description": "In an in vitro study, the recombinant KIT D816V mutation kinase was associated with insensitivity to bosutinib treatment (IC50: 2772nM), comparable to wild-type KIT kinase (IC50: 6313nM). Resistance was assessed by analyzing kinase inhibition.",
-                    "disease": {
-                        "id": 4,
-                        "name": "Chronic Myeloid Leukemia",
-                        "display_name": "Chronic Myeloid Leukemia",
-                        "doid": 8552,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:8552"
-                    },
-                    "drugs": [
-                        {
-                            "id": 520,
-                            "name": "Bosutinib",
-                            "ncit_id": "C60809",
-                            "aliases": [
-                                "4-Anilino-3-quinolinecarbonitrile",
-                                "4-Anilinobenzo(g)quinoline-3-carbonitrile",
-                                "4-[(2,4-dichloro-5-methoxyphenyl)amino]-6-methoxy-7-[3-(4-methylpiperazin-1-yl)propoxy]quinoline-3-carbonitrile",
-                                "Bosulif",
-                                "SKI 606",
-                                "SKI-606"
-                            ]
-                        }
-                    ],
-                    "rating": null,
-                    "evidence_level": "D",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "RESISTANCE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": null,
-                    "status": "submitted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 1994,
-                        "name": "Global target profile of the kinase inhibitor bosutinib in primary chronic myeloid leukemia cells.",
-                        "citation": "Remsing Rix et al., 2009, Leukemia",
-                        "citation_id": 19039322,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/19039322",
-                        "pmc_id": null,
-                        "publication_date": "2009-3",
-                        "journal": "Leukemia",
-                        "full_journal_title": "Leukemia",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                },
-                {
-                    "id": 4162,
-                    "name": "EID4162",
-                    "description": "In an in vitro study, the recombinant KIT D816V mutation kinase was associated with increased sensitivity to dasatinib treatment (IC50: 37nM vs. 79nM), as compared to wild-type KIT kinase. Sensitivity was assessed by analyzing kinase activity.",
-                    "disease": {
-                        "id": 4,
-                        "name": "Chronic Myeloid Leukemia",
-                        "display_name": "Chronic Myeloid Leukemia",
-                        "doid": 8552,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:8552"
-                    },
-                    "drugs": [
-                        {
-                            "id": 20,
-                            "name": "Dasatinib",
-                            "ncit_id": "C38713",
-                            "aliases": [
-                                "5-Thiazolecarboxamide, N-(2-chloro-6-methylphenyl)-2-((6-(4-(2-hydroxyethyl)-1-piperazinyl)-2-methyl-4-pyrimidinyl)amino)-, Monohydrate",
-                                "BMS-354825",
-                                "Dasatinib Hydrate",
-                                "Dasatinib Monohydrate",
-                                "Sprycel"
-                            ]
-                        }
-                    ],
-                    "rating": null,
-                    "evidence_level": "D",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "SENSITIVITYRESPONSE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": null,
-                    "status": "submitted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 2060,
-                        "name": "Dasatinib (BMS-354825) inhibits KITD816V, an imatinib-resistant activating mutation that triggers neoplastic growth in most patients with systemic mastocytosis.",
-                        "citation": "Shah et al., 2006, Blood",
-                        "citation_id": 16434489,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/16434489",
-                        "pmc_id": null,
-                        "publication_date": "2006-7-1",
-                        "journal": "Blood",
-                        "full_journal_title": "Blood",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                },
-                {
-                    "id": 4163,
-                    "name": "EID4163",
-                    "description": "In an in vitro study, the recombinant KIT D816V mutation kinase was associated with  sensitivity to dasatinib treatment.",
-                    "disease": {
-                        "id": 4,
-                        "name": "Chronic Myeloid Leukemia",
-                        "display_name": "Chronic Myeloid Leukemia",
-                        "doid": 8552,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:8552"
-                    },
-                    "drugs": [
-                        {
-                            "id": 20,
-                            "name": "Dasatinib",
-                            "ncit_id": "C38713",
-                            "aliases": [
-                                "5-Thiazolecarboxamide, N-(2-chloro-6-methylphenyl)-2-((6-(4-(2-hydroxyethyl)-1-piperazinyl)-2-methyl-4-pyrimidinyl)amino)-, Monohydrate",
-                                "BMS-354825",
-                                "Dasatinib Hydrate",
-                                "Dasatinib Monohydrate",
-                                "Sprycel"
-                            ]
-                        }
-                    ],
-                    "rating": null,
-                    "evidence_level": "D",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "SENSITIVITYRESPONSE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": null,
-                    "status": "submitted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 1994,
-                        "name": "Global target profile of the kinase inhibitor bosutinib in primary chronic myeloid leukemia cells.",
-                        "citation": "Remsing Rix et al., 2009, Leukemia",
-                        "citation_id": 19039322,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/19039322",
-                        "pmc_id": null,
-                        "publication_date": "2009-3",
-                        "journal": "Leukemia",
-                        "full_journal_title": "Leukemia",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                },
-                {
-                    "id": 8360,
-                    "name": "EID8360",
-                    "description": "In an in vitro kinase experiment, kinases wtih the KIT D816V mutation demonstrated resistance to imatinib (IC50: >10,000nM vs. 1550nM) treatment compared to the KIT wild-type kinase. In the HMC-1 human cell line, KIT V560G+, D816V+ mutants treated with imatinib did not show reduced levels of phospho-KIT, growth inhibition, or Annexin V binding at any concentration of treatment. In an ex vivo experiment using primary bone marrow cells from four mastocytosis patients harboring the KIT D816V mutation, imatinib was not effective in reducing mast-cell percentage when compared to no treatment.",
-                    "disease": {
-                        "id": 4,
-                        "name": "Chronic Myeloid Leukemia",
-                        "display_name": "Chronic Myeloid Leukemia",
-                        "doid": 8552,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:8552"
-                    },
-                    "drugs": [
-                        {
-                            "id": 5,
-                            "name": "Imatinib",
-                            "ncit_id": "C62035",
-                            "aliases": [
-                                "4-[(4-Methyl-1-piperazinyl)methyl]-N-[4-methyl-3-[[4-(3-pyridinyl)-2-pyrimidinyl]amino]phenyl]benzamide"
-                            ]
-                        }
-                    ],
-                    "rating": 4,
-                    "evidence_level": "D",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "RESISTANCE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": null,
-                    "status": "submitted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 2060,
-                        "name": "Dasatinib (BMS-354825) inhibits KITD816V, an imatinib-resistant activating mutation that triggers neoplastic growth in most patients with systemic mastocytosis.",
-                        "citation": "Shah et al., 2006, Blood",
-                        "citation_id": 16434489,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/16434489",
-                        "pmc_id": null,
-                        "publication_date": "2006-7-1",
-                        "journal": "Blood",
-                        "full_journal_title": "Blood",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                },
-                {
-                    "id": 8361,
-                    "name": "EID8361",
-                    "description": "In the HMC-1 human cell line, cells with KIT V560G activating mutation were treated with dasatinib and showed reduced levels of phospho-KIT, potent growth inhibition, and increased Annexin V binding at increased concentrations of treatment.",
-                    "disease": {
-                        "id": 4,
-                        "name": "Chronic Myeloid Leukemia",
-                        "display_name": "Chronic Myeloid Leukemia",
-                        "doid": 8552,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:8552"
-                    },
-                    "drugs": [
-                        {
-                            "id": 20,
-                            "name": "Dasatinib",
-                            "ncit_id": "C38713",
-                            "aliases": [
-                                "5-Thiazolecarboxamide, N-(2-chloro-6-methylphenyl)-2-((6-(4-(2-hydroxyethyl)-1-piperazinyl)-2-methyl-4-pyrimidinyl)amino)-, Monohydrate",
-                                "BMS-354825",
-                                "Dasatinib Hydrate",
-                                "Dasatinib Monohydrate",
-                                "Sprycel"
-                            ]
-                        }
-                    ],
-                    "rating": 4,
-                    "evidence_level": "D",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "SENSITIVITYRESPONSE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": null,
-                    "status": "submitted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 2060,
-                        "name": "Dasatinib (BMS-354825) inhibits KITD816V, an imatinib-resistant activating mutation that triggers neoplastic growth in most patients with systemic mastocytosis.",
-                        "citation": "Shah et al., 2006, Blood",
-                        "citation_id": 16434489,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/16434489",
-                        "pmc_id": null,
-                        "publication_date": "2006-7-1",
-                        "journal": "Blood",
-                        "full_journal_title": "Blood",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                },
-                {
-                    "id": 8362,
-                    "name": "EID8362",
-                    "description": "In the HMC-1 human cell line, cells with KIT V560G activating mutation were treated with imatinib and showed reduced levels of phospho-KIT, potent growth inhibition, and increased Annexin V binding at increased concentrations of treatment.",
-                    "disease": {
-                        "id": 4,
-                        "name": "Chronic Myeloid Leukemia",
-                        "display_name": "Chronic Myeloid Leukemia",
-                        "doid": 8552,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:8552"
-                    },
-                    "drugs": [
-                        {
-                            "id": 5,
-                            "name": "Imatinib",
-                            "ncit_id": "C62035",
-                            "aliases": [
-                                "4-[(4-Methyl-1-piperazinyl)methyl]-N-[4-methyl-3-[[4-(3-pyridinyl)-2-pyrimidinyl]amino]phenyl]benzamide"
-                            ]
-                        }
-                    ],
-                    "rating": 4,
-                    "evidence_level": "D",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "SENSITIVITYRESPONSE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": null,
-                    "status": "submitted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 2060,
-                        "name": "Dasatinib (BMS-354825) inhibits KITD816V, an imatinib-resistant activating mutation that triggers neoplastic growth in most patients with systemic mastocytosis.",
-                        "citation": "Shah et al., 2006, Blood",
-                        "citation_id": 16434489,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/16434489",
-                        "pmc_id": null,
-                        "publication_date": "2006-7-1",
-                        "journal": "Blood",
-                        "full_journal_title": "Blood",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                },
-                {
-                    "id": 2451,
-                    "name": "EID2451",
-                    "description": "In an in vitro study of imatinib sensitivity, KIT D816V was cloned into a plasmid by site-directed mutagenesis of KIT WT cDNA. Chinese hamster ovary cells were transiently transfected with the plasmid. Cells were treated with control media or media containing various concentrations of imatinib for 90 minutes. Protein lysates from the transfected cells were examined for phosphorylated tyrosine, a measure of KIT activation. Cells expressing KIT D816V were resistant to imatinib up to 10 umol/L.",
-                    "disease": {
-                        "id": 216,
-                        "name": "Cancer",
-                        "display_name": "Cancer",
-                        "doid": 162,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:162"
-                    },
-                    "drugs": [
-                        {
-                            "id": 5,
-                            "name": "Imatinib",
-                            "ncit_id": "C62035",
-                            "aliases": [
-                                "4-[(4-Methyl-1-piperazinyl)methyl]-N-[4-methyl-3-[[4-(3-pyridinyl)-2-pyrimidinyl]amino]phenyl]benzamide"
-                            ]
-                        }
-                    ],
-                    "rating": 2,
-                    "evidence_level": "D",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "RESISTANCE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": null,
-                    "status": "accepted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 412,
-                        "name": "Kinase mutations and imatinib response in patients with metastatic gastrointestinal stromal tumor.",
-                        "citation": "Heinrich et al., 2003, J. Clin. Oncol.",
-                        "citation_id": 14645423,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/14645423",
-                        "pmc_id": null,
-                        "publication_date": "2003-12-1",
-                        "journal": "J. Clin. Oncol.",
-                        "full_journal_title": "Journal of clinical oncology : official journal of the American Society of Clinical Oncology",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                },
-                {
-                    "id": 6956,
-                    "name": "EID6956",
-                    "description": "Sunitinib has shown efficacy against certain imatinib-resistant\nmutants, although a subset that resides in the activation loop,\nincluding D816H/V, remains resistant. Biochemical and structural\nstudies were undertaken to determine the molecular basis of\nsunitinib resistance. Our results show that sunitinib targets the\nautoinhibited conformation of WT KIT and that the D816H mutant\nundergoes a shift in conformational equilibrium toward the active\nstate. These findings provide a structural and enzymologic explanation\nfor the resistance profile observed with the KIT inhibitors.\nProspectively, they have implications for understanding oncogenic\nkinase mutants and for circumventing drug resistance.",
-                    "disease": {
-                        "id": 2,
-                        "name": "Gastrointestinal Stromal Tumor",
-                        "display_name": "Gastrointestinal Stromal Tumor",
-                        "doid": 9253,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:9253"
-                    },
-                    "drugs": [
-                        {
-                            "id": 157,
-                            "name": "Sunitinib",
-                            "ncit_id": "C71622",
-                            "aliases": [
-                                "1H-Pyrrole-3-carboxamide, N-(2-(diethylamino)ethyl)-5-((Z)-(5-fluoro-1,2-dihydro-2-oxo-3H-indol-3-ylidene)methyl)-2,4-dimethyl-"
-                            ]
-                        }
-                    ],
-                    "rating": 2,
-                    "evidence_level": "E",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "RESISTANCE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "SOMATIC",
-                    "drug_interaction_type": null,
-                    "status": "submitted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 2681,
-                        "name": "KIT kinase mutants show unique mechanisms of drug resistance to imatinib and sunitinib in gastrointestinal stromal tumor patients.",
-                        "citation": "Gajiwala et al., 2009, Proc. Natl. Acad. Sci. U.S.A.",
-                        "citation_id": 19164557,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/19164557",
-                        "pmc_id": "PMC2635778",
-                        "publication_date": "2009-2-3",
-                        "journal": "Proc. Natl. Acad. Sci. U.S.A.",
-                        "full_journal_title": "Proceedings of the National Academy of Sciences of the United States of America",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 65,
-                    "phenotypes": []
-                }
-            ],
-            "variant_groups": [
-                {
-                    "id": 2,
-                    "name": "KIT Exon 17",
-                    "description": "",
-                    "variants": [
-                        {
-                            "id": 1264,
-                            "entrez_name": "KIT",
-                            "entrez_id": 3815,
-                            "name": "C809G",
-                            "description": null,
-                            "gene_id": 29,
-                            "type": "variant",
-                            "variant_types": [
-                                {
-                                    "id": 47,
-                                    "name": "Missense Variant",
-                                    "so_id": "SO:0001583",
-                                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
-                                }
-                            ],
-                            "civic_actionability_score": 7.5,
-                            "coordinates": {
-                                "chromosome": "4",
-                                "start": 55599299,
-                                "stop": 55599299,
-                                "reference_bases": "T",
-                                "variant_bases": "G",
-                                "representative_transcript": "ENST00000288135.5",
-                                "chromosome2": null,
-                                "start2": null,
-                                "stop2": null,
-                                "representative_transcript2": null,
-                                "ensembl_version": 75,
-                                "reference_build": "GRCh37"
-                            }
-                        },
-                        {
-                            "id": 983,
-                            "entrez_name": "KIT",
-                            "entrez_id": 3815,
-                            "name": "D816H",
-                            "description": null,
-                            "gene_id": 29,
-                            "type": "variant",
-                            "variant_types": [
-                                {
-                                    "id": 47,
-                                    "name": "Missense Variant",
-                                    "so_id": "SO:0001583",
-                                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
-                                }
-                            ],
-                            "civic_actionability_score": 7.5,
-                            "coordinates": {
-                                "chromosome": "4",
-                                "start": 55599320,
-                                "stop": 55599320,
-                                "reference_bases": "G",
-                                "variant_bases": "C",
-                                "representative_transcript": "ENST00000288135.5",
-                                "chromosome2": null,
-                                "start2": null,
-                                "stop2": null,
-                                "representative_transcript2": null,
-                                "ensembl_version": 75,
-                                "reference_build": "GRCh37"
-                            }
-                        },
-                        {
-                            "id": 65,
-                            "entrez_name": "KIT",
-                            "entrez_id": 3815,
-                            "name": "D816V",
-                            "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",
-                            "gene_id": 29,
-                            "type": "variant",
-                            "variant_types": [
-                                {
-                                    "id": 47,
-                                    "name": "Missense Variant",
-                                    "so_id": "SO:0001583",
-                                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
-                                }
-                            ],
-                            "civic_actionability_score": 67,
-                            "coordinates": {
-                                "chromosome": "4",
-                                "start": 55599321,
-                                "stop": 55599321,
-                                "reference_bases": "A",
-                                "variant_bases": "T",
-                                "representative_transcript": "ENST00000288135.5",
-                                "chromosome2": null,
-                                "start2": null,
-                                "stop2": null,
-                                "representative_transcript2": null,
-                                "ensembl_version": 75,
-                                "reference_build": "GRCh37"
-                            }
-                        },
-                        {
-                            "id": 1265,
-                            "entrez_name": "KIT",
-                            "entrez_id": 3815,
-                            "name": "D820A",
-                            "description": null,
-                            "gene_id": 29,
-                            "type": "variant",
-                            "variant_types": [
-                                {
-                                    "id": 47,
-                                    "name": "Missense Variant",
-                                    "so_id": "SO:0001583",
-                                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
-                                }
-                            ],
-                            "civic_actionability_score": 7.5,
-                            "coordinates": {
-                                "chromosome": "4",
-                                "start": 55599333,
-                                "stop": 55599333,
-                                "reference_bases": "A",
-                                "variant_bases": "C",
-                                "representative_transcript": "ENST00000288135.5",
-                                "chromosome2": null,
-                                "start2": null,
-                                "stop2": null,
-                                "representative_transcript2": null,
-                                "ensembl_version": 75,
-                                "reference_build": "GRCh37"
-                            }
-                        },
-                        {
-                            "id": 1266,
-                            "entrez_name": "KIT",
-                            "entrez_id": 3815,
-                            "name": "D820G",
-                            "description": null,
-                            "gene_id": 29,
-                            "type": "variant",
-                            "variant_types": [
-                                {
-                                    "id": 47,
-                                    "name": "Missense Variant",
-                                    "so_id": "SO:0001583",
-                                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
-                                }
-                            ],
-                            "civic_actionability_score": 7.5,
-                            "coordinates": {
-                                "chromosome": "4",
-                                "start": 55599333,
-                                "stop": 55599333,
-                                "reference_bases": "A",
-                                "variant_bases": "G",
-                                "representative_transcript": "ENST00000288135.5",
-                                "chromosome2": null,
-                                "start2": null,
-                                "stop2": null,
-                                "representative_transcript2": null,
-                                "ensembl_version": 75,
-                                "reference_build": "GRCh37"
-                            }
-                        },
-                        {
-                            "id": 986,
-                            "entrez_name": "KIT",
-                            "entrez_id": 3815,
-                            "name": "D820Y",
-                            "description": null,
-                            "gene_id": 29,
-                            "type": "variant",
-                            "variant_types": [
-                                {
-                                    "id": 47,
-                                    "name": "Missense Variant",
-                                    "so_id": "SO:0001583",
-                                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
-                                }
-                            ],
-                            "civic_actionability_score": 14.5,
-                            "coordinates": {
-                                "chromosome": "4",
-                                "start": 55599332,
-                                "stop": 55599332,
-                                "reference_bases": "G",
-                                "variant_bases": "T",
-                                "representative_transcript": "ENST00000288135.5",
-                                "chromosome2": null,
-                                "start2": null,
-                                "stop2": null,
-                                "representative_transcript2": null,
-                                "ensembl_version": 75,
-                                "reference_build": "GRCh37"
-                            }
-                        },
-                        {
-                            "id": 987,
-                            "entrez_name": "KIT",
-                            "entrez_id": 3815,
-                            "name": "N822H",
-                            "description": null,
-                            "gene_id": 29,
-                            "type": "variant",
-                            "variant_types": [
-                                {
-                                    "id": 47,
-                                    "name": "Missense Variant",
-                                    "so_id": "SO:0001583",
-                                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
-                                }
-                            ],
-                            "civic_actionability_score": 0,
-                            "coordinates": {
-                                "chromosome": "4",
-                                "start": 55599338,
-                                "stop": 55599338,
-                                "reference_bases": "A",
-                                "variant_bases": "C",
-                                "representative_transcript": null,
-                                "chromosome2": null,
-                                "start2": null,
-                                "stop2": null,
-                                "representative_transcript2": null,
-                                "ensembl_version": null,
-                                "reference_build": "GRCh37"
-                            }
-                        },
-                        {
-                            "id": 1263,
-                            "entrez_name": "KIT",
-                            "entrez_id": 3815,
-                            "name": "N822K",
-                            "description": null,
-                            "gene_id": 29,
-                            "type": "variant",
-                            "variant_types": [
-                                {
-                                    "id": 47,
-                                    "name": "Missense Variant",
-                                    "so_id": "SO:0001583",
-                                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
-                                }
-                            ],
-                            "civic_actionability_score": 24.5,
-                            "coordinates": {
-                                "chromosome": "4",
-                                "start": 55599340,
-                                "stop": 55599340,
-                                "reference_bases": "T",
-                                "variant_bases": "A",
-                                "representative_transcript": "ENST00000288135.5",
-                                "chromosome2": null,
-                                "start2": null,
-                                "stop2": null,
-                                "representative_transcript2": null,
-                                "ensembl_version": 75,
-                                "reference_build": "GRCh37"
-                            }
-                        },
-                        {
-                            "id": 989,
-                            "entrez_name": "KIT",
-                            "entrez_id": 3815,
-                            "name": "Y823D",
-                            "description": null,
-                            "gene_id": 29,
-                            "type": "variant",
-                            "variant_types": [
-                                {
-                                    "id": 47,
-                                    "name": "Missense Variant",
-                                    "so_id": "SO:0001583",
-                                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
-                                }
-                            ],
-                            "civic_actionability_score": 7.5,
-                            "coordinates": {
-                                "chromosome": "4",
-                                "start": 55599341,
-                                "stop": 55599341,
-                                "reference_bases": "T",
-                                "variant_bases": "G",
-                                "representative_transcript": "ENST00000288135.5",
-                                "chromosome2": null,
-                                "start2": null,
-                                "stop2": null,
-                                "representative_transcript2": null,
-                                "ensembl_version": 75,
-                                "reference_build": "GRCh37"
-                            }
-                        }
-                    ],
-                    "type": "variant_group"
-                }
-            ],
-            "assertions": [],
-            "variant_aliases": [
-                "ASP816VAL",
-                "RS121913507"
-            ],
+            "allele_registry_id": "CA123513",
             "hgvs_expressions": [
                 "NM_000222.2:c.2447A>T",
                 "NP_000213.1:p.Asp816Val",
                 "ENST00000288135.5:c.2447A>T",
                 "NC_000004.11:g.55599321A>T"
             ],
-            "clinvar_entries": [
-                "13852"
-            ],
-            "allele_registry_id": "CA123513"
-        },
-        {
-            "id": 258,
-            "entrez_name": "MTHFR",
-            "entrez_id": 4524,
-            "name": "A222V",
-            "description": null,
-            "gene_id": 3672,
-            "type": "variant",
             "variant_types": [
                 {
                     "id": 47,
                     "name": "Missense Variant",
                     "so_id": "SO:0001583",
                     "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583"
+                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
+                    "type": "variant_type"
                 }
             ],
-            "civic_actionability_score": 55,
             "coordinates": {
-                "chromosome": "1",
-                "start": 11856378,
-                "stop": 11856378,
-                "reference_bases": "G",
-                "variant_bases": "A",
-                "representative_transcript": "ENST00000376592.1",
+                "ensembl_version": 75,
+                "reference_build": "GRCh37",
+                "reference_bases": "A",
+                "variant_bases": "T",
+                "representative_transcript": "ENST00000288135.5",
+                "chromosome": "4",
+                "start": 55599321,
+                "stop": 55599321,
+                "representative_transcript2": null,
                 "chromosome2": null,
                 "start2": null,
                 "stop2": null,
-                "representative_transcript2": null,
-                "ensembl_version": 75,
-                "reference_build": "GRCh37"
+                "type": "coordinates"
             },
-            "evidence_items": [
-                {
-                    "id": 1756,
-                    "name": "EID1756",
-                    "description": "Study of 1817 PCa cases and 2026 cancer free controls to clarify the association of (MTHFR)c.677C>T (and c.1298A>C ) of pancreatic cancer risk in a population of Han Chinese in Shanghai. Results indicated a lower risk for the heterozygous CT genotype and homozygous TT genotype carriers of (MTHFR)c.677C>T which had a significantly lower risk of developing pancreatic cancer compared with the wild-type CC genotype.",
-                    "disease": {
-                        "id": 556,
-                        "name": "Pancreatic Cancer",
-                        "display_name": "Pancreatic Cancer",
-                        "doid": 1793,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:1793"
-                    },
-                    "drugs": [],
-                    "rating": 4,
-                    "evidence_level": "B",
-                    "evidence_type": "PROGNOSTIC",
-                    "clinical_significance": "BETTER_OUTCOME",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "COMMON_GERMLINE",
-                    "drug_interaction_type": null,
-                    "status": "accepted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 1218,
-                        "name": "MTHFR c.677C>T Inhibits Cell Proliferation and Decreases Prostate Cancer Susceptibility in the Han Chinese Population in Shanghai.",
-                        "citation": "Wu et al., 2016, Sci Rep",
-                        "citation_id": 27819322,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/27819322",
-                        "pmc_id": "PMC5098242",
-                        "publication_date": "2016-11-7",
-                        "journal": "Sci Rep",
-                        "full_journal_title": "Scientific reports",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 258,
-                    "phenotypes": []
-                },
-                {
-                    "id": 1757,
-                    "name": "EID1757",
-                    "description": "Patients with the wild type (C/C) MTHFR gene are 2.91 times (95% CI: [1.23, 6.89]) more likely to have a positive response to neoadjuvant CRT and  3.25 times more likely not to experience relapse (95% CI: [1.37, 7.72]) than patients with the heterozygous  MTHFR [rs1801133 (C>T)] mutation or  the homzygous (T/T).",
-                    "disease": {
-                        "id": 579,
-                        "name": "Rectum Cancer",
-                        "display_name": "Rectum Cancer",
-                        "doid": 1993,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:1993"
-                    },
-                    "drugs": [
-                        {
-                            "id": 420,
-                            "name": "Fluorouracil",
-                            "ncit_id": "C505",
-                            "aliases": [
-                                "2,4-Dioxo-5-fluoropyrimidine",
-                                "5 FU",
-                                "5 Fluorouracil",
-                                "5 Fluorouracilum",
-                                "5-FU",
-                                "5-Fluoro-2,4(1H, 3H)-pyrimidinedione",
-                                "5-Fluoro-2,4(1H,3H)-pyrimidinedione",
-                                "5-Fluorouracil",
-                                "5-Fluracil",
-                                "5FU",
-                                "AccuSite",
-                                "Adrucil",
-                                "Carac",
-                                "Fluoro Uracil",
-                                "Fluouracil",
-                                "Flurablastin",
-                                "Fluracedyl",
-                                "Fluracil",
-                                "Fluril",
-                                "Fluroblastin",
-                                "Ribofluor",
-                                "Ro 2-9757",
-                                "Ro-2-9757"
-                            ]
-                        }
-                    ],
-                    "rating": 4,
-                    "evidence_level": "B",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "SENSITIVITYRESPONSE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "COMMON_GERMLINE",
-                    "drug_interaction_type": null,
-                    "status": "accepted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 1221,
-                        "name": "A common variant in MTHFR influences response to chemoradiotherapy and recurrence of rectal cancer.",
-                        "citation": "Nikas et al., 2015, Am J Cancer Res",
-                        "citation_id": 26693073,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/26693073",
-                        "pmc_id": "PMC4656744",
-                        "publication_date": "2015",
-                        "journal": "Am J Cancer Res",
-                        "full_journal_title": "American journal of cancer research",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 258,
-                    "phenotypes": []
-                },
-                {
-                    "id": 669,
-                    "name": "EID669",
-                    "description": "The MTHFR C667T variant was associated with significantly lower relapse-free survival and overall survival in stomach cancer patients treated with 5-Fluorouracil-based therapies. 116 Chinese patients with histologically confirmed gastric cancer were used in this study, and all patients had radical surgery before treatment.",
-                    "disease": {
-                        "id": 21,
-                        "name": "Stomach Cancer",
-                        "display_name": "Stomach Cancer",
-                        "doid": 10534,
-                        "disease_url": "https://www.disease-ontology.org/?id=DOID:10534"
-                    },
-                    "drugs": [
-                        {
-                            "id": 420,
-                            "name": "Fluorouracil",
-                            "ncit_id": "C505",
-                            "aliases": [
-                                "2,4-Dioxo-5-fluoropyrimidine",
-                                "5 FU",
-                                "5 Fluorouracil",
-                                "5 Fluorouracilum",
-                                "5-FU",
-                                "5-Fluoro-2,4(1H, 3H)-pyrimidinedione",
-                                "5-Fluoro-2,4(1H,3H)-pyrimidinedione",
-                                "5-Fluorouracil",
-                                "5-Fluracil",
-                                "5FU",
-                                "AccuSite",
-                                "Adrucil",
-                                "Carac",
-                                "Fluoro Uracil",
-                                "Fluouracil",
-                                "Flurablastin",
-                                "Fluracedyl",
-                                "Fluracil",
-                                "Fluril",
-                                "Fluroblastin",
-                                "Ribofluor",
-                                "Ro 2-9757",
-                                "Ro-2-9757"
-                            ]
-                        }
-                    ],
-                    "rating": 3,
-                    "evidence_level": "B",
-                    "evidence_type": "PREDICTIVE",
-                    "clinical_significance": "SENSITIVITYRESPONSE",
-                    "evidence_direction": "SUPPORTS",
-                    "variant_origin": "COMMON_GERMLINE",
-                    "drug_interaction_type": null,
-                    "status": "accepted",
-                    "type": "evidence",
-                    "source": {
-                        "id": 424,
-                        "name": "The polymorphisms of TS and MTHFR predict survival of gastric cancer patients treated with fluorouracil-based adjuvant chemotherapy in Chinese population.",
-                        "citation": "Huang et al., 2009, Cancer Chemother. Pharmacol.",
-                        "citation_id": 18704422,
-                        "source_type": "PUBMED",
-                        "asco_abstract_id": null,
-                        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/18704422",
-                        "pmc_id": null,
-                        "publication_date": "2009-4",
-                        "journal": "Cancer Chemother. Pharmacol.",
-                        "full_journal_title": "Cancer chemotherapy and pharmacology",
-                        "clinical_trials": []
-                    },
-                    "variant_id": 258,
-                    "phenotypes": []
-                }
+            "clinvar_entries": [
+                "13852"
             ],
-            "variant_groups": [],
-            "assertions": [],
             "variant_aliases": [
-                "RS1801133",
-                "C677T",
-                "ALA222VAL"
-            ],
+                "ASP816VAL",
+                "RS121913507"
+            ]
+        },
+        {
+            "type": "variant",
+            "id": 258,
+            "single_variant_molecular_profile_id": 254,
+            "name": "A222V",
+            "gene_id": 3672,
+            "entrez_name": "MTHFR",
+            "entrez_id": 4524,
+            "allele_registry_id": "CA170990",
             "hgvs_expressions": [
                 "NM_005957.4:c.665C>T",
                 "NP_005948.3:p.Ala222Val",
                 "ENST00000376592.1:c.665G>A",
                 "NC_000001.10:g.11856378G>A"
             ],
+            "variant_types": [
+                {
+                    "id": 47,
+                    "name": "Missense Variant",
+                    "so_id": "SO:0001583",
+                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
+                    "type": "variant_type"
+                }
+            ],
+            "coordinates": {
+                "ensembl_version": 75,
+                "reference_build": "GRCh37",
+                "reference_bases": "G",
+                "variant_bases": "A",
+                "representative_transcript": "ENST00000376592.1",
+                "chromosome": "1",
+                "start": 11856378,
+                "stop": 11856378,
+                "representative_transcript2": null,
+                "chromosome2": null,
+                "start2": null,
+                "stop2": null,
+                "type": "coordinates"
+            },
             "clinvar_entries": [
                 "3520"
             ],
-            "allele_registry_id": "CA170990"
+            "variant_aliases": [
+                "RS1801133",
+                "C677T",
+                "ALA222VAL"
+            ]
         }
     ]
 }

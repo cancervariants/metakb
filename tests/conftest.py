@@ -248,7 +248,7 @@ def civic_source592():
     """Create fixture for civic source 592"""
     return {
         "id": "civic.source:1725",
-        "label": "Dungo et al., 2013, Drugs",
+        "label": "Dungo et al., 2013",
         "title": "Afatinib: first global approval.",
         "pmid": 23982599,
         "type": "Document"
@@ -628,7 +628,7 @@ def pmid_23982599():
     return {
         "id": "pmid:23982599",
         "type": "Document",
-        "label": "Dungo et al., 2013, Drugs",
+        "label": "Dungo et al., 2013",
         "description": "Afatinib: first global approval."
     }
 
@@ -1685,13 +1685,13 @@ def pmid_27819322():
 
 
 @pytest.fixture(scope="session")
-def moa_aid71_study(
-    moa_vid71, moa_abl1, moa_imatinib, moa_chronic_myelogenous_leukemia, moa_method,
+def moa_aid67_study(
+    moa_vid67, moa_abl1, moa_imatinib, moa_chronic_myelogenous_leukemia, moa_method,
     moa_source44
 ):
-    """Create a Variant Therapeutic Response Study test fixture for MOA Assertion 71."""
+    """Create a Variant Therapeutic Response Study test fixture for MOA Assertion 67."""
     return {
-        "id": "moa.assertion:71",
+        "id": "moa.assertion:67",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
         "direction": "none",
         "strength": {
@@ -1700,7 +1700,7 @@ def moa_aid71_study(
             "system": "https://go.osu.edu/evidence-codes"
         },
         "predicate": "predictsResistanceTo",
-        "variant": moa_vid71,
+        "variant": moa_vid67,
         "therapeutic": moa_imatinib,
         "tumorType": moa_chronic_myelogenous_leukemia,
         "qualifiers": {
@@ -1714,10 +1714,10 @@ def moa_aid71_study(
 
 
 @pytest.fixture(scope="session")
-def moa_vid71():
-    """Create a test fixture for MOA VID71."""
+def moa_vid67():
+    """Create a test fixture for MOA VID67."""
     return {
-        "id": "moa.variant:71",
+        "id": "moa.variant:67",
         "type": "ProteinSequenceConsequence",
         "label": "ABL1 p.T315I (Missense)",
         "definingContext": {
@@ -1744,8 +1744,8 @@ def moa_vid71():
                 "name": "MOA representative coordinate",
                 "value": {
                     "chromosome": "9",
-                    "start_position": "133747580",
-                    "end_position": "133747580",
+                    "start_position": "133748283",
+                    "end_position": "133748283",
                     "reference_allele": "C",
                     "alternate_allele": "T",
                     "cdna_change": "c.944C>T",
@@ -1759,9 +1759,16 @@ def moa_vid71():
             {
                 "coding": {
                     "system": "https://moalmanac.org/api/features/",
-                    "code": "71"
+                    "code": "67"
                 },
                 "relation": "exactMatch"
+            },
+            {
+                "coding": {
+                    "system": "https://www.ncbi.nlm.nih.gov/snp/",
+                    "code": "rs121913459"
+                },
+                "relation": "relatedMatch"
             }
         ],
     }
@@ -2058,7 +2065,7 @@ def check_transformed_cdm():
     return check_transformed_cdm
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def normalizers():
     """Provide normalizers to querying/transformation tests."""
     return ViccNormalizers()

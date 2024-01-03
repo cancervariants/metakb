@@ -1,4 +1,5 @@
 {
+  "type": "gene",
   "id": 5,
   "name": "BRAF",
   "entrez_id": 673,
@@ -6,16 +7,16 @@
   "sources": [
     {
       "id": 9,
-      "name": "PubMed: Li et al., 2009, Oncol. Rep.",
+      "name": "PubMed: Li et al., 2009",
       "title": "Targeting of the BRAF gene in papillary thyroid carcinoma (review).",
-      "citation": "Li et al., 2009, Oncol. Rep.",
+      "citation": "Li et al., 2009",
       "citation_id": "19724843",
       "source_type": "PUBMED",
       "abstract": "Papillary thyroid carcinoma (PTC) is the most common type of thyroid malignancy and includes several histological variants. Patients suffering from PTC usually have a good outcome. However, a group of PTC patients still encounter high rates of recurrence and mortality. The BRAFV600E mutation is the most common genetic alteration identified in PTC, ranging from 29 to 83%, with the average rate about 40%. To date, a growing body of evidence has suggested that the BRAFV600E mutation plays an important role in the carcinogenesis of PTC, and it tends to be associated with special subtypes of PTC and predicts poor prognosis. Therefore, mutant BRAF has become an attractive cancer target for PTC. This article is focuses on reviewing the impact of the BRAFV600E mutation in the tumorigenesis of PTC, differences in the prevalence of the BRAFV600E mutation in variants of PTC, and its detection methods. The novel advantages of the BRAFV600E mutation-targeted therapies in studies of PTC are also discussed.",
       "asco_abstract_id": null,
       "author_string": "Yaqiong Li, Misa Nakamura, Kennichi Kakudo",
       "full_journal_title": "Oncology reports",
-      "journal": "Oncol. Rep.",
+      "journal": "Oncol Rep",
       "pmc_id": null,
       "publication_date": "2009-10",
       "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/19724843",
@@ -24,9 +25,9 @@
     },
     {
       "id": 10,
-      "name": "PubMed: Pakneshan et al., 2013, Pathology",
+      "name": "PubMed: Pakneshan et al., 2013",
       "title": "Clinicopathological relevance of BRAF mutations in human cancer.",
-      "citation": "Pakneshan et al., 2013, Pathology",
+      "citation": "Pakneshan et al., 2013",
       "citation_id": "23594689",
       "source_type": "PUBMED",
       "abstract": "BRAF represents one of the most frequently mutated protein kinase genes in human tumours. The mutation is commonly tested in pathology practice. BRAF mutation is seen in melanoma, papillary thyroid carcinoma (including papillary thyroid carcinoma arising from ovarian teratoma), ovarian serous tumours, colorectal carcinoma, gliomas, hepatobiliary carcinomas and hairy cell leukaemia. In these cancers, various genetic aberrations of the BRAF proto-oncogene, such as different point mutations and chromosomal rearrangements, have been reported. The most common mutation, BRAF V600E, can be detected by DNA sequencing and immunohistochemistry on formalin fixed, paraffin embedded tumour tissue. Detection of BRAF V600E mutation has the potential for clinical use as a diagnostic and prognostic marker. In addition, a great deal of research effort has been spent in strategies inhibiting its activity. Indeed, recent clinical trials involving BRAF selective inhibitors exhibited promising response rates in metastatic melanoma patients. Clinical trials are underway for other cancers. However, cutaneous side effects of treatment have been reported and therapeutic response to cancer is short-lived due to the emergence of several resistance mechanisms. In this review, we give an update on the clinical pathological relevance of BRAF mutation in cancer. It is hoped that the review will enhance the direction of future research and assist in more effective use of the knowledge of BRAF mutation in clinical practice.",
@@ -42,9 +43,9 @@
     },
     {
       "id": 3005,
-      "name": "PubMed: Yao et al., 2017, Nature",
+      "name": "PubMed: Yao et al., 2017",
       "title": "Tumours with class 3 BRAF mutants are sensitive to the inhibition of activated RAS.",
-      "citation": "Yao et al., 2017, Nature",
+      "citation": "Yao et al., 2017",
       "citation_id": "28783719",
       "source_type": "PUBMED",
       "abstract": "Approximately 200 BRAF mutant alleles have been identified in human tumours. Activating BRAF mutants cause feedback inhibition of GTP-bound RAS, are RAS-independent and signal either as active monomers (class 1) or constitutively active dimers (class 2). Here we characterize a third class of BRAF mutants-those that have impaired kinase activity or are kinase-dead. These mutants are sensitive to ERK-mediated feedback and their activation of signalling is RAS-dependent. The mutants bind more tightly than wild-type BRAF to RAS-GTP, and their binding to and activation of wild-type CRAF is enhanced, leading to increased ERK signalling. The model suggests that dysregulation of signalling by these mutants in tumours requires coexistent mechanisms for maintaining RAS activation despite ERK-dependent feedback. Consistent with this hypothesis, melanomas with these class 3 BRAF mutations also harbour RAS mutations or NF1 deletions. By contrast, in lung and colorectal cancers with class 3 BRAF mutants, RAS is typically activated by receptor tyrosine kinase signalling. These tumours are sensitive to the inhibition of RAS activation by inhibitors of receptor tyrosine kinases. We have thus defined three distinct functional classes of BRAF mutants in human tumours. The mutants activate ERK signalling by different mechanisms that dictate their sensitivity to therapeutic inhibitors of the pathway.",
@@ -53,7 +54,7 @@
       "full_journal_title": "Nature",
       "journal": "Nature",
       "pmc_id": "PMC5648058",
-      "publication_date": "2017",
+      "publication_date": "2017-8-10",
       "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/28783719",
       "clinical_trials": [],
       "type": "source"
@@ -67,6 +68,5 @@
     "BRAF1",
     "NS7",
     "RAFB1"
-  ],
-  "type": "gene"
+  ]
 }
