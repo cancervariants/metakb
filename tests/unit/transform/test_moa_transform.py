@@ -24,10 +24,10 @@ async def data(normalizers):
 
 
 @pytest.fixture(scope="module")
-def moa_vid149():
-    """Create a test fixture for MOA VID149."""
+def moa_vid145():
+    """Create a test fixture for MOA VID145."""
     return {
-        "id": "moa.variant:149",
+        "id": "moa.variant:145",
         "type": "ProteinSequenceConsequence",
         "label": "BRAF p.V600E (Missense)",
         "definingContext": {
@@ -69,7 +69,7 @@ def moa_vid149():
             {
                 "coding": {
                     "system": "https://moalmanac.org/api/features/",
-                    "code": "149"
+                    "code": "145"
                 },
                 "relation": "exactMatch"
             },
@@ -107,15 +107,15 @@ def moa_encorafenib(encorafenib_extensions):
 
 
 @pytest.fixture(scope="module")
-def moa_aid159_study(
-    moa_vid149,
+def moa_aid155_study(
+    moa_vid145,
     moa_cetuximab,
     moa_encorafenib,
     moa_method
 ):
-    """Create MOA AID 159 study test fixture. Uses CombinationTherapy."""
+    """Create MOA AID 155 study test fixture. Uses CombinationTherapy."""
     return {
-        "id": "moa.assertion:159",
+        "id": "moa.assertion:155",
         "type": "VariantTherapeuticResponseStudy",
         "description": "The U.S. Food and Drug Administration (FDA) granted regular approval to encorafenib in combination with cetuximab for the treatment of adult patients with metastatic colorectal cancer (CRC) with BRAF V600E mutation, as detected by an FDA-approved test, after prior therapy.",  # noqa: E501
         "direction": "none",
@@ -125,7 +125,7 @@ def moa_aid159_study(
             "system": "https://go.osu.edu/evidence-codes"
         },
         "predicate": "predictsSensitivityTo",
-        "variant": moa_vid149,
+        "variant": moa_vid145,
         "therapeutic": {
             "type": "CombinationTherapy",
             "id": "moa.ctid:zBda4sO3iQLExj5SB8VTPzPLaPoWefiP",
@@ -195,9 +195,9 @@ def moa_aid159_study(
 
 
 @pytest.fixture(scope="module")
-def studies(moa_aid71_study, moa_aid159_study):
+def studies(moa_aid67_study, moa_aid155_study):
     """Create test fixture for MOA therapeutic studies."""
-    return [moa_aid71_study, moa_aid159_study]
+    return [moa_aid67_study, moa_aid155_study]
 
 
 def test_moa_cdm(data, studies, check_transformed_cdm):
