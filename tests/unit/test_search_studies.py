@@ -47,7 +47,7 @@ def find_and_check_study(
         assert actual_study is None
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_civic_eid2997(query_handler, civic_eid2997_study, assertion_checks):
     """Test that search_studies method works correctly for CIViC EID2997"""
     resp = await query_handler.search_studies(study_id=civic_eid2997_study["id"])
@@ -90,7 +90,7 @@ async def test_civic_eid2997(query_handler, civic_eid2997_study, assertion_check
     find_and_check_study(resp, civic_eid2997_study, assertion_checks, False)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_moa(query_handler, moa_aid67_study, assertion_checks):
     """Test that search_studies method works correctly for MOA Assertion 67"""
     resp = await query_handler.search_studies(study_id=moa_aid67_study["id"])
@@ -133,7 +133,7 @@ async def test_moa(query_handler, moa_aid67_study, assertion_checks):
     find_and_check_study(resp, moa_aid67_study, assertion_checks, False)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_general_search_studies(query_handler):
     """Test that queries do not return errors"""
     resp = await query_handler.search_studies(variation="BRAF V600E")
@@ -152,7 +152,7 @@ async def test_general_search_studies(query_handler):
     assert_general_search_studies(resp)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_no_matches(query_handler):
     """Test invalid queries"""
     # invalid vrs variation prefix (digest is correct)
