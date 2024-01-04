@@ -595,8 +595,7 @@ class QueryHandler:
 
         if normalized_gene:
             query += """
-            MATCH (s) -[:HAS_QUALIFIERS] -> (q:Qualifier) -[:HAS_GENE_CONTEXT] -> (
-                g:Gene {gene_normalizer_id:$g_id})
+            MATCH (s) -[:HAS_GENE_CONTEXT] -> (g:Gene {gene_normalizer_id:$g_id})
             """
             params["g_id"] = normalized_gene
 
