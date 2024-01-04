@@ -1,4 +1,5 @@
 """Module for queries."""
+from copy import copy
 from enum import StrEnum
 import json
 import logging
@@ -8,6 +9,7 @@ from ga4gh.core import core_models
 from ga4gh.vrs import models
 from neo4j import Transaction
 from neo4j.graph import Node
+from pydantic import ValidationError
 
 from metakb.database import Graph
 from metakb.normalizers import ViccNormalizers
@@ -184,9 +186,7 @@ class QueryHandler:
         if study_id:
             response["query"]["study_id"] = study_id
             with self.driver.session() as session:
-                study = session.execute_read(
-                    self._get_study_by_id, study_id
-                )
+                study = self._get_study_by_id(session, study_id)
                 if study:
                     valid_study_id = study.get("id")
                 else:
@@ -295,10 +295,14 @@ class QueryHandler:
         for s in study_nodes:
             s_id = s.get("id")
             if s_id not in added_studies:
-                nested_study = self._get_nested_study(tx, s)
-                if nested_study:
-                    nested_studies.append(nested_study)
-                    added_studies.add(s_id)
+                try:
+                    nested_study = self._get_nested_study(tx, s)
+                except ValidationError as e:
+                    logger.warning(e)
+                else:
+                    if nested_study:
+                        nested_studies.append(nested_study)
+                        added_studies.add(s_id)
 
         return nested_studies
 
@@ -420,12 +424,13 @@ class QueryHandler:
         return VariantTherapeuticResponseStudy(**params).model_dump()
 
     @staticmethod
-    def _get_therapeutic_agent(ta_params: Dict) -> core_models.TherapeuticAgent:
+    def _get_therapeutic_agent(in_ta_params: Dict) -> core_models.TherapeuticAgent:
         """Transform input parameters into TherapeuticAgent object
 
-        :param ta_params: Therapeutic Agent node properties
+        :param in_ta_params: Therapeutic Agent node properties
         :return: TherapeuticAgent
         """
+        ta_params = copy(in_ta_params)
         _update_mappings(ta_params)
         extensions = [
             core_models.Extension(
@@ -525,7 +530,7 @@ class QueryHandler:
         return variations
 
     @staticmethod
-    def _get_method_document(tx: Transaction, method_id: str) -> Document:
+    def _get_method_document(tx: Transaction, method_id: str) -> Optional[Document]:
         """Get document for a given method
 
         :param tx: Neo4j session transaction object
@@ -536,14 +541,18 @@ class QueryHandler:
         MATCH (m:Method {{ id: '{method_id}' }}) -[:IS_REPORTED_IN] -> (d:Document)
         RETURN d
         """
-        doc_params = tx.run(query).single().data()["d"]
+        record = tx.run(query).single()
+        if not record:
+            return None
+
+        doc_params = record.data()["d"]
         return Document(**doc_params)
 
     @staticmethod
     def _get_gene_context_for_study(
         tx: Transaction,
         study_id: str,
-    ) -> core_models.Gene:
+    ) -> Optional[core_models.Gene]:
         """Get gene context for a given study
 
         :param tx: Neo4j session transaction object
@@ -554,7 +563,11 @@ class QueryHandler:
         MATCH (s:Study {{ id: '{study_id}' }}) -[:HAS_GENE_CONTEXT] -> (g:Gene)
         RETURN g
         """
-        gene_params = tx.run(query).single().data()["g"]
+        record = tx.run(query).single()
+        if not record:
+            return None
+
+        gene_params = record.data()["g"]
         _update_mappings(gene_params)
 
         gene_params["extensions"] = [
