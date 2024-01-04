@@ -213,12 +213,14 @@ class QueryHandler:
         For example, if `variation` and `therapy` are provided, will return all studies
         that have both the provided `variation` and `therapy`.
 
-        :param variation: Variation query (Free text or VRS Variation ID) If provided,
+        :param variation: Variation query (Free text or VRS Variation ID). If provided,
             will return studies with matching defining context
         :param disease: Disease query
         :param therapy: Therapy query
         :param gene: Gene query
-        :param study_id: Study ID query
+        :param study_id: Study ID query. If an invalid ID is provided and other
+            parameters are provided, will attempt to get related studies for query
+            parameters.
         :return: SearchStudiesService response containing nested studies and service
             metadata
         """
@@ -261,6 +263,11 @@ class QueryHandler:
                 response["study_ids"] = [s["id"] for s in study_nodes]
 
             response["studies"] = self._get_nested_studies(session, study_nodes)
+
+            if not response["studies"]:
+                response["warnings"].append(
+                    "No studies found with the provided query parameters."
+                )
 
         return SearchStudiesService(**response)
 

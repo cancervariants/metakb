@@ -41,11 +41,14 @@ search_summary = ("Given variation, disease, therapy, and/or gene, "
                   "return associated studies.")
 search_response_description = "A response to a validly-formed query."
 search_description = ("Return studies associated to the queried concepts.")
-v_description = "Variation (subject) to search"
+v_description = ("Variation (subject) to search. Can be free text or VRS Variation ID. "
+                 "If provided, will return studies with matching defining context")
 d_description = "Disease (object qualifier) to search"
 t_description = "Therapy (object) to search"
 g_description = "Gene to search"
-s_description = "Study ID to search"
+s_description = ("Study ID to search. If an invalid ID is provided and other parameters"
+                 " are provided, will attempt to get related studies for query "
+                 "parameters.")
 
 search_studies_summary = (
     "Given variation, disease, therapy, and/or gene, return associated nested studies."
@@ -68,6 +71,20 @@ async def get_studies(
     gene: Optional[str] = Query(None, description=g_description),
     study_id: Optional[str] = Query(None, description=s_description)
 ) -> SearchStudiesService:
-    """Return nested studies for queried concepts"""
+    """Get nested studies from queried concepts that match all conditions provided.
+    For example, if `variation` and `therapy` are provided, will return all studies
+    that have both the provided `variation` and `therapy`.
+
+    :param variation: Variation query (Free text or VRS Variation ID) If provided,
+        will return studies with matching defining context
+    :param disease: Disease query
+    :param therapy: Therapy query
+    :param gene: Gene query
+    :param study_id: Study ID query. If an invalid ID is provided and other
+        parameters are provided, will attempt to get related studies for query
+        parameters.
+    :return: SearchStudiesService response containing nested studies and service
+        metadata
+    """
     resp = await query.search_studies(variation, disease, therapy, gene, study_id)
     return resp

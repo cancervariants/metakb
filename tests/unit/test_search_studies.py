@@ -204,3 +204,7 @@ async def test_no_matches(query_handler):
     # empty query
     resp = await query_handler.search_studies()
     assert_no_match(resp)
+
+    # valid queries, but no matches with combination
+    resp = await query_handler.search_studies(variation="BRAF V600E", gene="EGFR")
+    assert_no_match(resp)

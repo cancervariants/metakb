@@ -1,9 +1,9 @@
 """Create schemas for API"""
 from typing import List, Literal, Optional
-from metakb.schemas.variation_statement import VariantTherapeuticResponseStudy
 
 from pydantic import BaseModel, ConfigDict, StrictStr
 
+from metakb.schemas.variation_statement import VariantTherapeuticResponseStudy
 from metakb.version import __version__
 
 
