@@ -43,6 +43,17 @@ class TherapeuticProcedureType(StrEnum):
     SUBSTITUTES = "TherapeuticSubstituteGroup"
 
 
+def _update_mappings(params: Dict) -> None:
+    """Update ``params.mappings`` if it exists
+    The mappings field will be a string and will be updated to the dict representation
+
+    :param params: Parameters. Will be mutated if mappings field exists
+    """
+    mappings = params.get("mappings")
+    if mappings:
+        params["mappings"] = json.loads(mappings)
+
+
 class QueryHandler:
     """Class for handling queries."""
 
@@ -138,8 +149,8 @@ class QueryHandler:
         :param response: The response for the query
         :return: A tuple containing the normalized concepts
         """
-        if not (variation or disease or therapy or gene or study_id):
-            response["warnings"].append("No parameters were entered.")
+        if not any((variation, disease, therapy, gene, study_id)):
+            response["warnings"].append("No query parameters were provided.")
             return None
 
         # Find normalized terms using VICC normalizers
@@ -198,16 +209,18 @@ class QueryHandler:
         therapy: Optional[str] = None, gene: Optional[str] = None,
         study_id: Optional[str] = None
     ) -> SearchStudiesService:
-        """Get studies from queried concepts.
+        """Get nested studies from queried concepts that match all conditions provided.
+        For example, if `variation` and `therapy` are provided, will return all studies
+        that have both the provided `variation` and `therapy`.
 
-        :param variation: Variation query
+        :param variation: Variation query (Free text or VRS Variation ID) If provided,
+            will return studies with matching defining context
         :param disease: Disease query
         :param therapy: Therapy query
         :param gene: Gene query
         :param study_id: Study ID query
-        :param detail: Whether or not to display all genes, variations, therapeutic
-            procedures, conditions, methods, and documents
-        :return: SearchStudiesService response
+        :return: SearchStudiesService response containing nested studies and service
+            metadata
         """
         response: Dict = {
             "query": {
@@ -240,13 +253,14 @@ class QueryHandler:
             else:
                 study_nodes = self._get_related_studies(
                     session,
-                    normalized_variation,
-                    normalized_therapy,
-                    normalized_disease,
-                    normalized_gene
+                    normalized_variation=normalized_variation,
+                    normalized_therapy=normalized_therapy,
+                    normalized_disease=normalized_disease,
+                    normalized_gene=normalized_gene
                 )
                 response["study_ids"] = [s["id"] for s in study_nodes]
-            response["studies"] = self._get_studies_response(session, study_nodes)
+
+            response["studies"] = self._get_nested_studies(session, study_nodes)
 
         return SearchStudiesService(**response)
 
@@ -255,48 +269,48 @@ class QueryHandler:
         """Get a Study node by ID.
 
         :param tx: Neo4j session transaction object
-        :param statement_id: Study ID to retrieve
+        :param study_id: Study ID to retrieve
         :return: Study node if successful
         """
-        query = (
-            "MATCH (s:Study) "
-            f"WHERE toLower(s.id) = toLower('{study_id}') "
-            "RETURN s"
-        )
+        query = f"""
+        MATCH (s:Study)
+        WHERE toLower(s.id) = toLower('{study_id}')
+        RETURN s
+        """
         return (tx.run(query).single() or [None])[0]
 
-    def _get_studies_response(
+    def _get_nested_studies(
         self,
         tx: Transaction,
         study_nodes: List[Node]
     ) -> List[Dict]:
-        """Return a list of studies.
+        """Get a list of nested studies.
 
         :param tx: Neo4j session transaction object
         :param study_nodes: A list of Study Nodes
-        :return: A list of dicts containing study response output
+        :return: A list of nested studies
         """
-        studies_response = []
+        nested_studies = []
         added_studies = set()
         for s in study_nodes:
             s_id = s.get("id")
             if s_id not in added_studies:
-                study_dict = self._get_study(tx, s)
-                if study_dict:
-                    studies_response.append(study_dict)
+                nested_study = self._get_nested_study(tx, s)
+                if nested_study:
+                    nested_studies.append(nested_study)
                     added_studies.add(s_id)
 
-        return studies_response
+        return nested_studies
 
-    def _get_study(self, tx: Transaction, s: Node) -> Dict:
-        """Return a study.
+    def _get_nested_study(self, tx: Transaction, s: Node) -> Dict:
+        """Get information related to a study
+        Only VariantTherapeuticResponseStudy are supported at the moment
 
         :param tx: Neo4j session transaction object
         :param Node s: Study Node
-        :return: Dict containing values from `s`
+        :return: Nested study
         """
-        # Only support VariantTherapeuticResponseStudy for now
-        if "VariantTherapeuticResponseStudy" != s["type"]:
+        if s["type"] != "VariantTherapeuticResponseStudy":
             return {}
 
         params = {
@@ -309,6 +323,7 @@ class QueryHandler:
         params.update(s)
         study_id = s["id"]
 
+        # Get relationship and nodes for a study
         query = f"""
         MATCH (s:Study {{ id:'{study_id}' }})
         OPTIONAL MATCH (s)-[r]-(n)
@@ -319,10 +334,9 @@ class QueryHandler:
         for item in nodes_and_rels:
             rel_type = item["r_type"]
             node = item["n"]
+
             if rel_type == "HAS_TUMOR_TYPE":
-                mappings = node.get("mappings")
-                if mappings:
-                    node["mappings"] = json.loads(mappings)
+                _update_mappings(node)
                 node["extensions"] = [
                     core_models.Extension(
                         name="disease_normalizer_id",
@@ -331,30 +345,28 @@ class QueryHandler:
                 ]
                 params["tumorType"] = core_models.Disease(**node)
             elif rel_type == "HAS_VARIANT":
-                mappings = node.get("mappings")
-                if mappings:
-                    node["mappings"] = json.loads(mappings)
+                _update_mappings(node)
 
                 extensions = []
-                for node_k, ext_n in (
+                for node_key, ext_name in (
                     ("moa_representative_coordinate", "MOA representative coordinate"),
                     ("civic_representative_coordinate", "CIViC representative coordinate"),  # noqa: E501
                     ("civic_molecular_profile_score", "CIViC Molecular Profile Score"),
                     ("variant_types", "Variant types")
                 ):
-                    val = node.get(node_k)
-                    if val:
+                    node_val = node.get(node_key)
+                    if node_val:
                         try:
-                            val = json.loads(val)
+                            ext_val = json.loads(node_val)
                         except TypeError:
-                            val = val
+                            ext_val = node_val
                         extensions.append(
                             core_models.Extension(
-                                name=ext_n,
-                                value=val
+                                name=ext_name,
+                                value=ext_val
                             )
                         )
-                        if node_k.startswith("moa"):
+                        if node_key.startswith("moa"):
                             # Cant be civic
                             break
                 node["extensions"] = extensions or None
@@ -375,9 +387,7 @@ class QueryHandler:
                 node["isReportedIn"] = self._get_method_document(tx, node["id"])
                 params["specifiedBy"] = Method(**node)
             elif rel_type == "IS_REPORTED_IN":
-                mappings = node.get("mappings")
-                if mappings:
-                    node["mappings"] = json.loads(mappings)
+                _update_mappings(node)
 
                 source_type = node.get("source_type")
                 if source_type:
@@ -405,20 +415,18 @@ class QueryHandler:
                     )
                     params["therapeutic"] = core_models.TherapeuticProcedure(**node)
                 elif node_type == "TherapeuticAgent":
-                    params["therapeutic"] = self._get_ta(node)
+                    params["therapeutic"] = self._get_therapeutic_agent(node)
 
         return VariantTherapeuticResponseStudy(**params).model_dump()
 
     @staticmethod
-    def _get_ta(ta_params: Dict) -> core_models.TherapeuticAgent:
-        """Transform parameters into TherapeuticAgent
+    def _get_therapeutic_agent(ta_params: Dict) -> core_models.TherapeuticAgent:
+        """Transform input parameters into TherapeuticAgent object
 
-        :param ta_params: Therapeutic agent properties
+        :param ta_params: Therapeutic Agent node properties
         :return: TherapeuticAgent
         """
-        mappings = ta_params.get("mappings")
-        if mappings:
-            ta_params["mappings"] = json.loads(mappings)
+        _update_mappings(ta_params)
         extensions = [
             core_models.Extension(
                 name="therapy_normalizer_id",
@@ -445,11 +453,13 @@ class QueryHandler:
         tp_type: TherapeuticProcedureType,
         tp_relation: TherapeuticRelation
     ) -> List[core_models.TherapeuticAgent]:
-        """Get list of components for therapeutic combination or substitute group
+        """Get list of therapeutic agents for therapeutic combination or substitutes
+        group
 
         :param tp_id: ID for combination therapy or therapeutic substitute group
         :param tp_type: Therapeutic Procedure type
-        :param tp_relation: Therapeutic procedure relation and therapeutic agent
+        :param tp_relation: Relationship type for therapeutic procedure and therapeutic
+            agent
         :return: List of Therapeutic Agents for a combination therapy or therapeutic
             substitute group
         """
@@ -463,7 +473,7 @@ class QueryHandler:
         for r in results:
             r_params = r.data()
             ta_params = r_params["ta"]
-            ta = self._get_ta(ta_params)
+            ta = self._get_therapeutic_agent(ta_params)
             therapeutic_agents.append(ta)
         return therapeutic_agents
 
@@ -479,8 +489,8 @@ class QueryHandler:
         :param cv_id: ID for categorical variation
         :param relation: Relation type for categorical variation and variation
         :return: List of variations with `relation` to categorical variation. If
-            VariationRelation.HAS_MEMBERS, expects at least one variation. Otherwise,
-            expects exactly one variation
+            VariationRelation.HAS_MEMBERS, returns at least one variation. Otherwise,
+            returns exactly one variation
         """
         query = f"""
         MATCH (v:Variation) <- [:{relation}] - (cv:CategoricalVariation
@@ -545,10 +555,7 @@ class QueryHandler:
         RETURN g
         """
         gene_params = tx.run(query).single().data()["g"]
-
-        mappings = gene_params.get("mappings")
-        if mappings:
-            gene_params["mappings"] = json.loads(mappings)
+        _update_mappings(gene_params)
 
         gene_params["extensions"] = [
             core_models.Extension(
@@ -567,10 +574,11 @@ class QueryHandler:
         normalized_disease: Optional[str] = None,
         normalized_gene: Optional[str] = None
     ) -> List[Node]:
-        """Get studies that contain queried normalized concepts
+        """Get studies that contain queried normalized concepts.
 
         :param tx: Neo4j session transaction object
-        :param normalized_variation: variation VRS ID
+        :param normalized_variation: VRS Variation ID. If provided, will return studies
+            with matching defining context
         :param normalized_therapy: normalized therapy concept ID
         :param normalized_disease: normalized disease concept ID
         :param normalized_gene: normalized gene concept ID
@@ -580,7 +588,6 @@ class QueryHandler:
         params: Dict[str, str] = {}
 
         if normalized_variation:
-            # TODO: Should we handle HAS_MEMBERS relationship?
             query += """
             MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
             MATCH (cv) -[:HAS_DEFINING_CONTEXT] -> (v:Variation {id:$v_id})
