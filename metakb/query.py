@@ -406,17 +406,28 @@ class QueryHandler:
                 params["strength"] = core_models.Coding(**node)
             elif rel_type == "HAS_THERAPEUTIC":
                 node_type = node["type"]
-                if node_type == "CombinationTherapy":
-                    node["components"] = self._get_therapeutic_agents(
-                        tx, node["id"], TherapeuticProcedureType.COMBINATION,
-                        TherapeuticRelation.HAS_COMPONENTS
-                    )
-                    params["therapeutic"] = core_models.TherapeuticProcedure(**node)
-                elif node_type == "TherapeuticSubstituteGroup":
-                    node["substitutes"] = self._get_therapeutic_agents(
-                        tx, node["id"], TherapeuticProcedureType.SUBSTITUTES,
-                        TherapeuticRelation.HAS_SUBSTITUTES
-                    )
+                if node_type in {"CombinationTherapy", "TherapeuticSubstituteGroup"}:
+                    civic_therapy_interaction_type = node.get("civic_therapy_interaction_type")  # noqa: E501
+                    if civic_therapy_interaction_type:
+                        node["extensions"] = [
+                            core_models.Extension(
+                                name="civic_therapy_interaction_type",
+                                value=civic_therapy_interaction_type
+                            )
+                        ]
+
+                    if node_type == "CombinationTherapy":
+                        node["components"] = self._get_therapeutic_agents(
+                            tx, node["id"], TherapeuticProcedureType.COMBINATION,
+                            TherapeuticRelation.HAS_COMPONENTS
+                        )
+                        params["therapeutic"] = core_models.TherapeuticProcedure(**node)
+                    else:
+                        node["substitutes"] = self._get_therapeutic_agents(
+                            tx, node["id"], TherapeuticProcedureType.SUBSTITUTES,
+                            TherapeuticRelation.HAS_SUBSTITUTES
+                        )
+
                     params["therapeutic"] = core_models.TherapeuticProcedure(**node)
                 elif node_type == "TherapeuticAgent":
                     params["therapeutic"] = self._get_therapeutic_agent(node)

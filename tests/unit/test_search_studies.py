@@ -91,7 +91,41 @@ async def test_civic_eid2997(query_handler, civic_eid2997_study, assertion_check
 
 
 @pytest.mark.asyncio(scope="module")
-async def test_moa(query_handler, moa_aid67_study, assertion_checks):
+async def test_civic816(query_handler, civic_eid816_study, assertion_checks):
+    """Test that search_studies method works correctly for CIViC EID816"""
+    resp = await query_handler.search_studies(study_id=civic_eid816_study["id"])
+    assert resp.study_ids == [civic_eid816_study["id"]]
+    resp_studies = [s.model_dump(exclude_none=True) for s in resp.studies]
+    assertion_checks(resp_studies, [civic_eid816_study])
+    assert resp.warnings == []
+
+    # Try querying based on therapies in substitutes
+    resp = await query_handler.search_studies(therapy="Cetuximab")
+    find_and_check_study(resp, civic_eid816_study, assertion_checks)
+
+    resp = await query_handler.search_studies(therapy="Panitumumab")
+    find_and_check_study(resp, civic_eid816_study, assertion_checks)
+
+
+@pytest.mark.asyncio(scope="module")
+async def test_civic9851(query_handler, civic_eid9851_study, assertion_checks):
+    """Test that search_studies method works correctly for CIViC EID9851"""
+    resp = await query_handler.search_studies(study_id=civic_eid9851_study["id"])
+    assert resp.study_ids == [civic_eid9851_study["id"]]
+    resp_studies = [s.model_dump(exclude_none=True) for s in resp.studies]
+    assertion_checks(resp_studies, [civic_eid9851_study])
+    assert resp.warnings == []
+
+    # Try querying based on therapies in components
+    resp = await query_handler.search_studies(therapy="Encorafenib")
+    find_and_check_study(resp, civic_eid9851_study, assertion_checks)
+
+    resp = await query_handler.search_studies(therapy="Cetuximab")
+    find_and_check_study(resp, civic_eid9851_study, assertion_checks)
+
+
+@pytest.mark.asyncio(scope="module")
+async def test_moa_67(query_handler, moa_aid67_study, assertion_checks):
     """Test that search_studies method works correctly for MOA Assertion 67"""
     resp = await query_handler.search_studies(study_id=moa_aid67_study["id"])
     assert resp.study_ids == [moa_aid67_study["id"]]
