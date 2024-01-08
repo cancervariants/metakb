@@ -98,7 +98,7 @@ def test_harvest_variants(harvested_variants, civic_variant_12):
     assert harvested_variants
     checked = False
     for v in harvested_variants:
-        if v["id"] == 12:
+        if v["id"] == civic_variant_12["id"]:
             assert v == civic_variant_12
             checked = True
     assert checked, "CIViC Variant 12 not in harvested variants"
@@ -111,7 +111,7 @@ def test_harvest_molecular_profiles(
     assert harvested_molecular_profiles
     checked = False
     for mp in harvested_molecular_profiles:
-        if mp["id"] == 12:
+        if mp["id"] == civic_molecular_profile_12["id"]:
             assert mp == civic_molecular_profile_12
             checked = True
     assert checked, "CIViC Molecular Profile 12 not in harvested molecular profiles"
@@ -122,7 +122,7 @@ def test_civic_genes(harvested_genes, civic_gene_5):
     assert harvested_genes
     checked = False
     for g in harvested_genes:
-        if g["id"] == 5:
+        if g["id"] == civic_gene_5["id"]:
             assert g == civic_gene_5
             checked = True
     assert checked, "CIViC Gene 5 not in harvested genes"
@@ -133,7 +133,7 @@ def test_civic_evidence(harvested_evidence, civic_eid_3017):
     assert harvested_evidence
     checked = []
     for e in harvested_evidence:
-        if e["id"] == 3017:
+        if e["id"] == civic_eid_3017["id"]:
             assert e == civic_eid_3017
             checked.append(e["id"])
         elif e["id"] == 6178:
@@ -148,7 +148,7 @@ def test_civic_assertion(harvested_assertions, civic_aid_7):
     assert harvested_assertions
     checked = False
     for a in harvested_assertions:
-        if a["id"] == 7:
+        if a["id"] == civic_aid_7["id"]:
             assert a == civic_aid_7
             checked = True
     assert checked, "CIViC Assertion 7 not in harvested assertions"

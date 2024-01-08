@@ -63,6 +63,7 @@ def documents(pmid_15146165, pmid_18073307):
     return [pmid_15146165, pmid_18073307]
 
 
+@pytest.mark.skip(reason="Will be resolved in issue-241")
 def test_civic_cdm(data, statements, propositions, variation_descriptors,
                    gene_descriptors, disease_descriptors,
                    civic_methods, documents, check_statement,

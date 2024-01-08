@@ -58,9 +58,9 @@ def civic_aid6(civic_eid2997_proposition, civic_vid33_with_gene, civic_tid146,
 
 
 @pytest.fixture(scope="module")
-def moa_vid71_with_gene(moa_vid71, moa_abl1):
+def moa_vid71_with_gene(moa_vid67, moa_abl1):
     """Create test fixture for MOA Variant 71 with gene descriptor"""
-    vid71 = copy.deepcopy(moa_vid71)
+    vid71 = copy.deepcopy(moa_vid67)
     vid71["gene_context"] = moa_abl1
     return vid71
 

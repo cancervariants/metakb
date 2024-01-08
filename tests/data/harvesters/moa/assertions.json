@@ -1,11 +1,11 @@
 [
 	{
-		"assertion_id": 170,
-		"context": "",
-		"created_on": "09/08/22",
-		"description": "Administration of bevacizumab in a dabrafenib-resistant cell line counteracted the tumor growth stimulating effect of administering dabrafenib post-resistance.",
+		"assertion_id": 165,
+		"context": "Resistance to BRAFi monotherapy",
+		"created_on": "12/07/23",
+		"description": "Administration of bevacizumab in a dabrafenib-resistant melanoma cancer cell line (A375R) counteracted the tumor growth stimulating effect of administering dabrafenib post-resistance. This study suggests that a regime which combines BRAFi with bevacizumab or inhibitors of PI3K/Akt/mTOR may be more effective than BRAFi monotherapy in the setting of resistance.",
 		"disease": "Melanoma",
-		"favorable_prognosis": false,
+		"favorable_prognosis": "",
 		"features": [
 			{
 				"attributes": [
@@ -24,7 +24,7 @@
 						"variant_annotation": "Missense"
 					}
 				],
-				"feature_id": 170,
+				"feature_id": 165,
 				"feature_type": "somatic_variant"
 			}
 		],
@@ -37,27 +37,27 @@
 				"citation": "Caporali S, Alvino E, Lacal PM, et al. Targeting the PI3K/AKT/mTOR pathway overcomes the stimulating effect of dabrafenib on the invasive behavior of melanoma cells with acquired resistance to the BRAF inhibitor. Int J Oncol. 2016;49(3):1164-74.",
 				"doi": "10.3892/ijo.2016.3594",
 				"nct": "",
-				"pmid": 27572939,
+				"pmid": 27572607,
 				"source_id": 69,
 				"source_type": "Journal",
 				"url": "https://doi.org/10.3892/ijo.2016.3594"
 			}
 		],
 		"submitted_by": "breardon@broadinstitute.org",
-		"therapy_name": "Bevacizumab",
-		"therapy_resistance": false,
-		"therapy_sensitivity": true,
-		"therapy_strategy": "VEGF/VEGFR inhibition",
+		"therapy_name": "Dabrafenib + Bevacizumab",
+		"therapy_resistance": "",
+		"therapy_sensitivity": 1,
+		"therapy_strategy": "B-RAF inhibition + VEGF/VEGFR inhibition",
 		"therapy_type": "Targeted therapy",
 		"validated": true
 	},
 	{
-		"assertion_id": 168,
+		"assertion_id": 164,
 		"context": "",
-		"created_on": "09/08/22",
+		"created_on": "12/07/23",
 		"description": "The combination of ipilimumab and vemurafenib in a sequencing strategy showed limited efficacy in a phase II study.",
 		"disease": "Melanoma",
-		"favorable_prognosis": false,
+		"favorable_prognosis": "",
 		"features": [
 			{
 				"attributes": [
@@ -76,7 +76,7 @@
 						"variant_annotation": "Missense"
 					}
 				],
-				"feature_id": 168,
+				"feature_id": 164,
 				"feature_type": "somatic_variant"
 			}
 		],
@@ -97,8 +97,8 @@
 		],
 		"submitted_by": "breardon@broadinstitute.org",
 		"therapy_name": "Ipilimumab + Vemurafenib",
-		"therapy_resistance": false,
-		"therapy_sensitivity": true,
+		"therapy_resistance": "",
+		"therapy_sensitivity": 1,
 		"therapy_strategy": "CTLA-4 inhibition + B-RAF inhibition",
 		"therapy_type": "Combination therapy",
 		"validated": true

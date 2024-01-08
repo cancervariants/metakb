@@ -371,7 +371,7 @@ def civic_eid816_study(
         "isReportedIn": [
             {
                 "id": "civic.source:548",
-                "label": "Rowland et al., 2015, Br. J. Cancer",
+                "label": "Rowland et al., 2015",
                 "title": "Meta-analysis of BRAF mutation as a predictive biomarker of benefit from anti-EGFR monoclonal antibody therapy for RAS wild-type metastatic colorectal cancer.",  # noqa: E501
                 "pmid": 25989278,
                 "type": "Document"
@@ -449,7 +449,7 @@ def civic_eid9851_study(
         "isReportedIn": [
             {
                 "id": "civic.source:3025",
-                "label": "Kopetz et al., 2019, N. Engl. J. Med.",
+                "label": "Kopetz et al., 2019",
                 "title": "Encorafenib, Binimetinib, and Cetuximab in BRAF V600E-Mutated Colorectal Cancer.",  # noqa: E501
                 "pmid": 31566309,
                 "type": "Document"
