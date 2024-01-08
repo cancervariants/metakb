@@ -9,31 +9,29 @@ from metakb.harvesters import MoaHarvester
 
 
 @pytest.fixture(scope="module")
-def assertion170():
-    """Create a fixture for assertion #170."""
+def assertion165():
+    """Create a fixture for assertion #165."""
     return {
-        "id": 170,
-        "context": "",
-        "description": "Administration of bevacizumab in a dabrafenib-resistant cell "
-                       "line counteracted the tumor growth stimulating effect of "
-                       "administering dabrafenib post-resistance.",
+        "id": 165,
+        "context": "Resistance to BRAFi monotherapy",
+        "description": "Administration of bevacizumab in a dabrafenib-resistant melanoma cancer cell line (A375R) counteracted the tumor growth stimulating effect of administering dabrafenib post-resistance. This study suggests that a regime which combines BRAFi with bevacizumab or inhibitors of PI3K/Akt/mTOR may be more effective than BRAFi monotherapy in the setting of resistance.",  # noqa: E501
         "disease": {
             "name": "Melanoma",
             "oncotree_code": "MEL",
             "oncotree_term": "Melanoma"
         },
-        "therapy_name": "Bevacizumab",
+        "therapy_name": "Dabrafenib + Bevacizumab",
         "therapy_type": "Targeted therapy",
         "clinical_significance": "sensitivity",
         "predictive_implication": "Preclinical",
-        "favorable_prognosis": False,
-        "created_on": "09/08/22",
+        "favorable_prognosis": "",
+        "created_on": "12/07/23",
         "last_updated": "2019-06-13",
         "submitted_by": "breardon@broadinstitute.org",
         "validated": True,
         "source_ids": 69,
         "variant": {
-            "id": 149,
+            "id": 145,
             "alternate_allele": "T",
             "cdna_change": "c.1799T>A",
             "chromosome": "7",
@@ -54,7 +52,7 @@ def assertion170():
 @patch.object(MoaHarvester, "_get_all_variants")
 @patch.object(MoaHarvester, "_get_all_assertions")
 def test_assertion_170(test_get_all_assertions, test_get_all_variants,
-                       assertion170):
+                       assertion165):
     """Test moa harvester works correctly for assertions."""
     with open(f"{PROJECT_ROOT}/tests/data/"
               f"harvesters/moa/assertions.json") as f:
@@ -73,7 +71,7 @@ def test_assertion_170(test_get_all_assertions, test_get_all_variants,
 
     actual = None
     for a in assertions:
-        if a["id"] == 170:
+        if a["id"] == assertion165["id"]:
             actual = a
             break
-    assert actual == assertion170
+    assert actual == assertion165

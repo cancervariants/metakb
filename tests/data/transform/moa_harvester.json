@@ -1,7 +1,7 @@
 {
 	"assertions": [
 		{
-			"id": 71,
+			"id": 67,
 			"context": "",
 			"description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
 			"disease": {
@@ -13,31 +13,31 @@
 			"therapy_type": "Targeted therapy",
 			"clinical_significance": "resistance",
 			"predictive_implication": "Preclinical",
-			"favorable_prognosis": false,
-			"created_on": "09/08/22",
-			"last_updated": "2019-06-13",
+			"favorable_prognosis": "",
+			"created_on": "12/07/23",
+			"last_updated": "2023-11-30",
 			"submitted_by": "breardon@broadinstitute.org",
 			"validated": true,
 			"source_ids": 44,
 			"variant": {
-				"id": 71,
+				"id": 67,
 				"alternate_allele": "T",
 				"cdna_change": "c.944C>T",
 				"chromosome": "9",
-				"end_position": "133747580",
+				"end_position": "133748283",
 				"exon": "5",
 				"feature_type": "somatic_variant",
 				"gene": "ABL1",
 				"protein_change": "p.T315I",
 				"reference_allele": "C",
-				"rsid": null,
-				"start_position": "133747580",
+				"rsid": "rs121913459",
+				"start_position": "133748283",
 				"variant_annotation": "Missense",
 				"feature": "ABL1 p.T315I (Missense)"
 			}
 		},
 		{
-			"id": 159,
+			"id": 155,
 			"context": "Metastatic, after prior therapy",
 			"description": "The U.S. Food and Drug Administration (FDA) granted regular approval to encorafenib in combination with cetuximab for the treatment of adult patients with metastatic colorectal cancer (CRC) with BRAF V600E mutation, as detected by an FDA-approved test, after prior therapy.",
 			"disease": {
@@ -50,13 +50,13 @@
 			"clinical_significance": "sensitivity",
 			"predictive_implication": "FDA-Approved",
 			"favorable_prognosis": "",
-			"created_on": "10/05/23",
+			"created_on": "12/07/23",
 			"last_updated": "2020-10-15",
 			"submitted_by": "breardon@broadinstitute.org",
 			"validated": true,
 			"source_ids": 63,
 			"variant": {
-				"id": 149,
+				"id": 145,
 				"alternate_allele": "T",
 				"cdna_change": "c.1799T>A",
 				"chromosome": "7",
@@ -95,23 +95,23 @@
 	],
 	"variants": [
 		{
-			"id": 71,
+			"id": 67,
 			"alternate_allele": "T",
 			"cdna_change": "c.944C>T",
 			"chromosome": "9",
-			"end_position": "133747580",
+			"end_position": "133748283",
 			"exon": "5",
 			"feature_type": "somatic_variant",
 			"gene": "ABL1",
 			"protein_change": "p.T315I",
 			"reference_allele": "C",
-			"rsid": null,
-			"start_position": "133747580",
+			"rsid": "rs121913459",
+			"start_position": "133748283",
 			"variant_annotation": "Missense",
 			"feature": "ABL1 p.T315I (Missense)"
 		},
 		{
-			"id": 149,
+			"id": 145,
 			"alternate_allele": "T",
 			"cdna_change": "c.1799T>A",
 			"chromosome": "7",
