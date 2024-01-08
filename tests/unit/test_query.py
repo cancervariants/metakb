@@ -542,7 +542,7 @@ async def test_civic_detail_flag_prognostic(
 
 @pytest.mark.asyncio
 async def test_moa_detail_flag(
-    query_handler, moa_aid71_statement, moa_aid71_proposition, moa_vid71, moa_abl1,
+    query_handler, moa_aid71_statement, moa_aid71_proposition, moa_vid67, moa_abl1,
     moa_imatinib, moa_chronic_myelogenous_leukemia, method4, pmid_11423618,
     check_statement, check_proposition, check_variation_descriptor, check_descriptor,
     check_method, check_document
@@ -554,7 +554,7 @@ async def test_moa_detail_flag(
     response = await query_handler.search(statement_id='moa.assertion:71', detail=True)
     assert_keys_for_detail_true(response.keys(), response)
     assert_response_items(response, moa_aid71_statement, moa_aid71_proposition,
-                          moa_vid71, moa_abl1,
+                          moa_vid67, moa_abl1,
                           moa_chronic_myelogenous_leukemia, method4,
                           pmid_11423618, moa_imatinib, check_statement,
                           check_proposition, check_variation_descriptor,
@@ -627,7 +627,7 @@ def test_civic_id_search(query_handler, civic_eid2997_statement,
 
 
 def test_moa_id_search(query_handler, moa_aid71_statement,
-                       moa_vid71, moa_abl1, moa_imatinib,
+                       moa_vid67, moa_abl1, moa_imatinib,
                        moa_chronic_myelogenous_leukemia, pmid_11423618,
                        method4, check_statement, check_variation_descriptor,
                        check_descriptor, check_method, check_document):
@@ -636,7 +636,7 @@ def test_moa_id_search(query_handler, moa_aid71_statement,
     check_statement(res['statement'], moa_aid71_statement)
 
     res = query_handler.search_by_id('moa.variant:71')
-    check_variation_descriptor(res['variation_descriptor'], moa_vid71)
+    check_variation_descriptor(res['variation_descriptor'], moa_vid67)
 
     res = query_handler.search_by_id('moa.normalize.gene:ABL1')
     check_descriptor(res['gene_descriptor'], moa_abl1)
