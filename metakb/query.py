@@ -213,8 +213,7 @@ class QueryHandler:
         For example, if `variation` and `therapy` are provided, will return all studies
         that have both the provided `variation` and `therapy`.
 
-        :param variation: Variation query (Free text or VRS Variation ID). If provided,
-            will return studies with matching defining context
+        :param variation: Variation query (Free text or VRS Variation ID)
         :param disease: Disease query
         :param therapy: Therapy query
         :param gene: Gene query
@@ -608,8 +607,7 @@ class QueryHandler:
         """Get studies that contain queried normalized concepts.
 
         :param tx: Neo4j session transaction object
-        :param normalized_variation: VRS Variation ID. If provided, will return studies
-            with matching defining context
+        :param normalized_variation: VRS Variation ID
         :param normalized_therapy: normalized therapy concept ID
         :param normalized_disease: normalized disease concept ID
         :param normalized_gene: normalized gene concept ID
@@ -621,7 +619,7 @@ class QueryHandler:
         if normalized_variation:
             query += """
             MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
-            MATCH (cv) -[:HAS_DEFINING_CONTEXT] -> (v:Variation {id:$v_id})
+            MATCH (cv) -[:HAS_DEFINING_CONTEXT|:HAS_MEMBERS] -> (v:Variation {id:$v_id})
             """
             params["v_id"] = normalized_variation
 
