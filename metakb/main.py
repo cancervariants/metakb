@@ -41,8 +41,7 @@ search_summary = ("Given variation, disease, therapy, and/or gene, "
                   "return associated studies.")
 search_response_description = "A response to a validly-formed query."
 search_description = ("Return studies associated to the queried concepts.")
-v_description = ("Variation (subject) to search. Can be free text or VRS Variation ID. "
-                 "If provided, will return studies with matching defining context")
+v_description = ("Variation (subject) to search. Can be free text or VRS Variation ID.")
 d_description = "Disease (object qualifier) to search"
 t_description = "Therapy (object) to search"
 g_description = "Gene to search"
@@ -75,8 +74,7 @@ async def get_studies(
     For example, if `variation` and `therapy` are provided, will return all studies
     that have both the provided `variation` and `therapy`.
 
-    :param variation: Variation query (Free text or VRS Variation ID) If provided,
-        will return studies with matching defining context
+    :param variation: Variation query (Free text or VRS Variation ID)
     :param disease: Disease query
     :param therapy: Therapy query
     :param gene: Gene query

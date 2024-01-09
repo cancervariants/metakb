@@ -64,6 +64,13 @@ async def test_civic_eid2997(query_handler, civic_eid2997_study, assertion_check
     )
     find_and_check_study(resp, civic_eid2997_study, assertion_checks)
 
+    # genomic query
+    resp = await query_handler.search_studies(variation="7-55259515-T-G")
+    find_and_check_study(resp, civic_eid2997_study, assertion_checks)
+    # At the moment, MOA cannot be queried via related genomic queries
+    # only civic stores genomic members
+    assert not [s_id for s_id in resp.study_ids if s_id.startswith("moa")]
+
     resp = await query_handler.search_studies(therapy="ncit:C66940")
     find_and_check_study(resp, civic_eid2997_study, assertion_checks)
 
