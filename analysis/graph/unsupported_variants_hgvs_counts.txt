@@ -1,0 +1,8 @@
+NP_001333827.1:p.Leu747_Thr751delinsPro, 6
+NP_000213.1:p.Val560del, 5
+NP_000213.1:p.Asp579del, 4
+NP_000213.1:p.Lys550_Lys558del, 3
+NP_000213.1:p.Val559_Val560del, 3
+NP_000213.1:p.Val559del, 2
+NP_000213.1:p.Val555_Gln556del, 1
+NP_005219.2:p.Glu746_Thr751delinsValAla, 1

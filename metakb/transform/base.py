@@ -1,31 +1,41 @@
 """A module for the Transform base class."""
-from typing import Dict, Optional, List
 import json
-import canonicaljson
 import logging
-from pathlib import Path
 from datetime import datetime as dt
+from pathlib import Path
+from typing import Dict, List, Optional
 
+import canonicaljson
 from ga4gh.core import sha512t24u
 
 from metakb import APP_ROOT, DATE_FMT
-from metakb.schemas import DiagnosticProposition, PrognosticProposition, \
-    PropositionType, Predicate, DiagnosticPredicate, \
-    PrognosticPredicate, PredictivePredicate, FunctionalPredicate, \
-    PathogenicPredicate, TherapeuticResponseProposition
 from metakb.normalizers import VICCNormalizers
+from metakb.schemas import (
+    DiagnosticPredicate,
+    DiagnosticProposition,
+    FunctionalPredicate,
+    PathogenicPredicate,
+    Predicate,
+    PredictivePredicate,
+    PrognosticPredicate,
+    PrognosticProposition,
+    PropositionType,
+    TherapeuticResponseProposition,
+)
 
-logger = logging.getLogger('metakb')
+logger = logging.getLogger("metakb")
 logger.setLevel(logging.DEBUG)
 
 
 class Transform:
     """A base class for transforming harvester data."""
 
-    def __init__(self,
-                 data_dir: Path = APP_ROOT / "data",
-                 harvester_path: Optional[Path] = None,
-                 normalizers: Optional[VICCNormalizers] = None) -> None:
+    def __init__(
+        self,
+        data_dir: Path = APP_ROOT / "data",
+        harvester_path: Optional[Path] = None,
+        normalizers: Optional[VICCNormalizers] = None,
+    ) -> None:
         """Initialize Transform base class.
 
         :param Path data_dir: Path to source data directory
@@ -84,7 +94,7 @@ class Transform:
         PropositionType.DIAGNOSTIC: DiagnosticPredicate,
         PropositionType.PROGNOSTIC: PrognosticPredicate,
         PropositionType.PATHOGENIC: PathogenicPredicate,
-        PropositionType.FUNCTIONAL: FunctionalPredicate
+        PropositionType.FUNCTIONAL: FunctionalPredicate,
     }
 
     @staticmethod
@@ -103,7 +113,7 @@ class Transform:
         pred: Predicate,
         variation_ids: List[str] = [],
         disease_ids: List[str] = [],
-        therapy_ids: List[str] = []
+        therapy_ids: List[str] = [],
     ) -> Optional[str]:
         """Retrieve stable ID for a proposition
 
@@ -128,8 +138,12 @@ class Transform:
         return f"proposition:{digest}"
 
     def _get_proposition(
-        self, proposition_type: PropositionType, predicate: Predicate, subject: str,
-        object_qualifier: str, object: Optional[str] = None
+        self,
+        proposition_type: PropositionType,
+        predicate: Predicate,
+        subject: str,
+        object_qualifier: str,
+        object: Optional[str] = None,
     ) -> Optional[Dict]:
         """Get proposition parameters. Updates the `propositions` instance variable
         if proposition params were successfully created.
@@ -147,7 +161,7 @@ class Transform:
             "type": proposition_type,
             "predicate": predicate,
             "subject": subject,
-            "object_qualifier": object_qualifier
+            "object_qualifier": object_qualifier,
         }
 
         if proposition_type == PropositionType.PREDICTIVE:
@@ -157,14 +171,14 @@ class Transform:
                 params["predicate"],
                 [params["subject"]],
                 [params["object_qualifier"]],
-                [params["object"]]
+                [params["object"]],
             )
         else:
             proposition_id = self._get_proposition_id(
                 params["type"],
                 params["predicate"],
                 [params["subject"]],
-                [params["object_qualifier"]]
+                [params["object_qualifier"]],
             )
         if proposition_id is None:
             return None
@@ -175,7 +189,8 @@ class Transform:
             proposition = PrognosticProposition(**params).dict(exclude_none=True)
         elif proposition_type == PropositionType.PREDICTIVE.value:
             proposition = TherapeuticResponseProposition(**params).dict(
-                exclude_none=True)
+                exclude_none=True
+            )
         elif proposition_type == PropositionType.DIAGNOSTIC.value:
             proposition = DiagnosticProposition(**params).dict(exclude_none=True)
         else:
@@ -198,8 +213,9 @@ class Transform:
         blob = json.dumps(params_sorted).encode("ascii")
         return f"document:{sha512t24u(blob=blob)}"
 
-    def create_json(self, transform_dir: Optional[Path] = None,
-                    filename: Optional[str] = None) -> None:
+    def create_json(
+        self, transform_dir: Optional[Path] = None, filename: Optional[str] = None
+    ) -> None:
         """Create a composite JSON for transformed data.
 
         :param Optional[Path] transform_dir: Path to data directory for
@@ -211,19 +227,19 @@ class Transform:
         transform_dir.mkdir(exist_ok=True, parents=True)
 
         composite_dict = {
-            'statements': self.statements,
-            'propositions': self.propositions,
-            'variation_descriptors': self.variation_descriptors,
-            'gene_descriptors': self.gene_descriptors,
-            'therapy_descriptors': self.therapy_descriptors,
-            'disease_descriptors': self.disease_descriptors,
-            'methods': self.methods,
-            'documents': self.documents
+            "statements": self.statements,
+            "propositions": self.propositions,
+            "variation_descriptors": self.variation_descriptors,
+            "gene_descriptors": self.gene_descriptors,
+            "therapy_descriptors": self.therapy_descriptors,
+            "disease_descriptors": self.disease_descriptors,
+            "methods": self.methods,
+            "documents": self.documents,
         }
 
         today = dt.strftime(dt.today(), DATE_FMT)
         if filename is None:
             filename = f"{self.name}_cdm_{today}.json"
         out = transform_dir / filename
-        with open(out, 'w+') as f:
+        with open(out, "w+") as f:
             json.dump(composite_dict, f, indent=4)

@@ -1,21 +1,20 @@
 """Module for harvesting data from OncoKB"""
-import logging
 import csv
-from pathlib import Path
-from typing import Dict, List, Union, Optional
-from os import environ
+import logging
 from enum import Enum
+from os import environ
+from pathlib import Path
+from typing import Dict, List, Optional, Union
 
 import requests
 
 from metakb.harvesters.base import Harvester
 
-
 logger = logging.getLogger("metakb.harvesters.oncokb")
 logger.setLevel(logging.DEBUG)
 
 
-class OncoKBHarvesterException(Exception):
+class OncoKBHarvesterException(Exception):  # noqa: N818
     """OncoKB Harvester Exceptions"""
 
     pass
@@ -47,12 +46,14 @@ class OncoKBHarvester(Harvester):
         if not self.api_token:
             raise OncoKBHarvesterException(
                 "Access to OncoKB data via REST API requires an api token. You can set "
-                "it during initialization (e.g., OncoKBHarvester(api_token={API_TOKEN})). "  # noqa: E501
+                "it during initialization (e.g., OncoKBHarvester(api_token={API_TOKEN})). "
                 "or by setting the `ONCOKB_API_TOKEN` environment variable. For getting"
-                " an API token, visit https://www.oncokb.org/apiAccess.")
+                " an API token, visit https://www.oncokb.org/apiAccess."
+            )
 
-    def harvest(self, variants_by_protein_change_path: Path,
-                filename: Optional[str] = None) -> bool:
+    def harvest(
+        self, variants_by_protein_change_path: Path, filename: Optional[str] = None
+    ) -> bool:
         """Retrieve and store gene and variant and its associated evidence from
         OncoKB in composite and individual JSON files.
 
@@ -70,10 +71,18 @@ class OncoKBHarvester(Harvester):
             self.genes = self.harvest_genes()
             self.variants = self.harvest_variants(variants_by_protein_change_path)
             self.metadata = self.get_metadata()
-            self.diagnostic_levels = self._get_api_response(f"/levels/{OncoKBLevels.DIAGNOSTIC.value}")  # noqa: E501
-            self.prognostic_levels = self._get_api_response(f"/levels/{OncoKBLevels.PROGNOSTIC.value}")  # noqa: E501
-            self.resistance_levels = self._get_api_response(f"/levels/{OncoKBLevels.RESISTANCE.value}")  # noqa: E501
-            self.sensitive_levels = self._get_api_response(f"/levels/{OncoKBLevels.SENSITIVE.value}")  # noqa: E501
+            self.diagnostic_levels = self._get_api_response(
+                f"/levels/{OncoKBLevels.DIAGNOSTIC.value}"
+            )
+            self.prognostic_levels = self._get_api_response(
+                f"/levels/{OncoKBLevels.PROGNOSTIC.value}"
+            )
+            self.resistance_levels = self._get_api_response(
+                f"/levels/{OncoKBLevels.RESISTANCE.value}"
+            )
+            self.sensitive_levels = self._get_api_response(
+                f"/levels/{OncoKBLevels.SENSITIVE.value}"
+            )
 
             json_created = self.create_json(
                 {
@@ -84,16 +93,17 @@ class OncoKBHarvester(Harvester):
                         "prognostic": self.prognostic_levels,
                         "resistance": self.resistance_levels,
                         "sensitive": self.sensitive_levels,
-                        "fda": self.fda_levels
+                        "fda": self.fda_levels,
                     },
-                    "metadata": self.metadata
-                }, filename
+                    "metadata": self.metadata,
+                },
+                filename,
             )
             if json_created:
                 harvest_successful = True
             else:
                 logger.error("OncoKB Harvester was not successful")
-        except Exception as e:  # noqa: E722
+        except Exception as e:
             logger.error(f"OncoKB Harvester was not successful: {e}")
         return harvest_successful
 
@@ -164,8 +174,10 @@ class OncoKBHarvester(Harvester):
             reader = csv.reader(f)
             next(reader)  # skip header
             for symbol, p_change in reader:
-                endpoint = f"/annotate/mutations/byProteinChange?hugoSymbol={symbol}&"\
-                           f"alteration={p_change}&referenceGenome=GRCh38"
+                endpoint = (
+                    f"/annotate/mutations/byProteinChange?hugoSymbol={symbol}&"
+                    f"alteration={p_change}&referenceGenome=GRCh38"
+                )
                 resp = self._get_api_response(endpoint)
                 if resp:
                     variants.append(resp)

@@ -1,5 +1,7 @@
 """Transformations for sources."""
-from .base import Transform  # noqa: F401
-from .civic import CIViCTransform  # noqa: F401
-from .moa import MOATransform  # noqa: F401
-from .oncokb import OncoKBTransform  # noqa: F401
+from .base import Transform
+from .civic import CIViCTransform
+from .moa import MOATransform
+from .oncokb import OncoKBTransform
+
+__all__ = ["Transform", "CIViCTransform", "MOATransform", "OncoKBTransform"]

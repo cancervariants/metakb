@@ -1,12 +1,10 @@
 """Test CIViC Harvester class"""
-import os
 import json
+import os
 
 import pytest
-
-from metakb import PROJECT_ROOT, APP_ROOT
+from metakb import APP_ROOT, PROJECT_ROOT
 from metakb.harvesters import CIViCHarvester
-
 
 TEST_DATA_PATH = PROJECT_ROOT / "tests" / "data" / "harvesters" / "civic"
 TEST_CIVICPY_CACHE_PATH = list(sorted(TEST_DATA_PATH.glob("civicpy_cache_*.pkl")))[-1]
@@ -85,7 +83,7 @@ def civic_aid_7():
 
 def test_harvest(harvester):
     """Test that CIViC harvest method works correctly"""
-    fn = 'test_civic_harvester.json'
+    fn = "test_civic_harvester.json"
     assert harvester.harvest(filename=fn)
     file_path = APP_ROOT / "data" / "civic" / "harvester" / fn
     assert file_path.exists()
@@ -139,7 +137,9 @@ def test_civic_evidence(harvested_evidence, civic_eid_3017):
         elif e["id"] == 6178:
             assert e["assertion_ids"] == [12, 7]
             checked.append(e["id"])
-    assert len(checked) == 2, f"Expected to check CIViC Evidence Items 3017 and 6178, but only checked {checked}"  # noqa: E501
+    assert (
+        len(checked) == 2
+    ), f"Expected to check CIViC Evidence Items 3017 and 6178, but only checked {checked}"
     assert checked, "CIViC Evidence Item 3017 not in harvested evidence"
 
 

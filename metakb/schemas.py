@@ -1,10 +1,14 @@
 """Common data model"""
 from enum import Enum, IntEnum
-from typing import List, Optional, Union, Dict, Any, Type
+from typing import Any, Dict, List, Optional, Type, Union
 
 from ga4gh.vrsatile.pydantic.vrs_models import CURIE
-from ga4gh.vrsatile.pydantic.vrsatile_models import ValueObjectDescriptor, \
-    GeneDescriptor, VariationDescriptor, Extension
+from ga4gh.vrsatile.pydantic.vrsatile_models import (
+    Extension,
+    GeneDescriptor,
+    ValueObjectDescriptor,
+    VariationDescriptor,
+)
 from pydantic import BaseModel
 from pydantic.types import StrictBool
 
@@ -22,103 +26,107 @@ class SourceName(str, Enum):
 class XrefSystem(str, Enum):
     """Define constraints for System in xrefs."""
 
-    CLINVAR = 'clinvar'
-    CLINGEN = 'caid'
-    DB_SNP = 'dbsnp'
-    NCBI = 'ncbigene'
-    DISEASE_ONTOLOGY = 'do'
+    CLINVAR = "clinvar"
+    CLINGEN = "caid"
+    DB_SNP = "dbsnp"
+    NCBI = "ncbigene"
+    DISEASE_ONTOLOGY = "do"
 
 
 class SourcePrefix(str, Enum):
     """Define constraints for source prefixes."""
 
-    PUBMED = 'pmid'
-    ASCO = 'asco'
+    PUBMED = "pmid"
+    ASCO = "asco"
 
 
 class NormalizerPrefix(str, Enum):
     """Define constraints for normalizer prefixes."""
 
-    GENE = 'gene'
+    GENE = "gene"
 
 
 class PropositionType(str, Enum):
     """Define constraints for proposition type."""
 
-    PREDICTIVE = 'therapeutic_response_proposition'
-    DIAGNOSTIC = 'diagnostic_proposition'
-    PROGNOSTIC = 'prognostic_proposition'
-    PREDISPOSING = 'predisposition_proposition'
-    FUNCTIONAL = 'functional_consequence_proposition'
-    ONCOGENIC = 'oncogenicity_proposition'
-    PATHOGENIC = 'pathogenicity_proposition'
+    PREDICTIVE = "therapeutic_response_proposition"
+    DIAGNOSTIC = "diagnostic_proposition"
+    PROGNOSTIC = "prognostic_proposition"
+    PREDISPOSING = "predisposition_proposition"
+    FUNCTIONAL = "functional_consequence_proposition"
+    ONCOGENIC = "oncogenicity_proposition"
+    PATHOGENIC = "pathogenicity_proposition"
 
 
 class PredictivePredicate(str, Enum):
     """Define constraints for predictive predicate."""
 
-    SENSITIVITY = 'predicts_sensitivity_to'
-    RESISTANCE = 'predicts_resistance_to'
+    SENSITIVITY = "predicts_sensitivity_to"
+    RESISTANCE = "predicts_resistance_to"
 
 
 class DiagnosticPredicate(str, Enum):
     """Define constraints for diagnostic predicate."""
 
-    POSITIVE = 'is_diagnostic_inclusion_criterion_for'
-    NEGATIVE = 'is_diagnostic_exclusion_criterion_for'
+    POSITIVE = "is_diagnostic_inclusion_criterion_for"
+    NEGATIVE = "is_diagnostic_exclusion_criterion_for"
 
 
 class PrognosticPredicate(str, Enum):
     """Define constraints for prognostic predicate."""
 
-    BETTER_OUTCOME = 'is_prognostic_of_better_outcome_for'
-    POOR_OUTCOME = 'is_prognostic_of_worse_outcome_for'
+    BETTER_OUTCOME = "is_prognostic_of_better_outcome_for"
+    POOR_OUTCOME = "is_prognostic_of_worse_outcome_for"
 
 
 class PathogenicPredicate(str, Enum):
     """Define constraints for the pathogenicity predicate."""
 
-    UNCERTAIN_SIGNIFICANCE = 'is_of_uncertain_significance_for'
-    PATHOGENIC = 'is_pathogenic_for'
-    BENIGN = 'is_benign_for'
+    UNCERTAIN_SIGNIFICANCE = "is_of_uncertain_significance_for"
+    PATHOGENIC = "is_pathogenic_for"
+    BENIGN = "is_benign_for"
 
 
 class FunctionalPredicate(str, Enum):
     """Define constraints for functional predicate."""
 
-    GAIN_OF_FUNCTION = 'causes_gain_of_function_of'
-    LOSS_OF_FUNCTION = 'causes_loss_of_function_of'
-    UNALTERED_FUNCTION = 'does_not_change_function_of'
-    NEOMORPHIC = 'causes_neomorphic_function_of'
-    DOMINATE_NEGATIVE = 'causes_dominant_negative_function_of'
+    GAIN_OF_FUNCTION = "causes_gain_of_function_of"
+    LOSS_OF_FUNCTION = "causes_loss_of_function_of"
+    UNALTERED_FUNCTION = "does_not_change_function_of"
+    NEOMORPHIC = "causes_neomorphic_function_of"
+    DOMINATE_NEGATIVE = "causes_dominant_negative_function_of"
 
 
-Predicate = Union[PredictivePredicate, DiagnosticPredicate,
-                  PrognosticPredicate, PathogenicPredicate,
-                  FunctionalPredicate]
+Predicate = Union[
+    PredictivePredicate,
+    DiagnosticPredicate,
+    PrognosticPredicate,
+    PathogenicPredicate,
+    FunctionalPredicate,
+]
 
 
 class VariationOrigin(str, Enum):
     """Define constraints for variant origin."""
 
-    SOMATIC = 'somatic'
-    GERMLINE = 'germline'
-    NOT_APPLICABLE = 'N/A'
+    SOMATIC = "somatic"
+    GERMLINE = "germline"
+    NOT_APPLICABLE = "N/A"
 
 
 class Direction(str, Enum):
     """Define constraints for evidence direction."""
 
-    SUPPORTS = 'supports'
-    DOES_NOT_SUPPORT = 'does_not_support'
+    SUPPORTS = "supports"
+    DOES_NOT_SUPPORT = "does_not_support"
 
 
 class MoleculeContext(str, Enum):
     """Define constraints for types of molecule context."""
 
-    GENOMIC = 'genomic'
-    TRANSCRIPT = 'transcript'
-    PROTEIN = 'protein'
+    GENOMIC = "genomic"
+    TRANSCRIPT = "transcript"
+    PROTEIN = "protein"
 
 
 class Proposition(BaseModel):
@@ -142,21 +150,21 @@ class TherapeuticResponseProposition(Proposition):
         """Configure examples."""
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['TherapeuticResponseProposition']) \
-                -> None:
+        def schema_extra(
+            schema: Dict[str, Any], model: Type["TherapeuticResponseProposition"]
+        ) -> None:
             """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
+            if "title" in schema.keys():
+                schema.pop("title", None)
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)
+            schema["example"] = {
                 "id": "proposition:133",
                 "type": "therapeutic_response_proposition",
                 "predicate": "predicts_sensitivity_to",
                 "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
                 "object_qualifier": "ncit:C2926",
-                "object": "rxcui:1430438"
+                "object": "rxcui:1430438",
             }
 
 
@@ -188,7 +196,7 @@ class Statement(BaseModel):
     """Define Statement model."""
 
     id: CURIE
-    type = 'Statement'
+    type = "Statement"
     description: Optional[str]
     direction: Optional[Direction]
     evidence_level: CURIE
@@ -211,7 +219,7 @@ class Document(BaseModel):
     label: str
     description: Optional[str]
     xrefs: Optional[List[CURIE]]
-    type = 'Document'
+    type = "Document"
 
 
 class Date(BaseModel):
@@ -225,38 +233,37 @@ class Date(BaseModel):
         """Configure examples."""
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['StatementResponse']) -> None:
+        def schema_extra(
+            schema: Dict[str, Any], model: Type["StatementResponse"]
+        ) -> None:
             """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "year": 2019,
-                "month": 11,
-                "day": 29
-            }
+            if "title" in schema.keys():
+                schema.pop("title", None)
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)
+            schema["example"] = {"year": 2019, "month": 11, "day": 29}
 
 
 class Method(BaseModel):
-    """Define model for methods used in evidence curation and classifications."""  # noqa: E501
+    """Define model for methods used in evidence curation and classifications."""
 
     id: CURIE
     label: str
     url: str
     version: Date
     authors: str
-    type = 'Method'
+    type = "Method"
 
 
 class Response(BaseModel):
     """Define the Response Model."""
 
     statements: List[Statement]
-    propositions: List[Union[TherapeuticResponseProposition,
-                             PrognosticProposition,
-                             DiagnosticProposition]]
+    propositions: List[
+        Union[
+            TherapeuticResponseProposition, PrognosticProposition, DiagnosticProposition
+        ]
+    ]
     variation_descriptors: List[VariationDescriptor]
     gene_descriptors: List[GeneDescriptor]
     therapy_descriptors: Optional[List[ValueObjectDescriptor]]
@@ -269,7 +276,7 @@ class StatementResponse(BaseModel):
     """Define Statement Response for Search Endpoint."""
 
     id: CURIE
-    type = 'Statement'
+    type = "Statement"
     description: Optional[str]
     direction: Optional[Direction]
     evidence_level: CURIE
@@ -286,16 +293,17 @@ class StatementResponse(BaseModel):
         """Configure examples."""
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['StatementResponse']) -> None:
+        def schema_extra(
+            schema: Dict[str, Any], model: Type["StatementResponse"]
+        ) -> None:
             """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
+            if "title" in schema.keys():
+                schema.pop("title", None)
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)
+            schema["example"] = {
                 "id": "civic.eid:2997",
-                "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
+                "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
                 "direction": "supports",
                 "evidence_level": "civic.evidence_level:A",
                 "variation_origin": "somatic",
@@ -304,10 +312,8 @@ class StatementResponse(BaseModel):
                 "therapy_descriptor": "civic.tid:146",
                 "disease_descriptor": "civic.did:8",
                 "method": "method:001",
-                "supported_by": [
-                    "pmid:23982599"
-                ],
-                "type": "Statement"
+                "supported_by": ["pmid:23982599"],
+                "type": "Statement",
             }
 
 
@@ -315,14 +321,14 @@ class NestedStatementResponse(BaseModel):
     """Define Statement Response for Search Endpoint."""
 
     id: CURIE
-    type = 'Statement'
+    type = "Statement"
     description: Optional[str]
     direction: Optional[Direction]
     evidence_level: CURIE
     variation_origin: Optional[VariationOrigin]
-    proposition: Union[TherapeuticResponseProposition,
-                       PrognosticProposition,
-                       DiagnosticProposition]
+    proposition: Union[
+        TherapeuticResponseProposition, PrognosticProposition, DiagnosticProposition
+    ]
     variation_descriptor: VariationDescriptor
     therapy_descriptor: Optional[ValueObjectDescriptor]
     disease_descriptor: ValueObjectDescriptor
@@ -334,16 +340,17 @@ class NestedStatementResponse(BaseModel):
         """Configure examples."""
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['NestedStatementResponse']) -> None:
+        def schema_extra(
+            schema: Dict[str, Any], model: Type["NestedStatementResponse"]
+        ) -> None:
             """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
+            if "title" in schema.keys():
+                schema.pop("title", None)
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)
+            schema["example"] = {
                 "id": "civic.eid:2997",
-                "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
+                "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
                 "direction": "supports",
                 "evidence_level": "civic.evidence_level:A",
                 "variation_origin": "somatic",
@@ -353,7 +360,7 @@ class NestedStatementResponse(BaseModel):
                     "predicate": "predicts_sensitivity_to",
                     "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
                     "object_qualifier": "ncit:C2926",
-                    "object": "rxcui:1430438"
+                    "object": "rxcui:1430438",
                 },
                 "variation_descriptor": {
                     "id": "civic.vid:33",
@@ -364,11 +371,9 @@ class NestedStatementResponse(BaseModel):
                         "clinvar:16609",
                         "clinvar:376282",
                         "caid:CA126713",
-                        "dbsnp:121434568"
+                        "dbsnp:121434568",
                     ],
-                    "alternate_labels": [
-                        "LEU858ARG"
-                    ],
+                    "alternate_labels": ["LEU858ARG"],
                     "extensions": [
                         {
                             "type": "Extension",
@@ -379,72 +384,58 @@ class NestedStatementResponse(BaseModel):
                                 "stop": 55259515,
                                 "reference_bases": "T",
                                 "variant_bases": "G",
-                                "representative_transcript":
-                                    "ENST00000275493.2",
+                                "representative_transcript": "ENST00000275493.2",
                                 "ensembl_version": 75,
                                 "reference_build": "GRCh37",
-                                "type": "coordinates"
-                            }
+                                "type": "coordinates",
+                            },
                         }
                     ],
-                    "variation_id":
-                        "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
+                    "variation_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
                     "variation": {
                         "_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
                         "type": "Allele",
                         "location": {
-                            "_id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",  # noqa: E501
+                            "_id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",
                             "type": "SequenceLocation",
-                            "sequence_id":
-                                "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
+                            "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
                             "interval": {
                                 "type": "SequenceInterval",
-                                "start": {
-                                    "type": "Number",
-                                    "value": 857
-                                },
-                                "end": {
-                                    "type": "Number",
-                                    "value": 858
-                                }
-                            }
+                                "start": {"type": "Number", "value": 857},
+                                "end": {"type": "Number", "value": 858},
+                            },
                         },
-                        "state": {
-                            "type": "LiteralSequenceExpression",
-                            "sequence": "R"
-                        }
+                        "state": {"type": "LiteralSequenceExpression", "sequence": "R"},
                     },
                     "structural_type": "SO:0001583",
                     "expressions": [
                         {
                             "type": "Expression",
                             "syntax": "hgvs.g",
-                            "value": "NC_000007.13:g.55259515T>G"
+                            "value": "NC_000007.13:g.55259515T>G",
                         },
                         {
                             "type": "Expression",
                             "syntax": "hgvs.p",
-                            "value": "NP_005219.2:p.Leu858Arg"
+                            "value": "NP_005219.2:p.Leu858Arg",
                         },
                         {
                             "type": "Expression",
                             "syntax": "hgvs.c",
-                            "value": "NM_005228.4:c.2573T>G"
+                            "value": "NM_005228.4:c.2573T>G",
                         },
                         {
                             "type": "Expression",
                             "syntax": "hgvs.c",
-                            "value": "ENST00000275493.2:c.2573T>G"
-                        }
+                            "value": "ENST00000275493.2:c.2573T>G",
+                        },
                     ],
                     "gene_context": {
                         "id": "civic.gid:19",
                         "type": "GeneDescriptor",
                         "label": "EGFR",
-                        "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
-                        "xrefs": [
-                            "ncbigene:1956"
-                        ],
+                        "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",
+                        "xrefs": ["ncbigene:1956"],
                         "alternate_labels": [
                             "ERRP",
                             "EGFR",
@@ -453,56 +444,47 @@ class NestedStatementResponse(BaseModel):
                             "NISBD2",
                             "HER1",
                             "ERBB1",
-                            "ERBB"
+                            "ERBB",
                         ],
-                        "gene_id": "hgnc:3236"
-                    }
+                        "gene_id": "hgnc:3236",
+                    },
                 },
                 "therapy_descriptor": {
                     "id": "civic.tid:146",
                     "type": "TherapyDescriptor",
                     "label": "Afatinib",
-                    "xrefs": [
-                        "ncit:C66940"
-                    ],
+                    "xrefs": ["ncit:C66940"],
                     "alternate_labels": [
                         "BIBW2992",
                         "BIBW 2992",
-                        "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"  # noqa: E501
+                        "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide",
                     ],
-                    "therapy_id": "rxcui:1430438"
+                    "therapy_id": "rxcui:1430438",
                 },
                 "disease_descriptor": {
                     "id": "civic.did:8",
                     "type": "DiseaseDescriptor",
                     "label": "Lung Non-small Cell Carcinoma",
-                    "xrefs": [
-                        "DOID:3908"
-                    ],
-                    "disease_id": "ncit:C2926"
+                    "xrefs": ["DOID:3908"],
+                    "disease_id": "ncit:C2926",
                 },
                 "method": {
                     "id": "method:001",
-                    "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
-                    "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
-                    "version": {
-                        "year": 2019,
-                        "month": 11,
-                        "day": 29
-                    },
-                    "authors":
-                        "Danos, A.M., Krysiak, K., Barnell, E.K. et al.",
-                    "type": "Method"
+                    "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+                    "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",
+                    "version": {"year": 2019, "month": 11, "day": 29},
+                    "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al.",
+                    "type": "Method",
                 },
                 "supported_by": [
                     {
                         "id": "pmid:23982599",
                         "label": "Dungo et al., 2013, Drugs",
                         "description": "Afatinib: first global approval.",
-                        "type": "Document"
+                        "type": "Document",
                     }
                 ],
-                "type": "Statement"
+                "type": "Statement",
             }
 
 
@@ -520,19 +502,18 @@ class SearchQuery(BaseModel):
         """Configure examples."""
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['SearchQuery']) -> None:
+        def schema_extra(schema: Dict[str, Any], model: Type["SearchQuery"]) -> None:
             """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
+            if "title" in schema.keys():
+                schema.pop("title", None)
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)
+            schema["example"] = {
                 "variation": "NP_005219.2:p.Leu858Arg",
                 "disease": "Lung Non-small Cell Carcinoma",
                 "therapy": "Afatinib",
                 "statement_id": "civic.eid:2997",
-                "detail": False
+                "detail": False,
             }
 
 
@@ -549,18 +530,19 @@ class SearchStatementsQuery(BaseModel):
         """Configure examples."""
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['SearchStatementsQuery']) -> None:
+        def schema_extra(
+            schema: Dict[str, Any], model: Type["SearchStatementsQuery"]
+        ) -> None:
             """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
+            if "title" in schema.keys():
+                schema.pop("title", None)
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)
+            schema["example"] = {
                 "variation": "NP_005219.2:p.Leu858Arg",
                 "disease": "Lung Non-small Cell Carcinoma",
                 "therapy": "Afatinib",
-                "statement_id": "civic.eid:2997"
+                "statement_id": "civic.eid:2997",
             }
 
 
@@ -574,16 +556,15 @@ class Matches(BaseModel):
         """Configure examples."""
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['Matches']) -> None:
+        def schema_extra(schema: Dict[str, Any], model: Type["Matches"]) -> None:
             """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
+            if "title" in schema.keys():
+                schema.pop("title", None)
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)
+            schema["example"] = {
                 "statements": ["civic.eid:2997"],
-                "propositions": ["proposition:133"]
+                "propositions": ["proposition:133"],
             }
 
 
@@ -598,8 +579,7 @@ class ServiceMeta(BaseModel):
         """Configure schema example."""
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type["ServiceMeta"]) -> None:
+        def schema_extra(schema: Dict[str, Any], model: Type["ServiceMeta"]) -> None:
             """Configure OpenAPI schema"""
             if "title" in schema.keys():
                 schema.pop("title", None)
@@ -608,7 +588,7 @@ class ServiceMeta(BaseModel):
             schema["example"] = {
                 "name": "metakb",
                 "version": "1.1.0-alpha.4",
-                "url": "https://github.com/cancervariants/metakb"
+                "url": "https://github.com/cancervariants/metakb",
             }
 
 
@@ -619,9 +599,15 @@ class SearchService(BaseModel):
     warnings: Optional[List[str]]
     matches: Matches
     statements: Optional[List[StatementResponse]]
-    propositions: Optional[List[Union[TherapeuticResponseProposition,
-                                      DiagnosticProposition,
-                                      PrognosticProposition]]]
+    propositions: Optional[
+        List[
+            Union[
+                TherapeuticResponseProposition,
+                DiagnosticProposition,
+                PrognosticProposition,
+            ]
+        ]
+    ]
     variation_descriptors: Optional[List[VariationDescriptor]]
     gene_descriptors: Optional[List[GeneDescriptor]]
     therapy_descriptors: Optional[List[ValueObjectDescriptor]]
@@ -634,30 +620,29 @@ class SearchService(BaseModel):
         """Configure examples."""
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['SearchService']) -> None:
+        def schema_extra(schema: Dict[str, Any], model: Type["SearchService"]) -> None:
             """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
+            if "title" in schema.keys():
+                schema.pop("title", None)
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)
+            schema["example"] = {
                 "query": {
                     "variation": "EGFR L858R",
                     "disease": "Lung Non-small Cell Carcinoma",
                     "therapy": "Afatinib",
                     "statement_id": "civic.eid:2997",
-                    "detail": False
+                    "detail": False,
                 },
                 "warnings": [],
                 "matches": {
                     "statements": ["civic.eid:2997"],
-                    "propositions": ["proposition:109"]
+                    "propositions": ["proposition:109"],
                 },
                 "statements": [
                     {
                         "id": "civic.eid:2997",
-                        "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
+                        "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
                         "direction": "supports",
                         "evidence_level": "civic.evidence_level:A",
                         "variation_origin": "somatic",
@@ -666,10 +651,8 @@ class SearchService(BaseModel):
                         "therapy_descriptor": "civic.tid:146",
                         "disease_descriptor": "civic.did:8",
                         "method": "method:001",
-                        "supported_by": [
-                            "pmid:23982599"
-                        ],
-                        "type": "Statement"
+                        "supported_by": ["pmid:23982599"],
+                        "type": "Statement",
                     }
                 ],
                 "propositions": [
@@ -679,15 +662,15 @@ class SearchService(BaseModel):
                         "predicate": "predicts_sensitivity_to",
                         "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
                         "object_qualifier": "ncit:C2926",
-                        "object": "rxcui:1430438"
+                        "object": "rxcui:1430438",
                     }
                 ],
                 "service_meta_": {
                     "name": "metakb",
                     "version": "1.1.0-alpha.4",
                     "last_updated": "2021-12-16",
-                    "url": "https://github.com/cancervariants/metakb"
-                }
+                    "url": "https://github.com/cancervariants/metakb",
+                },
             }
 
 
@@ -697,9 +680,11 @@ class SearchIDService(BaseModel):
     query: str
     warnings: Optional[List[str]]
     statement: Optional[StatementResponse]
-    proposition: Optional[Union[TherapeuticResponseProposition,
-                                DiagnosticProposition,
-                                PrognosticProposition]]
+    proposition: Optional[
+        Union[
+            TherapeuticResponseProposition, DiagnosticProposition, PrognosticProposition
+        ]
+    ]
     variation_descriptor: Optional[VariationDescriptor]
     gene_descriptor: Optional[GeneDescriptor]
     therapy_descriptor: Optional[ValueObjectDescriptor]
@@ -712,53 +697,45 @@ class SearchIDService(BaseModel):
         """Configure examples."""
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['SearchIDService']) -> None:
+        def schema_extra(
+            schema: Dict[str, Any], model: Type["SearchIDService"]
+        ) -> None:
             """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
-                "query": {
-                    "node_id": "civic.vid:33"
-                },
+            if "title" in schema.keys():
+                schema.pop("title", None)
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)
+            schema["example"] = {
+                "query": {"node_id": "civic.vid:33"},
                 "warnings": [],
-                "matches": {
-                    "node": "civic.vid:33"
-                },
+                "matches": {"node": "civic.vid:33"},
                 "variation_descriptors": [
                     {
                         "id": "civic.vid:33",
                         "type": "VariationDescriptor",
                         "label": "L858R",
-                        "value_id": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",  # noqa: E501
+                        "value_id": "ga4gh:VA.WyOqFMhc8aOnMFgdY0uM7nSLNqxVPAiR",
                         "value": {
                             "location": {
                                 "interval": {
                                     "end": 858,
                                     "start": 857,
-                                    "type": "SimpleInterval"
+                                    "type": "SimpleInterval",
                                 },
-                                "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",  # noqa: E501
-                                "type": "SequenceLocation"
+                                "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
+                                "type": "SequenceLocation",
                             },
-                            "state": {
-                                "sequence": "R",
-                                "type": "SequenceState"
-                            },
-                            "type": "Allele"
+                            "state": {"sequence": "R", "type": "SequenceState"},
+                            "type": "Allele",
                         },
                         "xrefs": [
                             "clinvar:376280",
                             "clinvar:16609",
                             "clinvar:376282",
                             "caid:CA126713",
-                            "dbsnp:121434568"
+                            "dbsnp:121434568",
                         ],
-                        "alternate_labels": [
-                            "LEU858ARG"
-                        ],
+                        "alternate_labels": ["LEU858ARG"],
                         "extensions": [
                             {
                                 "name": "civic_representative_coordinate",
@@ -768,12 +745,12 @@ class SearchIDService(BaseModel):
                                     "stop": 55259515,
                                     "reference_bases": "T",
                                     "variant_bases": "G",
-                                    "representative_transcript": "ENST00000275493.2",  # noqa: E501
+                                    "representative_transcript": "ENST00000275493.2",
                                     "ensembl_version": 75,
                                     "reference_build": "GRCh37",
-                                    "type": "coordinates"
+                                    "type": "coordinates",
                                 },
-                                "type": "Extension"
+                                "type": "Extension",
                             }
                         ],
                         "structural_type": "SO:0001583",
@@ -781,33 +758,33 @@ class SearchIDService(BaseModel):
                             {
                                 "syntax": "hgvs.g",
                                 "value": "NC_000007.13:g.55259515T>G",
-                                "type": "Expression"
+                                "type": "Expression",
                             },
                             {
                                 "syntax": "hgvs.p",
                                 "value": "NP_005219.2:p.Leu858Arg",
-                                "type": "Expression"
+                                "type": "Expression",
                             },
                             {
                                 "syntax": "hgvs.c",
                                 "value": "NM_005228.4:c.2573T>G",
-                                "type": "Expression"
+                                "type": "Expression",
                             },
                             {
                                 "syntax": "hgvs.c",
                                 "value": "ENST00000275493.2:c.2573T>G",
-                                "type": "Expression"
-                            }
+                                "type": "Expression",
+                            },
                         ],
-                        "gene_context": "civic.gid:19"
+                        "gene_context": "civic.gid:19",
                     }
                 ],
                 "service_meta_": {
                     "name": "metakb",
                     "version": "1.1.0-alpha.4",
                     "last_updated": "2021-12-16",
-                    "url": "https://github.com/cancervariants/metakb"
-                }
+                    "url": "https://github.com/cancervariants/metakb",
+                },
             }
 
 
@@ -824,29 +801,30 @@ class SearchStatementsService(BaseModel):
         """Configure examples."""
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any],
-                         model: Type['SearchStatementsService']) -> None:
+        def schema_extra(
+            schema: Dict[str, Any], model: Type["SearchStatementsService"]
+        ) -> None:
             """Configure OpenAPI schema"""
-            if 'title' in schema.keys():
-                schema.pop('title', None)
-            for prop in schema.get('properties', {}).values():
-                prop.pop('title', None)
-            schema['example'] = {
+            if "title" in schema.keys():
+                schema.pop("title", None)
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)
+            schema["example"] = {
                 "query": {
                     "variation": "EGFR L858R",
                     "disease": "Lung Non-small Cell Carcinoma",
                     "therapy": "Afatinib",
-                    "statement_id": "civic.eid:2997"
+                    "statement_id": "civic.eid:2997",
                 },
                 "warnings": [],
                 "matches": {
                     "statements": ["civic.eid:2997"],
-                    "propositions": ["proposition:109"]
+                    "propositions": ["proposition:109"],
                 },
                 "statements": [
                     {
                         "id": "civic.eid:2997",
-                        "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",  # noqa: E501
+                        "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
                         "direction": "supports",
                         "evidence_level": "civic.evidence_level:A",
                         "variation_origin": "somatic",
@@ -854,9 +832,9 @@ class SearchStatementsService(BaseModel):
                             "id": "proposition:133",
                             "type": "therapeutic_response_proposition",
                             "predicate": "predicts_sensitivity_to",
-                            "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",    # noqa: E501
+                            "subject": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
                             "object_qualifier": "ncit:C2926",
-                            "object": "rxcui:1430438"
+                            "object": "rxcui:1430438",
                         },
                         "variation_descriptor": {
                             "id": "civic.vid:33",
@@ -867,11 +845,9 @@ class SearchStatementsService(BaseModel):
                                 "clinvar:16609",
                                 "clinvar:376282",
                                 "caid:CA126713",
-                                "dbsnp:121434568"
+                                "dbsnp:121434568",
                             ],
-                            "alternate_labels": [
-                                "LEU858ARG"
-                            ],
+                            "alternate_labels": ["LEU858ARG"],
                             "extensions": [
                                 {
                                     "type": "Extension",
@@ -882,71 +858,61 @@ class SearchStatementsService(BaseModel):
                                         "stop": 55259515,
                                         "reference_bases": "T",
                                         "variant_bases": "G",
-                                        "representative_transcript":
-                                            "ENST00000275493.2",
+                                        "representative_transcript": "ENST00000275493.2",
                                         "ensembl_version": 75,
                                         "reference_build": "GRCh37",
-                                        "type": "coordinates"
-                                    }
+                                        "type": "coordinates",
+                                    },
                                 }
                             ],
-                            "variation_id":
-                                "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
+                            "variation_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
                             "variation": {
-                                "_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",  # noqa: E501
+                                "_id": "ga4gh:VA.kgjrhgf84CEndyLjKdAO0RxN-e3pJjxA",
                                 "type": "Allele",
                                 "location": {
-                                    "_id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",  # noqa: E501
+                                    "_id": "ga4gh:VSL.Sfs_3PlVEYp9BxBsHsFfU1tvhfDq361f",
                                     "type": "SequenceLocation",
-                                    "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",  # noqa: E501
+                                    "sequence_id": "ga4gh:SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
                                     "interval": {
                                         "type": "SequenceInterval",
-                                        "start": {
-                                            "type": "Number",
-                                            "value": 857
-                                        },
-                                        "end": {
-                                            "type": "Number",
-                                            "value": 858
-                                        }
-                                    }
+                                        "start": {"type": "Number", "value": 857},
+                                        "end": {"type": "Number", "value": 858},
+                                    },
                                 },
                                 "state": {
                                     "type": "LiteralSequenceExpression",
-                                    "sequence": "R"
-                                }
+                                    "sequence": "R",
+                                },
                             },
                             "structural_type": "SO:0001583",
                             "expressions": [
                                 {
                                     "type": "Expression",
                                     "syntax": "hgvs.g",
-                                    "value": "NC_000007.13:g.55259515T>G"
+                                    "value": "NC_000007.13:g.55259515T>G",
                                 },
                                 {
                                     "type": "Expression",
                                     "syntax": "hgvs.p",
-                                    "value": "NP_005219.2:p.Leu858Arg"
+                                    "value": "NP_005219.2:p.Leu858Arg",
                                 },
                                 {
                                     "type": "Expression",
                                     "syntax": "hgvs.c",
-                                    "value": "NM_005228.4:c.2573T>G"
+                                    "value": "NM_005228.4:c.2573T>G",
                                 },
                                 {
                                     "type": "Expression",
                                     "syntax": "hgvs.c",
-                                    "value": "ENST00000275493.2:c.2573T>G"
-                                }
+                                    "value": "ENST00000275493.2:c.2573T>G",
+                                },
                             ],
                             "gene_context": {
                                 "id": "civic.gid:19",
                                 "type": "GeneDescriptor",
                                 "label": "EGFR",
-                                "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",  # noqa: E501
-                                "xrefs": [
-                                    "ncbigene:1956"
-                                ],
+                                "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. \nOverproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",
+                                "xrefs": ["ncbigene:1956"],
                                 "alternate_labels": [
                                     "ERRP",
                                     "EGFR",
@@ -955,61 +921,53 @@ class SearchStatementsService(BaseModel):
                                     "NISBD2",
                                     "HER1",
                                     "ERBB1",
-                                    "ERBB"
+                                    "ERBB",
                                 ],
-                                "gene_id": "hgnc:3236"
-                            }
+                                "gene_id": "hgnc:3236",
+                            },
                         },
                         "therapy_descriptor": {
                             "id": "civic.tid:146",
                             "type": "TherapyDescriptor",
                             "label": "Afatinib",
-                            "xrefs": [
-                                "ncit:C66940"
-                            ],
+                            "xrefs": ["ncit:C66940"],
                             "alternate_labels": [
                                 "BIBW2992",
                                 "BIBW 2992",
-                                "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide"  # noqa: E501
+                                "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide",
                             ],
-                            "therapy_id": "rxcui:1430438"
+                            "therapy_id": "rxcui:1430438",
                         },
                         "disease_descriptor": {
                             "id": "civic.did:8",
                             "type": "DiseaseDescriptor",
                             "label": "Lung Non-small Cell Carcinoma",
-                            "xrefs": [
-                                "DOID:3908"
-                            ],
-                            "disease_id": "ncit:C2926"
+                            "xrefs": ["DOID:3908"],
+                            "disease_id": "ncit:C2926",
                         },
                         "method": {
                             "id": "method:001",
-                            "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
-                            "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",  # noqa: E501
-                            "version": {
-                                "year": 2019,
-                                "month": 11,
-                                "day": 29
-                            },
-                            "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al.",  # noqa: E501
-                            "type": "Method"
+                            "label": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+                            "url": "https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-019-0687-x",
+                            "version": {"year": 2019, "month": 11, "day": 29},
+                            "authors": "Danos, A.M., Krysiak, K., Barnell, E.K. et al.",
+                            "type": "Method",
                         },
                         "supported_by": [
                             {
                                 "id": "pmid:23982599",
                                 "label": "Dungo et al., 2013, Drugs",
-                                "description": "Afatinib: first global approval.",  # noqa: E501
-                                "type": "Document"
+                                "description": "Afatinib: first global approval.",
+                                "type": "Document",
                             }
                         ],
-                        "type": "Statement"
+                        "type": "Statement",
                     }
                 ],
                 "service_meta_": {
                     "name": "metakb",
                     "version": "1.1.0-alpha.4",
                     "last_updated": "2021-12-16",
-                    "url": "https://github.com/cancervariants/metakb"
-                }
+                    "url": "https://github.com/cancervariants/metakb",
+                },
             }

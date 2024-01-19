@@ -1,7 +1,7 @@
 """Validate property and relationship rules for graph DB."""
-import pytest
 from typing import Optional
 
+import pytest
 from metakb.database import Graph
 
 
@@ -16,6 +16,7 @@ def graph():
 @pytest.fixture(scope="session")
 def check_unique_property(graph: Graph):
     """Verify that IDs are unique"""
+
     def _check_function(label: str, property: str):
         query = f"""
         MATCH (x:{label})
@@ -27,12 +28,14 @@ def check_unique_property(graph: Graph):
             record = s.run(query).single()
 
         assert record.values()[0] == 0
+
     return _check_function
 
 
 @pytest.fixture(scope="session")
 def check_single_label(graph: Graph):
     """Check that nodes don't contain additional labels"""
+
     def _check_function(label: str):
         query = f"""
         MATCH (a:{label})
@@ -42,6 +45,7 @@ def check_single_label(graph: Graph):
         with graph.driver.session() as s:
             record = s.run(query).single()
         assert record.values()[0] == 0
+
     return _check_function
 
 
@@ -50,6 +54,7 @@ def check_descriptor_count(graph: Graph, sources_count: int):
     """Check that value contains no more than 1 descriptor for each source,
     and at least 1 descriptor overall.
     """
+
     def _check_function(label: str, max_descriptors: int = sources_count):
         query = f"""
         MATCH (a:{label})
@@ -61,12 +66,14 @@ def check_descriptor_count(graph: Graph, sources_count: int):
         with graph.driver.session() as s:
             record = s.run(query).single()
         assert record.values()[0] == 0
+
     return _check_function
 
 
 @pytest.fixture(scope="session")
 def check_describes_count(graph: Graph):
     """Check that descriptor only describes 1 value object"""
+
     def _check_function(label: str):
         query = f"""
         MATCH (d:{label}Descriptor)
@@ -78,6 +85,7 @@ def check_describes_count(graph: Graph):
         with graph.driver.session() as s:
             record = s.run(query).single()
         assert record.values()[0] == 0
+
     return _check_function
 
 
@@ -87,6 +95,7 @@ def check_proposition_relation(graph: Graph):
     Provided relation value should be coming from the proposition, ie one of
     {"HAS_SUBJECT", "HAS_OBJECT", "HAS_OBJECT_QUALIFIER"}
     """
+
     def _check_function(label: str, relation: str):
         query = f"""
         MATCH (v:{label})
@@ -96,12 +105,14 @@ def check_proposition_relation(graph: Graph):
         with graph.driver.session() as s:
             record = s.run(query).single()
         assert record.values()[0] == 0
+
     return _check_function
 
 
 @pytest.fixture(scope="session")
 def check_statement_relation(graph: Graph):
     """Check that descriptor is used in a statement."""
+
     def _check_function(value_label: str):
         query = f"""
         MATCH (d:{value_label}Descriptor)
@@ -113,6 +124,7 @@ def check_statement_relation(graph: Graph):
         with graph.driver.session() as s:
             record = s.run(query).single()
         assert record.values()[0] == 0
+
     return _check_function
 
 
@@ -121,9 +133,15 @@ def check_relation_count(graph: Graph):
     """Check that the quantity of relationships from one Node type to another
     are within a certain range.
     """
-    def _check_function(self_label: str, other_label: str, relation: str,
-                        min: int = 1, max: Optional[int] = 1,
-                        direction: Optional[str] = "out"):
+
+    def _check_function(
+        self_label: str,
+        other_label: str,
+        relation: str,
+        min: int = 1,
+        max: Optional[int] = 1,
+        direction: Optional[str] = "out",
+    ):
         if direction == "out":
             rel_query = f"-[:{relation}]->"
         elif direction == "in":
@@ -143,59 +161,75 @@ def check_relation_count(graph: Graph):
         with graph.driver.session() as s:
             record = s.run(query).single()
         assert record.values()[0] == 0
+
     return _check_function
 
 
-def test_gene_rules(check_unique_property, check_single_label,
-                    check_descriptor_count):
+def test_gene_rules(check_unique_property, check_single_label, check_descriptor_count):
     """Verify property and relationship rules for Gene nodes."""
     check_unique_property("Gene", "id")
     check_single_label("Gene")
     check_descriptor_count("Gene")
 
 
-def test_gene_descriptor_rules(check_unique_property, check_single_label,
-                               check_describes_count):
+def test_gene_descriptor_rules(
+    check_unique_property, check_single_label, check_describes_count
+):
     """Verify property and relationship rules for GeneDescriptor nodes."""
     check_unique_property("GeneDescriptor", "id")
     check_single_label("GeneDescriptor")
     check_describes_count("Gene")
 
 
-def test_variation_rules(graph, check_unique_property, check_descriptor_count,
-                         check_proposition_relation):
+def test_variation_rules(
+    graph, check_unique_property, check_descriptor_count, check_proposition_relation
+):
     """Verify property and relationship rules for Variation nodes."""
     check_unique_property("Variation", "id")
     check_descriptor_count("Variation", 4)
     check_proposition_relation("Variation", "HAS_SUBJECT")
 
 
-def test_variation_descriptor_rules(check_unique_property, check_single_label,
-                                    check_describes_count,
-                                    check_statement_relation,
-                                    check_relation_count):
+def test_variation_descriptor_rules(
+    check_unique_property,
+    check_single_label,
+    check_describes_count,
+    check_statement_relation,
+    check_relation_count,
+):
     """Verify property and relationship rules for VariationDescriptor nodes."""
     check_unique_property("VariationDescriptor", "id")
     check_single_label("VariationDescriptor")
     check_describes_count("Variation")
     check_statement_relation("Variation")
     check_relation_count("VariationDescriptor", "GeneDescriptor", "HAS_GENE")
-    check_relation_count("VariationDescriptor", "VariationGroup",
-                         "IN_VARIATION_GROUP", min=0, max=1)
+    check_relation_count(
+        "VariationDescriptor", "VariationGroup", "IN_VARIATION_GROUP", min=0, max=1
+    )
 
 
-def test_variation_group_rules(check_unique_property, check_single_label,
-                               check_relation_count):
+def test_variation_group_rules(
+    check_unique_property, check_single_label, check_relation_count
+):
     """Verify property and relationship rules for VariationDescriptor nodes."""
     check_unique_property("VariationGroup", "id")
     check_single_label("VariationGroup")
-    check_relation_count("VariationGroup", "VariationDescriptor",
-                         "IN_VARIATION_GROUP", max=None, direction="in")
+    check_relation_count(
+        "VariationGroup",
+        "VariationDescriptor",
+        "IN_VARIATION_GROUP",
+        max=None,
+        direction="in",
+    )
 
 
-def test_therapy_rules(check_unique_property, check_single_label,
-                       check_proposition_relation, check_descriptor_count,
-                       sources_count):
+def test_therapy_rules(
+    check_unique_property,
+    check_single_label,
+    check_proposition_relation,
+    check_descriptor_count,
+    sources_count,
+):
     """Verify property and relationship rules for Therapy nodes."""
     check_unique_property("Therapy", "id")
     check_single_label("Therapy")
@@ -204,9 +238,12 @@ def test_therapy_rules(check_unique_property, check_single_label,
     check_descriptor_count("Therapy", sources_count + 1)
 
 
-def test_therapy_descriptor_rules(check_unique_property, check_single_label,
-                                  check_describes_count,
-                                  check_statement_relation):
+def test_therapy_descriptor_rules(
+    check_unique_property,
+    check_single_label,
+    check_describes_count,
+    check_statement_relation,
+):
     """Verify property and relationship rules for TherapyDescriptor nodes."""
     check_unique_property("TherapyDescriptor", "id")
     check_single_label("TherapyDescriptor")
@@ -214,9 +251,13 @@ def test_therapy_descriptor_rules(check_unique_property, check_single_label,
     check_statement_relation("Therapy")
 
 
-def test_disease_rules(check_unique_property, check_single_label,
-                       check_proposition_relation, check_descriptor_count,
-                       sources_count):
+def test_disease_rules(
+    check_unique_property,
+    check_single_label,
+    check_proposition_relation,
+    check_descriptor_count,
+    sources_count,
+):
     """Verify property and relationship rules for disease nodes."""
     check_unique_property("Disease", "id")
     check_single_label("Disease")
@@ -225,9 +266,12 @@ def test_disease_rules(check_unique_property, check_single_label,
     check_descriptor_count("Disease", sources_count + 1)
 
 
-def test_disease_descriptor_rules(check_unique_property, check_single_label,
-                                  check_describes_count,
-                                  check_statement_relation):
+def test_disease_descriptor_rules(
+    check_unique_property,
+    check_single_label,
+    check_describes_count,
+    check_statement_relation,
+):
     """Verify property and relationship rules for DiseaseDescriptor nodes."""
     check_unique_property("DiseaseDescriptor", "id")
     check_single_label("DiseaseDescriptor")
@@ -235,17 +279,20 @@ def test_disease_descriptor_rules(check_unique_property, check_single_label,
     check_statement_relation("Disease")
 
 
-def test_statement_rules(graph: Graph, check_unique_property,
-                         check_single_label, check_descriptor_count,
-                         check_relation_count):
+def test_statement_rules(
+    graph: Graph,
+    check_unique_property,
+    check_single_label,
+    check_descriptor_count,
+    check_relation_count,
+):
     """Verify property and relationship rules for Statement nodes."""
     check_unique_property("Statement", "id")
     check_single_label("Statement")
 
     check_relation_count("Statement", "VariationDescriptor", "HAS_VARIATION")
     check_relation_count("Statement", "DiseaseDescriptor", "HAS_DISEASE")
-    check_relation_count("Statement", "TherapyDescriptor", "HAS_THERAPY",
-                         min=0)
+    check_relation_count("Statement", "TherapyDescriptor", "HAS_THERAPY", min=0)
     check_relation_count("Statement", "Proposition", "DEFINED_BY")
     check_relation_count("Statement", "Method", "USES_METHOD")
 
@@ -301,22 +348,20 @@ def test_proposition_rules(graph, check_unique_property):
     assert record.values()[0] == 0
 
 
-def test_document_rules(check_unique_property, check_single_label,
-                        check_relation_count):
+def test_document_rules(
+    check_unique_property, check_single_label, check_relation_count
+):
     """Verify property and relationship rules for Document nodes."""
     check_unique_property("Document", "id")
     check_single_label("Document")
-    check_relation_count("Document", "Statement", "CITES", max=None,
-                         direction="in")
+    check_relation_count("Document", "Statement", "CITES", max=None, direction="in")
 
 
-def test_method_rules(check_unique_property, check_single_label,
-                      check_relation_count):
+def test_method_rules(check_unique_property, check_single_label, check_relation_count):
     """Verify property and relationship rules for Method nodes."""
     check_unique_property("Method", "id")
     check_single_label("Method")
-    check_relation_count("Method", "Statement", "USES_METHOD", max=None,
-                         direction="in")
+    check_relation_count("Method", "Statement", "USES_METHOD", max=None, direction="in")
 
 
 def test_no_lost_nodes(graph: Graph):

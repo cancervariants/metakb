@@ -1,19 +1,31 @@
 """A module for transforming OncoKB to common data model (CDM)"""
-from typing import Optional, Dict, List
-from pathlib import Path
-from urllib.parse import quote
-from copy import deepcopy
 import logging
+from copy import deepcopy
+from pathlib import Path
+from typing import Dict, List, Optional
+from urllib.parse import quote
 
-from ga4gh.vrsatile.pydantic.vrsatile_models import VariationDescriptor, \
-    Extension, GeneDescriptor, ValueObjectDescriptor
+from ga4gh.vrsatile.pydantic.vrsatile_models import (
+    Extension,
+    GeneDescriptor,
+    ValueObjectDescriptor,
+    VariationDescriptor,
+)
 
 from metakb import APP_ROOT
 from metakb.normalizers import VICCNormalizers
+from metakb.schemas import (
+    Date,
+    DiagnosticPredicate,
+    Document,
+    Method,
+    MethodID,
+    Predicate,
+    PredictivePredicate,
+    PropositionType,
+    Statement,
+)
 from metakb.transform.base import Transform
-from metakb.schemas import Date, DiagnosticPredicate, Document, Method, MethodID, \
-    Predicate, PredictivePredicate, PropositionType, Statement
-
 
 logger = logging.getLogger("metakb.transform.oncokb")
 logger.setLevel(logging.DEBUG)
@@ -29,7 +41,7 @@ GENE_EXT_CONVERSIONS = [
     ("highestSensitiveLevel", "oncokb_highest_sensitive_level"),
     ("highestResistanceLevel", "oncokb_highest_resistance_level"),
     ("background", "oncokb_background"),
-    ("tsg", "tumor_suppressor_gene")
+    ("tsg", "tumor_suppressor_gene"),
 ]
 
 
@@ -41,10 +53,16 @@ VARIATION_EXT_CONVERSIONS = [
     ("vus", "vus"),
     ("highestSensitiveLevel", "oncokb_highest_sensitive_level"),
     ("highestResistanceLevel", "oncokb_highest_resistance_level"),
-    ("highestDiagnosticImplicationLevel", "oncokb_highest_diagnostic_implication_level"),  # noqa: E501
-    ("highestPrognosticImplicationLevel", "oncokb_highest_prognostic_implication_level"),  # noqa: E501
+    (
+        "highestDiagnosticImplicationLevel",
+        "oncokb_highest_diagnostic_implication_level",
+    ),
+    (
+        "highestPrognosticImplicationLevel",
+        "oncokb_highest_prognostic_implication_level",
+    ),
     ("highestFdaLevel", "oncokb_highest_fda_level"),
-    ("alleleExist", "allele_exist")
+    ("alleleExist", "allele_exist"),
 ]
 
 
@@ -55,7 +73,7 @@ DISEASE_EXT_CONVERSIONS = [
     ("children", "children"),
     ("parent", "parent"),
     ("level", "level"),
-    ("tumorForm", "tumor_form")
+    ("tumorForm", "tumor_form"),
 ]
 
 
@@ -65,8 +83,10 @@ class OncoKBTransform(Transform):
     method = f"method:{MethodID.ONCOKB_SOP}"
 
     def __init__(
-        self, data_dir: Path = APP_ROOT / "data", harvester_path: Optional[Path] = None,
-        normalizers: Optional[VICCNormalizers] = None
+        self,
+        data_dir: Path = APP_ROOT / "data",
+        harvester_path: Optional[Path] = None,
+        normalizers: Optional[VICCNormalizers] = None,
     ) -> None:
         """Initialize OncoKB Transform class.
 
@@ -76,22 +96,18 @@ class OncoKBTransform(Transform):
         """
         super().__init__(data_dir, harvester_path, normalizers)
         # Able to normalize these IDSs
-        self.valid_ids = {
-            "disease_descriptors": dict(),
-            "therapy_descriptors": dict()
-        }
+        self.valid_ids = {"disease_descriptors": dict(), "therapy_descriptors": dict()}
         # Unable to normalize these IDs
-        self.invalid_ids = {
-            "therapy_descriptors": set(),
-            "disease_descriptors": set()
-        }
+        self.invalid_ids = {"therapy_descriptors": set(), "disease_descriptors": set()}
 
         self.methods = [
-            Method(id=f"method:{MethodID.ONCOKB_SOP}",
-                   label="OncoKB Curation Standard Operating Procedure",
-                   url="https://sop.oncokb.org/",
-                   version=Date(year=2021, month=11).dict(),
-                   authors="OncoKB").dict(exclude_none=True)
+            Method(
+                id=f"method:{MethodID.ONCOKB_SOP}",
+                label="OncoKB Curation Standard Operating Procedure",
+                url="https://sop.oncokb.org/",
+                version=Date(year=2021, month=11).dict(),
+                authors="OncoKB",
+            ).dict(exclude_none=True)
         ]
 
     async def transform(self) -> None:
@@ -124,8 +140,17 @@ class OncoKBTransform(Transform):
         for data in variants_data:
             # Exclude trying on variants we know we can't normalize
             unable_to_normalize_variant = {
-                "fusion", "fusions", "mutation", "mutations", "tandem", "domain",
-                "splice", "deletion", "hypermethylation", "silencing", "overexpression"
+                "fusion",
+                "fusions",
+                "mutation",
+                "mutations",
+                "tandem",
+                "domain",
+                "splice",
+                "deletion",
+                "hypermethylation",
+                "silencing",
+                "overexpression",
             }
 
             alt = data["query"]["alteration"]
@@ -153,9 +178,15 @@ class OncoKBTransform(Transform):
                 self._add_therapeutic_evidence(treatment, variation_descriptor)
 
     def _add_evidence(
-        self, evidence_data: Dict, proposition_type: PropositionType, level: str,
-        predicate: Predicate, disease_data: Dict, variation_descriptor: Dict,
-        extensions: Optional[List] = None, therapy_descriptor: Optional[Dict] = None
+        self,
+        evidence_data: Dict,
+        proposition_type: PropositionType,
+        level: str,
+        predicate: Predicate,
+        disease_data: Dict,
+        variation_descriptor: Dict,
+        extensions: Optional[List] = None,
+        therapy_descriptor: Optional[Dict] = None,
     ) -> None:
         """Add transformed oncokb evidence as statements
         Will update instance variables (disease_descriptors, proposition, documents,
@@ -177,9 +208,12 @@ class OncoKBTransform(Transform):
             return None
 
         proposition = self._get_proposition(
-            proposition_type, predicate, variation_descriptor["variation_id"],
+            proposition_type,
+            predicate,
+            variation_descriptor["variation_id"],
             disease_descriptor["disease_id"],
-            therapy_descriptor["therapy_id"] if therapy_descriptor else None)
+            therapy_descriptor["therapy_id"] if therapy_descriptor else None,
+        )
         if proposition:
             documents = self._get_documents(evidence_data["pmids"])
             description = evidence_data["description"]
@@ -190,19 +224,23 @@ class OncoKBTransform(Transform):
                 "proposition": proposition["id"],
                 "variation_descriptor": variation_descriptor["id"],
                 "disease_descriptor": disease_descriptor["id"],
-                "therapy_descriptor": therapy_descriptor["id"] if therapy_descriptor else None,  # noqa: E501
+                "therapy_descriptor": therapy_descriptor["id"]
+                if therapy_descriptor
+                else None,
                 "method": self.methods[0]["id"],
                 "supported_by": [d["id"] for d in documents],
-                "extensions": extensions
+                "extensions": extensions,
             }
             digest = self._generate_digest(statement_params)
             statement_params["id"] = f"oncokb.evidence:{digest}"
-            statement = Statement(
-                **statement_params).dict(by_alias=True, exclude_none=True)
+            statement = Statement(**statement_params).dict(
+                by_alias=True, exclude_none=True
+            )
             self.statements.append(statement)
 
-    def _add_diagnostic_evidence(self, diagnostic_implication: Dict,
-                                 variation_descriptor: Dict) -> None:
+    def _add_diagnostic_evidence(
+        self, diagnostic_implication: Dict, variation_descriptor: Dict
+    ) -> None:
         """Transform OncoKB Diagnostic Evidence to common data model. Will update
         instance variables (statements, propositions, variation_descriptors,
         gene_descriptors, therapy_descriptors, disease_descriptors, documents) with
@@ -216,11 +254,18 @@ class OncoKBTransform(Transform):
         proposition_type = PropositionType.DIAGNOSTIC
         level = diagnostic_implication["levelOfEvidence"]
         disease_data = diagnostic_implication["tumorType"]
-        self._add_evidence(diagnostic_implication, proposition_type, level, predicate,
-                           disease_data, variation_descriptor)
+        self._add_evidence(
+            diagnostic_implication,
+            proposition_type,
+            level,
+            predicate,
+            disease_data,
+            variation_descriptor,
+        )
 
-    def _add_therapeutic_evidence(self, treatment: Dict,
-                                  variation_descriptor: Dict) -> None:
+    def _add_therapeutic_evidence(
+        self, treatment: Dict, variation_descriptor: Dict
+    ) -> None:
         """Transform OncoKB Therapeutic Evidence to common data model. Will update
         instance variables (statements, propositions, variation_descriptors,
         gene_descriptors, therapy_descriptors, disease_descriptors, documents) with
@@ -251,15 +296,19 @@ class OncoKBTransform(Transform):
         extensions = list()
         fda_level = treatment["fdaLevel"]
         if fda_level:
-            ext_value = {
-                "level": fda_level,
-                "description": self.fda_levels[fda_level]
-
-            }
+            ext_value = {"level": fda_level, "description": self.fda_levels[fda_level]}
             extensions.append(Extension(name="onckb_fda_level", value=ext_value).dict())
 
-        self._add_evidence(treatment, proposition_type, level, predicate, disease_data,
-                           variation_descriptor, extensions, therapy_descriptor)
+        self._add_evidence(
+            treatment,
+            proposition_type,
+            level,
+            predicate,
+            disease_data,
+            variation_descriptor,
+            extensions,
+            therapy_descriptor,
+        )
 
     def _add_therapy_descriptor(self, drugs_data: List[Dict]) -> Optional[Dict]:
         """Get therapy descriptor
@@ -282,7 +331,9 @@ class OncoKBTransform(Transform):
             if ncit_code not in self.invalid_ids["therapy_descriptors"]:
                 therapy_descriptor = self._get_therapy_descriptor(drugs_data)
                 if therapy_descriptor:
-                    self.valid_ids["therapy_descriptors"][ncit_code] = therapy_descriptor  # noqa: E501
+                    self.valid_ids["therapy_descriptors"][
+                        ncit_code
+                    ] = therapy_descriptor
                     self.therapy_descriptors.append(therapy_descriptor)
                 else:
                     self.invalid_ids["therapy_descriptors"].add(ncit_code)
@@ -302,14 +353,19 @@ class OncoKBTransform(Transform):
         label = drug["drugName"]
 
         queries = [ncit_id, label]
-        therapy_norm_resp, normalized_therapy_id = \
-            self.vicc_normalizers.normalize_therapy(queries)
+        (
+            therapy_norm_resp,
+            normalized_therapy_id,
+        ) = self.vicc_normalizers.normalize_therapy(queries)
         if not normalized_therapy_id:
-            logger.warning(f"Therapy Normalizer unable to normalize using queries: {queries}")  # noqa: E501
+            logger.warning(
+                f"Therapy Normalizer unable to normalize using queries: {queries}"
+            )
             return None
 
-        regulatory_approval_extension = \
+        regulatory_approval_extension = (
             self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)
+        )
 
         return ValueObjectDescriptor(
             type="TherapyDescriptor",
@@ -318,7 +374,9 @@ class OncoKBTransform(Transform):
             therapy_id=normalized_therapy_id,
             alternate_labels=drug["synonyms"] if drug["synonyms"] else None,
             xrefs=[ncit_id],
-            extensions=[regulatory_approval_extension] if regulatory_approval_extension else None  # noqa: E501
+            extensions=[regulatory_approval_extension]
+            if regulatory_approval_extension
+            else None,
         ).dict(exclude_none=True)
 
     def _add_disease_descriptor(self, disease_data: Dict) -> Optional[Dict]:
@@ -339,8 +397,9 @@ class OncoKBTransform(Transform):
             if disease_id not in self.invalid_ids["disease_descriptors"]:
                 disease_descriptor = self._get_disease_descriptor(disease_data)
                 if disease_descriptor:
-                    self.valid_ids["disease_descriptors"][disease_id] = \
-                        disease_descriptor
+                    self.valid_ids["disease_descriptors"][
+                        disease_id
+                    ] = disease_descriptor
                     self.disease_descriptors.append(disease_descriptor)
                 else:
                     self.invalid_ids["disease_descriptors"].add(disease_id)
@@ -359,8 +418,10 @@ class OncoKBTransform(Transform):
         queries = [oncotree_code, label]
         _, normalized_disease_id = self.vicc_normalizers.normalize_disease(queries)
         if not normalized_disease_id:
-            logger.warning(f"Disease Normalizer unable to normalize: "
-                           f"{oncokb_disease_id} using queries {queries}")
+            logger.warning(
+                f"Disease Normalizer unable to normalize: "
+                f"{oncokb_disease_id} using queries {queries}"
+            )
             return None
 
         extensions = list()
@@ -379,7 +440,7 @@ class OncoKBTransform(Transform):
             label=label,
             disease_id=normalized_disease_id,
             xrefs=[oncotree_code],
-            extensions=extensions if extensions else None
+            extensions=extensions if extensions else None,
         ).dict(exclude_none=True)
         return disease_descriptor
 
@@ -417,7 +478,7 @@ class OncoKBTransform(Transform):
                     gene_id=normalized_gene_id,
                     description=gene["summary"] if gene["summary"] else None,
                     extensions=extensions if extensions else None,
-                    xrefs=xrefs if xrefs else None
+                    xrefs=xrefs if xrefs else None,
                 ).dict(exclude_none=True)
                 self.gene_descriptors.append(gene_descriptor)
             else:
@@ -440,7 +501,8 @@ class OncoKBTransform(Transform):
 
         variant = f"{gene} {alteration}"
         variation_descriptor = await self.vicc_normalizers.normalize_variation(
-            [variant])
+            [variant]
+        )
 
         if not variation_descriptor:
             logger.warning(f"Variation Normalizer unable to normalize: {variant}")
@@ -458,7 +520,7 @@ class OncoKBTransform(Transform):
             variation_id=variation_descriptor.variation_id,
             variation=variation_descriptor.variation,
             gene_context=f"oncokb.normalize.gene:{query['hugoSymbol']}",
-            extensions=extensions if extensions else None
+            extensions=extensions if extensions else None,
         ).dict(by_alias=True, exclude_none=True)
         self.variation_descriptors.append(vd)
         return vd
@@ -471,10 +533,9 @@ class OncoKBTransform(Transform):
         """
         documents = list()
         for pmid in pmids:
-            document = Document(
-                id=f"pmid:{pmid}",
-                label=f"PubMed {pmid}"
-            ).dict(exclude_none=True)
+            document = Document(id=f"pmid:{pmid}", label=f"PubMed {pmid}").dict(
+                exclude_none=True
+            )
             documents.append(document)
             if document not in self.documents:
                 self.documents.append(document)

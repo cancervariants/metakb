@@ -4,6 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.ruff]
 src = ["metakb"]
+exclude = ["codebuild/*", "docs/*"]
 # pycodestyle (E, W)
 # Pyflakes (F)
 # flake8-annotations (ANN)
@@ -43,3 +44,5 @@ ignore = [
 # N805 - invalid-first-argument-name-for-method
 "tests/*" = ["ANN001", "ANN102", "ANN2"]
 "metakb/schemas.py" = ["ANN001", "ANN201", "N805"]
+"analysis/*" = ["ANN001", "ANN201"]
+"metakb/*" = ["ANN"]

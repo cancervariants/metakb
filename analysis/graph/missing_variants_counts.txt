@@ -1,0 +1,130 @@
+BRCA1 (Pathogenic), 16
+BRCA2, 14
+KRAS, 11
+BRCA2 (Pathogenic), 11
+BCR--ABL1 Fusion, 10
+KIT, 10
+BRCA1, 9
+EGFR, 9
+PTEN Deletion, 7
+ERBB2 Amplification, 5
+PTEN (Nonsense), 4
+CDK4 Amplification, 4
+FGFR1 Amplification, 4
+FGFR2 Amplification, 4
+MET Amplification, 4
+MSI-High, 4
+ALK Fusion, 3
+ALK Translocation, 3
+TMPRSS2--ERG Fusion, 3
+BRAF, 3
+BRCA1 (Oncogenic Mutations), 3
+BRCA2 (Oncogenic Mutations), 3
+FLCN (Nonsense), 3
+FLCN (Frameshift), 3
+KIT (Oncogenic Mutations), 3
+PTEN (Frameshift), 3
+PTEN (Splice Site), 3
+AR Amplification, 3
+ALK, 2
+PDGFRA, 2
+PDGFRB Translocation, 2
+RET, 2
+EGFR (Nonsense), 2
+ERCC2 (Missense), 2
+MLH3, 2
+MSH2, 2
+MSH6, 2
+NRAS, 2
+POLD1, 2
+POLE, 2
+TSC1 (Nonsense), 2
+TSC1 (Frameshift), 2
+TSC2 (Nonsense), 2
+TSC2 (Frameshift), 2
+COSMIC Signature 10, 2
+COSMIC Signature 3, 2
+COSMIC Signature 4, 2
+High, 2
+High (>= 100.0 mutations), 2
+RAD17 (shRNA), 2
+CCND1 Translocation, 1
+CCND3 Translocation, 1
+COL1A1--PDGFB Fusion, 1
+EML4--ALK Fusion, 1
+ESRP1--RAF1 Fusion, 1
+FGFR2--TACC3 Fusion, 1
+FGFR3--NSD2 Fusion, 1
+FIP1L1--PDGFRA Fusion, 1
+BCR--PDGFRA Fusion, 1
+PDGFRB, 1
+RET Fusion, 1
+ROS1 Fusion, 1
+SLC45A3--BRAF Fusion, 1
+ABL1 (Missense), 1
+ABL1, 1
+ATM (Frameshift), 1
+ATM (Splice Site), 1
+ATM (Nonsense), 1
+ATM, 1
+BARD1, 1
+BCR, 1
+BRIP1, 1
+CDK12, 1
+CHEK1, 1
+CHEK2, 1
+EGFR (Insertion), 1
+EGFR (Deletion), 1
+ERBB2 (Missense), 1
+ERBB3 (Missense), 1
+FANCL, 1
+FBXW7 (Missense), 1
+MET (Splice Site), 1
+MET (Deletion), 1
+MET (Nonsense), 1
+MTOR, 1
+MYH, 1
+PALB2, 1
+PBRM1 (Nonsense), 1
+PBRM1 (Frameshift), 1
+PIK3CA, 1
+PIK3CB, 1
+RAD51B, 1
+RAD51C, 1
+RAD51D, 1
+RAD54L, 1
+SMARCA4 (Nonsense), 1
+SMARCA4 (Frameshift), 1
+SMARCA4 (Splice Site), 1
+TET2, 1
+TP53 (Nonsense), 1
+TP53 (Frameshift), 1
+TP53 (Splice Site), 1
+TSC1 (Oncogenic Mutations), 1
+TSC1, 1
+TSC2, 1
+TSC2 (Oncogenic Mutations), 1
+ATM (Pathogenic), 1
+AURKA Amplification, 1
+AURKB Amplification, 1
+BRAF Amplification, 1
+BRCA2 Deletion, 1
+CCND1 Amplification, 1
+CCNE1 Amplification, 1
+CD274 Amplification, 1
+CDKN2A Deletion, 1
+CDKN2C Deletion, 1
+CRKL Amplification, 1
+EGFR Amplification, 1
+FBXW7 Deletion, 1
+KIT Amplification, 1
+PAK1 Amplification, 1
+PBRM1 Deletion, 1
+PIK3CA Amplification, 1
+COSMIC Signature 5, 1
+High (>= 178.0 mutations), 1
+High (>= 10.0 mutations/Mb), 1
+ATM (shRNA), 1
+CDK12 (shRNA), 1
+CDK12 (siRNA), 1
+RAD50 (shRNA), 1

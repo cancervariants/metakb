@@ -1,0 +1,9 @@
+doid:0060108, Brain Glioma,13
+doid:5603, T-cell Acute Lymphoblastic Leukemia,11
+doid:4450, Renal Cell Carcinoma,1
+doid:0060474, Chuvash Polycythemia,1
+doid:0060075, Estrogen-receptor Positive Breast Cancer,1
+doid:0080797, Nasal Type Extranodal NK/T-cell Lymphoma,1
+doid:0111278, Histiocytosis-Lymphadenopathy Plus Syndrome,1
+doid:0080808, Mammary Analogue Secretory Carcinoma,1
+doid:0080684, Diffuse Midline Glioma, H3 K27M-mutant,1

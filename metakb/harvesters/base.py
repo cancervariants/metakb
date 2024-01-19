@@ -1,8 +1,8 @@
 """A module for the Harvester base class"""
-from typing import List, Dict, Optional
 import json
 import logging
 from datetime import datetime as dt
+from typing import Dict, List, Optional
 
 from metakb import APP_ROOT, DATE_FMT
 
@@ -14,8 +14,7 @@ class Harvester:
     """A base class for content harvesters."""
 
     def harvest(self) -> bool:
-        """
-        Retrieve and store records from a resource. Records may be stored in
+        """Retrieve and store records from a resource. Records may be stored in
         any manner, but must be retrievable by :method:`iterate_records`.
 
         :return: `True` if operation was successful, `False` otherwise.
@@ -23,8 +22,9 @@ class Harvester:
         """
         raise NotImplementedError
 
-    def create_json(self, items: Dict[str, List],
-                    filename: Optional[str] = None) -> bool:
+    def create_json(
+        self, items: Dict[str, List], filename: Optional[str] = None
+    ) -> bool:
         """Create composite and individual JSON for harvested data.
 
         :param Dict items: item types keyed to Lists of values

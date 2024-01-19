@@ -3,21 +3,20 @@ import json
 import logging
 from datetime import date
 
-from jsondiff import diff
 from civicpy.__version__ import __version__ as civicpy_version
+from jsondiff import diff
 
 from metakb import APP_ROOT
+from metakb.harvesters import CIViCHarvester, MOAHarvester, OncoKBHarvester
 from metakb.schemas import SourceName
 from metakb.version import __version__
-from metakb.harvesters import CIViCHarvester, MOAHarvester, OncoKBHarvester
-
 
 HARVESTER_CLASS = {
     SourceName.CIVIC.value: CIViCHarvester,
     SourceName.MOA.value: MOAHarvester,
-    SourceName.ONCOKB.value: OncoKBHarvester
+    SourceName.ONCOKB.value: OncoKBHarvester,
 }
-logger = logging.getLogger('metakb.delta')
+logger = logging.getLogger("metakb.delta")
 logger.setLevel(logging.DEBUG)
 
 
@@ -33,9 +32,9 @@ class Delta:
         self._src = src.lower()
         assert self._src in HARVESTER_CLASS.keys()
         self._main_json = main_json
-        if '_updated_json' in kwargs:
+        if "_updated_json" in kwargs:
             # The path to the updated harvester composite json file.
-            self._updated_json = kwargs['_updated_json']
+            self._updated_json = kwargs["_updated_json"]
         else:
             self._updated_json = None
 
@@ -46,57 +45,49 @@ class Delta:
                  harvester.
         """
         # Main harvester
-        with open(self._main_json, 'r') as f:
+        with open(self._main_json, "r") as f:
             main_json = json.load(f)
 
-        current_date = date.today().strftime('%Y%m%d')
+        current_date = date.today().strftime("%Y%m%d")
 
         # updated harvester
         if self._updated_json:
             # Updated harvester file already exists
-            with open(self._updated_json, 'r') as f:
+            with open(self._updated_json, "r") as f:
                 updated_json = json.load(f)
         else:
             # Want to create updated harvester file
             fn = f"{self._src}_harvester_{current_date}.json"
             HARVESTER_CLASS[self._src]().harvest(filename=fn)
-            with open(f"{APP_ROOT}/data/{self._src}/harvester/{fn}", 'r') as f:
+            with open(f"{APP_ROOT}/data/{self._src}/harvester/{fn}", "r") as f:
                 updated_json = json.load(f)
 
         delta = {
-            '_meta': {
-                'metakb_version': __version__,
-                'date_harvested': current_date
-            }
+            "_meta": {"metakb_version": __version__, "date_harvested": current_date}
         }
 
         if self._src == SourceName.CIVIC:
-            delta['_meta']['civicpy_version'] = civicpy_version
+            delta["_meta"]["civicpy_version"] = civicpy_version
         elif self._src == SourceName.MOA:
-            delta['_meta']['moa_api_version'] = '0.2'
+            delta["_meta"]["moa_api_version"] = "0.2"
         elif self._src == SourceName.ONCOKB:
             delta["_meta"]["oncokb_app_version"] = updated_json["appVersion"]["version"]
             delta["_meta"]["oncokb_api_version"] = updated_json["apiVersion"]["version"]
-            delta["_meta"]["oncokb_data_version"] = \
-                updated_json["dataVersion"]["version"]
+            delta["_meta"]["oncokb_data_version"] = updated_json["dataVersion"][
+                "version"
+            ]
 
         for record_type in main_json.keys():
-            delta[record_type] = {
-                'DELETE': [],
-                'INSERT': [],
-                'UPDATE': []
-            }
+            delta[record_type] = {"DELETE": [], "INSERT": [], "UPDATE": []}
             updated = updated_json[record_type]
             main = main_json[record_type]
             updated_ids = self._get_ids(updated)
             main_ids = self._get_ids(main)
 
             additional_ids = list(set(updated_ids) - set(main_ids))
-            self._ins_del_delta(delta, record_type, 'INSERT', additional_ids,
-                                updated)
+            self._ins_del_delta(delta, record_type, "INSERT", additional_ids, updated)
             remove_ids = list(set(main_ids) - set(updated_ids))
-            self._ins_del_delta(delta, record_type, 'DELETE', remove_ids,
-                                main)
+            self._ins_del_delta(delta, record_type, "DELETE", remove_ids, main)
 
             self._update_delta(delta, record_type, updated, main)
 
@@ -113,7 +104,7 @@ class Delta:
         :param dict data: Harvester data
         """
         for record in data:
-            if record['id'] in ids_list:
+            if record["id"] in ids_list:
                 delta[record_type][key].append(record)
 
     def _update_delta(self, delta, record_type, updated, main):
@@ -126,12 +117,15 @@ class Delta:
         """
         for updated_record in updated:
             for main_record in main:
-                if main_record['id'] == updated_record['id']:
+                if main_record["id"] == updated_record["id"]:
                     if updated_record != main_record:
-                        delta[record_type]['UPDATE'].append({
-                            str(main_record['id']):
-                                diff(main_record, updated_record, marshal=True)
-                        })
+                        delta[record_type]["UPDATE"].append(
+                            {
+                                str(main_record["id"]): diff(
+                                    main_record, updated_record, marshal=True
+                                )
+                            }
+                        )
                     break
 
     def _get_ids(self, records):
@@ -142,7 +136,7 @@ class Delta:
         """
         ids = list()
         for r in records:
-            r_id = r['id']
+            r_id = r["id"]
             if r_id not in ids:
                 ids.append(r_id)
         return ids
@@ -153,9 +147,8 @@ class Delta:
         :param dict delta: A dictionary containing deltas.
         :param str current_date: The current date
         """
-        src_dir = APP_ROOT / 'data' / self._src / 'delta'
+        src_dir = APP_ROOT / "data" / self._src / "delta"
         src_dir.mkdir(exist_ok=True, parents=True)
 
-        with open(f"{src_dir}/{self._src}_deltas_{current_date}.json",
-                  'w+') as f:
+        with open(f"{src_dir}/{self._src}_deltas_{current_date}.json", "w+") as f:
             json.dump(delta, f, indent=4)

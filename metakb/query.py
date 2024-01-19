@@ -1,24 +1,41 @@
 """Module for queries."""
-from typing import Dict, List, Optional, Tuple
-import logging
 import json
+import logging
 from json.decoder import JSONDecodeError
+from typing import Dict, List, Optional, Tuple
 from urllib.parse import quote
 
-from ga4gh.vrsatile.pydantic.vrsatile_models import Extension, Expression
+from ga4gh.vrsatile.pydantic.vrsatile_models import Expression, Extension
+from neo4j import Record, Session, Transaction
 from neo4j.graph import Node
-from neo4j import Transaction, Session, Record
 
 from metakb.database import Graph
 from metakb.normalizers import VICCNormalizers
-from metakb.schemas import SearchService, SourceName, StatementResponse, \
-    TherapeuticResponseProposition, VariationDescriptor, \
-    ValueObjectDescriptor, GeneDescriptor, Method, \
-    Document, SearchIDService, DiagnosticProposition, PrognosticProposition, \
-    SearchStatementsService, NestedStatementResponse, PropositionType, \
-    Proposition, ServiceMeta, Predicate
-from metakb.transform.oncokb import GENE_EXT_CONVERSIONS, VARIATION_EXT_CONVERSIONS, \
-    DISEASE_EXT_CONVERSIONS
+from metakb.schemas import (
+    DiagnosticProposition,
+    Document,
+    GeneDescriptor,
+    Method,
+    NestedStatementResponse,
+    Predicate,
+    PrognosticProposition,
+    Proposition,
+    PropositionType,
+    SearchIDService,
+    SearchService,
+    SearchStatementsService,
+    ServiceMeta,
+    SourceName,
+    StatementResponse,
+    TherapeuticResponseProposition,
+    ValueObjectDescriptor,
+    VariationDescriptor,
+)
+from metakb.transform.oncokb import (
+    DISEASE_EXT_CONVERSIONS,
+    GENE_EXT_CONVERSIONS,
+    VARIATION_EXT_CONVERSIONS,
+)
 
 logger = logging.getLogger("metakb.query")
 logger.setLevel(logging.DEBUG)
@@ -32,9 +49,12 @@ ONCOKB_DISEASE_EXT_NAMES = [i[1] for i in DISEASE_EXT_CONVERSIONS]
 class QueryHandler:
     """Class for handling queries."""
 
-    def __init__(self, uri: str = "",
-                 creds: Tuple[str, str] = ("", ""),
-                 normalizers: VICCNormalizers = VICCNormalizers()) -> None:
+    def __init__(
+        self,
+        uri: str = "",
+        creds: Tuple[str, str] = ("", ""),
+        normalizers: VICCNormalizers = VICCNormalizers(),
+    ) -> None:
         """Initialize neo4j driver and the VICC normalizers.
         :param str uri: address of Neo4j DB
         :param Tuple[str, str] credentials: tuple containing username and
@@ -44,48 +64,46 @@ class QueryHandler:
         self.driver = Graph(uri, creds).driver
         self.vicc_normalizers = normalizers
 
-    def get_normalized_therapy(self, therapy: str,
-                               warnings: List[str]) -> Optional[str]:
+    def get_normalized_therapy(
+        self, therapy: str, warnings: List[str]
+    ) -> Optional[str]:
         """Get normalized therapy concept.
 
         :param str therapy: Therapy query
         :param List[str] warnings: A list of warnings for the search query
         :return: A normalized therapy concept if it exists
         """
-        _, normalized_therapy_id = \
-            self.vicc_normalizers.normalize_therapy([therapy])
+        _, normalized_therapy_id = self.vicc_normalizers.normalize_therapy([therapy])
 
         if not normalized_therapy_id:
-            warnings.append(f"Therapy Normalizer unable to normalize: "
-                            f"{therapy}")
+            warnings.append(f"Therapy Normalizer unable to normalize: " f"{therapy}")
         return normalized_therapy_id
 
-    def get_normalized_disease(self, disease: str,
-                               warnings: List[str]) -> Optional[str]:
+    def get_normalized_disease(
+        self, disease: str, warnings: List[str]
+    ) -> Optional[str]:
         """Get normalized disease concept.
 
         :param str disease: Disease query
         :param List[str] warnings: A list of warnings for the search query
         :return: A normalized disease concept if it exists
         """
-        _, normalized_disease_id = \
-            self.vicc_normalizers.normalize_disease([disease])
+        _, normalized_disease_id = self.vicc_normalizers.normalize_disease([disease])
 
         if not normalized_disease_id:
-            warnings.append(f"Disease Normalizer unable to normalize: "
-                            f"{disease}")
+            warnings.append(f"Disease Normalizer unable to normalize: " f"{disease}")
         return normalized_disease_id
 
-    async def get_normalized_variation(self, variation: str,
-                                       warnings: List[str]) -> Optional[str]:
+    async def get_normalized_variation(
+        self, variation: str, warnings: List[str]
+    ) -> Optional[str]:
         """Get normalized variation concept.
 
         :param str variation: Variation query
         :param List[str] warnings: A list of warnings for the search query
         :return: A normalized variant concept if it exists
         """
-        variant_norm_resp = \
-            await self.vicc_normalizers.normalize_variation([variation])
+        variant_norm_resp = await self.vicc_normalizers.normalize_variation([variation])
         normalized_variation = None
         if variant_norm_resp:
             normalized_variation = variant_norm_resp.variation_id
@@ -94,12 +112,12 @@ class QueryHandler:
             if variation.startswith(("ga4gh:VA.", "ga4gh:CNV.", "ga4gh:VH.")):
                 normalized_variation = variation
             else:
-                warnings.append(f"Variant Normalizer unable to normalize: "
-                                f"{variation}")
+                warnings.append(
+                    f"Variant Normalizer unable to normalize: " f"{variation}"
+                )
         return normalized_variation
 
-    def get_normalized_gene(self, gene: str,
-                            warnings: List[str]) -> Optional[str]:
+    def get_normalized_gene(self, gene: str, warnings: List[str]) -> Optional[str]:
         """Get normalized gene concept.
 
         :param str gene: Gene query
@@ -112,9 +130,13 @@ class QueryHandler:
         return normalized_gene_id
 
     async def get_normalized_terms(
-        self, variation: Optional[str], disease: Optional[str],
-        therapy: Optional[str], gene: Optional[str],
-        statement_id: Optional[str], response: Dict
+        self,
+        variation: Optional[str],
+        disease: Optional[str],
+        therapy: Optional[str],
+        gene: Optional[str],
+        statement_id: Optional[str],
+        response: Dict,
     ) -> Optional[Tuple]:
         """Find normalized terms for queried concepts.
 
@@ -133,28 +155,28 @@ class QueryHandler:
         # Find normalized terms using VICC normalizers
         if therapy:
             response["query"]["therapy"] = therapy
-            normalized_therapy = \
-                self.get_normalized_therapy(therapy.strip(),
-                                            response["warnings"])
+            normalized_therapy = self.get_normalized_therapy(
+                therapy.strip(), response["warnings"]
+            )
         else:
             normalized_therapy = None
         if disease:
             response["query"]["disease"] = disease
-            normalized_disease = \
-                self.get_normalized_disease(disease.strip(),
-                                            response["warnings"])
+            normalized_disease = self.get_normalized_disease(
+                disease.strip(), response["warnings"]
+            )
         else:
             normalized_disease = None
         if variation:
             response["query"]["variation"] = variation
-            normalized_variation = \
-                await self.get_normalized_variation(variation, response["warnings"])
+            normalized_variation = await self.get_normalized_variation(
+                variation, response["warnings"]
+            )
         else:
             normalized_variation = None
         if gene:
             response["query"]["gene"] = gene
-            normalized_gene = self.get_normalized_gene(gene,
-                                                       response["warnings"])
+            normalized_gene = self.get_normalized_gene(gene, response["warnings"])
         else:
             normalized_gene = None
 
@@ -171,23 +193,36 @@ class QueryHandler:
                     valid_statement_id = statement.get("id")
                 else:
                     response["warnings"].append(
-                        f"Statement: {statement_id} does not exist.")
+                        f"Statement: {statement_id} does not exist."
+                    )
 
         # If queried concept is given check that it is normalized / valid
-        if (variation and not normalized_variation) or \
-                (therapy and not normalized_therapy) or \
-                (disease and not normalized_disease) or \
-                (gene and not normalized_gene) or \
-                (statement_id and not valid_statement_id):
+        if (
+            (variation and not normalized_variation)
+            or (therapy and not normalized_therapy)
+            or (disease and not normalized_disease)
+            or (gene and not normalized_gene)
+            or (statement_id and not valid_statement_id)
+        ):
             return None
 
-        return (normalized_variation, normalized_disease, normalized_therapy,
-                normalized_gene, statement, valid_statement_id)
+        return (
+            normalized_variation,
+            normalized_disease,
+            normalized_therapy,
+            normalized_gene,
+            statement,
+            valid_statement_id,
+        )
 
     async def search(
-        self, variation: Optional[str] = None, disease: Optional[str] = None,
-        therapy: Optional[str] = None, gene: Optional[str] = None,
-        statement_id: Optional[str] = None, detail: bool = False
+        self,
+        variation: Optional[str] = None,
+        disease: Optional[str] = None,
+        therapy: Optional[str] = None,
+        gene: Optional[str] = None,
+        statement_id: Optional[str] = None,
+        detail: bool = False,
     ) -> Dict:
         """Get statements and propositions from queried concepts.
 
@@ -208,13 +243,10 @@ class QueryHandler:
                 "therapy": None,
                 "gene": None,
                 "statement_id": None,
-                "detail": detail
+                "detail": detail,
             },
             "warnings": [],
-            "matches": {
-                "statements": [],
-                "propositions": []
-            },
+            "matches": {"statements": [], "propositions": []},
             "statements": [],  # All Statements
             "propositions": [],  # All propositions
             "variation_descriptors": [],
@@ -223,21 +255,31 @@ class QueryHandler:
             "disease_descriptors": [],
             "methods": [],
             "documents": [],
-            "service_meta_": ServiceMeta().dict()
+            "service_meta_": ServiceMeta().dict(),
         }
 
         normalized_terms = await self.get_normalized_terms(
-            variation, disease, therapy, gene, statement_id, response)
+            variation, disease, therapy, gene, statement_id, response
+        )
         if normalized_terms is None:
             return SearchService(**response).dict()
-        (normalized_variation, normalized_disease,
-         normalized_therapy, normalized_gene, statement,
-         valid_statement_id) = normalized_terms
+        (
+            normalized_variation,
+            normalized_disease,
+            normalized_therapy,
+            normalized_gene,
+            statement,
+            valid_statement_id,
+        ) = normalized_terms
 
         session = self.driver.session()
         proposition_nodes = session.read_transaction(
-            self._get_propositions, valid_statement_id, normalized_variation,
-            normalized_therapy, normalized_disease, normalized_gene,
+            self._get_propositions,
+            valid_statement_id,
+            normalized_variation,
+            normalized_therapy,
+            normalized_disease,
+            normalized_gene,
         )
 
         if not valid_statement_id:
@@ -275,23 +317,20 @@ class QueryHandler:
             )
 
         if proposition_nodes and statement_nodes:
-            response["statements"] = \
-                self.get_statement_response(statement_nodes)
-            response["propositions"] = \
-                self.get_propositions_response(proposition_nodes)
+            response["statements"] = self.get_statement_response(statement_nodes)
+            response["propositions"] = self.get_propositions_response(proposition_nodes)
         else:
-            response["warnings"].append("Could not find statements "
-                                        "associated with the queried"
-                                        " concepts.")
+            response["warnings"].append(
+                "Could not find statements " "associated with the queried" " concepts."
+            )
 
         if detail:
             for s in response["statements"]:
                 vd = self._get_variation_descriptor(
                     response,
                     session.read_transaction(
-                        self._find_node_by_id,
-                        s["variation_descriptor"]
-                    )
+                        self._find_node_by_id, s["variation_descriptor"]
+                    ),
                 )
                 if vd not in response["variation_descriptors"]:
                     response["variation_descriptors"].append(vd)
@@ -315,9 +354,7 @@ class QueryHandler:
                     response["disease_descriptors"].append(dd)
 
                 m = self._get_method(
-                    session.read_transaction(
-                        self._find_node_by_id, s["method"]
-                    )
+                    session.read_transaction(self._find_node_by_id, s["method"])
                 )
                 if m not in response["methods"]:
                     response["methods"].append(m)
@@ -328,9 +365,7 @@ class QueryHandler:
                 for sb_id in s["supported_by"]:
                     try:
                         document = self._get_document(
-                            session.read_transaction(
-                                self._find_node_by_id, sb_id
-                            )
+                            session.read_transaction(self._find_node_by_id, sb_id)
                         )
                         if document:
                             if document not in response["documents"]:
@@ -338,10 +373,12 @@ class QueryHandler:
                     except ValueError:
                         sb_not_found.add(sb_id)
                 if sb_not_found:
-                    response["warnings"].append(f"Supported by evidence not "
-                                                f"yet  supported in MetaKB: "
-                                                f"{sb_not_found} for "
-                                                f"{s['id']}")
+                    response["warnings"].append(
+                        f"Supported by evidence not "
+                        f"yet  supported in MetaKB: "
+                        f"{sb_not_found} for "
+                        f"{s['id']}"
+                    )
         else:
             response["variation_descriptors"] = None
             response["gene_descriptors"] = None
@@ -363,7 +400,7 @@ class QueryHandler:
         response = {
             "query": node_id,
             "warnings": [],
-            "service_meta_": ServiceMeta().dict()
+            "service_meta_": ServiceMeta().dict(),
         }
 
         if not node_id:
@@ -374,20 +411,14 @@ class QueryHandler:
             node_id = node_id.strip()
             if "%" not in node_id and ":" in node_id:
                 concept_name = quote(node_id.split(":", 1)[1])
-                node_id = \
-                    f"{node_id.split(':', 1)[0]}" \
-                    f":{concept_name}"
+                node_id = f"{node_id.split(':', 1)[0]}" f":{concept_name}"
             with self.driver.session() as session:
-                node = session.read_transaction(
-                    self._find_node_by_id, node_id
-                )
+                node = session.read_transaction(self._find_node_by_id, node_id)
                 if node:
                     valid_node_id = node.get("id")
                 else:
-                    response["warnings"].append(f"Node: {node_id} "
-                                                f"does not exist.")
-        if (not node_id and not valid_node_id) or \
-                (node_id and not valid_node_id):
+                    response["warnings"].append(f"Node: {node_id} " f"does not exist.")
+        if (not node_id and not valid_node_id) or (node_id and not valid_node_id):
             return SearchIDService(**response).dict(exclude_none=True)
 
         label, *_ = node.labels
@@ -395,22 +426,27 @@ class QueryHandler:
             statement = self._get_statement(node)
             if statement:
                 response["statement"] = statement
-        elif label in ["Proposition", "TherapeuticResponse",
-                       "Prognostic", "Diagnostic"]:
+        elif label in [
+            "Proposition",
+            "TherapeuticResponse",
+            "Prognostic",
+            "Diagnostic",
+        ]:
             proposition = self._get_proposition(node)
             if proposition:
                 response["proposition"] = proposition
         elif label == "VariationDescriptor":
-            response["variation_descriptor"] = \
-                self._get_variation_descriptor(response, node)
+            response["variation_descriptor"] = self._get_variation_descriptor(
+                response, node
+            )
         elif label == "TherapyDescriptor":
-            response["therapy_descriptor"] = \
-                self._get_therapy_descriptor(node)
+            response["therapy_descriptor"] = self._get_therapy_descriptor(node)
         elif label == "DiseaseDescriptor":
             response["disease_descriptor"] = self._get_disease_descriptor(node)
         elif label == "GeneDescriptor":
-            response["gene_descriptor"] = \
-                self._get_gene_descriptor(node, self._get_gene_value_object(node))  # noqa: E501
+            response["gene_descriptor"] = self._get_gene_descriptor(
+                node, self._get_gene_value_object(node)
+            )
         elif label == "Document":
             document = self._get_document(node)
             if document:
@@ -419,13 +455,15 @@ class QueryHandler:
             response["method"] = self._get_method(node)
 
         session.close()
-        return SearchIDService(**response).dict(
-            by_alias=True, exclude_none=True)
+        return SearchIDService(**response).dict(by_alias=True, exclude_none=True)
 
     async def search_statements(
-            self, variation: Optional[str] = None,
-            disease: Optional[str] = None, therapy: Optional[str] = None,
-            gene: Optional[str] = None, statement_id: Optional[str] = None
+        self,
+        variation: Optional[str] = None,
+        disease: Optional[str] = None,
+        therapy: Optional[str] = None,
+        gene: Optional[str] = None,
+        statement_id: Optional[str] = None,
     ) -> Dict:
         """Get nested statements from queried concepts
 
@@ -443,30 +481,37 @@ class QueryHandler:
                 "disease": None,
                 "therapy": None,
                 "gene": None,
-                "statement_id": None
+                "statement_id": None,
             },
             "warnings": [],
-            "matches": {
-                "statements": [],
-                "propositions": []
-            },
+            "matches": {"statements": [], "propositions": []},
             "statements": [],
-            "service_meta_": ServiceMeta().dict()
+            "service_meta_": ServiceMeta().dict(),
         }
 
         normalized_terms = await self.get_normalized_terms(
-            variation, disease, therapy, gene, statement_id, response)
+            variation, disease, therapy, gene, statement_id, response
+        )
         if normalized_terms is None:
             return SearchStatementsService(**response).dict()
-        (normalized_variation, normalized_disease,
-         normalized_therapy, normalized_gene, statement,
-         valid_statement_id) = normalized_terms
+        (
+            normalized_variation,
+            normalized_disease,
+            normalized_therapy,
+            normalized_gene,
+            statement,
+            valid_statement_id,
+        ) = normalized_terms
 
         session = self.driver.session()
         statement_nodes = list()
         proposition_nodes = session.read_transaction(
-            self._get_propositions, valid_statement_id, normalized_variation,
-            normalized_therapy, normalized_disease, normalized_gene
+            self._get_propositions,
+            valid_statement_id,
+            normalized_variation,
+            normalized_therapy,
+            normalized_disease,
+            normalized_gene,
         )
 
         proposition_cache = dict()
@@ -477,8 +522,7 @@ class QueryHandler:
                 p_id = p_node.get("id")
                 if p_id not in response["matches"]["propositions"]:
                     response["matches"]["propositions"].append(p_id)
-                self._add_to_proposition_cache(
-                    session, p_node, proposition_cache)
+                self._add_to_proposition_cache(session, p_node, proposition_cache)
                 statements = session.read_transaction(
                     self._get_statements_from_proposition, p_node.get("id")
                 )
@@ -509,8 +553,7 @@ class QueryHandler:
 
             if og_prop_nodes_len != len(proposition_nodes):
                 for p_node in proposition_nodes:
-                    self._add_to_proposition_cache(
-                        session, p_node, proposition_cache)
+                    self._add_to_proposition_cache(session, p_node, proposition_cache)
 
         methods_cache: Dict = dict()
         variations_cache: Dict = dict()
@@ -543,9 +586,8 @@ class QueryHandler:
             else:
                 variation_descr = self._get_variation_descriptor(
                     {},
-                    session.read_transaction(
-                        self._find_node_by_id, variation_id),
-                    gene_context_by_id=False
+                    session.read_transaction(self._find_node_by_id, variation_id),
+                    gene_context_by_id=False,
                 )
                 variations_cache[variation_id] = variation_descr
 
@@ -555,8 +597,7 @@ class QueryHandler:
                     therapy_descr = therapy_cache[therapy_id]
                 else:
                     therapy_descr = self._get_therapy_descriptor(
-                        session.read_transaction(self._find_node_by_id,
-                                                 therapy_id)
+                        session.read_transaction(self._find_node_by_id, therapy_id)
                     )
                     therapy_cache[therapy_id] = therapy_descr
             else:
@@ -567,16 +608,13 @@ class QueryHandler:
                 disease_descr = disease_cache[disease_id]
             else:
                 disease_descr = self._get_disease_descriptor(
-                    session.read_transaction(self._find_node_by_id,
-                                             disease_id)
+                    session.read_transaction(self._find_node_by_id, disease_id)
                 )
                 disease_cache[disease_id] = disease_descr
 
             supported_by = list()
             sb_not_found = set()
-            sb_list = session.read_transaction(
-                self._find_and_return_supported_by, s_id
-            )
+            sb_list = session.read_transaction(self._find_and_return_supported_by, s_id)
             for sb in sb_list:
                 sb_id = sb.get("id")
                 try:
@@ -584,9 +622,7 @@ class QueryHandler:
                         document = document_cache[sb_id]
                     else:
                         document = self._get_document(
-                            session.read_transaction(
-                                self._find_node_by_id, sb_id
-                            )
+                            session.read_transaction(self._find_node_by_id, sb_id)
                         )
 
                     if document:
@@ -598,10 +634,12 @@ class QueryHandler:
                 except ValueError:
                     sb_not_found.add(sb_id)
             if sb_not_found:
-                response["warnings"].append(f"Supported by evidence not "
-                                            f"yet  supported in MetaKB: "
-                                            f"{sb_not_found} for "
-                                            f"{s['id']}")
+                response["warnings"].append(
+                    f"Supported by evidence not "
+                    f"yet  supported in MetaKB: "
+                    f"{sb_not_found} for "
+                    f"{s['id']}"
+                )
 
             params = {
                 "id": s_id,
@@ -614,17 +652,18 @@ class QueryHandler:
                 "therapy_descriptor": therapy_descr,
                 "disease_descriptor": disease_descr,
                 "method": method,
-                "supported_by": supported_by
+                "supported_by": supported_by,
             }
-            response["statements"].append(
-                NestedStatementResponse(**params).dict())
+            response["statements"].append(NestedStatementResponse(**params).dict())
             added_statements.add(s_id)
         session.close()
         return SearchStatementsService(**response).dict(
-            by_alias=True, exclude_none=True)
+            by_alias=True, exclude_none=True
+        )
 
-    def _add_to_proposition_cache(self, session: Session, p_node: Node,
-                                  proposition_cache: Dict) -> None:
+    def _add_to_proposition_cache(
+        self, session: Session, p_node: Node, proposition_cache: Dict
+    ) -> None:
         """Add a proposition to `proposition_cache`
 
         :param Session session: Neo4j driver session
@@ -634,8 +673,7 @@ class QueryHandler:
         p_id = p_node.get("id")
         if p_id not in proposition_cache:
             proposition_resp = session.read_transaction(
-                self._find_and_return_proposition_response,
-                p_id
+                self._find_and_return_proposition_response, p_id
             )
             proposition_type = p_node.get("type")
             proposition = {
@@ -643,25 +681,28 @@ class QueryHandler:
                 "type": proposition_type,
                 "predicate": p_node.get("predicate"),
                 "subject": proposition_resp["subject"],
-                "object_qualifier": proposition_resp["object_qualifier"]
+                "object_qualifier": proposition_resp["object_qualifier"],
             }
             if proposition_type == PropositionType.PREDICTIVE:
                 proposition["object"] = proposition_resp["object"]
-                proposition = \
-                    TherapeuticResponseProposition(**proposition)
+                proposition = TherapeuticResponseProposition(**proposition)
             elif proposition_type == PropositionType.PROGNOSTIC:
                 proposition = PrognosticProposition(**proposition)
             elif proposition_type == PropositionType.DIAGNOSTIC:
                 proposition = DiagnosticProposition(**proposition)
             else:
-                raise ValueError(f"{proposition_type} is not a valid "
-                                 f"proposition type")
+                raise ValueError(
+                    f"{proposition_type} is not a valid " f"proposition type"
+                )
             if proposition:
                 proposition_cache[p_id] = proposition
 
     def _get_variation_descriptor(
-        self, response: Dict, variation_descriptor: Node,
-            gene_context_by_id: bool = True) -> VariationDescriptor:
+        self,
+        response: Dict,
+        variation_descriptor: Node,
+        gene_context_by_id: bool = True,
+    ) -> VariationDescriptor:
         """Get variation descriptor
 
         :param Dict response: Query response object
@@ -682,7 +723,7 @@ class QueryHandler:
             "gene_context": None,
             "molecule_context": variation_descriptor.get("molecule_context"),
             "structural_type": variation_descriptor.get("structural_type"),
-            "vrs_ref_allele_seq": variation_descriptor.get("vrs_ref_allele_seq"),  # noqa: E501
+            "vrs_ref_allele_seq": variation_descriptor.get("vrs_ref_allele_seq"),
             "expressions": [],
             "xrefs": variation_descriptor.get("xrefs"),
             "alternate_labels": variation_descriptor.get("alternate_labels"),
@@ -696,11 +737,9 @@ class QueryHandler:
             gene_descriptor_id = gene_descriptor.get("id")
 
             gene_value_object = session.read_transaction(
-                self._find_descriptor_value_object,
-                gene_descriptor_id
+                self._find_descriptor_value_object, gene_descriptor_id
             )
-            gene_context = self._get_gene_descriptor(
-                gene_descriptor, gene_value_object)
+            gene_context = self._get_gene_descriptor(gene_descriptor, gene_value_object)
 
             if gene_context_by_id:
                 # Reference gene descriptor by id
@@ -709,19 +748,19 @@ class QueryHandler:
                 # gene context will be gene descriptor
                 vd_params["gene_context"] = gene_context
 
-            if "gene_descriptors" in response and\
-                    gene_descriptor_id not in response["gene_descriptors"]:
+            if (
+                "gene_descriptors" in response
+                and gene_descriptor_id not in response["gene_descriptors"]
+            ):
                 response["gene_descriptors"].append(gene_context)
 
         # Get Variation Descriptor Expressions
-        for key in ["expressions_g", "expressions_p",
-                    "expressions_c"]:
+        for key in ["expressions_g", "expressions_p", "expressions_c"]:
             if key in keys:
                 for value in variation_descriptor.get(key):
                     vd_params["expressions"].append(
                         Expression(
-                            syntax=f"hgvs.{key.split('_')[-1]}",
-                            value=value
+                            syntax=f"hgvs.{key.split('_')[-1]}", value=value
                         ).dict()
                     )
         if not vd_params["expressions"]:
@@ -730,29 +769,31 @@ class QueryHandler:
         extensions = []
         # Get Variation Descriptor Extensions
         if vd_params["id"].startswith("civic.vid"):
-            for field in ["civic_representative_coordinate",
-                          "civic_actionability_score"]:
+            for field in [
+                "civic_representative_coordinate",
+                "civic_actionability_score",
+            ]:
                 if field in keys:
                     extensions.append(
                         Extension(
                             name=field,
-                            value=json.loads(variation_descriptor.get(field))
+                            value=json.loads(variation_descriptor.get(field)),
                         ).dict()
                     )
             with self.driver.session() as session:
-                variant_group = session.read_transaction(
-                    self._get_variation_group, vid
-                )
+                variant_group = session.read_transaction(self._get_variation_group, vid)
                 if variant_group:
                     variant_group = variant_group[0]
                     vg = Extension(
                         name="variant_group",
-                        value=[{
-                            "id": variant_group.get("id"),
-                            "label": variant_group.get("label"),
-                            "description": variant_group.get("description"),
-                            "type": "variant_group"
-                        }]
+                        value=[
+                            {
+                                "id": variant_group.get("id"),
+                                "label": variant_group.get("label"),
+                                "description": variant_group.get("description"),
+                                "type": "variant_group",
+                            }
+                        ],
                     ).dict()
                     for v in vg["value"]:
                         if not v["description"]:
@@ -764,7 +805,7 @@ class QueryHandler:
                     extensions.append(
                         Extension(
                             name=field,
-                            value=json.loads(variation_descriptor.get(field))
+                            value=json.loads(variation_descriptor.get(field)),
                         ).dict()
                     )
         elif vd_params["id"].startswith("oncokb.variant"):
@@ -772,8 +813,7 @@ class QueryHandler:
                 if field in keys:
                     extensions.append(
                         Extension(
-                            name=field,
-                            value=json.loads(variation_descriptor[field])
+                            name=field, value=json.loads(variation_descriptor[field])
                         ).dict()
                     )
 
@@ -797,15 +837,14 @@ class QueryHandler:
         :return: query record, containing variation group node if successful
         """
         query = (
-            "MATCH (vd:VariationDescriptor)-[:IN_VARIATION_GROUP]->(vg:VariationGroup) "  # noqa: E501
+            "MATCH (vd:VariationDescriptor)-[:IN_VARIATION_GROUP]->(vg:VariationGroup) "
             f"WHERE toLower(vd.id) = toLower('{vid}') "
             "RETURN vg"
         )
         return tx.run(query).single()
 
     @staticmethod
-    def _get_variation_descriptors_gene(tx: Transaction,
-                                        vid: str) -> Optional[Node]:
+    def _get_variation_descriptors_gene(tx: Transaction, vid: str) -> Optional[Node]:
         """Get a Variation Descriptor's Gene Descriptor.
         :param Transaction tx: Neo4j session transaction
         :param str vid: variation descriptor ID
@@ -819,8 +858,9 @@ class QueryHandler:
         return tx.run(query).single()[0]
 
     @staticmethod
-    def _get_gene_descriptor(gene_descriptor: Node,
-                             gene_value_object: Node) -> GeneDescriptor:
+    def _get_gene_descriptor(
+        gene_descriptor: Node, gene_value_object: Node
+    ) -> GeneDescriptor:
         """Add gene descriptor to response.
 
         :param Node gene_descriptor: Gene Descriptor Node
@@ -844,8 +884,7 @@ class QueryHandler:
                 if field in keys:
                     extensions.append(
                         Extension(
-                            name=field,
-                            value=json.loads(gene_descriptor[field])
+                            name=field, value=json.loads(gene_descriptor[field])
                         ).dict()
                     )
 
@@ -869,7 +908,7 @@ class QueryHandler:
             "therapy_id": None,
             "alternate_labels": therapy_descriptor.get("alternate_labels"),
             "xrefs": therapy_descriptor.get("xrefs"),
-            "extensions": []
+            "extensions": [],
         }
 
         key = "regulatory_approval"
@@ -901,7 +940,7 @@ class QueryHandler:
             "label": disease_descriptor.get("label"),
             "disease_id": None,
             "xrefs": disease_descriptor.get("xrefs"),
-            "extensions": []
+            "extensions": [],
         }
         keys = disease_descriptor.keys()
 
@@ -910,8 +949,7 @@ class QueryHandler:
                 if field in keys:
                     dd_params["extensions"].append(
                         Extension(
-                            name=field,
-                            value=json.loads(disease_descriptor[field])
+                            name=field, value=json.loads(disease_descriptor[field])
                         ).dict()
                     )
 
@@ -965,16 +1003,13 @@ class QueryHandler:
         :param str node_id: ID of node to retrieve
         :return: Node object if successful
         """
-        query = (
-            "MATCH (n) "
-            f"WHERE toLower(n.id) = toLower('{node_id}') "
-            "RETURN n"
-        )
+        query = "MATCH (n) " f"WHERE toLower(n.id) = toLower('{node_id}') " "RETURN n"
         return (tx.run(query).single() or [None])[0]
 
     @staticmethod
-    def _find_descriptor_value_object(tx: Transaction,
-                                      descriptor_id: str) -> Optional[Node]:
+    def _find_descriptor_value_object(
+        tx: Transaction, descriptor_id: str
+    ) -> Optional[Node]:
         """Find a Descriptor's value object.
         :param Transaction tx: Neo4j session transaction object
         :param str descriptor_id: ID of descriptor to look up
@@ -988,8 +1023,8 @@ class QueryHandler:
         return tx.run(query).single()[0]
 
     def add_proposition_and_statement_nodes(
-            self, session, statement_id: str, proposition_nodes: List,
-            statement_nodes: List):
+        self, session, statement_id: str, proposition_nodes: List, statement_nodes: List
+    ):
         """Get statements found in `supported_by` and their propositions
         and add to corresponding list.
 
@@ -999,23 +1034,19 @@ class QueryHandler:
         :param List statement_nodes: List of statements
         """
         supported_by_statements = session.read_transaction(
-            self._find_and_return_supported_by, statement_id,
-            only_statement=True
+            self._find_and_return_supported_by, statement_id, only_statement=True
         )
         for s in supported_by_statements:
             if s not in statement_nodes:
                 statement_nodes.append(s)
                 proposition = session.read_transaction(
-                    self._find_and_return_propositions_from_statement,
-                    s.get("id")
+                    self._find_and_return_propositions_from_statement, s.get("id")
                 )
-                if proposition and proposition \
-                        not in proposition_nodes:
+                if proposition and proposition not in proposition_nodes:
                     proposition_nodes.append(proposition)
 
     @staticmethod
-    def _get_statement_by_id(tx: Transaction,
-                             statement_id: str) -> Optional[Node]:
+    def _get_statement_by_id(tx: Transaction, statement_id: str) -> Optional[Node]:
         """Get a Statement node by ID.
 
         :param Transaction tx: Neo4j session transaction object
@@ -1031,14 +1062,14 @@ class QueryHandler:
 
     @staticmethod
     def _get_propositions(
-            tx: Transaction,
-            statement_id: str = "",
-            normalized_variation: str = "",
-            normalized_therapy: str = "",
-            normalized_disease: str = "",
-            normalized_gene: str = "",
-            prop_type: Optional[PropositionType] = None,
-            pred: Optional[Predicate] = None
+        tx: Transaction,
+        statement_id: str = "",
+        normalized_variation: str = "",
+        normalized_therapy: str = "",
+        normalized_disease: str = "",
+        normalized_gene: str = "",
+        prop_type: Optional[PropositionType] = None,
+        pred: Optional[Predicate] = None,
     ) -> List[Node]:
         """Get propositions that contain normalized concepts queried. Used
         as callback for Neo4j session API.
@@ -1056,8 +1087,7 @@ class QueryHandler:
         query = ""
         params: Dict[str, str] = {}
         if prop_type and pred:
-            query += \
-                "MATCH (p:Proposition {type:$prop_type, predicate:$pred}) "
+            query += "MATCH (p:Proposition {type:$prop_type, predicate:$pred}) "
             params["prop_type"] = prop_type.value
             params["pred"] = pred.value
         elif prop_type:
@@ -1067,36 +1097,38 @@ class QueryHandler:
             query += "MATCH (p:Proposition {predicate:$pred}) "
             params["pred"] = pred.value
         if statement_id:
-            query += "MATCH (:Statement {id:$s_id})-[:DEFINED_BY]-> (p:Proposition) "  # noqa: E501
+            query += "MATCH (:Statement {id:$s_id})-[:DEFINED_BY]-> (p:Proposition) "
             params["s_id"] = statement_id
         if normalized_therapy:
-            query += \
-                "MATCH (p:Proposition)<-[:IS_OBJECT_OF]-(:Therapy {id:$t_id}) "
+            query += "MATCH (p:Proposition)<-[:IS_OBJECT_OF]-(:Therapy {id:$t_id}) "
             params["t_id"] = normalized_therapy
         if normalized_variation:
             lower_normalized_variation = normalized_variation.lower()
             query += "MATCH (p:Proposition)<-[:IS_SUBJECT_OF]-(v:Variation "
-            if lower_normalized_variation.startswith('ga4gh:sq.'):
+            if lower_normalized_variation.startswith("ga4gh:sq."):
                 # Sequence ID
                 query += "{location_sequence_id: $v_id}) "
             else:
                 query += "{id:$v_id}) "
             params["v_id"] = normalized_variation
         if normalized_disease:
-            query += "MATCH (p:Proposition)<-[:IS_OBJECT_QUALIFIER_OF]-(:Disease {id:$d_id}) "  # noqa: E501
+            query += "MATCH (p:Proposition)<-[:IS_OBJECT_QUALIFIER_OF]-(:Disease {id:$d_id}) "
             params["d_id"] = normalized_disease
         if normalized_gene:
-            query += "MATCH (:Gene {id:$g_id})<-[:DESCRIBES]-" \
-                     "(:GeneDescriptor)<-[:HAS_GENE]-" \
-                     "(:VariationDescriptor)-[:DESCRIBES]->(v:Variation)-" \
-                     "[:IS_SUBJECT_OF]->(p:Proposition) "
+            query += (
+                "MATCH (:Gene {id:$g_id})<-[:DESCRIBES]-"
+                "(:GeneDescriptor)<-[:HAS_GENE]-"
+                "(:VariationDescriptor)-[:DESCRIBES]->(v:Variation)-"
+                "[:IS_SUBJECT_OF]->(p:Proposition) "
+            )
             params["g_id"] = normalized_gene
         query += "RETURN DISTINCT p"
         return [p[0] for p in tx.run(query, **params)]
 
     @staticmethod
-    def _get_statements_from_proposition(tx: Transaction,
-                                         proposition_id: str) -> List[Node]:
+    def _get_statements_from_proposition(
+        tx: Transaction, proposition_id: str
+    ) -> List[Node]:
         """Get statements that are defined by a proposition.
 
         :param Transaction tx: Neo4j session transaction object
@@ -1105,13 +1137,12 @@ class QueryHandler:
         :return: List of statement Nodes
         """
         query = (
-            "MATCH (p:Proposition {id: $proposition_id})<-[:DEFINED_BY]-(s:Statement) "  # noqa: E501
+            "MATCH (p:Proposition {id: $proposition_id})<-[:DEFINED_BY]-(s:Statement) "
             "RETURN DISTINCT s"
         )
         return [s[0] for s in tx.run(query, proposition_id=proposition_id)]
 
-    def get_statement_response(self,
-                               statement_nodes: List[Node]) -> List[Dict]:
+    def get_statement_response(self, statement_nodes: List[Node]) -> List[Dict]:
         """Return a list of statements from Statement and Proposition nodes.
 
         :param List statement_nodes: A list of Statement Nodes
@@ -1122,9 +1153,7 @@ class QueryHandler:
         for s in statement_nodes:
             s_id = s.get("id")
             if s_id not in added_statements:
-                statements_response.append(
-                    self._get_statement(s)
-                )
+                statements_response.append(self._get_statement(s))
                 added_statements.add(s_id)
 
         return statements_response
@@ -1141,7 +1170,7 @@ class QueryHandler:
         """
         queries = (
             ("MATCH (s)-[r1]->(td:TherapyDescriptor) ", "td.id AS tid,"),
-            ("", "")
+            ("", ""),
         )
         for q in queries:
             query = (
@@ -1176,12 +1205,11 @@ class QueryHandler:
         return propositions_response
 
     @staticmethod
-    def _find_and_return_proposition_response(tx: Transaction,
-                                              proposition_id: str) -> Record:
+    def _find_and_return_proposition_response(
+        tx: Transaction, proposition_id: str
+    ) -> Record:
         """Return value ids from a proposition."""
-        queries = (
-            ("MATCH (n) -[r1]-> (t:Therapy) ", "t.id AS object,"), ("", "")
-        )
+        queries = (("MATCH (n) -[r1]-> (t:Therapy) ", "t.id AS object,"), ("", ""))
         for q in queries:
             query = (
                 f"MATCH (n) "
@@ -1213,11 +1241,7 @@ class QueryHandler:
             match = "MATCH (s:Statement)-[:CITES]->(sb) "
         else:
             match = "MATCH (s:Statement)-[:CITES]->(sb:Statement) "
-        query = (
-            f"{match}"
-            f"WHERE s.id = '{statement_id}' "
-            "RETURN sb"
-        )
+        query = f"{match}" f"WHERE s.id = '{statement_id}' " "RETURN sb"
         return [se[0] for se in tx.run(query)]
 
     @staticmethod
@@ -1268,12 +1292,11 @@ class QueryHandler:
                 "type": p_type,
                 "predicate": p.get("predicate"),
                 "subject": value_ids["subject"],
-                "object_qualifier": value_ids["object_qualifier"]
+                "object_qualifier": value_ids["object_qualifier"],
             }
             if p_type == PropositionType.PREDICTIVE:
                 params["object"] = value_ids["object"]
-                proposition = \
-                    TherapeuticResponseProposition(**params)
+                proposition = TherapeuticResponseProposition(**params)
             elif p_type == PropositionType.PROGNOSTIC:
                 proposition = PrognosticProposition(**params)
             elif p_type == PropositionType.DIAGNOSTIC:
@@ -1291,9 +1314,11 @@ class QueryHandler:
         with self.driver.session() as session:
             statement_id = s.get("id")
             response = session.read_transaction(
-                self._find_and_return_statement_response, statement_id)
+                self._find_and_return_statement_response, statement_id
+            )
             se_list = session.read_transaction(
-                self._find_and_return_supported_by, statement_id)
+                self._find_and_return_supported_by, statement_id
+            )
 
             extensions = []
             # Right now, only OncoKB has Statement extensions
@@ -1302,7 +1327,7 @@ class QueryHandler:
                     extensions.append(
                         Extension(
                             name="onckb_fda_level",
-                            value=json.loads(s["onckb_fda_level"])
+                            value=json.loads(s["onckb_fda_level"]),
                         ).dict()
                     )
 
@@ -1314,11 +1339,13 @@ class QueryHandler:
                 variation_origin=s.get("variation_origin"),
                 proposition=response["p_id"],
                 variation_descriptor=response["vid"],
-                therapy_descriptor=response["tid"] if "tid" in response.keys() else None,  # noqa: E501
+                therapy_descriptor=response["tid"]
+                if "tid" in response.keys()
+                else None,
                 disease_descriptor=response["did"],
                 method=response["m"]["id"],
                 supported_by=[se["id"] for se in se_list],
-                extensions=extensions if extensions else None
+                extensions=extensions if extensions else None,
             ).dict(exclude_none=True)
             return statement
 

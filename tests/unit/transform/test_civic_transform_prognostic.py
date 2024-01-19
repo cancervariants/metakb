@@ -1,9 +1,10 @@
 """Test CIViC Transformation to common data model for prognostic."""
+import json
+
 import pytest
 import pytest_asyncio
-from metakb.transform.civic import CIViCTransform
 from metakb import PROJECT_ROOT
-import json
+from metakb.transform.civic import CIViCTransform
 
 DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform" / "prognostic"
 FILENAME = "civic_cdm.json"
@@ -14,8 +15,9 @@ FILENAME = "civic_cdm.json"
 async def data(normalizers):
     """Create a CIViC Transform test fixture."""
     harvester_path = DATA_DIR / "civic_harvester.json"
-    c = CIViCTransform(data_dir=DATA_DIR, harvester_path=harvester_path,
-                       normalizers=normalizers)
+    c = CIViCTransform(
+        data_dir=DATA_DIR, harvester_path=harvester_path, normalizers=normalizers
+    )
     await c.transform()
     c.create_json(transform_dir=DATA_DIR, filename=FILENAME)
     with open(DATA_DIR / FILENAME, "r") as f:
@@ -59,17 +61,39 @@ def documents(pmid_16384925, pmid_27819322):
     return [pmid_16384925, pmid_27819322]
 
 
-def test_civic_cdm(data, statements, propositions, variation_descriptors,
-                   gene_descriptors, disease_descriptors,
-                   civic_methods, documents, check_statement,
-                   check_proposition, check_variation_descriptor,
-                   check_descriptor, check_document, check_method,
-                   check_transformed_cdm):
+def test_civic_cdm(
+    data,
+    statements,
+    propositions,
+    variation_descriptors,
+    gene_descriptors,
+    disease_descriptors,
+    civic_methods,
+    documents,
+    check_statement,
+    check_proposition,
+    check_variation_descriptor,
+    check_descriptor,
+    check_document,
+    check_method,
+    check_transformed_cdm,
+):
     """Test that civic transform works correctly."""
     check_transformed_cdm(
-        data, statements, propositions, variation_descriptors,
-        gene_descriptors, disease_descriptors, None,
-        civic_methods, documents, check_statement, check_proposition,
-        check_variation_descriptor, check_descriptor, check_document,
-        check_method, DATA_DIR / FILENAME
+        data,
+        statements,
+        propositions,
+        variation_descriptors,
+        gene_descriptors,
+        disease_descriptors,
+        None,
+        civic_methods,
+        documents,
+        check_statement,
+        check_proposition,
+        check_variation_descriptor,
+        check_descriptor,
+        check_document,
+        check_method,
+        DATA_DIR / FILENAME,
     )

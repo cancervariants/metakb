@@ -1,9 +1,10 @@
 """Test MOA Transformation to common data model"""
+import json
+
 import pytest
 import pytest_asyncio
-from metakb.transform.moa import MOATransform
 from metakb import PROJECT_ROOT
-import json
+from metakb.transform.moa import MOATransform
 
 DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform"
 FILENAME = "moa_cdm.json"
@@ -14,8 +15,9 @@ FILENAME = "moa_cdm.json"
 async def data(normalizers):
     """Create a MOA Transform test fixture."""
     harvester_path = DATA_DIR / "moa_harvester.json"
-    moa = MOATransform(data_dir=DATA_DIR, harvester_path=harvester_path,
-                       normalizers=normalizers)
+    moa = MOATransform(
+        data_dir=DATA_DIR, harvester_path=harvester_path, normalizers=normalizers
+    )
     await moa.transform()
     moa.create_json(transform_dir=DATA_DIR, filename=FILENAME)
     with open(DATA_DIR / FILENAME, "r") as f:
@@ -62,7 +64,7 @@ def asst71_disease_descriptors(moa_chronic_myelogenous_leukemia):
 @pytest.fixture(scope="module")
 def asst71_methods(method4):
     """Create assertion71 methods test fixture."""
-    return[method4]
+    return [method4]
 
 
 @pytest.fixture(scope="module")
@@ -71,19 +73,40 @@ def asst71_documents(pmid_11423618):
     return [pmid_11423618]
 
 
-def test_moa_cdm(data, asst71_statements, asst71_propositions,
-                 asst71_variation_descriptors, asst71_gene_descriptors,
-                 asst71_disease_descriptors, asst71_therapy_descriptors,
-                 asst71_methods, asst71_documents, check_statement,
-                 check_proposition, check_variation_descriptor,
-                 check_descriptor, check_document, check_method,
-                 check_transformed_cdm):
+def test_moa_cdm(
+    data,
+    asst71_statements,
+    asst71_propositions,
+    asst71_variation_descriptors,
+    asst71_gene_descriptors,
+    asst71_disease_descriptors,
+    asst71_therapy_descriptors,
+    asst71_methods,
+    asst71_documents,
+    check_statement,
+    check_proposition,
+    check_variation_descriptor,
+    check_descriptor,
+    check_document,
+    check_method,
+    check_transformed_cdm,
+):
     """Test that moa transform works correctly."""
     check_transformed_cdm(
-        data, asst71_statements, asst71_propositions,
-        asst71_variation_descriptors, asst71_gene_descriptors,
-        asst71_disease_descriptors, asst71_therapy_descriptors, asst71_methods,
-        asst71_documents, check_statement, check_proposition,
-        check_variation_descriptor, check_descriptor, check_document,
-        check_method, DATA_DIR / FILENAME
+        data,
+        asst71_statements,
+        asst71_propositions,
+        asst71_variation_descriptors,
+        asst71_gene_descriptors,
+        asst71_disease_descriptors,
+        asst71_therapy_descriptors,
+        asst71_methods,
+        asst71_documents,
+        check_statement,
+        check_proposition,
+        check_variation_descriptor,
+        check_descriptor,
+        check_document,
+        check_method,
+        DATA_DIR / FILENAME,
     )

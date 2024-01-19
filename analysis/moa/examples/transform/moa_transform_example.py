@@ -1,13 +1,13 @@
 """Create an example json file for MOA Transform."""
 import json
 
-from metakb import PROJECT_ROOT, APP_ROOT
+from metakb import APP_ROOT, PROJECT_ROOT
 from metakb.transform import MOATransform
 
 
 def create_moa_example(moa_data):
     """Create MOA transform examples from list of evidence items."""
-    assertion_id = ['moa.assertion:71', 'moa.assertion:188']
+    assertion_id = ["moa.assertion:71", "moa.assertion:188"]
     ex = {}
     proposition = None
     var_des = None
@@ -18,55 +18,60 @@ def create_moa_example(moa_data):
     doc = None
 
     for asst_id in assertion_id:
-        for statement in moa_data['statements']:
-            if statement['id'] == asst_id:
-                ex['statements'] = [statement]
-                proposition = statement['proposition']
-                var_des = statement['variation_descriptor']
-                t_des = statement['therapy_descriptor']
-                d_des = statement['disease_descriptor']
-                method = statement['method']
-                doc = statement['supported_by'][0]
+        for statement in moa_data["statements"]:
+            if statement["id"] == asst_id:
+                ex["statements"] = [statement]
+                proposition = statement["proposition"]
+                var_des = statement["variation_descriptor"]
+                t_des = statement["therapy_descriptor"]
+                d_des = statement["disease_descriptor"]
+                method = statement["method"]
+                doc = statement["supported_by"][0]
 
-        for p in moa_data['propositions']:
-            if p['id'] == proposition:
-                ex['propositions'] = [p]
+        for p in moa_data["propositions"]:
+            if p["id"] == proposition:
+                ex["propositions"] = [p]
 
-        for v in moa_data['variation_descriptors']:
-            if v['id'] == var_des:
-                ex['variation_descriptors'] = [v]
-                g_des = v['gene_context']
+        for v in moa_data["variation_descriptors"]:
+            if v["id"] == var_des:
+                ex["variation_descriptors"] = [v]
+                g_des = v["gene_context"]
 
-        for g in moa_data['gene_descriptors']:
-            if g['id'] == g_des:
-                ex['gene_descriptors'] = [g]
+        for g in moa_data["gene_descriptors"]:
+            if g["id"] == g_des:
+                ex["gene_descriptors"] = [g]
 
-        for t in moa_data['therapy_descriptors']:
-            if t['id'] == t_des:
-                ex['therapy_descriptors'] = [t]
+        for t in moa_data["therapy_descriptors"]:
+            if t["id"] == t_des:
+                ex["therapy_descriptors"] = [t]
 
-        for d in moa_data['disease_descriptors']:
-            if d['id'] == d_des:
-                ex['disease_descriptors'] = [d]
+        for d in moa_data["disease_descriptors"]:
+            if d["id"] == d_des:
+                ex["disease_descriptors"] = [d]
 
-        for m in moa_data['methods']:
-            if m['id'] == method:
-                ex['methods'] = [m]
+        for m in moa_data["methods"]:
+            if m["id"] == method:
+                ex["methods"] = [m]
 
-        for d in moa_data['documents']:
-            if d['id'] == doc:
-                ex['documents'] = [d]
+        for d in moa_data["documents"]:
+            if d["id"] == doc:
+                ex["documents"] = [d]
 
-        with open(f"{PROJECT_ROOT}/analysis/moa/examples/transform/"
-                  f"{ex['statements'][0]['id']}.json", 'w+') as f:
+        with open(
+            f"{PROJECT_ROOT}/analysis/moa/examples/transform/"
+            f"{ex['statements'][0]['id']}.json",
+            "w+",
+        ) as f:
             json.dump(ex, f, indent=4)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     moa = MOATransform()
     moa.transform()
     moa.create_json()
-    latest = sorted((APP_ROOT / "data" / "moa" / "transform").glob("moa_cdm_*.json"))[-1]  # noqa: E501
+    latest = sorted((APP_ROOT / "data" / "moa" / "transform").glob("moa_cdm_*.json"))[
+        -1
+    ]
     with open(latest, "r") as f:
         moa_data = json.load(f)
     create_moa_example(moa_data)

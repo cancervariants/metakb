@@ -1,0 +1,130 @@
+None, 184
+Platinum, 28
+Radiation therapy, 22
+Selumetinib, 21
+Dabrafenib + Trametinib, 18
+Bevacizumab + Olaparib, 18
+ncit:None and PI3Ka/Di, 9
+Durvalumab, 8
+Entrectinib, 7
+Erdafitinib, 6
+Proton-based SBRT, 6
+ncit:None and PI-103, 6
+Tazemetostat, 5
+ncit:C15632 and Chemotherapy, 5
+ncit:None and JQ1, 5
+ncit:None and SU11274, 5
+Gamma knife, 4
+U0126, 4
+MK-2206, 4
+Ipilimumab + Vemurafenib, 4
+Capmatinib, 4
+Alkylating chemotherapy, 4
+Neoadjuvant chemoradiation, 4
+nutlin-3, 4
+Talazoparib, 4
+Lapatinib + Trastuzumab, 4
+Neoadjuvant chemotherapy + surgery, 4
+ncit:None and PD173074, 4
+Larotrectinib, 3
+Selpercatinib, 3
+Pralsetinib, 3
+ncit:None and RDEA 119, 3
+ncit:None and EAP Protocol, 3
+JQ1, 2
+Pemigatinib, 2
+Azacitidine + Panobinostat, 2
+Encorafenib, 2
+Cetuximab + Encorafenib, 2
+Cobimetinib + Vemurafenib, 2
+Selumetinib + Vemurafenib, 2
+Mito-CP, 2
+Trametinib + Vemurafenib, 2
+Interferon-alpha + Ixazomib, 2
+GANT61, 2
+GANT61 + Obatoclax, 2
+Neratinib + Vemurafenib, 2
+Cetuximab + Vemurafenib, 2
+Nivolumab + Pembrolizumab, 2
+Durvalumab + Osimertinib, 2
+Durvalumab + Gefitinib, 2
+Ado-Trastuzumab Emtansine, 2
+Letrozole + Tamoxifen, 2
+Palbociclib + Trametinib, 2
+Buparlisib + Trametinib, 2
+FGFR1 inhibitor + Trametinib, 2
+FGFR1 inhibitor + Trametinib , 2
+SBRT, 2
+SU11274, 2
+EXEL-8232, 2
+Chemotherapy + Pembrolizumab, 2
+EPZ015666, 2
+Pertuzumab + Trastuzumab, 2
+Chemotherapy + Trastuzumab, 2
+Capecitabine + Trastuzumab + Tucatinib, 2
+Chemotherapy + Hyaluronidase-zzxf + Pertuzumab + Trastuzumab, 2
+Docetaxel + Hyaluronidase-zzxf + Pertuzumab + Trastuzumab, 2
+Margetuximab-cmkb + Chemotherapy, 2
+Carbogen and nicotinamide  + radiotherapy, 2
+Radical radiotherapy, 2
+Ipilimumab + Nivolumab, 2
+ncit:None and SU5614, 2
+ncit:None and AGI-5198, 2
+ncit:C15360 and Adjuvant Chemotherapy, 2
+ncit:None and Spliceostatin A, 2
+ncit:None and GSK126, 2
+ncit:None and PI103, 2
+ncit:None and BPTES, 2
+ncit:None and JQ-1, 2
+ncit:None and U0126, 2
+ncit:C154898 and Inhibitor, 2
+ncit:None and R3Mab, 2
+ncit:None and FGF/VEGF Receptor Tyrosine Kinase Inhibitor, PD173074, 2
+Lorlatinib, 1
+Omacetaxine, 1
+Dacomitinib, 1
+Ivosidenib, 1
+Alpelisib, 1
+Atezolizumab, 1
+ncit:None and Anti-CD33, 1
+ncit:None and NSC348884, 1
+ncit:C158876 and Induction Therapy, 1
+ncit:None and JW55, 1
+ncit:None and G007-LK, 1
+ncit:C11197 and FOLFOX Regimen, 1
+ncit:None and GSK321, 1
+ncit:None and SB202190, 1
+ncit:None and AKTi-1/2, 1
+ncit:None and WZ4002, 1
+ncit:None and JSI-124, 1
+ncit:None and NOTCH1 Antibody (PF-06293622), 1
+ncit:None and RG7356, 1
+ncit:None and GNE-617, 1
+ncit:None and ACLY SiRNA, 1
+ncit:C1490 and Taxane Compound, 1
+ncit:None and IGF1R Monoclonal Antibody, 1
+ncit:None and OICR-9429, 1
+ncit:None and AZD5438, 1
+ncit:None and WHI-P154, 1
+ncit:None and 2,4-pyrimidinediamine, 1
+ncit:None and AZD3463, 1
+ncit:None and A66, 1
+ncit:None and Tgx 221, 1
+ncit:None and JQ1 Compound, 1
+ncit:None and GPI-15427, 1
+ncit:None and C646, 1
+ncit:None and UO126, 1
+ncit:None and UNC1062, 1
+ncit:C15313 and Radiation Therapy, 1
+ncit:C2462 and Radioactive Iodine, 1
+ncit:None and NVP-AEW541, 1
+ncit:None and ARS-1620, 1
+ncit:None and ALK2 Inhibitor LDN-193189, 1
+ncit:None and JQEZ5, 1
+ncit:None and CHZ868, 1
+ncit:None and JAK Inhibitor I, 1
+ncit:None and DS-6501b, 1
+ncit:None and MAP855, 1
+ncit:None and EPZ004777, 1
+ncit:None and CHMFL-KIT-031, 1
+ncit:None and EPZ011989, 1
