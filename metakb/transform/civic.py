@@ -701,7 +701,7 @@ class CivicTransform(Transform):
                 relation=core_models.Relation.EXACT_MATCH
             ))
 
-        _, normalized_disease_id = \
+        disease_norm_resp, normalized_disease_id = \
             self.vicc_normalizers.normalize_disease(queries)
 
         if not normalized_disease_id:
@@ -714,10 +714,10 @@ class CivicTransform(Transform):
             label=display_name,
             mappings=mappings if mappings else None,
             extensions=[
-                core_models.Extension(
-                    name="disease_normalizer_id",
-                    value=normalized_disease_id
-                )
+                self._get_disease_normalizer_ext_data(
+                    normalized_disease_id,
+                    disease_norm_resp
+                ),
             ]
         ).model_dump(exclude_none=True)
 
@@ -795,10 +795,10 @@ class CivicTransform(Transform):
         else:
             queries = [label]
 
-        therapy_norm_resp, normalized_therapy_id = \
+        therapy_norm_resp, normalized_therapeutic_id = \
             self.vicc_normalizers.normalize_therapy(queries)
 
-        if not normalized_therapy_id:
+        if not normalized_therapeutic_id:
             logger.debug(f"Therapy Normalizer unable to normalize: "
                          f"using queries ncit:{ncit_id} and {label}")
             return None
@@ -807,10 +807,10 @@ class CivicTransform(Transform):
             self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)
 
         extensions = [
-            core_models.Extension(
-                name="therapy_normalizer_id",
-                value=normalized_therapy_id
-            )
+            self._get_therapy_normalizer_ext_data(
+                normalized_therapeutic_id,
+                therapy_norm_resp
+            ),
         ]
 
         if regulatory_approval_extension:
