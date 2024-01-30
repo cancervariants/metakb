@@ -407,10 +407,10 @@ class MoaTransform(Transform):
             return None
 
         extensions = [
-            core_models.Extension(
-                name="therapy_normalizer_id",
-                value=normalized_therapeutic_id
-            )
+            self._get_therapy_normalizer_ext_data(
+                normalized_therapeutic_id,
+                therapy_norm_resp
+            ),
         ]
 
         regulatory_approval_extension = \
@@ -502,9 +502,9 @@ class MoaTransform(Transform):
             label=disease_name,
             mappings=mappings if mappings else None,
             extensions=[
-                core_models.Extension(
-                    name="disease_normalizer_id",
-                    value=normalized_disease_id
-                )
+                self._get_disease_normalizer_ext_data(
+                    normalized_disease_id,
+                    disease_norm_resp
+                ),
             ]
         ).model_dump(exclude_none=True)
