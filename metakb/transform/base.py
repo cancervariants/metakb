@@ -7,8 +7,13 @@ from pathlib import Path
 from datetime import datetime as dt
 from enum import StrEnum
 
+from disease.schemas import (
+    NormalizationService as NormalizedDisease,
+    NamespacePrefix as DiseaseNamespacePrefix
+)
 from ga4gh.core import core_models, sha512t24u
 from pydantic import BaseModel, StrictStr, ValidationError
+from therapy.schemas import NormalizationService as NormalizedTherapy
 
 from metakb import APP_ROOT, DATE_FMT
 from metakb.schemas.annotation import Method, Document
@@ -409,6 +414,54 @@ class Transform:
             else:
                 self.unable_to_normalize["therapeutics"].add(therapeutic_procedure_id)
         return tp
+
+    @staticmethod
+    def _get_therapy_normalizer_ext_data(
+        normalized_therapeutic_id: str,
+        therapy_norm_resp: NormalizedTherapy
+    ) -> core_models.Extension:
+        """Create extension containing relevant therapy-normalizer data
+
+        :param normalized_therapeutic_id: Concept ID from therapy-normalizer
+        :param therapy_norm_resp: Matched response from therapy-normalizer
+        :return: Extension containing therapy-normalizer data. Additional information,
+            such as the label, is provided for VarCat.
+        """
+        return core_models.Extension(
+            name="therapy_normalizer_data",
+            value={
+                "normalized_id": normalized_therapeutic_id,
+                "label": therapy_norm_resp.therapeutic_agent.label
+            }
+        )
+
+    @staticmethod
+    def _get_disease_normalizer_ext_data(
+        normalized_disease_id: str,
+        disease_norm_resp: NormalizedDisease
+    ) -> core_models.Extension:
+        """Create extension containing relevant disease-normalizer data
+
+        :param normalized_disease_id: Concept ID from disease-normalizer
+        :param disease_norm_resp: Matched response from disease-normalizer
+        :return: Extension containing disease-normalizer data. Additional information,
+            such as the label and mondo_id, is provided for VarCat.
+        """
+        mappings = disease_norm_resp.disease.mappings or []
+        mondo_id = None
+        for mapping in mappings:
+            if mapping.coding.system == DiseaseNamespacePrefix.MONDO.value:
+                mondo_id = mapping.coding.code
+                break
+
+        return core_models.Extension(
+            name="disease_normalizer_data",
+            value={
+                "normalized_id": normalized_disease_id,
+                "label": disease_norm_resp.disease.label,
+                "mondo_id": mondo_id
+            }
+        )
 
     def create_json(self, transform_dir: Optional[Path] = None,
                     filename: Optional[str] = None) -> None:

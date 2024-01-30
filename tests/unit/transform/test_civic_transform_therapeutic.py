@@ -205,8 +205,11 @@ def civic_tid28():
         "extensions": [
             {
                 "type": "Extension",
-                "name": "therapy_normalizer_id",
-                "value": "rxcui:263034"
+                "name": "therapy_normalizer_data",
+                "value": {
+                    "normalized_id": "rxcui:263034",
+                    "label": "panitumumab"
+                }
             },
             {
                 "type": "Extension",
@@ -321,8 +324,12 @@ def civic_did11():
         "extensions": [
             {
                 "type": "Extension",
-                "name": "disease_normalizer_id",
-                "value": "ncit:C4978"
+                "name": "disease_normalizer_data",
+                "value": {
+                    "normalized_id": "ncit:C4978",
+                    "label": "Malignant Colorectal Neoplasm",
+                    "mondo_id": "0005575"
+                }
             }
         ]
     }
