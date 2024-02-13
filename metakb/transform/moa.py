@@ -276,12 +276,14 @@ class MoaTransform(Transform):
                 "chromosome", "start_position", "end_position", "reference_allele",
                 "alternate_allele", "cdna_change", "protein_change", "exon"
             ]
+            moa_rep_coord = {k: variant.get(k) for k in coordinates_keys}
             extensions = [
                 core_models.Extension(
                     name="MOA representative coordinate",
-                    value={k: variant[k] for k in coordinates_keys}
+                    value=moa_rep_coord
                 )
             ]
+            members = await self._get_variation_members(moa_rep_coord)
 
             # Add mappings data
             mappings = [
@@ -308,7 +310,8 @@ class MoaTransform(Transform):
                 label=feature,
                 definingContext=moa_variation.root,
                 mappings=mappings or None,
-                extensions=extensions
+                extensions=extensions,
+                members=members
             ).model_dump(exclude_none=True)
 
             self.able_to_normalize["variations"][variant_id] = {
@@ -316,6 +319,46 @@ class MoaTransform(Transform):
                 "moa_gene": moa_gene
             }
             self.variations.append(psc)
+
+    async def _get_variation_members(
+        self,
+        moa_rep_coord: Dict
+    ) -> Optional[List[models.Variation]]:
+        """Get members field for variation object. This is the related variant concepts.
+        FOr now, only looks at genomic representative coordinate.
+
+        :param moa_rep_coord: MOA Representative Coordinate
+        :return: List containing one VRS variation record for associated genomic
+            representation, if variation-normalizer was able to normalizer
+        """
+        members = None
+        chromosome = moa_rep_coord["chromosome"]
+        pos = moa_rep_coord["start_position"]
+        ref = moa_rep_coord["reference_allele"]
+        alt = moa_rep_coord["alternate_allele"]
+
+        if all((
+            chromosome is not None,
+            pos is not None,
+            ref is not None,
+            alt is not None
+        )):
+            gnomad_vcf = f"{chromosome}-{pos}-{ref}-{alt}"
+            vrs_genomic_variation = await self.vicc_normalizers.normalize_variation(
+                [gnomad_vcf]
+            )
+
+            if vrs_genomic_variation:
+                genomic_params = vrs_genomic_variation.model_dump(exclude_none=True)
+                genomic_params["digest"] = vrs_genomic_variation.id.split(".")[-1]
+                genomic_params["label"] = gnomad_vcf
+                members = [models.Variation(**genomic_params)]
+            else:
+                logger.debug(
+                    f"Variation Normalizer unable to normalize genomic representative: {gnomad_vcf}"  # noqa: E501
+                )
+
+        return members
 
     def _add_genes(self, genes: List[str]) -> None:
         """Create gene objects for all MOA gene records.

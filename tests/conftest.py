@@ -1859,6 +1859,28 @@ def moa_vid66():
                 "sequence": "I"
             }
         },
+        "members": [
+            {
+                "id": "ga4gh:VA.4V66OTVdyRCs7Vm3kxBPQFSDk547xRIJ",
+                "label": "9-133748283-C-T",
+                "digest": "4V66OTVdyRCs7Vm3kxBPQFSDk547xRIJ",
+                "type": "Allele",
+                "location": {
+                    "id": "ga4gh:SL.Jd8rYQFTnBOWt4NflEVkGn9J0esGH9zo",
+                    "type": "SequenceLocation",
+                    "sequenceReference": {
+                        "type": "SequenceReference",
+                        "refgetAccession": "SQ.KEO-4XBcm1cxeo_DIQ8_ofqGUkp4iZhI"
+                    },
+                    "start": 133748282,
+                    "end": 133748283
+                },
+                "state": {
+                    "type": "LiteralSequenceExpression",
+                    "sequence": "T"
+                }
+            }
+        ],
         "extensions": [
             {
                 "name": "MOA representative coordinate",

@@ -49,6 +49,28 @@ def moa_vid145():
                 "sequence": "E"
             }
         },
+        "members": [
+            {
+                "id": "ga4gh:VA.LX3ooHBAiZdKY4RfTXcliUmkj48mnD_M",
+                "label": "7-140453136-A-T",
+                "digest": "LX3ooHBAiZdKY4RfTXcliUmkj48mnD_M",
+                "type": "Allele",
+                "location": {
+                    "id": "ga4gh:SL.XutGzMvqbzN-vnxmPt2MJf7ehxmB0opi",
+                    "type": "SequenceLocation",
+                    "sequenceReference": {
+                        "type": "SequenceReference",
+                        "refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul"
+                    },
+                    "start": 140753335,
+                    "end": 140753336
+                },
+                "state": {
+                    "type": "LiteralSequenceExpression",
+                    "sequence": "T"
+                }
+            }
+        ],
         "extensions": [
             {
                 "name": "MOA representative coordinate",
