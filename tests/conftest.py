@@ -133,6 +133,8 @@ def encorafenib_extensions():
 @pytest.fixture(scope="module")
 def civic_mpid33(civic_vid33):
     """Create CIViC MPID 33"""
+    variation_digest = "pM_eD8ha-bnAu6wJOoQTtHYIvEShSN51"
+    loc_digest = "7g6PIIHJ_QkKe_dRvkuCe8UtZCmPxo5B"
     return {
         "id": "civic.mpid:33",
         "type": "ProteinSequenceConsequence",
@@ -141,12 +143,13 @@ def civic_mpid33(civic_vid33):
         "definingContext": civic_vid33,
         "members": [
             {
-                "id": "ga4gh:VA.TAARa2cxRHmOiij9UBwvW-noMDoOq2x9",
+                "id": f"ga4gh:VA.{variation_digest}",
                 "label": "NC_000007.13:g.55259515T>G",
-                "digest": "TAARa2cxRHmOiij9UBwvW-noMDoOq2x9",
+                "digest": variation_digest,
                 "type": "Allele",
                 "location": {
-                    "id": "ga4gh:SL.ulUNwZvajob7nzyrlpOd6uUWZIYCsoWb",
+                    "id": f"ga4gh:SL.{loc_digest}",
+                    "digest": loc_digest,
                     "type": "SequenceLocation",
                     "sequenceReference": {
                         "type": "SequenceReference",
@@ -290,13 +293,16 @@ def civic_eid2997_study(
 @pytest.fixture(scope="module")
 def civic_vid33():
     """Create a test fixture for CIViC VID33."""
+    variation_digest = "S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ"
+    loc_digest = "v0_edynH98OIu-0QPVT5anCSOriAFSDQ"
     return {
-        "id": "ga4gh:VA.z7c2S8QzZ3yL2UjV_xP7zP913BrYYFGn",
+        "id": f"ga4gh:VA.{variation_digest}",
         "type": "Allele",
         "label": "L858R",
-        "digest": "z7c2S8QzZ3yL2UjV_xP7zP913BrYYFGn",
+        "digest": variation_digest,
         "location": {
-            "id": "ga4gh:SL.yVGJnwqxV6oCGqC_8nNb58D_wPXJeNJo",
+            "id": f"ga4gh:SL.{loc_digest}",
+            "digest": loc_digest,
             "type": "SequenceLocation",
             "sequenceReference": {
                 "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
@@ -1384,16 +1390,19 @@ def moa_aid67_study(
 @pytest.fixture(scope="module")
 def moa_vid67():
     """Create a test fixture for MOA VID67."""
+    variation_digest = "D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ"
+    loc_digest = "jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs"
     return {
         "id": "moa.variant:67",
         "type": "ProteinSequenceConsequence",
         "label": "ABL1 p.T315I (Missense)",
         "definingContext": {
-            "id": "ga4gh:VA.EbGZQl1LnjzDCTbjF2VtPbvgMsPWfBOq",
-            "digest": "EbGZQl1LnjzDCTbjF2VtPbvgMsPWfBOq",
+            "id": f"ga4gh:VA.{variation_digest}",
+            "digest": variation_digest,
             "type": "Allele",
             "location": {
-                "id": "ga4gh:SL.2UGEX11rbVdN0Nbzc5RU0G0A5elENRTH",
+                "id": f"ga4gh:SL.{loc_digest}",
+                "digest": loc_digest,
                 "type": "SequenceLocation",
                 "sequenceReference": {
                     "type": "SequenceReference",

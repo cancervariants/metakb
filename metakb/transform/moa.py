@@ -269,7 +269,6 @@ class MoaTransform(Transform):
             params = vrs_variation.model_dump(exclude_none=True)
             moa_variant_id = f"moa.variant:{variant_id}"
             params["id"] = vrs_variation.id
-            params["digest"] = vrs_variation.id.split(".")[-1]
             moa_variation = models.Variation(**params)
 
             # Add MOA representative coordinate data to extensions

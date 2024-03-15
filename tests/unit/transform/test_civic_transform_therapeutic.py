@@ -27,13 +27,16 @@ async def data(normalizers):
 @pytest.fixture(scope="module")
 def civic_vid12():
     """Create test fixture for CIViC Variant ID 12"""
+    variation_digest = "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L"
+    loc_digest = "t-3DrWALhgLdXHsupI-e-M00aL3HgK3y"
     return {
-        "id": "ga4gh:VA.4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
+        "id": f"ga4gh:VA.{variation_digest}",
         "type": "Allele",
         "label": "V600E",
-        "digest": "4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
+        "digest": variation_digest,
         "location": {
-            "id": "ga4gh:SL.ZA1XNKhCT_7m2UtmnYb8ZYOVS4eplMEK",
+            "id": f"ga4gh:SL.{loc_digest}",
+            "digest": loc_digest,
             "type": "SequenceLocation",
             "sequenceReference": {
                 "refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y",
@@ -70,6 +73,8 @@ def civic_vid12():
 @pytest.fixture(scope="module")
 def civic_mpid12(civic_vid12):
     """Create test fixture for CIViC Molecular Profile ID 12"""
+    variation_digest = "Otc5ovrw906Ack087o1fhegB4jDRqCAe"
+    loc_digest = "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2"
     return {
         "id": "civic.mpid:12",
         "type": "ProteinSequenceConsequence",
@@ -78,12 +83,13 @@ def civic_mpid12(civic_vid12):
         "definingContext": civic_vid12,
         "members": [
             {
-                "id": "ga4gh:VA.LX3ooHBAiZdKY4RfTXcliUmkj48mnD_M",
+                "id": f"ga4gh:VA.{variation_digest}",
                 "label": "NC_000007.13:g.140453136A>T",
-                "digest": "LX3ooHBAiZdKY4RfTXcliUmkj48mnD_M",
+                "digest": variation_digest,
                 "type": "Allele",
                 "location": {
-                    "id": "ga4gh:SL.XutGzMvqbzN-vnxmPt2MJf7ehxmB0opi",
+                    "id": f"ga4gh:SL.{loc_digest}",
+                    "digest": loc_digest,
                     "type": "SequenceLocation",
                     "sequenceReference": {
                         "type": "SequenceReference",

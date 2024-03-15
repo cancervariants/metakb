@@ -26,16 +26,19 @@ async def data(normalizers):
 @pytest.fixture(scope="module")
 def moa_vid145():
     """Create a test fixture for MOA VID145."""
+    variation_digest = "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L"
+    loc_digest = "t-3DrWALhgLdXHsupI-e-M00aL3HgK3y"
     return {
         "id": "moa.variant:145",
         "type": "ProteinSequenceConsequence",
         "label": "BRAF p.V600E (Missense)",
         "definingContext": {
-            "id": "ga4gh:VA.4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
-            "digest": "4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
+            "id": f"ga4gh:VA.{variation_digest}",
+            "digest": variation_digest,
             "type": "Allele",
             "location": {
-                "id": "ga4gh:SL.ZA1XNKhCT_7m2UtmnYb8ZYOVS4eplMEK",
+                "id": f"ga4gh:SL.{loc_digest}",
+                "digest": loc_digest,
                 "type": "SequenceLocation",
                 "sequenceReference": {
                     "type": "SequenceReference",
