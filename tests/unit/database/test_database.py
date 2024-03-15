@@ -383,10 +383,10 @@ def test_therapeutic_procedure_rules(
 
     # Test TherapeuticAgent
     ta = get_node_by_id(civic_tid146["id"])
-    extension_names = {"therapy_normalizer_id", "regulatory_approval"}
+    extension_names = {"therapy_normalizer_data", "regulatory_approval"}
     check_extension_props(ta, civic_tid146["extensions"], extension_names)
     expected_keys = {
-        "id", "label", "aliases", "therapy_normalizer_id", "regulatory_approval",
+        "id", "label", "aliases", "therapy_normalizer_data", "regulatory_approval",
         "mappings", "type"
     }
     check_node_props(ta, civic_tid146, expected_keys, extension_names)
@@ -425,9 +425,9 @@ def test_condition_rules(
     check_node_labels("Condition", expected_node_labels, 1)
 
     disease = get_node_by_id(civic_did8["id"])
-    extension_names = {"disease_normalizer_id"}
+    extension_names = {"disease_normalizer_data"}
     check_extension_props(disease, civic_did8["extensions"], extension_names)
-    expected_keys = {"id", "label", "mappings", "disease_normalizer_id", "type"}
+    expected_keys = {"id", "label", "mappings", "disease_normalizer_data", "type"}
     check_node_props(disease, civic_did8, expected_keys, extension_names)
 
 
