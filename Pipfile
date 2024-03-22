@@ -23,11 +23,10 @@ asyncclick = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
+pre-commit = "*"
+ruff = "==0.2.0"
 mock = "*"
 pytest = "*"
-pre-commit = "*"
-flake8 = "*"
-flake8-docstrings = "*"
 pytest-cov = "*"
-ipykernel = "*"
 pytest-asyncio = "*"
+ipykernel = "*"
