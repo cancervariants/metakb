@@ -145,8 +145,12 @@ def moa_aid155_study(
             "extensions": [
                 {
                     "type": "Extension",
-                    "name": "disease_normalizer_id",
-                    "value": "ncit:C5105"
+                    "name": "disease_normalizer_data",
+                    "value": {
+                        "normalized_id": "ncit:C5105",
+                        "label": "Colorectal Adenocarcinoma",
+                        "mondo_id": "0005008"
+                    }
                 }
             ],
             "mappings": [

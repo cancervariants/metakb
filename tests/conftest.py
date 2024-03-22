@@ -13,8 +13,11 @@ def cetuximab_extensions():
     return [
         {
             "type": "Extension",
-            "name": "therapy_normalizer_id",
-            "value": "rxcui:318341"
+            "name": "therapy_normalizer_data",
+            "value": {
+                "normalized_id": "rxcui:318341",
+                "label": "cetuximab"
+            }
         },
         {
             "type": "Extension",
@@ -78,8 +81,11 @@ def encorafenib_extensions():
     return [
         {
             "type": "Extension",
-            "name": "therapy_normalizer_id",
-            "value": "rxcui:2049106"
+            "name": "therapy_normalizer_data",
+            "value": {
+                "normalized_id": "rxcui:2049106",
+                "label": "encorafenib"
+            }
         },
         {
             "type": "Extension",
@@ -580,8 +586,11 @@ def civic_tid146():
             },
             {
                 "type": "Extension",
-                "name": "therapy_normalizer_id",
-                "value": "rxcui:1430438"
+                "name": "therapy_normalizer_data",
+                "value": {
+                    "normalized_id": "rxcui:1430438",
+                    "label": "afatinib"
+                }
             }
         ]
     }
@@ -606,8 +615,12 @@ def civic_did8():
         "extensions": [
             {
                 "type": "Extension",
-                "name": "disease_normalizer_id",
-                "value": "ncit:C2926"
+                "name": "disease_normalizer_data",
+                "value": {
+                    "normalized_id": "ncit:C2926",
+                    "label": "Lung Non-Small Cell Carcinoma",
+                    "mondo_id": "0005233"
+                }
             }
         ]
     }
@@ -1989,8 +2002,11 @@ def moa_imatinib():
             },
             {
                 "type": "Extension",
-                "name": "therapy_normalizer_id",
-                "value": "rxcui:282388"
+                "name": "therapy_normalizer_data",
+                "value": {
+                    "normalized_id": "rxcui:282388",
+                    "label": "imatinib"
+                }
             }
         ]
     }
@@ -2006,8 +2022,12 @@ def moa_chronic_myelogenous_leukemia():
         "extensions": [
             {
                 "type": "Extension",
-                "name": "disease_normalizer_id",
-                "value": "ncit:C3174"
+                "name": "disease_normalizer_data",
+                "value": {
+                    "normalized_id": "ncit:C3174",
+                    "label": "Chronic Myelogenous Leukemia, BCR-ABL1 Positive",
+                    "mondo_id": "0011996"
+                }
             }
         ],
         "mappings": [

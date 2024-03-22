@@ -635,7 +635,7 @@ def test_moa_id_search(query_handler, moa_aid71_statement,
     res = query_handler.search_by_id('moa.assertion:67')
     check_statement(res['statement'], moa_aid71_statement)
 
-    res = query_handler.search_by_id('moa.variant:67')
+    res = query_handler.search_by_id('moa.variant:71')
     check_variation_descriptor(res['variation_descriptor'], moa_vid67)
 
     res = query_handler.search_by_id('moa.normalize.gene:ABL1')

@@ -185,12 +185,17 @@ class Graph:
 
         extensions = obj.get("extensions", [])
         for ext in extensions:
-            name = "_".join(ext["name"].split()).lower()
-            val = ext["value"]
-            if isinstance(val, (dict, list)):
-                obj[name] = json.dumps(val)
+            if ext["name"].endswith("_normalizer_data"):
+                obj_type = ext["name"].split("_normalizer_data")[0]
+                name = f"{obj_type}_normalizer_id"
+                obj[name] = ext["value"]["normalized_id"]
             else:
-                obj[name] = val
+                name = "_".join(ext["name"].split()).lower()
+                val = ext["value"]
+                if isinstance(val, (dict, list)):
+                    obj[name] = json.dumps(val)
+                else:
+                    obj[name] = val
             obj_keys.append(f"{name}:${name}")
 
     def _add_method(
