@@ -1,0 +1,23 @@
+name: Pull Request Has Priority Label
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize]
+jobs:
+  pr-priority-label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    outputs:
+      status: ${{ steps.check-labels.outputs.status }}
+    steps:
+      - id: check-labels
+        uses: mheap/github-action-required-labels@v5
+        with:
+          mode: exactly
+          count: 1
+          labels: "priority:*"
+          use_regex: true
+          add_comment: true
+          message: "PRs require a priority label. Please add one."
+          exit_type: failure
