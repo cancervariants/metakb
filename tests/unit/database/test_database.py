@@ -137,7 +137,12 @@ def check_extension_props():
     ):
         checked = set()
         for ext in fixture_extensions:
-            if ext["name"] in ext_names:
+            if ext["name"].endswith("_normalizer_data"):
+                obj_type = ext["name"].split("_normalizer_data")[0]
+                ext_name = f"{obj_type}_normalizer_id"
+                assert node[ext_name] == ext["value"]["normalized_id"]
+                checked.add(ext_name)
+            elif ext["name"] in ext_names:
                 try:
                     assert json.loads(node[ext["name"]]) == ext["value"]
                 except json.decoder.JSONDecodeError:
@@ -383,10 +388,10 @@ def test_therapeutic_procedure_rules(
 
     # Test TherapeuticAgent
     ta = get_node_by_id(civic_tid146["id"])
-    extension_names = {"therapy_normalizer_data", "regulatory_approval"}
+    extension_names = {"therapy_normalizer_id", "regulatory_approval"}
     check_extension_props(ta, civic_tid146["extensions"], extension_names)
     expected_keys = {
-        "id", "label", "aliases", "therapy_normalizer_data", "regulatory_approval",
+        "id", "label", "aliases", "therapy_normalizer_id", "regulatory_approval",
         "mappings", "type"
     }
     check_node_props(ta, civic_tid146, expected_keys, extension_names)
@@ -425,9 +430,9 @@ def test_condition_rules(
     check_node_labels("Condition", expected_node_labels, 1)
 
     disease = get_node_by_id(civic_did8["id"])
-    extension_names = {"disease_normalizer_data"}
+    extension_names = {"disease_normalizer_id"}
     check_extension_props(disease, civic_did8["extensions"], extension_names)
-    expected_keys = {"id", "label", "mappings", "disease_normalizer_data", "type"}
+    expected_keys = {"id", "label", "mappings", "disease_normalizer_id", "type"}
     check_node_props(disease, civic_did8, expected_keys, extension_names)
 
 
