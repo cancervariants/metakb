@@ -73,6 +73,7 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
+
 [tool.ruff]
 src = ["src"]
 
