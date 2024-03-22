@@ -25,8 +25,7 @@ botocore = "*"
 [dev-packages]
 metakb = {editable = true, path = "."}
 pre-commit = "*"
-flake8 = "*"
-flake8-docstrings = "*"
+ruff = "==0.2.0"
 pytest = "*"
 pytest-cov = "*"
 mock = "*"

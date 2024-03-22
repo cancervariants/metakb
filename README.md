@@ -180,10 +180,10 @@ python3 -m pytest
 
 ### And coding style tests
 
-Code style is managed by [flake8](https://github.com/PyCQA/flake8) and checked prior to commit.
+Code style is managed by [ruff](https://astral.sh/ruff) and checked prior to commit.
 
 ```
-see .flake8
+python3 -m ruff check --fix . && python3 -m ruff format .
 
 ```
 
