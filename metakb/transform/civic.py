@@ -470,7 +470,6 @@ class CivicTransform(Transform):
 
             if vrs_genomic_variation:
                 genomic_params = vrs_genomic_variation.model_dump(exclude_none=True)
-                genomic_params["digest"] = vrs_genomic_variation.id.split(".")[-1]
                 genomic_params["label"] = genomic_hgvs
                 members = [models.Variation(**genomic_params)]
         return members
@@ -502,7 +501,6 @@ class CivicTransform(Transform):
 
             # Create VRS Variation object
             params = vrs_variation.model_dump(exclude_none=True)
-            params["digest"] = vrs_variation.id.split(".")[-1]
             params["label"] = variant["name"]
             civic_variation = models.Variation(**params)
 
