@@ -456,7 +456,7 @@ def civic_mpid12(civic_vid12):
             },
             {
                 "name": "CIViC Molecular Profile Score",
-                "value": 1353.5,
+                "value": 1363.5,
                 "type": "Extension"
             },
             {
