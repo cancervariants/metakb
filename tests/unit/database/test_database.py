@@ -335,7 +335,8 @@ def test_location_rules(
     expected_labels = [{"Location", "SequenceLocation"}]
     check_node_labels("Location", expected_labels, 1)
 
-    loc = get_node_by_id("ga4gh:SL.xdFHLf7Q45VKT57U4kwcDd7MUOtV2Bdz")
+    # NP_005219.2:p.Val769_Asp770insAlaSerVal
+    loc = get_node_by_id("ga4gh:SL.7qyw-4VUk3oCczBuoaF_8vGQo19dM_mk")
     assert set(loc.keys()) == {"id", "sequence_reference", "start", "end", "type"}
     assert json.loads(loc["sequence_reference"]) == {
         "type": "SequenceReference",

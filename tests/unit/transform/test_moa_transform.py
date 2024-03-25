@@ -31,11 +31,11 @@ def moa_vid145():
         "type": "ProteinSequenceConsequence",
         "label": "BRAF p.V600E (Missense)",
         "definingContext": {
-            "id": "ga4gh:VA.4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
-            "digest": "4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
+            "id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+            "digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
             "type": "Allele",
             "location": {
-                "id": "ga4gh:SL.ZA1XNKhCT_7m2UtmnYb8ZYOVS4eplMEK",
+                "id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
                 "type": "SequenceLocation",
                 "sequenceReference": {
                     "type": "SequenceReference",
