@@ -137,7 +137,12 @@ def check_extension_props():
     ):
         checked = set()
         for ext in fixture_extensions:
-            if ext["name"] in ext_names:
+            if ext["name"].endswith("_normalizer_data"):
+                obj_type = ext["name"].split("_normalizer_data")[0]
+                ext_name = f"{obj_type}_normalizer_id"
+                assert node[ext_name] == ext["value"]["normalized_id"]
+                checked.add(ext_name)
+            elif ext["name"] in ext_names:
                 try:
                     assert json.loads(node[ext["name"]]) == ext["value"]
                 except json.decoder.JSONDecodeError:

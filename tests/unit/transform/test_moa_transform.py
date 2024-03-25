@@ -145,8 +145,12 @@ def moa_aid155_study(
             "extensions": [
                 {
                     "type": "Extension",
-                    "name": "disease_normalizer_id",
-                    "value": "ncit:C5105"
+                    "name": "disease_normalizer_data",
+                    "value": {
+                        "normalized_id": "ncit:C5105",
+                        "label": "Colorectal Adenocarcinoma",
+                        "mondo_id": "0005008"
+                    }
                 }
             ],
             "mappings": [
@@ -195,9 +199,9 @@ def moa_aid155_study(
 
 
 @pytest.fixture(scope="module")
-def studies(moa_aid67_study, moa_aid155_study):
+def studies(moa_aid66_study, moa_aid155_study):
     """Create test fixture for MOA therapeutic studies."""
-    return [moa_aid67_study, moa_aid155_study]
+    return [moa_aid66_study, moa_aid155_study]
 
 
 def test_moa_cdm(data, studies, check_transformed_cdm):

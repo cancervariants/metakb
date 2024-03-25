@@ -132,46 +132,46 @@ async def test_civic9851(query_handler, civic_eid9851_study, assertion_checks):
 
 
 @pytest.mark.asyncio(scope="module")
-async def test_moa_67(query_handler, moa_aid67_study, assertion_checks):
-    """Test that search_studies method works correctly for MOA Assertion 67"""
-    resp = await query_handler.search_studies(study_id=moa_aid67_study["id"])
-    assert resp.study_ids == [moa_aid67_study["id"]]
+async def test_moa_66(query_handler, moa_aid66_study, assertion_checks):
+    """Test that search_studies method works correctly for MOA Assertion 66"""
+    resp = await query_handler.search_studies(study_id=moa_aid66_study["id"])
+    assert resp.study_ids == [moa_aid66_study["id"]]
     resp_studies = [s.model_dump(exclude_none=True) for s in resp.studies]
-    assertion_checks(resp_studies, [moa_aid67_study])
+    assertion_checks(resp_studies, [moa_aid66_study])
     assert resp.warnings == []
 
     resp = await query_handler.search_studies(variation="ABL1 Thr315Ile")
-    find_and_check_study(resp, moa_aid67_study, assertion_checks)
+    find_and_check_study(resp, moa_aid66_study, assertion_checks)
 
     resp = await query_handler.search_studies(
         variation="ga4gh:VA.EbGZQl1LnjzDCTbjF2VtPbvgMsPWfBOq"
     )
-    find_and_check_study(resp, moa_aid67_study, assertion_checks)
+    find_and_check_study(resp, moa_aid66_study, assertion_checks)
 
     resp = await query_handler.search_studies(therapy="rxcui:282388")
-    find_and_check_study(resp, moa_aid67_study, assertion_checks)
+    find_and_check_study(resp, moa_aid66_study, assertion_checks)
 
     resp = await query_handler.search_studies(gene="ncbigene:25")
-    find_and_check_study(resp, moa_aid67_study, assertion_checks)
+    find_and_check_study(resp, moa_aid66_study, assertion_checks)
 
     resp = await query_handler.search_studies(disease="CML")
-    find_and_check_study(resp, moa_aid67_study, assertion_checks)
+    find_and_check_study(resp, moa_aid66_study, assertion_checks)
 
     # We should not find MOA Assertion 67 using these queries
     resp = await query_handler.search_studies(study_id="moa.assertion:71")
-    find_and_check_study(resp, moa_aid67_study, assertion_checks, False)
+    find_and_check_study(resp, moa_aid66_study, assertion_checks, False)
 
     resp = await query_handler.search_studies(variation="BRAF V600E")
-    find_and_check_study(resp, moa_aid67_study, assertion_checks, False)
+    find_and_check_study(resp, moa_aid66_study, assertion_checks, False)
 
     resp = await query_handler.search_studies(therapy="Afatinib")
-    find_and_check_study(resp, moa_aid67_study, assertion_checks, False)
+    find_and_check_study(resp, moa_aid66_study, assertion_checks, False)
 
     resp = await query_handler.search_studies(gene="ABL2")
-    find_and_check_study(resp, moa_aid67_study, assertion_checks, False)
+    find_and_check_study(resp, moa_aid66_study, assertion_checks, False)
 
     resp = await query_handler.search_studies(disease="ncit:C2926")
-    find_and_check_study(resp, moa_aid67_study, assertion_checks, False)
+    find_and_check_study(resp, moa_aid66_study, assertion_checks, False)
 
 
 @pytest.mark.asyncio(scope="module")

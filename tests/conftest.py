@@ -1,4 +1,5 @@
 """Module for pytest fixtures."""
+from copy import deepcopy
 import pytest
 import os
 import json
@@ -13,8 +14,11 @@ def cetuximab_extensions():
     return [
         {
             "type": "Extension",
-            "name": "therapy_normalizer_id",
-            "value": "rxcui:318341"
+            "name": "therapy_normalizer_data",
+            "value": {
+                "normalized_id": "rxcui:318341",
+                "label": "cetuximab"
+            }
         },
         {
             "type": "Extension",
@@ -78,8 +82,11 @@ def encorafenib_extensions():
     return [
         {
             "type": "Extension",
-            "name": "therapy_normalizer_id",
-            "value": "rxcui:2049106"
+            "name": "therapy_normalizer_data",
+            "value": {
+                "normalized_id": "rxcui:2049106",
+                "label": "encorafenib"
+            }
         },
         {
             "type": "Extension",
@@ -439,7 +446,7 @@ def civic_mpid12(civic_vid12):
             },
             {
                 "name": "CIViC Molecular Profile Score",
-                "value": 1353.5,
+                "value": 1363.5,
                 "type": "Extension"
             },
             {
@@ -580,8 +587,11 @@ def civic_tid146():
             },
             {
                 "type": "Extension",
-                "name": "therapy_normalizer_id",
-                "value": "rxcui:1430438"
+                "name": "therapy_normalizer_data",
+                "value": {
+                    "normalized_id": "rxcui:1430438",
+                    "label": "afatinib"
+                }
             }
         ]
     }
@@ -606,8 +616,12 @@ def civic_did8():
         "extensions": [
             {
                 "type": "Extension",
-                "name": "disease_normalizer_id",
-                "value": "ncit:C2926"
+                "name": "disease_normalizer_data",
+                "value": {
+                    "normalized_id": "ncit:C2926",
+                    "label": "Lung Non-Small Cell Carcinoma",
+                    "mondo_id": "0005233"
+                }
             }
         ]
     }
@@ -632,8 +646,12 @@ def civic_did11():
         "extensions": [
             {
                 "type": "Extension",
-                "name": "disease_normalizer_id",
-                "value": "ncit:C4978"
+                "name": "disease_normalizer_data",
+                "value": {
+                    "normalized_id": "ncit:C4978",
+                    "label": "Malignant Colorectal Neoplasm",
+                    "mondo_id": "0005575"
+                }
             }
         ]
     }
@@ -761,8 +779,11 @@ def civic_tid28():
         "extensions": [
             {
                 "type": "Extension",
-                "name": "therapy_normalizer_id",
-                "value": "rxcui:263034"
+                "name": "therapy_normalizer_data",
+                "value": {
+                    "normalized_id": "rxcui:263034",
+                    "label": "panitumumab"
+                }
             },
             {
                 "type": "Extension",
@@ -1782,13 +1803,13 @@ def pmid_27819322():
 
 
 @pytest.fixture(scope="session")
-def moa_aid67_study(
-    moa_vid67, moa_abl1, moa_imatinib, moa_chronic_myelogenous_leukemia, moa_method,
+def moa_aid66_study(
+    moa_vid66, moa_abl1, moa_imatinib, moa_chronic_myelogenous_leukemia, moa_method,
     moa_source44
 ):
-    """Create a Variant Therapeutic Response Study test fixture for MOA Assertion 67."""
+    """Create a Variant Therapeutic Response Study test fixture for MOA Assertion 66."""
     return {
-        "id": "moa.assertion:67",
+        "id": "moa.assertion:66",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",  # noqa: E501
         "direction": "none",
         "strength": {
@@ -1797,7 +1818,7 @@ def moa_aid67_study(
             "system": "https://go.osu.edu/evidence-codes"
         },
         "predicate": "predictsResistanceTo",
-        "variant": moa_vid67,
+        "variant": moa_vid66,
         "therapeutic": moa_imatinib,
         "tumorType": moa_chronic_myelogenous_leukemia,
         "qualifiers": {
@@ -1811,10 +1832,10 @@ def moa_aid67_study(
 
 
 @pytest.fixture(scope="session")
-def moa_vid67():
-    """Create a test fixture for MOA VID67."""
+def moa_vid66():
+    """Create a test fixture for MOA VID66."""
     return {
-        "id": "moa.variant:67",
+        "id": "moa.variant:66",
         "type": "ProteinSequenceConsequence",
         "label": "ABL1 p.T315I (Missense)",
         "definingContext": {
@@ -1856,7 +1877,7 @@ def moa_vid67():
             {
                 "coding": {
                     "system": "https://moalmanac.org/api/features/",
-                    "code": "67"
+                    "code": "66"
                 },
                 "relation": "exactMatch"
             },
@@ -1989,8 +2010,11 @@ def moa_imatinib():
             },
             {
                 "type": "Extension",
-                "name": "therapy_normalizer_id",
-                "value": "rxcui:282388"
+                "name": "therapy_normalizer_data",
+                "value": {
+                    "normalized_id": "rxcui:282388",
+                    "label": "imatinib"
+                }
             }
         ]
     }
@@ -2006,8 +2030,12 @@ def moa_chronic_myelogenous_leukemia():
         "extensions": [
             {
                 "type": "Extension",
-                "name": "disease_normalizer_id",
-                "value": "ncit:C3174"
+                "name": "disease_normalizer_data",
+                "value": {
+                    "normalized_id": "ncit:C3174",
+                    "label": "Chronic Myelogenous Leukemia, BCR-ABL1 Positive",
+                    "mondo_id": "0011996"
+                }
             }
         ],
         "mappings": [
@@ -2114,18 +2142,56 @@ def moa_source44():
     }
 
 
-def _dict_check(expected_d: dict, actual_d: dict) -> None:
+def _dict_check(expected_d: dict, actual_d: dict, is_cdm: bool = False) -> None:
     """Make dictionary assertion checks. Check that actual matches expected data.
 
     :param expected_d: Expected dictionary
     :param actual_d: Actual dictionary
+    :param is_cdm: Whether checks are for transformers (CDM) or query handler.
+        CDM have extra fields that are not exposed to the query handler
     """
     for k, v in expected_d.items():
         if isinstance(v, dict):
-            _dict_check(v, actual_d[k])
+            _dict_check(v, actual_d[k], is_cdm=is_cdm)
         elif isinstance(v, list):
             actual_l = [json.dumps(v, sort_keys=True) for v in actual_d[k]]
-            expected_l = [json.dumps(v, sort_keys=True) for v in expected_d[k]]
+            if is_cdm:
+                expected_l = [json.dumps(v, sort_keys=True) for v in expected_d[k]]
+            else:
+                expected_l = []
+                for v in expected_d[k]:
+                    if isinstance(v, dict):
+                        if v.get("name") in {
+                            "therapy_normalizer_data",
+                            "disease_normalizer_data"
+                        }:
+                            updated_ext = v.copy()
+                            normalizer_data_type = v["name"].split("_normalizer_data")[0]  # noqa: E501
+                            updated_ext["name"] = f"{normalizer_data_type}_normalizer_id"  # noqa: E501
+                            updated_ext["value"] = v["value"]["normalized_id"]
+                            expected_l.append(json.dumps(updated_ext, sort_keys=True))
+                            continue
+                        else:
+                            new_extensions = []
+                            extensions = v.get("extensions") or []
+                            for ext in extensions:
+                                if ext.get("name") in {
+                                    "therapy_normalizer_data",
+                                    "disease_normalizer_data"
+                                }:
+                                    normalizer_data_type = ext["name"].split("_normalizer_data")[0]  # noqa: E501
+                                    new_extensions.append(
+                                        {
+                                            "name": f"{normalizer_data_type}_normalizer_id",  # noqa: E501
+                                            "type": "Extension",
+                                            "value": ext["value"]["normalized_id"]
+                                        }
+                                    )
+                                else:
+                                    new_extensions.append(ext)
+                            if extensions:
+                                v["extensions"] = new_extensions
+                    expected_l.append(json.dumps(v, sort_keys=True))
             assert set(actual_l) == set(expected_l), k
         else:
             assert actual_d[k] == expected_d[k], k
@@ -2137,8 +2203,10 @@ def assertion_checks():
 
     :param actual_data: List of actual data
     :param test_data: List of expected data
+    :param is_cdm: Whether checks are for transformers (CDM) or query handler.
+        CDM have extra fields that are not exposed to the query handler
     """
-    def _check(actual_data: list, test_data: list) -> None:
+    def _check(actual_data: list, test_data: list, is_cdm: bool = False) -> None:
         assert len(actual_data) == len(test_data)
         for expected in test_data:
             found_match = False
@@ -2146,7 +2214,8 @@ def assertion_checks():
                 if actual["id"] == expected["id"]:
                     found_match = True
                     assert actual.keys() == expected.keys()
-                    _dict_check(expected, actual)
+                    expected_copy = deepcopy(expected)
+                    _dict_check(expected_copy, actual, is_cdm=is_cdm)
                     continue
 
             assert found_match, f"Did not find {expected['id']} in response"
@@ -2160,7 +2229,7 @@ def check_transformed_cdm(assertion_checks):
         data, studies, transformed_file
     ):
         """Test that transform to CDM works correctly."""
-        assertion_checks(data["studies"], studies)
+        assertion_checks(data["studies"], studies, is_cdm=True)
         os.remove(transformed_file)
     return check_transformed_cdm
 
