@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 # Define keys for coding, location, and variation nodes
 CODING_KEYS = ("code", "label", "system")
-LOC_KEYS = ("id", "start", "end", "type")
+LOC_KEYS = ("id", "digest", "start", "end", "type")
 VARIATION_KEYS = ("id", "label", "digest", "type")
 
 
