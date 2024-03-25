@@ -60,7 +60,7 @@ async def test_civic_eid2997(query_handler, civic_eid2997_study, assertion_check
     find_and_check_study(resp, civic_eid2997_study, assertion_checks)
 
     resp = await query_handler.search_studies(
-        variation="ga4gh:VA.z7c2S8QzZ3yL2UjV_xP7zP913BrYYFGn"
+        variation="ga4gh:VA.S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ"
     )
     find_and_check_study(resp, civic_eid2997_study, assertion_checks)
 
@@ -144,7 +144,7 @@ async def test_moa_66(query_handler, moa_aid66_study, assertion_checks):
     find_and_check_study(resp, moa_aid66_study, assertion_checks)
 
     resp = await query_handler.search_studies(
-        variation="ga4gh:VA.EbGZQl1LnjzDCTbjF2VtPbvgMsPWfBOq"
+        variation="ga4gh:VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ"
     )
     find_and_check_study(resp, moa_aid66_study, assertion_checks)
 

@@ -133,12 +133,13 @@ def civic_mpid33(civic_vid33):
         "definingContext": civic_vid33,
         "members": [
             {
-                "id": "ga4gh:VA.TAARa2cxRHmOiij9UBwvW-noMDoOq2x9",
+                "id": "ga4gh:VA.pM_eD8ha-bnAu6wJOoQTtHYIvEShSN51",
                 "label": "NC_000007.13:g.55259515T>G",
-                "digest": "TAARa2cxRHmOiij9UBwvW-noMDoOq2x9",
+                "digest": "pM_eD8ha-bnAu6wJOoQTtHYIvEShSN51",
                 "type": "Allele",
                 "location": {
-                    "id": "ga4gh:SL.ulUNwZvajob7nzyrlpOd6uUWZIYCsoWb",
+                    "id": "ga4gh:SL.7g6PIIHJ_QkKe_dRvkuCe8UtZCmPxo5B",
+                    "digest": "7g6PIIHJ_QkKe_dRvkuCe8UtZCmPxo5B",
                     "type": "SequenceLocation",
                     "sequenceReference": {
                         "type": "SequenceReference",
@@ -319,12 +320,12 @@ def civic_gid5():
 def civic_vid12():
     """Create test fixture for CIViC Variant ID 12"""
     return {
-        "id": "ga4gh:VA.4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
+        "id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
         "type": "Allele",
         "label": "V600E",
-        "digest": "4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
+        "digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
         "location": {
-            "id": "ga4gh:SL.ZA1XNKhCT_7m2UtmnYb8ZYOVS4eplMEK",
+            "id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
             "type": "SequenceLocation",
             "sequenceReference": {
                 "refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y",
@@ -369,12 +370,13 @@ def civic_mpid12(civic_vid12):
         "definingContext": civic_vid12,
         "members": [
             {
-                "id": "ga4gh:VA.LX3ooHBAiZdKY4RfTXcliUmkj48mnD_M",
+                "id": "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe",
                 "label": "NC_000007.13:g.140453136A>T",
-                "digest": "LX3ooHBAiZdKY4RfTXcliUmkj48mnD_M",
+                "digest": "Otc5ovrw906Ack087o1fhegB4jDRqCAe",
                 "type": "Allele",
                 "location": {
-                    "id": "ga4gh:SL.XutGzMvqbzN-vnxmPt2MJf7ehxmB0opi",
+                    "id": "ga4gh:SL.nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+                    "digest": "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
                     "type": "SequenceLocation",
                     "sequenceReference": {
                         "type": "SequenceReference",
@@ -469,12 +471,12 @@ def civic_mpid12(civic_vid12):
 def civic_vid33():
     """Create a test fixture for CIViC VID33."""
     return {
-        "id": "ga4gh:VA.z7c2S8QzZ3yL2UjV_xP7zP913BrYYFGn",
+        "id": "ga4gh:VA.S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ",
         "type": "Allele",
         "label": "L858R",
-        "digest": "z7c2S8QzZ3yL2UjV_xP7zP913BrYYFGn",
+        "digest": "S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ",
         "location": {
-            "id": "ga4gh:SL.yVGJnwqxV6oCGqC_8nNb58D_wPXJeNJo",
+            "id": "ga4gh:SL.v0_edynH98OIu-0QPVT5anCSOriAFSDQ",
             "type": "SequenceLocation",
             "sequenceReference": {
                 "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
@@ -905,6 +907,116 @@ def civic_ct(civic_tid483, civic_tid16):
                 "type": "Extension",
                 "name": "civic_therapy_interaction_type",
                 "value": "COMBINATION"
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def civic_did11():
+    """Create test fixture for CIViC Disease ID 11"""
+    return {
+        "id": "civic.did:11",
+        "type": "Disease",
+        "label": "Colorectal Cancer",
+        "mappings": [
+            {
+                "coding": {
+                    "code": "DOID:9256",
+                    "system": "https://www.disease-ontology.org/"
+                },
+                "relation": "exactMatch"
+            }
+        ],
+        "extensions": [
+            {
+                "type": "Extension",
+                "name": "disease_normalizer_data",
+                "value": {
+                    "normalized_id": "ncit:C4978",
+                    "label": "Malignant Colorectal Neoplasm",
+                    "mondo_id": "0005575"
+                }
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def civic_eid816_study(
+    civic_mpid12,
+    civic_tsg,
+    civic_did11,
+    civic_gid5,
+    civic_method
+):
+    """Create CIVIC EID816 study test fixture. Uses TherapeuticSubstituteGroup."""
+    return {
+        "id": "civic.eid:816",
+        "type": "VariantTherapeuticResponseStudy",
+        "description": "This meta-analysis of 7 randomized control trials evaluating overall survival (OS) (8 for progression free survival) could not definitely state that survival benefit of anti-EGFR monoclonal antibodies is limited to patients with wild type BRAF. In other words, the authors believe that there is insufficient data to justify the exclusion of anti-EGFR monoclonal antibody therapy for patients with mutant BRAF. In these studies, mutant BRAF specifically meant the V600E mutation.",  # noqa: E501
+        "direction": "refutes",
+        "strength": {
+            "code": "e000005",
+            "label": "clinical cohort evidence",
+            "system": "https://go.osu.edu/evidence-codes"
+        },
+        "predicate": "predictsResistanceTo",
+        "variant": civic_mpid12,
+        "therapeutic": civic_tsg,
+        "tumorType": civic_did11,
+        "qualifiers": {
+            "alleleOrigin": "somatic",
+            "geneContext": civic_gid5
+        },
+        "specifiedBy": civic_method,
+        "isReportedIn": [
+            {
+                "id": "civic.source:548",
+                "label": "Rowland et al., 2015",
+                "title": "Meta-analysis of BRAF mutation as a predictive biomarker of benefit from anti-EGFR monoclonal antibody therapy for RAS wild-type metastatic colorectal cancer.",  # noqa: E501
+                "pmid": 25989278,
+                "type": "Document"
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def civic_eid9851_study(
+    civic_mpid12,
+    civic_ct,
+    civic_did11,
+    civic_gid5,
+    civic_method,
+):
+    """Create CIVIC EID9851 study test fixture. Uses CombinationTherapy."""
+    return {
+        "id": "civic.eid:9851",
+        "type": "VariantTherapeuticResponseStudy",
+        "description": "The open-label phase 3 BEACON CRC trial included 665 patients with BRAF V600E-mutated metastatic CRC. Patients were randomly assigned in a 1:1:1 ratio to receive encorafenib, binimetinib, and cetuximab (triplet-therapy group); encorafenib and cetuximab (doublet-therapy group); or the investigators\u2019 choice of either cetuximab and irinotecan or cetuximab and FOLFIRI. The median overall survival was 8.4 months (95% CI, 7.5 to 11.0) in the doublet-therapy group and 5.4 months (95% CI, 4.8 to 6.6) in the control group, with a significantly lower risk of death compared to the control group (hazard ratio for death doublet-group vs. control, 0.60; 95% CI, 0.45 to 0.79; P<0.001). The confirmed response rate was 26% (95% CI, 18 to 35) in the triplet-therapy group, 20% in the doublet-therapy group (95% CI 13 to 29) and 2% (95% CI, 0 to 7) in the control group (doublet group vs. control P<0.001). Median PFS was 4.2 months (95% CI, 3.7 to 5.4) in the doublet-therapy group, and 1.5 months (95% CI, 1.5 to 1.7) in the control group (hazard ratio for disease progression doublet-group vs control, 0.40; 95% CI, 0.31 to 0.52, P<0.001).",  # noqa: E501
+        "direction": "supports",
+        "strength": {
+            "code": "e000001",
+            "label": "authoritative evidence",
+            "system": "https://go.osu.edu/evidence-codes"
+        },
+        "predicate": "predictsSensitivityTo",
+        "variant": civic_mpid12,
+        "therapeutic": civic_ct,
+        "tumorType": civic_did11,
+        "qualifiers": {
+            "alleleOrigin": "somatic",
+            "geneContext": civic_gid5
+        },
+        "specifiedBy": civic_method,
+        "isReportedIn": [
+            {
+                "id": "civic.source:3025",
+                "label": "Kopetz et al., 2019",
+                "title": "Encorafenib, Binimetinib, and Cetuximab in BRAF V600E-Mutated Colorectal Cancer.",  # noqa: E501
+                "pmid": 31566309,
+                "type": "Document"
             }
         ]
     }
@@ -1839,11 +1951,12 @@ def moa_vid66():
         "type": "ProteinSequenceConsequence",
         "label": "ABL1 p.T315I (Missense)",
         "definingContext": {
-            "id": "ga4gh:VA.EbGZQl1LnjzDCTbjF2VtPbvgMsPWfBOq",
-            "digest": "EbGZQl1LnjzDCTbjF2VtPbvgMsPWfBOq",
+            "id": "ga4gh:VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
+            "digest": "D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
             "type": "Allele",
             "location": {
-                "id": "ga4gh:SL.2UGEX11rbVdN0Nbzc5RU0G0A5elENRTH",
+                "id": "ga4gh:SL.jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
+                "digest": "jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
                 "type": "SequenceLocation",
                 "sequenceReference": {
                     "type": "SequenceReference",

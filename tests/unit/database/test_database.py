@@ -335,8 +335,12 @@ def test_location_rules(
     expected_labels = [{"Location", "SequenceLocation"}]
     check_node_labels("Location", expected_labels, 1)
 
-    loc = get_node_by_id("ga4gh:SL.xdFHLf7Q45VKT57U4kwcDd7MUOtV2Bdz")
-    assert set(loc.keys()) == {"id", "sequence_reference", "start", "end", "type"}
+    # NP_005219.2:p.Val769_Asp770insAlaSerVal
+    loc_digest = "7qyw-4VUk3oCczBuoaF_8vGQo19dM_mk"
+    loc = get_node_by_id(f"ga4gh:SL.{loc_digest}")
+    assert set(loc.keys()) == {
+        "id", "digest", "sequence_reference", "start", "end", "type"
+    }
     assert json.loads(loc["sequence_reference"]) == {
         "type": "SequenceReference",
         "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE"
@@ -344,6 +348,7 @@ def test_location_rules(
     assert loc["start"] == 766
     assert loc["end"] == 769
     assert loc["type"] == "SequenceLocation"
+    assert loc["digest"] == loc_digest
 
 
 def test_therapeutic_procedure_rules(
