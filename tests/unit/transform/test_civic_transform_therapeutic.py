@@ -28,12 +28,12 @@ async def data(normalizers):
 def civic_vid12():
     """Create test fixture for CIViC Variant ID 12"""
     return {
-        "id": "ga4gh:VA.4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
+        "id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
         "type": "Allele",
         "label": "V600E",
-        "digest": "4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
+        "digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
         "location": {
-            "id": "ga4gh:SL.ZA1XNKhCT_7m2UtmnYb8ZYOVS4eplMEK",
+            "id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
             "type": "SequenceLocation",
             "sequenceReference": {
                 "refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y",
@@ -78,12 +78,13 @@ def civic_mpid12(civic_vid12):
         "definingContext": civic_vid12,
         "members": [
             {
-                "id": "ga4gh:VA.LX3ooHBAiZdKY4RfTXcliUmkj48mnD_M",
+                "id": "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe",
                 "label": "NC_000007.13:g.140453136A>T",
-                "digest": "LX3ooHBAiZdKY4RfTXcliUmkj48mnD_M",
+                "digest": "Otc5ovrw906Ack087o1fhegB4jDRqCAe",
                 "type": "Allele",
                 "location": {
-                    "id": "ga4gh:SL.XutGzMvqbzN-vnxmPt2MJf7ehxmB0opi",
+                    "id": "ga4gh:SL.nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+                    "digest": "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
                     "type": "SequenceLocation",
                     "sequenceReference": {
                         "type": "SequenceReference",

@@ -141,12 +141,13 @@ def civic_mpid33(civic_vid33):
         "definingContext": civic_vid33,
         "members": [
             {
-                "id": "ga4gh:VA.TAARa2cxRHmOiij9UBwvW-noMDoOq2x9",
+                "id": "ga4gh:VA.pM_eD8ha-bnAu6wJOoQTtHYIvEShSN51",
                 "label": "NC_000007.13:g.55259515T>G",
-                "digest": "TAARa2cxRHmOiij9UBwvW-noMDoOq2x9",
+                "digest": "pM_eD8ha-bnAu6wJOoQTtHYIvEShSN51",
                 "type": "Allele",
                 "location": {
-                    "id": "ga4gh:SL.ulUNwZvajob7nzyrlpOd6uUWZIYCsoWb",
+                    "id": "ga4gh:SL.7g6PIIHJ_QkKe_dRvkuCe8UtZCmPxo5B",
+                    "digest": "7g6PIIHJ_QkKe_dRvkuCe8UtZCmPxo5B",
                     "type": "SequenceLocation",
                     "sequenceReference": {
                         "type": "SequenceReference",
@@ -477,12 +478,12 @@ def civic_mpid12(civic_vid12):
 def civic_vid33():
     """Create a test fixture for CIViC VID33."""
     return {
-        "id": "ga4gh:VA.z7c2S8QzZ3yL2UjV_xP7zP913BrYYFGn",
+        "id": "ga4gh:VA.S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ",
         "type": "Allele",
         "label": "L858R",
-        "digest": "z7c2S8QzZ3yL2UjV_xP7zP913BrYYFGn",
+        "digest": "S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ",
         "location": {
-            "id": "ga4gh:SL.yVGJnwqxV6oCGqC_8nNb58D_wPXJeNJo",
+            "id": "ga4gh:SL.v0_edynH98OIu-0QPVT5anCSOriAFSDQ",
             "type": "SequenceLocation",
             "sequenceReference": {
                 "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
@@ -1734,11 +1735,12 @@ def moa_vid67():
         "type": "ProteinSequenceConsequence",
         "label": "ABL1 p.T315I (Missense)",
         "definingContext": {
-            "id": "ga4gh:VA.EbGZQl1LnjzDCTbjF2VtPbvgMsPWfBOq",
-            "digest": "EbGZQl1LnjzDCTbjF2VtPbvgMsPWfBOq",
+            "id": "ga4gh:VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
+            "digest": "D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
             "type": "Allele",
             "location": {
-                "id": "ga4gh:SL.2UGEX11rbVdN0Nbzc5RU0G0A5elENRTH",
+                "id": "ga4gh:SL.jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
+                "digest": "jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
                 "type": "SequenceLocation",
                 "sequenceReference": {
                     "type": "SequenceReference",
