@@ -2,7 +2,6 @@
 from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
 from metakb.query import QueryHandler
-from metakb.schemas.api import SearchStudiesService
 from metakb.version import __version__
 from typing import Dict, Optional
 
@@ -60,16 +59,14 @@ search_studies_descr = (
 @app.get('/api/v2/search/studies',
          summary=search_studies_summary,
          response_description=search_study_response_descr,
-         response_model=SearchStudiesService,
-         description=search_studies_descr,
-         response_model_exclude_none=True)
+         description=search_studies_descr,)
 async def get_studies(
     variation: Optional[str] = Query(None, description=v_description),
     disease: Optional[str] = Query(None, description=d_description),
     therapy: Optional[str] = Query(None, description=t_description),
     gene: Optional[str] = Query(None, description=g_description),
     study_id: Optional[str] = Query(None, description=s_description)
-) -> SearchStudiesService:
+) -> dict:
     """Get nested studies from queried concepts that match all conditions provided.
     For example, if `variation` and `therapy` are provided, will return all studies
     that have both the provided `variation` and `therapy`.
@@ -85,4 +82,4 @@ async def get_studies(
         metadata
     """
     resp = await query.search_studies(variation, disease, therapy, gene, study_id)
-    return resp
+    return resp.model_dump(exclude_none=True)
