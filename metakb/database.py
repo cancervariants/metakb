@@ -1,6 +1,5 @@
 """Graph database for storing CDM data."""
 import ast
-import base64
 import json
 import logging
 from os import environ
@@ -656,7 +655,7 @@ class Graph:
         tx.run(query, **study)
 
     @staticmethod
-    def get_secret():
+    def get_secret() -> str:
         """Get secrets for MetaKB instances."""
         secret_name = environ['METAKB_DB_SECRET']
         region_name = "us-east-2"
@@ -673,33 +672,9 @@ class Graph:
                 SecretId=secret_name
             )
         except ClientError as e:
-            logger.warning(e)
-            if e.response['Error']['Code'] == 'DecryptionFailureException':
-                # Secrets Manager can't decrypt the protected
-                # secret text using the provided KMS key.
-                raise e
-            elif e.response['Error']['Code'] == \
-                    'InternalServiceErrorException':
-                # An error occurred on the server side.
-                raise e
-            elif e.response['Error']['Code'] == 'InvalidParameterException':
-                # You provided an invalid value for a parameter.
-                raise e
-            elif e.response['Error']['Code'] == 'InvalidRequestException':
-                # You provided a parameter value that is not valid for
-                # the current state of the resource.
-                raise e
-            elif e.response['Error']['Code'] == 'ResourceNotFoundException':
-                # We can't find the resource that you asked for.
-                raise e
+            # For a list of exceptions thrown, see
+            # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+            logger.error(e)
+            raise e
         else:
-            # Decrypts secret using the associated KMS CMK.
-            # Depending on whether the secret is a string or binary,
-            # one of these fields will be populated.
-            if 'SecretString' in get_secret_value_response:
-                secret = get_secret_value_response['SecretString']
-                return secret
-            else:
-                decoded_binary_secret = base64.b64decode(
-                    get_secret_value_response['SecretBinary'])
-                return decoded_binary_secret
+            return get_secret_value_response["SecretString"]
