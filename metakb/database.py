@@ -168,8 +168,8 @@ class Graph:
         """Get mappings and extensions from object and add to `obj` and `obj_keys`
 
         :param obj: Object to update with mappings and extensions (if found)
-        :param obj_keys: Parameterized queries. This will be mutated if
-            mappings and extensions exists
+        :param obj_keys: Parameterized queries. This will be mutated if mappings and
+            extensions exists
         """
         mappings = obj.get("mappings", [])
         if mappings:
