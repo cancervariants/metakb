@@ -1,6 +1,5 @@
 """Graph database for storing CDM data."""
 import ast
-import base64
 import json
 import logging
 from os import environ
@@ -14,12 +13,6 @@ from neo4j import GraphDatabase, ManagedTransaction
 from metakb.schemas.app import SourceName
 
 logger = logging.getLogger(__name__)
-
-
-# Define keys for coding, location, and variation nodes
-CODING_KEYS = ("code", "label", "system")
-LOC_KEYS = ("id", "digest", "start", "end", "type")
-VARIATION_KEYS = ("id", "label", "digest", "type")
 
 
 def _create_parameterized_query(
@@ -134,10 +127,10 @@ class Graph:
 
             # This will be removed in issue-253
             if src_name == SourceName.CIVIC:
-                key = "molecular_profiles"
+                cat_var_key = "molecular_profiles"
             else:
-                key = "variations"
-            for cv in data.get(key, []):
+                cat_var_key = "variations"
+            for cv in data.get(cat_var_key, []):
                 session.execute_write(
                     self._add_categorical_variation,
                     cv,
@@ -175,8 +168,8 @@ class Graph:
         """Get mappings and extensions from object and add to `obj` and `obj_keys`
 
         :param obj: Object to update with mappings and extensions (if found)
-        :param obj_keys: Parameterized queries. This will be mutated if
-            mappings and extensions exists
+        :param obj_keys: Parameterized queries. This will be mutated if mappings and
+            extensions exists
         """
         mappings = obj.get("mappings", [])
         if mappings:
@@ -372,7 +365,11 @@ class Graph:
         :param location_in: Location CDM object
         """
         loc = location_in.copy()
-        loc_keys = [f"loc.{key}=${key}" for key in LOC_KEYS if loc.get(key)]
+        loc_keys = [
+            f"loc.{key}=${key}"
+            for key in ("id", "digest", "start", "end", "type")
+            if loc.get(key)
+        ]
         loc["sequence_reference"] = json.dumps(loc["sequenceReference"])
         loc_keys.append("loc.sequence_reference=$sequence_reference")
         loc_keys = ", ".join(loc_keys)
@@ -394,7 +391,11 @@ class Graph:
         :param variation_in: Variation CDM object
         """
         v = variation_in.copy()
-        v_keys = [f"v.{key}=${key}" for key in VARIATION_KEYS if v.get(key)]
+        v_keys = [
+            f"v.{key}=${key}"
+            for key in ("id", "label", "digest", "type")
+            if v.get(key)
+        ]
 
         expressions = v.get("expressions", [])
         for expr in expressions:
@@ -614,12 +615,14 @@ class Graph:
 
         coding = study.get("strength")
         if coding:
+            coding_key_fields = ("code", "label", "system")
+
             coding_keys = _create_parameterized_query(
                 coding,
-                CODING_KEYS,
+                coding_key_fields,
                 entity_param_prefix="coding_"
             )
-            for k in CODING_KEYS:
+            for k in coding_key_fields:
                 v = coding.get(k)
                 if v:
                     study[f"coding_{k}"] = v
@@ -652,7 +655,7 @@ class Graph:
         tx.run(query, **study)
 
     @staticmethod
-    def get_secret():
+    def get_secret() -> str:
         """Get secrets for MetaKB instances."""
         secret_name = environ['METAKB_DB_SECRET']
         region_name = "us-east-2"
@@ -669,33 +672,9 @@ class Graph:
                 SecretId=secret_name
             )
         except ClientError as e:
-            logger.warning(e)
-            if e.response['Error']['Code'] == 'DecryptionFailureException':
-                # Secrets Manager can't decrypt the protected
-                # secret text using the provided KMS key.
-                raise e
-            elif e.response['Error']['Code'] == \
-                    'InternalServiceErrorException':
-                # An error occurred on the server side.
-                raise e
-            elif e.response['Error']['Code'] == 'InvalidParameterException':
-                # You provided an invalid value for a parameter.
-                raise e
-            elif e.response['Error']['Code'] == 'InvalidRequestException':
-                # You provided a parameter value that is not valid for
-                # the current state of the resource.
-                raise e
-            elif e.response['Error']['Code'] == 'ResourceNotFoundException':
-                # We can't find the resource that you asked for.
-                raise e
+            # For a list of exceptions thrown, see
+            # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+            logger.error(e)
+            raise e
         else:
-            # Decrypts secret using the associated KMS CMK.
-            # Depending on whether the secret is a string or binary,
-            # one of these fields will be populated.
-            if 'SecretString' in get_secret_value_response:
-                secret = get_secret_value_response['SecretString']
-                return secret
-            else:
-                decoded_binary_secret = base64.b64decode(
-                    get_secret_value_response['SecretBinary'])
-                return decoded_binary_secret
+            return get_secret_value_response["SecretString"]
