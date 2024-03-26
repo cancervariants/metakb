@@ -127,10 +127,10 @@ class Graph:
 
             # This will be removed in issue-253
             if src_name == SourceName.CIVIC:
-                key = "molecular_profiles"
+                cat_var_key = "molecular_profiles"
             else:
-                key = "variations"
-            for cv in data.get(key, []):
+                cat_var_key = "variations"
+            for cv in data.get(cat_var_key, []):
                 session.execute_write(
                     self._add_categorical_variation,
                     cv,
