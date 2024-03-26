@@ -16,12 +16,6 @@ from metakb.schemas.app import SourceName
 logger = logging.getLogger(__name__)
 
 
-# Define keys for coding, location, and variation nodes
-CODING_KEYS = ("code", "label", "system")
-LOC_KEYS = ("id", "digest", "start", "end", "type")
-VARIATION_KEYS = ("id", "label", "digest", "type")
-
-
 def _create_parameterized_query(
     entity: Dict,
     params: Tuple[str],
@@ -372,7 +366,11 @@ class Graph:
         :param location_in: Location CDM object
         """
         loc = location_in.copy()
-        loc_keys = [f"loc.{key}=${key}" for key in LOC_KEYS if loc.get(key)]
+        loc_keys = [
+            f"loc.{key}=${key}"
+            for key in ("id", "digest", "start", "end", "type")
+            if loc.get(key)
+        ]
         loc["sequence_reference"] = json.dumps(loc["sequenceReference"])
         loc_keys.append("loc.sequence_reference=$sequence_reference")
         loc_keys = ", ".join(loc_keys)
@@ -394,7 +392,11 @@ class Graph:
         :param variation_in: Variation CDM object
         """
         v = variation_in.copy()
-        v_keys = [f"v.{key}=${key}" for key in VARIATION_KEYS if v.get(key)]
+        v_keys = [
+            f"v.{key}=${key}"
+            for key in ("id", "label", "digest", "type")
+            if v.get(key)
+        ]
 
         expressions = v.get("expressions", [])
         for expr in expressions:
@@ -614,12 +616,14 @@ class Graph:
 
         coding = study.get("strength")
         if coding:
+            coding_key_fields = ("code", "label", "system")
+
             coding_keys = _create_parameterized_query(
                 coding,
-                CODING_KEYS,
+                coding_key_fields,
                 entity_param_prefix="coding_"
             )
-            for k in CODING_KEYS:
+            for k in coding_key_fields:
                 v = coding.get(k)
                 if v:
                     study[f"coding_{k}"] = v
