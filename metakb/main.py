@@ -36,24 +36,20 @@ def custom_openapi() -> Dict:
 
 
 app.openapi = custom_openapi
-search_summary = ("Given variation, disease, therapy, and/or gene, "
-                  "return associated studies.")
-search_response_description = "A response to a validly-formed query."
-search_description = ("Return studies associated to the queried concepts.")
+search_studies_summary = (
+    "Get nested studies from queried concepts that match all conditions provided."
+)
+search_studies_descr = (
+    "Return nested studies associated to the queried concepts. For example, if "
+    "`variation` and `therapy` are provided, will return all studies that have both "
+    "the provided `variation` and `therapy`."
+)
 v_description = ("Variation (subject) to search. Can be free text or VRS Variation ID.")
 d_description = "Disease (object qualifier) to search"
 t_description = "Therapy (object) to search"
 g_description = "Gene to search"
-s_description = ("Study ID to search. If an invalid ID is provided and other parameters"
-                 " are provided, will attempt to get related studies for query "
-                 "parameters.")
-
-search_studies_summary = (
-    "Given variation, disease, therapy, and/or gene, return associated nested studies."
-)
+s_description = ("Study ID to search.")
 search_study_response_descr = "A response to a validly-formed query."
-search_studies_descr = (
-    "Return nested studies associated to the queried concepts.")
 
 
 @app.get('/api/v2/search/studies',
@@ -75,9 +71,7 @@ async def get_studies(
     :param disease: Disease query
     :param therapy: Therapy query
     :param gene: Gene query
-    :param study_id: Study ID query. If an invalid ID is provided and other
-        parameters are provided, will attempt to get related studies for query
-        parameters.
+    :param study_id: Study ID query.
     :return: SearchStudiesService response containing nested studies and service
         metadata
     """
