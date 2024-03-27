@@ -368,7 +368,7 @@ class Graph:
         loc_keys = [
             f"loc.{key}=${key}"
             for key in ("id", "digest", "start", "end", "type")
-            if loc.get(key)
+            if loc.get(key) is not None  # start could be 0
         ]
         loc["sequence_reference"] = json.dumps(loc["sequenceReference"])
         loc_keys.append("loc.sequence_reference=$sequence_reference")
