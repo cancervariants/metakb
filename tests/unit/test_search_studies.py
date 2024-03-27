@@ -3,7 +3,14 @@ from typing import Dict
 
 import pytest
 
+from metakb.query import QueryHandler
 from metakb.schemas.api import SearchStudiesService
+
+
+@pytest.fixture(scope="module")
+def query_handler(normalizers):
+    """Create query handler test fixture"""
+    return QueryHandler(normalizers=normalizers)
 
 
 def assert_general_search_studies(response):

@@ -217,9 +217,7 @@ class QueryHandler:
         :param disease: Disease query
         :param therapy: Therapy query
         :param gene: Gene query
-        :param study_id: Study ID query. If an invalid ID is provided and other
-            parameters are provided, will attempt to get related studies for query
-            parameters.
+        :param study_id: Study ID query.
         :return: SearchStudiesService response containing nested studies and service
             metadata
         """
@@ -304,7 +302,7 @@ class QueryHandler:
                 try:
                     nested_study = self._get_nested_study(tx, s)
                 except ValidationError as e:
-                    logger.warning(e)
+                    logger.warning("%s: %s", s_id, e)
                 else:
                     if nested_study:
                         nested_studies.append(nested_study)
@@ -437,6 +435,8 @@ class QueryHandler:
                     params["therapeutic"] = core_models.TherapeuticProcedure(**node)
                 elif node_type == "TherapeuticAgent":
                     params["therapeutic"] = self._get_therapeutic_agent(node)
+            else:
+                logger.warning("relation type not supported: %s", rel_type)
 
         return VariantTherapeuticResponseStudy(**params).model_dump()
 
