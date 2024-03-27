@@ -1,6 +1,6 @@
 """Module for queries."""
 from copy import copy
-from enum import StrEnum
+from enum import Enum
 import json
 import logging
 from typing import Dict, List, Optional, Tuple
@@ -24,21 +24,21 @@ from metakb.schemas.variation_statement import (
 logger = logging.getLogger(__name__)
 
 
-class VariationRelation(StrEnum):
+class VariationRelation(str, Enum):
     """Create enum for relation between variation and categorical variation"""
 
     HAS_MEMBERS = "HAS_MEMBERS"
     HAS_DEFINING_CONTEXT = "HAS_DEFINING_CONTEXT"
 
 
-class TherapeuticRelation(StrEnum):
+class TherapeuticRelation(str, Enum):
     """Create enum for therapeutic relation"""
 
     HAS_COMPONENTS = "HAS_COMPONENTS"
     HAS_SUBSTITUTES = "HAS_SUBSTITUTES"
 
 
-class TherapeuticProcedureType(StrEnum):
+class TherapeuticProcedureType(str, Enum):
     """Create enum for therapeutic procedures"""
 
     COMBINATION = "CombinationTherapy"
@@ -486,7 +486,7 @@ class QueryHandler:
             substitute group
         """
         query = f"""
-        MATCH (tp:{tp_type} {{ id: '{tp_id}' }}) -[:{tp_relation}]
+        MATCH (tp:{tp_type.value} {{ id: '{tp_id}' }}) -[:{tp_relation.value}]
             -> (ta:TherapeuticAgent)
         RETURN ta
         """
@@ -515,7 +515,7 @@ class QueryHandler:
             returns exactly one variation
         """
         query = f"""
-        MATCH (v:Variation) <- [:{relation}] - (cv:CategoricalVariation
+        MATCH (v:Variation) <- [:{relation.value}] - (cv:CategoricalVariation
             {{ id: '{cv_id}' }})
         MATCH (loc:Location) <- [:HAS_LOCATION] - (v)
         RETURN v, loc
