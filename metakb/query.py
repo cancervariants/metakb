@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Tuple
 
 from ga4gh.core import core_models
 from ga4gh.vrs import models
+from metakb.schemas.app import SourceName
 from neo4j import Transaction
 from neo4j.graph import Node
 from pydantic import ValidationError
@@ -71,70 +72,69 @@ class QueryHandler:
         self.driver = Graph(uri, creds).driver
         self.vicc_normalizers = normalizers
 
-    def _get_normalized_therapy(self, therapy: str,
-                                warnings: List[str]) -> Optional[str]:
-        """Get normalized therapy concept.
+    async def search_studies(
+        self, variation: Optional[str] = None, disease: Optional[str] = None,
+        therapy: Optional[str] = None, gene: Optional[str] = None,
+        study_id: Optional[str] = None
+    ) -> SearchStudiesService:
+        """Get nested studies from queried concepts that match all conditions provided.
+        For example, if `variation` and `therapy` are provided, will return all studies
+        that have both the provided `variation` and `therapy`.
 
-        :param therapy: Therapy query
-        :param warnings: A list of warnings for the search query
-        :return: A normalized therapy concept if it exists
-        """
-        _, normalized_therapy_id = \
-            self.vicc_normalizers.normalize_therapy([therapy])
-
-        if not normalized_therapy_id:
-            warnings.append(f"Therapy Normalizer unable to normalize: "
-                            f"{therapy}")
-        return normalized_therapy_id
-
-    def _get_normalized_disease(self, disease: str,
-                                warnings: List[str]) -> Optional[str]:
-        """Get normalized disease concept.
-
+        :param variation: Variation query (Free text or VRS Variation ID)
         :param disease: Disease query
-        :param warnings: A list of warnings for the search query
-        :return: A normalized disease concept if it exists
-        """
-        _, normalized_disease_id = \
-            self.vicc_normalizers.normalize_disease([disease])
-
-        if not normalized_disease_id:
-            warnings.append(f"Disease Normalizer unable to normalize: "
-                            f"{disease}")
-        return normalized_disease_id
-
-    async def _get_normalized_variation(self, variation: str,
-                                        warnings: List[str]) -> Optional[str]:
-        """Get normalized variation concept.
-
-        :param variation: Variation query
-        :param warnings: A list of warnings for the search query
-        :return: A normalized variant concept if it exists
-        """
-        variant_norm_resp = \
-            await self.vicc_normalizers.normalize_variation([variation])
-        normalized_variation = variant_norm_resp.id if variant_norm_resp else None
-
-        if not normalized_variation:
-            # Check if VRS variation (allele, copy number change, copy number count)
-            if variation.startswith(("ga4gh:VA.", "ga4gh:CX.", "ga4gh:CN.")):
-                normalized_variation = variation
-            else:
-                warnings.append(f"Variation Normalizer unable to normalize: "
-                                f"{variation}")
-        return normalized_variation
-
-    def _get_normalized_gene(self, gene: str, warnings: List[str]) -> Optional[str]:
-        """Get normalized gene concept.
-
+        :param therapy: Therapy query
         :param gene: Gene query
-        :param warnings: A list of warnings for the search query.
-        :return: A normalized gene concept if it exists
+        :param study_id: Study ID query.
+        :return: SearchStudiesService response containing nested studies and service
+            metadata
         """
-        _, normalized_gene_id = self.vicc_normalizers.normalize_gene([gene])
-        if not normalized_gene_id:
-            warnings.append(f"Gene Normalizer unable to normalize: {gene}")
-        return normalized_gene_id
+        response: Dict = {
+            "query": {
+                "variation": None,
+                "disease": None,
+                "therapy": None,
+                "gene": None,
+                "study_id": None
+            },
+            "warnings": [],
+            "study_ids": [],
+            "studies": [],
+            "service_meta_": ServiceMeta()
+        }
+
+        normalized_terms = await self._get_normalized_terms(
+            variation, disease, therapy, gene, study_id, response)
+
+        if normalized_terms is None:
+            return SearchStudiesService(**response)
+
+        (normalized_variation, normalized_disease,
+         normalized_therapy, normalized_gene, study,
+         valid_study_id) = normalized_terms
+
+        with self.driver.session() as session:
+            if valid_study_id:
+                study_nodes = [study]
+                response["study_ids"].append(study["id"])
+            else:
+                study_nodes = self._get_related_studies(
+                    session,
+                    normalized_variation=normalized_variation,
+                    normalized_therapy=normalized_therapy,
+                    normalized_disease=normalized_disease,
+                    normalized_gene=normalized_gene
+                )
+                response["study_ids"] = [s["id"] for s in study_nodes]
+
+            response["studies"] = self._get_nested_studies(session, study_nodes)
+
+        if not response["studies"]:
+            response["warnings"].append(
+                "No studies found with the provided query parameters."
+            )
+
+        return SearchStudiesService(**response)
 
     async def _get_normalized_terms(
         self, variation: Optional[str], disease: Optional[str],
@@ -204,69 +204,70 @@ class QueryHandler:
         return (normalized_variation, normalized_disease, normalized_therapy,
                 normalized_gene, study, valid_study_id)
 
-    async def search_studies(
-        self, variation: Optional[str] = None, disease: Optional[str] = None,
-        therapy: Optional[str] = None, gene: Optional[str] = None,
-        study_id: Optional[str] = None
-    ) -> SearchStudiesService:
-        """Get nested studies from queried concepts that match all conditions provided.
-        For example, if `variation` and `therapy` are provided, will return all studies
-        that have both the provided `variation` and `therapy`.
+    def _get_normalized_therapy(self, therapy: str,
+                                warnings: List[str]) -> Optional[str]:
+        """Get normalized therapy concept.
 
-        :param variation: Variation query (Free text or VRS Variation ID)
-        :param disease: Disease query
         :param therapy: Therapy query
-        :param gene: Gene query
-        :param study_id: Study ID query.
-        :return: SearchStudiesService response containing nested studies and service
-            metadata
+        :param warnings: A list of warnings for the search query
+        :return: A normalized therapy concept if it exists
         """
-        response: Dict = {
-            "query": {
-                "variation": None,
-                "disease": None,
-                "therapy": None,
-                "gene": None,
-                "study_id": None
-            },
-            "warnings": [],
-            "study_ids": [],
-            "studies": [],
-            "service_meta_": ServiceMeta()
-        }
+        _, normalized_therapy_id = \
+            self.vicc_normalizers.normalize_therapy([therapy])
 
-        normalized_terms = await self._get_normalized_terms(
-            variation, disease, therapy, gene, study_id, response)
+        if not normalized_therapy_id:
+            warnings.append(f"Therapy Normalizer unable to normalize: "
+                            f"{therapy}")
+        return normalized_therapy_id
 
-        if normalized_terms is None:
-            return SearchStudiesService(**response)
+    def _get_normalized_disease(self, disease: str,
+                                warnings: List[str]) -> Optional[str]:
+        """Get normalized disease concept.
 
-        (normalized_variation, normalized_disease,
-         normalized_therapy, normalized_gene, study,
-         valid_study_id) = normalized_terms
+        :param disease: Disease query
+        :param warnings: A list of warnings for the search query
+        :return: A normalized disease concept if it exists
+        """
+        _, normalized_disease_id = \
+            self.vicc_normalizers.normalize_disease([disease])
 
-        with self.driver.session() as session:
-            if valid_study_id:
-                study_nodes = [study]
-                response["study_ids"].append(study["id"])
+        if not normalized_disease_id:
+            warnings.append(f"Disease Normalizer unable to normalize: "
+                            f"{disease}")
+        return normalized_disease_id
+
+    async def _get_normalized_variation(self, variation: str,
+                                        warnings: List[str]) -> Optional[str]:
+        """Get normalized variation concept.
+
+        :param variation: Variation query
+        :param warnings: A list of warnings for the search query
+        :return: A normalized variant concept if it exists
+        """
+        variant_norm_resp = \
+            await self.vicc_normalizers.normalize_variation([variation])
+        normalized_variation = variant_norm_resp.id if variant_norm_resp else None
+
+        if not normalized_variation:
+            # Check if VRS variation (allele, copy number change, copy number count)
+            if variation.startswith(("ga4gh:VA.", "ga4gh:CX.", "ga4gh:CN.")):
+                normalized_variation = variation
             else:
-                study_nodes = self._get_related_studies(
-                    session,
-                    normalized_variation=normalized_variation,
-                    normalized_therapy=normalized_therapy,
-                    normalized_disease=normalized_disease,
-                    normalized_gene=normalized_gene
-                )
-                response["study_ids"] = [s["id"] for s in study_nodes]
+                warnings.append(f"Variation Normalizer unable to normalize: "
+                                f"{variation}")
+        return normalized_variation
 
-            response["studies"] = self._get_nested_studies(session, study_nodes)
+    def _get_normalized_gene(self, gene: str, warnings: List[str]) -> Optional[str]:
+        """Get normalized gene concept.
 
-            if not response["studies"]:
-                response["warnings"].append(
-                    "No studies found with the provided query parameters."
-                )
-
-        return SearchStudiesService(**response)
+        :param gene: Gene query
+        :param warnings: A list of warnings for the search query.
+        :return: A normalized gene concept if it exists
+        """
+        _, normalized_gene_id = self.vicc_normalizers.normalize_gene([gene])
+        if not normalized_gene_id:
+            warnings.append(f"Gene Normalizer unable to normalize: {gene}")
+        return normalized_gene_id
 
     @staticmethod
     def _get_study_by_id(tx: Transaction, study_id: str) -> Optional[Node]:
@@ -282,6 +283,61 @@ class QueryHandler:
         RETURN s
         """
         return (tx.run(query).single() or [None])[0]
+
+    @staticmethod
+    def _get_related_studies(
+        tx: Transaction,
+        normalized_variation: Optional[str] = None,
+        normalized_therapy: Optional[str] = None,
+        normalized_disease: Optional[str] = None,
+        normalized_gene: Optional[str] = None
+    ) -> List[Node]:
+        """Get studies that contain queried normalized concepts.
+
+        :param tx: Neo4j session transaction object
+        :param normalized_variation: VRS Variation ID
+        :param normalized_therapy: normalized therapy concept ID
+        :param normalized_disease: normalized disease concept ID
+        :param normalized_gene: normalized gene concept ID
+        :return: List of Study nodes matching given parameters
+        """
+        query = "MATCH (s:Study)"
+        params: Dict[str, str] = {}
+
+        if normalized_variation:
+            query += """
+            MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
+            MATCH (cv) -[:HAS_DEFINING_CONTEXT|:HAS_MEMBERS] -> (v:Variation {id:$v_id})
+            """
+            params["v_id"] = normalized_variation
+
+        if normalized_disease:
+            query += """
+            MATCH (s) -[:HAS_TUMOR_TYPE] -> (c:Condition {disease_normalizer_id:$c_id})
+            """
+            params["c_id"] = normalized_disease
+
+        if normalized_gene:
+            query += """
+            MATCH (s) -[:HAS_GENE_CONTEXT] -> (g:Gene {gene_normalizer_id:$g_id})
+            """
+            params["g_id"] = normalized_gene
+
+        if normalized_therapy:
+            query += """
+            MATCH (s1:Study) -[:HAS_THERAPEUTIC] ->(
+                tp:TherapeuticAgent {therapy_normalizer_id:$t_id})
+            RETURN s1 as s
+            UNION
+            MATCH (s2:Study) -[:HAS_THERAPEUTIC]-> () - [:HAS_SUBSTITUTES|
+                HAS_COMPONENTS] ->(ta:TherapeuticAgent {therapy_normalizer_id:$t_id})
+            RETURN s2 as s
+            """
+            params["t_id"] = normalized_therapy
+        else:
+            query += "RETURN s"
+
+        return [s[0] for s in tx.run(query, **params)]
 
     def _get_nested_studies(
         self,
@@ -344,160 +400,83 @@ class QueryHandler:
             node = item["n"]
 
             if rel_type == "HAS_TUMOR_TYPE":
-                _update_mappings(node)
-                node["extensions"] = [
-                    core_models.Extension(
-                        name="disease_normalizer_id",
-                        value=node["disease_normalizer_id"]
-                    )
-                ]
-                params["tumorType"] = core_models.Disease(**node)
+                params["tumorType"] = self._get_disease(node)
             elif rel_type == "HAS_VARIANT":
-                _update_mappings(node)
-
-                extensions = []
-                for node_key, ext_name in (
-                    ("moa_representative_coordinate", "MOA representative coordinate"),
-                    ("civic_representative_coordinate", "CIViC representative coordinate"),  # noqa: E501
-                    ("civic_molecular_profile_score", "CIViC Molecular Profile Score"),
-                    ("variant_types", "Variant types")
-                ):
-                    node_val = node.get(node_key)
-                    if node_val:
-                        try:
-                            ext_val = json.loads(node_val)
-                        except TypeError:
-                            ext_val = node_val
-                        extensions.append(
-                            core_models.Extension(
-                                name=ext_name,
-                                value=ext_val
-                            )
-                        )
-                        if node_key.startswith("moa"):
-                            # Cant be civic
-                            break
-                node["extensions"] = extensions or None
-
-                node["definingContext"] = self._get_variations(
-                    tx, node["id"], VariationRelation.HAS_DEFINING_CONTEXT
-                )[0]
-                node["members"] = self._get_variations(
-                    tx, node["id"], VariationRelation.HAS_MEMBERS
-                )
-                params["variant"] = CategoricalVariation(**node)
+                params["variant"] = self._get_cat_var(tx, node)
             elif rel_type == "HAS_GENE_CONTEXT":
-                params["qualifiers"] = _VariantOncogenicityStudyQualifier(
-                    alleleOrigin=s.get("alleleOrigin"),
-                    geneContext=self._get_gene_context_for_study(tx, study_id)
+                params["qualifiers"] = self._get_variant_onco_study_qualifier(
+                    tx, study_id, s.get("alleleOrigin")
                 )
             elif rel_type == "IS_SPECIFIED_BY":
                 node["isReportedIn"] = self._get_method_document(tx, node["id"])
                 params["specifiedBy"] = Method(**node)
             elif rel_type == "IS_REPORTED_IN":
-                _update_mappings(node)
-
-                source_type = node.get("source_type")
-                if source_type:
-                    node["extensions"] = [
-                        core_models.Extension(
-                            name="source_type",
-                            value=source_type
-                        )
-                    ]
-                params["isReportedIn"].append(Document(**node))
+                params["isReportedIn"].append(self._get_document(node))
             elif rel_type == "HAS_STRENGTH":
                 params["strength"] = core_models.Coding(**node)
             elif rel_type == "HAS_THERAPEUTIC":
-                node_type = node["type"]
-                if node_type in {"CombinationTherapy", "TherapeuticSubstituteGroup"}:
-                    civic_therapy_interaction_type = node.get("civic_therapy_interaction_type")  # noqa: E501
-                    if civic_therapy_interaction_type:
-                        node["extensions"] = [
-                            core_models.Extension(
-                                name="civic_therapy_interaction_type",
-                                value=civic_therapy_interaction_type
-                            )
-                        ]
-
-                    if node_type == "CombinationTherapy":
-                        node["components"] = self._get_therapeutic_agents(
-                            tx, node["id"], TherapeuticProcedureType.COMBINATION,
-                            TherapeuticRelation.HAS_COMPONENTS
-                        )
-                        params["therapeutic"] = core_models.TherapeuticProcedure(**node)
-                    else:
-                        node["substitutes"] = self._get_therapeutic_agents(
-                            tx, node["id"], TherapeuticProcedureType.SUBSTITUTES,
-                            TherapeuticRelation.HAS_SUBSTITUTES
-                        )
-
-                    params["therapeutic"] = core_models.TherapeuticProcedure(**node)
-                elif node_type == "TherapeuticAgent":
-                    params["therapeutic"] = self._get_therapeutic_agent(node)
+                params["therapeutic"] = self._get_therapeutic_procedure(tx, node)
             else:
                 logger.warning("relation type not supported: %s", rel_type)
 
         return VariantTherapeuticResponseStudy(**params).model_dump()
 
     @staticmethod
-    def _get_therapeutic_agent(in_ta_params: Dict) -> core_models.TherapeuticAgent:
-        """Transform input parameters into TherapeuticAgent object
+    def _get_disease(node: Dict) -> core_models.Disease:
+        """Get disease data from a node with relationship ``HAS_TUMOR_TYPE``
 
-        :param in_ta_params: Therapeutic Agent node properties
-        :return: TherapeuticAgent
+        :param node: Disease node data. This will be mutated.
+        :return: Disease data
         """
-        ta_params = copy(in_ta_params)
-        _update_mappings(ta_params)
-        extensions = [
+        _update_mappings(node)
+        node["extensions"] = [
             core_models.Extension(
-                name="therapy_normalizer_id",
-                value=ta_params["therapy_normalizer_id"]
+                name="disease_normalizer_id",
+                value=node["disease_normalizer_id"]
             )
         ]
-        regulatory_approval = ta_params.get("regulatory_approval")
-        if regulatory_approval:
-            regulatory_approval = json.loads(regulatory_approval)
-            extensions.append(
-                core_models.Extension(
-                    name="regulatory_approval",
-                    value=regulatory_approval
+        return core_models.Disease(**node)
+
+    def _get_cat_var(self, tx: Transaction, node: Dict) -> CategoricalVariation:
+        """Get categorical variation data from a node with relationship ``HAS_VARIANT``
+
+        :param tx: Neo4j session transaction object
+        :param node: Variant node data. This will be mutated.
+        :return: Categorical Variation data
+        """
+        _update_mappings(node)
+
+        extensions = []
+        for node_key, ext_name in (
+            ("moa_representative_coordinate", "MOA representative coordinate"),
+            ("civic_representative_coordinate", "CIViC representative coordinate"),
+            ("civic_molecular_profile_score", "CIViC Molecular Profile Score"),
+            ("variant_types", "Variant types")
+        ):
+            node_val = node.get(node_key)
+            if node_val:
+                try:
+                    ext_val = json.loads(node_val)
+                except TypeError:
+                    ext_val = node_val
+                extensions.append(
+                    core_models.Extension(
+                        name=ext_name,
+                        value=ext_val
+                    )
                 )
-            )
+                if node_key.startswith(SourceName.MOA.value):
+                    # Cant be civic
+                    break
 
-        ta_params["extensions"] = extensions
-        return core_models.TherapeuticAgent(**ta_params)
-
-    def _get_therapeutic_agents(
-        self,
-        tx: Transaction,
-        tp_id: str,
-        tp_type: TherapeuticProcedureType,
-        tp_relation: TherapeuticRelation
-    ) -> List[core_models.TherapeuticAgent]:
-        """Get list of therapeutic agents for therapeutic combination or substitutes
-        group
-
-        :param tp_id: ID for combination therapy or therapeutic substitute group
-        :param tp_type: Therapeutic Procedure type
-        :param tp_relation: Relationship type for therapeutic procedure and therapeutic
-            agent
-        :return: List of Therapeutic Agents for a combination therapy or therapeutic
-            substitute group
-        """
-        query = f"""
-        MATCH (tp:{tp_type.value} {{ id: '{tp_id}' }}) -[:{tp_relation.value}]
-            -> (ta:TherapeuticAgent)
-        RETURN ta
-        """
-        therapeutic_agents = []
-        results = tx.run(query)
-        for r in results:
-            r_params = r.data()
-            ta_params = r_params["ta"]
-            ta = self._get_therapeutic_agent(ta_params)
-            therapeutic_agents.append(ta)
-        return therapeutic_agents
+        node["extensions"] = extensions or None
+        node["definingContext"] = self._get_variations(
+            tx, node["id"], VariationRelation.HAS_DEFINING_CONTEXT
+        )[0]
+        node["members"] = self._get_variations(
+            tx, node["id"], VariationRelation.HAS_MEMBERS
+        )
+        return CategoricalVariation(**node)
 
     @staticmethod
     def _get_variations(
@@ -547,34 +526,17 @@ class QueryHandler:
         return variations
 
     @staticmethod
-    def _get_method_document(tx: Transaction, method_id: str) -> Optional[Document]:
-        """Get document for a given method
-
-        :param tx: Neo4j session transaction object
-        :param method_id: ID for method
-        :return: Document
-        """
-        query = f"""
-        MATCH (m:Method {{ id: '{method_id}' }}) -[:IS_REPORTED_IN] -> (d:Document)
-        RETURN d
-        """
-        record = tx.run(query).single()
-        if not record:
-            return None
-
-        doc_params = record.data()["d"]
-        return Document(**doc_params)
-
-    @staticmethod
-    def _get_gene_context_for_study(
+    def _get_variant_onco_study_qualifier(
         tx: Transaction,
         study_id: str,
-    ) -> Optional[core_models.Gene]:
-        """Get gene context for a given study
+        allele_origin: Optional[str]
+    ) -> _VariantOncogenicityStudyQualifier:
+        """Get variant oncogenicity study qualifier data for a study
 
         :param tx: Neo4j session transaction object
-        :param study_id: ID for study
-        :return: Gene context associated to study
+        :param study_id: ID of study node
+        :param allele_origin: Study's allele origin
+        :return Variant oncogenicity study qualifier data
         """
         query = f"""
         MATCH (s:Study {{ id: '{study_id}' }}) -[:HAS_GENE_CONTEXT] -> (g:Gene)
@@ -594,59 +556,147 @@ class QueryHandler:
             )
         ]
 
-        return core_models.Gene(**gene_params)
+        return _VariantOncogenicityStudyQualifier(
+            alleleOrigin=allele_origin,
+            geneContext=core_models.Gene(**gene_params)
+        )
 
     @staticmethod
-    def _get_related_studies(
-        tx: Transaction,
-        normalized_variation: Optional[str] = None,
-        normalized_therapy: Optional[str] = None,
-        normalized_disease: Optional[str] = None,
-        normalized_gene: Optional[str] = None
-    ) -> List[Node]:
-        """Get studies that contain queried normalized concepts.
+    def _get_method_document(tx: Transaction, method_id: str) -> Optional[Document]:
+        """Get document for a given method
 
         :param tx: Neo4j session transaction object
-        :param normalized_variation: VRS Variation ID
-        :param normalized_therapy: normalized therapy concept ID
-        :param normalized_disease: normalized disease concept ID
-        :param normalized_gene: normalized gene concept ID
-        :return: List of Study nodes matching given parameters
+        :param method_id: ID for method
+        :return: Document
         """
-        query = "MATCH (s:Study)"
-        params: Dict[str, str] = {}
+        query = f"""
+        MATCH (m:Method {{ id: '{method_id}' }}) -[:IS_REPORTED_IN] -> (d:Document)
+        RETURN d
+        """
+        record = tx.run(query).single()
+        if not record:
+            return None
 
-        if normalized_variation:
-            query += """
-            MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
-            MATCH (cv) -[:HAS_DEFINING_CONTEXT|:HAS_MEMBERS] -> (v:Variation {id:$v_id})
-            """
-            params["v_id"] = normalized_variation
+        doc_params = record.data()["d"]
+        return Document(**doc_params)
 
-        if normalized_disease:
-            query += """
-            MATCH (s) -[:HAS_TUMOR_TYPE] -> (c:Condition {disease_normalizer_id:$c_id})
-            """
-            params["c_id"] = normalized_disease
+    @staticmethod
+    def _get_document(node: Dict) -> Document:
+        """Get document data from a node with relationship ``IS_SPECIFIED_BY``
 
-        if normalized_gene:
-            query += """
-            MATCH (s) -[:HAS_GENE_CONTEXT] -> (g:Gene {gene_normalizer_id:$g_id})
-            """
-            params["g_id"] = normalized_gene
+        :param node: Document node data. This will be mutated
+        :return: Document data
+        """
+        _update_mappings(node)
 
-        if normalized_therapy:
-            query += """
-            MATCH (s1:Study) -[:HAS_THERAPEUTIC] ->(
-                tp:TherapeuticAgent {therapy_normalizer_id:$t_id})
-            RETURN s1 as s
-            UNION
-            MATCH (s2:Study) -[:HAS_THERAPEUTIC]-> () - [:HAS_SUBSTITUTES|
-                HAS_COMPONENTS] ->(ta:TherapeuticAgent {therapy_normalizer_id:$t_id})
-            RETURN s2 as s
-            """
-            params["t_id"] = normalized_therapy
+        source_type = node.get("source_type")
+        if source_type:
+            node["extensions"] = [
+                core_models.Extension(
+                    name="source_type",
+                    value=source_type
+                )
+            ]
+        return Document(**node)
+
+    def _get_therapeutic_procedure(
+        self,
+        tx: Transaction,
+        node: Dict,
+    ) -> Optional[core_models.TherapeuticProcedure]:
+        """Get therapeutic procedure from a node with relationship ``HAS_THERAPEUTIC``
+
+        :param tx: Neo4j session transaction object
+        :param node: Therapeutic node data. This will be mutated.
+        :return: Therapeutic procedure if node type is supported. Currently, therapeutic
+            action is not supported.
+        """
+        node_type = node["type"]
+        if node_type in {"CombinationTherapy", "TherapeuticSubstituteGroup"}:
+            civic_therapy_interaction_type = node.get("civic_therapy_interaction_type")
+            if civic_therapy_interaction_type:
+                node["extensions"] = [
+                    core_models.Extension(
+                        name="civic_therapy_interaction_type",
+                        value=civic_therapy_interaction_type
+                    )
+                ]
+
+            if node_type == "CombinationTherapy":
+                node["components"] = self._get_therapeutic_agents(
+                    tx, node["id"], TherapeuticProcedureType.COMBINATION,
+                    TherapeuticRelation.HAS_COMPONENTS
+                )
+            else:
+                node["substitutes"] = self._get_therapeutic_agents(
+                    tx, node["id"], TherapeuticProcedureType.SUBSTITUTES,
+                    TherapeuticRelation.HAS_SUBSTITUTES
+                )
+
+            therapeutic = core_models.TherapeuticProcedure(**node)
+        elif node_type == "TherapeuticAgent":
+            therapeutic = self._get_therapeutic_agent(node)
         else:
-            query += "RETURN s"
+            logger.warning("node type not supported: %s", node_type)
+            therapeutic = None
 
-        return [s[0] for s in tx.run(query, **params)]
+        return therapeutic
+
+    def _get_therapeutic_agents(
+        self,
+        tx: Transaction,
+        tp_id: str,
+        tp_type: TherapeuticProcedureType,
+        tp_relation: TherapeuticRelation
+    ) -> List[core_models.TherapeuticAgent]:
+        """Get list of therapeutic agents for therapeutic combination or substitutes
+        group
+
+        :param tp_id: ID for combination therapy or therapeutic substitute group
+        :param tp_type: Therapeutic Procedure type
+        :param tp_relation: Relationship type for therapeutic procedure and therapeutic
+            agent
+        :return: List of Therapeutic Agents for a combination therapy or therapeutic
+            substitute group
+        """
+        query = f"""
+        MATCH (tp:{tp_type.value} {{ id: '{tp_id}' }}) -[:{tp_relation.value}]
+            -> (ta:TherapeuticAgent)
+        RETURN ta
+        """
+        therapeutic_agents = []
+        results = tx.run(query)
+        for r in results:
+            r_params = r.data()
+            ta_params = r_params["ta"]
+            ta = self._get_therapeutic_agent(ta_params)
+            therapeutic_agents.append(ta)
+        return therapeutic_agents
+
+    @staticmethod
+    def _get_therapeutic_agent(in_ta_params: Dict) -> core_models.TherapeuticAgent:
+        """Transform input parameters into TherapeuticAgent object
+
+        :param in_ta_params: Therapeutic Agent node properties
+        :return: TherapeuticAgent
+        """
+        ta_params = copy(in_ta_params)
+        _update_mappings(ta_params)
+        extensions = [
+            core_models.Extension(
+                name="therapy_normalizer_id",
+                value=ta_params["therapy_normalizer_id"]
+            )
+        ]
+        regulatory_approval = ta_params.get("regulatory_approval")
+        if regulatory_approval:
+            regulatory_approval = json.loads(regulatory_approval)
+            extensions.append(
+                core_models.Extension(
+                    name="regulatory_approval",
+                    value=regulatory_approval
+                )
+            )
+
+        ta_params["extensions"] = extensions
+        return core_models.TherapeuticAgent(**ta_params)
