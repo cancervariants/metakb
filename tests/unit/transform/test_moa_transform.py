@@ -51,12 +51,13 @@ def moa_vid145():
         },
         "members": [
             {
-                "id": "ga4gh:VA.LX3ooHBAiZdKY4RfTXcliUmkj48mnD_M",
+                "id": "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe",
                 "label": "7-140453136-A-T",
-                "digest": "LX3ooHBAiZdKY4RfTXcliUmkj48mnD_M",
+                "digest": "Otc5ovrw906Ack087o1fhegB4jDRqCAe",
                 "type": "Allele",
                 "location": {
-                    "id": "ga4gh:SL.XutGzMvqbzN-vnxmPt2MJf7ehxmB0opi",
+                    "id": "ga4gh:SL.nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+                    "digest": "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
                     "type": "SequenceLocation",
                     "sequenceReference": {
                         "type": "SequenceReference",

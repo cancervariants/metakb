@@ -1861,12 +1861,13 @@ def moa_vid66():
         },
         "members": [
             {
-                "id": "ga4gh:VA.4V66OTVdyRCs7Vm3kxBPQFSDk547xRIJ",
+                "id": "ga4gh:VA.HUJOQCml0LngKmUf5IJIYQk9CfKmagbf",
                 "label": "9-133748283-C-T",
-                "digest": "4V66OTVdyRCs7Vm3kxBPQFSDk547xRIJ",
+                "digest": "HUJOQCml0LngKmUf5IJIYQk9CfKmagbf",
                 "type": "Allele",
                 "location": {
-                    "id": "ga4gh:SL.Jd8rYQFTnBOWt4NflEVkGn9J0esGH9zo",
+                    "id": "ga4gh:SL.vd9Kb9rCPWBEUZ_wbBxZyulgOAq-jk0P",
+                    "digest": "vd9Kb9rCPWBEUZ_wbBxZyulgOAq-jk0P",
                     "type": "SequenceLocation",
                     "sequenceReference": {
                         "type": "SequenceReference",
