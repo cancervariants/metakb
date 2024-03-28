@@ -371,6 +371,7 @@ class QueryHandler:
         """Get disease data from a node with relationship ``HAS_TUMOR_TYPE``
 
         :param node: Disease node data. This will be mutated.
+        :return: Disease data
         """
         _update_mappings(node)
         node["extensions"] = [
