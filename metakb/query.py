@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Tuple
 
 from ga4gh.core import core_models
 from ga4gh.vrs import models
+from metakb.schemas.app import SourceName
 from neo4j import Transaction
 from neo4j.graph import Node
 from pydantic import ValidationError
@@ -344,101 +345,144 @@ class QueryHandler:
             node = item["n"]
 
             if rel_type == "HAS_TUMOR_TYPE":
-                _update_mappings(node)
-                node["extensions"] = [
-                    core_models.Extension(
-                        name="disease_normalizer_id",
-                        value=node["disease_normalizer_id"]
-                    )
-                ]
-                params["tumorType"] = core_models.Disease(**node)
+                params["tumorType"] = self._get_disease(node)
             elif rel_type == "HAS_VARIANT":
-                _update_mappings(node)
-
-                extensions = []
-                for node_key, ext_name in (
-                    ("moa_representative_coordinate", "MOA representative coordinate"),
-                    ("civic_representative_coordinate", "CIViC representative coordinate"),  # noqa: E501
-                    ("civic_molecular_profile_score", "CIViC Molecular Profile Score"),
-                    ("variant_types", "Variant types")
-                ):
-                    node_val = node.get(node_key)
-                    if node_val:
-                        try:
-                            ext_val = json.loads(node_val)
-                        except TypeError:
-                            ext_val = node_val
-                        extensions.append(
-                            core_models.Extension(
-                                name=ext_name,
-                                value=ext_val
-                            )
-                        )
-                        if node_key.startswith("moa"):
-                            # Cant be civic
-                            break
-                node["extensions"] = extensions or None
-
-                node["definingContext"] = self._get_variations(
-                    tx, node["id"], VariationRelation.HAS_DEFINING_CONTEXT
-                )[0]
-                node["members"] = self._get_variations(
-                    tx, node["id"], VariationRelation.HAS_MEMBERS
-                )
-                params["variant"] = CategoricalVariation(**node)
+                params["variant"] = self._get_cat_var(tx, node)
             elif rel_type == "HAS_GENE_CONTEXT":
-                params["qualifiers"] = _VariantOncogenicityStudyQualifier(
-                    alleleOrigin=s.get("alleleOrigin"),
-                    geneContext=self._get_gene_context_for_study(tx, study_id)
+                params["qualifiers"] = self._get_variant_onco_study_qualifier(
+                    tx, study_id, s.get("alleleOrigin")
                 )
             elif rel_type == "IS_SPECIFIED_BY":
                 node["isReportedIn"] = self._get_method_document(tx, node["id"])
                 params["specifiedBy"] = Method(**node)
             elif rel_type == "IS_REPORTED_IN":
-                _update_mappings(node)
-
-                source_type = node.get("source_type")
-                if source_type:
-                    node["extensions"] = [
-                        core_models.Extension(
-                            name="source_type",
-                            value=source_type
-                        )
-                    ]
-                params["isReportedIn"].append(Document(**node))
+                params["isReportedIn"].append(self._get_document(node))
             elif rel_type == "HAS_STRENGTH":
                 params["strength"] = core_models.Coding(**node)
             elif rel_type == "HAS_THERAPEUTIC":
-                node_type = node["type"]
-                if node_type in {"CombinationTherapy", "TherapeuticSubstituteGroup"}:
-                    civic_therapy_interaction_type = node.get("civic_therapy_interaction_type")  # noqa: E501
-                    if civic_therapy_interaction_type:
-                        node["extensions"] = [
-                            core_models.Extension(
-                                name="civic_therapy_interaction_type",
-                                value=civic_therapy_interaction_type
-                            )
-                        ]
-
-                    if node_type == "CombinationTherapy":
-                        node["components"] = self._get_therapeutic_agents(
-                            tx, node["id"], TherapeuticProcedureType.COMBINATION,
-                            TherapeuticRelation.HAS_COMPONENTS
-                        )
-                        params["therapeutic"] = core_models.TherapeuticProcedure(**node)
-                    else:
-                        node["substitutes"] = self._get_therapeutic_agents(
-                            tx, node["id"], TherapeuticProcedureType.SUBSTITUTES,
-                            TherapeuticRelation.HAS_SUBSTITUTES
-                        )
-
-                    params["therapeutic"] = core_models.TherapeuticProcedure(**node)
-                elif node_type == "TherapeuticAgent":
-                    params["therapeutic"] = self._get_therapeutic_agent(node)
+                params["therapeutic"] = self._get_therapeutic_procedure(tx, node)
             else:
                 logger.warning("relation type not supported: %s", rel_type)
 
         return VariantTherapeuticResponseStudy(**params).model_dump()
+
+    @staticmethod
+    def _get_disease(node: Dict) -> core_models.Disease:
+        """Get disease data from a node with relationship ``HAS_TUMOR_TYPE``
+
+        :param node: Disease node data. This will be mutated.
+        """
+        _update_mappings(node)
+        node["extensions"] = [
+            core_models.Extension(
+                name="disease_normalizer_id",
+                value=node["disease_normalizer_id"]
+            )
+        ]
+        return core_models.Disease(**node)
+
+    def _get_cat_var(self, tx: Transaction, node: Dict) -> CategoricalVariation:
+        """Get categorical variation data from a node with relationship ``HAS_VARIANT``
+
+        :param tx: Neo4j session transaction object
+        :param node: Variant node data. This will be mutated.
+        :return: Categorical Variation data
+        """
+        _update_mappings(node)
+
+        extensions = []
+        for node_key, ext_name in (
+            ("moa_representative_coordinate", "MOA representative coordinate"),
+            ("civic_representative_coordinate", "CIViC representative coordinate"),
+            ("civic_molecular_profile_score", "CIViC Molecular Profile Score"),
+            ("variant_types", "Variant types")
+        ):
+            node_val = node.get(node_key)
+            if node_val:
+                try:
+                    ext_val = json.loads(node_val)
+                except TypeError:
+                    ext_val = node_val
+                extensions.append(
+                    core_models.Extension(
+                        name=ext_name,
+                        value=ext_val
+                    )
+                )
+                if node_key.startswith(SourceName.MOA.value):
+                    # Cant be civic
+                    break
+
+        node["extensions"] = extensions or None
+        node["definingContext"] = self._get_variations(
+            tx, node["id"], VariationRelation.HAS_DEFINING_CONTEXT
+        )[0]
+        node["members"] = self._get_variations(
+            tx, node["id"], VariationRelation.HAS_MEMBERS
+        )
+        return CategoricalVariation(**node)
+
+    @staticmethod
+    def _get_document(node: Dict) -> Document:
+        """Get document data from a node with relationship ``IS_SPECIFIED_BY``
+
+        :param node: Document node data. This will be mutated
+        :return: Document data
+        """
+        _update_mappings(node)
+
+        source_type = node.get("source_type")
+        if source_type:
+            node["extensions"] = [
+                core_models.Extension(
+                    name="source_type",
+                    value=source_type
+                )
+            ]
+        return Document(**node)
+
+    def _get_therapeutic_procedure(
+        self,
+        tx: Transaction,
+        node: Dict,
+    ) -> Optional[core_models.TherapeuticProcedure]:
+        """Get therapeutic procedure from a node with relationship ``HAS_THERAPEUTIC``
+
+        :param tx: Neo4j session transaction object
+        :param node: Therapeutic node data. This will be mutated.
+        :return: Therapeutic procedure if node type is supported. Currently, therapeutic
+            action is not supported.
+        """
+        node_type = node["type"]
+        if node_type in {"CombinationTherapy", "TherapeuticSubstituteGroup"}:
+            civic_therapy_interaction_type = node.get("civic_therapy_interaction_type")
+            if civic_therapy_interaction_type:
+                node["extensions"] = [
+                    core_models.Extension(
+                        name="civic_therapy_interaction_type",
+                        value=civic_therapy_interaction_type
+                    )
+                ]
+
+            if node_type == "CombinationTherapy":
+                node["components"] = self._get_therapeutic_agents(
+                    tx, node["id"], TherapeuticProcedureType.COMBINATION,
+                    TherapeuticRelation.HAS_COMPONENTS
+                )
+            else:
+                node["substitutes"] = self._get_therapeutic_agents(
+                    tx, node["id"], TherapeuticProcedureType.SUBSTITUTES,
+                    TherapeuticRelation.HAS_SUBSTITUTES
+                )
+
+            therapeutic = core_models.TherapeuticProcedure(**node)
+        elif node_type == "TherapeuticAgent":
+            therapeutic = self._get_therapeutic_agent(node)
+        else:
+            logger.warning("node type not supported: %s", node_type)
+            therapeutic = None
+
+        return therapeutic
 
     @staticmethod
     def _get_therapeutic_agent(in_ta_params: Dict) -> core_models.TherapeuticAgent:
@@ -566,15 +610,17 @@ class QueryHandler:
         return Document(**doc_params)
 
     @staticmethod
-    def _get_gene_context_for_study(
+    def _get_variant_onco_study_qualifier(
         tx: Transaction,
         study_id: str,
-    ) -> Optional[core_models.Gene]:
-        """Get gene context for a given study
+        allele_origin: Optional[str]
+    ) -> _VariantOncogenicityStudyQualifier:
+        """Get variant oncogenicity study qualifier data for a study
 
         :param tx: Neo4j session transaction object
-        :param study_id: ID for study
-        :return: Gene context associated to study
+        :param study_id: ID of study node
+        :param allele_origin: Study's allele origin
+        :return Variant oncogenicity study qualifier data
         """
         query = f"""
         MATCH (s:Study {{ id: '{study_id}' }}) -[:HAS_GENE_CONTEXT] -> (g:Gene)
@@ -594,7 +640,10 @@ class QueryHandler:
             )
         ]
 
-        return core_models.Gene(**gene_params)
+        return _VariantOncogenicityStudyQualifier(
+            alleleOrigin=allele_origin,
+            geneContext=core_models.Gene(**gene_params)
+        )
 
     @staticmethod
     def _get_related_studies(
