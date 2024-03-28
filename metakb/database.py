@@ -1,40 +1,46 @@
-"""Graph database for storing harvested data."""
-from neo4j import GraphDatabase
-from neo4j.exceptions import ServiceUnavailable, ConstraintError
-from typing import Tuple, Dict, Set
-import logging
-import json
-from pathlib import Path
-from os import environ
-import boto3
-import base64
-from botocore.exceptions import ClientError
+"""Graph database for storing CDM data."""
 import ast
+import json
+import logging
+from os import environ
+from pathlib import Path
+from typing import Dict, List, Set, Tuple
 
-logger = logging.getLogger('metakb.database')
-logger.setLevel(logging.DEBUG)
+import boto3
+from botocore.exceptions import ClientError
+from neo4j import GraphDatabase, ManagedTransaction
+
+from metakb.schemas.app import SourceName
+
+logger = logging.getLogger(__name__)
 
 
-def _create_keys_string(entity, keys) -> str:
-    """Create formatted string for requested keys if non-null in entity.
-    :param Dict entity: entity to check against, eg a Disease or Statement
-    :param Tuple keys: key names to check
-    :return: formatted String for use in Cypher query
+def _create_parameterized_query(
+    entity: Dict,
+    params: Tuple[str],
+    entity_param_prefix: str = ""
+) -> str:
+    """Create parameterized query string for requested params if non-null in entity.
+
+    :param entity: entity to check against, eg a Variation or Study
+    :param params: Parameter names to check
+    :param entity_param_prefix: Prefix for parameter names in entity object
+    :return: Parameterized query, such as (`name:$name`)
     """
-    nonnull_keys = [f"{key}:${key}"
-                    for key in keys if entity.get(key)]
-    keys_string = ', '.join(nonnull_keys)
-    return keys_string
+    nonnull_keys = [
+        f"{key}:${entity_param_prefix}{key}" for key in params if entity.get(key)
+    ]
+    return ", ".join(nonnull_keys)
 
 
 class Graph:
     """Manage requests to graph datastore."""
 
-    def __init__(self, uri: str = '', credentials: Tuple[str, str] = ('', '')):
+    def __init__(self, uri: str = '', credentials: Tuple[str, str] = ('', '')) -> None:
         """Initialize Graph driver instance.
-        :param str uri: address of Neo4j DB
-        :param Tuple[str, str] credentials: tuple containing username and
-            password
+
+        :param uri: address of Neo4j DB
+        :param credentials: tuple containing username and password
         """
         if 'METAKB_NORM_EB_PROD' in environ:
             secret = ast.literal_eval(self.get_secret())
@@ -47,415 +53,609 @@ class Graph:
         elif not (uri and credentials[0] and credentials[1]):
             # Local
             uri = "bolt://localhost:7687"
-            credentials = ("neo4j", "admin")
+            credentials = ("neo4j", "password")
         self.driver = GraphDatabase.driver(uri, auth=credentials)
         with self.driver.session() as session:
-            session.write_transaction(self._create_constraints)
+            session.execute_write(self._create_constraints)
 
-    def close(self):
+    def close(self) -> None:
         """Close Neo4j driver."""
         self.driver.close()
 
-    def clear(self):
+    def clear(self) -> None:
         """Debugging helper - wipe out DB."""
-        def delete_all(tx):
+        def delete_all(tx: ManagedTransaction) -> None:
+            """Delete all nodes and relationships
+
+            :param tx: Transaction object provided to transaction functions
+            """
             tx.run("MATCH (n) DETACH DELETE n;")
         with self.driver.session() as session:
-            session.write_transaction(delete_all)
+            session.execute_write(delete_all)
 
-    def load_from_json(self, src_transformed_cdm: Path):
-        """Load evidence into DB from given JSON file.
-        :param Path src_transformed_cdm: path to file for a source's
-            transformed data to common data model containing statements,
-            propositions, variation/therapy/disease/gene descriptors,
-            methods, and documents
+    def load_from_json(self, src_transformed_cdm: Path) -> None:
+        """Load evidence into DB from given CDM JSON file.
+
+        :param src_transformed_cdm: path to file for a source's transformed data to
+            common data model containing studies, variation, therapeutic procedures,
+            conditions, genes, methods, documents, etc.
         """
         logger.info(f"Loading data from {src_transformed_cdm}")
         with open(src_transformed_cdm, 'r') as f:
             items = json.load(f)
-            self.add_transformed_data(items)
-
-    @staticmethod
-    def _create_constraints(tx):
-        """Create unique property constraints for ID values"""
-        for label in [
-            'Gene', 'Disease', 'Therapy', 'Variation', 'GeneDescriptor',
-            'TherapyDescriptor', 'DiseaseDescriptor',
-            'VariationDescriptor', 'VariationGroup', 'Proposition',
-            'Document', 'Statement', 'Method'
-        ]:
-            query = (
-                f"CREATE CONSTRAINT {label.lower()}_id_constraint "
-                f"IF NOT EXISTS ON (n:{label}) "
-                "ASSERT n.id IS UNIQUE;"
+            src_name = SourceName(
+                str(src_transformed_cdm).split("/")[-1].split("_cdm")[0]
             )
-            try:
-                tx.run(query)
-            except ServiceUnavailable as exception:
-                logging.error(f"Failed to generate ID property "
-                              f"constraint for {label}.")
-                raise exception
+            self.add_transformed_data(items, src_name)
 
-    def add_transformed_data(self, data: Dict):
+    @staticmethod
+    def _create_constraints(tx: ManagedTransaction) -> None:
+        """Create unique property constraints for nodes
+
+        :param tx: Transaction object provided to transaction functions
+        """
+        queries = [
+            "CREATE CONSTRAINT coding_constraint IF NOT EXISTS FOR (c:Coding) REQUIRE (c.code, c.label, c.system) IS UNIQUE;",  # noqa: E501
+        ]
+
+        for label in [
+            "Gene", "Disease", "TherapeuticProcedure", "Variation",
+            "CategoricalVariation", "VariantGroup", "Location", "Document", "Study",
+            "Method"
+        ]:
+            queries.append(
+                f"CREATE CONSTRAINT {label.lower()}_id_constraint IF NOT EXISTS FOR (n:{label}) REQUIRE n.id IS UNIQUE;"  # noqa: E501
+            )
+
+        for query in queries:
+            tx.run(query)
+
+    def add_transformed_data(self, data: Dict, src_name: SourceName) -> None:
         """Add set of data formatted per Common Data Model to DB.
-        :param Dict data: contains key/value pairs for data objects to add
-            to DB, including statements, propositions,
-            variation/therapy/disease/gene descriptors, methods, and documents
+
+        :param data: contains key/value pairs for data objects to add to DB, including
+            studies, variation, therapeutic procedures, conditions, genes, methods,
+            documents, etc.
+        :param src_name: Name of source for `data`
         """
-        added_ids = set()  # Used to keep track of IDs that are in statements
+        # Used to keep track of IDs that are in studies. This is used to prevent adding
+        # nodes that aren't associated to studies
+        ids_in_studies = self._get_ids_from_studies(data.get("studies", []))
+
         with self.driver.session() as session:
-            loaded_count = 0
-            for ev in data.get('statements', []):
-                self._get_ids_from_statement(ev, added_ids)
-            for var_descr in data.get('variation_descriptors', []):
-                if var_descr['id'] in added_ids:
-                    gc = var_descr['gene_context']
-                    if gc:
-                        added_ids.add(gc)
-            for method in data.get('methods', []):
-                try:
-                    session.write_transaction(self._add_method, method,
-                                              added_ids)
-                except ConstraintError:
-                    logger.warning(f"{method['id']} exists already.")
-                    continue
-            for descriptor in ['therapy_descriptors', 'disease_descriptors',
-                               'gene_descriptors']:
-                for d in data.get(descriptor, []):
-                    try:
-                        session.write_transaction(
-                            self._add_descriptor, d, added_ids
-                        )
-                    except ConstraintError:
-                        logger.warning(f"{d['id']} exists already.")
-                        continue
-            for var_descr in data.get('variation_descriptors', []):
-                try:
-                    session.write_transaction(self._add_variation_descriptor,
-                                              var_descr, added_ids)
-                except ConstraintError:
-                    logger.warning(f"{var_descr['id']} exists already.")
-                    continue
-            for doc in data.get('documents'):
-                try:
-                    session.write_transaction(self._add_document, doc)
-                except ConstraintError:
-                    logger.warning(f"{doc['id']} exists already.")
-                    continue
-            for proposition in data.get('propositions', []):
-                try:
-                    session.write_transaction(self._add_proposition,
-                                              proposition)
-                except ConstraintError:
-                    logger.warning(f"{proposition['id']} exists already.")
-                    continue
-            for s in data.get('statements', []):
-                loaded_count += 1
-                try:
-                    session.write_transaction(self._add_statement, s,
-                                              added_ids)
-                except ConstraintError:
-                    logger.warning(f"{s['id']} exists already.")
-            logger.info(f"Successfully loaded {loaded_count} statements.")
+            loaded_study_count = 0
 
-    @staticmethod
-    def _add_method(tx, method: Dict, added_ids: Set[str]):
-        """Add Method object to DB.
-        :param Dict method: must include `id`, `label`, `url`,
-            `version`, and `authors` values.
-        :param set added_ids: IDs found in statements
-        """
-        method['version'] = json.dumps(method['version'])
-        query = """
-        MERGE (n:Method {id:$id, label:$label, url:$url,
-            version:$version, authors: $authors});
-        """
-        if method['id'] in added_ids:
-            try:
-                tx.run(query, **method)
-            except ServiceUnavailable as exception:
-                logging.error(f"Failed to add Method object\nQuery: "
-                              f"{query}\nAssertionMethod: {method}")
-                raise exception
-
-    @staticmethod
-    def _add_descriptor(tx, descriptor: Dict, added_ids: Set[str]):
-        """Add gene, therapy, or disease descriptor object to DB.
-        :param Dict descriptor: must contain a `value` field with `type`
-            and `<type>_id` fields. `type` field must be one of
-            {'TherapyDescriptor', 'DiseaseDescriptor', 'GeneDescriptor'}
-        :param set added_ids: IDs found in statements
-        """
-        if descriptor['id'] not in added_ids:
-            return
-        descr_type = descriptor['type']
-        if descr_type == 'TherapyDescriptor':
-            value_type = 'Therapy'
-        elif descr_type == 'DiseaseDescriptor':
-            value_type = 'Disease'
-        elif descr_type == 'GeneDescriptor':
-            value_type = 'Gene'
-        else:
-            raise TypeError(f"Invalid Descriptor type: {descr_type}")
-
-        value_id = f"{value_type.lower()}_id"
-        descr_keys = _create_keys_string(descriptor, ('id', 'label',
-                                                      'description', 'xrefs',
-                                                      'alternate_labels'))
-
-        if descr_type == 'TherapyDescriptor':
-            # capture regulatory_approval field in therapy descriptor extensions
-            extensions = descriptor.get('extensions', [])
-            for ext in extensions:
-                name = ext['name']
-                if name == 'regulatory_approval':
-                    descriptor[name] = json.dumps(ext['value'])
-                    descr_keys += f", {name}:${name}"
-
-        query = f'''
-        MERGE (descr:{descr_type} {{ {descr_keys} }})
-        MERGE (value:{value_type} {{ id:${value_id} }})
-        MERGE (descr) -[:DESCRIBES]-> (value)
-        '''
-        try:
-            tx.run(query, **descriptor)
-        except ServiceUnavailable as exception:
-            logging.error(f"Failed to add Descriptor object\nQuery: {query}\n"
-                          f"Descriptor: {descriptor}")
-            raise exception
-
-    @staticmethod
-    def _add_variation_descriptor(tx, descriptor_in: Dict,
-                                  added_ids: Set[str]):
-        """Add variant descriptor object to DB.
-        :param Dict descriptor_in: must include a `value_id` field and a
-            `value` object containing `type`, `state`, and `location` objects.
-        :param set added_ids: IDs found in statements
-        """
-        descriptor = descriptor_in.copy()
-
-        if descriptor['id'] not in added_ids:
-            return
-
-        # prepare value properties
-        variation_type = descriptor['variation']['type']
-        descriptor['variation'] = json.dumps(descriptor['variation'])
-        # prepare descriptor properties
-        expressions = descriptor.get('expressions')
-        if expressions:
-            for expression in expressions:
-                syntax = expression['syntax'].split('.')[1]
-                key = f"expressions_{syntax}"
-                if key in descriptor:
-                    descriptor[key].append(expression['value'])
-                else:
-                    descriptor[key] = [expression['value']]
-
-        nonnull_keys = [_create_keys_string(descriptor,
-                                            ('id', 'label', 'description',
-                                             'xrefs', 'alternate_labels',
-                                             'structural_type',
-                                             'molecule_context',
-                                             'expressions_c',
-                                             'expressions_g',
-                                             'expressions_p',
-                                             'vrs_ref_allele_seq'))]
-
-        # handle extensions
-        variant_groups = None
-        extensions = descriptor.get('extensions')
-        if extensions:
-            for ext in extensions:
-                name = ext['name']
-                if name == 'variant_group':
-                    variant_groups = ext['value']
-                else:
-                    descriptor[name] = json.dumps(ext['value'])
-                    nonnull_keys.append(f"{name}:${name}")
-
-        descriptor_keys = ', '.join(nonnull_keys)
-
-        query = f"""
-        MERGE (descr:VariationDescriptor
-            {{ {descriptor_keys} }})
-        MERGE (value:{variation_type}:Variation
-            {{id:$variation_id,
-              variation:$variation
-              }})
-        MERGE (gene_context:GeneDescriptor {{id:$gene_context}} )
-        MERGE (descr) -[:DESCRIBES]-> (value)
-        MERGE (descr) -[:HAS_GENE] -> (gene_context);
-        """
-        try:
-            tx.run(query, **descriptor)
-        except ServiceUnavailable as exception:
-            logging.error(f"Failed to add Variant Descriptor object\nQuery: "
-                          f"{query}\nDescriptor: {descriptor}")
-            raise exception
-        if variant_groups:
-            for grp in variant_groups:
-                params = descriptor.copy()
-                params['group_id'] = grp['id']
-                params['group_label'] = grp['label']
-                params['group_description'] = grp.get('description', '')
-
-                query = f"""
-                MERGE (grp:VariationGroup {{id:$group_id, label:$group_label,
-                                            description:$group_description}})
-                MERGE (var:VariationDescriptor {{ {descriptor_keys} }})
-                MERGE (var) -[:IN_VARIATION_GROUP]-> (grp)
-                """
-                try:
-                    tx.run(query, **params)
-                except ServiceUnavailable as exception:
-                    logging.error(f"Failed to add Variant Descriptor object\n"
-                                  f"Query: {query}\nDescriptor: {descriptor}")
-                    raise exception
-
-    @staticmethod
-    def _add_proposition(tx, proposition: Dict):
-        """Add Proposition object to DB.
-
-        :param Dict proposition: must include `disease_context`, `therapy`,
-            and `has_originating_context` fields.
-        """
-        formatted_keys = _create_keys_string(proposition, ('id', 'predicate',
-                                                           'type'))
-        prop_type = proposition.get('type')
-        if prop_type == "therapeutic_response_proposition":
-            prop_label = ":TherapeuticResponse"
-            therapy_obj = "MERGE (therapy:Therapy {id:$object})"
-            therapy_rel = """MERGE (response) -[:HAS_OBJECT]-> (therapy)
-            MERGE (therapy)-[:IS_OBJECT_OF]->(response)"""
-        else:
-            therapy_obj, therapy_rel = "", ""
-            if prop_type == "prognostic_proposition":
-                prop_label = ":Prognostic"
-            elif prop_type == "diagnostic_proposition":
-                prop_label = ":Diagnostic"
+            # This will be removed in issue-253
+            if src_name == SourceName.CIVIC:
+                cat_var_key = "molecular_profiles"
             else:
-                prop_label = ""
+                cat_var_key = "variations"
+            for cv in data.get(cat_var_key, []):
+                session.execute_write(
+                    self._add_categorical_variation,
+                    cv,
+                    ids_in_studies
+                )
 
-        query = f"""
-        MERGE (response{prop_label}:Proposition
-            {{ {formatted_keys} }})
-        MERGE (disease:Disease {{id:$object_qualifier}})
-        {therapy_obj}
-        MERGE (variation:Variation {{id:$subject}})
-        MERGE (response) -[:HAS_SUBJECT]-> (variation)
-        MERGE (variation) -[:IS_SUBJECT_OF]-> (response)
-        {therapy_rel}
-        MERGE (response) -[:HAS_OBJECT_QUALIFIER]-> (disease)
-        MERGE (disease) -[:IS_OBJECT_QUALIFIER_OF]-> (response)
-        """
+            for doc in data.get("documents", []):
+                session.execute_write(self._add_document, doc, ids_in_studies)
 
-        try:
-            tx.run(query, **proposition)
-        except ServiceUnavailable as exception:
-            logging.error(f"Failed to add Proposition object\n"
-                          f"Query: {query}\nProposition: {proposition}")
-            raise exception
+            for method in data.get("methods", []):
+                session.execute_write(self._add_method, method, ids_in_studies)
+
+            for obj_type in {"genes", "diseases"}:
+                for obj in data.get(obj_type, []):
+                    session.execute_write(
+                        self._add_gene_or_disease, obj, ids_in_studies
+                    )
+
+            for tp in data.get("therapeutics", []):
+                session.execute_write(
+                    self._add_therapeutic_procedure, tp, ids_in_studies
+                )
+
+            # This should always be done last
+            for study in data.get("studies", []):
+                session.execute_write(self._add_study, study)
+                loaded_study_count += 1
+
+            logger.info(f"Successfully loaded {loaded_study_count} studies.")
 
     @staticmethod
-    def _add_document(tx, document: Dict):
-        """Add Document object to DB.
-        :param Dict document: must include `id` field.
-        """
-        try:
-            query = "MATCH (n:Document {id:$id}) RETURN n"
-            result = tx.run(query, **document)
-        except ServiceUnavailable as exception:
-            logging.error(f"Failed to read Document object\n"
-                          f"Query: {query}\nDocument: "
-                          f"{document}")
-            raise exception
+    def _add_mappings_and_exts_to_obj(
+        obj: Dict, obj_keys: List[str]
+    ) -> None:
+        """Get mappings and extensions from object and add to `obj` and `obj_keys`
 
-        if not result.single():
-            formatted_keys = _create_keys_string(document,
-                                                 ('id', 'label',
-                                                  'document_id',
-                                                  'xrefs',
-                                                  'description'))
+        :param obj: Object to update with mappings and extensions (if found)
+        :param obj_keys: Parameterized queries. This will be mutated if mappings and
+            extensions exists
+        """
+        mappings = obj.get("mappings", [])
+        if mappings:
+            obj["mappings"] = json.dumps(mappings)
+            obj_keys.append("mappings:$mappings")
+
+        extensions = obj.get("extensions", [])
+        for ext in extensions:
+            if ext["name"].endswith("_normalizer_data"):
+                obj_type = ext["name"].split("_normalizer_data")[0]
+                name = f"{obj_type}_normalizer_id"
+                obj[name] = ext["value"]["normalized_id"]
+            else:
+                name = "_".join(ext["name"].split()).lower()
+                val = ext["value"]
+                if isinstance(val, (dict, list)):
+                    obj[name] = json.dumps(val)
+                else:
+                    obj[name] = val
+            obj_keys.append(f"{name}:${name}")
+
+    def _add_method(
+        self,
+        tx: ManagedTransaction,
+        method: Dict,
+        ids_in_studies: Set[str]
+    ) -> None:
+        """Add Method node and its relationships to DB
+
+        :param tx: Transaction object provided to transaction functions
+        :param method: CDM method object
+        :param ids_in_studies: IDs found in studies
+        """
+        if method["id"] not in ids_in_studies:
+            return
+
+        query = """
+        MERGE (m:Method {id:$id, label:$label})
+        """
+
+        is_reported_in = method.get("isReportedIn")
+        if is_reported_in:
+            # Method's documents are unique and do not currently have IDs
+            self._add_document(tx, is_reported_in, ids_in_studies)
+            doc_doi = is_reported_in["doi"]
+            query += f"""
+            MERGE (d:Document {{ doi:'{doc_doi}' }})
+            MERGE (m) -[:IS_REPORTED_IN] -> (d)
+            """
+
+        tx.run(query, **method)
+
+    def _add_gene_or_disease(
+        self,
+        tx: ManagedTransaction,
+        obj_in: Dict,
+        ids_in_studies: Set[str]
+    ) -> None:
+        """Add gene or disease node and its relationships to DB
+
+        :param tx: Transaction object provided to transaction functions
+        :param obj_in: CDM gene or disease object
+        :param ids_in_studies: IDs found in studies
+        :raises TypeError: When `obj_in` is not a disease or gene
+        """
+        if obj_in["id"] not in ids_in_studies:
+            return
+
+        obj = obj_in.copy()
+
+        obj_type = obj["type"]
+        if obj_type not in {"Gene", "Disease"}:
+            raise TypeError(f"Invalid object type: {obj_type}")
+
+        obj_keys = [
+            _create_parameterized_query(
+                obj,
+                (
+                    "id",
+                    "label",
+                    "description",
+                    "aliases",
+                    "type"
+                )
+            )
+        ]
+
+        self._add_mappings_and_exts_to_obj(obj, obj_keys)
+        obj_keys = ", ".join(obj_keys)
+
+        if obj_type == "Gene":
+            query = f"""
+            MERGE (g:Gene {{ {obj_keys} }});
+            """
+        else:
+            query = f"""
+            MERGE (d:Disease:Condition {{ {obj_keys} }});
+            """
+        tx.run(query, **obj)
+
+    def _add_therapeutic_procedure(
+        self,
+        tx: ManagedTransaction,
+        therapeutic_procedure: Dict,
+        ids_in_studies: Set[str]
+    ) -> None:
+        """Add therapeutic procedure node and its relationships
+
+        :param tx: Transaction object provided to transaction functions
+        :param therapeutic_procedure: Therapeutic procedure CDM object
+        :param ids_in_studies: IDs found in studies
+        :raises TypeError: When therapeutic procedure type is invalid
+        """
+        if therapeutic_procedure["id"] not in ids_in_studies:
+            return
+
+        tp = therapeutic_procedure.copy()
+
+        tp_type = tp["type"]
+        if tp_type == "TherapeuticAgent":
+            self._add_therapeutic_agent(tx, tp)
+        elif tp_type in {"CombinationTherapy", "TherapeuticSubstituteGroup"}:
+            keys = [
+                _create_parameterized_query(
+                    tp,
+                    (
+                        "id",
+                        "type"
+                    )
+                )
+            ]
+
+            self._add_mappings_and_exts_to_obj(tp, keys)
+            keys = ", ".join(keys)
+
+            query = f"MERGE (tp:{tp_type}:TherapeuticProcedure {{ {keys} }})"
+            tx.run(query, **tp)
+
+            tas = tp["components"] if tp_type == "CombinationTherapy" else tp["substitutes"]  # noqa: E501
+            for ta in tas:
+                self._add_therapeutic_agent(tx, ta)
+                query = f"""
+                MERGE (tp:{tp_type}:TherapeuticProcedure {{id: '{tp['id']}'}})
+                MERGE (ta:TherapeuticAgent:TherapeuticProcedure {{id: '{ta['id']}'}})
+                """
+
+                if tp_type == "CombinationTherapy":
+                    query += "MERGE (tp) -[:HAS_COMPONENTS] -> (ta)"
+                else:
+                    query += 'MERGE (tp) -[:HAS_SUBSTITUTES] -> (ta)'
+
+                tx.run(query)
+        else:
+            raise TypeError(f"Invalid therapeutic procedure type: {tp_type}")
+
+    def _add_therapeutic_agent(
+        self, tx: ManagedTransaction, therapeutic_agent: Dict
+    ) -> None:
+        """Add therapeutic agent node and its relationships
+
+        :param tx: Transaction object provided to transaction functions
+        :param therapeutic_agent: Therapeutic Agent CDM object
+        """
+        ta = therapeutic_agent.copy()
+        nonnull_keys = [
+            _create_parameterized_query(
+                ta,
+                (
+                    "id",
+                    "label",
+                    "aliases",
+                    "type"
+                )
+            )
+        ]
+
+        self._add_mappings_and_exts_to_obj(ta, nonnull_keys)
+        nonnull_keys = ", ".join(nonnull_keys)
+
+        query = f"""
+        MERGE (ta:TherapeuticAgent:TherapeuticProcedure {{ {nonnull_keys} }})
+        """
+        tx.run(query, **ta)
+
+    @staticmethod
+    def _add_location(
+        tx: ManagedTransaction,
+        location_in: Dict
+    ) -> None:
+        """Add location node and its relationships
+
+        :param tx: Transaction object provided to transaction functions
+        :param location_in: Location CDM object
+        """
+        loc = location_in.copy()
+        loc_keys = [
+            f"loc.{key}=${key}"
+            for key in ("id", "digest", "start", "end", "type")
+            if loc.get(key) is not None  # start could be 0
+        ]
+        loc["sequence_reference"] = json.dumps(loc["sequenceReference"])
+        loc_keys.append("loc.sequence_reference=$sequence_reference")
+        loc_keys = ", ".join(loc_keys)
+
+        query = f"""
+        MERGE (loc:{loc['type']}:Location {{ id: '{loc['id']}' }})
+        ON CREATE SET {loc_keys}
+        """
+        tx.run(query, **loc)
+
+    def _add_variation(
+        self,
+        tx: ManagedTransaction,
+        variation_in: Dict
+    ) -> None:
+        """Add variation node and its relationships
+
+        :param tx: Transaction object provided to transaction functions
+        :param variation_in: Variation CDM object
+        """
+        v = variation_in.copy()
+        v_keys = [
+            f"v.{key}=${key}"
+            for key in ("id", "label", "digest", "type")
+            if v.get(key)
+        ]
+
+        expressions = v.get("expressions", [])
+        for expr in expressions:
+            syntax = expr["syntax"].replace(".", "_")
+            key = f"expression_{syntax}"
+            if key in v:
+                v[key].append(expr["value"])
+            else:
+                v_keys.append(f"v.{key}=${key}")
+                v[key] = [expr["value"]]
+
+        state = v.get("state")
+        if state:
+            v["state"] = json.dumps(state)
+            v_keys.append("v.state=$state")
+
+        v_keys = ", ".join(v_keys)
+
+        query = f"""
+        MERGE (v:{v['type']}:Variation {{ id: '{v['id']}' }})
+        ON CREATE SET {v_keys}
+        """
+
+        loc = v.get("location")
+        if loc:
+            self._add_location(tx, loc)
+            query += f"""
+            MERGE (loc:{loc['type']}:Location {{ id: '{loc['id']}' }})
+            MERGE (v) -[:HAS_LOCATION] -> (loc)
+            """
+
+        tx.run(query, **v)
+
+    def _add_categorical_variation(
+        self,
+        tx: ManagedTransaction,
+        categorical_variation_in: Dict,
+        ids_in_studies: Set[str]
+    ) -> None:
+        """Add categorical variation objects to DB.
+
+        :param tx: Transaction object provided to transaction functions
+        :param categorical_variation_in: Categorical variation CDM object
+        :param ids_in_studies: IDs found in studies
+        """
+        if categorical_variation_in["id"] not in ids_in_studies:
+            return
+
+        cv = categorical_variation_in.copy()
+
+        mp_nonnull_keys = [
+            _create_parameterized_query(
+                cv,
+                (
+                    "id",
+                    "label",
+                    "description",
+                    "aliases",
+                    "type"
+                )
+            )
+        ]
+
+        self._add_mappings_and_exts_to_obj(cv, mp_nonnull_keys)
+        mp_keys = ", ".join(mp_nonnull_keys)
+
+        defining_context = cv["definingContext"]
+        self._add_variation(tx, defining_context)
+        dc_type = defining_context["type"]
+
+        members_match = ""
+        members_relation = ""
+        for ix, member in enumerate(cv.get("members", [])):
+            self._add_variation(tx, member)
+            name = f"member_{ix}"
+            cv[name] = member
+            members_match += f"MERGE ({name} {{ id: '{member['id']}' }})\n"
+            members_relation += f"MERGE (v) -[:HAS_MEMBERS] -> ({name})\n"
+
+        query = f"""
+        {members_match}
+        MERGE (dc:{dc_type}:Variation {{ id: '{defining_context['id']}' }})
+        MERGE (dc) -[:HAS_LOCATION] -> (loc)
+        MERGE (v:{cv['type']}:CategoricalVariation {{ {mp_keys} }})
+        MERGE (v) -[:HAS_DEFINING_CONTEXT] -> (dc)
+        {members_relation}
+        """
+        tx.run(query, **cv)
+
+    def _add_document(
+        self,
+        tx: ManagedTransaction,
+        document_in: Dict,
+        ids_in_studies: Set[str]
+    ) -> None:
+        """Add Document object to DB.
+
+        :param tx: Transaction object provided to transaction functions
+        :param document: Document CDM object
+        :param ids_in_studies: IDs found in studies
+        """
+        # Not all document's have IDs. These are the fields that can uniquely identify
+        # a document
+        if "id" in document_in:
+            query = "MATCH (n:Document {id:$id}) RETURN n"
+            if document_in["id"] not in ids_in_studies:
+                return
+        elif "doi" in document_in:
+            query = "MATCH (n:Document {doi:$doi}) RETURN n"
+        elif "pmid" in document_in:
+            query = "MATCH (n:Document {pmid:$pmid}) RETURN n"
+        else:
+            query = None
+
+        if query:
+            result = tx.run(query, **document_in)
+        else:
+            result = None
+
+        if (not result) or (result and not result.single()):
+            document = document_in.copy()
+            formatted_keys = [
+                _create_parameterized_query(
+                    document,
+                    ('id', 'label', 'title', 'pmid', 'url', 'doi')
+                )
+            ]
+
+            self._add_mappings_and_exts_to_obj(document, formatted_keys)
+            formatted_keys = ", ".join(formatted_keys)
+
             query = f"""
             MERGE (n:Document {{ {formatted_keys} }});
             """
-            try:
-                tx.run(query, **document)
-            except ServiceUnavailable as exception:
-                logging.error(f"Failed to add Document object\n"
-                              f"Query: {query}\nDocument: "
-                              f"{document}")
-                raise exception
+            tx.run(query, **document)
 
-    def _get_ids_from_statement(self, statement, added_ids):
-        """Add descriptors and method IDs to list of added_ids.
+    def _get_ids_from_studies(self, studies: List[Dict]) -> Set[str]:
+        """Get unique IDs from studies
 
-        :param Node statement: Statement node
-        :param set added_ids: IDs found in statements
+        :param studies: List of studies
+        :return: Set of IDs found in studies
         """
-        for node_id in [statement.get('therapy_descriptor'),
-                        statement.get('variation_descriptor'),
-                        statement.get('disease_descriptor'),
-                        statement.get('method')]:
-            if node_id:
-                added_ids.add(node_id)
+        def _add_obj_id_to_set(obj: Dict, ids_set: Set[str]) -> None:
+            """Add object id to set of IDs
+
+            :param obj: Object to get ID for
+            :param ids_set: IDs found in studies. This will be mutated.
+            """
+            obj_id = obj.get("id")
+            if obj_id:
+                ids_set.add(obj_id)
+
+        ids_in_studies = set()
+
+        for study in studies:
+            for obj in [
+                study.get("specifiedBy"),  # method
+                study.get("isReportedIn"),
+                study.get("variant"),
+                study.get("therapeutic"),
+                study.get("tumorType"),
+                study.get("qualifiers", {}).get("geneContext")
+            ]:
+                if obj:
+                    if isinstance(obj, list):
+                        for item in obj:
+                            _add_obj_id_to_set(item, ids_in_studies)
+                    else:  # This is a dictionary
+                        _add_obj_id_to_set(obj, ids_in_studies)
+
+        return ids_in_studies
 
     @staticmethod
-    def _add_statement(tx, statement: Dict, added_ids: Set[str]):
-        """Add Statement object to DB.
-        :param Dict statement: must include `id`, `variation_descriptor`,
-            `disease_descriptor`, `method`, and `supported_by` fields as well
-            as optional `therapy_descriptor` field
-        :param set added_ids: IDs found in statements
+    def _add_study(tx: ManagedTransaction, study_in: Dict) -> None:
+        """Add study node and its relationships
+
+        :param tx: Transaction object provided to transaction functions
+        :param study_in: Study CDM object
         """
-        formatted_keys = _create_keys_string(statement, ('id', 'description',
-                                                         'direction',
-                                                         'variation_origin',
-                                                         'evidence_level'))
+        study = study_in.copy()
+        study_type = study["type"]
+        study_keys = _create_parameterized_query(
+            study,
+            (
+                "id",
+                "description",
+                "direction",
+                "predicate",
+                "type"
+            )
+        )
+
         match_line = ""
         rel_line = ""
-        supported_by = statement.get('supported_by', [])
-        if supported_by:
-            for i, ev in enumerate(supported_by):
-                name = f"doc_{i}"
-                statement[name] = ev
-                match_line += f"MERGE ({name} {{ id:${name} }})\n"
-                rel_line += f"MERGE (ev) -[:CITES]-> ({name})\n"
 
-        td = statement.get('therapy_descriptor')
-        if td:
-            therapy_descriptor = \
-                f"MERGE (ther:TherapyDescriptor {{id:$therapy_descriptor}})"  # noqa: F541, E501
-            therapy_obj = f"MERGE (ev) -[:HAS_THERAPY]-> (ther)"  # noqa: F541
-            added_ids.add(td)
+        is_reported_in_docs = study.get("isReportedIn", [])
+        for ri_doc in is_reported_in_docs:
+            ri_doc_id = ri_doc["id"]
+            name = f"doc_{ri_doc_id.split(':')[-1]}"
+            match_line += f"MERGE ({name} {{ id: '{ri_doc_id}'}})\n"
+            rel_line += f"MERGE (s) -[:IS_REPORTED_IN] -> ({name})\n"
+
+        qualifiers = study.get("qualifiers")
+        if qualifiers:
+            allele_origin = qualifiers.get("alleleOrigin")
+            study["alleleOrigin"] = allele_origin
+            match_line += "SET s.alleleOrigin=$alleleOrigin\n"
+
+            gene_context_id = qualifiers.get("geneContext", {}).get("id")
+            if gene_context_id:
+                match_line += f"MERGE (g:Gene {{id: '{gene_context_id}'}})\n"
+                rel_line += "MERGE (s) -[:HAS_GENE_CONTEXT] -> (g)\n"
+
+        method_id = study["specifiedBy"]["id"]
+        match_line += f"MERGE (m {{ id: '{method_id}' }})\n"
+        rel_line += "MERGE (s) -[:IS_SPECIFIED_BY] -> (m)\n"
+
+        coding = study.get("strength")
+        if coding:
+            coding_key_fields = ("code", "label", "system")
+
+            coding_keys = _create_parameterized_query(
+                coding,
+                coding_key_fields,
+                entity_param_prefix="coding_"
+            )
+            for k in coding_key_fields:
+                v = coding.get(k)
+                if v:
+                    study[f"coding_{k}"] = v
+
+            match_line += f"MERGE (c:Coding {{ {coding_keys} }})\n"
+            rel_line += "MERGE (s) -[:HAS_STRENGTH] -> (c)\n"
+
+        variant_id = study["variant"]["id"]
+        if study["variant"]["type"] == "ProteinSequenceConsequence":
+            v_parent_type = "CategoricalVariation"
         else:
-            therapy_descriptor, therapy_obj = "", ""
+            v_parent_type = "Variation"
+        match_line += f"MERGE (v:{v_parent_type} {{ id: '{variant_id}' }})\n"
+        rel_line += "MERGE (s) -[:HAS_VARIANT] -> (v)\n"
+
+        therapeutic_id = study["therapeutic"]["id"]
+        match_line += f"MERGE (t:TherapeuticProcedure {{ id: '{therapeutic_id}' }})\n"
+        rel_line += "MERGE (s) -[:HAS_THERAPEUTIC] -> (t)\n"
+
+        tumor_type_id = study["tumorType"]["id"]
+        match_line += f"MERGE (tt:Condition {{ id: '{tumor_type_id}' }})\n"
+        rel_line += "MERGE (s) -[:HAS_TUMOR_TYPE] -> (tt)\n"
 
         query = f"""
-        MERGE (ev:Statement {{ {formatted_keys} }})
-        MERGE (prop:Proposition {{id:$proposition}})
-        MERGE (var:VariationDescriptor {{id:$variation_descriptor}})
-        {therapy_descriptor}
-        MERGE (dis:DiseaseDescriptor {{id:$disease_descriptor}})
-        MERGE (method:Method {{id:$method}})
+        MERGE (s:{study_type}:Study {{ {study_keys} }})
         {match_line}
-        MERGE (ev) -[:DEFINED_BY]-> (prop)
-        MERGE (ev) -[:HAS_VARIATION]-> (var)
-        {therapy_obj}
-        MERGE (ev) -[:HAS_DISEASE]-> (dis)
-        MERGE (ev) -[:USES_METHOD]-> (method)
         {rel_line}
         """
 
-        try:
-            tx.run(query, **statement)
-        except ServiceUnavailable as exception:
-            logging.error(f"Failed to add Evidence object\n"
-                          f"Query: {query}\nEvidence: {statement}")
-            raise exception
+        tx.run(query, **study)
 
     @staticmethod
-    def get_secret():
+    def get_secret() -> str:
         """Get secrets for MetaKB instances."""
         secret_name = environ['METAKB_DB_SECRET']
         region_name = "us-east-2"
@@ -472,33 +672,9 @@ class Graph:
                 SecretId=secret_name
             )
         except ClientError as e:
-            logger.warning(e)
-            if e.response['Error']['Code'] == 'DecryptionFailureException':
-                # Secrets Manager can't decrypt the protected
-                # secret text using the provided KMS key.
-                raise e
-            elif e.response['Error']['Code'] == \
-                    'InternalServiceErrorException':
-                # An error occurred on the server side.
-                raise e
-            elif e.response['Error']['Code'] == 'InvalidParameterException':
-                # You provided an invalid value for a parameter.
-                raise e
-            elif e.response['Error']['Code'] == 'InvalidRequestException':
-                # You provided a parameter value that is not valid for
-                # the current state of the resource.
-                raise e
-            elif e.response['Error']['Code'] == 'ResourceNotFoundException':
-                # We can't find the resource that you asked for.
-                raise e
+            # For a list of exceptions thrown, see
+            # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+            logger.error(e)
+            raise e
         else:
-            # Decrypts secret using the associated KMS CMK.
-            # Depending on whether the secret is a string or binary,
-            # one of these fields will be populated.
-            if 'SecretString' in get_secret_value_response:
-                secret = get_secret_value_response['SecretString']
-                return secret
-            else:
-                decoded_binary_secret = base64.b64decode(
-                    get_secret_value_response['SecretBinary'])
-                return decoded_binary_secret
+            return get_secret_value_response["SecretString"]
