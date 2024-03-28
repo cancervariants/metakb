@@ -199,9 +199,9 @@ def moa_aid155_study(
 
 
 @pytest.fixture(scope="module")
-def studies(moa_aid67_study, moa_aid155_study):
+def studies(moa_aid66_study, moa_aid155_study):
     """Create test fixture for MOA therapeutic studies."""
-    return [moa_aid67_study, moa_aid155_study]
+    return [moa_aid66_study, moa_aid155_study]
 
 
 def test_moa_cdm(data, studies, check_transformed_cdm):
