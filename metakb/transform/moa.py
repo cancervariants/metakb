@@ -329,7 +329,7 @@ class MoaTransform(Transform):
 
         :param moa_rep_coord: MOA Representative Coordinate
         :return: List containing one VRS variation record for associated genomic
-            representation, if variation-normalizer was able to normalizer
+            representation, if variation-normalizer was able to successfully normalize
         """
         members = None
         chromosome = moa_rep_coord["chromosome"]
@@ -350,12 +350,12 @@ class MoaTransform(Transform):
 
             if vrs_genomic_variation:
                 genomic_params = vrs_genomic_variation.model_dump(exclude_none=True)
-                genomic_params["digest"] = vrs_genomic_variation.id.split(".")[-1]
                 genomic_params["label"] = gnomad_vcf
                 members = [models.Variation(**genomic_params)]
             else:
                 logger.debug(
-                    f"Variation Normalizer unable to normalize genomic representative: {gnomad_vcf}"  # noqa: E501
+                    "Variation Normalizer unable to normalize genomic representation: %s",  # noqa: E501
+                    gnomad_vcf
                 )
 
         return members
