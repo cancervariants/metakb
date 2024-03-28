@@ -262,10 +262,10 @@ class QueryHandler:
 
             response["studies"] = self._get_nested_studies(session, study_nodes)
 
-            if not response["studies"]:
-                response["warnings"].append(
-                    "No studies found with the provided query parameters."
-                )
+        if not response["studies"]:
+            response["warnings"].append(
+                "No studies found with the provided query parameters."
+            )
 
         return SearchStudiesService(**response)
 
