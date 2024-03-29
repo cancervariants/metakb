@@ -1,23 +1,25 @@
 """A module for the Transform base class."""
-from abc import abstractmethod
-from typing import Dict, Optional, List, Set, Union
+import datetime
 import json
 import logging
-from pathlib import Path
-from datetime import datetime as dt
+from abc import abstractmethod
 from enum import StrEnum
+from pathlib import Path
+from typing import ClassVar, Dict, List, Optional, Set, Union
 
 from disease.schemas import (
+    NamespacePrefix as DiseaseNamespacePrefix,
+)
+from disease.schemas import (
     NormalizationService as NormalizedDisease,
-    NamespacePrefix as DiseaseNamespacePrefix
 )
 from ga4gh.core import core_models, sha512t24u
 from pydantic import BaseModel, StrictStr, ValidationError
 from therapy.schemas import NormalizationService as NormalizedTherapy
 
 from metakb import APP_ROOT, DATE_FMT
-from metakb.schemas.annotation import Method, Document
 from metakb.normalizers import ViccNormalizers
+from metakb.schemas.annotation import Document, Method
 
 logger = logging.getLogger(__name__)
 
@@ -79,114 +81,127 @@ class ViccConceptVocab(BaseModel):
 class Transform:
     """A base class for transforming harvester data."""
 
-    _methods: List[Method] = [
+    _methods: ClassVar[List[Method]] = [
         Method(
             id=MethodId.CIVIC_EID_SOP,
             label="CIViC Curation SOP (2019)",
             isReportedIn=Document(
                 label="Danos et al., 2019, Genome Med.",
-                title="Standard operating procedure for curation and clinical interpretation of variants in cancer",  # noqa: E501
+                title="Standard operating procedure for curation and clinical interpretation of variants in cancer",
                 doi="10.1186/s13073-019-0687-x",
-                pmid=31779674
-            )
+                pmid=31779674,
+            ),
         ).model_dump(exclude_none=True),
         Method(
             id=MethodId.MOA_ASSERTION_BIORXIV,
             label="MOAlmanac (2021)",
             isReportedIn=Document(
                 label="Reardon, B., Moore, N.D., Moore, N.S. et al.",
-                title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",  # noqa: E501
+                title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
                 doi="10.1038/s43018-021-00243-3",
-                pmid=35121878
-            )
+                pmid=35121878,
+            ),
         ).model_dump(exclude_none=True),
     ]
-    methods_mapping = {m["id"]: m for m in _methods}
+    methods_mapping: ClassVar[Dict] = {m["id"]: m for m in _methods}
 
-    _vicc_concept_vocabs: List[ViccConceptVocab] = [
+    _vicc_concept_vocabs: ClassVar[List[ViccConceptVocab]] = [
         ViccConceptVocab(
             id="vicc:e000000",
             domain="EvidenceStrength",
             term="evidence",
             parents=[],
             exact_mappings={EcoLevel.EVIDENCE},
-            definition="A type of information that is used to support statements."),
+            definition="A type of information that is used to support statements.",
+        ),
         ViccConceptVocab(
             id="vicc:e000001",
             domain="EvidenceStrength",
             term="authoritative evidence",
             parents=["vicc:e000000"],
             exact_mappings={CivicEvidenceLevel.A},
-            definition="Evidence derived from an authoritative source describing a proven or consensus statement."),  # noqa: E501
+            definition="Evidence derived from an authoritative source describing a proven or consensus statement.",
+        ),
         ViccConceptVocab(
             id="vicc:e000002",
             domain="EvidenceStrength",
             term="FDA recognized evidence",
             parents=["vicc:e000001"],
             exact_mappings={MoaEvidenceLevel.FDA_APPROVED},
-            definition="Evidence derived from statements recognized by the US Food and Drug Administration."),  # noqa: E501
+            definition="Evidence derived from statements recognized by the US Food and Drug Administration.",
+        ),
         ViccConceptVocab(
             id="vicc:e000003",
             domain="EvidenceStrength",
             term="professional guideline evidence",
             parents=["vicc:e000001"],
             exact_mappings={MoaEvidenceLevel.GUIDELINE},
-            definition="Evidence derived from statements by professional society guidelines"),  # noqa: E501
+            definition="Evidence derived from statements by professional society guidelines",
+        ),
         ViccConceptVocab(
             id="vicc:e000004",
             domain="EvidenceStrength",
             term="clinical evidence",
             parents=["vicc:e000000"],
             exact_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
-            definition="Evidence derived from clinical research studies"),
+            definition="Evidence derived from clinical research studies",
+        ),
         ViccConceptVocab(
             id="vicc:e000005",
             domain="EvidenceStrength",
             term="clinical cohort evidence",
             parents=["vicc:e000004"],
             exact_mappings={CivicEvidenceLevel.B},
-            definition="Evidence derived from the clinical study of a participant cohort"),  # noqa: E501
+            definition="Evidence derived from the clinical study of a participant cohort",
+        ),
         ViccConceptVocab(
             id="vicc:e000006",
             domain="EvidenceStrength",
             term="interventional study evidence",
             parents=["vicc:e000005"],
             exact_mappings={MoaEvidenceLevel.CLINICAL_TRIAL},
-            definition="Evidence derived from interventional studies of clinical cohorts (clinical trials)"),  # noqa: E501
+            definition="Evidence derived from interventional studies of clinical cohorts (clinical trials)",
+        ),
         ViccConceptVocab(
             id="vicc:e000007",
             domain="EvidenceStrength",
             term="observational study evidence",
             parents=["vicc:e000005"],
             exact_mappings={MoaEvidenceLevel.CLINICAL_EVIDENCE},
-            definition="Evidence derived from observational studies of clinical cohorts"),  # noqa: E501
+            definition="Evidence derived from observational studies of clinical cohorts",
+        ),
         ViccConceptVocab(
             id="vicc:e000008",
             domain="EvidenceStrength",
             term="case study evidence",
             parents=["vicc:e000004"],
             exact_mappings={CivicEvidenceLevel.C},
-            definition="Evidence derived from clinical study of a single participant"),
+            definition="Evidence derived from clinical study of a single participant",
+        ),
         ViccConceptVocab(
             id="vicc:e000009",
             domain="EvidenceStrength",
             term="preclinical evidence",
             parents=["vicc:e000000"],
             exact_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
-            definition="Evidence derived from the study of model organisms"),
+            definition="Evidence derived from the study of model organisms",
+        ),
         ViccConceptVocab(
             id="vicc:e000010",
             domain="EvidenceStrength",
             term="inferential evidence",
             parents=["vicc:e000000"],
             exact_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
-            definition="Evidence derived by inference")
+            definition="Evidence derived by inference",
+        ),
     ]
 
-    def __init__(self,
-                 data_dir: Path = APP_ROOT / "data",
-                 harvester_path: Optional[Path] = None,
-                 normalizers: Optional[ViccNormalizers] = None) -> None:
+    def __init__(
+        self,
+        data_dir: Path = APP_ROOT / "data",
+        harvester_path: Optional[Path] = None,
+        normalizers: Optional[ViccNormalizers] = None,
+    ) -> None:
         """Initialize Transform base class.
 
         :param Path data_dir: Path to source data directory
@@ -212,15 +227,14 @@ class Transform:
         self.documents = []
 
         # Cache for concepts that were unable to normalize. Set of source concept IDs
-        self.unable_to_normalize = {
-            "diseases": set(),
-            "therapeutics": set()
-        }
+        self.unable_to_normalize = {"diseases": set(), "therapeutics": set()}
 
         self.next_node_id = {}
-        self.evidence_level_to_vicc_concept_mapping = self._evidence_level_to_vicc_concept_mapping()  # noqa: E501
+        self.evidence_level_to_vicc_concept_mapping = (
+            self._evidence_level_to_vicc_concept_mapping()
+        )
 
-    async def transform(self, *args, **kwargs):
+    async def transform(self) -> None:
         """Transform harvested data to the Common Data Model."""
         raise NotImplementedError
 
@@ -230,21 +244,20 @@ class Transform:
         :return: Dict containing Lists of entries for each object type
         """
         if self.harvester_path is None:
-            today = dt.strftime(dt.today(), DATE_FMT)
+            today = datetime.datetime.strftime(
+                datetime.datetime.now(tz=datetime.timezone.utc), DATE_FMT
+            )
             default_fname = f"{self.name}_harvester_{today}.json"
             default_path = self.data_dir / "harvester" / default_fname
             if not default_path.exists():
-                raise FileNotFoundError(
-                    f"Unable to open harvest file under default filename: "
-                    f"{default_path.absolute().as_uri()}"
-                )
+                msg = f"Unable to open harvest file under default filename: {default_path.absolute().as_uri()}"
+                raise FileNotFoundError(msg)
             self.harvester_path = default_path
         else:
             if not self.harvester_path.exists():
-                raise FileNotFoundError(
-                    f"Unable to open harvester file: {self.harvester_path}"
-                )
-        with open(self.harvester_path, "r") as f:
+                msg = f"Unable to open harvester file: {self.harvester_path}"
+                raise FileNotFoundError(msg)
+        with self.harvester_path.open() as f:
             return json.load(f)
 
     def _evidence_level_to_vicc_concept_mapping(self) -> Dict:
@@ -259,7 +272,7 @@ class Transform:
                 mappings[exact_mapping] = core_models.Coding(
                     code=item.id.split(":")[-1],
                     label=item.term,
-                    system="https://go.osu.edu/evidence-codes"
+                    system="https://go.osu.edu/evidence-codes",
                 )
         return mappings
 
@@ -276,8 +289,7 @@ class Transform:
 
     @abstractmethod
     def _get_therapeutic_agent(
-        self,
-        therapy: Dict
+        self, therapy: Dict
     ) -> Optional[core_models.TherapeuticAgent]:
         """Get Therapeutic Agent representation for source therapy object
 
@@ -291,7 +303,7 @@ class Transform:
         self,
         therapeutic_sub_group_id: str,
         therapies: List[Dict],
-        therapy_interaction_type: str
+        therapy_interaction_type: str,
     ) -> Optional[core_models.TherapeuticSubstituteGroup]:
         """Get Therapeutic Substitute Group for therapies
 
@@ -327,7 +339,7 @@ class Transform:
             ta = self._add_therapeutic_procedure(
                 therapeutic_procedure_id,
                 [therapy],
-                TherapeuticProcedureType.THERAPEUTIC_AGENT
+                TherapeuticProcedureType.THERAPEUTIC_AGENT,
             )
             if not ta:
                 return None
@@ -336,22 +348,22 @@ class Transform:
 
         extensions = [
             core_models.Extension(
-                name="moa_therapy_type" if source_name == "moa" else "civic_therapy_interaction_type",  # noqa: E501
-                value=therapy_interaction_type
+                name="moa_therapy_type"
+                if source_name == "moa"
+                else "civic_therapy_interaction_type",
+                value=therapy_interaction_type,
             ).model_dump(exclude_none=True)
         ]
 
         try:
             ct = core_models.CombinationTherapy(
-                id=combination_therapy_id,
-                components=components,
-                extensions=extensions
+                id=combination_therapy_id, components=components, extensions=extensions
             ).model_dump(exclude_none=True)
         except ValidationError as e:
             # if combination validation checks fail
             logger.debug(
-                "ValidationError raised when attempting to create CombinationTherapy: "
-                f"{e}"
+                "ValidationError raised when attempting to create CombinationTherapy: %s",
+                e,
             )
             ct = None
 
@@ -367,7 +379,7 @@ class Transform:
         Union[
             core_models.TherapeuticAgent,
             core_models.TherapeuticSubstituteGroup,
-            core_models.CombinationTherapy
+            core_models.CombinationTherapy,
         ]
     ]:
         """Create or get Therapeutic Procedure given therapies
@@ -392,17 +404,19 @@ class Transform:
         if therapeutic_procedure_id not in self.unable_to_normalize["therapeutics"]:
             if therapeutic_procedure_type == TherapeuticProcedureType.THERAPEUTIC_AGENT:
                 tp = self._get_therapeutic_agent(therapies[0])
-            elif therapeutic_procedure_type == TherapeuticProcedureType.THERAPEUTIC_SUBSTITUTE_GROUP:  # noqa: E501
+            elif (
+                therapeutic_procedure_type
+                == TherapeuticProcedureType.THERAPEUTIC_SUBSTITUTE_GROUP
+            ):
                 tp = self._get_therapeutic_substitute_group(
-                    therapeutic_procedure_id,
-                    therapies,
-                    therapy_interaction_type
+                    therapeutic_procedure_id, therapies, therapy_interaction_type
                 )
-            elif therapeutic_procedure_type == TherapeuticProcedureType.COMBINATION_THERAPY:  # noqa: E501
+            elif (
+                therapeutic_procedure_type
+                == TherapeuticProcedureType.COMBINATION_THERAPY
+            ):
                 tp = self._get_combination_therapy(
-                    therapeutic_procedure_id,
-                    therapies,
-                    therapy_interaction_type
+                    therapeutic_procedure_id, therapies, therapy_interaction_type
                 )
             else:
                 # not supported
@@ -417,8 +431,7 @@ class Transform:
 
     @staticmethod
     def _get_therapy_normalizer_ext_data(
-        normalized_therapeutic_id: str,
-        therapy_norm_resp: NormalizedTherapy
+        normalized_therapeutic_id: str, therapy_norm_resp: NormalizedTherapy
     ) -> core_models.Extension:
         """Create extension containing relevant therapy-normalizer data
 
@@ -431,14 +444,13 @@ class Transform:
             name="therapy_normalizer_data",
             value={
                 "normalized_id": normalized_therapeutic_id,
-                "label": therapy_norm_resp.therapeutic_agent.label
-            }
+                "label": therapy_norm_resp.therapeutic_agent.label,
+            },
         )
 
     @staticmethod
     def _get_disease_normalizer_ext_data(
-        normalized_disease_id: str,
-        disease_norm_resp: NormalizedDisease
+        normalized_disease_id: str, disease_norm_resp: NormalizedDisease
     ) -> core_models.Extension:
         """Create extension containing relevant disease-normalizer data
 
@@ -459,12 +471,13 @@ class Transform:
             value={
                 "normalized_id": normalized_disease_id,
                 "label": disease_norm_resp.disease.label,
-                "mondo_id": mondo_id
-            }
+                "mondo_id": mondo_id,
+            },
         )
 
-    def create_json(self, transform_dir: Optional[Path] = None,
-                    filename: Optional[str] = None) -> None:
+    def create_json(
+        self, transform_dir: Optional[Path] = None, filename: Optional[str] = None
+    ) -> None:
         """Create a composite JSON for transformed data.
 
         :param Optional[Path] transform_dir: Path to data directory for
@@ -476,19 +489,21 @@ class Transform:
         transform_dir.mkdir(exist_ok=True, parents=True)
 
         composite_dict = {
-            'studies': self.studies,
-            'variations': self.variations,
-            'molecular_profiles': self.molecular_profiles,
-            'genes': self.genes,
-            'therapeutics': self.therapeutics,
-            'diseases': self.diseases,
-            'methods': self.methods,
-            'documents': self.documents
+            "studies": self.studies,
+            "variations": self.variations,
+            "molecular_profiles": self.molecular_profiles,
+            "genes": self.genes,
+            "therapeutics": self.therapeutics,
+            "diseases": self.diseases,
+            "methods": self.methods,
+            "documents": self.documents,
         }
 
-        today = dt.strftime(dt.today(), DATE_FMT)
+        today = datetime.datetime.strftime(
+            datetime.datetime.now(tz=datetime.timezone.utc), DATE_FMT
+        )
         if filename is None:
             filename = f"{self.name}_cdm_{today}.json"
         out = transform_dir / filename
-        with open(out, 'w+') as f:
+        with out.open("w+") as f:
             json.dump(composite_dict, f, indent=4)

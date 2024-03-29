@@ -1,13 +1,13 @@
-"""This module tests the Harvester base class."""
-from metakb.harvesters import base
+"""Tests the Harvester base class."""
 import pytest
 
+from metakb.harvesters import base
 
-@pytest.fixture(scope='module')
+
+@pytest.fixture(scope="module")
 def bh():
     """Create a base Harvester fixture for testing."""
-    bh = base.Harvester()
-    return bh
+    return base.Harvester()
 
 
 def test_base_harvester_harvest_not_implemented(bh):

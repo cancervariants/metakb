@@ -1,5 +1,5 @@
 """Module containing GK pilot annotation definitions"""
-from datetime import datetime
+import datetime
 from enum import StrEnum
 from typing import Dict, List, Literal, Optional, Union
 
@@ -28,18 +28,16 @@ class Document(core_models._MappableEntity):
 
     type: Literal["Document"] = "Document"
     title: Optional[StrictStr] = Field(None, description="The title of the Document")
-    url: Optional[constr(pattern=r"^(https?|s?ftp)://")] = Field(  # noqa: F722
+    url: Optional[constr(pattern=r"^(https?|s?ftp)://")] = Field(
         None, description="A URL at which the document may be retrieved."
     )
-    doi: Optional[
-        constr(pattern=r"^10.(\d+)(\.\d+)*\/[\w\-\.]+")  # noqa: F722
-    ] = Field(
+    doi: Optional[constr(pattern=r"^10.(\d+)(\.\d+)*\/[\w\-\.]+")] = Field(
         None,
-        description="A `Digital Object Identifier <https://www.doi.org/the-identifier/what-is-a-doi/>_` for the document.",  # noqa: E501
+        description="A `Digital Object Identifier <https://www.doi.org/the-identifier/what-is-a-doi/>_` for the document.",
     )
     pmid: Optional[StrictInt] = Field(
         None,
-        description="A `PubMed unique identifier <https://en.wikipedia.org/wiki/PubMed#PubMed_identifier>`_.",  # noqa: E501
+        description="A `PubMed unique identifier <https://en.wikipedia.org/wiki/PubMed#PubMed_identifier>`_.",
     )
 
 
@@ -54,7 +52,7 @@ class Method(core_models._Entity):
     )
     subtype: Optional[core_models.Coding] = Field(
         None,
-        description="A more specific type of entity the method represents (e.g. Variant Interpretation Guideline, Experimental Protocol)",  # noqa: E501
+        description="A more specific type of entity the method represents (e.g. Variant Interpretation Guideline, Experimental Protocol)",
     )
 
 
@@ -80,7 +78,7 @@ class Contribution(core_models._Entity):
     date: Optional[StrictStr] = None
     activity: Optional[core_models.Coding] = Field(
         None,
-        description="SHOULD describe a concept descending from the Contributor Role Ontology.",  # noqa: E501
+        description="SHOULD describe a concept descending from the Contributor Role Ontology.",
     )
 
     @field_validator("date")
@@ -91,10 +89,12 @@ class Contribution(core_models._Entity):
             valid_format = "%Y-%m-%d"
 
             try:
-                datetime.strptime(v, valid_format).strftime(valid_format)
-            except ValueError:
-                raise ValueError("`date` must use YYYY-MM-DD format")
-
+                datetime.datetime.strptime(v, valid_format).replace(
+                    tzinfo=datetime.timezone.utc
+                ).strftime(valid_format)
+            except ValueError as e:
+                msg = "`date` must use YYYY-MM-DD format"
+                raise ValueError(msg) from e
         return v
 
 
@@ -107,7 +107,7 @@ class _InformationEntity(core_models._Entity):
     type: StrictStr
     specifiedBy: Optional[Union[Method, core_models.IRI]] = Field(
         None,
-        description="A `Method` that describes all or part of the process through which the information was generated.",  # noqa: E501
+        description="A `Method` that describes all or part of the process through which the information was generated.",
     )
     contributions: Optional[List[Contribution]] = None
     isReportedIn: Optional[List[Union[Document, core_models.IRI]]] = Field(
@@ -124,7 +124,7 @@ class DataItem(_InformationEntity):
     type: Literal["DataItem"] = Field("DataItem", description="MUST be 'DataItem'.")
     subtype: Optional[core_models.Coding] = Field(
         None,
-        description="A specific type of data the DataItem object represents (e.g. a specimen count, a patient weight, an allele frequency, a p-value, a confidence score)",  # noqa: E501
+        description="A specific type of data the DataItem object represents (e.g. a specimen count, a patient weight, an allele frequency, a p-value, a confidence score)",
     )
     value: StrictStr
     unit: Optional[core_models.Coding] = None
@@ -143,7 +143,7 @@ class _StatementBase(_InformationEntity):
     )
     strength: Optional[Union[core_models.Coding, core_models.IRI]] = Field(
         None,
-        description="The overall strength of support for the Statement based on all evidence assessed.",  # noqa: E501
+        description="The overall strength of support for the Statement based on all evidence assessed.",
     )
 
 

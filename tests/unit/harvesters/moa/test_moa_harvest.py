@@ -1,14 +1,14 @@
 """Test MOAlmanac Harvester."""
-from metakb.harvesters import MoaHarvester
+
 from metakb import APP_ROOT
-import os
+from metakb.harvesters import MoaHarvester
 
 
 def test_harvest():
     """Test MOAlmanac harvest method."""
-    fn = 'test_moa_harvester.json'
+    fn = "test_moa_harvester.json"
     assert MoaHarvester().harvest(filename=fn)
-    file_path = APP_ROOT / 'data' / 'moa' / 'harvester' / fn
+    file_path = APP_ROOT / "data" / "moa" / "harvester" / fn
     assert file_path.exists()
-    os.remove(file_path)
+    file_path.unlink()
     assert not file_path.exists()
