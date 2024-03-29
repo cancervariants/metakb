@@ -38,8 +38,8 @@ dependencies = [
     "uvicorn",
     "fastapi",
     "boto3",
-    "botocore=",
-    "asyncclick=",
+    "botocore",
+    "asyncclick",
 ]
 dynamic = ["version"]
 
