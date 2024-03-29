@@ -32,7 +32,7 @@ def find_and_check_study(
     resp: SearchStudiesService,
     expected_study: Dict,
     assertion_checks: callable,
-    should_find_match: bool = True
+    should_find_match: bool = True,
 ):
     """Check that expected study is or is not in response"""
     if should_find_match:

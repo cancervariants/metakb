@@ -1,12 +1,11 @@
 """A module for the Molecular Oncology Almanac harvester"""
 import logging
-from typing import Optional, List, Dict
+from typing import Dict, List, Optional
 
 import requests
 import requests_cache
 
-from metakb.harvesters.base import Harvester  # noqa: I202
-
+from metakb.harvesters.base import Harvester
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +14,7 @@ class MoaHarvester(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
     def harvest(self, filename: Optional[str] = None) -> bool:
-        """
-        Retrieve and store sources, variants, and assertions
+        """Retrieve and store sources, variants, and assertions
         records from MOAlmanac in composite and individual JSON files.
 
         :param Optional[str] filename: File name for composite json
@@ -34,15 +32,15 @@ class MoaHarvester(Harvester):
                     "assertions": assertions,
                     "sources": sources,
                     "variants": variants,
-                    "genes": genes
+                    "genes": genes,
                 },
-                filename
+                filename,
             )
             if not json_created:
                 logger.error("MOAlmanac Harvester was not successful.")
                 return False
-        except Exception as e:  # noqa: E722
-            logger.error(f"MOAlmanac Harvester was not successful: {e}")
+        except Exception as e:
+            logger.error("MOAlmanac Harvester was not successful: %s", e)
             return False
         else:
             logger.info("MOAlmanac Harvester was successful.")
@@ -54,9 +52,9 @@ class MoaHarvester(Harvester):
 
         :return: List of MOA gene records
         """
-        genes = list()
+        genes = []
         with requests_cache.disabled():
-            r = requests.get("https://moalmanac.org/api/genes")
+            r = requests.get("https://moalmanac.org/api/genes", timeout=60)
             if r.status_code == 200:
                 genes = r.json()
         return genes
@@ -93,8 +91,9 @@ class MoaHarvester(Harvester):
 
         return variants, variants_list
 
-    def harvest_assertions(self, assertion_resp: List[Dict],
-                           variants_list: List[Dict]) -> List[Dict]:
+    def harvest_assertions(
+        self, assertion_resp: List[Dict], variants_list: List[Dict]
+    ) -> List[Dict]:
         """Harvest all MOA assertions
 
         :param List[Dict] assertion_resp: A list of MOA assertion records
@@ -115,10 +114,8 @@ class MoaHarvester(Harvester):
         :return: All moa assertion records
         """
         with requests_cache.disabled():
-            r = requests.get("https://moalmanac.org/api/assertions")
-            assertions = r.json()
-
-        return assertions
+            r = requests.get("https://moalmanac.org/api/assertions", timeout=60)
+            return r.json()
 
     def _get_all_variants(self) -> List[Dict]:
         """Return all variant records
@@ -126,10 +123,8 @@ class MoaHarvester(Harvester):
         :return: All moa variant records
         """
         with requests_cache.disabled():
-            r = requests.get("https://moalmanac.org/api/features")
-            variants = r.json()
-
-        return variants
+            r = requests.get("https://moalmanac.org/api/features", timeout=60)
+            return r.json()
 
     def _source_item(self, source: Dict) -> Dict:
         """Harvest an individual MOA source of evidence
@@ -138,16 +133,15 @@ class MoaHarvester(Harvester):
         :return: a dictionary containing MOA source of evidence data
         :rtype: dict
         """
-        source_record = {
+        return {
             "id": source["source_id"],
             "type": source["source_type"],
             "doi": source["doi"],
             "nct": source["nct"],
             "pmid": source["pmid"],
             "url": source["url"],
-            "citation": source["citation"]
+            "citation": source["citation"],
         }
-        return source_record
 
     def _harvest_variant(self, variant: Dict) -> Dict:
         """Harvest an individual MOA variant record.
@@ -156,11 +150,9 @@ class MoaHarvester(Harvester):
         :return: A dictionary containing MOA variant data
         :rtype: dict
         """
-        variant_record = {
-            "id": variant["feature_id"]
-        }
+        variant_record = {"id": variant["feature_id"]}
 
-        variant_record.update({k: v for k, v in variant["attributes"][0].items()})  # noqa: E501
+        variant_record.update(dict(variant["attributes"][0].items()))
         variant_record.update(self._get_feature(variant_record))
 
         return variant_record
@@ -180,20 +172,20 @@ class MoaHarvester(Harvester):
             "disease": {
                 "name": assertion["disease"],
                 "oncotree_code": assertion["oncotree_code"],
-                "oncotree_term": assertion["oncotree_term"]
+                "oncotree_term": assertion["oncotree_term"],
             },
             "therapy_name": assertion["therapy_name"],
             "therapy_type": assertion["therapy_type"],
             "clinical_significance": self._get_therapy(
-                assertion["therapy_resistance"],
-                assertion["therapy_sensitivity"]),
+                assertion["therapy_resistance"], assertion["therapy_sensitivity"]
+            ),
             "predictive_implication": assertion["predictive_implication"],
             "favorable_prognosis": assertion["favorable_prognosis"],
             "created_on": assertion["created_on"],
             "last_updated": assertion["last_updated"],
             "submitted_by": assertion["submitted_by"],
             "validated": assertion["validated"],
-            "source_ids": assertion["sources"][0]["source_id"]
+            "source_ids": assertion["sources"][0]["source_id"],
         }
 
         for v in variants_list:
@@ -214,14 +206,12 @@ class MoaHarvester(Harvester):
         """
         if resistance:
             return "resistance"
-        elif sensitivity:
+        if sensitivity:
             return "sensitivity"
-        else:
-            return None
+        return None
 
     def _get_feature(self, v: Dict) -> Dict:
-        """
-        Get feature name from the harvested variants
+        """Get feature name from the harvested variants
 
         :param Dict v: harvested MOA variant
         :return: feature name same format as displayed in moalmanac.org
@@ -229,39 +219,44 @@ class MoaHarvester(Harvester):
         """
         feature_type = v["feature_type"]
         if feature_type == "rearrangement":
-            feature = "{}{}{}".format(v["gene1"],
-                                      f"--{v['gene2']}" if v["gene2"] else "",
-                                      f" {v['rearrangement_type']}"
-                                      if v["rearrangement_type"] else "")
+            feature = "{}{}{}".format(
+                v["gene1"],
+                f"--{v['gene2']}" if v["gene2"] else "",
+                f" {v['rearrangement_type']}" if v["rearrangement_type"] else "",
+            )
         elif feature_type == "somatic_variant":
-            feature = "{}{}{}".format(v["gene"],
-                                      f" {v['protein_change']}"
-                                      if v["protein_change"] else "",
-                                      f" ({v['variant_annotation']})"
-                                      if v["variant_annotation"] else "")
+            feature = "{}{}{}".format(
+                v["gene"],
+                f" {v['protein_change']}" if v["protein_change"] else "",
+                f" ({v['variant_annotation']})" if v["variant_annotation"] else "",
+            )
         elif feature_type == "germline_variant":
-            feature = "{}{}".format(v["gene"], " (Pathogenic)"
-                                    if v["pathogenic"] == "1.0" else "")
+            feature = "{}{}".format(
+                v["gene"], " (Pathogenic)" if v["pathogenic"] == "1.0" else ""
+            )
         elif feature_type == "copy_number":
             feature = "{} {}".format(v["gene"], v["direction"])
         elif feature_type == "microsatellite_stability":
             feature = "{}".format(v.get("status"))
         elif feature_type == "mutational_signature":
             csn = v.get("cosmic_signature_number", "")
-            feature = "COSMIC Signature {}".format(csn)
+            feature = f"COSMIC Signature {csn}"
         elif feature_type == "mutational_burden":
             clss = v["classification"]
             min_mut = v["minimum_mutations"]
             mut_per_mb = v["mutations_per_mb"]
-            feature = "{}{}".format(clss,
-                                    f" (>= {min_mut} mutations)" if min_mut
-                                    else (f" (>= {mut_per_mb} mutations/Mb)"
-                                          if mut_per_mb else ""))
+            feature = "{}{}".format(
+                clss,
+                f" (>= {min_mut} mutations)"
+                if min_mut
+                else (f" (>= {mut_per_mb} mutations/Mb)" if mut_per_mb else ""),
+            )
         elif feature_type == "neoantigen_burden":
             feature = "{}".format(v["classification"])
         elif feature_type == "knockdown" or feature_type == "silencing":
-            feature = "{}{}".format(v["gene"], f" ({v['technique']})"
-                                    if v["technique"] else "")
+            feature = "{}{}".format(
+                v["gene"], f" ({v['technique']})" if v["technique"] else ""
+            )
         else:
             feature = "{}".format(v["event"])
 
