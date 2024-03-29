@@ -1,11 +1,12 @@
 """A module for the CIViC harvester."""
 import logging
-from typing import Dict, List, Optional
 from pathlib import Path
+from typing import Dict, List, Optional
 
-from civicpy import civic as civicpy, LOCAL_CACHE_PATH
+from civicpy import LOCAL_CACHE_PATH
+from civicpy import civic as civicpy
 
-from metakb.harvesters.base import Harvester  # noqa: I202
+from metakb.harvesters.base import Harvester
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ class CivicHarvester(Harvester):
         self,
         update_cache: bool = False,
         update_from_remote: bool = True,
-        local_cache_path: Optional[Path] = LOCAL_CACHE_PATH
+        local_cache_path: Optional[Path] = LOCAL_CACHE_PATH,
     ) -> None:
         """Initialize CivicHarvester class.
 
@@ -62,17 +63,17 @@ class CivicHarvester(Harvester):
                     "genes": self.genes,
                     "variants": self.variants,
                     "molecular_profiles": self.molecular_profiles,
-                    "assertions": self.assertions
+                    "assertions": self.assertions,
                 },
-                filename
+                filename,
             )
             if not json_created:
                 logger.error(
                     "CIViC Harvester was not successful: JSON files not created."
                 )
                 return False
-        except Exception as e:  # noqa: E722
-            logger.error(f"CIViC Harvester was not successful: {e}")
+        except Exception as e:
+            logger.error("CIViC Harvester was not successful: %s", e)
             return False
         else:
             logger.info("CIViC Harvester was successful.")
@@ -130,7 +131,8 @@ class CivicHarvester(Harvester):
         if isinstance(obj, civicpy.CivicRecord):
             return {
                 k: self._dictify(v)
-                for k, v in obj.__dict__.items() if not k.startswith(("_", "partial"))
+                for k, v in obj.__dict__.items()
+                if not k.startswith(("_", "partial"))
             }
 
         if isinstance(obj, list):

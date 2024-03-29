@@ -21,7 +21,7 @@ class ServiceMeta(BaseModel):
             "example": {
                 "name": "metakb",
                 "version": __version__,
-                "url": "https://github.com/cancervariants/metakb"
+                "url": "https://github.com/cancervariants/metakb",
             }
         }
     )

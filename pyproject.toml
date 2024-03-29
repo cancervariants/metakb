@@ -151,4 +151,6 @@ ignore = [
 # ANN102 - missing-type-cls
 # S101 - assert
 # B011 - assert-false
+# N815 -
 "tests/*" = ["ANN001", "ANN2", "ANN102", "S101", "B011"]
+"src/metakb/schemas/*" = ["ANN102", "N815"]

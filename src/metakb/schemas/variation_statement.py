@@ -1,6 +1,6 @@
 """Module containing variant statement definitions"""
 from enum import StrEnum
-from typing import Literal, Optional, Union, List
+from typing import List, Literal, Optional, Union
 
 from ga4gh.core import core_models
 from ga4gh.vrs import models
@@ -78,7 +78,7 @@ class _VariantClassification(_VariantStatement):
 
     classification: Union[core_models.Coding, core_models.IRI] = Field(
         ...,
-        description="A methodological, summary classification about the impact of a variant.",  # noqa: E501
+        description="A methodological, summary classification about the impact of a variant.",
     )
 
 
@@ -87,11 +87,11 @@ class VariantPathogenicityQualifier(BaseModel):
 
     penetrance: Optional[Penetrance] = Field(
         None,
-        description="The extent to which the variant impact is expressed by individuals carrying it as a measure of the proportion of carriers exhibiting the condition.",  # noqa: E501
+        description="The extent to which the variant impact is expressed by individuals carrying it as a measure of the proportion of carriers exhibiting the condition.",
     )
     modeOfInheritance: Optional[ModeOfInheritance] = Field(
         None,
-        description="The pattern of inheritance expected for the pathogenic effect of this variant.",  # noqa: E501
+        description="The pattern of inheritance expected for the pathogenic effect of this variant.",
     )
     geneContext: Optional[core_models.Gene] = Field(
         None, description="A gene context that qualifies the Statement."
@@ -134,11 +134,11 @@ class _VariantOncogenicityStudyQualifier(BaseModel):
 
     alleleOrigin: Optional[AlleleOrigin] = Field(
         None,
-        description="Whether the statement should be interpreted in the context of an inherited (germline) variant, an acquired (somatic) mutation, or both (combined).",  # noqa: E501
+        description="Whether the statement should be interpreted in the context of an inherited (germline) variant, an acquired (somatic) mutation, or both (combined).",
     )
     allelePrevalence: Optional[AllelePrevalence] = Field(
         None,
-        description="Whether the statement should be interpreted in the context of the variant being rare or common.",  # noqa: E501
+        description="Whether the statement should be interpreted in the context of the variant being rare or common.",
     )
     geneContext: Optional[core_models.Gene] = Field(
         None, description="A gene context that qualifies the Statement."
@@ -175,7 +175,7 @@ class VariantTherapeuticResponseStudy(_VariantStudySummary):
     # extends object
     therapeutic: Union[core_models.TherapeuticProcedure, core_models.IRI] = Field(
         ...,
-        description="A drug administration or other therapeutic procedure that the neoplasm is intended to respond to.",  # noqa: E501
+        description="A drug administration or other therapeutic procedure that the neoplasm is intended to respond to.",
     )
     tumorType: Union[core_models.Condition, core_models.IRI] = Field(
         ...,

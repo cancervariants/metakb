@@ -1,42 +1,42 @@
 """Test CIViC Transformation to common data model for prognostic."""
+import json
+
 import pytest
 import pytest_asyncio
-from metakb.transform.civic import CivicTransform
+
 from metakb import PROJECT_ROOT
-import json
+from metakb.transform.civic import CivicTransform
 
 DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform" / "diagnostic"
 FILENAME = "civic_cdm.json"
 
 
 @pytest_asyncio.fixture(scope="module")
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def data(normalizers):
     """Create a CIViC Transform test fixture."""
     harvester_path = DATA_DIR / "civic_harvester.json"
-    c = CivicTransform(data_dir=DATA_DIR, harvester_path=harvester_path,
-                       normalizers=normalizers)
+    c = CivicTransform(
+        data_dir=DATA_DIR, harvester_path=harvester_path, normalizers=normalizers
+    )
     await c.transform()
     c.create_json(transform_dir=DATA_DIR, filename=FILENAME)
-    with open(DATA_DIR / FILENAME, "r") as f:
-        data = json.load(f)
-    return data
+    with (DATA_DIR / FILENAME).open() as f:
+        return json.load(f)
 
 
 @pytest.fixture(scope="module")
-def statements(civic_eid2_statement, civic_eid74_statement,
-               civic_aid9_statement):
+def statements(civic_eid2_statement, civic_eid74_statement, civic_aid9_statement):
     """Create test fixture for statements."""
     return [civic_eid2_statement, civic_eid74_statement, civic_aid9_statement]
 
 
 @pytest.fixture(scope="module")
-def propositions(civic_eid2_proposition, civic_eid74_proposition,
-                 civic_aid9_proposition):
+def propositions(
+    civic_eid2_proposition, civic_eid74_proposition, civic_aid9_proposition
+):
     """Create test fixture for proposition."""
-    return [
-        civic_eid2_proposition, civic_eid74_proposition, civic_aid9_proposition
-    ]
+    return [civic_eid2_proposition, civic_eid74_proposition, civic_aid9_proposition]
 
 
 @pytest.fixture(scope="module")
@@ -64,17 +64,39 @@ def documents(pmid_15146165, pmid_18073307):
 
 
 @pytest.mark.skip(reason="Will be resolved in issue-241")
-def test_civic_cdm(data, statements, propositions, variation_descriptors,
-                   gene_descriptors, disease_descriptors,
-                   civic_methods, documents, check_statement,
-                   check_proposition, check_variation_descriptor,
-                   check_descriptor, check_document, check_method,
-                   check_transformed_cdm):
+def test_civic_cdm(
+    data,
+    statements,
+    propositions,
+    variation_descriptors,
+    gene_descriptors,
+    disease_descriptors,
+    civic_methods,
+    documents,
+    check_statement,
+    check_proposition,
+    check_variation_descriptor,
+    check_descriptor,
+    check_document,
+    check_method,
+    check_transformed_cdm,
+):
     """Test that civic transform works correctly."""
     check_transformed_cdm(
-        data, statements, propositions, variation_descriptors,
-        gene_descriptors, disease_descriptors, None,
-        civic_methods, documents, check_statement, check_proposition,
-        check_variation_descriptor, check_descriptor, check_document,
-        check_method, DATA_DIR / FILENAME
+        data,
+        statements,
+        propositions,
+        variation_descriptors,
+        gene_descriptors,
+        disease_descriptors,
+        None,
+        civic_methods,
+        documents,
+        check_statement,
+        check_proposition,
+        check_variation_descriptor,
+        check_descriptor,
+        check_document,
+        check_method,
+        DATA_DIR / FILENAME,
     )
