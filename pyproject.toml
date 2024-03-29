@@ -32,14 +32,7 @@ dependencies = [
     "thera-py[etl]~=0.5.0.dev3",
     "civicpy~=3.0.0",
     "requests",
-<<<<<<< HEAD
     "pydantic==2.*",
-||||||| parent of 3dfee5f (move stuff)
-    "jsondiff",
-    "pydantic~=2.1",
-=======
-    "pydantic~=2.1",
->>>>>>> 3dfee5f (move stuff)
     "requests-cache",
     "neo4j==5.*",
     "uvicorn",
