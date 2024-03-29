@@ -31,11 +31,11 @@ def moa_vid145():
         "type": "ProteinSequenceConsequence",
         "label": "BRAF p.V600E (Missense)",
         "definingContext": {
-            "id": "ga4gh:VA.4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
-            "digest": "4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO",
+            "id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+            "digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
             "type": "Allele",
             "location": {
-                "id": "ga4gh:SL.ZA1XNKhCT_7m2UtmnYb8ZYOVS4eplMEK",
+                "id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
                 "type": "SequenceLocation",
                 "sequenceReference": {
                     "type": "SequenceReference",
@@ -199,9 +199,9 @@ def moa_aid155_study(
 
 
 @pytest.fixture(scope="module")
-def studies(moa_aid67_study, moa_aid155_study):
+def studies(moa_aid66_study, moa_aid155_study):
     """Create test fixture for MOA therapeutic studies."""
-    return [moa_aid67_study, moa_aid155_study]
+    return [moa_aid66_study, moa_aid155_study]
 
 
 def test_moa_cdm(data, studies, check_transformed_cdm):
