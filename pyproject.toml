@@ -1,5 +1,5 @@
 [project]
-name = metakb
+name = "metakb"
 authors = [
     {name = "Alex H Wagner"},
     {name = "Kori Kuzma"},
@@ -32,7 +32,6 @@ dependencies = [
     "disease-normalizer[etl]~=0.4.0.dev0",
     "thera-py[etl]~=0.5.0.dev1",
     "requests",
-    "jsondiff",
     "pydantic~=2.1",
     "requests-cache",
     "neo4j",
@@ -46,7 +45,7 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 tests = ["pytest", "pytest-cov", "mock", "pytest-asyncio"]
-dev = ["pre-commit", "flake8", "flake8-docstrings", "ipykernel"]
+dev = ["pre-commit", "flake8", "flake8-docstrings"]
 
 [project.urls]
 Homepage = "https://github.com/cancervariants/metakb"
@@ -68,7 +67,7 @@ version = {attr = "metakb.version.__version__"}
 where = ["src"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=src --cov-report term-missing"
+addopts = "--cov=src --cov-report term-missing --ignore=codebuild/"
 testpaths = ["tests"]
 
 [tool.coverage.run]
