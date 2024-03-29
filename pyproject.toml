@@ -1,5 +1,5 @@
 [project]
-name = metakb
+name = "metakb"
 authors = [
     {name = "Alex H Wagner"},
     {name = "Kori Kuzma"},
