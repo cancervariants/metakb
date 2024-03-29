@@ -45,7 +45,7 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 tests = ["pytest", "pytest-cov", "mock", "pytest-asyncio"]
-dev = ["pre-commit", "ruff"]
+dev = ["pre-commit", "ruff==0.2.0"]
 
 [project.urls]
 Homepage = "https://github.com/cancervariants/metakb"
