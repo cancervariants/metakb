@@ -1,0 +1,75 @@
+[project]
+name = "metakb"
+authors = [
+    {name = "Alex H Wagner"},
+    {name = "Kori Kuzma"},
+    {name = "James Stevenson"},
+    {name = "Brian Walsh"},
+    {name = "Jeff Liu"}
+]
+readme = "README.md"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.8"
+description = "A search interface for cancer variant interpretations assembled by aggregating and harmonizing across multiple cancer variant interpretation knowledgebases."
+license = {file = "LICENSE"}
+dependencies = [
+    "ga4gh.vrs==~=2.0.0a5",
+    "gene-normalizer[etl]==~=0.3.0-dev1",
+    "variation-normalizer~=0.8.2",
+    "disease-normalizer[etl]~=0.4.0.dev3",
+    "thera-py[etl]~=0.5.0.dev3",
+    "civicpy~=3.0.0",
+    "requests",
+    "pydantic==2.*",
+    "requests-cache",
+    "neo4j==5.*",
+    "uvicorn",
+    "fastapi",
+    "boto3",
+    "botocore",
+    "asyncclick",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+tests = ["pytest", "pytest-cov", "mock", "pytest-asyncio"]
+dev = ["pre-commit", "flake8", "flake8-docstrings"]
+notebooks = ["ipykernel", "jupyterlab"]
+
+[project.urls]
+Homepage = "https://github.com/cancervariants/metakb"
+Documentation = "https://github.com/cancervariants/metakb"
+Changelog = "https://github.com/cancervariants/metakb/releases"
+Source = "https://github.com/cancervariants/metakb"
+"Bug Tracker" = "https://github.com/cancervariants/metakb/issues"
+
+[project.scripts]
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "metakb.version.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=src --cov-report term-missing --ignore=codebuild/"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true

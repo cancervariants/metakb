@@ -124,13 +124,12 @@ pytest.ini
 .DS_Store
 
 # data files
-metakb/data/*
+src/metakb/data/*
 analysis/graph/*.json
 analysis/graph/*.ipynb
 
 # Build files
 Pipfile.lock
-pyproject.toml
 
 # DynamoDB
 dynamodb_local_latest/

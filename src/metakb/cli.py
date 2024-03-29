@@ -182,7 +182,7 @@ class CLI:
         g.close()
         end = timer()
         echo_info(
-            f"Successfully loaded neo4j database in {(end-start):.5f} s\n"
+            f"Successfully loaded neo4j database in {(end - start):.5f} s\n"
         )
 
     s3_cdm_pattern = re.compile(
@@ -288,7 +288,7 @@ class CLI:
         total_end = timer()
         echo_info(
             f"Successfully transformed all sources to CDM in "
-            f"{(total_end-total_start):.5f} s\n"
+            f"{(total_end - total_start):.5f} s\n"
         )
 
     def _load_normalizers_db(self, load_normalizer_db):
