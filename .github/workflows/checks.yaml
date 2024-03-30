@@ -15,7 +15,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: python3 -m pip install ".[tests,dev,notebook]"
+        run: python3 -m pip install ".[tests,dev,notebooks]"
 
   pipenv_install:
     runs-on: ubuntu-latest
