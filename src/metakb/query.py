@@ -67,10 +67,10 @@ class QueryHandler:
         normalizers: Optional[ViccNormalizers] = None,
     ) -> None:
         """Initialize neo4j driver and the VICC normalizers.
-        :param str uri: address of Neo4j DB
-        :param Tuple[str, str] credentials: tuple containing username and
-            password
-        :param ViccNormalizers normalizers: normalizer collection instance
+
+        :param uri: address of Neo4j DB
+        :param credentials: tuple containing username and password
+        :param normalizers: normalizer collection instance
         """
         if normalizers is None:
             normalizers = ViccNormalizers()
