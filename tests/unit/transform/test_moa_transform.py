@@ -3,11 +3,10 @@ import json
 
 import pytest
 import pytest_asyncio
+from tests.conftest import TEST_TRANSFORM_DIR
 
-from metakb import PROJECT_ROOT
 from metakb.transform.moa import MoaTransform
 
-DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform"
 FILENAME = "moa_cdm.json"
 
 
@@ -15,13 +14,15 @@ FILENAME = "moa_cdm.json"
 @pytest.mark.asyncio()
 async def data(normalizers):
     """Create a MOA Transform test fixture."""
-    harvester_path = DATA_DIR / "moa_harvester.json"
+    harvester_path = TEST_TRANSFORM_DIR / "moa_harvester.json"
     moa = MoaTransform(
-        data_dir=DATA_DIR, harvester_path=harvester_path, normalizers=normalizers
+        data_dir=TEST_TRANSFORM_DIR,
+        harvester_path=harvester_path,
+        normalizers=normalizers,
     )
     await moa.transform()
-    moa.create_json(transform_dir=DATA_DIR, filename=FILENAME)
-    with (DATA_DIR / FILENAME).open() as f:
+    moa.create_json(transform_dir=TEST_TRANSFORM_DIR, filename=FILENAME)
+    with (TEST_TRANSFORM_DIR / FILENAME).open() as f:
         return json.load(f)
 
 
@@ -196,4 +197,4 @@ def studies(moa_aid66_study, moa_aid155_study):
 
 def test_moa_cdm(data, studies, check_transformed_cdm):
     """Test that moa transform works correctly."""
-    check_transformed_cdm(data, studies, DATA_DIR / FILENAME)
+    check_transformed_cdm(data, studies, TEST_TRANSFORM_DIR / FILENAME)

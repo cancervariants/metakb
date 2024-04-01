@@ -2,11 +2,12 @@
 import json
 
 import pytest
+from tests.conftest import TEST_HARVESTERS_DIR
 
-from metakb import APP_ROOT, PROJECT_ROOT
-from metakb.harvesters import CivicHarvester
+from metakb import APP_ROOT
+from metakb.harvesters.civic import CivicHarvester
 
-TEST_DATA_PATH = PROJECT_ROOT / "tests" / "data" / "harvesters" / "civic"
+TEST_DATA_PATH = TEST_HARVESTERS_DIR / "civic"
 TEST_CIVICPY_CACHE_PATH = sorted(TEST_DATA_PATH.glob("civicpy_cache_*.pkl"))[-1]
 
 

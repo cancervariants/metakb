@@ -3,11 +3,11 @@ import json
 
 import pytest
 import pytest_asyncio
+from tests.conftest import TEST_TRANSFORM_DIR
 
-from metakb import PROJECT_ROOT
 from metakb.transform.civic import CivicTransform
 
-DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform" / "prognostic"
+DATA_DIR = TEST_TRANSFORM_DIR / "prognostic"
 FILENAME = "civic_cdm.json"
 
 
