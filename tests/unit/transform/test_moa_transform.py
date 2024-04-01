@@ -3,11 +3,11 @@ import json
 
 import pytest
 import pytest_asyncio
+from tests.conftest import TEST_DATA_DIR
 
-from metakb import PROJECT_ROOT
 from metakb.transform.moa import MoaTransform
 
-DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform"
+DATA_DIR = TEST_DATA_DIR / "transform"
 FILENAME = "moa_cdm.json"
 
 

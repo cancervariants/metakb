@@ -1,10 +1,13 @@
 """Module for pytest fixtures."""
 import json
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
 
 from metakb.normalizers import ViccNormalizers
+
+TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
 
 
 @pytest.fixture(scope="session")

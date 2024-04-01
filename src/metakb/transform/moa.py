@@ -364,15 +364,14 @@ class MoaTransform(Transform):
             representation, if variation-normalizer was able to successfully normalize
         """
         members = None
-        chromosome = moa_rep_coord["chromosome"]
-        pos = moa_rep_coord["start_position"]
-        ref = moa_rep_coord["reference_allele"]
-        alt = moa_rep_coord["alternate_allele"]
+        chromosome = moa_rep_coord.get("chromosome")
+        pos = moa_rep_coord.get("start_position")
+        ref = moa_rep_coord.get("reference_allele")
+        alt = moa_rep_coord.get("alternate_allele")
 
-        if all(
-            (chromosome is not None, pos is not None, ref is not None, alt is not None)
-        ):
+        if all((chromosome, pos is not None, ref and ref != "-", alt and alt != "-")):
             gnomad_vcf = f"{chromosome}-{pos}-{ref}-{alt}"
+
             vrs_genomic_variation = await self.vicc_normalizers.normalize_variation(
                 [gnomad_vcf]
             )
@@ -386,6 +385,11 @@ class MoaTransform(Transform):
                     "Variation Normalizer unable to normalize genomic representation: %s",
                     gnomad_vcf,
                 )
+        else:
+            logger.debug(
+                "MOA does not provide enough information to create genomic representation: %s",
+                moa_rep_coord,
+            )
 
         return members
 
