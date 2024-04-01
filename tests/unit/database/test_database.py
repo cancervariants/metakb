@@ -26,34 +26,39 @@ def graph():
 @pytest.fixture(scope="module")
 def get_node_by_id(graph: Graph):
     """Return node by its ID"""
+
     def _get_node(node_id: str):
         query = f"MATCH (n {{id: '{node_id}'}}) RETURN (n)"
         with graph.driver.session() as s:
             record = s.run(query).single(strict=True)
         return record[0]
+
     return _get_node
 
 
 @pytest.fixture(scope="module")
 def check_unique_property(graph: Graph):
     """Verify that nodes satisfy uniqueness property"""
-    def _check_function(label: str, property: str):
+
+    def _check_function(label: str, prop: str):
         query = f"""
         MATCH (x:{label})
-        WITH x.{property} AS {property}, COUNT(x) AS x_count
+        WITH x.{prop} AS {prop}, COUNT(x) AS x_count
         WHERE x_count > 1
-        RETURN COUNT({property})
+        RETURN COUNT({prop})
         """
         with graph.driver.session() as s:
             record = s.run(query).single()
 
         assert record.values()[0] == 0
+
     return _check_function
 
 
 @pytest.fixture(scope="module")
 def get_node_labels(graph: Graph):
     """Get node labels"""
+
     def _get_labels_function(parent_label: str):
         query = f"""
         MATCH (n:{parent_label})
@@ -62,20 +67,20 @@ def get_node_labels(graph: Graph):
         with graph.driver.session() as s:
             record = s.run(query).single()
         return record.values()[0]
+
     return _get_labels_function
 
 
 @pytest.fixture(scope="module")
 def check_node_labels(get_node_labels: callable):
     """Check node labels match expected"""
+
     def _check_function(
-        node_label: str,
-        expected: List[Set[str]],
-        expected_num_labels: int
+        node_label: str, expected: List[Set[str]], expected_num_labels: int
     ):
         node_labels = get_node_labels(node_label)
         assert len(node_labels) == expected_num_labels
-        node_labels_set = list(set(x) for x in node_labels)
+        node_labels_set = [set(x) for x in node_labels]
         for e in expected:
             assert e in node_labels_set
 
@@ -85,6 +90,7 @@ def check_node_labels(get_node_labels: callable):
 @pytest.fixture(scope="module")
 def check_study_relation(graph: Graph):
     """Check that node is used in a study."""
+
     def _check_function(value_label: str):
         query = f"""
         MATCH (d:{value_label})
@@ -96,6 +102,7 @@ def check_study_relation(graph: Graph):
         with graph.driver.session() as s:
             record = s.run(query).single()
         assert record.values()[0] == 0
+
     return _check_function
 
 
@@ -104,9 +111,15 @@ def check_relation_count(graph: Graph):
     """Check that the quantity of relationships from one Node type to another
     are within a certain range.
     """
-    def _check_function(self_label: str, other_label: str, relation: str,
-                        min: int = 1, max: Optional[int] = 1,
-                        direction: Optional[str] = "out"):
+
+    def _check_function(
+        self_label: str,
+        other_label: str,
+        relation: str,
+        min_rels: int = 1,
+        max_rels: Optional[int] = 1,
+        direction: Optional[str] = "out",
+    ):
         if direction == "out":
             rel_query = f"-[:{relation}]->"
         elif direction == "in":
@@ -114,24 +127,27 @@ def check_relation_count(graph: Graph):
         elif direction is None:
             rel_query = f"-[:{relation}]-"
         else:
-            raise ValueError("direction must be 'out', 'in' or None")
+            msg = "direction must be 'out', 'in' or None"
+            raise ValueError(msg)
         query = f"""
         MATCH (s:{self_label})
         OPTIONAL MATCH (s){rel_query}(d:{other_label})
         WITH s, COUNT(d) as d_count
-        WHERE d_count < {min}
-            {f"OR d_count > {max}" if max is not None else ""}
+        WHERE d_count < {min_rels}
+            {f"OR d_count > {max_rels}" if max_rels is not None else ""}
         RETURN COUNT(s)
         """
         with graph.driver.session() as s:
             record = s.run(query).single()
         assert record.values()[0] == 0
+
     return _check_function
 
 
 @pytest.fixture(scope="module")
 def check_extension_props():
     """Check that node extension properties match expected"""
+
     def _check_function(
         node: Node, fixture_extensions: List[Dict], ext_names: Set[str]
     ):
@@ -149,6 +165,7 @@ def check_extension_props():
                     assert node[ext["name"]] == ext["value"]
                 checked.add(ext["name"])
         assert checked == ext_names
+
     return _check_function
 
 
@@ -157,10 +174,15 @@ def check_node_props():
     """Check that node properties match expected. For extensions, use
     `check_extension_props`
     """
+
     def _check_function(
-        node: Node, fixture: Dict, expected_keys: Set[str],
-        extension_names: Set[str] = set()
+        node: Node,
+        fixture: Dict,
+        expected_keys: Set[str],
+        extension_names: Optional[Set[str]] = None,
     ):
+        if extension_names is None:
+            extension_names = set()
         assert node.keys() == expected_keys
         for k in expected_keys - extension_names:
             if k == "mappings":
@@ -169,6 +191,7 @@ def check_node_props():
                 assert set(node[k]) == set(fixture[k])
             else:
                 assert node[k] == fixture[k]
+
     return _check_function
 
 
@@ -179,7 +202,7 @@ def test_gene_rules(
     get_node_by_id,
     civic_gid5,
     check_node_props,
-    check_extension_props
+    check_extension_props,
 ):
     """Verify property and relationship rules for Gene nodes."""
     check_unique_property("Gene", "id")
@@ -194,29 +217,43 @@ def test_gene_rules(
     extension_names = {"gene_normalizer_id"}
     check_extension_props(gene, civic_gid5["extensions"], extension_names)
     expected_keys = {
-        "gene_normalizer_id", "label", "id", "description", "mappings", "type",
-        "aliases"
+        "gene_normalizer_id",
+        "label",
+        "id",
+        "description",
+        "mappings",
+        "type",
+        "aliases",
     }
     check_node_props(gene, civic_gid5, expected_keys, extension_names)
 
 
 def test_variation_rules(
-    graph, check_unique_property,
+    graph,
+    check_unique_property,
     check_relation_count,
     get_node_by_id,
     check_node_labels,
-    civic_vid12
+    civic_vid12,
 ):
     """Verify property and relationship rules for Variation nodes."""
     check_unique_property("Variation", "id")
     # members dont have defining context
     check_relation_count(
-        "Variation", "CategoricalVariation", "HAS_DEFINING_CONTEXT", direction="in",
-        min=0, max=None
+        "Variation",
+        "CategoricalVariation",
+        "HAS_DEFINING_CONTEXT",
+        direction="in",
+        min=0,
+        max=None,
     )
     check_relation_count(
-        "Variation", "CategoricalVariation", "HAS_MEMBERS", min=0, max=None,
-        direction="in"
+        "Variation",
+        "CategoricalVariation",
+        "HAS_MEMBERS",
+        min=0,
+        max=None,
+        direction="in",
     )
 
     expected_labels = [{"Variation", "Allele"}]
@@ -238,8 +275,14 @@ def test_variation_rules(
 
     v = get_node_by_id(civic_vid12["id"])
     assert set(v.keys()) == {
-        "id", "label", "digest", "state", "expression_hgvs_p", "expression_hgvs_c",
-        "expression_hgvs_g", "type"
+        "id",
+        "label",
+        "digest",
+        "state",
+        "expression_hgvs_p",
+        "expression_hgvs_c",
+        "expression_hgvs_g",
+        "type",
     }
 
     assert v["type"] == "Allele"
@@ -267,7 +310,7 @@ def test_categorical_variation_rules(
     check_relation_count,
     check_node_labels,
     get_node_by_id,
-    civic_mpid12
+    civic_mpid12,
 ):
     """Verify property and relationship rules for Categorical Variation nodes."""
     check_unique_property("CategoricalVariation", "id")
@@ -291,7 +334,7 @@ def test_categorical_variation_rules(
         "civic_representative_coordinate",
         "mappings",
         "variant_types",
-        "type"
+        "type",
     }
     assert cv["type"] == civic_mpid12["type"]
     assert cv["label"] == civic_mpid12["label"]
@@ -308,12 +351,12 @@ def test_categorical_variation_rules(
         "chromosome",
         "start",
         "stop",
-        "type"
+        "type",
     }
     mappings = json.loads(cv["mappings"])
     for m in mappings:
-        assert m["coding"] and isinstance(m["coding"], dict)
-        assert m["relation"] and isinstance(m["relation"], str)
+        assert isinstance(m["coding"], dict)
+        assert isinstance(m["relation"], str)
 
     variant_types = json.loads(cv["variant_types"])
     for vt in variant_types:
@@ -321,10 +364,7 @@ def test_categorical_variation_rules(
 
 
 def test_location_rules(
-    check_unique_property,
-    check_relation_count,
-    check_node_labels,
-    get_node_by_id
+    check_unique_property, check_relation_count, check_node_labels, get_node_by_id
 ):
     """Verify property and relationship rules for Location nodes."""
     check_unique_property("Location", "id")
@@ -339,11 +379,16 @@ def test_location_rules(
     loc_digest = "7qyw-4VUk3oCczBuoaF_8vGQo19dM_mk"
     loc = get_node_by_id(f"ga4gh:SL.{loc_digest}")
     assert set(loc.keys()) == {
-        "id", "digest", "sequence_reference", "start", "end", "type"
+        "id",
+        "digest",
+        "sequence_reference",
+        "start",
+        "end",
+        "type",
     }
     assert json.loads(loc["sequence_reference"]) == {
         "type": "SequenceReference",
-        "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE"
+        "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
     }
     assert loc["start"] == 766
     assert loc["end"] == 769
@@ -360,15 +405,19 @@ def test_therapeutic_procedure_rules(
     check_node_props,
     check_extension_props,
     civic_ct,
-    civic_tsg
+    civic_tsg,
 ):
     """Verify property and relationship rules for Therapeutic Procedure nodes."""
     check_unique_property("TherapeuticProcedure", "id")
     # min is 0 because TherapeuticAgent may not be attached to study directly, but
     # through CombinationTherapy and TherapeuticSubstituteGroup
     check_relation_count(
-        "TherapeuticProcedure", "Study", "HAS_THERAPEUTIC", min=0, max=None,
-        direction="in"
+        "TherapeuticProcedure",
+        "Study",
+        "HAS_THERAPEUTIC",
+        min=0,
+        max=None,
+        direction="in",
     )
     check_relation_count(
         "CombinationTherapy", "TherapeuticAgent", "HAS_COMPONENTS", max=None
@@ -380,14 +429,17 @@ def test_therapeutic_procedure_rules(
         "TherapeuticSubstituteGroup", "TherapeuticAgent", "HAS_SUBSTITUTES", max=None
     )
     check_relation_count(
-        "TherapeuticSubstituteGroup", "Study", "HAS_THERAPEUTIC", max=None,
-        direction="in"
+        "TherapeuticSubstituteGroup",
+        "Study",
+        "HAS_THERAPEUTIC",
+        max=None,
+        direction="in",
     )
 
     expected_node_labels = [
         {"TherapeuticProcedure", "TherapeuticAgent"},
         {"TherapeuticProcedure", "CombinationTherapy"},
-        {"TherapeuticProcedure", "TherapeuticSubstituteGroup"}
+        {"TherapeuticProcedure", "TherapeuticSubstituteGroup"},
     ]
     check_node_labels("TherapeuticProcedure", expected_node_labels, 3)
 
@@ -396,8 +448,13 @@ def test_therapeutic_procedure_rules(
     extension_names = {"therapy_normalizer_id", "regulatory_approval"}
     check_extension_props(ta, civic_tid146["extensions"], extension_names)
     expected_keys = {
-        "id", "label", "aliases", "therapy_normalizer_id", "regulatory_approval",
-        "mappings", "type"
+        "id",
+        "label",
+        "aliases",
+        "therapy_normalizer_id",
+        "regulatory_approval",
+        "mappings",
+        "type",
     }
     check_node_props(ta, civic_tid146, expected_keys, extension_names)
 
@@ -423,7 +480,7 @@ def test_condition_rules(
     get_node_by_id,
     civic_did8,
     check_node_props,
-    check_extension_props
+    check_extension_props,
 ):
     """Verify property and relationship rules for condition nodes."""
     check_unique_property("Condition", "id")
@@ -448,7 +505,7 @@ def test_study_rules(
     check_node_labels,
     get_node_by_id,
     civic_eid2997_study,
-    check_node_props
+    check_node_props,
 ):
     """Verify property and relationship rules for Study nodes."""
     check_unique_property("Study", "id")
@@ -476,10 +533,17 @@ def test_study_rules(
 
     study = get_node_by_id(civic_eid2997_study["id"])
     expected_keys = {
-        "id", "description", "direction", "predicate", "alleleOrigin", "type"
+        "id",
+        "description",
+        "direction",
+        "predicate",
+        "alleleOrigin",
+        "type",
     }
     civic_eid2997_study_cp = civic_eid2997_study.copy()
-    civic_eid2997_study_cp["alleleOrigin"] = civic_eid2997_study_cp["qualifiers"]["alleleOrigin"]  # noqa: E501
+    civic_eid2997_study_cp["alleleOrigin"] = civic_eid2997_study_cp["qualifiers"][
+        "alleleOrigin"
+    ]
     check_node_props(study, civic_eid2997_study_cp, expected_keys)
 
 
@@ -491,7 +555,7 @@ def test_document_rules(
     get_node_by_id,
     moa_source44,
     check_node_props,
-    check_extension_props
+    check_extension_props,
 ):
     """Verify property and relationship rules for Document nodes."""
     check_unique_property("Document", "id")
@@ -536,7 +600,7 @@ def test_method_rules(
     check_relation_count,
     get_node_by_id,
     civic_method,
-    check_node_props
+    check_node_props,
 ):
     """Verify property and relationship rules for Method nodes."""
     check_unique_property("Method", "id")

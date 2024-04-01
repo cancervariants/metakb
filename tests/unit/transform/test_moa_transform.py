@@ -1,26 +1,28 @@
 """Test MOA Transformation to common data model"""
+import json
+
 import pytest
 import pytest_asyncio
-from metakb.transform.moa import MoaTransform
+
 from metakb import PROJECT_ROOT
-import json
+from metakb.transform.moa import MoaTransform
 
 DATA_DIR = PROJECT_ROOT / "tests" / "data" / "transform"
 FILENAME = "moa_cdm.json"
 
 
 @pytest_asyncio.fixture(scope="module")
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def data(normalizers):
     """Create a MOA Transform test fixture."""
     harvester_path = DATA_DIR / "moa_harvester.json"
-    moa = MoaTransform(data_dir=DATA_DIR, harvester_path=harvester_path,
-                       normalizers=normalizers)
+    moa = MoaTransform(
+        data_dir=DATA_DIR, harvester_path=harvester_path, normalizers=normalizers
+    )
     await moa.transform()
     moa.create_json(transform_dir=DATA_DIR, filename=FILENAME)
-    with open(DATA_DIR / FILENAME, "r") as f:
-        data = json.load(f)
-    return data
+    with (DATA_DIR / FILENAME).open() as f:
+        return json.load(f)
 
 
 @pytest.fixture(scope="module")
@@ -39,15 +41,12 @@ def moa_vid145():
                 "type": "SequenceLocation",
                 "sequenceReference": {
                     "type": "SequenceReference",
-                    "refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y"
+                    "refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y",
                 },
                 "start": 599,
-                "end": 600
+                "end": 600,
             },
-            "state": {
-                "type": "LiteralSequenceExpression",
-                "sequence": "E"
-            }
+            "state": {"type": "LiteralSequenceExpression", "sequence": "E"},
         },
         "members": [
             {
@@ -61,15 +60,12 @@ def moa_vid145():
                     "type": "SequenceLocation",
                     "sequenceReference": {
                         "type": "SequenceReference",
-                        "refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul"
+                        "refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul",
                     },
                     "start": 140753335,
-                    "end": 140753336
+                    "end": 140753336,
                 },
-                "state": {
-                    "type": "LiteralSequenceExpression",
-                    "sequence": "T"
-                }
+                "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
             }
         ],
         "extensions": [
@@ -83,26 +79,26 @@ def moa_vid145():
                     "alternate_allele": "T",
                     "cdna_change": "c.1799T>A",
                     "protein_change": "p.V600E",
-                    "exon": "15"
+                    "exon": "15",
                 },
-                "type": "Extension"
+                "type": "Extension",
             }
         ],
         "mappings": [
             {
                 "coding": {
                     "system": "https://moalmanac.org/api/features/",
-                    "code": "145"
+                    "code": "145",
                 },
-                "relation": "exactMatch"
+                "relation": "exactMatch",
             },
             {
                 "coding": {
                     "system": "https://www.ncbi.nlm.nih.gov/snp/",
-                    "code": "rs113488022"
+                    "code": "rs113488022",
                 },
-                "relation": "relatedMatch"
-            }
+                "relation": "relatedMatch",
+            },
         ],
     }
 
@@ -114,7 +110,7 @@ def moa_cetuximab(cetuximab_extensions):
         "id": "moa.normalize.therapy.rxcui:318341",
         "type": "TherapeuticAgent",
         "label": "Cetuximab",
-        "extensions": cetuximab_extensions
+        "extensions": cetuximab_extensions,
     }
 
 
@@ -125,27 +121,22 @@ def moa_encorafenib(encorafenib_extensions):
         "id": "moa.normalize.therapy.rxcui:2049106",
         "type": "TherapeuticAgent",
         "label": "Encorafenib",
-        "extensions": encorafenib_extensions
+        "extensions": encorafenib_extensions,
     }
 
 
 @pytest.fixture(scope="module")
-def moa_aid155_study(
-    moa_vid145,
-    moa_cetuximab,
-    moa_encorafenib,
-    moa_method
-):
+def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
     """Create MOA AID 155 study test fixture. Uses CombinationTherapy."""
     return {
         "id": "moa.assertion:155",
         "type": "VariantTherapeuticResponseStudy",
-        "description": "The U.S. Food and Drug Administration (FDA) granted regular approval to encorafenib in combination with cetuximab for the treatment of adult patients with metastatic colorectal cancer (CRC) with BRAF V600E mutation, as detected by an FDA-approved test, after prior therapy.",  # noqa: E501
+        "description": "The U.S. Food and Drug Administration (FDA) granted regular approval to encorafenib in combination with cetuximab for the treatment of adult patients with metastatic colorectal cancer (CRC) with BRAF V600E mutation, as detected by an FDA-approved test, after prior therapy.",
         "direction": "none",
         "strength": {
             "code": "e000002",
             "label": "FDA recognized evidence",
-            "system": "https://go.osu.edu/evidence-codes"
+            "system": "https://go.osu.edu/evidence-codes",
         },
         "predicate": "predictsSensitivityTo",
         "variant": moa_vid145,
@@ -157,9 +148,9 @@ def moa_aid155_study(
                 {
                     "type": "Extension",
                     "name": "moa_therapy_type",
-                    "value": "Targeted therapy"
+                    "value": "Targeted therapy",
                 }
-            ]
+            ],
         },
         "tumorType": {
             "id": "moa.normalize.disease.ncit:C5105",
@@ -172,8 +163,8 @@ def moa_aid155_study(
                     "value": {
                         "normalized_id": "ncit:C5105",
                         "label": "Colorectal Adenocarcinoma",
-                        "mondo_id": "0005008"
-                    }
+                        "mondo_id": "0005008",
+                    },
                 }
             ],
             "mappings": [
@@ -181,11 +172,11 @@ def moa_aid155_study(
                     "coding": {
                         "label": "Colorectal Adenocarcinoma",
                         "system": "https://oncotree.mskcc.org/",
-                        "code": "COADREAD"
+                        "code": "COADREAD",
                     },
-                    "relation": "exactMatch"
+                    "relation": "exactMatch",
                 }
-            ]
+            ],
         },
         "qualifiers": {
             "alleleOrigin": "somatic",
@@ -197,27 +188,23 @@ def moa_aid155_study(
                     {
                         "type": "Extension",
                         "name": "gene_normalizer_id",
-                        "value": "hgnc:1097"
+                        "value": "hgnc:1097",
                     }
-                ]
-            }
+                ],
+            },
         },
         "specifiedBy": moa_method,
         "isReportedIn": [
             {
                 "id": "moa.source:63",
                 "extensions": [
-                    {
-                        "type": "Extension",
-                        "name": "source_type",
-                        "value": "FDA"
-                    }
+                    {"type": "Extension", "name": "source_type", "value": "FDA"}
                 ],
                 "type": "Document",
-                "title": "Array BioPharma Inc. Braftovi (encorafenib) [package insert]. U.S. Food and Drug Administration website. www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf. Revised April 2020. Accessed October 15, 2020.",  # noqa: E501
-                "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf",  # noqa: E501
+                "title": "Array BioPharma Inc. Braftovi (encorafenib) [package insert]. U.S. Food and Drug Administration website. www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf. Revised April 2020. Accessed October 15, 2020.",
+                "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf",
             }
-        ]
+        ],
     }
 
 
@@ -229,6 +216,4 @@ def studies(moa_aid66_study, moa_aid155_study):
 
 def test_moa_cdm(data, studies, check_transformed_cdm):
     """Test that moa transform works correctly."""
-    check_transformed_cdm(
-        data, studies, DATA_DIR / FILENAME
-    )
+    check_transformed_cdm(data, studies, DATA_DIR / FILENAME)

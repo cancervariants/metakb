@@ -1,15 +1,13 @@
 """Test CIViC Harvester class"""
-import os
 import json
 
 import pytest
 
-from metakb import PROJECT_ROOT, APP_ROOT
+from metakb import APP_ROOT, PROJECT_ROOT
 from metakb.harvesters import CivicHarvester
 
-
 TEST_DATA_PATH = PROJECT_ROOT / "tests" / "data" / "harvesters" / "civic"
-TEST_CIVICPY_CACHE_PATH = list(sorted(TEST_DATA_PATH.glob("civicpy_cache_*.pkl")))[-1]
+TEST_CIVICPY_CACHE_PATH = sorted(TEST_DATA_PATH.glob("civicpy_cache_*.pkl"))[-1]
 
 
 @pytest.fixture(scope="module")
@@ -51,45 +49,45 @@ def harvested_assertions(harvester):
 @pytest.fixture(scope="module")
 def civic_variant_12():
     """Create test fixture for CIViC Variant 12"""
-    with open(TEST_DATA_PATH / "civic_variant_12.json", "r") as f:
+    with (TEST_DATA_PATH / "civic_variant_12.json").open() as f:
         return json.load(f)
 
 
 @pytest.fixture(scope="module")
 def civic_molecular_profile_12():
     """Create test fixture for CIViC Molecular Profile 12"""
-    with open(TEST_DATA_PATH / "civic_molecular_profile_12.json", "r") as f:
+    with (TEST_DATA_PATH / "civic_molecular_profile_12.json").open() as f:
         return json.load(f)
 
 
 @pytest.fixture(scope="module")
 def civic_gene_5():
     """Create test fixture for CIViC Gene 5"""
-    with open(TEST_DATA_PATH / "civic_gene_5.json", "r") as f:
+    with (TEST_DATA_PATH / "civic_gene_5.json").open() as f:
         return json.load(f)
 
 
 @pytest.fixture(scope="module")
 def civic_eid_3017():
     """Create test fixture for CIViC EID 3017"""
-    with open(TEST_DATA_PATH / "civic_eid_3017.json", "r") as f:
+    with (TEST_DATA_PATH / "civic_eid_3017.json").open() as f:
         return json.load(f)
 
 
 @pytest.fixture(scope="module")
 def civic_aid_7():
     """Create test fixture for CIViC AID 7"""
-    with open(TEST_DATA_PATH / "civic_aid_7.json", "r") as f:
+    with (TEST_DATA_PATH / "civic_aid_7.json").open() as f:
         return json.load(f)
 
 
 def test_harvest(harvester):
     """Test that CIViC harvest method works correctly"""
-    fn = 'test_civic_harvester.json'
+    fn = "test_civic_harvester.json"
     assert harvester.harvest(filename=fn)
     file_path = APP_ROOT / "data" / "civic" / "harvester" / fn
     assert file_path.exists()
-    os.remove(file_path)
+    file_path.unlink()
     assert not file_path.exists()
 
 
@@ -139,7 +137,9 @@ def test_civic_evidence(harvested_evidence, civic_eid_3017):
         elif e["id"] == 6178:
             assert e["assertion_ids"] == [12, 7]
             checked.append(e["id"])
-    assert len(checked) == 2, f"Expected to check CIViC Evidence Items 3017 and 6178, but only checked {checked}"  # noqa: E501
+    assert (
+        len(checked) == 2
+    ), f"Expected to check CIViC Evidence Items 3017 and 6178, but only checked {checked}"
     assert checked, "CIViC Evidence Item 3017 not in harvested evidence"
 
 

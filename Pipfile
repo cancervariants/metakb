@@ -11,7 +11,6 @@ disease-normalizer = {version = "~=0.4.0.dev3", extras = ["etl"]}
 thera-py = {version = "~=0.5.0.dev3", extras = ["etl"]}
 civicpy = "~=3.0.0"
 requests = "*"
-jsondiff = "*"
 pydantic = "==2.*"
 requests-cache = "*"
 neo4j = "==5.*"
@@ -23,11 +22,11 @@ asyncclick = "*"
 
 [dev-packages]
 metakb = {editable = true, path = "."}
-mock = "*"
 pytest = "*"
-pre-commit = "*"
-flake8 = "*"
-flake8-docstrings = "*"
 pytest-cov = "*"
-ipykernel = "*"
 pytest-asyncio = "*"
+mock = "*"
+pre-commit = "*"
+ruff = "==0.2.0"
+ipykernel = "*"
+jupyterlab = "*"

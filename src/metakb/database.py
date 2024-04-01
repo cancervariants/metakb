@@ -16,9 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def _create_parameterized_query(
-    entity: Dict,
-    params: Tuple[str],
-    entity_param_prefix: str = ""
+    entity: Dict, params: Tuple[str], entity_param_prefix: str = ""
 ) -> str:
     """Create parameterized query string for requested params if non-null in entity.
 
@@ -36,20 +34,23 @@ def _create_parameterized_query(
 class Graph:
     """Manage requests to graph datastore."""
 
-    def __init__(self, uri: str = '', credentials: Tuple[str, str] = ('', '')) -> None:
+    def __init__(self, uri: str = "", credentials: Tuple[str, str] = ("", "")) -> None:
         """Initialize Graph driver instance.
 
         :param uri: address of Neo4j DB
         :param credentials: tuple containing username and password
         """
-        if 'METAKB_NORM_EB_PROD' in environ:
+        if "METAKB_NORM_EB_PROD" in environ:
             secret = ast.literal_eval(self.get_secret())
             uri = f"bolt://{secret['host']}:{secret['port']}"
-            credentials = (secret['username'], secret['password'])
-        elif 'METAKB_DB_URL' in environ and 'METAKB_DB_USERNAME' in environ and 'METAKB_DB_PASSWORD' in environ:  # noqa: E501
-            uri = environ['METAKB_DB_URL']
-            credentials = (environ['METAKB_DB_USERNAME'],
-                           environ['METAKB_DB_PASSWORD'])
+            credentials = (secret["username"], secret["password"])
+        elif (
+            "METAKB_DB_URL" in environ
+            and "METAKB_DB_USERNAME" in environ
+            and "METAKB_DB_PASSWORD" in environ
+        ):
+            uri = environ["METAKB_DB_URL"]
+            credentials = (environ["METAKB_DB_USERNAME"], environ["METAKB_DB_PASSWORD"])
         elif not (uri and credentials[0] and credentials[1]):
             # Local
             uri = "bolt://localhost:7687"
@@ -64,12 +65,14 @@ class Graph:
 
     def clear(self) -> None:
         """Debugging helper - wipe out DB."""
+
         def delete_all(tx: ManagedTransaction) -> None:
             """Delete all nodes and relationships
 
             :param tx: Transaction object provided to transaction functions
             """
             tx.run("MATCH (n) DETACH DELETE n;")
+
         with self.driver.session() as session:
             session.execute_write(delete_all)
 
@@ -80,8 +83,8 @@ class Graph:
             common data model containing studies, variation, therapeutic procedures,
             conditions, genes, methods, documents, etc.
         """
-        logger.info(f"Loading data from {src_transformed_cdm}")
-        with open(src_transformed_cdm, 'r') as f:
+        logger.info("Loading data from %s", src_transformed_cdm)
+        with src_transformed_cdm.open() as f:
             items = json.load(f)
             src_name = SourceName(
                 str(src_transformed_cdm).split("/")[-1].split("_cdm")[0]
@@ -95,16 +98,23 @@ class Graph:
         :param tx: Transaction object provided to transaction functions
         """
         queries = [
-            "CREATE CONSTRAINT coding_constraint IF NOT EXISTS FOR (c:Coding) REQUIRE (c.code, c.label, c.system) IS UNIQUE;",  # noqa: E501
+            "CREATE CONSTRAINT coding_constraint IF NOT EXISTS FOR (c:Coding) REQUIRE (c.code, c.label, c.system) IS UNIQUE;",
         ]
 
         for label in [
-            "Gene", "Disease", "TherapeuticProcedure", "Variation",
-            "CategoricalVariation", "VariantGroup", "Location", "Document", "Study",
-            "Method"
+            "Gene",
+            "Disease",
+            "TherapeuticProcedure",
+            "Variation",
+            "CategoricalVariation",
+            "VariantGroup",
+            "Location",
+            "Document",
+            "Study",
+            "Method",
         ]:
             queries.append(
-                f"CREATE CONSTRAINT {label.lower()}_id_constraint IF NOT EXISTS FOR (n:{label}) REQUIRE n.id IS UNIQUE;"  # noqa: E501
+                f"CREATE CONSTRAINT {label.lower()}_id_constraint IF NOT EXISTS FOR (n:{label}) REQUIRE n.id IS UNIQUE;"
             )
 
         for query in queries:
@@ -132,9 +142,7 @@ class Graph:
                 cat_var_key = "variations"
             for cv in data.get(cat_var_key, []):
                 session.execute_write(
-                    self._add_categorical_variation,
-                    cv,
-                    ids_in_studies
+                    self._add_categorical_variation, cv, ids_in_studies
                 )
 
             for doc in data.get("documents", []):
@@ -159,12 +167,10 @@ class Graph:
                 session.execute_write(self._add_study, study)
                 loaded_study_count += 1
 
-            logger.info(f"Successfully loaded {loaded_study_count} studies.")
+            logger.info("Successfully loaded %s studies.", loaded_study_count)
 
     @staticmethod
-    def _add_mappings_and_exts_to_obj(
-        obj: Dict, obj_keys: List[str]
-    ) -> None:
+    def _add_mappings_and_exts_to_obj(obj: Dict, obj_keys: List[str]) -> None:
         """Get mappings and extensions from object and add to `obj` and `obj_keys`
 
         :param obj: Object to update with mappings and extensions (if found)
@@ -192,10 +198,7 @@ class Graph:
             obj_keys.append(f"{name}:${name}")
 
     def _add_method(
-        self,
-        tx: ManagedTransaction,
-        method: Dict,
-        ids_in_studies: Set[str]
+        self, tx: ManagedTransaction, method: Dict, ids_in_studies: Set[str]
     ) -> None:
         """Add Method node and its relationships to DB
 
@@ -223,10 +226,7 @@ class Graph:
         tx.run(query, **method)
 
     def _add_gene_or_disease(
-        self,
-        tx: ManagedTransaction,
-        obj_in: Dict,
-        ids_in_studies: Set[str]
+        self, tx: ManagedTransaction, obj_in: Dict, ids_in_studies: Set[str]
     ) -> None:
         """Add gene or disease node and its relationships to DB
 
@@ -242,18 +242,12 @@ class Graph:
 
         obj_type = obj["type"]
         if obj_type not in {"Gene", "Disease"}:
-            raise TypeError(f"Invalid object type: {obj_type}")
+            msg = f"Invalid object type: {obj_type}"
+            raise TypeError(msg)
 
         obj_keys = [
             _create_parameterized_query(
-                obj,
-                (
-                    "id",
-                    "label",
-                    "description",
-                    "aliases",
-                    "type"
-                )
+                obj, ("id", "label", "description", "aliases", "type")
             )
         ]
 
@@ -274,7 +268,7 @@ class Graph:
         self,
         tx: ManagedTransaction,
         therapeutic_procedure: Dict,
-        ids_in_studies: Set[str]
+        ids_in_studies: Set[str],
     ) -> None:
         """Add therapeutic procedure node and its relationships
 
@@ -292,15 +286,7 @@ class Graph:
         if tp_type == "TherapeuticAgent":
             self._add_therapeutic_agent(tx, tp)
         elif tp_type in {"CombinationTherapy", "TherapeuticSubstituteGroup"}:
-            keys = [
-                _create_parameterized_query(
-                    tp,
-                    (
-                        "id",
-                        "type"
-                    )
-                )
-            ]
+            keys = [_create_parameterized_query(tp, ("id", "type"))]
 
             self._add_mappings_and_exts_to_obj(tp, keys)
             keys = ", ".join(keys)
@@ -308,7 +294,11 @@ class Graph:
             query = f"MERGE (tp:{tp_type}:TherapeuticProcedure {{ {keys} }})"
             tx.run(query, **tp)
 
-            tas = tp["components"] if tp_type == "CombinationTherapy" else tp["substitutes"]  # noqa: E501
+            tas = (
+                tp["components"]
+                if tp_type == "CombinationTherapy"
+                else tp["substitutes"]
+            )
             for ta in tas:
                 self._add_therapeutic_agent(tx, ta)
                 query = f"""
@@ -319,11 +309,12 @@ class Graph:
                 if tp_type == "CombinationTherapy":
                     query += "MERGE (tp) -[:HAS_COMPONENTS] -> (ta)"
                 else:
-                    query += 'MERGE (tp) -[:HAS_SUBSTITUTES] -> (ta)'
+                    query += "MERGE (tp) -[:HAS_SUBSTITUTES] -> (ta)"
 
                 tx.run(query)
         else:
-            raise TypeError(f"Invalid therapeutic procedure type: {tp_type}")
+            msg = f"Invalid therapeutic procedure type: {tp_type}"
+            raise TypeError(msg)
 
     def _add_therapeutic_agent(
         self, tx: ManagedTransaction, therapeutic_agent: Dict
@@ -335,15 +326,7 @@ class Graph:
         """
         ta = therapeutic_agent.copy()
         nonnull_keys = [
-            _create_parameterized_query(
-                ta,
-                (
-                    "id",
-                    "label",
-                    "aliases",
-                    "type"
-                )
-            )
+            _create_parameterized_query(ta, ("id", "label", "aliases", "type"))
         ]
 
         self._add_mappings_and_exts_to_obj(ta, nonnull_keys)
@@ -355,10 +338,7 @@ class Graph:
         tx.run(query, **ta)
 
     @staticmethod
-    def _add_location(
-        tx: ManagedTransaction,
-        location_in: Dict
-    ) -> None:
+    def _add_location(tx: ManagedTransaction, location_in: Dict) -> None:
         """Add location node and its relationships
 
         :param tx: Transaction object provided to transaction functions
@@ -380,11 +360,7 @@ class Graph:
         """
         tx.run(query, **loc)
 
-    def _add_variation(
-        self,
-        tx: ManagedTransaction,
-        variation_in: Dict
-    ) -> None:
+    def _add_variation(self, tx: ManagedTransaction, variation_in: Dict) -> None:
         """Add variation node and its relationships
 
         :param tx: Transaction object provided to transaction functions
@@ -392,9 +368,7 @@ class Graph:
         """
         v = variation_in.copy()
         v_keys = [
-            f"v.{key}=${key}"
-            for key in ("id", "label", "digest", "type")
-            if v.get(key)
+            f"v.{key}=${key}" for key in ("id", "label", "digest", "type") if v.get(key)
         ]
 
         expressions = v.get("expressions", [])
@@ -433,7 +407,7 @@ class Graph:
         self,
         tx: ManagedTransaction,
         categorical_variation_in: Dict,
-        ids_in_studies: Set[str]
+        ids_in_studies: Set[str],
     ) -> None:
         """Add categorical variation objects to DB.
 
@@ -448,14 +422,7 @@ class Graph:
 
         mp_nonnull_keys = [
             _create_parameterized_query(
-                cv,
-                (
-                    "id",
-                    "label",
-                    "description",
-                    "aliases",
-                    "type"
-                )
+                cv, ("id", "label", "description", "aliases", "type")
             )
         ]
 
@@ -486,10 +453,7 @@ class Graph:
         tx.run(query, **cv)
 
     def _add_document(
-        self,
-        tx: ManagedTransaction,
-        document_in: Dict,
-        ids_in_studies: Set[str]
+        self, tx: ManagedTransaction, document_in: Dict, ids_in_studies: Set[str]
     ) -> None:
         """Add Document object to DB.
 
@@ -510,17 +474,13 @@ class Graph:
         else:
             query = None
 
-        if query:
-            result = tx.run(query, **document_in)
-        else:
-            result = None
+        result = tx.run(query, **document_in) if query else None
 
         if (not result) or (result and not result.single()):
             document = document_in.copy()
             formatted_keys = [
                 _create_parameterized_query(
-                    document,
-                    ('id', 'label', 'title', 'pmid', 'url', 'doi')
+                    document, ("id", "label", "title", "pmid", "url", "doi")
                 )
             ]
 
@@ -538,6 +498,7 @@ class Graph:
         :param studies: List of studies
         :return: Set of IDs found in studies
         """
+
         def _add_obj_id_to_set(obj: Dict, ids_set: Set[str]) -> None:
             """Add object id to set of IDs
 
@@ -557,7 +518,7 @@ class Graph:
                 study.get("variant"),
                 study.get("therapeutic"),
                 study.get("tumorType"),
-                study.get("qualifiers", {}).get("geneContext")
+                study.get("qualifiers", {}).get("geneContext"),
             ]:
                 if obj:
                     if isinstance(obj, list):
@@ -578,14 +539,7 @@ class Graph:
         study = study_in.copy()
         study_type = study["type"]
         study_keys = _create_parameterized_query(
-            study,
-            (
-                "id",
-                "description",
-                "direction",
-                "predicate",
-                "type"
-            )
+            study, ("id", "description", "direction", "predicate", "type")
         )
 
         match_line = ""
@@ -618,9 +572,7 @@ class Graph:
             coding_key_fields = ("code", "label", "system")
 
             coding_keys = _create_parameterized_query(
-                coding,
-                coding_key_fields,
-                entity_param_prefix="coding_"
+                coding, coding_key_fields, entity_param_prefix="coding_"
             )
             for k in coding_key_fields:
                 v = coding.get(k)
@@ -657,20 +609,15 @@ class Graph:
     @staticmethod
     def get_secret() -> str:
         """Get secrets for MetaKB instances."""
-        secret_name = environ['METAKB_DB_SECRET']
+        secret_name = environ["METAKB_DB_SECRET"]
         region_name = "us-east-2"
 
         # Create a Secrets Manager client
         session = boto3.session.Session()
-        client = session.client(
-            service_name='secretsmanager',
-            region_name=region_name
-        )
+        client = session.client(service_name="secretsmanager", region_name=region_name)
 
         try:
-            get_secret_value_response = client.get_secret_value(
-                SecretId=secret_name
-            )
+            get_secret_value_response = client.get_secret_value(SecretId=secret_name)
         except ClientError as e:
             # For a list of exceptions thrown, see
             # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
