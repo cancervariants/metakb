@@ -387,7 +387,7 @@ class MoaTransform(Transform):
                 )
         else:
             logger.debug(
-                "MOA does not provide enough information to create genomic representation: %s",
+                "Not enough enough information provided to create genomic representation: %s",
                 moa_rep_coord,
             )
 
