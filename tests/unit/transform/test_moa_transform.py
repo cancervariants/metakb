@@ -26,8 +26,11 @@ async def data(normalizers):
 
 
 @pytest.fixture(scope="module")
-def moa_vid145():
+def moa_vid145(braf_v600e_genomic):
     """Create a test fixture for MOA VID145."""
+    genomic_rep = braf_v600e_genomic.copy()
+    genomic_rep["label"] = "7-140453136-A-T"
+
     return {
         "id": "moa.variant:145",
         "type": "ProteinSequenceConsequence",
@@ -48,26 +51,7 @@ def moa_vid145():
             },
             "state": {"type": "LiteralSequenceExpression", "sequence": "E"},
         },
-        "members": [
-            {
-                "id": "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe",
-                "label": "7-140453136-A-T",
-                "digest": "Otc5ovrw906Ack087o1fhegB4jDRqCAe",
-                "type": "Allele",
-                "location": {
-                    "id": "ga4gh:SL.nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
-                    "digest": "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
-                    "type": "SequenceLocation",
-                    "sequenceReference": {
-                        "type": "SequenceReference",
-                        "refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul",
-                    },
-                    "start": 140753335,
-                    "end": 140753336,
-                },
-                "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
-            }
-        ],
+        "members": [genomic_rep],
         "extensions": [
             {
                 "name": "MOA representative coordinate",
