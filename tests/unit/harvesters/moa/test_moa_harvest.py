@@ -1,7 +1,7 @@
 """Test MOAlmanac Harvester."""
 
 from metakb import APP_ROOT
-from metakb.harvesters import MoaHarvester
+from metakb.harvesters.moa import MoaHarvester
 
 
 def test_harvest():

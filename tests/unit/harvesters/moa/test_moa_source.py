@@ -3,9 +3,9 @@ import json
 from unittest.mock import patch
 
 import pytest
+from tests.conftest import TEST_HARVESTERS_DIR
 
-from metakb import PROJECT_ROOT
-from metakb.harvesters import MoaHarvester
+from metakb.harvesters.moa import MoaHarvester
 
 
 @pytest.fixture(scope="module")
@@ -33,9 +33,7 @@ def source68():
 @patch.object(MoaHarvester, "_get_all_assertions")
 def test_source68(test_get_all_assertions, source68):
     """Test moa harvester works correctly for evidence."""
-    with (
-        PROJECT_ROOT / "tests" / "data" / "harvesters/moa/assertions.json"
-    ).open() as f:
+    with (TEST_HARVESTERS_DIR / "moa" / "assertions.json").open() as f:
         data = json.load(f)
     test_get_all_assertions.return_value = data
 
