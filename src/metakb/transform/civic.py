@@ -1,7 +1,7 @@
 """A module for to transform CIViC."""
 import logging
 import re
-from enum import StrEnum
+from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -84,11 +84,12 @@ class _VariationCache(BaseModel):
     members: Optional[List[models.Variation]] = None
 
 
-class SourcePrefix(StrEnum):
+class SourcePrefix(str, Enum):
     """Define constraints for source prefixes."""
 
     PUBMED = "PUBMED"
-    ASCO = "asco"
+    ASCO = "ASCO"
+    ASH = "ASH"
 
 
 class CivicTransform(Transform):
@@ -282,6 +283,8 @@ class CivicTransform(Transform):
 
             # Add document
             document = self._add_eid_document(r["source"])
+            if not document:
+                continue
 
             # Get strength
             direction = self._get_evidence_direction(r["evidence_direction"])
@@ -885,9 +888,10 @@ class CivicTransform(Transform):
         :return: Document for Evidence Item if source type is supported
         """
         source_type = source["source_type"].upper()
+        source_id = source["id"]
         if source_type in SourcePrefix.__members__:
             document = Document(
-                id=f"civic.source:{source['id']}",
+                id=f"civic.source:{source_id}",
                 label=source["citation"],
                 title=source["title"],
             ).model_dump(exclude_none=True)
@@ -898,7 +902,11 @@ class CivicTransform(Transform):
             if document not in self.documents:
                 self.documents.append(document)
         else:
-            logger.debug("%s not in schemas.SourcePrefix", source_type)
+            logger.warning(
+                "Document, %s, not supported. %s not in SourcePrefix",
+                source_id,
+                source_type,
+            )
             document = None
 
         return document
