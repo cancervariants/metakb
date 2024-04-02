@@ -154,16 +154,16 @@ async def update_metakb_db(
             "Error: Can only use one of `--load_latest_cdms`, `--load_target_cdm`, `--load_latest_s3_cdms`."
         )
 
-    if normalizers_db_url:
-        for env_var_name in [
-            "GENE_NORM_DB_URL",
-            "THERAPY_NORM_DB_URL",
-            "DISEASE_NORM_DB_URL",
-        ]:
-            environ[env_var_name] = normalizers_db_url
-
     if not any([load_latest_cdms, load_target_cdm, load_latest_s3_cdms]):
         if force_load_normalizers_db:
+            if normalizers_db_url:
+                for env_var_name in [
+                    "GENE_NORM_DB_URL",
+                    "THERAPY_NORM_DB_URL",
+                    "DISEASE_NORM_DB_URL",
+                ]:
+                    environ[env_var_name] = normalizers_db_url
+
             _load_normalizers_db()
 
         _harvest_sources(update_cached)
