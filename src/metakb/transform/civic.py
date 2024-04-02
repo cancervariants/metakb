@@ -902,7 +902,7 @@ class CivicTransform(Transform):
             if document not in self.documents:
                 self.documents.append(document)
         else:
-            logger.debug(
+            logger.warning(
                 "Document, %s, not supported. %s not in SourcePrefix",
                 source_id,
                 source_type,
