@@ -125,8 +125,6 @@ pytest.ini
 
 # data files
 src/metakb/data/*
-analysis/graph/*.json
-analysis/graph/*.ipynb
 
 # Build files
 Pipfile.lock
