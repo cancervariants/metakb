@@ -4,8 +4,6 @@ from os import environ
 from pathlib import Path
 
 APP_ROOT = Path(__file__).resolve().parents[0]
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-
 LOG_FN = "/tmp/metakb.log" if "METAKB_NORM_EB_PROD" in environ else "metakb.log"  # noqa: S108
 
 logging.basicConfig(
