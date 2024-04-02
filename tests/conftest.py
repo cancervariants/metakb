@@ -335,34 +335,40 @@ def civic_vid12():
 
 
 @pytest.fixture(scope="session")
-def civic_mpid12(civic_vid12):
+def braf_v600e_genomic():
+    """Genomic representation for BRAF V600E"""
+    return {
+        "id": "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+        "digest": "Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+        "type": "Allele",
+        "location": {
+            "id": "ga4gh:SL.nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+            "digest": "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+            "type": "SequenceLocation",
+            "sequenceReference": {
+                "type": "SequenceReference",
+                "refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul",
+            },
+            "start": 140753335,
+            "end": 140753336,
+        },
+        "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
+    }
+
+
+@pytest.fixture(scope="session")
+def civic_mpid12(civic_vid12, braf_v600e_genomic):
     """Create test fixture for CIViC Molecular Profile ID 12"""
+    genomic_rep = braf_v600e_genomic.copy()
+    genomic_rep["label"] = "NC_000007.13:g.140453136A>T"
+
     return {
         "id": "civic.mpid:12",
         "type": "ProteinSequenceConsequence",
         "description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
         "label": "BRAF V600E",
         "definingContext": civic_vid12,
-        "members": [
-            {
-                "id": "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe",
-                "label": "NC_000007.13:g.140453136A>T",
-                "digest": "Otc5ovrw906Ack087o1fhegB4jDRqCAe",
-                "type": "Allele",
-                "location": {
-                    "id": "ga4gh:SL.nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
-                    "digest": "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
-                    "type": "SequenceLocation",
-                    "sequenceReference": {
-                        "type": "SequenceReference",
-                        "refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul",
-                    },
-                    "start": 140753335,
-                    "end": 140753336,
-                },
-                "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
-            }
-        ],
+        "members": [genomic_rep],
         "aliases": ["VAL600GLU", "V640E", "VAL640GLU"],
         "mappings": [
             {
@@ -1683,6 +1689,26 @@ def moa_vid66():
             },
             "state": {"type": "LiteralSequenceExpression", "sequence": "I"},
         },
+        "members": [
+            {
+                "id": "ga4gh:VA.HUJOQCml0LngKmUf5IJIYQk9CfKmagbf",
+                "label": "9-133748283-C-T",
+                "digest": "HUJOQCml0LngKmUf5IJIYQk9CfKmagbf",
+                "type": "Allele",
+                "location": {
+                    "id": "ga4gh:SL.vd9Kb9rCPWBEUZ_wbBxZyulgOAq-jk0P",
+                    "digest": "vd9Kb9rCPWBEUZ_wbBxZyulgOAq-jk0P",
+                    "type": "SequenceLocation",
+                    "sequenceReference": {
+                        "type": "SequenceReference",
+                        "refgetAccession": "SQ.KEO-4XBcm1cxeo_DIQ8_ofqGUkp4iZhI",
+                    },
+                    "start": 133748282,
+                    "end": 133748283,
+                },
+                "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
+            }
+        ],
         "extensions": [
             {
                 "name": "MOA representative coordinate",

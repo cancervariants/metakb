@@ -27,8 +27,11 @@ async def data(normalizers):
 
 
 @pytest.fixture(scope="module")
-def moa_vid145():
+def moa_vid145(braf_v600e_genomic):
     """Create a test fixture for MOA VID145."""
+    genomic_rep = braf_v600e_genomic.copy()
+    genomic_rep["label"] = "7-140453136-A-T"
+
     return {
         "id": "moa.variant:145",
         "type": "ProteinSequenceConsequence",
@@ -49,6 +52,7 @@ def moa_vid145():
             },
             "state": {"type": "LiteralSequenceExpression", "sequence": "E"},
         },
+        "members": [genomic_rep],
         "extensions": [
             {
                 "name": "MOA representative coordinate",
