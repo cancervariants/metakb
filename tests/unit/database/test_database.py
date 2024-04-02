@@ -207,7 +207,7 @@ def test_gene_rules(
     """Verify property and relationship rules for Gene nodes."""
     check_unique_property("Gene", "id")
     check_relation_count(
-        "Gene", "Study", "HAS_GENE_CONTEXT", direction="in", min=1, max=None
+        "Gene", "Study", "HAS_GENE_CONTEXT", direction="in", min_rels=1, max_rels=None
     )
 
     expected_labels = [{"Gene"}]
@@ -244,15 +244,15 @@ def test_variation_rules(
         "CategoricalVariation",
         "HAS_DEFINING_CONTEXT",
         direction="in",
-        min=0,
-        max=None,
+        min_rels=0,
+        max_rels=None,
     )
     check_relation_count(
         "Variation",
         "CategoricalVariation",
         "HAS_MEMBERS",
-        min=0,
-        max=None,
+        min_rels=0,
+        max_rels=None,
         direction="in",
     )
 
@@ -315,10 +315,10 @@ def test_categorical_variation_rules(
     """Verify property and relationship rules for Categorical Variation nodes."""
     check_unique_property("CategoricalVariation", "id")
     check_relation_count(
-        "CategoricalVariation", "Variation", "HAS_DEFINING_CONTEXT", max=1
+        "CategoricalVariation", "Variation", "HAS_DEFINING_CONTEXT", max_rels=1
     )
     check_relation_count(
-        "CategoricalVariation", "Variation", "HAS_MEMBERS", min=0, max=None
+        "CategoricalVariation", "Variation", "HAS_MEMBERS", min_rels=0, max_rels=None
     )
 
     expected_node_labels = [{"CategoricalVariation", "ProteinSequenceConsequence"}]
@@ -369,7 +369,7 @@ def test_location_rules(
     """Verify property and relationship rules for Location nodes."""
     check_unique_property("Location", "id")
     check_relation_count(
-        "Location", "Variation", "HAS_LOCATION", direction="in", max=None
+        "Location", "Variation", "HAS_LOCATION", direction="in", max_rels=None
     )
 
     expected_labels = [{"Location", "SequenceLocation"}]
@@ -409,30 +409,33 @@ def test_therapeutic_procedure_rules(
 ):
     """Verify property and relationship rules for Therapeutic Procedure nodes."""
     check_unique_property("TherapeuticProcedure", "id")
-    # min is 0 because TherapeuticAgent may not be attached to study directly, but
+    # min_rels is 0 because TherapeuticAgent may not be attached to study directly, but
     # through CombinationTherapy and TherapeuticSubstituteGroup
     check_relation_count(
         "TherapeuticProcedure",
         "Study",
         "HAS_THERAPEUTIC",
-        min=0,
-        max=None,
+        min_rels=0,
+        max_rels=None,
         direction="in",
     )
     check_relation_count(
-        "CombinationTherapy", "TherapeuticAgent", "HAS_COMPONENTS", max=None
+        "CombinationTherapy", "TherapeuticAgent", "HAS_COMPONENTS", max_rels=None
     )
     check_relation_count(
-        "CombinationTherapy", "Study", "HAS_THERAPEUTIC", max=None, direction="in"
+        "CombinationTherapy", "Study", "HAS_THERAPEUTIC", max_rels=None, direction="in"
     )
     check_relation_count(
-        "TherapeuticSubstituteGroup", "TherapeuticAgent", "HAS_SUBSTITUTES", max=None
+        "TherapeuticSubstituteGroup",
+        "TherapeuticAgent",
+        "HAS_SUBSTITUTES",
+        max_rels=None,
     )
     check_relation_count(
         "TherapeuticSubstituteGroup",
         "Study",
         "HAS_THERAPEUTIC",
-        max=None,
+        max_rels=None,
         direction="in",
     )
 
@@ -485,7 +488,7 @@ def test_condition_rules(
     """Verify property and relationship rules for condition nodes."""
     check_unique_property("Condition", "id")
     check_relation_count(
-        "Condition", "Study", "HAS_TUMOR_TYPE", max=None, direction="in"
+        "Condition", "Study", "HAS_TUMOR_TYPE", max_rels=None, direction="in"
     )
 
     expected_node_labels = [{"Disease", "Condition"}]
@@ -514,8 +517,8 @@ def test_study_rules(
     check_relation_count("Study", "Condition", "HAS_TUMOR_TYPE")
     check_relation_count("Study", "TherapeuticProcedure", "HAS_THERAPEUTIC")
     check_relation_count("Study", "Coding", "HAS_STRENGTH")
-    check_relation_count("Study", "Method", "IS_SPECIFIED_BY", max=None)
-    check_relation_count("Study", "Gene", "HAS_GENE_CONTEXT", max=None)
+    check_relation_count("Study", "Method", "IS_SPECIFIED_BY", max_rels=None)
+    check_relation_count("Study", "Gene", "HAS_GENE_CONTEXT", max_rels=None)
 
     expected_node_labels = [{"Study", "VariantTherapeuticResponseStudy"}]
     check_node_labels("Study", expected_node_labels, 1)
@@ -560,7 +563,7 @@ def test_document_rules(
     """Verify property and relationship rules for Document nodes."""
     check_unique_property("Document", "id")
     check_relation_count(
-        "Document", "Study", "IS_REPORTED_IN", min=0, max=None, direction="in"
+        "Document", "Study", "IS_REPORTED_IN", min_rels=0, max_rels=None, direction="in"
     )
 
     expected_labels = [{"Document"}]
@@ -604,7 +607,9 @@ def test_method_rules(
 ):
     """Verify property and relationship rules for Method nodes."""
     check_unique_property("Method", "id")
-    check_relation_count("Method", "Study", "IS_SPECIFIED_BY", max=None, direction="in")
+    check_relation_count(
+        "Method", "Study", "IS_SPECIFIED_BY", max_rels=None, direction="in"
+    )
 
     expected_node_labels = [{"Method"}]
     check_node_labels("Method", expected_node_labels, 1)
