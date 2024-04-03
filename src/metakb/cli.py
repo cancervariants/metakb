@@ -253,7 +253,6 @@ def _retrieve_s3_cdms() -> str:
     return newest_version
 
 
-@staticmethod
 def _harvest_sources(update_cached: bool) -> None:
     """Run harvesting procedure for all sources.
 
