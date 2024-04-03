@@ -27,6 +27,7 @@ from therapy.schemas import NormalizationService as NormalizedTherapy
 from metakb import APP_ROOT, DATE_FMT
 from metakb.normalizers import ViccNormalizers
 from metakb.schemas.annotation import Document, Method
+from metakb.schemas.app import SourceName
 
 logger = logging.getLogger(__name__)
 
@@ -341,7 +342,7 @@ class Transform:
         source_name = type(self).__name__.lower().replace("transform", "")
 
         for therapy in therapies:
-            if source_name == "moa":
+            if source_name == SourceName.MOA:
                 therapeutic_procedure_id = f"moa.therapy:{therapy}"
             else:
                 therapeutic_procedure_id = f"civic.tid:{therapy['id']}"
@@ -358,7 +359,7 @@ class Transform:
         extensions = [
             Extension(
                 name="moa_therapy_type"
-                if source_name == "moa"
+                if source_name == SourceName.MOA
                 else "civic_therapy_interaction_type",
                 value=therapy_interaction_type,
             ).model_dump(exclude_none=True)
