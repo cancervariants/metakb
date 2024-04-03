@@ -1,5 +1,5 @@
 """Module containing variant statement definitions"""
-from enum import StrEnum
+from enum import Enum
 from typing import List, Literal, Optional, Union
 
 from ga4gh.core import core_models
@@ -10,7 +10,7 @@ from metakb.schemas.annotation import Document, _StatementBase
 from metakb.schemas.categorical_variation import CategoricalVariation
 
 
-class Penetrance(StrEnum):
+class Penetrance(str, Enum):
     """The extent to which the variant impact is expressed by individuals carrying it as
     a measure of the proportion of carriers exhibiting the condition.
     """
@@ -20,7 +20,7 @@ class Penetrance(StrEnum):
     RISK_ALLELE = "risk allele"
 
 
-class ModeOfInheritance(StrEnum):
+class ModeOfInheritance(str, Enum):
     """The pattern of inheritance expected for the pathogenic effect of this variant."""
 
     AUTOSOMAL_DOMINANT = "autosomal dominant"
@@ -30,7 +30,7 @@ class ModeOfInheritance(StrEnum):
     MITOCHONDRIAL = "mitochondrial"
 
 
-class VariantOncogenicityStudyPredicate(StrEnum):
+class VariantOncogenicityStudyPredicate(str, Enum):
     """Define constraints for Variant Oncogenicity Study predicate"""
 
     IS_ONCOGENIC_FOR = "isOncogenicFor"
@@ -38,7 +38,7 @@ class VariantOncogenicityStudyPredicate(StrEnum):
     IS_PREDISPOSING_FOR = "isPredisposingFor"
 
 
-class AlleleOrigin(StrEnum):
+class AlleleOrigin(str, Enum):
     """Whether the statement should be interpreted in the context of an inherited
     (germline) variant, an acquired (somatic) mutation, or both (combined).
     """
@@ -48,7 +48,7 @@ class AlleleOrigin(StrEnum):
     COMBINED = "combined"
 
 
-class AllelePrevalence(StrEnum):
+class AllelePrevalence(str, Enum):
     """Whether the statement should be interpreted in the context of the variant being
     rare or common.
     """
@@ -57,7 +57,7 @@ class AllelePrevalence(StrEnum):
     COMMON = "common"
 
 
-class VariantTherapeuticResponseStudyPredicate(StrEnum):
+class VariantTherapeuticResponseStudyPredicate(str, Enum):
     """Predicate for Variant Therapeutic Response Study"""
 
     PREDICTS_SENSITIVITY_TO = "predictsSensitivityTo"
