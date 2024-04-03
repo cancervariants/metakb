@@ -207,8 +207,8 @@ def _retrieve_s3_cdms() -> str:
     Expects to find files in a path like the following:
         s3://vicc-metakb/cdm/20220201/civic_cdm_20220201.json.zip
 
-    :raise: ResourceLoadException if S3 initialization fails
-    :raise: FileNotFoundError if unable to find files matching expected
+    :raise ResourceLoadException: if S3 initialization fails
+    :raise FileNotFoundError:  if unable to find files matching expected
         pattern in VICC MetaKB bucket.
     :return: date string from retrieved files to use when loading to DB.
     """
