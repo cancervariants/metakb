@@ -71,7 +71,6 @@ def echo_info(msg: str) -> None:
 )
 @click.option(
     "--normalizers_db_url",
-    default="http://localhost:8000",
     help=(
         "URL endpoint of normalizers DynamoDB database. Set to `http://localhost:8000` by default."
     ),
