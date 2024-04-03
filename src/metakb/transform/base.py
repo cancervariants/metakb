@@ -3,7 +3,7 @@ import datetime
 import json
 import logging
 from abc import abstractmethod
-from enum import StrEnum
+from enum import Enum
 from pathlib import Path
 from typing import ClassVar, Dict, List, Optional, Set, Union
 
@@ -24,21 +24,21 @@ from metakb.schemas.annotation import Document, Method
 logger = logging.getLogger(__name__)
 
 
-class EcoLevel(StrEnum):
+class EcoLevel(str, Enum):
     """Define constraints for Evidence Ontology levels"""
 
     EVIDENCE = "ECO:0000000"
     CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
 
 
-class MethodId(StrEnum):
+class MethodId(str, Enum):
     """Create method id constants"""
 
     CIVIC_EID_SOP = "civic.method:2019"
     MOA_ASSERTION_BIORXIV = "moa.method:2021"
 
 
-class CivicEvidenceLevel(StrEnum):
+class CivicEvidenceLevel(str, Enum):
     """Define constraints for CIViC evidence levels"""
 
     A = "civic.evidence_level:A"
@@ -48,7 +48,7 @@ class CivicEvidenceLevel(StrEnum):
     E = "civic.evidence_level:E"
 
 
-class MoaEvidenceLevel(StrEnum):
+class MoaEvidenceLevel(str, Enum):
     """Define constraints MOAlmanac evidence levels"""
 
     FDA_APPROVED = "moa.evidence_level:fda_approved"
@@ -59,7 +59,7 @@ class MoaEvidenceLevel(StrEnum):
     INFERENTIAL = "moa.evidence_level:inferential_evidence"
 
 
-class TherapeuticProcedureType(StrEnum):
+class TherapeuticProcedureType(str, Enum):
     """Define types for supported Therapeutic Procedures"""
 
     THERAPEUTIC_AGENT = "TherapeuticAgent"

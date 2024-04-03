@@ -1,5 +1,5 @@
 """Module containing GA4GH categorical variation definitions"""
-from enum import StrEnum
+from enum import Enum
 from typing import List, Literal, Optional, Union
 
 from ga4gh.core import core_models
@@ -7,7 +7,7 @@ from ga4gh.vrs import models
 from pydantic import Field, RootModel, StrictStr
 
 
-class LocationMatchCharacteristic(StrEnum):
+class LocationMatchCharacteristic(str, Enum):
     """The characteristics of a valid match between a contextual CNV location (the
     query) and the Categorical CNV location (the domain), when both query and domain are
     represented on the same  reference sequence. An `exact` match requires the location
