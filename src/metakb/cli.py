@@ -197,6 +197,117 @@ async def update_metakb_db(
     echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s\n")
 
 
+def _help_msg(msg: str = "") -> None:
+    """Handle invalid user input.
+
+    :param msg: Error message to display to user.
+    """
+    ctx = click.get_current_context()
+    logger.fatal(msg)
+
+    if msg:
+        click.echo(msg)
+    else:
+        click.echo(ctx.get_help())
+
+    ctx.exit()
+
+
+def _load_normalizers_db() -> None:
+    """Load normalizer DynamoDB database source data."""
+    for name, update_normalizer_db_fn in [
+        ("Disease", update_normalizer_disease_db),
+        ("Therapy", update_normalizer_therapy_db),
+        ("Gene", update_normalizer_gene_db),
+    ]:
+        _update_normalizer_db(name, update_normalizer_db_fn)
+
+    echo_info("Normalizers database loaded.\n")
+
+
+def _update_normalizer_db(
+    name: str,
+    update_normalizer_db_fn: callable,
+) -> None:
+    """Update Normalizer DynamoDB database.
+
+    :param name: Name of the normalizer
+    :param update_normalizer_db_fn: Function to update the normalizer DynamoDB database
+    """
+    try:
+        echo_info(f"\nLoading {name} Normalizer data...")
+        update_normalizer_db_fn(["--update_all", "--update_merged"])
+        echo_info(f"Successfully Loaded {name} Normalizer data.\n")
+    except SystemExit as e:
+        if e.code != 0:
+            raise e
+
+
+def _harvest_sources(update_cached: bool) -> None:
+    """Run harvesting procedure for all sources.
+
+    :param update_cached: `True` if civicpy cache should be updated. Note this will take
+        several minutes. `False` if local cache should be used
+    """
+    echo_info("Harvesting sources...")
+    harvester_sources = {
+        SourceName.CIVIC.value: CivicHarvester,
+        SourceName.MOA.value: MoaHarvester,
+    }
+    total_start = timer()
+
+    for source_str, source_class in harvester_sources.items():
+        echo_info(f"Harvesting {source_str}...")
+        start = timer()
+
+        if source_str == SourceName.CIVIC.value and update_cached:
+            # Use latest civic data
+            echo_info("(civicpy cache is also being updated)")
+            source = source_class(update_cache=True, update_from_remote=False)
+        else:
+            source = source_class()
+
+        source_successful = source.harvest()
+
+        end = timer()
+
+        if not source_successful:
+            echo_info(f"{source_str} harvest failed.")
+            click.get_current_context().exit()
+
+        echo_info(f"{source_str} harvest finished in {(end - start):.5f} s")
+
+    total_end = timer()
+    echo_info(
+        f"Successfully harvested all sources in {(total_end - total_start):.5f} s\n"
+    )
+
+
+async def _transform_sources() -> None:
+    """Run transformation procedure for all sources."""
+    echo_info("Transforming harvested data to CDM...")
+    transform_sources = {
+        SourceName.CIVIC.value: CivicTransform,
+        SourceName.MOA.value: MoaTransform,
+    }
+    total_start = timer()
+
+    for src_str, src_name in transform_sources.items():
+        echo_info(f"Transforming {src_str}...")
+        start = timer()
+        source = src_name()
+        await source.transform()
+        end = timer()
+        echo_info(f"{src_str} transform finished in {(end - start):.5f} s.")
+        source.create_json()
+
+    total_end = timer()
+    echo_info(
+        f"Successfully transformed all sources to CDM in "
+        f"{(total_end - total_start):.5f} s\n"
+    )
+
+
 def _retrieve_s3_cdms() -> str:
     """Retrieve most recent CDM files from VICC S3 bucket.
     Expects to find files in a path like the following:
@@ -249,118 +360,6 @@ def _retrieve_s3_cdms() -> str:
 
     echo_info(f"Retrieved CDM files dated {newest_version}")
     return newest_version
-
-
-def _harvest_sources(update_cached: bool) -> None:
-    """Run harvesting procedure for all sources.
-
-    :param update_cached: `True` if civicpy cache should be updated. Note this will take
-        several minutes. `False` if local cache should be used
-    """
-    echo_info("Harvesting sources...")
-    harvester_sources = {
-        SourceName.CIVIC.value: CivicHarvester,
-        SourceName.MOA.value: MoaHarvester,
-    }
-    total_start = timer()
-
-    for source_str, source_class in harvester_sources.items():
-        echo_info(f"Harvesting {source_str}...")
-        start = timer()
-
-        if source_str == SourceName.CIVIC.value and update_cached:
-            # Use latest civic data
-            echo_info("(civicpy cache is also being updated)")
-            source = source_class(update_cache=True, update_from_remote=False)
-        else:
-            source = source_class()
-
-        source_successful = source.harvest()
-
-        end = timer()
-
-        if not source_successful:
-            echo_info(f"{source_str} harvest failed.")
-            click.get_current_context().exit()
-
-        echo_info(f"{source_str} harvest finished in {(end - start):.5f} s")
-
-    total_end = timer()
-    echo_info(
-        f"Successfully harvested all sources in {(total_end - total_start):.5f} s\n"
-    )
-
-
-@staticmethod
-async def _transform_sources() -> None:
-    """Run transformation procedure for all sources."""
-    echo_info("Transforming harvested data to CDM...")
-    transform_sources = {
-        SourceName.CIVIC.value: CivicTransform,
-        SourceName.MOA.value: MoaTransform,
-    }
-    total_start = timer()
-
-    for src_str, src_name in transform_sources.items():
-        echo_info(f"Transforming {src_str}...")
-        start = timer()
-        source = src_name()
-        await source.transform()
-        end = timer()
-        echo_info(f"{src_str} transform finished in {(end - start):.5f} s.")
-        source.create_json()
-
-    total_end = timer()
-    echo_info(
-        f"Successfully transformed all sources to CDM in "
-        f"{(total_end - total_start):.5f} s\n"
-    )
-
-
-def _load_normalizers_db() -> None:
-    """Load normalizer DynamoDB database source data."""
-    for name, update_normalizer_db_fn in [
-        ("Disease", update_normalizer_disease_db),
-        ("Therapy", update_normalizer_therapy_db),
-        ("Gene", update_normalizer_gene_db),
-    ]:
-        _update_normalizer_db(name, update_normalizer_db_fn)
-
-    echo_info("Normalizers database loaded.\n")
-
-
-def _update_normalizer_db(
-    name: str,
-    update_normalizer_db_fn: callable,
-) -> None:
-    """Update Normalizer DynamoDB database.
-
-    :param name: Name of the normalizer
-    :param update_normalizer_db_fn: Function to update the normalizer DynamoDB database
-    """
-    try:
-        echo_info(f"\nLoading {name} Normalizer data...")
-        update_normalizer_db_fn(["--update_all", "--update_merged"])
-        echo_info(f"Successfully Loaded {name} Normalizer data.\n")
-    except SystemExit as e:
-        if e.code != 0:
-            raise e
-
-
-def _help_msg(msg: str = "") -> None:
-    """Handle invalid user input.
-
-    :param msg: Error message to display to user.
-    """
-    ctx = click.get_current_context()
-    logger.fatal(msg)
-
-    if msg:
-        click.echo(msg)
-    else:
-        click.echo(ctx.get_help())
-
-    ctx.exit()
 
 
 if __name__ == "__main__":
