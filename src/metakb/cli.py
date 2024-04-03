@@ -351,7 +351,6 @@ def _update_normalizer_db(
             raise e
 
 
-@staticmethod
 def _help_msg(msg: str = "") -> None:
     """Handle invalid user input.
 
