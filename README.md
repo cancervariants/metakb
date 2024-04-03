@@ -72,9 +72,7 @@ Next, initialize the [Variation Normalizer](https://github.com/cancervariants/va
 The MetaKB can acquire all other needed normalizer data, except for that of [OMIM](https://www.omim.org/downloads), which must be manually placed:
 
 ```sh
-cd disease/  # starting from the site-packages dir of your virtual environment's Python instance
-mkdir -p data/omim
-cp ~/YOUR/PATH/TO/mimTitles.txt data/omim/omim_<date>.tsv  # replace <date> with date of data acquisition formatted as YYYYMMDD
+cp ~/YOUR/PATH/TO/mimTitles.txt ~/.local/share/wags_tails/omim/omim_<date>.tsv  # replace <date> with date of data acquisition formatted as YYYYMMDD
 ```
 
 ### Environment Variables
@@ -94,24 +92,24 @@ MetaKB relies on environment variables to set in order to work.
     ```
 
 * Required when using the `--load_normalizers_db` or `--force_load_normalizers_db` arguments in CLI commands
-  * `RXNORM_API_KEY`
+  * `UMLS_API_KEY`
     * Used in Therapy Normalizer to retrieve RxNorm data
-    * RxNorm requires a UMLS license, which you can register for one [here](https://www.nlm.nih.gov/research/umls/index.html). You must set the `RxNORM_API_KEY` environment variable to your API key. This can be found in the [UTS 'My Profile' area](https://uts.nlm.nih.gov/uts/profile) after singing in.
+    * RxNorm requires a UMLS license, which you can register for one [here](https://www.nlm.nih.gov/research/umls/index.html). You must set the `UMLS_API_KEY` environment variable to your API key. This can be found in the [UTS 'My Profile' area](https://uts.nlm.nih.gov/uts/profile) after singing in.
 
     Example:
 
     ```shell script
-    export RXNORM_API_KEY={rxnorm_api_key}
+    export UMLS_API_KEY={rxnorm_api_key}
     ```
 
-  * `DATAVERSE_API_KEY`
+  * `HARVARD_DATAVERSE_API_KEY`
     * Used in Therapy Normalizer to retrieve HemOnc data
-    * HemOnc.org data requires a Harvard Dataverse API key. After creating a user account on the Harvard Dataverse website, you can follow [these instructions](https://guides.dataverse.org/en/latest/user/account.html) to generate a key. You will create or login to your account at [this](https://dataverse.harvard.edu/) site. You must set the `DATAVERSE_API_KEY` environment variable to your API key.
+    * HemOnc.org data requires a Harvard Dataverse API key. After creating a user account on the Harvard Dataverse website, you can follow [these instructions](https://guides.dataverse.org/en/latest/user/account.html) to generate a key. You will create or login to your account at [this](https://dataverse.harvard.edu/) site. You must set the `HARVARD_DATAVERSE_API_KEY` environment variable to your API key.
 
     Example:
 
     ```shell script
-    export DATAVERSE_API_KEY={dataverse_api_key}
+    export HARVARD_DATAVERSE_API_KEY={dataverse_api_key}
     ```
 
 ### Loading data
