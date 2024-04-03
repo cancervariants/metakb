@@ -40,7 +40,6 @@ def echo_info(msg: str) -> None:
     logger.info(msg)
 
 
-@staticmethod
 @click.command()
 @click.option(
     "--db_url",
