@@ -69,7 +69,7 @@ def echo_info(msg: str) -> None:
 @click.option(
     "--normalizers_db_url",
     help=(
-        "URL endpoint of normalizers DynamoDB database. If not given, defaults to ``http://localhost:8000`` per the configuration rules of the individual normalizers."
+        "URL endpoint of normalizers DynamoDB database. If not given, defaults to `http://localhost:8000` per the configuration rules of the individual normalizers."
     ),
 )
 @click.option(
