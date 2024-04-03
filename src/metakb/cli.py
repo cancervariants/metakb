@@ -28,9 +28,6 @@ from metakb.transform import CivicTransform, MoaTransform
 logger = logging.getLogger(__name__)
 
 
-S3_CDM_PATTERN = re.compile(r"cdm/20[23]\d[01]\d[0123]\d/(.*)_cdm_(.*).json.zip")
-
-
 def echo_info(msg: str) -> None:
     """Log (as INFO) and echo given message.
 
@@ -225,7 +222,9 @@ def _retrieve_s3_cdms() -> str:
     newest_version: Optional[str] = None
 
     for file in bucket:
-        match = re.match(S3_CDM_PATTERN, file.key)
+        match = re.match(
+            re.compile(r"cdm/20[23]\d[01]\d[0123]\d/(.*)_cdm_(.*).json.zip"), file.key
+        )
 
         if match:
             source = match.group(1)
