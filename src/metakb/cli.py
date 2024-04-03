@@ -69,7 +69,7 @@ def echo_info(msg: str) -> None:
 @click.option(
     "--normalizers_db_url",
     help=(
-        "URL endpoint of normalizers DynamoDB database. Set to `http://localhost:8000` by default."
+        "URL endpoint of normalizers DynamoDB database. If not given, defaults to ``http://localhost:8000`` per the configuration rules of the individual normalizers."
     ),
 )
 @click.option(
@@ -131,9 +131,9 @@ async def update_metakb_db(
     :param db_password: Password to provide to application Neo4j database. Can also be
         provided via environment variable ``METAKB_DB_PASSWORD``, which takes priority.
     :param force_load_normalizers_db: Load all normalizers data into DynamoDB database.
-    :param normalizers_db_url: URL endpoint of normalizers DynamoDB database. If not given,
-        defaults to ``http://localhost:8000`` per the configuration rules of the individual 
-        normalizers.
+    :param normalizers_db_url: URL endpoint of normalizers DynamoDB database. If not
+        given, defaults to ``http://localhost:8000`` per the configuration rules of the
+        individual normalizers.
     :param load_latest_cdms: Clear MetaKB Neo4j database and load most recent available
         source CDM files. Does not run harvest and transform methods to generate new CDM
         files. Exclusive with --load_target_cdm and --load_latest_s3_cdms.
