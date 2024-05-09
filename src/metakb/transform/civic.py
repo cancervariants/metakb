@@ -3,9 +3,18 @@ import logging
 import re
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import ClassVar, Dict, List, Optional, Tuple
 
-from ga4gh.core import core_models
+from ga4gh.core._internal.models import (
+    Coding,
+    Disease,
+    Extension,
+    Gene,
+    Mapping,
+    Relation,
+    TherapeuticAgent,
+    TherapeuticSubstituteGroup,
+)
 from ga4gh.vrs import models
 from pydantic import BaseModel, ValidationError
 
@@ -77,8 +86,8 @@ class _VariationCache(BaseModel):
 
     vrs_variation: Dict
     civic_gene_id: str
-    variant_types: Optional[List[core_models.Coding]] = None
-    mappings: Optional[List[core_models.Mapping]] = None
+    variant_types: Optional[List[Coding]] = None
+    mappings: Optional[List[Mapping]] = None
     aliases: Optional[List[str]] = None
     coordinates: Optional[Dict]
     members: Optional[List[models.Variation]] = None
@@ -94,6 +103,16 @@ class SourcePrefix(str, Enum):
 
 class CivicTransform(Transform):
     """A class for transforming CIViC to the common data model."""
+
+    # Cache for normalized concepts. The key is the concept type and value is a
+    # dictionary of mappings from CIViC concept (key) to transformed concept (value)
+    able_to_normalize: ClassVar[Dict[str, Dict]] = {
+        "variations": {},  # will store _VariationCache data
+        "molecular_profiles": {},
+        "diseases": {},
+        "therapeutics": {},
+        "genes": {},
+    }
 
     def __init__(
         self,
@@ -113,16 +132,6 @@ class CivicTransform(Transform):
 
         # Method will always be the same
         self.methods = [self.methods_mapping[MethodId.CIVIC_EID_SOP.value]]
-
-        # Cache for normalized concepts. The key is the concept type and value is a
-        # dictionary of mappings from CIViC concept (key) to transformed concept (value)
-        self.able_to_normalize = {
-            "variations": {},  # will store _VariationCache data
-            "molecular_profiles": {},
-            "diseases": {},
-            "therapeutics": {},
-            "genes": {},
-        }
 
     @staticmethod
     def _mp_to_variant_mapping(molecular_profiles: List[Dict]) -> Tuple[List, Dict]:
@@ -315,7 +324,7 @@ class CivicTransform(Transform):
             self.studies.append(statement)
 
     def _get_variant_onco_study_qualifier(
-        self, variant_origin: str, gene: Optional[core_models.Gene] = None
+        self, variant_origin: str, gene: Optional[Gene] = None
     ) -> Optional[_VariantOncogenicityStudyQualifier]:
         """Get Variant Oncogenicity Study Qualifier
 
@@ -407,9 +416,7 @@ class CivicTransform(Transform):
             mp_score = mp["molecular_profile_score"]
             if mp_score:
                 extensions = [
-                    core_models.Extension(
-                        name="CIViC Molecular Profile Score", value=mp_score
-                    )
+                    Extension(name="CIViC Molecular Profile Score", value=mp_score)
                 ]
             else:
                 extensions = []
@@ -421,9 +428,7 @@ class CivicTransform(Transform):
             ]:
                 if civic_variation_data[var_key]:
                     extensions.append(
-                        core_models.Extension(
-                            name=ext_key, value=civic_variation_data[var_key]
-                        )
+                        Extension(name=ext_key, value=civic_variation_data[var_key])
                     )
 
             psc = ProteinSequenceConsequence(
@@ -555,7 +560,7 @@ class CivicTransform(Transform):
             variant_types_value = []
             for vt in variant["variant_types"]:
                 variant_types_value.append(
-                    core_models.Coding(
+                    Coding(
                         code=vt["so_id"],
                         system=f"{vt['url'].rsplit('/', 1)[0]}/",
                         label="_".join(vt["name"].lower().split()),
@@ -564,34 +569,34 @@ class CivicTransform(Transform):
 
             # Get mappings
             mappings = [
-                core_models.Mapping(
-                    coding=core_models.Coding(
+                Mapping(
+                    coding=Coding(
                         code=str(variant["id"]),
                         system="https://civicdb.org/variants/",
                     ),
-                    relation=core_models.Relation.EXACT_MATCH,
+                    relation=Relation.EXACT_MATCH,
                 )
             ]
 
             if variant["allele_registry_id"]:
                 mappings.append(
-                    core_models.Mapping(
-                        coding=core_models.Coding(
+                    Mapping(
+                        coding=Coding(
                             code=variant["allele_registry_id"],
                             system="https://reg.clinicalgenome.org/",
                         ),
-                        relation=core_models.Relation.RELATED_MATCH,
+                        relation=Relation.RELATED_MATCH,
                     )
                 )
 
             for ce in variant["clinvar_entries"]:
                 mappings.append(
-                    core_models.Mapping(
-                        coding=core_models.Coding(
+                    Mapping(
+                        coding=Coding(
                             code=ce,
                             system="https://www.ncbi.nlm.nih.gov/clinvar/variation/",
                         ),
-                        relation=core_models.Relation.RELATED_MATCH,
+                        relation=Relation.RELATED_MATCH,
                     )
                 )
 
@@ -600,12 +605,12 @@ class CivicTransform(Transform):
                 if SNP_RE.match(a):
                     a = a.lower()
                     mappings.append(
-                        core_models.Mapping(
-                            coding=core_models.Coding(
+                        Mapping(
+                            coding=Coding(
                                 code=a,
                                 system="https://www.ncbi.nlm.nih.gov/snp/",
                             ),
-                            relation=core_models.Relation.RELATED_MATCH,
+                            relation=Relation.RELATED_MATCH,
                         )
                     )
                 else:
@@ -664,24 +669,22 @@ class CivicTransform(Transform):
             _, normalized_gene_id = self.vicc_normalizers.normalize_gene(queries)
 
             if normalized_gene_id:
-                civic_gene = core_models.Gene(
+                civic_gene = Gene(
                     id=gene_id,
                     label=gene["name"],
                     description=gene["description"] if gene["description"] else None,
                     mappings=[
-                        core_models.Mapping(
-                            coding=core_models.Coding(
+                        Mapping(
+                            coding=Coding(
                                 code=f"ncbigene:{gene['entrez_id']}",
                                 system="https://www.ncbi.nlm.nih.gov/gene/",
                             ),
-                            relation=core_models.Relation.EXACT_MATCH,
+                            relation=Relation.EXACT_MATCH,
                         )
                     ],
                     aliases=gene["aliases"] if gene["aliases"] else None,
                     extensions=[
-                        core_models.Extension(
-                            name="gene_normalizer_id", value=normalized_gene_id
-                        )
+                        Extension(name="gene_normalizer_id", value=normalized_gene_id)
                     ],
                 ).model_dump(exclude_none=True)
                 self.able_to_normalize["genes"][gene_id] = civic_gene
@@ -693,7 +696,7 @@ class CivicTransform(Transform):
                     queries,
                 )
 
-    def _add_disease(self, disease: Dict) -> Optional[core_models.Disease]:
+    def _add_disease(self, disease: Dict) -> Optional[Disease]:
         """Create or get disease given CIViC disease.
         First looks in cache for existing disease, if not found will attempt to
         normalize. Will add CIViC disease ID to `diseases` and
@@ -718,11 +721,10 @@ class CivicTransform(Transform):
         return vrs_disease
 
     def _get_disease(self, disease: Dict) -> Optional[Dict]:
-        """Get core_models.Disease object for a CIViC disease
+        """Get Disease object for a CIViC disease
 
         :param disease: CIViC disease record
-        :return: If able to normalize, core_models.Disease represented as a dict.
-            Otherwise, `None`
+        :return: If able to normalize, Disease represented as a dict. Otherwise, `None`
         """
         disease_id = f"civic.did:{disease['id']}"
         display_name = disease["display_name"]
@@ -736,12 +738,12 @@ class CivicTransform(Transform):
             doid = f"DOID:{doid}"
             queries = [doid, display_name]
             mappings.append(
-                core_models.Mapping(
-                    coding=core_models.Coding(
+                Mapping(
+                    coding=Coding(
                         code=doid,
                         system="https://www.disease-ontology.org/",
                     ),
-                    relation=core_models.Relation.EXACT_MATCH,
+                    relation=Relation.EXACT_MATCH,
                 )
             )
 
@@ -758,7 +760,7 @@ class CivicTransform(Transform):
             )
             return None
 
-        return core_models.Disease(
+        return Disease(
             id=disease_id,
             label=display_name,
             mappings=mappings if mappings else None,
@@ -774,7 +776,7 @@ class CivicTransform(Transform):
         therapeutic_sub_group_id: str,
         therapies: List[Dict],
         therapy_interaction_type: str,
-    ) -> Optional[core_models.TherapeuticSubstituteGroup]:
+    ) -> Optional[TherapeuticSubstituteGroup]:
         """Get Therapeutic Substitute Group for CIViC therapies
 
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
@@ -798,17 +800,17 @@ class CivicTransform(Transform):
             substitutes.append(ta)
 
         extensions = [
-            core_models.Extension(
+            Extension(
                 name="civic_therapy_interaction_type", value=therapy_interaction_type
             ).model_dump(exclude_none=True)
         ]
 
         try:
-            tsg = core_models.TherapeuticSubstituteGroup(
+            tsg = TherapeuticSubstituteGroup(
                 id=therapeutic_sub_group_id,
                 substitutes=substitutes,
                 extensions=extensions,
-            ).model_dump(exclude_none=True)
+            )
         except ValidationError as e:
             # If substitutes validation checks fail
             logger.debug(
@@ -819,9 +821,7 @@ class CivicTransform(Transform):
 
         return tsg
 
-    def _get_therapeutic_agent(
-        self, therapy: Dict
-    ) -> Optional[core_models.TherapeuticAgent]:
+    def _get_therapeutic_agent(self, therapy: Dict) -> Optional[TherapeuticAgent]:
         """Get Therapeutic Agent for CIViC therapy
 
         :param therapy: CIViC therapy object
@@ -835,12 +835,12 @@ class CivicTransform(Transform):
         if ncit_id:
             queries = [f"ncit:{ncit_id}", label]
             mappings.append(
-                core_models.Mapping(
-                    coding=core_models.Coding(
+                Mapping(
+                    coding=Coding(
                         code=ncit_id,
                         system="https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                     ),
-                    relation=core_models.Relation.EXACT_MATCH,
+                    relation=Relation.EXACT_MATCH,
                 )
             )
         else:
@@ -872,13 +872,13 @@ class CivicTransform(Transform):
         if regulatory_approval_extension:
             extensions.append(regulatory_approval_extension)
 
-        return core_models.TherapeuticAgent(
+        return TherapeuticAgent(
             id=therapy_id,
             label=label,
             mappings=mappings if mappings else None,
             aliases=therapy["aliases"] if therapy["aliases"] else None,
             extensions=extensions,
-        ).model_dump(exclude_none=True)
+        )
 
     def _add_eid_document(self, source: Dict) -> Optional[Document]:
         """Create document object for CIViC source

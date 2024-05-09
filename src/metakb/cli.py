@@ -7,7 +7,7 @@ import tempfile
 from os import environ
 from pathlib import Path
 from timeit import default_timer as timer
-from typing import Optional
+from typing import Callable, Optional
 from zipfile import ZipFile
 
 import asyncclick as click
@@ -228,7 +228,7 @@ def _load_normalizers_db() -> None:
 
 def _update_normalizer_db(
     name: str,
-    update_normalizer_db_fn: callable,
+    update_normalizer_db_fn: Callable[[str, bool, str, bool, bool, bool], None],
 ) -> None:
     """Update Normalizer DynamoDB database.
 

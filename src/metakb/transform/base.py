@@ -13,7 +13,14 @@ from disease.schemas import (
 from disease.schemas import (
     NormalizationService as NormalizedDisease,
 )
-from ga4gh.core import core_models, sha512t24u
+from ga4gh.core import sha512t24u
+from ga4gh.core._internal.models import (
+    Coding,
+    CombinationTherapy,
+    Extension,
+    TherapeuticAgent,
+    TherapeuticSubstituteGroup,
+)
 from pydantic import BaseModel, StrictStr, ValidationError
 from therapy.schemas import NormalizationService as NormalizedTherapy
 
@@ -80,6 +87,8 @@ class ViccConceptVocab(BaseModel):
 
 class Transform:
     """A base class for transforming harvester data."""
+
+    able_to_normalize: ClassVar[Dict[str, Dict]]
 
     _methods: ClassVar[List[Method]] = [
         Method(
@@ -269,7 +278,7 @@ class Transform:
         mappings = {}
         for item in self._vicc_concept_vocabs:
             for exact_mapping in item.exact_mappings:
-                mappings[exact_mapping] = core_models.Coding(
+                mappings[exact_mapping] = Coding(
                     code=item.id.split(":")[-1],
                     label=item.term,
                     system="https://go.osu.edu/evidence-codes",
@@ -284,13 +293,13 @@ class Transform:
         :return: Digest
         """
         str_list.sort()
-        blob = json.dumps(str_list, separators=(",", ":")).encode("ascii")
+        blob = json.dumps(str_list, separators=(",", ":"), sort_keys=True).encode(
+            "ascii"
+        )
         return sha512t24u(blob)
 
     @abstractmethod
-    def _get_therapeutic_agent(
-        self, therapy: Dict
-    ) -> Optional[core_models.TherapeuticAgent]:
+    def _get_therapeutic_agent(self, therapy: Dict) -> Optional[TherapeuticAgent]:
         """Get Therapeutic Agent representation for source therapy object
 
         :param therapy: source therapy object
@@ -304,7 +313,7 @@ class Transform:
         therapeutic_sub_group_id: str,
         therapies: List[Dict],
         therapy_interaction_type: str,
-    ) -> Optional[core_models.TherapeuticSubstituteGroup]:
+    ) -> Optional[TherapeuticSubstituteGroup]:
         """Get Therapeutic Substitute Group for therapies
 
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
@@ -319,7 +328,7 @@ class Transform:
         combination_therapy_id: str,
         therapies: List[Dict],
         therapy_interaction_type: str,
-    ) -> Optional[core_models.CombinationTherapy]:
+    ) -> Optional[CombinationTherapy]:
         """Get Combination Therapy representation for source therapies
 
         :param combination_therapy_id: ID for Combination Therapy
@@ -347,7 +356,7 @@ class Transform:
             components.append(ta)
 
         extensions = [
-            core_models.Extension(
+            Extension(
                 name="moa_therapy_type"
                 if source_name == "moa"
                 else "civic_therapy_interaction_type",
@@ -356,9 +365,9 @@ class Transform:
         ]
 
         try:
-            ct = core_models.CombinationTherapy(
+            ct = CombinationTherapy(
                 id=combination_therapy_id, components=components, extensions=extensions
-            ).model_dump(exclude_none=True)
+            )
         except ValidationError as e:
             # if combination validation checks fail
             logger.debug(
@@ -377,9 +386,9 @@ class Transform:
         therapy_interaction_type: Optional[str] = None,
     ) -> Optional[
         Union[
-            core_models.TherapeuticAgent,
-            core_models.TherapeuticSubstituteGroup,
-            core_models.CombinationTherapy,
+            TherapeuticAgent,
+            TherapeuticSubstituteGroup,
+            CombinationTherapy,
         ]
     ]:
         """Create or get Therapeutic Procedure given therapies
@@ -397,7 +406,9 @@ class Transform:
         :param therapy_interaction_type: drug interaction type
         :return: Therapeutic procedure, if successful normalization
         """
-        tp = self.able_to_normalize["therapeutics"].get(therapeutic_procedure_id)
+        tp: Optional[
+            Union[TherapeuticAgent, TherapeuticSubstituteGroup, CombinationTherapy]
+        ] = self.able_to_normalize["therapeutics"].get(therapeutic_procedure_id)
         if tp:
             return tp
 
@@ -424,7 +435,7 @@ class Transform:
 
             if tp:
                 self.able_to_normalize["therapeutics"][therapeutic_procedure_id] = tp
-                self.therapeutics.append(tp)
+                self.therapeutics.append(tp.model_dump(exclude_none=True))
             else:
                 self.unable_to_normalize["therapeutics"].add(therapeutic_procedure_id)
         return tp
@@ -432,7 +443,7 @@ class Transform:
     @staticmethod
     def _get_therapy_normalizer_ext_data(
         normalized_therapeutic_id: str, therapy_norm_resp: NormalizedTherapy
-    ) -> core_models.Extension:
+    ) -> Extension:
         """Create extension containing relevant therapy-normalizer data
 
         :param normalized_therapeutic_id: Concept ID from therapy-normalizer
@@ -440,7 +451,7 @@ class Transform:
         :return: Extension containing therapy-normalizer data. Additional information,
             such as the label, is provided for VarCat.
         """
-        return core_models.Extension(
+        return Extension(
             name="therapy_normalizer_data",
             value={
                 "normalized_id": normalized_therapeutic_id,
@@ -451,7 +462,7 @@ class Transform:
     @staticmethod
     def _get_disease_normalizer_ext_data(
         normalized_disease_id: str, disease_norm_resp: NormalizedDisease
-    ) -> core_models.Extension:
+    ) -> Extension:
         """Create extension containing relevant disease-normalizer data
 
         :param normalized_disease_id: Concept ID from disease-normalizer
@@ -466,7 +477,7 @@ class Transform:
                 mondo_id = mapping.coding.code
                 break
 
-        return core_models.Extension(
+        return Extension(
             name="disease_normalizer_data",
             value={
                 "normalized_id": normalized_disease_id,

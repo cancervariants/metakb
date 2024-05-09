@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def _create_parameterized_query(
-    entity: Dict, params: Tuple[str], entity_param_prefix: str = ""
+    entity: Dict, params: Tuple[str, ...], entity_param_prefix: str = ""
 ) -> str:
     """Create parameterized query string for requested params if non-null in entity.
 

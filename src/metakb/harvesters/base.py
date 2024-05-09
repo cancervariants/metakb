@@ -26,8 +26,8 @@ class Harvester:
     ) -> bool:
         """Create composite and individual JSON for harvested data.
 
-        :param Dict items: item types keyed to Lists of values
-        :param Optional[str] filename: custom filename for composite document
+        :param items: item types keyed to Lists of values
+        :param filename: custom filename for composite document
         :return: `True` if JSON creation was successful. `False` otherwise.
         """
         composite_dict = {}
