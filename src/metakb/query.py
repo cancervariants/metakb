@@ -3,6 +3,8 @@ import json
 import logging
 from copy import copy
 from enum import Enum
+from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from disease.query import Disease
 from ga4gh.core._internal.models import (
@@ -611,7 +613,7 @@ class QueryHandler:
         self,
         tx: Transaction,
         node: dict,
-    ) -> TherapeuticProcedure | None:
+    ) -> TherapeuticProcedure | TherapeuticAgent | None:
         """Get therapeutic procedure from a node with relationship ``HAS_THERAPEUTIC``
 
         :param tx: Neo4j session transaction object

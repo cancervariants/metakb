@@ -4,6 +4,8 @@ import re
 from enum import Enum
 from pathlib import Path
 from typing import ClassVar
+from typing import Dict
+from typing import ClassVar, Dict
 
 from ga4gh.core._internal.models import (
     Coding,
@@ -16,6 +18,19 @@ from ga4gh.core._internal.models import (
     TherapeuticSubstituteGroup,
 )
 from ga4gh.vrs import models
+from ga4gh.vrs._internal.models import Variation
+from ga4gh.core import core_models
+from ga4gh.vrs import models
+from ga4gh.core._internal.models import (
+    Coding,
+    Disease,
+    Extension,
+    Gene,
+    Mapping,
+    Relation,
+    TherapeuticAgent,
+    TherapeuticSubstituteGroup,
+)
 from ga4gh.vrs._internal.models import Variation
 from pydantic import BaseModel, ValidationError
 
@@ -105,16 +120,6 @@ class SourcePrefix(str, Enum):
 class CivicTransform(Transform):
     """A class for transforming CIViC to the common data model."""
 
-    # Cache for normalized concepts. The key is the concept type and value is a
-    # dictionary of mappings from CIViC concept (key) to transformed concept (value)
-    able_to_normalize: ClassVar[dict[str, dict]] = {
-        "variations": {},  # will store _VariationCache data
-        "molecular_profiles": {},
-        "diseases": {},
-        "therapeutics": {},
-        "genes": {},
-    }
-
     def __init__(
         self,
         data_dir: Path = APP_ROOT / "data",
@@ -133,6 +138,13 @@ class CivicTransform(Transform):
 
         # Method will always be the same
         self.methods = [self.methods_mapping[MethodId.CIVIC_EID_SOP.value]]
+        self.able_to_normalize = {
+            "variations": {},  # will store _VariationCache data
+            "molecular_profiles": {},
+            "diseases": {},
+            "therapeutics": {},
+            "genes": {},
+        }
 
     @staticmethod
     def _mp_to_variant_mapping(molecular_profiles: list[dict]) -> tuple[list, dict]:

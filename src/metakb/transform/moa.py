@@ -4,6 +4,8 @@ import json
 import logging
 from pathlib import Path
 from typing import ClassVar
+from typing import Dict, List, Optional
+from typing import ClassVar, Dict, List, Optional
 from urllib.parse import quote
 
 from ga4gh.core import sha512t24u
@@ -41,16 +43,6 @@ logger = logging.getLogger(__name__)
 class MoaTransform(Transform):
     """A class for transforming MOA resources to common data model."""
 
-    # Cache for normalized concepts. The key is the concept type and value is a
-    # dictionary of mappings from MOA concept (key) to transformed concept (value)
-    able_to_normalize: ClassVar[dict[str, dict]] = {
-        "variations": {},
-        "diseases": {},
-        "therapeutics": {},
-        "genes": {},
-        "documents": {},
-    }
-
     def __init__(
         self,
         data_dir: Path = APP_ROOT / "data",
@@ -69,6 +61,13 @@ class MoaTransform(Transform):
 
         # Method will always be the same
         self.methods = [self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]]
+        self.able_to_normalize= {
+            "variations": {},
+            "diseases": {},
+            "therapeutics": {},
+            "genes": {},
+            "documents": {},
+        }
 
     async def transform(self) -> None:
         """Transform MOA harvested JSON to common data model. Will store transformed

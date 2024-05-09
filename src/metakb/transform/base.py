@@ -82,7 +82,7 @@ class ViccConceptVocab(BaseModel):
     domain: StrictStr
     term: StrictStr
     parents: list[StrictStr] = []
-    exact_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = {}
+    exact_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
     definition: StrictStr
 
 
@@ -111,6 +111,7 @@ class Transform:
             ),
         ).model_dump(exclude_none=True),
     ]
+
     methods_mapping: ClassVar[dict] = {m["id"]: m for m in _methods}
 
     _vicc_concept_vocabs: ClassVar[list[ViccConceptVocab]] = [
