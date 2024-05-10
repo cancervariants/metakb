@@ -41,11 +41,13 @@ class CivicHarvester(Harvester):
         self.evidence = []
         self.assertions = []
 
-    def harvest(self, filename: str | None = None) -> bool:
+    def harvest(self, harvested_filepath: str | None = None) -> bool:
         """Retrieve and store evidence, gene, variant, molecular profile, and assertion
         records from CIViC in composite and individual JSON files.
 
-        :param filename: File name for composite json
+        :param harvested_filepath: Path to the JSON file where the harvested data will
+            be stored. If not provided, will use the default path of
+            ``<APP_ROOT>/data/civic/harvester/civic_harvester_YYYYMMDD.json``
         :return: `True` if operation was successful, `False` otherwise.
         :rtype: bool
         """
@@ -64,7 +66,7 @@ class CivicHarvester(Harvester):
                     "molecular_profiles": self.molecular_profiles,
                     "assertions": self.assertions,
                 },
-                filename,
+                harvested_filepath,
             )
             if not json_created:
                 logger.error(

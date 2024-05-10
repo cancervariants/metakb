@@ -12,11 +12,13 @@ logger = logging.getLogger(__name__)
 class MoaHarvester(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
-    def harvest(self, filename: str | None = None) -> bool:
+    def harvest(self, harvested_filepath: str | None = None) -> bool:
         """Retrieve and store sources, variants, and assertions
         records from MOAlmanac in composite and individual JSON files.
 
-        :param Optional[str] filename: File name for composite json
+        :param harvested_filepath: Path to the JSON file where the harvested data will
+            be stored. If not provided, will use the default path of
+            ``<APP_ROOT>/data/moa/harvester/moa_harvester_YYYYMMDD.json``
         :return: True if successfully retrieved, False otherwise
         :rtype: bool
         """
@@ -33,7 +35,7 @@ class MoaHarvester(Harvester):
                     "variants": variants,
                     "genes": genes,
                 },
-                filename,
+                harvested_filepath,
             )
             if not json_created:
                 logger.error("MOAlmanac Harvester was not successful.")
