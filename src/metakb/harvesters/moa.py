@@ -1,6 +1,5 @@
 """A module for the Molecular Oncology Almanac harvester"""
 import logging
-from typing import ClassVar
 
 import requests
 import requests_cache
@@ -13,9 +12,9 @@ logger = logging.getLogger(__name__)
 class MoaHarvestedData(_HarvestedData):
     """Define output for harvested data from MOA"""
 
-    genes: ClassVar[list[str]] = []
-    assertions: ClassVar[list[dict]] = []
-    sources: ClassVar[list[dict]] = []
+    genes: list[str]
+    assertions: list[dict]
+    sources: list[dict]
 
 
 class MoaHarvester(Harvester):

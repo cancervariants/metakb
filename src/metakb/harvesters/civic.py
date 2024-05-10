@@ -1,7 +1,6 @@
 """A module for the CIViC harvester."""
 import logging
 from pathlib import Path
-from typing import ClassVar
 
 from civicpy import LOCAL_CACHE_PATH
 from civicpy import civic as civicpy
@@ -14,10 +13,10 @@ logger = logging.getLogger(__name__)
 class CivicHarvestedData(_HarvestedData):
     """Define output for harvested data from CIViC"""
 
-    genes: ClassVar[list[dict]] = []
-    evidence: ClassVar[list[dict]] = []
-    molecular_profiles: ClassVar[list[dict]] = []
-    assertions: ClassVar[list[dict]] = []
+    genes: list[dict]
+    evidence: list[dict]
+    molecular_profiles: list[dict]
+    assertions: list[dict]
 
 
 class CivicHarvester(Harvester):
