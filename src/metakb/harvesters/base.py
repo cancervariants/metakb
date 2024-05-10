@@ -2,7 +2,7 @@
 import datetime
 import json
 import logging
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from pydantic import BaseModel
 
@@ -17,7 +17,7 @@ class _HarvestedData(BaseModel):
     variants: list[dict]
 
 
-class Harvester:
+class Harvester(ABC):
     """A base class for content harvesters."""
 
     @abstractmethod
