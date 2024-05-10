@@ -1,5 +1,4 @@
 """Test the MetaKB search_studies method"""
-from typing import Dict
 
 import pytest
 
@@ -30,7 +29,7 @@ def assert_no_match(response):
 
 def find_and_check_study(
     resp: SearchStudiesService,
-    expected_study: Dict,
+    expected_study: dict,
     assertion_checks: callable,
     should_find_match: bool = True,
 ):
