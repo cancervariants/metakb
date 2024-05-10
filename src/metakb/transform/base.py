@@ -480,7 +480,7 @@ class Transform:
 
         :param cdm_filepath: Path to the JSON file where the CDM data will be
             stored. If not provided, will use the default path of
-            ``APP_ROOT / 'data' / src_name / 'transform' / f'{src_name}_cdm_YYYYMMDD.json'``
+            ``<APP_ROOT>/data/<src_name>/transform/<src_name>_cdm_YYYYMMDD.json``
         """
         if not cdm_filepath:
             transform_dir = self.data_dir / "transform"
