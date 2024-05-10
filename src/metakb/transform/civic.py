@@ -3,9 +3,6 @@ import logging
 import re
 from enum import Enum
 from pathlib import Path
-from typing import ClassVar
-from typing import Dict
-from typing import ClassVar, Dict
 
 from ga4gh.core._internal.models import (
     Coding,
@@ -18,19 +15,6 @@ from ga4gh.core._internal.models import (
     TherapeuticSubstituteGroup,
 )
 from ga4gh.vrs import models
-from ga4gh.vrs._internal.models import Variation
-from ga4gh.core import core_models
-from ga4gh.vrs import models
-from ga4gh.core._internal.models import (
-    Coding,
-    Disease,
-    Extension,
-    Gene,
-    Mapping,
-    Relation,
-    TherapeuticAgent,
-    TherapeuticSubstituteGroup,
-)
 from ga4gh.vrs._internal.models import Variation
 from pydantic import BaseModel, ValidationError
 
@@ -893,7 +877,7 @@ class CivicTransform(Transform):
             extensions=extensions,
         )
 
-    def _add_eid_document(self, source: dict) -> Document | None:
+    def _add_eid_document(self, source: dict) -> dict | None:
         """Create document object for CIViC source
         Mutates instance variable `documents`
 

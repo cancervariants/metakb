@@ -3,9 +3,6 @@
 import json
 import logging
 from pathlib import Path
-from typing import ClassVar
-from typing import Dict, List, Optional
-from typing import ClassVar, Dict, List, Optional
 from urllib.parse import quote
 
 from ga4gh.core import sha512t24u
@@ -61,7 +58,7 @@ class MoaTransform(Transform):
 
         # Method will always be the same
         self.methods = [self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]]
-        self.able_to_normalize= {
+        self.able_to_normalize = {
             "variations": {},
             "diseases": {},
             "therapeutics": {},

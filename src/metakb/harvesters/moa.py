@@ -1,7 +1,5 @@
 """A module for the Molecular Oncology Almanac harvester"""
 import logging
-from typing import Dict, List, Optional
-from typing import Dict, List, Optional, Tuple
 
 import requests
 import requests_cache

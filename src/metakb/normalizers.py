@@ -1,17 +1,15 @@
 """Module for VICC normalizers."""
 import logging
-from typing import List, Optional, Tuple
-from typing import List, Optional, Tuple, Union
 
 from disease.database import create_db as create_disease_db
 from disease.query import QueryHandler as DiseaseQueryHandler
 from disease.schemas import NormalizationService as NormalizedDisease
-from ga4gh.core import core_models
-from ga4gh.vrs._internal.models import Variation
-from ga4gh.core import core_models
-from ga4gh.vrs import models
 from ga4gh.core._internal.models import Extension
-from ga4gh.vrs._internal.models import Allele, CopyNumberChange, CopyNumberCount
+from ga4gh.vrs._internal.models import (
+    Allele,
+    CopyNumberChange,
+    CopyNumberCount,
+)
 from gene.database import create_db as create_gene_db
 from gene.query import QueryHandler as GeneQueryHandler
 from gene.schemas import NormalizeService as NormalizedGene
@@ -36,7 +34,9 @@ class ViccNormalizers:
         self.disease_query_handler = DiseaseQueryHandler(create_disease_db())
         self.therapy_query_handler = TherapyQueryHandler(create_therapy_db())
 
-    async def normalize_variation(self, queries: list[str]) -> Allele | CopyNumberChange | CopyNumberCount | None:
+    async def normalize_variation(
+        self, queries: list[str]
+    ) -> Allele | CopyNumberChange | CopyNumberCount | None:
         """Normalize variation queries.
 
         :param queries: Possible query strings to try to normalize which are used in

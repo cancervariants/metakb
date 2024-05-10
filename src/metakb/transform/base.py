@@ -111,9 +111,7 @@ class Transform:
             ),
         ).model_dump(exclude_none=True),
     ]
-
     methods_mapping: ClassVar[dict] = {m["id"]: m for m in _methods}
-
     _vicc_concept_vocabs: ClassVar[list[ViccConceptVocab]] = [
         ViccConceptVocab(
             id="vicc:e000000",
