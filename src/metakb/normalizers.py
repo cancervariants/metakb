@@ -1,6 +1,5 @@
 """Module for VICC normalizers."""
 import logging
-from typing import List, Optional, Tuple
 
 from disease.database import create_db as create_disease_db
 from disease.query import QueryHandler as DiseaseQueryHandler
@@ -31,9 +30,7 @@ class ViccNormalizers:
         self.disease_query_handler = DiseaseQueryHandler(create_disease_db())
         self.therapy_query_handler = TherapyQueryHandler(create_therapy_db())
 
-    async def normalize_variation(
-        self, queries: List[str]
-    ) -> Optional[models.Variation]:
+    async def normalize_variation(self, queries: list[str]) -> models.Variation | None:
         """Normalize variation queries.
 
         :param List[str] queries: Possible query strings to try to normalize
@@ -58,8 +55,8 @@ class ViccNormalizers:
         return None
 
     def normalize_gene(
-        self, queries: List[str]
-    ) -> Tuple[Optional[NormalizedGene], Optional[str]]:
+        self, queries: list[str]
+    ) -> tuple[NormalizedGene | None, str | None]:
         """Normalize gene queries
 
         :param list queries: Gene queries to normalize
@@ -89,8 +86,8 @@ class ViccNormalizers:
         return gene_norm_resp, normalized_gene_id
 
     def normalize_disease(
-        self, queries: List[str]
-    ) -> Tuple[Optional[NormalizedDisease], Optional[str]]:
+        self, queries: list[str]
+    ) -> tuple[NormalizedDisease | None, str | None]:
         """Normalize disease queries
 
         :param list queries: Disease queries to normalize
@@ -121,8 +118,8 @@ class ViccNormalizers:
         return disease_norm_resp, normalized_disease_id
 
     def normalize_therapy(
-        self, queries: List[str]
-    ) -> Tuple[Optional[NormalizedTherapy], Optional[str]]:
+        self, queries: list[str]
+    ) -> tuple[NormalizedTherapy | None, str | None]:
         """Normalize therapy queries
 
         :param list queries: Therapy queries to normalize
@@ -155,7 +152,7 @@ class ViccNormalizers:
     @staticmethod
     def get_regulatory_approval_extension(
         therapy_norm_resp: NormalizedTherapy,
-    ) -> Optional[core_models.Extension]:
+    ) -> core_models.Extension | None:
         """Given therapy normalization service response, extract out the regulatory
         approval extension
 

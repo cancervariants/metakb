@@ -7,7 +7,6 @@ import tempfile
 from os import environ
 from pathlib import Path
 from timeit import default_timer as timer
-from typing import Optional
 from zipfile import ZipFile
 
 import asyncclick as click
@@ -117,7 +116,7 @@ async def update_metakb_db(
     force_load_normalizers_db: bool,
     normalizers_db_url: str,
     load_latest_cdms: bool,
-    load_target_cdm: Optional[Path],
+    load_target_cdm: Path | None,
     load_latest_s3_cdms: bool,
     update_cached: bool,
 ) -> None:
@@ -331,7 +330,7 @@ def _retrieve_s3_cdms() -> str:
         key=lambda f: f.key,
         reverse=True,
     )
-    newest_version: Optional[str] = None
+    newest_version: str | None = None
 
     for file in bucket:
         match = re.match(
