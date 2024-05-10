@@ -1,7 +1,7 @@
 """Module containing GK pilot annotation definitions"""
 import datetime
 from enum import Enum
-from typing import Dict, List, Literal, Optional, Union
+from typing import Literal
 
 from ga4gh.core import core_models
 from pydantic import Field, StrictInt, StrictStr, constr, field_validator
@@ -27,15 +27,15 @@ class Document(core_models._MappableEntity):
     """a representation of a physical or digital document"""
 
     type: Literal["Document"] = "Document"
-    title: Optional[StrictStr] = Field(None, description="The title of the Document")
-    url: Optional[constr(pattern=r"^(https?|s?ftp)://")] = Field(
+    title: StrictStr | None = Field(None, description="The title of the Document")
+    url: constr(pattern="^(https?|s?ftp)://") | None = Field(
         None, description="A URL at which the document may be retrieved."
     )
-    doi: Optional[constr(pattern=r"^10.(\d+)(\.\d+)*\/[\w\-\.]+")] = Field(
+    doi: constr(pattern="^10.(\\d+)(\\.\\d+)*\\/[\\w\\-\\.]+") | None = Field(
         None,
         description="A `Digital Object Identifier <https://www.doi.org/the-identifier/what-is-a-doi/>_` for the document.",
     )
-    pmid: Optional[StrictInt] = Field(
+    pmid: StrictInt | None = Field(
         None,
         description="A `PubMed unique identifier <https://en.wikipedia.org/wiki/PubMed#PubMed_identifier>`_.",
     )
@@ -47,10 +47,10 @@ class Method(core_models._Entity):
     """
 
     type: Literal["Method"] = Field("Method", description="MUST be 'Method'.")
-    isReportedIn: Optional[Union[Document, core_models.IRI]] = Field(
+    isReportedIn: Document | core_models.IRI | None = Field(
         None, description="A document in which the information content is expressed."
     )
-    subtype: Optional[core_models.Coding] = Field(
+    subtype: core_models.Coding | None = Field(
         None,
         description="A more specific type of entity the method represents (e.g. Variant Interpretation Guideline, Experimental Protocol)",
     )
@@ -63,8 +63,8 @@ class Agent(core_models._Entity):
     """
 
     type: Literal["Agent"] = Field("Agent", description="MUST be 'Agent'.")
-    name: Optional[StrictStr] = None
-    subtype: Optional[AgentSubtype] = None
+    name: StrictStr | None = None
+    subtype: AgentSubtype | None = None
 
 
 class Contribution(core_models._Entity):
@@ -74,16 +74,16 @@ class Contribution(core_models._Entity):
     """
 
     type: Literal["Contribution"] = "Contribution"
-    contributor: Optional[Agent] = None
-    date: Optional[StrictStr] = None
-    activity: Optional[core_models.Coding] = Field(
+    contributor: Agent | None = None
+    date: StrictStr | None = None
+    activity: core_models.Coding | None = Field(
         None,
         description="SHOULD describe a concept descending from the Contributor Role Ontology.",
     )
 
     @field_validator("date")
     @classmethod
-    def date_format(cls, v: Optional[str]) -> Optional[str]:
+    def date_format(cls, v: str | None) -> str | None:
         """Check that date is YYYY-MM-DD format"""
         if v:
             valid_format = "%Y-%m-%d"
@@ -105,12 +105,12 @@ class _InformationEntity(core_models._Entity):
 
     id: StrictStr
     type: StrictStr
-    specifiedBy: Optional[Union[Method, core_models.IRI]] = Field(
+    specifiedBy: Method | core_models.IRI | None = Field(
         None,
         description="A `Method` that describes all or part of the process through which the information was generated.",
     )
-    contributions: Optional[List[Contribution]] = None
-    isReportedIn: Optional[List[Union[Document, core_models.IRI]]] = Field(
+    contributions: list[Contribution] | None = None
+    isReportedIn: list[Document | core_models.IRI] | None = Field(
         None, description="A document in which the information content is expressed."
     )
     # recordMetadata (might be added in the future)
@@ -122,12 +122,12 @@ class DataItem(_InformationEntity):
     """
 
     type: Literal["DataItem"] = Field("DataItem", description="MUST be 'DataItem'.")
-    subtype: Optional[core_models.Coding] = Field(
+    subtype: core_models.Coding | None = Field(
         None,
         description="A specific type of data the DataItem object represents (e.g. a specimen count, a patient weight, an allele frequency, a p-value, a confidence score)",
     )
     value: StrictStr
-    unit: Optional[core_models.Coding] = None
+    unit: core_models.Coding | None = None
 
 
 class _StatementBase(_InformationEntity):
@@ -135,13 +135,13 @@ class _StatementBase(_InformationEntity):
     different name in child classes (subject, object, qualifiers)
     """
 
-    predicate: Optional[StrictStr] = Field(
+    predicate: StrictStr | None = Field(
         None, description="The predicate of the Statement"
     )
     direction: Direction = Field(
         ..., description="direction of this Statement with respect to the predicate."
     )
-    strength: Optional[Union[core_models.Coding, core_models.IRI]] = Field(
+    strength: core_models.Coding | core_models.IRI | None = Field(
         None,
         description="The overall strength of support for the Statement based on all evidence assessed.",
     )
@@ -153,8 +153,8 @@ class _Statement(_StatementBase):
     """
 
     subject: StrictStr = Field(..., description="The subject of the Statement.")
-    object: Optional[StrictStr] = Field(None, description="The object of the Statement")
-    qualifiers: Optional[Dict] = Field(
+    object: StrictStr | None = Field(None, description="The object of the Statement")
+    qualifiers: dict | None = Field(
         None,
         description="Additional, optional properties that may qualify the Statement.",
     )
