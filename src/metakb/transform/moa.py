@@ -3,6 +3,9 @@
 import json
 import logging
 from pathlib import Path
+from typing import ClassVar
+from typing import Dict, List, Optional
+from typing import ClassVar, Dict, List, Optional
 from urllib.parse import quote
 
 from ga4gh.core import sha512t24u
@@ -58,17 +61,7 @@ class MoaTransform(Transform):
 
         # Method will always be the same
         self.methods = [self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]]
-        self.able_to_normalize = {
-            "variations": {},
-            "diseases": {},
-            "therapeutics": {},
-            "genes": {},
-            "documents": {},
-        }
-
-        # Cache for normalized concepts. The key is the concept type and value is a
-        # dictionary of mappings from MOA concept (key) to transformed concept (value)
-        self.able_to_normalize: dict[str, dict] = {
+        self.able_to_normalize= {
             "variations": {},
             "diseases": {},
             "therapeutics": {},

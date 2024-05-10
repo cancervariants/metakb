@@ -3,6 +3,8 @@ import json
 import logging
 from copy import copy
 from enum import Enum
+from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from disease.query import Disease
 from ga4gh.core._internal.models import (
