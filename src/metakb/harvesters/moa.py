@@ -1,33 +1,39 @@
 """A module for the Molecular Oncology Almanac harvester"""
 import logging
+from typing import ClassVar
 
 import requests
 import requests_cache
 
-from metakb.harvesters.base import Harvester
+from metakb.harvesters.base import Harvester, _HarvestedData
 
 logger = logging.getLogger(__name__)
+
+
+class MoaHarvestedData(_HarvestedData):
+    """Define output for harvested data from MOA"""
+
+    genes: ClassVar[list[str]] = []
+    assertions: ClassVar[list[dict]] = []
+    sources: ClassVar[list[dict]] = []
 
 
 class MoaHarvester(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
-    def get_harvester_data(self) -> dict:
+    def harvest(self) -> MoaHarvestedData:
         """Get MOAlmanac assertion, source, variant, and gene data
 
-        :return: Dictionary containing MOA assertions, sources, variants, and genes
+        :return: MOA assertions, sources, variants, and genes
         """
         assertion_resp = self._get_all_assertions()
         sources = self._harvest_sources(assertion_resp)
         variants, variants_list = self.harvest_variants()
         assertions = self.harvest_assertions(assertion_resp, variants_list)
         genes = self._harvest_genes()
-        return {
-            "assertions": assertions,
-            "sources": sources,
-            "variants": variants,
-            "genes": genes,
-        }
+        return MoaHarvestedData(
+            assertions=assertions, sources=sources, variants=variants, genes=genes
+        )
 
     @staticmethod
     def _harvest_genes() -> list[dict]:

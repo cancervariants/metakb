@@ -1,13 +1,23 @@
 """A module for the CIViC harvester."""
 import logging
 from pathlib import Path
+from typing import ClassVar
 
 from civicpy import LOCAL_CACHE_PATH
 from civicpy import civic as civicpy
 
-from metakb.harvesters.base import Harvester
+from metakb.harvesters.base import Harvester, _HarvestedData
 
 logger = logging.getLogger(__name__)
+
+
+class CivicHarvestedData(_HarvestedData):
+    """Define output for harvested data from CIViC"""
+
+    genes: ClassVar[list[dict]] = []
+    evidence: ClassVar[list[dict]] = []
+    molecular_profiles: ClassVar[list[dict]] = []
+    assertions: ClassVar[list[dict]] = []
 
 
 class CivicHarvester(Harvester):
@@ -35,10 +45,10 @@ class CivicHarvester(Harvester):
 
         civicpy.load_cache(local_cache_path=local_cache_path, on_stale="ignore")
 
-    def get_harvester_data(self) -> dict:
+    def harvest(self) -> CivicHarvestedData:
         """Get CIViC evidence, gene, variant, molecular profile, and assertion data
 
-        :return: Dictionary containing CIViC evidence items, genes, variants, molecular
+        :return: CIViC evidence items, genes, variants, molecular
             profiles, and assertions
         """
         evidence = self.harvest_evidence()
@@ -46,13 +56,13 @@ class CivicHarvester(Harvester):
         variants = self.harvest_variants()
         molecular_profiles = self.harvest_molecular_profiles()
         assertions = self.harvest_assertions()
-        return {
-            "evidence": evidence,
-            "genes": genes,
-            "variants": variants,
-            "molecular_profiles": molecular_profiles,
-            "assertions": assertions,
-        }
+        return CivicHarvestedData(
+            evidence=evidence,
+            genes=genes,
+            variants=variants,
+            molecular_profiles=molecular_profiles,
+            assertions=assertions,
+        )
 
     def harvest_evidence(self) -> list[dict]:
         """Harvest all CIViC evidence item records.

@@ -84,9 +84,12 @@ def civic_aid_7():
 
 def test_harvest(tmp_path, harvester):
     """Test that CIViC harvest method works correctly"""
-    harvested_filepath = tmp_path / "test_civic_harvester.json"
+    harvested_data = harvester.harvest()
     try:
-        harvester.harvest(harvested_filepath=harvested_filepath)
+        harvested_filepath = tmp_path / "test_civic_harvester.json"
+        harvester.save_harvested_data_to_file(
+            harvested_data, harvested_filepath=harvested_filepath
+        )
     finally:
         assert harvested_filepath.exists()
         harvested_filepath.unlink()
