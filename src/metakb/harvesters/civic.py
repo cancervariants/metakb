@@ -35,50 +35,24 @@ class CivicHarvester(Harvester):
 
         civicpy.load_cache(local_cache_path=local_cache_path, on_stale="ignore")
 
-        self.genes = []
-        self.variants = []
-        self.molecular_profiles = []
-        self.evidence = []
-        self.assertions = []
+    def get_harvester_data(self) -> dict:
+        """Get CIViC evidence, gene, variant, molecular profile, and assertion data
 
-    def harvest(self, harvested_filepath: str | None = None) -> bool:
-        """Retrieve and store evidence, gene, variant, molecular profile, and assertion
-        records from CIViC in composite and individual JSON files.
-
-        :param harvested_filepath: Path to the JSON file where the harvested data will
-            be stored. If not provided, will use the default path of
-            ``<APP_ROOT>/data/civic/harvester/civic_harvester_YYYYMMDD.json``
-        :return: `True` if operation was successful, `False` otherwise.
-        :rtype: bool
+        :return: Dictionary containing CIViC evidence items, genes, variants, molecular
+            profiles, and assertions
         """
-        try:
-            self.evidence = self.harvest_evidence()
-            self.genes = self.harvest_genes()
-            self.variants = self.harvest_variants()
-            self.molecular_profiles = self.harvest_molecular_profiles()
-            self.assertions = self.harvest_assertions()
-
-            json_created = self.create_json(
-                {
-                    "evidence": self.evidence,
-                    "genes": self.genes,
-                    "variants": self.variants,
-                    "molecular_profiles": self.molecular_profiles,
-                    "assertions": self.assertions,
-                },
-                harvested_filepath,
-            )
-            if not json_created:
-                logger.error(
-                    "CIViC Harvester was not successful: JSON files not created."
-                )
-                return False
-        except Exception as e:
-            logger.error("CIViC Harvester was not successful: %s", e)
-            return False
-        else:
-            logger.info("CIViC Harvester was successful.")
-            return True
+        evidence = self.harvest_evidence()
+        genes = self.harvest_genes()
+        variants = self.harvest_variants()
+        molecular_profiles = self.harvest_molecular_profiles()
+        assertions = self.harvest_assertions()
+        return {
+            "evidence": evidence,
+            "genes": genes,
+            "variants": variants,
+            "molecular_profiles": molecular_profiles,
+            "assertions": assertions,
+        }
 
     def harvest_evidence(self) -> list[dict]:
         """Harvest all CIViC evidence item records.

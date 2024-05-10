@@ -12,40 +12,22 @@ logger = logging.getLogger(__name__)
 class MoaHarvester(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
-    def harvest(self, harvested_filepath: str | None = None) -> bool:
-        """Retrieve and store sources, variants, and assertions
-        records from MOAlmanac in composite and individual JSON files.
+    def get_harvester_data(self) -> dict:
+        """Get MOAlmanac assertion, source, variant, and gene data
 
-        :param harvested_filepath: Path to the JSON file where the harvested data will
-            be stored. If not provided, will use the default path of
-            ``<APP_ROOT>/data/moa/harvester/moa_harvester_YYYYMMDD.json``
-        :return: True if successfully retrieved, False otherwise
-        :rtype: bool
+        :return: Dictionary containing MOA assertions, sources, variants, and genes
         """
-        try:
-            assertion_resp = self._get_all_assertions()
-            sources = self._harvest_sources(assertion_resp)
-            variants, variants_list = self.harvest_variants()
-            assertions = self.harvest_assertions(assertion_resp, variants_list)
-            genes = self._harvest_genes()
-            json_created = self.create_json(
-                {
-                    "assertions": assertions,
-                    "sources": sources,
-                    "variants": variants,
-                    "genes": genes,
-                },
-                harvested_filepath,
-            )
-            if not json_created:
-                logger.error("MOAlmanac Harvester was not successful.")
-                return False
-        except Exception as e:
-            logger.error("MOAlmanac Harvester was not successful: %s", e)
-            return False
-        else:
-            logger.info("MOAlmanac Harvester was successful.")
-            return True
+        assertion_resp = self._get_all_assertions()
+        sources = self._harvest_sources(assertion_resp)
+        variants, variants_list = self.harvest_variants()
+        assertions = self.harvest_assertions(assertion_resp, variants_list)
+        genes = self._harvest_genes()
+        return {
+            "assertions": assertions,
+            "sources": sources,
+            "variants": variants,
+            "genes": genes,
+        }
 
     @staticmethod
     def _harvest_genes() -> list[dict]:

@@ -2,6 +2,7 @@
 import datetime
 import json
 import logging
+from abc import abstractmethod
 
 from metakb import APP_ROOT, DATE_FMT
 
@@ -11,14 +12,23 @@ logger = logging.getLogger(__name__)
 class Harvester:
     """A base class for content harvesters."""
 
-    def harvest(self) -> bool:
-        """Retrieve and store records from a resource. Records may be stored in
-        any manner, but must be retrievable by :method:`iterate_records`.
+    def harvest(self, harvested_filepath: str | None = None) -> None:
+        """Retrieve records from a resource and store harvested data in a JSON file.
 
-        :return: `True` if operation was successful, `False` otherwise.
-        :rtype: bool
+        :param harvested_filepath: Path to the JSON file where the harvested data will
+            be stored. If not provided, will use the default path of
+            ``<APP_ROOT>/data/<src_name>/harvester/<src_name>_harvester_YYYYMMDD.json``
         """
-        raise NotImplementedError
+        harvested_data = self.get_harvester_data()
+        self.create_json(harvested_data, harvested_filepath=harvested_filepath)
+
+    @abstractmethod
+    def get_harvester_data(self) -> dict[str, list[dict]]:
+        """Get source harvester data
+
+        :return: Dictionary with each key representing a source item type and its
+            corresponding value being a list of records for that source item type
+        """
 
     def create_json(
         self, items: dict[str, list], harvested_filepath: str | None = None

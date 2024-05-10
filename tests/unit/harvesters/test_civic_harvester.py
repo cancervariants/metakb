@@ -86,7 +86,7 @@ def test_harvest(tmp_path, harvester):
     """Test that CIViC harvest method works correctly"""
     harvested_filepath = tmp_path / "test_civic_harvester.json"
     try:
-        assert harvester.harvest(harvested_filepath=harvested_filepath)
+        harvester.harvest(harvested_filepath=harvested_filepath)
     finally:
         assert harvested_filepath.exists()
         harvested_filepath.unlink()
