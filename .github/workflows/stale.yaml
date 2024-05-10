@@ -1,0 +1,24 @@
+name: "Make comments on stale issues and PRs"
+
+on:
+  schedule:
+    - cron: "30 13 * * *"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/stale@v9
+        with:
+          remove-stale-when-updated: true
+
+          days-before-issue-stale: 45
+          stale-issue-label: stale
+          stale-issue-message: "This issue is stale because it has been open 45 days with no activity. Please make a comment for triaging or closing the issue."
+
+          days-before-pr-stale: 7
+          stale-pr-label: stale
+          stale-pr-message: "This PR is stale because it has been open 7 days with no activity. Please review this PR."
