@@ -1,11 +1,6 @@
 """A module for the CIViC harvester."""
 import logging
 from typing import Any
-from pathlib import Path
-from pathlib import Path
-from pathlib import Path
-from typing import Dict, List, Optional
-from typing import Any, Dict, List, Optional
 
 from civicpy import LOCAL_CACHE_PATH
 from civicpy import civic as civicpy

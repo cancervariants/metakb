@@ -111,9 +111,7 @@ class Transform:
             ),
         ).model_dump(exclude_none=True),
     ]
-
     methods_mapping: ClassVar[dict] = {m["id"]: m for m in _methods}
-
     _vicc_concept_vocabs: ClassVar[list[ViccConceptVocab]] = [
         ViccConceptVocab(
             id="vicc:e000000",
@@ -243,6 +241,7 @@ class Transform:
         self.evidence_level_to_vicc_concept_mapping = (
             self._evidence_level_to_vicc_concept_mapping()
         )
+        self.able_to_normalize: dict[str, dict] = {}
 
     async def transform(self) -> None:
         """Transform harvested data to the Common Data Model."""

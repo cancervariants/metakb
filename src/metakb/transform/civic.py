@@ -3,9 +3,6 @@ import logging
 import re
 from enum import Enum
 from pathlib import Path
-from typing import ClassVar
-from typing import Dict
-from typing import ClassVar, Dict
 
 from ga4gh.core._internal.models import (
     Coding,
@@ -17,21 +14,7 @@ from ga4gh.core._internal.models import (
     TherapeuticAgent,
     TherapeuticSubstituteGroup,
 )
-from ga4gh.vrs import models
-from ga4gh.vrs._internal.models import Variation
-from ga4gh.core import core_models
-from ga4gh.vrs import models
-from ga4gh.core._internal.models import (
-    Coding,
-    Disease,
-    Extension,
-    Gene,
-    Mapping,
-    Relation,
-    TherapeuticAgent,
-    TherapeuticSubstituteGroup,
-)
-from ga4gh.vrs._internal.models import Variation
+from ga4gh.vrs._internal.models import Expression, Syntax, Variation
 from pydantic import BaseModel, ValidationError
 
 from metakb import APP_ROOT
@@ -139,6 +122,16 @@ class CivicTransform(Transform):
         # Method will always be the same
         self.methods = [self.methods_mapping[MethodId.CIVIC_EID_SOP.value]]
         self.able_to_normalize = {
+            "variations": {},  # will store _VariationCache data
+            "molecular_profiles": {},
+            "diseases": {},
+            "therapeutics": {},
+            "genes": {},
+        }
+
+        # Cache for normalized concepts. The key is the concept type and value is a
+        # dictionary of mappings from CIViC concept (key) to transformed concept (value)
+        self.able_to_normalize: dict[str, dict] = {
             "variations": {},  # will store _VariationCache data
             "molecular_profiles": {},
             "diseases": {},
@@ -503,9 +496,7 @@ class CivicTransform(Transform):
 
         return True
 
-    async def _get_variation_members(
-        self, variant: dict
-    ) -> list[models.Variation] | None:
+    async def _get_variation_members(self, variant: dict) -> list[Variation] | None:
         """Get members field for variation object. This is the related variant concepts.
         For now, we will only do genomic HGVS expressions
 
@@ -525,7 +516,7 @@ class CivicTransform(Transform):
             if vrs_genomic_variation:
                 genomic_params = vrs_genomic_variation.model_dump(exclude_none=True)
                 genomic_params["label"] = genomic_hgvs
-                members = [models.Variation(**genomic_params)]
+                members = [Variation(**genomic_params)]
         return members
 
     async def _add_variations(self, variants: list[dict]) -> None:
@@ -559,7 +550,7 @@ class CivicTransform(Transform):
             # Create VRS Variation object
             params = vrs_variation.model_dump(exclude_none=True)
             params["label"] = variant["name"]
-            civic_variation = models.Variation(**params)
+            civic_variation = Variation(**params)
 
             # Get expressions
             hgvs_exprs = self._get_expressions(variant)
@@ -648,7 +639,7 @@ class CivicTransform(Transform):
                 members=members,
             ).model_dump()
 
-    def _get_expressions(self, variant: dict) -> list[models.Expression]:
+    def _get_expressions(self, variant: dict) -> list[Expression]:
         """Get expressions for a given variant
 
         :param variant: A CIViC variant record
@@ -657,14 +648,14 @@ class CivicTransform(Transform):
         expressions = []
         for hgvs_expr in variant["hgvs_expressions"]:
             if ":g." in hgvs_expr:
-                syntax = models.Syntax.HGVS_G
+                syntax = Syntax.HGVS_G
             elif ":c." in hgvs_expr:
-                syntax = models.Syntax.HGVS_C
+                syntax = Syntax.HGVS_C
             else:
-                syntax = models.Syntax.HGVS_P
+                syntax = Syntax.HGVS_P
 
             if hgvs_expr != "N/A":
-                expressions.append(models.Expression(syntax=syntax, value=hgvs_expr))
+                expressions.append(Expression(syntax=syntax, value=hgvs_expr))
         return expressions
 
     def _add_genes(self, genes: list[dict]) -> None:

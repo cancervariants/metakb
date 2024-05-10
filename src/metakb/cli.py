@@ -8,7 +8,6 @@ from collections.abc import Callable
 from os import environ
 from pathlib import Path
 from timeit import default_timer as timer
-from typing import Callable
 from zipfile import ZipFile
 
 import asyncclick as click
