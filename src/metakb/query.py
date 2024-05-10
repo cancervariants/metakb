@@ -3,7 +3,6 @@ import json
 import logging
 from copy import copy
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Union
 
 from disease.query import Disease
 from ga4gh.core._internal.models import (
@@ -53,7 +52,7 @@ class TherapeuticProcedureType(str, Enum):
     SUBSTITUTES = "TherapeuticSubstituteGroup"
 
 
-def _update_mappings(params: Dict) -> None:
+def _update_mappings(params: dict) -> None:
     """Update ``params.mappings`` if it exists
     The mappings field will be a string and will be updated to the dict representation
 
@@ -70,8 +69,8 @@ class QueryHandler:
     def __init__(
         self,
         uri: str = "",
-        creds: Tuple[str, str] = ("", ""),
-        normalizers: Optional[ViccNormalizers] = None,
+        creds: tuple[str, str] = ("", ""),
+        normalizers: ViccNormalizers | None = None,
     ) -> None:
         """Initialize neo4j driver and the VICC normalizers.
 
@@ -87,11 +86,11 @@ class QueryHandler:
 
     async def search_studies(
         self,
-        variation: Optional[str] = None,
-        disease: Optional[str] = None,
-        therapy: Optional[str] = None,
-        gene: Optional[str] = None,
-        study_id: Optional[str] = None,
+        variation: str | None = None,
+        disease: str | None = None,
+        therapy: str | None = None,
+        gene: str | None = None,
+        study_id: str | None = None,
     ) -> SearchStudiesService:
         """Get nested studies from queried concepts that match all conditions provided.
         For example, if `variation` and `therapy` are provided, will return all studies
@@ -105,7 +104,7 @@ class QueryHandler:
         :return: SearchStudiesService response containing nested studies and service
             metadata
         """
-        response: Dict = {
+        response: dict = {
             "query": {
                 "variation": None,
                 "disease": None,
@@ -160,13 +159,13 @@ class QueryHandler:
 
     async def _get_normalized_terms(
         self,
-        variation: Optional[str],
-        disease: Optional[str],
-        therapy: Optional[str],
-        gene: Optional[str],
-        study_id: Optional[str],
-        response: Dict,
-    ) -> Optional[Tuple]:
+        variation: str | None,
+        disease: str | None,
+        therapy: str | None,
+        gene: str | None,
+        study_id: str | None,
+        response: dict,
+    ) -> tuple | None:
         """Find normalized terms for queried concepts.
 
         :param variation: Variation (subject) query
@@ -240,9 +239,7 @@ class QueryHandler:
             valid_study_id,
         )
 
-    def _get_normalized_therapy(
-        self, therapy: str, warnings: List[str]
-    ) -> Optional[str]:
+    def _get_normalized_therapy(self, therapy: str, warnings: list[str]) -> str | None:
         """Get normalized therapy concept.
 
         :param therapy: Therapy query
@@ -255,9 +252,7 @@ class QueryHandler:
             warnings.append(f"Therapy Normalizer unable to normalize: " f"{therapy}")
         return normalized_therapy_id
 
-    def _get_normalized_disease(
-        self, disease: str, warnings: List[str]
-    ) -> Optional[str]:
+    def _get_normalized_disease(self, disease: str, warnings: list[str]) -> str | None:
         """Get normalized disease concept.
 
         :param disease: Disease query
@@ -271,8 +266,8 @@ class QueryHandler:
         return normalized_disease_id
 
     async def _get_normalized_variation(
-        self, variation: str, warnings: List[str]
-    ) -> Optional[str]:
+        self, variation: str, warnings: list[str]
+    ) -> str | None:
         """Get normalized variation concept.
 
         :param variation: Variation query
@@ -292,7 +287,7 @@ class QueryHandler:
                 )
         return normalized_variation
 
-    def _get_normalized_gene(self, gene: str, warnings: List[str]) -> Optional[str]:
+    def _get_normalized_gene(self, gene: str, warnings: list[str]) -> str | None:
         """Get normalized gene concept.
 
         :param gene: Gene query
@@ -305,7 +300,7 @@ class QueryHandler:
         return normalized_gene_id
 
     @staticmethod
-    def _get_study_by_id(tx: Transaction, study_id: str) -> Optional[Node]:
+    def _get_study_by_id(tx: Transaction, study_id: str) -> Node | None:
         """Get a Study node by ID.
 
         :param tx: Neo4j session transaction object
@@ -322,11 +317,11 @@ class QueryHandler:
     @staticmethod
     def _get_related_studies(
         tx: Transaction,
-        normalized_variation: Optional[str] = None,
-        normalized_therapy: Optional[str] = None,
-        normalized_disease: Optional[str] = None,
-        normalized_gene: Optional[str] = None,
-    ) -> List[Node]:
+        normalized_variation: str | None = None,
+        normalized_therapy: str | None = None,
+        normalized_disease: str | None = None,
+        normalized_gene: str | None = None,
+    ) -> list[Node]:
         """Get studies that contain queried normalized concepts.
 
         :param tx: Neo4j session transaction object
@@ -337,7 +332,7 @@ class QueryHandler:
         :return: List of Study nodes matching given parameters
         """
         query = "MATCH (s:Study)"
-        params: Dict[str, str] = {}
+        params: dict[str, str] = {}
 
         if normalized_variation:
             query += """
@@ -375,8 +370,8 @@ class QueryHandler:
         return [s[0] for s in tx.run(query, **params)]
 
     def _get_nested_studies(
-        self, tx: Transaction, study_nodes: List[Node]
-    ) -> List[Dict]:
+        self, tx: Transaction, study_nodes: list[Node]
+    ) -> list[dict]:
         """Get a list of nested studies.
 
         :param tx: Neo4j session transaction object
@@ -399,7 +394,7 @@ class QueryHandler:
 
         return nested_studies
 
-    def _get_nested_study(self, tx: Transaction, s: Node) -> Dict:
+    def _get_nested_study(self, tx: Transaction, s: Node) -> dict:
         """Get information related to a study
         Only VariantTherapeuticResponseStudy are supported at the moment
 
@@ -455,7 +450,7 @@ class QueryHandler:
         return VariantTherapeuticResponseStudy(**params).model_dump()
 
     @staticmethod
-    def _get_disease(node: Dict) -> Disease:
+    def _get_disease(node: dict) -> Disease:
         """Get disease data from a node with relationship ``HAS_TUMOR_TYPE``
 
         :param node: Disease node data. This will be mutated.
@@ -467,7 +462,7 @@ class QueryHandler:
         ]
         return Disease(**node)
 
-    def _get_cat_var(self, tx: Transaction, node: Dict) -> CategoricalVariation:
+    def _get_cat_var(self, tx: Transaction, node: dict) -> CategoricalVariation:
         """Get categorical variation data from a node with relationship ``HAS_VARIANT``
 
         :param tx: Neo4j session transaction object
@@ -506,7 +501,7 @@ class QueryHandler:
     @staticmethod
     def _get_variations(
         tx: Transaction, cv_id: str, relation: VariationRelation
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """Get list of variations associated to categorical variation
 
         :param tx: Neo4j session transaction object
@@ -549,7 +544,7 @@ class QueryHandler:
 
     @staticmethod
     def _get_variant_onco_study_qualifier(
-        tx: Transaction, study_id: str, allele_origin: Optional[str]
+        tx: Transaction, study_id: str, allele_origin: str | None
     ) -> _VariantOncogenicityStudyQualifier:
         """Get variant oncogenicity study qualifier data for a study
 
@@ -580,7 +575,7 @@ class QueryHandler:
         )
 
     @staticmethod
-    def _get_method_document(tx: Transaction, method_id: str) -> Optional[Document]:
+    def _get_method_document(tx: Transaction, method_id: str) -> Document | None:
         """Get document for a given method
 
         :param tx: Neo4j session transaction object
@@ -599,7 +594,7 @@ class QueryHandler:
         return Document(**doc_params)
 
     @staticmethod
-    def _get_document(node: Dict) -> Document:
+    def _get_document(node: dict) -> Document:
         """Get document data from a node with relationship ``IS_SPECIFIED_BY``
 
         :param node: Document node data. This will be mutated
@@ -615,8 +610,8 @@ class QueryHandler:
     def _get_therapeutic_procedure(
         self,
         tx: Transaction,
-        node: Dict,
-    ) -> Optional[Union[TherapeuticProcedure, TherapeuticAgent]]:
+        node: dict,
+    ) -> TherapeuticProcedure | None:
         """Get therapeutic procedure from a node with relationship ``HAS_THERAPEUTIC``
 
         :param tx: Neo4j session transaction object
@@ -665,7 +660,7 @@ class QueryHandler:
         tp_id: str,
         tp_type: TherapeuticProcedureType,
         tp_relation: TherapeuticRelation,
-    ) -> List[TherapeuticAgent]:
+    ) -> list[TherapeuticAgent]:
         """Get list of therapeutic agents for therapeutic combination or substitutes
         group
 
@@ -691,7 +686,7 @@ class QueryHandler:
         return therapeutic_agents
 
     @staticmethod
-    def _get_therapeutic_agent(in_ta_params: Dict) -> TherapeuticAgent:
+    def _get_therapeutic_agent(in_ta_params: dict) -> TherapeuticAgent:
         """Transform input parameters into TherapeuticAgent object
 
         :param in_ta_params: Therapeutic Agent node properties

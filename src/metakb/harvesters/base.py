@@ -2,7 +2,6 @@
 import datetime
 import json
 import logging
-from typing import Dict, List, Optional
 
 from metakb import APP_ROOT, DATE_FMT
 
@@ -21,9 +20,7 @@ class Harvester:
         """
         raise NotImplementedError
 
-    def create_json(
-        self, items: Dict[str, List], filename: Optional[str] = None
-    ) -> bool:
+    def create_json(self, items: dict[str, list], filename: str | None = None) -> bool:
         """Create composite and individual JSON for harvested data.
 
         :param items: item types keyed to Lists of values

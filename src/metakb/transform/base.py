@@ -5,7 +5,7 @@ import logging
 from abc import abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import ClassVar, Dict, List, Optional, Set, Union
+from typing import ClassVar
 
 from disease.schemas import (
     NamespacePrefix as DiseaseNamespacePrefix,
@@ -81,17 +81,15 @@ class ViccConceptVocab(BaseModel):
     id: StrictStr
     domain: StrictStr
     term: StrictStr
-    parents: List[StrictStr] = []
-    exact_mappings: Set[Union[CivicEvidenceLevel, MoaEvidenceLevel, EcoLevel]] = {}
+    parents: list[StrictStr] = []
+    exact_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = {}
     definition: StrictStr
 
 
 class Transform:
     """A base class for transforming harvester data."""
 
-    able_to_normalize: ClassVar[Dict[str, Dict]]
-
-    _methods: ClassVar[List[Method]] = [
+    _methods: ClassVar[list[dict]] = [
         Method(
             id=MethodId.CIVIC_EID_SOP,
             label="CIViC Curation SOP (2019)",
@@ -113,9 +111,9 @@ class Transform:
             ),
         ).model_dump(exclude_none=True),
     ]
-    methods_mapping: ClassVar[Dict] = {m["id"]: m for m in _methods}
+    methods_mapping: ClassVar[dict] = {m["id"]: m for m in _methods}
 
-    _vicc_concept_vocabs: ClassVar[List[ViccConceptVocab]] = [
+    _vicc_concept_vocabs: ClassVar[list[ViccConceptVocab]] = [
         ViccConceptVocab(
             id="vicc:e000000",
             domain="EvidenceStrength",
@@ -209,8 +207,8 @@ class Transform:
     def __init__(
         self,
         data_dir: Path = APP_ROOT / "data",
-        harvester_path: Optional[Path] = None,
-        normalizers: Optional[ViccNormalizers] = None,
+        harvester_path: Path | None = None,
+        normalizers: ViccNormalizers | None = None,
     ) -> None:
         """Initialize Transform base class.
 
@@ -237,6 +235,7 @@ class Transform:
         self.documents = []
 
         # Cache for concepts that were unable to normalize. Set of source concept IDs
+        self.able_to_normalize = {}
         self.unable_to_normalize = {"diseases": set(), "therapeutics": set()}
 
         self.next_node_id = {}
@@ -248,7 +247,7 @@ class Transform:
         """Transform harvested data to the Common Data Model."""
         raise NotImplementedError
 
-    def extract_harvester(self) -> Dict[str, List]:
+    def extract_harvester(self) -> dict[str, list]:
         """Get harvested data from file.
 
         :return: Dict containing Lists of entries for each object type
@@ -270,7 +269,7 @@ class Transform:
         with self.harvester_path.open() as f:
             return json.load(f)
 
-    def _evidence_level_to_vicc_concept_mapping(self) -> Dict:
+    def _evidence_level_to_vicc_concept_mapping(self) -> dict:
         """Get mapping of source evidence level to vicc concept vocab
 
         :return: Dictionary containing mapping from source evidence level (key)
@@ -287,7 +286,7 @@ class Transform:
         return mappings
 
     @staticmethod
-    def _get_digest_for_str_lists(str_list: List[str]) -> str:
+    def _get_digest_for_str_lists(str_list: list[str]) -> str:
         """Create digest for a list of strings
 
         :param str_list: List of strings to get digest for
@@ -300,7 +299,7 @@ class Transform:
         return sha512t24u(blob)
 
     @abstractmethod
-    def _get_therapeutic_agent(self, therapy: Dict) -> Optional[TherapeuticAgent]:
+    def _get_therapeutic_agent(self, therapy: dict) -> TherapeuticAgent | None:
         """Get Therapeutic Agent representation for source therapy object
 
         :param therapy: source therapy object
@@ -312,9 +311,9 @@ class Transform:
     def _get_therapeutic_substitute_group(
         self,
         therapeutic_sub_group_id: str,
-        therapies: List[Dict],
+        therapies: list[dict],
         therapy_interaction_type: str,
-    ) -> Optional[TherapeuticSubstituteGroup]:
+    ) -> TherapeuticSubstituteGroup | None:
         """Get Therapeutic Substitute Group for therapies
 
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
@@ -327,9 +326,9 @@ class Transform:
     def _get_combination_therapy(
         self,
         combination_therapy_id: str,
-        therapies: List[Dict],
+        therapies: list[dict],
         therapy_interaction_type: str,
-    ) -> Optional[CombinationTherapy]:
+    ) -> CombinationTherapy | None:
         """Get Combination Therapy representation for source therapies
 
         :param combination_therapy_id: ID for Combination Therapy
@@ -382,16 +381,10 @@ class Transform:
     def _add_therapeutic_procedure(
         self,
         therapeutic_procedure_id: str,
-        therapies: List[Dict],
+        therapies: list[dict],
         therapeutic_procedure_type: TherapeuticProcedureType,
-        therapy_interaction_type: Optional[str] = None,
-    ) -> Optional[
-        Union[
-            TherapeuticAgent,
-            TherapeuticSubstituteGroup,
-            CombinationTherapy,
-        ]
-    ]:
+        therapy_interaction_type: str | None = None,
+    ) -> TherapeuticAgent | TherapeuticSubstituteGroup | CombinationTherapy | None:
         """Create or get Therapeutic Procedure given therapies
         First look in cache for existing Therapeutic Procedure, if not found will
         attempt to normalize. Will add `therapeutic_procedure_id` to `therapeutics` and
@@ -407,9 +400,7 @@ class Transform:
         :param therapy_interaction_type: drug interaction type
         :return: Therapeutic procedure, if successful normalization
         """
-        tp: Optional[
-            Union[TherapeuticAgent, TherapeuticSubstituteGroup, CombinationTherapy]
-        ] = self.able_to_normalize["therapeutics"].get(therapeutic_procedure_id)
+        tp = self.able_to_normalize["therapeutics"].get(therapeutic_procedure_id)
         if tp:
             return tp
 
@@ -488,7 +479,7 @@ class Transform:
         )
 
     def create_json(
-        self, transform_dir: Optional[Path] = None, filename: Optional[str] = None
+        self, transform_dir: Path | None = None, filename: str | None = None
     ) -> None:
         """Create a composite JSON for transformed data.
 

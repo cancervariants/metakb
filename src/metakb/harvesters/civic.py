@@ -1,6 +1,6 @@
 """A module for the CIViC harvester."""
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from civicpy import LOCAL_CACHE_PATH
 from civicpy import civic as civicpy
@@ -41,7 +41,7 @@ class CivicHarvester(Harvester):
         self.evidence = []
         self.assertions = []
 
-    def harvest(self, filename: Optional[str] = None) -> bool:
+    def harvest(self, filename: str | None = None) -> bool:
         """Retrieve and store evidence, gene, variant, molecular profile, and assertion
         records from CIViC in composite and individual JSON files.
 
@@ -77,7 +77,7 @@ class CivicHarvester(Harvester):
             logger.info("CIViC Harvester was successful.")
             return True
 
-    def harvest_evidence(self) -> List[Dict]:
+    def harvest_evidence(self) -> list[dict]:
         """Harvest all CIViC evidence item records.
 
         :return: A list of all CIViC evidence item records represented as dicts
@@ -85,7 +85,7 @@ class CivicHarvester(Harvester):
         evidence_items = civicpy.get_all_evidence()
         return [self._dictify(e) for e in evidence_items]
 
-    def harvest_genes(self) -> List[Dict]:
+    def harvest_genes(self) -> list[dict]:
         """Harvest all CIViC gene records.
 
         :return: A list of all CIViC gene records represented as dicts
@@ -93,7 +93,7 @@ class CivicHarvester(Harvester):
         genes = civicpy.get_all_genes()
         return [self._dictify(g) for g in genes]
 
-    def harvest_variants(self) -> List[Dict]:
+    def harvest_variants(self) -> list[dict]:
         """Harvest all CIViC variant records.
 
         :return: A list of all CIViC variant records represented as dicts
@@ -101,7 +101,7 @@ class CivicHarvester(Harvester):
         variants = civicpy.get_all_variants()
         return [self._dictify(v) for v in variants]
 
-    def harvest_molecular_profiles(self) -> List[Dict]:
+    def harvest_molecular_profiles(self) -> list[dict]:
         """Harvest all CIViC Molecular Profile records
 
         :return: A list of all CIViC molecular profile records represented as dicts
@@ -109,7 +109,7 @@ class CivicHarvester(Harvester):
         molecular_profiles = civicpy.get_all_molecular_profiles()
         return [self._dictify(mp) for mp in molecular_profiles]
 
-    def harvest_assertions(self) -> List[Dict]:
+    def harvest_assertions(self) -> list[dict]:
         """Harvest all CIViC assertion records.
 
         :return: A list of all CIViC assertion records represented as dicts
@@ -117,7 +117,7 @@ class CivicHarvester(Harvester):
         assertions = civicpy.get_all_assertions()
         return [self._dictify(a) for a in assertions]
 
-    def _dictify(self, obj: Any) -> Dict:  # noqa: ANN401
+    def _dictify(self, obj: Any) -> dict:  # noqa: ANN401
         """Recursively convert object to dictionary
 
         :param obj: Object to convert to dict

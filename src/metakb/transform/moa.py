@@ -3,7 +3,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import ClassVar, Dict, List, Optional
+from typing import ClassVar
 from urllib.parse import quote
 
 from ga4gh.core import sha512t24u
@@ -43,7 +43,7 @@ class MoaTransform(Transform):
 
     # Cache for normalized concepts. The key is the concept type and value is a
     # dictionary of mappings from MOA concept (key) to transformed concept (value)
-    able_to_normalize: ClassVar[Dict[str, Dict]] = {
+    able_to_normalize: ClassVar[dict[str, dict]] = {
         "variations": {},
         "diseases": {},
         "therapeutics": {},
@@ -54,8 +54,8 @@ class MoaTransform(Transform):
     def __init__(
         self,
         data_dir: Path = APP_ROOT / "data",
-        harvester_path: Optional[Path] = None,
-        normalizers: Optional[ViccNormalizers] = None,
+        harvester_path: Path | None = None,
+        normalizers: ViccNormalizers | None = None,
     ) -> None:
         """Initialize MOAlmanac Transform class.
 
@@ -86,7 +86,7 @@ class MoaTransform(Transform):
         await self._add_variant_therapeutic_response_studies(data["assertions"])
 
     async def _add_variant_therapeutic_response_studies(
-        self, assertions: List[Dict]
+        self, assertions: list[dict]
     ) -> None:
         """Create Variant Therapeutic Response Studies from MOA assertions.
         Will add associated values to instances variables (`therapeutics`, `diseases`,
@@ -215,8 +215,8 @@ class MoaTransform(Transform):
             self.studies.append(statement)
 
     def _get_variant_onco_study_qualifier(
-        self, feature_type: str, gene: Optional[Gene] = None
-    ) -> Optional[_VariantOncogenicityStudyQualifier]:
+        self, feature_type: str, gene: Gene | None = None
+    ) -> _VariantOncogenicityStudyQualifier | None:
         """Get Variant Oncogenicity Study Qualifier
 
         :param feature_type: MOA feature type
@@ -239,7 +239,7 @@ class MoaTransform(Transform):
             qualifier = None
         return qualifier
 
-    async def _add_protein_consequences(self, variants: List[Dict]) -> None:
+    async def _add_protein_consequences(self, variants: list[dict]) -> None:
         """Create Protein Sequence Consequence objects for all MOA variant records.
         Mutates instance variables `able_to_normalize['variations']` and
         `variations`, if the variation-normalizer can successfully normalize the variant
@@ -361,8 +361,8 @@ class MoaTransform(Transform):
             self.variations.append(psc)
 
     async def _get_variation_members(
-        self, moa_rep_coord: Dict
-    ) -> Optional[List[models.Variation]]:
+        self, moa_rep_coord: dict
+    ) -> list[models.Variation] | None:
         """Get members field for variation object. This is the related variant concepts.
         FOr now, only looks at genomic representative coordinate.
 
@@ -400,7 +400,7 @@ class MoaTransform(Transform):
 
         return members
 
-    def _add_genes(self, genes: List[str]) -> None:
+    def _add_genes(self, genes: list[str]) -> None:
         """Create gene objects for all MOA gene records.
         Mutates instance variables `able_to_normalize['genes']` and `genes`, if
         the gene-normalizer can successfully normalize the gene
@@ -422,7 +422,7 @@ class MoaTransform(Transform):
             else:
                 logger.debug("Gene Normalizer unable to normalize: %s", gene)
 
-    def _add_documents(self, sources: List) -> None:
+    def _add_documents(self, sources: list) -> None:
         """Create document objects for all MOA sources.
         Mutates instance variables `documents` and `self.able_to_normalize["documents"]`
 
@@ -459,7 +459,7 @@ class MoaTransform(Transform):
     def _get_therapeutic_substitute_group(
         self,
         therapeutic_sub_group_id: str,
-        therapies: List[Dict],
+        therapies: list[dict],
         therapy_interaction_type: str,
     ) -> None:
         """MOA does not support therapeutic substitute group
@@ -470,7 +470,7 @@ class MoaTransform(Transform):
         :return: None, since not supported by MOA
         """
 
-    def _get_therapeutic_agent(self, therapy: Dict) -> Optional[TherapeuticAgent]:
+    def _get_therapeutic_agent(self, therapy: dict) -> TherapeuticAgent | None:
         """Get Therapeutic Agent for a MOA therapy name.
 
         Will run `label` through therapy-normalizer.
@@ -507,7 +507,7 @@ class MoaTransform(Transform):
             extensions=extensions,
         )
 
-    def _add_disease(self, disease: Dict) -> Optional[Dict]:
+    def _add_disease(self, disease: dict) -> dict | None:
         """Create or get disease given MOA disease.
         First looks in cache for existing disease, if not found will attempt to
         normalize. Will generate a digest from the original MOA disease object. This
@@ -543,7 +543,7 @@ class MoaTransform(Transform):
                 self.unable_to_normalize["diseases"].add(disease_id)
         return vrs_disease
 
-    def _get_disease(self, disease: Dict) -> Optional[Dict]:
+    def _get_disease(self, disease: dict) -> dict | None:
         """Get Disease object for a MOA disease
 
         :param disease: MOA disease record
