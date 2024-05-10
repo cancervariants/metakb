@@ -6,8 +6,9 @@ from tests.conftest import TEST_HARVESTERS_DIR
 
 from metakb import APP_ROOT
 from metakb.harvesters.civic import CivicHarvester
+from metakb.schemas.app import SourceName
 
-TEST_DATA_PATH = TEST_HARVESTERS_DIR / "civic"
+TEST_DATA_PATH = TEST_HARVESTERS_DIR / SourceName.CIVIC.value
 TEST_CIVICPY_CACHE_PATH = sorted(TEST_DATA_PATH.glob("civicpy_cache_*.pkl"))[-1]
 
 
@@ -86,7 +87,7 @@ def test_harvest(harvester):
     """Test that CIViC harvest method works correctly"""
     fn = "test_civic_harvester.json"
     assert harvester.harvest(filename=fn)
-    file_path = APP_ROOT / "data" / "civic" / "harvester" / fn
+    file_path = APP_ROOT / "data" / SourceName.CIVIC.value / "harvester" / fn
     assert file_path.exists()
     file_path.unlink()
     assert not file_path.exists()
