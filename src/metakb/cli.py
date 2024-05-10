@@ -240,7 +240,7 @@ def _load_normalizers_db() -> None:
         if environ.get(skip_aws_db_env_name) == "true" and aws_env_var_name in environ:
             _help_msg(
                 f"You cannot update the {name} AWS database. You must unset the "
-                "environment variables: `{skip_aws_db_env_name}` and `{aws_env_var_name}`"
+                f"environment variables: `{skip_aws_db_env_name}` and `{aws_env_var_name}`"
             )
 
         _update_normalizer_db(name, update_normalizer_db_fn)
