@@ -1,5 +1,6 @@
 """Validate property and relationship rules for graph DB."""
 import json
+from typing import Dict, List, Optional, Set
 
 import pytest
 from neo4j.graph import Node
@@ -75,7 +76,7 @@ def check_node_labels(get_node_labels: callable):
     """Check node labels match expected"""
 
     def _check_function(
-        node_label: str, expected: list[set[str]], expected_num_labels: int
+        node_label: str, expected: List[Set[str]], expected_num_labels: int
     ):
         node_labels = get_node_labels(node_label)
         assert len(node_labels) == expected_num_labels
@@ -116,8 +117,8 @@ def check_relation_count(graph: Graph):
         other_label: str,
         relation: str,
         min_rels: int = 1,
-        max_rels: int | None = 1,
-        direction: str | None = "out",
+        max_rels: Optional[int] = 1,
+        direction: Optional[str] = "out",
     ):
         if direction == "out":
             rel_query = f"-[:{relation}]->"
@@ -148,7 +149,7 @@ def check_extension_props():
     """Check that node extension properties match expected"""
 
     def _check_function(
-        node: Node, fixture_extensions: list[dict], ext_names: set[str]
+        node: Node, fixture_extensions: List[Dict], ext_names: Set[str]
     ):
         checked = set()
         for ext in fixture_extensions:
@@ -176,9 +177,9 @@ def check_node_props():
 
     def _check_function(
         node: Node,
-        fixture: dict,
-        expected_keys: set[str],
-        extension_names: set[str] | None = None,
+        fixture: Dict,
+        expected_keys: Set[str],
+        extension_names: Optional[Set[str]] = None,
     ):
         if extension_names is None:
             extension_names = set()

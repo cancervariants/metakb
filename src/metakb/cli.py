@@ -4,10 +4,10 @@ to graph datastore.
 import logging
 import re
 import tempfile
-from collections.abc import Callable
 from os import environ
 from pathlib import Path
 from timeit import default_timer as timer
+from typing import Optional
 from zipfile import ZipFile
 
 import asyncclick as click
@@ -117,7 +117,7 @@ async def update_metakb_db(
     force_load_normalizers_db: bool,
     normalizers_db_url: str,
     load_latest_cdms: bool,
-    load_target_cdm: Path | None,
+    load_target_cdm: Optional[Path],
     load_latest_s3_cdms: bool,
     update_cached: bool,
 ) -> None:
@@ -228,7 +228,7 @@ def _load_normalizers_db() -> None:
 
 def _update_normalizer_db(
     name: str,
-    update_normalizer_db_fn: Callable[[str, bool, str, bool, bool, bool], None],
+    update_normalizer_db_fn: callable,
 ) -> None:
     """Update Normalizer DynamoDB database.
 
@@ -331,7 +331,7 @@ def _retrieve_s3_cdms() -> str:
         key=lambda f: f.key,
         reverse=True,
     )
-    newest_version: str | None = None
+    newest_version: Optional[str] = None
 
     for file in bucket:
         match = re.match(

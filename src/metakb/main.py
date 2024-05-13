@@ -1,4 +1,5 @@
 """Main application for FastAPI."""
+from typing import Dict, Optional
 
 from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
@@ -14,7 +15,7 @@ app = FastAPI(
 query = QueryHandler()
 
 
-def custom_openapi() -> dict:
+def custom_openapi() -> Dict:
     """Generate custom fields for OpenAPI response."""
     if app.openapi_schema:
         return app.openapi_schema
@@ -60,11 +61,11 @@ search_study_response_descr = "A response to a validly-formed query."
     description=search_studies_descr,
 )
 async def get_studies(
-    variation: str | None = Query(None, description=v_description),
-    disease: str | None = Query(None, description=d_description),
-    therapy: str | None = Query(None, description=t_description),
-    gene: str | None = Query(None, description=g_description),
-    study_id: str | None = Query(None, description=s_description),
+    variation: Optional[str] = Query(None, description=v_description),
+    disease: Optional[str] = Query(None, description=d_description),
+    therapy: Optional[str] = Query(None, description=t_description),
+    gene: Optional[str] = Query(None, description=g_description),
+    study_id: Optional[str] = Query(None, description=s_description),
 ) -> dict:
     """Get nested studies from queried concepts that match all conditions provided.
     For example, if `variation` and `therapy` are provided, will return all studies
