@@ -1,6 +1,6 @@
 """Module containing variant statement definitions"""
 from enum import Enum
-from typing import Literal
+from typing import List, Literal, Optional, Union
 
 from ga4gh.core import core_models
 from ga4gh.vrs import models
@@ -68,7 +68,7 @@ class _VariantStatement(_StatementBase):
     """A `Statement` describing the impact of a variant."""
 
     # extends subject
-    variant: models.Variation | CategoricalVariation | core_models.IRI = Field(
+    variant: Union[models.Variation, CategoricalVariation, core_models.IRI] = Field(
         ..., description="A variation object that is the subject of the Statement."
     )
 
@@ -76,7 +76,7 @@ class _VariantStatement(_StatementBase):
 class _VariantClassification(_VariantStatement):
     """A `VariantStatement` classifying the impact of a variant."""
 
-    classification: core_models.Coding | core_models.IRI = Field(
+    classification: Union[core_models.Coding, core_models.IRI] = Field(
         ...,
         description="A methodological, summary classification about the impact of a variant.",
     )
@@ -85,15 +85,15 @@ class _VariantClassification(_VariantStatement):
 class VariantPathogenicityQualifier(BaseModel):
     """VariantPathogenicity Qualifier"""
 
-    penetrance: Penetrance | None = Field(
+    penetrance: Optional[Penetrance] = Field(
         None,
         description="The extent to which the variant impact is expressed by individuals carrying it as a measure of the proportion of carriers exhibiting the condition.",
     )
-    modeOfInheritance: ModeOfInheritance | None = Field(
+    modeOfInheritance: Optional[ModeOfInheritance] = Field(
         None,
         description="The pattern of inheritance expected for the pathogenic effect of this variant.",
     )
-    geneContext: core_models.Gene | None = Field(
+    geneContext: Optional[core_models.Gene] = Field(
         None, description="A gene context that qualifies the Statement."
     )
 
@@ -107,13 +107,13 @@ class VariantPathogenicity(_VariantClassification):
         "VariantPathogenicity", description="MUST be 'VariantPathogenicity'."
     )
     # extends predicate
-    predicate: Literal["isCausalFor"] | None = None
+    predicate: Optional[Literal["isCausalFor"]] = None
     # extends object
-    condition: core_models.Condition | core_models.IRI = Field(
+    condition: Union[core_models.Condition, core_models.IRI] = Field(
         ..., description="The `Condition` for which the variant impact is stated."
     )
     # extends qualifiers
-    qualifiers: VariantPathogenicityQualifier | None = None
+    qualifiers: Optional[VariantPathogenicityQualifier] = None
 
 
 class _VariantStudySummary(_VariantStatement):
@@ -122,7 +122,7 @@ class _VariantStudySummary(_VariantStatement):
     """
 
     # extends isReportedIn
-    isReportedIn: list[Document | core_models.IRI] = Field(
+    isReportedIn: List[Union[Document, core_models.IRI]] = Field(
         ...,
         description="A document in which the information content is expressed.",
         min_length=1,
@@ -132,15 +132,15 @@ class _VariantStudySummary(_VariantStatement):
 class _VariantOncogenicityStudyQualifier(BaseModel):
     """Qualifier for Variant Oncogenicity Study"""
 
-    alleleOrigin: AlleleOrigin | None = Field(
+    alleleOrigin: Optional[AlleleOrigin] = Field(
         None,
         description="Whether the statement should be interpreted in the context of an inherited (germline) variant, an acquired (somatic) mutation, or both (combined).",
     )
-    allelePrevalence: AllelePrevalence | None = Field(
+    allelePrevalence: Optional[AllelePrevalence] = Field(
         None,
         description="Whether the statement should be interpreted in the context of the variant being rare or common.",
     )
-    geneContext: core_models.Gene | None = Field(
+    geneContext: Optional[core_models.Gene] = Field(
         None, description="A gene context that qualifies the Statement."
     )
 
@@ -154,11 +154,11 @@ class VariantOncogenicityStudy(_VariantStudySummary):
     # extends predicate
     predicate: VariantOncogenicityStudyPredicate
     # extends object
-    tumorType: core_models.Condition | core_models.IRI = Field(
+    tumorType: Union[core_models.Condition, core_models.IRI] = Field(
         ..., description="The tumor type for which the variant impact is evaluated."
     )
     # extends qualifiers
-    qualifiers: _VariantOncogenicityStudyQualifier | None = None
+    qualifiers: Optional[_VariantOncogenicityStudyQualifier] = None
 
 
 class VariantTherapeuticResponseStudy(_VariantStudySummary):
@@ -173,13 +173,13 @@ class VariantTherapeuticResponseStudy(_VariantStudySummary):
     # extends predicate
     predicate: VariantTherapeuticResponseStudyPredicate
     # extends object
-    therapeutic: core_models.TherapeuticProcedure | core_models.IRI = Field(
+    therapeutic: Union[core_models.TherapeuticProcedure, core_models.IRI] = Field(
         ...,
         description="A drug administration or other therapeutic procedure that the neoplasm is intended to respond to.",
     )
-    tumorType: core_models.Condition | core_models.IRI = Field(
+    tumorType: Union[core_models.Condition, core_models.IRI] = Field(
         ...,
         description="The tumor type context in which the variant impact is evaluated.",
     )
     # extends qualifiers
-    qualifiers: _VariantOncogenicityStudyQualifier | None = None
+    qualifiers: Optional[_VariantOncogenicityStudyQualifier] = None

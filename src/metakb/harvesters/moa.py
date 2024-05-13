@@ -1,5 +1,6 @@
 """A module for the Molecular Oncology Almanac harvester"""
 import logging
+from typing import Dict, List, Optional
 
 import requests
 import requests_cache
@@ -12,12 +13,13 @@ logger = logging.getLogger(__name__)
 class MoaHarvester(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
-    def harvest(self, filename: str | None = None) -> bool:
+    def harvest(self, filename: Optional[str] = None) -> bool:
         """Retrieve and store sources, variants, and assertions
         records from MOAlmanac in composite and individual JSON files.
 
-        :param filename: File name for composite json
+        :param Optional[str] filename: File name for composite json
         :return: True if successfully retrieved, False otherwise
+        :rtype: bool
         """
         try:
             assertion_resp = self._get_all_assertions()
@@ -45,7 +47,7 @@ class MoaHarvester(Harvester):
             return True
 
     @staticmethod
-    def _harvest_genes() -> list[dict]:
+    def _harvest_genes() -> List[Dict]:
         """Harvest all genes from MOAlmanac
 
         :return: List of MOA gene records
@@ -57,11 +59,12 @@ class MoaHarvester(Harvester):
                 genes = r.json()
         return genes
 
-    def _harvest_sources(self, assertion_resp: list[dict]) -> list[dict]:
+    def _harvest_sources(self, assertion_resp: List[Dict]) -> List[Dict]:
         """Harvest all MOA sources
 
         :param List[Dict] assertion_resp: A list of MOA assertion records
         :return: A list of sources
+        :rtype: list
         """
         sources = []
 
@@ -73,10 +76,11 @@ class MoaHarvester(Harvester):
 
         return sources
 
-    def harvest_variants(self) -> tuple[list[dict], list[dict]]:
+    def harvest_variants(self) -> List[Dict]:
         """Harvest all MOA variants
 
         :return: A list of variants
+        :rtype: list
         """
         variants_list = self._get_all_variants()
         variants = []
@@ -88,13 +92,14 @@ class MoaHarvester(Harvester):
         return variants, variants_list
 
     def harvest_assertions(
-        self, assertion_resp: list[dict], variants_list: list[dict]
-    ) -> list[dict]:
+        self, assertion_resp: List[Dict], variants_list: List[Dict]
+    ) -> List[Dict]:
         """Harvest all MOA assertions
 
-        :param assertion_resp: A list of MOA assertion records
-        :param variants_list: A list of MOA variant records
+        :param List[Dict] assertion_resp: A list of MOA assertion records
+        :param List[Dict] variants_list: A list of MOA variant records
         :return: A list of assertions
+        :rtype: list
         """
         assertions = []
         for assertion in assertion_resp:
@@ -103,7 +108,7 @@ class MoaHarvester(Harvester):
 
         return assertions
 
-    def _get_all_assertions(self) -> list[dict]:
+    def _get_all_assertions(self) -> List[Dict]:
         """Return all assertion records.
 
         :return: All moa assertion records
@@ -112,7 +117,7 @@ class MoaHarvester(Harvester):
             r = requests.get("https://moalmanac.org/api/assertions", timeout=60)
             return r.json()
 
-    def _get_all_variants(self) -> list[dict]:
+    def _get_all_variants(self) -> List[Dict]:
         """Return all variant records
 
         :return: All moa variant records
@@ -121,11 +126,12 @@ class MoaHarvester(Harvester):
             r = requests.get("https://moalmanac.org/api/features", timeout=60)
             return r.json()
 
-    def _source_item(self, source: dict) -> dict:
+    def _source_item(self, source: Dict) -> Dict:
         """Harvest an individual MOA source of evidence
 
-        :param source: source record of each assertion record
+        :param Dict source: source record of each assertion record
         :return: a dictionary containing MOA source of evidence data
+        :rtype: dict
         """
         return {
             "id": source["source_id"],
@@ -137,11 +143,12 @@ class MoaHarvester(Harvester):
             "citation": source["citation"],
         }
 
-    def _harvest_variant(self, variant: dict) -> dict:
+    def _harvest_variant(self, variant: Dict) -> Dict:
         """Harvest an individual MOA variant record.
 
-        :param variant: A MOA variant record
+        :param Dict variant: A MOA variant record
         :return: A dictionary containing MOA variant data
+        :rtype: dict
         """
         variant_record = {"id": variant["feature_id"]}
 
@@ -150,12 +157,13 @@ class MoaHarvester(Harvester):
 
         return variant_record
 
-    def _harvest_assertion(self, assertion: dict, variants_list: list[dict]) -> dict:
+    def _harvest_assertion(self, assertion: Dict, variants_list: List[Dict]) -> Dict:
         """Harvest an individual MOA assertion record
 
-        :param assertion: a MOA assertion record
-        :param variants_list: a list of MOA variant records
+        :param Dict assertion: a MOA assertion record
+        :param List[Dict] variants_list: a list of MOA variant records
         :return: A dictionary containing MOA assertion data
+        :rtype: dict
         """
         assertion_record = {
             "id": assertion["assertion_id"],
@@ -186,12 +194,15 @@ class MoaHarvester(Harvester):
 
         return assertion_record
 
-    def _get_therapy(self, resistance: bool, sensitivity: bool) -> str | None:
+    def _get_therapy(self, resistance: bool, sensitivity: bool) -> Optional[str]:
         """Get therapy response data.
 
-        :param resistance: `True` if Therapy Resistance. `False` if not Therapy Resistance
-        :param sensitivity: `True` if Therapy Sensitivity. `False` if not Therapy Sensitivity
+        :param bool resistance: `True` if Therapy Resistance.
+            `False` if not Therapy Resistance
+        :param bool sensitivity: `True` if Therapy Sensitivity.
+            `False` if not Therapy Sensitivity
         :return: whether the therapy response is resistance or sensitivity
+        :rtype: str
         """
         if resistance:
             return "resistance"
@@ -199,11 +210,12 @@ class MoaHarvester(Harvester):
             return "sensitivity"
         return None
 
-    def _get_feature(self, v: dict) -> dict:
+    def _get_feature(self, v: Dict) -> Dict:
         """Get feature name from the harvested variants
 
-        :param v: harvested MOA variant
+        :param Dict v: harvested MOA variant
         :return: feature name same format as displayed in moalmanac.org
+        :rtype: dict
         """
         feature_type = v["feature_type"]
         if feature_type == "rearrangement":

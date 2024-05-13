@@ -1,5 +1,5 @@
 """Create schemas for API"""
-from typing import Literal
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, StrictStr
 
@@ -30,18 +30,18 @@ class ServiceMeta(BaseModel):
 class SearchStudiesQuery(BaseModel):
     """Queries for the Search Studies Endpoint."""
 
-    variation: StrictStr | None = None
-    disease: StrictStr | None = None
-    therapy: StrictStr | None = None
-    gene: StrictStr | None = None
-    study_id: StrictStr | None = None
+    variation: Optional[StrictStr] = None
+    disease: Optional[StrictStr] = None
+    therapy: Optional[StrictStr] = None
+    gene: Optional[StrictStr] = None
+    study_id: Optional[StrictStr] = None
 
 
 class SearchStudiesService(BaseModel):
     """Define model for Search Studies Endpoint Response."""
 
     query: SearchStudiesQuery
-    warnings: list[StrictStr] = []
-    study_ids: list[StrictStr] = []
-    studies: list[VariantTherapeuticResponseStudy] = []
+    warnings: List[StrictStr] = []
+    study_ids: List[StrictStr] = []
+    studies: List[VariantTherapeuticResponseStudy] = []
     service_meta_: ServiceMeta

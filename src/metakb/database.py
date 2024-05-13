@@ -4,6 +4,7 @@ import json
 import logging
 from os import environ
 from pathlib import Path
+from typing import Dict, List, Set, Tuple
 
 import boto3
 from botocore.exceptions import ClientError
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def _create_parameterized_query(
-    entity: dict, params: tuple[str, ...], entity_param_prefix: str = ""
+    entity: Dict, params: Tuple[str], entity_param_prefix: str = ""
 ) -> str:
     """Create parameterized query string for requested params if non-null in entity.
 
@@ -33,7 +34,7 @@ def _create_parameterized_query(
 class Graph:
     """Manage requests to graph datastore."""
 
-    def __init__(self, uri: str = "", credentials: tuple[str, str] = ("", "")) -> None:
+    def __init__(self, uri: str = "", credentials: Tuple[str, str] = ("", "")) -> None:
         """Initialize Graph driver instance.
 
         :param uri: address of Neo4j DB
@@ -119,7 +120,7 @@ class Graph:
         for query in queries:
             tx.run(query)
 
-    def add_transformed_data(self, data: dict, src_name: SourceName) -> None:
+    def add_transformed_data(self, data: Dict, src_name: SourceName) -> None:
         """Add set of data formatted per Common Data Model to DB.
 
         :param data: contains key/value pairs for data objects to add to DB, including
@@ -169,7 +170,7 @@ class Graph:
             logger.info("Successfully loaded %s studies.", loaded_study_count)
 
     @staticmethod
-    def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
+    def _add_mappings_and_exts_to_obj(obj: Dict, obj_keys: List[str]) -> None:
         """Get mappings and extensions from object and add to `obj` and `obj_keys`
 
         :param obj: Object to update with mappings and extensions (if found)
@@ -190,14 +191,14 @@ class Graph:
             else:
                 name = "_".join(ext["name"].split()).lower()
                 val = ext["value"]
-                if isinstance(val, (dict | list)):
+                if isinstance(val, (dict, list)):
                     obj[name] = json.dumps(val)
                 else:
                     obj[name] = val
             obj_keys.append(f"{name}:${name}")
 
     def _add_method(
-        self, tx: ManagedTransaction, method: dict, ids_in_studies: set[str]
+        self, tx: ManagedTransaction, method: Dict, ids_in_studies: Set[str]
     ) -> None:
         """Add Method node and its relationships to DB
 
@@ -225,7 +226,7 @@ class Graph:
         tx.run(query, **method)
 
     def _add_gene_or_disease(
-        self, tx: ManagedTransaction, obj_in: dict, ids_in_studies: set[str]
+        self, tx: ManagedTransaction, obj_in: Dict, ids_in_studies: Set[str]
     ) -> None:
         """Add gene or disease node and its relationships to DB
 
@@ -266,8 +267,8 @@ class Graph:
     def _add_therapeutic_procedure(
         self,
         tx: ManagedTransaction,
-        therapeutic_procedure: dict,
-        ids_in_studies: set[str],
+        therapeutic_procedure: Dict,
+        ids_in_studies: Set[str],
     ) -> None:
         """Add therapeutic procedure node and its relationships
 
@@ -316,7 +317,7 @@ class Graph:
             raise TypeError(msg)
 
     def _add_therapeutic_agent(
-        self, tx: ManagedTransaction, therapeutic_agent: dict
+        self, tx: ManagedTransaction, therapeutic_agent: Dict
     ) -> None:
         """Add therapeutic agent node and its relationships
 
@@ -337,7 +338,7 @@ class Graph:
         tx.run(query, **ta)
 
     @staticmethod
-    def _add_location(tx: ManagedTransaction, location_in: dict) -> None:
+    def _add_location(tx: ManagedTransaction, location_in: Dict) -> None:
         """Add location node and its relationships
 
         :param tx: Transaction object provided to transaction functions
@@ -359,7 +360,7 @@ class Graph:
         """
         tx.run(query, **loc)
 
-    def _add_variation(self, tx: ManagedTransaction, variation_in: dict) -> None:
+    def _add_variation(self, tx: ManagedTransaction, variation_in: Dict) -> None:
         """Add variation node and its relationships
 
         :param tx: Transaction object provided to transaction functions
@@ -405,8 +406,8 @@ class Graph:
     def _add_categorical_variation(
         self,
         tx: ManagedTransaction,
-        categorical_variation_in: dict,
-        ids_in_studies: set[str],
+        categorical_variation_in: Dict,
+        ids_in_studies: Set[str],
     ) -> None:
         """Add categorical variation objects to DB.
 
@@ -452,7 +453,7 @@ class Graph:
         tx.run(query, **cv)
 
     def _add_document(
-        self, tx: ManagedTransaction, document_in: dict, ids_in_studies: set[str]
+        self, tx: ManagedTransaction, document_in: Dict, ids_in_studies: Set[str]
     ) -> None:
         """Add Document object to DB.
 
@@ -491,14 +492,14 @@ class Graph:
             """
             tx.run(query, **document)
 
-    def _get_ids_from_studies(self, studies: list[dict]) -> set[str]:
+    def _get_ids_from_studies(self, studies: List[Dict]) -> Set[str]:
         """Get unique IDs from studies
 
         :param studies: List of studies
         :return: Set of IDs found in studies
         """
 
-        def _add_obj_id_to_set(obj: dict, ids_set: set[str]) -> None:
+        def _add_obj_id_to_set(obj: Dict, ids_set: Set[str]) -> None:
             """Add object id to set of IDs
 
             :param obj: Object to get ID for
@@ -529,7 +530,7 @@ class Graph:
         return ids_in_studies
 
     @staticmethod
-    def _add_study(tx: ManagedTransaction, study_in: dict) -> None:
+    def _add_study(tx: ManagedTransaction, study_in: Dict) -> None:
         """Add study node and its relationships
 
         :param tx: Transaction object provided to transaction functions

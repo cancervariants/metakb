@@ -5,7 +5,7 @@ import logging
 from abc import abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, Dict, List, Optional, Set, Union
 
 from disease.schemas import (
     NamespacePrefix as DiseaseNamespacePrefix,
@@ -13,21 +13,13 @@ from disease.schemas import (
 from disease.schemas import (
     NormalizationService as NormalizedDisease,
 )
-from ga4gh.core import sha512t24u
-from ga4gh.core._internal.models import (
-    Coding,
-    CombinationTherapy,
-    Extension,
-    TherapeuticAgent,
-    TherapeuticSubstituteGroup,
-)
+from ga4gh.core import core_models, sha512t24u
 from pydantic import BaseModel, StrictStr, ValidationError
 from therapy.schemas import NormalizationService as NormalizedTherapy
 
 from metakb import APP_ROOT, DATE_FMT
 from metakb.normalizers import ViccNormalizers
 from metakb.schemas.annotation import Document, Method
-from metakb.schemas.app import SourceName
 
 logger = logging.getLogger(__name__)
 
@@ -81,15 +73,15 @@ class ViccConceptVocab(BaseModel):
     id: StrictStr
     domain: StrictStr
     term: StrictStr
-    parents: list[StrictStr] = []
-    exact_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
+    parents: List[StrictStr] = []
+    exact_mappings: Set[Union[CivicEvidenceLevel, MoaEvidenceLevel, EcoLevel]] = {}
     definition: StrictStr
 
 
 class Transform:
     """A base class for transforming harvester data."""
 
-    _methods: ClassVar[list[dict]] = [
+    _methods: ClassVar[List[Method]] = [
         Method(
             id=MethodId.CIVIC_EID_SOP,
             label="CIViC Curation SOP (2019)",
@@ -111,8 +103,9 @@ class Transform:
             ),
         ).model_dump(exclude_none=True),
     ]
-    methods_mapping: ClassVar[dict] = {m["id"]: m for m in _methods}
-    _vicc_concept_vocabs: ClassVar[list[ViccConceptVocab]] = [
+    methods_mapping: ClassVar[Dict] = {m["id"]: m for m in _methods}
+
+    _vicc_concept_vocabs: ClassVar[List[ViccConceptVocab]] = [
         ViccConceptVocab(
             id="vicc:e000000",
             domain="EvidenceStrength",
@@ -206,8 +199,8 @@ class Transform:
     def __init__(
         self,
         data_dir: Path = APP_ROOT / "data",
-        harvester_path: Path | None = None,
-        normalizers: ViccNormalizers | None = None,
+        harvester_path: Optional[Path] = None,
+        normalizers: Optional[ViccNormalizers] = None,
     ) -> None:
         """Initialize Transform base class.
 
@@ -234,7 +227,6 @@ class Transform:
         self.documents = []
 
         # Cache for concepts that were unable to normalize. Set of source concept IDs
-        self.able_to_normalize = {}
         self.unable_to_normalize = {"diseases": set(), "therapeutics": set()}
 
         self.next_node_id = {}
@@ -246,7 +238,7 @@ class Transform:
         """Transform harvested data to the Common Data Model."""
         raise NotImplementedError
 
-    def extract_harvester(self) -> dict[str, list]:
+    def extract_harvester(self) -> Dict[str, List]:
         """Get harvested data from file.
 
         :return: Dict containing Lists of entries for each object type
@@ -268,7 +260,7 @@ class Transform:
         with self.harvester_path.open() as f:
             return json.load(f)
 
-    def _evidence_level_to_vicc_concept_mapping(self) -> dict:
+    def _evidence_level_to_vicc_concept_mapping(self) -> Dict:
         """Get mapping of source evidence level to vicc concept vocab
 
         :return: Dictionary containing mapping from source evidence level (key)
@@ -277,7 +269,7 @@ class Transform:
         mappings = {}
         for item in self._vicc_concept_vocabs:
             for exact_mapping in item.exact_mappings:
-                mappings[exact_mapping] = Coding(
+                mappings[exact_mapping] = core_models.Coding(
                     code=item.id.split(":")[-1],
                     label=item.term,
                     system="https://go.osu.edu/evidence-codes",
@@ -285,20 +277,20 @@ class Transform:
         return mappings
 
     @staticmethod
-    def _get_digest_for_str_lists(str_list: list[str]) -> str:
+    def _get_digest_for_str_lists(str_list: List[str]) -> str:
         """Create digest for a list of strings
 
         :param str_list: List of strings to get digest for
         :return: Digest
         """
         str_list.sort()
-        blob = json.dumps(str_list, separators=(",", ":"), sort_keys=True).encode(
-            "ascii"
-        )
+        blob = json.dumps(str_list, separators=(",", ":")).encode("ascii")
         return sha512t24u(blob)
 
     @abstractmethod
-    def _get_therapeutic_agent(self, therapy: dict) -> TherapeuticAgent | None:
+    def _get_therapeutic_agent(
+        self, therapy: Dict
+    ) -> Optional[core_models.TherapeuticAgent]:
         """Get Therapeutic Agent representation for source therapy object
 
         :param therapy: source therapy object
@@ -310,9 +302,9 @@ class Transform:
     def _get_therapeutic_substitute_group(
         self,
         therapeutic_sub_group_id: str,
-        therapies: list[dict],
+        therapies: List[Dict],
         therapy_interaction_type: str,
-    ) -> TherapeuticSubstituteGroup | None:
+    ) -> Optional[core_models.TherapeuticSubstituteGroup]:
         """Get Therapeutic Substitute Group for therapies
 
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
@@ -325,9 +317,9 @@ class Transform:
     def _get_combination_therapy(
         self,
         combination_therapy_id: str,
-        therapies: list[dict],
+        therapies: List[Dict],
         therapy_interaction_type: str,
-    ) -> CombinationTherapy | None:
+    ) -> Optional[core_models.CombinationTherapy]:
         """Get Combination Therapy representation for source therapies
 
         :param combination_therapy_id: ID for Combination Therapy
@@ -340,7 +332,7 @@ class Transform:
         source_name = type(self).__name__.lower().replace("transform", "")
 
         for therapy in therapies:
-            if source_name == SourceName.MOA:
+            if source_name == "moa":
                 therapeutic_procedure_id = f"moa.therapy:{therapy}"
             else:
                 therapeutic_procedure_id = f"civic.tid:{therapy['id']}"
@@ -355,18 +347,18 @@ class Transform:
             components.append(ta)
 
         extensions = [
-            Extension(
+            core_models.Extension(
                 name="moa_therapy_type"
-                if source_name == SourceName.MOA
+                if source_name == "moa"
                 else "civic_therapy_interaction_type",
                 value=therapy_interaction_type,
             ).model_dump(exclude_none=True)
         ]
 
         try:
-            ct = CombinationTherapy(
+            ct = core_models.CombinationTherapy(
                 id=combination_therapy_id, components=components, extensions=extensions
-            )
+            ).model_dump(exclude_none=True)
         except ValidationError as e:
             # if combination validation checks fail
             logger.debug(
@@ -380,10 +372,16 @@ class Transform:
     def _add_therapeutic_procedure(
         self,
         therapeutic_procedure_id: str,
-        therapies: list[dict],
+        therapies: List[Dict],
         therapeutic_procedure_type: TherapeuticProcedureType,
-        therapy_interaction_type: str | None = None,
-    ) -> TherapeuticAgent | TherapeuticSubstituteGroup | CombinationTherapy | None:
+        therapy_interaction_type: Optional[str] = None,
+    ) -> Optional[
+        Union[
+            core_models.TherapeuticAgent,
+            core_models.TherapeuticSubstituteGroup,
+            core_models.CombinationTherapy,
+        ]
+    ]:
         """Create or get Therapeutic Procedure given therapies
         First look in cache for existing Therapeutic Procedure, if not found will
         attempt to normalize. Will add `therapeutic_procedure_id` to `therapeutics` and
@@ -426,7 +424,7 @@ class Transform:
 
             if tp:
                 self.able_to_normalize["therapeutics"][therapeutic_procedure_id] = tp
-                self.therapeutics.append(tp.model_dump(exclude_none=True))
+                self.therapeutics.append(tp)
             else:
                 self.unable_to_normalize["therapeutics"].add(therapeutic_procedure_id)
         return tp
@@ -434,7 +432,7 @@ class Transform:
     @staticmethod
     def _get_therapy_normalizer_ext_data(
         normalized_therapeutic_id: str, therapy_norm_resp: NormalizedTherapy
-    ) -> Extension:
+    ) -> core_models.Extension:
         """Create extension containing relevant therapy-normalizer data
 
         :param normalized_therapeutic_id: Concept ID from therapy-normalizer
@@ -442,7 +440,7 @@ class Transform:
         :return: Extension containing therapy-normalizer data. Additional information,
             such as the label, is provided for VarCat.
         """
-        return Extension(
+        return core_models.Extension(
             name="therapy_normalizer_data",
             value={
                 "normalized_id": normalized_therapeutic_id,
@@ -453,7 +451,7 @@ class Transform:
     @staticmethod
     def _get_disease_normalizer_ext_data(
         normalized_disease_id: str, disease_norm_resp: NormalizedDisease
-    ) -> Extension:
+    ) -> core_models.Extension:
         """Create extension containing relevant disease-normalizer data
 
         :param normalized_disease_id: Concept ID from disease-normalizer
@@ -468,7 +466,7 @@ class Transform:
                 mondo_id = mapping.coding.code
                 break
 
-        return Extension(
+        return core_models.Extension(
             name="disease_normalizer_data",
             value={
                 "normalized_id": normalized_disease_id,
@@ -478,7 +476,7 @@ class Transform:
         )
 
     def create_json(
-        self, transform_dir: Path | None = None, filename: str | None = None
+        self, transform_dir: Optional[Path] = None, filename: Optional[str] = None
     ) -> None:
         """Create a composite JSON for transformed data.
 

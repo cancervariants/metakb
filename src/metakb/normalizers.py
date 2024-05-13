@@ -1,15 +1,12 @@
 """Module for VICC normalizers."""
 import logging
+from typing import List, Optional, Tuple
 
 from disease.database import create_db as create_disease_db
 from disease.query import QueryHandler as DiseaseQueryHandler
 from disease.schemas import NormalizationService as NormalizedDisease
-from ga4gh.core._internal.models import Extension
-from ga4gh.vrs._internal.models import (
-    Allele,
-    CopyNumberChange,
-    CopyNumberCount,
-)
+from ga4gh.core import core_models
+from ga4gh.vrs import models
 from gene.database import create_db as create_gene_db
 from gene.query import QueryHandler as GeneQueryHandler
 from gene.schemas import NormalizeService as NormalizedGene
@@ -35,12 +32,12 @@ class ViccNormalizers:
         self.therapy_query_handler = TherapyQueryHandler(create_therapy_db())
 
     async def normalize_variation(
-        self, queries: list[str]
-    ) -> Allele | CopyNumberChange | CopyNumberCount | None:
+        self, queries: List[str]
+    ) -> Optional[models.Variation]:
         """Normalize variation queries.
 
-        :param queries: Possible query strings to try to normalize which are used in
-            the event that a MANE transcript cannot be found
+        :param List[str] queries: Possible query strings to try to normalize
+            which are used in the event that a MANE transcript cannot be found
         :return: A normalized variation
         """
         for query in queries:
@@ -61,11 +58,11 @@ class ViccNormalizers:
         return None
 
     def normalize_gene(
-        self, queries: list[str]
-    ) -> tuple[NormalizedGene | None, str | None]:
+        self, queries: List[str]
+    ) -> Tuple[Optional[NormalizedGene], Optional[str]]:
         """Normalize gene queries
 
-        :param queries: Gene queries to normalize
+        :param list queries: Gene queries to normalize
         :return: The highest matched gene's normalized response and ID
         """
         gene_norm_resp = None
@@ -92,11 +89,11 @@ class ViccNormalizers:
         return gene_norm_resp, normalized_gene_id
 
     def normalize_disease(
-        self, queries: list[str]
-    ) -> tuple[NormalizedDisease | None, str | None]:
+        self, queries: List[str]
+    ) -> Tuple[Optional[NormalizedDisease], Optional[str]]:
         """Normalize disease queries
 
-        :param queries: Disease queries to normalize
+        :param list queries: Disease queries to normalize
         :return: The highest matched disease's normalized response and ID
         """
         highest_match = 0
@@ -124,11 +121,11 @@ class ViccNormalizers:
         return disease_norm_resp, normalized_disease_id
 
     def normalize_therapy(
-        self, queries: list[str]
-    ) -> tuple[NormalizedTherapy | None, str | None]:
+        self, queries: List[str]
+    ) -> Tuple[Optional[NormalizedTherapy], Optional[str]]:
         """Normalize therapy queries
 
-        :param queries: Therapy queries to normalize
+        :param list queries: Therapy queries to normalize
         :return: The highest matched therapy's normalized response and ID
         """
         highest_match = 0
@@ -158,11 +155,11 @@ class ViccNormalizers:
     @staticmethod
     def get_regulatory_approval_extension(
         therapy_norm_resp: NormalizedTherapy,
-    ) -> Extension | None:
+    ) -> Optional[core_models.Extension]:
         """Given therapy normalization service response, extract out the regulatory
         approval extension
 
-        :param therapy_norm_resp: Response from normalizing therapy
+        :param NormalizedTherapy therapy_norm_resp: Response from normalizing therapy
         :return: Extension containing transformed regulatory approval and indication
             data if it `regulatory_approval` extensions exists in therapy normalizer
         """
@@ -211,7 +208,7 @@ class ViccNormalizers:
 
                             matched_indications.append(matched_ind)
 
-                regulatory_approval_extension = Extension(
+                regulatory_approval_extension = core_models.Extension(
                     name="regulatory_approval",
                     value={
                         "approval_rating": "FDA"

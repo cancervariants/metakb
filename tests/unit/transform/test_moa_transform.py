@@ -127,7 +127,7 @@ def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
         "variant": moa_vid145,
         "therapeutic": {
             "type": "CombinationTherapy",
-            "id": "moa.ctid:ZGlEkRBR4st6Y_nijjuR1KUV7EFHIF_S",
+            "id": "moa.ctid:zBda4sO3iQLExj5SB8VTPzPLaPoWefiP",
             "components": [moa_cetuximab, moa_encorafenib],
             "extensions": [
                 {

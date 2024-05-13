@@ -1,6 +1,6 @@
 """Module containing GA4GH categorical variation definitions"""
 from enum import Enum
-from typing import Literal
+from typing import List, Literal, Optional, Union
 
 from ga4gh.core import core_models
 from ga4gh.vrs import models
@@ -26,7 +26,7 @@ class LocationMatchCharacteristic(str, Enum):
 class _CategoricalVariationBase(core_models._DomainEntity):
     """Base class for Categorical Variation"""
 
-    members: list[models.Variation | core_models.IRI] | None = Field(
+    members: Optional[List[Union[models.Variation, core_models.IRI]]] = Field(
         None,
         description="A non-exhaustive list of VRS variation contexts that satisfy the constraints of this categorical variant.",
     )
@@ -46,7 +46,7 @@ class ProteinSequenceConsequence(_CategoricalVariationBase):
         "ProteinSequenceConsequence",
         description="MUST be 'ProteinSequenceConsequence'.",
     )
-    definingContext: models.Allele | core_models.IRI = Field(
+    definingContext: Union[models.Allele, core_models.IRI] = Field(
         ...,
         description="The `VRS Allele <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#allele>`_  object that is congruent with (projects to the same codons) as alleles on other protein reference sequences.",
     )
@@ -64,7 +64,7 @@ class CanonicalAllele(_CategoricalVariationBase):
     type: Literal["CanonicalAllele"] = Field(
         "CanonicalAllele", description="MUST be 'CanonicalAllele'."
     )
-    definingContext: models.Allele | core_models.IRI = Field(
+    definingContext: Union[models.Allele, core_models.IRI] = Field(
         ...,
         description="The `VRS Allele <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#allele>`_ object that is congruent with variants on alternate reference sequences.",
     )
@@ -87,15 +87,15 @@ class CategoricalCnv(_CategoricalVariationBase):
         ...,
         description="A `VRS Location <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#location>`_ object that represents a sequence derived from that location, and is congruent with locations on alternate reference sequences.",
     )
-    locationMatchCharacteristic: LocationMatchCharacteristic | None = Field(
+    locationMatchCharacteristic: Optional[LocationMatchCharacteristic] = Field(
         None,
         description="The characteristics of a valid match between a contextual CNV location (the query) and the Categorical CNV location (the domain), when both query and domain are represented on the same reference sequence. An `exact` match requires the location of the query and domain to be identical. A `subinterval` match requires the query to be a subinterval of the domain. A `superinterval` match requires the query to be a superinterval of the domain. A `partial` match requires at least 1 residue of overlap between the query and domain.",
     )
-    copyChange: models.CopyChange | None = Field(
+    copyChange: Optional[models.CopyChange] = Field(
         None,
         description="A representation of the change in copies of a sequence in a system. MUST be one of 'efo:0030069' (complete genomic loss), 'efo:0020073' (high-level loss), 'efo:0030068' (low-level loss), 'efo:0030067' (loss), 'efo:0030064' (regional base ploidy), 'efo:0030070' (gain), 'efo:0030071' (low-level gain), 'efo:0030072' (high-level gain).",
     )
-    copies: int | models.Range | None = Field(
+    copies: Optional[Union[int, models.Range]] = Field(
         None, description="The integral number of copies of the subject in a system."
     )
 
@@ -115,7 +115,7 @@ class DescribedVariation(_CategoricalVariationBase):
         ...,
         description="A primary label for the categorical variation. This required property should provide a short and descriptive textual representation of the concept.",
     )
-    description: StrictStr | None = Field(
+    description: Optional[StrictStr] = Field(
         None,
         description="A textual description of the domain of variation that should match the categorical variation entity.",
     )
@@ -126,7 +126,9 @@ class CategoricalVariation(RootModel):
     individual contextual variation instances may be members of the domain.
     """
 
-    root: CanonicalAllele | CategoricalCnv | DescribedVariation | ProteinSequenceConsequence = Field(
+    root: Union[
+        CanonicalAllele, CategoricalCnv, DescribedVariation, ProteinSequenceConsequence
+    ] = Field(
         ...,
         json_schema_extra={
             "description": "A representation of a categorically-defined domain for variation, in which individual contextual variation instances may be members of the domain.",

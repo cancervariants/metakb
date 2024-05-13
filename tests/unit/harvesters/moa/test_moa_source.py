@@ -6,7 +6,6 @@ import pytest
 from tests.conftest import TEST_HARVESTERS_DIR
 
 from metakb.harvesters.moa import MoaHarvester
-from metakb.schemas.app import SourceName
 
 
 @pytest.fixture(scope="module")
@@ -34,7 +33,7 @@ def source68():
 @patch.object(MoaHarvester, "_get_all_assertions")
 def test_source68(test_get_all_assertions, source68):
     """Test moa harvester works correctly for evidence."""
-    with (TEST_HARVESTERS_DIR / SourceName.MOA.value / "assertions.json").open() as f:
+    with (TEST_HARVESTERS_DIR / "moa" / "assertions.json").open() as f:
         data = json.load(f)
     test_get_all_assertions.return_value = data
 
