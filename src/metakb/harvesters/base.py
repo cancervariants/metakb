@@ -23,8 +23,7 @@ class Harvester(ABC):
 
     @abstractmethod
     def harvest(self) -> _HarvestedData:
-        """Retrieve and store records from a resource. Records may be stored in
-        any manner, but must be retrievable by :method:`iterate_records`.
+        """Get source harvester data
 
         :return: Harvested data
         """
