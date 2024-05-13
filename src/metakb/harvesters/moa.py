@@ -1,5 +1,6 @@
 """A module for the Molecular Oncology Almanac harvester"""
 import logging
+from pathlib import Path
 
 import requests
 import requests_cache
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 class MoaHarvester(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
-    def harvest(self, harvested_filepath: str | None = None) -> bool:
+    def harvest(self, harvested_filepath: Path | None = None) -> bool:
         """Retrieve and store sources, variants, and assertions
         records from MOAlmanac in composite and individual JSON files.
 

@@ -1,5 +1,6 @@
 """A module for the CIViC harvester."""
 import logging
+from pathlib import Path
 from typing import Any
 
 from civicpy import LOCAL_CACHE_PATH
@@ -41,7 +42,7 @@ class CivicHarvester(Harvester):
         self.evidence = []
         self.assertions = []
 
-    def harvest(self, harvested_filepath: str | None = None) -> bool:
+    def harvest(self, harvested_filepath: Path | None = None) -> bool:
         """Retrieve and store evidence, gene, variant, molecular profile, and assertion
         records from CIViC in composite and individual JSON files.
 

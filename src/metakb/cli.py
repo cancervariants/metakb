@@ -4,7 +4,7 @@ to graph datastore.
 import logging
 import re
 import tempfile
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from os import environ
 from pathlib import Path
 from timeit import default_timer as timer
@@ -237,7 +237,7 @@ def _load_normalizers_db() -> None:
 
 def _update_normalizer_db(
     name: str,
-    update_normalizer_db_fn: Callable[[str, bool, str, bool, bool, bool], None],
+    update_normalizer_db_fn: Callable[[Iterable], None],
 ) -> None:
     """Update Normalizer DynamoDB database.
 
