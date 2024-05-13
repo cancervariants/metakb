@@ -477,18 +477,20 @@ class Transform:
             },
         )
 
-    def create_json(
-        self, transform_dir: Path | None = None, filename: str | None = None
-    ) -> None:
+    def create_json(self, cdm_filepath: str | None = None) -> None:
         """Create a composite JSON for transformed data.
 
-        :param Optional[Path] transform_dir: Path to data directory for
-            transformed data
-        :param Optional[str] filename: Name of transformed file
+        :param cdm_filepath: Path to the JSON file where the CDM data will be
+            stored. If not provided, will use the default path of
+            ``<APP_ROOT>/data/<src_name>/transform/<src_name>_cdm_YYYYMMDD.json``
         """
-        if transform_dir is None:
+        if not cdm_filepath:
             transform_dir = self.data_dir / "transform"
-        transform_dir.mkdir(exist_ok=True, parents=True)
+            transform_dir.mkdir(exist_ok=True, parents=True)
+            today = datetime.datetime.strftime(
+                datetime.datetime.now(tz=datetime.timezone.utc), DATE_FMT
+            )
+            cdm_filepath = transform_dir / f"{self.name}_cdm_{today}.json"
 
         composite_dict = {
             "studies": self.studies,
@@ -501,11 +503,5 @@ class Transform:
             "documents": self.documents,
         }
 
-        today = datetime.datetime.strftime(
-            datetime.datetime.now(tz=datetime.timezone.utc), DATE_FMT
-        )
-        if filename is None:
-            filename = f"{self.name}_cdm_{today}.json"
-        out = transform_dir / filename
-        with out.open("w+") as f:
-            json.dump(composite_dict, f, indent=4)
+        with cdm_filepath.open("w+") as f:
+            json.dump(composite_dict, f, indent=2)

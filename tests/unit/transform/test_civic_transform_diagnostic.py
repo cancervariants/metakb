@@ -20,7 +20,7 @@ async def data(normalizers):
         data_dir=DATA_DIR, harvester_path=harvester_path, normalizers=normalizers
     )
     await c.transform()
-    c.create_json(transform_dir=DATA_DIR, filename=FILENAME)
+    c.create_json(cdm_filepath=DATA_DIR / FILENAME)
     with (DATA_DIR / FILENAME).open() as f:
         return json.load(f)
 

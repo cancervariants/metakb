@@ -21,7 +21,7 @@ async def data(normalizers):
         normalizers=normalizers,
     )
     await moa.transform()
-    moa.create_json(transform_dir=TEST_TRANSFORM_DIR, filename=FILENAME)
+    moa.create_json(cdm_filepath=TEST_TRANSFORM_DIR / FILENAME)
     with (TEST_TRANSFORM_DIR / FILENAME).open() as f:
         return json.load(f)
 
