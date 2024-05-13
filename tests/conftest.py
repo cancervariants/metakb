@@ -5,11 +5,28 @@ from pathlib import Path
 
 import pytest
 
+from metakb.harvesters.base import Harvester
 from metakb.normalizers import ViccNormalizers
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
 TEST_HARVESTERS_DIR = TEST_DATA_DIR / "harvesters"
 TEST_TRANSFORM_DIR = TEST_DATA_DIR / "transform"
+
+
+def check_source_harvest(tmp_path: Path, harvester: Harvester):
+    """Test that source harvest method works correctly"""
+    harvested_data = harvester.harvest()
+    harvested_filepath = tmp_path / f"{harvester.__class__.__name__.lower()}.json"
+
+    try:
+        harvester.save_harvested_data_to_file(
+            harvested_data, harvested_filepath=harvested_filepath
+        )
+        assert harvested_filepath.exists()
+    finally:
+        if harvested_filepath.exists():
+            harvested_filepath.unlink()
+        assert not harvested_filepath.exists()
 
 
 @pytest.fixture(scope="session")

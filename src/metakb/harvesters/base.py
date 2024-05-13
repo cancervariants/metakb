@@ -2,30 +2,37 @@
 import datetime
 import json
 import logging
+from abc import ABC, abstractmethod
+
+from pydantic import BaseModel
 
 from metakb import APP_ROOT, DATE_FMT
 
 logger = logging.getLogger(__name__)
 
 
-class Harvester:
+class _HarvestedData(BaseModel):
+    """Define output for harvested data from a source"""
+
+    variants: list[dict]
+
+
+class Harvester(ABC):
     """A base class for content harvesters."""
 
-    def harvest(self) -> bool:
-        """Retrieve and store records from a resource. Records may be stored in
-        any manner, but must be retrievable by :method:`iterate_records`.
+    @abstractmethod
+    def harvest(self) -> _HarvestedData:
+        """Get source harvester data
 
-        :return: `True` if operation was successful, `False` otherwise.
-        :rtype: bool
+        :return: Harvested data
         """
-        raise NotImplementedError
 
-    def create_json(
-        self, items: dict[str, list], harvested_filepath: str | None = None
+    def save_harvested_data_to_file(
+        self, harvested_data: _HarvestedData, harvested_filepath: str | None = None
     ) -> bool:
-        """Create composite and individual JSON for harvested data.
+        """Save harvested data to JSON file
 
-        :param items: item types keyed to Lists of values
+        :param harvested_data: harvested data from a source
         :param harvested_filepath: Path to the JSON file where the harvested data will
             be stored. If not provided, will use the default path of
             ``<APP_ROOT>/data/<src_name>/harvester/<src_name>_harvester_YYYYMMDD.json``
@@ -41,13 +48,9 @@ class Harvester:
             )
             harvested_filepath = harvester_dir / f"{src_name}_harvester_{today}.json"
 
-        composite_dict = {}
         try:
-            for item_type, item_list in items.items():
-                composite_dict[item_type] = item_list
-
             with (harvested_filepath).open("w+") as f:
-                json.dump(composite_dict, f, indent=2)
+                json.dump(harvested_data.model_dump(), f, indent=2)
         except Exception as e:
             logger.error("Error creating %s harvester JSON: %s", src_name, e)
             return False
