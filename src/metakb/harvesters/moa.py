@@ -1,57 +1,44 @@
 """A module for the Molecular Oncology Almanac harvester"""
 import logging
-from pathlib import Path
 
 import requests
 import requests_cache
 
-from metakb.harvesters.base import Harvester
+from metakb.harvesters.base import Harvester, _HarvestedData
 
 logger = logging.getLogger(__name__)
+
+
+class MoaHarvestedData(_HarvestedData):
+    """Define output for harvested data from MOA"""
+
+    genes: list[str]
+    assertions: list[dict]
+    sources: list[dict]
 
 
 class MoaHarvester(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
-    def harvest(self, harvested_filepath: Path | None = None) -> bool:
-        """Retrieve and store sources, variants, and assertions
-        records from MOAlmanac in composite and individual JSON files.
+    def harvest(self) -> MoaHarvestedData:
+        """Get MOAlmanac assertion, source, variant, and gene data
 
-        :param harvested_filepath: Path to the JSON file where the harvested data will
-            be stored. If not provided, will use the default path of
-            ``<APP_ROOT>/data/moa/harvester/moa_harvester_YYYYMMDD.json``
-        :return: True if successfully retrieved, False otherwise
+        :return: MOA assertions, sources, variants, and genes
         """
-        try:
-            assertion_resp = self._get_all_assertions()
-            sources = self._harvest_sources(assertion_resp)
-            variants, variants_list = self.harvest_variants()
-            assertions = self.harvest_assertions(assertion_resp, variants_list)
-            genes = self._harvest_genes()
-            json_created = self.create_json(
-                {
-                    "assertions": assertions,
-                    "sources": sources,
-                    "variants": variants,
-                    "genes": genes,
-                },
-                harvested_filepath,
-            )
-            if not json_created:
-                logger.error("MOAlmanac Harvester was not successful.")
-                return False
-        except Exception as e:
-            logger.error("MOAlmanac Harvester was not successful: %s", e)
-            return False
-        else:
-            logger.info("MOAlmanac Harvester was successful.")
-            return True
+        assertion_resp = self._get_all_assertions()
+        sources = self._harvest_sources(assertion_resp)
+        variants, variants_list = self.harvest_variants()
+        assertions = self.harvest_assertions(assertion_resp, variants_list)
+        genes = self._harvest_genes()
+        return MoaHarvestedData(
+            assertions=assertions, sources=sources, variants=variants, genes=genes
+        )
 
     @staticmethod
-    def _harvest_genes() -> list[dict]:
+    def _harvest_genes() -> list[str]:
         """Harvest all genes from MOAlmanac
 
-        :return: List of MOA gene records
+        :return: List of MOA gene names
         """
         genes = []
         with requests_cache.disabled():
