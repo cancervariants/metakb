@@ -14,8 +14,11 @@ import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore.config import Config
 from disease.cli import update_db as update_normalizer_disease_db
+from disease.database.database import AWS_ENV_VAR_NAME as DISEASE_AWS_ENV_VAR_NAME
 from gene.cli import update_normalizer_db as update_normalizer_gene_db
+from gene.database.database import AWS_ENV_VAR_NAME as GENE_AWS_ENV_VAR_NAME
 from therapy.cli import update_normalizer_db as update_normalizer_therapy_db
+from therapy.database.database import AWS_ENV_VAR_NAME as THERAPY_AWS_ENV_VAR_NAME
 
 from metakb import APP_ROOT
 from metakb.database import Graph
@@ -215,11 +218,17 @@ def _help_msg(msg: str = "") -> None:
 
 def _load_normalizers_db() -> None:
     """Load normalizer DynamoDB database source data."""
-    for name, update_normalizer_db_fn in [
-        ("Disease", update_normalizer_disease_db),
-        ("Therapy", update_normalizer_therapy_db),
-        ("Gene", update_normalizer_gene_db),
+    for name, update_normalizer_db_fn, aws_env_var_name in [
+        ("Disease", update_normalizer_disease_db, DISEASE_AWS_ENV_VAR_NAME),
+        ("Therapy", update_normalizer_therapy_db, THERAPY_AWS_ENV_VAR_NAME),
+        ("Gene", update_normalizer_gene_db, GENE_AWS_ENV_VAR_NAME),
     ]:
+        if aws_env_var_name in environ:
+            _help_msg(
+                f"You cannot update the {name} AWS database. You must unset the "
+                f"environment variable:`{aws_env_var_name}`"
+            )
+
         _update_normalizer_db(name, update_normalizer_db_fn)
 
     echo_info("Normalizers database loaded.\n")
