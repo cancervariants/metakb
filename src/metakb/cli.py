@@ -276,14 +276,9 @@ def _harvest_sources(update_cached: bool) -> None:
         else:
             source = source_class()
 
-        source_successful = source.harvest()
-
+        harvested_data = source.harvest()
+        source.save_harvested_data_to_file(harvested_data)
         end = timer()
-
-        if not source_successful:
-            echo_info(f"{source_str} harvest failed.")
-            click.get_current_context().exit()
-
         echo_info(f"{source_str} harvest finished in {(end - start):.5f} s")
 
     total_end = timer()

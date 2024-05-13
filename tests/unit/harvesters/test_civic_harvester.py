@@ -2,7 +2,7 @@
 import json
 
 import pytest
-from tests.conftest import TEST_HARVESTERS_DIR
+from tests.conftest import TEST_HARVESTERS_DIR, check_source_harvest
 
 from metakb.harvesters.civic import CivicHarvester
 from metakb.schemas.app import SourceName
@@ -84,13 +84,7 @@ def civic_aid_7():
 
 def test_harvest(tmp_path, harvester):
     """Test that CIViC harvest method works correctly"""
-    harvested_filepath = tmp_path / "test_civic_harvester.json"
-    try:
-        assert harvester.harvest(harvested_filepath=harvested_filepath)
-    finally:
-        assert harvested_filepath.exists()
-        harvested_filepath.unlink()
-        assert not harvested_filepath.exists()
+    check_source_harvest(tmp_path, harvester)
 
 
 def test_harvest_variants(harvested_variants, civic_variant_12):
