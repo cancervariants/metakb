@@ -35,10 +35,10 @@ class MoaHarvester(Harvester):
         )
 
     @staticmethod
-    def _harvest_genes() -> list[dict]:
+    def _harvest_genes() -> list[str]:
         """Harvest all genes from MOAlmanac
 
-        :return: List of MOA gene records
+        :return: List of MOA gene names
         """
         genes = []
         with requests_cache.disabled():
@@ -52,7 +52,6 @@ class MoaHarvester(Harvester):
 
         :param List[Dict] assertion_resp: A list of MOA assertion records
         :return: A list of sources
-        :rtype: list
         """
         sources = []
 
@@ -64,11 +63,10 @@ class MoaHarvester(Harvester):
 
         return sources
 
-    def harvest_variants(self) -> list[dict]:
+    def harvest_variants(self) -> tuple[list[dict], list[dict]]:
         """Harvest all MOA variants
 
         :return: A list of variants
-        :rtype: list
         """
         variants_list = self._get_all_variants()
         variants = []
@@ -84,10 +82,9 @@ class MoaHarvester(Harvester):
     ) -> list[dict]:
         """Harvest all MOA assertions
 
-        :param List[Dict] assertion_resp: A list of MOA assertion records
-        :param List[Dict] variants_list: A list of MOA variant records
+        :param assertion_resp: A list of MOA assertion records
+        :param variants_list: A list of MOA variant records
         :return: A list of assertions
-        :rtype: list
         """
         assertions = []
         for assertion in assertion_resp:
@@ -117,9 +114,8 @@ class MoaHarvester(Harvester):
     def _source_item(self, source: dict) -> dict:
         """Harvest an individual MOA source of evidence
 
-        :param Dict source: source record of each assertion record
+        :param source: source record of each assertion record
         :return: a dictionary containing MOA source of evidence data
-        :rtype: dict
         """
         return {
             "id": source["source_id"],
@@ -134,9 +130,8 @@ class MoaHarvester(Harvester):
     def _harvest_variant(self, variant: dict) -> dict:
         """Harvest an individual MOA variant record.
 
-        :param Dict variant: A MOA variant record
+        :param variant: A MOA variant record
         :return: A dictionary containing MOA variant data
-        :rtype: dict
         """
         variant_record = {"id": variant["feature_id"]}
 
@@ -148,10 +143,9 @@ class MoaHarvester(Harvester):
     def _harvest_assertion(self, assertion: dict, variants_list: list[dict]) -> dict:
         """Harvest an individual MOA assertion record
 
-        :param Dict assertion: a MOA assertion record
-        :param List[Dict] variants_list: a list of MOA variant records
+        :param assertion: a MOA assertion record
+        :param variants_list: a list of MOA variant records
         :return: A dictionary containing MOA assertion data
-        :rtype: dict
         """
         assertion_record = {
             "id": assertion["assertion_id"],
@@ -185,12 +179,9 @@ class MoaHarvester(Harvester):
     def _get_therapy(self, resistance: bool, sensitivity: bool) -> str | None:
         """Get therapy response data.
 
-        :param bool resistance: `True` if Therapy Resistance.
-            `False` if not Therapy Resistance
-        :param bool sensitivity: `True` if Therapy Sensitivity.
-            `False` if not Therapy Sensitivity
+        :param resistance: `True` if Therapy Resistance. `False` if not Therapy Resistance
+        :param sensitivity: `True` if Therapy Sensitivity. `False` if not Therapy Sensitivity
         :return: whether the therapy response is resistance or sensitivity
-        :rtype: str
         """
         if resistance:
             return "resistance"
@@ -201,9 +192,8 @@ class MoaHarvester(Harvester):
     def _get_feature(self, v: dict) -> dict:
         """Get feature name from the harvested variants
 
-        :param Dict v: harvested MOA variant
+        :param v: harvested MOA variant
         :return: feature name same format as displayed in moalmanac.org
-        :rtype: dict
         """
         feature_type = v["feature_type"]
         if feature_type == "rearrangement":

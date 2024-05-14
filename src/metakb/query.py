@@ -4,7 +4,14 @@ import logging
 from copy import copy
 from enum import Enum
 
-from ga4gh.core import core_models
+from disease.query import Disease
+from ga4gh.core._internal.models import (
+    Coding,
+    Extension,
+    Gene,
+    TherapeuticAgent,
+    TherapeuticProcedure,
+)
 from ga4gh.vrs import models
 from neo4j import Transaction
 from neo4j.graph import Node
@@ -66,10 +73,11 @@ class QueryHandler:
         normalizers: ViccNormalizers | None = None,
     ) -> None:
         """Initialize neo4j driver and the VICC normalizers.
-        :param str uri: address of Neo4j DB
-        :param Tuple[str, str] credentials: tuple containing username and
+
+        :param uri: address of Neo4j DB
+        :param credentials: tuple containing username and
             password
-        :param ViccNormalizers normalizers: normalizer collection instance
+        :param normalizers: normalizer collection instance
         """
         if normalizers is None:
             normalizers = ViccNormalizers()
@@ -433,7 +441,7 @@ class QueryHandler:
             elif rel_type == "IS_REPORTED_IN":
                 params["isReportedIn"].append(self._get_document(node))
             elif rel_type == "HAS_STRENGTH":
-                params["strength"] = core_models.Coding(**node)
+                params["strength"] = Coding(**node)
             elif rel_type == "HAS_THERAPEUTIC":
                 params["therapeutic"] = self._get_therapeutic_procedure(tx, node)
             else:
@@ -442,7 +450,7 @@ class QueryHandler:
         return VariantTherapeuticResponseStudy(**params).model_dump()
 
     @staticmethod
-    def _get_disease(node: dict) -> core_models.Disease:
+    def _get_disease(node: dict) -> Disease:
         """Get disease data from a node with relationship ``HAS_TUMOR_TYPE``
 
         :param node: Disease node data. This will be mutated.
@@ -450,11 +458,9 @@ class QueryHandler:
         """
         _update_mappings(node)
         node["extensions"] = [
-            core_models.Extension(
-                name="disease_normalizer_id", value=node["disease_normalizer_id"]
-            )
+            Extension(name="disease_normalizer_id", value=node["disease_normalizer_id"])
         ]
-        return core_models.Disease(**node)
+        return Disease(**node)
 
     def _get_cat_var(self, tx: Transaction, node: dict) -> CategoricalVariation:
         """Get categorical variation data from a node with relationship ``HAS_VARIANT``
@@ -478,7 +484,7 @@ class QueryHandler:
                     ext_val = json.loads(node_val)
                 except TypeError:
                     ext_val = node_val
-                extensions.append(core_models.Extension(name=ext_name, value=ext_val))
+                extensions.append(Extension(name=ext_name, value=ext_val))
                 if node_key.startswith(SourceName.MOA.value):
                     # Cant be civic
                     break
@@ -559,13 +565,13 @@ class QueryHandler:
         _update_mappings(gene_params)
 
         gene_params["extensions"] = [
-            core_models.Extension(
+            Extension(
                 name="gene_normalizer_id", value=gene_params["gene_normalizer_id"]
             )
         ]
 
         return _VariantOncogenicityStudyQualifier(
-            alleleOrigin=allele_origin, geneContext=core_models.Gene(**gene_params)
+            alleleOrigin=allele_origin, geneContext=Gene(**gene_params)
         )
 
     @staticmethod
@@ -598,16 +604,14 @@ class QueryHandler:
 
         source_type = node.get("source_type")
         if source_type:
-            node["extensions"] = [
-                core_models.Extension(name="source_type", value=source_type)
-            ]
+            node["extensions"] = [Extension(name="source_type", value=source_type)]
         return Document(**node)
 
     def _get_therapeutic_procedure(
         self,
         tx: Transaction,
         node: dict,
-    ) -> core_models.TherapeuticProcedure | None:
+    ) -> TherapeuticProcedure | TherapeuticAgent | None:
         """Get therapeutic procedure from a node with relationship ``HAS_THERAPEUTIC``
 
         :param tx: Neo4j session transaction object
@@ -620,7 +624,7 @@ class QueryHandler:
             civic_therapy_interaction_type = node.get("civic_therapy_interaction_type")
             if civic_therapy_interaction_type:
                 node["extensions"] = [
-                    core_models.Extension(
+                    Extension(
                         name="civic_therapy_interaction_type",
                         value=civic_therapy_interaction_type,
                     )
@@ -641,7 +645,7 @@ class QueryHandler:
                     TherapeuticRelation.HAS_SUBSTITUTES,
                 )
 
-            therapeutic = core_models.TherapeuticProcedure(**node)
+            therapeutic = TherapeuticProcedure(**node)
         elif node_type == "TherapeuticAgent":
             therapeutic = self._get_therapeutic_agent(node)
         else:
@@ -656,7 +660,7 @@ class QueryHandler:
         tp_id: str,
         tp_type: TherapeuticProcedureType,
         tp_relation: TherapeuticRelation,
-    ) -> list[core_models.TherapeuticAgent]:
+    ) -> list[TherapeuticAgent]:
         """Get list of therapeutic agents for therapeutic combination or substitutes
         group
 
@@ -682,7 +686,7 @@ class QueryHandler:
         return therapeutic_agents
 
     @staticmethod
-    def _get_therapeutic_agent(in_ta_params: dict) -> core_models.TherapeuticAgent:
+    def _get_therapeutic_agent(in_ta_params: dict) -> TherapeuticAgent:
         """Transform input parameters into TherapeuticAgent object
 
         :param in_ta_params: Therapeutic Agent node properties
@@ -691,7 +695,7 @@ class QueryHandler:
         ta_params = copy(in_ta_params)
         _update_mappings(ta_params)
         extensions = [
-            core_models.Extension(
+            Extension(
                 name="therapy_normalizer_id", value=ta_params["therapy_normalizer_id"]
             )
         ]
@@ -699,10 +703,8 @@ class QueryHandler:
         if regulatory_approval:
             regulatory_approval = json.loads(regulatory_approval)
             extensions.append(
-                core_models.Extension(
-                    name="regulatory_approval", value=regulatory_approval
-                )
+                Extension(name="regulatory_approval", value=regulatory_approval)
             )
 
         ta_params["extensions"] = extensions
-        return core_models.TherapeuticAgent(**ta_params)
+        return TherapeuticAgent(**ta_params)
