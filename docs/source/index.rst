@@ -23,9 +23,10 @@ A search interface for cancer variant interpretations assembled by aggregating a
    :maxdepth: 2
 
     Installation<install>
+    Loading and updating data<data>
     Usage<usage>
     Normalization<normalization>
-    API Reference<reference/index>
+    API reference<reference/index>
     Changelog<changelog>
     Contributing<contributing>
     License<license>
