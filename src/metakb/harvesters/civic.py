@@ -1,6 +1,6 @@
 """A module for the CIViC harvester."""
 import logging
-from pathlib import Path
+from typing import Any
 
 from civicpy import LOCAL_CACHE_PATH
 from civicpy import civic as civicpy
@@ -26,7 +26,7 @@ class CivicHarvester(Harvester):
         self,
         update_cache: bool = False,
         update_from_remote: bool = True,
-        local_cache_path: Path | None = LOCAL_CACHE_PATH,
+        local_cache_path: str = LOCAL_CACHE_PATH,
     ) -> None:
         """Initialize CivicHarvester class.
 
@@ -47,8 +47,8 @@ class CivicHarvester(Harvester):
     def harvest(self) -> CivicHarvestedData:
         """Get CIViC evidence, gene, variant, molecular profile, and assertion data
 
-        :return: CIViC evidence items, genes, variants, molecular
-            profiles, and assertions
+        :return: CIViC evidence items, genes, variants, molecular profiles, and
+            assertions
         """
         evidence = self.harvest_evidence()
         genes = self.harvest_genes()
@@ -103,7 +103,7 @@ class CivicHarvester(Harvester):
         assertions = civicpy.get_all_assertions()
         return [self._dictify(a) for a in assertions]
 
-    def _dictify(self, obj: any) -> dict:
+    def _dictify(self, obj: Any) -> dict:  # noqa: ANN401
         """Recursively convert object to dictionary
 
         :param obj: Object to convert to dict
