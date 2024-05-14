@@ -19,20 +19,25 @@ from therapy.schemas import ApprovalRating
 from therapy.schemas import NormalizationService as NormalizedTherapy
 from variation.query import QueryHandler as VariationQueryHandler
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class ViccNormalizers:
     """A class for normalizing terms using VICC normalizers."""
 
-    def __init__(self) -> None:
-        """Initialize the VICC normalizers query handler instances."""
-        self.gene_query_handler = GeneQueryHandler(create_gene_db())
+    def __init__(self, db_url: str | None = None) -> None:
+        """Initialize the VICC normalizers query handler instances.
+
+        :param db_url: optional definition of shared normalizer database. Currently
+            only works for DynamoDB backend. If not given, each normalizer falls back
+            on default behavior for connecting to a database.
+        """
+        self.gene_query_handler = GeneQueryHandler(create_gene_db(db_url))
         self.variation_normalizer = VariationQueryHandler(
             gene_query_handler=self.gene_query_handler
         )
-        self.disease_query_handler = DiseaseQueryHandler(create_disease_db())
-        self.therapy_query_handler = TherapyQueryHandler(create_therapy_db())
+        self.disease_query_handler = DiseaseQueryHandler(create_disease_db(db_url))
+        self.therapy_query_handler = TherapyQueryHandler(create_therapy_db(db_url))
 
     async def normalize_variation(
         self, queries: list[str]
@@ -53,7 +58,7 @@ class ViccNormalizers:
                 if variation_norm_resp and variation_norm_resp.variation:
                     return variation_norm_resp.variation
             except Exception as e:
-                logger.warning(
+                _logger.warning(
                     "Variation Normalizer raised an exception using query %s: %s",
                     query,
                     e,
@@ -78,7 +83,7 @@ class ViccNormalizers:
             try:
                 gene_norm_resp = self.gene_query_handler.normalize(query_str)
             except Exception as e:
-                logger.warning(
+                _logger.warning(
                     "Gene Normalizer raised an exception using query %s: %s",
                     query_str,
                     e,
@@ -110,7 +115,7 @@ class ViccNormalizers:
             try:
                 disease_norm_resp = self.disease_query_handler.normalize(query)
             except Exception as e:
-                logger.warning(
+                _logger.warning(
                     "Disease Normalizer raised an exception using query %s: %s",
                     query,
                     e,
@@ -142,7 +147,7 @@ class ViccNormalizers:
             try:
                 therapy_norm_resp = self.therapy_query_handler.normalize(query)
             except Exception as e:
-                logger.warning(
+                _logger.warning(
                     "Therapy Normalizer raised an exception using query %s: %s",
                     query,
                     e,
@@ -222,3 +227,35 @@ class ViccNormalizers:
                 )
 
         return regulatory_approval_extension
+
+
+def check_normalizers(db_url: str | None) -> bool:
+    """Perform basic health checks on the gene, disease, and therapy normalizers.
+
+    Uses the internal health check methods provided by each.
+
+    :param db_url: optional designation of DB URL to use for each. Currently only
+        works for DynamoDB. If not given, normalizers will fall back on their own
+        env var/default configurations.
+    :return: True if all normalizers pass all checks, False if any failures are
+        encountered.
+    """
+    success = True
+    for name, create_db in (
+        ("disease", create_disease_db),
+        ("therapy", create_therapy_db),
+        ("gene", create_gene_db),
+    ):
+        db = create_db(db_url)
+        schema_initialized = db.check_schema_initialized()
+        if not schema_initialized:
+            _logger.warning(
+                "Schema for %s normalizer appears incomplete or nonexistent.", name
+            )
+            success = False
+            continue
+        tables_populated = db.check_tables_populated()
+        if not tables_populated:
+            _logger.warning("Tables for %s normalizer appear to be unpopulated.", name)
+            success = False
+    return success

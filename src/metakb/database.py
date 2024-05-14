@@ -36,24 +36,39 @@ class Graph:
     def __init__(self, uri: str = "", credentials: tuple[str, str] = ("", "")) -> None:
         """Initialize Graph driver instance.
 
+        Connection URI/credentials are resolved as follows:
+
+        1. Use class constructor args if given
+        2. Use values from AWS secrets manager if env var ``METAKB_NORM_EB_PROD`` is set
+        3. Use values from env vars ``METAKB_DB_URL``, ``METAKB_DB_USERNAME``, and
+            ``METAKB_DB_PASSWORD``, if all are defined
+        4. Use local defaults: ``"bolt://localhost:7687"``, with username ``"neo4j"``
+            and password ``"password"``
+
         :param uri: address of Neo4j DB
         :param credentials: tuple containing username and password
         """
-        if "METAKB_NORM_EB_PROD" in environ:
-            secret = ast.literal_eval(self.get_secret())
-            uri = f"bolt://{secret['host']}:{secret['port']}"
-            credentials = (secret["username"], secret["password"])
-        elif (
-            "METAKB_DB_URL" in environ
-            and "METAKB_DB_USERNAME" in environ
-            and "METAKB_DB_PASSWORD" in environ
-        ):
-            uri = environ["METAKB_DB_URL"]
-            credentials = (environ["METAKB_DB_USERNAME"], environ["METAKB_DB_PASSWORD"])
-        elif not (uri and credentials[0] and credentials[1]):
-            # Local
-            uri = "bolt://localhost:7687"
-            credentials = ("neo4j", "password")
+        if not (uri and credentials[0] and credentials[1]):
+            if "METAKB_NORM_EB_PROD" in environ:
+                secret = ast.literal_eval(self.get_secret())
+                uri = f"bolt://{secret['host']}:{secret['port']}"
+                credentials = (secret["username"], secret["password"])
+            else:
+                if all(
+                    [
+                        "METAKB_DB_URL" in environ,
+                        "METAKB_DB_USERNAME" in environ,
+                        "METAKB_DB_PASSWORD" in environ,
+                    ]
+                ):
+                    uri = environ["METAKB_DB_URL"]
+                    credentials = (
+                        environ["METAKB_DB_USERNAME"],
+                        environ["METAKB_DB_PASSWORD"],
+                    )
+                else:  # local default settings
+                    uri = "bolt://localhost:7687"
+                    credentials = ("neo4j", "password")
         self.driver = GraphDatabase.driver(uri, auth=credentials)
         with self.driver.session() as session:
             session.execute_write(self._create_constraints)
