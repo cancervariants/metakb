@@ -71,12 +71,13 @@ def cli() -> None:
     """  # noqa: D301
 
 
+_normalizer_db_url_description = "URL endpoint of normalizer database. If not given, the individual normalizers will revert to their own defaults."
+_neo4j_db_url_description = ("URL endpoint for the application Neo4j database.",)
+_neo4j_creds_description = "Username and password to provide to application Neo4j database. Format as 'username:password'."
+
+
 @cli.command()
-@click.option(
-    "--db_url",
-    "-u",
-    help="URL endpoint of normalizer database. If not given, the individual normalizers will use their own default, which is a DynamoDB connection to 'http://localhost:8000'.",
-)
+@click.option("--db_url", "-u", help=_normalizer_db_url_description)
 @click.argument(
     "normalizer",
     type=click.Choice(list(NormalizerName), case_sensitive=False),
@@ -110,12 +111,7 @@ def check_normalizers(
 
 
 @cli.command()
-@click.option(
-    "--db_url",
-    help=(
-        "URL endpoint of normalizers DynamoDB database. If not given, defaults to URL environment variables or `http://localhost:8000` per the configuration rules of the individual normalizers."
-    ),
-)
+@click.option("--db_url", help=_normalizer_db_url_description)
 @click.argument(
     "normalizer",
     type=click.Choice(list(NormalizerName), case_sensitive=False),
@@ -139,9 +135,8 @@ def update_normalizers(
         $ metakb update-normalizers disease therapy
 
     \f
-    :param db_url: URL endpoint of normalizers DynamoDB database. If not given,
-        defaults to ``http://localhost:8000`` per the configuration rules of the
-        individual normalizers.
+    :param db_url: URL endpoint of normalizers DynamoDB database. If not given, the
+        individual normalizers will revert to their own defaults.
     :param normalizer: tuple (possibly empty) of normalizer names to update
     """  # noqa: D301
     success = True
@@ -214,12 +209,7 @@ def harvest(refresh_source_caches: bool, source: tuple[SourceName, ...]) -> None
 
 
 @cli.command()
-@click.option(
-    "--normalizer_db_url",
-    help=(
-        "URL endpoint of normalizers DynamoDB database. If not given, defaults to `http://localhost:8000` or DB URL environment variables per the configuration rules of the individual normalizers."
-    ),
-)
+@click.option("--normalizer_db_url", help=_normalizer_db_url_description)
 @click.argument(
     "source",
     type=click.Choice(list(SourceName), case_sensitive=False),
@@ -229,20 +219,14 @@ async def transform(normalizer_db_url: str, source: tuple[SourceName, ...]) -> N
     """Transform MetaKB source(s).
     \f
     :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
-        given, defaults to ``http://localhost:8000`` per the configuration rules of the
-        individual normalizers.
+        given, defaults to the configuration rules of the individual normalizers.
     :param source: tuple of source names. If empty, transform all sources.
     """  # noqa: D301
     await _transform_sources(source, normalizer_db_url)
 
 
 @cli.command()
-@click.option(
-    "--normalizer_db_url",
-    help=(
-        "URL endpoint of normalizers DynamoDB database. If not given, defaults to `http://localhost:8000` or DB URL environment variables per the configuration rules of the individual normalizers."
-    ),
-)
+@click.option("--normalizer_db_url", help=_normalizer_db_url_description)
 @click.argument(
     "harvest_file",
     type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
@@ -260,8 +244,7 @@ async def transform_file(
 
     \f
     :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
-        given, defaults to ``http://localhost:8000`` per the configuration rules of the
-        individual normalizers.
+        given, defaults to the configuration rules of the individual normalizers.
     :param source_name: name of source that harvested file comes from
     """  # noqa: D301
     normalizer_handler = ViccNormalizers(normalizer_db_url)
@@ -291,15 +274,8 @@ def _get_graph(db_url: str, db_creds: str) -> Graph:
 
 
 @cli.command()
-@click.option(
-    "--db_url",
-    default="",
-    help="URL endpoint for the application Neo4j database.",
-)
-@click.option(
-    "--db_creds",
-    help="Username and password to provide to application Neo4j database. Format as 'username:password'.",
-)
+@click.option("--db_url", default="", help=_neo4j_db_url_description)
+@click.option("--db_creds", help=_neo4j_creds_description)
 @click.option(
     "--from_s3",
     is_flag=True,
@@ -378,21 +354,9 @@ def load_cdm(
 
 
 @cli.command()
-@click.option(
-    "--db_url",
-    default="",
-    help="URL endpoint for the application Neo4j database.",
-)
-@click.option(
-    "--db_creds",
-    help="Username and password to provide to application Neo4j database. Format as 'username:password'.",
-)
-@click.option(
-    "--normalizer_db_url",
-    help=(
-        "URL endpoint of normalizers DynamoDB database. If not given, defaults to `http://localhost:8000` or DB URL environment variables per the configuration rules of the individual normalizers."
-    ),
-)
+@click.option("--db_url", default="", help=_neo4j_db_url_description)
+@click.option("--db_creds", help=_neo4j_creds_description)
+@click.option("--normalizer_db_url", help=_normalizer_db_url_description)
 @click.option(
     "--update_source_caches",
     "-u",
@@ -435,8 +399,7 @@ async def update(
     :param db_creds: DB username and password, separated by a colon, e.g.
         ``"username:password"``.
     :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
-        given, defaults to ``http://localhost:8000`` per the configuration rules of the
-        individual normalizers.
+        given, defaults to the configuration rules of the individual normalizers.
     :param update_source_caches: ``True`` if source caches, i.e. civicpy, should be
         refreshed before loading data. Note this will take several minutes. Defaults to
         ``False``.
