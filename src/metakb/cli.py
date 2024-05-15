@@ -4,7 +4,6 @@ to graph datastore.
 import logging
 import re
 import tempfile
-from enum import StrEnum
 from os import environ
 from pathlib import Path
 from timeit import default_timer as timer
@@ -26,6 +25,7 @@ from metakb.database import Graph
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
 from metakb.normalizers import (
+    NormalizerName,
     ViccNormalizers,
 )
 from metakb.normalizers import (
@@ -44,7 +44,14 @@ _logger = logging.getLogger(__name__)
 
 @click.group()
 def cli() -> None:
-    """Manage MetaKB data."""
+    """Manage MetaKB data.
+
+    To prepare normalizers if unavailable, invalidate cached data, then load MetaKB data:
+
+    \b
+        $ metakb check-normalizers || metakb load-normalizers
+        $ metakb update --update_source_caches
+    """  # noqa: D301
 
 
 def _echo_info(msg: str) -> None:
@@ -62,9 +69,16 @@ def _echo_info(msg: str) -> None:
     "-u",
     help="URL endpoint of normalizer database. If not given, the individual normalizers will use their own default, which is a DynamoDB connection to 'http://localhost:8000'.",
 )
-def check_normalizers(db_url: str | None) -> None:
-    """Perform basic checks on DB health and population for all normalizers. Exits with
-    status code 1 if DB schema is uninitialized or critical tables appear empty for one
+@click.argument(
+    "normalizer",
+    type=click.Choice(list(NormalizerName), case_sensitive=False),
+    nargs=-1,
+)
+def check_normalizers(
+    db_url: str | None, normalizer: tuple[NormalizerName, ...]
+) -> None:
+    """Perform basic checks on DB health and table population for normalizers. Exits with
+    status code 1 if >= 1 DB schema is uninitialized or critical tables appear empty for one
     or more of the concept normalizer services.
 
     \b
@@ -72,11 +86,16 @@ def check_normalizers(db_url: str | None) -> None:
         $ echo $?
         1  # indicates failure
 
+    To select specific normalizer services, provide one or more arguments:
+
+        $ metakb check-normalizers therapy disease
+
     \f
     :param db_url: URL endpoint for normalizer databases. Overrides defaults or env vars
         for each normalizer service.
+    :param normalizer: tuple (possibly empty) of normalizer names to check
     """  # noqa: D301
-    if not check_normalizer_health(db_url):
+    if not check_normalizer_health(db_url, normalizer):
         _logger.warning("Normalizer check failed.")
         click.get_current_context().exit(1)
     _logger.info("Normalizer check passed.")
@@ -89,58 +108,277 @@ def check_normalizers(db_url: str | None) -> None:
         "URL endpoint of normalizers DynamoDB database. If not given, defaults to URL environment variables or `http://localhost:8000` per the configuration rules of the individual normalizers."
     ),
 )
-def load_normalizers(db_url: str | None) -> None:
+@click.argument(
+    "normalizer",
+    type=click.Choice(list(NormalizerName), case_sensitive=False),
+    nargs=-1,
+)
+def update_normalizers(
+    db_url: str | None, normalizer: tuple[NormalizerName, ...]
+) -> None:
     """Reload gene, disease, and therapy normalizer data.
 
     Forces delete of each prior to fetching and loading new data. If errors are
     encountered, attempts to complete updates of other normalizers before exiting.
 
+    Providing no arguments will attempt to update all three:
+
+        $ metakb update-normalizers
+
+    Providing individual normalizer names as arguments will only update those
+    normalizers:
+
+        $ metakb update-normalizers disease therapy
+
     \f
     :param db_url: URL endpoint of normalizers DynamoDB database. If not given,
         defaults to ``http://localhost:8000`` per the configuration rules of the
         individual normalizers.
+    :param normalizer: tuple (possibly empty) of normalizer names to update
     """  # noqa: D301
     success = True
     updater_args = ["--update_all", "--update_merged"]
     if db_url:
         updater_args += ["--db_url", db_url]
-    for name, update_normalizer_db_fn, aws_env_var_name in [
-        ("Disease", update_normalizer_disease_db, DISEASE_AWS_ENV_VAR_NAME),
-        ("Therapy", update_normalizer_therapy_db, THERAPY_AWS_ENV_VAR_NAME),
-        ("Gene", update_normalizer_gene_db, GENE_AWS_ENV_VAR_NAME),
-    ]:
+    update_params = [
+        (
+            NormalizerName.DISEASE,
+            update_normalizer_disease_db,
+            DISEASE_AWS_ENV_VAR_NAME,
+        ),
+        (
+            NormalizerName.THERAPY,
+            update_normalizer_therapy_db,
+            THERAPY_AWS_ENV_VAR_NAME,
+        ),
+        (NormalizerName.GENE, update_normalizer_gene_db, GENE_AWS_ENV_VAR_NAME),
+    ]
+    if normalizer:
+        update_params = [p for p in update_params if p[0] in normalizer]
+    for name, update_fn, aws_env_var_name in update_params:
         if aws_env_var_name in environ:
-            _logger.warning(
-                "Updating the %s AWS database via the MetaKB CLI is prohibited -- unset env var %s",
-                name,
-                aws_env_var_name,
+            msg = (
+                f"Updating the {name.value} AWS database from the MetaKB CLI is "
+                f"prohibited. Unset the environment variable:`{aws_env_var_name}` to "
+                "proceed."
             )
-            click.echo(
-                f"You cannot update the {name} AWS database. You must unset the "
-                f"environment variable:`{aws_env_var_name}`"
-            )
+            _logger.error(msg)
+            click.echo(msg)
             success = False
             continue
 
-        _echo_info(f"\nLoading {name} Normalizer data...")
+        click.echo("\n")
+        _echo_info(f"Loading {name.value} normalizer data...")
         try:
-            update_normalizer_db_fn(["--update_all", "--update_merged"])
-        except SystemExit as e:
-            _logger.error("Encountered error while updating %s database: %s", name, e)
-            click.echo(f"Failed to update {name} normalizer.")
+            update_fn(updater_args)
+        except (Exception, SystemExit) as e:
+            _logger.error(
+                "Encountered error while updating %s database: %s", name.value, e
+            )
+            click.echo(f"Failed to update {name.value} normalizer.")
             success = False
             continue
-        _echo_info(f"Successfully Loaded {name} Normalizer data.\n")
+        _echo_info(f"Successfully loaded {name.value} normalizer data.\n")
 
     if success:
-        _echo_info("Normalizers database loaded.\n")
+        _echo_info("Normalizer databases updated.\n")
     else:
+        click.echo("Updates failed. See logs for more details.")
         click.get_current_context().exit(1)
 
 
-class _LoadCdmOption(StrEnum):
-    LOCAL = "local"
-    S3 = "s3"
+@cli.command()
+@click.option(
+    "--refresh_source_caches",
+    "-u",
+    is_flag=True,
+    default=False,
+    help=(
+        "`True` if source caches (e.g. CivicPy) should be updated prior to data regeneration. Note this will take several minutes. `False` if local cache should be used"
+    ),
+)
+@click.argument(
+    "source",
+    type=click.Choice(list(SourceName), case_sensitive=False),
+    nargs=-1,
+)
+def harvest(refresh_source_caches: bool, source: tuple[SourceName, ...]) -> None:
+    """Perform harvest.
+
+    If provided source(s), only perform harvest on those sources:
+
+        $ metakb harvest civic
+
+    \f
+    :param update_source_caches: if true, refresh source caches. Otherwise, harvest
+        from existing data if available.
+    :param source: tuple of source names. Harvest all sources if empty.
+    """  # noqa: D301
+    _harvest_sources(source, refresh_source_caches)
+
+
+@cli.command()
+@click.option(
+    "--normalizer_db_url",
+    help=(
+        "URL endpoint of normalizers DynamoDB database. If not given, defaults to `http://localhost:8000` or DB URL environment variables per the configuration rules of the individual normalizers."
+    ),
+)
+@click.argument(
+    "source",
+    type=click.Choice(list(SourceName), case_sensitive=False),
+    nargs=-1,
+)
+async def transform(normalizer_db_url: str, source: tuple[SourceName, ...]) -> None:
+    """Transform MetaKB source(s).
+    \f
+    :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
+        given, defaults to ``http://localhost:8000`` per the configuration rules of the
+        individual normalizers.
+    :param source: tuple of source names. If empty, transform all sources.
+    """  # noqa: D301
+    await _transform_sources(source, normalizer_db_url)
+
+
+@cli.command()
+@click.option(
+    "--normalizer_db_url",
+    help=(
+        "URL endpoint of normalizers DynamoDB database. If not given, defaults to `http://localhost:8000` or DB URL environment variables per the configuration rules of the individual normalizers."
+    ),
+)
+@click.argument(
+    "harvest_file",
+    type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
+    nargs=1,
+)
+@click.argument(
+    "source_name", type=click.Choice(list(SourceName), case_sensitive=False), nargs=1
+)
+async def transform_file(
+    normalizer_db_url: str, harvest_file: Path, source_name: SourceName
+) -> None:
+    """Transform an individual harvested data file. Source name must be specified as well.
+
+        $ metakb transform-file path/to/file.json civic
+
+    \f
+    :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
+        given, defaults to ``http://localhost:8000`` per the configuration rules of the
+        individual normalizers.
+    :param source_name: name of source that harvested file comes from
+    """  # noqa: D301
+    normalizer_handler = ViccNormalizers(normalizer_db_url)
+    await _transform_source(source_name, normalizer_handler, harvest_file)
+
+
+def _get_graph(db_url: str, db_creds: str) -> Graph:
+    """Acquire Neo4j graph.
+
+    :param db_url: URL endpoint for the application Neo4j database. Can also be provided
+        via environment variable ``METAKB_DB_URL``, which takes priority.
+    :param db_creds: DB username and password, separated by a colon, e.g.
+        ``"username:password"``.
+    :return: Graph instance
+    """
+    if not db_creds:
+        credentials = ("", "")  # revert to default behavior in graph constructor
+    else:
+        try:
+            split_creds = db_creds.split(":", 1)
+            credentials = (split_creds[0], split_creds[1])
+        except IndexError:
+            _help_msg(
+                f"Argument to --db_creds appears invalid. Got '{db_creds}'. Should follow pattern 'username:password'."
+            )
+    return Graph(uri=db_url, credentials=credentials)
+
+
+@cli.command()
+@click.option(
+    "--db_url",
+    default="",
+    help="URL endpoint for the application Neo4j database.",
+)
+@click.option(
+    "--db_creds",
+    help="Username and password to provide to application Neo4j database. Format as 'username:password'.",
+)
+@click.option(
+    "--from_s3",
+    is_flag=True,
+    help="Retrieves most recent data snapshot from the VICC S3 bucket and loads it. Mutually exclusive with target file arguments.",
+)
+@click.argument(
+    "cdm_file",
+    type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
+    nargs=-1,
+)
+def load_cdm(
+    db_url: str, db_creds: str, from_s3: bool, cdm_file: tuple[Path, ...]
+) -> None:
+    """Load CDM files into Neo4j graph.
+
+    If no arguments are provided, load latest available from default transformed data
+    location for each MetaKB source:
+
+        $ metakb load-cdm
+
+    Pass path to file(s) to load from a custom location:
+
+        $ metakb load-cdm path/to/file1.json path/to/file2.json
+
+    Use --from_s3 option to instead fetch snapshot files from the MetaKB S3 bucket:
+
+        $ metakb load-cdm --from_s3
+
+    Note that the Neo4j database URL, username, and password can either be set by CLI
+    options, or by environment variables METAKB_DB_URL, METAKB_DB_USERNAME, and
+    METAKB_DB_PASSWORD. If both are set, then CLI parameters take precedence. Provide
+    credentials as a single string separated by a colon:
+
+        $ metakb load-cdm --db_url=bolt://localhost:7687 --db_creds=username:password
+
+    \f
+    :param db_url: URL endpoint for the application Neo4j database. Can also be provided
+        via environment variable ``METAKB_DB_URL``, which takes priority.
+    :param db_creds: DB username and password, separated by a colon, e.g.
+        ``"username:password"``.
+    :param from_s3: Skip data harvest/transform and load latest existing CDM files from
+        VICC S3 bucket. Exclusive with ``cdm_file`` arguments.
+    :param cdm_file: tuple of specific file(s) to load from. If empty, just get latest
+        available locally for each source.
+    """  # noqa: D301
+    if from_s3 and cdm_file:
+        _help_msg("Error: Cannot use both cdm_file args and --from_s3 option.")
+
+    start = timer()
+    _echo_info("Loading Neo4j database...")
+
+    graph = _get_graph(db_url, db_creds)
+
+    if cdm_file:
+        for file in cdm_file:
+            graph.load_from_json(file)
+    else:
+        version = _retrieve_s3_cdms() if from_s3 else "*"
+        graph.clear()
+
+        for src in sorted([s.value for s in SourceName]):
+            pattern = f"{src}_cdm_{version}.json"
+            globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
+
+            try:
+                path = sorted(globbed)[-1]
+            except IndexError as e:
+                msg = f"No valid transform file found matching pattern: {pattern}"
+                raise FileNotFoundError(msg) from e
+
+            graph.load_from_json(path)
+
+    graph.close()
+    end = timer()
+    _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
 
 
 @cli.command()
@@ -160,22 +398,6 @@ class _LoadCdmOption(StrEnum):
     ),
 )
 @click.option(
-    "--load_cdm",
-    "-l",
-    type=click.Choice(list(_LoadCdmOption), case_sensitive=False),
-    help=(
-        "Load the most recent data. 'local': Clears the database and loads the most recent data from local source files. 's3': Clears the database, retrieves the most recent data from the VICC S3 bucket, and loads it. Exclusive with --load-target-cdm."
-    ),
-)
-@click.option(
-    "--load_target_cdm",
-    "-t",
-    type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
-    help=(
-        "Load transformed CDM file at specified path. Exclusive with --load_latest_cdms and --load_latest_s3_cdms."
-    ),
-)
-@click.option(
     "--update_source_caches",
     "-u",
     is_flag=True,
@@ -184,29 +406,32 @@ class _LoadCdmOption(StrEnum):
         "`True` if source caches (e.g. CivicPy) should be updated prior to data regeneration. Note this will take several minutes. `False` if local cache should be used"
     ),
 )
+@click.argument(
+    "source",
+    type=click.Choice(list(SourceName), case_sensitive=False),
+    nargs=-1,
+)
 async def update(
     db_url: str,
     db_creds: str | None,
     normalizer_db_url: str | None,
-    load_cdm: _LoadCdmOption | None,
-    load_target_cdm: Path | None,
     update_source_caches: bool,
+    source: tuple[SourceName, ...],
 ) -> None:
     """Execute data harvest and transformation from resources and upload to graph
     datastore.
 
-    To wipe all data, perform a complete refresh of biomedical concept normalizer data,
-    and fetch latest data from sources:
+    To harvest and transform source data into fresh CDM files, and then load them to
+    the graph:
 
-        $ metakb update --force_load_normalizers_db --load_latest_cdms --update_cached
-
-    To load the latest published source data from the VICC storage repository:
-
-        $ metakb update --load_latest_s3_cdms
+        $ metakb update
 
     Note that the Neo4j database URL, username, and password can either be set by CLI
     options, or by environment variables METAKB_DB_URL, METAKB_DB_USERNAME, and
-    METAKB_DB_PASSWORD. If both are set, then CLI parameters take precedence.
+    METAKB_DB_PASSWORD. If both are set, then CLI parameters take precedence. Provide
+    credentials as a single string separated by a colon:
+
+        $ metakb update --db_url=bolt://localhost:7687 --db_creds=username:password
 
     \f
     :param db_url: URL endpoint for the application Neo4j database. Can also be provided
@@ -216,19 +441,13 @@ async def update(
     :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
         given, defaults to ``http://localhost:8000`` per the configuration rules of the
         individual normalizers.
-    :param load_cdm:
-    :param load_target_cdm: Load transformed CDM file at specified path. Exclusive with
-        ``--load_cdm``.
     :param update_source_caches: ``True`` if source caches, i.e. civicpy, should be
         refreshed before loading data. Note this will take several minutes. Defaults to
         ``False``.
+    :param source: source name(s) to update. If empty, update all sources.
     """  # noqa: D301
-    if load_cdm and load_target_cdm:
-        _help_msg("Error: Can only use one of `--load_cdm` and `--load_target_cdm`.")
-
-    if (not load_cdm) and (not load_target_cdm):
-        _harvest_sources(update_source_caches)
-        await _transform_sources(normalizer_db_url)
+    _harvest_sources(source, update_source_caches)
+    await _transform_sources(source, normalizer_db_url)
 
     start = timer()
     _echo_info("Loading Neo4j database...")
@@ -245,27 +464,23 @@ async def update(
             )
     g = Graph(uri=db_url, credentials=credentials)
 
-    if load_target_cdm:
-        g.load_from_json(load_target_cdm)
-    else:
-        version = _retrieve_s3_cdms() if load_cdm == _LoadCdmOption.S3 else "*"
-        g.clear()
+    g.clear()
 
-        for src in sorted([s.value for s in SourceName]):
-            pattern = f"{src}_cdm_{version}.json"
-            globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
+    for src in sorted([s.value for s in SourceName]):
+        pattern = f"{src}_cdm_*.json"
+        globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
 
-            try:
-                path = sorted(globbed)[-1]
-            except IndexError as e:
-                msg = f"No valid transform file found matching pattern: {pattern}"
-                raise FileNotFoundError(msg) from e
+        try:
+            path = sorted(globbed)[-1]
+        except IndexError as e:
+            msg = f"No valid transform file found matching pattern: {pattern}"
+            raise FileNotFoundError(msg) from e
 
-            g.load_from_json(path)
+        g.load_from_json(path)
 
     g.close()
     end = timer()
-    _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s\n")
+    _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
 
 
 def _help_msg(msg: str = "") -> None:
@@ -284,24 +499,27 @@ def _help_msg(msg: str = "") -> None:
     ctx.exit()
 
 
-def _harvest_sources(update_cached: bool) -> None:
+def _harvest_sources(sources: tuple[SourceName, ...], refresh_cache: bool) -> None:
     """Run harvesting procedure for all sources.
 
-    :param update_cached: `True` if civicpy cache should be updated. Note this will take
-        several minutes. `False` if local cache should be used
+    :param sources: specific names of sources to harvest (harvest all if empty)
+    :param refresh_cache: if ``True``, use cached source data if available. Otherwise,
+        invalidate cache.
     """
     _echo_info("Harvesting sources...")
     harvester_sources = {
-        SourceName.CIVIC.value: CivicHarvester,
-        SourceName.MOA.value: MoaHarvester,
+        SourceName.CIVIC: CivicHarvester,
+        SourceName.MOA: MoaHarvester,
     }
+    if sources:
+        {k: v for k, v in harvester_sources.items() if k in sources}
     total_start = timer()
 
-    for source_str, source_class in harvester_sources.items():
-        _echo_info(f"Harvesting {source_str}...")
+    for source_name, source_class in harvester_sources.items():
+        _echo_info(f"Harvesting {source_name.as_print_case()}...")
         start = timer()
 
-        if source_str == SourceName.CIVIC.value and update_cached:
+        if source_name == SourceName.CIVIC and refresh_cache:
             # Use latest civic data
             _echo_info("(civicpy cache is also being updated)")
             source = source_class(update_cache=True, update_from_remote=False)
@@ -311,43 +529,63 @@ def _harvest_sources(update_cached: bool) -> None:
         harvested_data = source.harvest()
         source.save_harvested_data_to_file(harvested_data)
         end = timer()
-        _echo_info(f"{source_str} harvest finished in {(end - start):.5f} s")
+        _echo_info(
+            f"{source_name.as_print_case()} harvest finished in {(end - start):.2f} s"
+        )
 
     total_end = timer()
     _echo_info(
-        f"Successfully harvested all sources in {(total_end - total_start):.5f} s\n"
+        f"Successfully harvested all sources in {(total_end - total_start):.2f} s"
     )
 
 
-async def _transform_sources(normalizer_db_url: str | None = None) -> None:
+async def _transform_source(
+    source: SourceName,
+    normalizer_handler: ViccNormalizers,
+    harvest_file: Path | None = None,
+) -> None:
+    """Transform an individual source.
+
+    :param source: name of source
+    :param normalizer_handler: container for normalizer access
+    :param harvest_file: path to input file (if empty, transformer will use default location)
+    """
+    transform_sources = {
+        SourceName.CIVIC: CivicTransform,
+        SourceName.MOA: MoaTransform,
+    }
+    _echo_info(f"Transforming {source.value}...")
+    start = timer()
+    transformer = transform_sources[source](
+        normalizers=normalizer_handler, harvester_path=harvest_file
+    )
+    await transformer.transform()
+    end = timer()
+    _echo_info(f"{source.value} transform finished in {(end - start):.2f} s.")
+    transformer.create_json()
+
+
+async def _transform_sources(
+    sources: tuple[SourceName, ...], normalizer_db_url: str | None = None
+) -> None:
     """Run transformation procedure for all sources.
 
+    :param sources:
     :param normalizer_db_url: if given, attempt connection for all normalizers to this
         URL. Only works for DynamoDB data backends. Otherwise, fall back to
         specific normalizer env vars/defaults.
     """
     _echo_info("Transforming harvested data to CDM...")
-    transform_sources: dict[str, type[CivicTransform] | type[MoaTransform]] = {
-        SourceName.CIVIC.value: CivicTransform,
-        SourceName.MOA.value: MoaTransform,
-    }
-    total_start = timer()
-
+    if not sources:
+        sources = tuple(SourceName)
     normalizer_handler = ViccNormalizers(normalizer_db_url)
-
-    for src_str, transformer in transform_sources.items():
-        _echo_info(f"Transforming {src_str}...")
-        start = timer()
-        source = transformer(normalizers=normalizer_handler)
-        await source.transform()
-        end = timer()
-        _echo_info(f"{src_str} transform finished in {(end - start):.5f} s.")
-        source.create_json()
-
+    total_start = timer()
+    for source in sources:
+        await _transform_source(source, normalizer_handler)
     total_end = timer()
     _echo_info(
         f"Successfully transformed all sources to CDM in "
-        f"{(total_end - total_start):.5f} s\n"
+        f"{(total_end - total_start):.2f} s"
     )
 
 

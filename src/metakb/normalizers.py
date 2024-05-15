@@ -1,5 +1,7 @@
 """Module for VICC normalizers."""
 import logging
+from collections.abc import Iterable
+from enum import StrEnum
 
 from disease.database import create_db as create_disease_db
 from disease.query import QueryHandler as DiseaseQueryHandler
@@ -229,7 +231,17 @@ class ViccNormalizers:
         return regulatory_approval_extension
 
 
-def check_normalizers(db_url: str | None) -> bool:
+class NormalizerName(StrEnum):
+    """Constrain normalizer CLI options."""
+
+    GENE = "gene"
+    DISEASE = "disease"
+    THERAPY = "therapy"
+
+
+def check_normalizers(
+    db_url: str | None, normalizers: Iterable[NormalizerName] | None = None
+) -> bool:
     """Perform basic health checks on the gene, disease, and therapy normalizers.
 
     Uses the internal health check methods provided by each.
@@ -237,25 +249,37 @@ def check_normalizers(db_url: str | None) -> bool:
     :param db_url: optional designation of DB URL to use for each. Currently only
         works for DynamoDB. If not given, normalizers will fall back on their own
         env var/default configurations.
+    :param normalizers: names of specific normalizers to check (check all if empty/None)
     :return: True if all normalizers pass all checks, False if any failures are
         encountered.
     """
     success = True
-    for name, create_db in (
-        ("disease", create_disease_db),
-        ("therapy", create_therapy_db),
-        ("gene", create_gene_db),
-    ):
+    normalizer_map = {
+        NormalizerName.DISEASE: create_disease_db,
+        NormalizerName.THERAPY: create_therapy_db,
+        NormalizerName.GENE: create_gene_db,
+    }
+    if normalizers:
+        normalizer_map = {k: v for k, v in normalizer_map.items() if k in normalizers}
+    for name, create_db in normalizer_map.items():
         db = create_db(db_url)
-        schema_initialized = db.check_schema_initialized()
-        if not schema_initialized:
-            _logger.warning(
-                "Schema for %s normalizer appears incomplete or nonexistent.", name
+        try:
+            schema_initialized = db.check_schema_initialized()
+            if not schema_initialized:
+                _logger.warning(
+                    "Schema for %s normalizer appears incomplete or nonexistent.",
+                    name.value,
+                )
+                success = False
+                continue
+            tables_populated = db.check_tables_populated()
+            if not tables_populated:
+                _logger.warning(
+                    "Tables for %s normalizer appear to be unpopulated.", name.value
+                )
+                success = False
+        except Exception as e:
+            _logger.error(
+                "Encountered exception while checking %s normalizer: %s", name.value, e
             )
-            success = False
-            continue
-        tables_populated = db.check_tables_populated()
-        if not tables_populated:
-            _logger.warning("Tables for %s normalizer appear to be unpopulated.", name)
-            success = False
     return success
