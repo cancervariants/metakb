@@ -3,6 +3,7 @@ import logging
 from collections.abc import Iterable
 from enum import StrEnum
 
+from disease.cli import update_db as update_disease_db
 from disease.database import create_db as create_disease_db
 from disease.query import QueryHandler as DiseaseQueryHandler
 from disease.schemas import NormalizationService as NormalizedDisease
@@ -12,9 +13,11 @@ from ga4gh.vrs._internal.models import (
     CopyNumberChange,
     CopyNumberCount,
 )
+from gene.cli import update_normalizer_db as update_gene_db
 from gene.database import create_db as create_gene_db
 from gene.query import QueryHandler as GeneQueryHandler
 from gene.schemas import NormalizeService as NormalizedGene
+from therapy.cli import update_normalizer_db as update_therapy_db
 from therapy.database import create_db as create_therapy_db
 from therapy.query import QueryHandler as TherapyQueryHandler
 from therapy.schemas import ApprovalRating
@@ -283,3 +286,21 @@ def check_normalizers(
                 "Encountered exception while checking %s normalizer: %s", name.value, e
             )
     return success
+
+
+def update_normalizer(normalizer: NormalizerName, db_url: str | None) -> None:
+    """Refresh data for a normalizer.
+
+    :param normalizer: name of service to refresh
+    :param db_url: normalizer DB URL. If not given, will fall back on normalizer
+        defaults.
+    """
+    updater_args = ["--update_all", "--update_merged"]
+    if db_url:
+        updater_args += ["--db_url", db_url]
+    normalizer_dispatch = {
+        NormalizerName.GENE: update_gene_db,
+        NormalizerName.THERAPY: update_therapy_db,
+        NormalizerName.DISEASE: update_disease_db,
+    }
+    normalizer_dispatch[normalizer](updater_args)

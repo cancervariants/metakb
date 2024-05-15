@@ -13,24 +13,16 @@ import asyncclick as click
 import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore.config import Config
-from disease.cli import update_db as update_normalizer_disease_db
 from disease.database.database import AWS_ENV_VAR_NAME as DISEASE_AWS_ENV_VAR_NAME
-from gene.cli import update_normalizer_db as update_normalizer_gene_db
 from gene.database.database import AWS_ENV_VAR_NAME as GENE_AWS_ENV_VAR_NAME
-from therapy.cli import update_normalizer_db as update_normalizer_therapy_db
 from therapy.database.database import AWS_ENV_VAR_NAME as THERAPY_AWS_ENV_VAR_NAME
 
 from metakb import APP_ROOT
 from metakb.database import Graph
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
-from metakb.normalizers import (
-    NormalizerName,
-    ViccNormalizers,
-)
-from metakb.normalizers import (
-    check_normalizers as check_normalizer_health,
-)
+from metakb.normalizers import NormalizerName, ViccNormalizers, update_normalizer
+from metakb.normalizers import check_normalizers as check_normalizer_health
 from metakb.schemas.app import SourceName
 from metakb.transform import CivicTransform, MoaTransform
 
@@ -153,25 +145,14 @@ def update_normalizers(
     :param normalizer: tuple (possibly empty) of normalizer names to update
     """  # noqa: D301
     success = True
-    updater_args = ["--update_all", "--update_merged"]
-    if db_url:
-        updater_args += ["--db_url", db_url]
     update_params = [
-        (
-            NormalizerName.DISEASE,
-            update_normalizer_disease_db,
-            DISEASE_AWS_ENV_VAR_NAME,
-        ),
-        (
-            NormalizerName.THERAPY,
-            update_normalizer_therapy_db,
-            THERAPY_AWS_ENV_VAR_NAME,
-        ),
-        (NormalizerName.GENE, update_normalizer_gene_db, GENE_AWS_ENV_VAR_NAME),
+        (NormalizerName.DISEASE, DISEASE_AWS_ENV_VAR_NAME),
+        (NormalizerName.THERAPY, THERAPY_AWS_ENV_VAR_NAME),
+        (NormalizerName.GENE, GENE_AWS_ENV_VAR_NAME),
     ]
     if normalizer:
         update_params = [p for p in update_params if p[0] in normalizer]
-    for name, update_fn, aws_env_var_name in update_params:
+    for name, aws_env_var_name in update_params:
         if aws_env_var_name in environ:
             msg = (
                 f"Updating the {name.value} AWS database from the MetaKB CLI is "
@@ -183,10 +164,9 @@ def update_normalizers(
             success = False
             continue
 
-        click.echo("\n")
         _echo_info(f"Loading {name.value} normalizer data...")
         try:
-            update_fn(updater_args)
+            update_normalizer(name, db_url)
         except (Exception, SystemExit) as e:
             _logger.error(
                 "Encountered error while updating %s database: %s", name.value, e
