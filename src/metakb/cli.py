@@ -42,6 +42,31 @@ logging.basicConfig(
 _logger = logging.getLogger(__name__)
 
 
+def _echo_info(msg: str) -> None:
+    """Log (as INFO) and echo given message.
+
+    :param msg: message to emit
+    """
+    click.echo(msg)
+    _logger.info(msg)
+
+
+def _help_msg(msg: str = "") -> None:
+    """Handle invalid user input.
+
+    :param msg: Error message to display to user.
+    """
+    ctx = click.get_current_context()
+    _logger.fatal(msg)
+
+    if msg:
+        click.echo(msg)
+    else:
+        click.echo(ctx.get_help())
+
+    ctx.exit()
+
+
 @click.group()
 def cli() -> None:
     """Manage MetaKB data.
@@ -52,15 +77,6 @@ def cli() -> None:
         $ metakb check-normalizers || metakb load-normalizers
         $ metakb update --update_source_caches
     """  # noqa: D301
-
-
-def _echo_info(msg: str) -> None:
-    """Log (as INFO) and echo given message.
-
-    :param msg: message to emit
-    """
-    click.echo(msg)
-    _logger.info(msg)
 
 
 @cli.command()
@@ -481,22 +497,6 @@ async def update(
     g.close()
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
-
-
-def _help_msg(msg: str = "") -> None:
-    """Handle invalid user input.
-
-    :param msg: Error message to display to user.
-    """
-    ctx = click.get_current_context()
-    _logger.fatal(msg)
-
-    if msg:
-        click.echo(msg)
-    else:
-        click.echo(ctx.get_help())
-
-    ctx.exit()
 
 
 def _harvest_sources(sources: tuple[SourceName, ...], refresh_cache: bool) -> None:
