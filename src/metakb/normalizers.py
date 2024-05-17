@@ -241,6 +241,16 @@ class NormalizerName(StrEnum):
     DISEASE = "disease"
     THERAPY = "therapy"
 
+    def __repr__(self) -> str:
+        """Print as simple string rather than enum wrapper, e.g. 'gene' instead of
+        <NormalizerName.GENE: 'gene'>.
+
+        Makes Click error messages prettier.
+
+        :return: formatted enum value
+        """
+        return f"'{self.value}'"
+
 
 def check_normalizers(
     db_url: str | None, normalizers: Iterable[NormalizerName] | None = None
@@ -285,6 +295,7 @@ def check_normalizers(
             _logger.error(
                 "Encountered exception while checking %s normalizer: %s", name.value, e
             )
+            success = False
     return success
 
 

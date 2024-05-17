@@ -102,6 +102,7 @@ def check_normalizers(
 
         $ metakb check-normalizers therapy disease
 
+    Specific failures and descriptions are logged at level ERROR.
     \f
     :param db_url: URL endpoint for normalizer databases. Overrides defaults or env vars
         for each normalizer service.
@@ -114,7 +115,7 @@ def check_normalizers(
 
 
 @cli.command()
-@click.option("--db_url", help=_normalizer_db_url_description)
+@click.option("--db_url", "-u", help=_normalizer_db_url_description)
 @click.argument(
     "normalizer",
     type=click.Choice(list(NormalizerName), case_sensitive=False),
@@ -132,7 +133,7 @@ def update_normalizers(
 
         $ metakb update-normalizers
 
-    Providing individual normalizer names as arguments will only update those
+    Providing individual normalizer names as arguments will update only those
     normalizers:
 
         $ metakb update-normalizers disease therapy
@@ -177,7 +178,7 @@ def update_normalizers(
     if success:
         _echo_info("Normalizer databases updated.\n")
     else:
-        click.echo("Updates failed. See logs for more details.")
+        click.echo("Not all updates were successful. See logs for more details.")
         click.get_current_context().exit(1)
 
 
@@ -188,7 +189,7 @@ def update_normalizers(
     is_flag=True,
     default=False,
     help=(
-        "`True` if source caches (e.g. CivicPy) should be updated prior to data regeneration. Note this will take several minutes. `False` if local cache should be used"
+        "True if source caches (e.g. CivicPy) should be updated prior to data regeneration. Note this will take several minutes. False if local cache should be used"
     ),
 )
 @click.option(
@@ -330,7 +331,7 @@ def _get_graph(db_url: str, db_creds: str | None) -> Graph:
 
 
 @cli.command()
-@click.option("--db_url", default="", help=_neo4j_db_url_description)
+@click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
 @click.option("--db_creds", help=_neo4j_creds_description)
 @click.option(
     "--from_s3",
@@ -410,7 +411,7 @@ def load_cdm(
 
 
 @cli.command()
-@click.option("--db_url", default="", help=_neo4j_db_url_description)
+@click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
 @click.option("--db_creds", help=_neo4j_creds_description)
 @click.option("--normalizer_db_url", help=_normalizer_db_url_description)
 @click.option(
@@ -516,7 +517,7 @@ def _harvest_sources(
         SourceName.MOA: MoaHarvester,
     }
     if sources:
-        {k: v for k, v in harvester_sources.items() if k in sources}
+        harvester_sources = {k: v for k, v in harvester_sources.items() if k in sources}
     total_start = timer()
 
     for name, source_class in harvester_sources.items():

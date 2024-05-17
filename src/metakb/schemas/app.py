@@ -20,3 +20,13 @@ class SourceName(StrEnum):
         if self == "moa":
             return "MOA"
         raise ValueError
+
+    def __repr__(self) -> str:
+        """Print as simple string rather than enum wrapper, e.g. 'civic' instead of
+        <NormalizerName.CIVIC: 'civic'>.
+
+        Makes Click error messages prettier.
+
+        :return: formatted enum value
+        """
+        return f"'{self.value}'"
