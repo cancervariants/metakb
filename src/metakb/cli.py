@@ -68,7 +68,7 @@ def cli() -> None:
 
     \b
         $ metakb check-normalizers || metakb load-normalizers
-        $ metakb update --update_source_caches
+        $ metakb update --refresh_source_caches
 
     Other commands are available for more granular control over the update process.
     """  # noqa: D301
@@ -80,7 +80,7 @@ _neo4j_creds_description = "Username and password to provide to application Neo4
 
 
 @cli.command()
-@click.option("--db_url", "-u", help=_normalizer_db_url_description)
+@click.option("--normalizer_db_url", "-u", help=_normalizer_db_url_description)
 @click.argument(
     "normalizer",
     type=click.Choice(list(NormalizerName), case_sensitive=False),
@@ -115,7 +115,7 @@ def check_normalizers(
 
 
 @cli.command()
-@click.option("--db_url", "-u", help=_normalizer_db_url_description)
+@click.option("--normalizer_db_url", "-n", help=_normalizer_db_url_description)
 @click.argument(
     "normalizer",
     type=click.Choice(list(NormalizerName), case_sensitive=False),
@@ -185,7 +185,7 @@ def update_normalizers(
 @cli.command()
 @click.option(
     "--refresh_source_caches",
-    "-u",
+    "-r",
     is_flag=True,
     default=False,
     help=(
@@ -222,7 +222,7 @@ def harvest(
         $ metakb harvest civic
 
     \f
-    :param update_source_caches: if true, refresh source caches. Otherwise, harvest
+    :param refresh_source_caches: if true, refresh source caches. Otherwise, harvest
         from existing data if available.
     :param output_directory: directory to save output file(s) to
     :param source: tuple of source names. Harvest all sources if empty.
@@ -231,7 +231,7 @@ def harvest(
 
 
 @cli.command()
-@click.option("--normalizer_db_url", help=_normalizer_db_url_description)
+@click.option("--normalizer_db_url", "-n", help=_normalizer_db_url_description)
 @click.option(
     "--output_directory",
     "-o",
@@ -266,7 +266,7 @@ async def transform(
 
 
 @cli.command()
-@click.option("--normalizer_db_url", help=_normalizer_db_url_description)
+@click.option("--normalizer_db_url", "-n", help=_normalizer_db_url_description)
 @click.option(
     "--output_directory",
     "-o",
@@ -313,8 +313,7 @@ async def transform_file(
 def _get_graph(db_url: str, db_creds: str | None) -> Graph:
     """Acquire Neo4j graph.
 
-    :param db_url: URL endpoint for the application Neo4j database. Can also be provided
-        via environment variable ``METAKB_DB_URL``, which takes priority.
+    :param db_url: URL endpoint for the application Neo4j database.
     :param db_creds: DB username and password, separated by a colon, e.g.
         ``"username:password"``.
     :return: Graph instance
@@ -337,6 +336,7 @@ def _get_graph(db_url: str, db_creds: str | None) -> Graph:
 @click.option("--db_credentials", "-c", help=_neo4j_creds_description)
 @click.option(
     "--from_s3",
+    "-s",
     is_flag=True,
     help="Retrieves most recent data snapshot from the VICC S3 bucket and loads it. Mutually exclusive with target file arguments.",
 )
@@ -371,8 +371,7 @@ def load_cdm(
         $ metakb load-cdm --db_url=bolt://localhost:7687 --db_credentialss=username:password
 
     \f
-    :param db_url: URL endpoint for the application Neo4j database. Can also be provided
-        via environment variable ``METAKB_DB_URL``, which takes priority.
+    :param db_url: URL endpoint for the application Neo4j database.
     :param db_credentials: DB username and password, separated by a colon, e.g.
         ``"username:password"``.
     :param from_s3: Skip data harvest/transform and load latest existing CDM files from
@@ -414,11 +413,11 @@ def load_cdm(
 
 @cli.command()
 @click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
-@click.option("--db_credentails", help=_neo4j_creds_description)
-@click.option("--normalizer_db_url", help=_normalizer_db_url_description)
+@click.option("--db_credentails", "-c", help=_neo4j_creds_description)
+@click.option("--normalizer_db_url", "-n", help=_normalizer_db_url_description)
 @click.option(
-    "--update_source_caches",
-    "-u",
+    "--refresh_source_caches",
+    "-r",
     is_flag=True,
     default=False,
     help=(
@@ -434,7 +433,7 @@ async def update(
     db_url: str,
     db_credentials: str | None,
     normalizer_db_url: str | None,
-    update_source_caches: bool,
+    refresh_source_caches: bool,
     source: tuple[SourceName, ...],
 ) -> None:
     """Execute data harvest and transformation from resources and upload to graph
@@ -453,18 +452,17 @@ async def update(
         $ metakb update --db_url=bolt://localhost:7687 --db_credentials=username:password
 
     \f
-    :param db_url: URL endpoint for the application Neo4j database. Can also be provided
-        via environment variable ``METAKB_DB_URL``, which takes priority.
+    :param db_url: URL endpoint for the application Neo4j database.
     :param db_credentials: DB username and password, separated by a colon, e.g.
         ``"username:password"``.
     :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
         given, defaults to the configuration rules of the individual normalizers.
-    :param update_source_caches: ``True`` if source caches, i.e. civicpy, should be
+    :param refresh_source_caches: ``True`` if source caches, i.e. civicpy, should be
         refreshed before loading data. Note this will take several minutes. Defaults to
         ``False``.
     :param source: source name(s) to update. If empty, update all sources.
     """  # noqa: D301
-    _harvest_sources(source, update_source_caches)
+    _harvest_sources(source, refresh_source_caches)
     await _transform_sources(source, None, normalizer_db_url)
 
     start = timer()
