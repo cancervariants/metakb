@@ -251,7 +251,7 @@ def harvest(
     nargs=-1,
 )
 async def transform(
-    normalizer_db_url: str,
+    normalizer_db_url: str | None,
     output_directory: Path | None,
     source: tuple[SourceName, ...],
 ) -> None:
@@ -288,7 +288,7 @@ async def transform(
     "source_name", type=click.Choice(list(SourceName), case_sensitive=False), nargs=1
 )
 async def transform_file(
-    normalizer_db_url: str,
+    normalizer_db_url: str | None,
     output_directory: Path | None,
     harvest_file: Path,
     source_name: SourceName,
@@ -300,6 +300,8 @@ async def transform_file(
     \f
     :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
         given, defaults to the configuration rules of the individual normalizers.
+    :param output_directory: directory to save output file(s) to
+    :param harvest_file: path to harvest output file
     :param source_name: name of source that harvested file comes from
     """  # noqa: D301
     normalizer_handler = ViccNormalizers(normalizer_db_url)
@@ -325,14 +327,14 @@ def _get_graph(db_url: str, db_creds: str | None) -> Graph:
             credentials = (split_creds[0], split_creds[1])
         except IndexError:
             _help_msg(
-                f"Argument to --db_creds appears invalid. Got '{db_creds}'. Should follow pattern 'username:password'."
+                f"Argument to --db_credentialss appears invalid. Got '{db_creds}'. Should follow pattern 'username:password'."
             )
     return Graph(uri=db_url, credentials=credentials)
 
 
 @cli.command()
 @click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
-@click.option("--db_creds", help=_neo4j_creds_description)
+@click.option("--db_credentials", "-c", help=_neo4j_creds_description)
 @click.option(
     "--from_s3",
     is_flag=True,
@@ -344,7 +346,7 @@ def _get_graph(db_url: str, db_creds: str | None) -> Graph:
     nargs=-1,
 )
 def load_cdm(
-    db_url: str, db_creds: str | None, from_s3: bool, cdm_file: tuple[Path, ...]
+    db_url: str, db_credentials: str | None, from_s3: bool, cdm_file: tuple[Path, ...]
 ) -> None:
     """Load CDM files into Neo4j graph.
 
@@ -366,12 +368,12 @@ def load_cdm(
     METAKB_DB_PASSWORD. If both are set, then CLI parameters take precedence. Provide
     credentials as a single string separated by a colon:
 
-        $ metakb load-cdm --db_url=bolt://localhost:7687 --db_creds=username:password
+        $ metakb load-cdm --db_url=bolt://localhost:7687 --db_credentialss=username:password
 
     \f
     :param db_url: URL endpoint for the application Neo4j database. Can also be provided
         via environment variable ``METAKB_DB_URL``, which takes priority.
-    :param db_creds: DB username and password, separated by a colon, e.g.
+    :param db_credentials: DB username and password, separated by a colon, e.g.
         ``"username:password"``.
     :param from_s3: Skip data harvest/transform and load latest existing CDM files from
         VICC S3 bucket. Exclusive with ``cdm_file`` arguments.
@@ -384,7 +386,7 @@ def load_cdm(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    graph = _get_graph(db_url, db_creds)
+    graph = _get_graph(db_url, db_credentials)
 
     if cdm_file:
         for file in cdm_file:
@@ -412,7 +414,7 @@ def load_cdm(
 
 @cli.command()
 @click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
-@click.option("--db_creds", help=_neo4j_creds_description)
+@click.option("--db_credentails", help=_neo4j_creds_description)
 @click.option("--normalizer_db_url", help=_normalizer_db_url_description)
 @click.option(
     "--update_source_caches",
@@ -430,7 +432,7 @@ def load_cdm(
 )
 async def update(
     db_url: str,
-    db_creds: str | None,
+    db_credentials: str | None,
     normalizer_db_url: str | None,
     update_source_caches: bool,
     source: tuple[SourceName, ...],
@@ -448,12 +450,12 @@ async def update(
     METAKB_DB_PASSWORD. If both are set, then CLI parameters take precedence. Provide
     credentials as a single string separated by a colon:
 
-        $ metakb update --db_url=bolt://localhost:7687 --db_creds=username:password
+        $ metakb update --db_url=bolt://localhost:7687 --db_credentials=username:password
 
     \f
     :param db_url: URL endpoint for the application Neo4j database. Can also be provided
         via environment variable ``METAKB_DB_URL``, which takes priority.
-    :param db_creds: DB username and password, separated by a colon, e.g.
+    :param db_credentials: DB username and password, separated by a colon, e.g.
         ``"username:password"``.
     :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
         given, defaults to the configuration rules of the individual normalizers.
@@ -468,7 +470,7 @@ async def update(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    graph = _get_graph(db_url, db_creds)
+    graph = _get_graph(db_url, db_credentials)
 
     graph.clear()
 
