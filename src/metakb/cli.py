@@ -75,7 +75,7 @@ def cli() -> None:
 
 
 _normalizer_db_url_description = "URL endpoint of normalizer database. If not given, the individual normalizers will revert to their own defaults."
-_neo4j_db_url_description = ("URL endpoint for the application Neo4j database.",)
+_neo4j_db_url_description = "URL endpoint for the application Neo4j database."
 _neo4j_creds_description = "Username and password to provide to application Neo4j database. Format as 'username:password'."
 
 
