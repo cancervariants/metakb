@@ -64,9 +64,11 @@ def _help_msg(msg: str = "") -> None:
 def cli() -> None:
     """Manage MetaKB data.
 
-    To prepare normalizers if unavailable, invalidate cached data, then load MetaKB data:
+    To reset the graph, prepare normalizers if unavailable, invalidate cached data, then
+    load MetaKB data:
 
     \b
+        $ metakb clear-graph
         $ metakb check-normalizers || metakb load-normalizers
         $ metakb update --refresh_source_caches
 
@@ -334,6 +336,31 @@ def _get_graph(db_url: str, db_creds: str | None) -> Graph:
 @cli.command()
 @click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
 @click.option("--db_credentials", "-c", help=_neo4j_creds_description)
+def clear_graph(db_url: str, db_credentials: str | None) -> None:
+    """Wipe graph DB.
+
+        $ metakb clear-graph
+
+    Note that the Neo4j database URL, username, and password can either be set by CLI
+    options, or by environment variables METAKB_DB_URL, METAKB_DB_USERNAME, and
+    METAKB_DB_PASSWORD. If both are set, then CLI parameters take precedence. Provide
+    credentials as a single string separated by a colon:
+
+        $ metakb clear-graph --db_url=bolt://localhost:7687 --db_credentialss=username:password
+
+    \f
+    :param db_url: URL endpoint for the application Neo4j database.
+    :param db_credentials: DB username and password, separated by a colon, e.g.
+        ``"username:password"``.
+    """  # noqa: D301
+    graph = _get_graph(db_url, db_credentials)
+    graph.clear()
+    graph.close()
+
+
+@cli.command()
+@click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
+@click.option("--db_credentials", "-c", help=_neo4j_creds_description)
 @click.option(
     "--from_s3",
     "-s",
@@ -386,7 +413,6 @@ def load_cdm(
     _echo_info("Loading Neo4j database...")
 
     graph = _get_graph(db_url, db_credentials)
-    graph.clear()
 
     if cdm_file:
         for file in cdm_file:
@@ -469,8 +495,9 @@ async def update(
     _echo_info("Loading Neo4j database...")
 
     graph = _get_graph(db_url, db_credentials)
-    graph.clear()
 
+    if not source:
+        source = tuple(SourceName)
     for src in sorted([s.value for s in source]):
         pattern = f"{src}_cdm_*.json"
         globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
