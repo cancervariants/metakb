@@ -386,13 +386,13 @@ def load_cdm(
     _echo_info("Loading Neo4j database...")
 
     graph = _get_graph(db_url, db_credentials)
+    graph.clear()
 
     if cdm_file:
         for file in cdm_file:
             graph.load_from_json(file)
     else:
         version = _retrieve_s3_cdms() if from_s3 else "*"
-        graph.clear()
 
         for src in sorted([s.value for s in SourceName]):
             pattern = f"{src}_cdm_{version}.json"
@@ -469,7 +469,6 @@ async def update(
     _echo_info("Loading Neo4j database...")
 
     graph = _get_graph(db_url, db_credentials)
-
     graph.clear()
 
     for src in sorted([s.value for s in source]):
@@ -565,14 +564,14 @@ async def _transform_source(
         SourceName.CIVIC: CivicTransform,
         SourceName.MOA: MoaTransform,
     }
-    _echo_info(f"Transforming {source.value}...")
+    _echo_info(f"Transforming {source.as_print_case()}...")
     start = timer()
     transformer: CivicTransform | MoaTransform = transform_sources[source](
         normalizers=normalizer_handler, harvester_path=harvest_file
     )
     await transformer.transform()
     end = timer()
-    _echo_info(f"{source.value} transform finished in {(end - start):.2f} s.")
+    _echo_info(f"{source.as_print_case()} transform finished in {(end - start):.2f} s.")
     output_file = (
         output_directory / f"{source.value}_cdm_{_current_date_string()}.json"
         if output_directory
