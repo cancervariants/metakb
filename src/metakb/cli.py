@@ -1,6 +1,7 @@
 """Provide CLI utility for performing data collection, transformation, and upload
 to graph datastore.
 """
+import datetime
 import logging
 import re
 import tempfile
@@ -17,7 +18,7 @@ from disease.database.database import AWS_ENV_VAR_NAME as DISEASE_AWS_ENV_VAR_NA
 from gene.database.database import AWS_ENV_VAR_NAME as GENE_AWS_ENV_VAR_NAME
 from therapy.database.database import AWS_ENV_VAR_NAME as THERAPY_AWS_ENV_VAR_NAME
 
-from metakb import APP_ROOT
+from metakb import APP_ROOT, DATE_FMT
 from metakb.database import Graph
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
@@ -188,12 +189,29 @@ def update_normalizers(
         "`True` if source caches (e.g. CivicPy) should be updated prior to data regeneration. Note this will take several minutes. `False` if local cache should be used"
     ),
 )
+@click.option(
+    "--output_directory",
+    "-o",
+    type=click.Path(
+        exists=False,
+        file_okay=False,
+        dir_okay=True,
+        readable=True,
+        writable=True,
+        path_type=Path,
+    ),
+    help="Directory to save output file(s) to.",
+)
 @click.argument(
     "source",
     type=click.Choice(list(SourceName), case_sensitive=False),
     nargs=-1,
 )
-def harvest(refresh_source_caches: bool, source: tuple[SourceName, ...]) -> None:
+def harvest(
+    refresh_source_caches: bool,
+    output_directory: Path | None,
+    source: tuple[SourceName, ...],
+) -> None:
     """Perform harvest.
 
     If provided source(s), only perform harvest on those sources:
@@ -203,30 +221,61 @@ def harvest(refresh_source_caches: bool, source: tuple[SourceName, ...]) -> None
     \f
     :param update_source_caches: if true, refresh source caches. Otherwise, harvest
         from existing data if available.
+    :param output_directory: directory to save output file(s) to
     :param source: tuple of source names. Harvest all sources if empty.
     """  # noqa: D301
-    _harvest_sources(source, refresh_source_caches)
+    _harvest_sources(source, refresh_source_caches, output_directory)
 
 
 @cli.command()
 @click.option("--normalizer_db_url", help=_normalizer_db_url_description)
+@click.option(
+    "--output_directory",
+    "-o",
+    type=click.Path(
+        exists=False,
+        file_okay=False,
+        dir_okay=True,
+        readable=True,
+        writable=True,
+        path_type=Path,
+    ),
+    help="Directory to save output file(s) to.",
+)
 @click.argument(
     "source",
     type=click.Choice(list(SourceName), case_sensitive=False),
     nargs=-1,
 )
-async def transform(normalizer_db_url: str, source: tuple[SourceName, ...]) -> None:
+async def transform(
+    normalizer_db_url: str,
+    output_directory: Path | None,
+    source: tuple[SourceName, ...],
+) -> None:
     """Transform MetaKB source(s).
     \f
     :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
         given, defaults to the configuration rules of the individual normalizers.
+    :param output_directory: directory to save output file(s) to
     :param source: tuple of source names. If empty, transform all sources.
     """  # noqa: D301
-    await _transform_sources(source, normalizer_db_url)
+    await _transform_sources(source, output_directory, normalizer_db_url)
 
 
 @cli.command()
 @click.option("--normalizer_db_url", help=_normalizer_db_url_description)
+@click.option(
+    "--output_directory",
+    "-o",
+    type=click.Path(
+        exists=False,
+        file_okay=False,
+        dir_okay=True,
+        readable=True,
+        writable=True,
+        path_type=Path,
+    ),
+)
 @click.argument(
     "harvest_file",
     type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
@@ -236,7 +285,10 @@ async def transform(normalizer_db_url: str, source: tuple[SourceName, ...]) -> N
     "source_name", type=click.Choice(list(SourceName), case_sensitive=False), nargs=1
 )
 async def transform_file(
-    normalizer_db_url: str, harvest_file: Path, source_name: SourceName
+    normalizer_db_url: str,
+    output_directory: Path | None,
+    harvest_file: Path,
+    source_name: SourceName,
 ) -> None:
     """Transform an individual harvested data file. Source name must be specified as well.
 
@@ -248,10 +300,12 @@ async def transform_file(
     :param source_name: name of source that harvested file comes from
     """  # noqa: D301
     normalizer_handler = ViccNormalizers(normalizer_db_url)
-    await _transform_source(source_name, normalizer_handler, harvest_file)
+    await _transform_source(
+        source_name, normalizer_handler, harvest_file, output_directory
+    )
 
 
-def _get_graph(db_url: str, db_creds: str) -> Graph:
+def _get_graph(db_url: str, db_creds: str | None) -> Graph:
     """Acquire Neo4j graph.
 
     :param db_url: URL endpoint for the application Neo4j database. Can also be provided
@@ -287,7 +341,7 @@ def _get_graph(db_url: str, db_creds: str) -> Graph:
     nargs=-1,
 )
 def load_cdm(
-    db_url: str, db_creds: str, from_s3: bool, cdm_file: tuple[Path, ...]
+    db_url: str, db_creds: str | None, from_s3: bool, cdm_file: tuple[Path, ...]
 ) -> None:
     """Load CDM files into Neo4j graph.
 
@@ -406,24 +460,14 @@ async def update(
     :param source: source name(s) to update. If empty, update all sources.
     """  # noqa: D301
     _harvest_sources(source, update_source_caches)
-    await _transform_sources(source, normalizer_db_url)
+    await _transform_sources(source, None, normalizer_db_url)
 
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    if not db_creds:
-        credentials = ("", "")  # revert to default behavior in graph constructor
-    else:
-        try:
-            split_creds = db_creds.split(":", 1)
-            credentials = (split_creds[0], split_creds[1])
-        except IndexError:
-            _help_msg(
-                f"Argument to --db_creds appears invalid. Got '{db_creds}'. Should follow pattern 'username:password'."
-            )
-    g = Graph(uri=db_url, credentials=credentials)
+    graph = _get_graph(db_url, db_creds)
 
-    g.clear()
+    graph.clear()
 
     for src in sorted([s.value for s in source]):
         pattern = f"{src}_cdm_*.json"
@@ -435,19 +479,34 @@ async def update(
             msg = f"No valid transform file found matching pattern: {pattern}"
             raise FileNotFoundError(msg) from e
 
-        g.load_from_json(path)
+        graph.load_from_json(path)
 
-    g.close()
+    graph.close()
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
 
 
-def _harvest_sources(sources: tuple[SourceName, ...], refresh_cache: bool) -> None:
+def _current_date_string() -> str:
+    """Get current date as ISO8601 string
+
+    :return: YYYYMMDD string
+    """
+    return datetime.datetime.strftime(
+        datetime.datetime.now(tz=datetime.timezone.utc), DATE_FMT
+    )
+
+
+def _harvest_sources(
+    sources: tuple[SourceName, ...],
+    refresh_cache: bool,
+    output_directory: Path | None = None,
+) -> None:
     """Run harvesting procedure for all sources.
 
     :param sources: specific names of sources to harvest (harvest all if empty)
     :param refresh_cache: if ``True``, use cached source data if available. Otherwise,
         invalidate cache.
+    :param output_directory: directory to save harvester output to
     """
     _echo_info("Harvesting sources...")
     harvester_sources = {
@@ -458,23 +517,26 @@ def _harvest_sources(sources: tuple[SourceName, ...], refresh_cache: bool) -> No
         {k: v for k, v in harvester_sources.items() if k in sources}
     total_start = timer()
 
-    for source_name, source_class in harvester_sources.items():
-        _echo_info(f"Harvesting {source_name.as_print_case()}...")
+    for name, source_class in harvester_sources.items():
+        _echo_info(f"Harvesting {name.as_print_case()}...")
         start = timer()
 
-        if source_name == SourceName.CIVIC and refresh_cache:
+        if name == SourceName.CIVIC and refresh_cache:
             # Use latest civic data
             _echo_info("(civicpy cache is also being updated)")
             source = source_class(update_cache=True, update_from_remote=False)
         else:
             source = source_class()
 
-        harvested_data = source.harvest()
-        source.save_harvested_data_to_file(harvested_data)
-        end = timer()
-        _echo_info(
-            f"{source_name.as_print_case()} harvest finished in {(end - start):.2f} s"
+        output_file = (
+            output_directory / f"{name.value}_harvester_{_current_date_string()}.json"
+            if output_directory
+            else None
         )
+        harvested_data = source.harvest()
+        source.save_harvested_data_to_file(harvested_data, output_file)
+        end = timer()
+        _echo_info(f"{name.as_print_case()} harvest finished in {(end - start):.2f} s")
 
     total_end = timer()
     _echo_info(
@@ -486,12 +548,15 @@ async def _transform_source(
     source: SourceName,
     normalizer_handler: ViccNormalizers,
     harvest_file: Path | None = None,
+    output_directory: Path | None = None,
 ) -> None:
     """Transform an individual source.
 
     :param source: name of source
     :param normalizer_handler: container for normalizer access
     :param harvest_file: path to input file (if empty, transformer will use default location)
+    :param output_directory: custom directory to store output to -- use source defaults
+        if not given
     """
     transform_sources = {
         SourceName.CIVIC: CivicTransform,
@@ -499,21 +564,30 @@ async def _transform_source(
     }
     _echo_info(f"Transforming {source.value}...")
     start = timer()
-    transformer = transform_sources[source](
+    transformer: CivicTransform | MoaTransform = transform_sources[source](
         normalizers=normalizer_handler, harvester_path=harvest_file
     )
     await transformer.transform()
     end = timer()
     _echo_info(f"{source.value} transform finished in {(end - start):.2f} s.")
-    transformer.create_json()
+    output_file = (
+        output_directory / f"{source.value}_cdm_{_current_date_string()}.json"
+        if output_directory
+        else None
+    )
+    transformer.create_json(output_file)
 
 
 async def _transform_sources(
-    sources: tuple[SourceName, ...], normalizer_db_url: str | None = None
+    sources: tuple[SourceName, ...],
+    output_directory: Path | None,
+    normalizer_db_url: str | None = None,
 ) -> None:
     """Run transformation procedure for all sources.
 
-    :param sources:
+    :param sources: names of source(s) to transform
+    :param output_directory: custom directory to store output to -- use source defaults
+        if not given
     :param normalizer_db_url: if given, attempt connection for all normalizers to this
         URL. Only works for DynamoDB data backends. Otherwise, fall back to
         specific normalizer env vars/defaults.
@@ -524,7 +598,9 @@ async def _transform_sources(
     normalizer_handler = ViccNormalizers(normalizer_db_url)
     total_start = timer()
     for source in sources:
-        await _transform_source(source, normalizer_handler)
+        await _transform_source(
+            source, normalizer_handler, output_directory=output_directory
+        )
     total_end = timer()
     _echo_info(
         f"Successfully transformed all sources to CDM in "
@@ -540,8 +616,8 @@ def _retrieve_s3_cdms() -> str:
 
     :return: date string from retrieved files to use when loading to DB.
     :raise ResourceLoadException: if S3 initialization fails
-    :raise FileNotFoundError:  if unable to find files matching expected
-        pattern in VICC MetaKB bucket.
+    :raise FileNotFoundError:  if unable to find files matching expected pattern in
+        VICC MetaKB bucket.
     """
     _echo_info("Attempting to fetch CDM files from S3 bucket")
     s3 = boto3.resource("s3", config=Config(region_name="us-east-2"))

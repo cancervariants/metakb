@@ -477,7 +477,7 @@ class Transform:
             },
         )
 
-    def create_json(self, cdm_filepath: str | None = None) -> None:
+    def create_json(self, cdm_filepath: Path | None = None) -> None:
         """Create a composite JSON for transformed data.
 
         :param cdm_filepath: Path to the JSON file where the CDM data will be
