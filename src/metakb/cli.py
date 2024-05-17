@@ -69,6 +69,8 @@ def cli() -> None:
     \b
         $ metakb check-normalizers || metakb load-normalizers
         $ metakb update --update_source_caches
+
+    Other commands are available for more granular control over the update process.
     """  # noqa: D301
 
 
