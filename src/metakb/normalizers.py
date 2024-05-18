@@ -1,7 +1,7 @@
 """Module for VICC normalizers."""
 import logging
 from collections.abc import Iterable
-from enum import StrEnum
+from enum import Enum
 
 from disease.cli import update_db as update_disease_db
 from disease.database import create_db as create_disease_db
@@ -234,7 +234,7 @@ class ViccNormalizers:
         return regulatory_approval_extension
 
 
-class NormalizerName(StrEnum):
+class NormalizerName(str, Enum):
     """Constrain normalizer CLI options."""
 
     GENE = "gene"

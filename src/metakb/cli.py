@@ -52,10 +52,7 @@ def _help_msg(msg: str = "") -> None:
     ctx = click.get_current_context()
     _logger.fatal(msg)
 
-    if msg:
-        click.echo(msg)
-    else:
-        click.echo(ctx.get_help())
+    click.echo(msg) if msg else click.echo(ctx.get_help())
 
     ctx.exit()
 
@@ -191,7 +188,7 @@ def update_normalizers(
     is_flag=True,
     default=False,
     help=(
-        "True if source caches (e.g. CivicPy) should be updated prior to data regeneration. Note this will take several minutes. False if local cache should be used"
+        "True if source caches (e.g. CIViCPy) should be updated prior to data regeneration. Note this will take several minutes. False if local cache should be used"
     ),
 )
 @click.option(
@@ -447,7 +444,7 @@ def load_cdm(
     is_flag=True,
     default=False,
     help=(
-        "`True` if source caches (e.g. CivicPy) should be updated prior to data regeneration. Note this will take several minutes. `False` if local cache should be used"
+        "`True` if source caches (e.g. CIViCPy) should be updated prior to data regeneration. Note this will take several minutes. `False` if local cache should be used"
     ),
 )
 @click.argument(
@@ -483,7 +480,7 @@ async def update(
         ``"username:password"``.
     :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
         given, defaults to the configuration rules of the individual normalizers.
-    :param refresh_source_caches: ``True`` if source caches, i.e. civicpy, should be
+    :param refresh_source_caches: ``True`` if source caches, i.e. CIViCPy, should be
         refreshed before loading data. Note this will take several minutes. Defaults to
         ``False``.
     :param source: source name(s) to update. If empty, update all sources.
@@ -552,7 +549,7 @@ def _harvest_sources(
 
         if name == SourceName.CIVIC and refresh_cache:
             # Use latest civic data
-            _echo_info("(civicpy cache is also being updated)")
+            _echo_info("(CIViCPy cache is also being updated)")
             source = source_class(update_cache=True, update_from_remote=False)
         else:
             source = source_class()
