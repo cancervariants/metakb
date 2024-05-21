@@ -5,6 +5,7 @@ import datetime
 import logging
 import re
 import tempfile
+from enum import Enum
 from os import environ
 from pathlib import Path
 from timeit import default_timer as timer
@@ -78,15 +79,25 @@ _neo4j_db_url_description = "URL endpoint for the application Neo4j database."
 _neo4j_creds_description = "Username and password to provide to application Neo4j database. Format as 'username:password'."
 
 
+def _print_enum_metavar(enum: type[Enum]) -> str:
+    """Format enum for Click metavar printout in help message.
+
+    :param enum: enum class
+    :return: formatted string, eg "[[civic|moa]]..."
+    """
+    return f"[[{'|'.join(list(enum))}]]..."
+
+
 @cli.command()
 @click.option("--normalizer_db_url", "-u", help=_normalizer_db_url_description)
 @click.argument(
-    "normalizer",
+    "normalizers",
+    metavar=_print_enum_metavar(NormalizerName),
     type=click.Choice(list(NormalizerName), case_sensitive=False),
     nargs=-1,
 )
 def check_normalizers(
-    db_url: str | None, normalizer: tuple[NormalizerName, ...]
+    db_url: str | None, normalizers: tuple[NormalizerName, ...]
 ) -> None:
     """Perform basic checks on DB health and table population for normalizers. Exits with
     status code 1 if >= 1 DB schema is uninitialized or critical tables appear empty for one
@@ -105,9 +116,9 @@ def check_normalizers(
     \f
     :param db_url: URL endpoint for normalizer databases. Overrides defaults or env vars
         for each normalizer service.
-    :param normalizer: tuple (possibly empty) of normalizer names to check
+    :param normalizers: tuple (possibly empty) of normalizer names to check
     """  # noqa: D301
-    if not check_normalizer_health(db_url, normalizer):
+    if not check_normalizer_health(db_url, normalizers):
         _logger.warning("Normalizer check failed.")
         click.get_current_context().exit(1)
     _logger.info("Normalizer check passed.")
@@ -116,12 +127,13 @@ def check_normalizers(
 @cli.command()
 @click.option("--normalizer_db_url", "-n", help=_normalizer_db_url_description)
 @click.argument(
-    "normalizer",
+    "normalizers",
+    metavar=_print_enum_metavar(NormalizerName),
     type=click.Choice(list(NormalizerName), case_sensitive=False),
     nargs=-1,
 )
 def update_normalizers(
-    db_url: str | None, normalizer: tuple[NormalizerName, ...]
+    normalizer_db_url: str | None, normalizers: tuple[NormalizerName, ...]
 ) -> None:
     """Reload gene, disease, and therapy normalizer data.
 
@@ -140,7 +152,7 @@ def update_normalizers(
     \f
     :param db_url: URL endpoint of normalizers DynamoDB database. If not given, the
         individual normalizers will revert to their own defaults.
-    :param normalizer: tuple (possibly empty) of normalizer names to update
+    :param normalizers: tuple (possibly empty) of normalizer names to update
     """  # noqa: D301
     success = True
     update_params = [
@@ -148,8 +160,8 @@ def update_normalizers(
         (NormalizerName.THERAPY, THERAPY_AWS_ENV_VAR_NAME),
         (NormalizerName.GENE, GENE_AWS_ENV_VAR_NAME),
     ]
-    if normalizer:
-        update_params = [p for p in update_params if p[0] in normalizer]
+    if normalizers:
+        update_params = [p for p in update_params if p[0] in normalizers]
     for name, aws_env_var_name in update_params:
         if aws_env_var_name in environ:
             msg = (
@@ -164,7 +176,7 @@ def update_normalizers(
 
         _echo_info(f"Loading {name.value} normalizer data...")
         try:
-            update_normalizer(name, db_url)
+            update_normalizer(name, normalizer_db_url)
         except (Exception, SystemExit) as e:
             _logger.error(
                 "Encountered error while updating %s database: %s", name.value, e
@@ -205,28 +217,31 @@ def update_normalizers(
     help="Directory to save output file(s) to.",
 )
 @click.argument(
-    "source",
+    "sources",
+    metavar=_print_enum_metavar(SourceName),
     type=click.Choice(list(SourceName), case_sensitive=False),
     nargs=-1,
 )
 def harvest(
     refresh_source_caches: bool,
     output_directory: Path | None,
-    source: tuple[SourceName, ...],
+    sources: tuple[SourceName, ...],
 ) -> None:
     """Perform harvest.
 
-    If provided source(s), only perform harvest on those sources:
+    If provided SOURCE(s), only perform harvest on those sources:
 
         $ metakb harvest civic
+
+    Otherwise, harvest all known sources.
 
     \f
     :param refresh_source_caches: if true, refresh source caches. Otherwise, harvest
         from existing data if available.
     :param output_directory: directory to save output file(s) to
-    :param source: tuple of source names. Harvest all sources if empty.
+    :param sources: tuple of source names. Harvest all sources if empty.
     """  # noqa: D301
-    _harvest_sources(source, refresh_source_caches, output_directory)
+    _harvest_sources(sources, refresh_source_caches, output_directory)
 
 
 @cli.command()
@@ -245,23 +260,31 @@ def harvest(
     help="Directory to save output file(s) to.",
 )
 @click.argument(
-    "source",
+    "sources",
+    metavar=_print_enum_metavar(SourceName),
     type=click.Choice(list(SourceName), case_sensitive=False),
     nargs=-1,
 )
 async def transform(
     normalizer_db_url: str | None,
     output_directory: Path | None,
-    source: tuple[SourceName, ...],
+    sources: tuple[SourceName, ...],
 ) -> None:
-    """Transform MetaKB source(s).
+    """Transform MetaKB SOURCE(s).
+
+    If provided names of SOURCEs, perform transform on those sources only:
+
+        $ metakb transform civic
+
+    Otherwise, transform all available sources.
+
     \f
     :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
         given, defaults to the configuration rules of the individual normalizers.
     :param output_directory: directory to save output file(s) to
-    :param source: tuple of source names. If empty, transform all sources.
+    :param sources: tuple of source names. If empty, transform all sources.
     """  # noqa: D301
-    await _transform_sources(source, output_directory, normalizer_db_url)
+    await _transform_sources(sources, output_directory, normalizer_db_url)
 
 
 @cli.command()
@@ -372,7 +395,7 @@ def clear_graph(db_url: str, db_credentials: str | None) -> None:
 def load_cdm(
     db_url: str, db_credentials: str | None, from_s3: bool, cdm_file: tuple[Path, ...]
 ) -> None:
-    """Load CDM files into Neo4j graph.
+    """Load one or more CDM_FILEs into Neo4j graph.
 
     If no arguments are provided, load latest available from default transformed data
     location for each MetaKB source:
@@ -448,7 +471,8 @@ def load_cdm(
     ),
 )
 @click.argument(
-    "source",
+    "sources",
+    metavar=_print_enum_metavar(SourceName),
     type=click.Choice(list(SourceName), case_sensitive=False),
     nargs=-1,
 )
@@ -457,7 +481,7 @@ async def update(
     db_credentials: str | None,
     normalizer_db_url: str | None,
     refresh_source_caches: bool,
-    source: tuple[SourceName, ...],
+    sources: tuple[SourceName, ...],
 ) -> None:
     """Execute data harvest and transformation from resources and upload to graph
     datastore.
@@ -474,6 +498,11 @@ async def update(
 
         $ metakb update --db_url=bolt://localhost:7687 --db_credentials=username:password
 
+    Provide one or more SOURCE arguments to limit data harvest and transformation to
+    just those source(s):
+
+        $ metakb update moa
+
     \f
     :param db_url: URL endpoint for the application Neo4j database.
     :param db_credentials: DB username and password, separated by a colon, e.g.
@@ -483,19 +512,19 @@ async def update(
     :param refresh_source_caches: ``True`` if source caches, i.e. CIViCPy, should be
         refreshed before loading data. Note this will take several minutes. Defaults to
         ``False``.
-    :param source: source name(s) to update. If empty, update all sources.
+    :param sources: source name(s) to update. If empty, update all sources.
     """  # noqa: D301
-    _harvest_sources(source, refresh_source_caches)
-    await _transform_sources(source, None, normalizer_db_url)
+    _harvest_sources(sources, refresh_source_caches)
+    await _transform_sources(sources, None, normalizer_db_url)
 
     start = timer()
     _echo_info("Loading Neo4j database...")
 
     graph = _get_graph(db_url, db_credentials)
 
-    if not source:
-        source = tuple(SourceName)
-    for src in sorted([s.value for s in source]):
+    if not sources:
+        sources = tuple(SourceName)
+    for src in sorted([s.value for s in sources]):
         pattern = f"{src}_cdm_*.json"
         globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
 
