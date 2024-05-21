@@ -388,12 +388,13 @@ def clear_graph(db_url: str, db_credentials: str | None) -> None:
     help="Retrieves most recent data snapshot from the VICC S3 bucket and loads it. Mutually exclusive with target file arguments.",
 )
 @click.argument(
-    "cdm_file",
+    "cdm_files",
+    metavar="[CDM_FILE]...",
     type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
     nargs=-1,
 )
 def load_cdm(
-    db_url: str, db_credentials: str | None, from_s3: bool, cdm_file: tuple[Path, ...]
+    db_url: str, db_credentials: str | None, from_s3: bool, cdm_files: tuple[Path, ...]
 ) -> None:
     """Load one or more CDM_FILEs into Neo4j graph.
 
@@ -423,10 +424,10 @@ def load_cdm(
         ``"username:password"``.
     :param from_s3: Skip data harvest/transform and load latest existing CDM files from
         VICC S3 bucket. Exclusive with ``cdm_file`` arguments.
-    :param cdm_file: tuple of specific file(s) to load from. If empty, just get latest
+    :param cdm_files: tuple of specific file(s) to load from. If empty, just get latest
         available locally for each source.
     """  # noqa: D301
-    if from_s3 and cdm_file:
+    if from_s3 and cdm_files:
         _help_msg("Error: Cannot use both cdm_file args and --from_s3 option.")
 
     start = timer()
@@ -434,8 +435,8 @@ def load_cdm(
 
     graph = _get_graph(db_url, db_credentials)
 
-    if cdm_file:
-        for file in cdm_file:
+    if cdm_files:
+        for file in cdm_files:
             graph.load_from_json(file)
     else:
         version = _retrieve_s3_cdms() if from_s3 else "*"
