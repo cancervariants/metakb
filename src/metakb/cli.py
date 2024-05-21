@@ -6,7 +6,6 @@ import logging
 import re
 import tempfile
 from enum import Enum
-from os import environ
 from pathlib import Path
 from timeit import default_timer as timer
 from zipfile import ZipFile
@@ -15,15 +14,18 @@ import asyncclick as click
 import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore.config import Config
-from disease.database.database import AWS_ENV_VAR_NAME as DISEASE_AWS_ENV_VAR_NAME
-from gene.database.database import AWS_ENV_VAR_NAME as GENE_AWS_ENV_VAR_NAME
-from therapy.database.database import AWS_ENV_VAR_NAME as THERAPY_AWS_ENV_VAR_NAME
 
 from metakb import APP_ROOT, DATE_FMT
 from metakb.database import Graph
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
-from metakb.normalizers import NormalizerName, ViccNormalizers, update_normalizer
+from metakb.normalizers import (
+    IllegalUpdateError,
+    NormalizerName,
+    ViccNormalizers,
+    normalizer_aws_env_vars,
+    update_normalizer,
+)
 from metakb.normalizers import check_normalizers as check_normalizer_health
 from metakb.schemas.app import SourceName
 from metakb.transform import CivicTransform, MoaTransform
@@ -155,28 +157,22 @@ def update_normalizers(
     :param normalizers: tuple (possibly empty) of normalizer names to update
     """  # noqa: D301
     success = True
-    update_params = [
-        (NormalizerName.DISEASE, DISEASE_AWS_ENV_VAR_NAME),
-        (NormalizerName.THERAPY, THERAPY_AWS_ENV_VAR_NAME),
-        (NormalizerName.GENE, GENE_AWS_ENV_VAR_NAME),
-    ]
-    if normalizers:
-        update_params = [p for p in update_params if p[0] in normalizers]
-    for name, aws_env_var_name in update_params:
-        if aws_env_var_name in environ:
+    if not normalizers:
+        normalizers = tuple(NormalizerName)
+    for name in normalizers:
+        _echo_info(f"Loading {name.value} normalizer data...")
+        try:
+            update_normalizer(name, normalizer_db_url)
+        except IllegalUpdateError:
             msg = (
                 f"Updating the {name.value} AWS database from the MetaKB CLI is "
-                f"prohibited. Unset the environment variable:`{aws_env_var_name}` to "
-                "proceed."
+                f"prohibited. Unset the environment variable "
+                f"{normalizer_aws_env_vars[name]} to proceed."
             )
             _logger.error(msg)
             click.echo(msg)
             success = False
             continue
-
-        _echo_info(f"Loading {name.value} normalizer data...")
-        try:
-            update_normalizer(name, normalizer_db_url)
         except (Exception, SystemExit) as e:
             _logger.error(
                 "Encountered error while updating %s database: %s", name.value, e

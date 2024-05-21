@@ -1,10 +1,12 @@
 """Module for VICC normalizers."""
 import logging
+import os
 from collections.abc import Iterable
 from enum import Enum
 
 from disease.cli import update_db as update_disease_db
 from disease.database import create_db as create_disease_db
+from disease.database.database import AWS_ENV_VAR_NAME as DISEASE_AWS_ENV_VAR_NAME
 from disease.query import QueryHandler as DiseaseQueryHandler
 from disease.schemas import NormalizationService as NormalizedDisease
 from ga4gh.core._internal.models import Extension
@@ -15,10 +17,12 @@ from ga4gh.vrs._internal.models import (
 )
 from gene.cli import update_normalizer_db as update_gene_db
 from gene.database import create_db as create_gene_db
+from gene.database.database import AWS_ENV_VAR_NAME as GENE_AWS_ENV_VAR_NAME
 from gene.query import QueryHandler as GeneQueryHandler
 from gene.schemas import NormalizeService as NormalizedGene
 from therapy.cli import update_normalizer_db as update_therapy_db
 from therapy.database import create_db as create_therapy_db
+from therapy.database.database import AWS_ENV_VAR_NAME as THERAPY_AWS_ENV_VAR_NAME
 from therapy.query import QueryHandler as TherapyQueryHandler
 from therapy.schemas import ApprovalRating
 from therapy.schemas import NormalizationService as NormalizedTherapy
@@ -299,19 +303,36 @@ def check_normalizers(
     return success
 
 
+class IllegalUpdateError(Exception):
+    """Raise if illegal update operation is attempted."""
+
+
+# map normalizer to env var used to designate production DB setting
+normalizer_aws_env_vars = {
+    NormalizerName.DISEASE: DISEASE_AWS_ENV_VAR_NAME,
+    NormalizerName.THERAPY: THERAPY_AWS_ENV_VAR_NAME,
+    NormalizerName.GENE: GENE_AWS_ENV_VAR_NAME,
+}
+
+# map normalizer to update function
+_normalizer_method_dispatch = {
+    NormalizerName.GENE: update_gene_db,
+    NormalizerName.THERAPY: update_therapy_db,
+    NormalizerName.DISEASE: update_disease_db,
+}
+
+
 def update_normalizer(normalizer: NormalizerName, db_url: str | None) -> None:
     """Refresh data for a normalizer.
 
     :param normalizer: name of service to refresh
     :param db_url: normalizer DB URL. If not given, will fall back on normalizer
         defaults.
+    :raise IllegalUpdateError: if attempting to update cloud DB instances
     """
+    if normalizer_aws_env_vars[normalizer] in os.environ:
+        raise IllegalUpdateError
     updater_args = ["--update_all", "--update_merged"]
     if db_url:
         updater_args += ["--db_url", db_url]
-    normalizer_dispatch = {
-        NormalizerName.GENE: update_gene_db,
-        NormalizerName.THERAPY: update_therapy_db,
-        NormalizerName.DISEASE: update_disease_db,
-    }
-    normalizer_dispatch[normalizer](updater_args)
+    _normalizer_method_dispatch[normalizer](updater_args)
