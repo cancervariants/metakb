@@ -28,6 +28,15 @@ from therapy.schemas import ApprovalRating
 from therapy.schemas import NormalizationService as NormalizedTherapy
 from variation.query import QueryHandler as VariationQueryHandler
 
+__all__ = [
+    "ViccNormalizers",
+    "NormalizerName",
+    "check_normalizers",
+    "IllegalUpdateError",
+    "update_normalizer",
+    "NORMALIZER_AWS_ENV_VARS",
+]
+
 _logger = logging.getLogger(__name__)
 
 
@@ -308,14 +317,14 @@ class IllegalUpdateError(Exception):
 
 
 # map normalizer to env var used to designate production DB setting
-normalizer_aws_env_vars = {
+NORMALIZER_AWS_ENV_VARS = {
     NormalizerName.DISEASE: DISEASE_AWS_ENV_VAR_NAME,
     NormalizerName.THERAPY: THERAPY_AWS_ENV_VAR_NAME,
     NormalizerName.GENE: GENE_AWS_ENV_VAR_NAME,
 }
 
 # map normalizer to update function
-_normalizer_method_dispatch = {
+_NORMALIZER_METHOD_DISPATCH = {
     NormalizerName.GENE: update_gene_db,
     NormalizerName.THERAPY: update_therapy_db,
     NormalizerName.DISEASE: update_disease_db,
@@ -330,9 +339,9 @@ def update_normalizer(normalizer: NormalizerName, db_url: str | None) -> None:
         defaults.
     :raise IllegalUpdateError: if attempting to update cloud DB instances
     """
-    if normalizer_aws_env_vars[normalizer] in os.environ:
+    if NORMALIZER_AWS_ENV_VARS[normalizer] in os.environ:
         raise IllegalUpdateError
     updater_args = ["--update_all", "--update_merged"]
     if db_url:
         updater_args += ["--db_url", db_url]
-    _normalizer_method_dispatch[normalizer](updater_args)
+    _NORMALIZER_METHOD_DISPATCH[normalizer](updater_args)

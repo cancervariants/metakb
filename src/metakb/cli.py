@@ -20,10 +20,10 @@ from metakb.database import Graph
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
 from metakb.normalizers import (
+    NORMALIZER_AWS_ENV_VARS,
     IllegalUpdateError,
     NormalizerName,
     ViccNormalizers,
-    normalizer_aws_env_vars,
     update_normalizer,
 )
 from metakb.normalizers import check_normalizers as check_normalizer_health
@@ -152,8 +152,8 @@ def update_normalizers(
         $ metakb update-normalizers disease therapy
 
     \f
-    :param db_url: URL endpoint of normalizers DynamoDB database. If not given, the
-        individual normalizers will revert to their own defaults.
+    :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
+        given, the individual normalizers will revert to their own defaults.
     :param normalizers: tuple (possibly empty) of normalizer names to update
     """  # noqa: D301
     success = True
@@ -167,7 +167,7 @@ def update_normalizers(
             msg = (
                 f"Updating the {name.value} AWS database from the MetaKB CLI is "
                 f"prohibited. Unset the environment variable "
-                f"{normalizer_aws_env_vars[name]} to proceed."
+                f"{NORMALIZER_AWS_ENV_VARS[name]} to proceed."
             )
             _logger.error(msg)
             click.echo(msg)
