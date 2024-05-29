@@ -77,30 +77,17 @@ class QueryHandler:
         normalizers: ViccNormalizers | None = None,
     ) -> None:
         """Initialize neo4j driver and the VICC normalizers.
-        <<<<<<< HEAD
 
-                All arguments are optional; if not given, resources acquisition will be
-                attempted with default parameters. Pass arguments for ``uri`` and ``creds``
-                to provide them manually:
+        All arguments are optional; if not given, resources acquisition will be
+        attempted with default parameters. Pass arguments for ``uri`` and ``creds``
+        to provide them manually:
 
-                >>> from metakb.query import QueryHandler
-                >>> qh = QueryHandler("bolt://localhost:7687", ("neo4j", "password"))
+        >>> from metakb.query import QueryHandler
+        >>> qh = QueryHandler("bolt://localhost:7687", ("neo4j", "password"))
 
-                :param uri: address of Neo4j DB
-                :param credentials: tuple containing username and password
-                :param normalizers: normalizer collection instance
-        ||||||| 2ecb8a5
-                :param str uri: address of Neo4j DB
-                :param Tuple[str, str] credentials: tuple containing username and
-                    password
-                :param ViccNormalizers normalizers: normalizer collection instance
-        =======
-
-                :param uri: address of Neo4j DB
-                :param credentials: tuple containing username and
-                    password
-                :param normalizers: normalizer collection instance
-        >>>>>>> staging
+        :param uri: address of Neo4j DB
+        :param credentials: tuple containing username and password
+        :param normalizers: normalizer collection instance
         """
         if normalizers is None:
             normalizers = ViccNormalizers()

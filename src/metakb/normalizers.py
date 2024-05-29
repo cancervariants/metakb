@@ -57,6 +57,7 @@ class ViccNormalizers:
 
         Note that gene concept lookups within the Variation Normalizer are resolved
         using the Gene Normalizer instance, rather than creating a second sub-instance.
+
         :param db_url: optional definition of shared normalizer database. Currently
             only works for DynamoDB backend. If not given, each normalizer falls back
             on default behavior for connecting to a database.
