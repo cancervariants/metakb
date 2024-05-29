@@ -63,6 +63,7 @@ Source = "https://github.com/cancervariants/metakb"
 "Bug Tracker" = "https://github.com/cancervariants/metakb/issues"
 
 [project.scripts]
+metakb = "metakb.cli:cli"
 
 [build-system]
 requires = ["setuptools>=64"]

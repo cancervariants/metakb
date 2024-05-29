@@ -3,6 +3,7 @@ import datetime
 import json
 import logging
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 from pydantic import BaseModel
 
@@ -28,7 +29,7 @@ class Harvester(ABC):
         """
 
     def save_harvested_data_to_file(
-        self, harvested_data: _HarvestedData, harvested_filepath: str | None = None
+        self, harvested_data: _HarvestedData, harvested_filepath: Path | None = None
     ) -> bool:
         """Save harvested data to JSON file
 

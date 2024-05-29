@@ -1,21 +1,43 @@
 """Handle construction of and relay requests to VICC normalizer services."""
 import logging
+import os
+from collections.abc import Iterable
+from enum import Enum
 
+from disease.cli import update_db as update_disease_db
 from disease.database import create_db as create_disease_db
+from disease.database.database import AWS_ENV_VAR_NAME as DISEASE_AWS_ENV_VAR_NAME
 from disease.query import QueryHandler as DiseaseQueryHandler
 from disease.schemas import NormalizationService as NormalizedDisease
-from ga4gh.core import core_models
-from ga4gh.vrs import models
+from ga4gh.core._internal.models import Extension
+from ga4gh.vrs._internal.models import (
+    Allele,
+    CopyNumberChange,
+    CopyNumberCount,
+)
+from gene.cli import update_normalizer_db as update_gene_db
 from gene.database import create_db as create_gene_db
+from gene.database.database import AWS_ENV_VAR_NAME as GENE_AWS_ENV_VAR_NAME
 from gene.query import QueryHandler as GeneQueryHandler
 from gene.schemas import NormalizeService as NormalizedGene
+from therapy.cli import update_normalizer_db as update_therapy_db
 from therapy.database import create_db as create_therapy_db
+from therapy.database.database import AWS_ENV_VAR_NAME as THERAPY_AWS_ENV_VAR_NAME
 from therapy.query import QueryHandler as TherapyQueryHandler
 from therapy.schemas import ApprovalRating
 from therapy.schemas import NormalizationService as NormalizedTherapy
 from variation.query import QueryHandler as VariationQueryHandler
 
-logger = logging.getLogger(__name__)
+__all__ = [
+    "ViccNormalizers",
+    "NormalizerName",
+    "check_normalizers",
+    "IllegalUpdateError",
+    "update_normalizer",
+    "NORMALIZER_AWS_ENV_VARS",
+]
+
+_logger = logging.getLogger(__name__)
 
 
 class ViccNormalizers:
@@ -29,21 +51,26 @@ class ViccNormalizers:
     particularly important when multiple terms are given.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, db_url: str | None = None) -> None:
         """Initialize normalizers. Construct a normalizer instance for each service
         (gene, variation, disease, therapy) and retain them as instance properties.
 
         Note that gene concept lookups within the Variation Normalizer are resolved
         using the Gene Normalizer instance, rather than creating a second sub-instance.
+        :param db_url: optional definition of shared normalizer database. Currently
+            only works for DynamoDB backend. If not given, each normalizer falls back
+            on default behavior for connecting to a database.
         """
-        self.gene_query_handler = GeneQueryHandler(create_gene_db())
+        self.gene_query_handler = GeneQueryHandler(create_gene_db(db_url))
         self.variation_normalizer = VariationQueryHandler(
             gene_query_handler=self.gene_query_handler
         )
-        self.disease_query_handler = DiseaseQueryHandler(create_disease_db())
-        self.therapy_query_handler = TherapyQueryHandler(create_therapy_db())
+        self.disease_query_handler = DiseaseQueryHandler(create_disease_db(db_url))
+        self.therapy_query_handler = TherapyQueryHandler(create_therapy_db(db_url))
 
-    async def normalize_variation(self, queries: list[str]) -> models.Variation | None:
+    async def normalize_variation(
+        self, queries: list[str]
+    ) -> Allele | CopyNumberChange | CopyNumberCount | None:
         """Normalize variation queries.
 
         :param queries: Candidate query strings to attempt to normalize. Should be
@@ -62,7 +89,7 @@ class ViccNormalizers:
                 if variation_norm_resp and variation_norm_resp.variation:
                     return variation_norm_resp.variation
             except Exception as e:
-                logger.warning(
+                _logger.warning(
                     "Variation Normalizer raised an exception using query %s: %s",
                     query,
                     e,
@@ -104,7 +131,7 @@ class ViccNormalizers:
             try:
                 gene_norm_resp = self.gene_query_handler.normalize(query_str)
             except Exception as e:
-                logger.warning(
+                _logger.warning(
                     "Gene Normalizer raised an exception using query %s: %s",
                     query_str,
                     e,
@@ -150,7 +177,7 @@ class ViccNormalizers:
             try:
                 disease_norm_resp = self.disease_query_handler.normalize(query)
             except Exception as e:
-                logger.warning(
+                _logger.warning(
                     "Disease Normalizer raised an exception using query %s: %s",
                     query,
                     e,
@@ -196,7 +223,7 @@ class ViccNormalizers:
             try:
                 therapy_norm_resp = self.therapy_query_handler.normalize(query)
             except Exception as e:
-                logger.warning(
+                _logger.warning(
                     "Therapy Normalizer raised an exception using query %s: %s",
                     query,
                     e,
@@ -212,11 +239,11 @@ class ViccNormalizers:
     @staticmethod
     def get_regulatory_approval_extension(
         therapy_norm_resp: NormalizedTherapy,
-    ) -> core_models.Extension | None:
+    ) -> Extension | None:
         """Given therapy normalization service response, extract out the regulatory
         approval extension
 
-        :param NormalizedTherapy therapy_norm_resp: Response from normalizing therapy
+        :param therapy_norm_resp: Response from normalizing therapy
         :return: Extension containing transformed regulatory approval and indication
             data if it `regulatory_approval` extensions exists in therapy normalizer
         """
@@ -265,7 +292,7 @@ class ViccNormalizers:
 
                             matched_indications.append(matched_ind)
 
-                regulatory_approval_extension = core_models.Extension(
+                regulatory_approval_extension = Extension(
                     name="regulatory_approval",
                     value={
                         "approval_rating": "FDA"
@@ -276,3 +303,103 @@ class ViccNormalizers:
                 )
 
         return regulatory_approval_extension
+
+
+class NormalizerName(str, Enum):
+    """Constrain normalizer CLI options."""
+
+    GENE = "gene"
+    DISEASE = "disease"
+    THERAPY = "therapy"
+
+    def __repr__(self) -> str:
+        """Print as simple string rather than enum wrapper, e.g. 'gene' instead of
+        <NormalizerName.GENE: 'gene'>.
+
+        Makes Click error messages prettier.
+
+        :return: formatted enum value
+        """
+        return f"'{self.value}'"
+
+
+def check_normalizers(
+    db_url: str | None, normalizers: Iterable[NormalizerName] | None = None
+) -> bool:
+    """Perform basic health checks on the gene, disease, and therapy normalizers.
+
+    Uses the internal health check methods provided by each.
+
+    :param db_url: optional designation of DB URL to use for each. Currently only
+        works for DynamoDB. If not given, normalizers will fall back on their own
+        env var/default configurations.
+    :param normalizers: names of specific normalizers to check (check all if empty/None)
+    :return: True if all normalizers pass all checks, False if any failures are
+        encountered.
+    """
+    success = True
+    normalizer_map = {
+        NormalizerName.DISEASE: create_disease_db,
+        NormalizerName.THERAPY: create_therapy_db,
+        NormalizerName.GENE: create_gene_db,
+    }
+    if normalizers:
+        normalizer_map = {k: v for k, v in normalizer_map.items() if k in normalizers}
+    for name, create_db in normalizer_map.items():
+        db = create_db(db_url)
+        try:
+            schema_initialized = db.check_schema_initialized()
+            if not schema_initialized:
+                _logger.warning(
+                    "Schema for %s normalizer appears incomplete or nonexistent.",
+                    name.value,
+                )
+                success = False
+                continue
+            tables_populated = db.check_tables_populated()
+            if not tables_populated:
+                _logger.warning(
+                    "Tables for %s normalizer appear to be unpopulated.", name.value
+                )
+                success = False
+        except Exception as e:
+            _logger.error(
+                "Encountered exception while checking %s normalizer: %s", name.value, e
+            )
+            success = False
+    return success
+
+
+class IllegalUpdateError(Exception):
+    """Raise if illegal update operation is attempted."""
+
+
+# map normalizer to env var used to designate production DB setting
+NORMALIZER_AWS_ENV_VARS = {
+    NormalizerName.DISEASE: DISEASE_AWS_ENV_VAR_NAME,
+    NormalizerName.THERAPY: THERAPY_AWS_ENV_VAR_NAME,
+    NormalizerName.GENE: GENE_AWS_ENV_VAR_NAME,
+}
+
+# map normalizer to update function
+_NORMALIZER_METHOD_DISPATCH = {
+    NormalizerName.GENE: update_gene_db,
+    NormalizerName.THERAPY: update_therapy_db,
+    NormalizerName.DISEASE: update_disease_db,
+}
+
+
+def update_normalizer(normalizer: NormalizerName, db_url: str | None) -> None:
+    """Refresh data for a normalizer.
+
+    :param normalizer: name of service to refresh
+    :param db_url: normalizer DB URL. If not given, will fall back on normalizer
+        defaults.
+    :raise IllegalUpdateError: if attempting to update cloud DB instances
+    """
+    if NORMALIZER_AWS_ENV_VARS[normalizer] in os.environ:
+        raise IllegalUpdateError
+    updater_args = ["--update_all", "--update_merged"]
+    if db_url:
+        updater_args += ["--db_url", db_url]
+    _NORMALIZER_METHOD_DISPATCH[normalizer](updater_args)

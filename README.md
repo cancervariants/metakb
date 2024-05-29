@@ -10,7 +10,7 @@ The intent of the project is to leverage the collective knowledge of the dispara
 
 ### Prerequisites
 
-* A newer version of Python 3, preferably 3.8 or greater. To confirm on your system, run:
+* A newer version of Python 3, preferably 3.10 or greater. To confirm on your system, run:
 
 ```
 python3 --version
@@ -114,16 +114,15 @@ MetaKB relies on environment variables to set in order to work.
 
 ### Loading data
 
-Once Neo4j and DynamoDB instances are both running, and necessary normalizer data has been placed, run the MetaKB CLI with the `--initialize_normalizers` flag to acquire all other necessary normalizer source data, and execute harvest, transform, and load operations into the graph datastore.
+Once all service and data dependencies are available, clear the graph, load normalizer data, and initiate harvest, transform, and data loading operations:
 
-In the MetaKB project root, run the following:
-
-```sh
+```shell
 pipenv shell
-python3 -m metakb.cli --db_url=bolt://localhost:7687 --db_username=neo4j --db_password=<neo4j-password-here> --load_normalizers_db
+metakb metakb load-normalizers
+metakb update --refresh_source_caches
 ```
 
-For more information on the different CLI arguments, see the [CLI README](docs/cli/README.md).
+The `--help` flag can be provided to any CLI command to bring up additional documentation.
 
 ### Starting the server
 

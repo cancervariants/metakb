@@ -5,7 +5,16 @@ import logging
 from pathlib import Path
 from urllib.parse import quote
 
-from ga4gh.core import core_models, sha512t24u
+from ga4gh.core import sha512t24u
+from ga4gh.core._internal.models import (
+    Coding,
+    Disease,
+    Extension,
+    Gene,
+    Mapping,
+    Relation,
+    TherapeuticAgent,
+)
 from ga4gh.vrs import models
 
 from metakb import APP_ROOT
@@ -49,9 +58,6 @@ class MoaTransform(Transform):
 
         # Method will always be the same
         self.methods = [self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]]
-
-        # Cache for normalized concepts. The key is the concept type and value is a
-        # dictionary of mappings from MOA concept (key) to transformed concept (value)
         self.able_to_normalize = {
             "variations": {},
             "diseases": {},
@@ -147,14 +153,14 @@ class MoaTransform(Transform):
                     # skipping HORMONE and CHEMOTHERAPY for now
                     continue
 
-                therapies = [tn.strip() for tn in therapy_name.split("+")]
+                therapies = [{"label": tn.strip()} for tn in therapy_name.split("+")]
                 therapeutic_digest = self._get_digest_for_str_lists(
                     [f"moa.therapy:{tn}" for tn in therapies]
                 )
                 therapeutic_procedure_id = f"moa.ctid:{therapeutic_digest}"
             else:
                 therapeutic_procedure_id = f"moa.therapy:{therapy_name}"
-                therapies = [therapy_name]
+                therapies = [{"label": therapy_name}]
                 therapeutic_procedure_type = TherapeuticProcedureType.THERAPEUTIC_AGENT
 
             moa_therapeutic = self._add_therapeutic_procedure(
@@ -205,7 +211,7 @@ class MoaTransform(Transform):
             self.studies.append(statement)
 
     def _get_variant_onco_study_qualifier(
-        self, feature_type: str, gene: core_models.Gene | None = None
+        self, feature_type: str, gene: Gene | None = None
     ) -> _VariantOncogenicityStudyQualifier | None:
         """Get Variant Oncogenicity Study Qualifier
 
@@ -309,31 +315,29 @@ class MoaTransform(Transform):
             ]
             moa_rep_coord = {k: variant.get(k) for k in coordinates_keys}
             extensions = [
-                core_models.Extension(
-                    name="MOA representative coordinate", value=moa_rep_coord
-                )
+                Extension(name="MOA representative coordinate", value=moa_rep_coord)
             ]
             members = await self._get_variation_members(moa_rep_coord)
 
             # Add mappings data
             mappings = [
-                core_models.Mapping(
-                    coding=core_models.Coding(
+                Mapping(
+                    coding=Coding(
                         code=str(variant_id),
                         system="https://moalmanac.org/api/features/",
                     ),
-                    relation=core_models.Relation.EXACT_MATCH,
+                    relation=Relation.EXACT_MATCH,
                 )
             ]
 
             if variant["rsid"]:
                 mappings.append(
-                    core_models.Mapping(
-                        coding=core_models.Coding(
+                    Mapping(
+                        coding=Coding(
                             code=variant["rsid"],
                             system="https://www.ncbi.nlm.nih.gov/snp/",
                         ),
-                        relation=core_models.Relation.RELATED_MATCH,
+                        relation=Relation.RELATED_MATCH,
                     )
                 )
 
@@ -402,13 +406,11 @@ class MoaTransform(Transform):
         for gene in genes:
             _, normalized_gene_id = self.vicc_normalizers.normalize_gene([gene])
             if normalized_gene_id:
-                moa_gene = core_models.Gene(
+                moa_gene = Gene(
                     id=f"moa.normalize.gene:{quote(gene)}",
                     label=gene,
                     extensions=[
-                        core_models.Extension(
-                            name="gene_normalizer_id", value=normalized_gene_id
-                        )
+                        Extension(name="gene_normalizer_id", value=normalized_gene_id)
                     ],
                 ).model_dump(exclude_none=True)
                 self.able_to_normalize["genes"][quote(gene)] = moa_gene
@@ -427,12 +429,12 @@ class MoaTransform(Transform):
 
             if source["nct"]:
                 mappings = [
-                    core_models.Mapping(
-                        coding=core_models.Coding(
+                    Mapping(
+                        coding=Coding(
                             code=source["nct"],
                             system="https://clinicaltrials.gov/search?term=",
                         ),
-                        relation=core_models.Relation.EXACT_MATCH,
+                        relation=Relation.EXACT_MATCH,
                     )
                 ]
             else:
@@ -445,9 +447,7 @@ class MoaTransform(Transform):
                 pmid=source["pmid"] if source["pmid"] else None,
                 doi=source["doi"] if source["doi"] else None,
                 mappings=mappings,
-                extensions=[
-                    core_models.Extension(name="source_type", value=source["type"])
-                ],
+                extensions=[Extension(name="source_type", value=source["type"])],
             ).model_dump(exclude_none=True)
             self.able_to_normalize["documents"][source_id] = document
             self.documents.append(document)
@@ -466,21 +466,22 @@ class MoaTransform(Transform):
         :return: None, since not supported by MOA
         """
 
-    def _get_therapeutic_agent(self, label: str) -> dict | None:
+    def _get_therapeutic_agent(self, therapy: dict) -> TherapeuticAgent | None:
         """Get Therapeutic Agent for a MOA therapy name.
+
         Will run `label` through therapy-normalizer.
 
-        :param label: MOA therapy name
+        :param therapy: MOA therapy name
         :return: If able to normalize therapy, returns therapeutic agent represented as
             a dict
         """
         (
             therapy_norm_resp,
             normalized_therapeutic_id,
-        ) = self.vicc_normalizers.normalize_therapy([label])
+        ) = self.vicc_normalizers.normalize_therapy([therapy["label"]])
 
         if not normalized_therapeutic_id:
-            logger.debug("Therapy Normalizer unable to normalize: %s", label)
+            logger.debug("Therapy Normalizer unable to normalize: %s", therapy)
             return None
 
         extensions = [
@@ -496,11 +497,11 @@ class MoaTransform(Transform):
         if regulatory_approval_extension:
             extensions.append(regulatory_approval_extension)
 
-        return core_models.TherapeuticAgent(
+        return TherapeuticAgent(
             id=f"moa.{therapy_norm_resp.therapeutic_agent.id}",
-            label=label,
+            label=therapy["label"],
             extensions=extensions,
-        ).model_dump(exclude_none=True)
+        )
 
     def _add_disease(self, disease: dict) -> dict | None:
         """Create or get disease given MOA disease.
@@ -520,7 +521,9 @@ class MoaTransform(Transform):
         # Since MOA disease objects do not have an ID, we will create a digest from
         # the original MOA disease object
         disease_list = sorted([f"{k}:{v}" for k, v in disease.items() if v])
-        blob = json.dumps(disease_list, separators=(",", ":")).encode("ascii")
+        blob = json.dumps(disease_list, separators=(",", ":"), sort_keys=True).encode(
+            "ascii"
+        )
         disease_id = sha512t24u(blob)
 
         vrs_disease = self.able_to_normalize["diseases"].get(disease_id)
@@ -537,11 +540,10 @@ class MoaTransform(Transform):
         return vrs_disease
 
     def _get_disease(self, disease: dict) -> dict | None:
-        """Get core_models.Disease object for a MOA disease
+        """Get Disease object for a MOA disease
 
         :param disease: MOA disease record
-        :return: If able to normalize, core_models.Disease represented as a dict.
-            Otherwise, `None`
+        :return: If able to normalize, Disease represented as a dict. Otherwise, `None`
         """
         queries = []
         mappings = []
@@ -550,13 +552,13 @@ class MoaTransform(Transform):
         ot_term = disease["oncotree_term"]
         if ot_code:
             mappings.append(
-                core_models.Mapping(
-                    coding=core_models.Coding(
+                Mapping(
+                    coding=Coding(
                         code=ot_code,
                         system="https://oncotree.mskcc.org/",
                         label=ot_term,
                     ),
-                    relation=core_models.Relation.EXACT_MATCH,
+                    relation=Relation.EXACT_MATCH,
                 )
             )
             queries.append(f"oncotree:{disease['oncotree_code']}")
@@ -577,7 +579,7 @@ class MoaTransform(Transform):
             logger.debug("Disease Normalizer unable to normalize: %s", queries)
             return None
 
-        return core_models.Disease(
+        return Disease(
             id=f"moa.{disease_norm_resp.disease.id}",
             label=disease_name,
             mappings=mappings if mappings else None,
