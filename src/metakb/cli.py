@@ -2,11 +2,9 @@
 to graph datastore.
 """
 import datetime
-import functools
 import logging
 import re
 import tempfile
-from collections.abc import Callable
 from enum import Enum
 from pathlib import Path
 from timeit import default_timer as timer
@@ -56,16 +54,6 @@ def _help_msg(msg: str = "") -> None:
     click.echo(msg) if msg else click.echo(ctx.get_help())
 
     ctx.exit()
-
-
-def _common_params(func: Callable) -> Callable:
-    @click.option("--foo")
-    @click.option("--bar")
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs) -> Callable:  # noqa: ANN002
-        return func(*args, **kwargs)
-
-    return wrapper
 
 
 @click.group()

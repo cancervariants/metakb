@@ -8,10 +8,6 @@ define in the library make use of methods here to set some of our preferred base
 import logging
 import os
 
-LOG_FILENAME = (
-    "/tmp/metakb.log" if "METAKB_NORM_EB_PROD" in os.environ else "metakb.log"  # noqa: S108
-)
-
 
 def _quiet_upstream_libs() -> None:
     """Turn off debug logging for chatty upstream library loggers."""
@@ -30,19 +26,27 @@ def _quiet_upstream_libs() -> None:
         logging.getLogger(lib).setLevel(logging.INFO)
 
 
-def configure_logs(quiet_upstream: bool = True) -> None:
-    """Configure logging."""
+def configure_logs(log_level: int = logging.DEBUG, quiet_upstream: bool = True) -> None:
+    """Configure logging.
+
+    :param log_level: global log level to set
+    :param quiet_upstream: if True, turn off debug logging for a selection of libraries
+    """
     if quiet_upstream:
         _quiet_upstream_libs()
+    log_filename = (
+        "/tmp/metakb.log" if "METAKB_NORM_EB_PROD" in os.environ else "metakb.log"  # noqa: S108
+    )
     logging.basicConfig(
-        filename=LOG_FILENAME,
+        filename=log_filename,
         format="[%(asctime)s] - %(name)s - %(levelname)s : %(message)s",
     )
     logger = logging.getLogger("metakb")
-    logger.setLevel(logging.DEBUG)
-    logger.handlers = []  # TODO does this turn off all logs?
+    logger.setLevel(log_level)
 
     if "METAKB_NORM_EB_PROD" in os.environ:
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        logger.addHandler(ch)
+        # force debug logging in production server
+        logger.handlers = []
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.DEBUG)
+        logger.addHandler(handler)
