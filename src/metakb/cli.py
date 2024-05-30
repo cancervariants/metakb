@@ -96,7 +96,7 @@ def _print_enum_metavar(enum: type[Enum]) -> str:
     nargs=-1,
 )
 def check_normalizers(
-    db_url: str | None, normalizers: tuple[NormalizerName, ...]
+    normalizer_db_url: str | None, normalizers: tuple[NormalizerName, ...]
 ) -> None:
     """Perform basic checks on DB health and table population for normalizers. Exits with
     status code 1 if >= 1 DB schema is uninitialized or critical tables appear empty for one
@@ -113,11 +113,11 @@ def check_normalizers(
 
     Specific failures and descriptions are logged at level ERROR.
     \f
-    :param db_url: URL endpoint for normalizer databases. Overrides defaults or env vars
-        for each normalizer service.
+    :param normalizer_db_url: URL endpoint for normalizer databases. Overrides defaults or env 
+        vars for each normalizer service.
     :param normalizers: tuple (possibly empty) of normalizer names to check
     """  # noqa: D301
-    if not check_normalizer_health(db_url, normalizers):
+    if not check_normalizer_health(normalizer_db_url, normalizers):
         _logger.warning("Normalizer check failed.")
         click.get_current_context().exit(1)
     _logger.info("Normalizer check passed.")
