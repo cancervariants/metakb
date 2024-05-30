@@ -2,9 +2,11 @@
 to graph datastore.
 """
 import datetime
+import functools
 import logging
 import re
 import tempfile
+from collections.abc import Callable
 from enum import Enum
 from pathlib import Path
 from timeit import default_timer as timer
@@ -19,6 +21,7 @@ from metakb import APP_ROOT, DATE_FMT
 from metakb.database import Graph
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
+from metakb.log_handle import configure_logs
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
     IllegalUpdateError,
@@ -30,11 +33,6 @@ from metakb.normalizers import check_normalizers as check_normalizer_health
 from metakb.schemas.app import SourceName
 from metakb.transform import CivicTransform, MoaTransform
 
-logging.basicConfig(
-    filename=f"{__name__}.log",
-    format="%(asctime)s %(levelname)s:%(name)s:%(message)s",
-    force=True,
-)
 _logger = logging.getLogger(__name__)
 
 
@@ -60,6 +58,16 @@ def _help_msg(msg: str = "") -> None:
     ctx.exit()
 
 
+def _common_params(func: Callable) -> Callable:
+    @click.option("--foo")
+    @click.option("--bar")
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs) -> Callable:  # noqa: ANN002
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 @click.group()
 def cli() -> None:
     """Manage MetaKB data.
@@ -74,6 +82,7 @@ def cli() -> None:
 
     Other commands are available for more granular control over the update process.
     """  # noqa: D301
+    configure_logs()
 
 
 _normalizer_db_url_description = "URL endpoint of normalizer database. If not given, the individual normalizers will revert to their own defaults."
