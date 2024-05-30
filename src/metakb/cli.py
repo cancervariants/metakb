@@ -456,7 +456,7 @@ def load_cdm(
 
 @cli.command()
 @click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
-@click.option("--db_credentails", "-c", help=_neo4j_creds_description)
+@click.option("--db_credentials", "-c", help=_neo4j_creds_description)
 @click.option("--normalizer_db_url", "-n", help=_normalizer_db_url_description)
 @click.option(
     "--refresh_source_caches",
