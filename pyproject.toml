@@ -52,7 +52,8 @@ docs = [
     "sphinx-copybutton==0.5.2",
     "sphinxext-opengraph==0.8.2",
     "furo==2023.3.27",
-    "sphinx-github-changelog==1.2.1"
+    "sphinx-github-changelog==1.2.1",
+    "sphinx-click==5.0.1",
 ]
 
 [project.urls]
