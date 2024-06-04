@@ -1,15 +1,31 @@
 """Main application for FastAPI."""
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
 
+from metakb.log_handle import configure_logs
 from metakb.query import QueryHandler
 from metakb.version import __version__
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator:
+    """Configure FastAPI instance lifespan.
+
+    :param app: FastAPI app instance
+    :return: async context handler
+    """
+    configure_logs()
+    yield
+
 
 app = FastAPI(
     docs_url="/api/v2",
     openapi_url="/api/v2/openapi.json",
     swagger_ui_parameters={"tryItOutEnabled": True},
+    lifespan=lifespan,
 )
 query = QueryHandler()
 
