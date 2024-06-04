@@ -113,7 +113,7 @@ def check_normalizers(
 
     Specific failures and descriptions are logged at level ERROR.
     \f
-    :param normalizer_db_url: URL endpoint for normalizer databases. Overrides defaults or env 
+    :param normalizer_db_url: URL endpoint for normalizer databases. Overrides defaults or env
         vars for each normalizer service.
     :param normalizers: tuple (possibly empty) of normalizer names to check
     """  # noqa: D301
