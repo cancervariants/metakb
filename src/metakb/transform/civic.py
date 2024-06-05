@@ -35,7 +35,7 @@ from metakb.transform.base import (
     Transform,
 )
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 # SNP pattern
 SNP_RE = re.compile(r"RS\d+")
@@ -153,7 +153,7 @@ class CivicTransform(Transform):
                 supported_mps.append(mp)
                 mp_id_to_v_id[mp_id] = mp_variant_ids[0]
 
-        logger.debug(
+        _logger.debug(
             "%s Molecular Profiles not supported: %s",
             len(not_supported_mp_ids),
             not_supported_mp_ids,
@@ -225,13 +225,13 @@ class CivicTransform(Transform):
             mp_id = f"civic.mpid:{r['molecular_profile_id']}"
             mp = self.able_to_normalize["molecular_profiles"].get(mp_id)
             if not mp:
-                logger.debug("mp_id not supported: %s", mp_id)
+                _logger.debug("mp_id not supported: %s", mp_id)
                 continue
 
             variant_id = f"civic.vid:{mp_id_to_v_id_mapping[r['molecular_profile_id']]}"
             variation_gene_map = self.able_to_normalize["variations"].get(variant_id)
             if not variation_gene_map:
-                logger.debug("variant_id not supported: %s", variant_id)
+                _logger.debug("variant_id not supported: %s", variant_id)
                 continue
 
             # Get predicate
@@ -272,7 +272,7 @@ class CivicTransform(Transform):
                         TherapeuticProcedureType.COMBINATION_THERAPY
                     )
                 else:
-                    logger.debug(
+                    _logger.debug(
                         "civic therapy_interaction_type not supported: %s",
                         therapy_interaction_type,
                     )
@@ -474,13 +474,13 @@ class CivicTransform(Transform):
         vname_lower = variant_name.lower()
 
         if vname_lower.endswith("fs") or "-" in vname_lower or "/" in vname_lower:
-            logger.debug(
+            _logger.debug(
                 "Variation Normalizer does not support %s: %s", variant_id, variant_name
             )
             return False
 
         if set(vname_lower.split()) & UNABLE_TO_NORMALIZE_VAR_NAMES:
-            logger.debug(
+            _logger.debug(
                 "Variation Normalizer does not support %s: %s", variant_id, variant_name
             )
             return False
@@ -533,7 +533,7 @@ class CivicTransform(Transform):
 
             # Couldn't find normalized concept
             if not vrs_variation:
-                logger.debug(
+                _logger.debug(
                     "Variation Normalizer unable to normalize %s using query %s",
                     variant_id,
                     variant_query,
@@ -687,7 +687,7 @@ class CivicTransform(Transform):
                 self.able_to_normalize["genes"][gene_id] = civic_gene
                 self.genes.append(civic_gene)
             else:
-                logger.debug(
+                _logger.debug(
                     "Gene Normalizer unable to normalize %s using queries: %s",
                     gene_id,
                     queries,
@@ -729,7 +729,7 @@ class CivicTransform(Transform):
         mappings = []
 
         if not doid:
-            logger.debug("%s (%s) has null DOID", disease_id, display_name)
+            _logger.debug("%s (%s) has null DOID", disease_id, display_name)
             queries = [display_name]
         else:
             doid = f"DOID:{doid}"
@@ -750,7 +750,7 @@ class CivicTransform(Transform):
         ) = self.vicc_normalizers.normalize_disease(queries)
 
         if not normalized_disease_id:
-            logger.debug(
+            _logger.debug(
                 "Disease Normalizer unable to normalize: %s using queries %s",
                 disease_id,
                 queries,
@@ -810,7 +810,7 @@ class CivicTransform(Transform):
             )
         except ValidationError as e:
             # If substitutes validation checks fail
-            logger.debug(
+            _logger.debug(
                 "ValidationError raised when attempting to create TherapeuticSubstituteGroup: %s",
                 {e},
             )
@@ -849,7 +849,7 @@ class CivicTransform(Transform):
         ) = self.vicc_normalizers.normalize_therapy(queries)
 
         if not normalized_therapeutic_id:
-            logger.debug(
+            _logger.debug(
                 "Therapy Normalizer unable to normalize: using queries ncit:%s and %s",
                 ncit_id,
                 label,
@@ -899,7 +899,7 @@ class CivicTransform(Transform):
             if document not in self.documents:
                 self.documents.append(document)
         else:
-            logger.warning(
+            _logger.warning(
                 "Document, %s, not supported. %s not in SourcePrefix",
                 source_id,
                 source_type,

@@ -19,6 +19,7 @@ from metakb import APP_ROOT, DATE_FMT
 from metakb.database import Graph
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
+from metakb.log_handle import configure_logs
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
     IllegalUpdateError,
@@ -30,11 +31,6 @@ from metakb.normalizers import check_normalizers as check_normalizer_health
 from metakb.schemas.app import SourceName
 from metakb.transform import CivicTransform, MoaTransform
 
-logging.basicConfig(
-    filename=f"{__name__}.log",
-    format="%(asctime)s %(levelname)s:%(name)s:%(message)s",
-    force=True,
-)
 _logger = logging.getLogger(__name__)
 
 
@@ -74,6 +70,7 @@ def cli() -> None:
 
     Other commands are available for more granular control over the update process.
     """  # noqa: D301
+    configure_logs()
 
 
 _normalizer_db_url_description = "URL endpoint of normalizer database. If not given, the individual normalizers will revert to their own defaults."
@@ -116,7 +113,7 @@ def check_normalizers(
 
     Specific failures and descriptions are logged at level ERROR.
     \f
-    :param normalizer_db_url: URL endpoint for normalizer databases. Overrides defaults or env 
+    :param normalizer_db_url: URL endpoint for normalizer databases. Overrides defaults or env
         vars for each normalizer service.
     :param normalizers: tuple (possibly empty) of normalizer names to check
     """  # noqa: D301
