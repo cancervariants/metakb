@@ -305,7 +305,6 @@ class CivicTransform(Transform):
                 r["variant_origin"], civic_gene
             )
 
-            _logger.debug("line 308")
             statement = VariantTherapeuticResponseStudy(
                 id=r["name"].lower().replace("eid", "civic.eid:"),
                 description=r["description"] if r["description"] else None,
@@ -429,7 +428,6 @@ class CivicTransform(Transform):
                         Extension(name=ext_key, value=civic_variation_data[var_key])
                     )
 
-            _logger.debug("line 432")
             psc = ProteinSequenceConsequence(
                 id=mp_id,
                 description=mp["description"],
@@ -509,7 +507,6 @@ class CivicTransform(Transform):
             )
 
             if vrs_genomic_variation:
-                _logger.debug("line 512")
                 genomic_params = vrs_genomic_variation.model_dump(exclude_none=True)
                 genomic_params["label"] = genomic_hgvs
                 members = [models.Variation(**genomic_params)]
@@ -544,7 +541,6 @@ class CivicTransform(Transform):
                 continue
 
             # Create VRS Variation object
-            _logger.debug("line 547")
             params = vrs_variation.model_dump(exclude_none=True)
             params["label"] = variant["name"]
             civic_variation = models.Variation(**params)
@@ -624,10 +620,8 @@ class CivicTransform(Transform):
             else:
                 coordinates = None
 
-            _logger.debug("line 627")
             civic_variation_dict = civic_variation.model_dump(exclude_none=True)
             self.variations.append(civic_variation_dict)
-            _logger.debug("line 630")
             self.able_to_normalize["variations"][variant_id] = _VariationCache(
                 vrs_variation=civic_variation_dict,
                 civic_gene_id=f"civic.gid:{variant['gene_id']}",
@@ -672,7 +666,6 @@ class CivicTransform(Transform):
             _, normalized_gene_id = self.vicc_normalizers.normalize_gene(queries)
 
             if normalized_gene_id:
-                _logger.debug("line 18")
                 civic_gene = Gene(
                     id=gene_id,
                     label=gene["name"],
@@ -764,7 +757,6 @@ class CivicTransform(Transform):
             )
             return None
 
-        _logger.debug("Line 767")
         return Disease(
             id=disease_id,
             label=display_name,
@@ -804,7 +796,6 @@ class CivicTransform(Transform):
 
             substitutes.append(ta)
 
-        _logger.debug("line 807")
         extensions = [
             Extension(
                 name="civic_therapy_interaction_type", value=therapy_interaction_type
@@ -896,7 +887,6 @@ class CivicTransform(Transform):
         source_type = source["source_type"].upper()
         source_id = source["id"]
         if source_type in SourcePrefix.__members__:
-            _logger.debug("Line 899")
             document = Document(
                 id=f"civic.source:{source_id}",
                 label=source["citation"],
