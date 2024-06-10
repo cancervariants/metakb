@@ -460,6 +460,7 @@ class QueryHandler:
         node["extensions"] = [
             Extension(name="disease_normalizer_id", value=node["disease_normalizer_id"])
         ]
+        node["concept_id"] = node["disease_normalizer_id"]
         return Disease(**node)
 
     def _get_cat_var(self, tx: Transaction, node: dict) -> CategoricalVariation:
