@@ -5,12 +5,21 @@ from pathlib import Path
 
 import pytest
 
+from metakb.database import Graph
 from metakb.harvesters.base import Harvester
 from metakb.normalizers import ViccNormalizers
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
 TEST_HARVESTERS_DIR = TEST_DATA_DIR / "harvesters"
 TEST_TRANSFORM_DIR = TEST_DATA_DIR / "transform"
+
+
+@pytest.fixture(scope="module")
+def driver():
+    """Return graph object."""
+    g = Graph(uri="bolt://localhost:7687", credentials=("neo4j", "password"))
+    yield g
+    g.close()
 
 
 def check_source_harvest(tmp_path: Path, harvester: Harvester):

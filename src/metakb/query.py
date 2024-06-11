@@ -410,13 +410,13 @@ class QueryHandler:
 
         # Get relationship and nodes for a study
         study_query = """
-        MATCH (s:Study {{ id:$s_id }})
+        MATCH (s:Study { id:$s_id })
         OPTIONAL MATCH (s)-[r]-(n)
         RETURN type(r) as r_type, n;
         """
         study_result = self.driver.execute_query(study_query, {"s_id": study_id})
         for study_record in study_result.records:
-            rel_type, node = study_record["r_type"], study_record["n"]
+            rel_type, node = study_record["r_type"], dict(study_record["n"])
 
             if rel_type == "HAS_TUMOR_TYPE":
                 params["tumorType"] = self._get_disease(node)
@@ -427,8 +427,8 @@ class QueryHandler:
                     study_id, s.get("alleleOrigin")
                 )
             elif rel_type == "IS_SPECIFIED_BY":
-                node["isReportedIn"] = self._get_method_document(node["id"])
-                params["specifiedBy"] = Method(**node)
+                is_reported_in = self._get_method_document(node["id"])
+                params["specifiedBy"] = Method(isReportedIn=is_reported_in, **node)
             elif rel_type == "IS_REPORTED_IN":
                 params["isReportedIn"].append(self._get_document(node))
             elif rel_type == "HAS_STRENGTH":
@@ -506,7 +506,7 @@ class QueryHandler:
         result = self.driver.execute_query(query, {"cv_id": cv_id})
         variations = []
         for record in result.records:
-            v_params = record["v"]
+            v_params = dict(record["v"])
             expressions = []
             for variation_k, variation_v in v_params.items():
                 if variation_k == "state":
@@ -529,7 +529,7 @@ class QueryHandler:
 
     def _get_variant_onco_study_qualifier(
         self, study_id: str, allele_origin: str | None
-    ) -> _VariantOncogenicityStudyQualifier:
+    ) -> _VariantOncogenicityStudyQualifier | None:
         """Get variant oncogenicity study qualifier data for a study
 
         :param study_id: ID of study node
@@ -537,7 +537,7 @@ class QueryHandler:
         :return Variant oncogenicity study qualifier data
         """
         query = """
-        MATCH (s:Study {{ id: $s_id }}) -[:HAS_GENE_CONTEXT] -> (g:Gene)
+        MATCH (s:Study { id: $s_id }) -[:HAS_GENE_CONTEXT] -> (g:Gene)
         RETURN g
         """
         result = self.driver.execute_query(
@@ -546,7 +546,7 @@ class QueryHandler:
         if not result:
             return None
 
-        gene_params = result["g"]
+        gene_params = dict(result["g"])
         _update_mappings(gene_params)
 
         gene_params["extensions"] = [
@@ -566,7 +566,7 @@ class QueryHandler:
         :return: Document
         """
         query = """
-        MATCH (m:Method {{ id: $m_id }}) -[:IS_REPORTED_IN] -> (d:Document)
+        MATCH (m:Method { id: $m_id }) -[:IS_REPORTED_IN] -> (d:Document)
         RETURN d
         """
         record = self.driver.execute_query(
@@ -684,6 +684,4 @@ class QueryHandler:
             extensions.append(
                 Extension(name="regulatory_approval", value=regulatory_approval)
             )
-
-        ta_params["extensions"] = extensions
-        return TherapeuticAgent(**ta_params)
+        return TherapeuticAgent(extensions=extensions, **ta_params)
