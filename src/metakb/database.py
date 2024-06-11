@@ -2,12 +2,14 @@
 import ast
 import json
 import logging
+from collections.abc import Generator
+from contextlib import contextmanager
 from os import environ
 from pathlib import Path
 
 import boto3
 from botocore.exceptions import ClientError
-from neo4j import GraphDatabase, ManagedTransaction
+from neo4j import Driver, GraphDatabase, ManagedTransaction, Session
 
 from metakb.schemas.app import SourceName
 
@@ -33,7 +35,9 @@ def _create_parameterized_query(
 class Graph:
     """Manage requests to graph datastore."""
 
-    def __init__(self, uri: str = "", credentials: tuple[str, str] = ("", "")) -> None:
+    _driver = None
+
+    def __new__(cls, uri: str = "", credentials: tuple[str, str] = ("", "")) -> Driver:
         """Initialize Graph driver instance.
 
         Connection URI/credentials are resolved as follows:
@@ -50,7 +54,7 @@ class Graph:
         """
         if not (uri and credentials[0] and credentials[1]):
             if "METAKB_NORM_EB_PROD" in environ:
-                secret = ast.literal_eval(self.get_secret())
+                secret = ast.literal_eval(cls.get_secret())
                 uri = f"bolt://{secret['host']}:{secret['port']}"
                 credentials = (secret["username"], secret["password"])
             else:
@@ -69,41 +73,22 @@ class Graph:
                 else:  # local default settings
                     uri = "bolt://localhost:7687"
                     credentials = ("neo4j", "password")
-        self.driver = GraphDatabase.driver(uri, auth=credentials)
-        with self.driver.session() as session:
-            session.execute_write(self._create_constraints)
+        cls._uri = uri
+        cls._credentials = credentials
+        cls._setup_driver()
+        return cls._driver
 
-    def close(self) -> None:
-        """Close Neo4j driver."""
-        self.driver.close()
+    @classmethod
+    def _setup_driver(cls) -> None:
+        """Initialize Neo4j graph driver instance.
 
-    def clear(self) -> None:
-        """Debugging helper - wipe out DB."""
-
-        def delete_all(tx: ManagedTransaction) -> None:
-            """Delete all nodes and relationships
-
-            :param tx: Transaction object provided to transaction functions
-            """
-            tx.run("MATCH (n) DETACH DELETE n;")
-
-        with self.driver.session() as session:
-            session.execute_write(delete_all)
-
-    def load_from_json(self, src_transformed_cdm: Path) -> None:
-        """Load evidence into DB from given CDM JSON file.
-
-        :param src_transformed_cdm: path to file for a source's transformed data to
-            common data model containing studies, variation, therapeutic procedures,
-            conditions, genes, methods, documents, etc.
+        Idempotent (does nothing if already exists)
         """
-        logger.info("Loading data from %s", src_transformed_cdm)
-        with src_transformed_cdm.open() as f:
-            items = json.load(f)
-            src_name = SourceName(
-                str(src_transformed_cdm).split("/")[-1].split("_cdm")[0]
-            )
-            self.add_transformed_data(items, src_name)
+        if cls._driver is None:
+            cls._driver = GraphDatabase.driver(cls._uri, auth=cls._credentials)
+            cls._driver.verify_connectivity()
+            with cls._driver.session() as session:
+                session.execute_write(cls._create_constraints)
 
     @staticmethod
     def _create_constraints(tx: ManagedTransaction) -> None:
@@ -134,6 +119,48 @@ class Graph:
         for query in queries:
             tx.run(query)
 
+    def close(self) -> None:
+        """Close Neo4j driver."""
+        if self._driver:
+            self._driver.close()
+
+    @contextmanager
+    def session(self) -> Generator[Session, None, None]:
+        """Provide managed context for database sessions.
+
+        >>> from metakb.database import Graph
+        >>> g = Graph()
+        >>> with g.session() as session:
+        >>>     session.execute_query  # TODO
+
+        """
+        self._setup_driver()
+        session: Session = self._driver.session()
+        try:
+            yield session
+        finally:
+            self.close()
+
+    def clear(self) -> None:
+        """Debugging helper - wipe out DB."""
+        with self.session() as session:
+            session.execute_write(lambda tx: tx.run("MATCH (n) DETACH DELETE n;"))
+
+    def load_from_json(self, src_transformed_cdm: Path) -> None:
+        """Load evidence into DB from given CDM JSON file.
+
+        :param src_transformed_cdm: path to file for a source's transformed data to
+            common data model containing studies, variation, therapeutic procedures,
+            conditions, genes, methods, documents, etc.
+        """
+        logger.info("Loading data from %s", src_transformed_cdm)
+        with src_transformed_cdm.open() as f:
+            items = json.load(f)
+            src_name = SourceName(
+                str(src_transformed_cdm).split("/")[-1].split("_cdm")[0]
+            )
+            self.add_transformed_data(items, src_name)
+
     def add_transformed_data(self, data: dict, src_name: SourceName) -> None:
         """Add set of data formatted per Common Data Model to DB.
 
@@ -146,7 +173,7 @@ class Graph:
         # nodes that aren't associated to studies
         ids_in_studies = self._get_ids_from_studies(data.get("studies", []))
 
-        with self.driver.session() as session:
+        with self.session() as session:
             loaded_study_count = 0
 
             # This will be removed in issue-253
