@@ -9,7 +9,9 @@ from metakb.schemas.api import SearchStudiesService
 @pytest.fixture(scope="module")
 def query_handler(normalizers):
     """Create query handler test fixture"""
-    return QueryHandler(normalizers=normalizers)
+    qh = QueryHandler(normalizers=normalizers)
+    yield qh
+    qh.driver.close()
 
 
 def assert_general_search_studies(response):

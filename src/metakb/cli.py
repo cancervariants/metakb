@@ -5,6 +5,7 @@ import datetime
 import logging
 import re
 import tempfile
+from collections.abc import Generator
 from enum import Enum
 from pathlib import Path
 from timeit import default_timer as timer
@@ -325,7 +326,7 @@ async def transform_file(
     )
 
 
-def _get_graph(db_url: str, db_creds: str | None) -> Graph:
+def _get_graph(db_url: str, db_creds: str | None) -> Generator[Graph, None, None]:
     """Acquire Neo4j graph.
 
     :param db_url: URL endpoint for the application Neo4j database.
@@ -343,7 +344,9 @@ def _get_graph(db_url: str, db_creds: str | None) -> Graph:
             _help_msg(
                 f"Argument to --db_credentialss appears invalid. Got '{db_creds}'. Should follow pattern 'username:password'."
             )
-    return Graph(uri=db_url, credentials=credentials)
+    graph = Graph(uri=db_url, credentials=credentials)
+    yield graph
+    graph.close()
 
 
 @cli.command()
@@ -366,9 +369,8 @@ def clear_graph(db_url: str, db_credentials: str | None) -> None:
     :param db_credentials: DB username and password, separated by a colon, e.g.
         ``"username:password"``.
     """  # noqa: D301
-    graph = _get_graph(db_url, db_credentials)
+    graph = next(_get_graph(db_url, db_credentials))
     graph.clear()
-    graph.close()
 
 
 @cli.command()
@@ -426,7 +428,7 @@ def load_cdm(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    graph = _get_graph(db_url, db_credentials)
+    graph = next(_get_graph(db_url, db_credentials))
 
     if cdm_files:
         for file in cdm_files:
@@ -446,7 +448,6 @@ def load_cdm(
 
             graph.load_from_json(path)
 
-    graph.close()
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
 
@@ -514,7 +515,7 @@ async def update(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    graph = _get_graph(db_url, db_credentials)
+    graph = next(_get_graph(db_url, db_credentials))
 
     if not sources:
         sources = tuple(SourceName)
