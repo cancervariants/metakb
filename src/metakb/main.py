@@ -9,6 +9,8 @@ from metakb.log_handle import configure_logs
 from metakb.query import QueryHandler
 from metakb.version import __version__
 
+query = QueryHandler()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
@@ -19,6 +21,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     """
     configure_logs()
     yield
+    query.driver.close()
 
 
 app = FastAPI(
@@ -27,7 +30,6 @@ app = FastAPI(
     swagger_ui_parameters={"tryItOutEnabled": True},
     lifespan=lifespan,
 )
-query = QueryHandler()
 
 
 def custom_openapi() -> dict:
