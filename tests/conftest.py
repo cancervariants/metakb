@@ -1687,7 +1687,7 @@ def moa_aid66_study(
     moa_imatinib,
     moa_chronic_myelogenous_leukemia,
     moa_method,
-    moa_source44,
+    moa_source45,
 ):
     """Create a Variant Therapeutic Response Study test fixture for MOA Assertion 66."""
     return {
@@ -1705,7 +1705,7 @@ def moa_aid66_study(
         "tumorType": moa_chronic_myelogenous_leukemia,
         "qualifiers": {"alleleOrigin": "somatic", "geneContext": moa_abl1},
         "specifiedBy": moa_method,
-        "isReportedIn": [moa_source44],
+        "isReportedIn": [moa_source45],
         "type": "VariantTherapeuticResponseStudy",
     }
 
@@ -2006,10 +2006,10 @@ def civic_methods(civic_method, moa_method, method3):
 
 
 @pytest.fixture(scope="session")
-def moa_source44():
+def moa_source45():
     """Create a test fixture for MOA source 44."""
     return {
-        "id": "moa.source:44",
+        "id": "moa.source:45",
         "extensions": [
             {"type": "Extension", "name": "source_type", "value": "Journal"}
         ],
