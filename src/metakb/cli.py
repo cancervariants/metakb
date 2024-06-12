@@ -371,7 +371,6 @@ def clear_graph(db_url: str, db_credentials: str | None) -> None:
     """  # noqa: D301
     graph = next(_get_graph(db_url, db_credentials))
     graph.clear()
-    # graph.close()
 
 
 @cli.command()
