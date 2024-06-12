@@ -448,7 +448,6 @@ def load_cdm(
 
             graph.load_from_json(path)
 
-    graph.close()
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
 
