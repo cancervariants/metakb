@@ -555,7 +555,7 @@ def test_document_rules(
     check_node_labels,
     check_relation_count,
     get_node_by_id,
-    moa_source44,
+    moa_source45,
     check_node_props,
     check_extension_props,
 ):
@@ -589,11 +589,11 @@ def test_document_rules(
         record = s.run(is_reported_in_query).single()
     assert set(record.values()[0]) == {31779674, 35121878}
 
-    doc = get_node_by_id(moa_source44["id"])
+    doc = get_node_by_id(moa_source45["id"])
     extension_names = {"source_type"}
-    check_extension_props(doc, moa_source44["extensions"], extension_names)
+    check_extension_props(doc, moa_source45["extensions"], extension_names)
     expected_keys = {"id", "title", "doi", "source_type", "url", "pmid"}
-    check_node_props(doc, moa_source44, expected_keys, extension_names)
+    check_node_props(doc, moa_source45, expected_keys, extension_names)
 
 
 def test_method_rules(

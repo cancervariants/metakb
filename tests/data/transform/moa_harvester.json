@@ -18,7 +18,7 @@
 			"last_updated": "2023-11-30",
 			"submitted_by": "breardon@broadinstitute.org",
 			"validated": true,
-			"source_ids": 44,
+			"source_ids": 45,
 			"variant": {
 				"id": 66,
 				"alternate_allele": "T",
@@ -75,7 +75,7 @@
 	],
 	"sources": [
 		{
-			"id": 44,
+			"id": 45,
 			"type": "Journal",
 			"doi": "10.1126/science.1062538",
 			"nct": "",
