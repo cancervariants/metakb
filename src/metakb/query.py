@@ -89,54 +89,6 @@ class QueryHandler:
         self.driver = Graph(uri, creds).driver
         self.vicc_normalizers = normalizers
 
-    async def batch_search_studies(
-        self,
-        variations: list[str] | None = None,
-    ) -> BatchSearchStudiesService:
-        """Fetch all studies associated with the provided variation description strings.
-
-        Because this method could be expanded to include other kinds of search terms,
-        ``variations`` is optionally nullable.
-
-        :param variations: a list of variation description strings, e.g.
-            ``["BRAF V600E"]``
-        :return: response object including all matching studies
-        """
-        response = BatchSearchStudiesService(
-            query=BatchSearchStudiesQuery(variations=variations or []),
-            service_meta_=ServiceMeta(),
-            warnings=[],
-        )
-        if not variations:
-            response.warnings.append("No search terms provided.")
-            return response
-
-        variation_ids = []
-        if variations:
-            for query_variation in variations:
-                variation_id = await self._get_normalized_variation(
-                    query_variation, response.warnings
-                )
-                if variation_id:
-                    variation_ids.append(variation_id)
-        if not variation_ids:
-            response.warnings.append("Unable to normalize any provided query terms.")
-            return response
-
-        with self.driver.session() as session:
-            query = """
-                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
-                MATCH (cv) -[:HAS_DEFINING_CONTEXT|:HAS_MEMBERS] -> (v:Variation)
-                WHERE v.id IN $v_ids
-                RETURN s
-            """
-            result = session.run(query, v_ids=variation_ids)
-            study_nodes = [r[0] for r in result]
-            response.study_ids = [n["id"] for n in study_nodes]
-            studies = self._get_nested_studies(session, study_nodes)
-            response.studies = [VariantTherapeuticResponseStudy(**s) for s in studies]
-        return response
-
     async def search_studies(
         self,
         variation: str | None = None,
@@ -761,3 +713,51 @@ class QueryHandler:
 
         ta_params["extensions"] = extensions
         return TherapeuticAgent(**ta_params)
+
+    async def batch_search_studies(
+        self,
+        variations: list[str] | None = None,
+    ) -> BatchSearchStudiesService:
+        """Fetch all studies associated with the provided variation description strings.
+
+        Because this method could be expanded to include other kinds of search terms,
+        ``variations`` is optionally nullable.
+
+        :param variations: a list of variation description strings, e.g.
+            ``["BRAF V600E"]``
+        :return: response object including all matching studies
+        """
+        response = BatchSearchStudiesService(
+            query=BatchSearchStudiesQuery(variations=variations or []),
+            service_meta_=ServiceMeta(),
+            warnings=[],
+        )
+        if not variations:
+            response.warnings.append("No search terms provided.")
+            return response
+
+        variation_ids = []
+        for query_variation in variations:
+            variation_id = await self._get_normalized_variation(
+                query_variation, response.warnings
+            )
+            if variation_id:
+                variation_ids.append(variation_id)
+        if not variation_ids:
+            response.warnings.append("Unable to normalize any provided query terms.")
+            return response
+        variation_ids = list(set(variation_ids))
+
+        with self.driver.session() as session:
+            query = """
+                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
+                MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
+                WHERE v.id IN $v_ids
+                RETURN s
+            """
+            result = session.run(query, v_ids=variation_ids)
+            study_nodes = [r[0] for r in result]
+            response.study_ids = list({n["id"] for n in study_nodes})
+            studies = self._get_nested_studies(session, study_nodes)
+            response.studies = [VariantTherapeuticResponseStudy(**s) for s in studies]
+        return response

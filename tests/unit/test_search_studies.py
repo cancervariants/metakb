@@ -220,3 +220,27 @@ async def test_no_matches(query_handler):
     # valid queries, but no matches with combination
     resp = await query_handler.search_studies(variation="BRAF V600E", gene="EGFR")
     assert_no_match(resp)
+
+
+@pytest.mark.asyncio(scope="module")
+async def test_batch_search(query_handler: QueryHandler):
+    """Test batch search studies method."""
+    assert_no_match(await query_handler.batch_search_studies([]))
+    assert_no_match(await query_handler.batch_search_studies(["gibberish variant"]))
+
+    braf_response = await query_handler.batch_search_studies(
+        ["ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe"]
+    )
+    assert braf_response.warnings == []
+
+    redundant_braf_response = await query_handler.batch_search_studies(
+        ["ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe", "BRAF V600E"]
+    )
+    assert braf_response.warnings == []
+    assert len(braf_response.study_ids) == len(redundant_braf_response.study_ids)
+
+    braf_egfr_response = await query_handler.batch_search_studies(
+        ["ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe", "EGFR L858R"]
+    )
+    assert braf_response.warnings == []
+    assert len(braf_egfr_response.study_ids) > len(braf_response.study_ids)
