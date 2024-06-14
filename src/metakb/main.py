@@ -102,7 +102,6 @@ async def get_studies(
 
 _batch_search_studies_descr = {
     "summary": "Get nested studies for all provided variations.",
-    "response_description": "todo",
     "description": "Return nested studies associated with any of the provided variations.",
     "arg_variations": "Variations (subject) to search. Can be free text or VRS variation ID.",
 }
