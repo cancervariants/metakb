@@ -59,9 +59,9 @@ search_studies_summary = (
     "Get nested studies from queried concepts that match all conditions provided."
 )
 search_studies_descr = (
-    "Return nested studies associated to the queried concepts. For example, if "
-    "`variation` and `therapy` are provided, will return all studies that have both "
-    "the provided `variation` and `therapy`."
+    "Return nested studies that match the intersection of queried concepts. For "
+    "example, if `variation` and `therapy` are provided, will return all studies that "
+    "have both the provided `variation` and `therapy`."
 )
 v_description = "Variation (subject) to search. Can be free text or VRS Variation ID."
 d_description = "Disease (object qualifier) to search"
@@ -77,7 +77,7 @@ search_study_response_descr = "A response to a validly-formed query."
     response_description=search_study_response_descr,
     description=search_studies_descr,
 )
-async def get_studies(
+async def get_studies_intersect(
     variation: str | None = Query(None, description=v_description),
     disease: str | None = Query(None, description=d_description),
     therapy: str | None = Query(None, description=t_description),
@@ -96,5 +96,7 @@ async def get_studies(
     :return: SearchStudiesService response containing nested studies and service
         metadata
     """
-    resp = await query.search_studies(variation, disease, therapy, gene, study_id)
+    resp = await query.search_studies_intersect(
+        variation, disease, therapy, gene, study_id
+    )
     return resp.model_dump(exclude_none=True)
