@@ -719,10 +719,25 @@ class QueryHandler:
         self,
         variations: list[str] | None = None,
     ) -> BatchSearchStudiesService:
-        """Fetch all studies associated with the provided variation description strings.
+        """Fetch all studies associated with any of the provided variation description
+        strings.
 
         Because this method could be expanded to include other kinds of search terms,
         ``variations`` is optionally nullable.
+
+        >>> from metakb.query import QueryHandler
+        >>> qh = QueryHandler()
+        >>> response = await qh.batch_search_studies(["EGFR L858R"])
+        >>> response.study_ids[:3]
+        ['civic.eid:229', 'civic.eid:3811', 'moa.assertion:268']
+
+        All terms are normalized, so redundant terms don't alter search results:
+
+        >>> redundant_response = await qh.batch_search_studies(
+        ...     ["EGFR L858R", "NP_005219.2:p.Leu858Arg"]
+        ... )
+        >>> len(response.study_ids) == len(redundant_response.study_ids)
+        True
 
         :param variations: a list of variation description strings, e.g.
             ``["BRAF V600E"]``

@@ -117,7 +117,7 @@ async def batch_get_studies(
         None, description=_batch_search_studies_descr["arg_variations"]
     ),
 ) -> dict:
-    """Fetch all studies associated with the provided variations.
+    """Fetch all studies associated with `any` of the provided variations.
 
     :param variations: variations to match against
     :return: batch response object
