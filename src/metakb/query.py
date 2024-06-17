@@ -23,6 +23,7 @@ from metakb.schemas.annotation import Document, Method
 from metakb.schemas.api import (
     BatchSearchStudiesQuery,
     BatchSearchStudiesService,
+    NormalizedQuery,
     SearchStudiesService,
     ServiceMeta,
 )
@@ -728,25 +729,25 @@ class QueryHandler:
         :return: response object including all matching studies
         """
         response = BatchSearchStudiesService(
-            query=BatchSearchStudiesQuery(variations=variations or []),
+            query=BatchSearchStudiesQuery(variations=[]),
             service_meta_=ServiceMeta(),
             warnings=[],
         )
         if not variations:
-            response.warnings.append("No search terms provided.")
             return response
 
-        variation_ids = []
         for query_variation in variations:
             variation_id = await self._get_normalized_variation(
                 query_variation, response.warnings
             )
-            if variation_id:
-                variation_ids.append(variation_id)
+            response.query.variations.append(
+                NormalizedQuery(term=query_variation, normalized_id=variation_id)
+            )
+        variation_ids = list(
+            {v.normalized_id for v in response.query.variations if v.normalized_id}
+        )
         if not variation_ids:
-            response.warnings.append("Unable to normalize any provided query terms.")
             return response
-        variation_ids = list(set(variation_ids))
 
         with self.driver.session() as session:
             query = """
