@@ -5,6 +5,7 @@ import datetime
 import logging
 import re
 import tempfile
+from collections.abc import Generator
 from enum import Enum
 from pathlib import Path
 from timeit import default_timer as timer
@@ -19,6 +20,7 @@ from metakb import APP_ROOT, DATE_FMT
 from metakb.database import Graph
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
+from metakb.log_handle import configure_logs
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
     IllegalUpdateError,
@@ -30,11 +32,6 @@ from metakb.normalizers import check_normalizers as check_normalizer_health
 from metakb.schemas.app import SourceName
 from metakb.transform import CivicTransform, MoaTransform
 
-logging.basicConfig(
-    filename=f"{__name__}.log",
-    format="%(asctime)s %(levelname)s:%(name)s:%(message)s",
-    force=True,
-)
 _logger = logging.getLogger(__name__)
 
 
@@ -74,6 +71,7 @@ def cli() -> None:
 
     Other commands are available for more granular control over the update process.
     """  # noqa: D301
+    configure_logs()
 
 
 _normalizer_db_url_description = "URL endpoint of normalizer database. If not given, the individual normalizers will revert to their own defaults."
@@ -99,7 +97,7 @@ def _print_enum_metavar(enum: type[Enum]) -> str:
     nargs=-1,
 )
 def check_normalizers(
-    db_url: str | None, normalizers: tuple[NormalizerName, ...]
+    normalizer_db_url: str | None, normalizers: tuple[NormalizerName, ...]
 ) -> None:
     """Perform basic checks on DB health and table population for normalizers. Exits with
     status code 1 if >= 1 DB schema is uninitialized or critical tables appear empty for one
@@ -116,11 +114,11 @@ def check_normalizers(
 
     Specific failures and descriptions are logged at level ERROR.
     \f
-    :param db_url: URL endpoint for normalizer databases. Overrides defaults or env vars
-        for each normalizer service.
+    :param normalizer_db_url: URL endpoint for normalizer databases. Overrides defaults or env
+        vars for each normalizer service.
     :param normalizers: tuple (possibly empty) of normalizer names to check
     """  # noqa: D301
-    if not check_normalizer_health(db_url, normalizers):
+    if not check_normalizer_health(normalizer_db_url, normalizers):
         _logger.warning("Normalizer check failed.")
         click.get_current_context().exit(1)
     _logger.info("Normalizer check passed.")
@@ -328,7 +326,7 @@ async def transform_file(
     )
 
 
-def _get_graph(db_url: str, db_creds: str | None) -> Graph:
+def _get_graph(db_url: str, db_creds: str | None) -> Generator[Graph, None, None]:
     """Acquire Neo4j graph.
 
     :param db_url: URL endpoint for the application Neo4j database.
@@ -346,7 +344,9 @@ def _get_graph(db_url: str, db_creds: str | None) -> Graph:
             _help_msg(
                 f"Argument to --db_credentialss appears invalid. Got '{db_creds}'. Should follow pattern 'username:password'."
             )
-    return Graph(uri=db_url, credentials=credentials)
+    graph = Graph(uri=db_url, credentials=credentials)
+    yield graph
+    graph.close()
 
 
 @cli.command()
@@ -369,9 +369,8 @@ def clear_graph(db_url: str, db_credentials: str | None) -> None:
     :param db_credentials: DB username and password, separated by a colon, e.g.
         ``"username:password"``.
     """  # noqa: D301
-    graph = _get_graph(db_url, db_credentials)
+    graph = next(_get_graph(db_url, db_credentials))
     graph.clear()
-    graph.close()
 
 
 @cli.command()
@@ -429,7 +428,7 @@ def load_cdm(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    graph = _get_graph(db_url, db_credentials)
+    graph = next(_get_graph(db_url, db_credentials))
 
     if cdm_files:
         for file in cdm_files:
@@ -449,14 +448,13 @@ def load_cdm(
 
             graph.load_from_json(path)
 
-    graph.close()
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
 
 
 @cli.command()
 @click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
-@click.option("--db_credentails", "-c", help=_neo4j_creds_description)
+@click.option("--db_credentials", "-c", help=_neo4j_creds_description)
 @click.option("--normalizer_db_url", "-n", help=_normalizer_db_url_description)
 @click.option(
     "--refresh_source_caches",
@@ -517,7 +515,7 @@ async def update(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    graph = _get_graph(db_url, db_credentials)
+    graph = next(_get_graph(db_url, db_credentials))
 
     if not sources:
         sources = tuple(SourceName)

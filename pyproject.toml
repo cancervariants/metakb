@@ -28,7 +28,7 @@ dependencies = [
     "variation-normalizer~=0.8.2",
     "disease-normalizer[etl]~=0.4.0.dev3",
     "thera-py[etl]~=0.5.0.dev3",
-    "civicpy~=3.0.0",
+    "civicpy~=3.1",
     "requests",
     "pydantic==2.*",
     "requests-cache",

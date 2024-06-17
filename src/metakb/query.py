@@ -4,9 +4,9 @@ import logging
 from copy import copy
 from enum import Enum
 
-from disease.query import Disease
 from ga4gh.core._internal.models import (
     Coding,
+    Disease,
     Extension,
     Gene,
     TherapeuticAgent,
@@ -361,7 +361,7 @@ class QueryHandler:
         if normalized_variation:
             query += """
             MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
-            MATCH (cv) -[:HAS_DEFINING_CONTEXT|:HAS_MEMBERS] -> (v:Variation {id:$v_id})
+            MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation {id:$v_id})
             """
             params["v_id"] = normalized_variation
 
@@ -410,7 +410,7 @@ class QueryHandler:
                 try:
                     nested_study = self._get_nested_study(tx, s)
                 except ValidationError as e:
-                    logger.warning("%s: %s", s_id, e)
+                    logger.error("%s: %s", s_id, e)
                 else:
                     if nested_study:
                         nested_studies.append(nested_study)

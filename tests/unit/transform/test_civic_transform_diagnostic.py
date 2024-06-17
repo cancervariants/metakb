@@ -12,7 +12,6 @@ FILENAME = "civic_cdm.json"
 
 
 @pytest_asyncio.fixture(scope="module")
-@pytest.mark.asyncio()
 async def data(normalizers):
     """Create a CIViC Transform test fixture."""
     harvester_path = DATA_DIR / "civic_harvester.json"

@@ -11,7 +11,6 @@ FILENAME = "moa_cdm.json"
 
 
 @pytest_asyncio.fixture(scope="module")
-@pytest.mark.asyncio()
 async def data(normalizers):
     """Create a MOA Transform test fixture."""
     harvester_path = TEST_TRANSFORM_DIR / "moa_harvester.json"

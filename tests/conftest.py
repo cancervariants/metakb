@@ -1,5 +1,6 @@
 """Module for pytest fixtures."""
 import json
+import logging
 from copy import deepcopy
 from pathlib import Path
 
@@ -11,6 +12,33 @@ from metakb.normalizers import ViccNormalizers
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
 TEST_HARVESTERS_DIR = TEST_DATA_DIR / "harvesters"
 TEST_TRANSFORM_DIR = TEST_DATA_DIR / "transform"
+
+
+def pytest_addoption(parser):
+    """Add custom commands to pytest invocation.
+
+    See https://docs.pytest.org/en/7.1.x/reference/reference.html#parser
+    """
+    parser.addoption(
+        "--verbose-logs",
+        action="store_true",
+        default=False,
+        help="show noisy module logs",
+    )
+
+
+def pytest_configure(config):
+    """Configure pytest setup."""
+    logging.getLogger(__name__).error(config.getoption("--verbose-logs"))
+    if not config.getoption("--verbose-logs"):
+        for lib in (
+            "botocore",
+            "boto3",
+            "urllib3.connectionpool",
+            "neo4j.pool",
+            "neo4j.io",
+        ):
+            logging.getLogger(lib).setLevel(logging.ERROR)
 
 
 def check_source_harvest(tmp_path: Path, harvester: Harvester):
@@ -439,7 +467,7 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
             },
             {
                 "name": "CIViC Molecular Profile Score",
-                "value": 1363.5,
+                "value": 1378.5,
                 "type": "Extension",
             },
             {
@@ -1659,7 +1687,7 @@ def moa_aid66_study(
     moa_imatinib,
     moa_chronic_myelogenous_leukemia,
     moa_method,
-    moa_source44,
+    moa_source45,
 ):
     """Create a Variant Therapeutic Response Study test fixture for MOA Assertion 66."""
     return {
@@ -1677,7 +1705,7 @@ def moa_aid66_study(
         "tumorType": moa_chronic_myelogenous_leukemia,
         "qualifiers": {"alleleOrigin": "somatic", "geneContext": moa_abl1},
         "specifiedBy": moa_method,
-        "isReportedIn": [moa_source44],
+        "isReportedIn": [moa_source45],
         "type": "VariantTherapeuticResponseStudy",
     }
 
@@ -1978,10 +2006,10 @@ def civic_methods(civic_method, moa_method, method3):
 
 
 @pytest.fixture(scope="session")
-def moa_source44():
+def moa_source45():
     """Create a test fixture for MOA source 44."""
     return {
-        "id": "moa.source:44",
+        "id": "moa.source:45",
         "extensions": [
             {"type": "Extension", "name": "source_type", "value": "Journal"}
         ],
