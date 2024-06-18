@@ -3,7 +3,11 @@
 import pytest
 
 from metakb.query import QueryHandler
-from metakb.schemas.api import SearchStudiesService
+from metakb.schemas.api import (
+    BatchSearchStudiesService,
+    NormalizedQuery,
+    SearchStudiesService,
+)
 
 
 @pytest.fixture(scope="module")
@@ -30,7 +34,7 @@ def assert_no_match(response):
 
 
 def find_and_check_study(
-    resp: SearchStudiesService,
+    resp: SearchStudiesService | BatchSearchStudiesService,
     expected_study: dict,
     assertion_checks: callable,
     should_find_match: bool = True,
@@ -220,3 +224,48 @@ async def test_no_matches(query_handler):
     # valid queries, but no matches with combination
     resp = await query_handler.search_studies(variation="BRAF V600E", gene="EGFR")
     assert_no_match(resp)
+
+
+@pytest.mark.asyncio(scope="module")
+async def test_batch_search(
+    query_handler: QueryHandler,
+    assertion_checks,
+    civic_eid2997_study,
+    civic_eid816_study,
+):
+    """Test batch search studies method."""
+    assert_no_match(await query_handler.batch_search_studies([]))
+    assert_no_match(await query_handler.batch_search_studies(["gibberish variant"]))
+
+    braf_va_id = "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe"
+    braf_response = await query_handler.batch_search_studies([braf_va_id])
+    assert braf_response.query.variations == [
+        NormalizedQuery(
+            term=braf_va_id,
+            normalized_id=braf_va_id,
+        )
+    ]
+    find_and_check_study(braf_response, civic_eid816_study, assertion_checks)
+
+    redundant_braf_response = await query_handler.batch_search_studies(
+        [braf_va_id, "NC_000007.13:g.140453136A>T"]
+    )
+    assert redundant_braf_response.query.variations == [
+        NormalizedQuery(
+            term=braf_va_id,
+            normalized_id=braf_va_id,
+        ),
+        NormalizedQuery(
+            term="NC_000007.13:g.140453136A>T",
+            normalized_id=braf_va_id,
+        ),
+    ]
+    find_and_check_study(redundant_braf_response, civic_eid816_study, assertion_checks)
+    assert len(braf_response.study_ids) == len(redundant_braf_response.study_ids)
+
+    braf_egfr_response = await query_handler.batch_search_studies(
+        [braf_va_id, "EGFR L858R"]
+    )
+    find_and_check_study(braf_egfr_response, civic_eid816_study, assertion_checks)
+    find_and_check_study(braf_egfr_response, civic_eid2997_study, assertion_checks)
+    assert len(braf_egfr_response.study_ids) > len(braf_response.study_ids)
