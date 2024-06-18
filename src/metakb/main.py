@@ -114,7 +114,10 @@ _batch_search_studies_descr = {
     description=_batch_search_studies_descr["description"],
 )
 async def batch_get_studies(
-    variations: Annotated[list[str] | None, Query(description=_batch_search_studies_descr["arg_variations"])] = None
+    variations: Annotated[
+        list[str] | None,
+        Query(description=_batch_search_studies_descr["arg_variations"]),
+    ] = None,
 ) -> dict:
     """Fetch all studies associated with `any` of the provided variations.
 
