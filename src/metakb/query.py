@@ -751,7 +751,7 @@ class QueryHandler:
         if not variations:
             return response
 
-        for query_variation in variations:
+        for query_variation in set(variations):
             variation_id = await self._get_normalized_variation(
                 query_variation, response.warnings
             )
