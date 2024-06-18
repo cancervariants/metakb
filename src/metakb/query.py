@@ -20,7 +20,13 @@ from pydantic import ValidationError
 from metakb.database import Graph
 from metakb.normalizers import ViccNormalizers
 from metakb.schemas.annotation import Document, Method
-from metakb.schemas.api import SearchStudiesService, ServiceMeta
+from metakb.schemas.api import (
+    BatchSearchStudiesQuery,
+    BatchSearchStudiesService,
+    NormalizedQuery,
+    SearchStudiesService,
+    ServiceMeta,
+)
 from metakb.schemas.app import SourceName
 from metakb.schemas.categorical_variation import CategoricalVariation
 from metakb.schemas.variation_statement import (
@@ -708,3 +714,66 @@ class QueryHandler:
 
         ta_params["extensions"] = extensions
         return TherapeuticAgent(**ta_params)
+
+    async def batch_search_studies(
+        self,
+        variations: list[str] | None = None,
+    ) -> BatchSearchStudiesService:
+        """Fetch all studies associated with any of the provided variation description
+        strings.
+
+        Because this method could be expanded to include other kinds of search terms,
+        ``variations`` is optionally nullable.
+
+        >>> from metakb.query import QueryHandler
+        >>> qh = QueryHandler()
+        >>> response = await qh.batch_search_studies(["EGFR L858R"])
+        >>> response.study_ids[:3]
+        ['civic.eid:229', 'civic.eid:3811', 'moa.assertion:268']
+
+        All terms are normalized, so redundant terms don't alter search results:
+
+        >>> redundant_response = await qh.batch_search_studies(
+        ...     ["EGFR L858R", "NP_005219.2:p.Leu858Arg"]
+        ... )
+        >>> len(response.study_ids) == len(redundant_response.study_ids)
+        True
+
+        :param variations: a list of variation description strings, e.g.
+            ``["BRAF V600E"]``
+        :return: response object including all matching studies
+        """
+        response = BatchSearchStudiesService(
+            query=BatchSearchStudiesQuery(variations=[]),
+            service_meta_=ServiceMeta(),
+            warnings=[],
+        )
+        if not variations:
+            return response
+
+        for query_variation in set(variations):
+            variation_id = await self._get_normalized_variation(
+                query_variation, response.warnings
+            )
+            response.query.variations.append(
+                NormalizedQuery(term=query_variation, normalized_id=variation_id)
+            )
+        variation_ids = list(
+            {v.normalized_id for v in response.query.variations if v.normalized_id}
+        )
+        if not variation_ids:
+            return response
+
+        with self.driver.session() as session:
+            query = """
+                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
+                MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
+                WHERE v.id IN $v_ids
+                RETURN s
+            """
+            result = session.run(query, v_ids=variation_ids)
+            study_nodes = [r[0] for r in result]
+            response.study_ids = list({n["id"] for n in study_nodes})
+            studies = self._get_nested_studies(session, study_nodes)
+            response.studies = [VariantTherapeuticResponseStudy(**s) for s in studies]
+        return response
