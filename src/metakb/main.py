@@ -98,3 +98,29 @@ async def get_studies(
     """
     resp = await query.search_studies(variation, disease, therapy, gene, study_id)
     return resp.model_dump(exclude_none=True)
+
+
+_batch_search_studies_descr = {
+    "summary": "Get nested studies for all provided variations.",
+    "description": "Return nested studies associated with any of the provided variations.",
+    "arg_variations": "Variations (subject) to search. Can be free text or VRS variation ID.",
+}
+
+
+@app.get(
+    "/api/v2/batch_search/studies",
+    summary=_batch_search_studies_descr["summary"],
+    description=_batch_search_studies_descr["description"],
+)
+async def batch_get_studies(
+    variations: list[str] | None = Query(  # noqa: B008
+        None, description=_batch_search_studies_descr["arg_variations"]
+    ),
+) -> dict:
+    """Fetch all studies associated with `any` of the provided variations.
+
+    :param variations: variations to match against
+    :return: batch response object
+    """
+    response = await query.batch_search_studies(variations)
+    return response.model_dump(exclude_none=True)

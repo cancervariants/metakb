@@ -45,3 +45,26 @@ class SearchStudiesService(BaseModel):
     study_ids: list[StrictStr] = []
     studies: list[VariantTherapeuticResponseStudy] = []
     service_meta_: ServiceMeta
+
+
+class NormalizedQuery(BaseModel):
+    """Define structure of user-provided query. If possible, add normalized ID."""
+
+    term: StrictStr
+    normalized_id: StrictStr | None = None
+
+
+class BatchSearchStudiesQuery(BaseModel):
+    """Define query as reported in batch search studies endpoint."""
+
+    variations: list[NormalizedQuery] = []
+
+
+class BatchSearchStudiesService(BaseModel):
+    """Define response model for batch search studies endpoint response."""
+
+    query: BatchSearchStudiesQuery
+    warnings: list[StrictStr] = []
+    study_ids: list[StrictStr] = []
+    studies: list[VariantTherapeuticResponseStudy] = []
+    service_meta_: ServiceMeta
