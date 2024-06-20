@@ -16,7 +16,9 @@ The VICC Meta-Knowledgebase |version|
    :alt: tests status
    :target: https://github.com/cancervariants/metakb/actions/workflows/checks.yaml
 
-The VICC Meta-Knowledgebase (MetaKB) is a search interface for cancer variant interpretations assembled by aggregating and harmonizing across multiple cancer variant interpretation knowledgebases. MetaKB was created to evaluate the disparities in variant interpretation content and structure across established resources of clinical interpretation knowledge. A prior version of this application is described in detail in our 2020 `Nature Genetics publication <https://www.nature.com/articles/s41588-020-0603-8>`_.
+The VICC Meta-Knowledgebase (MetaKB) is a search interface for cancer variant interpretations assembled by aggregating and harmonizing across multiple cancer variant interpretation knowledgebases. The MetaKB was created to evaluate the disparities in variant interpretation content and structure across established resources of clinical interpretation knowledge.
+
+A prior version of this application is described in detail in our 2020 `Nature Genetics publication <https://www.nature.com/articles/s41588-020-0603-8>`_.
 
 .. toctree::
    :hidden:
@@ -28,7 +30,8 @@ The VICC Meta-Knowledgebase (MetaKB) is a search interface for cancer variant in
     Normalization<normalization>
     CLI reference<cli_reference>
     API reference<reference/index>
+    Source data licenses<source_licenses>
+    Citation<citation>
     Changelog<changelog>
     Contributing<contributing>
-    Source data licenses<source_licenses>
     License<license>

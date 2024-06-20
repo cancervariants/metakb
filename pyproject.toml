@@ -54,6 +54,7 @@ docs = [
     "furo==2023.3.27",
     "sphinx-github-changelog==1.2.1",
     "sphinx-click==5.0.1",
+    "sphinxcontrib-images==0.9.4",
 ]
 
 [project.urls]

@@ -30,6 +30,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx_github_changelog",
     "sphinx_click",
+    "sphinxcontrib.images"
 ]
 
 templates_path = ["_templates"]
