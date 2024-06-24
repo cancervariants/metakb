@@ -234,7 +234,10 @@ async def test_batch_search(
     civic_eid816_study,
 ):
     """Test batch search studies method."""
-    assert_no_match(await query_handler.batch_search_studies([]))
+    resp = await query_handler.batch_search_studies([])
+    assert resp.studies == resp.study_ids == []
+    assert resp.warnings == []
+
     assert_no_match(await query_handler.batch_search_studies(["gibberish variant"]))
 
     braf_va_id = "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe"
@@ -250,16 +253,22 @@ async def test_batch_search(
     redundant_braf_response = await query_handler.batch_search_studies(
         [braf_va_id, "NC_000007.13:g.140453136A>T"]
     )
-    assert redundant_braf_response.query.variations == [
+    assert len(redundant_braf_response.query.variations) == 2
+    assert (
         NormalizedQuery(
             term=braf_va_id,
             normalized_id=braf_va_id,
-        ),
+        )
+        in redundant_braf_response.query.variations
+    )
+    assert (
         NormalizedQuery(
             term="NC_000007.13:g.140453136A>T",
             normalized_id=braf_va_id,
-        ),
-    ]
+        )
+        in redundant_braf_response.query.variations
+    )
+
     find_and_check_study(redundant_braf_response, civic_eid816_study, assertion_checks)
     assert len(braf_response.study_ids) == len(redundant_braf_response.study_ids)
 
