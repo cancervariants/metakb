@@ -1,6 +1,7 @@
 """Main application for FastAPI."""
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Annotated
 
 from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
@@ -78,11 +79,11 @@ search_study_response_descr = "A response to a validly-formed query."
     description=search_studies_descr,
 )
 async def get_studies_intersect(
-    variation: str | None = Query(None, description=v_description),
-    disease: str | None = Query(None, description=d_description),
-    therapy: str | None = Query(None, description=t_description),
-    gene: str | None = Query(None, description=g_description),
-    study_id: str | None = Query(None, description=s_description),
+    variation: Annotated[str | None, Query(description=v_description)] = None,
+    disease: Annotated[str | None, Query(description=d_description)] = None,
+    therapy: Annotated[str | None, Query(description=t_description)] = None,
+    gene: Annotated[str | None, Query(description=g_description)] = None,
+    study_id: Annotated[str | None, Query(description=s_description)] = None,
 ) -> dict:
     """Get nested studies from queried concepts that match all conditions provided.
     For example, if `variation` and `therapy` are provided, will return all studies
@@ -100,3 +101,30 @@ async def get_studies_intersect(
         variation, disease, therapy, gene, study_id
     )
     return resp.model_dump(exclude_none=True)
+
+
+_batch_search_studies_descr = {
+    "summary": "Get nested studies for all provided variations.",
+    "description": "Return nested studies associated with any of the provided variations.",
+    "arg_variations": "Variations (subject) to search. Can be free text or VRS variation ID.",
+}
+
+
+@app.get(
+    "/api/v2/batch_search/studies",
+    summary=_batch_search_studies_descr["summary"],
+    description=_batch_search_studies_descr["description"],
+)
+async def batch_get_studies(
+    variations: Annotated[
+        list[str] | None,
+        Query(description=_batch_search_studies_descr["arg_variations"]),
+    ] = None,
+) -> dict:
+    """Fetch all studies associated with `any` of the provided variations.
+
+    :param variations: variations to match against
+    :return: batch response object
+    """
+    response = await query.batch_search_studies(variations)
+    return response.model_dump(exclude_none=True)
