@@ -2009,7 +2009,7 @@ def civic_methods(civic_method, moa_method, method3):
 def moa_source45():
     """Create a test fixture for MOA source 44."""
     return {
-        "id": "moa.source:44",
+        "id": "moa.source:45",
         "extensions": [
             {"type": "Extension", "name": "source_type", "value": "Journal"}
         ],
