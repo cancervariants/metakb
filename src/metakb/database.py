@@ -149,12 +149,7 @@ class Graph:
         with self.driver.session() as session:
             loaded_study_count = 0
 
-            # This will be removed in issue-253
-            if src_name == SourceName.CIVIC:
-                cat_var_key = "molecular_profiles"
-            else:
-                cat_var_key = "variations"
-            for cv in data.get(cat_var_key, []):
+            for cv in data.get("categorical_variations", []):
                 session.execute_write(
                     self._add_categorical_variation, cv, ids_in_studies
                 )
@@ -165,13 +160,13 @@ class Graph:
             for method in data.get("methods", []):
                 session.execute_write(self._add_method, method, ids_in_studies)
 
-            for obj_type in {"genes", "diseases"}:
+            for obj_type in {"genes", "conditions"}:
                 for obj in data.get(obj_type, []):
                     session.execute_write(
                         self._add_gene_or_disease, obj, ids_in_studies
                     )
 
-            for tp in data.get("therapeutics", []):
+            for tp in data.get("therapeutic_procedures", []):
                 session.execute_write(
                     self._add_therapeutic_procedure, tp, ids_in_studies
                 )
