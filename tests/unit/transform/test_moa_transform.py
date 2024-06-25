@@ -19,7 +19,7 @@ async def data(normalizers):
         harvester_path=harvester_path,
         normalizers=normalizers,
     )
-    harvested_data = moa.extract_harvester()
+    harvested_data = moa.extract_harvested_data()
     await moa.transform(harvested_data)
     moa.create_json(cdm_filepath=TEST_TRANSFORM_DIR / FILENAME)
     with (TEST_TRANSFORM_DIR / FILENAME).open() as f:

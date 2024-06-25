@@ -250,7 +250,7 @@ class Transform(ABC):
         :param harvested_data: Source harvested data
         """
 
-    def extract_harvester(self) -> _HarvestedData:
+    def extract_harvested_data(self) -> _HarvestedData:
         """Get harvested data from file.
 
         :return: Harvested data
