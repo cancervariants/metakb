@@ -165,12 +165,6 @@ def process_description(app: Sphinx, ctx: Context, lines: List[str]):
                 lines.insert(i, "")
                 lines.insert(i, ".. code-block:: console")
 
-        # if lines[i].startswith("    $"):
-            # lines.insert(i + 2, "")
-            # if i == 0 or not lines[i - 1].startswith("    "):
-            #     lines.insert(i, "")
-            #     lines.insert(i, ".. code-block:: console")
-
     # put usage at the top of the description
     lines.insert(0, "")
     for usage_line in _get_usage(ctx).splitlines()[::-1]:
