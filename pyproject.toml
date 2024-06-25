@@ -23,7 +23,7 @@ requires-python = ">=3.10"
 description = "A search interface for cancer variant interpretations assembled by aggregating and harmonizing across multiple cancer variant interpretation knowledgebases."
 license = {file = "LICENSE"}
 dependencies = [
-    "ga4gh.vrs~=2.0.0a5",
+    "ga4gh.vrs==2.0.0a6",
     "gene-normalizer[etl]~=0.3.0-dev1",
     "variation-normalizer~=0.8.2",
     "disease-normalizer[etl]~=0.4.0.dev3",
