@@ -145,7 +145,7 @@ class QueryHandler:
                 study_nodes = [study]
                 response["study_ids"].append(study["id"])
             else:
-                study_nodes = self._get_related_studies(
+                study_nodes = self._get_studies(
                     session,
                     normalized_variation=normalized_variation,
                     normalized_therapy=normalized_therapy,
@@ -321,21 +321,21 @@ class QueryHandler:
         return (tx.run(query).single() or [None])[0]
 
     @staticmethod
-    def _get_related_studies(
+    def _get_studies(
         tx: Transaction,
         normalized_variation: str | None = None,
         normalized_therapy: str | None = None,
         normalized_disease: str | None = None,
         normalized_gene: str | None = None,
     ) -> list[Node]:
-        """Get studies that contain queried normalized concepts.
+        """Get studies that match the intersection of provided concepts.
 
         :param tx: Neo4j session transaction object
         :param normalized_variation: VRS Variation ID
         :param normalized_therapy: normalized therapy concept ID
         :param normalized_disease: normalized disease concept ID
         :param normalized_gene: normalized gene concept ID
-        :return: List of Study nodes matching given parameters
+        :return: List of Study nodes that match the intersection of the given parameters
         """
         query = "MATCH (s:Study)"
         params: dict[str, str] = {}
@@ -361,17 +361,14 @@ class QueryHandler:
 
         if normalized_therapy:
             query += """
-            MATCH (s1:Study) -[:HAS_THERAPEUTIC] ->(
-                tp:TherapeuticAgent {therapy_normalizer_id:$t_id})
-            RETURN s1 as s
-            UNION
-            MATCH (s2:Study) -[:HAS_THERAPEUTIC]-> () - [:HAS_SUBSTITUTES|
-                HAS_COMPONENTS] ->(ta:TherapeuticAgent {therapy_normalizer_id:$t_id})
-            RETURN s2 as s
+            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> (tp:TherapeuticAgent {therapy_normalizer_id:$t_id})
+            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> () -[:HAS_SUBSTITUTES|HAS_COMPONENTS] -> (ta:TherapeuticAgent {therapy_normalizer_id:$t_id})
+            WITH s, tp, ta
+            WHERE tp IS NOT NULL OR ta IS NOT NULL
             """
             params["t_id"] = normalized_therapy
-        else:
-            query += "RETURN s"
+
+        query += "RETURN DISTINCT s"
 
         return [s[0] for s in tx.run(query, **params)]
 
