@@ -58,7 +58,9 @@ class MoaTransform(Transform):
         )
 
         # Method will always be the same
-        self.methods = [self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]]
+        self.processed_data.methods = [
+            self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]
+        ]
         self.able_to_normalize = {
             "variations": {},
             "conditions": {},
@@ -206,10 +208,10 @@ class MoaTransform(Transform):
                 therapeutic=moa_therapeutic,
                 tumorType=moa_disease,
                 qualifiers=qualifiers,
-                specifiedBy=self.methods[0],
+                specifiedBy=self.processed_data.methods[0],
                 isReportedIn=[document],
-            ).model_dump(exclude_none=True)
-            self.studies.append(statement)
+            )
+            self.processed_data.studies.append(statement)
 
     def _get_variant_onco_study_qualifier(
         self, feature_type: str, gene: Gene | None = None
@@ -278,7 +280,7 @@ class MoaTransform(Transform):
             # For now, the normalizer only support amino acid substitution
             vrs_variation = None
             if variant.get("protein_change"):
-                gene = moa_gene["label"]
+                gene = moa_gene.label
                 query = f"{gene} {variant['protein_change'][2:]}"
                 vrs_variation = await self.vicc_normalizers.normalize_variation([query])
 
@@ -349,13 +351,13 @@ class MoaTransform(Transform):
                 mappings=mappings or None,
                 extensions=extensions,
                 members=members,
-            ).model_dump(exclude_none=True)
+            )
 
             self.able_to_normalize["variations"][variant_id] = {
                 "psc": psc,
                 "moa_gene": moa_gene,
             }
-            self.categorical_variations.append(psc)
+            self.processed_data.categorical_variations.append(psc)
 
     async def _get_variation_members(
         self, moa_rep_coord: dict
@@ -413,9 +415,9 @@ class MoaTransform(Transform):
                     extensions=[
                         Extension(name="gene_normalizer_id", value=normalized_gene_id)
                     ],
-                ).model_dump(exclude_none=True)
+                )
                 self.able_to_normalize["genes"][quote(gene)] = moa_gene
-                self.genes.append(moa_gene)
+                self.processed_data.genes.append(moa_gene)
             else:
                 logger.debug("Gene Normalizer unable to normalize: %s", gene)
 
@@ -449,9 +451,9 @@ class MoaTransform(Transform):
                 doi=source["doi"] if source["doi"] else None,
                 mappings=mappings,
                 extensions=[Extension(name="source_type", value=source["type"])],
-            ).model_dump(exclude_none=True)
+            )
             self.able_to_normalize["documents"][source_id] = document
-            self.documents.append(document)
+            self.processed_data.documents.append(document)
 
     def _get_therapeutic_substitute_group(
         self,
@@ -473,8 +475,7 @@ class MoaTransform(Transform):
         Will run `label` through therapy-normalizer.
 
         :param therapy: MOA therapy name
-        :return: If able to normalize therapy, returns therapeutic agent represented as
-            a dict
+        :return: If able to normalize therapy, returns therapeutic agent
         """
         (
             therapy_norm_resp,
@@ -535,7 +536,7 @@ class MoaTransform(Transform):
             vrs_disease = self._get_disease(disease)
             if vrs_disease:
                 self.able_to_normalize["conditions"][disease_id] = vrs_disease
-                self.conditions.append(vrs_disease)
+                self.processed_data.conditions.append(vrs_disease)
             else:
                 self.unable_to_normalize["conditions"].add(disease_id)
         return vrs_disease
@@ -544,7 +545,7 @@ class MoaTransform(Transform):
         """Get Disease object for a MOA disease
 
         :param disease: MOA disease record
-        :return: If able to normalize, Disease represented as a dict. Otherwise, `None`
+        :return: If able to normalize, Disease. Otherwise, `None`
         """
         queries = []
         mappings = []
@@ -589,4 +590,4 @@ class MoaTransform(Transform):
                     normalized_disease_id, disease_norm_resp
                 ),
             ],
-        ).model_dump(exclude_none=True)
+        )
