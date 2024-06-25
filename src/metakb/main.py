@@ -60,9 +60,9 @@ search_studies_summary = (
     "Get nested studies from queried concepts that match all conditions provided."
 )
 search_studies_descr = (
-    "Return nested studies associated to the queried concepts. For example, if "
-    "`variation` and `therapy` are provided, will return all studies that have both "
-    "the provided `variation` and `therapy`."
+    "Return nested studies that match the intersection of queried concepts. For "
+    "example, if `variation` and `therapy` are provided, will return all studies that "
+    "have both the provided `variation` and `therapy`."
 )
 v_description = "Variation (subject) to search. Can be free text or VRS Variation ID."
 d_description = "Disease (object qualifier) to search"

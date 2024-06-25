@@ -1,6 +1,6 @@
-"""Test the MetaKB search_studies method"""
-
+"""Test search study methods"""
 import pytest
+from ga4gh.core._internal.models import Extension
 
 from metakb.query import QueryHandler
 from metakb.schemas.api import (
@@ -16,6 +16,20 @@ def query_handler(normalizers):
     qh = QueryHandler(normalizers=normalizers)
     yield qh
     qh.driver.close()
+
+
+def _get_normalizer_id(extensions: list[Extension]) -> str | None:
+    """Get normalized ID from list of extensions
+
+    :param extensions: List of extensions
+    :return: Normalized concept ID if found in extensions
+    """
+    normalizer_id = None
+    for ext in extensions:
+        if ext.name.endswith("_normalizer_id"):
+            normalizer_id = ext.value
+            break
+    return normalizer_id
 
 
 def assert_general_search_studies(response):
@@ -195,11 +209,48 @@ async def test_general_search_studies(query_handler):
     resp = await query_handler.search_studies(disease="cancer")
     assert_general_search_studies(resp)
 
+    # Case: Handling therapy for single therapeutic agent / combination / substitutes
     resp = await query_handler.search_studies(therapy="Cetuximab")
     assert_general_search_studies(resp)
+    expected_therapy_id = "rxcui:318341"
+    for study in resp.studies:
+        tp = study.therapeutic.root
+        if tp.type == "TherapeuticAgent":
+            assert _get_normalizer_id(tp.extensions) == expected_therapy_id
+        else:
+            therapeutics = (
+                tp.components if tp.type == "CombinationTherapy" else tp.substitutes
+            )
+
+            found_expected = False
+            for therapeutic in therapeutics:
+                if _get_normalizer_id(therapeutic.extensions) == expected_therapy_id:
+                    found_expected = True
+                    break
+            assert found_expected
 
     resp = await query_handler.search_studies(gene="VHL")
     assert_general_search_studies(resp)
+
+    # Case: multiple concepts provided
+    expected_variation_id = "ga4gh:VA._8jTS8nAvWwPZGOadQuD1o-tbbTQ5g3H"
+    expected_disease_id = "ncit:C2926"
+    expected_therapy_id = "ncit:C104732"
+    resp = await query_handler.search_studies(
+        variation=expected_variation_id,
+        disease=expected_disease_id,
+        therapy=expected_therapy_id,  # Single Therapeutic Agent
+    )
+    assert_general_search_studies(resp)
+
+    for study in resp.studies:
+        assert study.variant.root.definingContext.id == expected_variation_id
+        assert (
+            _get_normalizer_id(study.therapeutic.root.extensions) == expected_therapy_id
+        )
+        assert (
+            _get_normalizer_id(study.tumorType.root.extensions) == expected_disease_id
+        )
 
 
 @pytest.mark.asyncio(scope="module")
