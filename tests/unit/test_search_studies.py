@@ -76,9 +76,7 @@ def find_and_check_study(
 @pytest.mark.asyncio(scope="module")
 async def test_civic_eid2997(query_handler, civic_eid2997_study, assertion_checks):
     """Test that search_studies method works correctly for CIViC EID2997"""
-    resp = await query_handler.search_studies(
-        study_id=civic_eid2997_study["id"]
-    )
+    resp = await query_handler.search_studies(study_id=civic_eid2997_study["id"])
     assert resp.study_ids == [civic_eid2997_study["id"]]
     resp_studies = [s.model_dump(exclude_none=True) for s in resp.studies]
     assertion_checks(resp_studies, [civic_eid2997_study])
@@ -125,9 +123,7 @@ async def test_civic_eid2997(query_handler, civic_eid2997_study, assertion_check
 @pytest.mark.asyncio(scope="module")
 async def test_civic816(query_handler, civic_eid816_study, assertion_checks):
     """Test that search_studies method works correctly for CIViC EID816"""
-    resp = await query_handler.search_studies(
-        study_id=civic_eid816_study["id"]
-    )
+    resp = await query_handler.search_studies(study_id=civic_eid816_study["id"])
     assert resp.study_ids == [civic_eid816_study["id"]]
     resp_studies = [s.model_dump(exclude_none=True) for s in resp.studies]
     assertion_checks(resp_studies, [civic_eid816_study])
@@ -144,9 +140,7 @@ async def test_civic816(query_handler, civic_eid816_study, assertion_checks):
 @pytest.mark.asyncio(scope="module")
 async def test_civic9851(query_handler, civic_eid9851_study, assertion_checks):
     """Test that search_studies method works correctly for CIViC EID9851"""
-    resp = await query_handler.search_studies(
-        study_id=civic_eid9851_study["id"]
-    )
+    resp = await query_handler.search_studies(study_id=civic_eid9851_study["id"])
     assert resp.study_ids == [civic_eid9851_study["id"]]
     resp_studies = [s.model_dump(exclude_none=True) for s in resp.studies]
     assertion_checks(resp_studies, [civic_eid9851_study])
@@ -279,9 +273,7 @@ async def test_no_matches(query_handler):
     assert_no_match(resp)
 
     # valid queries, but no matches with combination
-    resp = await query_handler.search_studies(
-        variation="BRAF V600E", gene="EGFR"
-    )
+    resp = await query_handler.search_studies(variation="BRAF V600E", gene="EGFR")
     assert_no_match(resp)
 
 

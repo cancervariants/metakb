@@ -97,9 +97,7 @@ async def get_studies(
     :return: SearchStudiesService response containing nested studies and service
         metadata
     """
-    resp = await query.search_studies(
-        variation, disease, therapy, gene, study_id
-    )
+    resp = await query.search_studies(variation, disease, therapy, gene, study_id)
     return resp.model_dump(exclude_none=True)
 
 
