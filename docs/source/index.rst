@@ -27,7 +27,6 @@ This documentation is also a work in progress, and may contain incomplete sectio
    :maxdepth: 2
 
     Installation<install>
-    Loading data<data>
     Usage<usage>
     Normalization<normalization>
     CLI reference<cli_reference>

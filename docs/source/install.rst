@@ -145,6 +145,8 @@ By default, Neo4j Desktop serves to port ``7687``. Use the enviroment variable `
 Loading Data
 ------------
 
+.. TODO add link to sources page once it's up
+
 Once all dependencies are available, use the ``update`` console command to transform and load all :ref:`MetaKB source data`:
 
 .. code-block::

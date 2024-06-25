@@ -1,5 +1,7 @@
 .. _cli-reference:
 
+.. TODO double check correctness of generated docs
+
 Command-line interface
 ----------------------
 

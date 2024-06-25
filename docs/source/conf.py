@@ -171,12 +171,6 @@ def process_description(app: Sphinx, ctx: Context, lines: List[str]):
             #     lines.insert(i, "")
             #     lines.insert(i, ".. code-block:: console")
 
-    # TODO testing ????
-    print('--')
-    for line in lines:
-        print(line)
-    print('--')
-
     # put usage at the top of the description
     lines.insert(0, "")
     for usage_line in _get_usage(ctx).splitlines()[::-1]:
