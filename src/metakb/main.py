@@ -78,7 +78,7 @@ search_study_response_descr = "A response to a validly-formed query."
     response_description=search_study_response_descr,
     description=search_studies_descr,
 )
-async def get_studies_intersect(
+async def get_studies(
     variation: Annotated[str | None, Query(description=v_description)] = None,
     disease: Annotated[str | None, Query(description=d_description)] = None,
     therapy: Annotated[str | None, Query(description=t_description)] = None,
@@ -97,7 +97,7 @@ async def get_studies_intersect(
     :return: SearchStudiesService response containing nested studies and service
         metadata
     """
-    resp = await query.search_studies_intersect(
+    resp = await query.search_studies(
         variation, disease, therapy, gene, study_id
     )
     return resp.model_dump(exclude_none=True)

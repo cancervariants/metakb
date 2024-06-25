@@ -90,7 +90,7 @@ class QueryHandler:
         self.driver = Graph(uri, creds).driver
         self.vicc_normalizers = normalizers
 
-    async def search_studies_intersect(
+    async def search_studies(
         self,
         variation: str | None = None,
         disease: str | None = None,
@@ -145,7 +145,7 @@ class QueryHandler:
                 study_nodes = [study]
                 response["study_ids"].append(study["id"])
             else:
-                study_nodes = self._get_studies_intersect(
+                study_nodes = self._get_studies(
                     session,
                     normalized_variation=normalized_variation,
                     normalized_therapy=normalized_therapy,
@@ -321,7 +321,7 @@ class QueryHandler:
         return (tx.run(query).single() or [None])[0]
 
     @staticmethod
-    def _get_studies_intersect(
+    def _get_studies(
         tx: Transaction,
         normalized_variation: str | None = None,
         normalized_therapy: str | None = None,
