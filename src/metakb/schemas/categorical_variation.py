@@ -93,7 +93,7 @@ class CategoricalCnv(_CategoricalVariationBase):
     )
     locationMatchCharacteristic: LocationMatchCharacteristic | None = Field(
         None,
-        description="The characteristics of a valid match between a contextual CNV location (the query) and the Categorical CNV location (the domain), when both query and domain are represented on the same reference sequence. An ``exact`` match requires the location of the query and domain to be identical. A ``subinterval`` match requires the query to be a subinterval of the domain. A ``superinterval`` match requires the query to be a superinterval of the domain. A ``partial`` match requires at least 1 residue of overlap between the query and domain.",
+        description="The characteristics of a valid match between a contextual CNV location (the query) and the Categorical CNV location (the domain), when both query and domain are represented on the same reference sequence. An `exact` match requires the location of the query and domain to be identical. A `subinterval` match requires the query to be a subinterval of the domain. A `superinterval` match requires the query to be a superinterval of the domain. A `partial` match requires at least 1 residue of overlap between the query and domain.",
     )
     copyChange: models.CopyChange | None = Field(
         None,
