@@ -74,7 +74,9 @@ def _update_mappings(params: dict) -> None:
 
 
 class QueryHandler:
-    """Class for handling queries."""
+    """Primary query-handling class. Wraps database connections and hooks to external
+    services such as the concept normalizers.
+    """
 
     def __init__(
         self,
@@ -112,11 +114,14 @@ class QueryHandler:
         For example, if ``variation`` and ``therapy`` are provided, will return all studies
         that have both the provided ``variation`` and ``therapy``.
 
-
         >>> from metakb.query import QueryHandler
         >>> qh = QueryHandler()
         >>> result = qh.search_studies("BRAF V600E")
-        >>> # describe response here
+        >>> result.study_ids[:3]
+        ['moa.assertion:944', 'moa.assertion:911', 'moa.assertion:865']
+        >>> result.studies[0].isReportedIn[0].url
+        'https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/202429s019lbl.pdf'
+
 
         Variation, disease, therapy, and gene terms are resolved via their respective
         :ref:`concept normalization services<normalization>`.

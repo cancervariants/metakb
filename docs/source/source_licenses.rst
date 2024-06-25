@@ -9,7 +9,7 @@ Source Data Licenses
      - License
      - Source statement
    * - `CIViC <https://www.civicdb.org/>`_
-     - .. image:: _assets/cc0_badge_big.png
+     - .. image:: _assets/images/cc0_badge_big.png
           :target: https://creativecommons.org/public-domain/cc0/
      - `CIViC license statement <https://civicdb.org/faq>`_
    * - `Molecular Oncology Almanac <https://moalmanac.org/>`_

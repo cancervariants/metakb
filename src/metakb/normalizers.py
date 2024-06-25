@@ -49,18 +49,29 @@ class ViccNormalizers:
     earlier search term). Variations are handled differently; from the provided list of
     terms, the first one that normalizes completely is returned, so order is
     particularly important when multiple terms are given.
+
+    See :ref:`concept normalization services<normalization>` in the documentation for
+    more.
     """
 
     def __init__(self, db_url: str | None = None) -> None:
         """Initialize normalizers. Construct a normalizer instance for each service
         (gene, variation, disease, therapy) and retain them as instance properties.
 
+        >>> from metakb.normalizers import ViccNormalizers
+        >>> norm = ViccNormalizers()
+
         Note that gene concept lookups within the Variation Normalizer are resolved
         using the Gene Normalizer instance, rather than creating a second sub-instance.
 
-        :param db_url: optional definition of shared normalizer database. Currently
-            only works for DynamoDB backend. If not given, each normalizer falls back
-            on default behavior for connecting to a database.
+        >>> id(norm.gene_query_handler) == id(norm.variation_normalizer.gnomad_vcf_to_protein_handler.gene_normalizer)
+        True
+
+        :param db_url: optional definition of shared normalizer database. Because the
+            same parameter is passed to each concept normalizer, this only works for
+            connecting a DynamoDB backend. If not given, each normalizer falls back
+            on default behavior for connecting to a database, which includes checking
+            their corresponding environment variables.
         """
         self.gene_query_handler = GeneQueryHandler(create_gene_db(db_url))
         self.variation_normalizer = VariationQueryHandler(
@@ -329,7 +340,15 @@ def check_normalizers(
 ) -> bool:
     """Perform basic health checks on the gene, disease, and therapy normalizers.
 
-    Uses the internal health check methods provided by each.
+    Uses the internal health check methods provided by each. Note that health check
+    failures (i.e. tables unavailable or unpopulated) are logged as WARNINGs, but
+    unhandled exceptions encountered during checks are suppressed and logged as ERRORs.
+
+    >>> from metakb.normalizers import check_normalizers, NormalizerName
+    >>> check_normalizers([NormalizerName.DISEASE])
+    True  # indicates success
+    >>> check_normalizers([NormalizerName.THERAPY])
+    False  # indicates failure
 
     :param db_url: optional designation of DB URL to use for each. Currently only
         works for DynamoDB. If not given, normalizers will fall back on their own
