@@ -2,7 +2,7 @@
 import datetime
 import json
 import logging
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
 from typing import ClassVar
@@ -25,6 +25,7 @@ from pydantic import BaseModel, StrictStr, ValidationError
 from therapy.schemas import NormalizationService as NormalizedTherapy
 
 from metakb import APP_ROOT, DATE_FMT
+from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import ViccNormalizers
 from metakb.schemas.annotation import Document, Method
 from metakb.schemas.app import SourceName
@@ -86,7 +87,7 @@ class ViccConceptVocab(BaseModel):
     definition: StrictStr
 
 
-class Transform:
+class Transform(ABC):
     """A base class for transforming harvester data."""
 
     _methods: ClassVar[list[dict]] = [
@@ -242,14 +243,17 @@ class Transform:
             self._evidence_level_to_vicc_concept_mapping()
         )
 
-    async def transform(self) -> None:
-        """Transform harvested data to the Common Data Model."""
-        raise NotImplementedError
+    @abstractmethod
+    async def transform(self, harvested_data: _HarvestedData) -> None:
+        """Transform harvested data to the Common Data Model.
 
-    def extract_harvester(self) -> dict[str, list]:
+        :param harvested_data: Source harvested data
+        """
+
+    def extract_harvester(self) -> _HarvestedData:
         """Get harvested data from file.
 
-        :return: Dict containing Lists of entries for each object type
+        :return: Harvested data
         """
         if self.harvester_path is None:
             today = datetime.datetime.strftime(
@@ -265,8 +269,10 @@ class Transform:
             if not self.harvester_path.exists():
                 msg = f"Unable to open harvester file: {self.harvester_path}"
                 raise FileNotFoundError(msg)
+
         with self.harvester_path.open() as f:
-            return json.load(f)
+            _harvested_data_child = _HarvestedData.get_subclass_by_prefix(self.name)
+            return _harvested_data_child(**json.load(f))
 
     def _evidence_level_to_vicc_concept_mapping(self) -> dict:
         """Get mapping of source evidence level to vicc concept vocab

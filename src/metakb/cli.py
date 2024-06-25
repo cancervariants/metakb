@@ -617,7 +617,8 @@ async def _transform_source(
     transformer: CivicTransform | MoaTransform = transform_sources[source](
         normalizers=normalizer_handler, harvester_path=harvest_file
     )
-    await transformer.transform()
+    harvested_data = transformer.extract_harvester()
+    await transformer.transform(harvested_data)
     end = timer()
     _echo_info(f"{source.as_print_case()} transform finished in {(end - start):.2f} s.")
     output_file = (

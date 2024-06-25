@@ -18,7 +18,8 @@ async def data(normalizers):
     c = CivicTransform(
         data_dir=DATA_DIR, harvester_path=harvester_path, normalizers=normalizers
     )
-    await c.transform()
+    harvested_data = c.extract_harvester()
+    await c.transform(harvested_data)
     c.create_json(DATA_DIR / FILENAME)
     with (DATA_DIR / FILENAME).open() as f:
         return json.load(f)

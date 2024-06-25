@@ -19,6 +19,7 @@ from ga4gh.vrs._internal.models import Variation
 from pydantic import BaseModel, ValidationError
 
 from metakb import APP_ROOT
+from metakb.harvesters.civic import CivicHarvestedData
 from metakb.normalizers import ViccNormalizers
 from metakb.schemas.annotation import Direction, Document
 from metakb.schemas.categorical_variation import ProteinSequenceConsequence
@@ -160,16 +161,17 @@ class CivicTransform(Transform):
         )
         return supported_mps, mp_id_to_v_id
 
-    async def transform(self) -> None:
+    async def transform(self, harvested_data: CivicHarvestedData) -> None:
         """Transform CIViC harvested json to common data model. Will store transformed
         results in instance variables.
+
+        :param harvested_data: CIViC harvested data
         """
-        data = self.extract_harvester()
-        evidence_items = data["evidence"]
+        evidence_items = harvested_data.evidence
 
         # Get list of supported molecular profiles and mapping to variant id
         molecular_profiles, mp_id_to_v_id_mapping = self._mp_to_variant_mapping(
-            data["molecular_profiles"]
+            harvested_data.molecular_profiles
         )
 
         # Only want evidence with approved status and predictive evidence type
@@ -188,10 +190,10 @@ class CivicTransform(Transform):
 
         # Add variant (only supported) and gene (all) data
         # (mutates `variations` and `genes`)
-        variants = data["variants"]
+        variants = harvested_data.variants
         variants = [v for v in variants if v["id"] in vids]
         await self._add_variations(variants)
-        self._add_genes(data["genes"])
+        self._add_genes(harvested_data.genes)
 
         # Only want to add MPs where variation-normalizer succeeded for the related
         # variant. Will update `molecular_profiles`

@@ -17,6 +17,28 @@ class _HarvestedData(BaseModel):
 
     variants: list[dict]
 
+    @classmethod
+    def get_subclass_by_prefix(
+        cls: type["_HarvestedData"], prefix: str
+    ) -> type["_HarvestedData"]:
+        """Get subclass whose name starts with provided prefix
+
+        :param prefix: Prefix to search for in subclass names
+        :raises ValueError: If no subclasses defined or if no subclass found with prefix
+        :return: Matching subclass with given prefix, if found
+        """
+        subclasses = cls.__subclasses__()
+        if not subclasses:
+            msg = "No subclasses have been defined"
+            raise ValueError(msg)
+
+        for subclass in subclasses:
+            if subclass.__name__.lower().startswith(prefix):
+                return subclass
+
+        msg = f"No subclass starting with '{prefix}' found"
+        raise ValueError(msg)
+
 
 class Harvester(ABC):
     """A base class for content harvesters."""
