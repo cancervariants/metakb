@@ -52,7 +52,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     env:
-      SPHINX_GITHUB_CHANGELOG_TOKEN: {{ "${{ secrets.GITHUB_TOKEN }}" }}
+      SPHINX_GITHUB_CHANGELOG_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v3
 
