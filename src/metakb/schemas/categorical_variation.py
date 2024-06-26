@@ -1,4 +1,8 @@
-"""Module containing GA4GH categorical variation definitions"""
+"""Define Pydantic models for GA4GH categorical variation objects.
+
+See the `CatVar page <https://www.ga4gh.org/product/categorical-variation-catvar/>`_ on
+the GA4GH website for more information.
+"""
 from enum import Enum
 from typing import Literal
 
@@ -10,10 +14,10 @@ from pydantic import Field, RootModel, StrictStr
 class LocationMatchCharacteristic(str, Enum):
     """The characteristics of a valid match between a contextual CNV location (the
     query) and the Categorical CNV location (the domain), when both query and domain are
-    represented on the same  reference sequence. An `exact` match requires the location
-    of the query and domain to be identical. A `subinterval` match requires the query to
-    be a subinterval of the domain. A `superinterval` match requires the query to be a
-    superinterval of the domain. A `partial` match requires at least 1 residue of
+    represented on the same  reference sequence. An ``exact`` match requires the location
+    of the query and domain to be identical. A ``subinterval`` match requires the query to
+    be a subinterval of the domain. A ``superinterval`` match requires the query to be a
+    superinterval of the domain. A ``partial`` match requires at least 1 residue of
     between the query and domain.
     """
 
@@ -36,8 +40,8 @@ class ProteinSequenceConsequence(_CategoricalVariationBase):
     """A change that occurs in a protein sequence as a result of genomic changes. Due to
     the degenerate nature of the genetic code, there are often several genomic changes
     that can cause a protein sequence consequence. The protein sequence consequence,
-    like a `CanonicalAllele`, is defined by an
-    `Allele <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#variation>` that is
+    like a ``CanonicalAllele``, is defined by an
+    `Allele <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#variation>`_ that is
     representative of a collection of congruent Protein Alleles that share the same
     altered codon(s).
     """
@@ -54,7 +58,7 @@ class ProteinSequenceConsequence(_CategoricalVariationBase):
 
 class CanonicalAllele(_CategoricalVariationBase):
     """A canonical allele is defined by an
-    `Allele <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#variation>` that is
+    `Allele <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#variation>`_ that is
     representative of a collection of congruent Alleles, each of which depict the same
     nucleic acid change on different underlying reference sequences. Congruent
     representations of an Allele often exist across different genome assemblies and
@@ -104,7 +108,7 @@ class DescribedVariation(_CategoricalVariationBase):
     """Some categorical variation concepts are supported by custom nomenclatures or
     text-descriptive representations for which a categorical variation model does not
     exist. DescribedVariation is a class that adds requirements and contextual semantics
-    to the `label` and `description` fields to indicate how a categorical variation
+    to the ``label`` and ``description`` fields to indicate how a categorical variation
     concept should be evaluated for matching variants.
     """
 
