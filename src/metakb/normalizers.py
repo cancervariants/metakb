@@ -1,4 +1,4 @@
-"""Module for VICC normalizers."""
+"""Handle construction of and relay requests to VICC normalizer services."""
 import logging
 import os
 from collections.abc import Iterable
@@ -41,14 +41,37 @@ _logger = logging.getLogger(__name__)
 
 
 class ViccNormalizers:
-    """A class for normalizing terms using VICC normalizers."""
+    """Manage VICC concept normalization services.
+
+    The therapy, disease, and gene normalizer wrappers all behave roughly the same way:
+    given a list of possible terms, run each of them through the normalizer, and return
+    the normalized record for the one with the highest match type (tie goes to the
+    earlier search term). Variations are handled differently; from the provided list of
+    terms, the first one that normalizes completely is returned, so order is
+    particularly important when multiple terms are given.
+
+    See :ref:`concept normalization services<normalization>` in the documentation for
+    more.
+    """
 
     def __init__(self, db_url: str | None = None) -> None:
-        """Initialize the VICC normalizers query handler instances.
+        """Initialize normalizers. Construct a normalizer instance for each service
+        (gene, variation, disease, therapy) and retain them as instance properties.
 
-        :param db_url: optional definition of shared normalizer database. Currently
-            only works for DynamoDB backend. If not given, each normalizer falls back
-            on default behavior for connecting to a database.
+        >>> from metakb.normalizers import ViccNormalizers
+        >>> norm = ViccNormalizers()
+
+        Note that gene concept lookups within the Variation Normalizer are resolved
+        using the Gene Normalizer instance, rather than creating a second sub-instance.
+
+        >>> id(norm.gene_query_handler) == id(norm.variation_normalizer.gnomad_vcf_to_protein_handler.gene_normalizer)
+        True
+
+        :param db_url: optional definition of shared normalizer database. Because the
+            same parameter is passed to each concept normalizer, this only works for
+            connecting a DynamoDB backend. If not given, each normalizer falls back
+            on default behavior for connecting to a database, which includes checking
+            their corresponding environment variables.
         """
         self.gene_query_handler = GeneQueryHandler(create_gene_db(db_url))
         self.variation_normalizer = VariationQueryHandler(
@@ -62,9 +85,11 @@ class ViccNormalizers:
     ) -> Allele | CopyNumberChange | CopyNumberCount | None:
         """Normalize variation queries.
 
-        :param queries: Possible query strings to try to normalize which are used in
-            the event that a MANE transcript cannot be found
-        :return: A normalized variation
+        :param queries: Candidate query strings to attempt to normalize. Should be
+            provided in order of preference, as the result of the first one to normalize
+            successfully will be returned. Use in the event that a prioritized MANE
+            transcript is unavailable and multiple possible candidates are known.
+        :return: A normalized variation, if available.
         """
         for query in queries:
             if not query:
@@ -86,9 +111,26 @@ class ViccNormalizers:
     def normalize_gene(
         self, queries: list[str]
     ) -> tuple[NormalizedGene | None, str | None]:
-        """Normalize gene queries
+        """Normalize gene queries.
 
-        :param queries: Gene queries to normalize
+        Given a collection of terms, return the normalized concept with the highest
+        match (see the
+        `Gene Normalizer docs <https://gene-normalizer.readthedocs.io/latest/usage.html#match-types>`_ for
+        more details on match types, and how queries are resolved).
+
+        >>> from metakb.normalizers import ViccNormalizers
+        >>> v = ViccNormalizers()
+        >>> gene_terms = [
+        ...     "gibberish",  # won't match
+        ...     "NETS",  # alias
+        ...     "hgnc:1097",  # HGNC identifier for BRAF
+        ...     "MARCH3",  # previous symbol
+        ... ]
+        >>> v.normalize_gene(gene_terms)[0].normalized_id
+        'hgnc:1097'
+
+        :param queries: A list of possible gene terms to normalize. Order is irrelevant,
+            except for breaking ties (choose earlier if equal).
         :return: The highest matched gene's normalized response and ID
         """
         gene_norm_resp = None
@@ -117,9 +159,23 @@ class ViccNormalizers:
     def normalize_disease(
         self, queries: list[str]
     ) -> tuple[NormalizedDisease | None, str | None]:
-        """Normalize disease queries
+        """Normalize disease queries.
 
-        :param queries: Disease queries to normalize
+        Given a collection of terms, return the normalized concept with the highest
+        match.
+
+        >>> from metakb.normalizers import ViccNormalizers
+        >>> v = ViccNormalizers()
+        >>> disease_terms = [
+        ...     "AML",  # alias
+        ...     "von hippel-lindau syndrome",  # alias
+        ...     "ncit:C9384",  # concept ID
+        ... ]
+        >>> v.normalize_disease(disease_terms)[0].normalized_id
+        'ncit:C9384'
+
+        :param queries: Disease queries to normalize. Order is irrelevant, except for
+            breaking ties (choose earlier if equal).
         :return: The highest matched disease's normalized response and ID
         """
         highest_match = 0
@@ -151,7 +207,21 @@ class ViccNormalizers:
     ) -> tuple[NormalizedTherapy | None, str | None]:
         """Normalize therapy queries
 
-        :param queries: Therapy queries to normalize
+        Given a collection of terms, return the normalized concept with the highest
+        match.
+
+        >>> from metakb.normalizers import ViccNormalizers
+        >>> v = ViccNormalizers()
+        >>> therapy_terms = [
+        ...     "VAZALORE",  # trade name
+        ...     "RHUMAB HER2",  # alias
+        ...     "rxcui:5032",  # concept ID
+        ... ]
+        >>> v.normalize_therapy(therapy_terms)[0].normalized_id
+        'rxcui:5032'
+
+        :param queries: Therapy queries to normalize. Order is irrelevant, except for
+            breaking ties (choose earlier term if equal).
         :return: The highest matched therapy's normalized response and ID
         """
         highest_match = 0
@@ -270,7 +340,15 @@ def check_normalizers(
 ) -> bool:
     """Perform basic health checks on the gene, disease, and therapy normalizers.
 
-    Uses the internal health check methods provided by each.
+    Uses the internal health check methods provided by each. Note that health check
+    failures (i.e. tables unavailable or unpopulated) are logged as WARNINGs, but
+    unhandled exceptions encountered during checks are suppressed and logged as ERRORs.
+
+    >>> from metakb.normalizers import check_normalizers, NormalizerName
+    >>> check_normalizers([NormalizerName.DISEASE])
+    True  # indicates success
+    >>> check_normalizers([NormalizerName.THERAPY])
+    False  # indicates failure
 
     :param db_url: optional designation of DB URL to use for each. Currently only
         works for DynamoDB. If not given, normalizers will fall back on their own
