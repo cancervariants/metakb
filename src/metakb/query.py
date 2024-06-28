@@ -80,8 +80,7 @@ class QueryHandler:
 
     def __init__(
         self,
-        uri: str = "",
-        creds: tuple[str, str] = ("", ""),
+        graph: Graph | None = None,
         normalizers: ViccNormalizers | None = None,
     ) -> None:
         """Initialize neo4j driver and the VICC normalizers.
@@ -91,15 +90,17 @@ class QueryHandler:
         to provide them manually:
 
         >>> from metakb.query import QueryHandler
-        >>> qh = QueryHandler("bolt://localhost:7687", ("neo4j", "password"))
+        >>> from metakb.database import Graph
+        >>> qh = QueryHandler(Graph("bolt://localhost:7687", ("neo4j", "password")))
 
-        :param uri: address of Neo4j DB
-        :param credentials: tuple containing username and password
+        :param graph: database handler instance
         :param normalizers: normalizer collection instance
         """
+        if graph is None:
+            graph = Graph()
         if normalizers is None:
             normalizers = ViccNormalizers()
-        self.driver = Graph(uri, creds).driver
+        self.driver = graph.driver
         self.vicc_normalizers = normalizers
 
     async def search_studies(
