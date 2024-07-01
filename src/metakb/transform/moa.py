@@ -61,8 +61,8 @@ class MoaTransform(Transform):
         self.methods = [self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]]
         self.able_to_normalize = {
             "variations": {},
-            "diseases": {},
-            "therapeutics": {},
+            "conditions": {},
+            "therapeutic_procedures": {},
             "genes": {},
             "documents": {},
         }
@@ -86,9 +86,9 @@ class MoaTransform(Transform):
         self, assertions: list[dict]
     ) -> None:
         """Create Variant Therapeutic Response Studies from MOA assertions.
-        Will add associated values to instances variables (`therapeutics`, `diseases`,
-        and `studies`). `able_to_normalize` and `unable_to_normalize` will also be
-        mutated for associated therapeutics and diseases.
+        Will add associated values to instances variables (`therapeutic_procedures`,
+        `conditions`, and `studies`). `able_to_normalize` and `unable_to_normalize` will
+        also be mutated for associated therapeutic_procedures and conditions.
 
         :param assertions: A list of MOA assertion records
         """
@@ -355,7 +355,7 @@ class MoaTransform(Transform):
                 "psc": psc,
                 "moa_gene": moa_gene,
             }
-            self.variations.append(psc)
+            self.categorical_variations.append(psc)
 
     async def _get_variation_members(
         self, moa_rep_coord: dict
@@ -509,9 +509,9 @@ class MoaTransform(Transform):
         First looks in cache for existing disease, if not found will attempt to
         normalize. Will generate a digest from the original MOA disease object. This
         will be used as the key in the caches. Will add the generated digest to
-        `diseases` and `able_to_normalize['diseases']` if disease-normalizer is able to
-        normalize. Else will add the generated digest to
-        `unable_to_normalize['disease']`
+        `conditions` and `able_to_normalize['conditions']` if disease-normalizer is able
+        to normalize. Else will add the generated digest to
+        `unable_to_normalize['conditions']`
 
         :param disease: MOA disease object
         :return: Disease object if disease-normalizer was able to normalize
@@ -527,17 +527,17 @@ class MoaTransform(Transform):
         )
         disease_id = sha512t24u(blob)
 
-        vrs_disease = self.able_to_normalize["diseases"].get(disease_id)
+        vrs_disease = self.able_to_normalize["conditions"].get(disease_id)
         if vrs_disease:
             return vrs_disease
         vrs_disease = None
-        if disease_id not in self.unable_to_normalize["diseases"]:
+        if disease_id not in self.unable_to_normalize["conditions"]:
             vrs_disease = self._get_disease(disease)
             if vrs_disease:
-                self.able_to_normalize["diseases"][disease_id] = vrs_disease
-                self.diseases.append(vrs_disease)
+                self.able_to_normalize["conditions"][disease_id] = vrs_disease
+                self.conditions.append(vrs_disease)
             else:
-                self.unable_to_normalize["diseases"].add(disease_id)
+                self.unable_to_normalize["conditions"].add(disease_id)
         return vrs_disease
 
     def _get_disease(self, disease: dict) -> dict | None:
