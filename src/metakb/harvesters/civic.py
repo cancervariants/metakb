@@ -30,12 +30,12 @@ class CivicHarvester(Harvester):
     ) -> None:
         """Initialize CivicHarvester class.
 
-        :param update_cache: `True` if civicpy cache should be updated. Note
-            this will take several minutes. `False` if to use local cache.
-        :param update_from_remote: If set to `True`, civicpy.update_cache will first
+        :param update_cache: ``True`` if civicpy cache should be updated. Note
+            this will take several minutes. ``False`` if to use local cache.
+        :param update_from_remote: If set to ``True``, civicpy.update_cache will first
             download the remote cache designated by REMOTE_CACHE_URL, store it
             to LOCAL_CACHE_PATH, and then load the downloaded cache into memory.
-            This parameter defaults to `True`.
+            This parameter defaults to ``True``.
         :param local_cache_path: A filepath destination for the retrieved remote
             cache. This parameter defaults to LOCAL_CACHE_PATH from civicpy.
         """

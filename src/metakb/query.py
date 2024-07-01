@@ -1,4 +1,4 @@
-"""Module for queries."""
+"""Provide class/methods/schemas for issuing queries against the database."""
 import json
 import logging
 from copy import copy
@@ -38,31 +38,35 @@ logger = logging.getLogger(__name__)
 
 
 class VariationRelation(str, Enum):
-    """Create enum for relation between variation and categorical variation"""
+    """Constrain possible values for the relationship between variations and
+    categorical variations.
+    """
 
     HAS_MEMBERS = "HAS_MEMBERS"
     HAS_DEFINING_CONTEXT = "HAS_DEFINING_CONTEXT"
 
 
 class TherapeuticRelation(str, Enum):
-    """Create enum for therapeutic relation"""
+    """Constrain possible values for therapeutic relationships."""
 
     HAS_COMPONENTS = "HAS_COMPONENTS"
     HAS_SUBSTITUTES = "HAS_SUBSTITUTES"
 
 
 class TherapeuticProcedureType(str, Enum):
-    """Create enum for therapeutic procedures"""
+    """Constrain possible values for kinds of therapeutic procedures."""
 
     COMBINATION = "CombinationTherapy"
     SUBSTITUTES = "TherapeuticSubstituteGroup"
 
 
 def _update_mappings(params: dict) -> None:
-    """Update ``params.mappings`` if it exists
-    The mappings field will be a string and will be updated to the dict representation
+    """Update ``params.mappings`` if it exists.
 
-    :param params: Parameters. Will be mutated if mappings field exists
+    The ``mappings`` field is stored in the database as serialized JSON. This method
+    deserializes it if it's available.
+
+    :param params: Parameters. Will be mutated in-place if mappings field exists
     """
     mappings = params.get("mappings")
     if mappings:
@@ -70,7 +74,9 @@ def _update_mappings(params: dict) -> None:
 
 
 class QueryHandler:
-    """Class for handling queries."""
+    """Primary query-handling class. Wraps database connections and hooks to external
+    services such as the concept normalizers.
+    """
 
     def __init__(
         self,
@@ -80,9 +86,15 @@ class QueryHandler:
     ) -> None:
         """Initialize neo4j driver and the VICC normalizers.
 
+        All arguments are optional; if not given, resources acquisition will be
+        attempted with default parameters. Pass arguments for ``uri`` and ``creds``
+        to provide them manually:
+
+        >>> from metakb.query import QueryHandler
+        >>> qh = QueryHandler("bolt://localhost:7687", ("neo4j", "password"))
+
         :param uri: address of Neo4j DB
-        :param credentials: tuple containing username and
-            password
+        :param credentials: tuple containing username and password
         :param normalizers: normalizer collection instance
         """
         if normalizers is None:
@@ -99,16 +111,33 @@ class QueryHandler:
         study_id: str | None = None,
     ) -> SearchStudiesService:
         """Get nested studies from queried concepts that match all conditions provided.
-        For example, if `variation` and `therapy` are provided, will return all studies
-        that have both the provided `variation` and `therapy`.
+        For example, if ``variation`` and ``therapy`` are provided, will return all studies
+        that have both the provided ``variation`` and ``therapy``.
 
-        :param variation: Variation query (Free text or VRS Variation ID)
-        :param disease: Disease query
-        :param therapy: Therapy query
-        :param gene: Gene query
-        :param study_id: Study ID query.
-        :return: SearchStudiesService response containing nested studies and service
-            metadata
+        >>> from metakb.query import QueryHandler
+        >>> qh = QueryHandler()
+        >>> result = qh.search_studies("BRAF V600E")
+        >>> result.study_ids[:3]
+        ['moa.assertion:944', 'moa.assertion:911', 'moa.assertion:865']
+        >>> result.studies[0].isReportedIn[0].url
+        'https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/202429s019lbl.pdf'
+
+
+        Variation, disease, therapy, and gene terms are resolved via their respective
+        :ref:`concept normalization services<normalization>`.
+
+        :param variation: Variation query. Free text variation description, e.g.
+            ``"BRAF V600E"``, or GA4GH variation ID, e.g.
+            ``"ga4gh:VA.4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO"``. Case-insensitive.
+        :param disease: Disease query. Full disease name, e.g. ``"glioblastoma"``,
+            common shorthand name, e.g. ``"GBM"``, concept URI, e.g. ``"ncit:C3058"``.
+            Case-insensitive.
+        :param therapy: Therapy query. Full name, e.g. ``"imatinib"``, trade name, e.g.
+            ``"GLEEVEC"``, or concept URI, e.g. ``"chembl:CHEMBL941"``. Case-insensitive.
+        :param gene: Gene query. Common shorthand name, e.g. ``"NTRK1"``, or compact URI,
+            e.g. ``"ensembl:ENSG00000198400"``.
+        :param study_id: Study ID query provided by source, e.g. ``"civic.eid:3017"``.
+        :return: Service response object containing nested studies and service metadata.
         """
         response: dict = {
             "query": {
@@ -145,7 +174,7 @@ class QueryHandler:
                 study_nodes = [study]
                 response["study_ids"].append(study["id"])
             else:
-                study_nodes = self._get_related_studies(
+                study_nodes = self._get_studies(
                     session,
                     normalized_variation=normalized_variation,
                     normalized_therapy=normalized_therapy,
@@ -321,21 +350,21 @@ class QueryHandler:
         return (tx.run(query).single() or [None])[0]
 
     @staticmethod
-    def _get_related_studies(
+    def _get_studies(
         tx: Transaction,
         normalized_variation: str | None = None,
         normalized_therapy: str | None = None,
         normalized_disease: str | None = None,
         normalized_gene: str | None = None,
     ) -> list[Node]:
-        """Get studies that contain queried normalized concepts.
+        """Get studies that match the intersection of provided concepts.
 
         :param tx: Neo4j session transaction object
         :param normalized_variation: VRS Variation ID
         :param normalized_therapy: normalized therapy concept ID
         :param normalized_disease: normalized disease concept ID
         :param normalized_gene: normalized gene concept ID
-        :return: List of Study nodes matching given parameters
+        :return: List of Study nodes that match the intersection of the given parameters
         """
         query = "MATCH (s:Study)"
         params: dict[str, str] = {}
@@ -361,17 +390,14 @@ class QueryHandler:
 
         if normalized_therapy:
             query += """
-            MATCH (s1:Study) -[:HAS_THERAPEUTIC] ->(
-                tp:TherapeuticAgent {therapy_normalizer_id:$t_id})
-            RETURN s1 as s
-            UNION
-            MATCH (s2:Study) -[:HAS_THERAPEUTIC]-> () - [:HAS_SUBSTITUTES|
-                HAS_COMPONENTS] ->(ta:TherapeuticAgent {therapy_normalizer_id:$t_id})
-            RETURN s2 as s
+            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> (tp:TherapeuticAgent {therapy_normalizer_id:$t_id})
+            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> () -[:HAS_SUBSTITUTES|HAS_COMPONENTS] -> (ta:TherapeuticAgent {therapy_normalizer_id:$t_id})
+            WITH s, tp, ta
+            WHERE tp IS NOT NULL OR ta IS NOT NULL
             """
             params["t_id"] = normalized_therapy
-        else:
-            query += "RETURN s"
+
+        query += "RETURN DISTINCT s"
 
         return [s[0] for s in tx.run(query, **params)]
 
