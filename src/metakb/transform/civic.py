@@ -125,9 +125,9 @@ class CivicTransform(Transform):
         self.methods = [self.methods_mapping[MethodId.CIVIC_EID_SOP.value]]
         self.able_to_normalize = {
             "variations": {},  # will store _VariationCache data
-            "molecular_profiles": {},
-            "diseases": {},
-            "therapeutics": {},
+            "categorical_variations": {},
+            "conditions": {},
+            "therapeutic_procedures": {},
             "genes": {},
         }
 
@@ -196,7 +196,7 @@ class CivicTransform(Transform):
         self._add_genes(harvested_data.genes)
 
         # Only want to add MPs where variation-normalizer succeeded for the related
-        # variant. Will update `molecular_profiles`
+        # variant. Will update `categorical_variations`
         able_to_normalize_vids = self.able_to_normalize["variations"].keys()
         mps = [
             mp
@@ -214,9 +214,9 @@ class CivicTransform(Transform):
         self, records: list[dict], mp_id_to_v_id_mapping: dict
     ) -> None:
         """Create Variant Therapeutic Response Studies from CIViC Evidence Items.
-        Will add associated values to instance variables (`therapeutics`, `diseases`,
-        and `documents`). `able_to_normalize` and `unable_to_normalize` will also be
-        mutated for associated therapeutics and diseases.
+        Will add associated values to instance variables (`therapeutic_procedures`,
+        `conditions`, and `documents`). `able_to_normalize` and `unable_to_normalize`
+        will also be mutated for associated therapeutic_procedures and conditions.
 
         :param records: List of CIViC Evidence Items
         :param mp_id_to_v_id_mapping: Molecular Profile ID to Variant ID mapping
@@ -225,7 +225,7 @@ class CivicTransform(Transform):
         for r in records:
             # Check cache for molecular profile, variation and gene data
             mp_id = f"civic.mpid:{r['molecular_profile_id']}"
-            mp = self.able_to_normalize["molecular_profiles"].get(mp_id)
+            mp = self.able_to_normalize["categorical_variations"].get(mp_id)
             if not mp:
                 _logger.debug("mp_id not supported: %s", mp_id)
                 continue
@@ -387,8 +387,8 @@ class CivicTransform(Transform):
         self, molecular_profiles: list[dict], mp_id_to_v_id_mapping: dict
     ) -> None:
         """Create Protein Sequence Consequence objects for all supported MP records.
-        Mutates instance variables `able_to_normalize['molecular_profiles']` and
-        `molecular_profiles`.
+        Mutates instance variables `able_to_normalize['categorical_variations']` and
+        `categorical_variations`.
 
         :param molecular_profiles: List of supported Molecular Profiles in CIViC.
             The associated, single variant record for each MP was successfully
@@ -440,8 +440,8 @@ class CivicTransform(Transform):
                 extensions=extensions or None,
                 members=civic_variation_data["members"],
             ).model_dump(exclude_none=True)
-            self.molecular_profiles.append(psc)
-            self.able_to_normalize["molecular_profiles"][mp_id] = psc
+            self.categorical_variations.append(psc)
+            self.able_to_normalize["categorical_variations"][mp_id] = psc
 
     @staticmethod
     def _get_variant_name(variant: dict) -> str:
@@ -698,25 +698,25 @@ class CivicTransform(Transform):
     def _add_disease(self, disease: dict) -> Disease | None:
         """Create or get disease given CIViC disease.
         First looks in cache for existing disease, if not found will attempt to
-        normalize. Will add CIViC disease ID to `diseases` and
-        `able_to_normalize['diseases']` if disease-normalizer is able to normalize. Else
-        will add the CIViC disease ID to `unable_to_normalize['disease']`
+        normalize. Will add CIViC disease ID to `conditions` and
+        `able_to_normalize['conditions']` if disease-normalizer is able to normalize.
+        Else will add the CIViC disease ID to `unable_to_normalize['conditions']`
 
         :param disease: CIViC Disease object
         :return: Disease object if disease-normalizer was able to normalize
         """
         disease_id = f"civic.did:{disease['id']}"
-        vrs_disease = self.able_to_normalize["diseases"].get(disease_id)
+        vrs_disease = self.able_to_normalize["conditions"].get(disease_id)
         if vrs_disease:
             return vrs_disease
         vrs_disease = None
-        if disease_id not in self.unable_to_normalize["diseases"]:
+        if disease_id not in self.unable_to_normalize["conditions"]:
             vrs_disease = self._get_disease(disease)
             if vrs_disease:
-                self.able_to_normalize["diseases"][disease_id] = vrs_disease
-                self.diseases.append(vrs_disease)
+                self.able_to_normalize["conditions"][disease_id] = vrs_disease
+                self.conditions.append(vrs_disease)
             else:
-                self.unable_to_normalize["diseases"].add(disease_id)
+                self.unable_to_normalize["conditions"].add(disease_id)
         return vrs_disease
 
     def _get_disease(self, disease: dict) -> dict | None:

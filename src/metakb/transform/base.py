@@ -226,17 +226,20 @@ class Transform(ABC):
             self.vicc_normalizers = normalizers
 
         self.studies = []
-        self.molecular_profiles = []
+        self.categorical_variations = []
         self.variations = []
         self.genes = []
-        self.therapeutics = []
-        self.diseases = []
+        self.therapeutic_procedures = []
+        self.conditions = []
         self.methods = []
         self.documents = []
 
         # Cache for concepts that were unable to normalize. Set of source concept IDs
         self.able_to_normalize = {}
-        self.unable_to_normalize = {"diseases": set(), "therapeutics": set()}
+        self.unable_to_normalize = {
+            "conditions": set(),
+            "therapeutic_procedures": set(),
+        }
 
         self.next_node_id = {}
         self.evidence_level_to_vicc_concept_mapping = (
@@ -392,10 +395,10 @@ class Transform(ABC):
     ) -> TherapeuticAgent | TherapeuticSubstituteGroup | CombinationTherapy | None:
         """Create or get Therapeutic Procedure given therapies
         First look in cache for existing Therapeutic Procedure, if not found will
-        attempt to normalize. Will add `therapeutic_procedure_id` to `therapeutics` and
-        `able_to_normalize['therapeutics']` if therapy-normalizer is able to normalize
-        all `therapies`. Else, will add the `therapeutic_procedure_id` to
-        `unable_to_normalize['therapeutics']`
+        attempt to normalize. Will add `therapeutic_procedure_id` to
+        `therapeutic_procedures` and `able_to_normalize['therapeutic_procedures']` if
+        therapy-normalizer is able to normalize all `therapies`. Else, will add the
+        `therapeutic_procedure_id` to `unable_to_normalize['therapeutic_procedures']`
 
         :param therapeutic_procedure_id: ID for therapeutic procedure
         :param therapies: List of therapy objects. If `therapeutic_procedure_type`
@@ -405,11 +408,16 @@ class Transform(ABC):
         :param therapy_interaction_type: drug interaction type
         :return: Therapeutic procedure, if successful normalization
         """
-        tp = self.able_to_normalize["therapeutics"].get(therapeutic_procedure_id)
+        tp = self.able_to_normalize["therapeutic_procedures"].get(
+            therapeutic_procedure_id
+        )
         if tp:
             return tp
 
-        if therapeutic_procedure_id not in self.unable_to_normalize["therapeutics"]:
+        if (
+            therapeutic_procedure_id
+            not in self.unable_to_normalize["therapeutic_procedures"]
+        ):
             if therapeutic_procedure_type == TherapeuticProcedureType.THERAPEUTIC_AGENT:
                 tp = self._get_therapeutic_agent(therapies[0])
             elif (
@@ -431,10 +439,14 @@ class Transform(ABC):
                 return None
 
             if tp:
-                self.able_to_normalize["therapeutics"][therapeutic_procedure_id] = tp
-                self.therapeutics.append(tp.model_dump(exclude_none=True))
+                self.able_to_normalize["therapeutic_procedures"][
+                    therapeutic_procedure_id
+                ] = tp
+                self.therapeutic_procedures.append(tp.model_dump(exclude_none=True))
             else:
-                self.unable_to_normalize["therapeutics"].add(therapeutic_procedure_id)
+                self.unable_to_normalize["therapeutic_procedures"].add(
+                    therapeutic_procedure_id
+                )
         return tp
 
     @staticmethod
@@ -501,10 +513,10 @@ class Transform(ABC):
         composite_dict = {
             "studies": self.studies,
             "variations": self.variations,
-            "molecular_profiles": self.molecular_profiles,
+            "categorical_variations": self.categorical_variations,
             "genes": self.genes,
-            "therapeutics": self.therapeutics,
-            "diseases": self.diseases,
+            "therapeutic_procedures": self.therapeutic_procedures,
+            "conditions": self.conditions,
             "methods": self.methods,
             "documents": self.documents,
         }
