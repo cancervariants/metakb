@@ -18,6 +18,7 @@ from ga4gh.core._internal.models import (
 from ga4gh.vrs import models
 
 from metakb import APP_ROOT
+from metakb.harvesters.moa import MoaHarvestedData
 from metakb.normalizers import ViccNormalizers
 from metakb.schemas.annotation import Direction, Document
 from metakb.schemas.categorical_variation import ProteinSequenceConsequence
@@ -66,20 +67,20 @@ class MoaTransform(Transform):
             "documents": {},
         }
 
-    async def transform(self) -> None:
+    async def transform(self, harvested_data: MoaHarvestedData) -> None:
         """Transform MOA harvested JSON to common data model. Will store transformed
         results in instance variables.
-        """
-        data = self.extract_harvester()
 
+        :param harvested_data: MOA harvested data
+        """
         # Add gene, variant, and source data to instance variables (`genes`,
         # `variations`, and `documents`)
-        self._add_genes(data["genes"])
-        await self._add_protein_consequences(data["variants"])
-        self._add_documents(data["sources"])
+        self._add_genes(harvested_data.genes)
+        await self._add_protein_consequences(harvested_data.variants)
+        self._add_documents(harvested_data.sources)
 
         # Add variant therapeutic response study data. Will update `studies`
-        await self._add_variant_therapeutic_response_studies(data["assertions"])
+        await self._add_variant_therapeutic_response_studies(harvested_data.assertions)
 
     async def _add_variant_therapeutic_response_studies(
         self, assertions: list[dict]
