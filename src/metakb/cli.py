@@ -15,11 +15,14 @@ import asyncclick as click
 import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore.config import Config
+from neo4j import Driver
 
 from metakb import APP_ROOT, DATE_FMT
-from metakb.database import Graph
+from metakb.database import clear_graph as clear_metakb_graph
+from metakb.database import get_driver
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
+from metakb.load_data import load_from_json
 from metakb.log_handle import configure_logs
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
@@ -326,13 +329,13 @@ async def transform_file(
     )
 
 
-def _get_graph(db_url: str, db_creds: str | None) -> Generator[Graph, None, None]:
-    """Acquire Neo4j graph.
+def _get_driver(db_url: str, db_creds: str | None) -> Generator[Driver, None, None]:
+    """Acquire Neo4j graph driver.
 
     :param db_url: URL endpoint for the application Neo4j database.
     :param db_creds: DB username and password, separated by a colon, e.g.
         ``"username:password"``.
-    :return: Graph instance
+    :return: Graph driver instance
     """
     if not db_creds:
         credentials = ("", "")  # revert to default behavior in graph constructor
@@ -342,17 +345,25 @@ def _get_graph(db_url: str, db_creds: str | None) -> Generator[Graph, None, None
             credentials = (split_creds[0], split_creds[1])
         except IndexError:
             _help_msg(
-                f"Argument to --db_credentialss appears invalid. Got '{db_creds}'. Should follow pattern 'username:password'."
+                f"Argument to --db_credentials appears invalid. Got '{db_creds}'. Should follow pattern 'username:password'."
             )
-    graph = Graph(uri=db_url, credentials=credentials)
-    yield graph
-    graph.close()
+    driver = get_driver(uri=db_url, credentials=credentials)
+    yield driver
+    driver.close()
 
 
 @cli.command()
 @click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
 @click.option("--db_credentials", "-c", help=_neo4j_creds_description)
-def clear_graph(db_url: str, db_credentials: str | None) -> None:
+@click.option(
+    "--keep_constraints",
+    is_flag=True,
+    default=False,
+    help="if true, don't clear graph constraints",
+)
+def clear_graph(
+    db_url: str, db_credentials: str | None, keep_constraints: bool
+) -> None:
     """Wipe graph DB.
 
         $ metakb clear-graph
@@ -368,9 +379,10 @@ def clear_graph(db_url: str, db_credentials: str | None) -> None:
     :param db_url: URL endpoint for the application Neo4j database.
     :param db_credentials: DB username and password, separated by a colon, e.g.
         ``"username:password"``.
+    :param keep_constraints: if True, don't clear graph constraints
     """  # noqa: D301
-    graph = next(_get_graph(db_url, db_credentials))
-    graph.clear()
+    driver = next(_get_driver(db_url, db_credentials))
+    clear_metakb_graph(driver, keep_constraints)
 
 
 @cli.command()
@@ -428,11 +440,11 @@ def load_cdm(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    graph = next(_get_graph(db_url, db_credentials))
+    driver = next(_get_driver(db_url, db_credentials))
 
     if cdm_files:
         for file in cdm_files:
-            graph.load_from_json(file)
+            load_from_json(file, driver)
     else:
         version = _retrieve_s3_cdms() if from_s3 else "*"
 
@@ -446,7 +458,7 @@ def load_cdm(
                 msg = f"No valid transform file found matching pattern: {pattern}"
                 raise FileNotFoundError(msg) from e
 
-            graph.load_from_json(path)
+            load_from_json(path, driver)
 
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
@@ -515,7 +527,7 @@ async def update(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    graph = next(_get_graph(db_url, db_credentials))
+    driver = next(_get_driver(db_url, db_credentials))
 
     if not sources:
         sources = tuple(SourceName)
@@ -529,9 +541,9 @@ async def update(
             msg = f"No valid transform file found matching pattern: {pattern}"
             raise FileNotFoundError(msg) from e
 
-        graph.load_from_json(path)
+        load_from_json(path, driver)
 
-    graph.close()
+    driver.close()
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
 
