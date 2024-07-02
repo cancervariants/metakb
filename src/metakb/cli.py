@@ -18,6 +18,7 @@ from botocore.config import Config
 from neo4j import Driver
 
 from metakb import APP_ROOT, DATE_FMT
+from metakb.database import clear_graph as clear_metakb_graph
 from metakb.database import get_driver
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
@@ -334,7 +335,7 @@ def _get_driver(db_url: str, db_creds: str | None) -> Generator[Driver, None, No
     :param db_url: URL endpoint for the application Neo4j database.
     :param db_creds: DB username and password, separated by a colon, e.g.
         ``"username:password"``.
-    :return: Graph instance
+    :return: Graph driver instance
     """
     if not db_creds:
         credentials = ("", "")  # revert to default behavior in graph constructor
@@ -354,7 +355,15 @@ def _get_driver(db_url: str, db_creds: str | None) -> Generator[Driver, None, No
 @cli.command()
 @click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
 @click.option("--db_credentials", "-c", help=_neo4j_creds_description)
-def clear_graph(db_url: str, db_credentials: str | None) -> None:
+@click.option(
+    "--keep_constraints",
+    is_flag=True,
+    default=False,
+    help="if true, don't clear graph constraints",
+)
+def clear_graph(
+    db_url: str, db_credentials: str | None, keep_constraints: bool
+) -> None:
     """Wipe graph DB.
 
         $ metakb clear-graph
@@ -370,9 +379,10 @@ def clear_graph(db_url: str, db_credentials: str | None) -> None:
     :param db_url: URL endpoint for the application Neo4j database.
     :param db_credentials: DB username and password, separated by a colon, e.g.
         ``"username:password"``.
+    :param keep_constraints: if True, don't clear graph constraints
     """  # noqa: D301
     driver = next(_get_driver(db_url, db_credentials))
-    clear_graph(driver)
+    clear_metakb_graph(driver, keep_constraints)
 
 
 @cli.command()

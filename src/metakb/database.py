@@ -37,10 +37,12 @@ def _get_credentials(
     uri: str, credentials: tuple[str, str]
 ) -> tuple[str, tuple[str, str]]:
     """Acquire structured credentials.
+
     * Arguments are required. If they're not empty strings, return them as credentials.
     * If in a production environment, fetch from AWS Secrets Manager.
     * If all env vars declared, use them
     * Otherwise, use defaults
+
     :param uri: connection URI, formatted a la ``bolt://<host>:<port #>``
     :param credentials: tuple containing username and password
     :return: tuple containing host, and a second tuple containing username/password
@@ -69,7 +71,35 @@ def _get_credentials(
     return uri, credentials
 
 
-def get_driver(uri: str = "", credentials: tuple[str, str] = ("", "")) -> Driver:
+_CONSTRAINTS = {
+    "coding_constraint": "CREATE CONSTRAINT coding_constraint IF NOT EXISTS FOR (c:Coding) REQUIRE (c.code, c.label, c.system) IS UNIQUE;",
+    "gene_id_constraint": "CREATE CONSTRAINT gene_id_constraint IF NOT EXISTS FOR (n:Gene}) REQUIRE n.id IS UNIQUE;",
+    "disease_id_constraint": "CREATE CONSTRAINT disease_id_constraint IF NOT EXISTS FOR (n:Disease) REQUIRE n.id IS UNIQUE;",
+    "therapeuticprocedure_id_constraint": "CREATE CONSTRAINT therapeuticprocedure_id_constraint IF NOT EXISTS FOR (n:TherapeuticProcedure) REQUIRE n.id IS UNIQUE;",
+    "variation_id_constraint": "CREATE CONSTRAINT variation_id_constraint IF NOT EXISTS FOR (n:Variation) REQUIRE n.id IS UNIQUE;",
+    "categoricalvariation_id_constraint": "CREATE CONSTRAINT categoricalvariation_id_constraint IF NOT EXISTS FOR (n:CategoricalVariation) REQUIRE n.id IS UNIQUE;",
+    "variantgroup_id_constraint": "CREATE CONSTRAINT variantgroup_id_constraint IF NOT EXISTS FOR (n:VariantGroup) REQUIRE n.id IS UNIQUE;",
+    "location_id_constraint": "CREATE CONSTRAINT location_id_constraint IF NOT EXISTS FOR (n:Location) REQUIRE n.id IS UNIQUE;",
+    "document_id_constraint": "CREATE CONSTRAINT document_id_constraint IF NOT EXISTS FOR (n:Document) REQUIRE n.id IS UNIQUE;",
+    "study_id_constraint": "CREATE CONSTRAINT study_id_constraint IF NOT EXISTS FOR (n:Study) REQUIRE n.id IS UNIQUE;",
+    "method_id_constraint": "CREATE CONSTRAINT method_id_constraint IF NOT EXISTS FOR (n:Method) REQUIRE n.id IS UNIQUE;",
+}
+
+
+def _create_constraints(tx: ManagedTransaction) -> None:
+    """Create unique property constraints for nodes
+
+    :param tx: Transaction object provided to transaction functions
+    """
+    for query in _CONSTRAINTS.values():
+        tx.run(query)
+
+
+def get_driver(
+    uri: str = "",
+    credentials: tuple[str, str] = ("", ""),
+    add_constraints: bool = False,
+) -> Driver:
     """Initialize Graph driver instance.
 
     Connection URI/credentials are resolved as follows:
@@ -87,49 +117,36 @@ def get_driver(uri: str = "", credentials: tuple[str, str] = ("", "")) -> Driver
     """
     uri, credentials = _get_credentials(uri, credentials)
     driver = GraphDatabase.driver(uri, auth=credentials)
-    with driver.session() as session:
-        session.execute_write(_create_constraints)
+    if add_constraints:
+        with driver.session() as session:
+            session.execute_write(_create_constraints)
     return driver
 
 
-def clear_graph(driver: Driver) -> None:
-    """Debugging helper - wipe out DB."""
+def clear_graph(driver: Driver, keep_constraints: bool = False) -> None:
+    """Wipe all nodes/relations (not constraints) in DB.
 
-    def delete_all(tx: ManagedTransaction) -> None:
+    :param driver: Neo4j driver instance
+    :param keep_constraints: if ``True``, don't clear constraints
+    """
+
+    def _delete_all(tx: ManagedTransaction) -> None:
         """Delete all nodes and relationships
 
         :param tx: Transaction object provided to transaction functions
         """
         tx.run("MATCH (n) DETACH DELETE n;")
 
+    def _delete_constraints(tx: ManagedTransaction) -> None:
+        """Delete all constraints
+
+        :param tx: Transaction object provided to transaction functions
+        """
+        for constraint_name in _CONSTRAINTS:
+            query = f"DROP CONSTRAINT {constraint_name} IF EXISTS;"
+            tx.run(query)
+
     with driver.session() as session:
-        session.execute_write(delete_all)
-
-
-def _create_constraints(tx: ManagedTransaction) -> None:
-    """Create unique property constraints for nodes
-
-    :param tx: Transaction object provided to transaction functions
-    """
-    queries = [
-        "CREATE CONSTRAINT coding_constraint IF NOT EXISTS FOR (c:Coding) REQUIRE (c.code, c.label, c.system) IS UNIQUE;",
-    ]
-
-    for label in [
-        "Gene",
-        "Disease",
-        "TherapeuticProcedure",
-        "Variation",
-        "CategoricalVariation",
-        "VariantGroup",
-        "Location",
-        "Document",
-        "Study",
-        "Method",
-    ]:
-        queries.append(
-            f"CREATE CONSTRAINT {label.lower()}_id_constraint IF NOT EXISTS FOR (n:{label}) REQUIRE n.id IS UNIQUE;"
-        )
-
-    for query in queries:
-        tx.run(query)
+        session.execute_write(_delete_all)
+        if not keep_constraints:
+            session.execute_write(_delete_constraints)
