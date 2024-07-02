@@ -27,7 +27,6 @@ def _create_parameterized_query(
     return ", ".join(nonnull_keys)
 
 
-@staticmethod
 def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
     """Get mappings and extensions from object and add to `obj` and `obj_keys`
 
@@ -189,7 +188,6 @@ def _add_therapeutic_agent(tx: ManagedTransaction, therapeutic_agent: dict) -> N
     tx.run(query, **ta)
 
 
-@staticmethod
 def _add_location(tx: ManagedTransaction, location_in: dict) -> None:
     """Add location node and its relationships
 
@@ -385,7 +383,6 @@ def _get_ids_from_studies(studies: list[dict]) -> set[str]:
     return ids_in_studies
 
 
-@staticmethod
 def _add_study(tx: ManagedTransaction, study_in: dict) -> None:
     """Add study node and its relationships
 
