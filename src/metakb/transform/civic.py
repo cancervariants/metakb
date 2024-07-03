@@ -164,7 +164,7 @@ class CivicTransform(Transform):
 
     async def transform(self, harvested_data: CivicHarvestedData) -> None:
         """Transform CIViC harvested json to common data model. Will store transformed
-        results in instance variables.
+        results in ``processed_data`` instance variable.
 
         :param harvested_data: CIViC harvested data
         """
@@ -215,9 +215,10 @@ class CivicTransform(Transform):
         self, records: list[dict], mp_id_to_v_id_mapping: dict
     ) -> None:
         """Create Variant Therapeutic Response Studies from CIViC Evidence Items.
-        Will add associated values to instance variables (`therapeutic_procedures`,
-        `conditions`, and `documents`). `able_to_normalize` and `unable_to_normalize`
-        will also be mutated for associated therapeutic_procedures and conditions.
+        Will add associated values to ``processed_data`` instance variable
+        (``therapeutic_procedures``, ``conditions``, and ``documents``).
+        ``able_to_normalize`` and ``unable_to_normalize`` will also be mutated for
+        associated therapeutic_procedures and conditions.
 
         :param records: List of CIViC Evidence Items
         :param mp_id_to_v_id_mapping: Molecular Profile ID to Variant ID mapping
@@ -388,8 +389,8 @@ class CivicTransform(Transform):
         self, molecular_profiles: list[dict], mp_id_to_v_id_mapping: dict
     ) -> None:
         """Create Protein Sequence Consequence objects for all supported MP records.
-        Mutates instance variables `able_to_normalize['categorical_variations']` and
-        `categorical_variations`.
+        Mutates instance variables ``able_to_normalize['categorical_variations']`` and
+        ``processed_data.categorical_variations``.
 
         :param molecular_profiles: List of supported Molecular Profiles in CIViC.
             The associated, single variant record for each MP was successfully
@@ -516,8 +517,9 @@ class CivicTransform(Transform):
 
     async def _add_variations(self, variants: list[dict]) -> None:
         """Normalize supported CIViC variant records.
-        Mutates instance variables `able_to_normalize['variations']` and `variations`,
-        if the variation-normalizer can successfully normalize the variant
+        Mutates instance variables ``able_to_normalize['variations']`` and
+        ``processed_data.variations``, if the variation-normalizer can successfully
+        normalize the variant
 
         :param variants: List of all CIViC variant records
         """
@@ -654,8 +656,9 @@ class CivicTransform(Transform):
 
     def _add_genes(self, genes: list[dict]) -> None:
         """Create gene objects for all CIViC gene records.
-        Mutates instance variables `able_to_normalize['genes']` and `genes`, if the
-        gene-normalizer can successfully normalize the gene
+        Mutates instance variables ``able_to_normalize['genes']`` and
+        ``processed_data.genes``, if the gene-normalizer can successfully normalize the
+        gene
 
         :param genes: All genes in CIViC
         """
@@ -697,9 +700,9 @@ class CivicTransform(Transform):
     def _add_disease(self, disease: dict) -> Disease | None:
         """Create or get disease given CIViC disease.
         First looks in cache for existing disease, if not found will attempt to
-        normalize. Will add CIViC disease ID to `conditions` and
-        `able_to_normalize['conditions']` if disease-normalizer is able to normalize.
-        Else will add the CIViC disease ID to `unable_to_normalize['conditions']`
+        normalize. Will add CIViC disease ID to ``processed_data.conditions`` and
+        ``able_to_normalize['conditions']`` if disease-normalizer is able to normalize.
+        Else will add the CIViC disease ID to ``unable_to_normalize['conditions']``
 
         :param disease: CIViC Disease object
         :return: Disease object if disease-normalizer was able to normalize
@@ -879,7 +882,7 @@ class CivicTransform(Transform):
 
     def _add_eid_document(self, source: dict) -> Document | None:
         """Create document object for CIViC source
-        Mutates instance variable `documents`
+        Mutates instance variable ``processed_data.documents``
 
         :param source: An evidence item's source
         :return: Document for Evidence Item if source type is supported

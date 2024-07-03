@@ -114,7 +114,7 @@ class TransformedData(BaseModel):
 class Transform(ABC):
     """A base class for transforming harvester data."""
 
-    _methods: ClassVar[list[dict]] = [
+    _methods: ClassVar[list[Method]] = [
         Method(
             id=MethodId.CIVIC_EID_SOP,
             label="CIViC Curation SOP (2019)",
@@ -136,7 +136,7 @@ class Transform(ABC):
             ),
         ),
     ]
-    methods_mapping: ClassVar[dict] = {m.id: m for m in _methods}
+    methods_mapping: ClassVar[dict[MethodId, Method]] = {m.id: m for m in _methods}
     _vicc_concept_vocabs: ClassVar[list[ViccConceptVocab]] = [
         ViccConceptVocab(
             id="vicc:e000000",
@@ -244,10 +244,9 @@ class Transform(ABC):
         self.data_dir = data_dir / self.name
         self.harvester_path = harvester_path
 
-        if normalizers is None:
-            self.vicc_normalizers = ViccNormalizers()
-        else:
-            self.vicc_normalizers = normalizers
+        self.vicc_normalizers = (
+            ViccNormalizers() if normalizers is None else normalizers
+        )
 
         self.processed_data = TransformedData()
 
@@ -258,7 +257,6 @@ class Transform(ABC):
             "therapeutic_procedures": set(),
         }
 
-        self.next_node_id = {}
         self.evidence_level_to_vicc_concept_mapping = (
             self._evidence_level_to_vicc_concept_mapping()
         )
@@ -294,7 +292,9 @@ class Transform(ABC):
             _harvested_data_child = _HarvestedData.get_subclass_by_prefix(self.name)
             return _harvested_data_child(**json.load(f))
 
-    def _evidence_level_to_vicc_concept_mapping(self) -> dict:
+    def _evidence_level_to_vicc_concept_mapping(
+        self,
+    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, Coding]:
         """Get mapping of source evidence level to vicc concept vocab
 
         :return: Dictionary containing mapping from source evidence level (key)

@@ -71,12 +71,12 @@ class MoaTransform(Transform):
 
     async def transform(self, harvested_data: MoaHarvestedData) -> None:
         """Transform MOA harvested JSON to common data model. Will store transformed
-        results in instance variables.
+        results in ``processed_data`` instance variable.
 
         :param harvested_data: MOA harvested data
         """
-        # Add gene, variant, and source data to instance variables (`genes`,
-        # `variations`, and `documents`)
+        # Add gene, variant, and source data to ``processed_data`` instance variable
+        # (``genes``, ``variations``, and ``documents``)
         self._add_genes(harvested_data.genes)
         await self._add_protein_consequences(harvested_data.variants)
         self._add_documents(harvested_data.sources)
@@ -88,8 +88,9 @@ class MoaTransform(Transform):
         self, assertions: list[dict]
     ) -> None:
         """Create Variant Therapeutic Response Studies from MOA assertions.
-        Will add associated values to instances variables (`therapeutic_procedures`,
-        `conditions`, and `studies`). `able_to_normalize` and `unable_to_normalize` will
+        Will add associated values to ``processed_data`` instance variable
+        (``therapeutic_procedures``, ``conditions``, and ``studies``).
+        ``able_to_normalize`` and ``unable_to_normalize`` will
         also be mutated for associated therapeutic_procedures and conditions.
 
         :param assertions: A list of MOA assertion records
@@ -240,8 +241,9 @@ class MoaTransform(Transform):
 
     async def _add_protein_consequences(self, variants: list[dict]) -> None:
         """Create Protein Sequence Consequence objects for all MOA variant records.
-        Mutates instance variables `able_to_normalize['variations']` and
-        `variations`, if the variation-normalizer can successfully normalize the variant
+        Mutates instance variables ``able_to_normalize['variations']`` and
+        ``processed_data.variations``, if the variation-normalizer can successfully
+        normalize the variant
 
         :param variants: All variants in MOAlmanac
         """
@@ -401,8 +403,9 @@ class MoaTransform(Transform):
 
     def _add_genes(self, genes: list[str]) -> None:
         """Create gene objects for all MOA gene records.
-        Mutates instance variables `able_to_normalize['genes']` and `genes`, if
-        the gene-normalizer can successfully normalize the gene
+        Mutates instance variables ``able_to_normalize['genes']`` and
+        ``processed_data.genes``, if the gene-normalizer can successfully normalize the
+        gene
 
         :param genes: All genes in MOAlmanac
         """
@@ -423,7 +426,8 @@ class MoaTransform(Transform):
 
     def _add_documents(self, sources: list) -> None:
         """Create document objects for all MOA sources.
-        Mutates instance variables `documents` and `self.able_to_normalize["documents"]`
+        Mutates instance variables ``processed_data.documents`` and
+        ``self.able_to_normalize["documents"]``
 
         :param sources: All sources in MOA
         """
@@ -510,9 +514,9 @@ class MoaTransform(Transform):
         First looks in cache for existing disease, if not found will attempt to
         normalize. Will generate a digest from the original MOA disease object. This
         will be used as the key in the caches. Will add the generated digest to
-        `conditions` and `able_to_normalize['conditions']` if disease-normalizer is able
-        to normalize. Else will add the generated digest to
-        `unable_to_normalize['conditions']`
+        ``processed_data.conditions`` and ``able_to_normalize['conditions']`` if
+        disease-normalizer is able to normalize. Else will add the generated digest to
+        ``unable_to_normalize['conditions']``
 
         :param disease: MOA disease object
         :return: Disease object if disease-normalizer was able to normalize
