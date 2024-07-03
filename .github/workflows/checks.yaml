@@ -49,3 +49,23 @@ jobs:
 
       - name: Check style
         run: python3 -m ruff check . && python3 -m ruff format --check .
+  docs:
+    runs-on: ubuntu-latest
+    env:
+      SPHINX_GITHUB_CHANGELOG_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install '.[docs]'
+
+      - name: Attempt docs build
+        working-directory: ./docs
+        run: make html

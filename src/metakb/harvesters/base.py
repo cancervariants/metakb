@@ -59,7 +59,7 @@ class Harvester(ABC):
         :param harvested_filepath: Path to the JSON file where the harvested data will
             be stored. If not provided, will use the default path of
             ``<APP_ROOT>/data/<src_name>/harvester/<src_name>_harvester_YYYYMMDD.json``
-        :return: `True` if JSON creation was successful. `False` otherwise.
+        :return: ``True`` if JSON creation was successful. ``False`` otherwise.
         """
         src_name = self.__class__.__name__.lower().split("harvest")[0]
 
