@@ -86,14 +86,21 @@ class QueryHandler:
         """Initialize neo4j driver and the VICC normalizers.
 
         All arguments are optional; if not given, resources acquisition will be
-        attempted with default parameters. Pass arguments for ``uri`` and ``creds``
-        to provide them manually:
+        attempted with default parameters.
 
         >>> from metakb.query import QueryHandler
-        >>> from metakb.database import get_driver
-        >>> qh = QueryHandler(get_driver("bolt://localhost:7687", ("neo4j", "password")))
+        >>> qh = QueryHandler()
 
-        :param graph: database handler instance
+        Otherwise, pass resources directly to avoid duplication:
+
+        >>> from metakb.database import get_driver
+        >>> from metakb.normalizers import ViccNormalizers
+        >>> qh = QueryHandler(
+        ...     get_driver("bolt://localhost:7687", ("neo4j", "password")),
+        ...     ViccNormalizers("http://localhost:8000")
+        ... )
+
+        :param driver: driver instance for graph connection
         :param normalizers: normalizer collection instance
         """
         if driver is None:
