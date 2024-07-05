@@ -112,13 +112,9 @@ def _add_gene_or_disease(
     obj_keys = ", ".join(obj_keys)
 
     if obj_type == "Gene":
-        query = f"""
-        MERGE (g:Gene {{ {obj_keys} }});
-        """
+        query = f"MERGE (g:Gene {{ {obj_keys} }});"
     else:
-        query = f"""
-        MERGE (d:Disease:Condition {{ {obj_keys} }});
-        """
+        query = f"MERGE (d:Disease:Condition {{ {obj_keys} }});"
     tx.run(query, **obj)
 
 
