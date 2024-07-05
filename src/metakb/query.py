@@ -338,15 +338,15 @@ class QueryHandler:
         :param study_id: Study ID to retrieve
         :return: Study node if successful
         """
-        query = f"""
+        query = """
         MATCH (s:Study)
-        WHERE toLower(s.id) = toLower('{study_id}')
+        WHERE toLower(s.id) = toLower($study_id)
         RETURN s
         """
-        records = self.driver.execute_query(query).records
+        records = self.driver.execute_query(query, study_id=study_id).records
         if not records:
             return None
-        return records[0]
+        return records[0]["s"]
 
     def _get_studies(
         self,
@@ -441,12 +441,12 @@ class QueryHandler:
         study_id = study_node["id"]
 
         # Get relationship and nodes for a study
-        query = f"""
-        MATCH (s:Study {{ id:'{study_id}' }})
+        query = """
+        MATCH (s:Study { id: $study_id })
         OPTIONAL MATCH (s)-[r]-(n)
         RETURN type(r) as r_type, n;
         """
-        nodes_and_rels = self.driver.execute_query(query).records
+        nodes_and_rels = self.driver.execute_query(query, study_id=study_id).records
 
         for item in nodes_and_rels:
             data = item.data()
@@ -483,7 +483,9 @@ class QueryHandler:
         :return: Disease object
         """
         node["mappings"] = _deserialize_field(node, "mappings")
-        node["extensions"] = [Extension(name="disease_normalizer_id")]
+        node["extensions"] = [
+            Extension(name="disease_normalizer_id", value=node["disease_normalizer_id"])
+        ]
         return Disease(**node)
 
     def _get_variations(self, cv_id: str, relation: VariationRelation) -> list[dict]:
@@ -497,11 +499,11 @@ class QueryHandler:
         """
         query = f"""
         MATCH (v:Variation) <- [:{relation.value}] - (cv:CategoricalVariation
-            {{ id: '{cv_id}' }})
+            {{ id: $cv_id }})
         MATCH (loc:Location) <- [:HAS_LOCATION] - (v)
         RETURN v, loc
         """
-        results = self.driver.execute_query(query).records
+        results = self.driver.execute_query(query, cv_id=cv_id).records
         variations = []
         for r in results:
             r_params = r.data()
@@ -613,11 +615,11 @@ class QueryHandler:
         :param method_id: ID for method
         :return: Document
         """
-        query = f"""
-        MATCH (m:Method {{ id: '{method_id}' }}) -[:IS_REPORTED_IN] -> (d:Document)
+        query = """
+        MATCH (m:Method { id: $method_id }) -[:IS_REPORTED_IN] -> (d:Document)
         RETURN d
         """
-        records = self.driver.execute_query(query).records
+        records = self.driver.execute_query(query, method_id=method_id).records
         if not records:
             return None
 
@@ -698,12 +700,12 @@ class QueryHandler:
             substitute group
         """
         query = f"""
-        MATCH (tp:{tp_type.value} {{ id: '{tp_id}' }}) -[:{tp_relation.value}]
+        MATCH (tp:{tp_type.value} {{ id: $tp_id }}) -[:{tp_relation.value}]
             -> (ta:TherapeuticAgent)
         RETURN ta
         """
         therapeutic_agents = []
-        results = self.driver.execute_query(query).records
+        results = self.driver.execute_query(query, tp_id=tp_id).records
         for r in results:
             r_params = r.data()
             ta_params = r_params["ta"]
