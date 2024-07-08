@@ -14,6 +14,17 @@ Core
    metakb.query
    metakb.normalizers
 
+Data Management
+---------------
+
+.. autosummary::
+   :nosignatures:
+   :toctree: api/
+   :template: module_summary.rst
+
+   metakb.load_data
+   metakb.database
+
 
 Data Schemas
 ------------
