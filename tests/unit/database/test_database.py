@@ -2,9 +2,10 @@
 import json
 
 import pytest
+from neo4j import Driver
 from neo4j.graph import Node
 
-from metakb.database import Graph
+from metakb.database import get_driver
 from metakb.schemas.app import SourceName
 
 
@@ -15,28 +16,27 @@ def sources_count():
 
 
 @pytest.fixture(scope="module")
-def graph():
-    """Return graph object."""
-    g = Graph(uri="bolt://localhost:7687", credentials=("neo4j", "password"))
-    yield g
-    g.close()
+def driver():
+    """Return Neo4j graph connection driver object."""
+    driver = get_driver(uri="bolt://localhost:7687", credentials=("neo4j", "password"))
+    yield driver
+    driver.close()
 
 
 @pytest.fixture(scope="module")
-def get_node_by_id(graph: Graph):
+def get_node_by_id(driver: Driver):
     """Return node by its ID"""
 
     def _get_node(node_id: str):
         query = f"MATCH (n {{id: '{node_id}'}}) RETURN (n)"
-        with graph.driver.session() as s:
-            record = s.run(query).single(strict=True)
-        return record[0]
+        result = driver.execute_query(query)
+        return result.records[0]["n"]
 
     return _get_node
 
 
 @pytest.fixture(scope="module")
-def check_unique_property(graph: Graph):
+def check_unique_property(driver: Driver):
     """Verify that nodes satisfy uniqueness property"""
 
     def _check_function(label: str, prop: str):
@@ -46,7 +46,7 @@ def check_unique_property(graph: Graph):
         WHERE x_count > 1
         RETURN COUNT({prop})
         """
-        with graph.driver.session() as s:
+        with driver.session() as s:
             record = s.run(query).single()
 
         assert record.values()[0] == 0
@@ -55,7 +55,7 @@ def check_unique_property(graph: Graph):
 
 
 @pytest.fixture(scope="module")
-def get_node_labels(graph: Graph):
+def get_node_labels(driver: Driver):
     """Get node labels"""
 
     def _get_labels_function(parent_label: str):
@@ -63,7 +63,7 @@ def get_node_labels(graph: Graph):
         MATCH (n:{parent_label})
         RETURN collect(DISTINCT labels(n))
         """
-        with graph.driver.session() as s:
+        with driver.session() as s:
             record = s.run(query).single()
         return record.values()[0]
 
@@ -87,7 +87,7 @@ def check_node_labels(get_node_labels: callable):
 
 
 @pytest.fixture(scope="module")
-def check_study_relation(graph: Graph):
+def check_study_relation(driver: Driver):
     """Check that node is used in a study."""
 
     def _check_function(value_label: str):
@@ -98,7 +98,7 @@ def check_study_relation(graph: Graph):
         WHERE s_count < 1
         RETURN COUNT(s_count)
         """
-        with graph.driver.session() as s:
+        with driver.session() as s:
             record = s.run(query).single()
         assert record.values()[0] == 0
 
@@ -106,7 +106,7 @@ def check_study_relation(graph: Graph):
 
 
 @pytest.fixture(scope="module")
-def check_relation_count(graph: Graph):
+def check_relation_count(driver: Driver):
     """Check that the quantity of relationships from one Node type to another
     are within a certain range.
     """
@@ -136,7 +136,7 @@ def check_relation_count(graph: Graph):
             {f"OR d_count > {max_rels}" if max_rels is not None else ""}
         RETURN COUNT(s)
         """
-        with graph.driver.session() as s:
+        with driver.session() as s:
             record = s.run(query).single()
         assert record.values()[0] == 0
 
@@ -228,7 +228,7 @@ def test_gene_rules(
 
 
 def test_variation_rules(
-    graph,
+    driver: Driver,
     check_unique_property,
     check_relation_count,
     get_node_by_id,
@@ -268,7 +268,7 @@ def test_variation_rules(
     WHERE NOT (v:Variation)
     RETURN COUNT(v)
     """
-    with graph.driver.session() as s:
+    with driver.session() as s:
         record = s.run(label_query).single()
     assert record.values()[0] == 0
 
@@ -501,7 +501,7 @@ def test_condition_rules(
 
 
 def test_study_rules(
-    graph: Graph,
+    driver: Driver,
     check_unique_property,
     check_relation_count,
     check_node_labels,
@@ -529,7 +529,7 @@ def test_study_rules(
     WHERE d_count < 1
     RETURN COUNT(s)
     """
-    with graph.driver.session() as s:
+    with driver.session() as s:
         record = s.run(cite_query).single()
     assert record.values()[0] == 0
 
@@ -550,7 +550,7 @@ def test_study_rules(
 
 
 def test_document_rules(
-    graph,
+    driver: Driver,
     check_unique_property,
     check_node_labels,
     check_relation_count,
@@ -576,7 +576,7 @@ def test_document_rules(
     WHERE (d_count < 1) AND (s.pmid <> 31779674) AND (s.pmid <> 35121878)
     RETURN COUNT(s)
     """
-    with graph.driver.session() as s:
+    with driver.session() as s:
         record = s.run(is_reported_in_query).single()
     assert record.values()[0] == 0
 
@@ -585,7 +585,7 @@ def test_document_rules(
     MATCH (s)<-[:IS_REPORTED_IN]-(d:Method)
     RETURN collect(s.pmid)
     """
-    with graph.driver.session() as s:
+    with driver.session() as s:
         record = s.run(is_reported_in_query).single()
     assert set(record.values()[0]) == {31779674, 35121878}
 
@@ -618,7 +618,7 @@ def test_method_rules(
     check_node_props(method, civic_method, expected_keys)
 
 
-def test_no_lost_nodes(graph: Graph):
+def test_no_lost_nodes(driver: Driver):
     """Verify that no unlabeled or isolated nodes have been created."""
     # non-normalizable nodes can be excepted
     labels_query = """
@@ -627,7 +627,7 @@ def test_no_lost_nodes(graph: Graph):
     AND NOT (n)<-[:IS_REPORTED_IN]-(:Study)
     RETURN COUNT(n)
     """
-    with graph.driver.session() as s:
+    with driver.session() as s:
         record = s.run(labels_query).single()
     assert record.values()[0] == 0
 
@@ -636,6 +636,6 @@ def test_no_lost_nodes(graph: Graph):
     WHERE NOT (n)--()
     RETURN COUNT(n)
     """
-    with graph.driver.session() as s:
+    with driver.session() as s:
         result = s.run(rels_query).single()
     assert result.values()[0] == 0
