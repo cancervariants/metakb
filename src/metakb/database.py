@@ -1,4 +1,4 @@
-"""Graph database for storing CDM data."""
+"""Acquire connection to Neo4j graph database."""
 import ast
 import logging
 from os import environ
