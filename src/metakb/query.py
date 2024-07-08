@@ -13,11 +13,11 @@ from ga4gh.core._internal.models import (
     TherapeuticProcedure,
 )
 from ga4gh.vrs import models
-from neo4j import Transaction
+from neo4j import Driver
 from neo4j.graph import Node
 from pydantic import ValidationError
 
-from metakb.database import Graph
+from metakb.database import get_driver
 from metakb.normalizers import ViccNormalizers
 from metakb.schemas.annotation import Document, Method
 from metakb.schemas.api import (
@@ -60,17 +60,17 @@ class TherapeuticProcedureType(str, Enum):
     SUBSTITUTES = "TherapeuticSubstituteGroup"
 
 
-def _update_mappings(params: dict) -> None:
-    """Update ``params.mappings`` if it exists.
+def _deserialize_field(node: dict, field_name: str) -> None | dict:
+    """Deserialize JSON blob property.
 
-    The ``mappings`` field is stored in the database as serialized JSON. This method
-    deserializes it if it's available.
-
-    :param params: Parameters. Will be mutated in-place if mappings field exists
+    :param node: Neo4j graph node data
+    :param field_name: Name of field to check/deserialize
+    :return: property dictionary if available, ``None`` if empty
     """
-    mappings = params.get("mappings")
-    if mappings:
-        params["mappings"] = json.loads(mappings)
+    field = node.get(field_name)
+    if field:
+        return json.loads(field)
+    return None
 
 
 class QueryHandler:
@@ -80,27 +80,34 @@ class QueryHandler:
 
     def __init__(
         self,
-        graph: Graph | None = None,
+        driver: Driver | None = None,
         normalizers: ViccNormalizers | None = None,
     ) -> None:
         """Initialize neo4j driver and the VICC normalizers.
 
         All arguments are optional; if not given, resources acquisition will be
-        attempted with default parameters. Pass arguments for ``uri`` and ``creds``
-        to provide them manually:
+        attempted with default parameters.
 
         >>> from metakb.query import QueryHandler
-        >>> from metakb.database import Graph
-        >>> qh = QueryHandler(Graph("bolt://localhost:7687", ("neo4j", "password")))
+        >>> qh = QueryHandler()
 
-        :param graph: database handler instance
+        Otherwise, pass resources directly to avoid duplication:
+
+        >>> from metakb.database import get_driver
+        >>> from metakb.normalizers import ViccNormalizers
+        >>> qh = QueryHandler(
+        ...     get_driver("bolt://localhost:7687", ("neo4j", "password")),
+        ...     ViccNormalizers("http://localhost:8000")
+        ... )
+
+        :param driver: driver instance for graph connection
         :param normalizers: normalizer collection instance
         """
-        if graph is None:
-            graph = Graph()
+        if driver is None:
+            driver = get_driver()
         if normalizers is None:
             normalizers = ViccNormalizers()
-        self.driver = graph.driver
+        self.driver = driver
         self.vicc_normalizers = normalizers
 
     async def search_studies(
@@ -170,21 +177,19 @@ class QueryHandler:
             valid_study_id,
         ) = normalized_terms
 
-        with self.driver.session() as session:
-            if valid_study_id:
-                study_nodes = [study]
-                response["study_ids"].append(study["id"])
-            else:
-                study_nodes = self._get_studies(
-                    session,
-                    normalized_variation=normalized_variation,
-                    normalized_therapy=normalized_therapy,
-                    normalized_disease=normalized_disease,
-                    normalized_gene=normalized_gene,
-                )
-                response["study_ids"] = [s["id"] for s in study_nodes]
+        if valid_study_id:
+            study_nodes = [study]
+            response["study_ids"].append(study["id"])
+        else:
+            study_nodes = self._get_studies(
+                normalized_variation=normalized_variation,
+                normalized_therapy=normalized_therapy,
+                normalized_disease=normalized_disease,
+                normalized_gene=normalized_gene,
+            )
+            response["study_ids"] = [s["id"] for s in study_nodes]
 
-            response["studies"] = self._get_nested_studies(session, study_nodes)
+        response["studies"] = self._get_nested_studies(study_nodes)
 
         if not response["studies"]:
             response["warnings"].append(
@@ -249,12 +254,11 @@ class QueryHandler:
         study = None
         if study_id:
             response["query"]["study_id"] = study_id
-            with self.driver.session() as session:
-                study = self._get_study_by_id(session, study_id)
-                if study:
-                    valid_study_id = study.get("id")
-                else:
-                    response["warnings"].append(f"Study: {study_id} does not exist.")
+            study = self._get_study_by_id(study_id)
+            if study:
+                valid_study_id = study.get("id")
+            else:
+                response["warnings"].append(f"Study: {study_id} does not exist.")
 
         # If queried concept is given check that it is normalized / valid
         if (
@@ -335,24 +339,24 @@ class QueryHandler:
             warnings.append(f"Gene Normalizer unable to normalize: {gene}")
         return normalized_gene_id
 
-    @staticmethod
-    def _get_study_by_id(tx: Transaction, study_id: str) -> Node | None:
+    def _get_study_by_id(self, study_id: str) -> Node | None:
         """Get a Study node by ID.
 
-        :param tx: Neo4j session transaction object
         :param study_id: Study ID to retrieve
         :return: Study node if successful
         """
-        query = f"""
+        query = """
         MATCH (s:Study)
-        WHERE toLower(s.id) = toLower('{study_id}')
+        WHERE toLower(s.id) = toLower($study_id)
         RETURN s
         """
-        return (tx.run(query).single() or [None])[0]
+        records = self.driver.execute_query(query, study_id=study_id).records
+        if not records:
+            return None
+        return records[0]["s"]
 
-    @staticmethod
     def _get_studies(
-        tx: Transaction,
+        self,
         normalized_variation: str | None = None,
         normalized_therapy: str | None = None,
         normalized_disease: str | None = None,
@@ -360,7 +364,6 @@ class QueryHandler:
     ) -> list[Node]:
         """Get studies that match the intersection of provided concepts.
 
-        :param tx: Neo4j session transaction object
         :param normalized_variation: VRS Variation ID
         :param normalized_therapy: normalized therapy concept ID
         :param normalized_disease: normalized disease concept ID
@@ -400,14 +403,11 @@ class QueryHandler:
 
         query += "RETURN DISTINCT s"
 
-        return [s[0] for s in tx.run(query, **params)]
+        return [s[0] for s in self.driver.execute_query(query, params).records]
 
-    def _get_nested_studies(
-        self, tx: Transaction, study_nodes: list[Node]
-    ) -> list[dict]:
+    def _get_nested_studies(self, study_nodes: list[Node]) -> list[dict]:
         """Get a list of nested studies.
 
-        :param tx: Neo4j session transaction object
         :param study_nodes: A list of Study Nodes
         :return: A list of nested studies
         """
@@ -417,7 +417,7 @@ class QueryHandler:
             s_id = s.get("id")
             if s_id not in added_studies:
                 try:
-                    nested_study = self._get_nested_study(tx, s)
+                    nested_study = self._get_nested_study(s)
                 except ValidationError as e:
                     logger.error("%s: %s", s_id, e)
                 else:
@@ -427,15 +427,14 @@ class QueryHandler:
 
         return nested_studies
 
-    def _get_nested_study(self, tx: Transaction, s: Node) -> dict:
+    def _get_nested_study(self, study_node: Node) -> dict:
         """Get information related to a study
         Only VariantTherapeuticResponseStudy are supported at the moment
 
-        :param tx: Neo4j session transaction object
-        :param Node s: Study Node
+        :param study_node: Neo4j graph node for study
         :return: Nested study
         """
-        if s["type"] != "VariantTherapeuticResponseStudy":
+        if study_node["type"] != "VariantTherapeuticResponseStudy":
             return {}
 
         params = {
@@ -445,38 +444,39 @@ class QueryHandler:
             "isReportedIn": [],
             "specifiedBy": None,
         }
-        params.update(s)
-        study_id = s["id"]
+        params.update(study_node)
+        study_id = study_node["id"]
 
         # Get relationship and nodes for a study
-        query = f"""
-        MATCH (s:Study {{ id:'{study_id}' }})
+        query = """
+        MATCH (s:Study { id: $study_id })
         OPTIONAL MATCH (s)-[r]-(n)
         RETURN type(r) as r_type, n;
         """
-        nodes_and_rels = tx.run(query).data()
+        nodes_and_rels = self.driver.execute_query(query, study_id=study_id).records
 
         for item in nodes_and_rels:
-            rel_type = item["r_type"]
-            node = item["n"]
+            data = item.data()
+            rel_type = data["r_type"]
+            node = data["n"]
 
             if rel_type == "HAS_TUMOR_TYPE":
                 params["tumorType"] = self._get_disease(node)
             elif rel_type == "HAS_VARIANT":
-                params["variant"] = self._get_cat_var(tx, node)
+                params["variant"] = self._get_cat_var(node)
             elif rel_type == "HAS_GENE_CONTEXT":
                 params["qualifiers"] = self._get_variant_onco_study_qualifier(
-                    tx, study_id, s.get("alleleOrigin")
+                    study_id, study_node.get("alleleOrigin")
                 )
             elif rel_type == "IS_SPECIFIED_BY":
-                node["isReportedIn"] = self._get_method_document(tx, node["id"])
+                node["isReportedIn"] = self._get_method_document(node["id"])
                 params["specifiedBy"] = Method(**node)
             elif rel_type == "IS_REPORTED_IN":
                 params["isReportedIn"].append(self._get_document(node))
             elif rel_type == "HAS_STRENGTH":
                 params["strength"] = Coding(**node)
             elif rel_type == "HAS_THERAPEUTIC":
-                params["therapeutic"] = self._get_therapeutic_procedure(tx, node)
+                params["therapeutic"] = self._get_therapeutic_procedure(node)
             else:
                 logger.warning("relation type not supported: %s", rel_type)
 
@@ -486,58 +486,18 @@ class QueryHandler:
     def _get_disease(node: dict) -> Disease:
         """Get disease data from a node with relationship ``HAS_TUMOR_TYPE``
 
-        :param node: Disease node data. This will be mutated.
-        :return: Disease data
+        :param node: Disease node data
+        :return: Disease object
         """
-        _update_mappings(node)
+        node["mappings"] = _deserialize_field(node, "mappings")
         node["extensions"] = [
             Extension(name="disease_normalizer_id", value=node["disease_normalizer_id"])
         ]
         return Disease(**node)
 
-    def _get_cat_var(self, tx: Transaction, node: dict) -> CategoricalVariation:
-        """Get categorical variation data from a node with relationship ``HAS_VARIANT``
-
-        :param tx: Neo4j session transaction object
-        :param node: Variant node data. This will be mutated.
-        :return: Categorical Variation data
-        """
-        _update_mappings(node)
-
-        extensions = []
-        for node_key, ext_name in (
-            ("moa_representative_coordinate", "MOA representative coordinate"),
-            ("civic_representative_coordinate", "CIViC representative coordinate"),
-            ("civic_molecular_profile_score", "CIViC Molecular Profile Score"),
-            ("variant_types", "Variant types"),
-        ):
-            node_val = node.get(node_key)
-            if node_val:
-                try:
-                    ext_val = json.loads(node_val)
-                except TypeError:
-                    ext_val = node_val
-                extensions.append(Extension(name=ext_name, value=ext_val))
-                if node_key.startswith(SourceName.MOA.value):
-                    # Cant be civic
-                    break
-
-        node["extensions"] = extensions or None
-        node["definingContext"] = self._get_variations(
-            tx, node["id"], VariationRelation.HAS_DEFINING_CONTEXT
-        )[0]
-        node["members"] = self._get_variations(
-            tx, node["id"], VariationRelation.HAS_MEMBERS
-        )
-        return CategoricalVariation(**node)
-
-    @staticmethod
-    def _get_variations(
-        tx: Transaction, cv_id: str, relation: VariationRelation
-    ) -> list[dict]:
+    def _get_variations(self, cv_id: str, relation: VariationRelation) -> list[dict]:
         """Get list of variations associated to categorical variation
 
-        :param tx: Neo4j session transaction object
         :param cv_id: ID for categorical variation
         :param relation: Relation type for categorical variation and variation
         :return: List of variations with `relation` to categorical variation. If
@@ -546,11 +506,11 @@ class QueryHandler:
         """
         query = f"""
         MATCH (v:Variation) <- [:{relation.value}] - (cv:CategoricalVariation
-            {{ id: '{cv_id}' }})
+            {{ id: $cv_id }})
         MATCH (loc:Location) <- [:HAS_LOCATION] - (v)
         RETURN v, loc
         """
-        results = tx.run(query)
+        results = self.driver.execute_query(query, cv_id=cv_id).records
         variations = []
         for r in results:
             r_params = r.data()
@@ -575,55 +535,102 @@ class QueryHandler:
             variations.append(models.Variation(**v_params).model_dump())
         return variations
 
-    @staticmethod
+    def _get_cat_var(self, node: dict) -> CategoricalVariation:
+        """Get categorical variation data from a node with relationship ``HAS_VARIANT``
+
+        :param node: Variant node data. This will be mutated.
+        :return: Categorical Variation data
+        """
+        node["mappings"] = _deserialize_field(node, "mappings")
+
+        extensions = []
+        for node_key, ext_name in (
+            ("moa_representative_coordinate", "MOA representative coordinate"),
+            ("civic_representative_coordinate", "CIViC representative coordinate"),
+            # ("civic_molecular_profile_score", "CIViC Molecular Profile Score"),
+            ("variant_types", "Variant types"),
+        ):
+            ext_val = _deserialize_field(node, node_key)
+            if ext_val:
+                extensions.append(Extension(name=ext_name, value=ext_val))
+                if node_key.startswith(SourceName.MOA.value):
+                    # no need to check additional fields if it's a MOA variant
+                    # this could be highly brittle to changes/new sources, and any edits
+                    # to the data model or inputs should be very careful to ensure
+                    # this remains correct
+                    break
+
+        if "civic_molecular_profile_score" in node:
+            extensions.append(
+                Extension(
+                    name="CIViC Molecular Profile Score",
+                    value=node["civic_molecular_profile_score"],
+                )
+            )
+
+        node["extensions"] = extensions or None
+        node["definingContext"] = self._get_variations(
+            node["id"], VariationRelation.HAS_DEFINING_CONTEXT
+        )[0]
+        node["members"] = self._get_variations(
+            node["id"], VariationRelation.HAS_MEMBERS
+        )
+        return CategoricalVariation(**node)
+
     def _get_variant_onco_study_qualifier(
-        tx: Transaction, study_id: str, allele_origin: str | None
+        self, study_id: str, allele_origin: str | None
     ) -> _VariantOncogenicityStudyQualifier:
         """Get variant oncogenicity study qualifier data for a study
 
-        :param tx: Neo4j session transaction object
         :param study_id: ID of study node
         :param allele_origin: Study's allele origin
         :return Variant oncogenicity study qualifier data
         """
-        query = f"""
-        MATCH (s:Study {{ id: '{study_id}' }}) -[:HAS_GENE_CONTEXT] -> (g:Gene)
+        query = """
+        MATCH (s:Study { id: $study_id }) -[:HAS_GENE_CONTEXT] -> (g:Gene)
         RETURN g
         """
-        record = tx.run(query).single()
-        if not record:
+        results = self.driver.execute_query(query, study_id=study_id)
+        if not results.records:
+            logger.error(
+                "Unable to complete oncogenicity study qualifier lookup for study_id %s",
+                study_id,
+            )
+            return None
+        if len(results.records) > 1:
+            # TODO should this be an error? can studies have multiple gene contexts?
+            logger.error(
+                "Encountered multiple matches for oncogenicity study qualifier lookup for study_id %s",
+                study_id,
+            )
             return None
 
-        gene_params = record.data()["g"]
-        _update_mappings(gene_params)
+        gene_node = results.records[0].data()["g"]
+        gene_node["mappings"] = _deserialize_field(gene_node, "mappings")
 
-        gene_params["extensions"] = [
-            Extension(
-                name="gene_normalizer_id", value=gene_params["gene_normalizer_id"]
-            )
+        gene_node["extensions"] = [
+            Extension(name="gene_normalizer_id", value=gene_node["gene_normalizer_id"])
         ]
 
         return _VariantOncogenicityStudyQualifier(
-            alleleOrigin=allele_origin, geneContext=Gene(**gene_params)
+            alleleOrigin=allele_origin, geneContext=Gene(**gene_node)
         )
 
-    @staticmethod
-    def _get_method_document(tx: Transaction, method_id: str) -> Document | None:
+    def _get_method_document(self, method_id: str) -> Document | None:
         """Get document for a given method
 
-        :param tx: Neo4j session transaction object
         :param method_id: ID for method
         :return: Document
         """
-        query = f"""
-        MATCH (m:Method {{ id: '{method_id}' }}) -[:IS_REPORTED_IN] -> (d:Document)
+        query = """
+        MATCH (m:Method { id: $method_id }) -[:IS_REPORTED_IN] -> (d:Document)
         RETURN d
         """
-        record = tx.run(query).single()
-        if not record:
+        records = self.driver.execute_query(query, method_id=method_id).records
+        if not records:
             return None
 
-        doc_params = record.data()["d"]
+        doc_params = records[0].data()["d"]
         return Document(**doc_params)
 
     @staticmethod
@@ -633,7 +640,7 @@ class QueryHandler:
         :param node: Document node data. This will be mutated
         :return: Document data
         """
-        _update_mappings(node)
+        node["mappings"] = _deserialize_field(node, "mappings")
 
         source_type = node.get("source_type")
         if source_type:
@@ -642,12 +649,10 @@ class QueryHandler:
 
     def _get_therapeutic_procedure(
         self,
-        tx: Transaction,
         node: dict,
     ) -> TherapeuticProcedure | TherapeuticAgent | None:
         """Get therapeutic procedure from a node with relationship ``HAS_THERAPEUTIC``
 
-        :param tx: Neo4j session transaction object
         :param node: Therapeutic node data. This will be mutated.
         :return: Therapeutic procedure if node type is supported. Currently, therapeutic
             action is not supported.
@@ -665,14 +670,12 @@ class QueryHandler:
 
             if node_type == "CombinationTherapy":
                 node["components"] = self._get_therapeutic_agents(
-                    tx,
                     node["id"],
                     TherapeuticProcedureType.COMBINATION,
                     TherapeuticRelation.HAS_COMPONENTS,
                 )
             else:
                 node["substitutes"] = self._get_therapeutic_agents(
-                    tx,
                     node["id"],
                     TherapeuticProcedureType.SUBSTITUTES,
                     TherapeuticRelation.HAS_SUBSTITUTES,
@@ -689,7 +692,6 @@ class QueryHandler:
 
     def _get_therapeutic_agents(
         self,
-        tx: Transaction,
         tp_id: str,
         tp_type: TherapeuticProcedureType,
         tp_relation: TherapeuticRelation,
@@ -705,12 +707,12 @@ class QueryHandler:
             substitute group
         """
         query = f"""
-        MATCH (tp:{tp_type.value} {{ id: '{tp_id}' }}) -[:{tp_relation.value}]
+        MATCH (tp:{tp_type.value} {{ id: $tp_id }}) -[:{tp_relation.value}]
             -> (ta:TherapeuticAgent)
         RETURN ta
         """
         therapeutic_agents = []
-        results = tx.run(query)
+        results = self.driver.execute_query(query, tp_id=tp_id).records
         for r in results:
             r_params = r.data()
             ta_params = r_params["ta"]
@@ -726,7 +728,7 @@ class QueryHandler:
         :return: TherapeuticAgent
         """
         ta_params = copy(in_ta_params)
-        _update_mappings(ta_params)
+        ta_params["mappings"] = _deserialize_field(ta_params, "mappings")
         extensions = [
             Extension(
                 name="therapy_normalizer_id", value=ta_params["therapy_normalizer_id"]
@@ -791,16 +793,16 @@ class QueryHandler:
         if not variation_ids:
             return response
 
+        query = """
+            MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
+            MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
+            WHERE v.id IN $v_ids
+            RETURN s
+        """
         with self.driver.session() as session:
-            query = """
-                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
-                MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
-                WHERE v.id IN $v_ids
-                RETURN s
-            """
             result = session.run(query, v_ids=variation_ids)
             study_nodes = [r[0] for r in result]
-            response.study_ids = list({n["id"] for n in study_nodes})
-            studies = self._get_nested_studies(session, study_nodes)
-            response.studies = [VariantTherapeuticResponseStudy(**s) for s in studies]
+        response.study_ids = list({n["id"] for n in study_nodes})
+        studies = self._get_nested_studies(study_nodes)
+        response.studies = [VariantTherapeuticResponseStudy(**s) for s in studies]
         return response
