@@ -17,10 +17,13 @@ from ga4gh.core import sha512t24u
 from ga4gh.core._internal.models import (
     Coding,
     CombinationTherapy,
+    Disease,
     Extension,
+    Gene,
     TherapeuticAgent,
     TherapeuticSubstituteGroup,
 )
+from ga4gh.vrs._internal.models import Allele
 from pydantic import BaseModel, StrictStr, ValidationError
 from therapy.schemas import NormalizationService as NormalizedTherapy
 
@@ -29,6 +32,12 @@ from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import ViccNormalizers
 from metakb.schemas.annotation import Document, Method
 from metakb.schemas.app import SourceName
+from metakb.schemas.categorical_variation import (
+    ProteinSequenceConsequence,
+)
+from metakb.schemas.variation_statement import (
+    VariantTherapeuticResponseStudy,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -87,10 +96,25 @@ class ViccConceptVocab(BaseModel):
     definition: StrictStr
 
 
+class TransformedData(BaseModel):
+    """Define model for transformed data"""
+
+    studies: list[VariantTherapeuticResponseStudy] = []
+    categorical_variations: list[ProteinSequenceConsequence] = []
+    variations: list[Allele] = []
+    genes: list[Gene] = []
+    therapeutic_procedures: list[
+        TherapeuticAgent | TherapeuticSubstituteGroup | CombinationTherapy
+    ] = []
+    conditions: list[Disease] = []
+    methods: list[Method] = []
+    documents: list[Document] = []
+
+
 class Transform(ABC):
     """A base class for transforming harvester data."""
 
-    _methods: ClassVar[list[dict]] = [
+    _methods: ClassVar[list[Method]] = [
         Method(
             id=MethodId.CIVIC_EID_SOP,
             label="CIViC Curation SOP (2019)",
@@ -100,7 +124,7 @@ class Transform(ABC):
                 doi="10.1186/s13073-019-0687-x",
                 pmid=31779674,
             ),
-        ).model_dump(exclude_none=True),
+        ),
         Method(
             id=MethodId.MOA_ASSERTION_BIORXIV,
             label="MOAlmanac (2021)",
@@ -110,9 +134,9 @@ class Transform(ABC):
                 doi="10.1038/s43018-021-00243-3",
                 pmid=35121878,
             ),
-        ).model_dump(exclude_none=True),
+        ),
     ]
-    methods_mapping: ClassVar[dict] = {m["id"]: m for m in _methods}
+    methods_mapping: ClassVar[dict[MethodId, Method]] = {m.id: m for m in _methods}
     _vicc_concept_vocabs: ClassVar[list[ViccConceptVocab]] = [
         ViccConceptVocab(
             id="vicc:e000000",
@@ -220,19 +244,11 @@ class Transform(ABC):
         self.data_dir = data_dir / self.name
         self.harvester_path = harvester_path
 
-        if normalizers is None:
-            self.vicc_normalizers = ViccNormalizers()
-        else:
-            self.vicc_normalizers = normalizers
+        self.vicc_normalizers = (
+            ViccNormalizers() if normalizers is None else normalizers
+        )
 
-        self.studies = []
-        self.categorical_variations = []
-        self.variations = []
-        self.genes = []
-        self.therapeutic_procedures = []
-        self.conditions = []
-        self.methods = []
-        self.documents = []
+        self.processed_data = TransformedData()
 
         # Cache for concepts that were unable to normalize. Set of source concept IDs
         self.able_to_normalize = {}
@@ -241,7 +257,6 @@ class Transform(ABC):
             "therapeutic_procedures": set(),
         }
 
-        self.next_node_id = {}
         self.evidence_level_to_vicc_concept_mapping = (
             self._evidence_level_to_vicc_concept_mapping()
         )
@@ -277,7 +292,9 @@ class Transform(ABC):
             _harvested_data_child = _HarvestedData.get_subclass_by_prefix(self.name)
             return _harvested_data_child(**json.load(f))
 
-    def _evidence_level_to_vicc_concept_mapping(self) -> dict:
+    def _evidence_level_to_vicc_concept_mapping(
+        self,
+    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, Coding]:
         """Get mapping of source evidence level to vicc concept vocab
 
         :return: Dictionary containing mapping from source evidence level (key)
@@ -311,8 +328,7 @@ class Transform(ABC):
         """Get Therapeutic Agent representation for source therapy object
 
         :param therapy: source therapy object
-        :return: If able to normalize therapy, returns therapeutic agent represented as
-            a dict
+        :return: If able to normalize therapy, returns therapeutic agent
         """
 
     @abstractmethod
@@ -328,7 +344,7 @@ class Transform(ABC):
         :param therapies: List of therapy objects
         :param therapy_interaction_type: Therapy interaction type
         :return: If able to normalize all therapy objects in `therapies`, returns
-            Therapeutic Substitute Group represented as a dict
+            Therapeutic Substitute Group
         """
 
     def _get_combination_therapy(
@@ -343,7 +359,7 @@ class Transform(ABC):
         :param therapies: List of source therapy objects
         :param therapy_interaction_type: Therapy type provided by source
         :return: If able to normalize all therapy objects in `therapies`, returns
-            Combination Therapy represented as a dict
+            Combination Therapy
         """
         components = []
         source_name = type(self).__name__.lower().replace("transform", "")
@@ -369,7 +385,7 @@ class Transform(ABC):
                 if source_name == SourceName.MOA
                 else "civic_therapy_interaction_type",
                 value=therapy_interaction_type,
-            ).model_dump(exclude_none=True)
+            )
         ]
 
         try:
@@ -442,7 +458,7 @@ class Transform(ABC):
                 self.able_to_normalize["therapeutic_procedures"][
                     therapeutic_procedure_id
                 ] = tp
-                self.therapeutic_procedures.append(tp.model_dump(exclude_none=True))
+                self.processed_data.therapeutic_procedures.append(tp)
             else:
                 self.unable_to_normalize["therapeutic_procedures"].add(
                     therapeutic_procedure_id
@@ -510,16 +526,5 @@ class Transform(ABC):
             )
             cdm_filepath = transform_dir / f"{self.name}_cdm_{today}.json"
 
-        composite_dict = {
-            "studies": self.studies,
-            "variations": self.variations,
-            "categorical_variations": self.categorical_variations,
-            "genes": self.genes,
-            "therapeutic_procedures": self.therapeutic_procedures,
-            "conditions": self.conditions,
-            "methods": self.methods,
-            "documents": self.documents,
-        }
-
         with cdm_filepath.open("w+") as f:
-            json.dump(composite_dict, f, indent=2)
+            json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)

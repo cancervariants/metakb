@@ -264,7 +264,6 @@ def civic_mpid33(civic_vid33):
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
-                        "version": None,
                     }
                 ],
                 "type": "Extension",
@@ -477,7 +476,6 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
-                        "version": None,
                     }
                 ],
                 "type": "Extension",
