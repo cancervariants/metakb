@@ -747,6 +747,8 @@ class QueryHandler:
     async def batch_search_studies(
         self,
         variations: list[str] | None = None,
+        start: int = 0,
+        limit: int = 50,
     ) -> BatchSearchStudiesService:
         """Fetch all studies associated with any of the provided variation description
         strings.
@@ -799,10 +801,29 @@ class QueryHandler:
             WHERE v.id IN $v_ids
             RETURN s
         """
-        with self.driver.session() as session:
-            result = session.run(query, v_ids=variation_ids)
-            study_nodes = [r[0] for r in result]
-        response.study_ids = list({n["id"] for n in study_nodes})
-        studies = self._get_nested_studies(study_nodes)
+        study_node_results = self._run_paginated_query(
+            query, start, limit, v_ids=variation_ids
+        )
+        study_nodes = [result["s"] for result in study_node_results]
+        response.study_ids = list({node["id"] for node in study_nodes})
+        studies = self._get_nested_studies(study_node_results)
         response.studies = [VariantTherapeuticResponseStudy(**s) for s in studies]
         return response
+
+    def _run_paginated_query(
+        self, query: str, start: int, limit: int, **kwargs
+    ) -> list:
+        included_results = []
+        with self.driver.session() as session:
+            results = session.run(query, kwargs)
+            for _ in range(start):
+                try:
+                    next(results)
+                except StopIteration:
+                    break
+            for _ in range(limit):
+                try:
+                    included_results.append(next(results))
+                except StopIteration:
+                    break
+        return included_results
