@@ -4,6 +4,7 @@ import os
 from collections.abc import Iterable
 from enum import Enum
 
+from botocore.exceptions import TokenRetrievalError
 from disease.cli import update_db as update_disease_db
 from disease.database import create_db as create_disease_db
 from disease.database.database import AWS_ENV_VAR_NAME as DISEASE_AWS_ENV_VAR_NAME
@@ -89,6 +90,7 @@ class ViccNormalizers:
             provided in order of preference, as the result of the first one to normalize
             successfully will be returned. Use in the event that a prioritized MANE
             transcript is unavailable and multiple possible candidates are known.
+        :raises TokenRetrievalError: If AWS credentials are expired
         :return: A normalized variation, if available.
         """
         for query in queries:
@@ -100,8 +102,11 @@ class ViccNormalizers:
                 )
                 if variation_norm_resp and variation_norm_resp.variation:
                     return variation_norm_resp.variation
+            except TokenRetrievalError as e:
+                _logger.error(e)
+                raise e
             except Exception as e:
-                _logger.warning(
+                _logger.error(
                     "Variation Normalizer raised an exception using query %s: %s",
                     query,
                     e,
@@ -131,6 +136,7 @@ class ViccNormalizers:
 
         :param queries: A list of possible gene terms to normalize. Order is irrelevant,
             except for breaking ties (choose earlier if equal).
+        :raises TokenRetrievalError: If AWS credentials are expired
         :return: The highest matched gene's normalized response and ID
         """
         gene_norm_resp = None
@@ -142,8 +148,11 @@ class ViccNormalizers:
 
             try:
                 gene_norm_resp = self.gene_query_handler.normalize(query_str)
+            except TokenRetrievalError as e:
+                _logger.error(e)
+                raise e
             except Exception as e:
-                _logger.warning(
+                _logger.error(
                     "Gene Normalizer raised an exception using query %s: %s",
                     query_str,
                     e,
@@ -176,6 +185,7 @@ class ViccNormalizers:
 
         :param queries: Disease queries to normalize. Order is irrelevant, except for
             breaking ties (choose earlier if equal).
+        :raises TokenRetrievalError: If AWS credentials are expired
         :return: The highest matched disease's normalized response and ID
         """
         highest_match = 0
@@ -188,8 +198,11 @@ class ViccNormalizers:
 
             try:
                 disease_norm_resp = self.disease_query_handler.normalize(query)
+            except TokenRetrievalError as e:
+                _logger.error(e)
+                raise e
             except Exception as e:
-                _logger.warning(
+                _logger.error(
                     "Disease Normalizer raised an exception using query %s: %s",
                     query,
                     e,
@@ -222,6 +235,7 @@ class ViccNormalizers:
 
         :param queries: Therapy queries to normalize. Order is irrelevant, except for
             breaking ties (choose earlier term if equal).
+        :raises TokenRetrievalError: If AWS credentials are expired
         :return: The highest matched therapy's normalized response and ID
         """
         highest_match = 0
@@ -234,8 +248,11 @@ class ViccNormalizers:
 
             try:
                 therapy_norm_resp = self.therapy_query_handler.normalize(query)
+            except TokenRetrievalError as e:
+                _logger.error(e)
+                raise e
             except Exception as e:
-                _logger.warning(
+                _logger.error(
                     "Therapy Normalizer raised an exception using query %s: %s",
                     query,
                     e,
