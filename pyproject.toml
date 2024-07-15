@@ -43,7 +43,7 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 tests = ["pytest", "pytest-cov", "mock", "pytest-asyncio"]
-dev = ["pre-commit", "ruff==0.2.0"]
+dev = ["pre-commit>=3.7.1", "ruff==0.2.0"]
 notebooks = ["ipykernel", "jupyterlab"]
 docs = [
     "sphinx==6.1.3",
