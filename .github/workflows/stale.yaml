@@ -1,24 +1,27 @@
-name: "Make comments on stale issues and PRs"
+name: "Stalebot for issues and PRs"
 
 on:
   schedule:
-    - cron: "30 13 * * *"
+    - cron: "30 13 * * 1-5"
 
 jobs:
-  stale:
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
-    steps:
-      - uses: actions/stale@v9
-        with:
-          remove-stale-when-updated: true
+  stale-high-priority:
+    uses: genomicmedlab/software-templates/.github/workflows/reusable-stale.yaml
+    with:
+      days-before-issue-stale: 90
+      days-before-pr-stale: 1
+      labels: priority:high
 
-          days-before-issue-stale: 45
-          stale-issue-label: stale
-          stale-issue-message: "This issue is stale because it has been open 45 days with no activity. Please make a comment for triaging or closing the issue."
+  stale-medium-priority:
+    uses: genomicmedlab/software-templates/.github/workflows/reusable-stale.yaml
+    with:
+      days-before-issue-stale: 135
+      days-before-pr-stale: 3
+      labels: priority:medium
 
-          days-before-pr-stale: 7
-          stale-pr-label: stale
-          stale-pr-message: "This PR is stale because it has been open 7 days with no activity. Please review this PR."
+  stale-low-priority:
+    uses: genomicmedlab/software-templates/.github/workflows/reusable-stale.yaml
+    with:
+      days-before-issue-stale: 180
+      days-before-pr-stale: 7
+      labels: priority:low
