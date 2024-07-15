@@ -1,4 +1,5 @@
 """A module for to transform CIViC."""
+
 import logging
 import re
 from enum import Enum
@@ -558,15 +559,14 @@ class CivicTransform(Transform):
             members = await self._get_variation_members(variant)
 
             # Get variant types
-            variant_types_value = []
-            for vt in variant["variant_types"]:
-                variant_types_value.append(
-                    Coding(
-                        code=vt["so_id"],
-                        system=f"{vt['url'].rsplit('/', 1)[0]}/",
-                        label="_".join(vt["name"].lower().split()),
-                    )
+            variant_types_value = [
+                Coding(
+                    code=vt["so_id"],
+                    system=f"{vt['url'].rsplit('/', 1)[0]}/",
+                    label="_".join(vt["name"].lower().split()),
                 )
+                for vt in variant["variant_types"]
+            ]
 
             # Get mappings
             mappings = [
@@ -590,16 +590,16 @@ class CivicTransform(Transform):
                     )
                 )
 
-            for ce in variant["clinvar_entries"]:
-                mappings.append(
-                    Mapping(
-                        coding=Coding(
-                            code=ce,
-                            system="https://www.ncbi.nlm.nih.gov/clinvar/variation/",
-                        ),
-                        relation=Relation.RELATED_MATCH,
-                    )
+            mappings.extend(
+                Mapping(
+                    coding=Coding(
+                        code=ce,
+                        system="https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+                    ),
+                    relation=Relation.RELATED_MATCH,
                 )
+                for ce in variant["clinvar_entries"]
+            )
 
             aliases = []
             for a in variant["variant_aliases"]:

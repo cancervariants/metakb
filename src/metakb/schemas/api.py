@@ -1,4 +1,5 @@
 """Create schemas for API"""
+
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, StrictStr

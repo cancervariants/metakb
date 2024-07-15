@@ -1,4 +1,5 @@
 """Test MOAlmanac source"""
+
 import json
 from unittest.mock import patch
 

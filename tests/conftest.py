@@ -1,4 +1,5 @@
 """Module for pytest fixtures."""
+
 import json
 import logging
 from copy import deepcopy

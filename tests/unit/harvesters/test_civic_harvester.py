@@ -1,4 +1,5 @@
 """Test CIViC Harvester class"""
+
 import json
 
 import pytest

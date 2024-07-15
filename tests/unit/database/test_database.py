@@ -1,4 +1,5 @@
 """Validate property and relationship rules for graph DB."""
+
 import json
 
 import pytest

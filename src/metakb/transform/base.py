@@ -1,4 +1,5 @@
 """A module for the Transform base class."""
+
 import datetime
 import json
 import logging

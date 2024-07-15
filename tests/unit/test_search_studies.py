@@ -1,4 +1,5 @@
 """Test search study methods"""
+
 import pytest
 from ga4gh.core._internal.models import Extension
 

@@ -1,4 +1,5 @@
 """Handle construction of and relay requests to VICC normalizer services."""
+
 import logging
 import os
 from collections.abc import Iterable
