@@ -70,9 +70,9 @@ sys.path.insert(0, os.path.abspath("../../"))
 autodoc_preserve_defaults = True
 
 # -- get version -------------------------------------------------------------
-from importlib.metadata import version
+from metakb import __version__
 
-release = version = version("metakb")
+release = version = __version__
 
 # -- linkcode ----------------------------------------------------------------
 def linkcode_resolve(domain, info):
