@@ -3,8 +3,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, StrictStr
 
+from metakb import __version__
 from metakb.schemas.variation_statement import VariantTherapeuticResponseStudy
-from metakb.version import __version__
 
 
 class ServiceMeta(BaseModel):
