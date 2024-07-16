@@ -1,4 +1,5 @@
 """Test batch search function."""
+
 import pytest
 
 from metakb.query import QueryHandler
