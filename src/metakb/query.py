@@ -37,6 +37,10 @@ from metakb.schemas.variation_statement import (
 logger = logging.getLogger(__name__)
 
 
+class PaginationParamError(Exception):
+    """Raise for invalid pagination parameters."""
+
+
 class VariationRelation(str, Enum):
     """Constrain possible values for the relationship between variations and
     categorical variations.
@@ -73,6 +77,11 @@ def _deserialize_field(node: dict, field_name: str) -> None | dict:
     return None
 
 
+def _uniqify_list(item_list: list) -> list:
+    seen = set()
+    return [x for x in item_list if not (x in seen or seen.add(x))]
+
+
 class QueryHandler:
     """Primary query-handling class. Wraps database connections and hooks to external
     services such as the concept normalizers.
@@ -82,6 +91,7 @@ class QueryHandler:
         self,
         driver: Driver | None = None,
         normalizers: ViccNormalizers | None = None,
+        default_page_limit: int | None = None,
     ) -> None:
         """Initialize neo4j driver and the VICC normalizers.
 
@@ -100,8 +110,27 @@ class QueryHandler:
         ...     ViccNormalizers("http://localhost:8000")
         ... )
 
+        ``default_page_limit`` sets the default max number of studies to include in
+        query responses:
+
+        >>> limited_qh = QueryHandler(default_page_limit=10)
+        >>> response = await limited_qh.batch_search_studies(["BRAF V600E"])
+        >>> print(len(response.study_ids))
+        10
+
+        This value is overruled by an explicit ``limit`` parameter:
+
+        >>> response = await limited_qh.batch_search_studies(
+        ...     ["BRAF V600E"],
+        ...     limit=2
+        ... )
+        >>> print(len(response.study_ids))
+        2
+
         :param driver: driver instance for graph connection
         :param normalizers: normalizer collection instance
+        :param default_page_limit: default number of results per response page (leave
+            as ``None`` for no default limit)
         """
         if driver is None:
             driver = get_driver()
@@ -109,6 +138,7 @@ class QueryHandler:
             normalizers = ViccNormalizers()
         self.driver = driver
         self.vicc_normalizers = normalizers
+        self._default_page_limit = default_page_limit
 
     async def search_studies(
         self,
@@ -117,6 +147,8 @@ class QueryHandler:
         therapy: str | None = None,
         gene: str | None = None,
         study_id: str | None = None,
+        start: int = 0,
+        limit: int | None = None,
     ) -> SearchStudiesService:
         """Get nested studies from queried concepts that match all conditions provided.
         For example, if ``variation`` and ``therapy`` are provided, will return all studies
@@ -129,7 +161,6 @@ class QueryHandler:
         ['moa.assertion:944', 'moa.assertion:911', 'moa.assertion:865']
         >>> result.studies[0].isReportedIn[0].url
         'https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/202429s019lbl.pdf'
-
 
         Variation, disease, therapy, and gene terms are resolved via their respective
         :ref:`concept normalization services<normalization>`.
@@ -145,8 +176,18 @@ class QueryHandler:
         :param gene: Gene query. Common shorthand name, e.g. ``"NTRK1"``, or compact URI,
             e.g. ``"ensembl:ENSG00000198400"``.
         :param study_id: Study ID query provided by source, e.g. ``"civic.eid:3017"``.
+        :param start: Index of first result to fetch. Must be nonnegative.
+        :param limit: Max number of results to fetch. Must be nonnegative. Revert to
+            default defined at class initialization if not given.
         :return: Service response object containing nested studies and service metadata.
         """
+        if start < 0:
+            msg = "Can't start from an index of less than 0."
+            raise ValueError(msg)
+        if isinstance(limit, int) and limit < 0:
+            msg = "Can't limit results to less than a negative number."
+            raise ValueError(msg)
+
         response: dict = {
             "query": {
                 "variation": None,
@@ -186,6 +227,8 @@ class QueryHandler:
                 normalized_therapy=normalized_therapy,
                 normalized_disease=normalized_disease,
                 normalized_gene=normalized_gene,
+                start=start,
+                limit=limit,
             )
             response["study_ids"] = [s["id"] for s in study_nodes]
 
@@ -357,6 +400,8 @@ class QueryHandler:
 
     def _get_studies(
         self,
+        start: int,
+        limit: int | None,
         normalized_variation: str | None = None,
         normalized_therapy: str | None = None,
         normalized_disease: str | None = None,
@@ -364,6 +409,10 @@ class QueryHandler:
     ) -> list[Node]:
         """Get studies that match the intersection of provided concepts.
 
+        :param start: Index of first result to fetch. Calling context should've already
+            checked that it's nonnegative.
+        :param limit: Max number of results to fetch. Calling context should've already
+            checked that it's nonnegative.
         :param normalized_variation: VRS Variation ID
         :param normalized_therapy: normalized therapy concept ID
         :param normalized_disease: normalized disease concept ID
@@ -371,7 +420,7 @@ class QueryHandler:
         :return: List of Study nodes that match the intersection of the given parameters
         """
         query = "MATCH (s:Study)"
-        params: dict[str, str] = {}
+        params: dict[str, str | int] = {}
 
         if normalized_variation:
             query += """
@@ -401,7 +450,18 @@ class QueryHandler:
             """
             params["t_id"] = normalized_therapy
 
-        query += "RETURN DISTINCT s"
+        query += """
+        RETURN DISTINCT s
+        ORDER BY s.id
+        """
+
+        if start:
+            query += "\nSKIP $start"
+            params["start"] = start
+        limit_candidate = limit if limit is not None else self._default_page_limit
+        if limit_candidate is not None:
+            query += "\nLIMIT $limit"
+            params["limit"] = limit_candidate
 
         return [s[0] for s in self.driver.execute_query(query, params).records]
 
@@ -747,6 +807,8 @@ class QueryHandler:
     async def batch_search_studies(
         self,
         variations: list[str] | None = None,
+        start: int = 0,
+        limit: int | None = None,
     ) -> BatchSearchStudiesService:
         """Fetch all studies associated with any of the provided variation description
         strings.
@@ -770,8 +832,19 @@ class QueryHandler:
 
         :param variations: a list of variation description strings, e.g.
             ``["BRAF V600E"]``
+        :param start: Index of first result to fetch. Must be nonnegative.
+        :param limit: Max number of results to fetch. Must be nonnegative. Revert to
+            default defined at class initialization if not given.
         :return: response object including all matching studies
+        :raise ValueError: if ``start`` or ``limit`` are nonnegative
         """
+        if start < 0:
+            msg = "Can't start from an index of less than 0."
+            raise ValueError(msg)
+        if isinstance(limit, int) and limit < 0:
+            msg = "Can't limit results to less than a negative number."
+            raise ValueError(msg)
+
         response = BatchSearchStudiesService(
             query=BatchSearchStudiesQuery(variations=[]),
             service_meta_=ServiceMeta(),
@@ -793,16 +866,30 @@ class QueryHandler:
         if not variation_ids:
             return response
 
-        query = """
-            MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
-            MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
-            WHERE v.id IN $v_ids
-            RETURN s
-        """
+        if limit is not None or self._default_page_limit is not None:
+            query = """
+                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
+                MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
+                WHERE v.id IN $v_ids
+                RETURN DISTINCT s
+                ORDER BY s.id
+                SKIP $skip
+                LIMIT $limit
+            """
+            limit = limit if limit is not None else self._default_page_limit
+        else:
+            query = """
+                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
+                MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
+                WHERE v.id IN $v_ids
+                RETURN DISTINCT s
+                ORDER BY s.id
+                SKIP $skip
+            """
         with self.driver.session() as session:
-            result = session.run(query, v_ids=variation_ids)
+            result = session.run(query, v_ids=variation_ids, skip=start, limit=limit)
             study_nodes = [r[0] for r in result]
-        response.study_ids = list({n["id"] for n in study_nodes})
+        response.study_ids = _uniqify_list([n["id"] for n in study_nodes])
         studies = self._get_nested_studies(study_nodes)
         response.studies = [VariantTherapeuticResponseStudy(**s) for s in studies]
         return response

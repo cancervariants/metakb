@@ -163,5 +163,7 @@ ignore = [
 # S101 - assert
 # B011 - assert-false
 # N815 -
-"tests/*" = ["ANN001", "ANN2", "ANN102", "S101", "B011"]
+# D104 - undocumented-public-package
+# D100 - undocumented-public-module
+"tests/*" = ["ANN001", "ANN2", "ANN102", "S101", "B011", "D100", "D104"]
 "src/metakb/schemas/*" = ["ANN102", "N815"]
