@@ -11,8 +11,8 @@ from disease.database import create_db as create_disease_db
 from disease.database.database import AWS_ENV_VAR_NAME as DISEASE_AWS_ENV_VAR_NAME
 from disease.query import QueryHandler as DiseaseQueryHandler
 from disease.schemas import NormalizationService as NormalizedDisease
-from ga4gh.core._internal.models import Extension
-from ga4gh.vrs._internal.models import (
+from ga4gh.core.entity_models import Extension
+from ga4gh.vrs.models import (
     Allele,
     CopyNumberChange,
     CopyNumberCount,

@@ -15,16 +15,15 @@ from disease.schemas import (
     NormalizationService as NormalizedDisease,
 )
 from ga4gh.core import sha512t24u
-from ga4gh.core._internal.models import (
-    Coding,
+from ga4gh.core.domain_models import (
     CombinationTherapy,
     Disease,
-    Extension,
     Gene,
     TherapeuticAgent,
     TherapeuticSubstituteGroup,
 )
-from ga4gh.vrs._internal.models import Allele
+from ga4gh.core.entity_models import Coding, Extension
+from ga4gh.vrs.models import Allele
 from pydantic import BaseModel, StrictStr, ValidationError
 from therapy.schemas import NormalizationService as NormalizedTherapy
 

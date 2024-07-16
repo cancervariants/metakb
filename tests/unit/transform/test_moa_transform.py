@@ -67,7 +67,6 @@ def moa_vid145(braf_v600e_genomic):
                     "protein_change": "p.V600E",
                     "exon": "15",
                 },
-                "type": "Extension",
             }
         ],
         "mappings": [
@@ -132,7 +131,6 @@ def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
             "components": [moa_cetuximab, moa_encorafenib],
             "extensions": [
                 {
-                    "type": "Extension",
                     "name": "moa_therapy_type",
                     "value": "Targeted therapy",
                 }
@@ -144,7 +142,6 @@ def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
             "label": "Colorectal Adenocarcinoma",
             "extensions": [
                 {
-                    "type": "Extension",
                     "name": "disease_normalizer_data",
                     "value": {
                         "normalized_id": "ncit:C5105",
@@ -172,7 +169,6 @@ def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
                 "label": "BRAF",
                 "extensions": [
                     {
-                        "type": "Extension",
                         "name": "gene_normalizer_id",
                         "value": "hgnc:1097",
                     }
@@ -183,9 +179,7 @@ def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
         "isReportedIn": [
             {
                 "id": "moa.source:63",
-                "extensions": [
-                    {"type": "Extension", "name": "source_type", "value": "FDA"}
-                ],
+                "extensions": [{"name": "source_type", "value": "FDA"}],
                 "type": "Document",
                 "title": "Array BioPharma Inc. Braftovi (encorafenib) [package insert]. U.S. Food and Drug Administration website. www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf. Revised April 2020. Accessed October 15, 2020.",
                 "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf",
