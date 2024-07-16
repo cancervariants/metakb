@@ -82,4 +82,4 @@ body:
         - "Yes, but I can only provide ideas and feedback."
         - "No, I cannot contribute."
     validations:
-      required: true
+      required: false

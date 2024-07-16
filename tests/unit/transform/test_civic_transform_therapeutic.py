@@ -1,4 +1,5 @@
 """Test CIViC Transformation to common data model for Therapeutic Response."""
+
 import json
 
 import pytest

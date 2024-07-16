@@ -1,4 +1,5 @@
 """Create schemas for API"""
+
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, StrictStr
@@ -12,9 +13,9 @@ class ServiceMeta(BaseModel):
 
     name: Literal["metakb"] = "metakb"
     version: StrictStr = __version__
-    url: Literal[
+    url: Literal["https://github.com/cancervariants/metakb"] = (
         "https://github.com/cancervariants/metakb"
-    ] = "https://github.com/cancervariants/metakb"
+    )
 
     model_config = ConfigDict(
         json_schema_extra={

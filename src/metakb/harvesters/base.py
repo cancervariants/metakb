@@ -1,4 +1,5 @@
 """A module for the Harvester base class"""
+
 import datetime
 import json
 import logging
