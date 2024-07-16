@@ -6,6 +6,7 @@ from typing import Annotated
 from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
 
+from metakb import __version__
 from metakb.log_handle import configure_logs
 from metakb.query import PaginationParamError, QueryHandler
 from metakb.schemas.api import (
@@ -15,7 +16,6 @@ from metakb.schemas.api import (
     SearchStudiesService,
     ServiceMeta,
 )
-from metakb.version import __version__
 
 query = QueryHandler()
 
