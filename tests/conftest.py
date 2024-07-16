@@ -9,6 +9,7 @@ import pytest
 
 from metakb.harvesters.base import Harvester
 from metakb.normalizers import ViccNormalizers
+from metakb.query import QueryHandler
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
 TEST_HARVESTERS_DIR = TEST_DATA_DIR / "harvesters"
@@ -2123,3 +2124,11 @@ def check_transformed_cdm(assertion_checks):
 def normalizers():
     """Provide normalizers to querying/transformation tests."""
     return ViccNormalizers()
+
+
+@pytest.fixture(scope="module")
+def query_handler(normalizers):
+    """Create query handler test fixture"""
+    qh = QueryHandler(normalizers=normalizers)
+    yield qh
+    qh.driver.close()
