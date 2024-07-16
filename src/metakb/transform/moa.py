@@ -6,16 +6,13 @@ from pathlib import Path
 from urllib.parse import quote
 
 from ga4gh.core import sha512t24u
-from ga4gh.core._internal.models import (
-    Coding,
+from ga4gh.core.domain_models import (
     Disease,
-    Extension,
     Gene,
-    Mapping,
-    Relation,
     TherapeuticAgent,
 )
-from ga4gh.vrs import models
+from ga4gh.core.entity_models import Coding, ConceptMapping, Extension, Relation
+from ga4gh.vrs.models import Variation
 
 from metakb import APP_ROOT
 from metakb.harvesters.moa import MoaHarvestedData
@@ -305,7 +302,7 @@ class MoaTransform(Transform):
             params = vrs_variation.model_dump(exclude_none=True)
             moa_variant_id = f"moa.variant:{variant_id}"
             params["id"] = vrs_variation.id
-            moa_variation = models.Variation(**params)
+            moa_variation = Variation(**params)
 
             # Add MOA representative coordinate data to extensions
             coordinates_keys = [
@@ -326,7 +323,7 @@ class MoaTransform(Transform):
 
             # Add mappings data
             mappings = [
-                Mapping(
+                ConceptMapping(
                     coding=Coding(
                         code=str(variant_id),
                         system="https://moalmanac.org/api/features/",
@@ -337,7 +334,7 @@ class MoaTransform(Transform):
 
             if variant["rsid"]:
                 mappings.append(
-                    Mapping(
+                    ConceptMapping(
                         coding=Coding(
                             code=variant["rsid"],
                             system="https://www.ncbi.nlm.nih.gov/snp/",
@@ -363,7 +360,7 @@ class MoaTransform(Transform):
 
     async def _get_variation_members(
         self, moa_rep_coord: dict
-    ) -> list[models.Variation] | None:
+    ) -> list[Variation] | None:
         """Get members field for variation object. This is the related variant concepts.
         FOr now, only looks at genomic representative coordinate.
 
@@ -387,7 +384,7 @@ class MoaTransform(Transform):
             if vrs_genomic_variation:
                 genomic_params = vrs_genomic_variation.model_dump(exclude_none=True)
                 genomic_params["label"] = gnomad_vcf
-                members = [models.Variation(**genomic_params)]
+                members = [Variation(**genomic_params)]
             else:
                 logger.debug(
                     "Variation Normalizer unable to normalize genomic representation: %s",
@@ -436,7 +433,7 @@ class MoaTransform(Transform):
 
             if source["nct"]:
                 mappings = [
-                    Mapping(
+                    ConceptMapping(
                         coding=Coding(
                             code=source["nct"],
                             system="https://clinicaltrials.gov/search?term=",
@@ -558,7 +555,7 @@ class MoaTransform(Transform):
         ot_term = disease["oncotree_term"]
         if ot_code:
             mappings.append(
-                Mapping(
+                ConceptMapping(
                     coding=Coding(
                         code=ot_code,
                         system="https://oncotree.mskcc.org/",

@@ -5,17 +5,14 @@ import re
 from enum import Enum
 from pathlib import Path
 
-from ga4gh.core._internal.models import (
-    Coding,
+from ga4gh.core.domain_models import (
     Disease,
-    Extension,
     Gene,
-    Mapping,
-    Relation,
     TherapeuticAgent,
     TherapeuticSubstituteGroup,
 )
-from ga4gh.vrs._internal.models import Expression, Syntax, Variation
+from ga4gh.core.entity_models import Coding, ConceptMapping, Extension, Relation, Syntax
+from ga4gh.vrs.models import Expression, Variation
 from pydantic import BaseModel, ValidationError
 
 from metakb import APP_ROOT
@@ -88,7 +85,7 @@ class _VariationCache(BaseModel):
     vrs_variation: Variation
     civic_gene_id: str
     variant_types: list[Coding] | None = None
-    mappings: list[Mapping] | None = None
+    mappings: list[ConceptMapping] | None = None
     aliases: list[str] | None = None
     coordinates: dict | None
     members: list[Variation] | None = None
@@ -439,7 +436,7 @@ class CivicTransform(Transform):
                 description=mp["description"],
                 label=mp["name"],
                 definingContext=civic_variation_data.vrs_variation.root,
-                aliases=list(set(aliases)) or None,
+                alternativeLabels=list(set(aliases)) or None,
                 mappings=civic_variation_data.mappings,
                 extensions=extensions or None,
                 members=civic_variation_data.members,
@@ -570,7 +567,7 @@ class CivicTransform(Transform):
 
             # Get mappings
             mappings = [
-                Mapping(
+                ConceptMapping(
                     coding=Coding(
                         code=str(variant["id"]),
                         system="https://civicdb.org/variants/",
@@ -581,7 +578,7 @@ class CivicTransform(Transform):
 
             if variant["allele_registry_id"]:
                 mappings.append(
-                    Mapping(
+                    ConceptMapping(
                         coding=Coding(
                             code=variant["allele_registry_id"],
                             system="https://reg.clinicalgenome.org/",
@@ -591,7 +588,7 @@ class CivicTransform(Transform):
                 )
 
             mappings.extend(
-                Mapping(
+                ConceptMapping(
                     coding=Coding(
                         code=ce,
                         system="https://www.ncbi.nlm.nih.gov/clinvar/variation/",
@@ -606,7 +603,7 @@ class CivicTransform(Transform):
                 if SNP_RE.match(a):
                     a = a.lower()
                     mappings.append(
-                        Mapping(
+                        ConceptMapping(
                             coding=Coding(
                                 code=a,
                                 system="https://www.ncbi.nlm.nih.gov/snp/",
@@ -630,7 +627,7 @@ class CivicTransform(Transform):
                 civic_gene_id=f"civic.gid:{variant['gene_id']}",
                 variant_types=variant_types_value or None,
                 mappings=mappings or None,
-                aliases=aliases or None,
+                alternativeLabels=aliases or None,
                 coordinates=coordinates or None,
                 members=members,
             )
@@ -675,7 +672,7 @@ class CivicTransform(Transform):
                     label=gene["name"],
                     description=gene["description"] if gene["description"] else None,
                     mappings=[
-                        Mapping(
+                        ConceptMapping(
                             coding=Coding(
                                 code=f"ncbigene:{gene['entrez_id']}",
                                 system="https://www.ncbi.nlm.nih.gov/gene/",
@@ -683,7 +680,7 @@ class CivicTransform(Transform):
                             relation=Relation.EXACT_MATCH,
                         )
                     ],
-                    aliases=gene["aliases"] if gene["aliases"] else None,
+                    alternativeLabels=gene["aliases"] if gene["aliases"] else None,
                     extensions=[
                         Extension(name="gene_normalizer_id", value=normalized_gene_id)
                     ],
@@ -739,7 +736,7 @@ class CivicTransform(Transform):
             doid = f"DOID:{doid}"
             queries = [doid, display_name]
             mappings.append(
-                Mapping(
+                ConceptMapping(
                     coding=Coding(
                         code=doid,
                         system="https://www.disease-ontology.org/",
@@ -835,7 +832,7 @@ class CivicTransform(Transform):
         if ncit_id:
             queries = [f"ncit:{ncit_id}", label]
             mappings.append(
-                Mapping(
+                ConceptMapping(
                     coding=Coding(
                         code=ncit_id,
                         system="https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
@@ -876,7 +873,7 @@ class CivicTransform(Transform):
             id=therapy_id,
             label=label,
             mappings=mappings if mappings else None,
-            aliases=therapy["aliases"] if therapy["aliases"] else None,
+            alternativeLabels=therapy["aliases"] if therapy["aliases"] else None,
             extensions=extensions,
         )
 

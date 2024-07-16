@@ -3,7 +3,8 @@
 from enum import Enum
 from typing import Literal
 
-from ga4gh.core import core_models
+from ga4gh.core.domain_models import Condition, Gene, TherapeuticProcedure
+from ga4gh.core.entity_models import IRI, Coding
 from ga4gh.vrs import models
 from pydantic import BaseModel, Field
 
@@ -69,7 +70,7 @@ class _VariantStatement(_StatementBase):
     """A `Statement` describing the impact of a variant."""
 
     # extends subject
-    variant: models.Variation | CategoricalVariation | core_models.IRI = Field(
+    variant: models.Variation | CategoricalVariation | IRI = Field(
         ..., description="A variation object that is the subject of the Statement."
     )
 
@@ -77,7 +78,7 @@ class _VariantStatement(_StatementBase):
 class _VariantClassification(_VariantStatement):
     """A `VariantStatement` classifying the impact of a variant."""
 
-    classification: core_models.Coding | core_models.IRI = Field(
+    classification: Coding | IRI = Field(
         ...,
         description="A methodological, summary classification about the impact of a variant.",
     )
@@ -94,7 +95,7 @@ class VariantPathogenicityQualifier(BaseModel):
         None,
         description="The pattern of inheritance expected for the pathogenic effect of this variant.",
     )
-    geneContext: core_models.Gene | None = Field(
+    geneContext: Gene | None = Field(
         None, description="A gene context that qualifies the Statement."
     )
 
@@ -110,7 +111,7 @@ class VariantPathogenicity(_VariantClassification):
     # extends predicate
     predicate: Literal["isCausalFor"] | None = None
     # extends object
-    condition: core_models.Condition | core_models.IRI = Field(
+    condition: Condition | IRI = Field(
         ..., description="The `Condition` for which the variant impact is stated."
     )
     # extends qualifiers
@@ -123,7 +124,7 @@ class _VariantStudySummary(_VariantStatement):
     """
 
     # extends isReportedIn
-    isReportedIn: list[Document | core_models.IRI] = Field(
+    isReportedIn: list[Document | IRI] = Field(
         ...,
         description="A document in which the information content is expressed.",
         min_length=1,
@@ -141,7 +142,7 @@ class _VariantOncogenicityStudyQualifier(BaseModel):
         None,
         description="Whether the statement should be interpreted in the context of the variant being rare or common.",
     )
-    geneContext: core_models.Gene | None = Field(
+    geneContext: Gene | None = Field(
         None, description="A gene context that qualifies the Statement."
     )
 
@@ -155,7 +156,7 @@ class VariantOncogenicityStudy(_VariantStudySummary):
     # extends predicate
     predicate: VariantOncogenicityStudyPredicate
     # extends object
-    tumorType: core_models.Condition | core_models.IRI = Field(
+    tumorType: Condition | IRI = Field(
         ..., description="The tumor type for which the variant impact is evaluated."
     )
     # extends qualifiers
@@ -174,11 +175,11 @@ class VariantTherapeuticResponseStudy(_VariantStudySummary):
     # extends predicate
     predicate: VariantTherapeuticResponseStudyPredicate
     # extends object
-    therapeutic: core_models.TherapeuticProcedure | core_models.IRI = Field(
+    therapeutic: TherapeuticProcedure | IRI = Field(
         ...,
         description="A drug administration or other therapeutic procedure that the neoplasm is intended to respond to.",
     )
-    tumorType: core_models.Condition | core_models.IRI = Field(
+    tumorType: Condition | IRI = Field(
         ...,
         description="The tumor type context in which the variant impact is evaluated.",
     )
