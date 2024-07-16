@@ -77,11 +77,6 @@ def _deserialize_field(node: dict, field_name: str) -> None | dict:
     return None
 
 
-def _uniqify_list(item_list: list) -> list:
-    seen = set()
-    return [x for x in item_list if not (x in seen or seen.add(x))]
-
-
 class QueryHandler:
     """Primary query-handling class. Wraps database connections and hooks to external
     services such as the concept normalizers.
@@ -889,7 +884,7 @@ class QueryHandler:
         with self.driver.session() as session:
             result = session.run(query, v_ids=variation_ids, skip=start, limit=limit)
             study_nodes = [r[0] for r in result]
-        response.study_ids = _uniqify_list([n["id"] for n in study_nodes])
+        response.study_ids = [n["id"] for n in study_nodes]
         studies = self._get_nested_studies(study_nodes)
         response.studies = [VariantTherapeuticResponseStudy(**s) for s in studies]
         return response
