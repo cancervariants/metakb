@@ -1,6 +1,7 @@
 """Provide CLI utility for performing data collection, transformation, and upload
 to graph datastore.
 """
+
 import datetime
 import logging
 import re

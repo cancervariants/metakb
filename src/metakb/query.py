@@ -1,4 +1,5 @@
 """Provide class/methods/schemas for issuing queries against the database."""
+
 import json
 import logging
 from copy import copy
@@ -521,10 +522,10 @@ class QueryHandler:
                     v_params[variation_k] = json.loads(variation_v)
                 elif variation_k.startswith("expression_hgvs_"):
                     syntax = variation_k.split("expression_")[-1].replace("_", ".")
-                    for hgvs_expr in variation_v:
-                        expressions.append(
-                            models.Expression(syntax=syntax, value=hgvs_expr)
-                        )
+                    expressions.extend(
+                        models.Expression(syntax=syntax, value=hgvs_expr)
+                        for hgvs_expr in variation_v
+                    )
 
             v_params["expressions"] = expressions or None
             loc_params = r_params["loc"]

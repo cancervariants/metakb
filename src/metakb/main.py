@@ -1,4 +1,5 @@
 """Main application for FastAPI."""
+
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Annotated
@@ -14,7 +15,7 @@ query = QueryHandler()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator:
+async def lifespan(app: FastAPI) -> AsyncGenerator:  # noqa: ARG001
     """Configure FastAPI instance lifespan.
 
     :param app: FastAPI app instance

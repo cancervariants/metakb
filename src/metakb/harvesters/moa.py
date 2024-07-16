@@ -1,4 +1,5 @@
 """A module for the Molecular Oncology Almanac harvester"""
+
 import logging
 
 import requests

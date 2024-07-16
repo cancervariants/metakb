@@ -1,4 +1,5 @@
 """Module containing GK pilot annotation definitions"""
+
 import datetime
 from enum import Enum
 from typing import Literal
@@ -23,7 +24,7 @@ class Direction(str, Enum):
     NONE = "none"
 
 
-class Document(core_models._MappableEntity):
+class Document(core_models._MappableEntity):  # noqa: SLF001
     """a representation of a physical or digital document"""
 
     type: Literal["Document"] = "Document"
@@ -41,7 +42,7 @@ class Document(core_models._MappableEntity):
     )
 
 
-class Method(core_models._Entity):
+class Method(core_models._Entity):  # noqa: SLF001
     """A set of instructions that specify how to achieve some objective (e.g.
     experimental protocols, curation guidelines, rule sets, etc.)
     """
@@ -56,7 +57,7 @@ class Method(core_models._Entity):
     )
 
 
-class Agent(core_models._Entity):
+class Agent(core_models._Entity):  # noqa: SLF001
     """An autonomous actor (person, organization, or computational agent) that bears
     some form of responsibility for an activity taking place, for the existence of an
     entity, or for another agent's activity.
@@ -67,7 +68,7 @@ class Agent(core_models._Entity):
     subtype: AgentSubtype | None = None
 
 
-class Contribution(core_models._Entity):
+class Contribution(core_models._Entity):  # noqa: SLF001
     """The sum of all actions taken by a single agent in contributing to the creation,
     modification, assessment, or deprecation of a particular entity (e.g. a Statement,
     EvidenceLine, DataItem, Publication, etc.)
@@ -98,7 +99,7 @@ class Contribution(core_models._Entity):
         return v
 
 
-class _InformationEntity(core_models._Entity):
+class _InformationEntity(core_models._Entity):  # noqa: SLF001
     """InformationEntities are abstract (non-physical) entities that are about something
     (i.e. they carry information about things in the real world).
     """

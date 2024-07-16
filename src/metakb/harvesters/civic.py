@@ -1,4 +1,5 @@
 """A module for the CIViC harvester."""
+
 import logging
 from typing import Any
 

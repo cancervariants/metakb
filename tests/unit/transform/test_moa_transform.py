@@ -1,4 +1,5 @@
 """Test MOA Transformation to common data model"""
+
 import json
 
 import pytest

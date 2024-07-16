@@ -1,4 +1,5 @@
 """Test MOAlmanac Harvester."""
+
 from tests.conftest import check_source_harvest
 
 from metakb.harvesters.moa import MoaHarvester

@@ -1,4 +1,5 @@
 """Provide methods for loading data into the database."""
+
 import json
 import logging
 from pathlib import Path
@@ -6,7 +7,6 @@ from pathlib import Path
 from neo4j import Driver, ManagedTransaction
 
 from metakb.database import get_driver
-from metakb.schemas.app import SourceName
 
 _logger = logging.getLogger(__name__)
 
@@ -456,13 +456,12 @@ def _add_study(tx: ManagedTransaction, study_in: dict) -> None:
     tx.run(query, **study)
 
 
-def add_transformed_data(driver: Driver, data: dict, src_name: SourceName) -> None:
+def add_transformed_data(driver: Driver, data: dict) -> None:
     """Add set of data formatted per Common Data Model to DB.
 
     :param data: contains key/value pairs for data objects to add to DB, including
         studies, variation, therapeutic procedures, conditions, genes, methods,
         documents, etc.
-    :param src_name: Name of source for `data`
     """
     # Used to keep track of IDs that are in studies. This is used to prevent adding
     # nodes that aren't associated to studies
@@ -508,5 +507,4 @@ def load_from_json(src_transformed_cdm: Path, driver: Driver | None = None) -> N
         driver = get_driver()
     with src_transformed_cdm.open() as f:
         items = json.load(f)
-        src_name = SourceName(str(src_transformed_cdm).split("/")[-1].split("_cdm")[0])
-        add_transformed_data(driver, items, src_name)
+        add_transformed_data(driver, items)

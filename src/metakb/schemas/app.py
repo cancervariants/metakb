@@ -1,4 +1,5 @@
 """Module containing app schemas and enums"""
+
 from enum import Enum
 
 

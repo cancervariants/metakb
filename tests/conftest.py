@@ -1,4 +1,5 @@
 """Module for pytest fixtures."""
+
 import json
 import logging
 from copy import deepcopy
@@ -2046,9 +2047,9 @@ def _dict_check(expected_d: dict, actual_d: dict, is_cdm: bool = False) -> None:
                             normalizer_data_type = v["name"].split("_normalizer_data")[
                                 0
                             ]
-                            updated_ext[
-                                "name"
-                            ] = f"{normalizer_data_type}_normalizer_id"
+                            updated_ext["name"] = (
+                                f"{normalizer_data_type}_normalizer_id"
+                            )
                             updated_ext["value"] = v["value"]["normalized_id"]
                             expected_l.append(json.dumps(updated_ext, sort_keys=True))
                             continue
