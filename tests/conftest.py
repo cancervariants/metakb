@@ -64,12 +64,10 @@ def cetuximab_extensions():
     """Create test fixture for cetuximab extensions"""
     return [
         {
-            "type": "Extension",
             "name": "therapy_normalizer_data",
             "value": {"normalized_id": "rxcui:318341", "label": "cetuximab"},
         },
         {
-            "type": "Extension",
             "name": "regulatory_approval",
             "value": {
                 "approval_rating": "ChEMBL",
@@ -129,12 +127,10 @@ def encorafenib_extensions():
     """Create test fixture for encorafenib extensions"""
     return [
         {
-            "type": "Extension",
             "name": "therapy_normalizer_data",
             "value": {"normalized_id": "rxcui:2049106", "label": "encorafenib"},
         },
         {
-            "type": "Extension",
             "name": "regulatory_approval",
             "value": {
                 "approval_rating": "ChEMBL",
@@ -196,7 +192,7 @@ def civic_mpid33(civic_vid33):
                 "state": {"type": "LiteralSequenceExpression", "sequence": "G"},
             }
         ],
-        "aliases": ["LEU858ARG"],
+        "alternativeLabels": ["LEU858ARG"],
         "mappings": [
             {
                 "coding": {
@@ -252,12 +248,10 @@ def civic_mpid33(civic_vid33):
                     "reference_build": "GRCh37",
                     "type": "coordinates",
                 },
-                "type": "Extension",
             },
             {
                 "name": "CIViC Molecular Profile Score",
                 "value": 379.0,
-                "type": "Extension",
             },
             {
                 "name": "Variant types",
@@ -268,7 +262,6 @@ def civic_mpid33(civic_vid33):
                         "label": "missense_variant",
                     }
                 ],
-                "type": "Extension",
             },
         ],
     }
@@ -339,10 +332,16 @@ def civic_gid5():
                 "relation": "exactMatch",
             }
         ],
-        "aliases": ["B-RAF1", "B-raf", "BRAF", "BRAF-1", "BRAF1", "NS7", "RAFB1"],
-        "extensions": [
-            {"type": "Extension", "name": "gene_normalizer_id", "value": "hgnc:1097"}
+        "alternativeLabels": [
+            "B-RAF1",
+            "B-raf",
+            "BRAF",
+            "BRAF-1",
+            "BRAF1",
+            "NS7",
+            "RAFB1",
         ],
+        "extensions": [{"name": "gene_normalizer_id", "value": "hgnc:1097"}],
     }
 
 
@@ -415,7 +414,7 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
         "label": "BRAF V600E",
         "definingContext": civic_vid12,
         "members": [genomic_rep],
-        "aliases": ["VAL600GLU", "V640E", "VAL640GLU"],
+        "alternativeLabels": ["VAL600GLU", "V640E", "VAL640GLU"],
         "mappings": [
             {
                 "coding": {
@@ -464,12 +463,10 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
                     "reference_build": "GRCh37",
                     "type": "coordinates",
                 },
-                "type": "Extension",
             },
             {
                 "name": "CIViC Molecular Profile Score",
                 "value": 1378.5,
-                "type": "Extension",
             },
             {
                 "name": "Variant types",
@@ -480,7 +477,6 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
                         "label": "missense_variant",
                     }
                 ],
-                "type": "Extension",
             },
         ],
     }
@@ -537,7 +533,16 @@ def civic_gid19():
                 "relation": "exactMatch",
             }
         ],
-        "aliases": ["EGFR", "ERBB", "ERBB1", "ERRP", "HER1", "NISBD2", "PIG61", "mENA"],
+        "alternativeLabels": [
+            "EGFR",
+            "ERBB",
+            "ERBB1",
+            "ERRP",
+            "HER1",
+            "NISBD2",
+            "PIG61",
+            "mENA",
+        ],
     }
 
 
@@ -557,14 +562,13 @@ def civic_tid146():
                 "relation": "exactMatch",
             }
         ],
-        "aliases": [
+        "alternativeLabels": [
             "BIBW2992",
             "BIBW 2992",
             "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide",
         ],
         "extensions": [
             {
-                "type": "Extension",
                 "name": "regulatory_approval",
                 "value": {
                     "approval_rating": "FDA",
@@ -589,7 +593,6 @@ def civic_tid146():
                 },
             },
             {
-                "type": "Extension",
                 "name": "therapy_normalizer_data",
                 "value": {"normalized_id": "rxcui:1430438", "label": "afatinib"},
             },
@@ -615,7 +618,6 @@ def civic_did8():
         ],
         "extensions": [
             {
-                "type": "Extension",
                 "name": "disease_normalizer_data",
                 "value": {
                     "normalized_id": "ncit:C2926",
@@ -654,7 +656,7 @@ def civic_tid28():
                 "relation": "exactMatch",
             }
         ],
-        "aliases": [
+        "alternativeLabels": [
             "ABX-EGF",
             "ABX-EGF Monoclonal Antibody",
             "ABX-EGF, Clone E7.6.3",
@@ -668,12 +670,10 @@ def civic_tid28():
         ],
         "extensions": [
             {
-                "type": "Extension",
                 "name": "therapy_normalizer_data",
                 "value": {"normalized_id": "rxcui:263034", "label": "panitumumab"},
             },
             {
-                "type": "Extension",
                 "name": "regulatory_approval",
                 "value": {
                     "approval_rating": "ChEMBL",
@@ -723,7 +723,7 @@ def civic_tid16(cetuximab_extensions):
                 "relation": "exactMatch",
             }
         ],
-        "aliases": [
+        "alternativeLabels": [
             "Cetuximab Biosimilar CDP-1",
             "Cetuximab Biosimilar CMAB009",
             "Cetuximab Biosimilar KL 140",
@@ -746,7 +746,6 @@ def civic_tsg(civic_tid16, civic_tid28):
         "substitutes": [civic_tid16, civic_tid28],
         "extensions": [
             {
-                "type": "Extension",
                 "name": "civic_therapy_interaction_type",
                 "value": "SUBSTITUTES",
             }
@@ -770,7 +769,7 @@ def civic_tid483(encorafenib_extensions):
                 "relation": "exactMatch",
             }
         ],
-        "aliases": ["Braftovi", "LGX 818", "LGX-818", "LGX818"],
+        "alternativeLabels": ["Braftovi", "LGX 818", "LGX-818", "LGX818"],
         "extensions": encorafenib_extensions,
     }
 
@@ -784,7 +783,6 @@ def civic_ct(civic_tid483, civic_tid16):
         "components": [civic_tid483, civic_tid16],
         "extensions": [
             {
-                "type": "Extension",
                 "name": "civic_therapy_interaction_type",
                 "value": "COMBINATION",
             }
@@ -810,7 +808,6 @@ def civic_did11():
         ],
         "extensions": [
             {
-                "type": "Extension",
                 "name": "disease_normalizer_data",
                 "value": {
                     "normalized_id": "ncit:C4978",
@@ -1017,12 +1014,10 @@ def civic_vid99():
                     "ensembl_version": 75,
                     "reference_build": "GRCh37",
                 },
-                "type": "Extension",
             },
             {
                 "name": "civic_actionability_score",
                 "value": "100.5",
-                "type": "Extension",
             },
             {
                 "name": "variant_group",
@@ -1034,7 +1029,6 @@ def civic_vid99():
                         "type": "variant_group",
                     }
                 ],
-                "type": "Extension",
             },
         ],
         "structural_type": "SO:0001583",
@@ -1159,9 +1153,8 @@ def civic_vid113():
                     "ensembl_version": 75,
                     "reference_build": "GRCh37",
                 },
-                "type": "Extension",
             },
-            {"name": "civic_actionability_score", "value": "86", "type": "Extension"},
+            {"name": "civic_actionability_score", "value": "86"},
             {
                 "name": "variant_group",
                 "value": [
@@ -1172,7 +1165,6 @@ def civic_vid113():
                         "type": "variant_group",
                     }
                 ],
-                "type": "Extension",
             },
         ],
         "structural_type": "SO:0001583",
@@ -1306,9 +1298,8 @@ def civic_vid1686():
                     "ensembl_version": 75,
                     "reference_build": "GRCh37",
                 },
-                "type": "Extension",
             },
-            {"name": "civic_actionability_score", "value": "30", "type": "Extension"},
+            {"name": "civic_actionability_score", "value": "30"},
             {
                 "name": "variant_group",
                 "value": [
@@ -1318,7 +1309,6 @@ def civic_vid1686():
                         "type": "variant_group",
                     }
                 ],
-                "type": "Extension",
             },
         ],
         "structural_type": "SO:0001583",
@@ -1447,9 +1437,8 @@ def civic_vid65():
                     "ensembl_version": 75,
                     "reference_build": "GRCh37",
                 },
-                "type": "Extension",
             },
-            {"name": "civic_actionability_score", "value": "67", "type": "Extension"},
+            {"name": "civic_actionability_score", "value": "67"},
             {
                 "name": "variant_group",
                 "value": [
@@ -1459,7 +1448,6 @@ def civic_vid65():
                         "type": "variant_group",
                     }
                 ],
-                "type": "Extension",
             },
         ],
         "structural_type": "SO:0001583",
@@ -1583,9 +1571,8 @@ def civic_vid258():
                     "ensembl_version": 75,
                     "reference_build": "GRCh37",
                 },
-                "type": "Extension",
             },
-            {"name": "civic_actionability_score", "value": "55", "type": "Extension"},
+            {"name": "civic_actionability_score", "value": "55"},
         ],
         "structural_type": "SO:0001583",
         "expressions": [
@@ -1767,7 +1754,6 @@ def moa_vid66():
                     "protein_change": "p.T315I",
                     "exon": "5",
                 },
-                "type": "Extension",
             }
         ],
         "mappings": [
@@ -1796,9 +1782,7 @@ def moa_abl1():
         "id": "moa.normalize.gene:ABL1",
         "type": "Gene",
         "label": "ABL1",
-        "extensions": [
-            {"type": "Extension", "name": "gene_normalizer_id", "value": "hgnc:76"}
-        ],
+        "extensions": [{"name": "gene_normalizer_id", "value": "hgnc:76"}],
     }
 
 
@@ -1811,7 +1795,6 @@ def moa_imatinib():
         "label": "Imatinib",
         "extensions": [
             {
-                "type": "Extension",
                 "name": "regulatory_approval",
                 "value": {
                     "approval_rating": "FDA",
@@ -1902,7 +1885,6 @@ def moa_imatinib():
                 },
             },
             {
-                "type": "Extension",
                 "name": "therapy_normalizer_data",
                 "value": {"normalized_id": "rxcui:282388", "label": "imatinib"},
             },
@@ -1919,7 +1901,6 @@ def moa_chronic_myelogenous_leukemia():
         "label": "Chronic Myelogenous Leukemia",
         "extensions": [
             {
-                "type": "Extension",
                 "name": "disease_normalizer_data",
                 "value": {
                     "normalized_id": "ncit:C3174",
@@ -2010,9 +1991,7 @@ def moa_source45():
     """Create a test fixture for MOA source 44."""
     return {
         "id": "moa.source:45",
-        "extensions": [
-            {"type": "Extension", "name": "source_type", "value": "Journal"}
-        ],
+        "extensions": [{"name": "source_type", "value": "Journal"}],
         "type": "Document",
         "title": "Gorre, Mercedes E., et al. Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification. Science 293.5531 (2001): 876-880.",
         "url": "https://doi.org/10.1126/science.1062538",
@@ -2067,7 +2046,6 @@ def _dict_check(expected_d: dict, actual_d: dict, is_cdm: bool = False) -> None:
                                 new_extensions.append(
                                     {
                                         "name": f"{normalizer_data_type}_normalizer_id",
-                                        "type": "Extension",
                                         "value": ext["value"]["normalized_id"],
                                     }
                                 )

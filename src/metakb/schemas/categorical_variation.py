@@ -7,7 +7,7 @@ the GA4GH website for more information.
 from enum import Enum
 from typing import Literal
 
-from ga4gh.core import core_models
+from ga4gh.core.entity_models import IRI, _DomainEntity
 from ga4gh.vrs import models
 from pydantic import Field, RootModel, StrictStr
 
@@ -28,10 +28,10 @@ class LocationMatchCharacteristic(str, Enum):
     SUPERINTERVAL = "superinterval"
 
 
-class _CategoricalVariationBase(core_models._DomainEntity):  # noqa: SLF001
+class _CategoricalVariationBase(_DomainEntity):
     """Base class for Categorical Variation"""
 
-    members: list[models.Variation | core_models.IRI] | None = Field(
+    members: list[models.Variation | IRI] | None = Field(
         None,
         description="A non-exhaustive list of VRS variation contexts that satisfy the constraints of this categorical variant.",
     )
@@ -51,7 +51,7 @@ class ProteinSequenceConsequence(_CategoricalVariationBase):
         "ProteinSequenceConsequence",
         description="MUST be 'ProteinSequenceConsequence'.",
     )
-    definingContext: models.Allele | core_models.IRI = Field(
+    definingContext: models.Allele | IRI = Field(
         ...,
         description="The `VRS Allele <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#allele>`_  object that is congruent with (projects to the same codons) as alleles on other protein reference sequences.",
     )
@@ -69,7 +69,7 @@ class CanonicalAllele(_CategoricalVariationBase):
     type: Literal["CanonicalAllele"] = Field(
         "CanonicalAllele", description="MUST be 'CanonicalAllele'."
     )
-    definingContext: models.Allele | core_models.IRI = Field(
+    definingContext: models.Allele | IRI = Field(
         ...,
         description="The `VRS Allele <https://vrs.ga4gh.org/en/2.0/terms_and_model.html#allele>`_ object that is congruent with variants on alternate reference sequences.",
     )

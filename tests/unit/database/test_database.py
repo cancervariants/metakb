@@ -223,7 +223,7 @@ def test_gene_rules(
         "description",
         "mappings",
         "type",
-        "aliases",
+        "alternativeLabels",
     }
     check_node_props(gene, civic_gid5, expected_keys, extension_names)
 
@@ -329,7 +329,7 @@ def test_categorical_variation_rules(
         "id",
         "label",
         "description",
-        "aliases",
+        "alternativeLabels",
         "civic_molecular_profile_score",
         "civic_representative_coordinate",
         "mappings",
@@ -339,7 +339,7 @@ def test_categorical_variation_rules(
     assert cv["type"] == civic_mpid12["type"]
     assert cv["label"] == civic_mpid12["label"]
     assert cv["description"] == civic_mpid12["description"]
-    assert set(cv["aliases"]) == set(civic_mpid12["aliases"])
+    assert set(cv["alternativeLabels"]) == set(civic_mpid12["alternativeLabels"])
     assert isinstance(cv["civic_molecular_profile_score"], float)
     crc = json.loads(cv["civic_representative_coordinate"])
     assert set(crc.keys()) == {
@@ -360,7 +360,7 @@ def test_categorical_variation_rules(
 
     variant_types = json.loads(cv["variant_types"])
     for vt in variant_types:
-        assert set(vt.keys()) == {"label", "system", "version", "code"}
+        assert set(vt.keys()) == {"label", "system", "code"}
 
 
 def test_location_rules(
@@ -453,7 +453,7 @@ def test_therapeutic_procedure_rules(
     expected_keys = {
         "id",
         "label",
-        "aliases",
+        "alternativeLabels",
         "therapy_normalizer_id",
         "regulatory_approval",
         "mappings",

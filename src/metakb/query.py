@@ -5,15 +5,14 @@ import logging
 from copy import copy
 from enum import Enum
 
-from ga4gh.core._internal.models import (
-    Coding,
+from ga4gh.core.domain_models import (
     Disease,
-    Extension,
     Gene,
     TherapeuticAgent,
     TherapeuticProcedure,
 )
-from ga4gh.vrs import models
+from ga4gh.core.entity_models import Coding, Expression, Extension
+from ga4gh.vrs.models import Variation
 from neo4j import Driver
 from neo4j.graph import Node
 from pydantic import ValidationError
@@ -578,7 +577,7 @@ class QueryHandler:
                 elif variation_k.startswith("expression_hgvs_"):
                     syntax = variation_k.split("expression_")[-1].replace("_", ".")
                     expressions.extend(
-                        models.Expression(syntax=syntax, value=hgvs_expr)
+                        Expression(syntax=syntax, value=hgvs_expr)
                         for hgvs_expr in variation_v
                     )
 
@@ -588,7 +587,7 @@ class QueryHandler:
             v_params["location"]["sequenceReference"] = json.loads(
                 loc_params["sequence_reference"]
             )
-            variations.append(models.Variation(**v_params).model_dump())
+            variations.append(Variation(**v_params).model_dump())
         return variations
 
     def _get_cat_var(self, node: dict) -> CategoricalVariation:

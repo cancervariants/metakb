@@ -104,7 +104,7 @@ def _add_gene_or_disease(
 
     obj_keys = [
         _create_parameterized_query(
-            obj, ("id", "label", "description", "aliases", "type")
+            obj, ("id", "label", "description", "alternativeLabels", "type")
         )
     ]
 
@@ -173,7 +173,9 @@ def _add_therapeutic_agent(tx: ManagedTransaction, therapeutic_agent: dict) -> N
     :param therapeutic_agent: Therapeutic Agent CDM object
     """
     ta = therapeutic_agent.copy()
-    nonnull_keys = [_create_parameterized_query(ta, ("id", "label", "aliases", "type"))]
+    nonnull_keys = [
+        _create_parameterized_query(ta, ("id", "label", "alternativeLabels", "type"))
+    ]
 
     _add_mappings_and_exts_to_obj(ta, nonnull_keys)
     nonnull_keys = ", ".join(nonnull_keys)
@@ -269,7 +271,7 @@ def _add_categorical_variation(
 
     mp_nonnull_keys = [
         _create_parameterized_query(
-            cv, ("id", "label", "description", "aliases", "type")
+            cv, ("id", "label", "description", "alternativeLabels", "type")
         )
     ]
 

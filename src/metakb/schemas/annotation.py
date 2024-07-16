@@ -4,7 +4,7 @@ import datetime
 from enum import Enum
 from typing import Literal
 
-from ga4gh.core import core_models
+from ga4gh.core.entity_models import IRI, Coding, _DomainEntity, _Entity
 from pydantic import Field, StrictInt, StrictStr, constr, field_validator
 
 
@@ -24,7 +24,7 @@ class Direction(str, Enum):
     NONE = "none"
 
 
-class Document(core_models._MappableEntity):  # noqa: SLF001
+class Document(_DomainEntity):
     """a representation of a physical or digital document"""
 
     type: Literal["Document"] = "Document"
@@ -42,22 +42,22 @@ class Document(core_models._MappableEntity):  # noqa: SLF001
     )
 
 
-class Method(core_models._Entity):  # noqa: SLF001
+class Method(_Entity):
     """A set of instructions that specify how to achieve some objective (e.g.
     experimental protocols, curation guidelines, rule sets, etc.)
     """
 
     type: Literal["Method"] = Field("Method", description="MUST be 'Method'.")
-    isReportedIn: Document | core_models.IRI | None = Field(
+    isReportedIn: Document | IRI | None = Field(
         None, description="A document in which the information content is expressed."
     )
-    subtype: core_models.Coding | None = Field(
+    subtype: Coding | None = Field(
         None,
         description="A more specific type of entity the method represents (e.g. Variant Interpretation Guideline, Experimental Protocol)",
     )
 
 
-class Agent(core_models._Entity):  # noqa: SLF001
+class Agent(_Entity):
     """An autonomous actor (person, organization, or computational agent) that bears
     some form of responsibility for an activity taking place, for the existence of an
     entity, or for another agent's activity.
@@ -68,7 +68,7 @@ class Agent(core_models._Entity):  # noqa: SLF001
     subtype: AgentSubtype | None = None
 
 
-class Contribution(core_models._Entity):  # noqa: SLF001
+class Contribution(_Entity):
     """The sum of all actions taken by a single agent in contributing to the creation,
     modification, assessment, or deprecation of a particular entity (e.g. a Statement,
     EvidenceLine, DataItem, Publication, etc.)
@@ -77,7 +77,7 @@ class Contribution(core_models._Entity):  # noqa: SLF001
     type: Literal["Contribution"] = "Contribution"
     contributor: Agent | None = None
     date: StrictStr | None = None
-    activity: core_models.Coding | None = Field(
+    activity: Coding | None = Field(
         None,
         description="SHOULD describe a concept descending from the Contributor Role Ontology.",
     )
@@ -99,19 +99,19 @@ class Contribution(core_models._Entity):  # noqa: SLF001
         return v
 
 
-class _InformationEntity(core_models._Entity):  # noqa: SLF001
+class _InformationEntity(_Entity):
     """InformationEntities are abstract (non-physical) entities that are about something
     (i.e. they carry information about things in the real world).
     """
 
     id: StrictStr
     type: StrictStr
-    specifiedBy: Method | core_models.IRI | None = Field(
+    specifiedBy: Method | IRI | None = Field(
         None,
         description="A `Method` that describes all or part of the process through which the information was generated.",
     )
     contributions: list[Contribution] | None = None
-    isReportedIn: list[Document | core_models.IRI] | None = Field(
+    isReportedIn: list[Document | IRI] | None = Field(
         None, description="A document in which the information content is expressed."
     )
     # recordMetadata (might be added in the future)
@@ -123,12 +123,12 @@ class DataItem(_InformationEntity):
     """
 
     type: Literal["DataItem"] = Field("DataItem", description="MUST be 'DataItem'.")
-    subtype: core_models.Coding | None = Field(
+    subtype: Coding | None = Field(
         None,
         description="A specific type of data the DataItem object represents (e.g. a specimen count, a patient weight, an allele frequency, a p-value, a confidence score)",
     )
     value: StrictStr
-    unit: core_models.Coding | None = None
+    unit: Coding | None = None
 
 
 class _StatementBase(_InformationEntity):
@@ -142,7 +142,7 @@ class _StatementBase(_InformationEntity):
     direction: Direction = Field(
         ..., description="direction of this Statement with respect to the predicate."
     )
-    strength: core_models.Coding | core_models.IRI | None = Field(
+    strength: Coding | IRI | None = Field(
         None,
         description="The overall strength of support for the Statement based on all evidence assessed.",
     )
