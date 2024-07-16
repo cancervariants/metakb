@@ -170,9 +170,12 @@ ignore = [
 # ANN2 - missing-return-type
 # ANN102 - missing-type-cls
 # S101 - assert
+# B011 - assert-false
+# D104 - undocumented-public-package
+# D100 - undocumented-public-module
 # INP001 - implicit-namespace-package
 # ARG001 - unused-function-argument
 # SLF001 - private-member-acces
 # N815 - mixed-case-variable-in-class-scope
-"tests/*" = ["ANN001", "ANN2", "ANN102", "S101", "INP001", "SLF001", "ARG001"]
+"tests/*" = ["ANN001", "ANN2", "ANN102", "S101", "B011", "D100", "D104", "INP001", "SLF001", "ARG001"]
 "src/metakb/schemas/*" = ["ANN102", "N815"]
