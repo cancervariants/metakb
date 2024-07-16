@@ -36,7 +36,7 @@ def configure_logs(log_level: int = logging.DEBUG, quiet_upstream: bool = True) 
     if quiet_upstream:
         _quiet_upstream_libs()
     log_filename = (
-        "/tmp/metakb.log" if "METAKB_NORM_EB_PROD" in os.environ else "metakb.log"  # noqa: S108
+        "/tmp/metakb.log" if "METAKB_EB_PROD" in os.environ else "metakb.log"  # noqa: S108
     )
     logging.basicConfig(
         filename=log_filename,
@@ -45,7 +45,7 @@ def configure_logs(log_level: int = logging.DEBUG, quiet_upstream: bool = True) 
     logger = logging.getLogger("metakb")
     logger.setLevel(log_level)
 
-    if "METAKB_NORM_EB_PROD" in os.environ:
+    if "METAKB_EB_PROD" in os.environ:
         # force debug logging in production server
         logger.handlers = []
         handler = logging.StreamHandler()
