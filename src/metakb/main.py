@@ -63,44 +63,36 @@ def custom_openapi() -> dict:
 
 
 app.openapi = custom_openapi
-_search_descr = {
-    "summary": "Get nested studies from queried concepts that match all conditions provided.",
-    "description": (
-        "Return nested studies that match the intersection of queried concepts. For "
-        "example, if `variation` and `therapy` are provided, will return all studies "
-        "that have both the provided `variation` and `therapy`."
-    ),
-    "arg_var": "Variation (subject) to search. Can be free text or VRS Variation ID.",
-    "arg_disease": "Disease (object qualifier) to search",
-    "arg_therapy": "Therapy (object) to search",
-    "arg_gene": "Gene to search",
-    "arg_study": "Study ID to search.",
-    "arg_start": "The index of the first result to return. Use for pagination.",
-    "arg_limit": "The maximum number of results to return. Use for pagination.",
-}
+search_studies_summary = (
+    "Get nested studies from queried concepts that match all conditions provided."
+)
+search_studies_descr = (
+    "Return nested studies that match the intersection of queried concepts. For "
+    "example, if `variation` and `therapy` are provided, will return all studies that "
+    "have both the provided `variation` and `therapy`."
+)
+v_description = "Variation (subject) to search. Can be free text or VRS Variation ID."
+d_description = "Disease (object qualifier) to search"
+t_description = "Therapy (object) to search"
+g_description = "Gene to search"
+s_description = "Study ID to search."
+start_description = "The index of the first result to return. Use for pagination."
+limit_description = "The maximum number of results to return. Use for pagination."
 
 
 @app.get(
     "/api/v2/search/studies",
-    summary=_search_descr["summary"],
-    description=_search_descr["description"],
+    summary=search_studies_summary,
+    description=search_studies_descr,
 )
 async def get_studies(
-    variation: Annotated[
-        str | None, Query(description=_search_descr["arg_var"])
-    ] = None,
-    disease: Annotated[
-        str | None, Query(description=_search_descr["arg_disease"])
-    ] = None,
-    therapy: Annotated[
-        str | None, Query(description=_search_descr["arg_therapy"])
-    ] = None,
-    gene: Annotated[str | None, Query(description=_search_descr["arg_gene"])] = None,
-    study_id: Annotated[
-        str | None, Query(description=_search_descr["arg_study"])
-    ] = None,
-    start: Annotated[int, Query(description=_search_descr["arg_start"])] = 0,
-    limit: Annotated[int | None, Query(description=_search_descr["arg_limit"])] = None,
+    variation: Annotated[str | None, Query(description=v_description)] = None,
+    disease: Annotated[str | None, Query(description=d_description)] = None,
+    therapy: Annotated[str | None, Query(description=t_description)] = None,
+    gene: Annotated[str | None, Query(description=g_description)] = None,
+    study_id: Annotated[str | None, Query(description=s_description)] = None,
+    start: Annotated[int, Query(description=start_description)] = 0,
+    limit: Annotated[int | None, Query(description=limit_description)] = None,
 ) -> dict:
     """Get nested studies from queried concepts that match all conditions provided.
     For example, if `variation` and `therapy` are provided, will return all studies
