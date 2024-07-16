@@ -49,7 +49,7 @@ def _get_credentials(
     :return: tuple containing host, and a second tuple containing username/password
     """
     if not (uri and credentials[0] and credentials[1]):
-        if "METAKB_NORM_EB_PROD" in environ:
+        if "METAKB_EB_PROD" in environ:
             secret = ast.literal_eval(_get_secret())
             uri = f"bolt://{secret['host']}:{secret['port']}"
             credentials = (secret["username"], secret["password"])
@@ -106,7 +106,7 @@ def get_driver(
     Connection URI/credentials are resolved as follows:
 
     1. Use function args if given
-    2. Use values from AWS secrets manager if env var ``METAKB_NORM_EB_PROD`` is set
+    2. Use values from AWS secrets manager if env var ``METAKB_EB_PROD`` is set
     3. Use values from env vars ``METAKB_DB_URL``, ``METAKB_DB_USERNAME``, and
         ``METAKB_DB_PASSWORD``, if all are defined
     4. Use local defaults: ``"bolt://localhost:7687"``, with username ``"neo4j"``
