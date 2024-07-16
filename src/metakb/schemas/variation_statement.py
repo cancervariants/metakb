@@ -1,4 +1,5 @@
 """Module containing variant statement definitions"""
+
 from enum import Enum
 from typing import Literal
 

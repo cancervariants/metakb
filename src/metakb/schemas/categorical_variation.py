@@ -3,6 +3,7 @@
 See the `CatVar page <https://www.ga4gh.org/product/categorical-variation-catvar/>`_ on
 the GA4GH website for more information.
 """
+
 from enum import Enum
 from typing import Literal
 
@@ -27,7 +28,7 @@ class LocationMatchCharacteristic(str, Enum):
     SUPERINTERVAL = "superinterval"
 
 
-class _CategoricalVariationBase(core_models._DomainEntity):
+class _CategoricalVariationBase(core_models._DomainEntity):  # noqa: SLF001
     """Base class for Categorical Variation"""
 
     members: list[models.Variation | core_models.IRI] | None = Field(
@@ -130,7 +131,12 @@ class CategoricalVariation(RootModel):
     individual contextual variation instances may be members of the domain.
     """
 
-    root: CanonicalAllele | CategoricalCnv | DescribedVariation | ProteinSequenceConsequence = Field(
+    root: (
+        CanonicalAllele
+        | CategoricalCnv
+        | DescribedVariation
+        | ProteinSequenceConsequence
+    ) = Field(
         ...,
         json_schema_extra={
             "description": "A representation of a categorically-defined domain for variation, in which individual contextual variation instances may be members of the domain.",
