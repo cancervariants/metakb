@@ -188,6 +188,7 @@ def civic_mpid33(civic_vid33):
                     },
                     "start": 55191821,
                     "end": 55191822,
+                    "sequence": "T",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "G"},
             }
@@ -362,6 +363,7 @@ def civic_vid12():
             },
             "start": 599,
             "end": 600,
+            "sequence": "V",
         },
         "state": {"sequence": "E", "type": "LiteralSequenceExpression"},
         "expressions": [
@@ -396,6 +398,7 @@ def braf_v600e_genomic():
             },
             "start": 140753335,
             "end": 140753336,
+            "sequence": "A",
         },
         "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
     }
@@ -1737,6 +1740,7 @@ def moa_vid66():
                     },
                     "start": 133748282,
                     "end": 133748283,
+                    "sequence": "C",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
             }

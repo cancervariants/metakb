@@ -384,6 +384,7 @@ def test_location_rules(
         "sequence_reference",
         "start",
         "end",
+        "sequence",
         "type",
     }
     assert json.loads(loc["sequence_reference"]) == {
