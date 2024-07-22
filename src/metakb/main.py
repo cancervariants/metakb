@@ -84,6 +84,8 @@ limit_description = "The maximum number of results to return. Use for pagination
 @app.get(
     "/api/v2/search/studies",
     summary=search_studies_summary,
+    response_model=SearchStudiesService,
+    response_model_exclude_none=True,
     description=search_studies_descr,
 )
 async def get_studies(
@@ -94,7 +96,7 @@ async def get_studies(
     study_id: Annotated[str | None, Query(description=s_description)] = None,
     start: Annotated[int, Query(description=start_description)] = 0,
     limit: Annotated[int | None, Query(description=limit_description)] = None,
-) -> dict:
+) -> SearchStudiesService:
     """Get nested studies from queried concepts that match all conditions provided.
     For example, if `variation` and `therapy` are provided, will return all studies
     that have both the provided `variation` and `therapy`.
@@ -125,7 +127,7 @@ async def get_studies(
             service_meta_=ServiceMeta(),
             warnings=["`start` and `limit` params must both be nonnegative"],
         )
-    return resp.model_dump(exclude_none=True)
+    return resp
 
 
 _batch_descr = {
@@ -140,6 +142,8 @@ _batch_descr = {
 @app.get(
     "/api/v2/batch_search/studies",
     summary=_batch_descr["summary"],
+    response_model=BatchSearchStudiesService,
+    response_model_exclude_none=True,
     description=_batch_descr["description"],
 )
 async def batch_get_studies(
@@ -149,7 +153,7 @@ async def batch_get_studies(
     ] = None,
     start: Annotated[int, Query(description=_batch_descr["arg_start"])] = 0,
     limit: Annotated[int | None, Query(description=_batch_descr["arg_limit"])] = None,
-) -> dict:
+) -> BatchSearchStudiesService:
     """Fetch all studies associated with `any` of the provided variations.
 
     :param variations: variations to match against
@@ -166,4 +170,4 @@ async def batch_get_studies(
             warnings=["`start` and `limit` params must both be nonnegative"],
         )
 
-    return response.model_dump(exclude_none=True)
+    return response
