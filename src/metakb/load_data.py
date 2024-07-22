@@ -195,7 +195,7 @@ def _add_location(tx: ManagedTransaction, location_in: dict) -> None:
     loc = location_in.copy()
     loc_keys = [
         f"loc.{key}=${key}"
-        for key in ("id", "digest", "start", "end", "type")
+        for key in ("id", "digest", "start", "end", "sequence", "type")
         if loc.get(key) is not None  # start could be 0
     ]
     loc["sequence_reference"] = json.dumps(loc["sequenceReference"])

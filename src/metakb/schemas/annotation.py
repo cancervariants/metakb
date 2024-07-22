@@ -4,7 +4,7 @@ import datetime
 from enum import Enum
 from typing import Literal
 
-from ga4gh.core.entity_models import IRI, Coding, _DomainEntity, _Entity
+from ga4gh.core.entity_models import IRI, Coding, DomainEntity, Entity
 from pydantic import Field, StrictInt, StrictStr, constr, field_validator
 
 
@@ -24,7 +24,7 @@ class Direction(str, Enum):
     NONE = "none"
 
 
-class Document(_DomainEntity):
+class Document(DomainEntity):
     """a representation of a physical or digital document"""
 
     type: Literal["Document"] = "Document"
@@ -42,7 +42,7 @@ class Document(_DomainEntity):
     )
 
 
-class Method(_Entity):
+class Method(Entity):
     """A set of instructions that specify how to achieve some objective (e.g.
     experimental protocols, curation guidelines, rule sets, etc.)
     """
@@ -57,7 +57,7 @@ class Method(_Entity):
     )
 
 
-class Agent(_Entity):
+class Agent(Entity):
     """An autonomous actor (person, organization, or computational agent) that bears
     some form of responsibility for an activity taking place, for the existence of an
     entity, or for another agent's activity.
@@ -68,7 +68,7 @@ class Agent(_Entity):
     subtype: AgentSubtype | None = None
 
 
-class Contribution(_Entity):
+class Contribution(Entity):
     """The sum of all actions taken by a single agent in contributing to the creation,
     modification, assessment, or deprecation of a particular entity (e.g. a Statement,
     EvidenceLine, DataItem, Publication, etc.)
@@ -99,7 +99,7 @@ class Contribution(_Entity):
         return v
 
 
-class _InformationEntity(_Entity):
+class _InformationEntity(Entity):
     """InformationEntities are abstract (non-physical) entities that are about something
     (i.e. they carry information about things in the real world).
     """

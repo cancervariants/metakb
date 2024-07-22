@@ -7,7 +7,7 @@ the GA4GH website for more information.
 from enum import Enum
 from typing import Literal
 
-from ga4gh.core.entity_models import IRI, _DomainEntity
+from ga4gh.core.entity_models import IRI, DomainEntity
 from ga4gh.vrs import models
 from pydantic import Field, RootModel, StrictStr
 
@@ -28,7 +28,7 @@ class LocationMatchCharacteristic(str, Enum):
     SUPERINTERVAL = "superinterval"
 
 
-class _CategoricalVariationBase(_DomainEntity):
+class _CategoricalVariationBase(DomainEntity):
     """Base class for Categorical Variation"""
 
     members: list[models.Variation | IRI] | None = Field(
