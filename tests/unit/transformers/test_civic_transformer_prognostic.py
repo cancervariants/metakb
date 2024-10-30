@@ -4,19 +4,19 @@ import json
 
 import pytest
 import pytest_asyncio
-from tests.conftest import TEST_TRANSFORM_DIR
+from tests.conftest import TEST_TRANSFORMERS_DIR
 
-from metakb.transform.civic import CivicTransform
+from metakb.transformers.civic import CivicTransformer
 
-DATA_DIR = TEST_TRANSFORM_DIR / "diagnostic"
+DATA_DIR = TEST_TRANSFORMERS_DIR / "prognostic"
 FILENAME = "civic_cdm.json"
 
 
 @pytest_asyncio.fixture(scope="module")
 async def data(normalizers):
-    """Create a CIViC Transform test fixture."""
+    """Create a CIViC Transformer test fixture."""
     harvester_path = DATA_DIR / "civic_harvester.json"
-    c = CivicTransform(
+    c = CivicTransformer(
         data_dir=DATA_DIR, harvester_path=harvester_path, normalizers=normalizers
     )
     await c.transform()
@@ -26,44 +26,42 @@ async def data(normalizers):
 
 
 @pytest.fixture(scope="module")
-def statements(civic_eid2_statement, civic_eid74_statement, civic_aid9_statement):
+def statements(civic_eid26_statement, civic_eid1756_statement):
     """Create test fixture for statements."""
-    return [civic_eid2_statement, civic_eid74_statement, civic_aid9_statement]
+    return [civic_eid26_statement, civic_eid1756_statement]
 
 
 @pytest.fixture(scope="module")
-def propositions(
-    civic_eid2_proposition, civic_eid74_proposition, civic_aid9_proposition
-):
+def propositions(civic_eid26_proposition, civic_eid1756_proposition):
     """Create test fixture for proposition."""
-    return [civic_eid2_proposition, civic_eid74_proposition, civic_aid9_proposition]
+    return [civic_eid26_proposition, civic_eid1756_proposition]
 
 
 @pytest.fixture(scope="module")
-def variation_descriptors(civic_vid99, civic_vid113, civic_vid1686):
+def variation_descriptors(civic_vid65, civic_vid258):
     """Create test fixture for variants."""
-    return [civic_vid99, civic_vid113, civic_vid1686]
+    return [civic_vid65, civic_vid258]
 
 
 @pytest.fixture(scope="module")
-def disease_descriptors(civic_did2, civic_did15, civic_did2950):
+def disease_descriptors(civic_did3, civic_did556):
     """Create test fixture for disease descriptors."""
-    return [civic_did2, civic_did15, civic_did2950]
+    return [civic_did3, civic_did556]
 
 
 @pytest.fixture(scope="module")
-def gene_descriptors(civic_gid38, civic_gid42, civic_gid154):
+def gene_descriptors(civic_gid29, civic_gid3672):
     """Create test fixture for gene descriptors."""
-    return [civic_gid38, civic_gid42, civic_gid154]
+    return [civic_gid29, civic_gid3672]
 
 
 @pytest.fixture(scope="module")
-def documents(pmid_15146165, pmid_18073307):
+def documents(pmid_16384925, pmid_27819322):
     """Create test fixture for documents."""
-    return [pmid_15146165, pmid_18073307]
+    return [pmid_16384925, pmid_27819322]
 
 
-@pytest.mark.skip(reason="Will be resolved in issue-241")
+@pytest.mark.skip(reason="Will be resolved in issue-242")
 def test_civic_cdm(
     data,
     statements,
@@ -81,7 +79,7 @@ def test_civic_cdm(
     check_method,
     check_transformed_cdm,
 ):
-    """Test that civic transform works correctly."""
+    """Test that civic transformation works correctly."""
     check_transformed_cdm(
         data,
         statements,

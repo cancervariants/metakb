@@ -25,17 +25,17 @@ from metakb.schemas.variation_statement import (
     VariantTherapeuticResponseStudyPredicate,
     _VariantOncogenicityStudyQualifier,
 )
-from metakb.transform.base import (
+from metakb.transformers.base import (
     MethodId,
     MoaEvidenceLevel,
     TherapeuticProcedureType,
-    Transform,
+    Transformer,
 )
 
 logger = logging.getLogger(__name__)
 
 
-class MoaTransform(Transform):
+class MoaTransformer(Transformer):
     """A class for transforming MOA resources to common data model."""
 
     def __init__(
@@ -44,7 +44,7 @@ class MoaTransform(Transform):
         harvester_path: Path | None = None,
         normalizers: ViccNormalizers | None = None,
     ) -> None:
-        """Initialize MOAlmanac Transform class.
+        """Initialize MOAlmanac Transformer class.
 
         :param data_dir: Path to source data directory
         :param harvester_path: Path to previously harvested MOA data

@@ -34,7 +34,7 @@ from metakb.normalizers import (
 )
 from metakb.normalizers import check_normalizers as check_normalizer_health
 from metakb.schemas.app import SourceName
-from metakb.transform import CivicTransform, MoaTransform
+from metakb.transformers import CivicTransformer, MoaTransformer
 
 _logger = logging.getLogger(__name__)
 
@@ -451,12 +451,12 @@ def load_cdm(
 
         for src in sorted([s.value for s in SourceName]):
             pattern = f"{src}_cdm_{version}.json"
-            globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
+            globbed = (APP_ROOT / "data" / src / "transformers").glob(pattern)
 
             try:
                 path = sorted(globbed)[-1]
             except IndexError as e:
-                msg = f"No valid transform file found matching pattern: {pattern}"
+                msg = f"No valid transformation file found matching pattern: {pattern}"
                 raise FileNotFoundError(msg) from e
 
             load_from_json(path, driver)
@@ -534,12 +534,12 @@ async def update(
         sources = tuple(SourceName)
     for src in sorted([s.value for s in sources]):
         pattern = f"{src}_cdm_*.json"
-        globbed = (APP_ROOT / "data" / src / "transform").glob(pattern)
+        globbed = (APP_ROOT / "data" / src / "transformers").glob(pattern)
 
         try:
             path = sorted(globbed)[-1]
         except IndexError as e:
-            msg = f"No valid transform file found matching pattern: {pattern}"
+            msg = f"No valid transformation files found matching pattern: {pattern}"
             raise FileNotFoundError(msg) from e
 
         load_from_json(path, driver)
@@ -621,19 +621,21 @@ async def _transform_source(
     :param output_directory: custom directory to store output to -- use source defaults
         if not given
     """
-    transform_sources = {
-        SourceName.CIVIC: CivicTransform,
-        SourceName.MOA: MoaTransform,
+    transformer_sources = {
+        SourceName.CIVIC: CivicTransformer,
+        SourceName.MOA: MoaTransformer,
     }
     _echo_info(f"Transforming {source.as_print_case()}...")
     start = timer()
-    transformer: CivicTransform | MoaTransform = transform_sources[source](
+    transformer: CivicTransformer | MoaTransformer = transformer_sources[source](
         normalizers=normalizer_handler, harvester_path=harvest_file
     )
     harvested_data = transformer.extract_harvested_data()
     await transformer.transform(harvested_data)
     end = timer()
-    _echo_info(f"{source.as_print_case()} transform finished in {(end - start):.2f} s.")
+    _echo_info(
+        f"{source.as_print_case()} transformation finished in {(end - start):.2f} s."
+    )
     output_file = (
         output_directory / f"{source.value}_cdm_{_current_date_string()}.json"
         if output_directory
@@ -715,7 +717,7 @@ def _retrieve_s3_cdms() -> str:
         with tmp_path.open("wb") as f:
             file.Object().download_fileobj(f)
 
-        cdm_dir = APP_ROOT / "data" / source / "transform"
+        cdm_dir = APP_ROOT / "data" / source / "transformers"
         cdm_zip = ZipFile(tmp_path, "r")
         cdm_zip.extract(f"{source}_cdm_{newest_version}.json", cdm_dir)
 
