@@ -362,7 +362,7 @@ class Transformer(ABC):
             Combination Therapy
         """
         components = []
-        source_name = type(self).__name__.lower().replace("transformers", "")
+        source_name = type(self).__name__.lower().replace("transformer", "")
 
         for therapy in therapies:
             if source_name == SourceName.MOA:
