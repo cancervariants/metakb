@@ -1,4 +1,4 @@
-"""A module for the Transform base class."""
+"""A module for the Transformer base class."""
 
 import datetime
 import json
@@ -111,7 +111,7 @@ class TransformedData(BaseModel):
     documents: list[Document] = []
 
 
-class Transform(ABC):
+class Transformer(ABC):
     """A base class for transforming harvester data."""
 
     _methods: ClassVar[list[Method]] = [
@@ -234,13 +234,13 @@ class Transform(ABC):
         harvester_path: Path | None = None,
         normalizers: ViccNormalizers | None = None,
     ) -> None:
-        """Initialize Transform base class.
+        """Initialize Transformer base class.
 
         :param Path data_dir: Path to source data directory
         :param Optional[Path] harvester_path: Path to previously harvested data
         :param ViccNormalizers normalizers: normalizer collection instance
         """
-        self.name = self.__class__.__name__.lower().split("transform")[0]
+        self.name = self.__class__.__name__.lower().split("transformer")[0]
         self.data_dir = data_dir / self.name
         self.harvester_path = harvester_path
 
@@ -362,7 +362,7 @@ class Transform(ABC):
             Combination Therapy
         """
         components = []
-        source_name = type(self).__name__.lower().replace("transform", "")
+        source_name = type(self).__name__.lower().replace("transformer", "")
 
         for therapy in therapies:
             if source_name == SourceName.MOA:
@@ -516,15 +516,15 @@ class Transform(ABC):
 
         :param cdm_filepath: Path to the JSON file where the CDM data will be
             stored. If not provided, will use the default path of
-            ``<APP_ROOT>/data/<src_name>/transform/<src_name>_cdm_YYYYMMDD.json``
+            ``<APP_ROOT>/data/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``
         """
         if not cdm_filepath:
-            transform_dir = self.data_dir / "transform"
-            transform_dir.mkdir(exist_ok=True, parents=True)
+            transformers_dir = self.data_dir / "transformers"
+            transformers_dir.mkdir(exist_ok=True, parents=True)
             today = datetime.datetime.strftime(
                 datetime.datetime.now(tz=datetime.timezone.utc), DATE_FMT
             )
-            cdm_filepath = transform_dir / f"{self.name}_cdm_{today}.json"
+            cdm_filepath = transformers_dir / f"{self.name}_cdm_{today}.json"
 
         with cdm_filepath.open("w+") as f:
             json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
