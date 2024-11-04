@@ -13,7 +13,7 @@ from metakb.query import QueryHandler
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
 TEST_HARVESTERS_DIR = TEST_DATA_DIR / "harvesters"
-TEST_TRANSFORM_DIR = TEST_DATA_DIR / "transform"
+TEST_TRANSFORMERS_DIR = TEST_DATA_DIR / "transformers"
 
 
 def pytest_addoption(parser):

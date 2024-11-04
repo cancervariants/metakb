@@ -26,11 +26,11 @@ from metakb.schemas.variation_statement import (
     VariantTherapeuticResponseStudyPredicate,
     _VariantOncogenicityStudyQualifier,
 )
-from metakb.transform.base import (
+from metakb.transformers.base import (
     CivicEvidenceLevel,
     MethodId,
     TherapeuticProcedureType,
-    Transform,
+    Transformer,
 )
 
 _logger = logging.getLogger(__name__)
@@ -99,7 +99,7 @@ class SourcePrefix(str, Enum):
     ASH = "ASH"
 
 
-class CivicTransform(Transform):
+class CivicTransformer(Transformer):
     """A class for transforming CIViC to the common data model."""
 
     def __init__(
@@ -108,7 +108,7 @@ class CivicTransform(Transform):
         harvester_path: Path | None = None,
         normalizers: ViccNormalizers | None = None,
     ) -> None:
-        """Initialize CIViC Transform class.
+        """Initialize CIViC Transformer class.
 
         :param data_dir: Path to source data directory
         :param harvester_path: Path to previously harvested CIViC data

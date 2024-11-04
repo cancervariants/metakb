@@ -1,9 +1,9 @@
 # Transformations
-We take the harvested JSON from each source and transform this to our common data model. 
+We take the harvested JSON from each source and transform this to our common data model.
 
 
 ### Using the transformation modules
-The VICC normalizers must first be installed. 
+The VICC normalizers must first be installed.
 
 ```
 pip install thera-py

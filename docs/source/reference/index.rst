@@ -60,6 +60,6 @@ Transformers
    :toctree: api/
    :template: module_summary.rst
 
-   metakb.transform.base
-   metakb.transform.civic
-   metakb.transform.moa
+   metakb.transformers.base
+   metakb.transformers.civic
+   metakb.transformers.moa
