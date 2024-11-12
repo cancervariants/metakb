@@ -69,7 +69,7 @@ def _add_method(tx: ManagedTransaction, method: dict, ids_in_studies: set[str]) 
     MERGE (m:Method {id:$id, label:$label})
     """
 
-    is_reported_in = method.get("isReportedIn")
+    is_reported_in = method.get("reportedIn")
     if is_reported_in:
         # Method's documents are unique and do not currently have IDs
         _add_document(tx, is_reported_in, ids_in_studies)
@@ -365,7 +365,7 @@ def _get_ids_from_studies(studies: list[dict]) -> set[str]:
     for study in studies:
         for obj in [
             study.get("specifiedBy"),  # method
-            study.get("isReportedIn"),
+            study.get("reportedIn"),
             study.get("variant"),
             study.get("therapeutic"),
             study.get("tumorType"),
@@ -396,7 +396,7 @@ def _add_study(tx: ManagedTransaction, study_in: dict) -> None:
     match_line = ""
     rel_line = ""
 
-    is_reported_in_docs = study.get("isReportedIn", [])
+    is_reported_in_docs = study.get("reportedIn", [])
     for ri_doc in is_reported_in_docs:
         ri_doc_id = ri_doc["id"]
         name = f"doc_{ri_doc_id.split(':')[-1]}"
@@ -472,7 +472,7 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
     with driver.session() as session:
         loaded_study_count = 0
 
-        for cv in data.get("categorical_variations", []):
+        for cv in data.get("categorical_variants", []):
             session.execute_write(_add_categorical_variation, cv, ids_in_studies)
 
         for doc in data.get("documents", []):

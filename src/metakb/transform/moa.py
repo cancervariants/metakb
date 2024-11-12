@@ -5,26 +5,30 @@ import logging
 from pathlib import Path
 from urllib.parse import quote
 
+from ga4gh.cat_vrs.core_models import CategoricalVariant, DefiningContextConstraint
 from ga4gh.core import sha512t24u
 from ga4gh.core.domain_models import (
     Disease,
     Gene,
     TherapeuticAgent,
 )
-from ga4gh.core.entity_models import Coding, ConceptMapping, Extension, Relation
+from ga4gh.core.entity_models import (
+    Coding,
+    ConceptMapping,
+    Document,
+    Extension,
+    Relation,
+)
+from ga4gh.va_spec.profiles.var_study_stmt import (
+    AlleleOriginQualifier,
+    TherapeuticResponsePredicate,
+    VariantTherapeuticResponseStudyStatement,
+)
 from ga4gh.vrs.models import Variation
 
 from metakb import APP_ROOT
 from metakb.harvesters.moa import MoaHarvestedData
 from metakb.normalizers import ViccNormalizers
-from metakb.schemas.annotation import Direction, Document
-from metakb.schemas.categorical_variation import ProteinSequenceConsequence
-from metakb.schemas.variation_statement import (
-    AlleleOrigin,
-    VariantTherapeuticResponseStudy,
-    VariantTherapeuticResponseStudyPredicate,
-    _VariantOncogenicityStudyQualifier,
-)
 from metakb.transform.base import (
     MethodId,
     MoaEvidenceLevel,
@@ -106,13 +110,9 @@ class MoaTransform(Transform):
 
             # Get predicate. We only support therapeutic resistance/sensitivity
             if record["clinical_significance"] == "resistance":
-                predicate = (
-                    VariantTherapeuticResponseStudyPredicate.PREDICTS_RESISTANCE_TO
-                )
+                predicate = TherapeuticResponsePredicate.RESISTANCE
             elif record["clinical_significance"] == "sensitivity":
-                predicate = (
-                    VariantTherapeuticResponseStudyPredicate.PREDICTS_SENSITIVITY_TO
-                )
+                predicate = TherapeuticResponsePredicate.SENSITIVITY
             else:
                 logger.debug(
                     "clinical_significance not supported: %s",
@@ -190,51 +190,28 @@ class MoaTransform(Transform):
             # Add document
             document = self.able_to_normalize["documents"].get(record["source_ids"])
 
-            # Get qualifier
-            gene = variation_gene_map["moa_gene"]
-            qualifiers = self._get_variant_onco_study_qualifier(
-                record["variant"]["feature_type"], gene
-            )
+            feature_type = record["variant"]["feature_type"]
+            if feature_type == "somatic_variant":
+                allele_origin_qualifier = AlleleOriginQualifier.SOMATIC
+            elif feature_type == "germline_variant":
+                allele_origin_qualifier = AlleleOriginQualifier.GERMLINE
+            else:
+                allele_origin_qualifier = None
 
-            statement = VariantTherapeuticResponseStudy(
-                direction=Direction.NONE,
+            statement = VariantTherapeuticResponseStudyStatement(
                 id=assertion_id,
                 description=record["description"],
                 strength=strength,
                 predicate=predicate,
-                variant=variation_gene_map["psc"],
-                therapeutic=moa_therapeutic,
-                tumorType=moa_disease,
-                qualifiers=qualifiers,
+                subjectVariant=variation_gene_map["cv"],
+                objectTherapeutic=moa_therapeutic,
+                conditionQualifier=moa_disease,
+                alleleOriginQualifier=allele_origin_qualifier,
+                geneContextQualifier=variation_gene_map["moa_gene"],
                 specifiedBy=self.processed_data.methods[0],
-                isReportedIn=[document],
+                reportedIn=[document],
             )
             self.processed_data.studies.append(statement)
-
-    def _get_variant_onco_study_qualifier(
-        self, feature_type: str, gene: Gene | None = None
-    ) -> _VariantOncogenicityStudyQualifier | None:
-        """Get Variant Oncogenicity Study Qualifier
-
-        :param feature_type: MOA feature type
-        :param gene: MOA gene data
-        :return: Variant Oncogenicity Study Qualifier for a Variant Therapeutic Response
-            Study, if allele origin or gene exists
-        """
-        if feature_type == "somatic_variant":
-            allele_origin = AlleleOrigin.SOMATIC
-        elif feature_type == "germline_variant":
-            allele_origin = AlleleOrigin.GERMLINE
-        else:
-            allele_origin = None
-
-        if allele_origin or gene:
-            qualifier = _VariantOncogenicityStudyQualifier(
-                alleleOrigin=allele_origin, geneContext=gene
-            )
-        else:
-            qualifier = None
-        return qualifier
 
     async def _add_protein_consequences(self, variants: list[dict]) -> None:
         """Create Protein Sequence Consequence objects for all MOA variant records.
@@ -343,20 +320,20 @@ class MoaTransform(Transform):
                     )
                 )
 
-            psc = ProteinSequenceConsequence(
+            cv = CategoricalVariant(
                 id=moa_variant_id,
                 label=feature,
-                definingContext=moa_variation.root,
+                constraints=[DefiningContextConstraint(definingContext=moa_variation)],
                 mappings=mappings or None,
                 extensions=extensions,
                 members=members,
             )
 
             self.able_to_normalize["variations"][variant_id] = {
-                "psc": psc,
+                "cv": cv,
                 "moa_gene": moa_gene,
             }
-            self.processed_data.categorical_variations.append(psc)
+            self.processed_data.categorical_variants.append(cv)
 
     async def _get_variation_members(
         self, moa_rep_coord: dict
@@ -447,7 +424,7 @@ class MoaTransform(Transform):
             document = Document(
                 id=f"moa.source:{source_id}",
                 title=source["citation"],
-                url=source["url"] if source["url"] else None,
+                urls=[source["url"]] if source["url"] else None,
                 pmid=source["pmid"] if source["pmid"] else None,
                 doi=source["doi"] if source["doi"] else None,
                 mappings=mappings,

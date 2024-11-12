@@ -1,15 +1,16 @@
 """Module for pytest fixtures."""
 
-import json
 import logging
 from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from deepdiff import DeepDiff
 
 from metakb.harvesters.base import Harvester
 from metakb.normalizers import ViccNormalizers
-from metakb.query import QueryHandler
+
+# from metakb.query import QueryHandler
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
 TEST_HARVESTERS_DIR = TEST_DATA_DIR / "harvesters"
@@ -168,11 +169,33 @@ def civic_mpid33(civic_vid33):
     """Create CIViC MPID 33"""
     return {
         "id": "civic.mpid:33",
-        "type": "ProteinSequenceConsequence",
+        "type": "CategoricalVariant",
         "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",
         "label": "EGFR L858R",
-        "definingContext": civic_vid33,
+        "constraints": [
+            {"definingContext": civic_vid33, "type": "DefiningContextConstraint"}
+        ],
         "members": [
+            {
+                "id": "ga4gh:VA.gV7_dnvF8SQSeUdvgDFhU65zK_csc6VE",
+                "type": "Allele",
+                "label": "NM_005228.4:c.2573T>G",
+                "digest": "gV7_dnvF8SQSeUdvgDFhU65zK_csc6VE",
+                "location": {
+                    "id": "ga4gh:SL.LREsUiEYvOrRhwXW1rG72kXFPegvkNzI",
+                    "type": "SequenceLocation",
+                    "digest": "LREsUiEYvOrRhwXW1rG72kXFPegvkNzI",
+                    "sequenceReference": {
+                        "type": "SequenceReference",
+                        "refgetAccession": "SQ.d_QsP29RWJi6bac7GOC9cJ9AO7s_HUMN",
+                    },
+                    "start": 2833,
+                    "end": 2834,
+                    "sequence": "T",
+                },
+                "state": {"type": "LiteralSequenceExpression", "sequence": "G"},
+                "expressions": [{"syntax": "hgvs.c", "value": "NM_005228.4:c.2573T>G"}],
+            },
             {
                 "id": "ga4gh:VA.pM_eD8ha-bnAu6wJOoQTtHYIvEShSN51",
                 "label": "NC_000007.13:g.55259515T>G",
@@ -191,7 +214,10 @@ def civic_mpid33(civic_vid33):
                     "sequence": "T",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "G"},
-            }
+                "expressions": [
+                    {"syntax": "hgvs.g", "value": "NC_000007.13:g.55259515T>G"}
+                ],
+            },
         ],
         "alternativeLabels": ["LEU858ARG"],
         "mappings": [
@@ -269,12 +295,6 @@ def civic_mpid33(civic_vid33):
 
 
 @pytest.fixture(scope="session")
-def civic_eid2997_qualifier(civic_gid19):
-    """Create qualifier for civic eid 2997"""
-    return {"alleleOrigin": "somatic", "geneContext": civic_gid19}
-
-
-@pytest.fixture(scope="session")
 def civic_source592():
     """Create fixture for civic source 592"""
     return {
@@ -291,14 +311,14 @@ def civic_eid2997_study(
     civic_mpid33,
     civic_tid146,
     civic_did8,
-    civic_eid2997_qualifier,
+    civic_gid19,
     civic_method,
     civic_source592,
 ):
     """Create CIVIC EID2997 Statement test fixture. Uses TherapeuticAgent."""
     return {
         "id": "civic.eid:2997",
-        "type": "VariantTherapeuticResponseStudy",
+        "type": "VariantTherapeuticResponseStudyStatement",
         "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
         "direction": "supports",
         "strength": {
@@ -307,12 +327,13 @@ def civic_eid2997_study(
             "system": "https://go.osu.edu/evidence-codes",
         },
         "predicate": "predictsSensitivityTo",
-        "variant": civic_mpid33,
-        "therapeutic": civic_tid146,
-        "tumorType": civic_did8,
-        "qualifiers": civic_eid2997_qualifier,
+        "subjectVariant": civic_mpid33,
+        "objectTherapeutic": civic_tid146,
+        "conditionQualifier": civic_did8,
+        "alleleOriginQualifier": "somatic",
+        "geneContextQualifier": civic_gid19,
         "specifiedBy": civic_method,
-        "isReportedIn": [civic_source592],
+        "reportedIn": [civic_source592],
     }
 
 
@@ -356,6 +377,7 @@ def civic_vid12():
         "digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
         "location": {
             "id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+            "digest": "t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
             "type": "SequenceLocation",
             "sequenceReference": {
                 "refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y",
@@ -368,15 +390,6 @@ def civic_vid12():
         "state": {"sequence": "E", "type": "LiteralSequenceExpression"},
         "expressions": [
             {"syntax": "hgvs.p", "value": "NP_004324.2:p.Val600Glu"},
-            {"syntax": "hgvs.c", "value": "NM_004333.4:c.1799T>A"},
-            {
-                "syntax": "hgvs.c",
-                "value": "ENST00000288602.6:c.1799T>A",
-            },
-            {
-                "syntax": "hgvs.g",
-                "value": "NC_000007.13:g.140453136A>T",
-            },
         ],
     }
 
@@ -409,14 +422,41 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
     """Create test fixture for CIViC Molecular Profile ID 12"""
     genomic_rep = braf_v600e_genomic.copy()
     genomic_rep["label"] = "NC_000007.13:g.140453136A>T"
+    genomic_rep["expressions"] = [
+        {"syntax": "hgvs.g", "value": "NC_000007.13:g.140453136A>T"}
+    ]
 
     return {
         "id": "civic.mpid:12",
-        "type": "ProteinSequenceConsequence",
+        "type": "CategoricalVariant",
         "description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
         "label": "BRAF V600E",
-        "definingContext": civic_vid12,
-        "members": [genomic_rep],
+        "constraints": [
+            {"definingContext": civic_vid12, "type": "DefiningContextConstraint"}
+        ],
+        "members": [
+            genomic_rep,
+            {
+                "id": "ga4gh:VA.W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+                "type": "Allele",
+                "label": "NM_004333.4:c.1799T>A",
+                "digest": "W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+                "expressions": [{"syntax": "hgvs.c", "value": "NM_004333.4:c.1799T>A"}],
+                "location": {
+                    "id": "ga4gh:SL.8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+                    "type": "SequenceLocation",
+                    "digest": "8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+                    "sequenceReference": {
+                        "type": "SequenceReference",
+                        "refgetAccession": "SQ.aKMPEJgmlZXt_F6gRY5cUG3THH2n-GUa",
+                    },
+                    "start": 2024,
+                    "end": 2025,
+                    "sequence": "T",
+                },
+                "state": {"type": "LiteralSequenceExpression", "sequence": "A"},
+            },
+        ],
         "alternativeLabels": ["VAL600GLU", "V640E", "VAL640GLU"],
         "mappings": [
             {
@@ -495,6 +535,7 @@ def civic_vid33():
         "digest": "S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ",
         "location": {
             "id": "ga4gh:SL.v0_edynH98OIu-0QPVT5anCSOriAFSDQ",
+            "digest": "v0_edynH98OIu-0QPVT5anCSOriAFSDQ",
             "type": "SequenceLocation",
             "sequenceReference": {
                 "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
@@ -502,19 +543,11 @@ def civic_vid33():
             },
             "start": 857,
             "end": 858,
+            "sequence": "L",
         },
         "state": {"sequence": "R", "type": "LiteralSequenceExpression"},
         "expressions": [
             {"syntax": "hgvs.p", "value": "NP_005219.2:p.Leu858Arg"},
-            {"syntax": "hgvs.c", "value": "ENST00000275493.2:c.2573T>G"},
-            {
-                "syntax": "hgvs.c",
-                "value": "NM_005228.4:c.2573T>G",
-            },
-            {
-                "syntax": "hgvs.g",
-                "value": "NC_000007.13:g.55259515T>G",
-            },
         ],
     }
 
@@ -546,6 +579,7 @@ def civic_gid19():
             "PIG61",
             "mENA",
         ],
+        "extensions": [{"name": "gene_normalizer_id", "value": "hgnc:3236"}],
     }
 
 
@@ -827,21 +861,22 @@ def civic_eid816_study(civic_mpid12, civic_tsg, civic_did11, civic_gid5, civic_m
     """Create CIVIC EID816 study test fixture. Uses TherapeuticSubstituteGroup."""
     return {
         "id": "civic.eid:816",
-        "type": "VariantTherapeuticResponseStudy",
+        "type": "VariantTherapeuticResponseStudyStatement",
         "description": "This meta-analysis of 7 randomized control trials evaluating overall survival (OS) (8 for progression free survival) could not definitely state that survival benefit of anti-EGFR monoclonal antibodies is limited to patients with wild type BRAF. In other words, the authors believe that there is insufficient data to justify the exclusion of anti-EGFR monoclonal antibody therapy for patients with mutant BRAF. In these studies, mutant BRAF specifically meant the V600E mutation.",
-        "direction": "refutes",
+        "direction": "disputes",
         "strength": {
             "code": "e000005",
             "label": "clinical cohort evidence",
             "system": "https://go.osu.edu/evidence-codes",
         },
         "predicate": "predictsResistanceTo",
-        "variant": civic_mpid12,
-        "therapeutic": civic_tsg,
-        "tumorType": civic_did11,
-        "qualifiers": {"alleleOrigin": "somatic", "geneContext": civic_gid5},
+        "subjectVariant": civic_mpid12,
+        "objectTherapeutic": civic_tsg,
+        "conditionQualifier": civic_did11,
+        "alleleOriginQualifier": "somatic",
+        "geneContextQualifier": civic_gid5,
         "specifiedBy": civic_method,
-        "isReportedIn": [
+        "reportedIn": [
             {
                 "id": "civic.source:548",
                 "label": "Rowland et al., 2015",
@@ -864,7 +899,7 @@ def civic_eid9851_study(
     """Create CIVIC EID9851 study test fixture. Uses CombinationTherapy."""
     return {
         "id": "civic.eid:9851",
-        "type": "VariantTherapeuticResponseStudy",
+        "type": "VariantTherapeuticResponseStudyStatement",
         "description": "The open-label phase 3 BEACON CRC trial included 665 patients with BRAF V600E-mutated metastatic CRC. Patients were randomly assigned in a 1:1:1 ratio to receive encorafenib, binimetinib, and cetuximab (triplet-therapy group); encorafenib and cetuximab (doublet-therapy group); or the investigators\u2019 choice of either cetuximab and irinotecan or cetuximab and FOLFIRI. The median overall survival was 8.4 months (95% CI, 7.5 to 11.0) in the doublet-therapy group and 5.4 months (95% CI, 4.8 to 6.6) in the control group, with a significantly lower risk of death compared to the control group (hazard ratio for death doublet-group vs. control, 0.60; 95% CI, 0.45 to 0.79; P<0.001). The confirmed response rate was 26% (95% CI, 18 to 35) in the triplet-therapy group, 20% in the doublet-therapy group (95% CI 13 to 29) and 2% (95% CI, 0 to 7) in the control group (doublet group vs. control P<0.001). Median PFS was 4.2 months (95% CI, 3.7 to 5.4) in the doublet-therapy group, and 1.5 months (95% CI, 1.5 to 1.7) in the control group (hazard ratio for disease progression doublet-group vs control, 0.40; 95% CI, 0.31 to 0.52, P<0.001).",
         "direction": "supports",
         "strength": {
@@ -873,12 +908,13 @@ def civic_eid9851_study(
             "system": "https://go.osu.edu/evidence-codes",
         },
         "predicate": "predictsSensitivityTo",
-        "variant": civic_mpid12,
-        "therapeutic": civic_ct,
-        "tumorType": civic_did11,
-        "qualifiers": {"alleleOrigin": "somatic", "geneContext": civic_gid5},
+        "subjectVariant": civic_mpid12,
+        "objectTherapeutic": civic_ct,
+        "conditionQualifier": civic_did11,
+        "alleleOriginQualifier": "somatic",
+        "geneContextQualifier": civic_gid5,
         "specifiedBy": civic_method,
-        "isReportedIn": [
+        "reportedIn": [
             {
                 "id": "civic.source:3025",
                 "label": "Kopetz et al., 2019",
@@ -1683,20 +1719,20 @@ def moa_aid66_study(
     return {
         "id": "moa.assertion:66",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
-        "direction": "none",
         "strength": {
             "code": "e000009",
             "label": "preclinical evidence",
             "system": "https://go.osu.edu/evidence-codes",
         },
         "predicate": "predictsResistanceTo",
-        "variant": moa_vid66,
-        "therapeutic": moa_imatinib,
-        "tumorType": moa_chronic_myelogenous_leukemia,
-        "qualifiers": {"alleleOrigin": "somatic", "geneContext": moa_abl1},
+        "subjectVariant": moa_vid66,
+        "objectTherapeutic": moa_imatinib,
+        "conditionQualifier": moa_chronic_myelogenous_leukemia,
+        "alleleOriginQualifier": "somatic",
+        "geneContextQualifier": moa_abl1,
         "specifiedBy": moa_method,
-        "isReportedIn": [moa_source45],
-        "type": "VariantTherapeuticResponseStudy",
+        "reportedIn": [moa_source45],
+        "type": "VariantTherapeuticResponseStudyStatement",
     }
 
 
@@ -1705,25 +1741,31 @@ def moa_vid66():
     """Create a test fixture for MOA VID66."""
     return {
         "id": "moa.variant:66",
-        "type": "ProteinSequenceConsequence",
+        "type": "CategoricalVariant",
         "label": "ABL1 p.T315I (Missense)",
-        "definingContext": {
-            "id": "ga4gh:VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
-            "digest": "D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
-            "type": "Allele",
-            "location": {
-                "id": "ga4gh:SL.jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
-                "digest": "jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
-                "type": "SequenceLocation",
-                "sequenceReference": {
-                    "type": "SequenceReference",
-                    "refgetAccession": "SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg",
+        "constraints": [
+            {
+                "definingContext": {
+                    "id": "ga4gh:VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
+                    "digest": "D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
+                    "type": "Allele",
+                    "location": {
+                        "id": "ga4gh:SL.jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
+                        "digest": "jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
+                        "type": "SequenceLocation",
+                        "sequenceReference": {
+                            "type": "SequenceReference",
+                            "refgetAccession": "SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg",
+                        },
+                        "start": 314,
+                        "end": 315,
+                        "sequence": "T",
+                    },
+                    "state": {"type": "LiteralSequenceExpression", "sequence": "I"},
                 },
-                "start": 314,
-                "end": 315,
-            },
-            "state": {"type": "LiteralSequenceExpression", "sequence": "I"},
-        },
+                "type": "DefiningContextConstraint",
+            }
+        ],
         "members": [
             {
                 "id": "ga4gh:VA.HUJOQCml0LngKmUf5IJIYQk9CfKmagbf",
@@ -1932,12 +1974,15 @@ def civic_method():
     return {
         "id": "civic.method:2019",
         "label": "CIViC Curation SOP (2019)",
-        "isReportedIn": {
-            "label": "Danos et al., 2019, Genome Med.",
-            "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
-            "doi": "10.1186/s13073-019-0687-x",
-            "pmid": 31779674,
-        },
+        "reportedIn": [
+            {
+                "label": "Danos et al., 2019, Genome Med.",
+                "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+                "doi": "10.1186/s13073-019-0687-x",
+                "pmid": 31779674,
+                "type": "Document",
+            }
+        ],
         "type": "Method",
     }
 
@@ -1948,12 +1993,15 @@ def moa_method():
     return {
         "id": "moa.method:2021",
         "label": "MOAlmanac (2021)",
-        "isReportedIn": {
-            "label": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
-            "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
-            "doi": "10.1038/s43018-021-00243-3",
-            "pmid": 35121878,
-        },
+        "reportedIn": [
+            {
+                "label": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
+                "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+                "doi": "10.1038/s43018-021-00243-3",
+                "pmid": 35121878,
+                "type": "Document",
+            }
+        ],
         "type": "Method",
     }
 
@@ -1998,69 +2046,10 @@ def moa_source45():
         "extensions": [{"name": "source_type", "value": "Journal"}],
         "type": "Document",
         "title": "Gorre, Mercedes E., et al. Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification. Science 293.5531 (2001): 876-880.",
-        "url": "https://doi.org/10.1126/science.1062538",
+        "urls": ["https://doi.org/10.1126/science.1062538"],
         "doi": "10.1126/science.1062538",
         "pmid": 11423618,
     }
-
-
-def _dict_check(expected_d: dict, actual_d: dict, is_cdm: bool = False) -> None:
-    """Make dictionary assertion checks. Check that actual matches expected data.
-
-    :param expected_d: Expected dictionary
-    :param actual_d: Actual dictionary
-    :param is_cdm: Whether checks are for transformers (CDM) or query handler.
-        CDM have extra fields that are not exposed to the query handler
-    """
-    for k, v in expected_d.items():
-        if isinstance(v, dict):
-            _dict_check(v, actual_d[k], is_cdm=is_cdm)
-        elif isinstance(v, list):
-            actual_l = [json.dumps(v, sort_keys=True) for v in actual_d[k]]
-            if is_cdm:
-                expected_l = [json.dumps(v, sort_keys=True) for v in expected_d[k]]
-            else:
-                expected_l = []
-                for v in expected_d[k]:
-                    if isinstance(v, dict):
-                        if v.get("name") in {
-                            "therapy_normalizer_data",
-                            "disease_normalizer_data",
-                        }:
-                            updated_ext = v.copy()
-                            normalizer_data_type = v["name"].split("_normalizer_data")[
-                                0
-                            ]
-                            updated_ext["name"] = (
-                                f"{normalizer_data_type}_normalizer_id"
-                            )
-                            updated_ext["value"] = v["value"]["normalized_id"]
-                            expected_l.append(json.dumps(updated_ext, sort_keys=True))
-                            continue
-                        new_extensions = []
-                        extensions = v.get("extensions") or []
-                        for ext in extensions:
-                            if ext.get("name") in {
-                                "therapy_normalizer_data",
-                                "disease_normalizer_data",
-                            }:
-                                normalizer_data_type = ext["name"].split(
-                                    "_normalizer_data"
-                                )[0]
-                                new_extensions.append(
-                                    {
-                                        "name": f"{normalizer_data_type}_normalizer_id",
-                                        "value": ext["value"]["normalized_id"],
-                                    }
-                                )
-                            else:
-                                new_extensions.append(ext)
-                        if extensions:
-                            v["extensions"] = new_extensions
-                    expected_l.append(json.dumps(v, sort_keys=True))
-            assert set(actual_l) == set(expected_l), k
-        else:
-            assert actual_d[k] == expected_d[k], k
 
 
 @pytest.fixture(scope="session")
@@ -2080,9 +2069,10 @@ def assertion_checks():
             for actual in actual_data:
                 if actual["id"] == expected["id"]:
                     found_match = True
-                    assert actual.keys() == expected.keys()
+                    assert actual.keys() == expected.keys(), expected["id"]
                     expected_copy = deepcopy(expected)
-                    _dict_check(expected_copy, actual, is_cdm=is_cdm)
+                    diff = DeepDiff(actual, expected_copy, ignore_order=True)
+                    assert diff == {}, expected["id"]
                     continue
 
             assert found_match, f"Did not find {expected['id']} in response"
@@ -2108,9 +2098,9 @@ def normalizers():
     return ViccNormalizers()
 
 
-@pytest.fixture(scope="module")
-def query_handler(normalizers):
-    """Create query handler test fixture"""
-    qh = QueryHandler(normalizers=normalizers)
-    yield qh
-    qh.driver.close()
+# @pytest.fixture(scope="module")
+# def query_handler(normalizers):
+#     """Create query handler test fixture"""
+#     qh = QueryHandler(normalizers=normalizers)
+#     yield qh
+#     qh.driver.close()

@@ -23,7 +23,8 @@ requires-python = ">=3.10"
 description = "A search interface for cancer variant interpretations assembled by aggregating and harmonizing across multiple cancer variant interpretation knowledgebases."
 license = {file = "LICENSE"}
 dependencies = [
-    "ga4gh.vrs~=2.0.0a10",
+    "ga4gh.vrs~=2.0.0a12",
+    "ga4gh.cat_vrs~=0.1.0",
     "gene-normalizer[etl]~=0.4.1",
     "variation-normalizer~=0.10.0",
     "disease-normalizer[etl]~=0.5.0",
@@ -42,7 +43,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-tests = ["pytest", "pytest-cov", "mock", "pytest-asyncio"]
+tests = ["pytest", "pytest-cov", "mock", "pytest-asyncio", "deepdiff"]
 dev = ["pre-commit>=3.7.1", "ruff==0.5.0"]
 notebooks = ["ipykernel", "jupyterlab"]
 docs = [

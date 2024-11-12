@@ -154,7 +154,7 @@ class QueryHandler:
         >>> result = qh.search_studies("BRAF V600E")
         >>> result.study_ids[:3]
         ['moa.assertion:944', 'moa.assertion:911', 'moa.assertion:865']
-        >>> result.studies[0].isReportedIn[0].url
+        >>> result.studies[0].reportedIn[0].url
         'https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/202429s019lbl.pdf'
 
         Variation, disease, therapy, and gene terms are resolved via their respective
@@ -496,7 +496,7 @@ class QueryHandler:
             "tumorType": None,
             "variant": None,
             "strength": None,
-            "isReportedIn": [],
+            "reportedIn": [],
             "specifiedBy": None,
         }
         params.update(study_node)
@@ -524,10 +524,10 @@ class QueryHandler:
                     study_id, study_node.get("alleleOrigin")
                 )
             elif rel_type == "IS_SPECIFIED_BY":
-                node["isReportedIn"] = self._get_method_document(node["id"])
+                node["reportedIn"] = self._get_method_document(node["id"])
                 params["specifiedBy"] = Method(**node)
             elif rel_type == "IS_REPORTED_IN":
-                params["isReportedIn"].append(self._get_document(node))
+                params["reportedIn"].append(self._get_document(node))
             elif rel_type == "HAS_STRENGTH":
                 params["strength"] = Coding(**node)
             elif rel_type == "HAS_THERAPEUTIC":

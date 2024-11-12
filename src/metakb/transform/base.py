@@ -14,6 +14,7 @@ from disease.schemas import (
 from disease.schemas import (
     NormalizationService as NormalizedDisease,
 )
+from ga4gh.cat_vrs.core_models import CategoricalVariant
 from ga4gh.core import sha512t24u
 from ga4gh.core.domain_models import (
     CombinationTherapy,
@@ -22,7 +23,10 @@ from ga4gh.core.domain_models import (
     TherapeuticAgent,
     TherapeuticSubstituteGroup,
 )
-from ga4gh.core.entity_models import Coding, Extension
+from ga4gh.core.entity_models import Coding, Document, Extension, Method
+from ga4gh.va_spec.profiles.var_study_stmt import (
+    VariantTherapeuticResponseStudyStatement,
+)
 from ga4gh.vrs.models import Allele
 from pydantic import BaseModel, StrictStr, ValidationError
 from therapy.schemas import NormalizationService as NormalizedTherapy
@@ -30,14 +34,7 @@ from therapy.schemas import NormalizationService as NormalizedTherapy
 from metakb import APP_ROOT, DATE_FMT
 from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import ViccNormalizers
-from metakb.schemas.annotation import Document, Method
 from metakb.schemas.app import SourceName
-from metakb.schemas.categorical_variation import (
-    ProteinSequenceConsequence,
-)
-from metakb.schemas.variation_statement import (
-    VariantTherapeuticResponseStudy,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -99,8 +96,8 @@ class ViccConceptVocab(BaseModel):
 class TransformedData(BaseModel):
     """Define model for transformed data"""
 
-    studies: list[VariantTherapeuticResponseStudy] = []
-    categorical_variations: list[ProteinSequenceConsequence] = []
+    studies: list[VariantTherapeuticResponseStudyStatement] = []
+    categorical_variants: list[CategoricalVariant] = []
     variations: list[Allele] = []
     genes: list[Gene] = []
     therapeutic_procedures: list[
@@ -118,22 +115,26 @@ class Transform(ABC):
         Method(
             id=MethodId.CIVIC_EID_SOP,
             label="CIViC Curation SOP (2019)",
-            isReportedIn=Document(
-                label="Danos et al., 2019, Genome Med.",
-                title="Standard operating procedure for curation and clinical interpretation of variants in cancer",
-                doi="10.1186/s13073-019-0687-x",
-                pmid=31779674,
-            ),
+            reportedIn=[
+                Document(
+                    label="Danos et al., 2019, Genome Med.",
+                    title="Standard operating procedure for curation and clinical interpretation of variants in cancer",
+                    doi="10.1186/s13073-019-0687-x",
+                    pmid=31779674,
+                )
+            ],
         ),
         Method(
             id=MethodId.MOA_ASSERTION_BIORXIV,
             label="MOAlmanac (2021)",
-            isReportedIn=Document(
-                label="Reardon, B., Moore, N.D., Moore, N.S. et al.",
-                title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
-                doi="10.1038/s43018-021-00243-3",
-                pmid=35121878,
-            ),
+            reportedIn=[
+                Document(
+                    label="Reardon, B., Moore, N.D., Moore, N.S. et al.",
+                    title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+                    doi="10.1038/s43018-021-00243-3",
+                    pmid=35121878,
+                )
+            ],
         ),
     ]
     methods_mapping: ClassVar[dict[MethodId, Method]] = {m.id: m for m in _methods}
