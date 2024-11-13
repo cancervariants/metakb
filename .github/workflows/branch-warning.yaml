@@ -1,0 +1,19 @@
+name: PR branch check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check_branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR Source Branch
+        if: github.event.pull_request.head.ref != 'staging'
+        run: |
+          echo "Checking if PR is coming from 'staging' branch"
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "Hey bud, you're opening a PR to main from a branch that isn't staging. Maybe you know what you're doing, but maybe you also just forgot to change the branch. Take a second to think about it."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
