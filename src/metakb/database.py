@@ -78,7 +78,7 @@ _CONSTRAINTS = {
     "disease_id_constraint": "CREATE CONSTRAINT disease_id_constraint IF NOT EXISTS FOR (n:Disease) REQUIRE n.id IS UNIQUE;",
     "therapeuticprocedure_id_constraint": "CREATE CONSTRAINT therapeuticprocedure_id_constraint IF NOT EXISTS FOR (n:TherapeuticProcedure) REQUIRE n.id IS UNIQUE;",
     "variation_id_constraint": "CREATE CONSTRAINT variation_id_constraint IF NOT EXISTS FOR (n:Variation) REQUIRE n.id IS UNIQUE;",
-    "categoricalvariation_id_constraint": "CREATE CONSTRAINT categoricalvariation_id_constraint IF NOT EXISTS FOR (n:CategoricalVariation) REQUIRE n.id IS UNIQUE;",
+    "categoricalvariant_id_constraint": "CREATE CONSTRAINT categoricalvariant_id_constraint IF NOT EXISTS FOR (n:CategoricalVariant) REQUIRE n.id IS UNIQUE;",
     "variantgroup_id_constraint": "CREATE CONSTRAINT variantgroup_id_constraint IF NOT EXISTS FOR (n:VariantGroup) REQUIRE n.id IS UNIQUE;",
     "location_id_constraint": "CREATE CONSTRAINT location_id_constraint IF NOT EXISTS FOR (n:Location) REQUIRE n.id IS UNIQUE;",
     "document_id_constraint": "CREATE CONSTRAINT document_id_constraint IF NOT EXISTS FOR (n:Document) REQUIRE n.id IS UNIQUE;",
