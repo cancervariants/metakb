@@ -171,11 +171,30 @@ ignore = [
 # ANN102 - missing-type-cls
 # S101 - assert
 # B011 - assert-false
-# D104 - undocumented-public-package
 # D100 - undocumented-public-module
+# D102 - undocumented-public-class
+# D104 - undocumented-public-package
 # INP001 - implicit-namespace-package
 # ARG001 - unused-function-argument
 # SLF001 - private-member-acces
 # N815 - mixed-case-variable-in-class-scope
-"tests/*" = ["ANN001", "ANN2", "ANN102", "S101", "B011", "D100", "D104", "INP001", "SLF001", "ARG001"]
+"tests/*" = [
+    "ANN001",
+    "ANN2",
+    "ANN102",
+    "S101",
+    "B011",
+    "D100",
+    "D102",
+    "D104",
+    "INP001",
+    "SLF001",
+    "ARG001"
+]
 "src/metakb/schemas/*" = ["ANN102", "N815"]
+
+[tool.ruff.lint.flake8-annotations]
+mypy-init-return = true
+
+[tool.ruff.format]
+docstring-code-format = true
