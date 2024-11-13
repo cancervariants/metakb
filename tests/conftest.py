@@ -64,8 +64,8 @@ def cetuximab_extensions():
     """Create test fixture for cetuximab extensions"""
     return [
         {
-            "name": "therapy_normalizer_data",
-            "value": {"normalized_id": "rxcui:318341", "normalized_label": "cetuximab"},
+            "name": "vicc_normalizer_data",
+            "value": {"id": "rxcui:318341", "label": "cetuximab"},
         },
         {
             "name": "regulatory_approval",
@@ -127,10 +127,10 @@ def encorafenib_extensions():
     """Create test fixture for encorafenib extensions"""
     return [
         {
-            "name": "therapy_normalizer_data",
+            "name": "vicc_normalizer_data",
             "value": {
-                "normalized_id": "rxcui:2049106",
-                "normalized_label": "encorafenib",
+                "id": "rxcui:2049106",
+                "label": "encorafenib",
             },
         },
         {
@@ -367,8 +367,8 @@ def civic_gid5():
         ],
         "extensions": [
             {
-                "name": "gene_normalizer_data",
-                "value": {"normalized_id": "hgnc:1097", "normalized_label": "BRAF"},
+                "name": "vicc_normalizer_data",
+                "value": {"id": "hgnc:1097", "label": "BRAF"},
             }
         ],
     }
@@ -588,8 +588,8 @@ def civic_gid19():
         ],
         "extensions": [
             {
-                "name": "gene_normalizer_data",
-                "value": {"normalized_id": "hgnc:3236", "normalized_label": "EGFR"},
+                "name": "vicc_normalizer_data",
+                "value": {"id": "hgnc:3236", "label": "EGFR"},
             }
         ],
     }
@@ -643,10 +643,10 @@ def civic_tid146():
                 },
             },
             {
-                "name": "therapy_normalizer_data",
+                "name": "vicc_normalizer_data",
                 "value": {
-                    "normalized_id": "rxcui:1430438",
-                    "normalized_label": "afatinib",
+                    "id": "rxcui:1430438",
+                    "label": "afatinib",
                 },
             },
         ],
@@ -671,10 +671,10 @@ def civic_did8():
         ],
         "extensions": [
             {
-                "name": "disease_normalizer_data",
+                "name": "vicc_normalizer_data",
                 "value": {
-                    "normalized_id": "ncit:C2926",
-                    "normalized_label": "Lung Non-Small Cell Carcinoma",
+                    "id": "ncit:C2926",
+                    "label": "Lung Non-Small Cell Carcinoma",
                     "mondo_id": "0005233",
                 },
             }
@@ -723,10 +723,10 @@ def civic_tid28():
         ],
         "extensions": [
             {
-                "name": "therapy_normalizer_data",
+                "name": "vicc_normalizer_data",
                 "value": {
-                    "normalized_id": "rxcui:263034",
-                    "normalized_label": "panitumumab",
+                    "id": "rxcui:263034",
+                    "label": "panitumumab",
                 },
             },
             {
@@ -864,10 +864,10 @@ def civic_did11():
         ],
         "extensions": [
             {
-                "name": "disease_normalizer_data",
+                "name": "vicc_normalizer_data",
                 "value": {
-                    "normalized_id": "ncit:C4978",
-                    "normalized_label": "Malignant Colorectal Neoplasm",
+                    "id": "ncit:C4978",
+                    "label": "Malignant Colorectal Neoplasm",
                     "mondo_id": "0005575",
                 },
             }
@@ -1849,8 +1849,8 @@ def moa_abl1():
         "label": "ABL1",
         "extensions": [
             {
-                "name": "gene_normalizer_data",
-                "value": {"normalized_id": "hgnc:76", "normalized_label": "ABL1"},
+                "name": "vicc_normalizer_data",
+                "value": {"id": "hgnc:76", "label": "ABL1"},
             }
         ],
     }
@@ -1955,10 +1955,10 @@ def moa_imatinib():
                 },
             },
             {
-                "name": "therapy_normalizer_data",
+                "name": "vicc_normalizer_data",
                 "value": {
-                    "normalized_id": "rxcui:282388",
-                    "normalized_label": "imatinib",
+                    "id": "rxcui:282388",
+                    "label": "imatinib",
                 },
             },
         ],
@@ -1974,10 +1974,10 @@ def moa_chronic_myelogenous_leukemia():
         "label": "Chronic Myelogenous Leukemia",
         "extensions": [
             {
-                "name": "disease_normalizer_data",
+                "name": "vicc_normalizer_data",
                 "value": {
-                    "normalized_id": "ncit:C3174",
-                    "normalized_label": "Chronic Myelogenous Leukemia, BCR-ABL1 Positive",
+                    "id": "ncit:C3174",
+                    "label": "Chronic Myelogenous Leukemia, BCR-ABL1 Positive",
                     "mondo_id": "0011996",
                 },
             }

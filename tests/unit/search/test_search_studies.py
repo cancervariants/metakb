@@ -16,8 +16,8 @@ def _get_normalizer_id(extensions: list[Extension]) -> str | None:
     """
     normalizer_id = None
     for ext in extensions:
-        if ext.name.endswith("_normalizer_data"):
-            normalizer_id = ext.value["normalized_id"]
+        if ext.name == "vicc_normalizer_data":
+            normalizer_id = ext.value["id"]
             break
     return normalizer_id
 

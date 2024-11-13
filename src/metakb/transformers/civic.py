@@ -30,7 +30,9 @@ from pydantic import BaseModel, ValidationError
 
 from metakb import APP_ROOT
 from metakb.harvesters.civic import CivicHarvestedData
-from metakb.normalizers import ViccNormalizers
+from metakb.normalizers import (
+    ViccNormalizers,
+)
 from metakb.transformers.base import (
     CivicEvidenceLevel,
     MethodId,
@@ -676,12 +678,8 @@ class CivicTransformer(Transformer):
                     ],
                     alternativeLabels=gene["aliases"] if gene["aliases"] else None,
                     extensions=[
-                        Extension(
-                            name="gene_normalizer_data",
-                            value={
-                                "normalized_id": normalized_gene_id,
-                                "normalized_label": gene_norm_resp.gene.label,
-                            },
+                        self._get_vicc_normalizer_extension(
+                            normalized_gene_id, gene_norm_resp
                         )
                     ],
                 )
@@ -763,9 +761,9 @@ class CivicTransformer(Transformer):
             label=display_name,
             mappings=mappings if mappings else None,
             extensions=[
-                self._get_disease_normalizer_ext_data(
+                self._get_vicc_normalizer_extension(
                     normalized_disease_id, disease_norm_resp
-                ),
+                )
             ],
         )
 
@@ -861,9 +859,9 @@ class CivicTransformer(Transformer):
         )
 
         extensions = [
-            self._get_therapy_normalizer_ext_data(
+            self._get_vicc_normalizer_extension(
                 normalized_therapeutic_id, therapy_norm_resp
-            ),
+            )
         ]
 
         if regulatory_approval_extension:

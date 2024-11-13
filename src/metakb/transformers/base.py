@@ -28,15 +28,28 @@ from ga4gh.va_spec.profiles.var_study_stmt import (
     VariantTherapeuticResponseStudyStatement,
 )
 from ga4gh.vrs.models import Allele
+from gene.schemas import NormalizeService as NormalizedGene
 from pydantic import BaseModel, StrictStr, ValidationError
 from therapy.schemas import NormalizationService as NormalizedTherapy
 
 from metakb import APP_ROOT, DATE_FMT
 from metakb.harvesters.base import _HarvestedData
-from metakb.normalizers import ViccNormalizers
+from metakb.normalizers import (
+    ViccDiseaseNormalizerData,
+    ViccNormalizerData,
+    ViccNormalizerDataExtension,
+    ViccNormalizers,
+)
 from metakb.schemas.app import SourceName
 
 logger = logging.getLogger(__name__)
+
+# Normalizer response type to attribute name
+NORMALIZER_INSTANCE_TO_ATTR = {
+    NormalizedDisease: "disease",
+    NormalizedTherapy: "therapeutic_agent",
+    NormalizedGene: "gene",
+}
 
 
 class EcoLevel(str, Enum):
@@ -467,50 +480,31 @@ class Transformer(ABC):
         return tp
 
     @staticmethod
-    def _get_therapy_normalizer_ext_data(
-        normalized_therapeutic_id: str, therapy_norm_resp: NormalizedTherapy
-    ) -> Extension:
-        """Create extension containing relevant therapy-normalizer data
+    def _get_vicc_normalizer_extension(
+        normalized_id: str,
+        normalizer_resp: NormalizedDisease | NormalizedTherapy | NormalizedGene,
+    ) -> ViccNormalizerDataExtension:
+        """Get VICC Normalizer extension data
 
-        :param normalized_therapeutic_id: Concept ID from therapy-normalizer
-        :param therapy_norm_resp: Matched response from therapy-normalizer
-        :return: Extension containing therapy-normalizer data. Additional information,
-            such as the label, is provided for VarCat.
+        :param normalized_id: Normalized ID from VICC normalizer
+        :param normalizer_resp: Response from VICC normalizer
+        :return: VICC Normalizer extension data
         """
-        return Extension(
-            name="therapy_normalizer_data",
-            value={
-                "normalized_id": normalized_therapeutic_id,
-                "normalized_label": therapy_norm_resp.therapeutic_agent.label,
-            },
-        )
+        attr_name = NORMALIZER_INSTANCE_TO_ATTR[type(normalizer_resp)]
+        normalizer_resp_obj = getattr(normalizer_resp, attr_name)
 
-    @staticmethod
-    def _get_disease_normalizer_ext_data(
-        normalized_disease_id: str, disease_norm_resp: NormalizedDisease
-    ) -> Extension:
-        """Create extension containing relevant disease-normalizer data
+        params = {"id": normalized_id, "label": normalizer_resp_obj.label}
 
-        :param normalized_disease_id: Concept ID from disease-normalizer
-        :param disease_norm_resp: Matched response from disease-normalizer
-        :return: Extension containing disease-normalizer data. Additional information,
-            such as the label and mondo_id, is provided for VarCat.
-        """
-        mappings = disease_norm_resp.disease.mappings or []
-        mondo_id = None
-        for mapping in mappings:
-            if mapping.coding.system == DiseaseNamespacePrefix.MONDO.value:
-                mondo_id = mapping.coding.code
-                break
-
-        return Extension(
-            name="disease_normalizer_data",
-            value={
-                "normalized_id": normalized_disease_id,
-                "normalized_label": disease_norm_resp.disease.label,
-                "mondo_id": mondo_id,
-            },
-        )
+        if isinstance(normalizer_resp, NormalizedDisease):
+            mappings = normalizer_resp_obj.mappings or []
+            for mapping in mappings:
+                if mapping.coding.system == DiseaseNamespacePrefix.MONDO.value:
+                    params["mondo_id"] = mapping.coding.code.root
+                    break
+            ext_val = ViccDiseaseNormalizerData(**params)
+        else:
+            ext_val = ViccNormalizerData(**params)
+        return ViccNormalizerDataExtension(value=ext_val.model_dump())
 
     def create_json(self, cdm_filepath: Path | None = None) -> None:
         """Create a composite JSON for transformed data.

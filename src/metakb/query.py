@@ -7,6 +7,7 @@ from enum import Enum
 
 from ga4gh.cat_vrs.core_models import CategoricalVariant, DefiningContextConstraint
 from ga4gh.core.domain_models import (
+    CommonDomainType,
     Disease,
     Gene,
     TherapeuticAgent,
@@ -22,7 +23,12 @@ from neo4j.graph import Node
 from pydantic import ValidationError
 
 from metakb.database import get_driver
-from metakb.normalizers import ViccNormalizers
+from metakb.normalizers import (
+    ViccDiseaseNormalizerData,
+    ViccNormalizerData,
+    ViccNormalizerDataExtension,
+    ViccNormalizers,
+)
 from metakb.schemas.api import (
     BatchSearchStudiesQuery,
     BatchSearchStudiesService,
@@ -424,20 +430,20 @@ class QueryHandler:
 
         if normalized_disease:
             query += """
-            MATCH (s) -[:HAS_TUMOR_TYPE] -> (c:Condition {disease_normalized_id:$c_id})
+            MATCH (s) -[:HAS_TUMOR_TYPE] -> (c:Condition {normalizer_id:$c_id})
             """
             params["c_id"] = normalized_disease
 
         if normalized_gene:
             query += """
-            MATCH (s) -[:HAS_GENE_CONTEXT] -> (g:Gene {gene_normalized_id:$g_id})
+            MATCH (s) -[:HAS_GENE_CONTEXT] -> (g:Gene {normalizer_id:$g_id})
             """
             params["g_id"] = normalized_gene
 
         if normalized_therapy:
             query += """
-            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> (tp:TherapeuticAgent {therapy_normalized_id:$t_id})
-            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> () -[:HAS_SUBSTITUTES|HAS_COMPONENTS] -> (ta:TherapeuticAgent {therapy_normalized_id:$t_id})
+            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> (tp:TherapeuticAgent {normalizer_id:$t_id})
+            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> () -[:HAS_SUBSTITUTES|HAS_COMPONENTS] -> (ta:TherapeuticAgent {normalizer_id:$t_id})
             WITH s, tp, ta
             WHERE tp IS NOT NULL OR ta IS NOT NULL
             """
@@ -539,25 +545,33 @@ class QueryHandler:
         return VariantTherapeuticResponseStudyStatement(**params).model_dump()
 
     @staticmethod
-    def _get_disease(node: dict) -> Disease:
+    def _get_vicc_normalizer_extension(node: dict) -> ViccNormalizerDataExtension:
+        """Get VICC Normalizer extension data
+
+        :param node: Therapy, disease, or gene node data
+        :return: VICC Normalizer extension data
+        """
+        params = {
+            "id": node["normalizer_id"],
+            "label": node["normalizer_label"],
+        }
+
+        if node["type"] == CommonDomainType.DISEASE:
+            params["mondo_id"] = node.get("normalizer_mondo_id")
+            ext_val = ViccDiseaseNormalizerData(**params)
+        else:
+            ext_val = ViccNormalizerData(**params)
+
+        return ViccNormalizerDataExtension(value=ext_val.model_dump())
+
+    def _get_disease(self, node: dict) -> Disease:
         """Get disease data from a node with relationship ``HAS_TUMOR_TYPE``
 
         :param node: Disease node data
         :return: Disease object
         """
         node["mappings"] = _deserialize_field(node, "mappings")
-        ext_value = {
-            "normalized_id": node["disease_normalized_id"],
-            "normalized_label": node["disease_normalized_label"],
-        }
-
-        mondo_id = node.get("disease_mondo_id")
-        if mondo_id:
-            ext_value["mondo_id"] = mondo_id
-
-        node["extensions"] = [
-            Extension(name="disease_normalizer_data", value=ext_value)
-        ]
+        node["extensions"] = [self._get_vicc_normalizer_extension(node)]
         return Disease(**node)
 
     def _get_variations(self, cv_id: str, relation: VariationRelation) -> list[dict]:
@@ -673,16 +687,7 @@ class QueryHandler:
 
         gene_node = results.records[0].data()["g"]
         gene_node["mappings"] = _deserialize_field(gene_node, "mappings")
-
-        gene_node["extensions"] = [
-            Extension(
-                name="gene_normalizer_data",
-                value={
-                    "normalized_id": gene_node["gene_normalized_id"],
-                    "normalized_label": gene_node["gene_normalized_label"],
-                },
-            )
-        ]
+        gene_node["extensions"] = [self._get_vicc_normalizer_extension(gene_node)]
         return Gene(**gene_node)
 
     def _get_method_document(self, method_id: str) -> Document | None:
@@ -789,8 +794,7 @@ class QueryHandler:
             therapeutic_agents.append(ta)
         return therapeutic_agents
 
-    @staticmethod
-    def _get_therapeutic_agent(in_ta_params: dict) -> TherapeuticAgent:
+    def _get_therapeutic_agent(self, in_ta_params: dict) -> TherapeuticAgent:
         """Transform input parameters into TherapeuticAgent object
 
         :param in_ta_params: Therapeutic Agent node properties
@@ -798,15 +802,7 @@ class QueryHandler:
         """
         ta_params = copy(in_ta_params)
         ta_params["mappings"] = _deserialize_field(ta_params, "mappings")
-        extensions = [
-            Extension(
-                name="therapy_normalizer_data",
-                value={
-                    "normalized_id": ta_params["therapy_normalized_id"],
-                    "normalized_label": ta_params["therapy_normalized_label"],
-                },
-            )
-        ]
+        extensions = [self._get_vicc_normalizer_extension(ta_params)]
         regulatory_approval = ta_params.get("regulatory_approval")
         if regulatory_approval:
             regulatory_approval = json.loads(regulatory_approval)
