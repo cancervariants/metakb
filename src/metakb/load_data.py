@@ -16,7 +16,7 @@ def _create_parameterized_query(
 ) -> str:
     """Create parameterized query string for requested params if non-null in entity.
 
-    :param entity: entity to check against, eg a Variation or Study
+    :param entity: entity to check against, eg a Variation or Statement
     :param params: Parameter names to check
     :param entity_param_prefix: Prefix for parameter names in entity object
     :return: Parameterized query, such as (`name:$name`)
@@ -72,8 +72,10 @@ def _add_method(tx: ManagedTransaction, method: dict, ids_in_studies: set[str]) 
     is_reported_in = method.get("reportedIn")
     if is_reported_in:
         # Method's documents are unique and do not currently have IDs
-        _add_document(tx, is_reported_in, ids_in_studies)
-        doc_doi = is_reported_in["doi"]
+        # They also only have one document
+        document = is_reported_in[0]
+        _add_document(tx, document, ids_in_studies)
+        doc_doi = document["doi"]
         query += f"""
         MERGE (d:Document {{ doi:'{doc_doi}' }})
         MERGE (m) -[:IS_REPORTED_IN] -> (d)
@@ -278,7 +280,7 @@ def _add_categorical_variation(
     _add_mappings_and_exts_to_obj(cv, mp_nonnull_keys)
     mp_keys = ", ".join(mp_nonnull_keys)
 
-    defining_context = cv["definingContext"]
+    defining_context = cv["constraints"][0]["definingContext"]
     _add_variation(tx, defining_context)
     dc_type = defining_context["type"]
 
@@ -293,9 +295,9 @@ def _add_categorical_variation(
 
     query = f"""
     {members_match}
-    MERGE (dc:{dc_type}:Variation {{ id: '{defining_context['id']}' }})
+    MERGE (dc:Variation:{dc_type} {{ id: '{defining_context['id']}' }})
     MERGE (dc) -[:HAS_LOCATION] -> (loc)
-    MERGE (v:{cv['type']}:CategoricalVariation {{ {mp_keys} }})
+    MERGE (v:Variation:{cv['type']} {{ {mp_keys} }})
     MERGE (v) -[:HAS_DEFINING_CONTEXT] -> (dc)
     {members_relation}
     """
@@ -330,7 +332,7 @@ def _add_document(
         document = document_in.copy()
         formatted_keys = [
             _create_parameterized_query(
-                document, ("id", "label", "title", "pmid", "url", "doi")
+                document, ("id", "label", "title", "pmid", "urls", "doi")
             )
         ]
 
@@ -366,10 +368,10 @@ def _get_ids_from_studies(studies: list[dict]) -> set[str]:
         for obj in [
             study.get("specifiedBy"),  # method
             study.get("reportedIn"),
-            study.get("variant"),
-            study.get("therapeutic"),
-            study.get("tumorType"),
-            study.get("qualifiers", {}).get("geneContext"),
+            study.get("subjectVariant"),
+            study.get("objectTherapeutic"),
+            study.get("conditionQualifier"),
+            study.get("geneContextQualifier"),
         ]:
             if obj:
                 if isinstance(obj, list):
@@ -385,7 +387,7 @@ def _add_study(tx: ManagedTransaction, study_in: dict) -> None:
     """Add study node and its relationships
 
     :param tx: Transaction object provided to transaction functions
-    :param study_in: Study CDM object
+    :param study_in: Statement CDM object
     """
     study = study_in.copy()
     study_type = study["type"]
@@ -403,16 +405,14 @@ def _add_study(tx: ManagedTransaction, study_in: dict) -> None:
         match_line += f"MERGE ({name} {{ id: '{ri_doc_id}'}})\n"
         rel_line += f"MERGE (s) -[:IS_REPORTED_IN] -> ({name})\n"
 
-    qualifiers = study.get("qualifiers")
-    if qualifiers:
-        allele_origin = qualifiers.get("alleleOrigin")
-        study["alleleOrigin"] = allele_origin
-        match_line += "SET s.alleleOrigin=$alleleOrigin\n"
+    allele_origin = study.get("alleleOriginQualifier")
+    study["alleleOriginQualifier"] = allele_origin
+    match_line += "SET s.alleleOriginQualifier=$alleleOriginQualifier\n"
 
-        gene_context_id = qualifiers.get("geneContext", {}).get("id")
-        if gene_context_id:
-            match_line += f"MERGE (g:Gene {{id: '{gene_context_id}'}})\n"
-            rel_line += "MERGE (s) -[:HAS_GENE_CONTEXT] -> (g)\n"
+    gene_context_id = study.get("geneContextQualifier", {}).get("id")
+    if gene_context_id:
+        match_line += f"MERGE (g:Gene {{id: '{gene_context_id}'}})\n"
+        rel_line += "MERGE (s) -[:HAS_GENE_CONTEXT] -> (g)\n"
 
     method_id = study["specifiedBy"]["id"]
     match_line += f"MERGE (m {{ id: '{method_id}' }})\n"
@@ -433,24 +433,20 @@ def _add_study(tx: ManagedTransaction, study_in: dict) -> None:
         match_line += f"MERGE (c:Coding {{ {coding_keys} }})\n"
         rel_line += "MERGE (s) -[:HAS_STRENGTH] -> (c)\n"
 
-    variant_id = study["variant"]["id"]
-    if study["variant"]["type"] == "ProteinSequenceConsequence":
-        v_parent_type = "CategoricalVariation"
-    else:
-        v_parent_type = "Variation"
-    match_line += f"MERGE (v:{v_parent_type} {{ id: '{variant_id}' }})\n"
+    variant_id = study["subjectVariant"]["id"]
+    match_line += f"MERGE (v:Variation {{ id: '{variant_id}' }})\n"
     rel_line += "MERGE (s) -[:HAS_VARIANT] -> (v)\n"
 
-    therapeutic_id = study["therapeutic"]["id"]
+    therapeutic_id = study["objectTherapeutic"]["id"]
     match_line += f"MERGE (t:TherapeuticProcedure {{ id: '{therapeutic_id}' }})\n"
     rel_line += "MERGE (s) -[:HAS_THERAPEUTIC] -> (t)\n"
 
-    tumor_type_id = study["tumorType"]["id"]
+    tumor_type_id = study["conditionQualifier"]["id"]
     match_line += f"MERGE (tt:Condition {{ id: '{tumor_type_id}' }})\n"
     rel_line += "MERGE (s) -[:HAS_TUMOR_TYPE] -> (tt)\n"
 
     query = f"""
-    MERGE (s:{study_type}:Study {{ {study_keys} }})
+    MERGE (s:{study_type}:Statement {{ {study_keys} }})
     {match_line}
     {rel_line}
     """

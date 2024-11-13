@@ -74,7 +74,7 @@ def _get_credentials(
 
 _CONSTRAINTS = {
     "coding_constraint": "CREATE CONSTRAINT coding_constraint IF NOT EXISTS FOR (c:Coding) REQUIRE (c.code, c.label, c.system) IS UNIQUE;",
-    "gene_id_constraint": "CREATE CONSTRAINT gene_id_constraint IF NOT EXISTS FOR (n:Gene}) REQUIRE n.id IS UNIQUE;",
+    "gene_id_constraint": "CREATE CONSTRAINT gene_id_constraint IF NOT EXISTS FOR (n:Gene) REQUIRE n.id IS UNIQUE;",
     "disease_id_constraint": "CREATE CONSTRAINT disease_id_constraint IF NOT EXISTS FOR (n:Disease) REQUIRE n.id IS UNIQUE;",
     "therapeuticprocedure_id_constraint": "CREATE CONSTRAINT therapeuticprocedure_id_constraint IF NOT EXISTS FOR (n:TherapeuticProcedure) REQUIRE n.id IS UNIQUE;",
     "variation_id_constraint": "CREATE CONSTRAINT variation_id_constraint IF NOT EXISTS FOR (n:Variation) REQUIRE n.id IS UNIQUE;",
@@ -82,7 +82,7 @@ _CONSTRAINTS = {
     "variantgroup_id_constraint": "CREATE CONSTRAINT variantgroup_id_constraint IF NOT EXISTS FOR (n:VariantGroup) REQUIRE n.id IS UNIQUE;",
     "location_id_constraint": "CREATE CONSTRAINT location_id_constraint IF NOT EXISTS FOR (n:Location) REQUIRE n.id IS UNIQUE;",
     "document_id_constraint": "CREATE CONSTRAINT document_id_constraint IF NOT EXISTS FOR (n:Document) REQUIRE n.id IS UNIQUE;",
-    "study_id_constraint": "CREATE CONSTRAINT study_id_constraint IF NOT EXISTS FOR (n:Study) REQUIRE n.id IS UNIQUE;",
+    "statement_id_constraint": "CREATE CONSTRAINT study_id_constraint IF NOT EXISTS FOR (n:Statement) REQUIRE n.id IS UNIQUE;",
     "method_id_constraint": "CREATE CONSTRAINT method_id_constraint IF NOT EXISTS FOR (n:Method) REQUIRE n.id IS UNIQUE;",
 }
 
