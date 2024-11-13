@@ -82,7 +82,7 @@ _CONSTRAINTS = {
     "variantgroup_id_constraint": "CREATE CONSTRAINT variantgroup_id_constraint IF NOT EXISTS FOR (n:VariantGroup) REQUIRE n.id IS UNIQUE;",
     "location_id_constraint": "CREATE CONSTRAINT location_id_constraint IF NOT EXISTS FOR (n:Location) REQUIRE n.id IS UNIQUE;",
     "document_id_constraint": "CREATE CONSTRAINT document_id_constraint IF NOT EXISTS FOR (n:Document) REQUIRE n.id IS UNIQUE;",
-    "statement_id_constraint": "CREATE CONSTRAINT study_id_constraint IF NOT EXISTS FOR (n:Statement) REQUIRE n.id IS UNIQUE;",
+    "statement_id_constraint": "CREATE CONSTRAINT statement_id_constraint IF NOT EXISTS FOR (n:Statement) REQUIRE n.id IS UNIQUE;",
     "method_id_constraint": "CREATE CONSTRAINT method_id_constraint IF NOT EXISTS FOR (n:Method) REQUIRE n.id IS UNIQUE;",
 }
 
