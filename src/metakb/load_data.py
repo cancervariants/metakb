@@ -7,7 +7,7 @@ from pathlib import Path
 from neo4j import Driver, ManagedTransaction
 
 from metakb.database import get_driver
-from metakb.normalizers import ViccDiseaseNormalizerData
+from metakb.normalizers import VICC_NORMALIZER_DATA, ViccDiseaseNormalizerData
 
 _logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
 
     extensions = obj.get("extensions", [])
     for ext in extensions:
-        if ext["name"] == "vicc_normalizer_data":
+        if ext["name"] == VICC_NORMALIZER_DATA:
             for normalized_field in ViccDiseaseNormalizerData.model_fields:
                 normalized_val = ext["value"].get(normalized_field)
                 if normalized_val is None:

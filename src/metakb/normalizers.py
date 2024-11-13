@@ -57,10 +57,13 @@ class ViccDiseaseNormalizerData(ViccNormalizerData, extra="forbid"):
     mondo_id: str | None = None
 
 
+VICC_NORMALIZER_DATA = "vicc_normalizer_data"
+
+
 class ViccNormalizerDataExtension(Extension):
     """Define model for representing VICC normalizer data as an Extension"""
 
-    name: Literal["vicc_normalizer_data"] = "vicc_normalizer_data"
+    name: Literal["vicc_normalizer_data"] = VICC_NORMALIZER_DATA
 
 
 class ViccNormalizers:

@@ -3,6 +3,7 @@
 import pytest
 from ga4gh.core.entity_models import Extension
 
+from metakb.normalizers import VICC_NORMALIZER_DATA
 from metakb.query import QueryHandler
 
 from .utils import assert_no_match, find_and_check_study
@@ -16,7 +17,7 @@ def _get_normalizer_id(extensions: list[Extension]) -> str | None:
     """
     normalizer_id = None
     for ext in extensions:
-        if ext.name == "vicc_normalizer_data":
+        if ext.name == VICC_NORMALIZER_DATA:
             normalizer_id = ext.value["id"]
             break
     return normalizer_id

@@ -7,7 +7,7 @@ from neo4j import Driver
 from neo4j.graph import Node
 
 from metakb.database import get_driver
-from metakb.normalizers import ViccDiseaseNormalizerData
+from metakb.normalizers import VICC_NORMALIZER_DATA, ViccDiseaseNormalizerData
 from metakb.schemas.app import SourceName
 
 
@@ -154,7 +154,7 @@ def check_extension_props():
     ):
         checked = set()
         for ext in fixture_extensions:
-            if ext["name"] == "vicc_normalizer_data":
+            if ext["name"] == VICC_NORMALIZER_DATA:
                 for normalized_field in ViccDiseaseNormalizerData.model_fields:
                     normalized_val = ext["value"].get(normalized_field)
                     if normalized_val is None:

@@ -8,7 +8,7 @@ import pytest
 from deepdiff import DeepDiff
 
 from metakb.harvesters.base import Harvester
-from metakb.normalizers import ViccNormalizers
+from metakb.normalizers import VICC_NORMALIZER_DATA, ViccNormalizers
 from metakb.query import QueryHandler
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
@@ -64,7 +64,7 @@ def cetuximab_extensions():
     """Create test fixture for cetuximab extensions"""
     return [
         {
-            "name": "vicc_normalizer_data",
+            "name": VICC_NORMALIZER_DATA,
             "value": {"id": "rxcui:318341", "label": "cetuximab"},
         },
         {
@@ -127,7 +127,7 @@ def encorafenib_extensions():
     """Create test fixture for encorafenib extensions"""
     return [
         {
-            "name": "vicc_normalizer_data",
+            "name": VICC_NORMALIZER_DATA,
             "value": {
                 "id": "rxcui:2049106",
                 "label": "encorafenib",
@@ -367,7 +367,7 @@ def civic_gid5():
         ],
         "extensions": [
             {
-                "name": "vicc_normalizer_data",
+                "name": VICC_NORMALIZER_DATA,
                 "value": {"id": "hgnc:1097", "label": "BRAF"},
             }
         ],
@@ -588,7 +588,7 @@ def civic_gid19():
         ],
         "extensions": [
             {
-                "name": "vicc_normalizer_data",
+                "name": VICC_NORMALIZER_DATA,
                 "value": {"id": "hgnc:3236", "label": "EGFR"},
             }
         ],
@@ -643,7 +643,7 @@ def civic_tid146():
                 },
             },
             {
-                "name": "vicc_normalizer_data",
+                "name": VICC_NORMALIZER_DATA,
                 "value": {
                     "id": "rxcui:1430438",
                     "label": "afatinib",
@@ -671,7 +671,7 @@ def civic_did8():
         ],
         "extensions": [
             {
-                "name": "vicc_normalizer_data",
+                "name": VICC_NORMALIZER_DATA,
                 "value": {
                     "id": "ncit:C2926",
                     "label": "Lung Non-Small Cell Carcinoma",
@@ -723,7 +723,7 @@ def civic_tid28():
         ],
         "extensions": [
             {
-                "name": "vicc_normalizer_data",
+                "name": VICC_NORMALIZER_DATA,
                 "value": {
                     "id": "rxcui:263034",
                     "label": "panitumumab",
@@ -864,7 +864,7 @@ def civic_did11():
         ],
         "extensions": [
             {
-                "name": "vicc_normalizer_data",
+                "name": VICC_NORMALIZER_DATA,
                 "value": {
                     "id": "ncit:C4978",
                     "label": "Malignant Colorectal Neoplasm",
@@ -1849,7 +1849,7 @@ def moa_abl1():
         "label": "ABL1",
         "extensions": [
             {
-                "name": "vicc_normalizer_data",
+                "name": VICC_NORMALIZER_DATA,
                 "value": {"id": "hgnc:76", "label": "ABL1"},
             }
         ],
@@ -1955,7 +1955,7 @@ def moa_imatinib():
                 },
             },
             {
-                "name": "vicc_normalizer_data",
+                "name": VICC_NORMALIZER_DATA,
                 "value": {
                     "id": "rxcui:282388",
                     "label": "imatinib",
@@ -1974,7 +1974,7 @@ def moa_chronic_myelogenous_leukemia():
         "label": "Chronic Myelogenous Leukemia",
         "extensions": [
             {
-                "name": "vicc_normalizer_data",
+                "name": VICC_NORMALIZER_DATA,
                 "value": {
                     "id": "ncit:C3174",
                     "label": "Chronic Myelogenous Leukemia, BCR-ABL1 Positive",

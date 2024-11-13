@@ -6,6 +6,7 @@ import pytest
 import pytest_asyncio
 from tests.conftest import TEST_TRANSFORMERS_DIR
 
+from metakb.normalizers import VICC_NORMALIZER_DATA
 from metakb.transformers.moa import MoaTransformer
 
 FILENAME = "moa_cdm.json"
@@ -148,7 +149,7 @@ def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
             "label": "Colorectal Adenocarcinoma",
             "extensions": [
                 {
-                    "name": "vicc_normalizer_data",
+                    "name": VICC_NORMALIZER_DATA,
                     "value": {
                         "id": "ncit:C5105",
                         "label": "Colorectal Adenocarcinoma",
@@ -174,7 +175,7 @@ def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
             "label": "BRAF",
             "extensions": [
                 {
-                    "name": "vicc_normalizer_data",
+                    "name": VICC_NORMALIZER_DATA,
                     "value": {"id": "hgnc:1097", "label": "BRAF"},
                 }
             ],
