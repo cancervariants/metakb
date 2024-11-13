@@ -5,21 +5,24 @@ import logging
 from copy import copy
 from enum import Enum
 
+from ga4gh.cat_vrs.core_models import CategoricalVariant
 from ga4gh.core.domain_models import (
     Disease,
     Gene,
     TherapeuticAgent,
     TherapeuticProcedure,
 )
-from ga4gh.core.entity_models import Coding, Expression, Extension
-from ga4gh.vrs.models import Variation
+from ga4gh.core.entity_models import Coding, Document, Extension, Method
+from ga4gh.va_spec.profiles.var_study_stmt import (
+    VariantTherapeuticResponseStudyStatement,
+)
+from ga4gh.vrs.models import Expression, Variation
 from neo4j import Driver
 from neo4j.graph import Node
 from pydantic import ValidationError
 
 from metakb.database import get_driver
 from metakb.normalizers import ViccNormalizers
-from metakb.schemas.annotation import Document, Method
 from metakb.schemas.api import (
     BatchSearchStudiesQuery,
     BatchSearchStudiesService,
@@ -28,11 +31,6 @@ from metakb.schemas.api import (
     ServiceMeta,
 )
 from metakb.schemas.app import SourceName
-from metakb.schemas.categorical_variation import CategoricalVariation
-from metakb.schemas.variation_statement import (
-    VariantTherapeuticResponseStudy,
-    _VariantOncogenicityStudyQualifier,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -419,7 +417,7 @@ class QueryHandler:
 
         if normalized_variation:
             query += """
-            MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
+            MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariant)
             MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation {id:$v_id})
             """
             params["v_id"] = normalized_variation
@@ -484,12 +482,12 @@ class QueryHandler:
 
     def _get_nested_study(self, study_node: Node) -> dict:
         """Get information related to a study
-        Only VariantTherapeuticResponseStudy are supported at the moment
+        Only VariantTherapeuticResponseStudyStatement are supported at the moment
 
         :param study_node: Neo4j graph node for study
         :return: Nested study
         """
-        if study_node["type"] != "VariantTherapeuticResponseStudy":
+        if study_node["type"] != "VariantTherapeuticResponseStudyStatement":
             return {}
 
         params = {
@@ -520,9 +518,10 @@ class QueryHandler:
             elif rel_type == "HAS_VARIANT":
                 params["variant"] = self._get_cat_var(node)
             elif rel_type == "HAS_GENE_CONTEXT":
-                params["qualifiers"] = self._get_variant_onco_study_qualifier(
-                    study_id, study_node.get("alleleOrigin")
+                params["geneContextQualifier"] = self._get_gene_context_qualifier(
+                    study_id
                 )
+                params["alleleOriginQualifier"] = study_node.get("alleleOrigin")
             elif rel_type == "IS_SPECIFIED_BY":
                 node["reportedIn"] = self._get_method_document(node["id"])
                 params["specifiedBy"] = Method(**node)
@@ -535,7 +534,7 @@ class QueryHandler:
             else:
                 logger.warning("relation type not supported: %s", rel_type)
 
-        return VariantTherapeuticResponseStudy(**params).model_dump()
+        return VariantTherapeuticResponseStudyStatement(**params).model_dump()
 
     @staticmethod
     def _get_disease(node: dict) -> Disease:
@@ -560,7 +559,7 @@ class QueryHandler:
             returns exactly one variation
         """
         query = f"""
-        MATCH (v:Variation) <- [:{relation.value}] - (cv:CategoricalVariation
+        MATCH (v:Variation) <- [:{relation.value}] - (cv:CategoricalVariant
             {{ id: $cv_id }})
         MATCH (loc:Location) <- [:HAS_LOCATION] - (v)
         RETURN v, loc
@@ -590,7 +589,7 @@ class QueryHandler:
             variations.append(Variation(**v_params).model_dump())
         return variations
 
-    def _get_cat_var(self, node: dict) -> CategoricalVariation:
+    def _get_cat_var(self, node: dict) -> CategoricalVariant:
         """Get categorical variation data from a node with relationship ``HAS_VARIANT``
 
         :param node: Variant node data. This will be mutated.
@@ -630,16 +629,13 @@ class QueryHandler:
         node["members"] = self._get_variations(
             node["id"], VariationRelation.HAS_MEMBERS
         )
-        return CategoricalVariation(**node)
+        return CategoricalVariant(**node)
 
-    def _get_variant_onco_study_qualifier(
-        self, study_id: str, allele_origin: str | None
-    ) -> _VariantOncogenicityStudyQualifier:
-        """Get variant oncogenicity study qualifier data for a study
+    def _get_gene_context_qualifier(self, study_id: str) -> Gene | None:
+        """Get gene context qualifier data for a study
 
         :param study_id: ID of study node
-        :param allele_origin: Study's allele origin
-        :return Variant oncogenicity study qualifier data
+        :return Gene context qualifier data
         """
         query = """
         MATCH (s:Study { id: $study_id }) -[:HAS_GENE_CONTEXT] -> (g:Gene)
@@ -666,10 +662,7 @@ class QueryHandler:
         gene_node["extensions"] = [
             Extension(name="gene_normalizer_id", value=gene_node["gene_normalizer_id"])
         ]
-
-        return _VariantOncogenicityStudyQualifier(
-            alleleOrigin=allele_origin, geneContext=Gene(**gene_node)
-        )
+        return Gene(**gene_node)
 
     def _get_method_document(self, method_id: str) -> Document | None:
         """Get document for a given method
@@ -863,7 +856,7 @@ class QueryHandler:
 
         if limit is not None or self._default_page_limit is not None:
             query = """
-                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
+                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariant)
                 MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
                 WHERE v.id IN $v_ids
                 RETURN DISTINCT s
@@ -874,7 +867,7 @@ class QueryHandler:
             limit = limit if limit is not None else self._default_page_limit
         else:
             query = """
-                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariation)
+                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariant)
                 MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
                 WHERE v.id IN $v_ids
                 RETURN DISTINCT s
@@ -886,5 +879,7 @@ class QueryHandler:
             study_nodes = [r[0] for r in result]
         response.study_ids = [n["id"] for n in study_nodes]
         studies = self._get_nested_studies(study_nodes)
-        response.studies = [VariantTherapeuticResponseStudy(**s) for s in studies]
+        response.studies = [
+            VariantTherapeuticResponseStudyStatement(**s) for s in studies
+        ]
         return response

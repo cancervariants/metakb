@@ -34,11 +34,8 @@ Data Schemas
    :toctree: api/
    :template: module_summary.rst
 
-   metakb.schemas.annotation
    metakb.schemas.api
    metakb.schemas.app
-   metakb.schemas.categorical_variation
-   metakb.schemas.variation_statement
 
 Harvesters
 ----------
