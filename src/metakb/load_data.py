@@ -43,8 +43,14 @@ def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
     for ext in extensions:
         if ext["name"].endswith("_normalizer_data"):
             obj_type = ext["name"].split("_normalizer_data")[0]
-            name = f"{obj_type}_normalizer_id"
-            obj[name] = ext["value"]["normalized_id"]
+            for normalized_field in {"normalized_id", "normalized_label", "mondo_id"}:
+                normalized_val = ext["value"].get(normalized_field)
+                if normalized_val is None:
+                    continue
+
+                name = f"{obj_type}_{normalized_field}"
+                obj[name] = normalized_val
+                obj_keys.append(f"{name}:${name}")
         else:
             name = "_".join(ext["name"].split()).lower()
             val = ext["value"]
@@ -52,7 +58,7 @@ def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
                 obj[name] = json.dumps(val)
             else:
                 obj[name] = val
-        obj_keys.append(f"{name}:${name}")
+            obj_keys.append(f"{name}:${name}")
 
 
 def _add_method(tx: ManagedTransaction, method: dict, ids_in_studies: set[str]) -> None:

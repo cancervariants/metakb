@@ -5,7 +5,7 @@ import logging
 from copy import copy
 from enum import Enum
 
-from ga4gh.cat_vrs.core_models import CategoricalVariant
+from ga4gh.cat_vrs.core_models import CategoricalVariant, DefiningContextConstraint
 from ga4gh.core.domain_models import (
     Disease,
     Gene,
@@ -382,7 +382,7 @@ class QueryHandler:
         :return: Study node if successful
         """
         query = """
-        MATCH (s:Study)
+        MATCH (s:Statement)
         WHERE toLower(s.id) = toLower($study_id)
         RETURN s
         """
@@ -412,7 +412,7 @@ class QueryHandler:
         :param normalized_gene: normalized gene concept ID
         :return: List of Study nodes that match the intersection of the given parameters
         """
-        query = "MATCH (s:Study)"
+        query = "MATCH (s:Statement)"
         params: dict[str, str | int] = {}
 
         if normalized_variation:
@@ -424,20 +424,20 @@ class QueryHandler:
 
         if normalized_disease:
             query += """
-            MATCH (s) -[:HAS_TUMOR_TYPE] -> (c:Condition {disease_normalizer_id:$c_id})
+            MATCH (s) -[:HAS_TUMOR_TYPE] -> (c:Condition {disease_normalized_id:$c_id})
             """
             params["c_id"] = normalized_disease
 
         if normalized_gene:
             query += """
-            MATCH (s) -[:HAS_GENE_CONTEXT] -> (g:Gene {gene_normalizer_id:$g_id})
+            MATCH (s) -[:HAS_GENE_CONTEXT] -> (g:Gene {gene_normalized_id:$g_id})
             """
             params["g_id"] = normalized_gene
 
         if normalized_therapy:
             query += """
-            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> (tp:TherapeuticAgent {therapy_normalizer_id:$t_id})
-            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> () -[:HAS_SUBSTITUTES|HAS_COMPONENTS] -> (ta:TherapeuticAgent {therapy_normalizer_id:$t_id})
+            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> (tp:TherapeuticAgent {therapy_normalized_id:$t_id})
+            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> () -[:HAS_SUBSTITUTES|HAS_COMPONENTS] -> (ta:TherapeuticAgent {therapy_normalized_id:$t_id})
             WITH s, tp, ta
             WHERE tp IS NOT NULL OR ta IS NOT NULL
             """
@@ -491,8 +491,8 @@ class QueryHandler:
             return {}
 
         params = {
-            "tumorType": None,
-            "variant": None,
+            "conditionQualifier": None,
+            "subjectVariant": None,
             "strength": None,
             "reportedIn": [],
             "specifiedBy": None,
@@ -502,7 +502,7 @@ class QueryHandler:
 
         # Get relationship and nodes for a study
         query = """
-        MATCH (s:Study { id: $study_id })
+        MATCH (s:Statement { id: $study_id })
         OPTIONAL MATCH (s)-[r]-(n)
         RETURN type(r) as r_type, n;
         """
@@ -514,23 +514,25 @@ class QueryHandler:
             node = data["n"]
 
             if rel_type == "HAS_TUMOR_TYPE":
-                params["tumorType"] = self._get_disease(node)
+                params["conditionQualifier"] = self._get_disease(node)
             elif rel_type == "HAS_VARIANT":
-                params["variant"] = self._get_cat_var(node)
+                params["subjectVariant"] = self._get_cat_var(node)
             elif rel_type == "HAS_GENE_CONTEXT":
                 params["geneContextQualifier"] = self._get_gene_context_qualifier(
                     study_id
                 )
-                params["alleleOriginQualifier"] = study_node.get("alleleOrigin")
+                params["alleleOriginQualifier"] = study_node.get(
+                    "alleleOriginQualifier"
+                )
             elif rel_type == "IS_SPECIFIED_BY":
-                node["reportedIn"] = self._get_method_document(node["id"])
+                node["reportedIn"] = [self._get_method_document(node["id"])]
                 params["specifiedBy"] = Method(**node)
             elif rel_type == "IS_REPORTED_IN":
                 params["reportedIn"].append(self._get_document(node))
             elif rel_type == "HAS_STRENGTH":
                 params["strength"] = Coding(**node)
             elif rel_type == "HAS_THERAPEUTIC":
-                params["therapeutic"] = self._get_therapeutic_procedure(node)
+                params["objectTherapeutic"] = self._get_therapeutic_procedure(node)
             else:
                 logger.warning("relation type not supported: %s", rel_type)
 
@@ -544,8 +546,17 @@ class QueryHandler:
         :return: Disease object
         """
         node["mappings"] = _deserialize_field(node, "mappings")
+        ext_value = {
+            "normalized_id": node["disease_normalized_id"],
+            "normalized_label": node["disease_normalized_label"],
+        }
+
+        mondo_id = node.get("disease_mondo_id")
+        if mondo_id:
+            ext_value["mondo_id"] = mondo_id
+
         node["extensions"] = [
-            Extension(name="disease_normalizer_id", value=node["disease_normalizer_id"])
+            Extension(name="disease_normalizer_data", value=ext_value)
         ]
         return Disease(**node)
 
@@ -623,9 +634,13 @@ class QueryHandler:
             )
 
         node["extensions"] = extensions or None
-        node["definingContext"] = self._get_variations(
-            node["id"], VariationRelation.HAS_DEFINING_CONTEXT
-        )[0]
+        node["constraints"] = [
+            DefiningContextConstraint(
+                definingContext=self._get_variations(
+                    node["id"], VariationRelation.HAS_DEFINING_CONTEXT
+                )[0]
+            )
+        ]
         node["members"] = self._get_variations(
             node["id"], VariationRelation.HAS_MEMBERS
         )
@@ -638,7 +653,7 @@ class QueryHandler:
         :return Gene context qualifier data
         """
         query = """
-        MATCH (s:Study { id: $study_id }) -[:HAS_GENE_CONTEXT] -> (g:Gene)
+        MATCH (s:Statement { id: $study_id }) -[:HAS_GENE_CONTEXT] -> (g:Gene)
         RETURN g
         """
         results = self.driver.execute_query(query, study_id=study_id)
@@ -660,7 +675,13 @@ class QueryHandler:
         gene_node["mappings"] = _deserialize_field(gene_node, "mappings")
 
         gene_node["extensions"] = [
-            Extension(name="gene_normalizer_id", value=gene_node["gene_normalizer_id"])
+            Extension(
+                name="gene_normalizer_data",
+                value={
+                    "normalized_id": gene_node["gene_normalized_id"],
+                    "normalized_label": gene_node["gene_normalized_label"],
+                },
+            )
         ]
         return Gene(**gene_node)
 
@@ -779,7 +800,11 @@ class QueryHandler:
         ta_params["mappings"] = _deserialize_field(ta_params, "mappings")
         extensions = [
             Extension(
-                name="therapy_normalizer_id", value=ta_params["therapy_normalizer_id"]
+                name="therapy_normalizer_data",
+                value={
+                    "normalized_id": ta_params["therapy_normalized_id"],
+                    "normalized_label": ta_params["therapy_normalized_label"],
+                },
             )
         ]
         regulatory_approval = ta_params.get("regulatory_approval")

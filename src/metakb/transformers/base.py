@@ -481,7 +481,7 @@ class Transformer(ABC):
             name="therapy_normalizer_data",
             value={
                 "normalized_id": normalized_therapeutic_id,
-                "label": therapy_norm_resp.therapeutic_agent.label,
+                "normalized_label": therapy_norm_resp.therapeutic_agent.label,
             },
         )
 
@@ -507,7 +507,7 @@ class Transformer(ABC):
             name="disease_normalizer_data",
             value={
                 "normalized_id": normalized_disease_id,
-                "label": disease_norm_resp.disease.label,
+                "normalized_label": disease_norm_resp.disease.label,
                 "mondo_id": mondo_id,
             },
         )

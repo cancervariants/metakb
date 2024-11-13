@@ -151,7 +151,7 @@ def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
                     "name": "disease_normalizer_data",
                     "value": {
                         "normalized_id": "ncit:C5105",
-                        "label": "Colorectal Adenocarcinoma",
+                        "normalized_label": "Colorectal Adenocarcinoma",
                         "mondo_id": "0005008",
                     },
                 }
@@ -174,8 +174,8 @@ def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
             "label": "BRAF",
             "extensions": [
                 {
-                    "name": "gene_normalizer_id",
-                    "value": "hgnc:1097",
+                    "name": "gene_normalizer_data",
+                    "value": {"normalized_id": "hgnc:1097", "normalized_label": "BRAF"},
                 }
             ],
         },

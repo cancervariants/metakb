@@ -384,13 +384,21 @@ class MoaTransformer(Transformer):
         :param genes: All genes in MOAlmanac
         """
         for gene in genes:
-            _, normalized_gene_id = self.vicc_normalizers.normalize_gene([gene])
+            gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(
+                [gene]
+            )
             if normalized_gene_id:
                 moa_gene = Gene(
                     id=f"moa.normalize.gene:{quote(gene)}",
                     label=gene,
                     extensions=[
-                        Extension(name="gene_normalizer_id", value=normalized_gene_id)
+                        Extension(
+                            name="gene_normalizer_data",
+                            value={
+                                "normalized_id": normalized_gene_id,
+                                "normalized_label": gene_norm_resp.gene.label,
+                            },
+                        )
                     ],
                 )
                 self.able_to_normalize["genes"][quote(gene)] = moa_gene

@@ -656,7 +656,9 @@ class CivicTransformer(Transformer):
             ncbigene = f"ncbigene:{gene['entrez_id']}"
             queries = [ncbigene, gene["name"]] + gene["aliases"]
 
-            _, normalized_gene_id = self.vicc_normalizers.normalize_gene(queries)
+            gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(
+                queries
+            )
 
             if normalized_gene_id:
                 civic_gene = Gene(
@@ -674,7 +676,13 @@ class CivicTransformer(Transformer):
                     ],
                     alternativeLabels=gene["aliases"] if gene["aliases"] else None,
                     extensions=[
-                        Extension(name="gene_normalizer_id", value=normalized_gene_id)
+                        Extension(
+                            name="gene_normalizer_data",
+                            value={
+                                "normalized_id": normalized_gene_id,
+                                "normalized_label": gene_norm_resp.gene.label,
+                            },
+                        )
                     ],
                 )
                 self.able_to_normalize["genes"][gene_id] = civic_gene

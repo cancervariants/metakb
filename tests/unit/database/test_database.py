@@ -155,9 +155,18 @@ def check_extension_props():
         for ext in fixture_extensions:
             if ext["name"].endswith("_normalizer_data"):
                 obj_type = ext["name"].split("_normalizer_data")[0]
-                ext_name = f"{obj_type}_normalizer_id"
-                assert node[ext_name] == ext["value"]["normalized_id"]
-                checked.add(ext_name)
+                for normalized_field in {
+                    "normalized_id",
+                    "normalized_label",
+                    "mondo_id",
+                }:
+                    normalized_val = ext["value"].get(normalized_field)
+                    if normalized_val is None:
+                        continue
+
+                    ext_name = f"{obj_type}_{normalized_field}"
+                    assert node[ext_name] == ext["value"][normalized_field]
+                    checked.add(ext_name)
             elif ext["name"] in ext_names:
                 try:
                     assert json.loads(node[ext["name"]]) == ext["value"]
@@ -219,10 +228,11 @@ def test_gene_rules(
     check_node_labels("Gene", expected_labels, 1)
 
     gene = get_node_by_id(civic_gid5["id"])
-    extension_names = {"gene_normalizer_id"}
+    extension_names = {"gene_normalized_label", "gene_normalized_id"}
     check_extension_props(gene, civic_gid5["extensions"], extension_names)
     expected_keys = {
-        "gene_normalizer_id",
+        "gene_normalized_id",
+        "gene_normalized_label",
         "label",
         "id",
         "description",
@@ -452,13 +462,18 @@ def test_therapeutic_procedure_rules(
 
     # Test TherapeuticAgent
     ta = get_node_by_id(civic_tid146["id"])
-    extension_names = {"therapy_normalizer_id", "regulatory_approval"}
+    extension_names = {
+        "therapy_normalized_id",
+        "therapy_normalized_label",
+        "regulatory_approval",
+    }
     check_extension_props(ta, civic_tid146["extensions"], extension_names)
     expected_keys = {
         "id",
         "label",
         "alternativeLabels",
-        "therapy_normalizer_id",
+        "therapy_normalized_id",
+        "therapy_normalized_label",
         "regulatory_approval",
         "mappings",
         "type",
@@ -499,9 +514,21 @@ def test_condition_rules(
     check_node_labels("Condition", expected_node_labels, 1)
 
     disease = get_node_by_id(civic_did8["id"])
-    extension_names = {"disease_normalizer_id"}
+    extension_names = {
+        "disease_normalized_id",
+        "disease_normalized_label",
+        "disease_mondo_id",
+    }
     check_extension_props(disease, civic_did8["extensions"], extension_names)
-    expected_keys = {"id", "label", "mappings", "disease_normalizer_id", "type"}
+    expected_keys = {
+        "id",
+        "label",
+        "mappings",
+        "disease_normalized_id",
+        "disease_normalized_label",
+        "disease_mondo_id",
+        "type",
+    }
     check_node_props(disease, civic_did8, expected_keys, extension_names)
 
 
