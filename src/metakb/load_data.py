@@ -412,8 +412,9 @@ def _add_study(tx: ManagedTransaction, study_in: dict) -> None:
         rel_line += f"MERGE (s) -[:IS_REPORTED_IN] -> ({name})\n"
 
     allele_origin = study.get("alleleOriginQualifier")
-    study["alleleOriginQualifier"] = allele_origin
-    match_line += "SET s.alleleOriginQualifier=$alleleOriginQualifier\n"
+    if allele_origin:
+        study["alleleOriginQualifier"] = allele_origin
+        match_line += "SET s.alleleOriginQualifier=$alleleOriginQualifier\n"
 
     gene_context_id = study.get("geneContextQualifier", {}).get("id")
     if gene_context_id:
@@ -452,7 +453,7 @@ def _add_study(tx: ManagedTransaction, study_in: dict) -> None:
     rel_line += "MERGE (s) -[:HAS_TUMOR_TYPE] -> (tt)\n"
 
     query = f"""
-    MERGE (s:{study_type}:Statement {{ {study_keys} }})
+    MERGE (s:{study_type}:StudyStatement:Statement {{ {study_keys} }})
     {match_line}
     {rel_line}
     """

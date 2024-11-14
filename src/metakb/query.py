@@ -158,7 +158,7 @@ class QueryHandler:
         >>> result = qh.search_studies("BRAF V600E")
         >>> result.study_ids[:3]
         ['moa.assertion:944', 'moa.assertion:911', 'moa.assertion:865']
-        >>> result.studies[0].reportedIn[0].url
+        >>> result.studies[0].reportedIn[0].urls[0]
         'https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/202429s019lbl.pdf'
 
         Variation, disease, therapy, and gene terms are resolved via their respective

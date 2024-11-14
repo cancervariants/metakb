@@ -547,7 +547,9 @@ def test_study_rules(
     check_relation_count("Statement", "Method", "IS_SPECIFIED_BY", max_rels=None)
     check_relation_count("Statement", "Gene", "HAS_GENE_CONTEXT", max_rels=None)
 
-    expected_node_labels = [{"Statement", "VariantTherapeuticResponseStudyStatement"}]
+    expected_node_labels = [
+        {"Statement", "StudyStatement", "VariantTherapeuticResponseStudyStatement"}
+    ]
     check_node_labels("Statement", expected_node_labels, 1)
 
     cite_query = """
