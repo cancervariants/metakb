@@ -209,7 +209,7 @@ class CivicTransformer(Transformer):
             for mp in molecular_profiles
             if f"civic.vid:{mp['variant_ids'][0]}" in able_to_normalize_vids
         ]
-        self._add_protein_consequences(mps, mp_id_to_v_id_mapping)
+        self._add_categorical_variants(mps, mp_id_to_v_id_mapping)
 
         # Add variant therapeutic response study data. Will update `studies`
         self._add_variant_therapeutic_response_studies(
@@ -366,10 +366,10 @@ class CivicTransformer(Transformer):
                 predicate = TherapeuticResponsePredicate.RESISTANCE
         return predicate
 
-    def _add_protein_consequences(
+    def _add_categorical_variants(
         self, molecular_profiles: list[dict], mp_id_to_v_id_mapping: dict
     ) -> None:
-        """Create Protein Sequence Consequence objects for all supported MP records.
+        """Create Categorical Variant objects for all supported MP records.
         Mutates instance variables ``able_to_normalize['categorical_variants']`` and
         ``processed_data.categorical_variants``.
 

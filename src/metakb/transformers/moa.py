@@ -81,7 +81,7 @@ class MoaTransformer(Transformer):
         # Add gene, variant, and source data to ``processed_data`` instance variable
         # (``genes``, ``variations``, and ``documents``)
         self._add_genes(harvested_data.genes)
-        await self._add_protein_consequences(harvested_data.variants)
+        await self._add_categorical_variants(harvested_data.variants)
         self._add_documents(harvested_data.sources)
 
         # Add variant therapeutic response study data. Will update `studies`
@@ -215,8 +215,8 @@ class MoaTransformer(Transformer):
             )
             self.processed_data.studies.append(statement)
 
-    async def _add_protein_consequences(self, variants: list[dict]) -> None:
-        """Create Protein Sequence Consequence objects for all MOA variant records.
+    async def _add_categorical_variants(self, variants: list[dict]) -> None:
+        """Create Categorical Variant objects for all MOA variant records.
         Mutates instance variables ``able_to_normalize['variations']`` and
         ``processed_data.variations``, if the variation-normalizer can successfully
         normalize the variant

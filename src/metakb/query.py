@@ -47,7 +47,7 @@ class PaginationParamError(Exception):
 
 class VariationRelation(str, Enum):
     """Constrain possible values for the relationship between variations and
-    categorical variations.
+    categorical variants.
     """
 
     HAS_MEMBERS = "HAS_MEMBERS"
@@ -575,11 +575,11 @@ class QueryHandler:
         return Disease(**node)
 
     def _get_variations(self, cv_id: str, relation: VariationRelation) -> list[dict]:
-        """Get list of variations associated to categorical variation
+        """Get list of variations associated to categorical variant
 
-        :param cv_id: ID for categorical variation
-        :param relation: Relation type for categorical variation and variation
-        :return: List of variations with `relation` to categorical variation. If
+        :param cv_id: ID for categorical variant
+        :param relation: Relation type for categorical variant and variation
+        :return: List of variations with `relation` to categorical variant. If
             VariationRelation.HAS_MEMBERS, returns at least one variation. Otherwise,
             returns exactly one variation
         """
@@ -615,10 +615,10 @@ class QueryHandler:
         return variations
 
     def _get_cat_var(self, node: dict) -> CategoricalVariant:
-        """Get categorical variation data from a node with relationship ``HAS_VARIANT``
+        """Get categorical variant data from a node with relationship ``HAS_VARIANT``
 
         :param node: Variant node data. This will be mutated.
-        :return: Categorical Variation data
+        :return: Categorical Variant data
         """
         node["mappings"] = _deserialize_field(node, "mappings")
 

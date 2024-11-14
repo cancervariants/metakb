@@ -261,21 +261,21 @@ def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
     tx.run(query, **v)
 
 
-def _add_categorical_variation(
+def _add_categorical_variant(
     tx: ManagedTransaction,
-    categorical_variation_in: dict,
+    categorical_variant_in: dict,
     ids_in_studies: set[str],
 ) -> None:
-    """Add categorical variation objects to DB.
+    """Add categorical variant objects to DB.
 
     :param tx: Transaction object provided to transaction functions
-    :param categorical_variation_in: Categorical variation CDM object
+    :param categorical_variant_in: Categorical variant CDM object
     :param ids_in_studies: IDs found in studies
     """
-    if categorical_variation_in["id"] not in ids_in_studies:
+    if categorical_variant_in["id"] not in ids_in_studies:
         return
 
-    cv = categorical_variation_in.copy()
+    cv = categorical_variant_in.copy()
 
     mp_nonnull_keys = [
         _create_parameterized_query(
@@ -476,7 +476,7 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
         loaded_study_count = 0
 
         for cv in data.get("categorical_variants", []):
-            session.execute_write(_add_categorical_variation, cv, ids_in_studies)
+            session.execute_write(_add_categorical_variant, cv, ids_in_studies)
 
         for doc in data.get("documents", []):
             session.execute_write(_add_document, doc, ids_in_studies)

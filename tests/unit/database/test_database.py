@@ -310,14 +310,14 @@ def test_variation_rules(
     assert v["expression_hgvs_p"] == expected_p
 
 
-def test_categorical_variation_rules(
+def test_categorical_variant_rules(
     check_unique_property,
     check_relation_count,
     check_node_labels,
     get_node_by_id,
     civic_mpid12,
 ):
-    """Verify property and relationship rules for Categorical Variation nodes."""
+    """Verify property and relationship rules for Categorical Variant nodes."""
     check_unique_property("CategoricalVariant", "id")
     check_relation_count(
         "CategoricalVariant", "Variation", "HAS_DEFINING_CONTEXT", max_rels=1
