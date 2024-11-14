@@ -309,7 +309,7 @@ def civic_source592():
 
 
 @pytest.fixture(scope="session")
-def civic_eid2997_study(
+def civic_eid2997_study_stmt(
     civic_mpid33,
     civic_tid146,
     civic_did8,
@@ -317,7 +317,7 @@ def civic_eid2997_study(
     civic_method,
     civic_source592,
 ):
-    """Create CIVIC EID2997 Statement test fixture. Uses TherapeuticAgent."""
+    """Create CIVIC EID2997 Study Statement test fixture. Uses TherapeuticAgent."""
     return {
         "id": "civic.eid:2997",
         "type": "VariantTherapeuticResponseStudyStatement",
@@ -876,8 +876,10 @@ def civic_did11():
 
 
 @pytest.fixture(scope="session")
-def civic_eid816_study(civic_mpid12, civic_tsg, civic_did11, civic_gid5, civic_method):
-    """Create CIVIC EID816 study test fixture. Uses TherapeuticSubstituteGroup."""
+def civic_eid816_study_stmt(
+    civic_mpid12, civic_tsg, civic_did11, civic_gid5, civic_method
+):
+    """Create CIVIC EID816 study statement test fixture. Uses TherapeuticSubstituteGroup."""
     return {
         "id": "civic.eid:816",
         "type": "VariantTherapeuticResponseStudyStatement",
@@ -908,14 +910,14 @@ def civic_eid816_study(civic_mpid12, civic_tsg, civic_did11, civic_gid5, civic_m
 
 
 @pytest.fixture(scope="session")
-def civic_eid9851_study(
+def civic_eid9851_study_stmt(
     civic_mpid12,
     civic_ct,
     civic_did11,
     civic_gid5,
     civic_method,
 ):
-    """Create CIVIC EID9851 study test fixture. Uses CombinationTherapy."""
+    """Create CIVIC EID9851 study statement test fixture. Uses CombinationTherapy."""
     return {
         "id": "civic.eid:9851",
         "type": "VariantTherapeuticResponseStudyStatement",
@@ -1726,7 +1728,7 @@ def pmid_27819322():
 
 
 @pytest.fixture(scope="session")
-def moa_aid66_study(
+def moa_aid66_study_stmt(
     moa_vid66,
     moa_abl1,
     moa_imatinib,
@@ -1734,7 +1736,7 @@ def moa_aid66_study(
     moa_method,
     moa_source45,
 ):
-    """Create a Variant Therapeutic Response Study test fixture for MOA Assertion 66."""
+    """Create a Variant Therapeutic Response Study Statement test fixture for MOA Assertion 66."""
     return {
         "id": "moa.assertion:66",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
@@ -2111,9 +2113,9 @@ def assertion_checks():
 def check_transformed_cdm(assertion_checks):
     """Test fixture to compare CDM transformations."""
 
-    def check_transformed_cdm(data, studies, transformed_file):
+    def check_transformed_cdm(data, statements, transformed_file):
         """Test that transform to CDM works correctly."""
-        assertion_checks(data["studies"], studies, is_cdm=True)
+        assertion_checks(data["statements"], statements, is_cdm=True)
         transformed_file.unlink()
 
     return check_transformed_cdm

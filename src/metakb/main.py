@@ -11,10 +11,10 @@ from metakb import __version__
 from metakb.log_handle import configure_logs
 from metakb.query import PaginationParamError, QueryHandler
 from metakb.schemas.api import (
-    BatchSearchStudiesQuery,
-    BatchSearchStudiesService,
-    SearchStudiesQuery,
-    SearchStudiesService,
+    BatchSearchStatementsQuery,
+    BatchSearchStatementsService,
+    SearchStatementsQuery,
+    SearchStatementsService,
     ServiceMeta,
 )
 
@@ -64,65 +64,65 @@ def custom_openapi() -> dict:
 
 
 app.openapi = custom_openapi
-search_studies_summary = (
-    "Get nested studies from queried concepts that match all conditions provided."
+search_stmts_summary = (
+    "Get nested statements from queried concepts that match all conditions provided."
 )
-search_studies_descr = (
-    "Return nested studies that match the intersection of queried concepts. For "
-    "example, if `variation` and `therapy` are provided, will return all studies that "
-    "have both the provided `variation` and `therapy`."
+search_stmts_descr = (
+    "Return nested statements that match the intersection of queried concepts. For "
+    "example, if `variation` and `therapy` are provided, will return all statements "
+    "that have both the provided `variation` and `therapy`."
 )
 v_description = "Variation (subject) to search. Can be free text or VRS Variation ID."
 d_description = "Disease (object qualifier) to search"
 t_description = "Therapy (object) to search"
 g_description = "Gene to search"
-s_description = "Study ID to search."
+s_description = "Statement ID to search."
 start_description = "The index of the first result to return. Use for pagination."
 limit_description = "The maximum number of results to return. Use for pagination."
 
 
 @app.get(
-    "/api/v2/search/studies",
-    summary=search_studies_summary,
-    response_model=SearchStudiesService,
+    "/api/v2/search/statements",
+    summary=search_stmts_summary,
+    response_model=SearchStatementsService,
     response_model_exclude_none=True,
-    description=search_studies_descr,
+    description=search_stmts_descr,
 )
-async def get_studies(
+async def get_statements(
     variation: Annotated[str | None, Query(description=v_description)] = None,
     disease: Annotated[str | None, Query(description=d_description)] = None,
     therapy: Annotated[str | None, Query(description=t_description)] = None,
     gene: Annotated[str | None, Query(description=g_description)] = None,
-    study_id: Annotated[str | None, Query(description=s_description)] = None,
+    statement_id: Annotated[str | None, Query(description=s_description)] = None,
     start: Annotated[int, Query(description=start_description)] = 0,
     limit: Annotated[int | None, Query(description=limit_description)] = None,
-) -> SearchStudiesService:
-    """Get nested studies from queried concepts that match all conditions provided.
-    For example, if `variation` and `therapy` are provided, will return all studies
+) -> SearchStatementsService:
+    """Get nested statements from queried concepts that match all conditions provided.
+    For example, if `variation` and `therapy` are provided, will return all statements
     that have both the provided `variation` and `therapy`.
 
     :param variation: Variation query (Free text or VRS Variation ID)
     :param disease: Disease query
     :param therapy: Therapy query
     :param gene: Gene query
-    :param study_id: Study ID query.
+    :param statement_id: Statement ID query.
     :param start: The index of the first result to return. Use for pagination.
     :param limit: The maximum number of results to return. Use for pagination.
-    :return: SearchStudiesService response containing nested studies and service
+    :return: SearchStatementsService response containing nested statements and service
         metadata
     """
     try:
-        resp = await query.search_studies(
-            variation, disease, therapy, gene, study_id, start, limit
+        resp = await query.search_statements(
+            variation, disease, therapy, gene, statement_id, start, limit
         )
     except PaginationParamError:
-        resp = SearchStudiesService(
-            query=SearchStudiesQuery(
+        resp = SearchStatementsService(
+            query=SearchStatementsQuery(
                 variation=variation,
                 disease=disease,
                 therapy=therapy,
                 gene=gene,
-                study_id=study_id,
+                statement_id=statement_id,
             ),
             service_meta_=ServiceMeta(),
             warnings=["`start` and `limit` params must both be nonnegative"],
@@ -131,8 +131,8 @@ async def get_studies(
 
 
 _batch_descr = {
-    "summary": "Get nested studies for all provided variations.",
-    "description": "Return nested studies associated with any of the provided variations.",
+    "summary": "Get nested statements for all provided variations.",
+    "description": "Return nested statements associated with any of the provided variations.",
     "arg_variations": "Variations (subject) to search. Can be free text or VRS variation ID.",
     "arg_start": "The index of the first result to return. Use for pagination.",
     "arg_limit": "The maximum number of results to return. Use for pagination.",
@@ -140,21 +140,21 @@ _batch_descr = {
 
 
 @app.get(
-    "/api/v2/batch_search/studies",
+    "/api/v2/batch_search/statements",
     summary=_batch_descr["summary"],
-    response_model=BatchSearchStudiesService,
+    response_model=BatchSearchStatementsService,
     response_model_exclude_none=True,
     description=_batch_descr["description"],
 )
-async def batch_get_studies(
+async def batch_get_statements(
     variations: Annotated[
         list[str] | None,
         Query(description=_batch_descr["arg_variations"]),
     ] = None,
     start: Annotated[int, Query(description=_batch_descr["arg_start"])] = 0,
     limit: Annotated[int | None, Query(description=_batch_descr["arg_limit"])] = None,
-) -> BatchSearchStudiesService:
-    """Fetch all studies associated with `any` of the provided variations.
+) -> BatchSearchStatementsService:
+    """Fetch all statements associated with `any` of the provided variations.
 
     :param variations: variations to match against
     :param start: The index of the first result to return. Use for pagination.
@@ -162,10 +162,10 @@ async def batch_get_studies(
     :return: batch response object
     """
     try:
-        response = await query.batch_search_studies(variations, start, limit)
+        response = await query.batch_search_statements(variations, start, limit)
     except PaginationParamError:
-        response = BatchSearchStudiesService(
-            query=BatchSearchStudiesQuery(variations=[]),
+        response = BatchSearchStatementsService(
+            query=BatchSearchStatementsQuery(variations=[]),
             service_meta_=ServiceMeta(),
             warnings=["`start` and `limit` params must both be nonnegative"],
         )

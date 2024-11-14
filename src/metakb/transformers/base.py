@@ -109,7 +109,7 @@ class ViccConceptVocab(BaseModel):
 class TransformedData(BaseModel):
     """Define model for transformed data"""
 
-    studies: list[VariantTherapeuticResponseStudyStatement] = []
+    statements: list[VariantTherapeuticResponseStudyStatement] = []
     categorical_variants: list[CategoricalVariant] = []
     variations: list[Allele] = []
     genes: list[Gene] = []
