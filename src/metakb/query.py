@@ -15,6 +15,7 @@ from ga4gh.core.domain_models import (
 )
 from ga4gh.core.entity_models import Coding, Document, Extension, Method
 from ga4gh.va_spec.profiles.var_study_stmt import (
+    VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
 from ga4gh.vrs.models import Expression, Variation
@@ -492,16 +493,28 @@ class QueryHandler:
 
     def _get_nested_stmt(self, stmt_node: Node) -> dict:
         """Get information related to a statement
-        Only VariantTherapeuticResponseStudyStatement are supported at the moment
+        Only VariantTherapeuticResponseStudyStatement and VariantPrognosticStudyStatement
+        are supported at the moment
 
         :param stmt_node: Neo4j graph node for statement
         :return: Nested statement
         """
-        if stmt_node["type"] != "VariantTherapeuticResponseStudyStatement":
+        study_stmt_type = stmt_node["type"]
+        if study_stmt_type not in {
+            "VariantTherapeuticResponseStudyStatement",
+            "VariantPrognosticStudyStatement",
+        }:
             return {}
 
+        if study_stmt_type == "VariantPrognosticStudyStatement":
+            study_stmt_cls = VariantPrognosticStudyStatement
+            condition_key = "objectCondition"
+        else:
+            study_stmt_cls = VariantTherapeuticResponseStudyStatement
+            condition_key = "conditionQualifier"
+
         params = {
-            "conditionQualifier": None,
+            condition_key: None,
             "subjectVariant": None,
             "strength": None,
             "reportedIn": [],
@@ -526,7 +539,7 @@ class QueryHandler:
             node = data["n"]
 
             if rel_type == "HAS_TUMOR_TYPE":
-                params["conditionQualifier"] = self._get_disease(node)
+                params[condition_key] = self._get_disease(node)
             elif rel_type == "HAS_VARIANT":
                 params["subjectVariant"] = self._get_cat_var(node)
             elif rel_type == "HAS_GENE_CONTEXT":
@@ -546,7 +559,7 @@ class QueryHandler:
             else:
                 logger.warning("relation type not supported: %s", rel_type)
 
-        return VariantTherapeuticResponseStudyStatement(**params).model_dump()
+        return study_stmt_cls(**params).model_dump()
 
     @staticmethod
     def _get_vicc_normalizer_extension(node: dict) -> ViccNormalizerDataExtension:
@@ -905,6 +918,9 @@ class QueryHandler:
         response.statement_ids = [n["id"] for n in statement_nodes]
         stmts = self._get_nested_stmts(statement_nodes)
         response.statements = [
-            VariantTherapeuticResponseStudyStatement(**s) for s in stmts
+            VariantTherapeuticResponseStudyStatement(**s)
+            if s["type"] == "VariantTherapeuticResponseStudyStatement"
+            else VariantPrognosticStudyStatement(**s)
+            for s in stmts
         ]
         return response
