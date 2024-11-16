@@ -22,7 +22,9 @@ from ga4gh.core.entity_models import (
 )
 from ga4gh.va_spec.profiles.var_study_stmt import (
     AlleleOriginQualifier,
+    PrognosticPredicate,
     TherapeuticResponsePredicate,
+    VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
 from ga4gh.vrs.models import Expression, Syntax, Variation
@@ -82,6 +84,30 @@ UNABLE_TO_NORMALIZE_VAR_NAMES = {
     "gain",
     "phosphorylation",
 }
+
+# CIViC significance to GKS predicate
+CLIN_SIG_TO_PREDICATE = {
+    "SENSITIVITYRESPONSE": TherapeuticResponsePredicate.SENSITIVITY,
+    "RESISTANCE": TherapeuticResponsePredicate.RESISTANCE,
+    "POOR_OUTCOME": PrognosticPredicate.WORSE_OUTCOME,
+    "BETTER_OUTCOME": PrognosticPredicate.BETTER_OUTCOME,
+}
+
+
+class _TherapeuticMetadata(BaseModel):
+    """Define model for CIVIC therapeutic metadata"""
+
+    procedure_id: str
+    interaction_type: str | None
+    procedure_type: TherapeuticProcedureType
+    therapies: list[dict]
+
+
+class _CivicEvidenceType(str, Enum):
+    """Define constraints for CIViC evidence types supported by MetaKB"""
+
+    PREDICTIVE = "PREDICTIVE"
+    PROGNOSTIC = "PROGNOSTIC"
 
 
 class _VariationCache(BaseModel):
@@ -180,11 +206,12 @@ class CivicTransformer(Transformer):
             harvested_data.molecular_profiles
         )
 
-        # Only want evidence with approved status and predictive evidence type
+        # Only want evidence with approved status and evidence type supported by MetaKB
         evidence_items = [
             e
             for e in evidence_items
-            if e["status"] == "accepted" and e["evidence_type"].upper() == "PREDICTIVE"
+            if e["status"] == "accepted"
+            and e["evidence_type"] in _CivicEvidenceType.__members__
         ]
 
         # Get all variant IDs from supported molecular profiles
@@ -211,127 +238,118 @@ class CivicTransformer(Transformer):
         ]
         self._add_categorical_variants(mps, mp_id_to_v_id_mapping)
 
-        # Add variant therapeutic response study statement data. Will update `statements`
-        self._add_variant_tr_study_stmts(evidence_items, mp_id_to_v_id_mapping)
+        for evidence_item in evidence_items:
+            self._add_variant_study_stmt(evidence_item, mp_id_to_v_id_mapping)
 
-    def _add_variant_tr_study_stmts(
-        self, records: list[dict], mp_id_to_v_id_mapping: dict
+    def _add_variant_study_stmt(
+        self, evidence_item: dict, mp_id_to_v_id_mapping: dict
     ) -> None:
-        """Create Variant Therapeutic Response Study Statements from CIViC Evidence
-        Items. Will add associated values to ``processed_data`` instance variable
+        """Create Variant Study Statement given CIViC Evidence Items.
+        Will add associated values to ``processed_data`` instance variable
         (``therapeutic_procedures``, ``conditions``, and ``documents``).
         ``able_to_normalize`` and ``unable_to_normalize`` will also be mutated for
         associated therapeutic_procedures and conditions.
 
-        :param records: List of CIViC Evidence Items
+        :param evidence_item: CIViC Evidence Item
         :param mp_id_to_v_id_mapping: Molecular Profile ID to Variant ID mapping
             {mp_id: v_id}
         """
-        for r in records:
-            # Check cache for molecular profile, variation and gene data
-            mp_id = f"civic.mpid:{r['molecular_profile_id']}"
-            mp = self.able_to_normalize["categorical_variants"].get(mp_id)
-            if not mp:
-                _logger.debug("mp_id not supported: %s", mp_id)
-                continue
+        # Check cache for molecular profile, variation and gene data
+        mp_id = f"civic.mpid:{evidence_item['molecular_profile_id']}"
+        mp = self.able_to_normalize["categorical_variants"].get(mp_id)
+        if not mp:
+            _logger.debug("mp_id not supported: %s", mp_id)
+            return
 
-            variant_id = f"civic.vid:{mp_id_to_v_id_mapping[r['molecular_profile_id']]}"
-            variation_gene_map = self.able_to_normalize["variations"].get(variant_id)
-            if not variation_gene_map:
-                _logger.debug("variant_id not supported: %s", variant_id)
-                continue
+        variant_id = (
+            f"civic.vid:{mp_id_to_v_id_mapping[evidence_item['molecular_profile_id']]}"
+        )
+        variation_gene_map = self.able_to_normalize["variations"].get(variant_id)
+        if not variation_gene_map:
+            _logger.debug("variant_id not supported: %s", variant_id)
+            return
 
-            # Get predicate
-            predicate = self._get_predicate(r["evidence_type"], r["significance"])
+        # Add document
+        document = self._add_eid_document(evidence_item["source"])
+        if not document:
+            return
 
-            # Don't support TR that has  `None`, "N/A", or "Unknown" predicate
-            if not predicate:
-                continue
+        evidence_type = evidence_item["evidence_type"]
 
-            # Add disease
-            if not r["disease"]:
-                continue
+        # Get predicate
+        predicate = CLIN_SIG_TO_PREDICATE.get(evidence_item["significance"])
 
-            civic_disease = self._add_disease(r["disease"])
-            if not civic_disease:
-                continue
+        # Don't support evidence that has  `None`, "N/A", or "Unknown" predicate
+        if not predicate:
+            return
 
-            therapies = r["therapies"]
-            if len(therapies) == 1:
-                # Add TherapeuticAgent
-                therapeutic_procedure_id = f"civic.tid:{therapies[0]['id']}"
-                therapy_interaction_type = None
-                therapeutic_procedure_type = TherapeuticProcedureType.THERAPEUTIC_AGENT
-            else:
-                # Add TherapeuticSubstituteGroup
-                therapy_interaction_type = r["therapy_interaction_type"]
-                therapeutic_ids = [f"civic.tid:{t['id']}" for t in therapies]
-                therapeutic_digest = self._get_digest_for_str_lists(therapeutic_ids)
+        # Add disease
+        disease = evidence_item["disease"]
+        if not disease:
+            return
 
-                if therapy_interaction_type == "SUBSTITUTES":
-                    therapeutic_procedure_id = f"civic.tsgid:{therapeutic_digest}"
-                    therapeutic_procedure_type = (
-                        TherapeuticProcedureType.THERAPEUTIC_SUBSTITUTE_GROUP
-                    )
-                elif therapy_interaction_type == "COMBINATION":
-                    therapeutic_procedure_id = f"civic.ctid:{therapeutic_digest}"
-                    therapeutic_procedure_type = (
-                        TherapeuticProcedureType.COMBINATION_THERAPY
-                    )
-                else:
-                    _logger.debug(
-                        "civic therapy_interaction_type not supported: %s",
-                        therapy_interaction_type,
-                    )
-                    continue
+        civic_disease = self._add_disease(disease)
+        if not civic_disease:
+            return
 
-            civic_therapeutic = self._add_therapeutic_procedure(
-                therapeutic_procedure_id,
-                therapies,
-                therapeutic_procedure_type,
-                therapy_interaction_type,
-            )
+        civic_therapeutic = None
+        if evidence_type == _CivicEvidenceType.PREDICTIVE:
+            therapeutic_metadata = self._get_therapeutic_metadata(evidence_item)
+            if therapeutic_metadata:
+                civic_therapeutic = self._add_therapeutic_procedure(
+                    therapeutic_metadata.procedure_id,
+                    therapeutic_metadata.therapies,
+                    therapeutic_metadata.procedure_type,
+                    therapeutic_metadata.interaction_type,
+                )
             if not civic_therapeutic:
-                continue
+                return
 
-            # Add document
-            document = self._add_eid_document(r["source"])
-            if not document:
-                continue
+            condition_key = "conditionQualifier"
+        else:
+            condition_key = "objectCondition"
 
-            # Get strength
-            direction = self._get_evidence_direction(r["evidence_direction"])
-            evidence_level = CivicEvidenceLevel[r["evidence_level"]]
-            strength = self.evidence_level_to_vicc_concept_mapping[evidence_level]
+        # Get strength
+        direction = self._get_evidence_direction(evidence_item["evidence_direction"])
+        evidence_level = CivicEvidenceLevel[evidence_item["evidence_level"]]
+        strength = self.evidence_level_to_vicc_concept_mapping[evidence_level]
 
-            # Get qualifier
-            civic_gene = self.able_to_normalize["genes"].get(
-                variation_gene_map.civic_gene_id
-            )
+        # Get qualifier
+        civic_gene = self.able_to_normalize["genes"].get(
+            variation_gene_map.civic_gene_id
+        )
 
-            variant_origin = r["variant_origin"].upper()
-            if variant_origin == "SOMATIC":
-                allele_origin_qualifier = AlleleOriginQualifier.SOMATIC
-            elif variant_origin in {"RARE_GERMLINE", "COMMON_GERMLINE"}:
-                allele_origin_qualifier = AlleleOriginQualifier.GERMLINE
-            else:
-                allele_origin_qualifier = None
+        variant_origin = evidence_item["variant_origin"].upper()
+        if variant_origin == "SOMATIC":
+            allele_origin_qualifier = AlleleOriginQualifier.SOMATIC
+        elif variant_origin in {"RARE_GERMLINE", "COMMON_GERMLINE"}:
+            allele_origin_qualifier = AlleleOriginQualifier.GERMLINE
+        else:
+            allele_origin_qualifier = None
 
-            statement = VariantTherapeuticResponseStudyStatement(
-                id=r["name"].lower().replace("eid", "civic.eid:"),
-                description=r["description"] if r["description"] else None,
-                direction=direction,
-                strength=strength,
-                predicate=predicate,
-                subjectVariant=mp,
-                objectTherapeutic=civic_therapeutic,
-                conditionQualifier=civic_disease,
-                alleleOriginQualifier=allele_origin_qualifier,
-                geneContextQualifier=civic_gene,
-                specifiedBy=self.processed_data.methods[0],
-                reportedIn=[document],
-            )
-            self.processed_data.statements.append(statement)
+        params = {
+            "id": evidence_item["name"].lower().replace("eid", "civic.eid:"),
+            "description": evidence_item["description"]
+            if evidence_item["description"]
+            else None,
+            "direction": direction,
+            "strength": strength,
+            "predicate": predicate,
+            "subjectVariant": mp,
+            "alleleOriginQualifier": allele_origin_qualifier,
+            "geneContextQualifier": civic_gene,
+            "specifiedBy": self.processed_data.methods[0],
+            "reportedIn": [document],
+            condition_key: civic_disease,
+        }
+
+        if evidence_type == _CivicEvidenceType.PREDICTIVE:
+            params["objectTherapeutic"] = civic_therapeutic
+            statement = VariantTherapeuticResponseStudyStatement(**params)
+        else:
+            statement = VariantPrognosticStudyStatement(**params)
+
+        self.processed_data.statements.append(statement)
 
     def _get_evidence_direction(self, direction: str) -> Direction | None:
         """Get the normalized evidence direction
@@ -345,24 +363,6 @@ class CivicTransformer(Transformer):
         if direction_upper == "DOES_NOT_SUPPORT":
             return Direction.DISPUTES
         return None
-
-    def _get_predicate(
-        self, record_type: str, clin_sig: str
-    ) -> TherapeuticResponsePredicate | None:
-        """Return predicate for an evidence item.
-
-        :param record_type: The evidence type
-        :param clin_sig: The evidence item's clinical significance
-        :return: Predicate for proposition
-        """
-        predicate = None
-
-        if record_type == "PREDICTIVE":
-            if clin_sig == "SENSITIVITYRESPONSE":
-                predicate = TherapeuticResponsePredicate.SENSITIVITY
-            elif clin_sig == "RESISTANCE":
-                predicate = TherapeuticResponsePredicate.RESISTANCE
-        return predicate
 
     def _add_categorical_variants(
         self, molecular_profiles: list[dict], mp_id_to_v_id_mapping: dict
@@ -871,6 +871,50 @@ class CivicTransformer(Transformer):
             mappings=mappings if mappings else None,
             alternativeLabels=therapy["aliases"] if therapy["aliases"] else None,
             extensions=extensions,
+        )
+
+    def _get_therapeutic_metadata(
+        self, evidence_item: dict
+    ) -> _TherapeuticMetadata | None:
+        """Get therapeutic metadata
+
+        :param evidence_item: CIViC Predictive Evidence Item
+        :return: Therapeutic metadata, if interaction type is supported
+        """
+        therapies = evidence_item["therapies"]
+        if len(therapies) == 1:
+            # Add TherapeuticAgent
+            therapeutic_procedure_id = f"civic.tid:{therapies[0]['id']}"
+            therapy_interaction_type = None
+            therapeutic_procedure_type = TherapeuticProcedureType.THERAPEUTIC_AGENT
+        else:
+            # Add TherapeuticSubstituteGroup
+            therapy_interaction_type = evidence_item["therapy_interaction_type"]
+            therapeutic_ids = [f"civic.tid:{t['id']}" for t in therapies]
+            therapeutic_digest = self._get_digest_for_str_lists(therapeutic_ids)
+
+            if therapy_interaction_type == "SUBSTITUTES":
+                therapeutic_procedure_id = f"civic.tsgid:{therapeutic_digest}"
+                therapeutic_procedure_type = (
+                    TherapeuticProcedureType.THERAPEUTIC_SUBSTITUTE_GROUP
+                )
+            elif therapy_interaction_type == "COMBINATION":
+                therapeutic_procedure_id = f"civic.ctid:{therapeutic_digest}"
+                therapeutic_procedure_type = (
+                    TherapeuticProcedureType.COMBINATION_THERAPY
+                )
+            else:
+                _logger.debug(
+                    "civic therapy_interaction_type not supported: %s",
+                    therapy_interaction_type,
+                )
+                return None
+
+        return _TherapeuticMetadata(
+            procedure_id=therapeutic_procedure_id,
+            interaction_type=therapy_interaction_type,
+            procedure_type=therapeutic_procedure_type,
+            therapies=therapies,
         )
 
     def _add_eid_document(self, source: dict) -> Document | None:
