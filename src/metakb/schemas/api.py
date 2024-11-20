@@ -30,23 +30,23 @@ class ServiceMeta(BaseModel):
     )
 
 
-class SearchStudiesQuery(BaseModel):
-    """Queries for the Search Studies Endpoint."""
+class SearchStatementsQuery(BaseModel):
+    """Queries for the Search Statements Endpoint."""
 
     variation: StrictStr | None = None
     disease: StrictStr | None = None
     therapy: StrictStr | None = None
     gene: StrictStr | None = None
-    study_id: StrictStr | None = None
+    statement_id: StrictStr | None = None
 
 
-class SearchStudiesService(BaseModel):
-    """Define model for Search Studies Endpoint Response."""
+class SearchStatementsService(BaseModel):
+    """Define model for Search Statements Endpoint Response."""
 
-    query: SearchStudiesQuery
+    query: SearchStatementsQuery
     warnings: list[StrictStr] = []
-    study_ids: list[StrictStr] = []
-    studies: list[VariantTherapeuticResponseStudyStatement] = []
+    statement_ids: list[StrictStr] = []
+    statements: list[VariantTherapeuticResponseStudyStatement] = []
     service_meta_: ServiceMeta
 
 
@@ -57,17 +57,17 @@ class NormalizedQuery(BaseModel):
     normalized_id: StrictStr | None = None
 
 
-class BatchSearchStudiesQuery(BaseModel):
-    """Define query as reported in batch search studies endpoint."""
+class BatchSearchStatementsQuery(BaseModel):
+    """Define query as reported in batch search statements endpoint."""
 
     variations: list[NormalizedQuery] = []
 
 
-class BatchSearchStudiesService(BaseModel):
-    """Define response model for batch search studies endpoint response."""
+class BatchSearchStatementsService(BaseModel):
+    """Define response model for batch search statements endpoint response."""
 
-    query: BatchSearchStudiesQuery
+    query: BatchSearchStatementsQuery
     warnings: list[StrictStr] = []
-    study_ids: list[StrictStr] = []
-    studies: list[VariantTherapeuticResponseStudyStatement] = []
+    statement_ids: list[StrictStr] = []
+    statements: list[VariantTherapeuticResponseStudyStatement] = []
     service_meta_: ServiceMeta

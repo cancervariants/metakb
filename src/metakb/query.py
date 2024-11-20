@@ -30,10 +30,10 @@ from metakb.normalizers import (
     ViccNormalizers,
 )
 from metakb.schemas.api import (
-    BatchSearchStudiesQuery,
-    BatchSearchStudiesService,
+    BatchSearchStatementsQuery,
+    BatchSearchStatementsService,
     NormalizedQuery,
-    SearchStudiesService,
+    SearchStatementsService,
     ServiceMeta,
 )
 from metakb.schemas.app import SourceName
@@ -109,21 +109,21 @@ class QueryHandler:
         ...     ViccNormalizers("http://localhost:8000")
         ... )
 
-        ``default_page_limit`` sets the default max number of studies to include in
+        ``default_page_limit`` sets the default max number of statements to include in
         query responses:
 
         >>> limited_qh = QueryHandler(default_page_limit=10)
-        >>> response = await limited_qh.batch_search_studies(["BRAF V600E"])
-        >>> print(len(response.study_ids))
+        >>> response = await limited_qh.batch_search_statements(["BRAF V600E"])
+        >>> print(len(response.statement_ids))
         10
 
         This value is overruled by an explicit ``limit`` parameter:
 
-        >>> response = await limited_qh.batch_search_studies(
+        >>> response = await limited_qh.batch_search_statements(
         ...     ["BRAF V600E"],
         ...     limit=2
         ... )
-        >>> print(len(response.study_ids))
+        >>> print(len(response.statement_ids))
         2
 
         :param driver: driver instance for graph connection
@@ -139,26 +139,26 @@ class QueryHandler:
         self.vicc_normalizers = normalizers
         self._default_page_limit = default_page_limit
 
-    async def search_studies(
+    async def search_statements(
         self,
         variation: str | None = None,
         disease: str | None = None,
         therapy: str | None = None,
         gene: str | None = None,
-        study_id: str | None = None,
+        statement_id: str | None = None,
         start: int = 0,
         limit: int | None = None,
-    ) -> SearchStudiesService:
-        """Get nested studies from queried concepts that match all conditions provided.
-        For example, if ``variation`` and ``therapy`` are provided, will return all studies
-        that have both the provided ``variation`` and ``therapy``.
+    ) -> SearchStatementsService:
+        """Get nested statements from queried concepts that match all conditions provided.
+        For example, if ``variation`` and ``therapy`` are provided, will return all
+        statements that have both the provided ``variation`` and ``therapy``.
 
         >>> from metakb.query import QueryHandler
         >>> qh = QueryHandler()
-        >>> result = qh.search_studies("BRAF V600E")
-        >>> result.study_ids[:3]
+        >>> result = qh.search_statements("BRAF V600E")
+        >>> result.statement_ids[:3]
         ['moa.assertion:944', 'moa.assertion:911', 'moa.assertion:865']
-        >>> result.studies[0].reportedIn[0].urls[0]
+        >>> result.statements[0].reportedIn[0].urls[0]
         'https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/202429s019lbl.pdf'
 
         Variation, disease, therapy, and gene terms are resolved via their respective
@@ -174,11 +174,12 @@ class QueryHandler:
             ``"GLEEVEC"``, or concept URI, e.g. ``"chembl:CHEMBL941"``. Case-insensitive.
         :param gene: Gene query. Common shorthand name, e.g. ``"NTRK1"``, or compact URI,
             e.g. ``"ensembl:ENSG00000198400"``.
-        :param study_id: Study ID query provided by source, e.g. ``"civic.eid:3017"``.
+        :param statement_id: Statement ID query provided by source, e.g. ``"civic.eid:3017"``.
         :param start: Index of first result to fetch. Must be nonnegative.
         :param limit: Max number of results to fetch. Must be nonnegative. Revert to
             default defined at class initialization if not given.
-        :return: Service response object containing nested studies and service metadata.
+        :return: Service response object containing nested statements and service
+            metadata.
         """
         if start < 0:
             msg = "Can't start from an index of less than 0."
@@ -193,35 +194,35 @@ class QueryHandler:
                 "disease": None,
                 "therapy": None,
                 "gene": None,
-                "study_id": None,
+                "statement_id": None,
             },
             "warnings": [],
-            "study_ids": [],
-            "studies": [],
+            "statement_ids": [],
+            "statements": [],
             "service_meta_": ServiceMeta(),
         }
 
         normalized_terms = await self._get_normalized_terms(
-            variation, disease, therapy, gene, study_id, response
+            variation, disease, therapy, gene, statement_id, response
         )
 
         if normalized_terms is None:
-            return SearchStudiesService(**response)
+            return SearchStatementsService(**response)
 
         (
             normalized_variation,
             normalized_disease,
             normalized_therapy,
             normalized_gene,
-            study,
-            valid_study_id,
+            statement,
+            valid_statement_id,
         ) = normalized_terms
 
-        if valid_study_id:
-            study_nodes = [study]
-            response["study_ids"].append(study["id"])
+        if valid_statement_id:
+            statement_nodes = [statement]
+            response["statement_ids"].append(statement["id"])
         else:
-            study_nodes = self._get_studies(
+            statement_nodes = self._get_statements(
                 normalized_variation=normalized_variation,
                 normalized_therapy=normalized_therapy,
                 normalized_disease=normalized_disease,
@@ -229,16 +230,16 @@ class QueryHandler:
                 start=start,
                 limit=limit,
             )
-            response["study_ids"] = [s["id"] for s in study_nodes]
+            response["statement_ids"] = [s["id"] for s in statement_nodes]
 
-        response["studies"] = self._get_nested_studies(study_nodes)
+        response["statements"] = self._get_nested_stmts(statement_nodes)
 
-        if not response["studies"]:
+        if not response["statements"]:
             response["warnings"].append(
-                "No studies found with the provided query parameters."
+                "No statements found with the provided query parameters."
             )
 
-        return SearchStudiesService(**response)
+        return SearchStatementsService(**response)
 
     async def _get_normalized_terms(
         self,
@@ -246,7 +247,7 @@ class QueryHandler:
         disease: str | None,
         therapy: str | None,
         gene: str | None,
-        study_id: str | None,
+        statement_id: str | None,
         response: dict,
     ) -> tuple | None:
         """Find normalized terms for queried concepts.
@@ -255,11 +256,11 @@ class QueryHandler:
         :param disease: Disease (object_qualifier) query
         :param therapy: Therapy (object) query
         :param gene: Gene query
-        :param study_id: Study ID query
+        :param statement_id: Statement ID query
         :param response: The response for the query
         :return: A tuple containing the normalized concepts
         """
-        if not any((variation, disease, therapy, gene, study_id)):
+        if not any((variation, disease, therapy, gene, statement_id)):
             response["warnings"].append("No query parameters were provided.")
             return None
 
@@ -291,16 +292,18 @@ class QueryHandler:
         else:
             normalized_gene = None
 
-        # Check that queried study_id is valid
-        valid_study_id = None
-        study = None
-        if study_id:
-            response["query"]["study_id"] = study_id
-            study = self._get_study_by_id(study_id)
-            if study:
-                valid_study_id = study.get("id")
+        # Check that queried statement_id is valid
+        valid_statement_id = None
+        statement = None
+        if statement_id:
+            response["query"]["statement_id"] = statement_id
+            statement = self._get_stmt_by_id(statement_id)
+            if statement:
+                valid_statement_id = statement.get("id")
             else:
-                response["warnings"].append(f"Study: {study_id} does not exist.")
+                response["warnings"].append(
+                    f"Statement: {statement_id} does not exist."
+                )
 
         # If queried concept is given check that it is normalized / valid
         if (
@@ -308,7 +311,7 @@ class QueryHandler:
             or (therapy and not normalized_therapy)
             or (disease and not normalized_disease)
             or (gene and not normalized_gene)
-            or (study_id and not valid_study_id)
+            or (statement_id and not valid_statement_id)
         ):
             return None
 
@@ -317,8 +320,8 @@ class QueryHandler:
             normalized_disease,
             normalized_therapy,
             normalized_gene,
-            study,
-            valid_study_id,
+            statement,
+            valid_statement_id,
         )
 
     def _get_normalized_therapy(self, therapy: str, warnings: list[str]) -> str | None:
@@ -381,23 +384,23 @@ class QueryHandler:
             warnings.append(f"Gene Normalizer unable to normalize: {gene}")
         return normalized_gene_id
 
-    def _get_study_by_id(self, study_id: str) -> Node | None:
-        """Get a Study node by ID.
+    def _get_stmt_by_id(self, statement_id: str) -> Node | None:
+        """Get a Statement node by ID.
 
-        :param study_id: Study ID to retrieve
-        :return: Study node if successful
+        :param statement_id: Statement ID to retrieve
+        :return: Statement node if successful
         """
         query = """
         MATCH (s:Statement)
-        WHERE toLower(s.id) = toLower($study_id)
+        WHERE toLower(s.id) = toLower($statement_id)
         RETURN s
         """
-        records = self.driver.execute_query(query, study_id=study_id).records
+        records = self.driver.execute_query(query, statement_id=statement_id).records
         if not records:
             return None
         return records[0]["s"]
 
-    def _get_studies(
+    def _get_statements(
         self,
         start: int,
         limit: int | None,
@@ -406,7 +409,7 @@ class QueryHandler:
         normalized_disease: str | None = None,
         normalized_gene: str | None = None,
     ) -> list[Node]:
-        """Get studies that match the intersection of provided concepts.
+        """Get statements that match the intersection of provided concepts.
 
         :param start: Index of first result to fetch. Calling context should've already
             checked that it's nonnegative.
@@ -416,7 +419,8 @@ class QueryHandler:
         :param normalized_therapy: normalized therapy concept ID
         :param normalized_disease: normalized disease concept ID
         :param normalized_gene: normalized gene concept ID
-        :return: List of Study nodes that match the intersection of the given parameters
+        :return: List of Statement nodes that match the intersection of the given
+            parameters
         """
         query = "MATCH (s:Statement)"
         params: dict[str, str | int] = {}
@@ -464,36 +468,36 @@ class QueryHandler:
 
         return [s[0] for s in self.driver.execute_query(query, params).records]
 
-    def _get_nested_studies(self, study_nodes: list[Node]) -> list[dict]:
-        """Get a list of nested studies.
+    def _get_nested_stmts(self, statement_nodes: list[Node]) -> list[dict]:
+        """Get a list of nested statements.
 
-        :param study_nodes: A list of Study Nodes
-        :return: A list of nested studies
+        :param statement_nodes: A list of Statement Nodes
+        :return: A list of nested statements
         """
-        nested_studies = []
-        added_studies = set()
-        for s in study_nodes:
+        nested_stmts = []
+        added_stmts = set()
+        for s in statement_nodes:
             s_id = s.get("id")
-            if s_id not in added_studies:
+            if s_id not in added_stmts:
                 try:
-                    nested_study = self._get_nested_study(s)
+                    nested_stmt = self._get_nested_stmt(s)
                 except ValidationError as e:
                     logger.error("%s: %s", s_id, e)
                 else:
-                    if nested_study:
-                        nested_studies.append(nested_study)
-                        added_studies.add(s_id)
+                    if nested_stmt:
+                        nested_stmts.append(nested_stmt)
+                        added_stmts.add(s_id)
 
-        return nested_studies
+        return nested_stmts
 
-    def _get_nested_study(self, study_node: Node) -> dict:
-        """Get information related to a study
+    def _get_nested_stmt(self, stmt_node: Node) -> dict:
+        """Get information related to a statement
         Only VariantTherapeuticResponseStudyStatement are supported at the moment
 
-        :param study_node: Neo4j graph node for study
-        :return: Nested study
+        :param stmt_node: Neo4j graph node for statement
+        :return: Nested statement
         """
-        if study_node["type"] != "VariantTherapeuticResponseStudyStatement":
+        if stmt_node["type"] != "VariantTherapeuticResponseStudyStatement":
             return {}
 
         params = {
@@ -503,16 +507,18 @@ class QueryHandler:
             "reportedIn": [],
             "specifiedBy": None,
         }
-        params.update(study_node)
-        study_id = study_node["id"]
+        params.update(stmt_node)
+        statement_id = stmt_node["id"]
 
-        # Get relationship and nodes for a study
+        # Get relationship and nodes for a statement
         query = """
-        MATCH (s:Statement { id: $study_id })
+        MATCH (s:Statement { id: $statement_id })
         OPTIONAL MATCH (s)-[r]-(n)
         RETURN type(r) as r_type, n;
         """
-        nodes_and_rels = self.driver.execute_query(query, study_id=study_id).records
+        nodes_and_rels = self.driver.execute_query(
+            query, statement_id=statement_id
+        ).records
 
         for item in nodes_and_rels:
             data = item.data()
@@ -525,11 +531,9 @@ class QueryHandler:
                 params["subjectVariant"] = self._get_cat_var(node)
             elif rel_type == "HAS_GENE_CONTEXT":
                 params["geneContextQualifier"] = self._get_gene_context_qualifier(
-                    study_id
+                    statement_id
                 )
-                params["alleleOriginQualifier"] = study_node.get(
-                    "alleleOriginQualifier"
-                )
+                params["alleleOriginQualifier"] = stmt_node.get("alleleOriginQualifier")
             elif rel_type == "IS_SPECIFIED_BY":
                 node["reportedIn"] = [self._get_method_document(node["id"])]
                 params["specifiedBy"] = Method(**node)
@@ -660,28 +664,28 @@ class QueryHandler:
         )
         return CategoricalVariant(**node)
 
-    def _get_gene_context_qualifier(self, study_id: str) -> Gene | None:
-        """Get gene context qualifier data for a study
+    def _get_gene_context_qualifier(self, statement_id: str) -> Gene | None:
+        """Get gene context qualifier data for a statement
 
-        :param study_id: ID of study node
+        :param statement_id: ID of statement node
         :return Gene context qualifier data
         """
         query = """
-        MATCH (s:Statement { id: $study_id }) -[:HAS_GENE_CONTEXT] -> (g:Gene)
+        MATCH (s:Statement { id: $statement_id }) -[:HAS_GENE_CONTEXT] -> (g:Gene)
         RETURN g
         """
-        results = self.driver.execute_query(query, study_id=study_id)
+        results = self.driver.execute_query(query, statement_id=statement_id)
         if not results.records:
             logger.error(
-                "Unable to complete oncogenicity study qualifier lookup for study_id %s",
-                study_id,
+                "Unable to complete gene context qualifier lookup for statement_id %s",
+                statement_id,
             )
             return None
         if len(results.records) > 1:
-            # TODO should this be an error? can studies have multiple gene contexts?
+            # TODO should this be an error? can statements have multiple gene contexts?
             logger.error(
-                "Encountered multiple matches for oncogenicity study qualifier lookup for study_id %s",
-                study_id,
+                "Encountered multiple matches for gene context qualifier lookup for statement_id %s",
+                statement_id,
             )
             return None
 
@@ -813,13 +817,13 @@ class QueryHandler:
         ta_params["extensions"] = extensions
         return TherapeuticAgent(**ta_params)
 
-    async def batch_search_studies(
+    async def batch_search_statements(
         self,
         variations: list[str] | None = None,
         start: int = 0,
         limit: int | None = None,
-    ) -> BatchSearchStudiesService:
-        """Fetch all studies associated with any of the provided variation description
+    ) -> BatchSearchStatementsService:
+        """Fetch all statements associated with any of the provided variation description
         strings.
 
         Because this method could be expanded to include other kinds of search terms,
@@ -827,16 +831,16 @@ class QueryHandler:
 
         >>> from metakb.query import QueryHandler
         >>> qh = QueryHandler()
-        >>> response = await qh.batch_search_studies(["EGFR L858R"])
-        >>> response.study_ids[:3]
+        >>> response = await qh.batch_search_statements(["EGFR L858R"])
+        >>> response.statement_ids[:3]
         ['civic.eid:229', 'civic.eid:3811', 'moa.assertion:268']
 
         All terms are normalized, so redundant terms don't alter search results:
 
-        >>> redundant_response = await qh.batch_search_studies(
+        >>> redundant_response = await qh.batch_search_statements(
         ...     ["EGFR L858R", "NP_005219.2:p.Leu858Arg"]
         ... )
-        >>> len(response.study_ids) == len(redundant_response.study_ids)
+        >>> len(response.statement_ids) == len(redundant_response.statement_ids)
         True
 
         :param variations: a list of variation description strings, e.g.
@@ -844,7 +848,7 @@ class QueryHandler:
         :param start: Index of first result to fetch. Must be nonnegative.
         :param limit: Max number of results to fetch. Must be nonnegative. Revert to
             default defined at class initialization if not given.
-        :return: response object including all matching studies
+        :return: response object including all matching statements
         :raise ValueError: if ``start`` or ``limit`` are nonnegative
         """
         if start < 0:
@@ -854,8 +858,8 @@ class QueryHandler:
             msg = "Can't limit results to less than a negative number."
             raise ValueError(msg)
 
-        response = BatchSearchStudiesService(
-            query=BatchSearchStudiesQuery(variations=[]),
+        response = BatchSearchStatementsService(
+            query=BatchSearchStatementsQuery(variations=[]),
             service_meta_=ServiceMeta(),
             warnings=[],
         )
@@ -897,10 +901,10 @@ class QueryHandler:
             """
         with self.driver.session() as session:
             result = session.run(query, v_ids=variation_ids, skip=start, limit=limit)
-            study_nodes = [r[0] for r in result]
-        response.study_ids = [n["id"] for n in study_nodes]
-        studies = self._get_nested_studies(study_nodes)
-        response.studies = [
-            VariantTherapeuticResponseStudyStatement(**s) for s in studies
+            statement_nodes = [r[0] for r in result]
+        response.statement_ids = [n["id"] for n in statement_nodes]
+        stmts = self._get_nested_stmts(statement_nodes)
+        response.statements = [
+            VariantTherapeuticResponseStudyStatement(**s) for s in stmts
         ]
         return response

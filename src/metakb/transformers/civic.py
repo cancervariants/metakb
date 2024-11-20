@@ -211,16 +211,14 @@ class CivicTransformer(Transformer):
         ]
         self._add_categorical_variants(mps, mp_id_to_v_id_mapping)
 
-        # Add variant therapeutic response study data. Will update `studies`
-        self._add_variant_therapeutic_response_studies(
-            evidence_items, mp_id_to_v_id_mapping
-        )
+        # Add variant therapeutic response study statement data. Will update `statements`
+        self._add_variant_tr_study_stmts(evidence_items, mp_id_to_v_id_mapping)
 
-    def _add_variant_therapeutic_response_studies(
+    def _add_variant_tr_study_stmts(
         self, records: list[dict], mp_id_to_v_id_mapping: dict
     ) -> None:
-        """Create Variant Therapeutic Response Studies from CIViC Evidence Items.
-        Will add associated values to ``processed_data`` instance variable
+        """Create Variant Therapeutic Response Study Statements from CIViC Evidence
+        Items. Will add associated values to ``processed_data`` instance variable
         (``therapeutic_procedures``, ``conditions``, and ``documents``).
         ``able_to_normalize`` and ``unable_to_normalize`` will also be mutated for
         associated therapeutic_procedures and conditions.
@@ -333,7 +331,7 @@ class CivicTransformer(Transformer):
                 specifiedBy=self.processed_data.methods[0],
                 reportedIn=[document],
             )
-            self.processed_data.studies.append(statement)
+            self.processed_data.statements.append(statement)
 
     def _get_evidence_direction(self, direction: str) -> Direction | None:
         """Get the normalized evidence direction

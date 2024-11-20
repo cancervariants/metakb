@@ -89,8 +89,8 @@ def check_node_labels(get_node_labels: callable):
 
 
 @pytest.fixture(scope="module")
-def check_study_relation(driver: Driver):
-    """Check that node is used in a study."""
+def check_statement_relation(driver: Driver):
+    """Check that node is used in a statement."""
 
     def _check_function(value_label: str):
         query = f"""
@@ -415,8 +415,8 @@ def test_therapeutic_procedure_rules(
 ):
     """Verify property and relationship rules for Therapeutic Procedure nodes."""
     check_unique_property("TherapeuticProcedure", "id")
-    # min_rels is 0 because TherapeuticAgent may not be attached to study directly, but
-    # through CombinationTherapy and TherapeuticSubstituteGroup
+    # min_rels is 0 because TherapeuticAgent may not be attached to statement directly,
+    # but through CombinationTherapy and TherapeuticSubstituteGroup
     check_relation_count(
         "TherapeuticProcedure",
         "Statement",
@@ -528,13 +528,13 @@ def test_condition_rules(
     check_node_props(disease, civic_did8, expected_keys, extension_names)
 
 
-def test_study_rules(
+def test_statement_rules(
     driver: Driver,
     check_unique_property,
     check_relation_count,
     check_node_labels,
     get_node_by_id,
-    civic_eid2997_study,
+    civic_eid2997_study_stmt,
     check_node_props,
 ):
     """Verify property and relationship rules for Statement nodes."""
@@ -563,7 +563,7 @@ def test_study_rules(
         record = s.run(cite_query).single()
     assert record.values()[0] == 0
 
-    study = get_node_by_id(civic_eid2997_study["id"])
+    statement = get_node_by_id(civic_eid2997_study_stmt["id"])
     expected_keys = {
         "id",
         "description",
@@ -572,11 +572,11 @@ def test_study_rules(
         "alleleOriginQualifier",
         "type",
     }
-    civic_eid2997_study_cp = civic_eid2997_study.copy()
-    civic_eid2997_study_cp["alleleOriginQualifier"] = civic_eid2997_study_cp[
+    civic_eid2997_ss_cp = civic_eid2997_study_stmt.copy()
+    civic_eid2997_ss_cp["alleleOriginQualifier"] = civic_eid2997_ss_cp[
         "alleleOriginQualifier"
     ]
-    check_node_props(study, civic_eid2997_study_cp, expected_keys)
+    check_node_props(statement, civic_eid2997_ss_cp, expected_keys)
 
 
 def test_document_rules(
