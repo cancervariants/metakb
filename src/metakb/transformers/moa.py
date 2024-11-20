@@ -84,15 +84,13 @@ class MoaTransformer(Transformer):
         await self._add_categorical_variants(harvested_data.variants)
         self._add_documents(harvested_data.sources)
 
-        # Add variant therapeutic response study data. Will update `studies`
-        await self._add_variant_therapeutic_response_studies(harvested_data.assertions)
+        # Add variant therapeutic response study statement data. Will update `statements`
+        await self._add_variant_tr_study_stmts(harvested_data.assertions)
 
-    async def _add_variant_therapeutic_response_studies(
-        self, assertions: list[dict]
-    ) -> None:
-        """Create Variant Therapeutic Response Studies from MOA assertions.
+    async def _add_variant_tr_study_stmts(self, assertions: list[dict]) -> None:
+        """Create Variant Therapeutic Response Study Statements from MOA assertions.
         Will add associated values to ``processed_data`` instance variable
-        (``therapeutic_procedures``, ``conditions``, and ``studies``).
+        (``therapeutic_procedures``, ``conditions``, and ``statements``).
         ``able_to_normalize`` and ``unable_to_normalize`` will
         also be mutated for associated therapeutic_procedures and conditions.
 
@@ -213,7 +211,7 @@ class MoaTransformer(Transformer):
                 specifiedBy=self.processed_data.methods[0],
                 reportedIn=[document],
             )
-            self.processed_data.studies.append(statement)
+            self.processed_data.statements.append(statement)
 
     async def _add_categorical_variants(self, variants: list[dict]) -> None:
         """Create Categorical Variant objects for all MOA variant records.

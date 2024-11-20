@@ -119,8 +119,8 @@ def moa_encorafenib(encorafenib_extensions):
 
 
 @pytest.fixture(scope="module")
-def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
-    """Create MOA AID 155 study test fixture. Uses CombinationTherapy."""
+def moa_aid155_study_stmt(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
+    """Create MOA AID 155 study statement test fixture. Uses CombinationTherapy."""
     return {
         "id": "moa.assertion:155",
         "type": "VariantTherapeuticResponseStudyStatement",
@@ -196,11 +196,11 @@ def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
 
 
 @pytest.fixture(scope="module")
-def studies(moa_aid66_study, moa_aid155_study):
-    """Create test fixture for MOA therapeutic studies."""
-    return [moa_aid66_study, moa_aid155_study]
+def statements(moa_aid66_study_stmt, moa_aid155_study_stmt):
+    """Create test fixture for MOA therapeutic statements."""
+    return [moa_aid66_study_stmt, moa_aid155_study_stmt]
 
 
-def test_moa_cdm(data, studies, check_transformed_cdm):
+def test_moa_cdm(data, statements, check_transformed_cdm):
     """Test that moa transformation works correctly."""
-    check_transformed_cdm(data, studies, TEST_TRANSFORMERS_DIR / FILENAME)
+    check_transformed_cdm(data, statements, TEST_TRANSFORMERS_DIR / FILENAME)
