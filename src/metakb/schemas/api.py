@@ -2,10 +2,12 @@
 
 from typing import Literal
 
+from ga4gh.va_spec.profiles.var_study_stmt import (
+    VariantTherapeuticResponseStudyStatement,
+)
 from pydantic import BaseModel, ConfigDict, StrictStr
 
 from metakb import __version__
-from metakb.schemas.variation_statement import VariantTherapeuticResponseStudy
 
 
 class ServiceMeta(BaseModel):
@@ -44,7 +46,7 @@ class SearchStudiesService(BaseModel):
     query: SearchStudiesQuery
     warnings: list[StrictStr] = []
     study_ids: list[StrictStr] = []
-    studies: list[VariantTherapeuticResponseStudy] = []
+    studies: list[VariantTherapeuticResponseStudyStatement] = []
     service_meta_: ServiceMeta
 
 
@@ -67,5 +69,5 @@ class BatchSearchStudiesService(BaseModel):
     query: BatchSearchStudiesQuery
     warnings: list[StrictStr] = []
     study_ids: list[StrictStr] = []
-    studies: list[VariantTherapeuticResponseStudy] = []
+    studies: list[VariantTherapeuticResponseStudyStatement] = []
     service_meta_: ServiceMeta

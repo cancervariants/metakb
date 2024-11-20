@@ -7,6 +7,7 @@ from neo4j import Driver
 from neo4j.graph import Node
 
 from metakb.database import get_driver
+from metakb.normalizers import VICC_NORMALIZER_DATA, ViccDiseaseNormalizerData
 from metakb.schemas.app import SourceName
 
 
@@ -94,7 +95,7 @@ def check_study_relation(driver: Driver):
     def _check_function(value_label: str):
         query = f"""
         MATCH (d:{value_label})
-        OPTIONAL MATCH (d)<-[:HAS_{value_label.upper()}]-(s:Study)
+        OPTIONAL MATCH (d)<-[:HAS_{value_label.upper()}]-(s:Statement)
         WITH d, COUNT(s) as s_count
         WHERE s_count < 1
         RETURN COUNT(s_count)
@@ -153,11 +154,15 @@ def check_extension_props():
     ):
         checked = set()
         for ext in fixture_extensions:
-            if ext["name"].endswith("_normalizer_data"):
-                obj_type = ext["name"].split("_normalizer_data")[0]
-                ext_name = f"{obj_type}_normalizer_id"
-                assert node[ext_name] == ext["value"]["normalized_id"]
-                checked.add(ext_name)
+            if ext["name"] == VICC_NORMALIZER_DATA:
+                for normalized_field in ViccDiseaseNormalizerData.model_fields:
+                    normalized_val = ext["value"].get(normalized_field)
+                    if normalized_val is None:
+                        continue
+
+                    ext_name = f"normalizer_{normalized_field}"
+                    assert node[ext_name] == ext["value"][normalized_field]
+                    checked.add(ext_name)
             elif ext["name"] in ext_names:
                 try:
                     assert json.loads(node[ext["name"]]) == ext["value"]
@@ -207,17 +212,23 @@ def test_gene_rules(
     """Verify property and relationship rules for Gene nodes."""
     check_unique_property("Gene", "id")
     check_relation_count(
-        "Gene", "Study", "HAS_GENE_CONTEXT", direction="in", min_rels=1, max_rels=None
+        "Gene",
+        "Statement",
+        "HAS_GENE_CONTEXT",
+        direction="in",
+        min_rels=1,
+        max_rels=None,
     )
 
     expected_labels = [{"Gene"}]
     check_node_labels("Gene", expected_labels, 1)
 
     gene = get_node_by_id(civic_gid5["id"])
-    extension_names = {"gene_normalizer_id"}
+    extension_names = {"normalizer_label", "normalizer_id"}
     check_extension_props(gene, civic_gid5["extensions"], extension_names)
     expected_keys = {
-        "gene_normalizer_id",
+        "normalizer_id",
+        "normalizer_label",
         "label",
         "id",
         "description",
@@ -241,7 +252,7 @@ def test_variation_rules(
     # members dont have defining context
     check_relation_count(
         "Variation",
-        "CategoricalVariation",
+        "CategoricalVariant",
         "HAS_DEFINING_CONTEXT",
         direction="in",
         min_rels=0,
@@ -249,25 +260,23 @@ def test_variation_rules(
     )
     check_relation_count(
         "Variation",
-        "CategoricalVariation",
+        "CategoricalVariant",
         "HAS_MEMBERS",
         min_rels=0,
         max_rels=None,
         direction="in",
     )
 
-    expected_labels = [{"Variation", "Allele"}]
-    check_node_labels("Variation", expected_labels, 1)
+    expected_labels = [{"Variation", "Allele"}, {"Variation", "CategoricalVariant"}]
+    check_node_labels("Variation", expected_labels, 2)
 
-    # all Alleles are Variations and all Variations are Alleles
+    # all Variations are either Alleles or CategoricalVariants, and all Alleles and CategoricalVariants are Variation
     label_query = """
-    MATCH (v:Variation)
-    WHERE NOT (v:Allele)
-    RETURN COUNT(v)
-    UNION
-    MATCH (v:Allele)
-    WHERE NOT (v:Variation)
-    RETURN COUNT(v)
+    MATCH (v)
+    RETURN
+        SUM(CASE WHEN (v:Variation AND NOT (v:Allele OR v:CategoricalVariant)) THEN 1 ELSE 0 END) +
+        SUM(CASE WHEN (v:Allele AND NOT v:Variation) THEN 1 ELSE 0 END) +
+        SUM(CASE WHEN (v:CategoricalVariant AND NOT v:Variation) THEN 1 ELSE 0 END)
     """
     with driver.session() as s:
         record = s.run(label_query).single()
@@ -280,8 +289,6 @@ def test_variation_rules(
         "digest",
         "state",
         "expression_hgvs_p",
-        "expression_hgvs_c",
-        "expression_hgvs_g",
         "type",
     }
 
@@ -301,28 +308,26 @@ def test_variation_rules(
             expected_g.append(val)
 
     assert v["expression_hgvs_p"] == expected_p
-    assert set(v["expression_hgvs_c"]) == set(expected_c)
-    assert v["expression_hgvs_g"] == expected_g
 
 
-def test_categorical_variation_rules(
+def test_categorical_variant_rules(
     check_unique_property,
     check_relation_count,
     check_node_labels,
     get_node_by_id,
     civic_mpid12,
 ):
-    """Verify property and relationship rules for Categorical Variation nodes."""
-    check_unique_property("CategoricalVariation", "id")
+    """Verify property and relationship rules for Categorical Variant nodes."""
+    check_unique_property("CategoricalVariant", "id")
     check_relation_count(
-        "CategoricalVariation", "Variation", "HAS_DEFINING_CONTEXT", max_rels=1
+        "CategoricalVariant", "Variation", "HAS_DEFINING_CONTEXT", max_rels=1
     )
     check_relation_count(
-        "CategoricalVariation", "Variation", "HAS_MEMBERS", min_rels=0, max_rels=None
+        "CategoricalVariant", "Variation", "HAS_MEMBERS", min_rels=0, max_rels=None
     )
 
-    expected_node_labels = [{"CategoricalVariation", "ProteinSequenceConsequence"}]
-    check_node_labels("CategoricalVariation", expected_node_labels, 1)
+    expected_node_labels = [{"CategoricalVariant", "Variation"}]
+    check_node_labels("CategoricalVariant", expected_node_labels, 1)
 
     cv = get_node_by_id(civic_mpid12["id"])
     assert set(cv.keys()) == {
@@ -414,7 +419,7 @@ def test_therapeutic_procedure_rules(
     # through CombinationTherapy and TherapeuticSubstituteGroup
     check_relation_count(
         "TherapeuticProcedure",
-        "Study",
+        "Statement",
         "HAS_THERAPEUTIC",
         min_rels=0,
         max_rels=None,
@@ -424,7 +429,11 @@ def test_therapeutic_procedure_rules(
         "CombinationTherapy", "TherapeuticAgent", "HAS_COMPONENTS", max_rels=None
     )
     check_relation_count(
-        "CombinationTherapy", "Study", "HAS_THERAPEUTIC", max_rels=None, direction="in"
+        "CombinationTherapy",
+        "Statement",
+        "HAS_THERAPEUTIC",
+        max_rels=None,
+        direction="in",
     )
     check_relation_count(
         "TherapeuticSubstituteGroup",
@@ -434,7 +443,7 @@ def test_therapeutic_procedure_rules(
     )
     check_relation_count(
         "TherapeuticSubstituteGroup",
-        "Study",
+        "Statement",
         "HAS_THERAPEUTIC",
         max_rels=None,
         direction="in",
@@ -449,13 +458,18 @@ def test_therapeutic_procedure_rules(
 
     # Test TherapeuticAgent
     ta = get_node_by_id(civic_tid146["id"])
-    extension_names = {"therapy_normalizer_id", "regulatory_approval"}
+    extension_names = {
+        "normalizer_id",
+        "normalizer_label",
+        "regulatory_approval",
+    }
     check_extension_props(ta, civic_tid146["extensions"], extension_names)
     expected_keys = {
         "id",
         "label",
         "alternativeLabels",
-        "therapy_normalizer_id",
+        "normalizer_id",
+        "normalizer_label",
         "regulatory_approval",
         "mappings",
         "type",
@@ -489,16 +503,28 @@ def test_condition_rules(
     """Verify property and relationship rules for condition nodes."""
     check_unique_property("Condition", "id")
     check_relation_count(
-        "Condition", "Study", "HAS_TUMOR_TYPE", max_rels=None, direction="in"
+        "Condition", "Statement", "HAS_TUMOR_TYPE", max_rels=None, direction="in"
     )
 
     expected_node_labels = [{"Disease", "Condition"}]
     check_node_labels("Condition", expected_node_labels, 1)
 
     disease = get_node_by_id(civic_did8["id"])
-    extension_names = {"disease_normalizer_id"}
+    extension_names = {
+        "normalizer_id",
+        "normalizer_label",
+        "normalizer_mondo_id",
+    }
     check_extension_props(disease, civic_did8["extensions"], extension_names)
-    expected_keys = {"id", "label", "mappings", "disease_normalizer_id", "type"}
+    expected_keys = {
+        "id",
+        "label",
+        "mappings",
+        "normalizer_id",
+        "normalizer_label",
+        "normalizer_mondo_id",
+        "type",
+    }
     check_node_props(disease, civic_did8, expected_keys, extension_names)
 
 
@@ -511,21 +537,23 @@ def test_study_rules(
     civic_eid2997_study,
     check_node_props,
 ):
-    """Verify property and relationship rules for Study nodes."""
-    check_unique_property("Study", "id")
+    """Verify property and relationship rules for Statement nodes."""
+    check_unique_property("Statement", "id")
 
-    check_relation_count("Study", "CategoricalVariation", "HAS_VARIANT")
-    check_relation_count("Study", "Condition", "HAS_TUMOR_TYPE")
-    check_relation_count("Study", "TherapeuticProcedure", "HAS_THERAPEUTIC")
-    check_relation_count("Study", "Coding", "HAS_STRENGTH")
-    check_relation_count("Study", "Method", "IS_SPECIFIED_BY", max_rels=None)
-    check_relation_count("Study", "Gene", "HAS_GENE_CONTEXT", max_rels=None)
+    check_relation_count("Statement", "CategoricalVariant", "HAS_VARIANT")
+    check_relation_count("Statement", "Condition", "HAS_TUMOR_TYPE")
+    check_relation_count("Statement", "TherapeuticProcedure", "HAS_THERAPEUTIC")
+    check_relation_count("Statement", "Coding", "HAS_STRENGTH")
+    check_relation_count("Statement", "Method", "IS_SPECIFIED_BY", max_rels=None)
+    check_relation_count("Statement", "Gene", "HAS_GENE_CONTEXT", max_rels=None)
 
-    expected_node_labels = [{"Study", "VariantTherapeuticResponseStudy"}]
-    check_node_labels("Study", expected_node_labels, 1)
+    expected_node_labels = [
+        {"Statement", "StudyStatement", "VariantTherapeuticResponseStudyStatement"}
+    ]
+    check_node_labels("Statement", expected_node_labels, 1)
 
     cite_query = """
-    MATCH (s:Study)
+    MATCH (s:Statement)
     OPTIONAL MATCH (s)-[:IS_REPORTED_IN]->(d:Document)
     WITH s, COUNT(d) as d_count
     WHERE d_count < 1
@@ -541,12 +569,12 @@ def test_study_rules(
         "description",
         "direction",
         "predicate",
-        "alleleOrigin",
+        "alleleOriginQualifier",
         "type",
     }
     civic_eid2997_study_cp = civic_eid2997_study.copy()
-    civic_eid2997_study_cp["alleleOrigin"] = civic_eid2997_study_cp["qualifiers"][
-        "alleleOrigin"
+    civic_eid2997_study_cp["alleleOriginQualifier"] = civic_eid2997_study_cp[
+        "alleleOriginQualifier"
     ]
     check_node_props(study, civic_eid2997_study_cp, expected_keys)
 
@@ -564,7 +592,12 @@ def test_document_rules(
     """Verify property and relationship rules for Document nodes."""
     check_unique_property("Document", "id")
     check_relation_count(
-        "Document", "Study", "IS_REPORTED_IN", min_rels=0, max_rels=None, direction="in"
+        "Document",
+        "Statement",
+        "IS_REPORTED_IN",
+        min_rels=0,
+        max_rels=None,
+        direction="in",
     )
 
     expected_labels = [{"Document"}]
@@ -573,7 +606,7 @@ def test_document_rules(
     # PMIDs: 31779674 and 35121878 do not have this relationship
     is_reported_in_query = """
     MATCH (s:Document)
-    OPTIONAL MATCH (s)<-[:IS_REPORTED_IN]-(d:Study)
+    OPTIONAL MATCH (s)<-[:IS_REPORTED_IN]-(d:Statement)
     WITH s, COUNT(d) as d_count
     WHERE (d_count < 1) AND (s.pmid <> 31779674) AND (s.pmid <> 35121878)
     RETURN COUNT(s)
@@ -594,7 +627,7 @@ def test_document_rules(
     doc = get_node_by_id(moa_source45["id"])
     extension_names = {"source_type"}
     check_extension_props(doc, moa_source45["extensions"], extension_names)
-    expected_keys = {"id", "title", "doi", "source_type", "url", "pmid"}
+    expected_keys = {"id", "title", "doi", "source_type", "urls", "pmid"}
     check_node_props(doc, moa_source45, expected_keys, extension_names)
 
 
@@ -609,7 +642,7 @@ def test_method_rules(
     """Verify property and relationship rules for Method nodes."""
     check_unique_property("Method", "id")
     check_relation_count(
-        "Method", "Study", "IS_SPECIFIED_BY", max_rels=None, direction="in"
+        "Method", "Statement", "IS_SPECIFIED_BY", max_rels=None, direction="in"
     )
 
     expected_node_labels = [{"Method"}]
@@ -626,7 +659,7 @@ def test_no_lost_nodes(driver: Driver):
     labels_query = """
     MATCH (n)
     WHERE size(labels(n)) = 0
-    AND NOT (n)<-[:IS_REPORTED_IN]-(:Study)
+    AND NOT (n)<-[:IS_REPORTED_IN]-(:Statement)
     RETURN COUNT(n)
     """
     with driver.session() as s:

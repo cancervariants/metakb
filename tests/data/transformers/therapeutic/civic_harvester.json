@@ -26,7 +26,8 @@
           "aliases": [
             "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide",
             "BIBW 2992",
-            "BIBW2992"
+            "BIBW2992",
+            "BIBW-2992"
           ],
           "type": "therapie"
         }
@@ -270,7 +271,8 @@
           "aliases": [
             "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide",
             "BIBW 2992",
-            "BIBW2992"
+            "BIBW2992",
+            "BIBW-2992"
           ],
           "type": "therapie"
         }
@@ -488,7 +490,9 @@
       ],
       "variant_aliases": [
         "LEU858ARG",
-        "RS121434568"
+        "RS121434568",
+        "LEU813ARG",
+        "L813R"
       ]
     },
     {
@@ -556,7 +560,9 @@
       "sources": [],
       "aliases": [
         "LEU858ARG",
-        "RS121434568"
+        "RS121434568",
+        "LEU813ARG",
+        "L813R"
       ]
     },
     {
