@@ -4,6 +4,7 @@ import logging
 import os
 from collections.abc import Iterable
 from enum import Enum
+from typing import Literal
 
 from botocore.exceptions import TokenRetrievalError
 from disease.cli import update_db as update_disease_db
@@ -22,6 +23,7 @@ from gene.database import create_db as create_gene_db
 from gene.database.database import AWS_ENV_VAR_NAME as GENE_AWS_ENV_VAR_NAME
 from gene.query import QueryHandler as GeneQueryHandler
 from gene.schemas import NormalizeService as NormalizedGene
+from pydantic import BaseModel
 from therapy.cli import update_normalizer_db as update_therapy_db
 from therapy.database import create_db as create_therapy_db
 from therapy.database.database import AWS_ENV_VAR_NAME as THERAPY_AWS_ENV_VAR_NAME
@@ -40,6 +42,28 @@ __all__ = [
 ]
 
 _logger = logging.getLogger(__name__)
+
+
+class ViccNormalizerData(BaseModel, extra="forbid"):
+    """Define model for representing VICC normalizer data"""
+
+    id: str
+    label: str
+
+
+class ViccDiseaseNormalizerData(ViccNormalizerData, extra="forbid"):
+    """Define model for representing VICC disease normalizer data"""
+
+    mondo_id: str | None = None
+
+
+VICC_NORMALIZER_DATA = "vicc_normalizer_data"
+
+
+class ViccNormalizerDataExtension(Extension):
+    """Define model for representing VICC normalizer data as an Extension"""
+
+    name: Literal["vicc_normalizer_data"] = VICC_NORMALIZER_DATA
 
 
 class ViccNormalizers:

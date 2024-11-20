@@ -5,26 +5,33 @@ import re
 from enum import Enum
 from pathlib import Path
 
+from ga4gh.cat_vrs.core_models import CategoricalVariant, DefiningContextConstraint
 from ga4gh.core.domain_models import (
     Disease,
     Gene,
     TherapeuticAgent,
     TherapeuticSubstituteGroup,
 )
-from ga4gh.core.entity_models import Coding, ConceptMapping, Extension, Relation, Syntax
-from ga4gh.vrs.models import Expression, Variation
+from ga4gh.core.entity_models import (
+    Coding,
+    ConceptMapping,
+    Direction,
+    Document,
+    Extension,
+    Relation,
+)
+from ga4gh.va_spec.profiles.var_study_stmt import (
+    AlleleOriginQualifier,
+    TherapeuticResponsePredicate,
+    VariantTherapeuticResponseStudyStatement,
+)
+from ga4gh.vrs.models import Expression, Syntax, Variation
 from pydantic import BaseModel, ValidationError
 
 from metakb import APP_ROOT
 from metakb.harvesters.civic import CivicHarvestedData
-from metakb.normalizers import ViccNormalizers
-from metakb.schemas.annotation import Direction, Document
-from metakb.schemas.categorical_variation import ProteinSequenceConsequence
-from metakb.schemas.variation_statement import (
-    AlleleOrigin,
-    VariantTherapeuticResponseStudy,
-    VariantTherapeuticResponseStudyPredicate,
-    _VariantOncogenicityStudyQualifier,
+from metakb.normalizers import (
+    ViccNormalizers,
 )
 from metakb.transformers.base import (
     CivicEvidenceLevel,
@@ -124,7 +131,7 @@ class CivicTransformer(Transformer):
         ]
         self.able_to_normalize = {
             "variations": {},  # will store _VariationCache data
-            "categorical_variations": {},
+            "categorical_variants": {},
             "conditions": {},
             "therapeutic_procedures": {},
             "genes": {},
@@ -195,14 +202,14 @@ class CivicTransformer(Transformer):
         self._add_genes(harvested_data.genes)
 
         # Only want to add MPs where variation-normalizer succeeded for the related
-        # variant. Will update `categorical_variations`
+        # variant. Will update `categorical_variants`
         able_to_normalize_vids = self.able_to_normalize["variations"].keys()
         mps = [
             mp
             for mp in molecular_profiles
             if f"civic.vid:{mp['variant_ids'][0]}" in able_to_normalize_vids
         ]
-        self._add_protein_consequences(mps, mp_id_to_v_id_mapping)
+        self._add_categorical_variants(mps, mp_id_to_v_id_mapping)
 
         # Add variant therapeutic response study data. Will update `studies`
         self._add_variant_therapeutic_response_studies(
@@ -225,7 +232,7 @@ class CivicTransformer(Transformer):
         for r in records:
             # Check cache for molecular profile, variation and gene data
             mp_id = f"civic.mpid:{r['molecular_profile_id']}"
-            mp = self.able_to_normalize["categorical_variations"].get(mp_id)
+            mp = self.able_to_normalize["categorical_variants"].get(mp_id)
             if not mp:
                 _logger.debug("mp_id not supported: %s", mp_id)
                 continue
@@ -303,50 +310,30 @@ class CivicTransformer(Transformer):
             civic_gene = self.able_to_normalize["genes"].get(
                 variation_gene_map.civic_gene_id
             )
-            qualifiers = self._get_variant_onco_study_qualifier(
-                r["variant_origin"], civic_gene
-            )
 
-            statement = VariantTherapeuticResponseStudy(
+            variant_origin = r["variant_origin"].upper()
+            if variant_origin == "SOMATIC":
+                allele_origin_qualifier = AlleleOriginQualifier.SOMATIC
+            elif variant_origin in {"RARE_GERMLINE", "COMMON_GERMLINE"}:
+                allele_origin_qualifier = AlleleOriginQualifier.GERMLINE
+            else:
+                allele_origin_qualifier = None
+
+            statement = VariantTherapeuticResponseStudyStatement(
                 id=r["name"].lower().replace("eid", "civic.eid:"),
                 description=r["description"] if r["description"] else None,
                 direction=direction,
                 strength=strength,
                 predicate=predicate,
-                variant=mp,
-                therapeutic=civic_therapeutic,
-                tumorType=civic_disease,
-                qualifiers=qualifiers,
+                subjectVariant=mp,
+                objectTherapeutic=civic_therapeutic,
+                conditionQualifier=civic_disease,
+                alleleOriginQualifier=allele_origin_qualifier,
+                geneContextQualifier=civic_gene,
                 specifiedBy=self.processed_data.methods[0],
-                isReportedIn=[document],
+                reportedIn=[document],
             )
             self.processed_data.studies.append(statement)
-
-    def _get_variant_onco_study_qualifier(
-        self, variant_origin: str, gene: Gene | None = None
-    ) -> _VariantOncogenicityStudyQualifier | None:
-        """Get Variant Oncogenicity Study Qualifier
-
-        :param variant_origin: CIViC evidence item's variant origin
-        :param gene: CIViC gene data
-        :return: Variant Oncogenicity Study Qualifier for a Variant Therapeutic Response
-            Study, if allele origin or gene exists
-        """
-        variant_origin = variant_origin.upper()
-        if variant_origin == "SOMATIC":
-            allele_origin = AlleleOrigin.SOMATIC
-        elif variant_origin in {"RARE_GERMLINE", "COMMON_GERMLINE"}:
-            allele_origin = AlleleOrigin.GERMLINE
-        else:
-            allele_origin = None
-
-        if allele_origin or gene:
-            qualifier = _VariantOncogenicityStudyQualifier(
-                alleleOrigin=allele_origin, geneContext=gene
-            )
-        else:
-            qualifier = None
-        return qualifier
 
     def _get_evidence_direction(self, direction: str) -> Direction | None:
         """Get the normalized evidence direction
@@ -358,12 +345,12 @@ class CivicTransformer(Transformer):
         if direction_upper == "SUPPORTS":
             return Direction.SUPPORTS
         if direction_upper == "DOES_NOT_SUPPORT":
-            return Direction.REFUTES
-        return Direction.NONE
+            return Direction.DISPUTES
+        return None
 
     def _get_predicate(
         self, record_type: str, clin_sig: str
-    ) -> VariantTherapeuticResponseStudyPredicate | None:
+    ) -> TherapeuticResponsePredicate | None:
         """Return predicate for an evidence item.
 
         :param record_type: The evidence type
@@ -374,21 +361,17 @@ class CivicTransformer(Transformer):
 
         if record_type == "PREDICTIVE":
             if clin_sig == "SENSITIVITYRESPONSE":
-                predicate = (
-                    VariantTherapeuticResponseStudyPredicate.PREDICTS_SENSITIVITY_TO
-                )
+                predicate = TherapeuticResponsePredicate.SENSITIVITY
             elif clin_sig == "RESISTANCE":
-                predicate = (
-                    VariantTherapeuticResponseStudyPredicate.PREDICTS_RESISTANCE_TO
-                )
+                predicate = TherapeuticResponsePredicate.RESISTANCE
         return predicate
 
-    def _add_protein_consequences(
+    def _add_categorical_variants(
         self, molecular_profiles: list[dict], mp_id_to_v_id_mapping: dict
     ) -> None:
-        """Create Protein Sequence Consequence objects for all supported MP records.
-        Mutates instance variables ``able_to_normalize['categorical_variations']`` and
-        ``processed_data.categorical_variations``.
+        """Create Categorical Variant objects for all supported MP records.
+        Mutates instance variables ``able_to_normalize['categorical_variants']`` and
+        ``processed_data.categorical_variants``.
 
         :param molecular_profiles: List of supported Molecular Profiles in CIViC.
             The associated, single variant record for each MP was successfully
@@ -431,18 +414,22 @@ class CivicTransformer(Transformer):
                         Extension(name=ext_key, value=civic_variation_data_value)
                     )
 
-            psc = ProteinSequenceConsequence(
+            cv = CategoricalVariant(
                 id=mp_id,
                 description=mp["description"],
                 label=mp["name"],
-                definingContext=civic_variation_data.vrs_variation.root,
+                constraints=[
+                    DefiningContextConstraint(
+                        definingContext=civic_variation_data.vrs_variation,
+                    )
+                ],
                 alternativeLabels=list(set(aliases)) or None,
                 mappings=civic_variation_data.mappings,
                 extensions=extensions or None,
                 members=civic_variation_data.members,
             )
-            self.processed_data.categorical_variations.append(psc)
-            self.able_to_normalize["categorical_variations"][mp_id] = psc
+            self.processed_data.categorical_variants.append(cv)
+            self.able_to_normalize["categorical_variants"][mp_id] = cv
 
     @staticmethod
     def _get_variant_name(variant: dict) -> str:
@@ -498,19 +485,28 @@ class CivicTransformer(Transformer):
         :return: List containing one VRS variation record for associated genomic HGVS
             expression, if variation-normalizer was able to normalize
         """
-        members = None
-        genomic_hgvs = (
-            [expr for expr in variant["hgvs_expressions"] if "g." in expr] or [None]
-        )[0]
-        if genomic_hgvs:
-            vrs_genomic_variation = await self.vicc_normalizers.normalize_variation(
-                [genomic_hgvs]
-            )
+        members = []
+        for hgvs_expr in variant["hgvs_expressions"]:
+            if hgvs_expr == "N/A" or "p." in hgvs_expr:
+                continue
 
-            if vrs_genomic_variation:
-                genomic_params = vrs_genomic_variation.model_dump(exclude_none=True)
-                genomic_params["label"] = genomic_hgvs
-                members = [Variation(**genomic_params)]
+            if "c." in hgvs_expr:
+                syntax = Syntax.HGVS_C
+            elif "g." in hgvs_expr:
+                syntax = Syntax.HGVS_G
+            else:
+                _logger.debug("Syntax not recognized: %s", hgvs_expr)
+                continue
+
+            vrs_variation = await self.vicc_normalizers.normalize_variation([hgvs_expr])
+
+            if vrs_variation:
+                variation_params = vrs_variation.model_dump(exclude_none=True)
+                variation_params["label"] = hgvs_expr
+                variation_params["expressions"] = [
+                    Expression(syntax=syntax, value=hgvs_expr)
+                ]
+                members.append(Variation(**variation_params))
         return members
 
     async def _add_variations(self, variants: list[dict]) -> None:
@@ -640,12 +636,10 @@ class CivicTransformer(Transformer):
         """
         expressions = []
         for hgvs_expr in variant["hgvs_expressions"]:
-            if ":g." in hgvs_expr:
-                syntax = Syntax.HGVS_G
-            elif ":c." in hgvs_expr:
-                syntax = Syntax.HGVS_C
-            else:
+            if ":p." in hgvs_expr:
                 syntax = Syntax.HGVS_P
+            else:
+                continue
 
             if hgvs_expr != "N/A":
                 expressions.append(Expression(syntax=syntax, value=hgvs_expr))
@@ -664,7 +658,9 @@ class CivicTransformer(Transformer):
             ncbigene = f"ncbigene:{gene['entrez_id']}"
             queries = [ncbigene, gene["name"]] + gene["aliases"]
 
-            _, normalized_gene_id = self.vicc_normalizers.normalize_gene(queries)
+            gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(
+                queries
+            )
 
             if normalized_gene_id:
                 civic_gene = Gene(
@@ -682,7 +678,9 @@ class CivicTransformer(Transformer):
                     ],
                     alternativeLabels=gene["aliases"] if gene["aliases"] else None,
                     extensions=[
-                        Extension(name="gene_normalizer_id", value=normalized_gene_id)
+                        self._get_vicc_normalizer_extension(
+                            normalized_gene_id, gene_norm_resp
+                        )
                     ],
                 )
                 self.able_to_normalize["genes"][gene_id] = civic_gene
@@ -763,9 +761,9 @@ class CivicTransformer(Transformer):
             label=display_name,
             mappings=mappings if mappings else None,
             extensions=[
-                self._get_disease_normalizer_ext_data(
+                self._get_vicc_normalizer_extension(
                     normalized_disease_id, disease_norm_resp
-                ),
+                )
             ],
         )
 
@@ -861,9 +859,9 @@ class CivicTransformer(Transformer):
         )
 
         extensions = [
-            self._get_therapy_normalizer_ext_data(
+            self._get_vicc_normalizer_extension(
                 normalized_therapeutic_id, therapy_norm_resp
-            ),
+            )
         ]
 
         if regulatory_approval_extension:

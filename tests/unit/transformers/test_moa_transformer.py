@@ -6,6 +6,7 @@ import pytest
 import pytest_asyncio
 from tests.conftest import TEST_TRANSFORMERS_DIR
 
+from metakb.normalizers import VICC_NORMALIZER_DATA
 from metakb.transformers.moa import MoaTransformer
 
 FILENAME = "moa_cdm.json"
@@ -35,24 +36,31 @@ def moa_vid145(braf_v600e_genomic):
 
     return {
         "id": "moa.variant:145",
-        "type": "ProteinSequenceConsequence",
+        "type": "CategoricalVariant",
         "label": "BRAF p.V600E (Missense)",
-        "definingContext": {
-            "id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
-            "digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
-            "type": "Allele",
-            "location": {
-                "id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
-                "type": "SequenceLocation",
-                "sequenceReference": {
-                    "type": "SequenceReference",
-                    "refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y",
+        "constraints": [
+            {
+                "definingContext": {
+                    "id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+                    "digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+                    "type": "Allele",
+                    "location": {
+                        "id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+                        "digest": "t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+                        "type": "SequenceLocation",
+                        "sequenceReference": {
+                            "type": "SequenceReference",
+                            "refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y",
+                        },
+                        "start": 599,
+                        "end": 600,
+                        "sequence": "V",
+                    },
+                    "state": {"type": "LiteralSequenceExpression", "sequence": "E"},
                 },
-                "start": 599,
-                "end": 600,
-            },
-            "state": {"type": "LiteralSequenceExpression", "sequence": "E"},
-        },
+                "type": "DefiningContextConstraint",
+            }
+        ],
         "members": [genomic_rep],
         "extensions": [
             {
@@ -115,17 +123,16 @@ def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
     """Create MOA AID 155 study test fixture. Uses CombinationTherapy."""
     return {
         "id": "moa.assertion:155",
-        "type": "VariantTherapeuticResponseStudy",
+        "type": "VariantTherapeuticResponseStudyStatement",
         "description": "The U.S. Food and Drug Administration (FDA) granted regular approval to encorafenib in combination with cetuximab for the treatment of adult patients with metastatic colorectal cancer (CRC) with BRAF V600E mutation, as detected by an FDA-approved test, after prior therapy.",
-        "direction": "none",
         "strength": {
             "code": "e000002",
             "label": "FDA recognized evidence",
             "system": "https://go.osu.edu/evidence-codes",
         },
         "predicate": "predictsSensitivityTo",
-        "variant": moa_vid145,
-        "therapeutic": {
+        "subjectVariant": moa_vid145,
+        "objectTherapeutic": {
             "type": "CombinationTherapy",
             "id": "moa.ctid:ZGlEkRBR4st6Y_nijjuR1KUV7EFHIF_S",
             "components": [moa_cetuximab, moa_encorafenib],
@@ -136,15 +143,15 @@ def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
                 }
             ],
         },
-        "tumorType": {
+        "conditionQualifier": {
             "id": "moa.normalize.disease.ncit:C5105",
             "type": "Disease",
             "label": "Colorectal Adenocarcinoma",
             "extensions": [
                 {
-                    "name": "disease_normalizer_data",
+                    "name": VICC_NORMALIZER_DATA,
                     "value": {
-                        "normalized_id": "ncit:C5105",
+                        "id": "ncit:C5105",
                         "label": "Colorectal Adenocarcinoma",
                         "mondo_id": "0005008",
                     },
@@ -161,28 +168,28 @@ def moa_aid155_study(moa_vid145, moa_cetuximab, moa_encorafenib, moa_method):
                 }
             ],
         },
-        "qualifiers": {
-            "alleleOrigin": "somatic",
-            "geneContext": {
-                "id": "moa.normalize.gene:BRAF",
-                "type": "Gene",
-                "label": "BRAF",
-                "extensions": [
-                    {
-                        "name": "gene_normalizer_id",
-                        "value": "hgnc:1097",
-                    }
-                ],
-            },
+        "alleleOriginQualifier": "somatic",
+        "geneContextQualifier": {
+            "id": "moa.normalize.gene:BRAF",
+            "type": "Gene",
+            "label": "BRAF",
+            "extensions": [
+                {
+                    "name": VICC_NORMALIZER_DATA,
+                    "value": {"id": "hgnc:1097", "label": "BRAF"},
+                }
+            ],
         },
         "specifiedBy": moa_method,
-        "isReportedIn": [
+        "reportedIn": [
             {
                 "id": "moa.source:63",
                 "extensions": [{"name": "source_type", "value": "FDA"}],
                 "type": "Document",
                 "title": "Array BioPharma Inc. Braftovi (encorafenib) [package insert]. U.S. Food and Drug Administration website. www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf. Revised April 2020. Accessed October 15, 2020.",
-                "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf",
+                "urls": [
+                    "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf"
+                ],
             }
         ],
     }

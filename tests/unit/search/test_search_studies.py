@@ -3,6 +3,7 @@
 import pytest
 from ga4gh.core.entity_models import Extension
 
+from metakb.normalizers import VICC_NORMALIZER_DATA
 from metakb.query import QueryHandler
 
 from .utils import assert_no_match, find_and_check_study
@@ -16,8 +17,8 @@ def _get_normalizer_id(extensions: list[Extension]) -> str | None:
     """
     normalizer_id = None
     for ext in extensions:
-        if ext.name.endswith("_normalizer_id"):
-            normalizer_id = ext.value
+        if ext.name == VICC_NORMALIZER_DATA:
+            normalizer_id = ext.value["id"]
             break
     return normalizer_id
 
@@ -172,7 +173,7 @@ async def test_general_search_studies(query_handler):
     assert_general_search_studies(resp)
     expected_therapy_id = "rxcui:318341"
     for study in resp.studies:
-        tp = study.therapeutic.root
+        tp = study.objectTherapeutic.root
         if tp.type == "TherapeuticAgent":
             assert _get_normalizer_id(tp.extensions) == expected_therapy_id
         else:
@@ -202,12 +203,17 @@ async def test_general_search_studies(query_handler):
     assert_general_search_studies(resp)
 
     for study in resp.studies:
-        assert study.variant.root.definingContext.id == expected_variation_id
         assert (
-            _get_normalizer_id(study.therapeutic.root.extensions) == expected_therapy_id
+            study.subjectVariant.constraints[0].root.definingContext.root.id
+            == expected_variation_id
         )
         assert (
-            _get_normalizer_id(study.tumorType.root.extensions) == expected_disease_id
+            _get_normalizer_id(study.objectTherapeutic.root.extensions)
+            == expected_therapy_id
+        )
+        assert (
+            _get_normalizer_id(study.conditionQualifier.root.extensions)
+            == expected_disease_id
         )
 
 
