@@ -94,17 +94,30 @@ CLIN_SIG_TO_PREDICATE = {
 }
 
 
+class _CivicInteractionType(str, Enum):
+    """Define constraints for CIViC interaction types supported by MetaKB
+
+    SEQUENTIAL is not currently supported
+    """
+
+    SUBSTITUTES = "SUBSTITUTES"
+    COMBINATION = "COMBINATION"
+
+
 class _TherapeuticMetadata(BaseModel):
     """Define model for CIVIC therapeutic metadata"""
 
     procedure_id: str
-    interaction_type: str | None
+    interaction_type: _CivicInteractionType | None
     procedure_type: TherapeuticProcedureType
     therapies: list[dict]
 
 
 class _CivicEvidenceType(str, Enum):
-    """Define constraints for CIViC evidence types supported by MetaKB"""
+    """Define constraints for CIViC evidence types supported by MetaKB
+
+    DIAGNOSTIC, ONCOGENIC, PREDISPOSING are not currently supported
+    """
 
     PREDICTIVE = "PREDICTIVE"
     PROGNOSTIC = "PROGNOSTIC"
@@ -893,12 +906,12 @@ class CivicTransformer(Transformer):
             therapeutic_ids = [f"civic.tid:{t['id']}" for t in therapies]
             therapeutic_digest = self._get_digest_for_str_lists(therapeutic_ids)
 
-            if therapy_interaction_type == "SUBSTITUTES":
+            if therapy_interaction_type == _CivicInteractionType.SUBSTITUTES:
                 therapeutic_procedure_id = f"civic.tsgid:{therapeutic_digest}"
                 therapeutic_procedure_type = (
                     TherapeuticProcedureType.THERAPEUTIC_SUBSTITUTE_GROUP
                 )
-            elif therapy_interaction_type == "COMBINATION":
+            elif therapy_interaction_type == _CivicInteractionType.COMBINATION:
                 therapeutic_procedure_id = f"civic.ctid:{therapeutic_digest}"
                 therapeutic_procedure_type = (
                     TherapeuticProcedureType.COMBINATION_THERAPY
