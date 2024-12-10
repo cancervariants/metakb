@@ -542,15 +542,18 @@ def test_statement_rules(
 
     check_relation_count("Statement", "CategoricalVariant", "HAS_VARIANT")
     check_relation_count("Statement", "Condition", "HAS_TUMOR_TYPE")
-    check_relation_count("Statement", "TherapeuticProcedure", "HAS_THERAPEUTIC")
+    check_relation_count(
+        "Statement", "TherapeuticProcedure", "HAS_THERAPEUTIC", min_rels=0
+    )
     check_relation_count("Statement", "Coding", "HAS_STRENGTH")
     check_relation_count("Statement", "Method", "IS_SPECIFIED_BY", max_rels=None)
     check_relation_count("Statement", "Gene", "HAS_GENE_CONTEXT", max_rels=None)
 
     expected_node_labels = [
-        {"Statement", "StudyStatement", "VariantTherapeuticResponseStudyStatement"}
+        {"Statement", "StudyStatement", "VariantTherapeuticResponseStudyStatement"},
+        {"Statement", "StudyStatement", "VariantPrognosticStudyStatement"},
     ]
-    check_node_labels("Statement", expected_node_labels, 1)
+    check_node_labels("Statement", expected_node_labels, 2)
 
     cite_query = """
     MATCH (s:Statement)
