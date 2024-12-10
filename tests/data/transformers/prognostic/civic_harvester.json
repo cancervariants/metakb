@@ -15,7 +15,6 @@
             "evidence_direction": "SUPPORTS",
             "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",
             "assertion_ids": [],
-            "therapies": [],
             "disease": {
                 "id": 3,
                 "name": "Acute Myeloid Leukemia",
@@ -33,6 +32,7 @@
                 ],
                 "type": "disease"
             },
+            "phenotypes": [],
             "source": {
                 "id": 69,
                 "name": "PubMed: Cairoli et al., 2006",
@@ -51,62 +51,7 @@
                 "clinical_trials": [],
                 "type": "source"
             },
-            "phenotypes": []
-        },
-        {
-            "type": "evidence",
-            "id": 1756,
-            "variant_origin": "COMMON_GERMLINE",
-            "therapy_interaction_type": null,
-            "status": "accepted",
-            "significance": "BETTER_OUTCOME",
-            "rating": 4,
-            "name": "EID1756",
-            "molecular_profile_id": 254,
-            "evidence_type": "PROGNOSTIC",
-            "evidence_level": "B",
-            "evidence_direction": "SUPPORTS",
-            "description": "Study of 1817 PCa cases and 2026 cancer free controls to clarify the association of (MTHFR)c.677C>T (and c.1298A>C ) of pancreatic cancer risk in a population of Han Chinese in Shanghai. Results indicated a lower risk for the heterozygous CT genotype and homozygous TT genotype carriers of (MTHFR)c.677C>T which had a significantly lower risk of developing pancreatic cancer compared with the wild-type CC genotype.",
-            "assertion_ids": [],
-            "therapies": [],
-            "disease": {
-                "id": 556,
-                "name": "Pancreatic Cancer",
-                "display_name": "Pancreatic Cancer",
-                "doid": "1793",
-                "disease_url": "https://www.disease-ontology.org/?id=DOID:1793",
-                "aliases": [
-                    "Ca Body Of Pancreas",
-                    "Ca Head Of Pancreas",
-                    "Ca Tail Of Pancreas",
-                    "Malignant Neoplasm Of Body Of Pancreas",
-                    "Malignant Neoplasm Of Head Of Pancreas",
-                    "Malignant Neoplasm Of Tail Of Pancreas",
-                    "Pancreas Neoplasm",
-                    "Pancreatic Neoplasm",
-                    "Pancreatic Tumor"
-                ],
-                "type": "disease"
-            },
-            "source": {
-                "id": 1218,
-                "name": "PubMed: Wu et al., 2016",
-                "title": "MTHFR c.677C>T Inhibits Cell Proliferation and Decreases Prostate Cancer Susceptibility in the Han Chinese Population in Shanghai.",
-                "citation": "Wu et al., 2016",
-                "citation_id": "27819322",
-                "source_type": "PUBMED",
-                "abstract": "Methylenetetrahydrofolate reductase (MTHFR) c.677C>T and c.1298A>C variants were known to be associated with prostate cancer (PCa) risk with conflicting results, because of MTHFR and nutrient status interaction in the prostate development. In this large-scale, hospital-based, case-control study of 1817 PCa cases and 2026 cancer-free controls, we aimed to clarify the association between these two MTHFR variants and PCa risk in Shanghai and to explore the underlying molecular mechanisms. We found that both the heterozygous CT (adjusted OR\u2009=\u20090.78, 95% CI: 0.67-0.92) and the homozygous TT genotypes (adjusted OR\u2009=\u20090.68, 95% CI: 0.55-0.83) of c.677C>T were associated with a significantly decreased risk of PCa compared with homozygous wild-type CC genotype, respectively, using multivariate logistic regression. Furthermore, we confirmed that MTHFR c.677T allele was related to an increased serum homocysteine level in the Han Chinese population in Shanghai. In the cultured PCa cell lines, we observed that MTHFR c.677T could elevate the cellular homocysteine level and cause DNA damage, thus increasing cell apoptosis and finally inhibiting cell proliferation. In conclusion, MTHFR c.677T was a protective factor of PCa risk in ethnic Han Chinese males by inducing DNA damage and cell apoptosis.",
-                "asco_abstract_id": null,
-                "author_string": "Jun-Long Wu, Shu-Xian Zhou, Rui Zhao, Xuan Zhang, Kun Chang, Cheng-Yuan Gu, Hua-Lei Gan, Bo Dai, Yao Zhu, Hai-Liang Zhang, Guo-Hai Shi, Yuan-Yuan Qu, Jian-Yuan Zhao, Ding-Wei Ye",
-                "full_journal_title": "Scientific reports",
-                "journal": "Sci Rep",
-                "pmc_id": "PMC5098242",
-                "publication_date": "2016-11-7",
-                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/27819322",
-                "clinical_trials": [],
-                "type": "source"
-            },
-            "phenotypes": []
+            "therapies": []
         }
     ],
     "assertions": [],
@@ -145,17 +90,6 @@
                 "PBT",
                 "SCFR"
             ]
-        },
-        {
-            "type": "gene",
-            "id": 3672,
-            "name": "MTHFR",
-            "entrez_id": 4524,
-            "description": "",
-            "sources": [],
-            "aliases": [
-                "MTHFR"
-            ]
         }
     ],
     "variants": [
@@ -168,12 +102,6 @@
             "entrez_name": "KIT",
             "entrez_id": 3815,
             "allele_registry_id": "CA123513",
-            "hgvs_expressions": [
-                "NM_000222.2:c.2447A>T",
-                "NP_000213.1:p.Asp816Val",
-                "ENST00000288135.5:c.2447A>T",
-                "NC_000004.11:g.55599321A>T"
-            ],
             "variant_types": [
                 {
                     "id": 47,
@@ -183,6 +111,12 @@
                     "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
                     "type": "variant_type"
                 }
+            ],
+            "hgvs_expressions": [
+                "NM_000222.2:c.2447A>T",
+                "NP_000213.1:p.Asp816Val",
+                "ENST00000288135.5:c.2447A>T",
+                "NC_000004.11:g.55599321A>T"
             ],
             "coordinates": {
                 "ensembl_version": 75,
@@ -193,10 +127,6 @@
                 "chromosome": "4",
                 "start": 55599321,
                 "stop": 55599321,
-                "representative_transcript2": null,
-                "chromosome2": null,
-                "start2": null,
-                "stop2": null,
                 "type": "coordinates"
             },
             "clinvar_entries": [
@@ -206,54 +136,35 @@
                 "ASP816VAL",
                 "RS121913507"
             ]
-        },
+        }
+    ],
+    "molecular_profiles": [
         {
-            "type": "variant",
-            "id": 258,
-            "single_variant_molecular_profile_id": 254,
-            "name": "A222V",
-            "gene_id": 3672,
-            "entrez_name": "MTHFR",
-            "entrez_id": 4524,
-            "allele_registry_id": "CA170990",
-            "hgvs_expressions": [
-                "NM_005957.4:c.665C>T",
-                "NP_005948.3:p.Ala222Val",
-                "ENST00000376592.1:c.665G>A",
-                "NC_000001.10:g.11856378G>A"
+            "type": "molecular_profile",
+            "id": 65,
+            "variant_ids": [
+                65
             ],
-            "variant_types": [
+            "name": "KIT D816V",
+            "molecular_profile_score": 67.0,
+            "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",
+            "parsed_name": [
                 {
-                    "id": 47,
-                    "name": "Missense Variant",
-                    "so_id": "SO:0001583",
-                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
-                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
-                    "type": "variant_type"
+                    "type": "feature",
+                    "id": 29,
+                    "name": "KIT"
+                },
+                {
+                    "type": "variant",
+                    "id": 65,
+                    "name": "D816V",
+                    "deprecated": false
                 }
             ],
-            "coordinates": {
-                "ensembl_version": 75,
-                "reference_build": "GRCh37",
-                "reference_bases": "G",
-                "variant_bases": "A",
-                "representative_transcript": "ENST00000376592.1",
-                "chromosome": "1",
-                "start": 11856378,
-                "stop": 11856378,
-                "representative_transcript2": null,
-                "chromosome2": null,
-                "start2": null,
-                "stop2": null,
-                "type": "coordinates"
-            },
-            "clinvar_entries": [
-                "3520"
-            ],
-            "variant_aliases": [
-                "RS1801133",
-                "C677T",
-                "ALA222VAL"
+            "sources": [],
+            "aliases": [
+                "ASP816VAL",
+                "RS121913507"
             ]
         }
     ]

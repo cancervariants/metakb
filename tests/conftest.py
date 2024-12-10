@@ -1429,20 +1429,27 @@ def civic_gid154():
 
 
 @pytest.fixture(scope="session")
-def civic_eid26_statement():
-    """Create a test fixture for CIViC EID26 statement."""
+def civic_eid26_study_stmt(
+    civic_mpid65, civic_gid29, civic_did3, civic_method, pmid_16384925
+):
+    """Create a test fixture for CIViC EID26 study statement."""
     return {
         "id": "civic.eid:26",
         "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",
         "direction": "supports",
-        "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:_HXqJtIo6MSmwagQUSOot4wdKE7O4DyN",
-        "variation_origin": "somatic",
-        "variation_descriptor": "civic.vid:65",
-        "disease_descriptor": "civic.did:3",
-        "method": "method:1",
-        "supported_by": ["pmid:16384925"],
-        "type": "Statement",
+        "strength": {
+            "code": "e000005",
+            "label": "clinical cohort evidence",
+            "system": "https://go.osu.edu/evidence-codes",
+        },
+        "predicate": "associatedWithWorseOutcomeFor",
+        "alleleOriginQualifier": "somatic",
+        "subjectVariant": civic_mpid65,
+        "geneContextQualifier": civic_gid29,
+        "objectCondition": civic_did3,
+        "specifiedBy": civic_method,
+        "reportedIn": [pmid_16384925],
+        "type": "VariantPrognosticStudyStatement",
     }
 
 
@@ -1460,33 +1467,139 @@ def civic_eid26_proposition():
 
 @pytest.fixture(scope="session")
 def civic_vid65():
+    """Create test fixture for CIViC Variant ID 65"""
+    return {
+        "id": "ga4gh:VA.nhiDwIq1klrGm3wtWO4a4BiS0jdW79Wd",
+        "type": "Allele",
+        "label": "D816V",
+        "digest": "nhiDwIq1klrGm3wtWO4a4BiS0jdW79Wd",
+        "location": {
+            "id": "ga4gh:SL.FDPpCHrDqH_pR10oxpHZ17tyGhZXVnsj",
+            "digest": "FDPpCHrDqH_pR10oxpHZ17tyGhZXVnsj",
+            "type": "SequenceLocation",
+            "sequenceReference": {
+                "refgetAccession": "SQ.TcMVFj5kDODDWpiy1d_1-3_gOf4BYaAB",
+                "type": "SequenceReference",
+            },
+            "start": 815,
+            "end": 816,
+            "sequence": "D",
+        },
+        "state": {"sequence": "V", "type": "LiteralSequenceExpression"},
+        "expressions": [
+            {"syntax": "hgvs.p", "value": "NP_000213.1:p.Asp816Val"},
+        ],
+    }
+
+
+@pytest.fixture(scope="session")
+def civic_mpid65(civic_vid65):
     """Create a test fixture for CIViC VID65."""
     return {
-        "id": "civic.vid:65",
-        "type": "VariationDescriptor",
-        "label": "D816V",
+        "id": "civic.mpid:65",
+        "type": "CategoricalVariant",
         "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",
-        "variation_id": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
-        "variation": {
-            "_id": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
-            "location": {
-                "_id": "ga4gh:VSL.67qWY-IcFDjFx5DttZ1-5ZMm3v_SC7jI",
-                "interval": {
-                    "end": {"value": 820, "type": "Number"},
-                    "start": {"value": 819, "type": "Number"},
-                    "type": "SequenceInterval",
+        "label": "KIT D816V",
+        "constraints": [
+            {"definingContext": civic_vid65, "type": "DefiningContextConstraint"}
+        ],
+        "members": [
+            {
+                "id": "ga4gh:VA.MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
+                "type": "Allele",
+                "label": "NM_000222.2:c.2447A>T",
+                "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
+                "expressions": [{"syntax": "hgvs.c", "value": "NM_000222.2:c.2447A>T"}],
+                "location": {
+                    "id": "ga4gh:SL.vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
+                    "type": "SequenceLocation",
+                    "digest": "vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
+                    "sequenceReference": {
+                        "type": "SequenceReference",
+                        "refgetAccession": "SQ.5UOthuwxqhwdsrbA4bVonC2ps_Njx1gh",
+                    },
+                    "start": 2504,
+                    "end": 2505,
+                    "sequence": "A",
                 },
-                "sequence_id": "ga4gh:SQ.TcMVFj5kDODDWpiy1d_1-3_gOf4BYaAB",
-                "type": "SequenceLocation",
+                "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
             },
-            "state": {"sequence": "V", "type": "LiteralSequenceExpression"},
-            "type": "Allele",
-        },
-        "xrefs": ["clinvar:13852", "caid:CA123513", "dbsnp:121913507"],
-        "alternate_labels": ["ASP816VAL"],
+            {
+                "id": "ga4gh:VA.MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
+                "type": "Allele",
+                "label": "ENST00000288135.5:c.2447A>T",
+                "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
+                "expressions": [
+                    {"syntax": "hgvs.c", "value": "ENST00000288135.5:c.2447A>T"}
+                ],
+                "location": {
+                    "id": "ga4gh:SL.vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
+                    "type": "SequenceLocation",
+                    "digest": "vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
+                    "sequenceReference": {
+                        "type": "SequenceReference",
+                        "refgetAccession": "SQ.5UOthuwxqhwdsrbA4bVonC2ps_Njx1gh",
+                    },
+                    "start": 2504,
+                    "end": 2505,
+                    "sequence": "A",
+                },
+                "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
+            },
+            {
+                "id": "ga4gh:VA.UQJIH49-agpdZzdyGiM4NQE_njoQy0m6",
+                "type": "Allele",
+                "label": "NC_000004.11:g.55599321A>T",
+                "digest": "UQJIH49-agpdZzdyGiM4NQE_njoQy0m6",
+                "expressions": [
+                    {"syntax": "hgvs.g", "value": "NC_000004.11:g.55599321A>T"}
+                ],
+                "location": {
+                    "id": "ga4gh:SL.aAqDEdLIeXIQOX6LaJaaiOuC7lgo_DZk",
+                    "type": "SequenceLocation",
+                    "digest": "aAqDEdLIeXIQOX6LaJaaiOuC7lgo_DZk",
+                    "sequenceReference": {
+                        "type": "SequenceReference",
+                        "refgetAccession": "SQ.HxuclGHh0XCDuF8x6yQrpHUBL7ZntAHc",
+                    },
+                    "start": 54733154,
+                    "end": 54733155,
+                    "sequence": "A",
+                },
+                "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
+            },
+        ],
+        "alternativeLabels": ["ASP816VAL"],
+        "mappings": [
+            {
+                "coding": {
+                    "code": "CA123513",
+                    "system": "https://reg.clinicalgenome.org/",
+                },
+                "relation": "relatedMatch",
+            },
+            {
+                "coding": {
+                    "code": "13852",
+                    "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+                },
+                "relation": "relatedMatch",
+            },
+            {
+                "coding": {
+                    "code": "rs121913507",
+                    "system": "https://www.ncbi.nlm.nih.gov/snp/",
+                },
+                "relation": "relatedMatch",
+            },
+            {
+                "coding": {"code": "65", "system": "https://civicdb.org/variants/"},
+                "relation": "exactMatch",
+            },
+        ],
         "extensions": [
             {
-                "name": "civic_representative_coordinate",
+                "name": "CIViC representative coordinate",
                 "value": {
                     "chromosome": "4",
                     "start": 55599321,
@@ -1496,44 +1609,24 @@ def civic_vid65():
                     "representative_transcript": "ENST00000288135.5",
                     "ensembl_version": 75,
                     "reference_build": "GRCh37",
+                    "type": "coordinates",
                 },
             },
-            {"name": "civic_actionability_score", "value": "67"},
             {
-                "name": "variant_group",
+                "name": "CIViC Molecular Profile Score",
+                "value": 67.0,
+            },
+            {
+                "name": "Variant types",
                 "value": [
                     {
-                        "id": "civic.variant_group:2",
-                        "label": "KIT Exon 17",
-                        "type": "variant_group",
+                        "code": "SO:0001583",
+                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                        "label": "missense_variant",
                     }
                 ],
             },
         ],
-        "structural_type": "SO:0001583",
-        "expressions": [
-            {
-                "syntax": "hgvs.c",
-                "value": "NM_000222.2:c.2447A>T",
-                "type": "Expression",
-            },
-            {
-                "syntax": "hgvs.p",
-                "value": "NP_000213.1:p.Asp816Val",
-                "type": "Expression",
-            },
-            {
-                "syntax": "hgvs.c",
-                "value": "ENST00000288135.5:c.2447A>T",
-                "type": "Expression",
-            },
-            {
-                "syntax": "hgvs.g",
-                "value": "NC_000004.11:g.55599321A>T",
-                "type": "Expression",
-            },
-        ],
-        "gene_context": "civic.gid:29",
     }
 
 
@@ -1542,10 +1635,27 @@ def civic_did3():
     """Create test fixture for CIViC DID3."""
     return {
         "id": "civic.did:3",
-        "type": "DiseaseDescriptor",
+        "type": "Disease",
         "label": "Acute Myeloid Leukemia",
-        "disease_id": "ncit:C3171",
-        "xrefs": ["DOID:9119"],
+        "extensions": [
+            {
+                "name": "vicc_normalizer_data",
+                "value": {
+                    "id": "ncit:C3171",
+                    "label": "Acute Myeloid Leukemia",
+                    "mondo_id": "0018874",
+                },
+            }
+        ],
+        "mappings": [
+            {
+                "coding": {
+                    "system": "https://www.disease-ontology.org/",
+                    "code": "DOID:9119",
+                },
+                "relation": "exactMatch",
+            }
+        ],
     }
 
 
@@ -1554,131 +1664,25 @@ def civic_gid29():
     """Create test fixture for CIViC GID29."""
     return {
         "id": "civic.gid:29",
-        "type": "GeneDescriptor",
+        "type": "Gene",
         "label": "KIT",
         "description": "c-KIT activation has been shown to have oncogenic activity in gastrointestinal stromal tumors (GISTs), melanomas, lung cancer, and other tumor types. The targeted therapeutics nilotinib and sunitinib have shown efficacy in treating KIT overactive patients, and are in late-stage trials in melanoma and GIST. KIT overactivity can be the result of many genomic events from genomic amplification to overexpression to missense mutations. Missense mutations have been shown to be key players in mediating clinical response and acquired resistance in patients being treated with these targeted therapeutics.",
-        "gene_id": "hgnc:6342",
-        "alternate_labels": ["MASTC", "KIT", "SCFR", "PBT", "CD117", "C-Kit"],
-        "xrefs": ["ncbigene:3815"],
-    }
-
-
-@pytest.fixture(scope="session")
-def civic_eid1756_statement():
-    """Create test fixture for CIViC EID1756 statement."""
-    return {
-        "id": "civic.eid:1756",
-        "description": "Study of 1817 PCa cases and 2026 cancer free controls to clarify the association of (MTHFR)c.677C>T (and c.1298A>C ) of pancreatic cancer risk in a population of Han Chinese in Shanghai. Results indicated a lower risk for the heterozygous CT genotype and homozygous TT genotype carriers of (MTHFR)c.677C>T which had a significantly lower risk of developing pancreatic cancer compared with the wild-type CC genotype.",
-        "direction": "supports",
-        "evidence_level": "civic.evidence_level:B",
-        "proposition": "proposition:cDLAt3AJPrHQPQ--JpKU4MkU528_kE-a",
-        "variation_origin": "germline",
-        "variation_descriptor": "civic.vid:258",
-        "disease_descriptor": "civic.did:556",
-        "method": "method:1",
-        "supported_by": ["pmid:27819322"],
-        "type": "Statement",
-    }
-
-
-@pytest.fixture(scope="session")
-def civic_eid1756_proposition():
-    """Create a test fixture for CIViC EID1756 proposition."""
-    return {
-        "id": "proposition:cDLAt3AJPrHQPQ--JpKU4MkU528_kE-a",
-        "predicate": "is_prognostic_of_better_outcome_for",
-        "subject": "ga4gh:VA.Nq7ozfH2X6m1PGr_n38E-F0NZ7I9UASP",
-        "object_qualifier": "ncit:C9005",
-        "type": "prognostic_proposition",
-    }
-
-
-@pytest.fixture(scope="session")
-def civic_vid258():
-    """Create a test fixture for CIViC VID258."""
-    return {
-        "id": "civic.vid:258",
-        "type": "VariationDescriptor",
-        "label": "A222V",
-        "variation_id": "ga4gh:VA.Nq7ozfH2X6m1PGr_n38E-F0NZ7I9UASP",
-        "variation": {
-            "_id": "ga4gh:VA.Nq7ozfH2X6m1PGr_n38E-F0NZ7I9UASP",
-            "location": {
-                "_id": "ga4gh:VSL._zGTVJ2unM-BjeDKxGl0IKZtKWQdfOxw",
-                "interval": {
-                    "end": {"value": 222, "type": "Number"},
-                    "start": {"value": 221, "type": "Number"},
-                    "type": "SequenceInterval",
-                },
-                "sequence_id": "ga4gh:SQ.4RSETawLfMkNpQBPepa7Uf9ItHAEJUde",
-                "type": "SequenceLocation",
-            },
-            "state": {"sequence": "V", "type": "LiteralSequenceExpression"},
-            "type": "Allele",
-        },
-        "xrefs": ["clinvar:3520", "caid:CA170990", "dbsnp:1801133"],
-        "alternate_labels": ["C677T", "ALA222VAL"],
+        "alternativeLabels": ["MASTC", "KIT", "SCFR", "PBT", "CD117", "C-Kit"],
         "extensions": [
             {
-                "name": "civic_representative_coordinate",
-                "value": {
-                    "chromosome": "1",
-                    "start": 11856378,
-                    "stop": 11856378,
-                    "reference_bases": "G",
-                    "variant_bases": "A",
-                    "representative_transcript": "ENST00000376592.1",
-                    "ensembl_version": 75,
-                    "reference_build": "GRCh37",
+                "name": "vicc_normalizer_data",
+                "value": {"id": "hgnc:6342", "label": "KIT"},
+            }
+        ],
+        "mappings": [
+            {
+                "coding": {
+                    "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                    "code": "ncbigene:3815",
                 },
-            },
-            {"name": "civic_actionability_score", "value": "55"},
+                "relation": "exactMatch",
+            }
         ],
-        "structural_type": "SO:0001583",
-        "expressions": [
-            {"syntax": "hgvs.c", "value": "NM_005957.4:c.665C>T", "type": "Expression"},
-            {
-                "syntax": "hgvs.p",
-                "value": "NP_005948.3:p.Ala222Val",
-                "type": "Expression",
-            },
-            {
-                "syntax": "hgvs.c",
-                "value": "ENST00000376592.1:c.665G>A",
-                "type": "Expression",
-            },
-            {
-                "syntax": "hgvs.g",
-                "value": "NC_000001.10:g.11856378G>A",
-                "type": "Expression",
-            },
-        ],
-        "gene_context": "civic.gid:3672",
-    }
-
-
-@pytest.fixture(scope="session")
-def civic_did556():
-    """Create a test fixture for CIViC DID556."""
-    return {
-        "id": "civic.did:556",
-        "type": "DiseaseDescriptor",
-        "label": "Pancreatic Cancer",
-        "disease_id": "ncit:C9005",
-        "xrefs": ["DOID:1793"],
-    }
-
-
-@pytest.fixture(scope="session")
-def civic_gid3672():
-    """Create test fixture for CIViC GID3672."""
-    return {
-        "id": "civic.gid:3672",
-        "type": "GeneDescriptor",
-        "label": "MTHFR",
-        "gene_id": "hgnc:7436",
-        "alternate_labels": ["MTHFR"],
-        "xrefs": ["ncbigene:4524"],
     }
 
 
@@ -1708,22 +1712,11 @@ def pmid_18073307():
 def pmid_16384925():
     """Create a test fixture for PMID 16384925."""
     return {
-        "id": "pmid:16384925",
-        "label": "Cairoli et al., 2006, Blood",
-        "description": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study.",
+        "id": "civic.source:69",
+        "label": "Cairoli et al., 2006",
+        "title": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study.",
+        "pmid": 16384925,
         "type": "Document",
-    }
-
-
-@pytest.fixture(scope="session")
-def pmid_27819322():
-    """Create a test fixture for PMID 27819322."""
-    return {
-        "type": "Document",
-        "id": "pmid:27819322",
-        "label": "Wu et al., 2016, Sci Rep",
-        "description": "MTHFR c.677C>T Inhibits Cell Proliferation and Decreases Prostate Cancer Susceptibility in the Han Chinese Population in Shanghai.",
-        "xrefs": ["pmc:PMC5098242"],
     }
 
 

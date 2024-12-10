@@ -3,6 +3,7 @@
 from typing import Literal
 
 from ga4gh.va_spec.profiles.var_study_stmt import (
+    VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
 from pydantic import BaseModel, ConfigDict, StrictStr
@@ -46,7 +47,9 @@ class SearchStatementsService(BaseModel):
     query: SearchStatementsQuery
     warnings: list[StrictStr] = []
     statement_ids: list[StrictStr] = []
-    statements: list[VariantTherapeuticResponseStudyStatement] = []
+    statements: list[
+        VariantTherapeuticResponseStudyStatement | VariantPrognosticStudyStatement
+    ] = []
     service_meta_: ServiceMeta
 
 
@@ -69,5 +72,7 @@ class BatchSearchStatementsService(BaseModel):
     query: BatchSearchStatementsQuery
     warnings: list[StrictStr] = []
     statement_ids: list[StrictStr] = []
-    statements: list[VariantTherapeuticResponseStudyStatement] = []
+    statements: list[
+        VariantTherapeuticResponseStudyStatement | VariantPrognosticStudyStatement
+    ] = []
     service_meta_: ServiceMeta

@@ -376,6 +376,7 @@ def _get_ids_from_stmts(statements: list[dict]) -> set[str]:
             statement.get("reportedIn"),
             statement.get("subjectVariant"),
             statement.get("objectTherapeutic"),
+            statement.get("objectCondition"),
             statement.get("conditionQualifier"),
             statement.get("geneContextQualifier"),
         ]:
@@ -444,11 +445,14 @@ def _add_statement(tx: ManagedTransaction, statement_in: dict) -> None:
     match_line += f"MERGE (v:Variation {{ id: '{variant_id}' }})\n"
     rel_line += "MERGE (s) -[:HAS_VARIANT] -> (v)\n"
 
-    therapeutic_id = statement["objectTherapeutic"]["id"]
-    match_line += f"MERGE (t:TherapeuticProcedure {{ id: '{therapeutic_id}' }})\n"
-    rel_line += "MERGE (s) -[:HAS_THERAPEUTIC] -> (t)\n"
+    therapeutic = statement.get("objectTherapeutic")
+    if therapeutic:
+        therapeutic_id = therapeutic["id"]
+        match_line += f"MERGE (t:TherapeuticProcedure {{ id: '{therapeutic_id}' }})\n"
+        rel_line += "MERGE (s) -[:HAS_THERAPEUTIC] -> (t)\n"
 
-    tumor_type_id = statement["conditionQualifier"]["id"]
+    tumor_type = statement.get("conditionQualifier") or statement.get("objectCondition")
+    tumor_type_id = tumor_type["id"]
     match_line += f"MERGE (tt:Condition {{ id: '{tumor_type_id}' }})\n"
     rel_line += "MERGE (s) -[:HAS_TUMOR_TYPE] -> (tt)\n"
 
