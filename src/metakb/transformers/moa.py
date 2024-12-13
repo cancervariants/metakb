@@ -505,12 +505,17 @@ class MoaTransformer(Transformer):
 
     def _add_disease(self, disease: dict) -> dict | None:
         """Create or get disease given MOA disease.
+
         First looks in cache for existing disease, if not found will attempt to
-        normalize. Will generate a digest from the original MOA disease object. This
-        will be used as the key in the caches. Will add the generated digest to
-        ``processed_data.conditions`` and ``able_to_normalize['conditions']`` if
+        normalize. Will generate a digest from the original MOA disease object oncotree
+        fields. This will be used as the key in the caches. Will add the generated digest
+        to ``processed_data.conditions`` and ``able_to_normalize['conditions']`` if
         disease-normalizer is able to normalize. Else will add the generated digest to
-        ``unable_to_normalize['conditions']``
+        ``unable_to_normalize['conditions']``.
+
+        Since there may be duplicate Oncotree code/terms with different names, the first
+        name will be used as the Disease label. Others will be added to the
+        alternativeLabels field.
 
         :param disease: MOA disease object
         :return: Disease object if disease-normalizer was able to normalize
@@ -519,16 +524,26 @@ class MoaTransformer(Transformer):
             return None
 
         # Since MOA disease objects do not have an ID, we will create a digest from
-        # the original MOA disease object
-        disease_list = sorted([f"{k}:{v}" for k, v in disease.items() if v])
-        blob = json.dumps(disease_list, separators=(",", ":"), sort_keys=True).encode(
-            "ascii"
-        )
+        # the original MOA disease object.
+        # The `name` is as written in the source text. In an upcoming MOA release, these
+        # will have leading underscore to differentiate "raw" values
+        oncotree_code = disease["oncotree_code"]
+        oncotree_key = "oncotree_code" if oncotree_code else "oncotree_term"
+        oncotree_value = oncotree_code or disease[oncotree_key]
+        oncotree_kv = [f"{oncotree_key}:{oncotree_value}"]
+        blob = json.dumps(oncotree_kv, separators=(",", ":")).encode("ascii")
         disease_id = sha512t24u(blob)
 
         vrs_disease = self.able_to_normalize["conditions"].get(disease_id)
         if vrs_disease:
+            source_disease_name = disease["name"]
+            if source_disease_name != vrs_disease.label:
+                vrs_disease.alternativeLabels = vrs_disease.alternativeLabels or []
+
+                if source_disease_name not in vrs_disease.alternativeLabels:
+                    vrs_disease.alternativeLabels.append(source_disease_name)
             return vrs_disease
+
         vrs_disease = None
         if disease_id not in self.unable_to_normalize["conditions"]:
             vrs_disease = self._get_disease(disease)
@@ -539,7 +554,7 @@ class MoaTransformer(Transformer):
                 self.unable_to_normalize["conditions"].add(disease_id)
         return vrs_disease
 
-    def _get_disease(self, disease: dict) -> dict | None:
+    def _get_disease(self, disease: dict) -> Disease | None:
         """Get Disease object for a MOA disease
 
         :param disease: MOA disease record
