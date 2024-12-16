@@ -3,6 +3,7 @@
 from typing import Literal
 
 from ga4gh.va_spec.profiles.var_study_stmt import (
+    VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
@@ -48,7 +49,9 @@ class SearchStatementsService(BaseModel):
     warnings: list[StrictStr] = []
     statement_ids: list[StrictStr] = []
     statements: list[
-        VariantTherapeuticResponseStudyStatement | VariantPrognosticStudyStatement
+        VariantTherapeuticResponseStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantDiagnosticStudyStatement
     ] = []
     service_meta_: ServiceMeta
 
@@ -73,6 +76,8 @@ class BatchSearchStatementsService(BaseModel):
     warnings: list[StrictStr] = []
     statement_ids: list[StrictStr] = []
     statements: list[
-        VariantTherapeuticResponseStudyStatement | VariantPrognosticStudyStatement
+        VariantTherapeuticResponseStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantDiagnosticStudyStatement
     ] = []
     service_meta_: ServiceMeta
