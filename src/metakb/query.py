@@ -15,6 +15,7 @@ from ga4gh.core.domain_models import (
 )
 from ga4gh.core.entity_models import Coding, Document, Extension, Method
 from ga4gh.va_spec.profiles.var_study_stmt import (
+    VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
@@ -67,6 +68,14 @@ class TherapeuticProcedureType(str, Enum):
 
     COMBINATION = "CombinationTherapy"
     SUBSTITUTES = "TherapeuticSubstituteGroup"
+
+
+# Statement types to corresponding class mapping
+STMT_TYPE_TO_CLASS = {
+    "VariantDiagnosticStudyStatement": VariantDiagnosticStudyStatement,
+    "VariantPrognosticStudyStatement": VariantPrognosticStudyStatement,
+    "VariantTherapeuticResponseStudyStatement": VariantTherapeuticResponseStudyStatement,
+}
 
 
 def _deserialize_field(node: dict, field_name: str) -> None | dict:
@@ -493,8 +502,8 @@ class QueryHandler:
 
     def _get_nested_stmt(self, stmt_node: Node) -> dict:
         """Get information related to a statement
-        Only VariantTherapeuticResponseStudyStatement and VariantPrognosticStudyStatement
-        are supported at the moment
+        Only VariantTherapeuticResponseStudyStatement, VariantPrognosticStudyStatement,
+        and VariantDiagnosticStudyStatement are supported at the moment
 
         :param stmt_node: Neo4j graph node for statement
         :return: Nested statement
@@ -503,15 +512,14 @@ class QueryHandler:
         if study_stmt_type not in {
             "VariantTherapeuticResponseStudyStatement",
             "VariantPrognosticStudyStatement",
+            "VariantDiagnosticStudyStatement",
         }:
             return {}
 
-        if study_stmt_type == "VariantPrognosticStudyStatement":
-            study_stmt_cls = VariantPrognosticStudyStatement
-            condition_key = "objectCondition"
-        else:
-            study_stmt_cls = VariantTherapeuticResponseStudyStatement
+        if study_stmt_type == "VariantTherapeuticResponseStudyStatement":
             condition_key = "conditionQualifier"
+        else:
+            condition_key = "objectCondition"
 
         params = {
             condition_key: None,
@@ -559,7 +567,7 @@ class QueryHandler:
             else:
                 logger.warning("relation type not supported: %s", rel_type)
 
-        return study_stmt_cls(**params).model_dump()
+        return STMT_TYPE_TO_CLASS[study_stmt_type](**params).model_dump()
 
     @staticmethod
     def _get_vicc_normalizer_extension(node: dict) -> ViccNormalizerDataExtension:
@@ -917,10 +925,6 @@ class QueryHandler:
             statement_nodes = [r[0] for r in result]
         response.statement_ids = [n["id"] for n in statement_nodes]
         stmts = self._get_nested_stmts(statement_nodes)
-        response.statements = [
-            VariantTherapeuticResponseStudyStatement(**s)
-            if s["type"] == "VariantTherapeuticResponseStudyStatement"
-            else VariantPrognosticStudyStatement(**s)
-            for s in stmts
-        ]
+
+        response.statements = [STMT_TYPE_TO_CLASS[s["type"]](**s) for s in stmts]
         return response

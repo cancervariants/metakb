@@ -552,8 +552,9 @@ def test_statement_rules(
     expected_node_labels = [
         {"Statement", "StudyStatement", "VariantTherapeuticResponseStudyStatement"},
         {"Statement", "StudyStatement", "VariantPrognosticStudyStatement"},
+        {"Statement", "StudyStatement", "VariantDiagnosticStudyStatement"},
     ]
-    check_node_labels("Statement", expected_node_labels, 2)
+    check_node_labels("Statement", expected_node_labels, 3)
 
     cite_query = """
     MATCH (s:Statement)
