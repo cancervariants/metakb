@@ -11,27 +11,32 @@ from metakb.schemas.app import SourceName
 
 
 @pytest.fixture(scope="module")
-def assertion165():
+def assertion164():
     """Create a fixture for assertion #165."""
     return {
-        "id": 165,
+        "id": 164,
         "context": "Resistance to BRAFi monotherapy",
         "description": "Administration of bevacizumab in a dabrafenib-resistant melanoma cancer cell line (A375R) counteracted the tumor growth stimulating effect of administering dabrafenib post-resistance. This study suggests that a regime which combines BRAFi with bevacizumab or inhibitors of PI3K/Akt/mTOR may be more effective than BRAFi monotherapy in the setting of resistance.",
+        "deprecated": False,
         "disease": {
             "name": "Melanoma",
             "oncotree_code": "MEL",
             "oncotree_term": "Melanoma",
         },
-        "therapy_name": "Dabrafenib + Bevacizumab",
-        "therapy_type": "Targeted therapy",
-        "clinical_significance": "sensitivity",
+        "therapy": {
+            "name": "Dabrafenib + Bevacizumab",
+            "type": "Targeted therapy",
+            "strategy": "B-RAF inhibition + VEGF/VEGFR inhibition",
+            "resistance": "",
+            "sensitivity": 1,
+        },
         "predictive_implication": "Preclinical",
         "favorable_prognosis": "",
-        "created_on": "12/07/23",
+        "created_on": "12/05/24",
         "last_updated": "2019-06-13",
         "submitted_by": "breardon@broadinstitute.org",
         "validated": True,
-        "source_ids": 69,
+        "source_id": 70,
         "variant": {
             "id": 145,
             "alternate_allele": "T",
@@ -53,7 +58,7 @@ def assertion165():
 
 @patch.object(MoaHarvester, "_get_all_variants")
 @patch.object(MoaHarvester, "_get_all_assertions")
-def test_assertion_170(test_get_all_assertions, test_get_all_variants, assertion165):
+def test_assertion_164(test_get_all_assertions, test_get_all_variants, assertion164):
     """Test moa harvester works correctly for assertions."""
     moa_harvester_test_dir = TEST_HARVESTERS_DIR / SourceName.MOA.value
     with (moa_harvester_test_dir / "assertions.json").open() as f:
@@ -70,7 +75,7 @@ def test_assertion_170(test_get_all_assertions, test_get_all_variants, assertion
 
     actual = None
     for a in assertions:
-        if a["id"] == assertion165["id"]:
+        if a["id"] == assertion164["id"]:
             actual = a
             break
-    assert actual == assertion165
+    assert actual == assertion164

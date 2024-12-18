@@ -151,24 +151,27 @@ class MoaHarvester(Harvester):
         assertion_record = {
             "id": assertion["assertion_id"],
             "context": assertion["context"],
+            "deprecated": assertion["deprecated"],
             "description": assertion["description"],
             "disease": {
                 "name": assertion["disease"],
                 "oncotree_code": assertion["oncotree_code"],
                 "oncotree_term": assertion["oncotree_term"],
             },
-            "therapy_name": assertion["therapy_name"],
-            "therapy_type": assertion["therapy_type"],
-            "clinical_significance": self._get_therapy(
-                assertion["therapy_resistance"], assertion["therapy_sensitivity"]
-            ),
+            "therapy": {
+                "name": assertion["therapy_name"],
+                "type": assertion["therapy_type"],
+                "strategy": assertion["therapy_strategy"],
+                "resistance": assertion["therapy_resistance"],
+                "sensitivity": assertion["therapy_sensitivity"],
+            },
             "predictive_implication": assertion["predictive_implication"],
             "favorable_prognosis": assertion["favorable_prognosis"],
             "created_on": assertion["created_on"],
             "last_updated": assertion["last_updated"],
             "submitted_by": assertion["submitted_by"],
             "validated": assertion["validated"],
-            "source_ids": assertion["sources"][0]["source_id"],
+            "source_id": assertion["sources"][0]["source_id"],
         }
 
         for v in variants_list:
@@ -176,19 +179,6 @@ class MoaHarvester(Harvester):
                 assertion_record.update({"variant": self._harvest_variant(v)})
 
         return assertion_record
-
-    def _get_therapy(self, resistance: bool, sensitivity: bool) -> str | None:
-        """Get therapy response data.
-
-        :param resistance: `True` if Therapy Resistance. `False` if not Therapy Resistance
-        :param sensitivity: `True` if Therapy Sensitivity. `False` if not Therapy Sensitivity
-        :return: whether the therapy response is resistance or sensitivity
-        """
-        if resistance:
-            return "resistance"
-        if sensitivity:
-            return "sensitivity"
-        return None
 
     def _get_feature(self, v: dict) -> dict:
         """Get feature name from the harvested variants

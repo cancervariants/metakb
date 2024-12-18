@@ -19,10 +19,10 @@ def sources():
 
 
 @pytest.fixture(scope="module")
-def source68():
-    """Create a fixture for source of evidence #68."""
+def source69():
+    """Create a fixture for source ID 69."""
     return {
-        "id": 68,
+        "id": 69,
         "type": "Journal",
         "doi": "10.1186/s40425-016-0148-7",
         "nct": "NCT01673854",
@@ -33,7 +33,7 @@ def source68():
 
 
 @patch.object(MoaHarvester, "_get_all_assertions")
-def test_source68(test_get_all_assertions, source68):
+def test_source69(test_get_all_assertions, source69):
     """Test moa harvester works correctly for evidence."""
     with (TEST_HARVESTERS_DIR / SourceName.MOA.value / "assertions.json").open() as f:
         data = json.load(f)
@@ -44,7 +44,7 @@ def test_source68(test_get_all_assertions, source68):
 
     actual = None
     for s in sources:
-        if s["id"] == source68["id"]:
+        if s["id"] == source69["id"]:
             actual = s
             break
-    assert actual == source68
+    assert actual == source69
