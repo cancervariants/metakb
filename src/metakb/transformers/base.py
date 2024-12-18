@@ -25,6 +25,7 @@ from ga4gh.core.domain_models import (
 )
 from ga4gh.core.entity_models import Coding, Document, Extension, Method
 from ga4gh.va_spec.profiles.var_study_stmt import (
+    VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
@@ -111,7 +112,9 @@ class TransformedData(BaseModel):
     """Define model for transformed data"""
 
     statements: list[
-        VariantTherapeuticResponseStudyStatement | VariantPrognosticStudyStatement
+        VariantTherapeuticResponseStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantDiagnosticStudyStatement
     ] = []
     categorical_variants: list[CategoricalVariant] = []
     variations: list[Allele] = []

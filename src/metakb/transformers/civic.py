@@ -22,8 +22,10 @@ from ga4gh.core.entity_models import (
 )
 from ga4gh.va_spec.profiles.var_study_stmt import (
     AlleleOriginQualifier,
+    DiagnosticPredicate,
     PrognosticPredicate,
     TherapeuticResponsePredicate,
+    VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
@@ -91,6 +93,8 @@ CLIN_SIG_TO_PREDICATE = {
     "RESISTANCE": TherapeuticResponsePredicate.RESISTANCE,
     "POOR_OUTCOME": PrognosticPredicate.WORSE_OUTCOME,
     "BETTER_OUTCOME": PrognosticPredicate.BETTER_OUTCOME,
+    "POSITIVE": DiagnosticPredicate.INCLUSIVE,
+    "NEGATIVE": DiagnosticPredicate.EXCLUSIVE,
 }
 
 
@@ -121,6 +125,7 @@ class _CivicEvidenceType(str, Enum):
 
     PREDICTIVE = "PREDICTIVE"
     PROGNOSTIC = "PROGNOSTIC"
+    DIAGNOSTIC = "DIAGNOSTIC"
 
 
 class _VariationCache(BaseModel):
@@ -359,8 +364,10 @@ class CivicTransformer(Transformer):
         if evidence_type == _CivicEvidenceType.PREDICTIVE:
             params["objectTherapeutic"] = civic_therapeutic
             statement = VariantTherapeuticResponseStudyStatement(**params)
-        else:
+        elif evidence_type == _CivicEvidenceType.PROGNOSTIC:
             statement = VariantPrognosticStudyStatement(**params)
+        else:
+            statement = VariantDiagnosticStudyStatement(**params)
 
         self.processed_data.statements.append(statement)
 
