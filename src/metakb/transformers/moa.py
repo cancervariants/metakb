@@ -8,9 +8,11 @@ from urllib.parse import quote
 from ga4gh.cat_vrs.core_models import CategoricalVariant, DefiningContextConstraint
 from ga4gh.core import sha512t24u
 from ga4gh.core.domain_models import (
+    CombinationTherapy,
     Disease,
     Gene,
     TherapeuticAgent,
+    TherapeuticSubstituteGroup,
 )
 from ga4gh.core.entity_models import (
     Coding,
@@ -21,7 +23,9 @@ from ga4gh.core.entity_models import (
 )
 from ga4gh.va_spec.profiles.var_study_stmt import (
     AlleleOriginQualifier,
+    PrognosticPredicate,
     TherapeuticResponsePredicate,
+    VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
 from ga4gh.vrs.models import Variation
@@ -85,133 +89,97 @@ class MoaTransformer(Transformer):
         self._add_documents(harvested_data.sources)
 
         # Add variant therapeutic response study statement data. Will update `statements`
-        await self._add_variant_tr_study_stmts(harvested_data.assertions)
+        for assertion in harvested_data.assertions:
+            await self._add_variant_study_stmt(assertion)
 
-    async def _add_variant_tr_study_stmts(self, assertions: list[dict]) -> None:
-        """Create Variant Therapeutic Response Study Statements from MOA assertions.
+    async def _add_variant_study_stmt(self, assertion: dict) -> None:
+        """Create Variant Study Statements from MOA assertions.
         Will add associated values to ``processed_data`` instance variable
         (``therapeutic_procedures``, ``conditions``, and ``statements``).
         ``able_to_normalize`` and ``unable_to_normalize`` will
         also be mutated for associated therapeutic_procedures and conditions.
 
-        :param assertions: A list of MOA assertion records
+        :param assertions: MOA assertion record
         """
-        for record in assertions:
-            assertion_id = f"moa.assertion:{record['id']}"
-            variant_id = record["variant"]["id"]
+        assertion_id = f"moa.assertion:{assertion['id']}"
+        variant_id = assertion["variant"]["id"]
 
-            # Check cache for variation record (which contains gene information)
-            variation_gene_map = self.able_to_normalize["variations"].get(variant_id)
-            if not variation_gene_map:
-                logger.debug(
-                    "%s has no variation for variant_id %s", assertion_id, variant_id
-                )
-                continue
-
-            # Get predicate. We only support therapeutic resistance/sensitivity
-            if record["clinical_significance"] == "resistance":
-                predicate = TherapeuticResponsePredicate.RESISTANCE
-            elif record["clinical_significance"] == "sensitivity":
-                predicate = TherapeuticResponsePredicate.SENSITIVITY
-            else:
-                logger.debug(
-                    "clinical_significance not supported: %s",
-                    record["clinical_significance"],
-                )
-                continue
-
-            # Get strength
-            predictive_implication = (
-                record["predictive_implication"]
-                .strip()
-                .replace(" ", "_")
-                .replace("-", "_")
-                .upper()
+        # Check cache for variation record (which contains gene information)
+        variation_gene_map = self.able_to_normalize["variations"].get(variant_id)
+        if not variation_gene_map:
+            logger.debug(
+                "%s has no variation for variant_id %s", assertion_id, variant_id
             )
-            moa_evidence_level = MoaEvidenceLevel[predictive_implication]
-            strength = self.evidence_level_to_vicc_concept_mapping[moa_evidence_level]
+            return
 
-            # Add therapeutic agent. We only support one therapy, so we will skip others
-            therapy_name = record["therapy_name"]
-            if not therapy_name:
-                logger.debug("%s has no therapy_name", assertion_id)
-                continue
+        # Get strength
+        predictive_implication = (
+            assertion["predictive_implication"]
+            .strip()
+            .replace(" ", "_")
+            .replace("-", "_")
+            .upper()
+        )
+        moa_evidence_level = MoaEvidenceLevel[predictive_implication]
+        strength = self.evidence_level_to_vicc_concept_mapping[moa_evidence_level]
 
-            therapy_interaction_type = record["therapy_type"]
-
-            if "+" in therapy_name:
-                # Indicates multiple therapies
-                if therapy_interaction_type.upper() in {
-                    "COMBINATION THERAPY",
-                    "IMMUNOTHERAPY",
-                    "RADIATION THERAPY",
-                    "TARGETED THERAPY",
-                }:
-                    therapeutic_procedure_type = (
-                        TherapeuticProcedureType.COMBINATION_THERAPY
-                    )
-                else:
-                    # skipping HORMONE and CHEMOTHERAPY for now
-                    continue
-
-                therapies = [{"label": tn.strip()} for tn in therapy_name.split("+")]
-                therapeutic_digest = self._get_digest_for_str_lists(
-                    [f"moa.therapy:{tn}" for tn in therapies]
-                )
-                therapeutic_procedure_id = f"moa.ctid:{therapeutic_digest}"
-            else:
-                therapeutic_procedure_id = f"moa.therapy:{therapy_name}"
-                therapies = [{"label": therapy_name}]
-                therapeutic_procedure_type = TherapeuticProcedureType.THERAPEUTIC_AGENT
-
-            moa_therapeutic = self._add_therapeutic_procedure(
-                therapeutic_procedure_id,
-                therapies,
-                therapeutic_procedure_type,
-                therapy_interaction_type,
+        # Add disease
+        moa_disease = self._add_disease(assertion["disease"])
+        if not moa_disease:
+            logger.debug(
+                "%s has no disease for disease %s", assertion_id, assertion["disease"]
             )
+            return
 
-            if not moa_therapeutic:
+        # Add document
+        document = self.able_to_normalize["documents"].get(assertion["source_id"])
+
+        feature_type = assertion["variant"]["feature_type"]
+        if feature_type == "somatic_variant":
+            allele_origin_qualifier = AlleleOriginQualifier.SOMATIC
+        elif feature_type == "germline_variant":
+            allele_origin_qualifier = AlleleOriginQualifier.GERMLINE
+        else:
+            allele_origin_qualifier = None
+
+        params = {
+            "id": assertion_id,
+            "description": assertion["description"],
+            "strength": strength,
+            "subjectVariant": variation_gene_map["cv"],
+            "alleleOriginQualifier": allele_origin_qualifier,
+            "geneContextQualifier": variation_gene_map["moa_gene"],
+            "specifiedBy": self.processed_data.methods[0],
+            "reportedIn": [document],
+        }
+
+        if assertion["favorable_prognosis"] == "":
+            params["conditionQualifier"] = moa_disease
+            params["predicate"] = (
+                TherapeuticResponsePredicate.RESISTANCE
+                if assertion["therapy"]["resistance"]
+                else TherapeuticResponsePredicate.SENSITIVITY
+            )
+            params["objectTherapeutic"] = self._get_therapeutic_procedure(assertion)
+
+            if not params["objectTherapeutic"]:
                 logger.debug(
-                    "%s has no therapeutic agent for therapy_name %s",
+                    "%s has no therapeutic procedure for therapy_name %s",
                     assertion_id,
-                    therapy_name,
+                    assertion["therapy"]["name"],
                 )
-                continue
-
-            # Add disease
-            moa_disease = self._add_disease(record["disease"])
-            if not moa_disease:
-                logger.debug(
-                    "%s has no disease for disease %s", assertion_id, record["disease"]
-                )
-                continue
-
-            # Add document
-            document = self.able_to_normalize["documents"].get(record["source_ids"])
-
-            feature_type = record["variant"]["feature_type"]
-            if feature_type == "somatic_variant":
-                allele_origin_qualifier = AlleleOriginQualifier.SOMATIC
-            elif feature_type == "germline_variant":
-                allele_origin_qualifier = AlleleOriginQualifier.GERMLINE
-            else:
-                allele_origin_qualifier = None
-
-            statement = VariantTherapeuticResponseStudyStatement(
-                id=assertion_id,
-                description=record["description"],
-                strength=strength,
-                predicate=predicate,
-                subjectVariant=variation_gene_map["cv"],
-                objectTherapeutic=moa_therapeutic,
-                conditionQualifier=moa_disease,
-                alleleOriginQualifier=allele_origin_qualifier,
-                geneContextQualifier=variation_gene_map["moa_gene"],
-                specifiedBy=self.processed_data.methods[0],
-                reportedIn=[document],
+                return
+            statement = VariantTherapeuticResponseStudyStatement(**params)
+        else:
+            params["objectCondition"] = moa_disease
+            params["predicate"] = (
+                PrognosticPredicate.BETTER_OUTCOME
+                if assertion["favorable_prognosis"]
+                else PrognosticPredicate.WORSE_OUTCOME
             )
-            self.processed_data.statements.append(statement)
+            statement = VariantPrognosticStudyStatement(**params)
+
+        self.processed_data.statements.append(statement)
 
     async def _add_categorical_variants(self, variants: list[dict]) -> None:
         """Create Categorical Variant objects for all MOA variant records.
@@ -436,6 +404,54 @@ class MoaTransformer(Transformer):
             )
             self.able_to_normalize["documents"][source_id] = document
             self.processed_data.documents.append(document)
+
+    def _get_therapeutic_procedure(
+        self, assertion: dict
+    ) -> TherapeuticAgent | TherapeuticSubstituteGroup | CombinationTherapy | None:
+        """Get therapeutic procedure object
+
+        :param assertion: MOA assertion record
+        :return: Therapeutic procedure object, if found and able to be normalized
+        """
+        therapy = assertion["therapy"]
+        therapy_name = therapy["name"]
+        if not therapy_name:
+            logger.debug("%s has no therapy_name", assertion["id"])
+            return None
+
+        therapy_interaction_type = therapy["type"]
+
+        if "+" in therapy_name:
+            # Indicates multiple therapies
+            if therapy_interaction_type.upper() in {
+                "COMBINATION THERAPY",
+                "IMMUNOTHERAPY",
+                "RADIATION THERAPY",
+                "TARGETED THERAPY",
+            }:
+                therapeutic_procedure_type = (
+                    TherapeuticProcedureType.COMBINATION_THERAPY
+                )
+            else:
+                # skipping HORMONE and CHEMOTHERAPY for now
+                return None
+
+            therapies = [{"label": tn.strip()} for tn in therapy_name.split("+")]
+            therapeutic_digest = self._get_digest_for_str_lists(
+                [f"moa.therapy:{tn}" for tn in therapies]
+            )
+            therapeutic_procedure_id = f"moa.ctid:{therapeutic_digest}"
+        else:
+            therapeutic_procedure_id = f"moa.therapy:{therapy_name}"
+            therapies = [{"label": therapy_name}]
+            therapeutic_procedure_type = TherapeuticProcedureType.THERAPEUTIC_AGENT
+
+        return self._add_therapeutic_procedure(
+            therapeutic_procedure_id,
+            therapies,
+            therapeutic_procedure_type,
+            therapy_interaction_type,
+        )
 
     def _get_therapeutic_substitute_group(
         self,
