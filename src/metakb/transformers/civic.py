@@ -5,30 +5,30 @@ import re
 from enum import Enum
 from pathlib import Path
 
-from ga4gh.cat_vrs.core_models import CategoricalVariant, DefiningContextConstraint
-from ga4gh.core.domain_models import (
-    Disease,
-    Gene,
-    TherapeuticAgent,
-    TherapeuticSubstituteGroup,
-)
-from ga4gh.core.entity_models import (
+from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
+from ga4gh.core.models import (
     Coding,
     ConceptMapping,
-    Direction,
-    Document,
     Extension,
+    MappableConcept,
     Relation,
 )
-from ga4gh.va_spec.profiles.var_study_stmt import (
-    AlleleOriginQualifier,
-    DiagnosticPredicate,
-    PrognosticPredicate,
-    TherapeuticResponsePredicate,
+from ga4gh.va_spec.aac_2017.models import (
+    VariantDiagnosticProposition,
     VariantDiagnosticStudyStatement,
+    VariantPrognosticProposition,
     VariantPrognosticStudyStatement,
+    VariantTherapeuticResponseProposition,
     VariantTherapeuticResponseStudyStatement,
 )
+from ga4gh.va_spec.base.core import (
+    DiagnosticPredicate,
+    Direction,
+    Document,
+    PrognosticPredicate,
+    TherapeuticResponsePredicate,
+)
+from ga4gh.va_spec.base.domain_entities import TherapyGroup
 from ga4gh.vrs.models import Expression, Syntax, Variation
 from pydantic import BaseModel, ValidationError
 
@@ -40,7 +40,7 @@ from metakb.normalizers import (
 from metakb.transformers.base import (
     CivicEvidenceLevel,
     MethodId,
-    TherapeuticProcedureType,
+    TherapyType,
     Transformer,
 )
 
@@ -111,9 +111,9 @@ class _CivicInteractionType(str, Enum):
 class _TherapeuticMetadata(BaseModel):
     """Define model for CIVIC therapeutic metadata"""
 
-    procedure_id: str
+    therapy_id: str
     interaction_type: _CivicInteractionType | None
-    procedure_type: TherapeuticProcedureType
+    therapy_type: TherapyType
     therapies: list[dict]
 
 
@@ -137,7 +137,7 @@ class _VariationCache(BaseModel):
     civic_gene_id: str
     variant_types: list[Coding] | None = None
     mappings: list[ConceptMapping] | None = None
-    aliases: list[str] | None = None
+    aliases: list[Extension] | None = None
     coordinates: dict | None
     members: list[Variation] | None = None
 
@@ -177,7 +177,7 @@ class CivicTransformer(Transformer):
             "variations": {},  # will store _VariationCache data
             "categorical_variants": {},
             "conditions": {},
-            "therapeutic_procedures": {},
+            "therapies": {},
             "genes": {},
         }
 
@@ -264,9 +264,9 @@ class CivicTransformer(Transformer):
     ) -> None:
         """Create Variant Study Statement given CIViC Evidence Items.
         Will add associated values to ``processed_data`` instance variable
-        (``therapeutic_procedures``, ``conditions``, and ``documents``).
+        (``therapies``, ``conditions``, and ``documents``).
         ``able_to_normalize`` and ``unable_to_normalize`` will also be mutated for
-        associated therapeutic_procedures and conditions.
+        associated therapies and conditions.
 
         :param evidence_item: CIViC Evidence Item
         :param mp_id_to_v_id_mapping: Molecular Profile ID to Variant ID mapping
@@ -314,10 +314,10 @@ class CivicTransformer(Transformer):
         if evidence_type == _CivicEvidenceType.PREDICTIVE:
             therapeutic_metadata = self._get_therapeutic_metadata(evidence_item)
             if therapeutic_metadata:
-                civic_therapeutic = self._add_therapeutic_procedure(
-                    therapeutic_metadata.procedure_id,
+                civic_therapeutic = self._add_therapy(
+                    therapeutic_metadata.therapy_id,
                     therapeutic_metadata.therapies,
-                    therapeutic_metadata.procedure_type,
+                    therapeutic_metadata.therapy_type,
                     therapeutic_metadata.interaction_type,
                 )
             if not civic_therapeutic:
@@ -339,35 +339,43 @@ class CivicTransformer(Transformer):
 
         variant_origin = evidence_item["variant_origin"].upper()
         if variant_origin == "SOMATIC":
-            allele_origin_qualifier = AlleleOriginQualifier.SOMATIC
+            allele_origin_qualifier = MappableConcept(label="somatic")
         elif variant_origin in {"RARE_GERMLINE", "COMMON_GERMLINE"}:
-            allele_origin_qualifier = AlleleOriginQualifier.GERMLINE
+            allele_origin_qualifier = MappableConcept(label="germline")
         else:
             allele_origin_qualifier = None
 
-        params = {
+        stmt_params = {
             "id": evidence_item["name"].lower().replace("eid", "civic.eid:"),
             "description": evidence_item["description"]
             if evidence_item["description"]
             else None,
             "direction": direction,
             "strength": strength,
-            "predicate": predicate,
-            "subjectVariant": mp,
-            "alleleOriginQualifier": allele_origin_qualifier,
-            "geneContextQualifier": civic_gene,
             "specifiedBy": self.processed_data.methods[0],
             "reportedIn": [document],
+        }
+
+        prop_params = {
+            "predicate": predicate,
             condition_key: civic_disease,
+            "alleleOriginQualifier": allele_origin_qualifier,
+            "geneContextQualifier": civic_gene,
+            "subjectVariant": mp,
         }
 
         if evidence_type == _CivicEvidenceType.PREDICTIVE:
-            params["objectTherapeutic"] = civic_therapeutic
-            statement = VariantTherapeuticResponseStudyStatement(**params)
+            prop_params["objectTherapeutic"] = civic_therapeutic
+            stmt_params["proposition"] = VariantTherapeuticResponseProposition(
+                **prop_params
+            )
+            statement = VariantTherapeuticResponseStudyStatement(**stmt_params)
         elif evidence_type == _CivicEvidenceType.PROGNOSTIC:
-            statement = VariantPrognosticStudyStatement(**params)
+            stmt_params["proposition"] = VariantPrognosticProposition(**prop_params)
+            statement = VariantPrognosticStudyStatement(**stmt_params)
         else:
-            statement = VariantDiagnosticStudyStatement(**params)
+            stmt_params["proposition"] = VariantDiagnosticProposition(**prop_params)
+            statement = VariantDiagnosticStudyStatement(**stmt_params)
 
         self.processed_data.statements.append(statement)
 
@@ -406,20 +414,25 @@ class CivicTransformer(Transformer):
             if civic_variation_data.vrs_variation.root.type != "Allele":
                 continue
 
+            extensions = []
+
             # Get aliases from MP and Variant record
-            aliases = civic_variation_data.aliases or []
+            if civic_variation_data.aliases:
+                aliases = civic_variation_data.aliases[0].value
+            else:
+                aliases = []
             for a in mp["aliases"] or []:
-                if not SNP_RE.match(a):
+                if not SNP_RE.match(a) and a not in aliases:
                     aliases.append(a)
+            if aliases:
+                extensions.append(Extension(name="aliases", value=aliases))
 
             # Get molecular profile score data
             mp_score = mp["molecular_profile_score"]
             if mp_score:
-                extensions = [
+                extensions.append(
                     Extension(name="CIViC Molecular Profile Score", value=mp_score)
-                ]
-            else:
-                extensions = []
+                )
 
             # Get CIViC representative coordinate and Variant types data
             for ext_key, var_key in [
@@ -437,11 +450,10 @@ class CivicTransformer(Transformer):
                 description=mp["description"],
                 label=mp["name"],
                 constraints=[
-                    DefiningContextConstraint(
-                        definingContext=civic_variation_data.vrs_variation,
+                    DefiningAlleleConstraint(
+                        allele=civic_variation_data.vrs_variation.root,
                     )
                 ],
-                alternativeLabels=list(set(aliases)) or None,
                 mappings=civic_variation_data.mappings,
                 extensions=extensions or None,
                 members=civic_variation_data.members,
@@ -627,6 +639,7 @@ class CivicTransformer(Transformer):
                     )
                 else:
                     aliases.append(a)
+            extensions = [Extension(name="aliases", value=aliases)] if aliases else []
 
             if variant["coordinates"]:
                 coordinates = {
@@ -641,7 +654,7 @@ class CivicTransformer(Transformer):
                 civic_gene_id=f"civic.gid:{variant['gene_id']}",
                 variant_types=variant_types_value or None,
                 mappings=mappings or None,
-                alternativeLabels=aliases or None,
+                aliases=extensions or None,
                 coordinates=coordinates or None,
                 members=members,
             )
@@ -680,11 +693,23 @@ class CivicTransformer(Transformer):
                 queries
             )
 
+            extensions = [
+                self._get_vicc_normalizer_extension(normalized_gene_id, gene_norm_resp)
+            ]
+
+            if gene["aliases"]:
+                extensions.append(Extension(name="aliases", value=gene["aliases"]))
+
+            if gene["description"]:
+                extensions.append(
+                    Extension(name="description", value=gene["description"])
+                )
+
             if normalized_gene_id:
-                civic_gene = Gene(
+                civic_gene = MappableConcept(
                     id=gene_id,
+                    conceptType="Gene",
                     label=gene["name"],
-                    description=gene["description"] if gene["description"] else None,
                     mappings=[
                         ConceptMapping(
                             coding=Coding(
@@ -694,12 +719,7 @@ class CivicTransformer(Transformer):
                             relation=Relation.EXACT_MATCH,
                         )
                     ],
-                    alternativeLabels=gene["aliases"] if gene["aliases"] else None,
-                    extensions=[
-                        self._get_vicc_normalizer_extension(
-                            normalized_gene_id, gene_norm_resp
-                        )
-                    ],
+                    extensions=extensions,
                 )
                 self.able_to_normalize["genes"][gene_id] = civic_gene
                 self.processed_data.genes.append(civic_gene)
@@ -710,7 +730,7 @@ class CivicTransformer(Transformer):
                     queries,
                 )
 
-    def _add_disease(self, disease: dict) -> Disease | None:
+    def _add_disease(self, disease: dict) -> MappableConcept | None:
         """Create or get disease given CIViC disease.
         First looks in cache for existing disease, if not found will attempt to
         normalize. Will add CIViC disease ID to ``processed_data.conditions`` and
@@ -734,7 +754,7 @@ class CivicTransformer(Transformer):
                 self.unable_to_normalize["conditions"].add(disease_id)
         return vrs_disease
 
-    def _get_disease(self, disease: dict) -> Disease | None:
+    def _get_disease(self, disease: dict) -> MappableConcept | None:
         """Get Disease object for a CIViC disease
 
         :param disease: CIViC disease record
@@ -774,8 +794,9 @@ class CivicTransformer(Transformer):
             )
             return None
 
-        return Disease(
+        return MappableConcept(
             id=disease_id,
+            conceptType="Disease",
             label=display_name,
             mappings=mappings if mappings else None,
             extensions=[
@@ -788,30 +809,30 @@ class CivicTransformer(Transformer):
     def _get_therapeutic_substitute_group(
         self,
         therapeutic_sub_group_id: str,
-        therapies: list[dict],
+        therapies_in: list[dict],
         therapy_interaction_type: str,
-    ) -> TherapeuticSubstituteGroup | None:
+    ) -> TherapyGroup | None:
         """Get Therapeutic Substitute Group for CIViC therapies
 
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
-        :param therapies: List of CIViC therapy objects
+        :param therapies_in: List of CIViC therapy objects
         :param therapy_interaction_type: Therapy interaction type provided by CIViC
         :return: If able to normalize all therapy objects in `therapies`, returns
             Therapeutic Substitute Group
         """
-        substitutes = []
+        therapies = []
 
-        for therapy in therapies:
-            therapeutic_procedure_id = f"civic.tid:{therapy['id']}"
-            ta = self._add_therapeutic_procedure(
-                therapeutic_procedure_id,
+        for therapy in therapies_in:
+            therapy_id = f"civic.tid:{therapy['id']}"
+            therapy = self._add_therapy(
+                therapy_id,
                 [therapy],
-                TherapeuticProcedureType.THERAPEUTIC_AGENT,
+                TherapyType.THERAPY,
             )
-            if not ta:
+            if not therapy:
                 return None
 
-            substitutes.append(ta)
+            therapies.append(therapy)
 
         extensions = [
             Extension(
@@ -820,9 +841,12 @@ class CivicTransformer(Transformer):
         ]
 
         try:
-            tsg = TherapeuticSubstituteGroup(
+            tg = TherapyGroup(
                 id=therapeutic_sub_group_id,
-                substitutes=substitutes,
+                groupType=MappableConcept(
+                    label=TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP.value
+                ),
+                therapies=therapies,
                 extensions=extensions,
             )
         except ValidationError as e:
@@ -831,15 +855,15 @@ class CivicTransformer(Transformer):
                 "ValidationError raised when attempting to create TherapeuticSubstituteGroup: %s",
                 {e},
             )
-            tsg = None
+            tg = None
 
-        return tsg
+        return tg
 
-    def _get_therapeutic_agent(self, therapy: dict) -> TherapeuticAgent | None:
-        """Get Therapeutic Agent for CIViC therapy
+    def _get_therapy(self, therapy: dict) -> MappableConcept | None:
+        """Get Therapy mappable concept for CIViC therapy
 
         :param therapy: CIViC therapy object
-        :return: If able to normalize therapy, returns therapeutic agent
+        :return: If able to normalize therapy, returns therapy mappable concept
         """
         therapy_id = f"civic.tid:{therapy['id']}"
         label = therapy["name"]
@@ -885,11 +909,14 @@ class CivicTransformer(Transformer):
         if regulatory_approval_extension:
             extensions.append(regulatory_approval_extension)
 
-        return TherapeuticAgent(
+        if therapy["aliases"]:
+            extensions.append(Extension(name="aliases", value=therapy["aliases"]))
+
+        return MappableConcept(
             id=therapy_id,
             label=label,
+            conceptType="Therapy",
             mappings=mappings if mappings else None,
-            alternativeLabels=therapy["aliases"] if therapy["aliases"] else None,
             extensions=extensions,
         )
 
@@ -903,26 +930,22 @@ class CivicTransformer(Transformer):
         """
         therapies = evidence_item["therapies"]
         if len(therapies) == 1:
-            # Add TherapeuticAgent
-            therapeutic_procedure_id = f"civic.tid:{therapies[0]['id']}"
+            # Add therapy
+            therapy_id = f"civic.tid:{therapies[0]['id']}"
             therapy_interaction_type = None
-            therapeutic_procedure_type = TherapeuticProcedureType.THERAPEUTIC_AGENT
+            therapy_type = TherapyType.THERAPY
         else:
-            # Add TherapeuticSubstituteGroup
+            # Add therapy group
             therapy_interaction_type = evidence_item["therapy_interaction_type"]
             therapeutic_ids = [f"civic.tid:{t['id']}" for t in therapies]
             therapeutic_digest = self._get_digest_for_str_lists(therapeutic_ids)
 
             if therapy_interaction_type == _CivicInteractionType.SUBSTITUTES:
-                therapeutic_procedure_id = f"civic.tsgid:{therapeutic_digest}"
-                therapeutic_procedure_type = (
-                    TherapeuticProcedureType.THERAPEUTIC_SUBSTITUTE_GROUP
-                )
+                therapy_id = f"civic.tsgid:{therapeutic_digest}"
+                therapy_type = TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP
             elif therapy_interaction_type == _CivicInteractionType.COMBINATION:
-                therapeutic_procedure_id = f"civic.ctid:{therapeutic_digest}"
-                therapeutic_procedure_type = (
-                    TherapeuticProcedureType.COMBINATION_THERAPY
-                )
+                therapy_id = f"civic.ctid:{therapeutic_digest}"
+                therapy_type = TherapyType.COMBINATION_THERAPY
             else:
                 _logger.debug(
                     "civic therapy_interaction_type not supported: %s",
@@ -931,9 +954,9 @@ class CivicTransformer(Transformer):
                 return None
 
         return _TherapeuticMetadata(
-            procedure_id=therapeutic_procedure_id,
+            therapy_id=therapy_id,
             interaction_type=therapy_interaction_type,
-            procedure_type=therapeutic_procedure_type,
+            therapy_type=therapy_type,
             therapies=therapies,
         )
 

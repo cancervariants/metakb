@@ -38,7 +38,7 @@ def moa_vid141():
         "label": "BCOR p.N1425S (Missense)",
         "constraints": [
             {
-                "definingContext": {
+                "allele": {
                     "id": "ga4gh:VA.pDuCLNI3mHF25uUPNSDM8LbP8p4Fsuay",
                     "digest": "pDuCLNI3mHF25uUPNSDM8LbP8p4Fsuay",
                     "type": "Allele",
@@ -56,7 +56,7 @@ def moa_vid141():
                     },
                     "state": {"type": "LiteralSequenceExpression", "sequence": "S"},
                 },
-                "type": "DefiningContextConstraint",
+                "type": "DefiningAlleleConstraint",
             }
         ],
         "members": [
@@ -78,6 +78,14 @@ def moa_vid141():
                     "sequence": "T",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "C"},
+                "extensions": [
+                    {
+                        "name": "mane_genes",
+                        "value": [
+                            {"ncbi_gene_id": 54880, "hgnc_id": 20893, "symbol": "BCOR"}
+                        ],
+                    }
+                ],
             }
         ],
         "extensions": [
@@ -112,7 +120,7 @@ def moa_myelodysplasia():
     """Create test fixture for MOA disease Myelodysplasia"""
     return {
         "id": "moa.normalize.disease.ncit:C3247",
-        "type": "Disease",
+        "conceptType": "Disease",
         "label": "Myelodysplasia",
         "extensions": [
             {
@@ -142,7 +150,7 @@ def moa_bcor():
     """Create MOA gene BCOR test fixture"""
     return {
         "id": "moa.normalize.gene:BCOR",
-        "type": "Gene",
+        "conceptType": "Gene",
         "label": "BCOR",
         "extensions": [
             {
@@ -174,18 +182,24 @@ def moa_aid141_study_stmt(
     """Create MOA AID 141 study statement test fixture."""
     return {
         "id": "moa.assertion:141",
-        "type": "VariantPrognosticStudyStatement",
+        "type": "Statement",
+        "direction": "disputes",
         "description": "More frequent in Chronic Myelomonocytic Leukemia.",
         "strength": {
-            "code": "e000007",
+            "primaryCode": "e000007",
             "label": "observational study evidence",
-            "system": "https://go.osu.edu/evidence-codes",
+            "extensions": [
+                {"name": "url", "value": "https://go.osu.edu/evidence-codes"}
+            ],
         },
-        "predicate": "associatedWithWorseOutcomeFor",
-        "subjectVariant": moa_vid141,
-        "objectCondition": moa_myelodysplasia,
-        "alleleOriginQualifier": "somatic",
-        "geneContextQualifier": moa_bcor,
+        "proposition": {
+            "type": "VariantPrognosticProposition",
+            "predicate": "associatedWithWorseOutcomeFor",
+            "subjectVariant": moa_vid141,
+            "objectCondition": moa_myelodysplasia,
+            "alleleOriginQualifier": {"label": "somatic"},
+            "geneContextQualifier": moa_bcor,
+        },
         "specifiedBy": moa_method,
         "reportedIn": [moa_source60],
     }
@@ -200,7 +214,7 @@ def moa_vid532():
         "label": "SF3B1 p.E622D (Missense)",
         "constraints": [
             {
-                "definingContext": {
+                "allele": {
                     "id": "ga4gh:VA.53EXGCEm1KH4W4ygbovgD_fFWskECrAJ",
                     "digest": "53EXGCEm1KH4W4ygbovgD_fFWskECrAJ",
                     "type": "Allele",
@@ -218,7 +232,7 @@ def moa_vid532():
                     },
                     "state": {"type": "LiteralSequenceExpression", "sequence": "D"},
                 },
-                "type": "DefiningContextConstraint",
+                "type": "DefiningAlleleConstraint",
             }
         ],
         "members": [
@@ -240,6 +254,14 @@ def moa_vid532():
                     "sequence": "C",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "G"},
+                "extensions": [
+                    {
+                        "name": "mane_genes",
+                        "value": [
+                            {"ncbi_gene_id": 23451, "hgnc_id": 10768, "symbol": "SF3B1"}
+                        ],
+                    }
+                ],
             }
         ],
         "extensions": [
@@ -281,7 +303,7 @@ def moa_sf3b1():
     """Create MOA gene SF3B1 test fixture"""
     return {
         "id": "moa.normalize.gene:SF3B1",
-        "type": "Gene",
+        "conceptType": "Gene",
         "label": "SF3B1",
         "extensions": [
             {
@@ -311,18 +333,24 @@ def moa_aid532_study_stmt(
     """Create MOA AID 532 study statement test fixture."""
     return {
         "id": "moa.assertion:532",
-        "type": "VariantPrognosticStudyStatement",
+        "type": "Statement",
+        "direction": "supports",
         "description": "The National Comprehensive Cancer Network\u00ae (NCCN\u00ae) highlights SF3B1 E622, Y623, R625, N626, H662, T663, K666, K700E, I704, G740, G742, and D781 missense variants as being associated with a favorable prognosis in patients with myelodysplastic syndromes.",
         "strength": {
-            "code": "e000003",
+            "primaryCode": "e000003",
             "label": "professional guideline evidence",
-            "system": "https://go.osu.edu/evidence-codes",
+            "extensions": [
+                {"name": "url", "value": "https://go.osu.edu/evidence-codes"}
+            ],
         },
-        "predicate": "associatedWithBetterOutcomeFor",
-        "subjectVariant": moa_vid532,
-        "objectCondition": moa_myelodysplasia,
-        "alleleOriginQualifier": "somatic",
-        "geneContextQualifier": moa_sf3b1,
+        "proposition": {
+            "type": "VariantPrognosticProposition",
+            "predicate": "associatedWithBetterOutcomeFor",
+            "subjectVariant": moa_vid532,
+            "objectCondition": moa_myelodysplasia,
+            "alleleOriginQualifier": {"label": "somatic"},
+            "geneContextQualifier": moa_sf3b1,
+        },
         "specifiedBy": moa_method,
         "reportedIn": [moa_source33],
     }

@@ -14,21 +14,16 @@ from disease.schemas import (
 from disease.schemas import (
     NormalizationService as NormalizedDisease,
 )
-from ga4gh.cat_vrs.core_models import CategoricalVariant
+from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core import sha512t24u
-from ga4gh.core.domain_models import (
-    CombinationTherapy,
-    Disease,
-    Gene,
-    TherapeuticAgent,
-    TherapeuticSubstituteGroup,
-)
-from ga4gh.core.entity_models import Coding, Document, Extension, Method
-from ga4gh.va_spec.profiles.var_study_stmt import (
+from ga4gh.core.models import Extension, MappableConcept
+from ga4gh.va_spec.aac_2017.models import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
+from ga4gh.va_spec.base.core import Document, Method
+from ga4gh.va_spec.base.domain_entities import TherapyGroup
 from ga4gh.vrs.models import Allele
 from gene.schemas import NormalizeService as NormalizedGene
 from pydantic import BaseModel, StrictStr, ValidationError
@@ -49,7 +44,7 @@ logger = logging.getLogger(__name__)
 # Normalizer response type to attribute name
 NORMALIZER_INSTANCE_TO_ATTR = {
     NormalizedDisease: "disease",
-    NormalizedTherapy: "therapeutic_agent",
+    NormalizedTherapy: "therapy",
     NormalizedGene: "gene",
 }
 
@@ -89,10 +84,10 @@ class MoaEvidenceLevel(str, Enum):
     INFERENTIAL = "moa.evidence_level:inferential_evidence"
 
 
-class TherapeuticProcedureType(str, Enum):
-    """Define types for supported Therapeutic Procedures"""
+class TherapyType(str, Enum):
+    """Define types for supported therapies"""
 
-    THERAPEUTIC_AGENT = "TherapeuticAgent"
+    THERAPY = "Therapy"
     THERAPEUTIC_SUBSTITUTE_GROUP = "TherapeuticSubstituteGroup"
     COMBINATION_THERAPY = "CombinationTherapy"
 
@@ -118,11 +113,9 @@ class TransformedData(BaseModel):
     ] = []
     categorical_variants: list[CategoricalVariant] = []
     variations: list[Allele] = []
-    genes: list[Gene] = []
-    therapeutic_procedures: list[
-        TherapeuticAgent | TherapeuticSubstituteGroup | CombinationTherapy
-    ] = []
-    conditions: list[Disease] = []
+    genes: list[MappableConcept] = []
+    therapies: list[MappableConcept | TherapyGroup] = []
+    conditions: list[MappableConcept] = []
     methods: list[Method] = []
     documents: list[Document] = []
 
@@ -134,26 +127,22 @@ class Transformer(ABC):
         Method(
             id=MethodId.CIVIC_EID_SOP,
             label="CIViC Curation SOP (2019)",
-            reportedIn=[
-                Document(
-                    label="Danos et al., 2019, Genome Med.",
-                    title="Standard operating procedure for curation and clinical interpretation of variants in cancer",
-                    doi="10.1186/s13073-019-0687-x",
-                    pmid=31779674,
-                )
-            ],
+            reportedIn=Document(
+                label="Danos et al., 2019, Genome Med.",
+                title="Standard operating procedure for curation and clinical interpretation of variants in cancer",
+                doi="10.1186/s13073-019-0687-x",
+                pmid=31779674,
+            ),
         ),
         Method(
             id=MethodId.MOA_ASSERTION_BIORXIV,
             label="MOAlmanac (2021)",
-            reportedIn=[
-                Document(
-                    label="Reardon, B., Moore, N.D., Moore, N.S. et al.",
-                    title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
-                    doi="10.1038/s43018-021-00243-3",
-                    pmid=35121878,
-                )
-            ],
+            reportedIn=Document(
+                label="Reardon, B., Moore, N.D., Moore, N.S. et al.",
+                title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+                doi="10.1038/s43018-021-00243-3",
+                pmid=35121878,
+            ),
         ),
     ]
     methods_mapping: ClassVar[dict[MethodId, Method]] = {m.id: m for m in _methods}
@@ -274,7 +263,7 @@ class Transformer(ABC):
         self.able_to_normalize = {}
         self.unable_to_normalize = {
             "conditions": set(),
-            "therapeutic_procedures": set(),
+            "therapies": set(),
         }
 
         self.evidence_level_to_vicc_concept_mapping = (
@@ -314,19 +303,21 @@ class Transformer(ABC):
 
     def _evidence_level_to_vicc_concept_mapping(
         self,
-    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, Coding]:
+    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, MappableConcept]:
         """Get mapping of source evidence level to vicc concept vocab
 
         :return: Dictionary containing mapping from source evidence level (key)
-            to corresponding vicc concept vocab (value) represented as Coding object
+            to corresponding vicc concept vocab (value) represented as MappableConcept object
         """
         mappings = {}
         for item in self._vicc_concept_vocabs:
             for exact_mapping in item.exact_mappings:
-                mappings[exact_mapping] = Coding(
-                    code=item.id.split(":")[-1],
+                mappings[exact_mapping] = MappableConcept(
+                    primaryCode=item.id.split(":")[-1],
                     label=item.term,
-                    system="https://go.osu.edu/evidence-codes",
+                    extensions=[
+                        Extension(name="url", value="https://go.osu.edu/evidence-codes")
+                    ],
                 )
         return mappings
 
@@ -344,11 +335,11 @@ class Transformer(ABC):
         return sha512t24u(blob)
 
     @abstractmethod
-    def _get_therapeutic_agent(self, therapy: dict) -> TherapeuticAgent | None:
-        """Get Therapeutic Agent representation for source therapy object
+    def _get_therapy(self, therapy: dict) -> MappableConcept | None:
+        """Get therapy mappable concept for source therapy object
 
         :param therapy: source therapy object
-        :return: If able to normalize therapy, returns therapeutic agent
+        :return: If able to normalize therapy, returns therapy mappable concept
         """
 
     @abstractmethod
@@ -357,7 +348,7 @@ class Transformer(ABC):
         therapeutic_sub_group_id: str,
         therapies: list[dict],
         therapy_interaction_type: str,
-    ) -> TherapeuticSubstituteGroup | None:
+    ) -> TherapyGroup | None:
         """Get Therapeutic Substitute Group for therapies
 
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
@@ -370,9 +361,9 @@ class Transformer(ABC):
     def _get_combination_therapy(
         self,
         combination_therapy_id: str,
-        therapies: list[dict],
+        therapies_in: list[dict],
         therapy_interaction_type: str,
-    ) -> CombinationTherapy | None:
+    ) -> TherapyGroup | None:
         """Get Combination Therapy representation for source therapies
 
         :param combination_therapy_id: ID for Combination Therapy
@@ -381,23 +372,23 @@ class Transformer(ABC):
         :return: If able to normalize all therapy objects in `therapies`, returns
             Combination Therapy
         """
-        components = []
+        therapies = []
         source_name = type(self).__name__.lower().replace("transformer", "")
 
-        for therapy in therapies:
+        for therapy in therapies_in:
             if source_name == SourceName.MOA:
-                therapeutic_procedure_id = f"moa.therapy:{therapy}"
+                therapy_id = f"moa.therapy:{therapy}"
             else:
-                therapeutic_procedure_id = f"civic.tid:{therapy['id']}"
-            ta = self._add_therapeutic_procedure(
-                therapeutic_procedure_id,
+                therapy_id = f"civic.tid:{therapy['id']}"
+            therapy_mc = self._add_therapy(
+                therapy_id,
                 [therapy],
-                TherapeuticProcedureType.THERAPEUTIC_AGENT,
+                TherapyType.THERAPY,
             )
-            if not ta:
+            if not therapy_mc:
                 return None
 
-            components.append(ta)
+            therapies.append(therapy_mc)
 
         extensions = [
             Extension(
@@ -409,8 +400,11 @@ class Transformer(ABC):
         ]
 
         try:
-            ct = CombinationTherapy(
-                id=combination_therapy_id, components=components, extensions=extensions
+            tg = TherapyGroup(
+                id=combination_therapy_id,
+                therapies=therapies,
+                extensions=extensions,
+                groupType=MappableConcept(label=TherapyType.COMBINATION_THERAPY.value),
             )
         except ValidationError as e:
             # if combination validation checks fail
@@ -418,72 +412,56 @@ class Transformer(ABC):
                 "ValidationError raised when attempting to create CombinationTherapy: %s",
                 e,
             )
-            ct = None
+            tg = None
 
-        return ct
+        return tg
 
-    def _add_therapeutic_procedure(
+    def _add_therapy(
         self,
-        therapeutic_procedure_id: str,
+        therapy_id: str,
         therapies: list[dict],
-        therapeutic_procedure_type: TherapeuticProcedureType,
+        therapy_type: TherapyType,
         therapy_interaction_type: str | None = None,
-    ) -> TherapeuticAgent | TherapeuticSubstituteGroup | CombinationTherapy | None:
-        """Create or get Therapeutic Procedure given therapies
-        First look in cache for existing Therapeutic Procedure, if not found will
-        attempt to normalize. Will add `therapeutic_procedure_id` to
-        `therapeutic_procedures` and `able_to_normalize['therapeutic_procedures']` if
-        therapy-normalizer is able to normalize all `therapies`. Else, will add the
-        `therapeutic_procedure_id` to `unable_to_normalize['therapeutic_procedures']`
+    ) -> MappableConcept | None:
+        """Create or get therapy mappable concept given therapies
+        First look in cache for existing therapy, if not found will attempt to
+        normalize. Will add `therapy_id` to `therapies` and
+        `able_to_normalize['therapies']` if therapy-normalizer is able to normalize all
+        `therapies`. Else, will add the `therapy_id` to
+        `unable_to_normalize['therapies']`
 
-        :param therapeutic_procedure_id: ID for therapeutic procedure
-        :param therapies: List of therapy objects. If `therapeutic_procedure_type`
-            is `TherapeuticProcedureType.THERAPEUTIC_AGENT`, the list will only contain
-            a single therapy.
-        :param therapeutic_procedure_type: The type of therapeutic procedure
+        :param therapy_id: ID for therapy
+        :param therapies: List of therapy objects. If `therapy_type` is
+            `TherapyType.THERAPY`, the list will only contain a single therapy.
+        :param therapy_type: The type of therapy
         :param therapy_interaction_type: drug interaction type
-        :return: Therapeutic procedure, if successful normalization
+        :return: Therapy mappable concept, if successful normalization
         """
-        tp = self.able_to_normalize["therapeutic_procedures"].get(
-            therapeutic_procedure_id
-        )
-        if tp:
-            return tp
+        therapy = self.able_to_normalize["therapies"].get(therapy_id)
+        if therapy:
+            return therapy
 
-        if (
-            therapeutic_procedure_id
-            not in self.unable_to_normalize["therapeutic_procedures"]
-        ):
-            if therapeutic_procedure_type == TherapeuticProcedureType.THERAPEUTIC_AGENT:
-                tp = self._get_therapeutic_agent(therapies[0])
-            elif (
-                therapeutic_procedure_type
-                == TherapeuticProcedureType.THERAPEUTIC_SUBSTITUTE_GROUP
-            ):
-                tp = self._get_therapeutic_substitute_group(
-                    therapeutic_procedure_id, therapies, therapy_interaction_type
+        if therapy_id not in self.unable_to_normalize["therapies"]:
+            if therapy_type == TherapyType.THERAPY:
+                therapy = self._get_therapy(therapies[0])
+            elif therapy_type == TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP:
+                therapy = self._get_therapeutic_substitute_group(
+                    therapy_id, therapies, therapy_interaction_type
                 )
-            elif (
-                therapeutic_procedure_type
-                == TherapeuticProcedureType.COMBINATION_THERAPY
-            ):
-                tp = self._get_combination_therapy(
-                    therapeutic_procedure_id, therapies, therapy_interaction_type
+            elif therapy_type == TherapyType.COMBINATION_THERAPY:
+                therapy = self._get_combination_therapy(
+                    therapy_id, therapies, therapy_interaction_type
                 )
             else:
                 # not supported
                 return None
 
-            if tp:
-                self.able_to_normalize["therapeutic_procedures"][
-                    therapeutic_procedure_id
-                ] = tp
-                self.processed_data.therapeutic_procedures.append(tp)
+            if therapy:
+                self.able_to_normalize["therapies"][therapy_id] = therapy
+                self.processed_data.therapies.append(therapy)
             else:
-                self.unable_to_normalize["therapeutic_procedures"].add(
-                    therapeutic_procedure_id
-                )
-        return tp
+                self.unable_to_normalize["therapies"].add(therapy_id)
+        return therapy
 
     @staticmethod
     def _get_vicc_normalizer_extension(

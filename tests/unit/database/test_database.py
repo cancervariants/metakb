@@ -224,7 +224,7 @@ def test_gene_rules(
     check_node_labels("Gene", expected_labels, 1)
 
     gene = get_node_by_id(civic_gid5["id"])
-    extension_names = {"normalizer_label", "normalizer_id"}
+    extension_names = {"normalizer_label", "normalizer_id", "description", "aliases"}
     check_extension_props(gene, civic_gid5["extensions"], extension_names)
     expected_keys = {
         "normalizer_id",
@@ -233,8 +233,8 @@ def test_gene_rules(
         "id",
         "description",
         "mappings",
-        "type",
-        "alternativeLabels",
+        "conceptType",
+        "aliases",
     }
     check_node_props(gene, civic_gid5, expected_keys, extension_names)
 
@@ -334,7 +334,7 @@ def test_categorical_variant_rules(
         "id",
         "label",
         "description",
-        "alternativeLabels",
+        "aliases",
         "civic_molecular_profile_score",
         "civic_representative_coordinate",
         "mappings",
@@ -344,7 +344,10 @@ def test_categorical_variant_rules(
     assert cv["type"] == civic_mpid12["type"]
     assert cv["label"] == civic_mpid12["label"]
     assert cv["description"] == civic_mpid12["description"]
-    assert set(cv["alternativeLabels"]) == set(civic_mpid12["alternativeLabels"])
+    expected_aliases = next(
+        ext for ext in civic_mpid12["extensions"] if ext["name"] == "aliases"
+    )["value"]
+    assert set(json.loads(cv["aliases"])) == set(expected_aliases)
     assert isinstance(cv["civic_molecular_profile_score"], float)
     crc = json.loads(cv["civic_representative_coordinate"])
     assert set(crc.keys()) == {
@@ -415,7 +418,7 @@ def test_therapeutic_procedure_rules(
 ):
     """Verify property and relationship rules for Therapeutic Procedure nodes."""
     check_unique_property("TherapeuticProcedure", "id")
-    # min_rels is 0 because TherapeuticAgent may not be attached to statement directly,
+    # min_rels is 0 because Therapy may not be attached to statement directly,
     # but through CombinationTherapy and TherapeuticSubstituteGroup
     check_relation_count(
         "TherapeuticProcedure",
@@ -426,7 +429,7 @@ def test_therapeutic_procedure_rules(
         direction="in",
     )
     check_relation_count(
-        "CombinationTherapy", "TherapeuticAgent", "HAS_COMPONENTS", max_rels=None
+        "CombinationTherapy", "Therapy", "HAS_COMPONENTS", max_rels=None
     )
     check_relation_count(
         "CombinationTherapy",
@@ -437,7 +440,7 @@ def test_therapeutic_procedure_rules(
     )
     check_relation_count(
         "TherapeuticSubstituteGroup",
-        "TherapeuticAgent",
+        "Therapy",
         "HAS_SUBSTITUTES",
         max_rels=None,
     )
@@ -450,29 +453,30 @@ def test_therapeutic_procedure_rules(
     )
 
     expected_node_labels = [
-        {"TherapeuticProcedure", "TherapeuticAgent"},
-        {"TherapeuticProcedure", "CombinationTherapy"},
-        {"TherapeuticProcedure", "TherapeuticSubstituteGroup"},
+        {"Therapy"},
+        {"Therapy", "CombinationTherapy"},
+        {"Therapy", "TherapeuticSubstituteGroup"},
     ]
-    check_node_labels("TherapeuticProcedure", expected_node_labels, 3)
+    check_node_labels("Therapy", expected_node_labels, 3)
 
-    # Test TherapeuticAgent
+    # Test Therapy
     ta = get_node_by_id(civic_tid146["id"])
     extension_names = {
         "normalizer_id",
         "normalizer_label",
         "regulatory_approval",
+        "aliases",
     }
     check_extension_props(ta, civic_tid146["extensions"], extension_names)
     expected_keys = {
         "id",
         "label",
-        "alternativeLabels",
+        "aliases",
         "normalizer_id",
         "normalizer_label",
         "regulatory_approval",
         "mappings",
-        "type",
+        "conceptType",
     }
     check_node_props(ta, civic_tid146, expected_keys, extension_names)
 
@@ -481,14 +485,14 @@ def test_therapeutic_procedure_rules(
     check_extension_props(
         ct, civic_ct["extensions"], {"civic_therapy_interaction_type"}
     )
-    assert ct["type"] == civic_ct["type"]
+    assert ct["groupType"] == civic_ct["groupType"]["label"]
 
     # Test TherapeuticSubstituteGroup
     tsg = get_node_by_id(civic_tsg["id"])
     check_extension_props(
         tsg, civic_tsg["extensions"], {"civic_therapy_interaction_type"}
     )
-    assert tsg["type"] == tsg["type"]
+    assert tsg["groupType"] == civic_tsg["groupType"]["label"]
 
 
 def test_condition_rules(
@@ -523,7 +527,7 @@ def test_condition_rules(
         "normalizer_id",
         "normalizer_label",
         "normalizer_mondo_id",
-        "type",
+        "conceptType",
     }
     check_node_props(disease, civic_did8, expected_keys, extension_names)
 
@@ -550,11 +554,9 @@ def test_statement_rules(
     check_relation_count("Statement", "Gene", "HAS_GENE_CONTEXT", max_rels=None)
 
     expected_node_labels = [
-        {"Statement", "StudyStatement", "VariantTherapeuticResponseStudyStatement"},
-        {"Statement", "StudyStatement", "VariantPrognosticStudyStatement"},
-        {"Statement", "StudyStatement", "VariantDiagnosticStudyStatement"},
+        {"Statement", "StudyStatement"},
     ]
-    check_node_labels("Statement", expected_node_labels, 3)
+    check_node_labels("Statement", expected_node_labels, 1)
 
     cite_query = """
     MATCH (s:Statement)
@@ -575,11 +577,14 @@ def test_statement_rules(
         "predicate",
         "alleleOriginQualifier",
         "type",
+        "propositionType",
     }
     civic_eid2997_ss_cp = civic_eid2997_study_stmt.copy()
-    civic_eid2997_ss_cp["alleleOriginQualifier"] = civic_eid2997_ss_cp[
+    civic_eid2997_ss_cp["alleleOriginQualifier"] = civic_eid2997_ss_cp["proposition"][
         "alleleOriginQualifier"
-    ]
+    ]["label"]
+    civic_eid2997_ss_cp["predicate"] = civic_eid2997_ss_cp["proposition"]["predicate"]
+    civic_eid2997_ss_cp["propositionType"] = "VariantTherapeuticResponseProposition"
     check_node_props(statement, civic_eid2997_ss_cp, expected_keys)
 
 

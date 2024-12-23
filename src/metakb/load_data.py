@@ -8,6 +8,7 @@ from neo4j import Driver, ManagedTransaction
 
 from metakb.database import get_driver
 from metakb.normalizers import VICC_NORMALIZER_DATA, ViccDiseaseNormalizerData
+from metakb.transformers.base import TherapyType
 
 _logger = logging.getLogger(__name__)
 
@@ -78,10 +79,8 @@ def _add_method(tx: ManagedTransaction, method: dict, ids_in_stmts: set[str]) ->
     is_reported_in = method.get("reportedIn")
     if is_reported_in:
         # Method's documents are unique and do not currently have IDs
-        # They also only have one document
-        document = is_reported_in[0]
-        _add_document(tx, document, ids_in_stmts)
-        doc_doi = document["doi"]
+        _add_document(tx, is_reported_in, ids_in_stmts)
+        doc_doi = is_reported_in["doi"]
         query += f"""
         MERGE (d:Document {{ doi:'{doc_doi}' }})
         MERGE (m) -[:IS_REPORTED_IN] -> (d)
@@ -105,16 +104,13 @@ def _add_gene_or_disease(
 
     obj = obj_in.copy()
 
-    obj_type = obj["type"]
+    obj_type = obj["conceptType"]
     if obj_type not in {"Gene", "Disease"}:
         msg = f"Invalid object type: {obj_type}"
         raise TypeError(msg)
 
-    obj_keys = [
-        _create_parameterized_query(
-            obj, ("id", "label", "description", "alternativeLabels", "type")
-        )
-    ]
+    obj["conceptType"] = obj_type
+    obj_keys = [_create_parameterized_query(obj, ("id", "label", "conceptType"))]
 
     _add_mappings_and_exts_to_obj(obj, obj_keys)
     obj_keys = ", ".join(obj_keys)
@@ -126,72 +122,73 @@ def _add_gene_or_disease(
     tx.run(query, **obj)
 
 
-def _add_therapeutic_procedure(
+def _add_therapy_or_group(
     tx: ManagedTransaction,
-    therapeutic_procedure: dict,
+    therapy_in: dict,
     ids_in_stmts: set[str],
 ) -> None:
-    """Add therapeutic procedure node and its relationships
+    """Add therapy or therapy group node and its relationships
 
     :param tx: Transaction object provided to transaction functions
-    :param therapeutic_procedure: Therapeutic procedure CDM object
+    :param therapy: Therapy Mappable Concept or Therapy Group object
     :param ids_in_stmts: IDs found in statements
-    :raises TypeError: When therapeutic procedure type is invalid
+    :raises TypeError: When therapy type is invalid
     """
-    if therapeutic_procedure["id"] not in ids_in_stmts:
+    if therapy_in["id"] not in ids_in_stmts:
         return
 
-    tp = therapeutic_procedure.copy()
+    therapy = therapy_in.copy()
+    concept_type = therapy.get("conceptType")
+    group_type = therapy.get("groupType", {}).get("label")
 
-    tp_type = tp["type"]
-    if tp_type == "TherapeuticAgent":
-        _add_therapeutic_agent(tx, tp)
-    elif tp_type in {"CombinationTherapy", "TherapeuticSubstituteGroup"}:
-        keys = [_create_parameterized_query(tp, ("id", "type"))]
+    if concept_type:
+        _add_therapy(tx, therapy)
+    elif group_type in TherapyType.__members__.values():
+        therapy["groupType"] = group_type
+        keys = [_create_parameterized_query(therapy, ("id", "groupType"))]
 
-        _add_mappings_and_exts_to_obj(tp, keys)
+        _add_mappings_and_exts_to_obj(therapy, keys)
         keys = ", ".join(keys)
 
-        query = f"MERGE (tp:{tp_type}:TherapeuticProcedure {{ {keys} }})"
-        tx.run(query, **tp)
+        query = f"MERGE (tg:{group_type}:Therapy {{ {keys} }})"
+        tx.run(query, **therapy)
 
-        tas = tp["components"] if tp_type == "CombinationTherapy" else tp["substitutes"]
-        for ta in tas:
-            _add_therapeutic_agent(tx, ta)
+        for ta in therapy["therapies"]:
+            _add_therapy(tx, ta)
             query = f"""
-            MERGE (tp:{tp_type}:TherapeuticProcedure {{id: '{tp['id']}'}})
-            MERGE (ta:TherapeuticAgent:TherapeuticProcedure {{id: '{ta['id']}'}})
+            MERGE (tg:{group_type}:Therapy {{id: '{therapy['id']}'}})
+            MERGE (t:Therapy {{id: '{ta['id']}'}})
             """
 
-            if tp_type == "CombinationTherapy":
-                query += "MERGE (tp) -[:HAS_COMPONENTS] -> (ta)"
+            if group_type == TherapyType.COMBINATION_THERAPY:
+                query += "MERGE (tg) -[:HAS_COMPONENTS] -> (t)"
             else:
-                query += "MERGE (tp) -[:HAS_SUBSTITUTES] -> (ta)"
+                query += "MERGE (tg) -[:HAS_SUBSTITUTES] -> (t)"
 
             tx.run(query)
     else:
-        msg = f"Invalid therapeutic procedure type: {tp_type}"
+        msg = f"Therapy `conceptType` not provided and invalid `groupType` provided: {group_type}"
         raise TypeError(msg)
 
 
-def _add_therapeutic_agent(tx: ManagedTransaction, therapeutic_agent: dict) -> None:
+def _add_therapy(tx: ManagedTransaction, therapeutic_agent: dict) -> None:
     """Add therapeutic agent node and its relationships
 
     :param tx: Transaction object provided to transaction functions
     :param therapeutic_agent: Therapeutic Agent CDM object
     """
-    ta = therapeutic_agent.copy()
+    therapy = therapeutic_agent.copy()
     nonnull_keys = [
-        _create_parameterized_query(ta, ("id", "label", "alternativeLabels", "type"))
+        _create_parameterized_query(therapy, ("id", "label", "conceptType"))
     ]
 
-    _add_mappings_and_exts_to_obj(ta, nonnull_keys)
+    _add_mappings_and_exts_to_obj(therapy, nonnull_keys)
     nonnull_keys = ", ".join(nonnull_keys)
 
     query = f"""
-    MERGE (ta:TherapeuticAgent:TherapeuticProcedure {{ {nonnull_keys} }})
+    MERGE (t:Therapy {{ {nonnull_keys} }})
     """
-    tx.run(query, **ta)
+    tx.run(query, **therapy)
 
 
 def _add_location(tx: ManagedTransaction, location_in: dict) -> None:
@@ -243,6 +240,12 @@ def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
         v["state"] = json.dumps(state)
         v_keys.append("v.state=$state")
 
+    for ext in v.get("extensions") or []:
+        key = ext["name"]
+        if key == "mane_genes":
+            v[key] = json.dumps(ext["value"])
+            v_keys.append(f"v.{key}=${key}")
+
     v_keys = ", ".join(v_keys)
 
     query = f"""
@@ -278,15 +281,13 @@ def _add_categorical_variant(
     cv = categorical_variant_in.copy()
 
     mp_nonnull_keys = [
-        _create_parameterized_query(
-            cv, ("id", "label", "description", "alternativeLabels", "type")
-        )
+        _create_parameterized_query(cv, ("id", "label", "description", "type"))
     ]
 
     _add_mappings_and_exts_to_obj(cv, mp_nonnull_keys)
     mp_keys = ", ".join(mp_nonnull_keys)
 
-    defining_context = cv["constraints"][0]["definingContext"]
+    defining_context = cv["constraints"][0]["allele"]
     _add_variation(tx, defining_context)
     dc_type = defining_context["type"]
 
@@ -301,10 +302,10 @@ def _add_categorical_variant(
 
     query = f"""
     {members_match}
-    MERGE (dc:Variation:{dc_type} {{ id: '{defining_context['id']}' }})
-    MERGE (dc) -[:HAS_LOCATION] -> (loc)
+    MERGE (cv:Variation:{dc_type} {{ id: '{defining_context['id']}' }})
+    MERGE (cv) -[:HAS_LOCATION] -> (loc)
     MERGE (v:Variation:{cv['type']} {{ {mp_keys} }})
-    MERGE (v) -[:HAS_DEFINING_CONTEXT] -> (dc)
+    MERGE (v) -[:HAS_DEFINING_CONTEXT] -> (cv)
     {members_relation}
     """
     tx.run(query, **cv)
@@ -374,11 +375,11 @@ def _get_ids_from_stmts(statements: list[dict]) -> set[str]:
         for obj in [
             statement.get("specifiedBy"),  # method
             statement.get("reportedIn"),
-            statement.get("subjectVariant"),
-            statement.get("objectTherapeutic"),
-            statement.get("objectCondition"),
-            statement.get("conditionQualifier"),
-            statement.get("geneContextQualifier"),
+            statement.get("proposition", {}).get("subjectVariant"),
+            statement.get("proposition", {}).get("objectTherapeutic"),
+            statement.get("proposition", {}).get("objectCondition"),
+            statement.get("proposition", {}).get("conditionQualifier"),
+            statement.get("proposition", {}).get("geneContextQualifier"),
         ]:
             if obj:
                 if isinstance(obj, list):
@@ -399,7 +400,7 @@ def _add_statement(tx: ManagedTransaction, statement_in: dict) -> None:
     statement = statement_in.copy()
     statement_type = statement["type"]
     statement_keys = _create_parameterized_query(
-        statement, ("id", "description", "direction", "predicate", "type")
+        statement, ("id", "description", "direction", "type")
     )
 
     match_line = ""
@@ -412,12 +413,21 @@ def _add_statement(tx: ManagedTransaction, statement_in: dict) -> None:
         match_line += f"MERGE ({name} {{ id: '{ri_doc_id}'}})\n"
         rel_line += f"MERGE (s) -[:IS_REPORTED_IN] -> ({name})\n"
 
-    allele_origin = statement.get("alleleOriginQualifier")
+    proposition = statement["proposition"]
+    statement["propositionType"] = proposition["type"]
+    match_line += "SET s.propositionType=$propositionType\n"
+
+    allele_origin = proposition.get("alleleOriginQualifier")
     if allele_origin:
-        statement["alleleOriginQualifier"] = allele_origin
+        statement["alleleOriginQualifier"] = allele_origin["label"]
         match_line += "SET s.alleleOriginQualifier=$alleleOriginQualifier\n"
 
-    gene_context_id = statement.get("geneContextQualifier", {}).get("id")
+    predicate = proposition.get("predicate")
+    if predicate:
+        statement["predicate"] = predicate
+        match_line += "SET s.predicate=$predicate\n"
+
+    gene_context_id = proposition.get("geneContextQualifier", {}).get("id")
     if gene_context_id:
         match_line += f"MERGE (g:Gene {{id: '{gene_context_id}'}})\n"
         rel_line += "MERGE (s) -[:HAS_GENE_CONTEXT] -> (g)\n"
@@ -428,7 +438,11 @@ def _add_statement(tx: ManagedTransaction, statement_in: dict) -> None:
 
     coding = statement.get("strength")
     if coding:
-        coding_key_fields = ("code", "label", "system")
+        coding["url"] = next(
+            ext["value"] for ext in coding["extensions"] if ext["name"] == "url"
+        )
+
+        coding_key_fields = ("primaryCode", "label", "url")
 
         coding_keys = _create_parameterized_query(
             coding, coding_key_fields, entity_param_prefix="coding_"
@@ -441,23 +455,25 @@ def _add_statement(tx: ManagedTransaction, statement_in: dict) -> None:
         match_line += f"MERGE (c:Coding {{ {coding_keys} }})\n"
         rel_line += "MERGE (s) -[:HAS_STRENGTH] -> (c)\n"
 
-    variant_id = statement["subjectVariant"]["id"]
+    variant_id = proposition["subjectVariant"]["id"]
     match_line += f"MERGE (v:Variation {{ id: '{variant_id}' }})\n"
     rel_line += "MERGE (s) -[:HAS_VARIANT] -> (v)\n"
 
-    therapeutic = statement.get("objectTherapeutic")
+    therapeutic = proposition.get("objectTherapeutic")
     if therapeutic:
         therapeutic_id = therapeutic["id"]
-        match_line += f"MERGE (t:TherapeuticProcedure {{ id: '{therapeutic_id}' }})\n"
+        match_line += f"MERGE (t:Therapy {{ id: '{therapeutic_id}' }})\n"
         rel_line += "MERGE (s) -[:HAS_THERAPEUTIC] -> (t)\n"
 
-    tumor_type = statement.get("conditionQualifier") or statement.get("objectCondition")
+    tumor_type = proposition.get("conditionQualifier") or proposition.get(
+        "objectCondition"
+    )
     tumor_type_id = tumor_type["id"]
     match_line += f"MERGE (tt:Condition {{ id: '{tumor_type_id}' }})\n"
     rel_line += "MERGE (s) -[:HAS_TUMOR_TYPE] -> (tt)\n"
 
     query = f"""
-    MERGE (s:{statement_type}:StudyStatement:Statement {{ {statement_keys} }})
+    MERGE (s:{statement_type}:StudyStatement {{ {statement_keys} }})
     {match_line}
     {rel_line}
     """
@@ -493,8 +509,8 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
             for obj in data.get(obj_type, []):
                 session.execute_write(_add_gene_or_disease, obj, ids_in_stmts)
 
-        for tp in data.get("therapeutic_procedures", []):
-            session.execute_write(_add_therapeutic_procedure, tp, ids_in_stmts)
+        for tp in data.get("therapies", []):
+            session.execute_write(_add_therapy_or_group, tp, ids_in_stmts)
 
         # This should always be done last
         for statement in statements:

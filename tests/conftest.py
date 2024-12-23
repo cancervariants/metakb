@@ -74,7 +74,7 @@ def cetuximab_extensions():
                 "has_indications": [
                     {
                         "id": "mesh:D009369",
-                        "type": "Disease",
+                        "conceptType": "Disease",
                         "label": "Neoplasms",
                         "mappings": [
                             {
@@ -85,7 +85,7 @@ def cetuximab_extensions():
                     },
                     {
                         "id": "mesh:D015179",
-                        "type": "Disease",
+                        "conceptType": "Disease",
                         "label": "Colorectal Neoplasms",
                         "mappings": [
                             {
@@ -96,7 +96,7 @@ def cetuximab_extensions():
                     },
                     {
                         "id": "mesh:D006258",
-                        "type": "Disease",
+                        "conceptType": "Disease",
                         "label": "Head and Neck Neoplasms",
                         "mappings": [
                             {
@@ -107,7 +107,7 @@ def cetuximab_extensions():
                     },
                     {
                         "id": "mesh:D002294",
-                        "type": "Disease",
+                        "conceptType": "Disease",
                         "label": "Carcinoma, Squamous Cell",
                         "mappings": [
                             {
@@ -140,7 +140,7 @@ def encorafenib_extensions():
                 "has_indications": [
                     {
                         "id": "mesh:D008545",
-                        "type": "Disease",
+                        "conceptType": "Disease",
                         "label": "Melanoma",
                         "mappings": [
                             {
@@ -151,7 +151,7 @@ def encorafenib_extensions():
                     },
                     {
                         "id": "mesh:D009369",
-                        "type": "Disease",
+                        "conceptType": "Disease",
                         "label": "Neoplasms",
                         "mappings": [
                             {
@@ -174,9 +174,7 @@ def civic_mpid33(civic_vid33):
         "type": "CategoricalVariant",
         "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",
         "label": "EGFR L858R",
-        "constraints": [
-            {"definingContext": civic_vid33, "type": "DefiningContextConstraint"}
-        ],
+        "constraints": [{"allele": civic_vid33, "type": "DefiningAlleleConstraint"}],
         "members": [
             {
                 "id": "ga4gh:VA.gV7_dnvF8SQSeUdvgDFhU65zK_csc6VE",
@@ -219,9 +217,16 @@ def civic_mpid33(civic_vid33):
                 "expressions": [
                     {"syntax": "hgvs.g", "value": "NC_000007.13:g.55259515T>G"}
                 ],
+                "extensions": [
+                    {
+                        "name": "mane_genes",
+                        "value": [
+                            {"ncbi_gene_id": 1956, "hgnc_id": 3236, "symbol": "EGFR"}
+                        ],
+                    }
+                ],
             },
         ],
-        "alternativeLabels": ["LEU813ARG", "LEU858ARG", "L813R"],
         "mappings": [
             {
                 "coding": {
@@ -264,6 +269,7 @@ def civic_mpid33(civic_vid33):
             },
         ],
         "extensions": [
+            {"name": "aliases", "value": ["LEU813ARG", "LEU858ARG", "L813R"]},
             {
                 "name": "CIViC representative coordinate",
                 "value": {
@@ -320,20 +326,25 @@ def civic_eid2997_study_stmt(
     """Create CIVIC EID2997 Study Statement test fixture. Uses TherapeuticAgent."""
     return {
         "id": "civic.eid:2997",
-        "type": "VariantTherapeuticResponseStudyStatement",
+        "type": "Statement",
         "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
         "direction": "supports",
         "strength": {
-            "code": "e000001",
+            "primaryCode": "e000001",
             "label": "authoritative evidence",
-            "system": "https://go.osu.edu/evidence-codes",
+            "extensions": [
+                {"name": "url", "value": "https://go.osu.edu/evidence-codes"}
+            ],
         },
-        "predicate": "predictsSensitivityTo",
-        "subjectVariant": civic_mpid33,
-        "objectTherapeutic": civic_tid146,
-        "conditionQualifier": civic_did8,
-        "alleleOriginQualifier": "somatic",
-        "geneContextQualifier": civic_gid19,
+        "proposition": {
+            "type": "VariantTherapeuticResponseProposition",
+            "predicate": "predictsSensitivityTo",
+            "objectTherapeutic": civic_tid146,
+            "conditionQualifier": civic_did8,
+            "alleleOriginQualifier": {"label": "somatic"},
+            "geneContextQualifier": civic_gid19,
+            "subjectVariant": civic_mpid33,
+        },
         "specifiedBy": civic_method,
         "reportedIn": [civic_source592],
     }
@@ -344,9 +355,8 @@ def civic_gid5():
     """Create test fixture for CIViC GID5."""
     return {
         "id": "civic.gid:5",
-        "type": "Gene",
+        "conceptType": "Gene",
         "label": "BRAF",
-        "description": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase.",
         "mappings": [
             {
                 "coding": {
@@ -356,20 +366,27 @@ def civic_gid5():
                 "relation": "exactMatch",
             }
         ],
-        "alternativeLabels": [
-            "B-RAF1",
-            "B-raf",
-            "BRAF",
-            "BRAF-1",
-            "BRAF1",
-            "NS7",
-            "RAFB1",
-        ],
         "extensions": [
+            {
+                "name": "description",
+                "value": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase.",
+            },
             {
                 "name": VICC_NORMALIZER_DATA,
                 "value": {"id": "hgnc:1097", "label": "BRAF"},
-            }
+            },
+            {
+                "name": "aliases",
+                "value": [
+                    "B-RAF1",
+                    "B-raf",
+                    "BRAF",
+                    "BRAF-1",
+                    "BRAF1",
+                    "NS7",
+                    "RAFB1",
+                ],
+            },
         ],
     }
 
@@ -421,6 +438,12 @@ def braf_v600e_genomic():
             "sequence": "A",
         },
         "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
+        "extensions": [
+            {
+                "name": "mane_genes",
+                "value": [{"ncbi_gene_id": 673, "hgnc_id": 1097, "symbol": "BRAF"}],
+            }
+        ],
     }
 
 
@@ -438,9 +461,7 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
         "type": "CategoricalVariant",
         "description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
         "label": "BRAF V600E",
-        "constraints": [
-            {"definingContext": civic_vid12, "type": "DefiningContextConstraint"}
-        ],
+        "constraints": [{"allele": civic_vid12, "type": "DefiningAlleleConstraint"}],
         "members": [
             genomic_rep,
             {
@@ -464,7 +485,6 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
                 "state": {"type": "LiteralSequenceExpression", "sequence": "A"},
             },
         ],
-        "alternativeLabels": ["VAL600GLU", "V640E", "VAL640GLU"],
         "mappings": [
             {
                 "coding": {
@@ -500,6 +520,7 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
             },
         ],
         "extensions": [
+            {"name": "aliases", "value": ["VAL600GLU", "V640E", "VAL640GLU"]},
             {
                 "name": "CIViC representative coordinate",
                 "value": {
@@ -564,9 +585,8 @@ def civic_gid19():
     """Create test fixture for CIViC GID19."""
     return {
         "id": "civic.gid:19",
-        "type": "Gene",
+        "conceptType": "Gene",
         "label": "EGFR",
-        "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. Overproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",
         "mappings": [
             {
                 "coding": {
@@ -576,21 +596,28 @@ def civic_gid19():
                 "relation": "exactMatch",
             }
         ],
-        "alternativeLabels": [
-            "EGFR",
-            "ERBB",
-            "ERBB1",
-            "ERRP",
-            "HER1",
-            "NISBD2",
-            "PIG61",
-            "mENA",
-        ],
         "extensions": [
+            {
+                "name": "description",
+                "value": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. Overproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",
+            },
+            {
+                "name": "aliases",
+                "value": [
+                    "EGFR",
+                    "ERBB",
+                    "ERBB1",
+                    "ERRP",
+                    "HER1",
+                    "NISBD2",
+                    "PIG61",
+                    "mENA",
+                ],
+            },
             {
                 "name": VICC_NORMALIZER_DATA,
                 "value": {"id": "hgnc:3236", "label": "EGFR"},
-            }
+            },
         ],
     }
 
@@ -600,7 +627,7 @@ def civic_tid146():
     """Create test fixture for CIViC TID146."""
     return {
         "id": "civic.tid:146",
-        "type": "TherapeuticAgent",
+        "conceptType": "Therapy",
         "label": "Afatinib",
         "mappings": [
             {
@@ -611,13 +638,16 @@ def civic_tid146():
                 "relation": "exactMatch",
             }
         ],
-        "alternativeLabels": [
-            "BIBW2992",
-            "BIBW 2992",
-            "BIBW-2992",
-            "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide",
-        ],
         "extensions": [
+            {
+                "name": "aliases",
+                "value": [
+                    "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide",
+                    "BIBW 2992",
+                    "BIBW-2992",
+                    "BIBW2992",
+                ],
+            },
             {
                 "name": "regulatory_approval",
                 "value": {
@@ -625,7 +655,7 @@ def civic_tid146():
                     "has_indications": [
                         {
                             "id": "hemonc:642",
-                            "type": "Disease",
+                            "conceptType": "Disease",
                             "label": "Non-small cell lung cancer",
                             "mappings": [
                                 {
@@ -636,7 +666,7 @@ def civic_tid146():
                         },
                         {
                             "id": "hemonc:25316",
-                            "type": "Disease",
+                            "conceptType": "Disease",
                             "label": "Non-small cell lung cancer squamous",
                         },
                     ],
@@ -658,7 +688,7 @@ def civic_did8():
     """Create test fixture for CIViC DID8."""
     return {
         "id": "civic.did:8",
-        "type": "Disease",
+        "conceptType": "Disease",
         "label": "Lung Non-small Cell Carcinoma",
         "mappings": [
             {
@@ -698,7 +728,7 @@ def civic_tid28():
     """Create test fixture for CIViC therapy ID 28"""
     return {
         "id": "civic.tid:28",
-        "type": "TherapeuticAgent",
+        "conceptType": "Therapy",
         "label": "Panitumumab",
         "mappings": [
             {
@@ -709,19 +739,22 @@ def civic_tid28():
                 "relation": "exactMatch",
             }
         ],
-        "alternativeLabels": [
-            "ABX-EGF",
-            "ABX-EGF Monoclonal Antibody",
-            "ABX-EGF, Clone E7.6.3",
-            "E7.6.3",
-            "Human IgG2K Monoclonal Antibody",
-            "MoAb ABX-EGF",
-            "MoAb E7.6.3",
-            "Monoclonal Antibody ABX-EGF",
-            "Monoclonal Antibody E7.6.3",
-            "Vectibix",
-        ],
         "extensions": [
+            {
+                "name": "aliases",
+                "value": [
+                    "ABX-EGF",
+                    "ABX-EGF Monoclonal Antibody",
+                    "ABX-EGF, Clone E7.6.3",
+                    "E7.6.3",
+                    "Human IgG2K Monoclonal Antibody",
+                    "MoAb ABX-EGF",
+                    "MoAb E7.6.3",
+                    "Monoclonal Antibody ABX-EGF",
+                    "Monoclonal Antibody E7.6.3",
+                    "Vectibix",
+                ],
+            },
             {
                 "name": VICC_NORMALIZER_DATA,
                 "value": {
@@ -736,7 +769,7 @@ def civic_tid28():
                     "has_indications": [
                         {
                             "id": "mesh:D009369",
-                            "type": "Disease",
+                            "conceptType": "Disease",
                             "label": "Neoplasms",
                             "mappings": [
                                 {
@@ -747,7 +780,7 @@ def civic_tid28():
                         },
                         {
                             "id": "mesh:D015179",
-                            "type": "Disease",
+                            "conceptType": "Disease",
                             "label": "Colorectal Neoplasms",
                             "mappings": [
                                 {
@@ -768,7 +801,7 @@ def civic_tid16(cetuximab_extensions):
     """Create test fixture for CIViC therapy ID 16"""
     return {
         "id": "civic.tid:16",
-        "type": "TherapeuticAgent",
+        "conceptType": "Therapy",
         "label": "Cetuximab",
         "mappings": [
             {
@@ -779,27 +812,32 @@ def civic_tid16(cetuximab_extensions):
                 "relation": "exactMatch",
             }
         ],
-        "alternativeLabels": [
-            "Cetuximab Biosimilar CDP-1",
-            "Cetuximab Biosimilar CMAB009",
-            "Cetuximab Biosimilar KL 140",
-            "Chimeric Anti-EGFR Monoclonal Antibody",
-            "Chimeric MoAb C225",
-            "Chimeric Monoclonal Antibody C225",
-            "Erbitux",
-            "IMC-C225",
+        "extensions": [
+            *cetuximab_extensions,
+            {
+                "name": "aliases",
+                "value": [
+                    "Cetuximab Biosimilar CDP-1",
+                    "Cetuximab Biosimilar CMAB009",
+                    "Cetuximab Biosimilar KL 140",
+                    "Chimeric Anti-EGFR Monoclonal Antibody",
+                    "Chimeric MoAb C225",
+                    "Chimeric Monoclonal Antibody C225",
+                    "Erbitux",
+                    "IMC-C225",
+                ],
+            },
         ],
-        "extensions": cetuximab_extensions,
     }
 
 
 @pytest.fixture(scope="session")
 def civic_tsg(civic_tid16, civic_tid28):
-    """Create test fixture for CIViC TherapeuticSubstituteGroup"""
+    """Create test fixture for CIViC therapy subsitutes"""
     return {
-        "type": "TherapeuticSubstituteGroup",
         "id": "civic.tsgid:7IxyhCwID0QYyVCP2xuIyYvwwu-S_HrZ",
-        "substitutes": [civic_tid16, civic_tid28],
+        "therapies": [civic_tid16, civic_tid28],
+        "groupType": {"label": "TherapeuticSubstituteGroup"},
         "extensions": [
             {
                 "name": "civic_therapy_interaction_type",
@@ -814,7 +852,7 @@ def civic_tid483(encorafenib_extensions):
     """Create test fixture for CIViC Therapy ID 483"""
     return {
         "id": "civic.tid:483",
-        "type": "TherapeuticAgent",
+        "conceptType": "Therapy",
         "label": "Encorafenib",
         "mappings": [
             {
@@ -825,18 +863,20 @@ def civic_tid483(encorafenib_extensions):
                 "relation": "exactMatch",
             }
         ],
-        "alternativeLabels": ["Braftovi", "LGX 818", "LGX-818", "LGX818"],
-        "extensions": encorafenib_extensions,
+        "extensions": [
+            *encorafenib_extensions,
+            {"name": "aliases", "value": ["Braftovi", "LGX 818", "LGX-818", "LGX818"]},
+        ],
     }
 
 
 @pytest.fixture(scope="session")
 def civic_ct(civic_tid483, civic_tid16):
-    """Create test fixture for CIViC CombinationTherapy"""
+    """Create test fixture for CIViC combination therapy"""
     return {
-        "type": "CombinationTherapy",
         "id": "civic.ctid:P1PY89shAjemg7jquQ0V9pg1VnYnkPeK",
-        "components": [civic_tid483, civic_tid16],
+        "therapies": [civic_tid483, civic_tid16],
+        "groupType": {"label": "CombinationTherapy"},
         "extensions": [
             {
                 "name": "civic_therapy_interaction_type",
@@ -851,7 +891,7 @@ def civic_did11():
     """Create test fixture for CIViC Disease ID 11"""
     return {
         "id": "civic.did:11",
-        "type": "Disease",
+        "conceptType": "Disease",
         "label": "Colorectal Cancer",
         "mappings": [
             {
@@ -882,20 +922,25 @@ def civic_eid816_study_stmt(
     """Create CIVIC EID816 study statement test fixture. Uses TherapeuticSubstituteGroup."""
     return {
         "id": "civic.eid:816",
-        "type": "VariantTherapeuticResponseStudyStatement",
+        "type": "Statement",
         "description": "This meta-analysis of 7 randomized control trials evaluating overall survival (OS) (8 for progression free survival) could not definitely state that survival benefit of anti-EGFR monoclonal antibodies is limited to patients with wild type BRAF. In other words, the authors believe that there is insufficient data to justify the exclusion of anti-EGFR monoclonal antibody therapy for patients with mutant BRAF. In these studies, mutant BRAF specifically meant the V600E mutation.",
         "direction": "disputes",
         "strength": {
-            "code": "e000005",
+            "primaryCode": "e000005",
             "label": "clinical cohort evidence",
-            "system": "https://go.osu.edu/evidence-codes",
+            "extensions": [
+                {"name": "url", "value": "https://go.osu.edu/evidence-codes"}
+            ],
         },
-        "predicate": "predictsResistanceTo",
-        "subjectVariant": civic_mpid12,
-        "objectTherapeutic": civic_tsg,
-        "conditionQualifier": civic_did11,
-        "alleleOriginQualifier": "somatic",
-        "geneContextQualifier": civic_gid5,
+        "proposition": {
+            "type": "VariantTherapeuticResponseProposition",
+            "predicate": "predictsResistanceTo",
+            "subjectVariant": civic_mpid12,
+            "objectTherapeutic": civic_tsg,
+            "conditionQualifier": civic_did11,
+            "alleleOriginQualifier": {"label": "somatic"},
+            "geneContextQualifier": civic_gid5,
+        },
         "specifiedBy": civic_method,
         "reportedIn": [
             {
@@ -920,20 +965,25 @@ def civic_eid9851_study_stmt(
     """Create CIVIC EID9851 study statement test fixture. Uses CombinationTherapy."""
     return {
         "id": "civic.eid:9851",
-        "type": "VariantTherapeuticResponseStudyStatement",
+        "type": "Statement",
         "description": "The open-label phase 3 BEACON CRC trial included 665 patients with BRAF V600E-mutated metastatic CRC. Patients were randomly assigned in a 1:1:1 ratio to receive encorafenib, binimetinib, and cetuximab (triplet-therapy group); encorafenib and cetuximab (doublet-therapy group); or the investigators\u2019 choice of either cetuximab and irinotecan or cetuximab and FOLFIRI. The median overall survival was 8.4 months (95% CI, 7.5 to 11.0) in the doublet-therapy group and 5.4 months (95% CI, 4.8 to 6.6) in the control group, with a significantly lower risk of death compared to the control group (hazard ratio for death doublet-group vs. control, 0.60; 95% CI, 0.45 to 0.79; P<0.001). The confirmed response rate was 26% (95% CI, 18 to 35) in the triplet-therapy group, 20% in the doublet-therapy group (95% CI 13 to 29) and 2% (95% CI, 0 to 7) in the control group (doublet group vs. control P<0.001). Median PFS was 4.2 months (95% CI, 3.7 to 5.4) in the doublet-therapy group, and 1.5 months (95% CI, 1.5 to 1.7) in the control group (hazard ratio for disease progression doublet-group vs control, 0.40; 95% CI, 0.31 to 0.52, P<0.001).",
         "direction": "supports",
         "strength": {
-            "code": "e000001",
+            "primaryCode": "e000001",
             "label": "authoritative evidence",
-            "system": "https://go.osu.edu/evidence-codes",
+            "extensions": [
+                {"name": "url", "value": "https://go.osu.edu/evidence-codes"}
+            ],
         },
-        "predicate": "predictsSensitivityTo",
-        "subjectVariant": civic_mpid12,
-        "objectTherapeutic": civic_ct,
-        "conditionQualifier": civic_did11,
-        "alleleOriginQualifier": "somatic",
-        "geneContextQualifier": civic_gid5,
+        "proposition": {
+            "type": "VariantTherapeuticResponseProposition",
+            "predicate": "predictsSensitivityTo",
+            "subjectVariant": civic_mpid12,
+            "objectTherapeutic": civic_ct,
+            "conditionQualifier": civic_did11,
+            "alleleOriginQualifier": {"label": "somatic"},
+            "geneContextQualifier": civic_gid5,
+        },
         "specifiedBy": civic_method,
         "reportedIn": [
             {
@@ -1015,18 +1065,23 @@ def civic_eid26_study_stmt(
         "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",
         "direction": "supports",
         "strength": {
-            "code": "e000005",
+            "primaryCode": "e000005",
             "label": "clinical cohort evidence",
-            "system": "https://go.osu.edu/evidence-codes",
+            "extensions": [
+                {"name": "url", "value": "https://go.osu.edu/evidence-codes"}
+            ],
         },
-        "predicate": "associatedWithWorseOutcomeFor",
-        "alleleOriginQualifier": "somatic",
-        "subjectVariant": civic_mpid65,
-        "geneContextQualifier": civic_gid29,
-        "objectCondition": civic_did3,
+        "proposition": {
+            "type": "VariantPrognosticProposition",
+            "predicate": "associatedWithWorseOutcomeFor",
+            "alleleOriginQualifier": {"label": "somatic"},
+            "subjectVariant": civic_mpid65,
+            "geneContextQualifier": civic_gid29,
+            "objectCondition": civic_did3,
+        },
         "specifiedBy": civic_method,
         "reportedIn": [pmid_16384925],
-        "type": "VariantPrognosticStudyStatement",
+        "type": "Statement",
     }
 
 
@@ -1077,9 +1132,7 @@ def civic_mpid65(civic_vid65):
         "type": "CategoricalVariant",
         "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",
         "label": "KIT D816V",
-        "constraints": [
-            {"definingContext": civic_vid65, "type": "DefiningContextConstraint"}
-        ],
+        "constraints": [{"allele": civic_vid65, "type": "DefiningAlleleConstraint"}],
         "members": [
             {
                 "id": "ga4gh:VA.MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
@@ -1144,9 +1197,16 @@ def civic_mpid65(civic_vid65):
                     "sequence": "A",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
+                "extensions": [
+                    {
+                        "name": "mane_genes",
+                        "value": [
+                            {"ncbi_gene_id": 3815, "hgnc_id": 6342, "symbol": "KIT"}
+                        ],
+                    }
+                ],
             },
         ],
-        "alternativeLabels": ["ASP816VAL"],
         "mappings": [
             {
                 "coding": {
@@ -1175,6 +1235,7 @@ def civic_mpid65(civic_vid65):
             },
         ],
         "extensions": [
+            {"name": "aliases", "value": ["ASP816VAL"]},
             {
                 "name": "CIViC representative coordinate",
                 "value": {
@@ -1212,7 +1273,7 @@ def civic_did3():
     """Create test fixture for CIViC DID3."""
     return {
         "id": "civic.did:3",
-        "type": "Disease",
+        "conceptType": "Disease",
         "label": "Acute Myeloid Leukemia",
         "extensions": [
             {
@@ -1241,15 +1302,21 @@ def civic_gid29():
     """Create test fixture for CIViC GID29."""
     return {
         "id": "civic.gid:29",
-        "type": "Gene",
+        "conceptType": "Gene",
         "label": "KIT",
-        "description": "c-KIT activation has been shown to have oncogenic activity in gastrointestinal stromal tumors (GISTs), melanomas, lung cancer, and other tumor types. The targeted therapeutics nilotinib and sunitinib have shown efficacy in treating KIT overactive patients, and are in late-stage trials in melanoma and GIST. KIT overactivity can be the result of many genomic events from genomic amplification to overexpression to missense mutations. Missense mutations have been shown to be key players in mediating clinical response and acquired resistance in patients being treated with these targeted therapeutics.",
-        "alternativeLabels": ["MASTC", "KIT", "SCFR", "PBT", "CD117", "C-Kit"],
         "extensions": [
+            {
+                "name": "description",
+                "value": "c-KIT activation has been shown to have oncogenic activity in gastrointestinal stromal tumors (GISTs), melanomas, lung cancer, and other tumor types. The targeted therapeutics nilotinib and sunitinib have shown efficacy in treating KIT overactive patients, and are in late-stage trials in melanoma and GIST. KIT overactivity can be the result of many genomic events from genomic amplification to overexpression to missense mutations. Missense mutations have been shown to be key players in mediating clinical response and acquired resistance in patients being treated with these targeted therapeutics.",
+            },
+            {
+                "name": "aliases",
+                "value": ["MASTC", "KIT", "SCFR", "PBT", "CD117", "C-Kit"],
+            },
             {
                 "name": "vicc_normalizer_data",
                 "value": {"id": "hgnc:6342", "label": "KIT"},
-            }
+            },
         ],
         "mappings": [
             {
@@ -1311,19 +1378,25 @@ def moa_aid66_study_stmt(
         "id": "moa.assertion:66",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
         "strength": {
-            "code": "e000009",
+            "primaryCode": "e000009",
             "label": "preclinical evidence",
-            "system": "https://go.osu.edu/evidence-codes",
+            "extensions": [
+                {"name": "url", "value": "https://go.osu.edu/evidence-codes"}
+            ],
         },
-        "predicate": "predictsResistanceTo",
-        "subjectVariant": moa_vid66,
-        "objectTherapeutic": moa_imatinib,
-        "conditionQualifier": moa_chronic_myelogenous_leukemia,
-        "alleleOriginQualifier": "somatic",
-        "geneContextQualifier": moa_abl1,
+        "direction": "supports",
+        "proposition": {
+            "type": "VariantTherapeuticResponseProposition",
+            "predicate": "predictsResistanceTo",
+            "subjectVariant": moa_vid66,
+            "objectTherapeutic": moa_imatinib,
+            "conditionQualifier": moa_chronic_myelogenous_leukemia,
+            "alleleOriginQualifier": {"label": "somatic"},
+            "geneContextQualifier": moa_abl1,
+        },
         "specifiedBy": moa_method,
         "reportedIn": [moa_source45],
-        "type": "VariantTherapeuticResponseStudyStatement",
+        "type": "Statement",
     }
 
 
@@ -1336,7 +1409,7 @@ def moa_vid66():
         "label": "ABL1 p.T315I (Missense)",
         "constraints": [
             {
-                "definingContext": {
+                "allele": {
                     "id": "ga4gh:VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
                     "digest": "D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
                     "type": "Allele",
@@ -1354,7 +1427,7 @@ def moa_vid66():
                     },
                     "state": {"type": "LiteralSequenceExpression", "sequence": "I"},
                 },
-                "type": "DefiningContextConstraint",
+                "type": "DefiningAlleleConstraint",
             }
         ],
         "members": [
@@ -1417,7 +1490,7 @@ def moa_abl1():
     """Create a test fixture for MOA ABL1 Gene."""
     return {
         "id": "moa.normalize.gene:ABL1",
-        "type": "Gene",
+        "conceptType": "Gene",
         "label": "ABL1",
         "extensions": [
             {
@@ -1433,7 +1506,7 @@ def moa_imatinib():
     """Create a test fixture for MOA Imatinib Therapy."""
     return {
         "id": "moa.normalize.therapy.rxcui:282388",
-        "type": "TherapeuticAgent",
+        "conceptType": "Therapy",
         "label": "Imatinib",
         "extensions": [
             {
@@ -1443,7 +1516,7 @@ def moa_imatinib():
                     "has_indications": [
                         {
                             "id": "hemonc:669",
-                            "type": "Disease",
+                            "conceptType": "Disease",
                             "label": "Systemic mastocytosis",
                             "mappings": [
                                 {
@@ -1454,7 +1527,7 @@ def moa_imatinib():
                         },
                         {
                             "id": "hemonc:582",
-                            "type": "Disease",
+                            "conceptType": "Disease",
                             "label": "Chronic myelogenous leukemia",
                             "mappings": [
                                 {
@@ -1465,7 +1538,7 @@ def moa_imatinib():
                         },
                         {
                             "id": "hemonc:24309",
-                            "type": "Disease",
+                            "conceptType": "Disease",
                             "label": "Acute lymphoblastic leukemia",
                             "mappings": [
                                 {
@@ -1476,7 +1549,7 @@ def moa_imatinib():
                         },
                         {
                             "id": "hemonc:634",
-                            "type": "Disease",
+                            "conceptType": "Disease",
                             "label": "Myelodysplastic syndrome",
                             "mappings": [
                                 {
@@ -1487,7 +1560,7 @@ def moa_imatinib():
                         },
                         {
                             "id": "hemonc:602",
-                            "type": "Disease",
+                            "conceptType": "Disease",
                             "label": "Gastrointestinal stromal tumor",
                             "mappings": [
                                 {
@@ -1498,12 +1571,12 @@ def moa_imatinib():
                         },
                         {
                             "id": "hemonc:33893",
-                            "type": "Disease",
+                            "conceptType": "Disease",
                             "label": "Chronic myelogenous leukemia pediatric",
                         },
                         {
                             "id": "hemonc:667",
-                            "type": "Disease",
+                            "conceptType": "Disease",
                             "label": "Soft tissue sarcoma",
                             "mappings": [
                                 {
@@ -1514,7 +1587,7 @@ def moa_imatinib():
                         },
                         {
                             "id": "hemonc:616",
-                            "type": "Disease",
+                            "conceptType": "Disease",
                             "label": "Hypereosinophilic syndrome",
                             "mappings": [
                                 {
@@ -1542,7 +1615,7 @@ def moa_chronic_myelogenous_leukemia():
     """Create test fixture for MOA Chronic Myelogenous Leukemia."""
     return {
         "id": "moa.normalize.disease.ncit:C3174",
-        "type": "Disease",
+        "conceptType": "Disease",
         "label": "Chronic Myelogenous Leukemia",
         "extensions": [
             {
@@ -1573,15 +1646,13 @@ def civic_method():
     return {
         "id": "civic.method:2019",
         "label": "CIViC Curation SOP (2019)",
-        "reportedIn": [
-            {
-                "label": "Danos et al., 2019, Genome Med.",
-                "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
-                "doi": "10.1186/s13073-019-0687-x",
-                "pmid": 31779674,
-                "type": "Document",
-            }
-        ],
+        "reportedIn": {
+            "label": "Danos et al., 2019, Genome Med.",
+            "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+            "doi": "10.1186/s13073-019-0687-x",
+            "pmid": 31779674,
+            "type": "Document",
+        },
         "type": "Method",
     }
 
@@ -1592,15 +1663,13 @@ def moa_method():
     return {
         "id": "moa.method:2021",
         "label": "MOAlmanac (2021)",
-        "reportedIn": [
-            {
-                "label": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
-                "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
-                "doi": "10.1038/s43018-021-00243-3",
-                "pmid": 35121878,
-                "type": "Document",
-            }
-        ],
+        "reportedIn": {
+            "label": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
+            "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+            "doi": "10.1038/s43018-021-00243-3",
+            "pmid": 35121878,
+            "type": "Document",
+        },
         "type": "Method",
     }
 

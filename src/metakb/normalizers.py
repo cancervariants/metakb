@@ -12,7 +12,7 @@ from disease.database import create_db as create_disease_db
 from disease.database.database import AWS_ENV_VAR_NAME as DISEASE_AWS_ENV_VAR_NAME
 from disease.query import QueryHandler as DiseaseQueryHandler
 from disease.schemas import NormalizationService as NormalizedDisease
-from ga4gh.core.entity_models import Extension
+from ga4gh.core.models import Extension
 from ga4gh.vrs.models import (
     Allele,
     CopyNumberChange,
@@ -303,10 +303,7 @@ class ViccNormalizers:
         """
         regulatory_approval_extension = None
         tn_resp_exts = (
-            therapy_norm_resp.model_dump()
-            .get("therapeutic_agent", {})
-            .get("extensions")
-            or []
+            therapy_norm_resp.model_dump().get("therapy", {}).get("extensions") or []
         )
         tn_ext = [v for v in tn_resp_exts if v["name"] == "regulatory_approval"]
 
@@ -337,7 +334,7 @@ class ViccNormalizers:
                         if indication_ext["value"] == matched_ext_value:
                             matched_ind = {
                                 "id": indication["id"],
-                                "type": indication["type"],
+                                "conceptType": indication["conceptType"],
                                 "label": indication["label"],
                             }
 

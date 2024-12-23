@@ -5,20 +5,15 @@ import logging
 from copy import copy
 from enum import Enum
 
-from ga4gh.cat_vrs.core_models import CategoricalVariant, DefiningContextConstraint
-from ga4gh.core.domain_models import (
-    CommonDomainType,
-    Disease,
-    Gene,
-    TherapeuticAgent,
-    TherapeuticProcedure,
-)
-from ga4gh.core.entity_models import Coding, Document, Extension, Method
-from ga4gh.va_spec.profiles.var_study_stmt import (
+from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
+from ga4gh.core.models import Extension, MappableConcept
+from ga4gh.va_spec.aac_2017.models import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
+from ga4gh.va_spec.base.core import Document, Method
+from ga4gh.va_spec.base.domain_entities import TherapyGroup
 from ga4gh.vrs.models import Expression, Variation
 from neo4j import Driver
 from neo4j.graph import Node
@@ -39,6 +34,7 @@ from metakb.schemas.api import (
     ServiceMeta,
 )
 from metakb.schemas.app import SourceName
+from metakb.transformers.base import TherapyType
 
 logger = logging.getLogger(__name__)
 
@@ -63,18 +59,11 @@ class TherapeuticRelation(str, Enum):
     HAS_SUBSTITUTES = "HAS_SUBSTITUTES"
 
 
-class TherapeuticProcedureType(str, Enum):
-    """Constrain possible values for kinds of therapeutic procedures."""
-
-    COMBINATION = "CombinationTherapy"
-    SUBSTITUTES = "TherapeuticSubstituteGroup"
-
-
-# Statement types to corresponding class mapping
-STMT_TYPE_TO_CLASS = {
-    "VariantDiagnosticStudyStatement": VariantDiagnosticStudyStatement,
-    "VariantPrognosticStudyStatement": VariantPrognosticStudyStatement,
-    "VariantTherapeuticResponseStudyStatement": VariantTherapeuticResponseStudyStatement,
+# Proposition types to corresponding class mapping
+PROP_TYPE_TO_CLASS = {
+    "VariantDiagnosticProposition": VariantDiagnosticStudyStatement,
+    "VariantPrognosticProposition": VariantPrognosticStudyStatement,
+    "VariantTherapeuticResponseProposition": VariantTherapeuticResponseStudyStatement,
 }
 
 
@@ -456,8 +445,8 @@ class QueryHandler:
 
         if normalized_therapy:
             query += """
-            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> (tp:TherapeuticAgent {normalizer_id:$t_id})
-            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> () -[:HAS_SUBSTITUTES|HAS_COMPONENTS] -> (ta:TherapeuticAgent {normalizer_id:$t_id})
+            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> (tp:Therapy {normalizer_id:$t_id})
+            OPTIONAL MATCH (s) -[:HAS_THERAPEUTIC] -> () -[:HAS_SUBSTITUTES|HAS_COMPONENTS] -> (ta:Therapy {normalizer_id:$t_id})
             WITH s, tp, ta
             WHERE tp IS NOT NULL OR ta IS NOT NULL
             """
@@ -478,7 +467,13 @@ class QueryHandler:
 
         return [s[0] for s in self.driver.execute_query(query, params).records]
 
-    def _get_nested_stmts(self, statement_nodes: list[Node]) -> list[dict]:
+    def _get_nested_stmts(
+        self, statement_nodes: list[Node]
+    ) -> list[
+        VariantDiagnosticStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantTherapeuticResponseStudyStatement
+    ]:
         """Get a list of nested statements.
 
         :param statement_nodes: A list of Statement Nodes
@@ -500,30 +495,33 @@ class QueryHandler:
 
         return nested_stmts
 
-    def _get_nested_stmt(self, stmt_node: Node) -> dict:
+    def _get_nested_stmt(
+        self, stmt_node: Node
+    ) -> (
+        VariantDiagnosticStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantTherapeuticResponseStudyStatement
+    ):
         """Get information related to a statement
-        Only VariantTherapeuticResponseStudyStatement, VariantPrognosticStudyStatement,
-        and VariantDiagnosticStudyStatement are supported at the moment
 
         :param stmt_node: Neo4j graph node for statement
         :return: Nested statement
         """
-        study_stmt_type = stmt_node["type"]
-        if study_stmt_type not in {
-            "VariantTherapeuticResponseStudyStatement",
-            "VariantPrognosticStudyStatement",
-            "VariantDiagnosticStudyStatement",
-        }:
+        prop_type = stmt_node["propositionType"]
+        if prop_type not in PROP_TYPE_TO_CLASS:
             return {}
 
-        if study_stmt_type == "VariantTherapeuticResponseStudyStatement":
+        if prop_type == "VariantTherapeuticResponseProposition":
             condition_key = "conditionQualifier"
         else:
             condition_key = "objectCondition"
 
         params = {
-            condition_key: None,
-            "subjectVariant": None,
+            "proposition": {
+                "alleleOriginQualifier": {"label": None},
+                "predicate": stmt_node["predicate"],
+                condition_key: None,
+            },
             "strength": None,
             "reportedIn": [],
             "specifiedBy": None,
@@ -547,27 +545,32 @@ class QueryHandler:
             node = data["n"]
 
             if rel_type == "HAS_TUMOR_TYPE":
-                params[condition_key] = self._get_disease(node)
+                params["proposition"][condition_key] = self._get_disease(node)
             elif rel_type == "HAS_VARIANT":
-                params["subjectVariant"] = self._get_cat_var(node)
+                params["proposition"]["subjectVariant"] = self._get_cat_var(node)
             elif rel_type == "HAS_GENE_CONTEXT":
-                params["geneContextQualifier"] = self._get_gene_context_qualifier(
-                    statement_id
+                params["proposition"]["geneContextQualifier"] = (
+                    self._get_gene_context_qualifier(statement_id)
                 )
-                params["alleleOriginQualifier"] = stmt_node.get("alleleOriginQualifier")
+                params["proposition"]["alleleOriginQualifier"]["label"] = stmt_node.get(
+                    "alleleOriginQualifier"
+                )
             elif rel_type == "IS_SPECIFIED_BY":
-                node["reportedIn"] = [self._get_method_document(node["id"])]
+                node["reportedIn"] = self._get_method_document(node["id"])
                 params["specifiedBy"] = Method(**node)
             elif rel_type == "IS_REPORTED_IN":
                 params["reportedIn"].append(self._get_document(node))
             elif rel_type == "HAS_STRENGTH":
-                params["strength"] = Coding(**node)
+                node["extensions"] = [Extension(name="url", value=node["url"])]
+                params["strength"] = MappableConcept(**node)
             elif rel_type == "HAS_THERAPEUTIC":
-                params["objectTherapeutic"] = self._get_therapeutic_procedure(node)
+                params["proposition"]["objectTherapeutic"] = (
+                    self._get_therapeutic_procedure(node)
+                )
             else:
                 logger.warning("relation type not supported: %s", rel_type)
 
-        return STMT_TYPE_TO_CLASS[study_stmt_type](**params).model_dump()
+        return PROP_TYPE_TO_CLASS[prop_type](**params)
 
     @staticmethod
     def _get_vicc_normalizer_extension(node: dict) -> ViccNormalizerDataExtension:
@@ -581,7 +584,7 @@ class QueryHandler:
             "label": node["normalizer_label"],
         }
 
-        if node["type"] == CommonDomainType.DISEASE:
+        if node["conceptType"] == "Disease":
             params["mondo_id"] = node.get("normalizer_mondo_id")
             ext_val = ViccDiseaseNormalizerData(**params)
         else:
@@ -589,15 +592,22 @@ class QueryHandler:
 
         return ViccNormalizerDataExtension(value=ext_val.model_dump())
 
-    def _get_disease(self, node: dict) -> Disease:
+    def _get_disease(self, node: dict) -> MappableConcept:
         """Get disease data from a node with relationship ``HAS_TUMOR_TYPE``
 
         :param node: Disease node data
-        :return: Disease object
+        :return: Disease mappable concept object
         """
         node["mappings"] = _deserialize_field(node, "mappings")
-        node["extensions"] = [self._get_vicc_normalizer_extension(node)]
-        return Disease(**node)
+        extensions = [self._get_vicc_normalizer_extension(node)]
+        descr = node.get("description")
+        if descr:
+            extensions.append(Extension(name="description", value=descr))
+        aliases = node.get("aliases")
+        if aliases:
+            extensions.append(Extension(name="aliases", value=json.loads(aliases)))
+        node["extensions"] = extensions
+        return MappableConcept(**node)
 
     def _get_variations(self, cv_id: str, relation: VariationRelation) -> list[dict]:
         """Get list of variations associated to categorical variant
@@ -636,6 +646,11 @@ class QueryHandler:
             v_params["location"]["sequenceReference"] = json.loads(
                 loc_params["sequence_reference"]
             )
+            mane_genes = v_params.get("mane_genes")
+            if mane_genes:
+                v_params["extensions"] = [
+                    Extension(name="mane_genes", value=json.loads(mane_genes))
+                ]
             variations.append(Variation(**v_params).model_dump())
         return variations
 
@@ -672,10 +687,15 @@ class QueryHandler:
                 )
             )
 
+        if "aliases" in node:
+            extensions.append(
+                Extension(name="aliases", value=json.loads(node["aliases"]))
+            )
+
         node["extensions"] = extensions or None
         node["constraints"] = [
-            DefiningContextConstraint(
-                definingContext=self._get_variations(
+            DefiningAlleleConstraint(
+                allele=self._get_variations(
                     node["id"], VariationRelation.HAS_DEFINING_CONTEXT
                 )[0]
             )
@@ -685,7 +705,7 @@ class QueryHandler:
         )
         return CategoricalVariant(**node)
 
-    def _get_gene_context_qualifier(self, statement_id: str) -> Gene | None:
+    def _get_gene_context_qualifier(self, statement_id: str) -> MappableConcept | None:
         """Get gene context qualifier data for a statement
 
         :param statement_id: ID of statement node
@@ -712,8 +732,16 @@ class QueryHandler:
 
         gene_node = results.records[0].data()["g"]
         gene_node["mappings"] = _deserialize_field(gene_node, "mappings")
-        gene_node["extensions"] = [self._get_vicc_normalizer_extension(gene_node)]
-        return Gene(**gene_node)
+        extensions = [self._get_vicc_normalizer_extension(gene_node)]
+        descr = gene_node.get("description")
+        if descr:
+            extensions.append(Extension(name="description", value=descr))
+        aliases = gene_node.get("aliases")
+        if aliases:
+            extensions.append(Extension(name="aliases", value=json.loads(aliases)))
+
+        gene_node["extensions"] = extensions
+        return MappableConcept(**gene_node)
 
     def _get_method_document(self, method_id: str) -> Document | None:
         """Get document for a given method
@@ -749,15 +777,18 @@ class QueryHandler:
     def _get_therapeutic_procedure(
         self,
         node: dict,
-    ) -> TherapeuticProcedure | TherapeuticAgent | None:
+    ) -> MappableConcept | None:
         """Get therapeutic procedure from a node with relationship ``HAS_THERAPEUTIC``
 
         :param node: Therapeutic node data. This will be mutated.
         :return: Therapeutic procedure if node type is supported. Currently, therapeutic
             action is not supported.
         """
-        node_type = node["type"]
-        if node_type in {"CombinationTherapy", "TherapeuticSubstituteGroup"}:
+        node_type = node.get("groupType") or node.get("conceptType")
+        if node_type in {
+            TherapyType.COMBINATION_THERAPY,
+            TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP,
+        }:
             civic_therapy_interaction_type = node.get("civic_therapy_interaction_type")
             if civic_therapy_interaction_type:
                 node["extensions"] = [
@@ -767,22 +798,24 @@ class QueryHandler:
                     )
                 ]
 
-            if node_type == "CombinationTherapy":
-                node["components"] = self._get_therapeutic_agents(
+            if node_type == TherapyType.COMBINATION_THERAPY:
+                node["therapies"] = self._get_therapeutic_agents(
                     node["id"],
-                    TherapeuticProcedureType.COMBINATION,
+                    TherapyType.COMBINATION_THERAPY,
                     TherapeuticRelation.HAS_COMPONENTS,
                 )
             else:
-                node["substitutes"] = self._get_therapeutic_agents(
+                node["therapies"] = self._get_therapeutic_agents(
                     node["id"],
-                    TherapeuticProcedureType.SUBSTITUTES,
+                    TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP,
                     TherapeuticRelation.HAS_SUBSTITUTES,
                 )
 
-            therapeutic = TherapeuticProcedure(**node)
-        elif node_type == "TherapeuticAgent":
-            therapeutic = self._get_therapeutic_agent(node)
+            node["groupType"] = MappableConcept(label=node_type)
+
+            therapeutic = TherapyGroup(**node)
+        elif node_type == TherapyType.THERAPY:
+            therapeutic = self._get_therapy(node)
         else:
             logger.warning("node type not supported: %s", node_type)
             therapeutic = None
@@ -792,14 +825,14 @@ class QueryHandler:
     def _get_therapeutic_agents(
         self,
         tp_id: str,
-        tp_type: TherapeuticProcedureType,
+        tp_type: TherapyType,
         tp_relation: TherapeuticRelation,
-    ) -> list[TherapeuticAgent]:
+    ) -> list[MappableConcept]:
         """Get list of therapeutic agents for therapeutic combination or substitutes
         group
 
         :param tp_id: ID for combination therapy or therapeutic substitute group
-        :param tp_type: Therapeutic Procedure type
+        :param tp_type: Therapeutic object type
         :param tp_relation: Relationship type for therapeutic procedure and therapeutic
             agent
         :return: List of Therapeutic Agents for a combination therapy or therapeutic
@@ -807,7 +840,7 @@ class QueryHandler:
         """
         query = f"""
         MATCH (tp:{tp_type.value} {{ id: $tp_id }}) -[:{tp_relation.value}]
-            -> (ta:TherapeuticAgent)
+            -> (ta:Therapy)
         RETURN ta
         """
         therapeutic_agents = []
@@ -815,15 +848,15 @@ class QueryHandler:
         for r in results:
             r_params = r.data()
             ta_params = r_params["ta"]
-            ta = self._get_therapeutic_agent(ta_params)
+            ta = self._get_therapy(ta_params)
             therapeutic_agents.append(ta)
         return therapeutic_agents
 
-    def _get_therapeutic_agent(self, in_ta_params: dict) -> TherapeuticAgent:
-        """Transform input parameters into TherapeuticAgent object
+    def _get_therapy(self, in_ta_params: dict) -> MappableConcept:
+        """Transform input parameters into Therapy object
 
         :param in_ta_params: Therapeutic Agent node properties
-        :return: TherapeuticAgent
+        :return: Therapy
         """
         ta_params = copy(in_ta_params)
         ta_params["mappings"] = _deserialize_field(ta_params, "mappings")
@@ -834,9 +867,11 @@ class QueryHandler:
             extensions.append(
                 Extension(name="regulatory_approval", value=regulatory_approval)
             )
-
+        aliases = ta_params.get("aliases")
+        if aliases:
+            extensions.append(Extension(name="aliases", value=json.loads(aliases)))
         ta_params["extensions"] = extensions
-        return TherapeuticAgent(**ta_params)
+        return MappableConcept(**ta_params)
 
     async def batch_search_statements(
         self,
@@ -924,7 +959,5 @@ class QueryHandler:
             result = session.run(query, v_ids=variation_ids, skip=start, limit=limit)
             statement_nodes = [r[0] for r in result]
         response.statement_ids = [n["id"] for n in statement_nodes]
-        stmts = self._get_nested_stmts(statement_nodes)
-
-        response.statements = [STMT_TYPE_TO_CLASS[s["type"]](**s) for s in stmts]
+        response.statements = self._get_nested_stmts(statement_nodes)
         return response
