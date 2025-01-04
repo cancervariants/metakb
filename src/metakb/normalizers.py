@@ -33,12 +33,12 @@ from therapy.schemas import NormalizationService as NormalizedTherapy
 from variation.query import QueryHandler as VariationQueryHandler
 
 __all__ = [
-    "ViccNormalizers",
-    "NormalizerName",
-    "check_normalizers",
-    "IllegalUpdateError",
-    "update_normalizer",
     "NORMALIZER_AWS_ENV_VARS",
+    "IllegalUpdateError",
+    "NormalizerName",
+    "ViccNormalizers",
+    "check_normalizers",
+    "update_normalizer",
 ]
 
 _logger = logging.getLogger(__name__)
@@ -90,7 +90,9 @@ class ViccNormalizers:
         Note that gene concept lookups within the Variation Normalizer are resolved
         using the Gene Normalizer instance, rather than creating a second sub-instance.
 
-        >>> id(norm.gene_query_handler) == id(norm.variation_normalizer.gnomad_vcf_to_protein_handler.gene_normalizer)
+        >>> id(norm.gene_query_handler) == id(
+        ...     norm.variation_normalizer.gnomad_vcf_to_protein_handler.gene_normalizer
+        ... )
         True
 
         :param db_url: optional definition of shared normalizer database. Because the
@@ -127,14 +129,16 @@ class ViccNormalizers:
                 )
                 if variation_norm_resp and variation_norm_resp.variation:
                     return variation_norm_resp.variation
-            except TokenRetrievalError as e:
-                _logger.error(e)
-                raise e
-            except Exception as e:
-                _logger.error(
-                    "Variation Normalizer raised an exception using query %s: %s",
+            except TokenRetrievalError:
+                _logger.exception(
+                    "Variation Normalizer encountered boto token retrieval error for query %s",
                     query,
-                    e,
+                )
+                raise
+            except Exception:
+                _logger.exception(
+                    "Variation Normalizer raised an exception using query %s",
+                    query,
                 )
         return None
 
@@ -173,14 +177,16 @@ class ViccNormalizers:
 
             try:
                 gene_norm_resp = self.gene_query_handler.normalize(query_str)
-            except TokenRetrievalError as e:
-                _logger.error(e)
-                raise e
-            except Exception as e:
-                _logger.error(
-                    "Gene Normalizer raised an exception using query %s: %s",
+            except TokenRetrievalError:
+                _logger.exception(
+                    "Gene Normalizer encountered boto token retrieval error fetching query %s",
                     query_str,
-                    e,
+                )
+                raise
+            except Exception:
+                _logger.exception(
+                    "Gene Normalizer raised an exception fetching query %s",
+                    query_str,
                 )
             else:
                 if gene_norm_resp.match_type > highest_match:
@@ -223,14 +229,16 @@ class ViccNormalizers:
 
             try:
                 disease_norm_resp = self.disease_query_handler.normalize(query)
-            except TokenRetrievalError as e:
-                _logger.error(e)
-                raise e
-            except Exception as e:
-                _logger.error(
-                    "Disease Normalizer raised an exception using query %s: %s",
+            except TokenRetrievalError:
+                _logger.exception(
+                    "Disease Normalizer encountered boto retrieval error while fetching term %s",
                     query,
-                    e,
+                )
+                raise
+            except Exception:
+                _logger.exception(
+                    "Disease Normalizer raised an exception using query %s",
+                    query,
                 )
             else:
                 if disease_norm_resp.match_type > highest_match:
@@ -273,14 +281,16 @@ class ViccNormalizers:
 
             try:
                 therapy_norm_resp = self.therapy_query_handler.normalize(query)
-            except TokenRetrievalError as e:
-                _logger.error(e)
-                raise e
-            except Exception as e:
-                _logger.error(
-                    "Therapy Normalizer raised an exception using query %s: %s",
+            except TokenRetrievalError:
+                _logger.exception(
+                    "Failed to retrieve from boto while fetching therapy query %s",
                     query,
-                    e,
+                )
+                raise
+            except Exception:
+                _logger.exception(
+                    "Therapy Normalizer raised an exception using query %s",
+                    query,
                 )
             else:
                 if therapy_norm_resp.match_type > highest_match:
@@ -424,9 +434,9 @@ def check_normalizers(
                     "Tables for %s normalizer appear to be unpopulated.", name.value
                 )
                 success = False
-        except Exception as e:
-            _logger.error(
-                "Encountered exception while checking %s normalizer: %s", name.value, e
+        except Exception:
+            _logger.exception(
+                "Encountered exception while checking %s normalizer", name.value
             )
             success = False
     return success

@@ -25,11 +25,11 @@ def _get_secret() -> str:
 
     try:
         get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-    except ClientError as e:
+    except ClientError:
         # For a list of exceptions thrown, see
         # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-        logger.error(e)
-        raise e
+        logger.exception("Boto client error while acquiring secrets")
+        raise
     else:
         return get_secret_value_response["SecretString"]
 
