@@ -185,7 +185,7 @@ class ViccNormalizers:
             else:
                 if gene_norm_resp.match_type > highest_match:
                     highest_match = gene_norm_resp.match_type
-                    normalized_gene_id = gene_norm_resp.normalized_id
+                    normalized_gene_id = gene_norm_resp.gene.primaryCode.root
                     if highest_match == 100:
                         break
         return gene_norm_resp, normalized_gene_id
@@ -235,7 +235,7 @@ class ViccNormalizers:
             else:
                 if disease_norm_resp.match_type > highest_match:
                     highest_match = disease_norm_resp.match_type
-                    normalized_disease_id = disease_norm_resp.normalized_id
+                    normalized_disease_id = disease_norm_resp.disease.primaryCode.root
                     if highest_match == 100:
                         break
         return disease_norm_resp, normalized_disease_id
@@ -285,7 +285,7 @@ class ViccNormalizers:
             else:
                 if therapy_norm_resp.match_type > highest_match:
                     highest_match = therapy_norm_resp.match_type
-                    normalized_therapy_id = therapy_norm_resp.normalized_id
+                    normalized_therapy_id = therapy_norm_resp.therapy.primaryCode.root
                     if highest_match == 100:
                         break
         return therapy_norm_resp, normalized_therapy_id

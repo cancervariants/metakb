@@ -775,7 +775,7 @@ class CivicTransformer(Transformer):
                 ConceptMapping(
                     coding=Coding(
                         code=doid,
-                        system="https://www.disease-ontology.org/",
+                        system="http://purl.obolibrary.org/obo/doid.owl",
                     ),
                     relation=Relation.EXACT_MATCH,
                 )
@@ -867,15 +867,15 @@ class CivicTransformer(Transformer):
         """
         therapy_id = f"civic.tid:{therapy['id']}"
         label = therapy["name"]
-        ncit_id = therapy["ncit_id"]
+        ncit_id = f"ncit:{therapy['ncit_id']}"
         mappings = []
         if ncit_id:
-            queries = [f"ncit:{ncit_id}", label]
+            queries = [ncit_id, label]
             mappings.append(
                 ConceptMapping(
                     coding=Coding(
                         code=ncit_id,
-                        system="https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                        system="http://purl.obolibrary.org/obo/ncit.owl",
                     ),
                     relation=Relation.EXACT_MATCH,
                 )

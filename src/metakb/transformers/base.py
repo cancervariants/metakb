@@ -9,6 +9,9 @@ from pathlib import Path
 from typing import ClassVar
 
 from disease.schemas import (
+    SYSTEM_URI_TO_NAMESPACE as DISEASE_SYSTEM_URI_TO_NAMESPACE,
+)
+from disease.schemas import (
     NamespacePrefix as DiseaseNamespacePrefix,
 )
 from disease.schemas import (
@@ -482,7 +485,10 @@ class Transformer(ABC):
         if isinstance(normalizer_resp, NormalizedDisease):
             mappings = normalizer_resp_obj.mappings or []
             for mapping in mappings:
-                if mapping.coding.system == DiseaseNamespacePrefix.MONDO.value:
+                if (
+                    DISEASE_SYSTEM_URI_TO_NAMESPACE.get(mapping.coding.system)
+                    == DiseaseNamespacePrefix.MONDO.value
+                ):
                     params["mondo_id"] = mapping.coding.code.root
                     break
             ext_val = ViccDiseaseNormalizerData(**params)

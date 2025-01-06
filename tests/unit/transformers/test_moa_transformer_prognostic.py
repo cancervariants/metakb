@@ -106,7 +106,7 @@ def moa_vid141():
         "mappings": [
             {
                 "coding": {
-                    "system": "https://moalmanac.org/api/features/",
+                    "system": "https://moalmanac.org",
                     "code": "141",
                 },
                 "relation": "exactMatch",
@@ -128,7 +128,7 @@ def moa_myelodysplasia():
                 "value": {
                     "id": "ncit:C3247",
                     "label": "Myelodysplastic Syndrome",
-                    "mondo_id": "0018881",
+                    "mondo_id": "mondo:0018881",
                 },
             }
         ],
@@ -136,7 +136,7 @@ def moa_myelodysplasia():
             {
                 "coding": {
                     "label": "Myelodysplasia",
-                    "system": "https://oncotree.mskcc.org/",
+                    "system": "https://oncotree.mskcc.org",
                     "code": "MDS",
                 },
                 "relation": "exactMatch",
@@ -282,7 +282,7 @@ def moa_vid532():
         "mappings": [
             {
                 "coding": {
-                    "system": "https://moalmanac.org/api/features/",
+                    "system": "https://moalmanac.org",
                     "code": "532",
                 },
                 "relation": "exactMatch",

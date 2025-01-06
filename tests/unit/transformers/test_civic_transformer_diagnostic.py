@@ -219,7 +219,7 @@ def civic_did2():
             {
                 "coding": {
                     "code": "DOID:9253",
-                    "system": "https://www.disease-ontology.org/",
+                    "system": "http://purl.obolibrary.org/obo/doid.owl",
                 },
                 "relation": "exactMatch",
             }
@@ -230,7 +230,7 @@ def civic_did2():
                 "value": {
                     "id": "ncit:C3868",
                     "label": "Gastrointestinal Stromal Tumor",
-                    "mondo_id": "0011719",
+                    "mondo_id": "mondo:0011719",
                 },
             }
         ],
@@ -475,7 +475,7 @@ def civic_did15():
             {
                 "coding": {
                     "code": "DOID:3973",
-                    "system": "https://www.disease-ontology.org/",
+                    "system": "http://purl.obolibrary.org/obo/doid.owl",
                 },
                 "relation": "exactMatch",
             }
@@ -486,7 +486,7 @@ def civic_did15():
                 "value": {
                     "id": "ncit:C3879",
                     "label": "Thyroid Gland Medullary Carcinoma",
-                    "mondo_id": "0015277",
+                    "mondo_id": "mondo:0015277",
                 },
             }
         ],

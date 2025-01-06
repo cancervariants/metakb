@@ -81,7 +81,7 @@ def moa_vid144(braf_v600e_genomic):
         "mappings": [
             {
                 "coding": {
-                    "system": "https://moalmanac.org/api/features/",
+                    "system": "https://moalmanac.org",
                     "code": "144",
                 },
                 "relation": "exactMatch",
@@ -159,7 +159,7 @@ def moa_aid154_study_stmt(moa_vid144, moa_cetuximab, moa_encorafenib, moa_method
                         "value": {
                             "id": "ncit:C5105",
                             "label": "Colorectal Adenocarcinoma",
-                            "mondo_id": "0005008",
+                            "mondo_id": "mondo:0005008",
                         },
                     }
                 ],
@@ -167,7 +167,7 @@ def moa_aid154_study_stmt(moa_vid144, moa_cetuximab, moa_encorafenib, moa_method
                     {
                         "coding": {
                             "label": "Colorectal Adenocarcinoma",
-                            "system": "https://oncotree.mskcc.org/",
+                            "system": "https://oncotree.mskcc.org",
                             "code": "COADREAD",
                         },
                         "relation": "exactMatch",

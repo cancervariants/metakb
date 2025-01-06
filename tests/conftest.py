@@ -78,7 +78,10 @@ def cetuximab_extensions():
                         "label": "Neoplasms",
                         "mappings": [
                             {
-                                "coding": {"code": "C3262", "system": "ncit"},
+                                "coding": {
+                                    "code": "ncit:C3262",
+                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                },
                                 "relation": "relatedMatch",
                             }
                         ],
@@ -89,7 +92,10 @@ def cetuximab_extensions():
                         "label": "Colorectal Neoplasms",
                         "mappings": [
                             {
-                                "coding": {"code": "C2956", "system": "ncit"},
+                                "coding": {
+                                    "code": "ncit:C2956",
+                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                },
                                 "relation": "relatedMatch",
                             }
                         ],
@@ -100,7 +106,10 @@ def cetuximab_extensions():
                         "label": "Head and Neck Neoplasms",
                         "mappings": [
                             {
-                                "coding": {"code": "C4013", "system": "ncit"},
+                                "coding": {
+                                    "code": "ncit:C4013",
+                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                },
                                 "relation": "relatedMatch",
                             }
                         ],
@@ -111,7 +120,10 @@ def cetuximab_extensions():
                         "label": "Carcinoma, Squamous Cell",
                         "mappings": [
                             {
-                                "coding": {"code": "C2929", "system": "ncit"},
+                                "coding": {
+                                    "code": "ncit:C2929",
+                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                },
                                 "relation": "relatedMatch",
                             }
                         ],
@@ -144,7 +156,10 @@ def encorafenib_extensions():
                         "label": "Melanoma",
                         "mappings": [
                             {
-                                "coding": {"code": "C3224", "system": "ncit"},
+                                "coding": {
+                                    "code": "ncit:C3224",
+                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                },
                                 "relation": "relatedMatch",
                             }
                         ],
@@ -155,7 +170,24 @@ def encorafenib_extensions():
                         "label": "Neoplasms",
                         "mappings": [
                             {
-                                "coding": {"code": "C3262", "system": "ncit"},
+                                "coding": {
+                                    "code": "ncit:C3262",
+                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                },
+                                "relation": "relatedMatch",
+                            }
+                        ],
+                    },
+                    {
+                        "id": "mesh:D015179",
+                        "conceptType": "Disease",
+                        "label": "Colorectal Neoplasms",
+                        "mappings": [
+                            {
+                                "coding": {
+                                    "code": "ncit:C2956",
+                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                },
                                 "relation": "relatedMatch",
                             }
                         ],
@@ -632,8 +664,8 @@ def civic_tid146():
         "mappings": [
             {
                 "coding": {
-                    "code": "C66940",
-                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                    "code": "ncit:C66940",
+                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
                 "relation": "exactMatch",
             }
@@ -659,7 +691,10 @@ def civic_tid146():
                             "label": "Non-small cell lung cancer",
                             "mappings": [
                                 {
-                                    "coding": {"code": "C2926", "system": "ncit"},
+                                    "coding": {
+                                        "code": "ncit:C2926",
+                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    },
                                     "relation": "relatedMatch",
                                 }
                             ],
@@ -694,7 +729,7 @@ def civic_did8():
             {
                 "coding": {
                     "code": "DOID:3908",
-                    "system": "https://www.disease-ontology.org/",
+                    "system": "http://purl.obolibrary.org/obo/doid.owl",
                 },
                 "relation": "exactMatch",
             }
@@ -705,7 +740,7 @@ def civic_did8():
                 "value": {
                     "id": "ncit:C2926",
                     "label": "Lung Non-Small Cell Carcinoma",
-                    "mondo_id": "0005233",
+                    "mondo_id": "mondo:0005233",
                 },
             }
         ],
@@ -733,8 +768,8 @@ def civic_tid28():
         "mappings": [
             {
                 "coding": {
-                    "code": "C1857",
-                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                    "code": "ncit:C1857",
+                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
                 "relation": "exactMatch",
             }
@@ -773,7 +808,10 @@ def civic_tid28():
                             "label": "Neoplasms",
                             "mappings": [
                                 {
-                                    "coding": {"code": "C3262", "system": "ncit"},
+                                    "coding": {
+                                        "code": "ncit:C3262",
+                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    },
                                     "relation": "relatedMatch",
                                 }
                             ],
@@ -784,7 +822,10 @@ def civic_tid28():
                             "label": "Colorectal Neoplasms",
                             "mappings": [
                                 {
-                                    "coding": {"code": "C2956", "system": "ncit"},
+                                    "coding": {
+                                        "code": "ncit:C2956",
+                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    },
                                     "relation": "relatedMatch",
                                 }
                             ],
@@ -806,8 +847,8 @@ def civic_tid16(cetuximab_extensions):
         "mappings": [
             {
                 "coding": {
-                    "code": "C1723",
-                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                    "code": "ncit:C1723",
+                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
                 "relation": "exactMatch",
             }
@@ -857,8 +898,8 @@ def civic_tid483(encorafenib_extensions):
         "mappings": [
             {
                 "coding": {
-                    "code": "C98283",
-                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                    "code": "ncit:C98283",
+                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
                 "relation": "exactMatch",
             }
@@ -897,7 +938,7 @@ def civic_did11():
             {
                 "coding": {
                     "code": "DOID:9256",
-                    "system": "https://www.disease-ontology.org/",
+                    "system": "http://purl.obolibrary.org/obo/doid.owl",
                 },
                 "relation": "exactMatch",
             }
@@ -908,7 +949,7 @@ def civic_did11():
                 "value": {
                     "id": "ncit:C4978",
                     "label": "Malignant Colorectal Neoplasm",
-                    "mondo_id": "0005575",
+                    "mondo_id": "mondo:0005575",
                 },
             }
         ],
@@ -1281,14 +1322,14 @@ def civic_did3():
                 "value": {
                     "id": "ncit:C3171",
                     "label": "Acute Myeloid Leukemia",
-                    "mondo_id": "0018874",
+                    "mondo_id": "mondo:0018874",
                 },
             }
         ],
         "mappings": [
             {
                 "coding": {
-                    "system": "https://www.disease-ontology.org/",
+                    "system": "http://purl.obolibrary.org/obo/doid.owl",
                     "code": "DOID:9119",
                 },
                 "relation": "exactMatch",
@@ -1469,7 +1510,7 @@ def moa_vid66():
         "mappings": [
             {
                 "coding": {
-                    "system": "https://moalmanac.org/api/features/",
+                    "system": "https://moalmanac.org",
                     "code": "66",
                 },
                 "relation": "exactMatch",
@@ -1520,7 +1561,10 @@ def moa_imatinib():
                             "label": "Systemic mastocytosis",
                             "mappings": [
                                 {
-                                    "coding": {"code": "C9235", "system": "ncit"},
+                                    "coding": {
+                                        "code": "ncit:C9235",
+                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    },
                                     "relation": "relatedMatch",
                                 }
                             ],
@@ -1528,10 +1572,13 @@ def moa_imatinib():
                         {
                             "id": "hemonc:582",
                             "conceptType": "Disease",
-                            "label": "Chronic myelogenous leukemia",
+                            "label": "Chronic myeloid leukemia",
                             "mappings": [
                                 {
-                                    "coding": {"code": "C3174", "system": "ncit"},
+                                    "coding": {
+                                        "code": "ncit:C3174",
+                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    },
                                     "relation": "relatedMatch",
                                 }
                             ],
@@ -1542,7 +1589,10 @@ def moa_imatinib():
                             "label": "Acute lymphoblastic leukemia",
                             "mappings": [
                                 {
-                                    "coding": {"code": "C3167", "system": "ncit"},
+                                    "coding": {
+                                        "code": "ncit:C3167",
+                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    },
                                     "relation": "relatedMatch",
                                 }
                             ],
@@ -1553,7 +1603,10 @@ def moa_imatinib():
                             "label": "Myelodysplastic syndrome",
                             "mappings": [
                                 {
-                                    "coding": {"code": "C3247", "system": "ncit"},
+                                    "coding": {
+                                        "code": "ncit:C3247",
+                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    },
                                     "relation": "relatedMatch",
                                 }
                             ],
@@ -1564,7 +1617,10 @@ def moa_imatinib():
                             "label": "Gastrointestinal stromal tumor",
                             "mappings": [
                                 {
-                                    "coding": {"code": "C3868", "system": "ncit"},
+                                    "coding": {
+                                        "code": "ncit:C3868",
+                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    },
                                     "relation": "relatedMatch",
                                 }
                             ],
@@ -1572,7 +1628,7 @@ def moa_imatinib():
                         {
                             "id": "hemonc:33893",
                             "conceptType": "Disease",
-                            "label": "Chronic myelogenous leukemia pediatric",
+                            "label": "Chronic myeloid leukemia pediatric",
                         },
                         {
                             "id": "hemonc:667",
@@ -1580,7 +1636,10 @@ def moa_imatinib():
                             "label": "Soft tissue sarcoma",
                             "mappings": [
                                 {
-                                    "coding": {"code": "C9306", "system": "ncit"},
+                                    "coding": {
+                                        "code": "ncit:C9306",
+                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    },
                                     "relation": "relatedMatch",
                                 }
                             ],
@@ -1591,7 +1650,10 @@ def moa_imatinib():
                             "label": "Hypereosinophilic syndrome",
                             "mappings": [
                                 {
-                                    "coding": {"code": "C27038", "system": "ncit"},
+                                    "coding": {
+                                        "code": "ncit:C27038",
+                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    },
                                     "relation": "relatedMatch",
                                 }
                             ],
@@ -1622,8 +1684,8 @@ def moa_chronic_myelogenous_leukemia():
                 "name": VICC_NORMALIZER_DATA,
                 "value": {
                     "id": "ncit:C3174",
-                    "label": "Chronic Myelogenous Leukemia, BCR-ABL1 Positive",
-                    "mondo_id": "0011996",
+                    "label": "Chronic Myeloid Leukemia, BCR-ABL1 Positive",
+                    "mondo_id": "mondo:0011996",
                 },
             }
         ],
@@ -1631,7 +1693,7 @@ def moa_chronic_myelogenous_leukemia():
             {
                 "coding": {
                     "label": "Chronic Myelogenous Leukemia",
-                    "system": "https://oncotree.mskcc.org/",
+                    "system": "https://oncotree.mskcc.org",
                     "code": "CML",
                 },
                 "relation": "exactMatch",

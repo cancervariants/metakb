@@ -292,7 +292,7 @@ class MoaTransformer(Transformer):
                 ConceptMapping(
                     coding=Coding(
                         code=str(variant_id),
-                        system="https://moalmanac.org/api/features/",
+                        system="https://moalmanac.org",
                     ),
                     relation=Relation.EXACT_MATCH,
                 )
@@ -407,7 +407,7 @@ class MoaTransformer(Transformer):
                     ConceptMapping(
                         coding=Coding(
                             code=source["nct"],
-                            system="https://clinicaltrials.gov/search?term=",
+                            system="https://clinicaltrials.gov",
                         ),
                         relation=Relation.EXACT_MATCH,
                     )
@@ -599,7 +599,7 @@ class MoaTransformer(Transformer):
                 ConceptMapping(
                     coding=Coding(
                         code=ot_code,
-                        system="https://oncotree.mskcc.org/",
+                        system="https://oncotree.mskcc.org",
                         label=ot_term,
                     ),
                     relation=Relation.EXACT_MATCH,
