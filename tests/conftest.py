@@ -1715,6 +1715,7 @@ def civic_method():
             "pmid": 31779674,
             "type": "Document",
         },
+        "subtype": {"primaryCode": "variant curation standard operating procedure"},
         "type": "Method",
     }
 

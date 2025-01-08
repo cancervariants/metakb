@@ -136,6 +136,9 @@ class Transformer(ABC):
                 doi="10.1186/s13073-019-0687-x",
                 pmid=31779674,
             ),
+            subtype=MappableConcept(
+                primaryCode="variant curation standard operating procedure"
+            ),
         ),
         Method(
             id=MethodId.MOA_ASSERTION_BIORXIV,
