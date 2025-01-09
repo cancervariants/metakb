@@ -186,10 +186,24 @@ def moa_aid141_study_stmt(
         "direction": "disputes",
         "description": "More frequent in Chronic Myelomonocytic Leukemia.",
         "strength": {
+            "conceptType": "Evidence Strength",
             "primaryCode": "e000007",
             "label": "observational study evidence",
-            "extensions": [
-                {"name": "url", "value": "https://go.osu.edu/evidence-codes"}
+            "mappings": [
+                {
+                    "coding": {
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000007",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {
+                        "system": "MOA",
+                        "code": "moa.evidence_level:clinical_evidence",
+                    },
+                    "relation": "exactMatch",
+                },
             ],
         },
         "proposition": {
@@ -337,10 +351,21 @@ def moa_aid532_study_stmt(
         "direction": "supports",
         "description": "The National Comprehensive Cancer Network\u00ae (NCCN\u00ae) highlights SF3B1 E622, Y623, R625, N626, H662, T663, K666, K700E, I704, G740, G742, and D781 missense variants as being associated with a favorable prognosis in patients with myelodysplastic syndromes.",
         "strength": {
+            "conceptType": "Evidence Strength",
             "primaryCode": "e000003",
             "label": "professional guideline evidence",
-            "extensions": [
-                {"name": "url", "value": "https://go.osu.edu/evidence-codes"}
+            "mappings": [
+                {
+                    "coding": {
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000003",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {"system": "MOA", "code": "moa.evidence_level:guideline"},
+                    "relation": "exactMatch",
+                },
             ],
         },
         "proposition": {

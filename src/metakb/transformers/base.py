@@ -19,7 +19,14 @@ from disease.schemas import (
 )
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core import sha512t24u
-from ga4gh.core.models import Extension, MappableConcept
+from ga4gh.core.models import (
+    Coding,
+    ConceptMapping,
+    Extension,
+    MappableConcept,
+    Relation,
+    code,
+)
 from ga4gh.va_spec.aac_2017.models import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
@@ -313,18 +320,44 @@ class Transformer(ABC):
         """Get mapping of source evidence level to vicc concept vocab
 
         :return: Dictionary containing mapping from source evidence level (key)
-            to corresponding vicc concept vocab (value) represented as MappableConcept object
+            to corresponding vicc concept vocab (value) represented as MappableConcept
+            object
         """
         mappings = {}
         for item in self._vicc_concept_vocabs:
-            for exact_mapping in item.exact_mappings:
-                mappings[exact_mapping] = MappableConcept(
-                    primaryCode=item.id.split(":")[-1],
-                    label=item.term,
-                    extensions=[
-                        Extension(name="url", value="https://go.osu.edu/evidence-codes")
-                    ],
+            primary_code = item.id.split(":")[-1]
+            concept_mappings = [
+                ConceptMapping(
+                    coding=Coding(
+                        system="https://go.osu.edu/evidence-codes",
+                        code=code(primary_code),
+                    ),
+                    relation=Relation.EXACT_MATCH,
                 )
+            ]
+
+            for exact_mapping in item.exact_mappings:
+                system_prefix = exact_mapping.split(":")[0].split(".")[0]
+
+                try:
+                    system = SourceName(system_prefix).as_print_case()
+                except ValueError:
+                    system = system_prefix
+
+                concept_mappings.append(
+                    ConceptMapping(
+                        coding=Coding(system=system, code=code(exact_mapping)),
+                        relation=Relation.EXACT_MATCH,
+                    )
+                )
+
+            mappings[exact_mapping] = MappableConcept(
+                conceptType="Evidence Strength",
+                label=item.term,
+                primaryCode=primary_code,
+                mappings=concept_mappings,
+            )
+
         return mappings
 
     @staticmethod
