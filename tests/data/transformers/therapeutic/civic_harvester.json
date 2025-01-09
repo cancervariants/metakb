@@ -251,17 +251,18 @@
       "fda_regulatory_approval": true,
       "fda_companion_test": true,
       "evidence_ids": [
-        879,
-        883,
-        968,
-        982,
+        2997,
         2629,
-        2997
+        982,
+        968,
+        883,
+        879
       ],
-      "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved as a first line systemic therapy in NSCLC with sensitizing EGFR mutation.",
+      "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved as a first line systemic therapy in NSCLC with sensitizing EGFR mutation (civic.EID:2997).",
       "assertion_type": "PREDICTIVE",
       "assertion_direction": "SUPPORTS",
       "amp_level": "TIER_I_LEVEL_A",
+      "acmg_codes": [],
       "therapies": [
         {
           "id": 146,
@@ -271,8 +272,8 @@
           "aliases": [
             "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide",
             "BIBW 2992",
-            "BIBW2992",
-            "BIBW-2992"
+            "BIBW-2992",
+            "BIBW2992"
           ],
           "type": "therapie"
         }
@@ -284,15 +285,13 @@
         "doid": "3908",
         "disease_url": "https://www.disease-ontology.org/?id=DOID:3908",
         "aliases": [
-          "NSCLC",
           "Non-small Cell Lung Cancer",
           "Non-small Cell Lung Carcinoma"
         ],
         "type": "disease"
       },
       "phenotypes": [],
-      "clingen_codes": [],
-      "acmg_codes": []
+      "clingen_codes": []
     }
   ],
   "genes": [

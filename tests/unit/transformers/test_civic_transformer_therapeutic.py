@@ -28,10 +28,18 @@ async def data(normalizers):
 
 @pytest.fixture(scope="module")
 def statements(
-    civic_eid2997_study_stmt, civic_eid816_study_stmt, civic_eid9851_study_stmt
+    civic_eid2997_study_stmt,
+    civic_eid816_study_stmt,
+    civic_eid9851_study_stmt,
+    civic_aid6_statement,
 ):
     """Create test fixture for CIViC therapeutic statements."""
-    return [civic_eid2997_study_stmt, civic_eid816_study_stmt, civic_eid9851_study_stmt]
+    return [
+        civic_eid2997_study_stmt,
+        civic_eid816_study_stmt,
+        civic_eid9851_study_stmt,
+        civic_aid6_statement,
+    ]
 
 
 def test_civic_cdm(data, statements, check_transformed_cdm):
