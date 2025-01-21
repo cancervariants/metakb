@@ -240,12 +240,6 @@ def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
         v["state"] = json.dumps(state)
         v_keys.append("v.state=$state")
 
-    for ext in v.get("extensions") or []:
-        key = ext["name"]
-        if key == "mane_genes":
-            v[key] = json.dumps(ext["value"])
-            v_keys.append(f"v.{key}=${key}")
-
     v_keys = ", ".join(v_keys)
 
     query = f"""

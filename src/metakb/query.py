@@ -646,11 +646,6 @@ class QueryHandler:
             v_params["location"]["sequenceReference"] = json.loads(
                 loc_params["sequence_reference"]
             )
-            mane_genes = v_params.get("mane_genes")
-            if mane_genes:
-                v_params["extensions"] = [
-                    Extension(name="mane_genes", value=json.loads(mane_genes))
-                ]
             variations.append(Variation(**v_params).model_dump())
         return variations
 

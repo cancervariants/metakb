@@ -249,14 +249,6 @@ def civic_mpid33(civic_vid33):
                 "expressions": [
                     {"syntax": "hgvs.g", "value": "NC_000007.13:g.55259515T>G"}
                 ],
-                "extensions": [
-                    {
-                        "name": "mane_genes",
-                        "value": [
-                            {"ncbi_gene_id": 1956, "hgnc_id": 3236, "symbol": "EGFR"}
-                        ],
-                    }
-                ],
             },
         ],
         "mappings": [
@@ -467,12 +459,6 @@ def braf_v600e_genomic():
             "sequence": "A",
         },
         "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
-        "extensions": [
-            {
-                "name": "mane_genes",
-                "value": [{"ncbi_gene_id": 673, "hgnc_id": 1097, "symbol": "BRAF"}],
-            }
-        ],
     }
 
 
@@ -1226,14 +1212,6 @@ def civic_mpid65(civic_vid65):
                     "sequence": "A",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
-                "extensions": [
-                    {
-                        "name": "mane_genes",
-                        "value": [
-                            {"ncbi_gene_id": 3815, "hgnc_id": 6342, "symbol": "KIT"}
-                        ],
-                    }
-                ],
             },
         ],
         "mappings": [

@@ -78,14 +78,6 @@ def moa_vid141():
                     "sequence": "T",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "C"},
-                "extensions": [
-                    {
-                        "name": "mane_genes",
-                        "value": [
-                            {"ncbi_gene_id": 54880, "hgnc_id": 20893, "symbol": "BCOR"}
-                        ],
-                    }
-                ],
             }
         ],
         "extensions": [
@@ -251,14 +243,6 @@ def moa_vid532():
                     "sequence": "C",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "G"},
-                "extensions": [
-                    {
-                        "name": "mane_genes",
-                        "value": [
-                            {"ncbi_gene_id": 23451, "hgnc_id": 10768, "symbol": "SF3B1"}
-                        ],
-                    }
-                ],
             }
         ],
         "extensions": [

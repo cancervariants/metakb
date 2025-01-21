@@ -104,14 +104,6 @@ def civic_mpid99():
                     "sequence": "A",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
-                "extensions": [
-                    {
-                        "name": "mane_genes",
-                        "value": [
-                            {"ncbi_gene_id": 5156, "hgnc_id": 8803, "symbol": "PDGFRA"}
-                        ],
-                    }
-                ],
             },
         ],
         "mappings": [
@@ -347,14 +339,6 @@ def civic_mpid113():
                     "sequence": "T",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "C"},
-                "extensions": [
-                    {
-                        "name": "mane_genes",
-                        "value": [
-                            {"ncbi_gene_id": 5979, "hgnc_id": 9967, "symbol": "RET"}
-                        ],
-                    }
-                ],
             },
         ],
         "mappings": [
