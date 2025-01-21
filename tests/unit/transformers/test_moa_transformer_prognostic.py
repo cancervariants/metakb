@@ -192,6 +192,7 @@ def moa_aid141_study_stmt(
             "mappings": [
                 {
                     "coding": {
+                        "id": "vicc:e000007",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000007",
                     },
@@ -199,8 +200,9 @@ def moa_aid141_study_stmt(
                 },
                 {
                     "coding": {
-                        "system": "MOA",
-                        "code": "moa.evidence_level:clinical_evidence",
+                        "id": "moa.assertion_level:clinical_evidence",
+                        "system": "https://moalmanac.org/about",
+                        "code": "Clinical evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -357,13 +359,18 @@ def moa_aid532_study_stmt(
             "mappings": [
                 {
                     "coding": {
+                        "id": "vicc:e000003",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000003",
                     },
                     "relation": "exactMatch",
                 },
                 {
-                    "coding": {"system": "MOA", "code": "moa.evidence_level:guideline"},
+                    "coding": {
+                        "id": "moa.assertion_level:guideline",
+                        "system": "https://moalmanac.org/about",
+                        "code": "Guideline",
+                    },
                     "relation": "exactMatch",
                 },
             ],

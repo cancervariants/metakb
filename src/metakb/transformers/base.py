@@ -76,22 +76,22 @@ class MethodId(str, Enum):
 class CivicEvidenceLevel(str, Enum):
     """Define constraints for CIViC evidence levels"""
 
-    A = "civic.evidence_level:A"
-    B = "civic.evidence_level:B"
-    C = "civic.evidence_level:C"
-    D = "civic.evidence_level:D"
-    E = "civic.evidence_level:E"
+    A = "A"
+    B = "B"
+    C = "C"
+    D = "D"
+    E = "E"
 
 
 class MoaEvidenceLevel(str, Enum):
     """Define constraints MOAlmanac evidence levels"""
 
-    FDA_APPROVED = "moa.evidence_level:fda_approved"
-    GUIDELINE = "moa.evidence_level:guideline"
-    CLINICAL_TRIAL = "moa.evidence_level:clinical_trial"
-    CLINICAL_EVIDENCE = "moa.evidence_level:clinical_evidence"
-    PRECLINICAL = "moa.evidence_level:preclinical_evidence"
-    INFERENTIAL = "moa.evidence_level:inferential_evidence"
+    FDA_APPROVED = "FDA-Approved"
+    GUIDELINE = "Guideline"
+    CLINICAL_TRIAL = "Clinical trial"
+    CLINICAL_EVIDENCE = "Clinical evidence"
+    PRECLINICAL = "Preclinical evidence"
+    INFERENTIAL = "Inferential evidence"
 
 
 class TherapyType(str, Enum):
@@ -323,40 +323,58 @@ class Transformer(ABC):
             to corresponding vicc concept vocab (value) represented as MappableConcept
             object
         """
+
+        def _get_concept_mapping(exact_mapping: str) -> str:
+            """Get system for an exact mapping
+
+            :param exact_mapping: Exact mapping code
+            :raises NotImplementedError: If SourceName not supported yet
+            :return: System label
+            """
+            if isinstance(exact_mapping, EcoLevel):
+                id_ = exact_mapping.value.lower()
+                system = "https://www.evidenceontology.org/term/"
+            elif isinstance(exact_mapping, CivicEvidenceLevel):
+                system = (
+                    "https://civic.readthedocs.io/en/latest/model/evidence/level.html"
+                )
+                id_ = f"civic.evidence_level:{exact_mapping.value}"
+            elif isinstance(exact_mapping, MoaEvidenceLevel):
+                system = "https://moalmanac.org/about"
+                id_ = f"moa.assertion_level:{'_'.join(exact_mapping.value.lower().replace('-', '_').split())}"
+            else:
+                raise NotImplementedError
+
+            return ConceptMapping(
+                coding=Coding(id=id_, system=system, code=exact_mapping),
+                relation=Relation.EXACT_MATCH,
+            )
+
         mappings = {}
         for item in self._vicc_concept_vocabs:
             primary_code = item.id.split(":")[-1]
-            concept_mappings = [
-                ConceptMapping(
-                    coding=Coding(
-                        system="https://go.osu.edu/evidence-codes",
-                        code=code(primary_code),
-                    ),
-                    relation=Relation.EXACT_MATCH,
-                )
-            ]
-
             for exact_mapping in item.exact_mappings:
-                system_prefix = exact_mapping.split(":")[0].split(".")[0]
-
-                try:
-                    system = SourceName(system_prefix).as_print_case()
-                except ValueError:
-                    system = system_prefix
-
-                concept_mappings.append(
+                concept_mappings = [
                     ConceptMapping(
-                        coding=Coding(system=system, code=code(exact_mapping)),
+                        coding=Coding(
+                            id=item.id,
+                            system="https://go.osu.edu/evidence-codes",
+                            code=code(primary_code),
+                        ),
                         relation=Relation.EXACT_MATCH,
                     )
+                ]
+
+                concept_mappings.extend(
+                    _get_concept_mapping(exact_mapping_)
+                    for exact_mapping_ in item.exact_mappings
                 )
 
-            mappings[exact_mapping] = MappableConcept(
-                conceptType="Evidence Strength",
-                label=item.term,
-                primaryCode=primary_code,
-                mappings=concept_mappings,
-            )
+                mappings[exact_mapping] = MappableConcept(
+                    label=item.term,
+                    primaryCode=primary_code,
+                    mappings=concept_mappings,
+                )
 
         return mappings
 

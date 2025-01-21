@@ -362,19 +362,23 @@ def civic_eid2997_study_stmt(
         "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
         "direction": "supports",
         "strength": {
-            "conceptType": "Evidence Strength",
             "primaryCode": "e000001",
             "label": "authoritative evidence",
             "mappings": [
                 {
                     "coding": {
+                        "id": "vicc:e000001",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000001",
                     },
                     "relation": "exactMatch",
                 },
                 {
-                    "coding": {"system": "CIViC", "code": "civic.evidence_level:A"},
+                    "coding": {
+                        "id": "civic.evidence_level:A",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "A",
+                    },
                     "relation": "exactMatch",
                 },
             ],
@@ -984,13 +988,18 @@ def civic_eid816_study_stmt(
             "mappings": [
                 {
                     "coding": {
+                        "id": "vicc:e000005",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000005",
                     },
                     "relation": "exactMatch",
                 },
                 {
-                    "coding": {"system": "CIViC", "code": "civic.evidence_level:B"},
+                    "coding": {
+                        "id": "civic.evidence_level:B",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "B",
+                    },
                     "relation": "exactMatch",
                 },
             ],
@@ -1038,13 +1047,18 @@ def civic_eid9851_study_stmt(
             "mappings": [
                 {
                     "coding": {
+                        "id": "vicc:e000001",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000001",
                     },
                     "relation": "exactMatch",
                 },
                 {
-                    "coding": {"system": "CIViC", "code": "civic.evidence_level:A"},
+                    "coding": {
+                        "id": "civic.evidence_level:A",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "A",
+                    },
                     "relation": "exactMatch",
                 },
             ],
@@ -1157,13 +1171,18 @@ def civic_eid26_study_stmt(
             "mappings": [
                 {
                     "coding": {
+                        "id": "vicc:e000005",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000005",
                     },
                     "relation": "exactMatch",
                 },
                 {
-                    "coding": {"system": "CIViC", "code": "civic.evidence_level:B"},
+                    "coding": {
+                        "id": "civic.evidence_level:B",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "B",
+                    },
                     "relation": "exactMatch",
                 },
             ],
@@ -1481,19 +1500,25 @@ def moa_aid66_study_stmt(
             "mappings": [
                 {
                     "coding": {
+                        "id": "vicc:e000009",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000009",
                     },
                     "relation": "exactMatch",
                 },
                 {
-                    "coding": {"system": "CIViC", "code": "civic.evidence_level:D"},
+                    "coding": {
+                        "id": "civic.evidence_level:D",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "D",
+                    },
                     "relation": "exactMatch",
                 },
                 {
                     "coding": {
-                        "system": "MOA",
-                        "code": "moa.evidence_level:preclinical_evidence",
+                        "id": "moa.assertion_level:preclinical_evidence",
+                        "system": "https://moalmanac.org/about",
+                        "code": "Preclinical evidence",
                     },
                     "relation": "exactMatch",
                 },

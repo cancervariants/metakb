@@ -12,7 +12,6 @@ from ga4gh.core.models import (
     Extension,
     MappableConcept,
     Relation,
-    code,
 )
 from ga4gh.va_spec.aac_2017.models import (
     VariantDiagnosticProposition,

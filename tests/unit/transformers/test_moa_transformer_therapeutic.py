@@ -134,6 +134,7 @@ def moa_aid154_study_stmt(moa_vid144, moa_cetuximab, moa_encorafenib, moa_method
             "mappings": [
                 {
                     "coding": {
+                        "id": "vicc:e000002",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000002",
                     },
@@ -141,8 +142,9 @@ def moa_aid154_study_stmt(moa_vid144, moa_cetuximab, moa_encorafenib, moa_method
                 },
                 {
                     "coding": {
-                        "system": "MOA",
-                        "code": "moa.evidence_level:fda_approved",
+                        "id": "moa.assertion_level:fda_approved",
+                        "system": "https://moalmanac.org/about",
+                        "code": "FDA-Approved",
                     },
                     "relation": "exactMatch",
                 },

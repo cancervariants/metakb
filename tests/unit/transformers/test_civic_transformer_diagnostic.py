@@ -251,13 +251,18 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
             "mappings": [
                 {
                     "coding": {
+                        "id": "vicc:e000005",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000005",
                     },
                     "relation": "exactMatch",
                 },
                 {
-                    "coding": {"system": "CIViC", "code": "civic.evidence_level:B"},
+                    "coding": {
+                        "id": "civic.evidence_level:B",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "B",
+                    },
                     "relation": "exactMatch",
                 },
             ],
@@ -518,13 +523,18 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
             "mappings": [
                 {
                     "coding": {
+                        "id": "vicc:e000005",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000005",
                     },
                     "relation": "exactMatch",
                 },
                 {
-                    "coding": {"system": "CIViC", "code": "civic.evidence_level:B"},
+                    "coding": {
+                        "id": "civic.evidence_level:B",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "B",
+                    },
                     "relation": "exactMatch",
                 },
             ],
