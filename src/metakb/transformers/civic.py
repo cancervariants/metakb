@@ -248,12 +248,12 @@ class CivicTransformer(Transformer):
 
         # Get all variant IDs from supported molecular profiles
         vids = {
-            mp_id_to_v_id_mapping[e["molecular_profile_id"]]
+            mp_id_to_v_id_mapping.get(e["molecular_profile_id"])
             for e in evidence_items
             if e["molecular_profile_id"]
         }
         vids |= {
-            mp_id_to_v_id_mapping[assertion["molecular_profile_id"]]
+            mp_id_to_v_id_mapping.get(assertion["molecular_profile_id"])
             for assertion in assertions
             if assertion["molecular_profile_id"]
         }
@@ -336,6 +336,8 @@ class CivicTransformer(Transformer):
 
             if record["amp_level"]:
                 classification = self._get_classification(record["amp_level"])
+                if not classification:
+                    return
 
             evidence_lines = []
             evidence_ids = []
@@ -347,13 +349,9 @@ class CivicTransformer(Transformer):
                     evidence_lines.append(
                         EvidenceLine(
                             hasEvidenceItems=[evidence_item],
-                            directionOfEvidenceProvided=Direction.SUPPORTS,  # TODO: Is this always supports?
+                            directionOfEvidenceProvided=Direction.SUPPORTS,
                         )
                     )
-
-            # TODO: Figure out how to handle cases where CIViC evidence items can't be processed. Is this what we want?
-            if evidence_ids:
-                extensions.append(Extension(name="evidence_ids", value=evidence_ids))
 
         record_type = record[f"{record_prefix}_type"]
 
@@ -472,20 +470,10 @@ class CivicTransformer(Transformer):
         else:
             pattern = re.compile(r"TIER_(?P<tier>[IV]+)(?:_LEVEL_(?P<level>[A-D]))?")
             match = pattern.match(amp_level).groupdict()
-            primary_code = f"{match['tier']}{match['level'] or ''}"
+            primary_code = f"Tier {match['tier']}"
             classification = MappableConcept(
-                conceptType="Guideline",
                 primaryCode=primary_code,
-                mappings=[
-                    ConceptMapping(
-                        relation=Relation.EXACT_MATCH,
-                        coding=Coding(
-                            system="AMP/ASCO/CAP",
-                            systemVersion="2017",
-                            code=code(primary_code),
-                        ),
-                    )
-                ],
+                extensions=[Extension(name="civic_amp_level", value=amp_level)],
             )
         return classification
 

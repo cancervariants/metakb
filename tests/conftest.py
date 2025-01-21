@@ -1104,19 +1104,6 @@ def civic_aid6_statement(
         "id": "civic.aid:6",
         "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved as a first line systemic therapy in NSCLC with sensitizing EGFR mutation (civic.EID:2997).",
         "type": "Statement",
-        "extensions": [
-            {
-                "name": "evidence_ids",
-                "value": [
-                    "civic.eid:2997",
-                    "civic.eid:2629",
-                    "civic.eid:982",
-                    "civic.eid:968",
-                    "civic.eid:883",
-                    "civic.eid:879",
-                ],
-            }
-        ],
         "specifiedBy": civic_method,
         "proposition": {
             "type": "VariantTherapeuticResponseProposition",
@@ -1129,18 +1116,8 @@ def civic_aid6_statement(
         },
         "direction": "supports",
         "classification": {
-            "conceptType": "Guideline",
-            "primaryCode": "IA",
-            "mappings": [
-                {
-                    "coding": {
-                        "system": "AMP/ASCO/CAP",
-                        "systemVersion": "2017",
-                        "code": "IA",
-                    },
-                    "relation": "exactMatch",
-                }
-            ],
+            "primaryCode": "Tier I",
+            "extensions": [{"name": "civic_amp_level", "value": "TIER_I_LEVEL_A"}],
         },
         "hasEvidenceLines": [
             {
