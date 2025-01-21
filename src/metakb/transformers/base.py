@@ -20,12 +20,8 @@ from disease.schemas import (
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core import sha512t24u
 from ga4gh.core.models import (
-    Coding,
-    ConceptMapping,
     Extension,
     MappableConcept,
-    Relation,
-    code,
 )
 from ga4gh.va_spec.aac_2017.models import (
     VariantDiagnosticStudyStatement,
@@ -325,38 +321,11 @@ class Transformer(ABC):
         """
         mappings = {}
         for item in self._vicc_concept_vocabs:
-            primary_code = item.id.split(":")[-1]
-            concept_mappings = [
-                ConceptMapping(
-                    coding=Coding(
-                        system="https://go.osu.edu/evidence-codes",
-                        code=code(primary_code),
-                    ),
-                    relation=Relation.EXACT_MATCH,
-                )
-            ]
-
             for exact_mapping in item.exact_mappings:
-                system_prefix = exact_mapping.split(":")[0].split(".")[0]
-
-                try:
-                    system = SourceName(system_prefix).as_print_case()
-                except ValueError:
-                    system = system_prefix
-
-                concept_mappings.append(
-                    ConceptMapping(
-                        coding=Coding(system=system, code=code(exact_mapping)),
-                        relation=Relation.EXACT_MATCH,
-                    )
+                mappings[exact_mapping] = MappableConcept(
+                    label=item.term,
+                    primaryCode=item.id.split(":")[-1],
                 )
-
-            mappings[exact_mapping] = MappableConcept(
-                conceptType="Evidence Strength",
-                label=item.term,
-                primaryCode=primary_code,
-                mappings=concept_mappings,
-            )
 
         return mappings
 

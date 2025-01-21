@@ -128,25 +128,8 @@ def moa_aid154_study_stmt(moa_vid144, moa_cetuximab, moa_encorafenib, moa_method
         "direction": "supports",
         "description": "The U.S. Food and Drug Administration (FDA) granted regular approval to encorafenib in combination with cetuximab for the treatment of adult patients with metastatic colorectal cancer (CRC) with BRAF V600E mutation, as detected by an FDA-approved test, after prior therapy.",
         "strength": {
-            "conceptType": "Evidence Strength",
             "primaryCode": "e000002",
             "label": "FDA recognized evidence",
-            "mappings": [
-                {
-                    "coding": {
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000002",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "system": "MOA",
-                        "code": "moa.evidence_level:fda_approved",
-                    },
-                    "relation": "exactMatch",
-                },
-            ],
         },
         "proposition": {
             "type": "VariantTherapeuticResponseProposition",
