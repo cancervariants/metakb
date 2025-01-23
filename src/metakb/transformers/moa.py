@@ -349,6 +349,9 @@ class MoaTransformer(Transformer):
 
             if vrs_genomic_variation:
                 genomic_params = vrs_genomic_variation.model_dump(exclude_none=True)
+                genomic_params["extensions"] = (
+                    None  # Don't care about capturing extensions for now
+                )
                 genomic_params["label"] = gnomad_vcf
                 members = [Variation(**genomic_params)]
             else:

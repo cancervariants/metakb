@@ -72,8 +72,17 @@ def _add_method(tx: ManagedTransaction, method: dict, ids_in_stmts: set[str]) ->
     if method["id"] not in ids_in_stmts:
         return
 
-    query = """
-    MERGE (m:Method {id:$id, label:$label})
+    m_keys = [_create_parameterized_query(method, ("id", "label"))]
+
+    method_subtype = method.get("subtype")
+    if method_subtype:
+        method["subtype"] = json.dumps(method_subtype)
+        m_keys.append("subtype:$subtype")
+
+    m_keys = ", ".join(m_keys)
+
+    query = f"""
+    MERGE (m:Method {{ {m_keys} }})
     """
 
     is_reported_in = method.get("reportedIn")
@@ -430,23 +439,19 @@ def _add_statement(tx: ManagedTransaction, statement_in: dict) -> None:
     match_line += f"MERGE (m {{ id: '{method_id}' }})\n"
     rel_line += "MERGE (s) -[:IS_SPECIFIED_BY] -> (m)\n"
 
-    coding = statement.get("strength")
-    if coding:
-        coding["url"] = next(
-            ext["value"] for ext in coding["extensions"] if ext["name"] == "url"
-        )
+    strength = statement.get("strength")
+    if strength:
+        strength_key_fields = ("primaryCode", "label")
 
-        coding_key_fields = ("primaryCode", "label", "url")
-
-        coding_keys = _create_parameterized_query(
-            coding, coding_key_fields, entity_param_prefix="coding_"
+        strength_keys = _create_parameterized_query(
+            strength, strength_key_fields, entity_param_prefix="coding_"
         )
-        for k in coding_key_fields:
-            v = coding.get(k)
+        for k in strength_key_fields:
+            v = strength.get(k)
             if v:
                 statement[f"coding_{k}"] = v
 
-        match_line += f"MERGE (c:Coding {{ {coding_keys} }})\n"
+        match_line += f"MERGE (c:Coding {{ {strength_keys} }})\n"
         rel_line += "MERGE (s) -[:HAS_STRENGTH] -> (c)\n"
 
     variant_id = proposition["subjectVariant"]["id"]

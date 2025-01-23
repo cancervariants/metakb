@@ -190,7 +190,7 @@ def check_node_props():
             extension_names = set()
         assert node.keys() == expected_keys
         for k in expected_keys - extension_names:
-            if k == "mappings":
+            if k == "mappings" or (k == "subtype" and isinstance(fixture[k], dict)):
                 assert json.loads(node[k]) == fixture[k]
             elif isinstance(fixture[k], list):
                 assert set(node[k]) == set(fixture[k])
@@ -658,7 +658,7 @@ def test_method_rules(
     check_node_labels("Method", expected_node_labels, 1)
 
     method = get_node_by_id(civic_method["id"])
-    expected_keys = {"id", "label"}
+    expected_keys = {"id", "label", "subtype"}
     check_node_props(method, civic_method, expected_keys)
 
 

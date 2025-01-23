@@ -532,6 +532,9 @@ class CivicTransformer(Transformer):
 
             if vrs_variation:
                 variation_params = vrs_variation.model_dump(exclude_none=True)
+                variation_params["extensions"] = (
+                    None  # Don't care about capturing extensions for now
+                )
                 variation_params["label"] = hgvs_expr
                 variation_params["expressions"] = [
                     Expression(syntax=syntax, value=hgvs_expr)

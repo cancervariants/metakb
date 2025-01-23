@@ -557,11 +557,12 @@ class QueryHandler:
                 )
             elif rel_type == "IS_SPECIFIED_BY":
                 node["reportedIn"] = self._get_method_document(node["id"])
+                if "subtype" in node:
+                    node["subtype"] = json.loads(node["subtype"])
                 params["specifiedBy"] = Method(**node)
             elif rel_type == "IS_REPORTED_IN":
                 params["reportedIn"].append(self._get_document(node))
             elif rel_type == "HAS_STRENGTH":
-                node["extensions"] = [Extension(name="url", value=node["url"])]
                 params["strength"] = MappableConcept(**node)
             elif rel_type == "HAS_THERAPEUTIC":
                 params["proposition"]["objectTherapeutic"] = (
