@@ -23,13 +23,12 @@ from ga4gh.core.models import (
     Extension,
     MappableConcept,
 )
-from ga4gh.va_spec.aac_2017.models import (
+from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base.core import Document, Method
-from ga4gh.va_spec.base.domain_entities import TherapyGroup
+from ga4gh.va_spec.base import Document, Method, TherapyGroup
 from ga4gh.vrs.models import Allele
 from gene.schemas import NormalizeService as NormalizedGene
 from pydantic import BaseModel, StrictStr, ValidationError

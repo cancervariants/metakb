@@ -13,22 +13,22 @@ from ga4gh.core.models import (
     MappableConcept,
     Relation,
 )
-from ga4gh.va_spec.aac_2017.models import (
-    VariantDiagnosticProposition,
+from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
-    VariantPrognosticProposition,
     VariantPrognosticStudyStatement,
-    VariantTherapeuticResponseProposition,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base.core import (
+from ga4gh.va_spec.base import (
     DiagnosticPredicate,
     Direction,
     Document,
     PrognosticPredicate,
     TherapeuticResponsePredicate,
+    TherapyGroup,
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
 )
-from ga4gh.va_spec.base.domain_entities import TherapyGroup
 from ga4gh.vrs.models import Expression, Syntax, Variation
 from pydantic import BaseModel, ValidationError
 

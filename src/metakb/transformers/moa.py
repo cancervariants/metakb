@@ -14,19 +14,19 @@ from ga4gh.core.models import (
     MappableConcept,
     Relation,
 )
-from ga4gh.va_spec.aac_2017.models import (
-    VariantPrognosticProposition,
+from ga4gh.va_spec.aac_2017 import (
     VariantPrognosticStudyStatement,
-    VariantTherapeuticResponseProposition,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base.core import (
+from ga4gh.va_spec.base import (
     Direction,
     Document,
     PrognosticPredicate,
     TherapeuticResponsePredicate,
+    TherapyGroup,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
 )
-from ga4gh.va_spec.base.domain_entities import TherapyGroup
 from ga4gh.vrs.models import Variation
 
 from metakb import APP_ROOT

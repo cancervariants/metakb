@@ -7,13 +7,12 @@ from enum import Enum
 
 from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
 from ga4gh.core.models import Extension, MappableConcept
-from ga4gh.va_spec.aac_2017.models import (
+from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base.core import Document, Method
-from ga4gh.va_spec.base.domain_entities import TherapyGroup
+from ga4gh.va_spec.base import Document, Method, TherapyGroup
 from ga4gh.vrs.models import Expression, Variation
 from neo4j import Driver
 from neo4j.graph import Node
