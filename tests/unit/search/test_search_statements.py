@@ -176,7 +176,7 @@ async def test_general_search_statements(query_handler):
     resp = await query_handler.search_statements(disease="cancer")
     assert_general_search_stmts(resp)
 
-    # Case: Handling therapy for single therapeutic agent / combination / substitutes
+    # Case: Handling therapy for single therapy / combination / substitutes
     resp = await query_handler.search_statements(therapy="Cetuximab")
     assert_general_search_stmts(resp)
     expected_therapy_id = "rxcui:318341"
@@ -203,7 +203,7 @@ async def test_general_search_statements(query_handler):
     resp = await query_handler.search_statements(
         variation=expected_variation_id,
         disease=expected_disease_id,
-        therapy=expected_therapy_id,  # Single Therapeutic Agent
+        therapy=expected_therapy_id,  # Single Therapy
     )
     assert_general_search_stmts(resp)
 

@@ -347,7 +347,7 @@ def civic_eid2997_study_stmt(
     civic_method,
     civic_source592,
 ):
-    """Create CIVIC EID2997 Study Statement test fixture. Uses TherapeuticAgent."""
+    """Create CIVIC EID2997 Study Statement test fixture. Uses Therapy."""
     return {
         "id": "civic.eid:2997",
         "type": "Statement",

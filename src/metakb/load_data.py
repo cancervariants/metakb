@@ -180,13 +180,13 @@ def _add_therapy_or_group(
         raise TypeError(msg)
 
 
-def _add_therapy(tx: ManagedTransaction, therapeutic_agent: dict) -> None:
-    """Add therapeutic agent node and its relationships
+def _add_therapy(tx: ManagedTransaction, therapy_in: dict) -> None:
+    """Add therapy node and its relationships
 
     :param tx: Transaction object provided to transaction functions
-    :param therapeutic_agent: Therapeutic Agent CDM object
+    :param therapy_in: Therapy CDM object
     """
-    therapy = therapeutic_agent.copy()
+    therapy = therapy_in.copy()
     nonnull_keys = [
         _create_parameterized_query(therapy, ("id", "label", "conceptType"))
     ]
@@ -484,8 +484,7 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
     """Add set of data formatted per Common Data Model to DB.
 
     :param data: contains key/value pairs for data objects to add to DB, including
-        statements, variation, therapeutic procedures, conditions, genes, methods,
-        documents, etc.
+        statements, variation, therapies, conditions, genes, methods, documents, etc.
     """
     # Used to keep track of IDs that are in statements. This is used to prevent adding
     # nodes that aren't associated to statements
@@ -523,8 +522,8 @@ def load_from_json(src_transformed_cdm: Path, driver: Driver | None = None) -> N
     """Load evidence into DB from given CDM JSON file.
 
     :param src_transformed_cdm: path to file for a source's transformed data to
-        common data model containing statements, variation, therapeutic procedures,
-        conditions, genes, methods, documents, etc.
+        common data model containing statements, variation, therapies, conditions,
+        genes, methods, documents, etc.
     :param driver: Neo4j graph driver, if available
     """
     _logger.info("Loading data from %s", src_transformed_cdm)
