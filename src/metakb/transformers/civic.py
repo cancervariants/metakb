@@ -256,6 +256,7 @@ class CivicTransformer(Transformer):
             for assertion in assertions
             if assertion["molecular_profile_id"]
         }
+        vids.discard(None)
 
         # Add variant (only supported) and gene (all) data
         # (mutates `variations` and `genes`)
