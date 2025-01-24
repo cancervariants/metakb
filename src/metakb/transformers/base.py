@@ -295,7 +295,7 @@ class Transformer(ABC):
         """
         if self.harvester_path is None:
             today = datetime.datetime.strftime(
-                datetime.datetime.now(tz=datetime.timezone.utc), DATE_FMT
+                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
             )
             default_fname = f"{self.name}_harvester_{today}.json"
             default_path = self.data_dir / "harvester" / default_fname
@@ -523,7 +523,7 @@ class Transformer(ABC):
             transformers_dir = self.data_dir / "transformers"
             transformers_dir.mkdir(exist_ok=True, parents=True)
             today = datetime.datetime.strftime(
-                datetime.datetime.now(tz=datetime.timezone.utc), DATE_FMT
+                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
             )
             cdm_filepath = transformers_dir / f"{self.name}_cdm_{today}.json"
 
