@@ -249,21 +249,13 @@ def civic_mpid33(civic_vid33):
                 "expressions": [
                     {"syntax": "hgvs.g", "value": "NC_000007.13:g.55259515T>G"}
                 ],
-                "extensions": [
-                    {
-                        "name": "mane_genes",
-                        "value": [
-                            {"ncbi_gene_id": 1956, "hgnc_id": 3236, "symbol": "EGFR"}
-                        ],
-                    }
-                ],
             },
         ],
         "mappings": [
             {
                 "coding": {
                     "code": "CA126713",
-                    "system": "https://reg.clinicalgenome.org/",
+                    "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
                 },
                 "relation": "relatedMatch",
             },
@@ -296,12 +288,16 @@ def civic_mpid33(civic_vid33):
                 "relation": "relatedMatch",
             },
             {
-                "coding": {"code": "33", "system": "https://civicdb.org/variants/"},
+                "coding": {
+                    "id": "civic.vid:33",
+                    "code": "33",
+                    "system": "https://civicdb.org/variants/",
+                },
                 "relation": "exactMatch",
             },
         ],
         "extensions": [
-            {"name": "aliases", "value": ["LEU813ARG", "LEU858ARG", "L813R"]},
+            {"name": "aliases", "value": ["LEU858ARG"]},
             {
                 "name": "CIViC representative coordinate",
                 "value": {
@@ -324,6 +320,7 @@ def civic_mpid33(civic_vid33):
                 "name": "Variant types",
                 "value": [
                     {
+                        "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
@@ -355,29 +352,15 @@ def civic_eid2997_study_stmt(
     civic_method,
     civic_source592,
 ):
-    """Create CIVIC EID2997 Study Statement test fixture. Uses TherapeuticAgent."""
+    """Create CIVIC EID2997 Study Statement test fixture. Uses Therapy."""
     return {
         "id": "civic.eid:2997",
         "type": "Statement",
         "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
         "direction": "supports",
         "strength": {
-            "conceptType": "Evidence Strength",
             "primaryCode": "e000001",
             "label": "authoritative evidence",
-            "mappings": [
-                {
-                    "coding": {
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000001",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {"system": "CIViC", "code": "civic.evidence_level:A"},
-                    "relation": "exactMatch",
-                },
-            ],
         },
         "proposition": {
             "type": "VariantTherapeuticResponseProposition",
@@ -403,7 +386,8 @@ def civic_gid5():
         "mappings": [
             {
                 "coding": {
-                    "code": "ncbigene:673",
+                    "id": "ncbigene:673",
+                    "code": "673",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
@@ -481,12 +465,6 @@ def braf_v600e_genomic():
             "sequence": "A",
         },
         "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
-        "extensions": [
-            {
-                "name": "mane_genes",
-                "value": [{"ncbi_gene_id": 673, "hgnc_id": 1097, "symbol": "BRAF"}],
-            }
-        ],
     }
 
 
@@ -532,7 +510,7 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
             {
                 "coding": {
                     "code": "CA123643",
-                    "system": "https://reg.clinicalgenome.org/",
+                    "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
                 },
                 "relation": "relatedMatch",
             },
@@ -558,7 +536,11 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
                 "relation": "relatedMatch",
             },
             {
-                "coding": {"code": "12", "system": "https://civicdb.org/variants/"},
+                "coding": {
+                    "id": "civic.vid:12",
+                    "code": "12",
+                    "system": "https://civicdb.org/variants/",
+                },
                 "relation": "exactMatch",
             },
         ],
@@ -586,6 +568,7 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
                 "name": "Variant types",
                 "value": [
                     {
+                        "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
@@ -633,7 +616,8 @@ def civic_gid19():
         "mappings": [
             {
                 "coding": {
-                    "code": "ncbigene:1956",
+                    "id": "ncbigene:1956",
+                    "code": "1956",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
@@ -675,8 +659,9 @@ def civic_tid146():
         "mappings": [
             {
                 "coding": {
-                    "code": "ncit:C66940",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C66940",
+                    "code": "C66940",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
             }
@@ -687,7 +672,6 @@ def civic_tid146():
                 "value": [
                     "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide",
                     "BIBW 2992",
-                    "BIBW-2992",
                     "BIBW2992",
                 ],
             },
@@ -739,8 +723,9 @@ def civic_did8():
         "mappings": [
             {
                 "coding": {
+                    "id": "DOID:3908",
                     "code": "DOID:3908",
-                    "system": "http://purl.obolibrary.org/obo/doid.owl",
+                    "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
             }
@@ -779,8 +764,9 @@ def civic_tid28():
         "mappings": [
             {
                 "coding": {
-                    "code": "ncit:C1857",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C1857",
+                    "code": "C1857",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
             }
@@ -858,8 +844,9 @@ def civic_tid16(cetuximab_extensions):
         "mappings": [
             {
                 "coding": {
-                    "code": "ncit:C1723",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C1723",
+                    "code": "C1723",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
             }
@@ -909,8 +896,9 @@ def civic_tid483(encorafenib_extensions):
         "mappings": [
             {
                 "coding": {
-                    "code": "ncit:C98283",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C98283",
+                    "code": "C98283",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
             }
@@ -948,8 +936,9 @@ def civic_did11():
         "mappings": [
             {
                 "coding": {
+                    "id": "DOID:9256",
                     "code": "DOID:9256",
-                    "system": "http://purl.obolibrary.org/obo/doid.owl",
+                    "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
             }
@@ -978,22 +967,8 @@ def civic_eid816_study_stmt(
         "description": "This meta-analysis of 7 randomized control trials evaluating overall survival (OS) (8 for progression free survival) could not definitely state that survival benefit of anti-EGFR monoclonal antibodies is limited to patients with wild type BRAF. In other words, the authors believe that there is insufficient data to justify the exclusion of anti-EGFR monoclonal antibody therapy for patients with mutant BRAF. In these studies, mutant BRAF specifically meant the V600E mutation.",
         "direction": "disputes",
         "strength": {
-            "conceptType": "Evidence Strength",
             "primaryCode": "e000005",
             "label": "clinical cohort evidence",
-            "mappings": [
-                {
-                    "coding": {
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000005",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {"system": "CIViC", "code": "civic.evidence_level:B"},
-                    "relation": "exactMatch",
-                },
-            ],
         },
         "proposition": {
             "type": "VariantTherapeuticResponseProposition",
@@ -1032,22 +1007,8 @@ def civic_eid9851_study_stmt(
         "description": "The open-label phase 3 BEACON CRC trial included 665 patients with BRAF V600E-mutated metastatic CRC. Patients were randomly assigned in a 1:1:1 ratio to receive encorafenib, binimetinib, and cetuximab (triplet-therapy group); encorafenib and cetuximab (doublet-therapy group); or the investigators\u2019 choice of either cetuximab and irinotecan or cetuximab and FOLFIRI. The median overall survival was 8.4 months (95% CI, 7.5 to 11.0) in the doublet-therapy group and 5.4 months (95% CI, 4.8 to 6.6) in the control group, with a significantly lower risk of death compared to the control group (hazard ratio for death doublet-group vs. control, 0.60; 95% CI, 0.45 to 0.79; P<0.001). The confirmed response rate was 26% (95% CI, 18 to 35) in the triplet-therapy group, 20% in the doublet-therapy group (95% CI 13 to 29) and 2% (95% CI, 0 to 7) in the control group (doublet group vs. control P<0.001). Median PFS was 4.2 months (95% CI, 3.7 to 5.4) in the doublet-therapy group, and 1.5 months (95% CI, 1.5 to 1.7) in the control group (hazard ratio for disease progression doublet-group vs control, 0.40; 95% CI, 0.31 to 0.52, P<0.001).",
         "direction": "supports",
         "strength": {
-            "conceptType": "Evidence Strength",
             "primaryCode": "e000001",
             "label": "authoritative evidence",
-            "mappings": [
-                {
-                    "coding": {
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000001",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {"system": "CIViC", "code": "civic.evidence_level:A"},
-                    "relation": "exactMatch",
-                },
-            ],
         },
         "proposition": {
             "type": "VariantTherapeuticResponseProposition",
@@ -1151,22 +1112,8 @@ def civic_eid26_study_stmt(
         "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",
         "direction": "supports",
         "strength": {
-            "conceptType": "Evidence Strength",
             "primaryCode": "e000005",
             "label": "clinical cohort evidence",
-            "mappings": [
-                {
-                    "coding": {
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000005",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {"system": "CIViC", "code": "civic.evidence_level:B"},
-                    "relation": "exactMatch",
-                },
-            ],
         },
         "proposition": {
             "type": "VariantPrognosticProposition",
@@ -1294,21 +1241,13 @@ def civic_mpid65(civic_vid65):
                     "sequence": "A",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
-                "extensions": [
-                    {
-                        "name": "mane_genes",
-                        "value": [
-                            {"ncbi_gene_id": 3815, "hgnc_id": 6342, "symbol": "KIT"}
-                        ],
-                    }
-                ],
             },
         ],
         "mappings": [
             {
                 "coding": {
                     "code": "CA123513",
-                    "system": "https://reg.clinicalgenome.org/",
+                    "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
                 },
                 "relation": "relatedMatch",
             },
@@ -1327,7 +1266,11 @@ def civic_mpid65(civic_vid65):
                 "relation": "relatedMatch",
             },
             {
-                "coding": {"code": "65", "system": "https://civicdb.org/variants/"},
+                "coding": {
+                    "id": "civic.vid:65",
+                    "code": "65",
+                    "system": "https://civicdb.org/variants/",
+                },
                 "relation": "exactMatch",
             },
         ],
@@ -1355,6 +1298,7 @@ def civic_mpid65(civic_vid65):
                 "name": "Variant types",
                 "value": [
                     {
+                        "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
@@ -1385,7 +1329,8 @@ def civic_did3():
         "mappings": [
             {
                 "coding": {
-                    "system": "http://purl.obolibrary.org/obo/doid.owl",
+                    "id": "DOID:9119",
+                    "system": "https://disease-ontology.org/?id=",
                     "code": "DOID:9119",
                 },
                 "relation": "exactMatch",
@@ -1419,7 +1364,8 @@ def civic_gid29():
             {
                 "coding": {
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
-                    "code": "ncbigene:3815",
+                    "id": "ncbigene:3815",
+                    "code": "3815",
                 },
                 "relation": "exactMatch",
             }
@@ -1475,29 +1421,8 @@ def moa_aid66_study_stmt(
         "id": "moa.assertion:66",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
         "strength": {
-            "conceptType": "Evidence Strength",
             "primaryCode": "e000009",
             "label": "preclinical evidence",
-            "mappings": [
-                {
-                    "coding": {
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000009",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {"system": "CIViC", "code": "civic.evidence_level:D"},
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "system": "MOA",
-                        "code": "moa.evidence_level:preclinical_evidence",
-                    },
-                    "relation": "exactMatch",
-                },
-            ],
         },
         "direction": "supports",
         "proposition": {
@@ -1584,6 +1509,7 @@ def moa_vid66():
         "mappings": [
             {
                 "coding": {
+                    "id": "moa.variant:66",
                     "system": "https://moalmanac.org",
                     "code": "66",
                 },
@@ -1766,8 +1692,9 @@ def moa_chronic_myelogenous_leukemia():
         "mappings": [
             {
                 "coding": {
+                    "id": "oncotree:CML",
                     "label": "Chronic Myelogenous Leukemia",
-                    "system": "https://oncotree.mskcc.org",
+                    "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
                     "code": "CML",
                 },
                 "relation": "exactMatch",

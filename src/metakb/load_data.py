@@ -72,8 +72,17 @@ def _add_method(tx: ManagedTransaction, method: dict, ids_in_stmts: set[str]) ->
     if method["id"] not in ids_in_stmts:
         return
 
-    query = """
-    MERGE (m:Method {id:$id, label:$label})
+    m_keys = [_create_parameterized_query(method, ("id", "label"))]
+
+    method_subtype = method.get("subtype")
+    if method_subtype:
+        method["subtype"] = json.dumps(method_subtype)
+        m_keys.append("subtype:$subtype")
+
+    m_keys = ", ".join(m_keys)
+
+    query = f"""
+    MERGE (m:Method {{ {m_keys} }})
     """
 
     is_reported_in = method.get("reportedIn")
@@ -171,13 +180,13 @@ def _add_therapy_or_group(
         raise TypeError(msg)
 
 
-def _add_therapy(tx: ManagedTransaction, therapeutic_agent: dict) -> None:
-    """Add therapeutic agent node and its relationships
+def _add_therapy(tx: ManagedTransaction, therapy_in: dict) -> None:
+    """Add therapy node and its relationships
 
     :param tx: Transaction object provided to transaction functions
-    :param therapeutic_agent: Therapeutic Agent CDM object
+    :param therapy_in: Therapy CDM object
     """
-    therapy = therapeutic_agent.copy()
+    therapy = therapy_in.copy()
     nonnull_keys = [
         _create_parameterized_query(therapy, ("id", "label", "conceptType"))
     ]
@@ -239,12 +248,6 @@ def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
     if state:
         v["state"] = json.dumps(state)
         v_keys.append("v.state=$state")
-
-    for ext in v.get("extensions") or []:
-        key = ext["name"]
-        if key == "mane_genes":
-            v[key] = json.dumps(ext["value"])
-            v_keys.append(f"v.{key}=${key}")
 
     v_keys = ", ".join(v_keys)
 
@@ -436,23 +439,19 @@ def _add_statement(tx: ManagedTransaction, statement_in: dict) -> None:
     match_line += f"MERGE (m {{ id: '{method_id}' }})\n"
     rel_line += "MERGE (s) -[:IS_SPECIFIED_BY] -> (m)\n"
 
-    coding = statement.get("strength")
-    if coding:
-        coding["url"] = next(
-            ext["value"] for ext in coding["extensions"] if ext["name"] == "url"
-        )
+    strength = statement.get("strength")
+    if strength:
+        strength_key_fields = ("primaryCode", "label")
 
-        coding_key_fields = ("primaryCode", "label", "url")
-
-        coding_keys = _create_parameterized_query(
-            coding, coding_key_fields, entity_param_prefix="coding_"
+        strength_keys = _create_parameterized_query(
+            strength, strength_key_fields, entity_param_prefix="coding_"
         )
-        for k in coding_key_fields:
-            v = coding.get(k)
+        for k in strength_key_fields:
+            v = strength.get(k)
             if v:
                 statement[f"coding_{k}"] = v
 
-        match_line += f"MERGE (c:Coding {{ {coding_keys} }})\n"
+        match_line += f"MERGE (c:Coding {{ {strength_keys} }})\n"
         rel_line += "MERGE (s) -[:HAS_STRENGTH] -> (c)\n"
 
     variant_id = proposition["subjectVariant"]["id"]
@@ -485,8 +484,7 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
     """Add set of data formatted per Common Data Model to DB.
 
     :param data: contains key/value pairs for data objects to add to DB, including
-        statements, variation, therapeutic procedures, conditions, genes, methods,
-        documents, etc.
+        statements, variation, therapies, conditions, genes, methods, documents, etc.
     """
     # Used to keep track of IDs that are in statements. This is used to prevent adding
     # nodes that aren't associated to statements
@@ -524,8 +522,8 @@ def load_from_json(src_transformed_cdm: Path, driver: Driver | None = None) -> N
     """Load evidence into DB from given CDM JSON file.
 
     :param src_transformed_cdm: path to file for a source's transformed data to
-        common data model containing statements, variation, therapeutic procedures,
-        conditions, genes, methods, documents, etc.
+        common data model containing statements, variation, therapies, conditions,
+        genes, methods, documents, etc.
     :param driver: Neo4j graph driver, if available
     """
     _logger.info("Loading data from %s", src_transformed_cdm)

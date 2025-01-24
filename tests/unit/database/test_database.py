@@ -190,7 +190,7 @@ def check_node_props():
             extension_names = set()
         assert node.keys() == expected_keys
         for k in expected_keys - extension_names:
-            if k == "mappings":
+            if k == "mappings" or (k == "subtype" and isinstance(fixture[k], dict)):
                 assert json.loads(node[k]) == fixture[k]
             elif isinstance(fixture[k], list):
                 assert set(node[k]) == set(fixture[k])
@@ -368,7 +368,7 @@ def test_categorical_variant_rules(
 
     variant_types = json.loads(cv["variant_types"])
     for vt in variant_types:
-        assert set(vt.keys()) == {"label", "system", "code"}
+        assert set(vt.keys()) == {"id", "label", "system", "code"}
 
 
 def test_location_rules(
@@ -405,7 +405,7 @@ def test_location_rules(
     assert loc["digest"] == loc_digest
 
 
-def test_therapeutic_procedure_rules(
+def test_therapy_rules(
     check_unique_property,
     check_relation_count,
     check_node_labels,
@@ -416,12 +416,12 @@ def test_therapeutic_procedure_rules(
     civic_ct,
     civic_tsg,
 ):
-    """Verify property and relationship rules for Therapeutic Procedure nodes."""
-    check_unique_property("TherapeuticProcedure", "id")
+    """Verify property and relationship rules for Therapy nodes."""
+    check_unique_property("Therapy", "id")
     # min_rels is 0 because Therapy may not be attached to statement directly,
     # but through CombinationTherapy and TherapeuticSubstituteGroup
     check_relation_count(
-        "TherapeuticProcedure",
+        "Therapy",
         "Statement",
         "HAS_THERAPEUTIC",
         min_rels=0,
@@ -546,9 +546,7 @@ def test_statement_rules(
 
     check_relation_count("Statement", "CategoricalVariant", "HAS_VARIANT")
     check_relation_count("Statement", "Condition", "HAS_TUMOR_TYPE")
-    check_relation_count(
-        "Statement", "TherapeuticProcedure", "HAS_THERAPEUTIC", min_rels=0
-    )
+    check_relation_count("Statement", "Therapy", "HAS_THERAPEUTIC", min_rels=0)
     check_relation_count("Statement", "Coding", "HAS_STRENGTH")
     check_relation_count("Statement", "Method", "IS_SPECIFIED_BY", max_rels=None)
     check_relation_count("Statement", "Gene", "HAS_GENE_CONTEXT", max_rels=None)
@@ -658,7 +656,7 @@ def test_method_rules(
     check_node_labels("Method", expected_node_labels, 1)
 
     method = get_node_by_id(civic_method["id"])
-    expected_keys = {"id", "label"}
+    expected_keys = {"id", "label", "subtype"}
     check_node_props(method, civic_method, expected_keys)
 
 

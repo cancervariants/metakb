@@ -14,19 +14,19 @@ from ga4gh.core.models import (
     MappableConcept,
     Relation,
 )
-from ga4gh.va_spec.aac_2017.models import (
-    VariantPrognosticProposition,
+from ga4gh.va_spec.aac_2017 import (
     VariantPrognosticStudyStatement,
-    VariantTherapeuticResponseProposition,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base.core import (
+from ga4gh.va_spec.base import (
     Direction,
     Document,
     PrognosticPredicate,
     TherapeuticResponsePredicate,
+    TherapyGroup,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
 )
-from ga4gh.va_spec.base.domain_entities import TherapyGroup
 from ga4gh.vrs.models import Variation
 
 from metakb import APP_ROOT
@@ -291,6 +291,7 @@ class MoaTransformer(Transformer):
             mappings = [
                 ConceptMapping(
                     coding=Coding(
+                        id=moa_variant_id,
                         code=str(variant_id),
                         system="https://moalmanac.org",
                     ),
@@ -349,6 +350,9 @@ class MoaTransformer(Transformer):
 
             if vrs_genomic_variation:
                 genomic_params = vrs_genomic_variation.model_dump(exclude_none=True)
+                genomic_params["extensions"] = (
+                    None  # Don't care about capturing extensions for now
+                )
                 genomic_params["label"] = gnomad_vcf
                 members = [Variation(**genomic_params)]
             else:
@@ -407,7 +411,7 @@ class MoaTransformer(Transformer):
                     ConceptMapping(
                         coding=Coding(
                             code=source["nct"],
-                            system="https://clinicaltrials.gov",
+                            system="https://clinicaltrials.gov/search?term=",
                         ),
                         relation=Relation.EXACT_MATCH,
                     )
@@ -598,8 +602,9 @@ class MoaTransformer(Transformer):
             mappings.append(
                 ConceptMapping(
                     coding=Coding(
+                        id=f"oncotree:{ot_code}",
                         code=ot_code,
-                        system="https://oncotree.mskcc.org",
+                        system="https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
                         label=ot_term,
                     ),
                     relation=Relation.EXACT_MATCH,
