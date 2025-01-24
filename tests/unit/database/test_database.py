@@ -547,7 +547,7 @@ def test_statement_rules(
     check_relation_count("Statement", "CategoricalVariant", "HAS_VARIANT")
     check_relation_count("Statement", "Condition", "HAS_TUMOR_TYPE")
     check_relation_count("Statement", "Therapy", "HAS_THERAPEUTIC", min_rels=0)
-    check_relation_count("Statement", "Coding", "HAS_STRENGTH")
+    check_relation_count("Statement", "MappableConcept", "HAS_STRENGTH")
     check_relation_count("Statement", "Method", "IS_SPECIFIED_BY", max_rels=None)
     check_relation_count("Statement", "Gene", "HAS_GENE_CONTEXT", max_rels=None)
 
