@@ -444,12 +444,12 @@ def _add_statement(tx: ManagedTransaction, statement_in: dict) -> None:
         strength_key_fields = ("primaryCode", "label")
 
         strength_keys = _create_parameterized_query(
-            strength, strength_key_fields, entity_param_prefix="coding_"
+            strength, strength_key_fields, entity_param_prefix="strength_"
         )
         for k in strength_key_fields:
             v = strength.get(k)
             if v:
-                statement[f"coding_{k}"] = v
+                statement[f"strength_{k}"] = v
 
         match_line += f"MERGE (mc:MappableConcept {{ {strength_keys} }})\n"
         rel_line += "MERGE (s) -[:HAS_STRENGTH] -> (mc)\n"
