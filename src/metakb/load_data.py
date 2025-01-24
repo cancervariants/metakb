@@ -451,8 +451,8 @@ def _add_statement(tx: ManagedTransaction, statement_in: dict) -> None:
             if v:
                 statement[f"coding_{k}"] = v
 
-        match_line += f"MERGE (c:Coding {{ {strength_keys} }})\n"
-        rel_line += "MERGE (s) -[:HAS_STRENGTH] -> (c)\n"
+        match_line += f"MERGE (mc:MappableConcept {{ {strength_keys} }})\n"
+        rel_line += "MERGE (s) -[:HAS_STRENGTH] -> (mc)\n"
 
     variant_id = proposition["subjectVariant"]["id"]
     match_line += f"MERGE (v:Variation {{ id: '{variant_id}' }})\n"
