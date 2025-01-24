@@ -25,7 +25,7 @@ license = {file = "LICENSE"}
 dependencies = [
     "ga4gh.vrs==2.0.0a13",
     "ga4gh.cat_vrs~=0.2.1",
-    #"ga4gh.va_spec~=0.1.0",
+    "ga4gh.va_spec @ git+https://github.com/ga4gh/va-spec-python.git@issue-10",
     "gene-normalizer[etl]~=0.6.0",
     "variation-normalizer~=0.12.0",
     "disease-normalizer[etl]~=0.7.0",
