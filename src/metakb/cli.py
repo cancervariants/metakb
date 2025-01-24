@@ -578,9 +578,7 @@ def _current_date_string() -> str:
 
     :return: YYYYMMDD string
     """
-    return datetime.datetime.strftime(
-        datetime.datetime.now(tz=datetime.timezone.utc), DATE_FMT
-    )
+    return datetime.datetime.strftime(datetime.datetime.now(tz=datetime.UTC), DATE_FMT)
 
 
 def _harvest_sources(

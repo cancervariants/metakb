@@ -68,7 +68,7 @@ class Harvester(ABC):
             harvester_dir = APP_ROOT / "data" / src_name / "harvester"
             harvester_dir.mkdir(exist_ok=True, parents=True)
             today = datetime.datetime.strftime(
-                datetime.datetime.now(tz=datetime.timezone.utc), DATE_FMT
+                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
             )
             harvested_filepath = harvester_dir / f"{src_name}_harvester_{today}.json"
 
