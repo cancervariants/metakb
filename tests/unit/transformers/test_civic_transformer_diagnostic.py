@@ -110,7 +110,7 @@ def civic_mpid99():
             {
                 "coding": {
                     "code": "CA123194",
-                    "system": "https://reg.clinicalgenome.org/",
+                    "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
                 },
                 "relation": "relatedMatch",
             },
@@ -129,7 +129,11 @@ def civic_mpid99():
                 "relation": "relatedMatch",
             },
             {
-                "coding": {"code": "99", "system": "https://civicdb.org/variants/"},
+                "coding": {
+                    "id": "civic.vid:99",
+                    "code": "99",
+                    "system": "https://civicdb.org/variants/",
+                },
                 "relation": "exactMatch",
             },
         ],
@@ -157,6 +161,7 @@ def civic_mpid99():
                 "name": "Variant types",
                 "value": [
                     {
+                        "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
@@ -177,7 +182,8 @@ def civic_gid38():
         "mappings": [
             {
                 "coding": {
-                    "code": "ncbigene:5156",
+                    "id": "ncbigene:5156",
+                    "code": "5156",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
@@ -210,8 +216,9 @@ def civic_did2():
         "mappings": [
             {
                 "coding": {
+                    "id": "DOID:9253",
                     "code": "DOID:9253",
-                    "system": "http://purl.obolibrary.org/obo/doid.owl",
+                    "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
             }
@@ -345,7 +352,7 @@ def civic_mpid113():
             {
                 "coding": {
                     "code": "CA009082",
-                    "system": "https://reg.clinicalgenome.org/",
+                    "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
                 },
                 "relation": "relatedMatch",
             },
@@ -364,7 +371,11 @@ def civic_mpid113():
                 "relation": "relatedMatch",
             },
             {
-                "coding": {"code": "113", "system": "https://civicdb.org/variants/"},
+                "coding": {
+                    "id": "civic.vid:113",
+                    "code": "113",
+                    "system": "https://civicdb.org/variants/",
+                },
                 "relation": "exactMatch",
             },
         ],
@@ -392,6 +403,7 @@ def civic_mpid113():
                 "name": "Variant types",
                 "value": [
                     {
+                        "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
@@ -412,7 +424,8 @@ def civic_gid42():
         "mappings": [
             {
                 "coding": {
-                    "code": "ncbigene:5979",
+                    "id": "ncbigene:5979",
+                    "code": "5979",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
@@ -455,8 +468,9 @@ def civic_did15():
         "mappings": [
             {
                 "coding": {
+                    "id": "DOID:3973",
                     "code": "DOID:3973",
-                    "system": "http://purl.obolibrary.org/obo/doid.owl",
+                    "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
             }

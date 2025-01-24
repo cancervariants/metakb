@@ -368,7 +368,7 @@ def test_categorical_variant_rules(
 
     variant_types = json.loads(cv["variant_types"])
     for vt in variant_types:
-        assert set(vt.keys()) == {"label", "system", "code"}
+        assert set(vt.keys()) == {"id", "label", "system", "code"}
 
 
 def test_location_rules(

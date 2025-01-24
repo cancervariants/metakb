@@ -587,6 +587,7 @@ class CivicTransformer(Transformer):
             # Get variant types
             variant_types_value = [
                 Coding(
+                    id=vt["so_id"],
                     code=vt["so_id"],
                     system=f"{vt['url'].rsplit('/', 1)[0]}/",
                     label="_".join(vt["name"].lower().split()),
@@ -598,6 +599,7 @@ class CivicTransformer(Transformer):
             mappings = [
                 ConceptMapping(
                     coding=Coding(
+                        id=variant_id,
                         code=str(variant["id"]),
                         system="https://civicdb.org/variants/",
                     ),
@@ -610,7 +612,7 @@ class CivicTransformer(Transformer):
                     ConceptMapping(
                         coding=Coding(
                             code=variant["allele_registry_id"],
-                            system="https://reg.clinicalgenome.org/",
+                            system="https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
                         ),
                         relation=Relation.RELATED_MATCH,
                     )
@@ -716,7 +718,8 @@ class CivicTransformer(Transformer):
                     mappings=[
                         ConceptMapping(
                             coding=Coding(
-                                code=f"ncbigene:{gene['entrez_id']}",
+                                id=ncbigene,
+                                code=str(gene["entrez_id"]),
                                 system="https://www.ncbi.nlm.nih.gov/gene/",
                             ),
                             relation=Relation.EXACT_MATCH,
@@ -777,8 +780,9 @@ class CivicTransformer(Transformer):
             mappings.append(
                 ConceptMapping(
                     coding=Coding(
+                        id=doid,
                         code=doid,
-                        system="http://purl.obolibrary.org/obo/doid.owl",
+                        system="https://disease-ontology.org/?id=",
                     ),
                     relation=Relation.EXACT_MATCH,
                 )
@@ -877,8 +881,9 @@ class CivicTransformer(Transformer):
             mappings.append(
                 ConceptMapping(
                     coding=Coding(
-                        code=ncit_id,
-                        system="http://purl.obolibrary.org/obo/ncit.owl",
+                        id=ncit_id,
+                        code=ncit_id.split(":")[-1],
+                        system="https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                     ),
                     relation=Relation.EXACT_MATCH,
                 )

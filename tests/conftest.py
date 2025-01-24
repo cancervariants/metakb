@@ -255,7 +255,7 @@ def civic_mpid33(civic_vid33):
             {
                 "coding": {
                     "code": "CA126713",
-                    "system": "https://reg.clinicalgenome.org/",
+                    "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
                 },
                 "relation": "relatedMatch",
             },
@@ -288,7 +288,11 @@ def civic_mpid33(civic_vid33):
                 "relation": "relatedMatch",
             },
             {
-                "coding": {"code": "33", "system": "https://civicdb.org/variants/"},
+                "coding": {
+                    "id": "civic.vid:33",
+                    "code": "33",
+                    "system": "https://civicdb.org/variants/",
+                },
                 "relation": "exactMatch",
             },
         ],
@@ -316,6 +320,7 @@ def civic_mpid33(civic_vid33):
                 "name": "Variant types",
                 "value": [
                     {
+                        "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
@@ -381,7 +386,8 @@ def civic_gid5():
         "mappings": [
             {
                 "coding": {
-                    "code": "ncbigene:673",
+                    "id": "ncbigene:673",
+                    "code": "673",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
@@ -504,7 +510,7 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
             {
                 "coding": {
                     "code": "CA123643",
-                    "system": "https://reg.clinicalgenome.org/",
+                    "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
                 },
                 "relation": "relatedMatch",
             },
@@ -530,7 +536,11 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
                 "relation": "relatedMatch",
             },
             {
-                "coding": {"code": "12", "system": "https://civicdb.org/variants/"},
+                "coding": {
+                    "id": "civic.vid:12",
+                    "code": "12",
+                    "system": "https://civicdb.org/variants/",
+                },
                 "relation": "exactMatch",
             },
         ],
@@ -558,6 +568,7 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
                 "name": "Variant types",
                 "value": [
                     {
+                        "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
@@ -605,7 +616,8 @@ def civic_gid19():
         "mappings": [
             {
                 "coding": {
-                    "code": "ncbigene:1956",
+                    "id": "ncbigene:1956",
+                    "code": "1956",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
@@ -647,8 +659,9 @@ def civic_tid146():
         "mappings": [
             {
                 "coding": {
-                    "code": "ncit:C66940",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C66940",
+                    "code": "C66940",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
             }
@@ -710,8 +723,9 @@ def civic_did8():
         "mappings": [
             {
                 "coding": {
+                    "id": "DOID:3908",
                     "code": "DOID:3908",
-                    "system": "http://purl.obolibrary.org/obo/doid.owl",
+                    "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
             }
@@ -750,8 +764,9 @@ def civic_tid28():
         "mappings": [
             {
                 "coding": {
-                    "code": "ncit:C1857",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C1857",
+                    "code": "C1857",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
             }
@@ -829,8 +844,9 @@ def civic_tid16(cetuximab_extensions):
         "mappings": [
             {
                 "coding": {
-                    "code": "ncit:C1723",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C1723",
+                    "code": "C1723",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
             }
@@ -880,8 +896,9 @@ def civic_tid483(encorafenib_extensions):
         "mappings": [
             {
                 "coding": {
-                    "code": "ncit:C98283",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C98283",
+                    "code": "C98283",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
             }
@@ -919,8 +936,9 @@ def civic_did11():
         "mappings": [
             {
                 "coding": {
+                    "id": "DOID:9256",
                     "code": "DOID:9256",
-                    "system": "http://purl.obolibrary.org/obo/doid.owl",
+                    "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
             }
@@ -1217,7 +1235,7 @@ def civic_mpid65(civic_vid65):
             {
                 "coding": {
                     "code": "CA123513",
-                    "system": "https://reg.clinicalgenome.org/",
+                    "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
                 },
                 "relation": "relatedMatch",
             },
@@ -1236,7 +1254,11 @@ def civic_mpid65(civic_vid65):
                 "relation": "relatedMatch",
             },
             {
-                "coding": {"code": "65", "system": "https://civicdb.org/variants/"},
+                "coding": {
+                    "id": "civic.vid:65",
+                    "code": "65",
+                    "system": "https://civicdb.org/variants/",
+                },
                 "relation": "exactMatch",
             },
         ],
@@ -1264,6 +1286,7 @@ def civic_mpid65(civic_vid65):
                 "name": "Variant types",
                 "value": [
                     {
+                        "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
@@ -1294,7 +1317,8 @@ def civic_did3():
         "mappings": [
             {
                 "coding": {
-                    "system": "http://purl.obolibrary.org/obo/doid.owl",
+                    "id": "DOID:9119",
+                    "system": "https://disease-ontology.org/?id=",
                     "code": "DOID:9119",
                 },
                 "relation": "exactMatch",
@@ -1328,7 +1352,8 @@ def civic_gid29():
             {
                 "coding": {
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
-                    "code": "ncbigene:3815",
+                    "id": "ncbigene:3815",
+                    "code": "3815",
                 },
                 "relation": "exactMatch",
             }
@@ -1472,6 +1497,7 @@ def moa_vid66():
         "mappings": [
             {
                 "coding": {
+                    "id": "moa.variant:66",
                     "system": "https://moalmanac.org",
                     "code": "66",
                 },
@@ -1654,8 +1680,9 @@ def moa_chronic_myelogenous_leukemia():
         "mappings": [
             {
                 "coding": {
+                    "id": "oncotree:CML",
                     "label": "Chronic Myelogenous Leukemia",
-                    "system": "https://oncotree.mskcc.org",
+                    "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
                     "code": "CML",
                 },
                 "relation": "exactMatch",

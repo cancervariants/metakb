@@ -98,6 +98,7 @@ def moa_vid141():
         "mappings": [
             {
                 "coding": {
+                    "id": "moa.variant:141",
                     "system": "https://moalmanac.org",
                     "code": "141",
                 },
@@ -128,8 +129,9 @@ def moa_myelodysplasia():
             {
                 "coding": {
                     "label": "Myelodysplasia",
-                    "system": "https://oncotree.mskcc.org",
+                    "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
                     "code": "MDS",
+                    "id": "oncotree:MDS",
                 },
                 "relation": "exactMatch",
             }
@@ -263,6 +265,7 @@ def moa_vid532():
         "mappings": [
             {
                 "coding": {
+                    "id": "moa.variant:532",
                     "system": "https://moalmanac.org",
                     "code": "532",
                 },
