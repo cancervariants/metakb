@@ -340,10 +340,8 @@ class CivicTransformer(Transformer):
                     return
 
             evidence_lines = []
-            evidence_ids = []
             for eid in record["evidence_ids"]:
                 civic_eid = f"civic.eid:{eid}"
-                evidence_ids.append(civic_eid)
                 evidence_item = self._evidence_cache.get(civic_eid)
                 if evidence_item:
                     evidence_lines.append(
@@ -411,6 +409,7 @@ class CivicTransformer(Transformer):
         mappings = [
             ConceptMapping(
                 coding=Coding(
+                    id=statement_id,
                     code=str(record["id"]),
                     system="https://civicdb.org/evidence/"
                     if is_evidence
@@ -456,7 +455,9 @@ class CivicTransformer(Transformer):
 
         if is_evidence:
             self._evidence_cache[statement_id] = statement
-        self.processed_data.statements.append(statement)
+            self.processed_data.statements_evidence.append(statement)
+        else:
+            self.processed_data.statements_assertions.append(statement)
 
     @staticmethod
     def _get_classification(amp_level: str) -> MappableConcept | None:

@@ -120,6 +120,18 @@ async def test_civic9851(query_handler, civic_eid9851_study_stmt, assertion_chec
 
 
 @pytest.mark.asyncio(scope="module")
+async def test_civic_assertion(query_handler, civic_aid6_statement, assertion_checks):
+    """Test that search_statements method works correctly for civic assertions"""
+    resp = await query_handler.search_statements(
+        statement_id=civic_aid6_statement["id"]
+    )
+    assert resp.statement_ids == [civic_aid6_statement["id"]]
+    resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
+    assertion_checks(resp_stmts, [civic_aid6_statement])
+    assert resp.warnings == []
+
+
+@pytest.mark.asyncio(scope="module")
 async def test_moa_66(query_handler, moa_aid66_study_stmt, assertion_checks):
     """Test that search_statements method works correctly for MOA Assertion 66"""
     resp = await query_handler.search_statements(

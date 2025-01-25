@@ -540,6 +540,7 @@ def test_statement_rules(
     get_node_by_id,
     civic_eid2997_study_stmt,
     check_node_props,
+    civic_aid6_statement,
 ):
     """Verify property and relationship rules for Statement nodes."""
     check_unique_property("Statement", "id")
@@ -547,20 +548,48 @@ def test_statement_rules(
     check_relation_count("Statement", "CategoricalVariant", "HAS_VARIANT")
     check_relation_count("Statement", "Condition", "HAS_TUMOR_TYPE")
     check_relation_count("Statement", "Therapy", "HAS_THERAPEUTIC", min_rels=0)
-    check_relation_count("Statement", "MappableConcept", "HAS_STRENGTH")
+    check_relation_count("Statement", "MappableConcept", "HAS_STRENGTH", min_rels=0)
     check_relation_count("Statement", "Method", "IS_SPECIFIED_BY", max_rels=None)
     check_relation_count("Statement", "Gene", "HAS_GENE_CONTEXT", max_rels=None)
+    check_relation_count(
+        "Statement", "Classification", "HAS_CLASSIFICATION", min_rels=0, max_rels=1
+    )
 
     expected_node_labels = [
         {"Statement", "StudyStatement"},
     ]
     check_node_labels("Statement", expected_node_labels, 1)
 
+    # Evidence items should have documents
     cite_query = """
     MATCH (s:Statement)
     OPTIONAL MATCH (s)-[:IS_REPORTED_IN]->(d:Document)
     WITH s, COUNT(d) as d_count
-    WHERE d_count < 1
+    WHERE d_count < 1 AND NOT s.id STARTS WITH 'civic.aid:'
+    RETURN COUNT(s)
+    """
+    with driver.session() as s:
+        record = s.run(cite_query).single()
+    assert record.values()[0] == 0
+
+    # Assertions should NOT have documents (right now we only have civic assertions)
+    cite_query = """
+    MATCH (s:Statement)
+    OPTIONAL MATCH (s)-[:IS_REPORTED_IN]->(d:Document)
+    WITH s, COUNT(d) as d_count
+    WHERE d_count > 1 AND s.id STARTS WITH 'civic.aid:'
+    RETURN COUNT(s)
+    """
+    with driver.session() as s:
+        record = s.run(cite_query).single()
+    assert record.values()[0] == 0
+
+    # Assertions must have evidence lines (right now we only have civic assertions)
+    cite_query = """
+    MATCH (s:Statement)
+    OPTIONAL MATCH (s)-[:HAS_EVIDENCE_LINE]->(el:EvidenceLine)
+    WITH s, COUNT(el) as el_count
+    WHERE el_count < 1 AND s.id STARTS WITH 'civic.aid:'
     RETURN COUNT(s)
     """
     with driver.session() as s:
@@ -582,8 +611,69 @@ def test_statement_rules(
         "alleleOriginQualifier"
     ]["label"]
     civic_eid2997_ss_cp["predicate"] = civic_eid2997_ss_cp["proposition"]["predicate"]
-    civic_eid2997_ss_cp["propositionType"] = "VariantTherapeuticResponseProposition"
+    civic_eid2997_ss_cp["propositionType"] = civic_eid2997_ss_cp["proposition"]["type"]
     check_node_props(statement, civic_eid2997_ss_cp, expected_keys)
+
+    # Check CIViC assertion
+    statement = get_node_by_id(civic_aid6_statement["id"])
+    expected_keys = {
+        "id",
+        "description",
+        "direction",
+        "predicate",
+        "alleleOriginQualifier",
+        "type",
+        "propositionType",
+    }
+    civic_aid6_ss_cp = civic_aid6_statement.copy()
+    civic_aid6_ss_cp["alleleOriginQualifier"] = civic_aid6_ss_cp["proposition"][
+        "alleleOriginQualifier"
+    ]["label"]
+    civic_aid6_ss_cp["predicate"] = civic_aid6_ss_cp["proposition"]["predicate"]
+    civic_aid6_ss_cp["propositionType"] = civic_aid6_ss_cp["proposition"]["type"]
+    check_node_props(statement, civic_aid6_ss_cp, expected_keys)
+
+
+def test_classification_rules(
+    driver: Driver, check_unique_property, check_relation_count, civic_aid6_statement
+):
+    """Verify property and relationship rules for Classification nodes."""
+    check_unique_property("Classification", "primaryCode")
+
+    check_relation_count(
+        "Classification",
+        "Statement",
+        "HAS_CLASSIFICATION",
+        min_rels=0,
+        max_rels=None,
+        direction="in",
+    )
+
+    classification_primary_code = civic_aid6_statement["classification"]["primaryCode"]
+    query = f"""
+    MATCH (c:Classification {{primaryCode: '{classification_primary_code}'}})
+    RETURN c
+    """
+    result = driver.execute_query(query)
+    assert len(result.records) == 1
+    classification_node = result.records[0].data()["c"]
+    assert classification_node == {
+        "primaryCode": classification_primary_code,
+        "civic_amp_level": civic_aid6_statement["classification"]["extensions"][0][
+            "value"
+        ],
+    }
+
+
+def test_evidence_line_rules(
+    check_unique_property,
+    check_relation_count,
+):
+    """Verify property and relationship rules for EvidenceLine nodes."""
+    check_unique_property("EvidenceLine", "id")
+    check_relation_count(
+        "EvidenceLine", "Statement", "HAS_EVIDENCE_ITEM", min_rels=0, direction="in"
+    )
 
 
 def test_document_rules(

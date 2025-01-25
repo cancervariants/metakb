@@ -200,7 +200,7 @@ class MoaTransformer(Transformer):
             stmt_params["proposition"] = VariantPrognosticProposition(**prop_params)
             statement = VariantPrognosticStudyStatement(**stmt_params)
 
-        self.processed_data.statements.append(statement)
+        self.processed_data.statements_evidence.append(statement)
 
     async def _add_categorical_variants(self, variants: list[dict]) -> None:
         """Create Categorical Variant objects for all MOA variant records.
