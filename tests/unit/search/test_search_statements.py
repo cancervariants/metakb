@@ -127,6 +127,27 @@ async def test_civic_assertion(query_handler, civic_aid6_statement, assertion_ch
     )
     assert resp.statement_ids == [civic_aid6_statement["id"]]
     resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
+    assert len(resp_stmts) == 1
+    # Test fixture only has one evidence line, but actual has 6
+    actual_civic_aid6 = resp_stmts[0]
+    assert len(actual_civic_aid6["hasEvidenceLines"]) == 6
+    expected_evidence_lines = []
+    expected_evidence_item_ids = {
+        "civic.eid:982",
+        "civic.eid:2997",
+        "civic.eid:879",
+        "civic.eid:883",
+        "civic.eid:968",
+        "civic.eid:2629",
+    }
+    for el in actual_civic_aid6["hasEvidenceLines"]:
+        for ev in el["hasEvidenceItems"]:
+            assert ev["id"] in expected_evidence_item_ids
+
+            if ev["id"] == "civic.eid:2997":
+                expected_evidence_lines.append(el)
+
+    actual_civic_aid6["hasEvidenceLines"] = expected_evidence_lines
     assertion_checks(resp_stmts, [civic_aid6_statement])
     assert resp.warnings == []
 
