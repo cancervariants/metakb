@@ -1818,7 +1818,11 @@ def check_transformed_cdm(assertion_checks):
 
     def check_transformed_cdm(data, statements, transformed_file):
         """Test that transform to CDM works correctly."""
-        assertion_checks(data["statements"], statements, is_cdm=True)
+        assertion_checks(
+            data["statements_evidence"] + data["statements_assertions"],
+            statements,
+            is_cdm=True,
+        )
         transformed_file.unlink()
 
     return check_transformed_cdm
