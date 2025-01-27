@@ -1,25 +1,11 @@
 """Test search statement methods"""
 
 import pytest
-from ga4gh.core.models import MappableConcept
+from tests.conftest import get_mappings_normalizer_id
 
 from metakb.query import QueryHandler
 
 from .utils import assert_no_match, find_and_check_stmt
-
-
-def _get_normalizer_id(mappings: list[MappableConcept]) -> str | None:
-    """Get normalized ID from list of extensions
-
-    :param mappings: List of mappable concepts
-    :return: Normalized concept ID if found in extensions
-    """
-    normalizer_id = None
-    for mapping in mappings:
-        if mapping.extensions == "from_vicc_normalizer":
-            normalizer_id = mapping.code.root
-            break
-    return normalizer_id
 
 
 def assert_general_search_stmts(response):
@@ -216,11 +202,14 @@ async def test_general_search_statements(query_handler):
         tp = statement.proposition.objectTherapeutic.root
 
         if hasattr(tp, "conceptType"):
-            assert _get_normalizer_id(tp.mappings) == expected_therapy_id
+            assert get_mappings_normalizer_id(tp.mappings) == expected_therapy_id
         else:
             found_expected = False
             for therapeutic in tp.therapies:
-                if _get_normalizer_id(therapeutic.mappings) == expected_therapy_id:
+                if (
+                    get_mappings_normalizer_id(therapeutic.mappings)
+                    == expected_therapy_id
+                ):
                     found_expected = True
                     break
             assert found_expected
@@ -245,11 +234,15 @@ async def test_general_search_statements(query_handler):
             == expected_variation_id
         )
         assert (
-            _get_normalizer_id(statement.proposition.objectTherapeutic.root.extensions)
+            get_mappings_normalizer_id(
+                statement.proposition.objectTherapeutic.root.mappings
+            )
             == expected_therapy_id
         )
         assert (
-            _get_normalizer_id(statement.proposition.conditionQualifier.root.extensions)
+            get_mappings_normalizer_id(
+                statement.proposition.conditionQualifier.root.mappings
+            )
             == expected_disease_id
         )
 

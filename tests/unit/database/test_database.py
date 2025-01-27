@@ -5,10 +5,10 @@ import json
 import pytest
 from neo4j import Driver
 from neo4j.graph import Node
+from tests.conftest import get_mappings_normalizer_id
 
 from metakb.database import get_driver
 from metakb.schemas.app import SourceName
-from metakb.transformers.base import NORMALIZER_PRIORITY_EXT_NAME
 
 
 @pytest.fixture(scope="module")
@@ -184,11 +184,8 @@ def check_node_props():
             if k == "mappings" or (k == "subtype" and isinstance(fixture[k], dict)):
                 assert json.loads(node[k]) == fixture[k]
             elif k == "normalizer_id":
-                for mapping in fixture["mappings"]:
-                    extensions = mapping.get("extensions") or []
-                    for ext in extensions:
-                        if ext["name"] == NORMALIZER_PRIORITY_EXT_NAME and ext["value"]:
-                            assert node[k] == mapping["coding"]["code"]
+                normalizer_id = get_mappings_normalizer_id(fixture["mappings"])
+                assert node[k] == normalizer_id
             elif isinstance(fixture[k], list):
                 assert set(node[k]) == set(fixture[k])
             else:

@@ -6,10 +6,12 @@ from pathlib import Path
 
 import pytest
 from deepdiff import DeepDiff
+from ga4gh.core.models import ConceptMapping
 
 from metakb.harvesters.base import Harvester
 from metakb.normalizers import ViccNormalizers
 from metakb.query import QueryHandler
+from metakb.transformers.base import NORMALIZER_PRIORITY_EXT_NAME
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
 TEST_HARVESTERS_DIR = TEST_DATA_DIR / "harvesters"
@@ -62,6 +64,24 @@ def check_source_harvest(tmp_path: Path, harvester: Harvester):
 def get_vicc_normalizer_ext(is_priority: bool):
     """Create test fixture for vicc normalizer priority extension"""
     return [{"name": "vicc_normalizer_priority", "value": is_priority}]
+
+
+def get_mappings_normalizer_id(mappings: list[dict | ConceptMapping]) -> str | None:
+    """Get normalizer ID from list of concept mappings
+
+    :param mappings: List of concept mappings
+    :return: Normalizer ID
+    """
+    normalizer_id = None
+    for mapping in mappings:
+        if isinstance(mapping, ConceptMapping):
+            mapping = mapping.model_dump()
+        extensions = mapping.get("extensions") or []
+        for ext in extensions:
+            if ext["name"] == NORMALIZER_PRIORITY_EXT_NAME and ext["value"]:
+                normalizer_id = mapping["coding"]["code"]
+                break
+    return normalizer_id
 
 
 @pytest.fixture(scope="session")
