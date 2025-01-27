@@ -546,8 +546,8 @@ async def update(
         ``False``.
     :param sources: source name(s) to update. If empty, update all sources.
     """  # noqa: D301
-    #_harvest_sources(sources, refresh_source_caches)
-    #await _transform_sources(sources, None, normalizer_db_url)
+    _harvest_sources(sources, refresh_source_caches)
+    await _transform_sources(sources, None, normalizer_db_url)
 
     start = timer()
     _echo_info("Loading Neo4j database...")
