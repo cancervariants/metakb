@@ -41,9 +41,6 @@ from therapy.schemas import NormalizationService as NormalizedTherapy
 from metakb import APP_ROOT, DATE_FMT
 from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import (
-    ViccDiseaseNormalizerData,
-    ViccNormalizerData,
-    ViccNormalizerDataExtension,
     ViccNormalizers,
 )
 from metakb.schemas.app import SourceName
@@ -56,6 +53,9 @@ NORMALIZER_INSTANCE_TO_ATTR = {
     NormalizedTherapy: "therapy",
     NormalizedGene: "gene",
 }
+
+# Normalizer priority extension name
+NORMALIZER_PRIORITY_EXT_NAME = "vicc_normalizer_priority"
 
 
 class EcoLevel(str, Enum):
@@ -526,34 +526,73 @@ class Transformer(ABC):
         return therapy
 
     @staticmethod
-    def _get_vicc_normalizer_extension(
+    def _get_vicc_normalizer_mappings(
         normalized_id: str,
         normalizer_resp: NormalizedDisease | NormalizedTherapy | NormalizedGene,
-    ) -> ViccNormalizerDataExtension:
-        """Get VICC Normalizer extension data
+    ) -> list[ConceptMapping]:
+        """Get VICC Normalizer mappable concept
 
         :param normalized_id: Normalized ID from VICC normalizer
         :param normalizer_resp: Response from VICC normalizer
-        :return: VICC Normalizer extension data
+        :return: List of VICC Normalizer data represented as mappable concept
         """
+
+        def _add_merged_id_ext(
+            mapping: ConceptMapping,
+            is_priority: bool,
+            label: str | None = None,
+        ) -> Extension:
+            """Update ``mapping`` to include extension on whether mapping is from merged identifier
+
+            :param mapping: ConceptMapping from vicc normalizer. This will be mutated.
+            :param is_priority: ``True`` if concept mapping contains primaryCode that
+                matches merged record primaryCode. ``False`` otherwise (meaning it comes
+                from merged record mappings)
+            :param label: Merged concept label, if found
+            :return: ConceptMapping with normalizer extension added
+            """
+            merged_id_ext = Extension(
+                name=NORMALIZER_PRIORITY_EXT_NAME, value=is_priority
+            )
+            if mapping.extensions:
+                mapping.extensions.append(merged_id_ext)
+            else:
+                mapping.extensions = [merged_id_ext]
+
+            if label:
+                mapping.coding.label = label
+
+            return mapping
+
+        mappings: list[ConceptMapping] = []
         attr_name = NORMALIZER_INSTANCE_TO_ATTR[type(normalizer_resp)]
         normalizer_resp_obj = getattr(normalizer_resp, attr_name)
-
-        params = {"id": normalized_id, "label": normalizer_resp_obj.label}
-
+        normalizer_mappings = normalizer_resp_obj.mappings or []
         if isinstance(normalizer_resp, NormalizedDisease):
-            mappings = normalizer_resp_obj.mappings or []
-            for mapping in mappings:
+            for mapping in normalizer_mappings:
                 if (
                     DISEASE_SYSTEM_URI_TO_NAMESPACE.get(mapping.coding.system)
                     == DiseaseNamespacePrefix.MONDO.value
                 ):
-                    params["mondo_id"] = mapping.coding.code.root
-                    break
-            ext_val = ViccDiseaseNormalizerData(**params)
+                    mappings.append(_add_merged_id_ext(mapping, is_priority=False))
+                else:
+                    if normalized_id == mapping.coding.code.root:
+                        mappings.append(
+                            _add_merged_id_ext(
+                                mapping,
+                                label=normalizer_resp_obj.label,
+                                is_priority=True,
+                            )
+                        )
         else:
-            ext_val = ViccNormalizerData(**params)
-        return ViccNormalizerDataExtension(value=ext_val.model_dump())
+            mappings.extend(
+                _add_merged_id_ext(
+                    mapping, label=normalizer_resp_obj.label, is_priority=True
+                )
+                for mapping in normalizer_mappings
+                if normalized_id == mapping.coding.code.root
+            )
+        return mappings
 
     def create_json(self, cdm_filepath: Path | None = None) -> None:
         """Create a composite JSON for transformed data.

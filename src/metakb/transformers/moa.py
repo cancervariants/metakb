@@ -385,11 +385,9 @@ class MoaTransformer(Transformer):
                     id=f"moa.normalize.gene:{quote(gene)}",
                     conceptType="Gene",
                     label=gene,
-                    extensions=[
-                        self._get_vicc_normalizer_extension(
-                            normalized_gene_id, gene_norm_resp
-                        )
-                    ],
+                    mappings=self._get_vicc_normalizer_mappings(
+                        normalized_gene_id, gene_norm_resp
+                    ),
                 )
                 self.able_to_normalize["genes"][quote(gene)] = moa_gene
                 self.processed_data.genes.append(moa_gene)
@@ -508,11 +506,7 @@ class MoaTransformer(Transformer):
             logger.debug("Therapy Normalizer unable to normalize: %s", therapy)
             return None
 
-        extensions = [
-            self._get_vicc_normalizer_extension(
-                normalized_therapeutic_id, therapy_norm_resp
-            )
-        ]
+        extensions = []
 
         regulatory_approval_extension = (
             self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)
@@ -525,7 +519,10 @@ class MoaTransformer(Transformer):
             id=f"moa.{therapy_norm_resp.therapy.id}",
             conceptType="Therapy",
             label=therapy["label"],
-            extensions=extensions,
+            mappings=self._get_vicc_normalizer_mappings(
+                normalized_therapeutic_id, therapy_norm_resp
+            ),
+            extensions=extensions or None,
         )
 
     def _add_disease(self, disease: dict) -> dict | None:
@@ -628,14 +625,13 @@ class MoaTransformer(Transformer):
             logger.debug("Disease Normalizer unable to normalize: %s", queries)
             return None
 
+        mappings.extend(
+            self._get_vicc_normalizer_mappings(normalized_disease_id, disease_norm_resp)
+        )
+
         return MappableConcept(
             id=f"moa.{disease_norm_resp.disease.id}",
             conceptType="Disease",
             label=disease_name,
             mappings=mappings if mappings else None,
-            extensions=[
-                self._get_vicc_normalizer_extension(
-                    normalized_disease_id, disease_norm_resp
-                )
-            ],
         )

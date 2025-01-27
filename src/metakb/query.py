@@ -20,9 +20,6 @@ from pydantic import ValidationError
 
 from metakb.database import get_driver
 from metakb.normalizers import (
-    ViccDiseaseNormalizerData,
-    ViccNormalizerData,
-    ViccNormalizerDataExtension,
     ViccNormalizers,
 )
 from metakb.schemas.api import (
@@ -577,26 +574,6 @@ class QueryHandler:
 
         return PROP_TYPE_TO_CLASS[prop_type](**params)
 
-    @staticmethod
-    def _get_vicc_normalizer_extension(node: dict) -> ViccNormalizerDataExtension:
-        """Get VICC Normalizer extension data
-
-        :param node: Therapy, disease, or gene node data
-        :return: VICC Normalizer extension data
-        """
-        params = {
-            "id": node["normalizer_id"],
-            "label": node["normalizer_label"],
-        }
-
-        if node["conceptType"] == "Disease":
-            params["mondo_id"] = node.get("normalizer_mondo_id")
-            ext_val = ViccDiseaseNormalizerData(**params)
-        else:
-            ext_val = ViccNormalizerData(**params)
-
-        return ViccNormalizerDataExtension(value=ext_val.model_dump())
-
     def _get_disease(self, node: dict) -> MappableConcept:
         """Get disease data from a node with relationship ``HAS_TUMOR_TYPE``
 
@@ -604,14 +581,16 @@ class QueryHandler:
         :return: Disease mappable concept object
         """
         node["mappings"] = _deserialize_field(node, "mappings")
-        extensions = [self._get_vicc_normalizer_extension(node)]
+        extensions = []
         descr = node.get("description")
         if descr:
             extensions.append(Extension(name="description", value=descr))
         aliases = node.get("aliases")
         if aliases:
             extensions.append(Extension(name="aliases", value=json.loads(aliases)))
-        node["extensions"] = extensions
+
+        if extensions:
+            node["extensions"] = extensions
         return MappableConcept(**node)
 
     def _get_variations(self, cv_id: str, relation: VariationRelation) -> list[dict]:
@@ -732,7 +711,7 @@ class QueryHandler:
 
         gene_node = results.records[0].data()["g"]
         gene_node["mappings"] = _deserialize_field(gene_node, "mappings")
-        extensions = [self._get_vicc_normalizer_extension(gene_node)]
+        extensions = []
         descr = gene_node.get("description")
         if descr:
             extensions.append(Extension(name="description", value=descr))
@@ -740,7 +719,8 @@ class QueryHandler:
         if aliases:
             extensions.append(Extension(name="aliases", value=json.loads(aliases)))
 
-        gene_node["extensions"] = extensions
+        if extensions:
+            gene_node["extensions"] = extensions
         return MappableConcept(**gene_node)
 
     def _get_method_document(self, method_id: str) -> Document | None:
@@ -896,7 +876,7 @@ class QueryHandler:
         """
         ta_params = copy(in_ta_params)
         ta_params["mappings"] = _deserialize_field(ta_params, "mappings")
-        extensions = [self._get_vicc_normalizer_extension(ta_params)]
+        extensions = []
         regulatory_approval = ta_params.get("regulatory_approval")
         if regulatory_approval:
             regulatory_approval = json.loads(regulatory_approval)
@@ -906,7 +886,9 @@ class QueryHandler:
         aliases = ta_params.get("aliases")
         if aliases:
             extensions.append(Extension(name="aliases", value=json.loads(aliases)))
-        ta_params["extensions"] = extensions
+
+        if extensions:
+            ta_params["extensions"] = extensions
         return MappableConcept(**ta_params)
 
     async def batch_search_statements(

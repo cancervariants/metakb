@@ -4,9 +4,8 @@ import json
 
 import pytest
 import pytest_asyncio
-from tests.conftest import TEST_TRANSFORMERS_DIR
+from tests.conftest import TEST_TRANSFORMERS_DIR, get_vicc_normalizer_ext
 
-from metakb.normalizers import VICC_NORMALIZER_DATA
 from metakb.transformers.moa import MoaTransformer
 
 DATA_DIR = TEST_TRANSFORMERS_DIR / "prognostic"
@@ -115,16 +114,6 @@ def moa_myelodysplasia():
         "id": "moa.normalize.disease.ncit:C3247",
         "conceptType": "Disease",
         "label": "Myelodysplasia",
-        "extensions": [
-            {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {
-                    "id": "ncit:C3247",
-                    "label": "Myelodysplastic Syndrome",
-                    "mondo_id": "mondo:0018881",
-                },
-            }
-        ],
         "mappings": [
             {
                 "coding": {
@@ -134,7 +123,24 @@ def moa_myelodysplasia():
                     "id": "oncotree:MDS",
                 },
                 "relation": "exactMatch",
-            }
+            },
+            {
+                "coding": {
+                    "label": "Myelodysplastic Syndrome",
+                    "code": "ncit:C3247",
+                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
+            {
+                "coding": {
+                    "code": "mondo:0018881",
+                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                },
+                "relation": "relatedMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=False),
+            },
         ],
     }
 
@@ -146,11 +152,16 @@ def moa_bcor():
         "id": "moa.normalize.gene:BCOR",
         "conceptType": "Gene",
         "label": "BCOR",
-        "extensions": [
+        "mappings": [
             {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {"id": "hgnc:20893", "label": "BCOR"},
-            }
+                "coding": {
+                    "label": "BCOR",
+                    "code": "hgnc:20893",
+                    "system": "https://www.genenames.org",
+                },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
         ],
     }
 
@@ -308,11 +319,16 @@ def moa_sf3b1():
         "id": "moa.normalize.gene:SF3B1",
         "conceptType": "Gene",
         "label": "SF3B1",
-        "extensions": [
+        "mappings": [
             {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {"id": "hgnc:10768", "label": "SF3B1"},
-            }
+                "coding": {
+                    "label": "SF3B1",
+                    "code": "hgnc:10768",
+                    "system": "https://www.genenames.org",
+                },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
         ],
     }
 

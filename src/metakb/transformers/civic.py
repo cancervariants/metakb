@@ -797,10 +797,19 @@ class CivicTransformer(Transformer):
                 queries
             )
 
-            extensions = [
-                self._get_vicc_normalizer_extension(normalized_gene_id, gene_norm_resp)
+            mappings = [
+                ConceptMapping(
+                    coding=Coding(
+                        id=ncbigene,
+                        code=str(gene["entrez_id"]),
+                        system="https://www.ncbi.nlm.nih.gov/gene/",
+                    ),
+                    relation=Relation.EXACT_MATCH,
+                ),
+                *self._get_vicc_normalizer_mappings(normalized_gene_id, gene_norm_resp),
             ]
 
+            extensions = []
             if gene["aliases"]:
                 extensions.append(Extension(name="aliases", value=gene["aliases"]))
 
@@ -814,17 +823,8 @@ class CivicTransformer(Transformer):
                     id=gene_id,
                     conceptType="Gene",
                     label=gene["name"],
-                    mappings=[
-                        ConceptMapping(
-                            coding=Coding(
-                                id=ncbigene,
-                                code=str(gene["entrez_id"]),
-                                system="https://www.ncbi.nlm.nih.gov/gene/",
-                            ),
-                            relation=Relation.EXACT_MATCH,
-                        )
-                    ],
-                    extensions=extensions,
+                    mappings=mappings,
+                    extensions=extensions or None,
                 )
                 self.able_to_normalize["genes"][gene_id] = civic_gene
                 self.processed_data.genes.append(civic_gene)
@@ -900,16 +900,11 @@ class CivicTransformer(Transformer):
             )
             return None
 
+        mappings.extend(
+            self._get_vicc_normalizer_mappings(normalized_disease_id, disease_norm_resp)
+        )
         return MappableConcept(
-            id=disease_id,
-            conceptType="Disease",
-            label=display_name,
-            mappings=mappings if mappings else None,
-            extensions=[
-                self._get_vicc_normalizer_extension(
-                    normalized_disease_id, disease_norm_resp
-                )
-            ],
+            id=disease_id, conceptType="Disease", label=display_name, mappings=mappings
         )
 
     def _get_therapeutic_substitute_group(
@@ -1006,13 +1001,13 @@ class CivicTransformer(Transformer):
         regulatory_approval_extension = (
             self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)
         )
-
-        extensions = [
-            self._get_vicc_normalizer_extension(
+        mappings.extend(
+            self._get_vicc_normalizer_mappings(
                 normalized_therapeutic_id, therapy_norm_resp
             )
-        ]
+        )
 
+        extensions = []
         if regulatory_approval_extension:
             extensions.append(regulatory_approval_extension)
 
@@ -1023,8 +1018,8 @@ class CivicTransformer(Transformer):
             id=therapy_id,
             label=label,
             conceptType="Therapy",
-            mappings=mappings if mappings else None,
-            extensions=extensions,
+            mappings=mappings,
+            extensions=extensions or None,
         )
 
     def _get_therapeutic_metadata(

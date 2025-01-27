@@ -1,24 +1,23 @@
 """Test search statement methods"""
 
 import pytest
-from ga4gh.core.models import Extension
+from ga4gh.core.models import MappableConcept
 
-from metakb.normalizers import VICC_NORMALIZER_DATA
 from metakb.query import QueryHandler
 
 from .utils import assert_no_match, find_and_check_stmt
 
 
-def _get_normalizer_id(extensions: list[Extension]) -> str | None:
+def _get_normalizer_id(mappings: list[MappableConcept]) -> str | None:
     """Get normalized ID from list of extensions
 
-    :param extensions: List of extensions
+    :param mappings: List of mappable concepts
     :return: Normalized concept ID if found in extensions
     """
     normalizer_id = None
-    for ext in extensions:
-        if ext.name == VICC_NORMALIZER_DATA:
-            normalizer_id = ext.value["id"]
+    for mapping in mappings:
+        if mapping.extensions == "from_vicc_normalizer":
+            normalizer_id = mapping.code.root
             break
     return normalizer_id
 
@@ -217,11 +216,11 @@ async def test_general_search_statements(query_handler):
         tp = statement.proposition.objectTherapeutic.root
 
         if hasattr(tp, "conceptType"):
-            assert _get_normalizer_id(tp.extensions) == expected_therapy_id
+            assert _get_normalizer_id(tp.mappings) == expected_therapy_id
         else:
             found_expected = False
             for therapeutic in tp.therapies:
-                if _get_normalizer_id(therapeutic.extensions) == expected_therapy_id:
+                if _get_normalizer_id(therapeutic.mappings) == expected_therapy_id:
                     found_expected = True
                     break
             assert found_expected

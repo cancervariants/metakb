@@ -8,8 +8,7 @@ from pathlib import Path
 from neo4j import Driver, ManagedTransaction
 
 from metakb.database import get_driver
-from metakb.normalizers import VICC_NORMALIZER_DATA, ViccDiseaseNormalizerData
-from metakb.transformers.base import TherapyType
+from metakb.transformers.base import NORMALIZER_PRIORITY_EXT_NAME, TherapyType
 
 _logger = logging.getLogger(__name__)
 
@@ -44,23 +43,13 @@ def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
 
     extensions = obj.get("extensions", [])
     for ext in extensions:
-        if ext["name"] == VICC_NORMALIZER_DATA:
-            for normalized_field in ViccDiseaseNormalizerData.model_fields:
-                normalized_val = ext["value"].get(normalized_field)
-                if normalized_val is None:
-                    continue
-
-                name = f"normalizer_{normalized_field}"
-                obj[name] = normalized_val
-                obj_keys.append(f"{name}:${name}")
+        name = "_".join(ext["name"].split()).lower()
+        val = ext["value"]
+        if isinstance(val, (dict | list)):
+            obj[name] = json.dumps(val)
         else:
-            name = "_".join(ext["name"].split()).lower()
-            val = ext["value"]
-            if isinstance(val, (dict | list)):
-                obj[name] = json.dumps(val)
-            else:
-                obj[name] = val
-            obj_keys.append(f"{name}:${name}")
+            obj[name] = val
+        obj_keys.append(f"{name}:${name}")
 
 
 def _add_method(tx: ManagedTransaction, method: dict, ids_in_stmts: set[str]) -> None:
@@ -99,6 +88,26 @@ def _add_method(tx: ManagedTransaction, method: dict, ids_in_stmts: set[str]) ->
     tx.run(query, **method)
 
 
+def _add_normalizer_id_to_obj(obj: dict, obj_keys: list[str]) -> None:
+    """Get normalizer ID and add to ``obj`` and ``obj_keys``
+
+    :param obj: Object to update with ``normalizer_id``
+    :param obj_keys: Parameterized queries. This will be mutated.
+    """
+    normalizer_id = None
+    for mapping in obj["mappings"]:
+        extensions = mapping.get("extensions")
+        if extensions:
+            for ext in extensions:
+                if ext["name"] == NORMALIZER_PRIORITY_EXT_NAME and ext["value"]:
+                    normalizer_id = mapping["coding"]["code"]
+                    break
+
+    if normalizer_id:
+        obj["normalizer_id"] = normalizer_id
+        obj_keys.append("normalizer_id:$normalizer_id")
+
+
 def _add_gene_or_disease(
     tx: ManagedTransaction, obj_in: dict, ids_in_stmts: set[str]
 ) -> None:
@@ -122,6 +131,9 @@ def _add_gene_or_disease(
     obj["conceptType"] = obj_type
     obj_keys = [_create_parameterized_query(obj, ("id", "label", "conceptType"))]
 
+    _add_normalizer_id_to_obj(
+        obj, obj_keys
+    )  # must be before _add_mappings_and_exts_to_obj
     _add_mappings_and_exts_to_obj(obj, obj_keys)
     obj_keys = ", ".join(obj_keys)
 
@@ -192,6 +204,9 @@ def _add_therapy(tx: ManagedTransaction, therapy_in: dict) -> None:
         _create_parameterized_query(therapy, ("id", "label", "conceptType"))
     ]
 
+    _add_normalizer_id_to_obj(
+        therapy, nonnull_keys
+    )  # must be before _add_mappings_and_exts_to_obj
     _add_mappings_and_exts_to_obj(therapy, nonnull_keys)
     nonnull_keys = ", ".join(nonnull_keys)
 

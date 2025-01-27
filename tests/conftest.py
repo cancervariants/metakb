@@ -8,7 +8,7 @@ import pytest
 from deepdiff import DeepDiff
 
 from metakb.harvesters.base import Harvester
-from metakb.normalizers import VICC_NORMALIZER_DATA, ViccNormalizers
+from metakb.normalizers import ViccNormalizers
 from metakb.query import QueryHandler
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
@@ -59,14 +59,47 @@ def check_source_harvest(tmp_path: Path, harvester: Harvester):
         assert not harvested_filepath.exists()
 
 
+def get_vicc_normalizer_ext(is_priority: bool):
+    """Create test fixture for vicc normalizer priority extension"""
+    return [{"name": "vicc_normalizer_priority", "value": is_priority}]
+
+
+@pytest.fixture(scope="session")
+def braf_normalizer_mappings():
+    """Create test fixture for braf normalizer mappings"""
+    return [
+        {
+            "coding": {
+                "label": "BRAF",
+                "code": "hgnc:1097",
+                "system": "https://www.genenames.org",
+            },
+            "relation": "exactMatch",
+            "extensions": get_vicc_normalizer_ext(is_priority=True),
+        },
+    ]
+
+
+@pytest.fixture(scope="session")
+def cetuximab_normalizer_mappings():
+    """Create test fixture for cetuximab normalizer mappings"""
+    return [
+        {
+            "coding": {
+                "label": "cetuximab",
+                "code": "rxcui:318341",
+                "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
+            },
+            "relation": "exactMatch",
+            "extensions": get_vicc_normalizer_ext(is_priority=True),
+        }
+    ]
+
+
 @pytest.fixture(scope="session")
 def cetuximab_extensions():
     """Create test fixture for cetuximab extensions"""
     return [
-        {
-            "name": VICC_NORMALIZER_DATA,
-            "value": {"id": "rxcui:318341", "label": "cetuximab"},
-        },
         {
             "name": "regulatory_approval",
             "value": {
@@ -135,16 +168,25 @@ def cetuximab_extensions():
 
 
 @pytest.fixture(scope="session")
+def encorafenib_normalizer_mappings():
+    """Create test fixture for encorafenib normalizer mappings"""
+    return [
+        {
+            "coding": {
+                "label": "encorafenib",
+                "code": "rxcui:2049106",
+                "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
+            },
+            "relation": "exactMatch",
+            "extensions": get_vicc_normalizer_ext(is_priority=True),
+        }
+    ]
+
+
+@pytest.fixture(scope="session")
 def encorafenib_extensions():
     """Create test fixture for encorafenib extensions"""
     return [
-        {
-            "name": VICC_NORMALIZER_DATA,
-            "value": {
-                "id": "rxcui:2049106",
-                "label": "encorafenib",
-            },
-        },
         {
             "name": "regulatory_approval",
             "value": {
@@ -396,7 +438,7 @@ def civic_eid2997_study_stmt(
 
 
 @pytest.fixture(scope="session")
-def civic_gid5():
+def civic_gid5(braf_normalizer_mappings):
     """Create test fixture for CIViC GID5."""
     return {
         "id": "civic.gid:5",
@@ -410,16 +452,13 @@ def civic_gid5():
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
-            }
+            },
+            *braf_normalizer_mappings,
         ],
         "extensions": [
             {
                 "name": "description",
                 "value": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase.",
-            },
-            {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {"id": "hgnc:1097", "label": "BRAF"},
             },
             {
                 "name": "aliases",
@@ -640,7 +679,16 @@ def civic_gid19():
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
-            }
+            },
+            {
+                "coding": {
+                    "label": "EGFR",
+                    "code": "hgnc:3236",
+                    "system": "https://www.genenames.org",
+                },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
         ],
         "extensions": [
             {
@@ -659,10 +707,6 @@ def civic_gid19():
                     "PIG61",
                     "mENA",
                 ],
-            },
-            {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {"id": "hgnc:3236", "label": "EGFR"},
             },
         ],
     }
@@ -683,7 +727,16 @@ def civic_tid146():
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
-            }
+            },
+            {
+                "coding": {
+                    "label": "afatinib",
+                    "code": "rxcui:1430438",
+                    "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
+                },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
         ],
         "extensions": [
             {
@@ -721,13 +774,6 @@ def civic_tid146():
                     ],
                 },
             },
-            {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {
-                    "id": "rxcui:1430438",
-                    "label": "afatinib",
-                },
-            },
         ],
     }
 
@@ -747,17 +793,24 @@ def civic_did8():
                     "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
-            }
-        ],
-        "extensions": [
+            },
             {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {
-                    "id": "ncit:C2926",
+                "coding": {
                     "label": "Lung Non-Small Cell Carcinoma",
-                    "mondo_id": "mondo:0005233",
+                    "code": "ncit:C2926",
+                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
-            }
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
+            {
+                "coding": {
+                    "code": "mondo:0005233",
+                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                },
+                "relation": "relatedMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=False),
+            },
         ],
     }
 
@@ -788,7 +841,16 @@ def civic_tid28():
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
-            }
+            },
+            {
+                "coding": {
+                    "label": "panitumumab",
+                    "code": "rxcui:263034",
+                    "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
+                },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
         ],
         "extensions": [
             {
@@ -805,13 +867,6 @@ def civic_tid28():
                     "Monoclonal Antibody E7.6.3",
                     "Vectibix",
                 ],
-            },
-            {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {
-                    "id": "rxcui:263034",
-                    "label": "panitumumab",
-                },
             },
             {
                 "name": "regulatory_approval",
@@ -854,7 +909,7 @@ def civic_tid28():
 
 
 @pytest.fixture(scope="session")
-def civic_tid16(cetuximab_extensions):
+def civic_tid16(cetuximab_extensions, cetuximab_normalizer_mappings):
     """Create test fixture for CIViC therapy ID 16"""
     return {
         "id": "civic.tid:16",
@@ -868,7 +923,8 @@ def civic_tid16(cetuximab_extensions):
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
-            }
+            },
+            *cetuximab_normalizer_mappings,
         ],
         "extensions": [
             *cetuximab_extensions,
@@ -906,13 +962,14 @@ def civic_tsg(civic_tid16, civic_tid28):
 
 
 @pytest.fixture(scope="session")
-def civic_tid483(encorafenib_extensions):
+def civic_tid483(encorafenib_extensions, encorafenib_normalizer_mappings):
     """Create test fixture for CIViC Therapy ID 483"""
     return {
         "id": "civic.tid:483",
         "conceptType": "Therapy",
         "label": "Encorafenib",
         "mappings": [
+            *encorafenib_normalizer_mappings,
             {
                 "coding": {
                     "id": "ncit:C98283",
@@ -920,7 +977,7 @@ def civic_tid483(encorafenib_extensions):
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
-            }
+            },
         ],
         "extensions": [
             *encorafenib_extensions,
@@ -960,17 +1017,24 @@ def civic_did11():
                     "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
-            }
-        ],
-        "extensions": [
+            },
             {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {
-                    "id": "ncit:C4978",
+                "coding": {
                     "label": "Malignant Colorectal Neoplasm",
-                    "mondo_id": "mondo:0005575",
+                    "code": "ncit:C4978",
+                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
-            }
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
+            {
+                "coding": {
+                    "code": "mondo:0005575",
+                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                },
+                "relation": "relatedMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=False),
+            },
         ],
     }
 
@@ -1392,16 +1456,6 @@ def civic_did3():
         "id": "civic.did:3",
         "conceptType": "Disease",
         "label": "Acute Myeloid Leukemia",
-        "extensions": [
-            {
-                "name": "vicc_normalizer_data",
-                "value": {
-                    "id": "ncit:C3171",
-                    "label": "Acute Myeloid Leukemia",
-                    "mondo_id": "mondo:0018874",
-                },
-            }
-        ],
         "mappings": [
             {
                 "coding": {
@@ -1410,7 +1464,24 @@ def civic_did3():
                     "code": "DOID:9119",
                 },
                 "relation": "exactMatch",
-            }
+            },
+            {
+                "coding": {
+                    "label": "Acute Myeloid Leukemia",
+                    "code": "ncit:C3171",
+                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
+            {
+                "coding": {
+                    "code": "mondo:0018874",
+                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                },
+                "relation": "relatedMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=False),
+            },
         ],
     }
 
@@ -1431,10 +1502,6 @@ def civic_gid29():
                 "name": "aliases",
                 "value": ["MASTC", "KIT", "SCFR", "PBT", "CD117", "C-Kit"],
             },
-            {
-                "name": "vicc_normalizer_data",
-                "value": {"id": "hgnc:6342", "label": "KIT"},
-            },
         ],
         "mappings": [
             {
@@ -1444,7 +1511,16 @@ def civic_gid29():
                     "code": "3815",
                 },
                 "relation": "exactMatch",
-            }
+            },
+            {
+                "coding": {
+                    "system": "https://www.genenames.org",
+                    "code": "hgnc:6342",
+                    "label": "KIT",
+                },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
         ],
     }
 
@@ -1636,10 +1712,15 @@ def moa_abl1():
         "id": "moa.normalize.gene:ABL1",
         "conceptType": "Gene",
         "label": "ABL1",
-        "extensions": [
+        "mappings": [
             {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {"id": "hgnc:76", "label": "ABL1"},
+                "coding": {
+                    "label": "ABL1",
+                    "code": "hgnc:76",
+                    "system": "https://www.genenames.org",
+                },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
             }
         ],
     }
@@ -1764,12 +1845,16 @@ def moa_imatinib():
                     ],
                 },
             },
+        ],
+        "mappings": [
             {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {
-                    "id": "rxcui:282388",
+                "coding": {
                     "label": "imatinib",
+                    "code": "rxcui:282388",
+                    "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
                 },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
             },
         ],
     }
@@ -1782,16 +1867,6 @@ def moa_chronic_myelogenous_leukemia():
         "id": "moa.normalize.disease.ncit:C3174",
         "conceptType": "Disease",
         "label": "Chronic Myelogenous Leukemia",
-        "extensions": [
-            {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {
-                    "id": "ncit:C3174",
-                    "label": "Chronic Myeloid Leukemia, BCR-ABL1 Positive",
-                    "mondo_id": "mondo:0011996",
-                },
-            }
-        ],
         "mappings": [
             {
                 "coding": {
@@ -1801,7 +1876,24 @@ def moa_chronic_myelogenous_leukemia():
                     "code": "CML",
                 },
                 "relation": "exactMatch",
-            }
+            },
+            {
+                "coding": {
+                    "label": "Chronic Myeloid Leukemia, BCR-ABL1 Positive",
+                    "code": "ncit:C3174",
+                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
+            {
+                "coding": {
+                    "code": "mondo:0011996",
+                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                },
+                "relation": "relatedMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=False),
+            },
         ],
     }
 

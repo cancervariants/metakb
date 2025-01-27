@@ -4,9 +4,8 @@ import json
 
 import pytest
 import pytest_asyncio
-from tests.conftest import TEST_TRANSFORMERS_DIR
+from tests.conftest import TEST_TRANSFORMERS_DIR, get_vicc_normalizer_ext
 
-from metakb.normalizers import VICC_NORMALIZER_DATA
 from metakb.transformers.moa import MoaTransformer
 
 DATA_DIR = TEST_TRANSFORMERS_DIR / "therapeutic"
@@ -99,29 +98,37 @@ def moa_vid144(braf_v600e_genomic):
 
 
 @pytest.fixture(scope="module")
-def moa_cetuximab(cetuximab_extensions):
+def moa_cetuximab(cetuximab_extensions, cetuximab_normalizer_mappings):
     """Create a test fixture for MOA Cetuximab"""
     return {
         "id": "moa.normalize.therapy.rxcui:318341",
         "conceptType": "Therapy",
         "label": "Cetuximab",
         "extensions": cetuximab_extensions,
+        "mappings": cetuximab_normalizer_mappings,
     }
 
 
 @pytest.fixture(scope="module")
-def moa_encorafenib(encorafenib_extensions):
+def moa_encorafenib(encorafenib_extensions, encorafenib_normalizer_mappings):
     """Create test fixture for MOA Encorafenib"""
     return {
         "id": "moa.normalize.therapy.rxcui:2049106",
         "conceptType": "Therapy",
         "label": "Encorafenib",
         "extensions": encorafenib_extensions,
+        "mappings": encorafenib_normalizer_mappings,
     }
 
 
 @pytest.fixture(scope="module")
-def moa_aid154_study_stmt(moa_vid144, moa_cetuximab, moa_encorafenib, moa_method):
+def moa_aid154_study_stmt(
+    moa_vid144,
+    moa_cetuximab,
+    moa_encorafenib,
+    moa_method,
+    braf_normalizer_mappings,
+):
     """Create MOA AID 154 study statement test fixture. Uses CombinationTherapy."""
     return {
         "id": "moa.assertion:154",
@@ -170,16 +177,6 @@ def moa_aid154_study_stmt(moa_vid144, moa_cetuximab, moa_encorafenib, moa_method
                 "id": "moa.normalize.disease.ncit:C5105",
                 "conceptType": "Disease",
                 "label": "Colorectal Adenocarcinoma",
-                "extensions": [
-                    {
-                        "name": VICC_NORMALIZER_DATA,
-                        "value": {
-                            "id": "ncit:C5105",
-                            "label": "Colorectal Adenocarcinoma",
-                            "mondo_id": "mondo:0005008",
-                        },
-                    }
-                ],
                 "mappings": [
                     {
                         "coding": {
@@ -189,7 +186,24 @@ def moa_aid154_study_stmt(moa_vid144, moa_cetuximab, moa_encorafenib, moa_method
                             "id": "oncotree:COADREAD",
                         },
                         "relation": "exactMatch",
-                    }
+                    },
+                    {
+                        "coding": {
+                            "label": "Colorectal Adenocarcinoma",
+                            "code": "ncit:C5105",
+                            "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                        },
+                        "relation": "exactMatch",
+                        "extensions": get_vicc_normalizer_ext(is_priority=True),
+                    },
+                    {
+                        "coding": {
+                            "code": "mondo:0005008",
+                            "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                        },
+                        "relation": "relatedMatch",
+                        "extensions": get_vicc_normalizer_ext(is_priority=False),
+                    },
                 ],
             },
             "alleleOriginQualifier": {"label": "somatic"},
@@ -197,12 +211,7 @@ def moa_aid154_study_stmt(moa_vid144, moa_cetuximab, moa_encorafenib, moa_method
                 "id": "moa.normalize.gene:BRAF",
                 "conceptType": "Gene",
                 "label": "BRAF",
-                "extensions": [
-                    {
-                        "name": VICC_NORMALIZER_DATA,
-                        "value": {"id": "hgnc:1097", "label": "BRAF"},
-                    }
-                ],
+                "mappings": braf_normalizer_mappings,
             },
         },
         "specifiedBy": moa_method,
