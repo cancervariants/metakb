@@ -27,16 +27,15 @@ from ga4gh.core.models import (
     Relation,
     code,
 )
-from ga4gh.va_spec.aac_2017.models import (
+from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base.core import Document, Method
-from ga4gh.va_spec.base.domain_entities import TherapyGroup
+from ga4gh.va_spec.base import Document, Method, TherapyGroup
 from ga4gh.vrs.models import Allele
 from gene.schemas import NormalizeService as NormalizedGene
-from pydantic import BaseModel, StrictStr, ValidationError
+from pydantic import BaseModel, Field, StrictStr, ValidationError
 from therapy.schemas import NormalizationService as NormalizedTherapy
 
 from metakb import APP_ROOT, DATE_FMT
@@ -116,11 +115,16 @@ class ViccConceptVocab(BaseModel):
 class TransformedData(BaseModel):
     """Define model for transformed data"""
 
-    statements: list[
+    statements_evidence: list[
         VariantTherapeuticResponseStudyStatement
         | VariantPrognosticStudyStatement
         | VariantDiagnosticStudyStatement
-    ] = []
+    ] = Field([], description="Statement objects for evidence records")
+    statements_assertions: list[
+        VariantTherapeuticResponseStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantDiagnosticStudyStatement
+    ] = Field([], description="Statement objects for assertion records")
     categorical_variants: list[CategoricalVariant] = []
     variations: list[Allele] = []
     genes: list[MappableConcept] = []
@@ -297,7 +301,7 @@ class Transformer(ABC):
         """
         if self.harvester_path is None:
             today = datetime.datetime.strftime(
-                datetime.datetime.now(tz=datetime.timezone.utc), DATE_FMT
+                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
             )
             default_fname = f"{self.name}_harvester_{today}.json"
             default_path = self.data_dir / "harvester" / default_fname
@@ -359,6 +363,7 @@ class Transformer(ABC):
                         coding=Coding(
                             id=item.id,
                             system="https://go.osu.edu/evidence-codes",
+                            label=item.term,
                             code=code(primary_code),
                         ),
                         relation=Relation.EXACT_MATCH,
@@ -561,7 +566,7 @@ class Transformer(ABC):
             transformers_dir = self.data_dir / "transformers"
             transformers_dir.mkdir(exist_ok=True, parents=True)
             today = datetime.datetime.strftime(
-                datetime.datetime.now(tz=datetime.timezone.utc), DATE_FMT
+                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
             )
             cdm_filepath = transformers_dir / f"{self.name}_cdm_{today}.json"
 

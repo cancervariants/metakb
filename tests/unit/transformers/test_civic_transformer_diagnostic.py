@@ -104,21 +104,13 @@ def civic_mpid99():
                     "sequence": "A",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
-                "extensions": [
-                    {
-                        "name": "mane_genes",
-                        "value": [
-                            {"ncbi_gene_id": 5156, "hgnc_id": 8803, "symbol": "PDGFRA"}
-                        ],
-                    }
-                ],
             },
         ],
         "mappings": [
             {
                 "coding": {
                     "code": "CA123194",
-                    "system": "https://reg.clinicalgenome.org/",
+                    "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
                 },
                 "relation": "relatedMatch",
             },
@@ -137,7 +129,11 @@ def civic_mpid99():
                 "relation": "relatedMatch",
             },
             {
-                "coding": {"code": "99", "system": "https://civicdb.org/variants/"},
+                "coding": {
+                    "id": "civic.vid:99",
+                    "code": "99",
+                    "system": "https://civicdb.org/variants/",
+                },
                 "relation": "exactMatch",
             },
         ],
@@ -165,6 +161,7 @@ def civic_mpid99():
                 "name": "Variant types",
                 "value": [
                     {
+                        "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
@@ -185,7 +182,8 @@ def civic_gid38():
         "mappings": [
             {
                 "coding": {
-                    "code": "ncbigene:5156",
+                    "id": "ncbigene:5156",
+                    "code": "5156",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
@@ -218,8 +216,9 @@ def civic_did2():
         "mappings": [
             {
                 "coding": {
+                    "id": "DOID:9253",
                     "code": "DOID:9253",
-                    "system": "http://purl.obolibrary.org/obo/doid.owl",
+                    "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
             }
@@ -245,7 +244,6 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
         "description": "GIST tumors harboring PDGFRA D842V mutation are more likely to be benign than malignant.",
         "direction": "supports",
         "strength": {
-            "conceptType": "Evidence Strength",
             "primaryCode": "e000005",
             "label": "clinical cohort evidence",
             "mappings": [
@@ -254,6 +252,7 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
                         "id": "vicc:e000005",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000005",
+                        "label": "clinical cohort evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -366,21 +365,13 @@ def civic_mpid113():
                     "sequence": "T",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "C"},
-                "extensions": [
-                    {
-                        "name": "mane_genes",
-                        "value": [
-                            {"ncbi_gene_id": 5979, "hgnc_id": 9967, "symbol": "RET"}
-                        ],
-                    }
-                ],
             },
         ],
         "mappings": [
             {
                 "coding": {
                     "code": "CA009082",
-                    "system": "https://reg.clinicalgenome.org/",
+                    "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
                 },
                 "relation": "relatedMatch",
             },
@@ -399,7 +390,11 @@ def civic_mpid113():
                 "relation": "relatedMatch",
             },
             {
-                "coding": {"code": "113", "system": "https://civicdb.org/variants/"},
+                "coding": {
+                    "id": "civic.vid:113",
+                    "code": "113",
+                    "system": "https://civicdb.org/variants/",
+                },
                 "relation": "exactMatch",
             },
         ],
@@ -427,6 +422,7 @@ def civic_mpid113():
                 "name": "Variant types",
                 "value": [
                     {
+                        "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
@@ -447,7 +443,8 @@ def civic_gid42():
         "mappings": [
             {
                 "coding": {
-                    "code": "ncbigene:5979",
+                    "id": "ncbigene:5979",
+                    "code": "5979",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
@@ -490,8 +487,9 @@ def civic_did15():
         "mappings": [
             {
                 "coding": {
+                    "id": "DOID:3973",
                     "code": "DOID:3973",
-                    "system": "http://purl.obolibrary.org/obo/doid.owl",
+                    "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
             }
@@ -517,7 +515,6 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
         "description": "In patients with medullary carcinoma, the presence of RET M918T mutation is associated with increased probability of lymph node metastases.",
         "direction": "supports",
         "strength": {
-            "conceptType": "Evidence Strength",
             "primaryCode": "e000005",
             "label": "clinical cohort evidence",
             "mappings": [
@@ -526,6 +523,7 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
                         "id": "vicc:e000005",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000005",
+                        "label": "clinical cohort evidence",
                     },
                     "relation": "exactMatch",
                 },

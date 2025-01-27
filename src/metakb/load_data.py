@@ -2,6 +2,7 @@
 
 import json
 import logging
+import uuid
 from pathlib import Path
 
 from neo4j import Driver, ManagedTransaction
@@ -72,8 +73,17 @@ def _add_method(tx: ManagedTransaction, method: dict, ids_in_stmts: set[str]) ->
     if method["id"] not in ids_in_stmts:
         return
 
-    query = """
-    MERGE (m:Method {id:$id, label:$label})
+    m_keys = [_create_parameterized_query(method, ("id", "label"))]
+
+    method_subtype = method.get("subtype")
+    if method_subtype:
+        method["subtype"] = json.dumps(method_subtype)
+        m_keys.append("subtype:$subtype")
+
+    m_keys = ", ".join(m_keys)
+
+    query = f"""
+    MERGE (m:Method {{ {m_keys} }})
     """
 
     is_reported_in = method.get("reportedIn")
@@ -171,13 +181,13 @@ def _add_therapy_or_group(
         raise TypeError(msg)
 
 
-def _add_therapy(tx: ManagedTransaction, therapeutic_agent: dict) -> None:
-    """Add therapeutic agent node and its relationships
+def _add_therapy(tx: ManagedTransaction, therapy_in: dict) -> None:
+    """Add therapy node and its relationships
 
     :param tx: Transaction object provided to transaction functions
-    :param therapeutic_agent: Therapeutic Agent CDM object
+    :param therapy_in: Therapy CDM object
     """
-    therapy = therapeutic_agent.copy()
+    therapy = therapy_in.copy()
     nonnull_keys = [
         _create_parameterized_query(therapy, ("id", "label", "conceptType"))
     ]
@@ -239,12 +249,6 @@ def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
     if state:
         v["state"] = json.dumps(state)
         v_keys.append("v.state=$state")
-
-    for ext in v.get("extensions") or []:
-        key = ext["name"]
-        if key == "mane_genes":
-            v[key] = json.dumps(ext["value"])
-            v_keys.append(f"v.{key}=${key}")
 
     v_keys = ", ".join(v_keys)
 
@@ -391,27 +395,16 @@ def _get_ids_from_stmts(statements: list[dict]) -> set[str]:
     return ids_in_stmts
 
 
-def _add_statement(tx: ManagedTransaction, statement_in: dict) -> None:
-    """Add statement node and its relationships
+def _get_statement_query(statement: dict) -> str:
+    """Generate the initial Cypher query to create a statement node and its
+    relationships, based on shared properties of evidence and assertion records.
 
-    :param tx: Transaction object provided to transaction functions
-    :param statement_in: Statement CDM object
+    :param statement: Statement record
+    :return: The base Cypher query string for creating the statement node and
+    relationships
     """
-    statement = statement_in.copy()
-    statement_type = statement["type"]
-    statement_keys = _create_parameterized_query(
-        statement, ("id", "description", "direction", "type")
-    )
-
     match_line = ""
     rel_line = ""
-
-    is_reported_in_docs = statement.get("reportedIn", [])
-    for ri_doc in is_reported_in_docs:
-        ri_doc_id = ri_doc["id"]
-        name = f"doc_{ri_doc_id.split(':')[-1]}"
-        match_line += f"MERGE ({name} {{ id: '{ri_doc_id}'}})\n"
-        rel_line += f"MERGE (s) -[:IS_REPORTED_IN] -> ({name})\n"
 
     proposition = statement["proposition"]
     statement["propositionType"] = proposition["type"]
@@ -436,25 +429,6 @@ def _add_statement(tx: ManagedTransaction, statement_in: dict) -> None:
     match_line += f"MERGE (m {{ id: '{method_id}' }})\n"
     rel_line += "MERGE (s) -[:IS_SPECIFIED_BY] -> (m)\n"
 
-    coding = statement.get("strength")
-    if coding:
-        coding["url"] = next(
-            ext["value"] for ext in coding["extensions"] if ext["name"] == "url"
-        )
-
-        coding_key_fields = ("primaryCode", "label", "url")
-
-        coding_keys = _create_parameterized_query(
-            coding, coding_key_fields, entity_param_prefix="coding_"
-        )
-        for k in coding_key_fields:
-            v = coding.get(k)
-            if v:
-                statement[f"coding_{k}"] = v
-
-        match_line += f"MERGE (c:Coding {{ {coding_keys} }})\n"
-        rel_line += "MERGE (s) -[:HAS_STRENGTH] -> (c)\n"
-
     variant_id = proposition["subjectVariant"]["id"]
     match_line += f"MERGE (v:Variation {{ id: '{variant_id}' }})\n"
     rel_line += "MERGE (s) -[:HAS_VARIANT] -> (v)\n"
@@ -472,11 +446,101 @@ def _add_statement(tx: ManagedTransaction, statement_in: dict) -> None:
     match_line += f"MERGE (tt:Condition {{ id: '{tumor_type_id}' }})\n"
     rel_line += "MERGE (s) -[:HAS_TUMOR_TYPE] -> (tt)\n"
 
-    query = f"""
-    MERGE (s:{statement_type}:StudyStatement {{ {statement_keys} }})
+    statement_keys = _create_parameterized_query(
+        statement, ("id", "description", "direction", "type")
+    )
+
+    return f"""
+    MERGE (s:{statement['type']}:StudyStatement {{ {statement_keys} }})
     {match_line}
-    {rel_line}
+    {rel_line}\n
     """
+
+
+def _add_statement_evidence(tx: ManagedTransaction, statement_in: dict) -> None:
+    """Add statement node and its relationships for evidence records
+
+    :param tx: Transaction object provided to transaction functions
+    :param statement_in: Statement CDM object for evidence items
+    """
+    statement = statement_in.copy()
+    query = _get_statement_query(statement)
+
+    is_reported_in_docs = statement.get("reportedIn", [])
+    for ri_doc in is_reported_in_docs:
+        ri_doc_id = ri_doc["id"]
+        name = f"doc_{ri_doc_id.split(':')[-1]}"
+        query += f"""
+        MERGE ({name} {{ id: '{ri_doc_id}'}})
+        MERGE (s) -[:IS_REPORTED_IN] -> ({name})
+        """
+
+    strength = statement.get("strength")
+    if strength:
+        strength_key_fields = ("primaryCode", "label")
+
+        strength_keys = [_create_parameterized_query(
+            strength, strength_key_fields, entity_param_prefix="strength_"
+        )]
+        for k in strength_key_fields:
+            v = strength.get(k)
+            if v:
+                statement[f"strength_{k}"] = v
+
+        mappings = strength.get("mappings", [])
+        if mappings:
+            statement["strength_mappings"] = json.dumps(mappings)
+            strength_keys.append("mappings:$strength_mappings")
+        strength_keys = ", ".join(strength_keys)
+
+        query += f"""
+        MERGE (strength:Strength {{ {strength_keys} }})
+        MERGE (s) -[:HAS_STRENGTH] -> (strength)
+        """
+    tx.run(query, **statement)
+
+
+def _add_statement_assertion(tx: ManagedTransaction, statement_in: dict) -> None:
+    """Add statement node and its relationships for assertion records
+
+    :param tx: Transaction object provided to transaction functions
+    :param statement_in: Statement CDM object for assertions
+    """
+    statement = statement_in.copy()
+    query = _get_statement_query(statement)
+
+    classification = statement["classification"]
+    classification_keys = [
+        _create_parameterized_query(
+            classification, ("primaryCode",), entity_param_prefix="classification_"
+        )
+    ]
+    statement["classification_primaryCode"] = classification["primaryCode"]
+    _add_mappings_and_exts_to_obj(classification, classification_keys)
+    statement.update(classification)
+    classification_keys = ", ".join(classification_keys)
+
+    query += f"""
+    MERGE (classification:Classification {{ {classification_keys} }})
+    MERGE (s) -[:HAS_CLASSIFICATION] -> (classification)
+    """
+
+    evidence_lines = statement.get("hasEvidenceLines", [])
+    if evidence_lines:
+        for el in evidence_lines:
+            el["evidence_line_id"] = str(uuid.uuid4())
+            el["evidence_item_ids"] = [ev["id"] for ev in el["hasEvidenceItems"]]
+
+        query += """
+        WITH s
+        UNWIND $hasEvidenceLines AS el
+        MERGE (evidence_line:EvidenceLine {id: el.evidence_line_id, direction: el.directionOfEvidenceProvided})
+        MERGE (s)-[:HAS_EVIDENCE_LINE]->(evidence_line)
+        WITH evidence_line, el.evidence_item_ids AS evidence_item_ids
+        UNWIND evidence_item_ids AS evidence_item_id
+        MERGE (evidence:Statement {id: evidence_item_id})
+        MERGE (evidence_line)-[:HAS_EVIDENCE_ITEM]->(evidence)
+        """
 
     tx.run(query, **statement)
 
@@ -485,13 +549,13 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
     """Add set of data formatted per Common Data Model to DB.
 
     :param data: contains key/value pairs for data objects to add to DB, including
-        statements, variation, therapeutic procedures, conditions, genes, methods,
-        documents, etc.
+        statements, variation, therapies, conditions, genes, methods, documents, etc.
     """
     # Used to keep track of IDs that are in statements. This is used to prevent adding
     # nodes that aren't associated to statements
-    statements = data.get("statements", [])
-    ids_in_stmts = _get_ids_from_stmts(statements)
+    statements_evidence = data.get("statements_evidence", [])
+    statements_assertions = data.get("statements_assertions", [])
+    ids_in_stmts = _get_ids_from_stmts(statements_evidence + statements_assertions)
 
     with driver.session() as session:
         loaded_stmt_count = 0
@@ -513,8 +577,12 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
             session.execute_write(_add_therapy_or_group, tp, ids_in_stmts)
 
         # This should always be done last
-        for statement in statements:
-            session.execute_write(_add_statement, statement)
+        for statement_evidence_item in statements_evidence:
+            session.execute_write(_add_statement_evidence, statement_evidence_item)
+            loaded_stmt_count += 1
+
+        for statement_assertion in statements_assertions:
+            session.execute_write(_add_statement_assertion, statement_assertion)
             loaded_stmt_count += 1
 
         _logger.info("Successfully loaded %s statements.", loaded_stmt_count)
@@ -524,8 +592,8 @@ def load_from_json(src_transformed_cdm: Path, driver: Driver | None = None) -> N
     """Load evidence into DB from given CDM JSON file.
 
     :param src_transformed_cdm: path to file for a source's transformed data to
-        common data model containing statements, variation, therapeutic procedures,
-        conditions, genes, methods, documents, etc.
+        common data model containing statements, variation, therapies, conditions,
+        genes, methods, documents, etc.
     :param driver: Neo4j graph driver, if available
     """
     _logger.info("Loading data from %s", src_transformed_cdm)

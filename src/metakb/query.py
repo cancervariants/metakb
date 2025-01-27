@@ -7,13 +7,12 @@ from enum import Enum
 
 from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
 from ga4gh.core.models import Extension, MappableConcept
-from ga4gh.va_spec.aac_2017.models import (
+from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base.core import Document, Method
-from ga4gh.va_spec.base.domain_entities import TherapyGroup
+from ga4gh.va_spec.base import Direction, Document, EvidenceLine, Method, TherapyGroup
 from ga4gh.vrs.models import Expression, Variation
 from neo4j import Driver
 from neo4j.graph import Node
@@ -523,7 +522,6 @@ class QueryHandler:
                 condition_key: None,
             },
             "strength": None,
-            "reportedIn": [],
             "specifiedBy": None,
         }
         params.update(stmt_node)
@@ -557,16 +555,21 @@ class QueryHandler:
                 )
             elif rel_type == "IS_SPECIFIED_BY":
                 node["reportedIn"] = self._get_method_document(node["id"])
+                if "subtype" in node:
+                    node["subtype"] = json.loads(node["subtype"])
                 params["specifiedBy"] = Method(**node)
             elif rel_type == "IS_REPORTED_IN":
-                params["reportedIn"].append(self._get_document(node))
+                params["reportedIn"] = [self._get_document(node)]
             elif rel_type == "HAS_STRENGTH":
-                node["extensions"] = [Extension(name="url", value=node["url"])]
                 params["strength"] = MappableConcept(**node)
             elif rel_type == "HAS_THERAPEUTIC":
-                params["proposition"]["objectTherapeutic"] = (
-                    self._get_therapeutic_procedure(node)
+                params["proposition"]["objectTherapeutic"] = self._get_therapy_or_group(
+                    node
                 )
+            elif rel_type == "HAS_CLASSIFICATION":
+                params["classification"] = self._get_classification(node)
+            elif rel_type == "HAS_EVIDENCE_LINE":
+                params["hasEvidenceLines"] = self._get_evidence_lines(statement_id)
             else:
                 logger.warning("relation type not supported: %s", rel_type)
 
@@ -646,11 +649,6 @@ class QueryHandler:
             v_params["location"]["sequenceReference"] = json.loads(
                 loc_params["sequence_reference"]
             )
-            mane_genes = v_params.get("mane_genes")
-            if mane_genes:
-                v_params["extensions"] = [
-                    Extension(name="mane_genes", value=json.loads(mane_genes))
-                ]
             variations.append(Variation(**v_params).model_dump())
         return variations
 
@@ -774,15 +772,14 @@ class QueryHandler:
             node["extensions"] = [Extension(name="source_type", value=source_type)]
         return Document(**node)
 
-    def _get_therapeutic_procedure(
+    def _get_therapy_or_group(
         self,
         node: dict,
     ) -> MappableConcept | None:
-        """Get therapeutic procedure from a node with relationship ``HAS_THERAPEUTIC``
+        """Get therapy or therapy group from a node with relationship ``HAS_THERAPEUTIC``
 
-        :param node: Therapeutic node data. This will be mutated.
-        :return: Therapeutic procedure if node type is supported. Currently, therapeutic
-            action is not supported.
+        :param node: Therapy node data. This will be mutated.
+        :return: Therapy if node type is supported.
         """
         node_type = node.get("groupType") or node.get("conceptType")
         if node_type in {
@@ -799,13 +796,13 @@ class QueryHandler:
                 ]
 
             if node_type == TherapyType.COMBINATION_THERAPY:
-                node["therapies"] = self._get_therapeutic_agents(
+                node["therapies"] = self._get_therapies(
                     node["id"],
                     TherapyType.COMBINATION_THERAPY,
                     TherapeuticRelation.HAS_COMPONENTS,
                 )
             else:
-                node["therapies"] = self._get_therapeutic_agents(
+                node["therapies"] = self._get_therapies(
                     node["id"],
                     TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP,
                     TherapeuticRelation.HAS_SUBSTITUTES,
@@ -813,50 +810,87 @@ class QueryHandler:
 
             node["groupType"] = MappableConcept(label=node_type)
 
-            therapeutic = TherapyGroup(**node)
+            therapy = TherapyGroup(**node)
         elif node_type == TherapyType.THERAPY:
-            therapeutic = self._get_therapy(node)
+            therapy = self._get_therapy(node)
         else:
             logger.warning("node type not supported: %s", node_type)
-            therapeutic = None
+            therapy = None
 
-        return therapeutic
+        return therapy
 
-    def _get_therapeutic_agents(
+    @staticmethod
+    def _get_classification(node: dict) -> MappableConcept:
+        """Get classification data from a node with relationship ``HAS_CLASSIFICATION``
+
+        :param node: CLassification node data. This will be mutated
+        :return: Classification data
+        """
+        civic_amp_level = node.pop("civic_amp_level")
+        if civic_amp_level:
+            node["extensions"] = [
+                Extension(name="civic_amp_level", value=civic_amp_level)
+            ]
+        return MappableConcept(**node)
+
+    def _get_evidence_lines(self, statement_id: int) -> list[EvidenceLine]:
+        """Get EvidenceLine data from a node with relationship ``HAS_CLASSIFICATION``
+
+        :param statement_id: Statement ID to get evidence lines for
+        :return: EvidenceLine data for a given ``statement_id``
+        """
+        evidence_lines = []
+
+        query = f"""
+        MATCH (s:Statement {{id: '{statement_id}'}}) -[:HAS_EVIDENCE_LINE] -> (el:EvidenceLine)
+        OPTIONAL MATCH (el) -[:HAS_EVIDENCE_ITEM] -> (ev:Statement)
+        RETURN DISTINCT el, ev
+        """
+        results = self.driver.execute_query(query).records
+        for r in results:
+            r_params = r.data()
+            evidence_lines.append(
+                EvidenceLine(
+                    hasEvidenceItems=[self._get_nested_stmt(r_params["ev"])],
+                    directionOfEvidenceProvided=Direction(r_params["el"]["direction"]),
+                )
+            )
+
+        return evidence_lines
+
+    def _get_therapies(
         self,
         tp_id: str,
         tp_type: TherapyType,
         tp_relation: TherapeuticRelation,
     ) -> list[MappableConcept]:
-        """Get list of therapeutic agents for therapeutic combination or substitutes
-        group
+        """Get list of therapies for therapeutic combination or substitutes group
 
         :param tp_id: ID for combination therapy or therapeutic substitute group
         :param tp_type: Therapeutic object type
-        :param tp_relation: Relationship type for therapeutic procedure and therapeutic
-            agent
-        :return: List of Therapeutic Agents for a combination therapy or therapeutic
-            substitute group
+        :param tp_relation: Relationship type for therapies
+        :return: List of therapies represented as Mappable Concepts for a combination
+            therapy or therapeutic substitute group
         """
         query = f"""
         MATCH (tp:{tp_type.value} {{ id: $tp_id }}) -[:{tp_relation.value}]
             -> (ta:Therapy)
         RETURN ta
         """
-        therapeutic_agents = []
+        therapies = []
         results = self.driver.execute_query(query, tp_id=tp_id).records
         for r in results:
             r_params = r.data()
             ta_params = r_params["ta"]
             ta = self._get_therapy(ta_params)
-            therapeutic_agents.append(ta)
-        return therapeutic_agents
+            therapies.append(ta)
+        return therapies
 
     def _get_therapy(self, in_ta_params: dict) -> MappableConcept:
         """Transform input parameters into Therapy object
 
-        :param in_ta_params: Therapeutic Agent node properties
-        :return: Therapy
+        :param in_ta_params: Therapy node properties
+        :return: Therapy represented as a mappable concept
         """
         ta_params = copy(in_ta_params)
         ta_params["mappings"] = _deserialize_field(ta_params, "mappings")

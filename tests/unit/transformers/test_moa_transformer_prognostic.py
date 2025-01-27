@@ -78,14 +78,6 @@ def moa_vid141():
                     "sequence": "T",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "C"},
-                "extensions": [
-                    {
-                        "name": "mane_genes",
-                        "value": [
-                            {"ncbi_gene_id": 54880, "hgnc_id": 20893, "symbol": "BCOR"}
-                        ],
-                    }
-                ],
             }
         ],
         "extensions": [
@@ -106,6 +98,7 @@ def moa_vid141():
         "mappings": [
             {
                 "coding": {
+                    "id": "moa.variant:141",
                     "system": "https://moalmanac.org",
                     "code": "141",
                 },
@@ -136,8 +129,9 @@ def moa_myelodysplasia():
             {
                 "coding": {
                     "label": "Myelodysplasia",
-                    "system": "https://oncotree.mskcc.org",
+                    "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
                     "code": "MDS",
+                    "id": "oncotree:MDS",
                 },
                 "relation": "exactMatch",
             }
@@ -186,7 +180,6 @@ def moa_aid141_study_stmt(
         "direction": "disputes",
         "description": "More frequent in Chronic Myelomonocytic Leukemia.",
         "strength": {
-            "conceptType": "Evidence Strength",
             "primaryCode": "e000007",
             "label": "observational study evidence",
             "mappings": [
@@ -195,6 +188,7 @@ def moa_aid141_study_stmt(
                         "id": "vicc:e000007",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000007",
+                        "label": "observational study evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -270,14 +264,6 @@ def moa_vid532():
                     "sequence": "C",
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "G"},
-                "extensions": [
-                    {
-                        "name": "mane_genes",
-                        "value": [
-                            {"ncbi_gene_id": 23451, "hgnc_id": 10768, "symbol": "SF3B1"}
-                        ],
-                    }
-                ],
             }
         ],
         "extensions": [
@@ -298,6 +284,7 @@ def moa_vid532():
         "mappings": [
             {
                 "coding": {
+                    "id": "moa.variant:532",
                     "system": "https://moalmanac.org",
                     "code": "532",
                 },
@@ -353,7 +340,6 @@ def moa_aid532_study_stmt(
         "direction": "supports",
         "description": "The National Comprehensive Cancer Network\u00ae (NCCN\u00ae) highlights SF3B1 E622, Y623, R625, N626, H662, T663, K666, K700E, I704, G740, G742, and D781 missense variants as being associated with a favorable prognosis in patients with myelodysplastic syndromes.",
         "strength": {
-            "conceptType": "Evidence Strength",
             "primaryCode": "e000003",
             "label": "professional guideline evidence",
             "mappings": [
@@ -362,6 +348,7 @@ def moa_aid532_study_stmt(
                         "id": "vicc:e000003",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000003",
+                        "label": "professional guideline evidence",
                     },
                     "relation": "exactMatch",
                 },
