@@ -479,9 +479,11 @@ def _add_statement_evidence(tx: ManagedTransaction, statement_in: dict) -> None:
     if strength:
         strength_key_fields = ("primaryCode", "label")
 
-        strength_keys = [_create_parameterized_query(
-            strength, strength_key_fields, entity_param_prefix="strength_"
-        )]
+        strength_keys = [
+            _create_parameterized_query(
+                strength, strength_key_fields, entity_param_prefix="strength_"
+            )
+        ]
         for k in strength_key_fields:
             v = strength.get(k)
             if v:

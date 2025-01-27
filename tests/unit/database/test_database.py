@@ -634,11 +634,7 @@ def test_statement_rules(
     check_node_props(statement, civic_aid6_ss_cp, expected_keys)
 
 
-def test_strength_rules(
-    driver: Driver,
-    check_relation_count,
-    civic_eid2997_study_stmt
-):
+def test_strength_rules(driver: Driver, check_relation_count, civic_eid2997_study_stmt):
     """Verify property and relationship rules for Strength nodes."""
     query = """
     MATCH (s:Strength)
@@ -685,6 +681,7 @@ def test_strength_rules(
     assert strength_node.keys() == civic_eid2997_study_stmt["strength"].keys()
     strength_node["mappings"] = json.loads(strength_node["mappings"])
     assert strength_node == civic_eid2997_study_stmt["strength"]
+
 
 def test_classification_rules(
     driver: Driver, check_unique_property, check_relation_count, civic_aid6_statement
