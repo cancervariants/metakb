@@ -328,12 +328,12 @@ class Transformer(ABC):
             object
         """
 
-        def _get_concept_mapping(exact_mapping: str) -> str:
+        def _get_concept_mapping(exact_mapping: str) -> ConceptMapping:
             """Get system for an exact mapping
 
             :param exact_mapping: Exact mapping code
             :raises NotImplementedError: If SourceName not supported yet
-            :return: System label
+            :return: Concept mapping object
             """
             if isinstance(exact_mapping, EcoLevel):
                 id_ = exact_mapping.value.lower()
@@ -342,10 +342,10 @@ class Transformer(ABC):
                 system = (
                     "https://civic.readthedocs.io/en/latest/model/evidence/level.html"
                 )
-                id_ = f"civic.evidence_level:{exact_mapping.value}"
+                id_ = f"{SourceName.CIVIC.value}.evidence_level:{exact_mapping.value}"
             elif isinstance(exact_mapping, MoaEvidenceLevel):
                 system = "https://moalmanac.org/about"
-                id_ = f"moa.assertion_level:{'_'.join(exact_mapping.value.lower().replace('-', '_').split())}"
+                id_ = f"{SourceName.MOA.value}.assertion_level:{'_'.join(exact_mapping.value.lower().replace('-', '_').split())}"
             else:
                 raise NotImplementedError
 
