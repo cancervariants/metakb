@@ -32,12 +32,29 @@ def _create_parameterized_query(
 def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
     """Get mappings and extensions from object and add to `obj` and `obj_keys`
 
-    :param obj: Object to update with mappings and extensions (if found)
+    :param obj: Object to update with mappings and extensions (if found).
+        If ``obj`` has Disease, Gene, or Therapy ``conceptType``, then ``normalizer_id``
+        will also be added.
     :param obj_keys: Parameterized queries. This will be mutated if mappings and
         extensions exists
     """
     mappings = obj.get("mappings", [])
     if mappings:
+        concept_type = obj.get("conceptType")
+        if concept_type in {"Disease", "Gene", "Therapy"}:
+            normalizer_id = None
+            for mapping in obj["mappings"]:
+                extensions = mapping.get("extensions") or []
+                for ext in extensions:
+                    if ext["name"] == NORMALIZER_PRIORITY_EXT_NAME and ext["value"]:
+                        normalizer_id = mapping["coding"]["code"]
+                        obj["normalizer_id"] = normalizer_id
+                        obj_keys.append("normalizer_id:$normalizer_id")
+                        break
+
+                if normalizer_id:
+                    break
+
         obj["mappings"] = json.dumps(mappings)
         obj_keys.append("mappings:$mappings")
 
@@ -88,26 +105,6 @@ def _add_method(tx: ManagedTransaction, method: dict, ids_in_stmts: set[str]) ->
     tx.run(query, **method)
 
 
-def _add_normalizer_id_to_obj(obj: dict, obj_keys: list[str]) -> None:
-    """Get normalizer ID and add to ``obj`` and ``obj_keys``
-
-    :param obj: Object to update with ``normalizer_id``
-    :param obj_keys: Parameterized queries. This will be mutated.
-    """
-    normalizer_id = None
-    for mapping in obj["mappings"]:
-        extensions = mapping.get("extensions")
-        if extensions:
-            for ext in extensions:
-                if ext["name"] == NORMALIZER_PRIORITY_EXT_NAME and ext["value"]:
-                    normalizer_id = mapping["coding"]["code"]
-                    break
-
-    if normalizer_id:
-        obj["normalizer_id"] = normalizer_id
-        obj_keys.append("normalizer_id:$normalizer_id")
-
-
 def _add_gene_or_disease(
     tx: ManagedTransaction, obj_in: dict, ids_in_stmts: set[str]
 ) -> None:
@@ -131,9 +128,6 @@ def _add_gene_or_disease(
     obj["conceptType"] = obj_type
     obj_keys = [_create_parameterized_query(obj, ("id", "label", "conceptType"))]
 
-    _add_normalizer_id_to_obj(
-        obj, obj_keys
-    )  # must be before _add_mappings_and_exts_to_obj
     _add_mappings_and_exts_to_obj(obj, obj_keys)
     obj_keys = ", ".join(obj_keys)
 
@@ -204,9 +198,6 @@ def _add_therapy(tx: ManagedTransaction, therapy_in: dict) -> None:
         _create_parameterized_query(therapy, ("id", "label", "conceptType"))
     ]
 
-    _add_normalizer_id_to_obj(
-        therapy, nonnull_keys
-    )  # must be before _add_mappings_and_exts_to_obj
     _add_mappings_and_exts_to_obj(therapy, nonnull_keys)
     nonnull_keys = ", ".join(nonnull_keys)
 
