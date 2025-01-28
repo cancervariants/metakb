@@ -11,7 +11,7 @@ from ga4gh.core.models import ConceptMapping
 from metakb.harvesters.base import Harvester
 from metakb.normalizers import ViccNormalizers
 from metakb.query import QueryHandler
-from metakb.transformers.base import NORMALIZER_PRIORITY_EXT_NAME
+from metakb.transformers.base import NormalizerExtensionName
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
 TEST_HARVESTERS_DIR = TEST_DATA_DIR / "harvesters"
@@ -78,7 +78,7 @@ def get_mappings_normalizer_id(mappings: list[dict | ConceptMapping]) -> str | N
             mapping = mapping.model_dump()
         extensions = mapping.get("extensions") or []
         for ext in extensions:
-            if ext["name"] == NORMALIZER_PRIORITY_EXT_NAME and ext["value"]:
+            if ext["name"] == NormalizerExtensionName.PRIORITY and ext["value"]:
                 normalizer_id = mapping["coding"]["code"]
                 break
     return normalizer_id

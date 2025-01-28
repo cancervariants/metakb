@@ -8,7 +8,7 @@ from pathlib import Path
 from neo4j import Driver, ManagedTransaction
 
 from metakb.database import get_driver
-from metakb.transformers.base import NORMALIZER_PRIORITY_EXT_NAME, TherapyType
+from metakb.transformers.base import NormalizerExtensionName, TherapyType
 
 _logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
             for mapping in obj["mappings"]:
                 extensions = mapping.get("extensions") or []
                 for ext in extensions:
-                    if ext["name"] == NORMALIZER_PRIORITY_EXT_NAME and ext["value"]:
+                    if ext["name"] == NormalizerExtensionName.PRIORITY and ext["value"]:
                         normalizer_id = mapping["coding"]["code"]
                         obj["normalizer_id"] = normalizer_id
                         obj_keys.append("normalizer_id:$normalizer_id")

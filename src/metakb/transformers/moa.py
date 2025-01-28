@@ -3,6 +3,7 @@
 import json
 import logging
 from pathlib import Path
+from typing import ClassVar
 from urllib.parse import quote
 
 from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
@@ -39,9 +40,17 @@ from metakb.transformers.base import (
     MoaEvidenceLevel,
     TherapyType,
     Transformer,
+    _Cache,
 )
 
 logger = logging.getLogger(__name__)
+
+
+class _MoaCache(_Cache):
+    """Create model for caching MOA data"""
+
+    variations: ClassVar[dict[str, dict]] = {}
+    documents: ClassVar[dict[str, Document]] = {}
 
 
 class MoaTransformer(Transformer):
@@ -67,13 +76,7 @@ class MoaTransformer(Transformer):
         self.processed_data.methods = [
             self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]
         ]
-        self.able_to_normalize = {
-            "variations": {},
-            "conditions": {},
-            "therapies": {},
-            "genes": {},
-            "documents": {},
-        }
+        self._cache = _MoaCache()
 
     async def transform(self, harvested_data: MoaHarvestedData) -> None:
         """Transform MOA harvested JSON to common data model. Will store transformed
@@ -95,7 +98,7 @@ class MoaTransformer(Transformer):
         """Create Variant Study Statements from MOA assertions.
         Will add associated values to ``processed_data`` instance variable
         (``therapies``, ``conditions``, and ``statements``).
-        ``able_to_normalize`` and ``unable_to_normalize`` will
+        ``_cache`` and ``unable_to_normalize`` will
         also be mutated for associated therapies and conditions.
 
         :param assertions: MOA assertion record
@@ -104,7 +107,7 @@ class MoaTransformer(Transformer):
         variant_id = assertion["variant"]["id"]
 
         # Check cache for variation record (which contains gene information)
-        variation_gene_map = self.able_to_normalize["variations"].get(variant_id)
+        variation_gene_map = self._cache.variations.get(variant_id)
         if not variation_gene_map:
             logger.debug(
                 "%s has no variation for variant_id %s", assertion_id, variant_id
@@ -131,7 +134,7 @@ class MoaTransformer(Transformer):
             return
 
         # Add document
-        document = self.able_to_normalize["documents"].get(assertion["source_id"])
+        document = self._cache.documents.get(assertion["source_id"])
 
         feature_type = assertion["variant"]["feature_type"]
         if feature_type == "somatic_variant":
@@ -204,7 +207,7 @@ class MoaTransformer(Transformer):
 
     async def _add_categorical_variants(self, variants: list[dict]) -> None:
         """Create Categorical Variant objects for all MOA variant records.
-        Mutates instance variables ``able_to_normalize['variations']`` and
+        Mutates instance variables ``_cache['variations']`` and
         ``processed_data.variations``, if the variation-normalizer can successfully
         normalize the variant
 
@@ -234,7 +237,7 @@ class MoaTransformer(Transformer):
                 )
                 continue
 
-            moa_gene = self.able_to_normalize["genes"].get(quote(gene))
+            moa_gene = self._cache.genes.get(quote(gene))
             if not moa_gene:
                 logger.debug(
                     "moa.variant:%s has no gene for gene, %s", variant_id, gene
@@ -319,7 +322,7 @@ class MoaTransformer(Transformer):
                 members=members,
             )
 
-            self.able_to_normalize["variations"][variant_id] = {
+            self._cache.variations[variant_id] = {
                 "cv": cv,
                 "moa_gene": moa_gene,
             }
@@ -370,7 +373,7 @@ class MoaTransformer(Transformer):
 
     def _add_genes(self, genes: list[str]) -> None:
         """Create gene objects for all MOA gene records.
-        Mutates instance variables ``able_to_normalize['genes']`` and
+        Mutates instance variables ``_cache['genes']`` and
         ``processed_data.genes``, if the gene-normalizer can successfully normalize the
         gene
 
@@ -389,7 +392,7 @@ class MoaTransformer(Transformer):
                         normalized_gene_id, gene_norm_resp
                     ),
                 )
-                self.able_to_normalize["genes"][quote(gene)] = moa_gene
+                self._cache.genes[quote(gene)] = moa_gene
                 self.processed_data.genes.append(moa_gene)
             else:
                 logger.debug("Gene Normalizer unable to normalize: %s", gene)
@@ -397,7 +400,7 @@ class MoaTransformer(Transformer):
     def _add_documents(self, sources: list) -> None:
         """Create document objects for all MOA sources.
         Mutates instance variables ``processed_data.documents`` and
-        ``self.able_to_normalize["documents"]``
+        ``self._cache.documents"]``
 
         :param sources: All sources in MOA
         """
@@ -426,7 +429,7 @@ class MoaTransformer(Transformer):
                 mappings=mappings,
                 extensions=[Extension(name="source_type", value=source["type"])],
             )
-            self.able_to_normalize["documents"][source_id] = document
+            self._cache.documents[source_id] = document
             self.processed_data.documents.append(document)
 
     def _get_therapy_or_group(
@@ -489,14 +492,16 @@ class MoaTransformer(Transformer):
         :return: None, since not supported by MOA
         """
 
-    def _get_therapy(self, therapy: dict) -> MappableConcept | None:
+    def _get_therapy(self, therapy: dict) -> MappableConcept:
         """Get Therapy mappable concept for a MOA therapy name.
 
         Will run `label` through therapy-normalizer.
 
         :param therapy: MOA therapy name
-        :return: If able to normalize therapy, returns therapy mappable concept
+        :return: If able to normalize therapy
         """
+        mappings = []
+        extensions = []
         (
             therapy_norm_resp,
             normalized_therapeutic_id,
@@ -504,34 +509,38 @@ class MoaTransformer(Transformer):
 
         if not normalized_therapeutic_id:
             logger.debug("Therapy Normalizer unable to normalize: %s", therapy)
-            return None
+            extensions.append(self._get_vicc_normalizer_failure_ext())
+        else:
+            regulatory_approval_extension = (
+                self.vicc_normalizers.get_regulatory_approval_extension(
+                    therapy_norm_resp
+                )
+            )
 
-        extensions = []
+            if regulatory_approval_extension:
+                extensions.append(regulatory_approval_extension)
 
-        regulatory_approval_extension = (
-            self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)
-        )
-
-        if regulatory_approval_extension:
-            extensions.append(regulatory_approval_extension)
+            mappings.extend(
+                self._get_vicc_normalizer_mappings(
+                    normalized_therapeutic_id, therapy_norm_resp
+                )
+            )
 
         return MappableConcept(
             id=f"moa.{therapy_norm_resp.therapy.id}",
             conceptType="Therapy",
             label=therapy["label"],
-            mappings=self._get_vicc_normalizer_mappings(
-                normalized_therapeutic_id, therapy_norm_resp
-            ),
+            mappings=mappings or None,
             extensions=extensions or None,
         )
 
-    def _add_disease(self, disease: dict) -> dict | None:
+    def _add_disease(self, disease: dict) -> MappableConcept | None:
         """Create or get disease given MOA disease.
 
         First looks in cache for existing disease, if not found will attempt to
         normalize. Will generate a digest from the original MOA disease object oncotree
         fields. This will be used as the key in the caches. Will add the generated digest
-        to ``processed_data.conditions`` and ``able_to_normalize['conditions']`` if
+        to ``processed_data.conditions`` and ``_cache['conditions']`` if
         disease-normalizer is able to normalize. Else will add the generated digest to
         ``unable_to_normalize['conditions']``.
 
@@ -540,7 +549,7 @@ class MoaTransformer(Transformer):
         aliases field.
 
         :param disease: MOA disease object
-        :return: Disease object if disease-normalizer was able to normalize
+        :return: Disease object
         """
         if not all(value for value in disease.values()):
             return None
@@ -556,42 +565,39 @@ class MoaTransformer(Transformer):
         blob = json.dumps(oncotree_kv, separators=(",", ":")).encode("ascii")
         disease_id = sha512t24u(blob)
 
-        vrs_disease = self.able_to_normalize["conditions"].get(disease_id)
-        if vrs_disease:
+        moa_disease = self._cache.conditions.get(disease_id)
+        if moa_disease:
             source_disease_name = disease["name"]
-            if source_disease_name != vrs_disease.label:
-                if not vrs_disease.extensions:
-                    vrs_disease.extensions = [
+            if source_disease_name != moa_disease.label:
+                if not moa_disease.extensions:
+                    moa_disease.extensions = [
                         Extension(name="aliases", value=[source_disease_name])
                     ]
                 else:
-                    for ext in vrs_disease.extensions:
+                    for ext in moa_disease.extensions:
                         if (
                             ext.name == "aliases"
                             and source_disease_name not in ext.value
                         ):
                             ext.value.append(source_disease_name)
                             break
-            return vrs_disease
+            return moa_disease
 
-        vrs_disease = None
-        if disease_id not in self.unable_to_normalize["conditions"]:
-            vrs_disease = self._get_disease(disease)
-            if vrs_disease:
-                self.able_to_normalize["conditions"][disease_id] = vrs_disease
-                self.processed_data.conditions.append(vrs_disease)
-            else:
-                self.unable_to_normalize["conditions"].add(disease_id)
-        return vrs_disease
+        moa_disease = None
+        moa_disease = self._get_disease(disease)
+        self._cache.conditions[disease_id] = moa_disease
+        self.processed_data.conditions.append(moa_disease)
+        return moa_disease
 
-    def _get_disease(self, disease: dict) -> MappableConcept | None:
+    def _get_disease(self, disease: dict) -> MappableConcept:
         """Get Disease object for a MOA disease
 
         :param disease: MOA disease record
-        :return: If able to normalize, Disease. Otherwise, `None`
+        :return: If able to normalize, Disease
         """
         queries = []
         mappings = []
+        extensions = []
 
         ot_code = disease["oncotree_code"]
         ot_term = disease["oncotree_term"]
@@ -623,15 +629,18 @@ class MoaTransformer(Transformer):
 
         if not normalized_disease_id:
             logger.debug("Disease Normalizer unable to normalize: %s", queries)
-            return None
-
-        mappings.extend(
-            self._get_vicc_normalizer_mappings(normalized_disease_id, disease_norm_resp)
-        )
+            extensions.append(self._get_vicc_normalizer_failure_ext())
+        else:
+            mappings.extend(
+                self._get_vicc_normalizer_mappings(
+                    normalized_disease_id, disease_norm_resp
+                )
+            )
 
         return MappableConcept(
             id=f"moa.{disease_norm_resp.disease.id}",
             conceptType="Disease",
             label=disease_name,
-            mappings=mappings if mappings else None,
+            mappings=mappings or None,
+            extensions=extensions or None,
         )
