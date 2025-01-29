@@ -39,20 +39,20 @@
                 "type": "disease"
             },
             "source": {
-                "id": 1725,
-                "name": "PubMed: Dungo et al., 2013",
-                "title": "Afatinib: first global approval.",
-                "citation": "Dungo et al., 2013",
-                "citation_id": "23982599",
+                "id": 123456789,
+                "name": "PubMed: Fake name",
+                "title": "My fake civic source",
+                "citation": "John Doe et al., 2022",
+                "citation_id": "123456789",
                 "source_type": "PUBMED",
-                "abstract": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases, is under development with Boehringer Ingelheim for the once-daily, oral treatment of cancer. Afatinib downregulates ErbB signalling by covalently binding to epidermal growth factor receptor (EGFR), human epidermal growth factor receptor (HER) 2 and HER4, irreversibly inhibiting tyrosine kinase autophosphorylation. It also inhibits transphosphorylation of HER3. Oral afatinib (Gilotrif\u2122) has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test. Afatinib has also been approved in Taiwan for the first-line treatment of patients with EGFR mutation-positive NSCLC. In addition, the European Medicines Agency's Committee for Medicinal Products for Human Use has recommended the approval of afatinib (Giotrif\u00ae) for the treatment of patients with locally advanced or metastatic NSCLC with activating EGFR mutations who are EGFR tyrosine kinase inhibitor na\u00efve. Afatinib is also under regulatory review in Canada, Japan and other Asian countries. This article summarizes the milestones in the development of afatinib, leading to this first approval in patients with metastatic NSCLC.",
+                "abstract": "A really great abstract",
                 "asco_abstract_id": null,
-                "author_string": "Rosselle T Dungo, Gillian M Keating",
+                "author_string": "John Doe",
                 "full_journal_title": "Drugs",
                 "journal": "Drugs",
                 "pmc_id": null,
-                "publication_date": "2013-9",
-                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23982599",
+                "publication_date": "2022-9",
+                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/123456789",
                 "clinical_trials": [],
                 "type": "source"
             },
@@ -66,7 +66,7 @@
             "id": 6,
             "name": "BRCA1. This should fail normalization.",
             "entrez_id": 0,
-            "description": "BRCA1 mutations in the germline have become a hallmark for hereditary breast and ovarian cancers. Variants that have been demonstrated to reduce the function of the protein have been shown to increase the risk for these cancers, as well as prostate and pancreatic cancer. These findings have been the impetus for the increased popularity of genetic testing of healthy individuals to assess risk. Recent studies in ovarian cancer have also demonstrated that BRCA mutation status can predict treatment response. A number of trials assessing BRCA mutation status have shown an improved response to platinum agents, and more recently has led to the FDA-approval of PARP inhibitors for BRCA-positive ovarian cancers. These studies have resulted in the Society of Gynecologic Oncology to recommend germline BRCA testing in all patients with a diagnosis of ovarian cancer.",
+            "description": "This is a fake gene that fails normalization.",
             "sources": [
                 {
                     "id": 11,

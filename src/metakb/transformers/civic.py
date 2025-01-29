@@ -836,7 +836,8 @@ class CivicTransformer(Transformer):
             gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(
                 queries
             )
-            if not gene_norm_resp:
+
+            if not normalized_gene_id:
                 _logger.debug(
                     "Gene Normalizer unable to normalize: %s using queries %s",
                     gene_id,
