@@ -1,5 +1,6 @@
 """Module for pytest fixtures."""
 
+import json
 import logging
 from copy import deepcopy
 from pathlib import Path
@@ -11,7 +12,7 @@ from ga4gh.core.models import ConceptMapping
 from metakb.harvesters.base import Harvester
 from metakb.normalizers import ViccNormalizers
 from metakb.query import QueryHandler
-from metakb.transformers.base import NormalizerExtensionName
+from metakb.transformers.base import NormalizerExtensionName, Transformer
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
 TEST_HARVESTERS_DIR = TEST_DATA_DIR / "harvesters"
@@ -82,6 +83,32 @@ def get_mappings_normalizer_id(mappings: list[dict | ConceptMapping]) -> str | N
                 normalizer_id = mapping["coding"]["code"]
                 break
     return normalizer_id
+
+
+async def get_transformed_data(
+    transformer: Transformer,
+    data_dir: Path,
+    harvester_path: Path,
+    normalizers: ViccNormalizers,
+    output_cdm_fn: str,
+) -> dict:
+    """Get transformed data
+
+    :param transformer: Transformer instance
+    :param data_dir: Path to data directory
+    :param harvester_path: Path to harvester file
+    :param normalizers: Vicc Normalizers
+    :param output_cdm_fn: Name of output CDM file
+    :return: Transformed data given harvester data
+    """
+    t = transformer(
+        data_dir=data_dir, harvester_path=harvester_path, normalizers=normalizers
+    )
+    harvested_data = t.extract_harvested_data()
+    await t.transform(harvested_data)
+    t.create_json(data_dir / output_cdm_fn)
+    with (data_dir / output_cdm_fn).open() as f:
+        return json.load(f)
 
 
 @pytest.fixture(scope="session")
@@ -519,6 +546,9 @@ def civic_vid12():
         "state": {"sequence": "E", "type": "LiteralSequenceExpression"},
         "expressions": [
             {"syntax": "hgvs.p", "value": "NP_004324.2:p.Val600Glu"},
+            {"syntax": "hgvs.c", "value": "NM_004333.4:c.1799T>A"},
+            {"syntax": "hgvs.g", "value": "NC_000007.13:g.140453136A>T"},
+            {"syntax": "hgvs.c", "value": "ENST00000288602.6:c.1799T>A"},
         ],
     }
 
@@ -680,6 +710,9 @@ def civic_vid33():
         "state": {"sequence": "R", "type": "LiteralSequenceExpression"},
         "expressions": [
             {"syntax": "hgvs.p", "value": "NP_005219.2:p.Leu858Arg"},
+            {"syntax": "hgvs.g", "value": "NC_000007.13:g.55259515T>G"},
+            {"syntax": "hgvs.c", "value": "NM_005228.4:c.2573T>G"},
+            {"syntax": "hgvs.c", "value": "ENST00000275493.2:c.2573T>G"},
         ],
     }
 
@@ -1324,6 +1357,9 @@ def civic_vid65():
         "state": {"sequence": "V", "type": "LiteralSequenceExpression"},
         "expressions": [
             {"syntax": "hgvs.p", "value": "NP_000213.1:p.Asp816Val"},
+            {"syntax": "hgvs.c", "value": "NM_000222.2:c.2447A>T"},
+            {"syntax": "hgvs.c", "value": "ENST00000288135.5:c.2447A>T"},
+            {"syntax": "hgvs.g", "value": "NC_000004.11:g.55599321A>T"},
         ],
     }
 
@@ -1729,7 +1765,7 @@ def moa_vid66():
 def moa_abl1():
     """Create a test fixture for MOA ABL1 Gene."""
     return {
-        "id": "moa.normalize.gene:ABL1",
+        "id": "moa.gene:ABL1",
         "conceptType": "Gene",
         "label": "ABL1",
         "mappings": [
@@ -1750,7 +1786,7 @@ def moa_abl1():
 def moa_imatinib():
     """Create a test fixture for MOA Imatinib Therapy."""
     return {
-        "id": "moa.normalize.therapy.rxcui:282388",
+        "id": "moa.therapy:Imatinib",
         "conceptType": "Therapy",
         "label": "Imatinib",
         "extensions": [
@@ -1884,7 +1920,7 @@ def moa_imatinib():
 def moa_chronic_myelogenous_leukemia():
     """Create test fixture for MOA Chronic Myelogenous Leukemia."""
     return {
-        "id": "moa.normalize.disease.ncit:C3174",
+        "id": "moa.disease:Chronic_Myelogenous_Leukemia",
         "conceptType": "Disease",
         "label": "Chronic Myelogenous Leukemia",
         "mappings": [

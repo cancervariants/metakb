@@ -1,13 +1,9 @@
 """Test CIViC Transformation to common data model for Therapeutic Response."""
 
-import json
-from pathlib import Path
-
 import pytest
 import pytest_asyncio
-from tests.conftest import TEST_TRANSFORMERS_DIR
+from tests.conftest import TEST_TRANSFORMERS_DIR, get_transformed_data
 
-from metakb.normalizers import ViccNormalizers
 from metakb.transformers.civic import CivicTransformer
 
 DATA_DIR = TEST_TRANSFORMERS_DIR / "therapeutic"
@@ -15,32 +11,12 @@ NORMALIZABLE_FILENAME = "civic_cdm.json"
 NOT_NORMALIZABLE_FILE_NAME = "civic_cdm_normalization_failure.json"
 
 
-async def _get_transformed_data(
-    harvester_path: Path, normalizers: ViccNormalizers, output_cdm_fn: str
-) -> dict:
-    """Get transformed data
-
-    :param harvester_path: Path to harvester file
-    :param normalizers: Vicc Normalizers
-    :param output_cdm_fn: Name of output CDM file
-    :return: Transformed data given harvester data
-    """
-    c = CivicTransformer(
-        data_dir=DATA_DIR, harvester_path=harvester_path, normalizers=normalizers
-    )
-    harvested_data = c.extract_harvested_data()
-    await c.transform(harvested_data)
-    c.create_json(DATA_DIR / output_cdm_fn)
-    with (DATA_DIR / output_cdm_fn).open() as f:
-        return json.load(f)
-
-
 @pytest_asyncio.fixture(scope="module")
 async def normalizable_data(normalizers):
     """Create a CIViC Transformer test fixture."""
     harvester_path = DATA_DIR / "civic_harvester.json"
-    return await _get_transformed_data(
-        harvester_path, normalizers, NORMALIZABLE_FILENAME
+    return await get_transformed_data(
+        CivicTransformer, DATA_DIR, harvester_path, normalizers, NORMALIZABLE_FILENAME
     )
 
 
@@ -51,8 +27,12 @@ async def not_normalizable_data(normalizers):
     #       However, it does include some actual civic records that fail to normalize
     #       Gene record was modified to fail
     harvester_path = DATA_DIR / "civic_harvester_not_normalizable.json"
-    return await _get_transformed_data(
-        harvester_path, normalizers, NOT_NORMALIZABLE_FILE_NAME
+    return await get_transformed_data(
+        CivicTransformer,
+        DATA_DIR,
+        harvester_path,
+        normalizers,
+        NOT_NORMALIZABLE_FILE_NAME,
     )
 
 

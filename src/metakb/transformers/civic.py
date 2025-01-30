@@ -31,7 +31,7 @@ from ga4gh.va_spec.base import (
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from ga4gh.vrs.models import Expression, Syntax, Variation
+from ga4gh.vrs.models import Allele, Expression, Syntax, Variation
 from pydantic import BaseModel, ValidationError
 
 from metakb import APP_ROOT
@@ -351,7 +351,7 @@ class CivicTransformer(Transformer):
             evidence_lines = []
             for eid in record["evidence_ids"]:
                 civic_eid = f"civic.eid:{eid}"
-                evidence_item = self._evidence_cache.get(civic_eid)
+                evidence_item = self._cache.evidence.get(civic_eid)
                 if evidence_item:
                     evidence_lines.append(
                         EvidenceLine(
@@ -548,7 +548,10 @@ class CivicTransformer(Transformer):
                         Extension(name=ext_key, value=civic_variation_data_value)
                     )
 
-            if civic_variation_data.vrs_variation:
+            constraints = None
+            if civic_variation_data.vrs_variation and isinstance(
+                civic_variation_data.vrs_variation.root, Allele
+            ):
                 constraints = [
                     DefiningAlleleConstraint(
                         allele=civic_variation_data.vrs_variation.root,
@@ -706,6 +709,7 @@ class CivicTransformer(Transformer):
                     label="_".join(vt["name"].lower().split()),
                 )
                 for vt in variant["variant_types"]
+                if vt and vt["url"]
             ]
 
             # Get mappings
@@ -998,13 +1002,13 @@ class CivicTransformer(Transformer):
 
         return tg
 
-    def _get_therapy(self, therapy: dict) -> MappableConcept:
+    def _get_therapy(self, therapy_id: str, therapy: dict) -> MappableConcept:
         """Get Therapy mappable concept for CIViC therapy
 
+        :param therapy_id: ID for therapy
         :param therapy: CIViC therapy object
         :return:
         """
-        therapy_id = f"civic.tid:{therapy['id']}"
         label = therapy["name"]
         ncit_id = f"ncit:{therapy['ncit_id']}"
         mappings = []

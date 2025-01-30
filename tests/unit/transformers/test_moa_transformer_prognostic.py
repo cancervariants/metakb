@@ -111,7 +111,7 @@ def moa_vid141():
 def moa_myelodysplasia():
     """Create test fixture for MOA disease Myelodysplasia"""
     return {
-        "id": "moa.normalize.disease.ncit:C3247",
+        "id": "moa.disease:Myelodysplasia",
         "conceptType": "Disease",
         "label": "Myelodysplasia",
         "mappings": [
@@ -149,7 +149,7 @@ def moa_myelodysplasia():
 def moa_bcor():
     """Create MOA gene BCOR test fixture"""
     return {
-        "id": "moa.normalize.gene:BCOR",
+        "id": "moa.gene:BCOR",
         "conceptType": "Gene",
         "label": "BCOR",
         "mappings": [
@@ -316,7 +316,7 @@ def moa_vid532():
 def moa_sf3b1():
     """Create MOA gene SF3B1 test fixture"""
     return {
-        "id": "moa.normalize.gene:SF3B1",
+        "id": "moa.gene:SF3B1",
         "conceptType": "Gene",
         "label": "SF3B1",
         "mappings": [

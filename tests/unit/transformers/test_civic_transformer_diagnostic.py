@@ -42,7 +42,10 @@ def civic_mpid99():
                     "label": "D842V",
                     "digest": "Dy7soaZQU1vH9Eb93xG_pJyhu7xTDDC9",
                     "expressions": [
-                        {"syntax": "hgvs.p", "value": "NP_006197.1:p.Asp842Val"}
+                        {"syntax": "hgvs.p", "value": "NP_006197.1:p.Asp842Val"},
+                        {"syntax": "hgvs.c", "value": "NM_006206.4:c.2525A>T"},
+                        {"syntax": "hgvs.c", "value": "ENST00000257290.5:c.2525A>T"},
+                        {"syntax": "hgvs.g", "value": "NC_000004.11:g.55152093A>T"},
                     ],
                     "location": {
                         "id": "ga4gh:SL.xuh2OFm73UN7_0uLySrRY2Xe3FW7KJ5h",
@@ -315,7 +318,10 @@ def civic_mpid113():
                     "label": "M918T",
                     "digest": "hEybNB_CeKflfFhT5AKOU5i1lgZPP-aS",
                     "expressions": [
-                        {"syntax": "hgvs.p", "value": "NP_065681.1:p.Met918Thr"}
+                        {"syntax": "hgvs.p", "value": "NP_065681.1:p.Met918Thr"},
+                        {"syntax": "hgvs.c", "value": "NM_020975.4:c.2753T>C"},
+                        {"syntax": "hgvs.c", "value": "ENST00000355710.3:c.2753T>C"},
+                        {"syntax": "hgvs.g", "value": "NC_000010.10:g.43617416T>C"},
                     ],
                     "location": {
                         "id": "ga4gh:SL.oIeqSfOEuqO7KNOPt8YUIa9vo1f6yMao",

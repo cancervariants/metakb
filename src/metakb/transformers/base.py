@@ -3,6 +3,7 @@
 import datetime
 import json
 import logging
+import re
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
@@ -53,6 +54,15 @@ NORMALIZER_INSTANCE_TO_ATTR = {
     NormalizedTherapy: "therapy",
     NormalizedGene: "gene",
 }
+
+
+def _sanitize_name(name: str) -> str:
+    """Trim leading and trailing whitespace and replace whitespace with underscore
+
+    :param name: Name to sanitize
+    :return: Sanitized string with spaces replaced by underscores
+    """
+    return re.sub(r"\s+", "_", name.strip())
 
 
 class NormalizerExtensionName(str, Enum):
@@ -450,7 +460,7 @@ class Transformer(ABC):
 
         for therapy in therapies_in:
             if source_name == SourceName.MOA:
-                therapy_id = f"moa.therapy:{therapy}"
+                therapy_id = f"moa.therapy:{_sanitize_name(therapy['label'])}"
             else:
                 therapy_id = f"civic.tid:{therapy['id']}"
             therapy_mc = self._add_therapy(
@@ -515,7 +525,7 @@ class Transformer(ABC):
             return therapy
 
         if therapy_type == TherapyType.THERAPY:
-            therapy = self._get_therapy(therapies[0])
+            therapy = self._get_therapy(therapy_id, therapies[0])
         elif therapy_type == TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP:
             therapy = self._get_therapeutic_substitute_group(
                 therapy_id, therapies, therapy_interaction_type
