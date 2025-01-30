@@ -583,7 +583,7 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
         loaded_stmt_count = 0
 
         for cv in data.get("categorical_variants", []):
-            if _failed_to_normalize(cv):
+            if _failed_to_normalize(cv) or not cv.get("constraints"):
                 continue
 
             session.execute_write(_add_categorical_variant, cv, ids_in_stmts)
