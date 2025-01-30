@@ -5,7 +5,8 @@ import pytest_asyncio
 from tests.conftest import (
     TEST_TRANSFORMERS_DIR,
     get_transformed_data,
-    get_vicc_normalizer_ext,
+    get_vicc_normalizer_failure_ext,
+    get_vicc_normalizer_priority_ext,
 )
 
 from metakb.transformers.moa import MoaTransformer
@@ -206,7 +207,9 @@ def moa_aid154_study_stmt(
                             "system": "http://purl.obolibrary.org/obo/ncit.owl",
                         },
                         "relation": "exactMatch",
-                        "extensions": get_vicc_normalizer_ext(is_priority=True),
+                        "extensions": get_vicc_normalizer_priority_ext(
+                            is_priority=True
+                        ),
                     },
                     {
                         "coding": {
@@ -214,7 +217,9 @@ def moa_aid154_study_stmt(
                             "system": "http://purl.obolibrary.org/obo/mondo.owl",
                         },
                         "relation": "relatedMatch",
-                        "extensions": get_vicc_normalizer_ext(is_priority=False),
+                        "extensions": get_vicc_normalizer_priority_ext(
+                            is_priority=False
+                        ),
                     },
                 ],
             },
@@ -249,7 +254,7 @@ def moa_vid21_modified():
         "type": "CategoricalVariant",
         "label": "FakeGene Translocation",
         "extensions": [
-            {"name": "vicc_normalizer_failure", "value": True},
+            get_vicc_normalizer_failure_ext(),
             {"name": "MOA locus", "value": "t(6;14)"},
         ],
         "mappings": [
@@ -272,9 +277,7 @@ def moa_mito_cp():
         "id": "moa.therapy:Mito-CP",
         "conceptType": "Therapy",
         "label": "Mito-CP",
-        "extensions": [
-            {"name": "vicc_normalizer_failure", "value": True},
-        ],
+        "extensions": [get_vicc_normalizer_failure_ext()],
     }
 
 
@@ -285,9 +288,7 @@ def moa_t_cell_acute_lymphoid_leukemia():
         "id": "moa.disease:T-Cell_Acute_Lymphoid_Leukemia",
         "conceptType": "Disease",
         "label": "T-Cell Acute Lymphoid Leukemia",
-        "extensions": [
-            {"name": "vicc_normalizer_failure", "value": True},
-        ],
+        "extensions": [get_vicc_normalizer_failure_ext()],
         "mappings": [
             {
                 "coding": {
@@ -309,9 +310,7 @@ def moa_fake_gene():
         "id": "moa.gene:FakeGene",
         "conceptType": "Gene",
         "label": "FakeGene",
-        "extensions": [
-            {"name": "vicc_normalizer_failure", "value": True},
-        ],
+        "extensions": [get_vicc_normalizer_failure_ext()],
     }
 
 

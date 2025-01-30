@@ -4,7 +4,7 @@ import json
 
 import pytest
 import pytest_asyncio
-from tests.conftest import TEST_TRANSFORMERS_DIR, get_vicc_normalizer_ext
+from tests.conftest import TEST_TRANSFORMERS_DIR, get_vicc_normalizer_priority_ext
 
 from metakb.transformers.civic import CivicTransformer
 
@@ -197,7 +197,7 @@ def civic_gid38():
                     "system": "https://www.genenames.org",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
         ],
         "extensions": [
@@ -236,7 +236,7 @@ def civic_did2():
                     "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
@@ -244,7 +244,7 @@ def civic_did2():
                     "system": "http://purl.obolibrary.org/obo/mondo.owl",
                 },
                 "relation": "relatedMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=False),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],
     }
@@ -473,7 +473,7 @@ def civic_gid42():
                     "system": "https://www.genenames.org",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
         ],
         "extensions": [
@@ -522,7 +522,7 @@ def civic_did15():
                     "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
@@ -530,7 +530,7 @@ def civic_did15():
                     "system": "http://purl.obolibrary.org/obo/mondo.owl",
                 },
                 "relation": "relatedMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=False),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],
     }

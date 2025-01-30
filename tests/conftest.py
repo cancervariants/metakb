@@ -62,9 +62,14 @@ def check_source_harvest(tmp_path: Path, harvester: Harvester):
         assert not harvested_filepath.exists()
 
 
-def get_vicc_normalizer_ext(is_priority: bool):
+def get_vicc_normalizer_priority_ext(is_priority: bool):
     """Create test fixture for vicc normalizer priority extension"""
     return [{"name": "vicc_normalizer_priority", "value": is_priority}]
+
+
+def get_vicc_normalizer_failure_ext():
+    """Create test fixture for vicc normalizer failure extension"""
+    return {"name": "vicc_normalizer_failure", "value": True}
 
 
 def get_mappings_normalizer_id(mappings: list[dict | ConceptMapping]) -> str | None:
@@ -122,7 +127,7 @@ def braf_normalizer_mappings():
                 "system": "https://www.genenames.org",
             },
             "relation": "exactMatch",
-            "extensions": get_vicc_normalizer_ext(is_priority=True),
+            "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
         },
     ]
 
@@ -138,7 +143,7 @@ def cetuximab_normalizer_mappings():
                 "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
             },
             "relation": "exactMatch",
-            "extensions": get_vicc_normalizer_ext(is_priority=True),
+            "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
         }
     ]
 
@@ -225,7 +230,7 @@ def encorafenib_normalizer_mappings():
                 "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
             },
             "relation": "exactMatch",
-            "extensions": get_vicc_normalizer_ext(is_priority=True),
+            "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
         }
     ]
 
@@ -740,7 +745,7 @@ def civic_gid19():
                     "system": "https://www.genenames.org",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
         ],
         "extensions": [
@@ -788,7 +793,7 @@ def civic_tid146():
                     "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
         ],
         "extensions": [
@@ -854,7 +859,7 @@ def civic_did8():
                     "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
@@ -862,7 +867,7 @@ def civic_did8():
                     "system": "http://purl.obolibrary.org/obo/mondo.owl",
                 },
                 "relation": "relatedMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=False),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],
     }
@@ -902,7 +907,7 @@ def civic_tid28():
                     "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
         ],
         "extensions": [
@@ -1078,7 +1083,7 @@ def civic_did11():
                     "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
@@ -1086,7 +1091,7 @@ def civic_did11():
                     "system": "http://purl.obolibrary.org/obo/mondo.owl",
                 },
                 "relation": "relatedMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=False),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],
     }
@@ -1528,7 +1533,7 @@ def civic_did3():
                     "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
@@ -1536,7 +1541,7 @@ def civic_did3():
                     "system": "http://purl.obolibrary.org/obo/mondo.owl",
                 },
                 "relation": "relatedMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=False),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],
     }
@@ -1575,7 +1580,7 @@ def civic_gid29():
                     "label": "KIT",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
         ],
     }
@@ -1776,7 +1781,7 @@ def moa_abl1():
                     "system": "https://www.genenames.org",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             }
         ],
     }
@@ -1910,7 +1915,7 @@ def moa_imatinib():
                     "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
         ],
     }
@@ -1940,7 +1945,7 @@ def moa_chronic_myelogenous_leukemia():
                     "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
@@ -1948,7 +1953,7 @@ def moa_chronic_myelogenous_leukemia():
                     "system": "http://purl.obolibrary.org/obo/mondo.owl",
                 },
                 "relation": "relatedMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=False),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],
     }

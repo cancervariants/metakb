@@ -2,7 +2,11 @@
 
 import pytest
 import pytest_asyncio
-from tests.conftest import TEST_TRANSFORMERS_DIR, get_transformed_data
+from tests.conftest import (
+    TEST_TRANSFORMERS_DIR,
+    get_transformed_data,
+    get_vicc_normalizer_failure_ext,
+)
 
 from metakb.transformers.civic import CivicTransformer
 
@@ -70,7 +74,7 @@ def civic_tid579():
             },
         ],
         "extensions": [
-            {"name": "vicc_normalizer_failure", "value": True},
+            get_vicc_normalizer_failure_ext(),
             {
                 "name": "aliases",
                 "value": [
@@ -91,7 +95,7 @@ def civic_did3433():
         "conceptType": "Disease",
         "label": "B-lymphoblastic Leukemia/lymphoma With PAX5 P80R",
         "extensions": [
-            {"name": "vicc_normalizer_failure", "value": True},
+            get_vicc_normalizer_failure_ext(),
         ],
     }
 
@@ -114,7 +118,7 @@ def civic_gid6_modified():
             },
         ],
         "extensions": [
-            {"name": "vicc_normalizer_failure", "value": True},
+            get_vicc_normalizer_failure_ext(),
             {
                 "name": "description",
                 "value": "This is a fake gene that fails normalization.",
@@ -166,7 +170,7 @@ def civic_mpid473():
             },
         ],
         "extensions": [
-            {"name": "vicc_normalizer_failure", "value": True},
+            get_vicc_normalizer_failure_ext(),
             {
                 "name": "aliases",
                 "value": [
