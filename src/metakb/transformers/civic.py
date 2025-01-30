@@ -44,7 +44,7 @@ from metakb.transformers.base import (
     MethodId,
     TherapyType,
     Transformer,
-    _Cache,
+    _TransformedRecordsCache,
 )
 
 _logger = logging.getLogger(__name__)
@@ -154,7 +154,7 @@ class SourcePrefix(str, Enum):
     ASH = "ASH"
 
 
-class _CivicCache(_Cache):
+class _CivicTransformedCache(_TransformedRecordsCache):
     """Create model for caching CIViC data"""
 
     variations: ClassVar[dict[str, _VariationCache]] = {}
@@ -192,7 +192,7 @@ class CivicTransformer(Transformer):
         self.processed_data.methods = [
             self.methods_mapping[MethodId.CIVIC_EID_SOP.value]
         ]
-        self._cache = _CivicCache()
+        self._cache = _CivicTransformedCache()
 
     @staticmethod
     def _mp_to_variant_mapping(molecular_profiles: list[dict]) -> tuple[list, dict]:
@@ -274,13 +274,10 @@ class CivicTransformer(Transformer):
         await self._add_variations(variants)
         self._add_genes(harvested_data.genes)
 
-        # Only want to add MPs where variation-normalizer succeeded for the related
-        # variant. Will update `categorical_variants`
-        able_to_normalize_vids = self._cache.variations.keys()
         mps = [
             mp
             for mp in molecular_profiles
-            if f"civic.vid:{mp['variant_ids'][0]}" in able_to_normalize_vids
+            if f"civic.vid:{mp['variant_ids'][0]}" in self._cache.variations
         ]
         self._add_categorical_variants(mps, mp_id_to_v_id_mapping)
 
@@ -300,8 +297,7 @@ class CivicTransformer(Transformer):
         """Create Variant Study Statement given CIViC Evidence Items.
         Will add associated values to ``processed_data`` instance variable
         (``therapies``, ``conditions``, and ``documents``).
-        ``_cache`` and ``unable_to_normalize`` will also be mutated for
-        associated therapies and conditions.
+        ``_cache`` will also be mutated for associated therapies and conditions.
 
         :param record: CIViC Evidence Item or Assertion
         :param mp_id_to_v_id_mapping: Molecular Profile ID to Variant ID mapping
@@ -506,8 +502,7 @@ class CivicTransformer(Transformer):
         ``processed_data.categorical_variants``.
 
         :param molecular_profiles: List of supported Molecular Profiles in CIViC.
-            The associated, single variant record for each MP was successfully
-            normalized
+            The associated, single variant record for each MP
         :param mp_id_to_v_id_mapping: Mapping from Molecular Profile ID to Variant ID
             {mp_id: v_id}
         """
@@ -557,8 +552,6 @@ class CivicTransformer(Transformer):
                         allele=civic_variation_data.vrs_variation.root,
                     )
                 ]
-            else:
-                constraints = None
 
             cv = CategoricalVariant(
                 id=mp_id,
@@ -620,10 +613,9 @@ class CivicTransformer(Transformer):
 
     async def _get_variation_members(self, variant: dict) -> list[Variation] | None:
         """Get members field for variation object. This is the related variant concepts.
-        For now, we will only do genomic HGVS expressions
 
         :param variant: CIViC Variant record
-        :return: List containing one VRS variation record for associated genomic HGVS
+        :return: List containing one VRS variation record for associated HGVS
             expression, if variation-normalizer was able to normalize
         """
         members = []
@@ -654,10 +646,10 @@ class CivicTransformer(Transformer):
         return members
 
     async def _add_variations(self, variants: list[dict]) -> None:
-        """Normalize supported CIViC variant records.
+        """Transform supported CIViC variant records.
+
         Mutates instance variables ``_cache.variations`` and
-        ``processed_data.variations``, if the variation-normalizer can successfully
-        normalize the variant
+        ``processed_data.variations``
 
         :param variants: List of all CIViC variant records
         """
@@ -815,9 +807,8 @@ class CivicTransformer(Transformer):
 
     def _add_genes(self, genes: list[dict]) -> None:
         """Create gene objects for all CIViC gene records.
-        Mutates instance variables ``_cache.genes`` and
-        ``processed_data.genes``, if the gene-normalizer can successfully normalize the
-        gene
+
+        Mutates instance variables ``_cache.genes`` and ``processed_data.genes``
 
         :param genes: All genes in CIViC
         """
@@ -876,12 +867,11 @@ class CivicTransformer(Transformer):
     def _add_disease(self, disease: dict) -> MappableConcept:
         """Create or get disease given CIViC disease.
         First looks in cache for existing disease, if not found will attempt to
-        normalize. Will add CIViC disease ID to ``processed_data.conditions`` and
-        ``_cache.conditions`` if disease-normalizer is able to normalize.
-        Else will add the CIViC disease ID to ``unable_to_normalize['conditions']``
+        transform. Will add CIViC disease ID to ``processed_data.conditions`` and
+        ``_cache.conditions``
 
         :param disease: CIViC Disease object
-        :return:
+        :return: Disease represented as mappable concept
         """
         disease_id = f"civic.did:{disease['id']}"
         civic_disease = self._cache.conditions.get(disease_id)
@@ -897,7 +887,7 @@ class CivicTransformer(Transformer):
         """Get Disease object for a CIViC disease
 
         :param disease: CIViC disease record
-        :return:
+        :return: Disease represented as a mappable concept
         """
         disease_id = f"civic.did:{disease['id']}"
         display_name = disease["display_name"]
@@ -960,8 +950,7 @@ class CivicTransformer(Transformer):
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
         :param therapies_in: List of CIViC therapy objects
         :param therapy_interaction_type: Therapy interaction type provided by CIViC
-        :return: If able to normalize all therapy objects in `therapies`, returns
-            Therapeutic Substitute Group
+        :return: Therapeutic Substitute Group
         """
         therapies = []
 
@@ -1007,7 +996,7 @@ class CivicTransformer(Transformer):
 
         :param therapy_id: ID for therapy
         :param therapy: CIViC therapy object
-        :return:
+        :return: Therapy represented as a mappable concept
         """
         label = therapy["name"]
         ncit_id = f"ncit:{therapy['ncit_id']}"

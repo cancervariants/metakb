@@ -39,14 +39,14 @@ from metakb.transformers.base import (
     MoaEvidenceLevel,
     TherapyType,
     Transformer,
-    _Cache,
     _sanitize_name,
+    _TransformedRecordsCache,
 )
 
 logger = logging.getLogger(__name__)
 
 
-class _MoaCache(_Cache):
+class _MoaTransformedCache(_TransformedRecordsCache):
     """Create model for caching MOA data"""
 
     variations: ClassVar[dict[str, dict]] = {}
@@ -76,7 +76,7 @@ class MoaTransformer(Transformer):
         self.processed_data.methods = [
             self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]
         ]
-        self._cache = _MoaCache()
+        self._cache = _MoaTransformedCache()
 
     async def transform(self, harvested_data: MoaHarvestedData) -> None:
         """Transform MOA harvested JSON to common data model. Will store transformed
@@ -98,8 +98,7 @@ class MoaTransformer(Transformer):
         """Create Variant Study Statements from MOA assertions.
         Will add associated values to ``processed_data`` instance variable
         (``therapies``, ``conditions``, and ``statements``).
-        ``_cache`` and ``unable_to_normalize`` will
-        also be mutated for associated therapies and conditions.
+        ``_cache`` will also be mutated for associated therapies and conditions.
 
         :param assertions: MOA assertion record
         """
@@ -207,9 +206,9 @@ class MoaTransformer(Transformer):
 
     async def _add_categorical_variants(self, variants: list[dict]) -> None:
         """Create Categorical Variant objects for all MOA variant records.
+
         Mutates instance variables ``_cache['variations']`` and
-        ``processed_data.variations``, if the variation-normalizer can successfully
-        normalize the variant
+        ``processed_data.variations``
 
         :param variants: All variants in MOAlmanac
         """
@@ -334,7 +333,8 @@ class MoaTransformer(Transformer):
         self, moa_rep_coord: dict
     ) -> list[Variation] | None:
         """Get members field for variation object. This is the related variant concepts.
-        FOr now, only looks at genomic representative coordinate.
+
+        For now, only looks at genomic representative coordinate.
 
         :param moa_rep_coord: MOA Representative Coordinate
         :return: List containing one VRS variation record for associated genomic
@@ -375,9 +375,8 @@ class MoaTransformer(Transformer):
 
     def _add_genes(self, genes: list[str]) -> None:
         """Create gene objects for all MOA gene records.
-        Mutates instance variables ``_cache['genes']`` and
-        ``processed_data.genes``, if the gene-normalizer can successfully normalize the
-        gene
+
+        Mutates instance variables ``_cache['genes']`` and ``processed_data.genes``
 
         :param genes: All genes in MOAlmanac
         """
@@ -448,7 +447,7 @@ class MoaTransformer(Transformer):
         """Get therapy mappable concept (single) or therapy group (multiple)
 
         :param assertion: MOA assertion record
-        :return: Therapy object, if found and able to be normalized
+        :return: Therapy object represented as a mappable concept or therapy group
         """
         therapy = assertion["therapy"]
         therapy_name = therapy["name"]
@@ -509,7 +508,7 @@ class MoaTransformer(Transformer):
 
         :param therapy_id: Generated therapy ID
         :param therapy: MOA therapy name
-        :return: If able to normalize therapy
+        :return: Therapy represented as a mappable concept
         """
         mappings = []
         extensions = []
@@ -549,18 +548,16 @@ class MoaTransformer(Transformer):
         """Create or get disease given MOA disease.
 
         First looks in cache for existing disease, if not found will attempt to
-        normalize. Will generate a digest from the original MOA disease object oncotree
-        fields. This will be used as the key in the caches. Will add the generated digest
-        to ``processed_data.conditions`` and ``_cache['conditions']`` if
-        disease-normalizer is able to normalize. Else will add the generated digest to
-        ``unable_to_normalize['conditions']``.
+        transform. Will generate a digest from the original MOA disease object oncotree
+        fields. This will be used as the key in the caches. Will add the generated
+        digest to ``processed_data.conditions`` and ``_cache['conditions']``.
 
         Since there may be duplicate Oncotree code/terms with different names, the first
         name will be used as the Disease label. Others will be added to the extensions
         aliases field.
 
         :param disease: MOA disease object
-        :return: Disease object
+        :return: Disease represented as a mappable concept
         """
         if not all(value for value in disease.values()):
             return None
@@ -604,7 +601,7 @@ class MoaTransformer(Transformer):
         """Get Disease object for a MOA disease
 
         :param disease: MOA disease record
-        :return: If able to normalize, Disease
+        :return: Disease represented as a mappable concept
         """
         queries = []
         mappings = []

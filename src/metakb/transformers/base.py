@@ -57,10 +57,11 @@ NORMALIZER_INSTANCE_TO_ATTR = {
 
 
 def _sanitize_name(name: str) -> str:
-    """Trim leading and trailing whitespace and replace whitespace with underscore
+    """Trim leading and trailing whitespace and replace whitespace characters with
+    underscores
 
     :param name: Name to sanitize
-    :return: Sanitized string with spaces replaced by underscores
+    :return: Sanitized string with whitespace characters replaced by underscores
     """
     return re.sub(r"\s+", "_", name.strip())
 
@@ -68,8 +69,8 @@ def _sanitize_name(name: str) -> str:
 class NormalizerExtensionName(str, Enum):
     """Define constraints for normalizer extension names"""
 
-    PRIORITY = "vicc_normalizer_priority"
-    FAILURE = "vicc_normalizer_failure"
+    PRIORITY = "vicc_normalizer_priority"  # concept mapping is merged concept ID
+    FAILURE = "vicc_normalizer_failure"  # normalizer failed or is not supported
 
 
 class EcoLevel(str, Enum):
@@ -126,7 +127,7 @@ class ViccConceptVocab(BaseModel):
     definition: StrictStr
 
 
-class _Cache(BaseModel):
+class _TransformedRecordsCache(BaseModel):
     """Define model for caching transformed records"""
 
     therapies: ClassVar[dict[str, MappableConcept]] = {}
@@ -288,7 +289,7 @@ class Transformer(ABC):
         :param Optional[Path] harvester_path: Path to previously harvested data
         :param ViccNormalizers normalizers: normalizer collection instance
         """
-        self._cache: _Cache
+        self._cache: _TransformedRecordsCache
         self.name = self.__class__.__name__.lower().split("transformer")[0]
         self.data_dir = data_dir / self.name
         self.harvester_path = harvester_path
@@ -422,7 +423,7 @@ class Transformer(ABC):
         """Get therapy mappable concept for source therapy object
 
         :param therapy: source therapy object
-        :return: If able to normalize therapy, returns therapy mappable concept
+        :return: therapy mappable concept
         """
 
     @abstractmethod
@@ -437,8 +438,7 @@ class Transformer(ABC):
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
         :param therapies: List of therapy objects
         :param therapy_interaction_type: Therapy interaction type
-        :return: If able to normalize all therapy objects in `therapies`, returns
-            Therapeutic Substitute Group
+        :return: Therapeutic Substitute Group
         """
 
     def _get_combination_therapy(
@@ -452,8 +452,7 @@ class Transformer(ABC):
         :param combination_therapy_id: ID for Combination Therapy
         :param therapies: List of source therapy objects
         :param therapy_interaction_type: Therapy type provided by source
-        :return: If able to normalize all therapy objects in `therapies`, returns
-            Combination Therapy
+        :return: Combination Therapy
         """
         therapies = []
         source_name = type(self).__name__.lower().replace("transformer", "")
@@ -505,20 +504,17 @@ class Transformer(ABC):
         therapies: list[dict],
         therapy_type: TherapyType,
         therapy_interaction_type: str | None = None,
-    ) -> MappableConcept:
+    ) -> MappableConcept | None:
         """Create or get therapy mappable concept given therapies
-        First look in cache for existing therapy, if not found will attempt to
-        normalize. Will add `therapy_id` to `therapies` and
-        `able_to_normalize['therapies']` if therapy-normalizer is able to normalize all
-        `therapies`. Else, will add the `therapy_id` to
-        `unable_to_normalize['therapies']`
+        First look in ``_cache`` for existing therapy, if not found will attempt to
+        transform. Will add ``therapy_id`` to ``therapies`` and ``_cache.therapies``
 
         :param therapy_id: ID for therapy
         :param therapies: List of therapy objects. If `therapy_type` is
             `TherapyType.THERAPY`, the list will only contain a single therapy.
         :param therapy_type: The type of therapy
         :param therapy_interaction_type: drug interaction type
-        :return: Therapy mappable concept
+        :return: Therapy mappable concept, if ``therapy_type`` is supported
         """
         therapy = self._cache.therapies.get(therapy_id)
         if therapy:
@@ -535,7 +531,7 @@ class Transformer(ABC):
                 therapy_id, therapies, therapy_interaction_type
             )
         else:
-            # not supported
+            logger.debug("Therapy type is not supported: %s", therapy_type)
             return None
 
         self._cache.therapies[therapy_id] = therapy
@@ -585,8 +581,6 @@ class Transformer(ABC):
         mappings: list[ConceptMapping] = []
         attr_name = NORMALIZER_INSTANCE_TO_ATTR[type(normalizer_resp)]
         normalizer_resp_obj = getattr(normalizer_resp, attr_name)
-        if not normalizer_resp_obj:
-            return mappings
 
         normalizer_mappings = normalizer_resp_obj.mappings or []
         if isinstance(normalizer_resp, NormalizedDisease):
