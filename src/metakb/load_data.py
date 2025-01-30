@@ -29,6 +29,20 @@ def _create_parameterized_query(
     return ", ".join(nonnull_keys)
 
 
+def _failed_to_normalize(obj: dict) -> bool:
+    """Check if variant, gene, disease, or therapy failed to normalize
+
+    For now, we will only load records that are able to normalize
+
+    :param obj: Variant, gene, disease, or therapy object
+    :return: Whether record failed to normalize
+    """
+    extensions = obj.get("extensions", [])
+    return any(
+        ext for ext in extensions if ext["name"] == NormalizerExtensionName.FAILURE
+    )
+
+
 def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
     """Get mappings and extensions from object and add to `obj` and `obj_keys`
 
@@ -569,6 +583,9 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
         loaded_stmt_count = 0
 
         for cv in data.get("categorical_variants", []):
+            if _failed_to_normalize(cv):
+                continue
+
             session.execute_write(_add_categorical_variant, cv, ids_in_stmts)
 
         for doc in data.get("documents", []):
@@ -579,9 +596,15 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
 
         for obj_type in {"genes", "conditions"}:
             for obj in data.get(obj_type, []):
+                if _failed_to_normalize(obj):
+                    continue
+
                 session.execute_write(_add_gene_or_disease, obj, ids_in_stmts)
 
         for tp in data.get("therapies", []):
+            if _failed_to_normalize(tp):
+                continue
+
             session.execute_write(_add_therapy_or_group, tp, ids_in_stmts)
 
         # This should always be done last

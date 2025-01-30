@@ -226,12 +226,12 @@ class MoaTransformer(Transformer):
             feature = variant["feature"]
             moa_variation = None
             gene = variant.get("gene") or variant.get("gene1")
-            moa_gene = self._cache.genes[_sanitize_name(gene)]
+            moa_gene = None
             protein_change = variant.get("protein_change")
             constraints = None
             extensions = []
 
-            if "rearrangement_type" in variant or not protein_change:
+            if "rearrangement_type" in variant or not protein_change or not gene:
                 logger.debug(
                     "Variation Normalizer does not support %s: %s",
                     moa_variant_id,
@@ -242,6 +242,7 @@ class MoaTransformer(Transformer):
                 # Form query and run through variation-normalizer
                 # For now, the normalizer only support amino acid substitution
                 vrs_variation = None
+                moa_gene = self._cache.genes[_sanitize_name(gene)]
                 gene = moa_gene.label
                 query = f"{gene} {protein_change[2:]}"
                 vrs_variation = await self.vicc_normalizers.normalize_variation([query])
