@@ -76,7 +76,11 @@ class MoaTransformer(Transformer):
         self.processed_data.methods = [
             self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]
         ]
-        self._cache = _MoaTransformedCache()
+        self._cache = self._create_cache()
+
+    def _create_cache(self) -> _MoaTransformedCache:
+        """Create cache for transformed records"""
+        return _MoaTransformedCache()
 
     async def transform(self, harvested_data: MoaHarvestedData) -> None:
         """Transform MOA harvested JSON to common data model. Will store transformed
@@ -223,10 +227,11 @@ class MoaTransformer(Transformer):
             moa_variation = None
             gene = variant.get("gene") or variant.get("gene1")
             moa_gene = self._cache.genes[_sanitize_name(gene)]
+            protein_change = variant.get("protein_change")
             constraints = None
             extensions = []
 
-            if "rearrangement_type" in variant:
+            if "rearrangement_type" in variant or not protein_change:
                 logger.debug(
                     "Variation Normalizer does not support %s: %s",
                     moa_variant_id,
@@ -237,37 +242,24 @@ class MoaTransformer(Transformer):
                 # Form query and run through variation-normalizer
                 # For now, the normalizer only support amino acid substitution
                 vrs_variation = None
-                if variant.get("protein_change"):
-                    gene = moa_gene.label
-                    query = f"{gene} {variant['protein_change'][2:]}"
-                    vrs_variation = await self.vicc_normalizers.normalize_variation(
-                        [query]
-                    )
+                gene = moa_gene.label
+                query = f"{gene} {protein_change[2:]}"
+                vrs_variation = await self.vicc_normalizers.normalize_variation([query])
 
-                    if not vrs_variation:
-                        logger.debug(
-                            "Variation Normalizer unable to normalize: moa.variant: %s using query: %s",
-                            variant_id,
-                            query,
-                        )
-                        extensions.append(self._get_vicc_normalizer_failure_ext())
-                    else:
-                        # Create VRS Variation object
-                        params = vrs_variation.model_dump(exclude_none=True)
-                        moa_variant_id = f"moa.variant:{variant_id}"
-                        params["id"] = vrs_variation.id
-                        moa_variation = Variation(**params)
-                        constraints = [
-                            DefiningAlleleConstraint(allele=moa_variation.root)
-                        ]
-
-                else:
+                if not vrs_variation:
                     logger.debug(
-                        "Variation Normalizer does not support %s: %s",
-                        moa_variant_id,
-                        feature,
+                        "Variation Normalizer unable to normalize: moa.variant: %s using query: %s",
+                        variant_id,
+                        query,
                     )
                     extensions.append(self._get_vicc_normalizer_failure_ext())
+                else:
+                    # Create VRS Variation object
+                    params = vrs_variation.model_dump(exclude_none=True)
+                    moa_variant_id = f"moa.variant:{variant_id}"
+                    params["id"] = vrs_variation.id
+                    moa_variation = Variation(**params)
+                    constraints = [DefiningAlleleConstraint(allele=moa_variation.root)]
 
             # Add MOA representative coordinate data to extensions
             coordinates_keys = [

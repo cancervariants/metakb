@@ -7,7 +7,7 @@ import re
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, TypeVar
 
 from disease.schemas import (
     SYSTEM_URI_TO_NAMESPACE as DISEASE_SYSTEM_URI_TO_NAMESPACE,
@@ -54,6 +54,8 @@ NORMALIZER_INSTANCE_TO_ATTR = {
     NormalizedTherapy: "therapy",
     NormalizedGene: "gene",
 }
+
+_CacheType = TypeVar("_CacheType", bound="_TransformedRecordsCache")
 
 
 def _sanitize_name(name: str) -> str:
@@ -289,7 +291,7 @@ class Transformer(ABC):
         :param Optional[Path] harvester_path: Path to previously harvested data
         :param ViccNormalizers normalizers: normalizer collection instance
         """
-        self._cache: _TransformedRecordsCache
+        self._cache = self._create_cache()
         self.name = self.__class__.__name__.lower().split("transformer")[0]
         self.data_dir = data_dir / self.name
         self.harvester_path = harvester_path
@@ -307,6 +309,10 @@ class Transformer(ABC):
 
         :param harvested_data: Source harvested data
         """
+
+    @abstractmethod
+    def _create_cache() -> _CacheType:
+        """Create cache for transformed records"""
 
     def extract_harvested_data(self) -> _HarvestedData:
         """Get harvested data from file.

@@ -143,7 +143,7 @@ class _VariationCache(BaseModel):
     aliases: list[Extension] | None = None
     coordinates: dict | None = None
     members: list[Variation] | None = None
-    extensions: list[Extension] = []
+    extensions: list[Extension] | None = None
 
 
 class SourcePrefix(str, Enum):
@@ -192,7 +192,11 @@ class CivicTransformer(Transformer):
         self.processed_data.methods = [
             self.methods_mapping[MethodId.CIVIC_EID_SOP.value]
         ]
-        self._cache = _CivicTransformedCache()
+        self._cache = self._create_cache()
+
+    def _create_cache(self) -> _CivicTransformedCache:
+        """Create cache for transformed records"""
+        return _CivicTransformedCache()
 
     @staticmethod
     def _mp_to_variant_mapping(molecular_profiles: list[dict]) -> tuple[list, dict]:
@@ -611,7 +615,7 @@ class CivicTransformer(Transformer):
 
         return True
 
-    async def _get_variation_members(self, variant: dict) -> list[Variation] | None:
+    async def _get_variation_members(self, variant: dict) -> list[Variation]:
         """Get members field for variation object. This is the related variant concepts.
 
         :param variant: CIViC Variant record
@@ -701,7 +705,7 @@ class CivicTransformer(Transformer):
                     label="_".join(vt["name"].lower().split()),
                 )
                 for vt in variant["variant_types"]
-                if vt and vt["url"]
+                if vt and vt["url"]  # system is required
             ]
 
             # Get mappings
