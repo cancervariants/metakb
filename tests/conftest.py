@@ -1770,7 +1770,7 @@ def moa_vid66():
 def moa_abl1():
     """Create a test fixture for MOA ABL1 Gene."""
     return {
-        "id": "moa.gene:ABL1",
+        "id": "moa.normalize.gene.hgnc:76",
         "conceptType": "Gene",
         "label": "ABL1",
         "mappings": [
@@ -1791,7 +1791,7 @@ def moa_abl1():
 def moa_imatinib():
     """Create a test fixture for MOA Imatinib Therapy."""
     return {
-        "id": "moa.therapy:Imatinib",
+        "id": "moa.normalize.therapy.rxcui:282388",
         "conceptType": "Therapy",
         "label": "Imatinib",
         "extensions": [
@@ -1925,7 +1925,7 @@ def moa_imatinib():
 def moa_chronic_myelogenous_leukemia():
     """Create test fixture for MOA Chronic Myelogenous Leukemia."""
     return {
-        "id": "moa.disease:Chronic_Myelogenous_Leukemia",
+        "id": "moa.normalize.disease.ncit:C3174",
         "conceptType": "Disease",
         "label": "Chronic Myelogenous Leukemia",
         "mappings": [

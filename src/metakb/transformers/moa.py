@@ -226,7 +226,7 @@ class MoaTransformer(Transformer):
             feature = variant["feature"]
             moa_variation = None
             gene = variant.get("gene") or variant.get("gene1")
-            moa_gene = None
+            moa_gene = self._cache.genes[_sanitize_name(gene)] if gene else None
             protein_change = variant.get("protein_change")
             constraints = None
             extensions = []
@@ -242,7 +242,6 @@ class MoaTransformer(Transformer):
                 # Form query and run through variation-normalizer
                 # For now, the normalizer only support amino acid substitution
                 vrs_variation = None
-                moa_gene = self._cache.genes[_sanitize_name(gene)]
                 gene = moa_gene.label
                 query = f"{gene} {protein_change[2:]}"
                 vrs_variation = await self.vicc_normalizers.normalize_variation([query])
@@ -385,17 +384,18 @@ class MoaTransformer(Transformer):
                         normalized_gene_id, gene_norm_resp
                     )
                 )
+                id_ = f"moa.{gene_norm_resp.gene.id}"
             else:
+                id_ = f"moa.gene:{_sanitize_name(gene)}"
                 extensions.append(self._get_vicc_normalizer_failure_ext())
 
             moa_gene = MappableConcept(
-                id=f"moa.gene:{_sanitize_name(gene)}",
+                id=id_,
                 conceptType="Gene",
                 label=gene,
                 mappings=mappings or None,
                 extensions=extensions or None,
             )
-
             self._cache.genes[_sanitize_name(gene)] = moa_gene
             self.processed_data.genes.append(moa_gene)
 
@@ -513,7 +513,9 @@ class MoaTransformer(Transformer):
         if not normalized_therapeutic_id:
             logger.debug("Therapy Normalizer unable to normalize: %s", therapy)
             extensions.append(self._get_vicc_normalizer_failure_ext())
+            id_ = therapy_id
         else:
+            id_ = f"moa.{therapy_norm_resp.therapy.id}"
             regulatory_approval_extension = (
                 self.vicc_normalizers.get_regulatory_approval_extension(
                     therapy_norm_resp
@@ -530,7 +532,7 @@ class MoaTransformer(Transformer):
             )
 
         return MappableConcept(
-            id=therapy_id,
+            id=id_,
             conceptType="Therapy",
             label=therapy["label"],
             mappings=mappings or None,
@@ -631,7 +633,9 @@ class MoaTransformer(Transformer):
         if not normalized_disease_id:
             logger.debug("Disease Normalizer unable to normalize: %s", queries)
             extensions.append(self._get_vicc_normalizer_failure_ext())
+            id_ = f"moa.disease:{_sanitize_name(disease_name)}"
         else:
+            id_ = f"moa.{disease_norm_resp.disease.id}"
             mappings.extend(
                 self._get_vicc_normalizer_mappings(
                     normalized_disease_id, disease_norm_resp
@@ -639,7 +643,7 @@ class MoaTransformer(Transformer):
             )
 
         return MappableConcept(
-            id=f"moa.disease:{_sanitize_name(disease_name)}",
+            id=id_,
             conceptType="Disease",
             label=disease_name,
             mappings=mappings or None,

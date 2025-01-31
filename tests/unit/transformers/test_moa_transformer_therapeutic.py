@@ -114,7 +114,7 @@ def moa_vid144(braf_v600e_genomic):
 def moa_cetuximab(cetuximab_extensions, cetuximab_normalizer_mappings):
     """Create a test fixture for MOA Cetuximab"""
     return {
-        "id": "moa.therapy:Cetuximab",
+        "id": "moa.normalize.therapy.rxcui:318341",
         "conceptType": "Therapy",
         "label": "Cetuximab",
         "extensions": cetuximab_extensions,
@@ -126,7 +126,7 @@ def moa_cetuximab(cetuximab_extensions, cetuximab_normalizer_mappings):
 def moa_encorafenib(encorafenib_extensions, encorafenib_normalizer_mappings):
     """Create test fixture for MOA Encorafenib"""
     return {
-        "id": "moa.therapy:Encorafenib",
+        "id": "moa.normalize.therapy.rxcui:2049106",
         "conceptType": "Therapy",
         "label": "Encorafenib",
         "extensions": encorafenib_extensions,
@@ -187,7 +187,7 @@ def moa_aid154_study_stmt(
                 ],
             },
             "conditionQualifier": {
-                "id": "moa.disease:Colorectal_Adenocarcinoma",
+                "id": "moa.normalize.disease.ncit:C5105",
                 "conceptType": "Disease",
                 "label": "Colorectal Adenocarcinoma",
                 "mappings": [
@@ -225,7 +225,7 @@ def moa_aid154_study_stmt(
             },
             "alleleOriginQualifier": {"label": "somatic"},
             "geneContextQualifier": {
-                "id": "moa.gene:BRAF",
+                "id": "moa.normalize.gene.hgnc:1097",
                 "conceptType": "Gene",
                 "label": "BRAF",
                 "mappings": braf_normalizer_mappings,
