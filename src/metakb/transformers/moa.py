@@ -536,11 +536,7 @@ class MoaTransformer(Transformer):
                 extensions = therapy_norm_obj.extensions or []
 
                 aliases_ext = next(
-                    (
-                        ext
-                        for ext in therapy_norm_obj.extensions
-                        if ext.name == "aliases"
-                    ),
+                    (ext for ext in extensions if ext.name == "aliases"),
                     None,
                 )
                 if aliases_ext:
