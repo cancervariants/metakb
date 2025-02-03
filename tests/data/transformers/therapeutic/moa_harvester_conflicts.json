@@ -6,9 +6,9 @@
             "deprecated": false,
             "description": "The U.S. Food and Drug Administration (FDA) granted approval to selpercatinib for the treatment of adult patients with locally advanced or metastatic non-small cell lung cancer (NSCLC) with a RET gene fusion, as detected by an FDA-approved test.",
             "disease": {
-                "name": "Non-Small Cell Lung Cancer",
-                "oncotree_code": "NSCLC",
-                "oncotree_term": "Non-Small Cell Lung Cancer"
+                "name": "Myelodysplastic Syndromes",
+                "oncotree_code": "MDS",
+                "oncotree_term": "Myelodysplastic Syndromes"
             },
             "therapy": {
                 "name": "Selpercatinib",
@@ -40,9 +40,9 @@
             "deprecated": false,
             "description": "Certain missesnse mutations may predict resistance to RET inhibitors",
             "disease": {
-                "name": "Medullary Thyroid Cancer",
-                "oncotree_code": "THME",
-                "oncotree_term": "Medullary Thyroid Cancer"
+                "name": "Myelodysplasia",
+                "oncotree_code": "MDS",
+                "oncotree_term": "Myelodysplasia"
             },
             "therapy": {
                 "name": "LOXO-292",
