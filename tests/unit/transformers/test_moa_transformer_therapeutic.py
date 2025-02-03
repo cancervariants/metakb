@@ -14,6 +14,7 @@ from metakb.transformers.moa import MoaTransformer
 DATA_DIR = TEST_TRANSFORMERS_DIR / "therapeutic"
 NORMALIZABLE_FILENAME = "moa_cdm.json"
 NOT_NORMALIZABLE_FILE_NAME = "moa_cdm_normalization_failure.json"
+MOA_THERAPY_CONFLICT_FILENAME = "moa_therapy_conflict_cdm.json"
 
 
 @pytest_asyncio.fixture(scope="module")
@@ -400,3 +401,30 @@ def test_moa_cdm_not_normalizable(
         [moa_not_normalizable_stmt],
         DATA_DIR / NOT_NORMALIZABLE_FILE_NAME,
     )
+
+
+@pytest.mark.asyncio()
+async def test_moa_therapy_conflict(normalizers):
+    """Test that MOA therapy conflict merges concept correctly"""
+    t = MoaTransformer(
+        data_dir=DATA_DIR,
+        harvester_path=DATA_DIR / "moa_harvester_conflict.json",
+        normalizers=normalizers,
+    )
+    harvested_data = t.extract_harvested_data()
+    await t.transform(harvested_data)
+
+    therapies = t.processed_data.therapies
+    assert len(therapies) == 1
+
+    therapy = therapies[0]
+    assert therapy.id == "moa.normalize.therapy.rxcui:2370147"
+    assert therapy.label == "LOXO-292"
+    therapy_alias_ext = next(
+        (ext for ext in therapy.extensions if ext.name == "aliases"),
+        None,
+    )
+    assert therapy_alias_ext.model_dump(exclude_none=True) == {
+        "name": "aliases",
+        "value": ["Selpercatinib"],
+    }
