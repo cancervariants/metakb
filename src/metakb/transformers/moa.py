@@ -517,7 +517,8 @@ class MoaTransformer(Transformer):
             mappable concept, and the other label will be added as an alias in
             extensions. The cache will be updated.
 
-            :param cached_id: Cached ID for therapy concept
+            :param cached_id: Cached ID for therapy concept that is in
+                ``self._cache.normalized_therapies``
             :param moa_concept_label: MOA provided label for therapy concept
             :return: Therapy represented as a mappable concept
             """
