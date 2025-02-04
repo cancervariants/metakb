@@ -32,7 +32,12 @@ from ga4gh.va_spec.aac_2017 import (
 )
 from ga4gh.va_spec.base import Document, Method, TherapyGroup
 from ga4gh.vrs.models import Allele
-from gene.schemas import NormalizeService as NormalizedGene
+from gene.schemas import (
+    NamespacePrefix as GeneNamespacePrefix,
+)
+from gene.schemas import (
+    NormalizeService as NormalizedGene,
+)
 from pydantic import BaseModel, Field, StrictStr, ValidationError
 from therapy.schemas import NormalizationService as NormalizedTherapy
 
@@ -586,22 +591,45 @@ class Transformer(ABC):
         normalizer_resp_obj = getattr(normalizer_resp, attr_name)
 
         normalizer_mappings = normalizer_resp_obj.mappings or []
-        if isinstance(normalizer_resp, NormalizedDisease):
+        if isinstance(normalizer_resp, NormalizedDisease):  # Get MONDO and
+            added_mondo = False
+            added_priority = False
             for mapping in normalizer_mappings:
-                if mapping.coding.code.root.lower().startswith(
+                if not added_mondo and mapping.coding.code.root.lower().startswith(
                     DiseaseNamespacePrefix.MONDO.value
                 ):
-                    mappings.append(_add_merged_id_ext(mapping, is_priority=False))
+                    is_priority = normalized_id == mapping.coding.code.root.lower()
+                    label = normalizer_resp_obj.label if is_priority else None
+                    mappings.append(
+                        _add_merged_id_ext(
+                            mapping, is_priority=is_priority, label=label
+                        )
+                    )
+                    added_mondo = True
                 else:
                     if normalized_id == mapping.coding.id:
                         mappings.append(
-                            _add_merged_id_ext(
-                                mapping,
-                                label=normalizer_resp_obj.label,
-                                is_priority=True,
-                            )
+                            _add_merged_id_ext(mapping, label=label, is_priority=True)
                         )
-        else:
+
+                if is_priority:
+                    added_priority = True
+
+                if added_mondo and added_priority:
+                    break
+        elif isinstance(normalizer_resp, NormalizedGene):  # Get NCBI and HGNC
+            for mapping in normalizer_mappings:
+                is_priority = normalized_id == mapping.coding.id
+                label = normalizer_resp_obj.label if is_priority else None
+                if mapping.coding.id.lower().startswith(
+                    (GeneNamespacePrefix.NCBI.value, GeneNamespacePrefix.HGNC.value)
+                ):
+                    mappings.append(
+                        _add_merged_id_ext(
+                            mapping, is_priority=is_priority, label=label
+                        )
+                    )
+        else:  # Only care about primary merged concept record for therapy
             mappings.extend(
                 _add_merged_id_ext(
                     mapping, label=normalizer_resp_obj.label, is_priority=True
