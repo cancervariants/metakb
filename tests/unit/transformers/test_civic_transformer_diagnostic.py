@@ -193,8 +193,9 @@ def civic_gid38():
             {
                 "coding": {
                     "label": "PDGFRA",
-                    "code": "hgnc:8803",
-                    "system": "https://www.genenames.org",
+                    "id": "hgnc:8803",
+                    "code": "HGNC:8803",
+                    "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
@@ -232,18 +233,20 @@ def civic_did2():
             {
                 "coding": {
                     "label": "Gastrointestinal Stromal Tumor",
-                    "code": "ncit:C3868",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C3868",
+                    "code": "C3868",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
-                    "code": "mondo:0011719",
-                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                    "id": "MONDO_0011719",
+                    "code": "MONDO:0011719",
+                    "system": "https://purl.obolibrary.org/obo/",
                 },
-                "relation": "relatedMatch",
+                "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],
@@ -469,8 +472,9 @@ def civic_gid42():
             {
                 "coding": {
                     "label": "RET",
-                    "code": "hgnc:9967",
-                    "system": "https://www.genenames.org",
+                    "id": "hgnc:9967",
+                    "code": "HGNC:9967",
+                    "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
@@ -518,18 +522,20 @@ def civic_did15():
             {
                 "coding": {
                     "label": "Thyroid Gland Medullary Carcinoma",
-                    "code": "ncit:C3879",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C3879",
+                    "code": "C3879",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
-                    "code": "mondo:0015277",
-                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                    "id": "MONDO_0015277",
+                    "code": "MONDO:0015277",
+                    "system": "https://purl.obolibrary.org/obo/",
                 },
-                "relation": "relatedMatch",
+                "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],

@@ -10,9 +10,6 @@ from pathlib import Path
 from typing import ClassVar, TypeVar
 
 from disease.schemas import (
-    SYSTEM_URI_TO_NAMESPACE as DISEASE_SYSTEM_URI_TO_NAMESPACE,
-)
-from disease.schemas import (
     NamespacePrefix as DiseaseNamespacePrefix,
 )
 from disease.schemas import (
@@ -591,13 +588,12 @@ class Transformer(ABC):
         normalizer_mappings = normalizer_resp_obj.mappings or []
         if isinstance(normalizer_resp, NormalizedDisease):
             for mapping in normalizer_mappings:
-                if (
-                    DISEASE_SYSTEM_URI_TO_NAMESPACE.get(mapping.coding.system)
-                    == DiseaseNamespacePrefix.MONDO.value
+                if mapping.coding.code.root.lower().startswith(
+                    DiseaseNamespacePrefix.MONDO.value
                 ):
                     mappings.append(_add_merged_id_ext(mapping, is_priority=False))
                 else:
-                    if normalized_id == mapping.coding.code.root:
+                    if normalized_id == mapping.coding.id:
                         mappings.append(
                             _add_merged_id_ext(
                                 mapping,
@@ -611,7 +607,7 @@ class Transformer(ABC):
                     mapping, label=normalizer_resp_obj.label, is_priority=True
                 )
                 for mapping in normalizer_mappings
-                if normalized_id == mapping.coding.code.root
+                if normalized_id == mapping.coding.id
             )
         return mappings
 

@@ -204,8 +204,9 @@ def moa_aid154_study_stmt(
                     {
                         "coding": {
                             "label": "Colorectal Adenocarcinoma",
-                            "code": "ncit:C5105",
-                            "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                            "id": "ncit:C5105",
+                            "code": "C5105",
+                            "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                         },
                         "relation": "exactMatch",
                         "extensions": get_vicc_normalizer_priority_ext(
@@ -214,10 +215,11 @@ def moa_aid154_study_stmt(
                     },
                     {
                         "coding": {
-                            "code": "mondo:0005008",
-                            "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                            "id": "MONDO_0005008",
+                            "code": "MONDO:0005008",
+                            "system": "https://purl.obolibrary.org/obo/",
                         },
-                        "relation": "relatedMatch",
+                        "relation": "exactMatch",
                         "extensions": get_vicc_normalizer_priority_ext(
                             is_priority=False
                         ),
