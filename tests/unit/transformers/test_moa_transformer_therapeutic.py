@@ -130,6 +130,17 @@ def moa_aid154_study_stmt(
     braf_normalizer_mappings,
 ):
     """Create MOA AID 154 study statement test fixture. Uses CombinationTherapy."""
+    braf_normalizer_mappings_cpy = braf_normalizer_mappings[:]
+    braf_normalizer_mappings_cpy.append(
+        {
+            "coding": {
+                "code": "ncbigene:673",
+                "system": "https://www.ncbi.nlm.nih.gov/gene/",
+            },
+            "relation": "relatedMatch",
+            "extensions": get_vicc_normalizer_ext(is_priority=False),
+        },
+    )
     return {
         "id": "moa.assertion:154",
         "type": "Statement",
@@ -211,7 +222,7 @@ def moa_aid154_study_stmt(
                 "id": "moa.normalize.gene:BRAF",
                 "conceptType": "Gene",
                 "label": "BRAF",
-                "mappings": braf_normalizer_mappings,
+                "mappings": braf_normalizer_mappings_cpy,
             },
         },
         "specifiedBy": moa_method,

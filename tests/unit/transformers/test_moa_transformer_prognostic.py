@@ -162,6 +162,14 @@ def moa_bcor():
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_ext(is_priority=True),
             },
+            {
+                "coding": {
+                    "code": "ncbigene:54880",
+                    "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                },
+                "relation": "relatedMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=False),
+            },
         ],
     }
 
@@ -328,6 +336,14 @@ def moa_sf3b1():
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
+            {
+                "coding": {
+                    "code": "ncbigene:23451",
+                    "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                },
+                "relation": "relatedMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=False),
             },
         ],
     }

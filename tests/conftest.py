@@ -467,11 +467,14 @@ def civic_gid5(braf_normalizer_mappings):
         "mappings": [
             {
                 "coding": {
-                    "id": "ncbigene:673",
-                    "code": "673",
+                    "code": "ncbigene:673",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
-                "relation": "exactMatch",
+                "relation": "relatedMatch",
+                "extensions": [
+                    *get_vicc_normalizer_ext(is_priority=False),
+                    {"name": "civic_annotation", "value": True},
+                ],
             },
             *braf_normalizer_mappings,
         ],
@@ -694,11 +697,14 @@ def civic_gid19():
         "mappings": [
             {
                 "coding": {
-                    "id": "ncbigene:1956",
-                    "code": "1956",
+                    "code": "ncbigene:1956",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
-                "relation": "exactMatch",
+                "relation": "relatedMatch",
+                "extensions": [
+                    *get_vicc_normalizer_ext(is_priority=False),
+                    {"name": "civic_annotation", "value": True},
+                ],
             },
             {
                 "coding": {
@@ -1527,10 +1533,13 @@ def civic_gid29():
             {
                 "coding": {
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
-                    "id": "ncbigene:3815",
-                    "code": "3815",
+                    "code": "ncbigene:3815",
                 },
-                "relation": "exactMatch",
+                "relation": "relatedMatch",
+                "extensions": [
+                    *get_vicc_normalizer_ext(is_priority=False),
+                    {"name": "civic_annotation", "value": True},
+                ],
             },
             {
                 "coding": {
@@ -1741,7 +1750,15 @@ def moa_abl1():
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_ext(is_priority=True),
-            }
+            },
+            {
+                "coding": {
+                    "code": "ncbigene:25",
+                    "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                },
+                "relation": "relatedMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=False),
+            },
         ],
     }
 
