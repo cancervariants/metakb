@@ -817,10 +817,16 @@ class CivicTransformer(Transformer):
         :param genes: All genes in CIViC
         """
 
-        def _get_ncbi_mapping(ncbigene: str, gene: dict) -> ConceptMapping:
+        def _get_ncbi_concept_mapping(ncbigene_id: str, gene: dict) -> ConceptMapping:
+            """Get NCBI gene mapping
+
+            :param ncbigene_id: ID for NCBI Gene
+            :param gene: CIViC gene record
+            :return: Concept Mapping for NCBI Gene
+            """
             return ConceptMapping(
                 coding=Coding(
-                    id=ncbigene,
+                    id=ncbigene_id,
                     code=str(gene["entrez_id"]),
                     system="https://www.ncbi.nlm.nih.gov/gene/",
                 ),
@@ -844,7 +850,7 @@ class CivicTransformer(Transformer):
                     queries,
                 )
                 extensions.append(self._get_vicc_normalizer_failure_ext())
-                mappings = [_get_ncbi_mapping(ncbigene, gene)]
+                mappings = [_get_ncbi_concept_mapping(ncbigene, gene)]
             else:
                 mappings = self._get_vicc_normalizer_mappings(
                     normalized_gene_id, gene_norm_resp
@@ -867,7 +873,7 @@ class CivicTransformer(Transformer):
                         )
 
                 if not civic_ncbi_annotation_match:
-                    mappings.append(_get_ncbi_mapping(ncbigene, gene))
+                    mappings.append(_get_ncbi_concept_mapping(ncbigene, gene))
 
             if gene["aliases"]:
                 extensions.append(Extension(name="aliases", value=gene["aliases"]))
