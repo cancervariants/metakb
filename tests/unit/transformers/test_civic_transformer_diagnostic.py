@@ -4,7 +4,11 @@ import json
 
 import pytest
 import pytest_asyncio
-from tests.conftest import TEST_TRANSFORMERS_DIR, get_vicc_normalizer_priority_ext
+from tests.conftest import (
+    TEST_TRANSFORMERS_DIR,
+    get_vicc_normalizer_ext,
+    get_vicc_normalizer_priority_ext,
+)
 
 from metakb.transformers.civic import CivicTransformer
 
@@ -184,11 +188,14 @@ def civic_gid38():
         "mappings": [
             {
                 "coding": {
-                    "id": "ncbigene:5156",
-                    "code": "5156",
+                    "code": "ncbigene:5156",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
-                "relation": "exactMatch",
+                "relation": "relatedMatch",
+                "extensions": [
+                    *get_vicc_normalizer_ext(is_priority=False),
+                    {"name": "civic_annotation", "value": True},
+                ],
             },
             {
                 "coding": {
@@ -460,11 +467,14 @@ def civic_gid42():
         "mappings": [
             {
                 "coding": {
-                    "id": "ncbigene:5979",
-                    "code": "5979",
+                    "code": "ncbigene:5979",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
-                "relation": "exactMatch",
+                "relation": "relatedMatch",
+                "extensions": [
+                    *get_vicc_normalizer_ext(is_priority=False),
+                    {"name": "civic_annotation", "value": True},
+                ],
             },
             {
                 "coding": {
