@@ -5,6 +5,7 @@ import pytest_asyncio
 from tests.conftest import (
     TEST_TRANSFORMERS_DIR,
     get_transformed_data,
+    get_vicc_normalizer_ext,
     get_vicc_normalizer_failure_ext,
     get_vicc_normalizer_priority_ext,
 )
@@ -144,6 +145,17 @@ def moa_aid154_study_stmt(
     braf_normalizer_mappings,
 ):
     """Create MOA AID 154 study statement test fixture. Uses CombinationTherapy."""
+    braf_normalizer_mappings_cpy = braf_normalizer_mappings[:]
+    braf_normalizer_mappings_cpy.append(
+        {
+            "coding": {
+                "code": "ncbigene:673",
+                "system": "https://www.ncbi.nlm.nih.gov/gene/",
+            },
+            "relation": "relatedMatch",
+            "extensions": get_vicc_normalizer_ext(is_priority=False),
+        },
+    )
     return {
         "id": "moa.assertion:154",
         "type": "Statement",
@@ -229,7 +241,7 @@ def moa_aid154_study_stmt(
                 "id": "moa.normalize.gene.hgnc:1097",
                 "conceptType": "Gene",
                 "label": "BRAF",
-                "mappings": braf_normalizer_mappings,
+                "mappings": braf_normalizer_mappings_cpy,
             },
         },
         "specifiedBy": moa_method,
