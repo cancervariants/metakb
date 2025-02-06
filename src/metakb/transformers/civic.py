@@ -816,20 +816,27 @@ class CivicTransformer(Transformer):
 
         :param genes: All genes in CIViC
         """
+
+        def _get_ncbi_concept_mapping(ncbigene_id: str, gene: dict) -> ConceptMapping:
+            """Get NCBI gene mapping
+
+            :param ncbigene_id: ID for NCBI Gene
+            :param gene: CIViC gene record
+            :return: Concept Mapping for NCBI Gene
+            """
+            return ConceptMapping(
+                coding=Coding(
+                    id=ncbigene_id,
+                    code=str(gene["entrez_id"]),
+                    system="https://www.ncbi.nlm.nih.gov/gene/",
+                ),
+                relation=Relation.EXACT_MATCH,
+            )
+
         for gene in genes:
             gene_id = f"civic.gid:{gene['id']}"
             ncbigene = f"ncbigene:{gene['entrez_id']}"
             queries = [ncbigene, gene["name"]] + gene["aliases"]
-            mappings = [
-                ConceptMapping(
-                    coding=Coding(
-                        id=ncbigene,
-                        code=str(gene["entrez_id"]),
-                        system="https://www.ncbi.nlm.nih.gov/gene/",
-                    ),
-                    relation=Relation.EXACT_MATCH,
-                ),
-            ]
             extensions = []
 
             gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(
@@ -843,12 +850,30 @@ class CivicTransformer(Transformer):
                     queries,
                 )
                 extensions.append(self._get_vicc_normalizer_failure_ext())
+                mappings = [_get_ncbi_concept_mapping(ncbigene, gene)]
             else:
-                mappings.extend(
-                    self._get_vicc_normalizer_mappings(
-                        normalized_gene_id, gene_norm_resp
-                    )
+                mappings = self._get_vicc_normalizer_mappings(
+                    normalized_gene_id, gene_norm_resp
                 )
+
+                civic_ncbi_annotation_match = False
+                for mapping in mappings:
+                    if mapping.coding.id.startswith("ncbigene:"):
+                        if mapping.coding.id == ncbigene:
+                            mapping.extensions.append(
+                                Extension(name="civic_annotation", value=True)
+                            )
+                            civic_ncbi_annotation_match = True
+                            break
+
+                        _logger.debug(
+                            "CIViC NCBI gene and Gene Normalizer mismatch: %s vs %s",
+                            ncbigene,
+                            mapping.coding.id,
+                        )
+
+                if not civic_ncbi_annotation_match:
+                    mappings.append(_get_ncbi_concept_mapping(ncbigene, gene))
 
             if gene["aliases"]:
                 extensions.append(Extension(name="aliases", value=gene["aliases"]))

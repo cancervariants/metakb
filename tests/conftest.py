@@ -46,6 +46,11 @@ def pytest_configure(config):
             logging.getLogger(lib).setLevel(logging.ERROR)
 
 
+def get_vicc_normalizer_ext(is_priority: bool):
+    """Create test fixture for vicc normalizer priority extension"""
+    return [{"name": "vicc_normalizer_priority", "value": is_priority}]
+
+
 def check_source_harvest(tmp_path: Path, harvester: Harvester):
     """Test that source harvest method works correctly"""
     harvested_data = harvester.harvest()
@@ -514,6 +519,10 @@ def civic_gid5(braf_normalizer_mappings):
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
+                "extensions": [
+                    *get_vicc_normalizer_ext(is_priority=False),
+                    {"name": "civic_annotation", "value": True},
+                ],
             },
             *braf_normalizer_mappings,
         ],
@@ -747,6 +756,10 @@ def civic_gid19():
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
+                "extensions": [
+                    *get_vicc_normalizer_ext(is_priority=False),
+                    {"name": "civic_annotation", "value": True},
+                ],
             },
             {
                 "coding": {
@@ -1594,6 +1607,10 @@ def civic_gid29():
                     "code": "3815",
                 },
                 "relation": "exactMatch",
+                "extensions": [
+                    *get_vicc_normalizer_ext(is_priority=False),
+                    {"name": "civic_annotation", "value": True},
+                ],
             },
             {
                 "coding": {
@@ -1805,8 +1822,17 @@ def moa_abl1():
                     "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
-            }
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
+            {
+                "coding": {
+                    "id": "ncbigene:25",
+                    "code": "25",
+                    "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=False),
+            },
         ],
     }
 

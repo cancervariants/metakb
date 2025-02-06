@@ -32,7 +32,12 @@ from ga4gh.va_spec.aac_2017 import (
 )
 from ga4gh.va_spec.base import Document, Method, TherapyGroup
 from ga4gh.vrs.models import Allele
-from gene.schemas import NormalizeService as NormalizedGene
+from gene.schemas import (
+    NamespacePrefix as GeneNamespacePrefix,
+)
+from gene.schemas import (
+    NormalizeService as NormalizedGene,
+)
 from pydantic import BaseModel, Field, StrictStr, ValidationError
 from therapy.schemas import NormalizationService as NormalizedTherapy
 
@@ -554,20 +559,31 @@ class Transformer(ABC):
         :return: List of VICC Normalizer data represented as mappable concept
         """
 
-        def _add_merged_id_ext(
+        def _update_mapping(
             mapping: ConceptMapping,
-            is_priority: bool,
-            label: str | None = None,
+            normalized_id: str,
+            normalizer_label: str,
+            match_on_coding_id: bool = True,
         ) -> Extension:
-            """Update ``mapping`` to include extension on whether mapping is from merged identifier
+            """Update ``mapping`` to include extension on whether ``mapping`` contains
+            code that matches the merged record's primary identifier.
 
             :param mapping: ConceptMapping from vicc normalizer. This will be mutated.
-            :param is_priority: ``True`` if concept mapping contains primaryCode that
-                matches merged record primaryCode. ``False`` otherwise (meaning it comes
-                from merged record mappings)
-            :param label: Merged concept label, if found
-            :return: ConceptMapping with normalizer extension added
+                Extensions will be added. Label will be added if mapping identifier
+                matches normalized merged identifier.
+            :param normalized_id: Concept ID from normalized record
+            :param normalizer_label: Label from normalized record
+            :param match_on_coding_id: Whether to match on ``coding.id`` or
+                ``coding.code`` (MONDO is represented differently)
+            :return: ConceptMapping with normalizer extension added as well as label (
+                if mapping id matches normalized merged id)
             """
+            is_priority = (
+                normalized_id == mapping.coding.id
+                if match_on_coding_id
+                else normalized_id == mapping.coding.code.root.lower()
+            )
+
             merged_id_ext = Extension(
                 name=NormalizerExtensionName.PRIORITY.value, value=is_priority
             )
@@ -576,39 +592,44 @@ class Transformer(ABC):
             else:
                 mapping.extensions = [merged_id_ext]
 
-            if label:
-                mapping.coding.label = label
+            if is_priority:
+                mapping.coding.label = normalizer_label
 
             return mapping
 
         mappings: list[ConceptMapping] = []
         attr_name = NORMALIZER_INSTANCE_TO_ATTR[type(normalizer_resp)]
         normalizer_resp_obj = getattr(normalizer_resp, attr_name)
+        normalizer_label = normalizer_resp_obj.label
+        is_disease = isinstance(normalizer_resp, NormalizedDisease)
+        is_gene = isinstance(normalizer_resp, NormalizedGene)
 
         normalizer_mappings = normalizer_resp_obj.mappings or []
-        if isinstance(normalizer_resp, NormalizedDisease):
-            for mapping in normalizer_mappings:
-                if mapping.coding.code.root.lower().startswith(
-                    DiseaseNamespacePrefix.MONDO.value
-                ):
-                    mappings.append(_add_merged_id_ext(mapping, is_priority=False))
-                else:
-                    if normalized_id == mapping.coding.id:
-                        mappings.append(
-                            _add_merged_id_ext(
-                                mapping,
-                                label=normalizer_resp_obj.label,
-                                is_priority=True,
-                            )
-                        )
-        else:
-            mappings.extend(
-                _add_merged_id_ext(
-                    mapping, label=normalizer_resp_obj.label, is_priority=True
+        for mapping in normalizer_mappings:
+            if normalized_id == mapping.coding.id:
+                mappings.append(
+                    _update_mapping(mapping, normalized_id, normalizer_label)
                 )
-                for mapping in normalizer_mappings
-                if normalized_id == mapping.coding.id
-            )
+            else:
+                if (
+                    is_disease
+                    and mapping.coding.code.root.lower().startswith(
+                        DiseaseNamespacePrefix.MONDO.value
+                    )
+                ) or (
+                    is_gene
+                    and mapping.coding.id.startswith(
+                        (GeneNamespacePrefix.NCBI.value, GeneNamespacePrefix.HGNC.value)
+                    )
+                ):
+                    mappings.append(
+                        _update_mapping(
+                            mapping,
+                            normalized_id,
+                            normalizer_label,
+                            match_on_coding_id=is_gene,
+                        )
+                    )
         return mappings
 
     def create_json(self, cdm_filepath: Path | None = None) -> None:

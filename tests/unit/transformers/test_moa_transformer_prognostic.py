@@ -4,7 +4,11 @@ import json
 
 import pytest
 import pytest_asyncio
-from tests.conftest import TEST_TRANSFORMERS_DIR, get_vicc_normalizer_priority_ext
+from tests.conftest import (
+    TEST_TRANSFORMERS_DIR,
+    get_vicc_normalizer_ext,
+    get_vicc_normalizer_priority_ext,
+)
 
 from metakb.transformers.moa import MoaTransformer
 
@@ -164,6 +168,15 @@ def moa_bcor():
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+            },
+            {
+                "coding": {
+                    "id": "ncbigene:54880",
+                    "code": "54880",
+                    "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=False),
             },
         ],
     }
@@ -332,6 +345,15 @@ def moa_sf3b1():
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+            },
+            {
+                "coding": {
+                    "id": "ncbigene:23451",
+                    "code": "23451",
+                    "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                },
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=False),
             },
         ],
     }
