@@ -152,15 +152,6 @@ def cetuximab_normalizer_mappings():
             "relation": "exactMatch",
             "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
         },
-        {
-            "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
-            "coding": {
-                "id": "ncit:C1723",
-                "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                "code": "C1723",
-            },
-            "relation": "exactMatch",
-        },
     ]
 
 
@@ -252,15 +243,6 @@ def encorafenib_normalizer_mappings():
             },
             "relation": "exactMatch",
             "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
-        },
-        {
-            "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
-            "coding": {
-                "id": "ncit:C98283",
-                "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                "code": "C98283",
-            },
-            "relation": "exactMatch",
         },
     ]
 

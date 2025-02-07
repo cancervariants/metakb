@@ -119,7 +119,18 @@ def moa_cetuximab(cetuximab_extensions, cetuximab_normalizer_mappings):
         "conceptType": "Therapy",
         "label": "Cetuximab",
         "extensions": cetuximab_extensions,
-        "mappings": cetuximab_normalizer_mappings,
+        "mappings": [
+            *cetuximab_normalizer_mappings,
+            {
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
+                "coding": {
+                    "id": "ncit:C1723",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                    "code": "C1723",
+                },
+                "relation": "exactMatch",
+            },
+        ],
     }
 
 
@@ -131,7 +142,18 @@ def moa_encorafenib(encorafenib_extensions, encorafenib_normalizer_mappings):
         "conceptType": "Therapy",
         "label": "Encorafenib",
         "extensions": encorafenib_extensions,
-        "mappings": encorafenib_normalizer_mappings,
+        "mappings": [
+            *encorafenib_normalizer_mappings,
+            {
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
+                "coding": {
+                    "id": "ncit:C98283",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                    "code": "C98283",
+                },
+                "relation": "exactMatch",
+            },
+        ],
     }
 
 

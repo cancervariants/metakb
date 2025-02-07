@@ -120,25 +120,7 @@ class ViccNormalizers:
         :raises TokenRetrievalError: If AWS credentials are expired
         :return: Gene normalization response and normalized gene ID, if available.
         """
-        gene_norm_resp = None
-        normalized_gene_id = None
-
-        try:
-            gene_norm_resp = self.gene_query_handler.normalize(query)
-        except TokenRetrievalError as e:
-            _logger.error(e)
-            raise e
-        except Exception as e:
-            _logger.error(
-                "Gene Normalizer raised an exception using query %s: %s",
-                query,
-                e,
-            )
-        else:
-            if gene_norm_resp.match_type:
-                normalized_gene_id = gene_norm_resp.gene.primaryCode.root
-
-        return gene_norm_resp, normalized_gene_id
+        return self._normalize_concept(query, self.gene_query_handler, "gene")
 
     def normalize_disease(self, query: str) -> tuple[NormalizedDisease, str | None]:
         """Attempt to normalize a disease query
@@ -155,25 +137,7 @@ class ViccNormalizers:
         :raises TokenRetrievalError: If AWS credentials are expired
         :return: Disease normalization response and normalized disease ID, if available.
         """
-        normalized_disease_id = None
-        disease_norm_resp = None
-
-        try:
-            disease_norm_resp = self.disease_query_handler.normalize(query)
-        except TokenRetrievalError as e:
-            _logger.error(e)
-            raise e
-        except Exception as e:
-            _logger.error(
-                "Disease Normalizer raised an exception using query %s: %s",
-                query,
-                e,
-            )
-        else:
-            if disease_norm_resp.match_type:
-                normalized_disease_id = disease_norm_resp.disease.primaryCode.root
-
-        return disease_norm_resp, normalized_disease_id
+        return self._normalize_concept(query, self.disease_query_handler, "disease")
 
     def normalize_therapy(self, query: str) -> tuple[NormalizedTherapy, str | None]:
         """Attempt to normalize a therapy query
@@ -187,25 +151,7 @@ class ViccNormalizers:
         :raises TokenRetrievalError: If AWS credentials are expired
         :return: Therapy normalization response and normalized therapy ID, if available.
         """
-        normalized_therapy_id = None
-        therapy_norm_resp = None
-
-        try:
-            therapy_norm_resp = self.therapy_query_handler.normalize(query)
-        except TokenRetrievalError as e:
-            _logger.error(e)
-            raise e
-        except Exception as e:
-            _logger.error(
-                "Therapy Normalizer raised an exception using query %s: %s",
-                query,
-                e,
-            )
-        else:
-            if therapy_norm_resp.match_type:
-                normalized_therapy_id = therapy_norm_resp.therapy.primaryCode.root
-
-        return therapy_norm_resp, normalized_therapy_id
+        return self._normalize_concept(query, self.therapy_query_handler, "therapy")
 
     @staticmethod
     def get_regulatory_approval_extension(
@@ -271,6 +217,41 @@ class ViccNormalizers:
                 )
 
         return regulatory_approval_extension
+
+    @staticmethod
+    def _normalize_concept(
+        query: str,
+        query_handler: GeneQueryHandler | DiseaseQueryHandler | TherapyQueryHandler,
+        concept_name: str,
+    ) -> tuple[NormalizedGene | NormalizedDisease | NormalizedTherapy, str | None]:
+        """Attempt to normalize a concept
+
+        :param query: Query to normalize
+        :param query_handler: Query handler for normalizer
+        :param concept_name: Name of concept (gene, disease, therapy)
+        :raises TokenRetrievalError: If AWS credentials are expired
+        :return: Normalizer response and normalized ID, if available.
+        """
+        normalizer_resp = None
+        normalized_id = None
+
+        try:
+            normalizer_resp = query_handler.normalize(query)
+        except TokenRetrievalError as e:
+            _logger.error(e)
+            raise e
+        except Exception as e:
+            _logger.error(
+                "%s Normalizer raised an exception using query %s: %s",
+                concept_name.capitalize(),
+                query,
+                e,
+            )
+        else:
+            if normalizer_resp.match_type:
+                normalized_id = getattr(normalizer_resp, concept_name).primaryCode.root
+
+        return normalizer_resp, normalized_id
 
 
 class NormalizerName(str, Enum):
