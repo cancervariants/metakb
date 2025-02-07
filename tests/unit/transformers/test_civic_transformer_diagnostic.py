@@ -6,7 +6,7 @@ import pytest
 import pytest_asyncio
 from tests.conftest import (
     TEST_TRANSFORMERS_DIR,
-    get_vicc_normalizer_ext,
+    get_civic_annotation_ext,
     get_vicc_normalizer_priority_ext,
 )
 
@@ -194,8 +194,8 @@ def civic_gid38():
                 },
                 "relation": "exactMatch",
                 "extensions": [
-                    *get_vicc_normalizer_ext(is_priority=False),
-                    {"name": "civic_annotation", "value": True},
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                    get_civic_annotation_ext(),
                 ],
             },
             {
@@ -206,7 +206,7 @@ def civic_gid38():
                     "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
             },
         ],
         "extensions": [
@@ -237,6 +237,10 @@ def civic_did2():
                     "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
+                "extensions": [
+                    get_civic_annotation_ext(),
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                ],
             },
             {
                 "coding": {
@@ -246,7 +250,7 @@ def civic_did2():
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
             },
             {
                 "coding": {
@@ -255,7 +259,7 @@ def civic_did2():
                     "system": "https://purl.obolibrary.org/obo/",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
             },
         ],
     }
@@ -477,8 +481,8 @@ def civic_gid42():
                 },
                 "relation": "exactMatch",
                 "extensions": [
-                    *get_vicc_normalizer_ext(is_priority=False),
-                    {"name": "civic_annotation", "value": True},
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                    get_civic_annotation_ext(),
                 ],
             },
             {
@@ -489,7 +493,7 @@ def civic_gid42():
                     "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
             },
         ],
         "extensions": [
@@ -530,6 +534,10 @@ def civic_did15():
                     "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
+                "extensions": [
+                    get_civic_annotation_ext(),
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                ],
             },
             {
                 "coding": {
@@ -539,7 +547,7 @@ def civic_did15():
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
             },
             {
                 "coding": {
@@ -548,7 +556,7 @@ def civic_did15():
                     "system": "https://purl.obolibrary.org/obo/",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
             },
         ],
     }

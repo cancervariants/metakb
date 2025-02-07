@@ -2,6 +2,7 @@
 
 import logging
 import re
+from collections.abc import Callable
 from enum import Enum
 from pathlib import Path
 from typing import ClassVar
@@ -635,7 +636,7 @@ class CivicTransformer(Transformer):
                 _logger.debug("Syntax not recognized: %s", hgvs_expr)
                 continue
 
-            vrs_variation = await self.vicc_normalizers.normalize_variation([hgvs_expr])
+            vrs_variation = await self.vicc_normalizers.normalize_variation(hgvs_expr)
 
             if vrs_variation:
                 variation_params = vrs_variation.model_dump(exclude_none=True)
@@ -668,7 +669,7 @@ class CivicTransformer(Transformer):
 
             if self._is_supported_variant_query(variant_name, variant_id):
                 vrs_variation = await self.vicc_normalizers.normalize_variation(
-                    [variant_query]
+                    variant_query
                 )
 
             if not vrs_variation:
@@ -809,6 +810,52 @@ class CivicTransformer(Transformer):
                 expressions.append(Expression(syntax=syntax, value=hgvs_expr))
         return expressions
 
+    @staticmethod
+    def _update_normalizer_mappings(
+        mappings: list[ConceptMapping],
+        civic_primary_id: str,
+        get_concept_mapping_method: Callable,
+    ) -> None:
+        """Update ``mappings`` when concepts successfully normalizer
+
+        There are some instances where CIViC and the VICC Normalizer provide the same
+        identifier, in these cases the mapping will contain both a VICC normalizer
+        priority extension and CIViC annotation extension.
+
+        Log instances where there is a mismatch between CIViC and the VICC normalizer
+
+        :param mappings: List of normalized concept mappings from the VICC normalizer.
+            This will be mutated
+        :param civic_primary_id: The primary source identifier provided by CIViC
+        :param get_concept_mapping_method: Method for getting concept mapping
+        """
+        civic_annotation_match = False
+        for mapping in mappings:
+            if mapping.coding.id.startswith(
+                civic_primary_id[: civic_primary_id.find(":") + 1]
+            ):
+                if mapping.coding.id == civic_primary_id:
+                    civic_annotation_ext = Extension(
+                        name="civic_annotation", value=True
+                    )
+                    if mapping.extensions:
+                        mapping.extensions.append(civic_annotation_ext)
+                    else:
+                        mapping.extensions = [civic_annotation_ext]
+                    civic_annotation_match = True
+                    break
+
+                _logger.debug(
+                    "CIViC primary concept identifier and Normalizer mismatch: %s vs %s",
+                    civic_primary_id,
+                    mapping.coding.id,
+                )
+
+                break
+
+        if not civic_annotation_match:
+            mappings.append(get_concept_mapping_method(civic_primary_id))
+
     def _add_genes(self, genes: list[dict]) -> None:
         """Create gene objects for all CIViC gene records.
 
@@ -817,7 +864,7 @@ class CivicTransformer(Transformer):
         :param genes: All genes in CIViC
         """
 
-        def _get_ncbi_concept_mapping(ncbigene_id: str, gene: dict) -> ConceptMapping:
+        def _get_ncbi_concept_mapping(ncbigene_id: str) -> ConceptMapping:
             """Get NCBI gene mapping
 
             :param ncbigene_id: ID for NCBI Gene
@@ -827,7 +874,7 @@ class CivicTransformer(Transformer):
             return ConceptMapping(
                 coding=Coding(
                     id=ncbigene_id,
-                    code=str(gene["entrez_id"]),
+                    code=ncbigene_id.split(":")[-1],
                     system="https://www.ncbi.nlm.nih.gov/gene/",
                 ),
                 relation=Relation.EXACT_MATCH,
@@ -839,9 +886,12 @@ class CivicTransformer(Transformer):
             queries = [ncbigene, gene["name"]] + gene["aliases"]
             extensions = []
 
-            gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(
-                queries
-            )
+            for query in queries:
+                gene_norm_resp, normalized_gene_id = (
+                    self.vicc_normalizers.normalize_gene(query)
+                )
+                if normalized_gene_id:
+                    break
 
             if not normalized_gene_id:
                 _logger.debug(
@@ -850,30 +900,14 @@ class CivicTransformer(Transformer):
                     queries,
                 )
                 extensions.append(self._get_vicc_normalizer_failure_ext())
-                mappings = [_get_ncbi_concept_mapping(ncbigene, gene)]
+                mappings = [_get_ncbi_concept_mapping(ncbigene)]
             else:
                 mappings = self._get_vicc_normalizer_mappings(
                     normalized_gene_id, gene_norm_resp
                 )
-
-                civic_ncbi_annotation_match = False
-                for mapping in mappings:
-                    if mapping.coding.id.startswith("ncbigene:"):
-                        if mapping.coding.id == ncbigene:
-                            mapping.extensions.append(
-                                Extension(name="civic_annotation", value=True)
-                            )
-                            civic_ncbi_annotation_match = True
-                            break
-
-                        _logger.debug(
-                            "CIViC NCBI gene and Gene Normalizer mismatch: %s vs %s",
-                            ncbigene,
-                            mapping.coding.id,
-                        )
-
-                if not civic_ncbi_annotation_match:
-                    mappings.append(_get_ncbi_concept_mapping(ncbigene, gene))
+                self._update_normalizer_mappings(
+                    mappings, ncbigene, _get_ncbi_concept_mapping
+                )
 
             if gene["aliases"]:
                 extensions.append(Extension(name="aliases", value=gene["aliases"]))
@@ -918,10 +952,25 @@ class CivicTransformer(Transformer):
         :param disease: CIViC disease record
         :return: Disease represented as a mappable concept
         """
+
+        def _get_doid_concept_mapping(doid: str) -> ConceptMapping:
+            """Get DOID mapping
+
+            :param doid: DO identifier
+            :return: Concept mapping for DOID
+            """
+            return ConceptMapping(
+                coding=Coding(
+                    id=doid,
+                    code=doid,
+                    system="https://disease-ontology.org/?id=",
+                ),
+                relation=Relation.EXACT_MATCH,
+            )
+
         disease_id = f"civic.did:{disease['id']}"
         display_name = disease["display_name"]
         doid = disease["doid"]
-        mappings = []
 
         if not doid:
             _logger.debug("%s (%s) has null DOID", disease_id, display_name)
@@ -929,21 +978,15 @@ class CivicTransformer(Transformer):
         else:
             doid = f"DOID:{doid}"
             queries = [doid, display_name]
-            mappings.append(
-                ConceptMapping(
-                    coding=Coding(
-                        id=doid,
-                        code=doid,
-                        system="https://disease-ontology.org/?id=",
-                    ),
-                    relation=Relation.EXACT_MATCH,
-                )
-            )
 
-        (
-            disease_norm_resp,
-            normalized_disease_id,
-        ) = self.vicc_normalizers.normalize_disease(queries)
+        for query in queries:
+            (
+                disease_norm_resp,
+                normalized_disease_id,
+            ) = self.vicc_normalizers.normalize_disease(query)
+            if normalized_disease_id:
+                break
+
         extensions = []
 
         if not normalized_disease_id:
@@ -952,13 +995,17 @@ class CivicTransformer(Transformer):
                 disease_id,
                 queries,
             )
+            mappings = [_get_doid_concept_mapping(doid)] if doid else []
             extensions.append(self._get_vicc_normalizer_failure_ext())
         else:
-            mappings.extend(
-                self._get_vicc_normalizer_mappings(
-                    normalized_disease_id, disease_norm_resp
-                )
+            mappings = self._get_vicc_normalizer_mappings(
+                normalized_disease_id, disease_norm_resp
             )
+
+            if doid:
+                self._update_normalizer_mappings(
+                    mappings, doid, _get_doid_concept_mapping
+                )
 
         return MappableConcept(
             id=disease_id,
@@ -1027,37 +1074,47 @@ class CivicTransformer(Transformer):
         :param therapy: CIViC therapy object
         :return: Therapy represented as a mappable concept
         """
+
+        def _get_ncit_concept_mapping(ncit_id: str) -> ConceptMapping:
+            """Get NCIt mapping
+
+            :param ncit_id: NCIt identifier
+            :return: Concept mapping for NCIt
+            """
+            return ConceptMapping(
+                coding=Coding(
+                    id=ncit_id,
+                    code=ncit_id.split(":")[-1],
+                    system="https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                ),
+                relation=Relation.EXACT_MATCH,
+            )
+
         label = therapy["name"]
         ncit_id = f"ncit:{therapy['ncit_id']}"
-        mappings = []
-        if ncit_id:
-            queries = [ncit_id, label]
-            mappings.append(
-                ConceptMapping(
-                    coding=Coding(
-                        id=ncit_id,
-                        code=ncit_id.split(":")[-1],
-                        system="https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                    ),
-                    relation=Relation.EXACT_MATCH,
-                )
-            )
-        else:
-            queries = [label]
+        queries = [ncit_id, label] if therapy["ncit_id"] else [label]
 
         extensions = []
         if therapy["aliases"]:
             extensions.append(Extension(name="aliases", value=therapy["aliases"]))
 
-        (
-            therapy_norm_resp,
-            normalized_therapeutic_id,
-        ) = self.vicc_normalizers.normalize_therapy(queries)
+        for query in queries:  # Order matters (use highest match first)
+            (
+                therapy_norm_resp,
+                normalized_therapeutic_id,
+            ) = self.vicc_normalizers.normalize_therapy(query)
+            if normalized_therapeutic_id:
+                break
+
         if not normalized_therapeutic_id:
             _logger.debug(
                 "Therapy Normalizer unable to normalize: using queries ncit:%s and %s",
                 ncit_id,
                 label,
+            )
+
+            mappings = (
+                [_get_ncit_concept_mapping(ncit_id)] if therapy["ncit_id"] else []
             )
             extensions.append(self._get_vicc_normalizer_failure_ext())
         else:
@@ -1070,11 +1127,14 @@ class CivicTransformer(Transformer):
             if regulatory_approval_extension:
                 extensions.append(regulatory_approval_extension)
 
-            mappings.extend(
-                self._get_vicc_normalizer_mappings(
-                    normalized_therapeutic_id, therapy_norm_resp
-                )
+            mappings = self._get_vicc_normalizer_mappings(
+                normalized_therapeutic_id, therapy_norm_resp
             )
+
+            if therapy["ncit_id"]:
+                self._update_normalizer_mappings(
+                    mappings, ncit_id, _get_ncit_concept_mapping
+                )
 
         return MappableConcept(
             id=therapy_id,

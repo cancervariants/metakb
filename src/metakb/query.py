@@ -354,7 +354,7 @@ class QueryHandler:
         :param warnings: A list of warnings for the search query
         :return: A normalized variant concept if it exists
         """
-        variant_norm_resp = await self.vicc_normalizers.normalize_variation([variation])
+        variant_norm_resp = await self.vicc_normalizers.normalize_variation(variation)
         normalized_variation = variant_norm_resp.id if variant_norm_resp else None
 
         if not normalized_variation:

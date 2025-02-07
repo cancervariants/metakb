@@ -46,11 +46,6 @@ def pytest_configure(config):
             logging.getLogger(lib).setLevel(logging.ERROR)
 
 
-def get_vicc_normalizer_ext(is_priority: bool):
-    """Create test fixture for vicc normalizer priority extension"""
-    return [{"name": "vicc_normalizer_priority", "value": is_priority}]
-
-
 def check_source_harvest(tmp_path: Path, harvester: Harvester):
     """Test that source harvest method works correctly"""
     harvested_data = harvester.harvest()
@@ -67,14 +62,19 @@ def check_source_harvest(tmp_path: Path, harvester: Harvester):
         assert not harvested_filepath.exists()
 
 
-def get_vicc_normalizer_priority_ext(is_priority: bool):
-    """Create test fixture for vicc normalizer priority extension"""
-    return [{"name": "vicc_normalizer_priority", "value": is_priority}]
-
-
-def get_vicc_normalizer_failure_ext():
+def get_vicc_normalizer_failure_ext() -> dict:
     """Create test fixture for vicc normalizer failure extension"""
     return {"name": "vicc_normalizer_failure", "value": True}
+
+
+def get_vicc_normalizer_priority_ext(is_priority: bool) -> dict:
+    """Return vicc normalizer priority extension"""
+    return {"name": "vicc_normalizer_priority", "value": is_priority}
+
+
+def get_civic_annotation_ext() -> dict:
+    """Return civic annotation extension (represented as a dict)"""
+    return {"name": "civic_annotation", "value": True}
 
 
 def get_mappings_normalizer_id(mappings: list[dict | ConceptMapping]) -> str | None:
@@ -133,7 +133,7 @@ def braf_normalizer_mappings():
                 "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
             },
             "relation": "exactMatch",
-            "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+            "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
         },
     ]
 
@@ -150,8 +150,17 @@ def cetuximab_normalizer_mappings():
                 "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
             },
             "relation": "exactMatch",
-            "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
-        }
+            "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
+        },
+        {
+            "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
+            "coding": {
+                "id": "ncit:C1723",
+                "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                "code": "C1723",
+            },
+            "relation": "exactMatch",
+        },
     ]
 
 
@@ -242,8 +251,17 @@ def encorafenib_normalizer_mappings():
                 "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
             },
             "relation": "exactMatch",
-            "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
-        }
+            "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
+        },
+        {
+            "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
+            "coding": {
+                "id": "ncit:C98283",
+                "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                "code": "C98283",
+            },
+            "relation": "exactMatch",
+        },
     ]
 
 
@@ -520,8 +538,8 @@ def civic_gid5(braf_normalizer_mappings):
                 },
                 "relation": "exactMatch",
                 "extensions": [
-                    *get_vicc_normalizer_ext(is_priority=False),
-                    {"name": "civic_annotation", "value": True},
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                    get_civic_annotation_ext(),
                 ],
             },
             *braf_normalizer_mappings,
@@ -757,8 +775,8 @@ def civic_gid19():
                 },
                 "relation": "exactMatch",
                 "extensions": [
-                    *get_vicc_normalizer_ext(is_priority=False),
-                    {"name": "civic_annotation", "value": True},
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                    get_civic_annotation_ext(),
                 ],
             },
             {
@@ -769,7 +787,7 @@ def civic_gid19():
                     "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
             },
         ],
         "extensions": [
@@ -809,6 +827,21 @@ def civic_tid146():
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
+                "extensions": [
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                    get_civic_annotation_ext(),
+                ],
+            },
+            {
+                "coding": {
+                    "id": "ncit:C97273",
+                    "code": "C97273",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                },
+                "relation": "exactMatch",
+                "extensions": [
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                ],
             },
             {
                 "coding": {
@@ -818,7 +851,7 @@ def civic_tid146():
                     "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
             },
         ],
         "extensions": [
@@ -877,6 +910,10 @@ def civic_did8():
                     "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
+                "extensions": [
+                    get_civic_annotation_ext(),
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                ],
             },
             {
                 "coding": {
@@ -886,7 +923,7 @@ def civic_did8():
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
             },
             {
                 "coding": {
@@ -895,7 +932,7 @@ def civic_did8():
                     "system": "https://purl.obolibrary.org/obo/",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
             },
         ],
     }
@@ -927,6 +964,10 @@ def civic_tid28():
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
+                "extensions": [
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                    get_civic_annotation_ext(),
+                ],
             },
             {
                 "coding": {
@@ -936,7 +977,7 @@ def civic_tid28():
                     "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
             },
         ],
         "extensions": [
@@ -1012,6 +1053,10 @@ def civic_tid16(cetuximab_extensions, cetuximab_normalizer_mappings):
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
+                "extensions": [
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                    get_civic_annotation_ext(),
+                ],
             },
             *cetuximab_normalizer_mappings,
         ],
@@ -1066,6 +1111,10 @@ def civic_tid483(encorafenib_extensions, encorafenib_normalizer_mappings):
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
+                "extensions": [
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                    get_civic_annotation_ext(),
+                ],
             },
         ],
         "extensions": [
@@ -1106,6 +1155,21 @@ def civic_did11():
                     "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
+                "extensions": [
+                    get_civic_annotation_ext(),
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                ],
+            },
+            {
+                "coding": {
+                    "id": "DOID:5672",
+                    "code": "DOID:5672",
+                    "system": "https://disease-ontology.org/?id=",
+                },
+                "relation": "exactMatch",
+                "extensions": [
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                ],
             },
             {
                 "coding": {
@@ -1115,7 +1179,7 @@ def civic_did11():
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
             },
             {
                 "coding": {
@@ -1124,7 +1188,7 @@ def civic_did11():
                     "system": "https://purl.obolibrary.org/obo/",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
             },
         ],
     }
@@ -1558,6 +1622,10 @@ def civic_did3():
                     "code": "DOID:9119",
                 },
                 "relation": "exactMatch",
+                "extensions": [
+                    get_civic_annotation_ext(),
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                ],
             },
             {
                 "coding": {
@@ -1567,7 +1635,7 @@ def civic_did3():
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
             },
             {
                 "coding": {
@@ -1576,7 +1644,7 @@ def civic_did3():
                     "system": "https://purl.obolibrary.org/obo/",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
             },
         ],
     }
@@ -1608,8 +1676,8 @@ def civic_gid29():
                 },
                 "relation": "exactMatch",
                 "extensions": [
-                    *get_vicc_normalizer_ext(is_priority=False),
-                    {"name": "civic_annotation", "value": True},
+                    get_vicc_normalizer_priority_ext(is_priority=False),
+                    get_civic_annotation_ext(),
                 ],
             },
             {
@@ -1620,7 +1688,7 @@ def civic_gid29():
                     "label": "KIT",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
             },
         ],
     }
@@ -1822,7 +1890,7 @@ def moa_abl1():
                     "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
             },
             {
                 "coding": {
@@ -1831,7 +1899,7 @@ def moa_abl1():
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=False),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
             },
         ],
     }
@@ -1973,7 +2041,25 @@ def moa_imatinib():
                     "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
+            },
+            {
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
+                "coding": {
+                    "id": "ncit:C1687",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                    "code": "C1687",
+                },
+                "relation": "exactMatch",
+            },
+            {
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
+                "coding": {
+                    "id": "ncit:C62035",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                    "code": "C62035",
+                },
+                "relation": "exactMatch",
             },
         ],
     }
@@ -2004,7 +2090,7 @@ def moa_chronic_myelogenous_leukemia():
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
             },
             {
                 "coding": {
@@ -2013,7 +2099,25 @@ def moa_chronic_myelogenous_leukemia():
                     "system": "https://purl.obolibrary.org/obo/",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
+            },
+            {
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
+                "coding": {
+                    "id": "DOID:8552",
+                    "system": "https://disease-ontology.org/?id=",
+                    "code": "DOID:8552",
+                },
+                "relation": "exactMatch",
+            },
+            {
+                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
+                "coding": {
+                    "id": "DOID:0081088",
+                    "system": "https://disease-ontology.org/?id=",
+                    "code": "DOID:0081088",
+                },
+                "relation": "exactMatch",
             },
         ],
     }
