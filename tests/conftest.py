@@ -90,7 +90,10 @@ def get_mappings_normalizer_id(mappings: list[dict | ConceptMapping]) -> str | N
         extensions = mapping.get("extensions") or []
         for ext in extensions:
             if ext["name"] == NormalizerExtensionName.PRIORITY and ext["value"]:
-                normalizer_id = mapping["coding"]["code"]
+                if mapping["coding"]["id"].startswith("MONDO"):
+                    normalizer_id = mapping["coding"]["code"]
+                else:
+                    normalizer_id = mapping["coding"]["id"]
                 break
     return normalizer_id
 
