@@ -326,7 +326,7 @@ class QueryHandler:
         :param warnings: A list of warnings for the search query
         :return: A normalized therapy concept if it exists
         """
-        _, normalized_therapy_id = self.vicc_normalizers.normalize_therapy([therapy])
+        _, normalized_therapy_id = self.vicc_normalizers.normalize_therapy(therapy)
 
         if not normalized_therapy_id:
             warnings.append(f"Therapy Normalizer unable to normalize: " f"{therapy}")
@@ -339,7 +339,7 @@ class QueryHandler:
         :param warnings: A list of warnings for the search query
         :return: A normalized disease concept if it exists
         """
-        _, normalized_disease_id = self.vicc_normalizers.normalize_disease([disease])
+        _, normalized_disease_id = self.vicc_normalizers.normalize_disease(disease)
 
         if not normalized_disease_id:
             warnings.append(f"Disease Normalizer unable to normalize: " f"{disease}")
@@ -374,7 +374,7 @@ class QueryHandler:
         :param warnings: A list of warnings for the search query.
         :return: A normalized gene concept if it exists
         """
-        _, normalized_gene_id = self.vicc_normalizers.normalize_gene([gene])
+        _, normalized_gene_id = self.vicc_normalizers.normalize_gene(gene)
         if not normalized_gene_id:
             warnings.append(f"Gene Normalizer unable to normalize: {gene}")
         return normalized_gene_id
