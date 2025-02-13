@@ -32,7 +32,7 @@ def assertion164():
         },
         "predictive_implication": "Preclinical",
         "favorable_prognosis": "",
-        "created_on": "12/05/24",
+        "created_on": "02/07/25",
         "last_updated": "2019-06-13",
         "submitted_by": "breardon@broadinstitute.org",
         "validated": True,
