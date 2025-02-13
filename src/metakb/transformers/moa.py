@@ -144,9 +144,9 @@ class MoaTransformer(Transformer):
 
         feature_type = assertion["variant"]["feature_type"]
         if feature_type == "somatic_variant":
-            allele_origin_qualifier = MappableConcept(label="somatic")
+            allele_origin_qualifier = MappableConcept(name="somatic")
         elif feature_type == "germline_variant":
-            allele_origin_qualifier = MappableConcept(label="germline")
+            allele_origin_qualifier = MappableConcept(name="germline")
         else:
             allele_origin_qualifier = None
 
@@ -245,7 +245,7 @@ class MoaTransformer(Transformer):
                 # Form query and run through variation-normalizer
                 # For now, the normalizer only support amino acid substitution
                 vrs_variation = None
-                gene = moa_gene.label
+                gene = moa_gene.name
                 query = f"{gene} {protein_change[2:]}"
                 vrs_variation = await self.vicc_normalizers.normalize_variation(query)
 
@@ -311,7 +311,7 @@ class MoaTransformer(Transformer):
 
             cv = CategoricalVariant(
                 id=moa_variant_id,
-                label=feature,
+                name=feature,
                 constraints=constraints,
                 mappings=mappings or None,
                 extensions=extensions,
@@ -353,7 +353,7 @@ class MoaTransformer(Transformer):
                 genomic_params["extensions"] = (
                     None  # Don't care about capturing extensions for now
                 )
-                genomic_params["label"] = gnomad_vcf
+                genomic_params["name"] = gnomad_vcf
                 members = [Variation(**genomic_params)]
             else:
                 logger.debug(
@@ -395,7 +395,7 @@ class MoaTransformer(Transformer):
             moa_gene = MappableConcept(
                 id=id_,
                 conceptType="Gene",
-                label=gene,
+                name=gene,
                 mappings=mappings or None,
                 extensions=extensions or None,
             )
@@ -466,14 +466,14 @@ class MoaTransformer(Transformer):
                 # skipping HORMONE and CHEMOTHERAPY for now
                 return None
 
-            therapies = [{"label": tn.strip()} for tn in therapy_name.split("+")]
+            therapies = [{"name": tn.strip()} for tn in therapy_name.split("+")]
             therapeutic_digest = self._get_digest_for_str_lists(
                 [f"moa.therapy:{tn}" for tn in therapies]
             )
             therapy_id = f"moa.ctid:{therapeutic_digest}"
         else:
             therapy_id = f"moa.therapy:{_sanitize_name(therapy_name)}"
-            therapies = [{"label": therapy_name}]
+            therapies = [{"name": therapy_name}]
             therapy_type = TherapyType.THERAPY
 
         return self._add_therapy(
@@ -508,8 +508,8 @@ class MoaTransformer(Transformer):
         """Resolve conflict where MOA disease or therapy resolve to same normalized
         concept
 
-        The min label will be used as the primary label for the mappable concept, and
-        the other label will be added as an alias in extensions.
+        The min name will be used as the primary name for the mappable concept, and
+        the other name will be added as an alias in extensions.
         The cache will be updated with updated object.
         The cached object will be removed from ``self.processed_data``
 
@@ -517,7 +517,7 @@ class MoaTransformer(Transformer):
         :param cached_obj: Mappable concept found in cache for ``cached_id``. This will
             be mutated
         :param cached_label: Label for ``cached_obj``
-        :param moa_concept_label: MOA concept label
+        :param moa_concept_label: MOA concept name
         :param is_disease: ``True`` if ``cached_obj`` is a disease. ``False`` if
             ``cached_obj`` is a therapy
         """
@@ -528,7 +528,7 @@ class MoaTransformer(Transformer):
             cached_id,
         )
         alias = max(moa_concept_label, cached_label)
-        cached_obj.label = min(moa_concept_label, cached_label)
+        cached_obj.name = min(moa_concept_label, cached_label)
         extensions = cached_obj.extensions or []
 
         aliases_ext = next(
@@ -536,8 +536,8 @@ class MoaTransformer(Transformer):
             None,
         )
         if aliases_ext:
-            if cached_obj.label in aliases_ext.value:
-                aliases_ext.value.remove(cached_obj.label)
+            if cached_obj.name in aliases_ext.value:
+                aliases_ext.value.remove(cached_obj.name)
             aliases_ext.value.append(alias)
         else:
             extensions.append(Extension(name="aliases", value=[alias]))
@@ -559,7 +559,7 @@ class MoaTransformer(Transformer):
     def _get_therapy(self, therapy_id: str, therapy: dict) -> MappableConcept:
         """Get Therapy mappable concept for a MOA therapy name.
 
-        Will run `label` through therapy-normalizer.
+        Will run `name` through therapy-normalizer.
 
         :param therapy_id: Generated therapy ID
         :param therapy: MOA therapy name
@@ -572,17 +572,17 @@ class MoaTransformer(Transformer):
             """Resolve conflict where MOA therapy labels resolve to the same normalized
             concept
 
-            If conflict occurs, the min label will be used as the primary label for the
-            mappable concept, and the other label will be added as an alias in
+            If conflict occurs, the min name will be used as the primary name for the
+            mappable concept, and the other name will be added as an alias in
             extensions. The cache will be updated.
 
             :param cached_id: Cached ID for therapy concept that is in
                 ``self._cache.normalized_therapies``
-            :param moa_concept_label: MOA provided label for therapy concept
+            :param moa_concept_label: MOA provided name for therapy concept
             :return: Therapy represented as a mappable concept
             """
             therapy_norm_obj = self._cache.normalized_therapies[cached_id]
-            og_therapy_norm_label = therapy_norm_obj.label
+            og_therapy_norm_label = therapy_norm_obj.name
             if moa_concept_label != og_therapy_norm_label:
                 self._resolve_concept_discrepancy(
                     cached_id,
@@ -595,12 +595,12 @@ class MoaTransformer(Transformer):
 
         mappings = []
         extensions = []
-        label = therapy["label"]
+        name = therapy["name"]
 
         (
             therapy_norm_resp,
             normalized_therapeutic_id,
-        ) = self.vicc_normalizers.normalize_therapy(label)
+        ) = self.vicc_normalizers.normalize_therapy(name)
 
         if not normalized_therapeutic_id:
             logger.debug("Therapy Normalizer unable to normalize: %s", therapy)
@@ -610,7 +610,7 @@ class MoaTransformer(Transformer):
             id_ = f"moa.{therapy_norm_resp.therapy.id}"
 
             if id_ in self._cache.normalized_therapies:
-                return _resolve_therapy_discrepancy(id_, label)
+                return _resolve_therapy_discrepancy(id_, name)
 
             regulatory_approval_extension = (
                 self.vicc_normalizers.get_regulatory_approval_extension(
@@ -630,7 +630,7 @@ class MoaTransformer(Transformer):
         therapy_concept = MappableConcept(
             id=id_,
             conceptType="Therapy",
-            label=label,
+            name=name,
             mappings=mappings or None,
             extensions=extensions or None,
         )
@@ -646,7 +646,7 @@ class MoaTransformer(Transformer):
         digest to ``processed_data.conditions`` and ``_cache['conditions']``.
 
         Since there may be duplicate Oncotree code/terms with different names, the first
-        name will be used as the Disease label. Others will be added to the extensions
+        name will be used as the Disease name. Others will be added to the extensions
         aliases field.
 
         :param disease: MOA disease object
@@ -668,11 +668,11 @@ class MoaTransformer(Transformer):
         moa_disease = self._cache.conditions.get(disease_id)
         if moa_disease:
             source_disease_name = disease["name"]
-            if source_disease_name != moa_disease.label:
+            if source_disease_name != moa_disease.name:
                 self._resolve_concept_discrepancy(
                     disease_id,
                     moa_disease,
-                    moa_disease.label,
+                    moa_disease.name,
                     source_disease_name,
                     is_disease=True,
                 )
@@ -704,7 +704,7 @@ class MoaTransformer(Transformer):
                         id=f"oncotree:{ot_code}",
                         code=ot_code,
                         system="https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
-                        label=ot_term,
+                        name=ot_term,
                     ),
                     relation=Relation.EXACT_MATCH,
                 )
@@ -741,7 +741,7 @@ class MoaTransformer(Transformer):
         return MappableConcept(
             id=id_,
             conceptType="Disease",
-            label=disease_name,
+            name=disease_name,
             mappings=mappings or None,
             extensions=extensions or None,
         )

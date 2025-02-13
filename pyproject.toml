@@ -23,13 +23,13 @@ requires-python = ">=3.11"
 description = "A search interface for cancer variant interpretations assembled by aggregating and harmonizing across multiple cancer variant interpretation knowledgebases."
 license = {file = "LICENSE"}
 dependencies = [
-    "ga4gh.vrs==2.0.0a13",
-    "ga4gh.cat_vrs~=0.2.1",
-    "ga4gh.va_spec @ git+https://github.com/ga4gh/va-spec-python.git@issue-10",
-    "gene-normalizer[etl]~=0.7.0",
-    "variation-normalizer~=0.12.1",
-    "disease-normalizer[etl]~=0.8.0",
-    "thera-py[etl]~=0.8.0",
+    "ga4gh.vrs==2.0.0a14",
+    "ga4gh.cat_vrs~=0.3.0",
+    "ga4gh.va_spec @ git+https://github.com/ga4gh/va-spec-python.git@update-submodules",
+    "gene-normalizer[etl]~=0.8.0",
+    "variation-normalizer @ git+https://github.com/cancervariants/variation-normalization.git@update-vrs",
+    "disease-normalizer[etl] @ git+https://github.com/cancervariants/disease-normalization.git@update-vrs-python",
+    "thera-py[etl] @ git+https://github.com/cancervariants/therapy-normalization.git@update-vrs-python",
     "civicpy~=3.1",
     "requests",
     "pydantic==2.*",

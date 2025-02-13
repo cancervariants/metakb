@@ -127,7 +127,7 @@ def braf_normalizer_mappings():
     return [
         {
             "coding": {
-                "label": "BRAF",
+                "name": "BRAF",
                 "id": "hgnc:1097",
                 "code": "HGNC:1097",
                 "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
@@ -144,7 +144,7 @@ def cetuximab_normalizer_mappings():
     return [
         {
             "coding": {
-                "label": "cetuximab",
+                "name": "cetuximab",
                 "id": "rxcui:318341",
                 "code": "318341",
                 "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
@@ -167,7 +167,7 @@ def cetuximab_extensions():
                     {
                         "id": "mesh:D009369",
                         "conceptType": "Disease",
-                        "label": "Neoplasms",
+                        "name": "Neoplasms",
                         "mappings": [
                             {
                                 "coding": {
@@ -182,7 +182,7 @@ def cetuximab_extensions():
                     {
                         "id": "mesh:D015179",
                         "conceptType": "Disease",
-                        "label": "Colorectal Neoplasms",
+                        "name": "Colorectal Neoplasms",
                         "mappings": [
                             {
                                 "coding": {
@@ -197,7 +197,7 @@ def cetuximab_extensions():
                     {
                         "id": "mesh:D006258",
                         "conceptType": "Disease",
-                        "label": "Head and Neck Neoplasms",
+                        "name": "Head and Neck Neoplasms",
                         "mappings": [
                             {
                                 "coding": {
@@ -212,7 +212,7 @@ def cetuximab_extensions():
                     {
                         "id": "mesh:D002294",
                         "conceptType": "Disease",
-                        "label": "Carcinoma, Squamous Cell",
+                        "name": "Carcinoma, Squamous Cell",
                         "mappings": [
                             {
                                 "coding": {
@@ -236,7 +236,7 @@ def encorafenib_normalizer_mappings():
     return [
         {
             "coding": {
-                "label": "encorafenib",
+                "name": "encorafenib",
                 "id": "rxcui:2049106",
                 "code": "2049106",
                 "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
@@ -259,7 +259,7 @@ def encorafenib_extensions():
                     {
                         "id": "mesh:D008545",
                         "conceptType": "Disease",
-                        "label": "Melanoma",
+                        "name": "Melanoma",
                         "mappings": [
                             {
                                 "coding": {
@@ -274,7 +274,7 @@ def encorafenib_extensions():
                     {
                         "id": "mesh:D009369",
                         "conceptType": "Disease",
-                        "label": "Neoplasms",
+                        "name": "Neoplasms",
                         "mappings": [
                             {
                                 "coding": {
@@ -289,7 +289,7 @@ def encorafenib_extensions():
                     {
                         "id": "mesh:D015179",
                         "conceptType": "Disease",
-                        "label": "Colorectal Neoplasms",
+                        "name": "Colorectal Neoplasms",
                         "mappings": [
                             {
                                 "coding": {
@@ -314,13 +314,13 @@ def civic_mpid33(civic_vid33):
         "id": "civic.mpid:33",
         "type": "CategoricalVariant",
         "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",
-        "label": "EGFR L858R",
+        "name": "EGFR L858R",
         "constraints": [{"allele": civic_vid33, "type": "DefiningAlleleConstraint"}],
         "members": [
             {
                 "id": "ga4gh:VA.gV7_dnvF8SQSeUdvgDFhU65zK_csc6VE",
                 "type": "Allele",
-                "label": "NM_005228.4:c.2573T>G",
+                "name": "NM_005228.4:c.2573T>G",
                 "digest": "gV7_dnvF8SQSeUdvgDFhU65zK_csc6VE",
                 "location": {
                     "id": "ga4gh:SL.LREsUiEYvOrRhwXW1rG72kXFPegvkNzI",
@@ -339,7 +339,7 @@ def civic_mpid33(civic_vid33):
             },
             {
                 "id": "ga4gh:VA.pM_eD8ha-bnAu6wJOoQTtHYIvEShSN51",
-                "label": "NC_000007.13:g.55259515T>G",
+                "name": "NC_000007.13:g.55259515T>G",
                 "digest": "pM_eD8ha-bnAu6wJOoQTtHYIvEShSN51",
                 "type": "Allele",
                 "location": {
@@ -432,7 +432,7 @@ def civic_mpid33(civic_vid33):
                         "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "label": "missense_variant",
+                        "name": "missense_variant",
                     }
                 ],
             },
@@ -445,7 +445,7 @@ def civic_source592():
     """Create fixture for civic source 592"""
     return {
         "id": "civic.source:1725",
-        "label": "Dungo et al., 2013",
+        "name": "Dungo et al., 2013",
         "title": "Afatinib: first global approval.",
         "pmid": 23982599,
         "type": "Document",
@@ -469,13 +469,13 @@ def civic_eid2997_study_stmt(
         "direction": "supports",
         "strength": {
             "primaryCode": "e000001",
-            "label": "authoritative evidence",
+            "name": "authoritative evidence",
             "mappings": [
                 {
                     "coding": {
                         "id": "vicc:e000001",
                         "system": "https://go.osu.edu/evidence-codes",
-                        "label": "authoritative evidence",
+                        "name": "authoritative evidence",
                         "code": "e000001",
                     },
                     "relation": "exactMatch",
@@ -495,7 +495,7 @@ def civic_eid2997_study_stmt(
             "predicate": "predictsSensitivityTo",
             "objectTherapeutic": civic_tid146,
             "conditionQualifier": civic_did8,
-            "alleleOriginQualifier": {"label": "somatic"},
+            "alleleOriginQualifier": {"name": "somatic"},
             "geneContextQualifier": civic_gid19,
             "subjectVariant": civic_mpid33,
         },
@@ -510,7 +510,7 @@ def civic_gid5(braf_normalizer_mappings):
     return {
         "id": "civic.gid:5",
         "conceptType": "Gene",
-        "label": "BRAF",
+        "name": "BRAF",
         "mappings": [
             {
                 "coding": {
@@ -553,7 +553,7 @@ def civic_vid12():
     return {
         "id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
         "type": "Allele",
-        "label": "V600E",
+        "name": "V600E",
         "digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
         "location": {
             "id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
@@ -604,7 +604,7 @@ def braf_v600e_genomic():
 def civic_mpid12(civic_vid12, braf_v600e_genomic):
     """Create test fixture for CIViC Molecular Profile ID 12"""
     genomic_rep = braf_v600e_genomic.copy()
-    genomic_rep["label"] = "NC_000007.13:g.140453136A>T"
+    genomic_rep["name"] = "NC_000007.13:g.140453136A>T"
     genomic_rep["expressions"] = [
         {"syntax": "hgvs.g", "value": "NC_000007.13:g.140453136A>T"}
     ]
@@ -613,14 +613,14 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
         "id": "civic.mpid:12",
         "type": "CategoricalVariant",
         "description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
-        "label": "BRAF V600E",
+        "name": "BRAF V600E",
         "constraints": [{"allele": civic_vid12, "type": "DefiningAlleleConstraint"}],
         "members": [
             genomic_rep,
             {
                 "id": "ga4gh:VA.W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
                 "type": "Allele",
-                "label": "NM_004333.4:c.1799T>A",
+                "name": "NM_004333.4:c.1799T>A",
                 "digest": "W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
                 "expressions": [{"syntax": "hgvs.c", "value": "NM_004333.4:c.1799T>A"}],
                 "location": {
@@ -703,7 +703,7 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
                         "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "label": "missense_variant",
+                        "name": "missense_variant",
                     }
                 ],
             },
@@ -717,7 +717,7 @@ def civic_vid33():
     return {
         "id": "ga4gh:VA.S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ",
         "type": "Allele",
-        "label": "L858R",
+        "name": "L858R",
         "digest": "S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ",
         "location": {
             "id": "ga4gh:SL.v0_edynH98OIu-0QPVT5anCSOriAFSDQ",
@@ -747,7 +747,7 @@ def civic_gid19():
     return {
         "id": "civic.gid:19",
         "conceptType": "Gene",
-        "label": "EGFR",
+        "name": "EGFR",
         "mappings": [
             {
                 "coding": {
@@ -763,7 +763,7 @@ def civic_gid19():
             },
             {
                 "coding": {
-                    "label": "EGFR",
+                    "name": "EGFR",
                     "id": "hgnc:3236",
                     "code": "HGNC:3236",
                     "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
@@ -800,7 +800,7 @@ def civic_tid146():
     return {
         "id": "civic.tid:146",
         "conceptType": "Therapy",
-        "label": "Afatinib",
+        "name": "Afatinib",
         "mappings": [
             {
                 "coding": {
@@ -827,7 +827,7 @@ def civic_tid146():
             },
             {
                 "coding": {
-                    "label": "afatinib",
+                    "name": "afatinib",
                     "id": "rxcui:1430438",
                     "code": "1430438",
                     "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
@@ -853,7 +853,7 @@ def civic_tid146():
                         {
                             "id": "hemonc:642",
                             "conceptType": "Disease",
-                            "label": "Non-small cell lung cancer",
+                            "name": "Non-small cell lung cancer",
                             "mappings": [
                                 {
                                     "coding": {
@@ -868,7 +868,7 @@ def civic_tid146():
                         {
                             "id": "hemonc:25316",
                             "conceptType": "Disease",
-                            "label": "Non-small cell lung cancer squamous",
+                            "name": "Non-small cell lung cancer squamous",
                         },
                     ],
                 },
@@ -883,7 +883,7 @@ def civic_did8():
     return {
         "id": "civic.did:8",
         "conceptType": "Disease",
-        "label": "Lung Non-small Cell Carcinoma",
+        "name": "Lung Non-small Cell Carcinoma",
         "mappings": [
             {
                 "coding": {
@@ -899,7 +899,7 @@ def civic_did8():
             },
             {
                 "coding": {
-                    "label": "Lung Non-Small Cell Carcinoma",
+                    "name": "Lung Non-Small Cell Carcinoma",
                     "id": "ncit:C2926",
                     "code": "C2926",
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
@@ -926,7 +926,7 @@ def pmid_23982599():
     return {
         "id": "pmid:23982599",
         "type": "Document",
-        "label": "Dungo et al., 2013",
+        "name": "Dungo et al., 2013",
         "description": "Afatinib: first global approval.",
     }
 
@@ -937,7 +937,7 @@ def civic_tid28():
     return {
         "id": "civic.tid:28",
         "conceptType": "Therapy",
-        "label": "Panitumumab",
+        "name": "Panitumumab",
         "mappings": [
             {
                 "coding": {
@@ -953,7 +953,7 @@ def civic_tid28():
             },
             {
                 "coding": {
-                    "label": "panitumumab",
+                    "name": "panitumumab",
                     "id": "rxcui:263034",
                     "code": "263034",
                     "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
@@ -986,7 +986,7 @@ def civic_tid28():
                         {
                             "id": "mesh:D009369",
                             "conceptType": "Disease",
-                            "label": "Neoplasms",
+                            "name": "Neoplasms",
                             "mappings": [
                                 {
                                     "coding": {
@@ -1001,7 +1001,7 @@ def civic_tid28():
                         {
                             "id": "mesh:D015179",
                             "conceptType": "Disease",
-                            "label": "Colorectal Neoplasms",
+                            "name": "Colorectal Neoplasms",
                             "mappings": [
                                 {
                                     "coding": {
@@ -1026,7 +1026,7 @@ def civic_tid16(cetuximab_extensions, cetuximab_normalizer_mappings):
     return {
         "id": "civic.tid:16",
         "conceptType": "Therapy",
-        "label": "Cetuximab",
+        "name": "Cetuximab",
         "mappings": [
             {
                 "coding": {
@@ -1067,7 +1067,7 @@ def civic_tsg(civic_tid16, civic_tid28):
     return {
         "id": "civic.tsgid:7IxyhCwID0QYyVCP2xuIyYvwwu-S_HrZ",
         "therapies": [civic_tid16, civic_tid28],
-        "groupType": {"label": "TherapeuticSubstituteGroup"},
+        "groupType": {"name": "TherapeuticSubstituteGroup"},
         "extensions": [
             {
                 "name": "civic_therapy_interaction_type",
@@ -1083,7 +1083,7 @@ def civic_tid483(encorafenib_extensions, encorafenib_normalizer_mappings):
     return {
         "id": "civic.tid:483",
         "conceptType": "Therapy",
-        "label": "Encorafenib",
+        "name": "Encorafenib",
         "mappings": [
             *encorafenib_normalizer_mappings,
             {
@@ -1112,7 +1112,7 @@ def civic_ct(civic_tid483, civic_tid16):
     return {
         "id": "civic.ctid:P1PY89shAjemg7jquQ0V9pg1VnYnkPeK",
         "therapies": [civic_tid483, civic_tid16],
-        "groupType": {"label": "CombinationTherapy"},
+        "groupType": {"name": "CombinationTherapy"},
         "extensions": [
             {
                 "name": "civic_therapy_interaction_type",
@@ -1128,7 +1128,7 @@ def civic_did11():
     return {
         "id": "civic.did:11",
         "conceptType": "Disease",
-        "label": "Colorectal Cancer",
+        "name": "Colorectal Cancer",
         "mappings": [
             {
                 "coding": {
@@ -1155,7 +1155,7 @@ def civic_did11():
             },
             {
                 "coding": {
-                    "label": "Malignant Colorectal Neoplasm",
+                    "name": "Malignant Colorectal Neoplasm",
                     "id": "ncit:C4978",
                     "code": "C4978",
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
@@ -1188,14 +1188,14 @@ def civic_eid816_study_stmt(
         "direction": "disputes",
         "strength": {
             "primaryCode": "e000005",
-            "label": "clinical cohort evidence",
+            "name": "clinical cohort evidence",
             "mappings": [
                 {
                     "coding": {
                         "id": "vicc:e000005",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000005",
-                        "label": "clinical cohort evidence",
+                        "name": "clinical cohort evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -1215,14 +1215,14 @@ def civic_eid816_study_stmt(
             "subjectVariant": civic_mpid12,
             "objectTherapeutic": civic_tsg,
             "conditionQualifier": civic_did11,
-            "alleleOriginQualifier": {"label": "somatic"},
+            "alleleOriginQualifier": {"name": "somatic"},
             "geneContextQualifier": civic_gid5,
         },
         "specifiedBy": civic_method,
         "reportedIn": [
             {
                 "id": "civic.source:548",
-                "label": "Rowland et al., 2015",
+                "name": "Rowland et al., 2015",
                 "title": "Meta-analysis of BRAF mutation as a predictive biomarker of benefit from anti-EGFR monoclonal antibody therapy for RAS wild-type metastatic colorectal cancer.",
                 "pmid": 25989278,
                 "type": "Document",
@@ -1247,14 +1247,14 @@ def civic_eid9851_study_stmt(
         "direction": "supports",
         "strength": {
             "primaryCode": "e000001",
-            "label": "authoritative evidence",
+            "name": "authoritative evidence",
             "mappings": [
                 {
                     "coding": {
                         "id": "vicc:e000001",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000001",
-                        "label": "authoritative evidence",
+                        "name": "authoritative evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -1274,14 +1274,14 @@ def civic_eid9851_study_stmt(
             "subjectVariant": civic_mpid12,
             "objectTherapeutic": civic_ct,
             "conditionQualifier": civic_did11,
-            "alleleOriginQualifier": {"label": "somatic"},
+            "alleleOriginQualifier": {"name": "somatic"},
             "geneContextQualifier": civic_gid5,
         },
         "specifiedBy": civic_method,
         "reportedIn": [
             {
                 "id": "civic.source:3025",
-                "label": "Kopetz et al., 2019",
+                "name": "Kopetz et al., 2019",
                 "title": "Encorafenib, Binimetinib, and Cetuximab in BRAF V600E-Mutated Colorectal Cancer.",
                 "pmid": 31566309,
                 "type": "Document",
@@ -1328,7 +1328,7 @@ def civic_aid6_statement(
             "type": "VariantTherapeuticResponseProposition",
             "subjectVariant": civic_mpid33,
             "geneContextQualifier": civic_gid19,
-            "alleleOriginQualifier": {"label": "somatic"},
+            "alleleOriginQualifier": {"name": "somatic"},
             "predicate": "predictsSensitivityTo",
             "objectTherapeutic": civic_tid146,
             "conditionQualifier": civic_did8,
@@ -1355,7 +1355,7 @@ def civic_aid6_document():
         "id": "document:9WsQBGXOmTFRXBUanTaIec8Gvgg8bsMA",
         "document_id": "https://www.nccn.org/professionals/"
         "physician_gls/default.aspx",
-        "label": "NCCN Guidelines: Non-Small Cell Lung Cancer version 3.2018",
+        "name": "NCCN Guidelines: Non-Small Cell Lung Cancer version 3.2018",
         "type": "Document",
     }
 
@@ -1371,14 +1371,14 @@ def civic_eid26_study_stmt(
         "direction": "supports",
         "strength": {
             "primaryCode": "e000005",
-            "label": "clinical cohort evidence",
+            "name": "clinical cohort evidence",
             "mappings": [
                 {
                     "coding": {
                         "id": "vicc:e000005",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000005",
-                        "label": "clinical cohort evidence",
+                        "name": "clinical cohort evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -1395,7 +1395,7 @@ def civic_eid26_study_stmt(
         "proposition": {
             "type": "VariantPrognosticProposition",
             "predicate": "associatedWithWorseOutcomeFor",
-            "alleleOriginQualifier": {"label": "somatic"},
+            "alleleOriginQualifier": {"name": "somatic"},
             "subjectVariant": civic_mpid65,
             "geneContextQualifier": civic_gid29,
             "objectCondition": civic_did3,
@@ -1424,7 +1424,7 @@ def civic_vid65():
     return {
         "id": "ga4gh:VA.nhiDwIq1klrGm3wtWO4a4BiS0jdW79Wd",
         "type": "Allele",
-        "label": "D816V",
+        "name": "D816V",
         "digest": "nhiDwIq1klrGm3wtWO4a4BiS0jdW79Wd",
         "location": {
             "id": "ga4gh:SL.FDPpCHrDqH_pR10oxpHZ17tyGhZXVnsj",
@@ -1455,13 +1455,13 @@ def civic_mpid65(civic_vid65):
         "id": "civic.mpid:65",
         "type": "CategoricalVariant",
         "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",
-        "label": "KIT D816V",
+        "name": "KIT D816V",
         "constraints": [{"allele": civic_vid65, "type": "DefiningAlleleConstraint"}],
         "members": [
             {
                 "id": "ga4gh:VA.MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
                 "type": "Allele",
-                "label": "NM_000222.2:c.2447A>T",
+                "name": "NM_000222.2:c.2447A>T",
                 "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
                 "expressions": [{"syntax": "hgvs.c", "value": "NM_000222.2:c.2447A>T"}],
                 "location": {
@@ -1481,7 +1481,7 @@ def civic_mpid65(civic_vid65):
             {
                 "id": "ga4gh:VA.MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
                 "type": "Allele",
-                "label": "ENST00000288135.5:c.2447A>T",
+                "name": "ENST00000288135.5:c.2447A>T",
                 "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
                 "expressions": [
                     {"syntax": "hgvs.c", "value": "ENST00000288135.5:c.2447A>T"}
@@ -1503,7 +1503,7 @@ def civic_mpid65(civic_vid65):
             {
                 "id": "ga4gh:VA.UQJIH49-agpdZzdyGiM4NQE_njoQy0m6",
                 "type": "Allele",
-                "label": "NC_000004.11:g.55599321A>T",
+                "name": "NC_000004.11:g.55599321A>T",
                 "digest": "UQJIH49-agpdZzdyGiM4NQE_njoQy0m6",
                 "expressions": [
                     {"syntax": "hgvs.g", "value": "NC_000004.11:g.55599321A>T"}
@@ -1581,7 +1581,7 @@ def civic_mpid65(civic_vid65):
                         "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "label": "missense_variant",
+                        "name": "missense_variant",
                     }
                 ],
             },
@@ -1595,7 +1595,7 @@ def civic_did3():
     return {
         "id": "civic.did:3",
         "conceptType": "Disease",
-        "label": "Acute Myeloid Leukemia",
+        "name": "Acute Myeloid Leukemia",
         "mappings": [
             {
                 "coding": {
@@ -1611,7 +1611,7 @@ def civic_did3():
             },
             {
                 "coding": {
-                    "label": "Acute Myeloid Leukemia",
+                    "name": "Acute Myeloid Leukemia",
                     "id": "ncit:C3171",
                     "code": "C3171",
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
@@ -1638,7 +1638,7 @@ def civic_gid29():
     return {
         "id": "civic.gid:29",
         "conceptType": "Gene",
-        "label": "KIT",
+        "name": "KIT",
         "extensions": [
             {
                 "name": "description",
@@ -1667,7 +1667,7 @@ def civic_gid29():
                     "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
                     "id": "hgnc:6342",
                     "code": "HGNC:6342",
-                    "label": "KIT",
+                    "name": "KIT",
                 },
                 "relation": "exactMatch",
                 "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
@@ -1681,7 +1681,7 @@ def pmid_15146165():
     """Create a test fixture for PMID 15146165."""
     return {
         "id": "pmid:15146165",
-        "label": "Lasota et al., 2004, Lab. Invest.",
+        "name": "Lasota et al., 2004, Lab. Invest.",
         "type": "Document",
         "description": "A great majority of GISTs with PDGFRA mutations represent gastric tumors of low or no malignant potential.",
     }
@@ -1693,7 +1693,7 @@ def pmid_18073307():
     return {
         "type": "Document",
         "id": "pmid:18073307",
-        "label": "Elisei et al., 2008, J. Clin. Endocrinol. Metab.",
+        "name": "Elisei et al., 2008, J. Clin. Endocrinol. Metab.",
         "description": "Prognostic significance of somatic RET oncogene mutations in sporadic medullary thyroid cancer: a 10-year follow-up study.",
     }
 
@@ -1703,7 +1703,7 @@ def pmid_16384925():
     """Create a test fixture for PMID 16384925."""
     return {
         "id": "civic.source:69",
-        "label": "Cairoli et al., 2006",
+        "name": "Cairoli et al., 2006",
         "title": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study.",
         "pmid": 16384925,
         "type": "Document",
@@ -1725,14 +1725,14 @@ def moa_aid66_study_stmt(
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
         "strength": {
             "primaryCode": "e000009",
-            "label": "preclinical evidence",
+            "name": "preclinical evidence",
             "mappings": [
                 {
                     "coding": {
                         "id": "vicc:e000009",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000009",
-                        "label": "preclinical evidence",
+                        "name": "preclinical evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -1761,7 +1761,7 @@ def moa_aid66_study_stmt(
             "subjectVariant": moa_vid66,
             "objectTherapeutic": moa_imatinib,
             "conditionQualifier": moa_chronic_myelogenous_leukemia,
-            "alleleOriginQualifier": {"label": "somatic"},
+            "alleleOriginQualifier": {"name": "somatic"},
             "geneContextQualifier": moa_abl1,
         },
         "specifiedBy": moa_method,
@@ -1776,7 +1776,7 @@ def moa_vid66():
     return {
         "id": "moa.variant:66",
         "type": "CategoricalVariant",
-        "label": "ABL1 p.T315I (Missense)",
+        "name": "ABL1 p.T315I (Missense)",
         "constraints": [
             {
                 "allele": {
@@ -1803,7 +1803,7 @@ def moa_vid66():
         "members": [
             {
                 "id": "ga4gh:VA.HUJOQCml0LngKmUf5IJIYQk9CfKmagbf",
-                "label": "9-133748283-C-T",
+                "name": "9-133748283-C-T",
                 "digest": "HUJOQCml0LngKmUf5IJIYQk9CfKmagbf",
                 "type": "Allele",
                 "location": {
@@ -1862,11 +1862,11 @@ def moa_abl1():
     return {
         "id": "moa.normalize.gene.hgnc:76",
         "conceptType": "Gene",
-        "label": "ABL1",
+        "name": "ABL1",
         "mappings": [
             {
                 "coding": {
-                    "label": "ABL1",
+                    "name": "ABL1",
                     "id": "hgnc:76",
                     "code": "HGNC:76",
                     "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
@@ -1893,7 +1893,7 @@ def moa_imatinib():
     return {
         "id": "moa.normalize.therapy.rxcui:282388",
         "conceptType": "Therapy",
-        "label": "Imatinib",
+        "name": "Imatinib",
         "extensions": [
             {
                 "name": "regulatory_approval",
@@ -1903,7 +1903,7 @@ def moa_imatinib():
                         {
                             "id": "hemonc:669",
                             "conceptType": "Disease",
-                            "label": "Systemic mastocytosis",
+                            "name": "Systemic mastocytosis",
                             "mappings": [
                                 {
                                     "coding": {
@@ -1918,7 +1918,7 @@ def moa_imatinib():
                         {
                             "id": "hemonc:582",
                             "conceptType": "Disease",
-                            "label": "Chronic myeloid leukemia",
+                            "name": "Chronic myeloid leukemia",
                             "mappings": [
                                 {
                                     "coding": {
@@ -1933,7 +1933,7 @@ def moa_imatinib():
                         {
                             "id": "hemonc:24309",
                             "conceptType": "Disease",
-                            "label": "Acute lymphoblastic leukemia",
+                            "name": "Acute lymphoblastic leukemia",
                             "mappings": [
                                 {
                                     "coding": {
@@ -1948,7 +1948,7 @@ def moa_imatinib():
                         {
                             "id": "hemonc:634",
                             "conceptType": "Disease",
-                            "label": "Myelodysplastic syndrome",
+                            "name": "Myelodysplastic syndrome",
                             "mappings": [
                                 {
                                     "coding": {
@@ -1963,7 +1963,7 @@ def moa_imatinib():
                         {
                             "id": "hemonc:602",
                             "conceptType": "Disease",
-                            "label": "Gastrointestinal stromal tumor",
+                            "name": "Gastrointestinal stromal tumor",
                             "mappings": [
                                 {
                                     "coding": {
@@ -1978,12 +1978,12 @@ def moa_imatinib():
                         {
                             "id": "hemonc:33893",
                             "conceptType": "Disease",
-                            "label": "Chronic myeloid leukemia pediatric",
+                            "name": "Chronic myeloid leukemia pediatric",
                         },
                         {
                             "id": "hemonc:667",
                             "conceptType": "Disease",
-                            "label": "Soft tissue sarcoma",
+                            "name": "Soft tissue sarcoma",
                             "mappings": [
                                 {
                                     "coding": {
@@ -1998,7 +1998,7 @@ def moa_imatinib():
                         {
                             "id": "hemonc:616",
                             "conceptType": "Disease",
-                            "label": "Hypereosinophilic syndrome",
+                            "name": "Hypereosinophilic syndrome",
                             "mappings": [
                                 {
                                     "coding": {
@@ -2017,7 +2017,7 @@ def moa_imatinib():
         "mappings": [
             {
                 "coding": {
-                    "label": "imatinib",
+                    "name": "imatinib",
                     "id": "rxcui:282388",
                     "code": "282388",
                     "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
@@ -2053,12 +2053,12 @@ def moa_chronic_myelogenous_leukemia():
     return {
         "id": "moa.normalize.disease.ncit:C3174",
         "conceptType": "Disease",
-        "label": "Chronic Myelogenous Leukemia",
+        "name": "Chronic Myelogenous Leukemia",
         "mappings": [
             {
                 "coding": {
                     "id": "oncotree:CML",
-                    "label": "Chronic Myelogenous Leukemia",
+                    "name": "Chronic Myelogenous Leukemia",
                     "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
                     "code": "CML",
                 },
@@ -2066,7 +2066,7 @@ def moa_chronic_myelogenous_leukemia():
             },
             {
                 "coding": {
-                    "label": "Chronic Myeloid Leukemia, BCR-ABL1 Positive",
+                    "name": "Chronic Myeloid Leukemia, BCR-ABL1 Positive",
                     "id": "ncit:C3174",
                     "code": "C3174",
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
@@ -2110,9 +2110,9 @@ def civic_method():
     """Create test fixture for method:1."""
     return {
         "id": "civic.method:2019",
-        "label": "CIViC Curation SOP (2019)",
+        "name": "CIViC Curation SOP (2019)",
         "reportedIn": {
-            "label": "Danos et al., 2019, Genome Med.",
+            "name": "Danos et al., 2019, Genome Med.",
             "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
             "doi": "10.1186/s13073-019-0687-x",
             "pmid": 31779674,
@@ -2128,9 +2128,9 @@ def moa_method():
     """Create test fixture for MOA."""
     return {
         "id": "moa.method:2021",
-        "label": "MOAlmanac (2021)",
+        "name": "MOAlmanac (2021)",
         "reportedIn": {
-            "label": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
+            "name": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
             "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
             "doi": "10.1038/s43018-021-00243-3",
             "pmid": 35121878,
@@ -2145,7 +2145,7 @@ def method3():
     """Create test fixture for method:3."""
     return {
         "id": "method:3",
-        "label": "Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology",
+        "name": "Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology",
         "url": "https://pubmed.ncbi.nlm.nih.gov/25741868/",
         "version": {"year": 2015, "month": 5},
         "type": "Method",
@@ -2158,7 +2158,7 @@ def method4():
     """Create a test fixture for MOA method:4."""
     return {
         "id": "method:4",
-        "label": "Clinical interpretation of integrative molecular profiles to guide precision cancer medicine",
+        "name": "Clinical interpretation of integrative molecular profiles to guide precision cancer medicine",
         "url": "https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1",
         "type": "Method",
         "version": {"year": 2020, "month": 9, "day": 22},

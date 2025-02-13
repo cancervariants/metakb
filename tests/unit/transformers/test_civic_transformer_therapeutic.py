@@ -62,7 +62,7 @@ def civic_tid579():
     return {
         "id": "civic.tid:579",
         "conceptType": "Therapy",
-        "label": "FOLFOX Regimen",
+        "name": "FOLFOX Regimen",
         "mappings": [
             {
                 "coding": {
@@ -93,7 +93,7 @@ def civic_did3433():
     return {
         "id": "civic.did:3433",
         "conceptType": "Disease",
-        "label": "B-lymphoblastic Leukemia/lymphoma With PAX5 P80R",
+        "name": "B-lymphoblastic Leukemia/lymphoma With PAX5 P80R",
         "extensions": [
             get_vicc_normalizer_failure_ext(),
         ],
@@ -106,7 +106,7 @@ def civic_gid6_modified():
     return {
         "id": "civic.gid:6",
         "conceptType": "Gene",
-        "label": "BRCA1. This should fail normalization.",
+        "name": "BRCA1. This should fail normalization.",
         "mappings": [
             {
                 "coding": {
@@ -137,7 +137,7 @@ def civic_mpid473():
     return {
         "id": "civic.mpid:473",
         "type": "CategoricalVariant",
-        "label": "BRCA1 P968FS",
+        "name": "BRCA1 P968FS",
         "mappings": [
             {
                 "coding": {
@@ -202,7 +202,7 @@ def civic_mpid473():
                         "id": "SO:0001910",
                         "code": "SO:0001910",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "label": "frameshift_truncation",
+                        "name": "frameshift_truncation",
                     }
                 ],
             },
@@ -227,7 +227,7 @@ def civic_source123456789():
     """Create fixture for a fake civic source 123456789"""
     return {
         "id": "civic.source:123456789",
-        "label": "John Doe et al., 2022",
+        "name": "John Doe et al., 2022",
         "title": "My fake civic source",
         "pmid": 123456789,
         "type": "Document",
@@ -253,13 +253,13 @@ def civic_not_normalizable_stmt(
         "direction": "supports",
         "strength": {
             "primaryCode": "e000001",
-            "label": "authoritative evidence",
+            "name": "authoritative evidence",
             "mappings": [
                 {
                     "coding": {
                         "id": "vicc:e000001",
                         "system": "https://go.osu.edu/evidence-codes",
-                        "label": "authoritative evidence",
+                        "name": "authoritative evidence",
                         "code": "e000001",
                     },
                     "relation": "exactMatch",
@@ -279,7 +279,7 @@ def civic_not_normalizable_stmt(
             "predicate": "predictsSensitivityTo",
             "objectTherapeutic": civic_tid579,
             "conditionQualifier": civic_did3433,
-            "alleleOriginQualifier": {"label": "somatic"},
+            "alleleOriginQualifier": {"name": "somatic"},
             "geneContextQualifier": civic_gid6_modified,
             "subjectVariant": civic_mpid473,
         },

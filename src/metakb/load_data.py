@@ -47,7 +47,10 @@ def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
                 extensions = mapping.get("extensions") or []
                 for ext in extensions:
                     if ext["name"] == NormalizerExtensionName.PRIORITY and ext["value"]:
-                        normalizer_id = mapping["coding"]["code"]
+                        if mapping["coding"]["id"].startswith("MONDO"):
+                            normalizer_id = mapping["coding"]["code"]
+                        else:
+                            normalizer_id = mapping["coding"]["id"]
                         obj["normalizer_id"] = normalizer_id
                         obj_keys.append("normalizer_id:$normalizer_id")
                         break
@@ -79,7 +82,7 @@ def _add_method(tx: ManagedTransaction, method: dict, ids_to_load: set[str]) -> 
     if method["id"] not in ids_to_load:
         return
 
-    m_keys = [_create_parameterized_query(method, ("id", "label"))]
+    m_keys = [_create_parameterized_query(method, ("id", "name"))]
 
     method_subtype = method.get("subtype")
     if method_subtype:
@@ -126,7 +129,7 @@ def _add_gene_or_disease(
         raise TypeError(msg)
 
     obj["conceptType"] = obj_type
-    obj_keys = [_create_parameterized_query(obj, ("id", "label", "conceptType"))]
+    obj_keys = [_create_parameterized_query(obj, ("id", "name", "conceptType"))]
 
     _add_mappings_and_exts_to_obj(obj, obj_keys)
     obj_keys = ", ".join(obj_keys)
@@ -155,7 +158,7 @@ def _add_therapy_or_group(
 
     therapy = therapy_in.copy()
     concept_type = therapy.get("conceptType")
-    group_type = therapy.get("groupType", {}).get("label")
+    group_type = therapy.get("groupType", {}).get("name")
 
     if concept_type:
         _add_therapy(tx, therapy)
@@ -194,9 +197,7 @@ def _add_therapy(tx: ManagedTransaction, therapy_in: dict) -> None:
     :param therapy_in: Therapy CDM object
     """
     therapy = therapy_in.copy()
-    nonnull_keys = [
-        _create_parameterized_query(therapy, ("id", "label", "conceptType"))
-    ]
+    nonnull_keys = [_create_parameterized_query(therapy, ("id", "name", "conceptType"))]
 
     _add_mappings_and_exts_to_obj(therapy, nonnull_keys)
     nonnull_keys = ", ".join(nonnull_keys)
@@ -219,8 +220,8 @@ def _add_location(tx: ManagedTransaction, location_in: dict) -> None:
         for key in ("id", "digest", "start", "end", "sequence", "type")
         if loc.get(key) is not None  # start could be 0
     ]
-    loc["sequence_reference"] = json.dumps(loc["sequenceReference"])
-    loc_keys.append("loc.sequence_reference=$sequence_reference")
+    loc["sequenceReference"] = json.dumps(loc["sequenceReference"])
+    loc_keys.append("loc.sequenceReference=$sequenceReference")
     loc_keys = ", ".join(loc_keys)
 
     query = f"""
@@ -238,7 +239,7 @@ def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
     """
     v = variation_in.copy()
     v_keys = [
-        f"v.{key}=${key}" for key in ("id", "label", "digest", "type") if v.get(key)
+        f"v.{key}=${key}" for key in ("id", "name", "digest", "type") if v.get(key)
     ]
 
     expressions = v.get("expressions", [])
@@ -291,7 +292,7 @@ def _add_categorical_variant(
     cv = categorical_variant_in.copy()
 
     mp_nonnull_keys = [
-        _create_parameterized_query(cv, ("id", "label", "description", "type"))
+        _create_parameterized_query(cv, ("id", "name", "description", "type"))
     ]
 
     _add_mappings_and_exts_to_obj(cv, mp_nonnull_keys)
@@ -349,7 +350,7 @@ def _add_document(
         document = document_in.copy()
         formatted_keys = [
             _create_parameterized_query(
-                document, ("id", "label", "title", "pmid", "urls", "doi")
+                document, ("id", "name", "title", "pmid", "urls", "doi")
             )
         ]
 
@@ -485,7 +486,7 @@ def _get_statement_query(statement: dict) -> str:
 
     allele_origin = proposition.get("alleleOriginQualifier")
     if allele_origin:
-        statement["alleleOriginQualifier"] = allele_origin["label"]
+        statement["alleleOriginQualifier"] = allele_origin["name"]
         match_line += "SET s.alleleOriginQualifier=$alleleOriginQualifier\n"
 
     predicate = proposition.get("predicate")
@@ -555,7 +556,7 @@ def _add_statement_evidence(
 
     strength = statement.get("strength")
     if strength:
-        strength_key_fields = ("primaryCode", "label")
+        strength_key_fields = ("primaryCode", "name")
 
         strength_keys = [
             _create_parameterized_query(

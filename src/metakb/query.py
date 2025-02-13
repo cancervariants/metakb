@@ -326,7 +326,7 @@ class QueryHandler:
         :param warnings: A list of warnings for the search query
         :return: A normalized therapy concept if it exists
         """
-        _, normalized_therapy_id = self.vicc_normalizers.normalize_therapy([therapy])
+        _, normalized_therapy_id = self.vicc_normalizers.normalize_therapy(therapy)
 
         if not normalized_therapy_id:
             warnings.append(f"Therapy Normalizer unable to normalize: " f"{therapy}")
@@ -339,7 +339,7 @@ class QueryHandler:
         :param warnings: A list of warnings for the search query
         :return: A normalized disease concept if it exists
         """
-        _, normalized_disease_id = self.vicc_normalizers.normalize_disease([disease])
+        _, normalized_disease_id = self.vicc_normalizers.normalize_disease(disease)
 
         if not normalized_disease_id:
             warnings.append(f"Disease Normalizer unable to normalize: " f"{disease}")
@@ -374,7 +374,7 @@ class QueryHandler:
         :param warnings: A list of warnings for the search query.
         :return: A normalized gene concept if it exists
         """
-        _, normalized_gene_id = self.vicc_normalizers.normalize_gene([gene])
+        _, normalized_gene_id = self.vicc_normalizers.normalize_gene(gene)
         if not normalized_gene_id:
             warnings.append(f"Gene Normalizer unable to normalize: {gene}")
         return normalized_gene_id
@@ -514,7 +514,7 @@ class QueryHandler:
 
         params = {
             "proposition": {
-                "alleleOriginQualifier": {"label": None},
+                "alleleOriginQualifier": {"name": None},
                 "predicate": stmt_node["predicate"],
                 condition_key: None,
             },
@@ -547,7 +547,7 @@ class QueryHandler:
                 params["proposition"]["geneContextQualifier"] = (
                     self._get_gene_context_qualifier(statement_id)
                 )
-                params["proposition"]["alleleOriginQualifier"]["label"] = stmt_node.get(
+                params["proposition"]["alleleOriginQualifier"]["name"] = stmt_node.get(
                     "alleleOriginQualifier"
                 )
             elif rel_type == "IS_SPECIFIED_BY":
@@ -580,12 +580,13 @@ class QueryHandler:
         :param node: Disease node data
         :return: Disease mappable concept object
         """
+        node.pop("normalizer_id")
         node["mappings"] = _deserialize_field(node, "mappings")
         extensions = []
-        descr = node.get("description")
+        descr = node.pop("description", None)
         if descr:
             extensions.append(Extension(name="description", value=descr))
-        aliases = node.get("aliases")
+        aliases = node.pop("aliases", None)
         if aliases:
             extensions.append(Extension(name="aliases", value=json.loads(aliases)))
 
@@ -614,7 +615,7 @@ class QueryHandler:
             r_params = r.data()
             v_params = r_params["v"]
             expressions = []
-            for variation_k, variation_v in v_params.items():
+            for variation_k, variation_v in list(v_params.items()):
                 if variation_k == "state":
                     v_params[variation_k] = json.loads(variation_v)
                 elif variation_k.startswith("expression_hgvs_"):
@@ -623,12 +624,13 @@ class QueryHandler:
                         Expression(syntax=syntax, value=hgvs_expr)
                         for hgvs_expr in variation_v
                     )
+                    del v_params[variation_k]
 
             v_params["expressions"] = expressions or None
             loc_params = r_params["loc"]
             v_params["location"] = loc_params
             v_params["location"]["sequenceReference"] = json.loads(
-                loc_params["sequence_reference"]
+                loc_params["sequenceReference"]
             )
             variations.append(Variation(**v_params).model_dump())
         return variations
@@ -649,6 +651,7 @@ class QueryHandler:
             ("variant_types", "Variant types"),
         ):
             ext_val = _deserialize_field(node, node_key)
+            node.pop(node_key, None)
             if ext_val:
                 extensions.append(Extension(name=ext_name, value=ext_val))
                 if node_key.startswith(SourceName.MOA.value):
@@ -658,18 +661,18 @@ class QueryHandler:
                     # this remains correct
                     break
 
-        if "civic_molecular_profile_score" in node:
+        mp_score = node.pop("civic_molecular_profile_score", None)
+        if mp_score:
             extensions.append(
                 Extension(
                     name="CIViC Molecular Profile Score",
-                    value=node["civic_molecular_profile_score"],
+                    value=mp_score,
                 )
             )
 
-        if "aliases" in node:
-            extensions.append(
-                Extension(name="aliases", value=json.loads(node["aliases"]))
-            )
+        aliases = node.pop("aliases", None)
+        if aliases:
+            extensions.append(Extension(name="aliases", value=json.loads(aliases)))
 
         node["extensions"] = extensions or None
         node["constraints"] = [
@@ -712,15 +715,17 @@ class QueryHandler:
         gene_node = results.records[0].data()["g"]
         gene_node["mappings"] = _deserialize_field(gene_node, "mappings")
         extensions = []
-        descr = gene_node.get("description")
+        descr = gene_node.pop("description", None)
         if descr:
             extensions.append(Extension(name="description", value=descr))
-        aliases = gene_node.get("aliases")
+        aliases = gene_node.pop("aliases", None)
         if aliases:
             extensions.append(Extension(name="aliases", value=json.loads(aliases)))
 
         if extensions:
             gene_node["extensions"] = extensions
+
+        gene_node.pop("normalizer_id")
         return MappableConcept(**gene_node)
 
     def _get_method_document(self, method_id: str) -> Document | None:
@@ -749,7 +754,7 @@ class QueryHandler:
         """
         node["mappings"] = _deserialize_field(node, "mappings")
 
-        source_type = node.get("source_type")
+        source_type = node.pop("source_type", None)
         if source_type:
             node["extensions"] = [Extension(name="source_type", value=source_type)]
         return Document(**node)
@@ -768,7 +773,9 @@ class QueryHandler:
             TherapyType.COMBINATION_THERAPY,
             TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP,
         }:
-            civic_therapy_interaction_type = node.get("civic_therapy_interaction_type")
+            civic_therapy_interaction_type = node.pop(
+                "civic_therapy_interaction_type", None
+            )
             if civic_therapy_interaction_type:
                 node["extensions"] = [
                     Extension(
@@ -790,7 +797,7 @@ class QueryHandler:
                     TherapeuticRelation.HAS_SUBSTITUTES,
                 )
 
-            node["groupType"] = MappableConcept(label=node_type)
+            node["groupType"] = MappableConcept(name=node_type)
 
             therapy = TherapyGroup(**node)
         elif node_type == TherapyType.THERAPY:
@@ -875,15 +882,16 @@ class QueryHandler:
         :return: Therapy represented as a mappable concept
         """
         ta_params = copy(in_ta_params)
+        ta_params.pop("normalizer_id")
         ta_params["mappings"] = _deserialize_field(ta_params, "mappings")
         extensions = []
-        regulatory_approval = ta_params.get("regulatory_approval")
+        regulatory_approval = ta_params.pop("regulatory_approval", None)
         if regulatory_approval:
             regulatory_approval = json.loads(regulatory_approval)
             extensions.append(
                 Extension(name="regulatory_approval", value=regulatory_approval)
             )
-        aliases = ta_params.get("aliases")
+        aliases = ta_params.pop("aliases", None)
         if aliases:
             extensions.append(Extension(name="aliases", value=json.loads(aliases)))
 
