@@ -5,9 +5,9 @@ import json
 import pytest
 from neo4j import Driver
 from neo4j.graph import Node
+from tests.conftest import get_mappings_normalizer_id
 
 from metakb.database import get_driver
-from metakb.normalizers import VICC_NORMALIZER_DATA, ViccDiseaseNormalizerData
 from metakb.schemas.app import SourceName
 
 
@@ -154,16 +154,7 @@ def check_extension_props():
     ):
         checked = set()
         for ext in fixture_extensions:
-            if ext["name"] == VICC_NORMALIZER_DATA:
-                for normalized_field in ViccDiseaseNormalizerData.model_fields:
-                    normalized_val = ext["value"].get(normalized_field)
-                    if normalized_val is None:
-                        continue
-
-                    ext_name = f"normalizer_{normalized_field}"
-                    assert node[ext_name] == ext["value"][normalized_field]
-                    checked.add(ext_name)
-            elif ext["name"] in ext_names:
+            if ext["name"] in ext_names:
                 try:
                     assert json.loads(node[ext["name"]]) == ext["value"]
                 except json.decoder.JSONDecodeError:
@@ -192,6 +183,9 @@ def check_node_props():
         for k in expected_keys - extension_names:
             if k == "mappings" or (k == "subtype" and isinstance(fixture[k], dict)):
                 assert json.loads(node[k]) == fixture[k]
+            elif k == "normalizer_id":
+                normalizer_id = get_mappings_normalizer_id(fixture["mappings"])
+                assert node[k] == normalizer_id
             elif isinstance(fixture[k], list):
                 assert set(node[k]) == set(fixture[k])
             else:
@@ -224,11 +218,10 @@ def test_gene_rules(
     check_node_labels("Gene", expected_labels, 1)
 
     gene = get_node_by_id(civic_gid5["id"])
-    extension_names = {"normalizer_label", "normalizer_id", "description", "aliases"}
+    extension_names = {"description", "aliases"}
     check_extension_props(gene, civic_gid5["extensions"], extension_names)
     expected_keys = {
         "normalizer_id",
-        "normalizer_label",
         "label",
         "id",
         "description",
@@ -462,8 +455,6 @@ def test_therapy_rules(
     # Test Therapy
     ta = get_node_by_id(civic_tid146["id"])
     extension_names = {
-        "normalizer_id",
-        "normalizer_label",
         "regulatory_approval",
         "aliases",
     }
@@ -473,7 +464,6 @@ def test_therapy_rules(
         "label",
         "aliases",
         "normalizer_id",
-        "normalizer_label",
         "regulatory_approval",
         "mappings",
         "conceptType",
@@ -514,22 +504,15 @@ def test_condition_rules(
     check_node_labels("Condition", expected_node_labels, 1)
 
     disease = get_node_by_id(civic_did8["id"])
-    extension_names = {
-        "normalizer_id",
-        "normalizer_label",
-        "normalizer_mondo_id",
-    }
-    check_extension_props(disease, civic_did8["extensions"], extension_names)
+
     expected_keys = {
         "id",
         "label",
         "mappings",
         "normalizer_id",
-        "normalizer_label",
-        "normalizer_mondo_id",
         "conceptType",
     }
-    check_node_props(disease, civic_did8, expected_keys, extension_names)
+    check_node_props(disease, civic_did8, expected_keys)
 
 
 def test_statement_rules(
