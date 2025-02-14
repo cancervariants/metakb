@@ -37,7 +37,7 @@ def civic_mpid99():
         "label": "PDGFRA D842V",
         "constraints": [
             {
-                "definingContext": {
+                "allele": {
                     "id": "ga4gh:VA.Dy7soaZQU1vH9Eb93xG_pJyhu7xTDDC9",
                     "type": "Allele",
                     "label": "D842V",
@@ -59,7 +59,7 @@ def civic_mpid99():
                     },
                     "state": {"type": "LiteralSequenceExpression", "sequence": "V"},
                 },
-                "type": "DefiningContextConstraint",
+                "type": "DefiningAlleleConstraint",
             }
         ],
         "members": [
@@ -106,12 +106,11 @@ def civic_mpid99():
                 "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
             },
         ],
-        "alternativeLabels": ["ASP842VAL"],
         "mappings": [
             {
                 "coding": {
                     "code": "CA123194",
-                    "system": "https://reg.clinicalgenome.org/",
+                    "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
                 },
                 "relation": "relatedMatch",
             },
@@ -130,11 +129,16 @@ def civic_mpid99():
                 "relation": "relatedMatch",
             },
             {
-                "coding": {"code": "99", "system": "https://civicdb.org/variants/"},
+                "coding": {
+                    "id": "civic.vid:99",
+                    "code": "99",
+                    "system": "https://civicdb.org/variants/",
+                },
                 "relation": "exactMatch",
             },
         ],
         "extensions": [
+            {"name": "aliases", "value": ["ASP842VAL"]},
             {
                 "name": "CIViC representative coordinate",
                 "value": {
@@ -157,6 +161,7 @@ def civic_mpid99():
                 "name": "Variant types",
                 "value": [
                     {
+                        "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
@@ -172,24 +177,31 @@ def civic_gid38():
     """Create test fixture for CIViC GID38."""
     return {
         "id": "civic.gid:38",
-        "type": "Gene",
+        "conceptType": "Gene",
         "label": "PDGFRA",
-        "description": "Commonly mutated in GI tract tumors, PDGFR family genes (mutually exclusive to KIT mutations) are a hallmark of gastrointestinal stromal tumors. Gene fusions involving the PDGFRA kinase domain are highly correlated with eosinophilia, and the WHO classifies myeloid and lymphoid neoplasms with these characteristics as a distinct disorder. Mutations in the 842 region of PDGFRA have been often found to confer resistance to the tyrosine kinase inhibitor, imatinib.",
         "mappings": [
             {
                 "coding": {
-                    "code": "ncbigene:5156",
+                    "id": "ncbigene:5156",
+                    "code": "5156",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
             }
         ],
-        "alternativeLabels": ["CD140A", "PDGFR-2", "PDGFR2", "PDGFRA"],
         "extensions": [
+            {
+                "name": "description",
+                "value": "Commonly mutated in GI tract tumors, PDGFR family genes (mutually exclusive to KIT mutations) are a hallmark of gastrointestinal stromal tumors. Gene fusions involving the PDGFRA kinase domain are highly correlated with eosinophilia, and the WHO classifies myeloid and lymphoid neoplasms with these characteristics as a distinct disorder. Mutations in the 842 region of PDGFRA have been often found to confer resistance to the tyrosine kinase inhibitor, imatinib.",
+            },
+            {
+                "name": "aliases",
+                "value": ["CD140A", "PDGFR-2", "PDGFR2", "PDGFRA"],
+            },
             {
                 "name": VICC_NORMALIZER_DATA,
                 "value": {"id": "hgnc:8803", "label": "PDGFRA"},
-            }
+            },
         ],
     }
 
@@ -199,13 +211,14 @@ def civic_did2():
     """Create test fixture for CIViC DID2."""
     return {
         "id": "civic.did:2",
-        "type": "Disease",
+        "conceptType": "Disease",
         "label": "Gastrointestinal Stromal Tumor",
         "mappings": [
             {
                 "coding": {
+                    "id": "DOID:9253",
                     "code": "DOID:9253",
-                    "system": "https://www.disease-ontology.org/",
+                    "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
             }
@@ -216,7 +229,7 @@ def civic_did2():
                 "value": {
                     "id": "ncit:C3868",
                     "label": "Gastrointestinal Stromal Tumor",
-                    "mondo_id": "0011719",
+                    "mondo_id": "mondo:0011719",
                 },
             }
         ],
@@ -231,15 +244,17 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
         "description": "GIST tumors harboring PDGFRA D842V mutation are more likely to be benign than malignant.",
         "direction": "supports",
         "strength": {
-            "code": "e000005",
+            "primaryCode": "e000005",
             "label": "clinical cohort evidence",
-            "system": "https://go.osu.edu/evidence-codes",
         },
-        "predicate": "isDiagnosticExclusionCriterionFor",
-        "alleleOriginQualifier": "somatic",
-        "subjectVariant": civic_mpid99,
-        "geneContextQualifier": civic_gid38,
-        "objectCondition": civic_did2,
+        "proposition": {
+            "type": "VariantDiagnosticProposition",
+            "predicate": "isDiagnosticExclusionCriterionFor",
+            "alleleOriginQualifier": {"label": "somatic"},
+            "subjectVariant": civic_mpid99,
+            "geneContextQualifier": civic_gid38,
+            "objectCondition": civic_did2,
+        },
         "specifiedBy": civic_method,
         "reportedIn": [
             {
@@ -250,7 +265,7 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
                 "type": "Document",
             }
         ],
-        "type": "VariantDiagnosticStudyStatement",
+        "type": "Statement",
     }
 
 
@@ -264,7 +279,7 @@ def civic_mpid113():
         "label": "RET M918T",
         "constraints": [
             {
-                "definingContext": {
+                "allele": {
                     "id": "ga4gh:VA.hEybNB_CeKflfFhT5AKOU5i1lgZPP-aS",
                     "type": "Allele",
                     "label": "M918T",
@@ -286,7 +301,7 @@ def civic_mpid113():
                     },
                     "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
                 },
-                "type": "DefiningContextConstraint",
+                "type": "DefiningAlleleConstraint",
             }
         ],
         "members": [
@@ -333,12 +348,11 @@ def civic_mpid113():
                 "state": {"type": "LiteralSequenceExpression", "sequence": "C"},
             },
         ],
-        "alternativeLabels": ["MET918THR"],
         "mappings": [
             {
                 "coding": {
                     "code": "CA009082",
-                    "system": "https://reg.clinicalgenome.org/",
+                    "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
                 },
                 "relation": "relatedMatch",
             },
@@ -357,11 +371,16 @@ def civic_mpid113():
                 "relation": "relatedMatch",
             },
             {
-                "coding": {"code": "113", "system": "https://civicdb.org/variants/"},
+                "coding": {
+                    "id": "civic.vid:113",
+                    "code": "113",
+                    "system": "https://civicdb.org/variants/",
+                },
                 "relation": "exactMatch",
             },
         ],
         "extensions": [
+            {"name": "aliases", "value": ["MET918THR"]},
             {
                 "name": "CIViC representative coordinate",
                 "value": {
@@ -384,6 +403,7 @@ def civic_mpid113():
                 "name": "Variant types",
                 "value": [
                     {
+                        "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
                         "label": "missense_variant",
@@ -399,34 +419,41 @@ def civic_gid42():
     """Create test fixture for CIViC GID42."""
     return {
         "id": "civic.gid:42",
-        "type": "Gene",
+        "conceptType": "Gene",
         "label": "RET",
-        "description": "RET mutations and the RET fusion RET-PTC lead to activation of this tyrosine kinase receptor and are associated with thyroid cancers. RET point mutations are the most common mutations identified in medullary thyroid cancer (MTC) with germline and somatic mutations in RET associated with hereditary and sporadic forms, respectively. The most common somatic form mutation is M918T (exon 16) and a variety of other mutations effecting exons 10, 11 and 15 have been described. The prognostic significance of these mutations have been hotly debated in the field, however, data suggests that some RET mutation may confer drug resistance. Highly selective and well-tolerated RET inhibitors, selpercatinib (LOXO-292) and pralsetinib (BLU-667), have been FDA approved recently for the treatment of RET fusion-positive non-small-cell lung cancer, RET fusion-positive thyroid cancer and RET-mutant medullary thyroid cancer.",
         "mappings": [
             {
                 "coding": {
-                    "code": "ncbigene:5979",
+                    "id": "ncbigene:5979",
+                    "code": "5979",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
                 "relation": "exactMatch",
             }
         ],
-        "alternativeLabels": [
-            "CDHF12",
-            "CDHR16",
-            "HSCR1",
-            "MEN2A",
-            "MEN2B",
-            "MTC1",
-            "PTC",
-            "RET",
-            "RET-ELE1",
-        ],
         "extensions": [
+            {
+                "name": "description",
+                "value": "RET mutations and the RET fusion RET-PTC lead to activation of this tyrosine kinase receptor and are associated with thyroid cancers. RET point mutations are the most common mutations identified in medullary thyroid cancer (MTC) with germline and somatic mutations in RET associated with hereditary and sporadic forms, respectively. The most common somatic form mutation is M918T (exon 16) and a variety of other mutations effecting exons 10, 11 and 15 have been described. The prognostic significance of these mutations have been hotly debated in the field, however, data suggests that some RET mutation may confer drug resistance. Highly selective and well-tolerated RET inhibitors, selpercatinib (LOXO-292) and pralsetinib (BLU-667), have been FDA approved recently for the treatment of RET fusion-positive non-small-cell lung cancer, RET fusion-positive thyroid cancer and RET-mutant medullary thyroid cancer.",
+            },
+            {
+                "name": "aliases",
+                "value": [
+                    "CDHF12",
+                    "CDHR16",
+                    "HSCR1",
+                    "MEN2A",
+                    "MEN2B",
+                    "MTC1",
+                    "PTC",
+                    "RET",
+                    "RET-ELE1",
+                ],
+            },
             {
                 "name": VICC_NORMALIZER_DATA,
                 "value": {"id": "hgnc:9967", "label": "RET"},
-            }
+            },
         ],
     }
 
@@ -436,13 +463,14 @@ def civic_did15():
     """Create test fixture for CIViC DID15."""
     return {
         "id": "civic.did:15",
-        "type": "Disease",
+        "conceptType": "Disease",
         "label": "Medullary Thyroid Carcinoma",
         "mappings": [
             {
                 "coding": {
+                    "id": "DOID:3973",
                     "code": "DOID:3973",
-                    "system": "https://www.disease-ontology.org/",
+                    "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
             }
@@ -453,7 +481,7 @@ def civic_did15():
                 "value": {
                     "id": "ncit:C3879",
                     "label": "Thyroid Gland Medullary Carcinoma",
-                    "mondo_id": "0015277",
+                    "mondo_id": "mondo:0015277",
                 },
             }
         ],
@@ -468,15 +496,17 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
         "description": "In patients with medullary carcinoma, the presence of RET M918T mutation is associated with increased probability of lymph node metastases.",
         "direction": "supports",
         "strength": {
-            "code": "e000005",
+            "primaryCode": "e000005",
             "label": "clinical cohort evidence",
-            "system": "https://go.osu.edu/evidence-codes",
         },
-        "predicate": "isDiagnosticInclusionCriterionFor",
-        "alleleOriginQualifier": "somatic",
-        "subjectVariant": civic_mpid113,
-        "geneContextQualifier": civic_gid42,
-        "objectCondition": civic_did15,
+        "proposition": {
+            "type": "VariantDiagnosticProposition",
+            "predicate": "isDiagnosticInclusionCriterionFor",
+            "alleleOriginQualifier": {"label": "somatic"},
+            "subjectVariant": civic_mpid113,
+            "geneContextQualifier": civic_gid42,
+            "objectCondition": civic_did15,
+        },
         "specifiedBy": civic_method,
         "reportedIn": [
             {
@@ -487,7 +517,7 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
                 "type": "Document",
             }
         ],
-        "type": "VariantDiagnosticStudyStatement",
+        "type": "Statement",
     }
 
 

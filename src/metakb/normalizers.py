@@ -12,7 +12,7 @@ from disease.database import create_db as create_disease_db
 from disease.database.database import AWS_ENV_VAR_NAME as DISEASE_AWS_ENV_VAR_NAME
 from disease.query import QueryHandler as DiseaseQueryHandler
 from disease.schemas import NormalizationService as NormalizedDisease
-from ga4gh.core.entity_models import Extension
+from ga4gh.core.models import Extension
 from ga4gh.vrs.models import (
     Allele,
     CopyNumberChange,
@@ -185,7 +185,7 @@ class ViccNormalizers:
             else:
                 if gene_norm_resp.match_type > highest_match:
                     highest_match = gene_norm_resp.match_type
-                    normalized_gene_id = gene_norm_resp.normalized_id
+                    normalized_gene_id = gene_norm_resp.gene.primaryCode.root
                     if highest_match == 100:
                         break
         return gene_norm_resp, normalized_gene_id
@@ -235,7 +235,7 @@ class ViccNormalizers:
             else:
                 if disease_norm_resp.match_type > highest_match:
                     highest_match = disease_norm_resp.match_type
-                    normalized_disease_id = disease_norm_resp.normalized_id
+                    normalized_disease_id = disease_norm_resp.disease.primaryCode.root
                     if highest_match == 100:
                         break
         return disease_norm_resp, normalized_disease_id
@@ -285,7 +285,7 @@ class ViccNormalizers:
             else:
                 if therapy_norm_resp.match_type > highest_match:
                     highest_match = therapy_norm_resp.match_type
-                    normalized_therapy_id = therapy_norm_resp.normalized_id
+                    normalized_therapy_id = therapy_norm_resp.therapy.primaryCode.root
                     if highest_match == 100:
                         break
         return therapy_norm_resp, normalized_therapy_id
@@ -303,10 +303,7 @@ class ViccNormalizers:
         """
         regulatory_approval_extension = None
         tn_resp_exts = (
-            therapy_norm_resp.model_dump()
-            .get("therapeutic_agent", {})
-            .get("extensions")
-            or []
+            therapy_norm_resp.model_dump().get("therapy", {}).get("extensions") or []
         )
         tn_ext = [v for v in tn_resp_exts if v["name"] == "regulatory_approval"]
 
@@ -337,7 +334,7 @@ class ViccNormalizers:
                         if indication_ext["value"] == matched_ext_value:
                             matched_ind = {
                                 "id": indication["id"],
-                                "type": indication["type"],
+                                "conceptType": indication["conceptType"],
                                 "label": indication["label"],
                             }
 

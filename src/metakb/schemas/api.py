@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from ga4gh.va_spec.profiles.var_study_stmt import (
+from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
