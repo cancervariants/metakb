@@ -131,6 +131,25 @@ def moa_aid154_study_stmt(moa_vid144, moa_cetuximab, moa_encorafenib, moa_method
         "strength": {
             "primaryCode": "e000002",
             "label": "FDA recognized evidence",
+            "mappings": [
+                {
+                    "coding": {
+                        "id": "vicc:e000002",
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000002",
+                        "label": "FDA recognized evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {
+                        "id": "moa.assertion_level:fda_approved",
+                        "system": "https://moalmanac.org/about",
+                        "code": "FDA-Approved",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
         },
         "proposition": {
             "type": "VariantTherapeuticResponseProposition",

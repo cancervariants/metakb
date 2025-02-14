@@ -561,6 +561,8 @@ class QueryHandler:
             elif rel_type == "IS_REPORTED_IN":
                 params["reportedIn"] = [self._get_document(node)]
             elif rel_type == "HAS_STRENGTH":
+                if "mappings" in node:
+                    node["mappings"] = json.loads(node["mappings"])
                 params["strength"] = MappableConcept(**node)
             elif rel_type == "HAS_THERAPEUTIC":
                 params["proposition"]["objectTherapeutic"] = self._get_therapy_or_group(

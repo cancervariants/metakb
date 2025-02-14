@@ -548,7 +548,7 @@ def test_statement_rules(
     check_relation_count("Statement", "CategoricalVariant", "HAS_VARIANT")
     check_relation_count("Statement", "Condition", "HAS_TUMOR_TYPE")
     check_relation_count("Statement", "Therapy", "HAS_THERAPEUTIC", min_rels=0)
-    check_relation_count("Statement", "MappableConcept", "HAS_STRENGTH", min_rels=0)
+    check_relation_count("Statement", "Strength", "HAS_STRENGTH", min_rels=0)
     check_relation_count("Statement", "Method", "IS_SPECIFIED_BY", max_rels=None)
     check_relation_count("Statement", "Gene", "HAS_GENE_CONTEXT", max_rels=None)
     check_relation_count(
@@ -632,6 +632,55 @@ def test_statement_rules(
     civic_aid6_ss_cp["predicate"] = civic_aid6_ss_cp["proposition"]["predicate"]
     civic_aid6_ss_cp["propositionType"] = civic_aid6_ss_cp["proposition"]["type"]
     check_node_props(statement, civic_aid6_ss_cp, expected_keys)
+
+
+def test_strength_rules(driver: Driver, check_relation_count, civic_eid2997_study_stmt):
+    """Verify property and relationship rules for Strength nodes."""
+    query = """
+    MATCH (s:Strength)
+    WITH s.label AS label, s.primaryCode AS primaryCode, COUNT(*) AS count
+    WHERE count > 1
+    RETURN COUNT(*)
+    """
+    with driver.session() as s:
+        record = s.run(query).single()
+    assert record.values()[0] == 0
+
+    # Evidence items should have strength
+    cite_query = """
+    MATCH (s:Statement)
+    OPTIONAL MATCH (s)-[:HAS_STRENGTH]->(st:Strength)
+    WITH s, COUNT(st) as strength_count
+    WHERE strength_count < 1 AND NOT s.id STARTS WITH 'civic.aid:'
+    RETURN COUNT(s)
+    """
+    with driver.session() as s:
+        record = s.run(cite_query).single()
+    assert record.values()[0] == 0
+
+    # Assertions do not have strength
+    cite_query = """
+    MATCH (s:Statement)
+    OPTIONAL MATCH (s)-[:HAS_STRENGTH]->(st:Strength)
+    WITH s, COUNT(st) as strength_count
+    WHERE strength_count > 1 AND s.id STARTS WITH 'civic.aid:'
+    RETURN COUNT(s)
+    """
+    with driver.session() as s:
+        record = s.run(cite_query).single()
+    assert record.values()[0] == 0
+
+    query = f"""
+    MATCH (s:Strength {{primaryCode: '{civic_eid2997_study_stmt['strength']['primaryCode']}', label: '{civic_eid2997_study_stmt['strength']['label']}'}})
+    RETURN s
+    """
+    result = driver.execute_query(query)
+    assert len(result.records) == 1
+    strength_node = result.records[0].data()["s"]
+
+    assert strength_node.keys() == civic_eid2997_study_stmt["strength"].keys()
+    strength_node["mappings"] = json.loads(strength_node["mappings"])
+    assert strength_node == civic_eid2997_study_stmt["strength"]
 
 
 def test_classification_rules(

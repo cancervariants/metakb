@@ -246,6 +246,25 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
         "strength": {
             "primaryCode": "e000005",
             "label": "clinical cohort evidence",
+            "mappings": [
+                {
+                    "coding": {
+                        "id": "vicc:e000005",
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000005",
+                        "label": "clinical cohort evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {
+                        "id": "civic.evidence_level:B",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "B",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
         },
         "proposition": {
             "type": "VariantDiagnosticProposition",
@@ -498,6 +517,25 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
         "strength": {
             "primaryCode": "e000005",
             "label": "clinical cohort evidence",
+            "mappings": [
+                {
+                    "coding": {
+                        "id": "vicc:e000005",
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000005",
+                        "label": "clinical cohort evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {
+                        "id": "civic.evidence_level:B",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "B",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
         },
         "proposition": {
             "type": "VariantDiagnosticProposition",
