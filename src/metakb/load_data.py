@@ -479,13 +479,21 @@ def _add_statement_evidence(tx: ManagedTransaction, statement_in: dict) -> None:
     if strength:
         strength_key_fields = ("primaryCode", "label")
 
-        strength_keys = _create_parameterized_query(
-            strength, strength_key_fields, entity_param_prefix="strength_"
-        )
+        strength_keys = [
+            _create_parameterized_query(
+                strength, strength_key_fields, entity_param_prefix="strength_"
+            )
+        ]
         for k in strength_key_fields:
             v = strength.get(k)
             if v:
                 statement[f"strength_{k}"] = v
+
+        mappings = strength.get("mappings", [])
+        if mappings:
+            statement["strength_mappings"] = json.dumps(mappings)
+            strength_keys.append("mappings:$strength_mappings")
+        strength_keys = ", ".join(strength_keys)
 
         query += f"""
         MERGE (strength:Strength {{ {strength_keys} }})

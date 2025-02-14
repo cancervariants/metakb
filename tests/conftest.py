@@ -361,6 +361,25 @@ def civic_eid2997_study_stmt(
         "strength": {
             "primaryCode": "e000001",
             "label": "authoritative evidence",
+            "mappings": [
+                {
+                    "coding": {
+                        "id": "vicc:e000001",
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "label": "authoritative evidence",
+                        "code": "e000001",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {
+                        "id": "civic.evidence_level:A",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "A",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
         },
         "proposition": {
             "type": "VariantTherapeuticResponseProposition",
@@ -969,6 +988,25 @@ def civic_eid816_study_stmt(
         "strength": {
             "primaryCode": "e000005",
             "label": "clinical cohort evidence",
+            "mappings": [
+                {
+                    "coding": {
+                        "id": "vicc:e000005",
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000005",
+                        "label": "clinical cohort evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {
+                        "id": "civic.evidence_level:B",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "B",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
         },
         "proposition": {
             "type": "VariantTherapeuticResponseProposition",
@@ -1009,6 +1047,25 @@ def civic_eid9851_study_stmt(
         "strength": {
             "primaryCode": "e000001",
             "label": "authoritative evidence",
+            "mappings": [
+                {
+                    "coding": {
+                        "id": "vicc:e000001",
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000001",
+                        "label": "authoritative evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {
+                        "id": "civic.evidence_level:A",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "A",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
         },
         "proposition": {
             "type": "VariantTherapeuticResponseProposition",
@@ -1114,6 +1171,25 @@ def civic_eid26_study_stmt(
         "strength": {
             "primaryCode": "e000005",
             "label": "clinical cohort evidence",
+            "mappings": [
+                {
+                    "coding": {
+                        "id": "vicc:e000005",
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000005",
+                        "label": "clinical cohort evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {
+                        "id": "civic.evidence_level:B",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "B",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
         },
         "proposition": {
             "type": "VariantPrognosticProposition",
@@ -1423,6 +1499,33 @@ def moa_aid66_study_stmt(
         "strength": {
             "primaryCode": "e000009",
             "label": "preclinical evidence",
+            "mappings": [
+                {
+                    "coding": {
+                        "id": "vicc:e000009",
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000009",
+                        "label": "preclinical evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {
+                        "id": "civic.evidence_level:D",
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "D",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {
+                        "id": "moa.assertion_level:preclinical_evidence",
+                        "system": "https://moalmanac.org/about",
+                        "code": "Preclinical evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
         },
         "direction": "supports",
         "proposition": {

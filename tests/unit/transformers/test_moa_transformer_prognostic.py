@@ -182,6 +182,25 @@ def moa_aid141_study_stmt(
         "strength": {
             "primaryCode": "e000007",
             "label": "observational study evidence",
+            "mappings": [
+                {
+                    "coding": {
+                        "id": "vicc:e000007",
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000007",
+                        "label": "observational study evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {
+                        "id": "moa.assertion_level:clinical_evidence",
+                        "system": "https://moalmanac.org/about",
+                        "code": "Clinical evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
         },
         "proposition": {
             "type": "VariantPrognosticProposition",
@@ -323,6 +342,25 @@ def moa_aid532_study_stmt(
         "strength": {
             "primaryCode": "e000003",
             "label": "professional guideline evidence",
+            "mappings": [
+                {
+                    "coding": {
+                        "id": "vicc:e000003",
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000003",
+                        "label": "professional guideline evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {
+                        "id": "moa.assertion_level:guideline",
+                        "system": "https://moalmanac.org/about",
+                        "code": "Guideline",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
         },
         "proposition": {
             "type": "VariantPrognosticProposition",
