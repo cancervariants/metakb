@@ -1052,29 +1052,41 @@ def civic_eid1409_statement():
 
 
 @pytest.fixture(scope="session")
-def civic_aid6_statement():
+def civic_aid6_statement(
+    civic_method,
+    civic_mpid33,
+    civic_gid19,
+    civic_tid146,
+    civic_did8,
+    civic_eid2997_study_stmt,
+):
     """Create CIViC AID 6 test fixture."""
     return {
         "id": "civic.aid:6",
-        "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved, and is recommended (category 1) by NCCN guidelines along with erlotinib, gefitinib and osimertinib as first line systemic therapy in NSCLC with sensitizing EGFR mutation.",
-        "direction": "supports",
-        "evidence_level": "amp_asco_cap_2017_level:1A",
-        "proposition": "proposition:Zfp_VG0uvxwteCcJYO6_AJv1KDmJlFjs",
-        "variation_origin": "somatic",
-        "variation_descriptor": "civic.vid:33",
-        "therapy_descriptor": "civic.tid:146",
-        "disease_descriptor": "civic.did:8",
-        "method": "method:2",
-        "supported_by": [
-            "document:9WsQBGXOmTFRXBUanTaIec8Gvgg8bsMA",
-            "civic.eid:2997",
-            "civic.eid:2629",
-            "civic.eid:982",
-            "civic.eid:968",
-            "civic.eid:883",
-            "civic.eid:879",
-        ],
+        "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved as a first line systemic therapy in NSCLC with sensitizing EGFR mutation (civic.EID:2997).",
         "type": "Statement",
+        "specifiedBy": civic_method,
+        "proposition": {
+            "type": "VariantTherapeuticResponseProposition",
+            "subjectVariant": civic_mpid33,
+            "geneContextQualifier": civic_gid19,
+            "alleleOriginQualifier": {"label": "somatic"},
+            "predicate": "predictsSensitivityTo",
+            "objectTherapeutic": civic_tid146,
+            "conditionQualifier": civic_did8,
+        },
+        "direction": "supports",
+        "classification": {
+            "primaryCode": "Tier I",
+            "extensions": [{"name": "civic_amp_level", "value": "TIER_I_LEVEL_A"}],
+        },
+        "hasEvidenceLines": [
+            {
+                "type": "EvidenceLine",
+                "hasEvidenceItems": [civic_eid2997_study_stmt],
+                "directionOfEvidenceProvided": "supports",
+            }
+        ],
     }
 
 
@@ -1806,7 +1818,11 @@ def check_transformed_cdm(assertion_checks):
 
     def check_transformed_cdm(data, statements, transformed_file):
         """Test that transform to CDM works correctly."""
-        assertion_checks(data["statements"], statements, is_cdm=True)
+        assertion_checks(
+            data["statements_evidence"] + data["statements_assertions"],
+            statements,
+            is_cdm=True,
+        )
         transformed_file.unlink()
 
     return check_transformed_cdm
