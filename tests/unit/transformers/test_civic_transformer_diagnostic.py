@@ -4,9 +4,8 @@ import json
 
 import pytest
 import pytest_asyncio
-from tests.conftest import TEST_TRANSFORMERS_DIR
+from tests.conftest import TEST_TRANSFORMERS_DIR, get_vicc_normalizer_ext
 
-from metakb.normalizers import VICC_NORMALIZER_DATA
 from metakb.transformers.civic import CivicTransformer
 
 DATA_DIR = TEST_TRANSFORMERS_DIR / "diagnostic"
@@ -182,12 +181,24 @@ def civic_gid38():
         "mappings": [
             {
                 "coding": {
-                    "id": "ncbigene:5156",
-                    "code": "5156",
+                    "code": "ncbigene:5156",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
+                "relation": "relatedMatch",
+                "extensions": [
+                    *get_vicc_normalizer_ext(is_priority=False),
+                    {"name": "civic_annotation", "value": True},
+                ],
+            },
+            {
+                "coding": {
+                    "label": "PDGFRA",
+                    "code": "hgnc:8803",
+                    "system": "https://www.genenames.org",
+                },
                 "relation": "exactMatch",
-            }
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
         ],
         "extensions": [
             {
@@ -197,10 +208,6 @@ def civic_gid38():
             {
                 "name": "aliases",
                 "value": ["CD140A", "PDGFR-2", "PDGFR2", "PDGFRA"],
-            },
-            {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {"id": "hgnc:8803", "label": "PDGFRA"},
             },
         ],
     }
@@ -221,17 +228,24 @@ def civic_did2():
                     "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
-            }
-        ],
-        "extensions": [
+            },
             {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {
-                    "id": "ncit:C3868",
+                "coding": {
                     "label": "Gastrointestinal Stromal Tumor",
-                    "mondo_id": "mondo:0011719",
+                    "code": "ncit:C3868",
+                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
-            }
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
+            {
+                "coding": {
+                    "code": "mondo:0011719",
+                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                },
+                "relation": "relatedMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=False),
+            },
         ],
     }
 
@@ -443,12 +457,24 @@ def civic_gid42():
         "mappings": [
             {
                 "coding": {
-                    "id": "ncbigene:5979",
-                    "code": "5979",
+                    "code": "ncbigene:5979",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
+                "relation": "relatedMatch",
+                "extensions": [
+                    *get_vicc_normalizer_ext(is_priority=False),
+                    {"name": "civic_annotation", "value": True},
+                ],
+            },
+            {
+                "coding": {
+                    "label": "RET",
+                    "code": "hgnc:9967",
+                    "system": "https://www.genenames.org",
+                },
                 "relation": "exactMatch",
-            }
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
         ],
         "extensions": [
             {
@@ -469,10 +495,6 @@ def civic_gid42():
                     "RET-ELE1",
                 ],
             },
-            {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {"id": "hgnc:9967", "label": "RET"},
-            },
         ],
     }
 
@@ -492,17 +514,24 @@ def civic_did15():
                     "system": "https://disease-ontology.org/?id=",
                 },
                 "relation": "exactMatch",
-            }
-        ],
-        "extensions": [
+            },
             {
-                "name": VICC_NORMALIZER_DATA,
-                "value": {
-                    "id": "ncit:C3879",
+                "coding": {
                     "label": "Thyroid Gland Medullary Carcinoma",
-                    "mondo_id": "mondo:0015277",
+                    "code": "ncit:C3879",
+                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
-            }
+                "relation": "exactMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=True),
+            },
+            {
+                "coding": {
+                    "code": "mondo:0015277",
+                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                },
+                "relation": "relatedMatch",
+                "extensions": get_vicc_normalizer_ext(is_priority=False),
+            },
         ],
     }
 

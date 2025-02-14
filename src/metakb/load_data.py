@@ -8,8 +8,7 @@ from pathlib import Path
 from neo4j import Driver, ManagedTransaction
 
 from metakb.database import get_driver
-from metakb.normalizers import VICC_NORMALIZER_DATA, ViccDiseaseNormalizerData
-from metakb.transformers.base import TherapyType
+from metakb.transformers.base import NORMALIZER_PRIORITY_EXT_NAME, TherapyType
 
 _logger = logging.getLogger(__name__)
 
@@ -33,34 +32,41 @@ def _create_parameterized_query(
 def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
     """Get mappings and extensions from object and add to `obj` and `obj_keys`
 
-    :param obj: Object to update with mappings and extensions (if found)
+    :param obj: Object to update with mappings and extensions (if found).
+        If ``obj`` has Disease, Gene, or Therapy ``conceptType``, then ``normalizer_id``
+        will also be added.
     :param obj_keys: Parameterized queries. This will be mutated if mappings and
         extensions exists
     """
     mappings = obj.get("mappings", [])
     if mappings:
+        concept_type = obj.get("conceptType")
+        if concept_type in {"Disease", "Gene", "Therapy"}:
+            normalizer_id = None
+            for mapping in obj["mappings"]:
+                extensions = mapping.get("extensions") or []
+                for ext in extensions:
+                    if ext["name"] == NORMALIZER_PRIORITY_EXT_NAME and ext["value"]:
+                        normalizer_id = mapping["coding"]["code"]
+                        obj["normalizer_id"] = normalizer_id
+                        obj_keys.append("normalizer_id:$normalizer_id")
+                        break
+
+                if normalizer_id:
+                    break
+
         obj["mappings"] = json.dumps(mappings)
         obj_keys.append("mappings:$mappings")
 
     extensions = obj.get("extensions", [])
     for ext in extensions:
-        if ext["name"] == VICC_NORMALIZER_DATA:
-            for normalized_field in ViccDiseaseNormalizerData.model_fields:
-                normalized_val = ext["value"].get(normalized_field)
-                if normalized_val is None:
-                    continue
-
-                name = f"normalizer_{normalized_field}"
-                obj[name] = normalized_val
-                obj_keys.append(f"{name}:${name}")
+        name = "_".join(ext["name"].split()).lower()
+        val = ext["value"]
+        if isinstance(val, (dict | list)):
+            obj[name] = json.dumps(val)
         else:
-            name = "_".join(ext["name"].split()).lower()
-            val = ext["value"]
-            if isinstance(val, (dict | list)):
-                obj[name] = json.dumps(val)
-            else:
-                obj[name] = val
-            obj_keys.append(f"{name}:${name}")
+            obj[name] = val
+        obj_keys.append(f"{name}:${name}")
 
 
 def _add_method(tx: ManagedTransaction, method: dict, ids_in_stmts: set[str]) -> None:

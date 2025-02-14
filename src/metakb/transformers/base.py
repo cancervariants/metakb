@@ -9,9 +9,6 @@ from pathlib import Path
 from typing import ClassVar
 
 from disease.schemas import (
-    SYSTEM_URI_TO_NAMESPACE as DISEASE_SYSTEM_URI_TO_NAMESPACE,
-)
-from disease.schemas import (
     NamespacePrefix as DiseaseNamespacePrefix,
 )
 from disease.schemas import (
@@ -34,16 +31,18 @@ from ga4gh.va_spec.aac_2017 import (
 )
 from ga4gh.va_spec.base import Document, Method, TherapyGroup
 from ga4gh.vrs.models import Allele
-from gene.schemas import NormalizeService as NormalizedGene
+from gene.schemas import (
+    NamespacePrefix as GeneNamespacePrefix,
+)
+from gene.schemas import (
+    NormalizeService as NormalizedGene,
+)
 from pydantic import BaseModel, Field, StrictStr, ValidationError
 from therapy.schemas import NormalizationService as NormalizedTherapy
 
 from metakb import APP_ROOT, DATE_FMT
 from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import (
-    ViccDiseaseNormalizerData,
-    ViccNormalizerData,
-    ViccNormalizerDataExtension,
     ViccNormalizers,
 )
 from metakb.schemas.app import SourceName
@@ -56,6 +55,9 @@ NORMALIZER_INSTANCE_TO_ATTR = {
     NormalizedTherapy: "therapy",
     NormalizedGene: "gene",
 }
+
+# Normalizer priority extension name
+NORMALIZER_PRIORITY_EXT_NAME = "vicc_normalizer_priority"
 
 
 class EcoLevel(str, Enum):
@@ -110,6 +112,14 @@ class ViccConceptVocab(BaseModel):
     parents: list[StrictStr] = []
     exact_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
     definition: StrictStr
+
+
+class _TransformedRecordsCache(BaseModel):
+    """Define model for caching transformed records"""
+
+    therapies: ClassVar[dict[str, MappableConcept]] = {}
+    conditions: ClassVar[dict[str, MappableConcept]] = {}
+    genes: ClassVar[dict[str, MappableConcept]] = {}
 
 
 class TransformedData(BaseModel):
@@ -521,39 +531,82 @@ class Transformer(ABC):
             if therapy:
                 self.able_to_normalize["therapies"][therapy_id] = therapy
                 self.processed_data.therapies.append(therapy)
-            else:
-                self.unable_to_normalize["therapies"].add(therapy_id)
+
         return therapy
 
     @staticmethod
-    def _get_vicc_normalizer_extension(
+    def _get_vicc_normalizer_mappings(
         normalized_id: str,
         normalizer_resp: NormalizedDisease | NormalizedTherapy | NormalizedGene,
-    ) -> ViccNormalizerDataExtension:
-        """Get VICC Normalizer extension data
+    ) -> list[ConceptMapping]:
+        """Get VICC Normalizer mappable concept
 
         :param normalized_id: Normalized ID from VICC normalizer
         :param normalizer_resp: Response from VICC normalizer
-        :return: VICC Normalizer extension data
+        :return: List of VICC Normalizer data represented as mappable concept
         """
+
+        def _update_mapping(
+            mapping: ConceptMapping,
+            normalized_id: str,
+            normalizer_label: str,
+        ) -> Extension:
+            """Update ``mapping`` to include extension on whether ``mapping`` contains
+            code that matches the merged record's primary identifier.
+
+            :param mapping: ConceptMapping from vicc normalizer. This will be mutated.
+                Extensions will be added. Label will be added if mapping identifier
+                matches normalized merged identifier.
+            :param normalized_id: Concept ID from normalized record
+            :param normalizer_label: Label from normalized record
+            :return: ConceptMapping with normalizer extension added as well as label (
+                if mapping id matches normalized merged id)
+            """
+            is_priority = normalized_id == mapping.coding.code.root
+
+            merged_id_ext = Extension(
+                name=NORMALIZER_PRIORITY_EXT_NAME, value=is_priority
+            )
+            if mapping.extensions:
+                mapping.extensions.append(merged_id_ext)
+            else:
+                mapping.extensions = [merged_id_ext]
+
+            if is_priority:
+                mapping.coding.label = normalizer_label
+
+            return mapping
+
+        mappings: list[ConceptMapping] = []
         attr_name = NORMALIZER_INSTANCE_TO_ATTR[type(normalizer_resp)]
         normalizer_resp_obj = getattr(normalizer_resp, attr_name)
+        normalizer_label = normalizer_resp_obj.label
+        is_disease = isinstance(normalizer_resp, NormalizedDisease)
+        is_gene = isinstance(normalizer_resp, NormalizedGene)
 
-        params = {"id": normalized_id, "label": normalizer_resp_obj.label}
-
-        if isinstance(normalizer_resp, NormalizedDisease):
-            mappings = normalizer_resp_obj.mappings or []
-            for mapping in mappings:
+        normalizer_mappings = normalizer_resp_obj.mappings or []
+        for mapping in normalizer_mappings:
+            if normalized_id == mapping.coding.code.root:
+                mappings.append(
+                    _update_mapping(mapping, normalized_id, normalizer_label)
+                )
+            else:
+                mapping_code_lower = mapping.coding.code.root.lower()
                 if (
-                    DISEASE_SYSTEM_URI_TO_NAMESPACE.get(mapping.coding.system)
-                    == DiseaseNamespacePrefix.MONDO.value
+                    is_disease
+                    and mapping_code_lower.startswith(
+                        DiseaseNamespacePrefix.MONDO.value
+                    )
+                ) or (
+                    is_gene
+                    and mapping_code_lower.startswith(
+                        (GeneNamespacePrefix.NCBI.value, GeneNamespacePrefix.HGNC.value)
+                    )
                 ):
-                    params["mondo_id"] = mapping.coding.code.root
-                    break
-            ext_val = ViccDiseaseNormalizerData(**params)
-        else:
-            ext_val = ViccNormalizerData(**params)
-        return ViccNormalizerDataExtension(value=ext_val.model_dump())
+                    mappings.append(
+                        _update_mapping(mapping, normalized_id, normalizer_label)
+                    )
+        return mappings
 
     def create_json(self, cdm_filepath: Path | None = None) -> None:
         """Create a composite JSON for transformed data.
