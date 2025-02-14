@@ -41,7 +41,7 @@ def moa_vid144(braf_v600e_genomic):
         "label": "BRAF p.V600E (Missense)",
         "constraints": [
             {
-                "definingContext": {
+                "allele": {
                     "id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
                     "digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
                     "type": "Allele",
@@ -59,7 +59,7 @@ def moa_vid144(braf_v600e_genomic):
                     },
                     "state": {"type": "LiteralSequenceExpression", "sequence": "E"},
                 },
-                "type": "DefiningContextConstraint",
+                "type": "DefiningAlleleConstraint",
             }
         ],
         "members": [genomic_rep],
@@ -81,7 +81,8 @@ def moa_vid144(braf_v600e_genomic):
         "mappings": [
             {
                 "coding": {
-                    "system": "https://moalmanac.org/api/features/",
+                    "id": "moa.variant:144",
+                    "system": "https://moalmanac.org",
                     "code": "144",
                 },
                 "relation": "exactMatch",
@@ -102,7 +103,7 @@ def moa_cetuximab(cetuximab_extensions):
     """Create a test fixture for MOA Cetuximab"""
     return {
         "id": "moa.normalize.therapy.rxcui:318341",
-        "type": "TherapeuticAgent",
+        "conceptType": "Therapy",
         "label": "Cetuximab",
         "extensions": cetuximab_extensions,
     }
@@ -113,7 +114,7 @@ def moa_encorafenib(encorafenib_extensions):
     """Create test fixture for MOA Encorafenib"""
     return {
         "id": "moa.normalize.therapy.rxcui:2049106",
-        "type": "TherapeuticAgent",
+        "conceptType": "Therapy",
         "label": "Encorafenib",
         "extensions": encorafenib_extensions,
     }
@@ -124,62 +125,66 @@ def moa_aid154_study_stmt(moa_vid144, moa_cetuximab, moa_encorafenib, moa_method
     """Create MOA AID 154 study statement test fixture. Uses CombinationTherapy."""
     return {
         "id": "moa.assertion:154",
-        "type": "VariantTherapeuticResponseStudyStatement",
+        "type": "Statement",
+        "direction": "supports",
         "description": "The U.S. Food and Drug Administration (FDA) granted regular approval to encorafenib in combination with cetuximab for the treatment of adult patients with metastatic colorectal cancer (CRC) with BRAF V600E mutation, as detected by an FDA-approved test, after prior therapy.",
         "strength": {
-            "code": "e000002",
+            "primaryCode": "e000002",
             "label": "FDA recognized evidence",
-            "system": "https://go.osu.edu/evidence-codes",
         },
-        "predicate": "predictsSensitivityTo",
-        "subjectVariant": moa_vid144,
-        "objectTherapeutic": {
-            "type": "CombinationTherapy",
-            "id": "moa.ctid:ZGlEkRBR4st6Y_nijjuR1KUV7EFHIF_S",
-            "components": [moa_cetuximab, moa_encorafenib],
-            "extensions": [
-                {
-                    "name": "moa_therapy_type",
-                    "value": "Targeted therapy",
-                }
-            ],
-        },
-        "conditionQualifier": {
-            "id": "moa.normalize.disease.ncit:C5105",
-            "type": "Disease",
-            "label": "Colorectal Adenocarcinoma",
-            "extensions": [
-                {
-                    "name": VICC_NORMALIZER_DATA,
-                    "value": {
-                        "id": "ncit:C5105",
-                        "label": "Colorectal Adenocarcinoma",
-                        "mondo_id": "0005008",
-                    },
-                }
-            ],
-            "mappings": [
-                {
-                    "coding": {
-                        "label": "Colorectal Adenocarcinoma",
-                        "system": "https://oncotree.mskcc.org/",
-                        "code": "COADREAD",
-                    },
-                    "relation": "exactMatch",
-                }
-            ],
-        },
-        "alleleOriginQualifier": "somatic",
-        "geneContextQualifier": {
-            "id": "moa.normalize.gene:BRAF",
-            "type": "Gene",
-            "label": "BRAF",
-            "extensions": [
-                {
-                    "name": VICC_NORMALIZER_DATA,
-                    "value": {"id": "hgnc:1097", "label": "BRAF"},
-                }
-            ],
+        "proposition": {
+            "type": "VariantTherapeuticResponseProposition",
+            "predicate": "predictsSensitivityTo",
+            "subjectVariant": moa_vid144,
+            "objectTherapeutic": {
+                "groupType": {"label": "CombinationTherapy"},
+                "id": "moa.ctid:ZGlEkRBR4st6Y_nijjuR1KUV7EFHIF_S",
+                "therapies": [moa_cetuximab, moa_encorafenib],
+                "extensions": [
+                    {
+                        "name": "moa_therapy_type",
+                        "value": "Targeted therapy",
+                    }
+                ],
+            },
+            "conditionQualifier": {
+                "id": "moa.normalize.disease.ncit:C5105",
+                "conceptType": "Disease",
+                "label": "Colorectal Adenocarcinoma",
+                "extensions": [
+                    {
+                        "name": VICC_NORMALIZER_DATA,
+                        "value": {
+                            "id": "ncit:C5105",
+                            "label": "Colorectal Adenocarcinoma",
+                            "mondo_id": "mondo:0005008",
+                        },
+                    }
+                ],
+                "mappings": [
+                    {
+                        "coding": {
+                            "label": "Colorectal Adenocarcinoma",
+                            "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
+                            "code": "COADREAD",
+                            "id": "oncotree:COADREAD",
+                        },
+                        "relation": "exactMatch",
+                    }
+                ],
+            },
+            "alleleOriginQualifier": {"label": "somatic"},
+            "geneContextQualifier": {
+                "id": "moa.normalize.gene:BRAF",
+                "conceptType": "Gene",
+                "label": "BRAF",
+                "extensions": [
+                    {
+                        "name": VICC_NORMALIZER_DATA,
+                        "value": {"id": "hgnc:1097", "label": "BRAF"},
+                    }
+                ],
+            },
         },
         "specifiedBy": moa_method,
         "reportedIn": [

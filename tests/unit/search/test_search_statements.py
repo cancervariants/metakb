@@ -1,7 +1,7 @@
 """Test search statement methods"""
 
 import pytest
-from ga4gh.core.entity_models import Extension
+from ga4gh.core.models import Extension
 
 from metakb.normalizers import VICC_NORMALIZER_DATA
 from metakb.query import QueryHandler
@@ -176,21 +176,18 @@ async def test_general_search_statements(query_handler):
     resp = await query_handler.search_statements(disease="cancer")
     assert_general_search_stmts(resp)
 
-    # Case: Handling therapy for single therapeutic agent / combination / substitutes
+    # Case: Handling therapy for single therapy / combination / substitutes
     resp = await query_handler.search_statements(therapy="Cetuximab")
     assert_general_search_stmts(resp)
     expected_therapy_id = "rxcui:318341"
     for statement in resp.statements:
-        tp = statement.objectTherapeutic.root
-        if tp.type == "TherapeuticAgent":
+        tp = statement.proposition.objectTherapeutic.root
+
+        if hasattr(tp, "conceptType"):
             assert _get_normalizer_id(tp.extensions) == expected_therapy_id
         else:
-            therapeutics = (
-                tp.components if tp.type == "CombinationTherapy" else tp.substitutes
-            )
-
             found_expected = False
-            for therapeutic in therapeutics:
+            for therapeutic in tp.therapies:
                 if _get_normalizer_id(therapeutic.extensions) == expected_therapy_id:
                     found_expected = True
                     break
@@ -206,21 +203,21 @@ async def test_general_search_statements(query_handler):
     resp = await query_handler.search_statements(
         variation=expected_variation_id,
         disease=expected_disease_id,
-        therapy=expected_therapy_id,  # Single Therapeutic Agent
+        therapy=expected_therapy_id,  # Single Therapy
     )
     assert_general_search_stmts(resp)
 
     for statement in resp.statements:
         assert (
-            statement.subjectVariant.constraints[0].root.definingContext.root.id
+            statement.proposition.subjectVariant.constraints[0].root.allele.id
             == expected_variation_id
         )
         assert (
-            _get_normalizer_id(statement.objectTherapeutic.root.extensions)
+            _get_normalizer_id(statement.proposition.objectTherapeutic.root.extensions)
             == expected_therapy_id
         )
         assert (
-            _get_normalizer_id(statement.conditionQualifier.root.extensions)
+            _get_normalizer_id(statement.proposition.conditionQualifier.root.extensions)
             == expected_disease_id
         )
 
