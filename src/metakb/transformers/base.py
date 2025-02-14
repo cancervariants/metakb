@@ -31,7 +31,7 @@ from ga4gh.va_spec.aac_2017 import (
 from ga4gh.va_spec.base import Document, Method, TherapyGroup
 from ga4gh.vrs.models import Allele
 from gene.schemas import NormalizeService as NormalizedGene
-from pydantic import BaseModel, StrictStr, ValidationError
+from pydantic import BaseModel, Field, StrictStr, ValidationError
 from therapy.schemas import NormalizationService as NormalizedTherapy
 
 from metakb import APP_ROOT, DATE_FMT
@@ -111,11 +111,16 @@ class ViccConceptVocab(BaseModel):
 class TransformedData(BaseModel):
     """Define model for transformed data"""
 
-    statements: list[
+    statements_evidence: list[
         VariantTherapeuticResponseStudyStatement
         | VariantPrognosticStudyStatement
         | VariantDiagnosticStudyStatement
-    ] = []
+    ] = Field([], description="Statement objects for evidence records")
+    statements_assertions: list[
+        VariantTherapeuticResponseStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantDiagnosticStudyStatement
+    ] = Field([], description="Statement objects for assertion records")
     categorical_variants: list[CategoricalVariant] = []
     variations: list[Allele] = []
     genes: list[MappableConcept] = []

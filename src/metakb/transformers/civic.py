@@ -22,6 +22,7 @@ from ga4gh.va_spec.base import (
     DiagnosticPredicate,
     Direction,
     Document,
+    EvidenceLine,
     PrognosticPredicate,
     TherapeuticResponsePredicate,
     TherapyGroup,
@@ -117,8 +118,8 @@ class _TherapeuticMetadata(BaseModel):
     therapies: list[dict]
 
 
-class _CivicEvidenceType(str, Enum):
-    """Define constraints for CIViC evidence types supported by MetaKB
+class _CivicEvidenceAssertionType(str, Enum):
+    """Define constraints for CIViC evidence and assertion types supported by MetaKB
 
     DIAGNOSTIC, ONCOGENIC, PREDISPOSING are not currently supported
     """
@@ -181,6 +182,9 @@ class CivicTransformer(Transformer):
             "genes": {},
         }
 
+        # CIViC EID ID: CIVIC EID
+        self._evidence_cache = {}
+
     @staticmethod
     def _mp_to_variant_mapping(molecular_profiles: list[dict]) -> tuple[list, dict]:
         """Get mapping from Molecular Profile ID to Variant ID.
@@ -229,15 +233,30 @@ class CivicTransformer(Transformer):
             e
             for e in evidence_items
             if e["status"] == "accepted"
-            and e["evidence_type"] in _CivicEvidenceType.__members__
+            and e["evidence_type"] in _CivicEvidenceAssertionType.__members__
+        ]
+
+        # Only want assertions with approved status and assertion
+        assertions = harvested_data.assertions
+        assertions = [
+            assertion
+            for assertion in assertions
+            if assertion["status"] == "accepted"
+            and assertion["assertion_type"] in _CivicEvidenceAssertionType.__members__
         ]
 
         # Get all variant IDs from supported molecular profiles
         vids = {
-            mp_id_to_v_id_mapping[e["molecular_profile_id"]]
+            mp_id_to_v_id_mapping.get(e["molecular_profile_id"])
             for e in evidence_items
             if e["molecular_profile_id"]
         }
+        vids |= {
+            mp_id_to_v_id_mapping.get(assertion["molecular_profile_id"])
+            for assertion in assertions
+            if assertion["molecular_profile_id"]
+        }
+        vids.discard(None)
 
         # Add variant (only supported) and gene (all) data
         # (mutates `variations` and `genes`)
@@ -257,10 +276,17 @@ class CivicTransformer(Transformer):
         self._add_categorical_variants(mps, mp_id_to_v_id_mapping)
 
         for evidence_item in evidence_items:
-            self._add_variant_study_stmt(evidence_item, mp_id_to_v_id_mapping)
+            self._add_variant_study_stmt(
+                evidence_item, mp_id_to_v_id_mapping, is_evidence=True
+            )
+
+        for assertion in assertions:
+            self._add_variant_study_stmt(
+                assertion, mp_id_to_v_id_mapping, is_evidence=False
+            )
 
     def _add_variant_study_stmt(
-        self, evidence_item: dict, mp_id_to_v_id_mapping: dict
+        self, record: dict, mp_id_to_v_id_mapping: dict, is_evidence: bool = True
     ) -> None:
         """Create Variant Study Statement given CIViC Evidence Items.
         Will add associated values to ``processed_data`` instance variable
@@ -268,41 +294,74 @@ class CivicTransformer(Transformer):
         ``able_to_normalize`` and ``unable_to_normalize`` will also be mutated for
         associated therapies and conditions.
 
-        :param evidence_item: CIViC Evidence Item
+        :param record: CIViC Evidence Item or Assertion
         :param mp_id_to_v_id_mapping: Molecular Profile ID to Variant ID mapping
             {mp_id: v_id}
+        :param is_evidence: ``True`` if ``record`` is an evidence item. ``False`` if
+            ``record`` is an assertion.
         """
         # Check cache for molecular profile, variation and gene data
-        mp_id = f"civic.mpid:{evidence_item['molecular_profile_id']}"
+        mp_id = f"civic.mpid:{record['molecular_profile_id']}"
         mp = self.able_to_normalize["categorical_variants"].get(mp_id)
         if not mp:
             _logger.debug("mp_id not supported: %s", mp_id)
             return
 
         variant_id = (
-            f"civic.vid:{mp_id_to_v_id_mapping[evidence_item['molecular_profile_id']]}"
+            f"civic.vid:{mp_id_to_v_id_mapping[record['molecular_profile_id']]}"
         )
         variation_gene_map = self.able_to_normalize["variations"].get(variant_id)
         if not variation_gene_map:
             _logger.debug("variant_id not supported: %s", variant_id)
             return
 
-        # Add document
-        document = self._add_eid_document(evidence_item["source"])
-        if not document:
-            return
+        extensions = []
+        classification = None
+        record_prefix = "evidence" if is_evidence else "assertion"
+        direction = self._get_direction(record[f"{record_prefix}_direction"])
 
-        evidence_type = evidence_item["evidence_type"]
+        if is_evidence:
+            evidence_lines = None
+            document = self._add_eid_document(record["source"])
+            if not document:
+                return
+
+            reported_in = [document] if document else None
+            # Get strength
+            evidence_level = CivicEvidenceLevel[record["evidence_level"]]
+            strength = self.evidence_level_to_vicc_concept_mapping[evidence_level]
+        else:
+            strength = None
+            reported_in = None
+
+            if record["amp_level"]:
+                classification = self._get_classification(record["amp_level"])
+                if not classification:
+                    return
+
+            evidence_lines = []
+            for eid in record["evidence_ids"]:
+                civic_eid = f"civic.eid:{eid}"
+                evidence_item = self._evidence_cache.get(civic_eid)
+                if evidence_item:
+                    evidence_lines.append(
+                        EvidenceLine(
+                            hasEvidenceItems=[evidence_item],
+                            directionOfEvidenceProvided=Direction.SUPPORTS,
+                        )
+                    )
+
+        record_type = record[f"{record_prefix}_type"]
 
         # Get predicate
-        predicate = CLIN_SIG_TO_PREDICATE.get(evidence_item["significance"])
+        predicate = CLIN_SIG_TO_PREDICATE.get(record["significance"])
 
         # Don't support evidence that has  `None`, "N/A", or "Unknown" predicate
         if not predicate:
             return
 
         # Add disease
-        disease = evidence_item["disease"]
+        disease = record["disease"]
         if not disease:
             return
 
@@ -311,8 +370,8 @@ class CivicTransformer(Transformer):
             return
 
         civic_therapeutic = None
-        if evidence_type == _CivicEvidenceType.PREDICTIVE:
-            therapeutic_metadata = self._get_therapeutic_metadata(evidence_item)
+        if record_type == _CivicEvidenceAssertionType.PREDICTIVE:
+            therapeutic_metadata = self._get_therapeutic_metadata(record)
             if therapeutic_metadata:
                 civic_therapeutic = self._add_therapy(
                     therapeutic_metadata.therapy_id,
@@ -327,17 +386,12 @@ class CivicTransformer(Transformer):
         else:
             condition_key = "objectCondition"
 
-        # Get strength
-        direction = self._get_evidence_direction(evidence_item["evidence_direction"])
-        evidence_level = CivicEvidenceLevel[evidence_item["evidence_level"]]
-        strength = self.evidence_level_to_vicc_concept_mapping[evidence_level]
-
         # Get qualifier
         civic_gene = self.able_to_normalize["genes"].get(
             variation_gene_map.civic_gene_id
         )
 
-        variant_origin = evidence_item["variant_origin"].upper()
+        variant_origin = record["variant_origin"].upper()
         if variant_origin == "SOMATIC":
             allele_origin_qualifier = MappableConcept(label="somatic")
         elif variant_origin in {"RARE_GERMLINE", "COMMON_GERMLINE"}:
@@ -345,15 +399,37 @@ class CivicTransformer(Transformer):
         else:
             allele_origin_qualifier = None
 
+        statement_id = record["name"].lower()
+        statement_id = (
+            statement_id.replace("eid", "civic.eid:")
+            if is_evidence
+            else statement_id.replace("aid", "civic.aid:")
+        )
+
+        mappings = [
+            ConceptMapping(
+                coding=Coding(
+                    id=statement_id,
+                    code=str(record["id"]),
+                    system="https://civicdb.org/evidence/"
+                    if is_evidence
+                    else "https://civicdb.org/assertions/",
+                ),
+                relation=Relation.EXACT_MATCH,
+            )
+        ]
+
         stmt_params = {
-            "id": evidence_item["name"].lower().replace("eid", "civic.eid:"),
-            "description": evidence_item["description"]
-            if evidence_item["description"]
-            else None,
+            "id": statement_id,
+            "description": record["description"] or None,
             "direction": direction,
             "strength": strength,
             "specifiedBy": self.processed_data.methods[0],
-            "reportedIn": [document],
+            "reportedIn": reported_in,
+            "classification": classification,
+            "extensions": extensions or None,
+            "hasEvidenceLines": evidence_lines or None,
+            "mappings": mappings,
         }
 
         prop_params = {
@@ -364,26 +440,49 @@ class CivicTransformer(Transformer):
             "subjectVariant": mp,
         }
 
-        if evidence_type == _CivicEvidenceType.PREDICTIVE:
+        if record_type == _CivicEvidenceAssertionType.PREDICTIVE:
             prop_params["objectTherapeutic"] = civic_therapeutic
             stmt_params["proposition"] = VariantTherapeuticResponseProposition(
                 **prop_params
             )
             statement = VariantTherapeuticResponseStudyStatement(**stmt_params)
-        elif evidence_type == _CivicEvidenceType.PROGNOSTIC:
+        elif record_type == _CivicEvidenceAssertionType.PROGNOSTIC:
             stmt_params["proposition"] = VariantPrognosticProposition(**prop_params)
             statement = VariantPrognosticStudyStatement(**stmt_params)
         else:
             stmt_params["proposition"] = VariantDiagnosticProposition(**prop_params)
             statement = VariantDiagnosticStudyStatement(**stmt_params)
 
-        self.processed_data.statements.append(statement)
+        if is_evidence:
+            self._evidence_cache[statement_id] = statement
+            self.processed_data.statements_evidence.append(statement)
+        else:
+            self.processed_data.statements_assertions.append(statement)
 
-    def _get_evidence_direction(self, direction: str) -> Direction | None:
-        """Get the normalized evidence direction
+    @staticmethod
+    def _get_classification(amp_level: str) -> MappableConcept | None:
+        """Get statement classification
 
-        :param direction: CIViC evidence item's direction
-        :return: Normalized evidence direction
+        :param amp_level: AMP/ASCO/CAP level
+        :return: Classification represented as a mappable concept
+        """
+        if amp_level == "NA":
+            classification = None
+        else:
+            pattern = re.compile(r"TIER_(?P<tier>[IV]+)(?:_LEVEL_(?P<level>[A-D]))?")
+            match = pattern.match(amp_level).groupdict()
+            primary_code = f"Tier {match['tier']}"
+            classification = MappableConcept(
+                primaryCode=primary_code,
+                extensions=[Extension(name="civic_amp_level", value=amp_level)],
+            )
+        return classification
+
+    def _get_direction(self, direction: str) -> Direction | None:
+        """Get the normalized evidence or assertion direction
+
+        :param direction: CIViC evidence item or assertion's direction
+        :return: Normalized evidence or assertion direction
         """
         direction_upper = direction.upper()
         if direction_upper == "SUPPORTS":

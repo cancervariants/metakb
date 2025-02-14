@@ -12,7 +12,7 @@ from ga4gh.va_spec.aac_2017 import (
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base import Document, Method, TherapyGroup
+from ga4gh.va_spec.base import Direction, Document, EvidenceLine, Method, TherapyGroup
 from ga4gh.vrs.models import Expression, Variation
 from neo4j import Driver
 from neo4j.graph import Node
@@ -522,7 +522,6 @@ class QueryHandler:
                 condition_key: None,
             },
             "strength": None,
-            "reportedIn": [],
             "specifiedBy": None,
         }
         params.update(stmt_node)
@@ -560,13 +559,17 @@ class QueryHandler:
                     node["subtype"] = json.loads(node["subtype"])
                 params["specifiedBy"] = Method(**node)
             elif rel_type == "IS_REPORTED_IN":
-                params["reportedIn"].append(self._get_document(node))
+                params["reportedIn"] = [self._get_document(node)]
             elif rel_type == "HAS_STRENGTH":
                 params["strength"] = MappableConcept(**node)
             elif rel_type == "HAS_THERAPEUTIC":
                 params["proposition"]["objectTherapeutic"] = self._get_therapy_or_group(
                     node
                 )
+            elif rel_type == "HAS_CLASSIFICATION":
+                params["classification"] = self._get_classification(node)
+            elif rel_type == "HAS_EVIDENCE_LINE":
+                params["hasEvidenceLines"] = self._get_evidence_lines(statement_id)
             else:
                 logger.warning("relation type not supported: %s", rel_type)
 
@@ -815,6 +818,45 @@ class QueryHandler:
             therapy = None
 
         return therapy
+
+    @staticmethod
+    def _get_classification(node: dict) -> MappableConcept:
+        """Get classification data from a node with relationship ``HAS_CLASSIFICATION``
+
+        :param node: CLassification node data. This will be mutated
+        :return: Classification data
+        """
+        civic_amp_level = node.pop("civic_amp_level")
+        if civic_amp_level:
+            node["extensions"] = [
+                Extension(name="civic_amp_level", value=civic_amp_level)
+            ]
+        return MappableConcept(**node)
+
+    def _get_evidence_lines(self, statement_id: int) -> list[EvidenceLine]:
+        """Get EvidenceLine data from a node with relationship ``HAS_CLASSIFICATION``
+
+        :param statement_id: Statement ID to get evidence lines for
+        :return: EvidenceLine data for a given ``statement_id``
+        """
+        evidence_lines = []
+
+        query = f"""
+        MATCH (s:Statement {{id: '{statement_id}'}}) -[:HAS_EVIDENCE_LINE] -> (el:EvidenceLine)
+        OPTIONAL MATCH (el) -[:HAS_EVIDENCE_ITEM] -> (ev:Statement)
+        RETURN DISTINCT el, ev
+        """
+        results = self.driver.execute_query(query).records
+        for r in results:
+            r_params = r.data()
+            evidence_lines.append(
+                EvidenceLine(
+                    hasEvidenceItems=[self._get_nested_stmt(r_params["ev"])],
+                    directionOfEvidenceProvided=Direction(r_params["el"]["direction"]),
+                )
+            )
+
+        return evidence_lines
 
     def _get_therapies(
         self,
