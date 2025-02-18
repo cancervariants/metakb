@@ -1,0 +1,380 @@
+{
+    "evidence": [
+        {
+            "type": "evidence",
+            "id": 2,
+            "variant_origin": "SOMATIC",
+            "therapy_interaction_type": null,
+            "status": "accepted",
+            "significance": "NEGATIVE",
+            "rating": 3,
+            "name": "EID2",
+            "molecular_profile_id": 99,
+            "evidence_type": "DIAGNOSTIC",
+            "evidence_level": "B",
+            "evidence_direction": "SUPPORTS",
+            "description": "GIST tumors harboring PDGFRA D842V mutation are more likely to be benign than malignant.",
+            "assertion_ids": [],
+            "therapies": [],
+            "disease": {
+                "id": 2,
+                "name": "Gastrointestinal Stromal Tumor",
+                "display_name": "Gastrointestinal Stromal Tumor",
+                "doid": "9253",
+                "disease_url": "https://www.disease-ontology.org/?id=DOID:9253",
+                "aliases": [
+                    "Gastrointestinal Stromal Tumour",
+                    "Stromal Tumor Of Gastrointestinal Tract",
+                    "Stromal Tumour Of Gastrointestinal Tract"
+                ],
+                "type": "disease"
+            },
+            "source": {
+                "id": 52,
+                "name": "PubMed: Lasota et al., 2004",
+                "title": "A great majority of GISTs with PDGFRA mutations represent gastric tumors of low or no malignant potential.",
+                "citation": "Lasota et al., 2004",
+                "citation_id": "15146165",
+                "source_type": "PUBMED",
+                "abstract": "Gastrointestinal stromal tumors (GISTs) are KIT expressing spindle cell, epithelioid and rarely pleomorphic mesenchymal tumors. The majority of GISTs show gain-of-function KIT mutations. However, GISTs without KIT mutations and GISTs with weak or lack of immunohistochemical KIT expression have also been reported. Recently, gain-of-function mutations in exon 18 (activation loop) and exon 12 (juxtamembrane domain) of the PDGFRA were identified in such tumors. The purpose of this study was to test the hypothesis that PDGFRA mutation may define a specific clinicopathologic subgroup of GISTs. A total of 447 KIT exon 11 (juxtamembrane domain) mutation-negative GISTs were studied. DNA samples were obtained from formaldehyde-fixed paraffin-embedded tissues. Genomic sequences of PDGFRA exons 18 and 12 were evaluated for the mutations by PCR amplification and direct sequencing. PDGFRA exon 18 mutations were identified in 122 of 346 (35.3%) gastric GISTs and two of 75 (2.7%) intestinal GISTs. A great majority of these mutations represented simple T to A missense mutation at the codon 842 leading to substitution of the valine for aspartic acid (D842 V). However, in-frame deletions and deletions with point mutations clustering between codons 841-847 were found in approximately 23% of all exon 18 mutations. Mutations in PDGFRA exon 12 were found only in 10 of 170 (5.8%) gastric and one of 54 (1.9%) intestinal GISTs negative for KIT exon 11 and PDGFRA exon 18 mutations. There were seven substitutions of aspartic acid for valine at codon 561 (V561D) and four in-frame deletions with point mutations clustering between codons 566 and 571. The majority of GISTs with PDGFRA mutations had pure or predominant epithelioid morphology. Low mitotic activity, < or =5 mitoses/50HPF was detected in 81% of analyzed GISTs including larger, >5 cm tumors. Based on long-term follow-up (average 135 months), a majority (83.5%) of GISTs with PDGFRA mutations followed a benign course.",
+                "asco_abstract_id": null,
+                "author_string": "Jerzy Lasota, Agnieszka Dansonka-Mieszkowska, Leslie H Sobin, Markku Miettinen",
+                "full_journal_title": "Laboratory investigation; a journal of technical methods and pathology",
+                "journal": "Lab Invest",
+                "pmc_id": null,
+                "publication_date": "2004-7",
+                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/15146165",
+                "clinical_trials": [],
+                "type": "source"
+            },
+            "phenotypes": []
+        },
+        {
+            "type": "evidence",
+            "id": 74,
+            "variant_origin": "SOMATIC",
+            "therapy_interaction_type": null,
+            "status": "accepted",
+            "significance": "POSITIVE",
+            "rating": 5,
+            "name": "EID74",
+            "molecular_profile_id": 113,
+            "evidence_type": "DIAGNOSTIC",
+            "evidence_level": "B",
+            "evidence_direction": "SUPPORTS",
+            "description": "In patients with medullary carcinoma, the presence of RET M918T mutation is associated with increased probability of lymph node metastases.",
+            "assertion_ids": [],
+            "therapies": [],
+            "disease": {
+                "id": 15,
+                "name": "Medullary Thyroid Carcinoma",
+                "display_name": "Medullary Thyroid Carcinoma",
+                "doid": "3973",
+                "disease_url": "https://www.disease-ontology.org/?id=DOID:3973",
+                "aliases": [
+                    "Medullary Carcinoma Of The Thyroid Gland",
+                    "Parafollicular Cell Carcinoma",
+                    "Thyroid Gland Medullary Carcinoma",
+                    "Ultimobranchial Thyroid Tumor",
+                    "Ultimobranchial Thyroid Tumour"
+                ],
+                "type": "disease"
+            },
+            "source": {
+                "id": 44,
+                "name": "PubMed: Elisei et al., 2008",
+                "title": "Prognostic significance of somatic RET oncogene mutations in sporadic medullary thyroid cancer: a 10-year follow-up study.",
+                "citation": "Elisei et al., 2008",
+                "citation_id": "18073307",
+                "source_type": "PUBMED",
+                "abstract": "Medullary thyroid carcinoma (MTC) is a well-differentiated thyroid tumor that maintains the typical features of C cells. An advanced stage and the presence of lymph node metastases at diagnosis have been demonstrated to be the most important bad prognostic factors. Somatic RET mutations have been found in 40-50% of MTCs. Although a relationship between somatic mutations and bad prognosis has been described, data are controversial and have been performed in small series with short-term follow ups. The aim of this study was to verify the prognostic value of somatic RET mutations in a large series of MTCs with a long follow up.We studied 100 sporadic MTC patients with a 10.2 yr mean follow-up. RET gene exons 10-11 and 13-16 were analyzed. The correlation between the presence/absence of a somatic RET mutation, clinical/pathological features, and outcome of MTC patients was evaluated.A somatic RET mutation was found in 43 of 100 (43%) sporadic MTCs. The most frequent mutation (34 of 43, 79%) was M918T. RET mutation occurrence was more frequent in larger tumors (P=0.03), and in MTC with node and distant metastases (P<0.0001 and P=0.02, respectively), thus, a significant correlation was found with a more advanced stage at diagnosis (P=0.004). A worse outcome was also significantly correlated with the presence of a somatic RET mutation (P=0.002). Among all prognostic factors found to be correlated with a worse outcome, at multivariate analysis only the advanced stage at diagnosis and the presence of a RET mutation showed an independent correlation (P<0.0001 and P=0.01, respectively). Finally, the survival curves of MTC patients showed a significantly lower percentage of surviving patients in the group with RET mutations (P=0.006).We demonstrated that the presence of a somatic RET mutation correlates with a worse outcome of MTC patients, not only for the highest probability to have persistence of the disease, but also for a lower survival rate in a long-term follow up. More interestingly, the presence of a somatic RET mutation correlates with the presence of lymph node metastases at diagnosis, which is a known bad prognostic factor for the definitive cure of MTC patients.",
+                "asco_abstract_id": null,
+                "author_string": "Rossella Elisei, Barbara Cosci, Cristina Romei, Valeria Bottici, Giulia Renzini, Eleonora Molinaro, Laura Agate, Agnese Vivaldi, Pinuccia Faviana, Fulvio Basolo, Paolo Miccoli, Piero Berti, Furio Pacini, Aldo Pinchera",
+                "full_journal_title": "The Journal of clinical endocrinology and metabolism",
+                "journal": "J Clin Endocrinol Metab",
+                "pmc_id": null,
+                "publication_date": "2008-3",
+                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/18073307",
+                "clinical_trials": [],
+                "type": "source"
+            },
+            "phenotypes": []
+        }
+    ],
+    "assertions": [],
+    "genes": [
+        {
+            "type": "gene",
+            "id": 38,
+            "name": "PDGFRA",
+            "entrez_id": 5156,
+            "description": "Commonly mutated in GI tract tumors, PDGFR family genes (mutually exclusive to KIT mutations) are a hallmark of gastrointestinal stromal tumors. Gene fusions involving the PDGFRA kinase domain are highly correlated with eosinophilia, and the WHO classifies myeloid and lymphoid neoplasms with these characteristics as a distinct disorder. Mutations in the 842 region of PDGFRA have been often found to confer resistance to the tyrosine kinase inhibitor, imatinib.",
+            "aliases": [
+                "CD140A",
+                "PDGFR-2",
+                "PDGFR2",
+                "PDGFRA"
+            ],
+            "sources": [
+                {
+                    "id": 415,
+                    "name": "PubMed: Lasota et al., 2006",
+                    "title": "KIT and PDGFRA mutations in gastrointestinal stromal tumors (GISTs).",
+                    "citation": "Lasota et al., 2006",
+                    "citation_id": "17193822",
+                    "source_type": "PUBMED",
+                    "abstract": "Mutually exclusive KIT and PDGFRA mutations are central events in GIST pathogenesis, and their understanding is becoming increasingly important, because specific treatment targeting oncogenic KIT and PDGFRA activation (especially imatinib mesylate) has become available. KIT mutations in GIST are clustered in four exons. Most common are exon 11 (juxtamembrane domain) mutations that include deletions, point mutations (affecting a few codons), and duplications (mostly in the 3' region). The latter mutations most often occur in gastric GISTs. Among gastric GISTs, tumors with deletions are more aggressive than those with point mutations; this does not seem to hold true in small intestinal GISTs. Exon 9 mutations (5-10%) usually are 2-codon 502-503 duplications, and these occur predominantly in intestinal versus gastric GISTs. Lesser imatinib sensitivity of these tumors has been noted. Kinase domain mutations are very rare; GISTs with such mutations are variably sensitive to imatinib. PDGFRA mutations usually occur in gastric GISTs, especially in the epithelioid variants; their overall frequency is approximately 30% to 40% of KIT mutation negative GISTs. Most common is exon 18 mutation leading Asp842Val at the protein level. This mutation causes imatinib resistance. Exon 12 and 14 mutations are rare. Most mutations are somatic (in tumor tissue only), but patients with familial GIST syndrome have consitutitonal KIT/PDGFRA mutations; >10 families have been reported worldwide with mutations generally similar to those in sporadic GISTs. GISTs in neurofibromatosis 1 patients, children, and Carney triad seem to lack GIST-specific KIT and PDGFRA mutations and may have a different disease mechanism. Secondary mutations usually occur in KIT kinase domains in patients after imatinib treatment resulting in resistance to this drug. Mutation genotyping is a tool in GIST diagnosis and in assessment of sensitivity to kinase inhibitors. This is a US government work. There are no restrictions on its use.",
+                    "asco_abstract_id": null,
+                    "author_string": "Jerzy Lasota, Markku Miettinen",
+                    "full_journal_title": "Seminars in diagnostic pathology",
+                    "journal": "Semin Diagn Pathol",
+                    "pmc_id": null,
+                    "publication_date": "2006-5",
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/17193822",
+                    "clinical_trials": [],
+                    "type": "source"
+                },
+                {
+                    "id": 966,
+                    "name": "PubMed: Arber et al., 2016",
+                    "title": "The 2016 revision to the World Health Organization classification of myeloid neoplasms and acute leukemia.",
+                    "citation": "Arber et al., 2016",
+                    "citation_id": "27069254",
+                    "source_type": "PUBMED",
+                    "abstract": "The World Health Organization (WHO) classification of tumors of the hematopoietic and lymphoid tissues was last updated in 2008. Since then, there have been numerous advances in the identification of unique biomarkers associated with some myeloid neoplasms and acute leukemias, largely derived from gene expression analysis and next-generation sequencing that can significantly improve the diagnostic criteria as well as the prognostic relevance of entities currently included in the WHO classification and that also suggest new entities that should be added. Therefore, there is a clear need for a revision to the current classification. The revisions to the categories of myeloid neoplasms and acute leukemia will be published in a monograph in 2016 and reflect a consensus of opinion of hematopathologists, hematologists, oncologists, and geneticists. The 2016 edition represents a revision of the prior classification rather than an entirely new classification and attempts to incorporate new clinical, prognostic, morphologic, immunophenotypic, and genetic data that have emerged since the last edition. The major changes in the classification and their rationale are presented here.",
+                    "asco_abstract_id": null,
+                    "author_string": "Daniel A Arber, Attilio Orazi, Robert Hasserjian, J\u00fcrgen Thiele, Michael J Borowitz, Michelle M Le Beau, Clara D Bloomfield, Mario Cazzola, James W Vardiman",
+                    "full_journal_title": "Blood",
+                    "journal": "Blood",
+                    "pmc_id": null,
+                    "publication_date": "2016-5-19",
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/27069254",
+                    "clinical_trials": [],
+                    "type": "source"
+                }
+            ]
+        },
+        {
+            "type": "gene",
+            "id": 42,
+            "name": "RET",
+            "entrez_id": 5979,
+            "description": "RET mutations and the RET fusion RET-PTC lead to activation of this tyrosine kinase receptor and are associated with thyroid cancers. RET point mutations are the most common mutations identified in medullary thyroid cancer (MTC) with germline and somatic mutations in RET associated with hereditary and sporadic forms, respectively. The most common somatic form mutation is M918T (exon 16) and a variety of other mutations effecting exons 10, 11 and 15 have been described. The prognostic significance of these mutations have been hotly debated in the field, however, data suggests that some RET mutation may confer drug resistance. Highly selective and well-tolerated RET inhibitors, selpercatinib (LOXO-292) and pralsetinib (BLU-667), have been FDA approved recently for the treatment of RET fusion-positive non-small-cell lung cancer, RET fusion-positive thyroid cancer and RET-mutant medullary thyroid cancer.",
+            "aliases": [
+                "CDHF12",
+                "CDHR16",
+                "HSCR1",
+                "MEN2A",
+                "MEN2B",
+                "MTC1",
+                "PTC",
+                "RET",
+                "RET-ELE1"
+            ],
+            "sources": [
+                {
+                    "id": 44,
+                    "name": "PubMed: Elisei et al., 2008",
+                    "title": "Prognostic significance of somatic RET oncogene mutations in sporadic medullary thyroid cancer: a 10-year follow-up study.",
+                    "citation": "Elisei et al., 2008",
+                    "citation_id": "18073307",
+                    "source_type": "PUBMED",
+                    "abstract": "Medullary thyroid carcinoma (MTC) is a well-differentiated thyroid tumor that maintains the typical features of C cells. An advanced stage and the presence of lymph node metastases at diagnosis have been demonstrated to be the most important bad prognostic factors. Somatic RET mutations have been found in 40-50% of MTCs. Although a relationship between somatic mutations and bad prognosis has been described, data are controversial and have been performed in small series with short-term follow ups. The aim of this study was to verify the prognostic value of somatic RET mutations in a large series of MTCs with a long follow up.We studied 100 sporadic MTC patients with a 10.2 yr mean follow-up. RET gene exons 10-11 and 13-16 were analyzed. The correlation between the presence/absence of a somatic RET mutation, clinical/pathological features, and outcome of MTC patients was evaluated.A somatic RET mutation was found in 43 of 100 (43%) sporadic MTCs. The most frequent mutation (34 of 43, 79%) was M918T. RET mutation occurrence was more frequent in larger tumors (P=0.03), and in MTC with node and distant metastases (P<0.0001 and P=0.02, respectively), thus, a significant correlation was found with a more advanced stage at diagnosis (P=0.004). A worse outcome was also significantly correlated with the presence of a somatic RET mutation (P=0.002). Among all prognostic factors found to be correlated with a worse outcome, at multivariate analysis only the advanced stage at diagnosis and the presence of a RET mutation showed an independent correlation (P<0.0001 and P=0.01, respectively). Finally, the survival curves of MTC patients showed a significantly lower percentage of surviving patients in the group with RET mutations (P=0.006).We demonstrated that the presence of a somatic RET mutation correlates with a worse outcome of MTC patients, not only for the highest probability to have persistence of the disease, but also for a lower survival rate in a long-term follow up. More interestingly, the presence of a somatic RET mutation correlates with the presence of lymph node metastases at diagnosis, which is a known bad prognostic factor for the definitive cure of MTC patients.",
+                    "asco_abstract_id": null,
+                    "author_string": "Rossella Elisei, Barbara Cosci, Cristina Romei, Valeria Bottici, Giulia Renzini, Eleonora Molinaro, Laura Agate, Agnese Vivaldi, Pinuccia Faviana, Fulvio Basolo, Paolo Miccoli, Piero Berti, Furio Pacini, Aldo Pinchera",
+                    "full_journal_title": "The Journal of clinical endocrinology and metabolism",
+                    "journal": "J Clin Endocrinol Metab",
+                    "pmc_id": null,
+                    "publication_date": "2008-3",
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/18073307",
+                    "clinical_trials": [],
+                    "type": "source"
+                },
+                {
+                    "id": 45,
+                    "name": "PubMed: Perri et al., 2015",
+                    "title": "Targeted therapy: a new hope for thyroid carcinomas.",
+                    "citation": "Perri et al., 2015",
+                    "citation_id": "25465739",
+                    "source_type": "PUBMED",
+                    "abstract": "Thyroid carcinomas are rare and heterogeneous diseases representing less than 1% of all malignancies. The majority of thyroid carcinomas are differentiated entities (papillary and folliculary carcinomas) and are characterized by good prognosis and good response to surgery and radioiodine therapy. Nevertheless, about 10% of differentiated carcinomas recur and become resistant to all therapies. Anaplastic and medullary cancers are rare subtypes of thyroid cancer not suitable for radioiodine therapy. A small percentage of differentiated and all the anaplastic and medullary thyroid carcinomas often recur after primary treatments and are no longer suitable for other therapies. In the last years, several advances have been made in the field of molecular biology and tumorigenesis mechanisms of thyroid carcinomas. Starting from these issues, the targeted therapy may be employed as a new option. The MAP-Kinase pathway has been found often dysregulated in thyroid carcinomas and several upstream signals have been recognized as responsible for this feature. RET/PTC mutations are often discovered both in papillary and in medullary carcinomas, while B-RAF mutation is typical of papillary and anaplastic histologies. Also mTOR disruptions and VEGFR pathway disruption are common features in all advanced thyroid cancers. Some angiogenesis inhibitors and a number of RET/PTC pathway blocking agents are yet present in the clinical armamentarium. Vandetanib, cabozatinib and sorafenib have reached clinical use. A number of other biological compounds have been tested in phase II and III trials. Understanding the biology of thyroid cancers may help us to design a well shaped targeted therapy.",
+                    "asco_abstract_id": null,
+                    "author_string": "Francesco Perri, Luciano Pezzullo, Maria Grazia Chiofalo, Secondo Lastoria, Francesca Di Gennaro, Giuseppina Della Vittoria Scarpati, Francesco Caponigro",
+                    "full_journal_title": "Critical reviews in oncology/hematology",
+                    "journal": "Crit Rev Oncol Hematol",
+                    "pmc_id": null,
+                    "publication_date": "2015-4",
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/25465739",
+                    "clinical_trials": [],
+                    "type": "source"
+                },
+                {
+                    "id": 4129,
+                    "name": "PubMed: Lorusso et al., 2021",
+                    "title": "Thyroid Cancers: From Surgery to Current and Future Systemic Therapies through Their Molecular Identities.",
+                    "citation": "Lorusso et al., 2021",
+                    "citation_id": "33803747",
+                    "source_type": "PUBMED",
+                    "abstract": "Differentiated thyroid cancers (DTC) are commonly and successfully treated with total thyroidectomy plus/minus radioiodine therapy (RAI). Medullary thyroid cancer (MTC) is only treated with surgery but only intrathyroidal tumors are cured. The worst prognosis is for anaplastic (ATC) and poorly differentiated thyroid cancer (PDTC). Whenever a local or metastatic advanced disease is present, other treatments are required, varying from local to systemic therapies. In the last decade, the efficacy of the targeted therapies and, in particular, tyrosine kinase inhibitors (TKIs) has been demonstrated. They can prolong the disease progression-free survival and represent the most important therapeutic option for the treatment of advanced and progressive thyroid cancer. Currently, lenvatinib and sorafenib are the approved drugs for the treatment of RAI-refractory DTC and PDTC while advanced MTC can be treated with either cabozantinib or vandetanib. Dabrafenib plus trametinib is the only approved treatment by FDA for BRAFV600E mutated ATC. A new generation of TKIs, specifically for single altered oncogenes, is under evaluation in phase 2 and 3 clinical trials. The aim of this review was to provide an overview of the current and future treatments of thyroid cancer with regards to the advanced and progressive cases that require systemic therapies that are becoming more and more targeted on the molecular identity of the tumor.",
+                    "asco_abstract_id": null,
+                    "author_string": "Loredana Lorusso, Virginia Cappagli, Laura Valerio, Carlotta Giani, David Viola, Luciana Puleo, Carla Gambale, Elisa Minaldi, Maria Cristina Campopiano, Antonio Matrone, Valeria Bottici, Laura Agate, Eleonora Molinaro, Rossella Elisei",
+                    "full_journal_title": "International journal of molecular sciences",
+                    "journal": "Int J Mol Sci",
+                    "pmc_id": "PMC8003273",
+                    "publication_date": "2021-3-18",
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/33803747",
+                    "clinical_trials": [],
+                    "type": "source"
+                }
+            ]
+        }
+    ],
+    "variants": [
+        {
+            "type": "variant",
+            "id": 99,
+            "single_variant_molecular_profile_id": 99,
+            "name": "D842V",
+            "gene_id": 38,
+            "entrez_name": "PDGFRA",
+            "entrez_id": 5156,
+            "allele_registry_id": "CA123194",
+            "coordinates": {
+                "ensembl_version": 75,
+                "reference_build": "GRCh37",
+                "reference_bases": "A",
+                "variant_bases": "T",
+                "representative_transcript": "ENST00000257290.5",
+                "chromosome": "4",
+                "start": 55152093,
+                "stop": 55152093,
+                "type": "coordinates"
+            },
+            "variant_types": [
+                {
+                    "id": 47,
+                    "name": "Missense Variant",
+                    "so_id": "SO:0001583",
+                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
+                    "type": "variant_type"
+                }
+            ],
+            "clinvar_entries": [
+                "13543"
+            ],
+            "hgvs_expressions": [
+                "NM_006206.4:c.2525A>T",
+                "NP_006197.1:p.Asp842Val",
+                "ENST00000257290.5:c.2525A>T",
+                "NC_000004.11:g.55152093A>T"
+            ],
+            "variant_aliases": [
+                "ASP842VAL",
+                "RS121908585"
+            ]
+        },
+        {
+            "type": "variant",
+            "id": 113,
+            "single_variant_molecular_profile_id": 113,
+            "name": "M918T",
+            "gene_id": 42,
+            "entrez_name": "RET",
+            "entrez_id": 5979,
+            "allele_registry_id": "CA009082",
+            "coordinates": {
+                "ensembl_version": 75,
+                "reference_build": "GRCh37",
+                "reference_bases": "T",
+                "variant_bases": "C",
+                "representative_transcript": "ENST00000355710.3",
+                "chromosome": "10",
+                "start": 43617416,
+                "stop": 43617416,
+                "type": "coordinates"
+            },
+            "variant_types": [
+                {
+                    "id": 47,
+                    "name": "Missense Variant",
+                    "so_id": "SO:0001583",
+                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
+                    "type": "variant_type"
+                }
+            ],
+            "clinvar_entries": [
+                "13919"
+            ],
+            "hgvs_expressions": [
+                "NM_020975.4:c.2753T>C",
+                "NP_065681.1:p.Met918Thr",
+                "ENST00000355710.3:c.2753T>C",
+                "NC_000010.10:g.43617416T>C"
+            ],
+            "variant_aliases": [
+                "MET918THR",
+                "RS74799832"
+            ]
+        }
+    ],
+    "molecular_profiles": [
+        {
+            "type": "molecular_profile",
+            "id": 99,
+            "variant_ids": [
+                99
+            ],
+            "name": "PDGFRA D842V",
+            "molecular_profile_score": 100.5,
+            "description": "PDGFRA D842 mutations are characterized broadly as imatinib resistance mutations. This is most well characterized in gastrointestinal stromal tumors, but other cell lines containing these mutations have been shown to be resistant as well. Exogenous expression of the A842V mutation resulted in constitutive tyrosine phosphorylation of PDGFRA in the absence of ligand in 293T cells and cytokine-independent proliferation of the IL-3-dependent Ba/F3 cell line, both evidence that this is an activating mutation. In imatinib resistant cell lines, a number of other therapeutics have demonstrated efficacy. These include; crenolanib, sirolimus, and midostaurin (PKC412).",
+            "aliases": [
+                "ASP842VAL",
+                "RS121908585"
+            ],
+            "parsed_name": [
+                {
+                    "type": "feature",
+                    "id": 38,
+                    "name": "PDGFRA"
+                },
+                {
+                    "type": "variant",
+                    "id": 99,
+                    "name": "D842V",
+                    "deprecated": false
+                }
+            ],
+            "sources": []
+        },
+        {
+            "type": "molecular_profile",
+            "id": 113,
+            "variant_ids": [
+                113
+            ],
+            "name": "RET M918T",
+            "molecular_profile_score": 86.0,
+            "description": "RET M819T is the most common somatically acquired mutation in medullary thyroid cancer (MTC). While there currently are no RET-specific inhibiting agents, promiscuous kinase inhibitors have seen some success in treating RET overactivity. Data suggests however, that the M918T mutation may lead to drug resistance, especially against the VEGFR-inhibitor motesanib. It has also been suggested that RET M819T leads to more aggressive MTC with a poorer prognosis.",
+            "aliases": [
+                "MET918THR",
+                "RS74799832"
+            ],
+            "parsed_name": [
+                {
+                    "type": "feature",
+                    "id": 42,
+                    "name": "RET"
+                },
+                {
+                    "type": "variant",
+                    "id": 113,
+                    "name": "M918T",
+                    "deprecated": false
+                }
+            ],
+            "sources": []
+        }
+    ]
+}

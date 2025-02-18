@@ -1,0 +1,27 @@
+name: "Stalebot for issues and PRs"
+
+on:
+  schedule:
+    - cron: "30 13 * * 1-5"
+
+jobs:
+  stale-high-priority:
+    uses: genomicmedlab/software-templates/.github/workflows/reusable-stale.yaml@main
+    with:
+      days-before-issue-stale: 90
+      days-before-pr-stale: 1
+      labels: priority:high
+
+  stale-medium-priority:
+    uses: genomicmedlab/software-templates/.github/workflows/reusable-stale.yaml@main
+    with:
+      days-before-issue-stale: 135
+      days-before-pr-stale: 3
+      labels: priority:medium
+
+  stale-low-priority:
+    uses: genomicmedlab/software-templates/.github/workflows/reusable-stale.yaml@main
+    with:
+      days-before-issue-stale: 180
+      days-before-pr-stale: 7
+      labels: priority:low

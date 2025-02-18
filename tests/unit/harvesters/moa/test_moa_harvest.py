@@ -1,14 +1,11 @@
 """Test MOAlmanac Harvester."""
 
-from metakb import APP_ROOT
+from tests.conftest import check_source_harvest
+
 from metakb.harvesters.moa import MoaHarvester
 
 
-def test_harvest():
+def test_harvest(tmp_path):
     """Test MOAlmanac harvest method."""
-    fn = "test_moa_harvester.json"
-    assert MoaHarvester().harvest(filename=fn)
-    file_path = APP_ROOT / "data" / "moa" / "harvester" / fn
-    assert file_path.exists()
-    file_path.unlink()
-    assert not file_path.exists()
+    moa = MoaHarvester()
+    check_source_harvest(tmp_path, moa)

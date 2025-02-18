@@ -4,12 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-"ga4gh.vrs" = "~=2.0.0a5"
-gene-normalizer = {version = "~=0.3.0-dev1", extras = ["etl"]}
-variation-normalizer = "~=0.8.2"
-disease-normalizer = {version = "~=0.4.0.dev3", extras = ["etl"]}
-thera-py = {version = "~=0.5.0.dev3", extras = ["etl"]}
-civicpy = "~=3.0.0"
+"ga4gh.vrs" = "~=2.0.0a10"
+gene-normalizer = {version = "~=0.4.1", extras = ["etl"]}
+variation-normalizer = "~=0.10.0"
+disease-normalizer = {version = "~=0.5.0", extras = ["etl"]}
+thera-py = {version = "~=0.6.0", extras = ["etl"]}
+civicpy = "~=3.1"
 requests = "*"
 pydantic = "==2.*"
 requests-cache = "*"
@@ -26,7 +26,7 @@ pytest = "*"
 pytest-cov = "*"
 pytest-asyncio = "*"
 mock = "*"
-pre-commit = "*"
-ruff = "==0.2.0"
+pre-commit = ">=3.7.1"
+ruff = "==0.5.0"
 ipykernel = "*"
 jupyterlab = "*"

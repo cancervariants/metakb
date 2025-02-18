@@ -1,10 +1,15 @@
 """Create schemas for API"""
-from typing import List, Literal, Optional
 
+from typing import Literal
+
+from ga4gh.va_spec.aac_2017 import (
+    VariantDiagnosticStudyStatement,
+    VariantPrognosticStudyStatement,
+    VariantTherapeuticResponseStudyStatement,
+)
 from pydantic import BaseModel, ConfigDict, StrictStr
 
-from metakb.schemas.variation_statement import VariantTherapeuticResponseStudy
-from metakb.version import __version__
+from metakb import __version__
 
 
 class ServiceMeta(BaseModel):
@@ -12,9 +17,9 @@ class ServiceMeta(BaseModel):
 
     name: Literal["metakb"] = "metakb"
     version: StrictStr = __version__
-    url: Literal[
+    url: Literal["https://github.com/cancervariants/metakb"] = (
         "https://github.com/cancervariants/metakb"
-    ] = "https://github.com/cancervariants/metakb"
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -27,21 +32,52 @@ class ServiceMeta(BaseModel):
     )
 
 
-class SearchStudiesQuery(BaseModel):
-    """Queries for the Search Studies Endpoint."""
+class SearchStatementsQuery(BaseModel):
+    """Queries for the Search Statements Endpoint."""
 
-    variation: Optional[StrictStr] = None
-    disease: Optional[StrictStr] = None
-    therapy: Optional[StrictStr] = None
-    gene: Optional[StrictStr] = None
-    study_id: Optional[StrictStr] = None
+    variation: StrictStr | None = None
+    disease: StrictStr | None = None
+    therapy: StrictStr | None = None
+    gene: StrictStr | None = None
+    statement_id: StrictStr | None = None
 
 
-class SearchStudiesService(BaseModel):
-    """Define model for Search Studies Endpoint Response."""
+class SearchStatementsService(BaseModel):
+    """Define model for Search Statements Endpoint Response."""
 
-    query: SearchStudiesQuery
-    warnings: List[StrictStr] = []
-    study_ids: List[StrictStr] = []
-    studies: List[VariantTherapeuticResponseStudy] = []
+    query: SearchStatementsQuery
+    warnings: list[StrictStr] = []
+    statement_ids: list[StrictStr] = []
+    statements: list[
+        VariantTherapeuticResponseStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantDiagnosticStudyStatement
+    ] = []
+    service_meta_: ServiceMeta
+
+
+class NormalizedQuery(BaseModel):
+    """Define structure of user-provided query. If possible, add normalized ID."""
+
+    term: StrictStr
+    normalized_id: StrictStr | None = None
+
+
+class BatchSearchStatementsQuery(BaseModel):
+    """Define query as reported in batch search statements endpoint."""
+
+    variations: list[NormalizedQuery] = []
+
+
+class BatchSearchStatementsService(BaseModel):
+    """Define response model for batch search statements endpoint response."""
+
+    query: BatchSearchStatementsQuery
+    warnings: list[StrictStr] = []
+    statement_ids: list[StrictStr] = []
+    statements: list[
+        VariantTherapeuticResponseStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantDiagnosticStudyStatement
+    ] = []
     service_meta_: ServiceMeta

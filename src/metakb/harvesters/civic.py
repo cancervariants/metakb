@@ -1,14 +1,23 @@
 """A module for the CIViC harvester."""
+
 import logging
-from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any
 
 from civicpy import LOCAL_CACHE_PATH
 from civicpy import civic as civicpy
 
-from metakb.harvesters.base import Harvester
+from metakb.harvesters.base import Harvester, _HarvestedData
 
 logger = logging.getLogger(__name__)
+
+
+class CivicHarvestedData(_HarvestedData):
+    """Define output for harvested data from CIViC"""
+
+    genes: list[dict]
+    evidence: list[dict]
+    molecular_profiles: list[dict]
+    assertions: list[dict]
 
 
 class CivicHarvester(Harvester):
@@ -18,16 +27,16 @@ class CivicHarvester(Harvester):
         self,
         update_cache: bool = False,
         update_from_remote: bool = True,
-        local_cache_path: Optional[Path] = LOCAL_CACHE_PATH,
+        local_cache_path: str = LOCAL_CACHE_PATH,
     ) -> None:
         """Initialize CivicHarvester class.
 
-        :param update_cache: `True` if civicpy cache should be updated. Note
-            this will take several minutes. `False` if to use local cache.
-        :param update_from_remote: If set to `True`, civicpy.update_cache will first
+        :param update_cache: ``True`` if civicpy cache should be updated. Note
+            this will take several minutes. ``False`` if to use local cache.
+        :param update_from_remote: If set to ``True``, civicpy.update_cache will first
             download the remote cache designated by REMOTE_CACHE_URL, store it
             to LOCAL_CACHE_PATH, and then load the downloaded cache into memory.
-            This parameter defaults to `True`.
+            This parameter defaults to ``True``.
         :param local_cache_path: A filepath destination for the retrieved remote
             cache. This parameter defaults to LOCAL_CACHE_PATH from civicpy.
         """
@@ -36,50 +45,26 @@ class CivicHarvester(Harvester):
 
         civicpy.load_cache(local_cache_path=local_cache_path, on_stale="ignore")
 
-        self.genes = []
-        self.variants = []
-        self.molecular_profiles = []
-        self.evidence = []
-        self.assertions = []
+    def harvest(self) -> CivicHarvestedData:
+        """Get CIViC evidence, gene, variant, molecular profile, and assertion data
 
-    def harvest(self, filename: Optional[str] = None) -> bool:
-        """Retrieve and store evidence, gene, variant, molecular profile, and assertion
-        records from CIViC in composite and individual JSON files.
-
-        :param filename: File name for composite json
-        :return: `True` if operation was successful, `False` otherwise.
-        :rtype: bool
+        :return: CIViC evidence items, genes, variants, molecular profiles, and
+            assertions
         """
-        try:
-            self.evidence = self.harvest_evidence()
-            self.genes = self.harvest_genes()
-            self.variants = self.harvest_variants()
-            self.molecular_profiles = self.harvest_molecular_profiles()
-            self.assertions = self.harvest_assertions()
+        evidence = self.harvest_evidence()
+        genes = self.harvest_genes()
+        variants = self.harvest_variants()
+        molecular_profiles = self.harvest_molecular_profiles()
+        assertions = self.harvest_assertions()
+        return CivicHarvestedData(
+            evidence=evidence,
+            genes=genes,
+            variants=variants,
+            molecular_profiles=molecular_profiles,
+            assertions=assertions,
+        )
 
-            json_created = self.create_json(
-                {
-                    "evidence": self.evidence,
-                    "genes": self.genes,
-                    "variants": self.variants,
-                    "molecular_profiles": self.molecular_profiles,
-                    "assertions": self.assertions,
-                },
-                filename,
-            )
-            if not json_created:
-                logger.error(
-                    "CIViC Harvester was not successful: JSON files not created."
-                )
-                return False
-        except Exception as e:
-            logger.error("CIViC Harvester was not successful: %s", e)
-            return False
-        else:
-            logger.info("CIViC Harvester was successful.")
-            return True
-
-    def harvest_evidence(self) -> List[Dict]:
+    def harvest_evidence(self) -> list[dict]:
         """Harvest all CIViC evidence item records.
 
         :return: A list of all CIViC evidence item records represented as dicts
@@ -87,7 +72,7 @@ class CivicHarvester(Harvester):
         evidence_items = civicpy.get_all_evidence()
         return [self._dictify(e) for e in evidence_items]
 
-    def harvest_genes(self) -> List[Dict]:
+    def harvest_genes(self) -> list[dict]:
         """Harvest all CIViC gene records.
 
         :return: A list of all CIViC gene records represented as dicts
@@ -95,7 +80,7 @@ class CivicHarvester(Harvester):
         genes = civicpy.get_all_genes()
         return [self._dictify(g) for g in genes]
 
-    def harvest_variants(self) -> List[Dict]:
+    def harvest_variants(self) -> list[dict]:
         """Harvest all CIViC variant records.
 
         :return: A list of all CIViC variant records represented as dicts
@@ -103,7 +88,7 @@ class CivicHarvester(Harvester):
         variants = civicpy.get_all_variants()
         return [self._dictify(v) for v in variants]
 
-    def harvest_molecular_profiles(self) -> List[Dict]:
+    def harvest_molecular_profiles(self) -> list[dict]:
         """Harvest all CIViC Molecular Profile records
 
         :return: A list of all CIViC molecular profile records represented as dicts
@@ -111,7 +96,7 @@ class CivicHarvester(Harvester):
         molecular_profiles = civicpy.get_all_molecular_profiles()
         return [self._dictify(mp) for mp in molecular_profiles]
 
-    def harvest_assertions(self) -> List[Dict]:
+    def harvest_assertions(self) -> list[dict]:
         """Harvest all CIViC assertion records.
 
         :return: A list of all CIViC assertion records represented as dicts
@@ -119,7 +104,7 @@ class CivicHarvester(Harvester):
         assertions = civicpy.get_all_assertions()
         return [self._dictify(a) for a in assertions]
 
-    def _dictify(self, obj: any) -> Dict:
+    def _dictify(self, obj: Any) -> dict:  # noqa: ANN401
         """Recursively convert object to dictionary
 
         :param obj: Object to convert to dict

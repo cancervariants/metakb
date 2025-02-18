@@ -1,0 +1,144 @@
+{
+	"assertions": [
+		{
+			"id": 141,
+			"context": "",
+			"deprecated": false,
+			"description": "More frequent in Chronic Myelomonocytic Leukemia.",
+			"disease": {
+				"name": "Myelodysplasia",
+				"oncotree_code": "MDS",
+				"oncotree_term": "Myelodysplasia"
+			},
+			"therapy": {
+				"name": "",
+				"type": "",
+				"strategy": "",
+				"resistance": "",
+				"sensitivity": ""
+			},
+			"predictive_implication": "Clinical evidence",
+			"favorable_prognosis": 0,
+			"created_on": "12/05/24",
+			"last_updated": "2019-06-13",
+			"submitted_by": "breardon@broadinstitute.org",
+			"validated": true,
+			"source_id": 60,
+			"variant": {
+				"id": 141,
+				"alternate_allele": "C",
+				"cdna_change": "c.4376A>G",
+				"chromosome": "X",
+				"end_position": "39921444",
+				"exon": "10",
+				"feature_type": "somatic_variant",
+				"gene": "BCOR",
+				"protein_change": "p.N1425S",
+				"reference_allele": "T",
+				"rsid": null,
+				"start_position": "39921444",
+				"variant_annotation": "Missense",
+				"feature": "BCOR p.N1425S (Missense)"
+			}
+		},
+		{
+			"id": 532,
+			"context": "",
+			"deprecated": false,
+			"description": "The National Comprehensive Cancer Network\u00ae (NCCN\u00ae) highlights SF3B1 E622, Y623, R625, N626, H662, T663, K666, K700E, I704, G740, G742, and D781 missense variants as being associated with a favorable prognosis in patients with myelodysplastic syndromes.",
+			"disease": {
+				"name": "Myelodysplasia",
+				"oncotree_code": "MDS",
+				"oncotree_term": "Myelodysplasia"
+			},
+			"therapy": {
+				"name": "",
+				"type": "",
+				"strategy": "",
+				"resistance": "",
+				"sensitivity": ""
+			},
+			"predictive_implication": "Guideline",
+			"favorable_prognosis": 1,
+			"created_on": "12/05/24",
+			"last_updated": "2023-11-02",
+			"submitted_by": "breardon@broadinstitute.org",
+			"validated": true,
+			"source_id": 33,
+			"variant": {
+				"id": 532,
+				"alternate_allele": "G",
+				"cdna_change": "c.1866G>C",
+				"chromosome": "2",
+				"end_position": "198267491",
+				"exon": "14",
+				"feature_type": "somatic_variant",
+				"gene": "SF3B1",
+				"protein_change": "p.E622D",
+				"reference_allele": "C",
+				"rsid": "rs763149798",
+				"start_position": "198267491",
+				"variant_annotation": "Missense",
+				"feature": "SF3B1 p.E622D (Missense)"
+			}
+		}
+	],
+	"sources": [
+    {
+      "id": 33,
+      "type": "Guideline",
+      "doi": "",
+      "nct": "",
+      "pmid": "",
+      "url": "https://www.nccn.org/professionals/physician_gls/pdf/mds_blocks.pdf",
+      "citation": "Referenced with permission from the NCCN Clinical Practice Guidelines in Oncology (NCCN Guidelines\u00ae) for Myelodysplastic Syndromes V.2.2023. \u00a9 National Comprehensive Cancer Network, Inc. 2023. All rights reserved. Accessed November 2, 2023. To view the most recent and complete version of the guideline, go online to NCCN.org."
+    },
+    {
+      "id": 60,
+      "type": "Journal",
+      "doi": "10.1158/1078-0432.CCR-09-2828",
+      "nct": "",
+      "pmid": 20453058,
+      "url": "https://doi.org/10.1158/1078-0432.CCR-09-2828",
+      "citation": "O'Brien C, Wallin JJ, Sampath D, et al. Predictive biomarkers of sensitivity to the phosphatidylinositol 3' kinase inhibitor GDC-0941 in breast cancer preclinical models. Clin Cancer Res. 2010;16(14):3670-83."
+    }
+	],
+	"variants": [
+		{
+			"id": 141,
+			"alternate_allele": "C",
+			"cdna_change": "c.4376A>G",
+			"chromosome": "X",
+			"end_position": "39921444",
+			"exon": "10",
+			"feature_type": "somatic_variant",
+			"gene": "BCOR",
+			"protein_change": "p.N1425S",
+			"reference_allele": "T",
+			"rsid": null,
+			"start_position": "39921444",
+			"variant_annotation": "Missense",
+			"feature": "BCOR p.N1425S (Missense)"
+		},
+		{
+      "id": 532,
+      "alternate_allele": "G",
+      "cdna_change": "c.1866G>C",
+      "chromosome": "2",
+      "end_position": "198267491",
+      "exon": "14",
+      "feature_type": "somatic_variant",
+      "gene": "SF3B1",
+      "protein_change": "p.E622D",
+      "reference_allele": "C",
+      "rsid": "rs763149798",
+      "start_position": "198267491",
+      "variant_annotation": "Missense",
+      "feature": "SF3B1 p.E622D (Missense)"
+    }
+	],
+	"genes": [
+		"BCOR",
+		"SF3B1"
+	]
+}
