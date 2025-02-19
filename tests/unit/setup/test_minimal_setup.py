@@ -1,4 +1,5 @@
 """Tests basic project setup."""
+
 import sys
 
 

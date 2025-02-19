@@ -1,0 +1,171 @@
+{
+    "evidence": [
+        {
+            "type": "evidence",
+            "id": 26,
+            "variant_origin": "SOMATIC",
+            "therapy_interaction_type": null,
+            "status": "accepted",
+            "significance": "POOR_OUTCOME",
+            "rating": 4,
+            "name": "EID26",
+            "molecular_profile_id": 65,
+            "evidence_type": "PROGNOSTIC",
+            "evidence_level": "B",
+            "evidence_direction": "SUPPORTS",
+            "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",
+            "assertion_ids": [],
+            "disease": {
+                "id": 3,
+                "name": "Acute Myeloid Leukemia",
+                "display_name": "Acute Myeloid Leukemia",
+                "doid": "9119",
+                "disease_url": "https://www.disease-ontology.org/?id=DOID:9119",
+                "aliases": [
+                    "AML - Acute Myeloid Leukemia",
+                    "Acute Myeloblastic Leukaemia",
+                    "Acute Myeloblastic Leukemia",
+                    "Acute Myelogenous Leukaemia",
+                    "Acute Myelogenous Leukemia",
+                    "Acute Myeloid Leukaemia",
+                    "Leukemia, Myelocytic, Acute"
+                ],
+                "type": "disease"
+            },
+            "phenotypes": [],
+            "source": {
+                "id": 69,
+                "name": "PubMed: Cairoli et al., 2006",
+                "title": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study.",
+                "citation": "Cairoli et al., 2006",
+                "citation_id": "16384925",
+                "source_type": "PUBMED",
+                "abstract": "Distinct forms of tyrosine kinase domain (TKD), juxtamembrane domain, exon 8, and internal tandem duplication (ITD) mutations of c-KIT, were observed in about 46% of core binding factor leukemia (CBFL) patients. To evaluate their prognostic significance, 67 adult patients with CBFL were analyzed to ascertain the c-KIT mutation status. In acute myeloid leukemia (AML) with t(8;21), the presence of c-KIT TKD mutation at codon 816 (TKD(816)) was associated with a high white blood cell count at diagnosis (median, 29.60 x 10(9)/L) and a higher incidence (33%) of extramedullary leukemia (EML) during the course of the disease. Data also showed that the TKD(816) mutated patients (n = 12) had a significantly higher incidence of relapse and a lower overall survival (OS) at 24 months, compared with the 17 c-KIT unmutated (c-KIT(-)) patients (90% vs 35.3%, P = .002; 25% vs 76.5%, P = .006, respectively). No difference in relapse incidence (P = .126) and OS (P = .474) was observed between the c-KIT mutated other than TKD(816) (n = 7) and the c-KIT(-) patients. These findings indicate that c-KIT TKD(816) mutation has a negative impact on the outcome of AML with t(8;21).",
+                "asco_abstract_id": null,
+                "author_string": "Roberto Cairoli, Alessandro Beghini, Giovanni Grillo, Gianpaolo Nadali, Francesca Elice, Carla Barbara Ripamonti, Patrizia Colapietro, Michele Nichelatti, Laura Pezzetti, Monia Lunghi, Antonio Cuneo, Assunta Viola, Felicetto Ferrara, Mario Lazzarino, Francesco Rodeghiero, Giovanni Pizzolo, Lidia Larizza, Enrica Morra",
+                "full_journal_title": "Blood",
+                "journal": "Blood",
+                "pmc_id": null,
+                "publication_date": "2006-5-1",
+                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/16384925",
+                "clinical_trials": [],
+                "type": "source"
+            },
+            "therapies": []
+        }
+    ],
+    "assertions": [],
+    "genes": [
+        {
+            "type": "gene",
+            "id": 29,
+            "name": "KIT",
+            "entrez_id": 3815,
+            "description": "c-KIT activation has been shown to have oncogenic activity in gastrointestinal stromal tumors (GISTs), melanomas, lung cancer, and other tumor types. The targeted therapeutics nilotinib and sunitinib have shown efficacy in treating KIT overactive patients, and are in late-stage trials in melanoma and GIST. KIT overactivity can be the result of many genomic events from genomic amplification to overexpression to missense mutations. Missense mutations have been shown to be key players in mediating clinical response and acquired resistance in patients being treated with these targeted therapeutics.",
+            "sources": [
+                {
+                    "id": 41,
+                    "name": "PubMed: Stankov et al., 2014",
+                    "title": "C-KIT signaling in cancer treatment.",
+                    "citation": "Stankov et al., 2014",
+                    "citation_id": "23944364",
+                    "source_type": "PUBMED",
+                    "abstract": "Tumor progression is strongly associated with the activity of receptor tyrosine kinases (RTKs) and their intracellular signal transduction pathways, which regulate several cell functions including proliferation, apoptosis, motility, adhesion and angiogenesis. Detailed structural and functional studies of RTKs, including the stem cell factor receptor c-KIT, revealed the complexity of these receptor systems and contributed to development of targeted clinical approaches with relevance in both prognosis and therapy. C-KIT signaling network has been the subject of intense research and pharmaceutical strategies to identify novel target-based approaches for cancer treatment. Evidence that c-KIT signaling promotes cell proliferation and survival, along with the frequency in which this pathway is aberrantly activated in cancer, support the current efforts to identify approaches for its efficient inhibition. C-KIT mutations are associatied with several human malignancies, such as gastrointestinal stromal tumors, acute myeloid leukemia, mast cell leukemia, and melanoma. Novel therapies are developed that target some of the identified genetic defects. It is therefore anticipated that newly-identified genetic markers will acquire a predictive value, that is, the ability to predict differential efficacy of a therapy. This review describes the evolving understanding of c-KIT/SCF axis and their downstream signaling in cancer, and the strategies for c-KIT-directed targeted cancer therapy.",
+                    "asco_abstract_id": null,
+                    "author_string": "Karmen Stankov, Stevan Popovic, Momir Mikov",
+                    "full_journal_title": "Current pharmaceutical design",
+                    "journal": "Curr Pharm Des",
+                    "pmc_id": null,
+                    "publication_date": "2014",
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23944364",
+                    "clinical_trials": [],
+                    "type": "source"
+                }
+            ],
+            "aliases": [
+                "C-Kit",
+                "CD117",
+                "KIT",
+                "MASTC",
+                "PBT",
+                "SCFR"
+            ]
+        }
+    ],
+    "variants": [
+        {
+            "type": "variant",
+            "id": 65,
+            "single_variant_molecular_profile_id": 65,
+            "name": "D816V",
+            "gene_id": 29,
+            "entrez_name": "KIT",
+            "entrez_id": 3815,
+            "allele_registry_id": "CA123513",
+            "variant_types": [
+                {
+                    "id": 47,
+                    "name": "Missense Variant",
+                    "so_id": "SO:0001583",
+                    "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
+                    "type": "variant_type"
+                }
+            ],
+            "hgvs_expressions": [
+                "NM_000222.2:c.2447A>T",
+                "NP_000213.1:p.Asp816Val",
+                "ENST00000288135.5:c.2447A>T",
+                "NC_000004.11:g.55599321A>T"
+            ],
+            "coordinates": {
+                "ensembl_version": 75,
+                "reference_build": "GRCh37",
+                "reference_bases": "A",
+                "variant_bases": "T",
+                "representative_transcript": "ENST00000288135.5",
+                "chromosome": "4",
+                "start": 55599321,
+                "stop": 55599321,
+                "type": "coordinates"
+            },
+            "clinvar_entries": [
+                "13852"
+            ],
+            "variant_aliases": [
+                "ASP816VAL",
+                "RS121913507"
+            ]
+        }
+    ],
+    "molecular_profiles": [
+        {
+            "type": "molecular_profile",
+            "id": 65,
+            "variant_ids": [
+                65
+            ],
+            "name": "KIT D816V",
+            "molecular_profile_score": 67.0,
+            "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",
+            "parsed_name": [
+                {
+                    "type": "feature",
+                    "id": 29,
+                    "name": "KIT"
+                },
+                {
+                    "type": "variant",
+                    "id": 65,
+                    "name": "D816V",
+                    "deprecated": false
+                }
+            ],
+            "sources": [],
+            "aliases": [
+                "ASP816VAL",
+                "RS121913507"
+            ]
+        }
+    ]
+}
