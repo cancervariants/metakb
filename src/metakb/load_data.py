@@ -47,7 +47,10 @@ def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
                 extensions = mapping.get("extensions") or []
                 for ext in extensions:
                     if ext["name"] == NormalizerExtensionName.PRIORITY and ext["value"]:
-                        normalizer_id = mapping["coding"]["code"]
+                        if mapping["coding"]["id"].startswith("MONDO"):
+                            normalizer_id = mapping["coding"]["code"]
+                        else:
+                            normalizer_id = mapping["coding"]["id"]
                         obj["normalizer_id"] = normalizer_id
                         obj_keys.append("normalizer_id:$normalizer_id")
                         break

@@ -90,7 +90,10 @@ def get_mappings_normalizer_id(mappings: list[dict | ConceptMapping]) -> str | N
         extensions = mapping.get("extensions") or []
         for ext in extensions:
             if ext["name"] == NormalizerExtensionName.PRIORITY and ext["value"]:
-                normalizer_id = mapping["coding"]["code"]
+                if mapping["coding"]["id"].startswith("MONDO"):
+                    normalizer_id = mapping["coding"]["code"]
+                else:
+                    normalizer_id = mapping["coding"]["id"]
                 break
     return normalizer_id
 
@@ -128,8 +131,9 @@ def braf_normalizer_mappings():
         {
             "coding": {
                 "label": "BRAF",
-                "code": "hgnc:1097",
-                "system": "https://www.genenames.org",
+                "id": "hgnc:1097",
+                "code": "HGNC:1097",
+                "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
             },
             "relation": "exactMatch",
             "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
@@ -144,8 +148,9 @@ def cetuximab_normalizer_mappings():
         {
             "coding": {
                 "label": "cetuximab",
-                "code": "rxcui:318341",
-                "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
+                "id": "rxcui:318341",
+                "code": "318341",
+                "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
             },
             "relation": "exactMatch",
             "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
@@ -169,10 +174,11 @@ def cetuximab_extensions():
                         "mappings": [
                             {
                                 "coding": {
-                                    "code": "ncit:C3262",
-                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    "id": "ncit:C3262",
+                                    "code": "C3262",
+                                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                 },
-                                "relation": "relatedMatch",
+                                "relation": "exactMatch",
                             }
                         ],
                     },
@@ -183,10 +189,11 @@ def cetuximab_extensions():
                         "mappings": [
                             {
                                 "coding": {
-                                    "code": "ncit:C2956",
-                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    "id": "ncit:C2956",
+                                    "code": "C2956",
+                                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                 },
-                                "relation": "relatedMatch",
+                                "relation": "exactMatch",
                             }
                         ],
                     },
@@ -197,10 +204,11 @@ def cetuximab_extensions():
                         "mappings": [
                             {
                                 "coding": {
-                                    "code": "ncit:C4013",
-                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    "id": "ncit:C4013",
+                                    "code": "C4013",
+                                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                 },
-                                "relation": "relatedMatch",
+                                "relation": "exactMatch",
                             }
                         ],
                     },
@@ -211,10 +219,11 @@ def cetuximab_extensions():
                         "mappings": [
                             {
                                 "coding": {
-                                    "code": "ncit:C2929",
-                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    "id": "ncit:C2929",
+                                    "code": "C2929",
+                                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                 },
-                                "relation": "relatedMatch",
+                                "relation": "exactMatch",
                             }
                         ],
                     },
@@ -231,8 +240,9 @@ def encorafenib_normalizer_mappings():
         {
             "coding": {
                 "label": "encorafenib",
-                "code": "rxcui:2049106",
-                "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
+                "id": "rxcui:2049106",
+                "code": "2049106",
+                "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
             },
             "relation": "exactMatch",
             "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
@@ -256,10 +266,11 @@ def encorafenib_extensions():
                         "mappings": [
                             {
                                 "coding": {
-                                    "code": "ncit:C3224",
-                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    "id": "ncit:C3224",
+                                    "code": "C3224",
+                                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                 },
-                                "relation": "relatedMatch",
+                                "relation": "exactMatch",
                             }
                         ],
                     },
@@ -270,10 +281,11 @@ def encorafenib_extensions():
                         "mappings": [
                             {
                                 "coding": {
-                                    "code": "ncit:C3262",
-                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    "id": "ncit:C3262",
+                                    "code": "C3262",
+                                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                 },
-                                "relation": "relatedMatch",
+                                "relation": "exactMatch",
                             }
                         ],
                     },
@@ -284,10 +296,11 @@ def encorafenib_extensions():
                         "mappings": [
                             {
                                 "coding": {
-                                    "code": "ncit:C2956",
-                                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                    "id": "ncit:C2956",
+                                    "code": "C2956",
+                                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                 },
-                                "relation": "relatedMatch",
+                                "relation": "exactMatch",
                             }
                         ],
                     },
@@ -504,10 +517,11 @@ def civic_gid5(braf_normalizer_mappings):
         "mappings": [
             {
                 "coding": {
-                    "code": "ncbigene:673",
+                    "id": "ncbigene:673",
+                    "code": "673",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
-                "relation": "relatedMatch",
+                "relation": "exactMatch",
                 "extensions": [
                     *get_vicc_normalizer_ext(is_priority=False),
                     {"name": "civic_annotation", "value": True},
@@ -740,10 +754,11 @@ def civic_gid19():
         "mappings": [
             {
                 "coding": {
-                    "code": "ncbigene:1956",
+                    "id": "ncbigene:1956",
+                    "code": "1956",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
-                "relation": "relatedMatch",
+                "relation": "exactMatch",
                 "extensions": [
                     *get_vicc_normalizer_ext(is_priority=False),
                     {"name": "civic_annotation", "value": True},
@@ -752,8 +767,9 @@ def civic_gid19():
             {
                 "coding": {
                     "label": "EGFR",
-                    "code": "hgnc:3236",
-                    "system": "https://www.genenames.org",
+                    "id": "hgnc:3236",
+                    "code": "HGNC:3236",
+                    "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
@@ -800,8 +816,9 @@ def civic_tid146():
             {
                 "coding": {
                     "label": "afatinib",
-                    "code": "rxcui:1430438",
-                    "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
+                    "id": "rxcui:1430438",
+                    "code": "1430438",
+                    "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
@@ -828,10 +845,11 @@ def civic_tid146():
                             "mappings": [
                                 {
                                     "coding": {
-                                        "code": "ncit:C2926",
-                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                        "id": "ncit:C2926",
+                                        "code": "C2926",
+                                        "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                     },
-                                    "relation": "relatedMatch",
+                                    "relation": "exactMatch",
                                 }
                             ],
                         },
@@ -866,18 +884,20 @@ def civic_did8():
             {
                 "coding": {
                     "label": "Lung Non-Small Cell Carcinoma",
-                    "code": "ncit:C2926",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C2926",
+                    "code": "C2926",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
-                    "code": "mondo:0005233",
-                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                    "id": "MONDO_0005233",
+                    "code": "MONDO:0005233",
+                    "system": "https://purl.obolibrary.org/obo/",
                 },
-                "relation": "relatedMatch",
+                "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],
@@ -914,8 +934,9 @@ def civic_tid28():
             {
                 "coding": {
                     "label": "panitumumab",
-                    "code": "rxcui:263034",
-                    "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
+                    "id": "rxcui:263034",
+                    "code": "263034",
+                    "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
@@ -949,10 +970,11 @@ def civic_tid28():
                             "mappings": [
                                 {
                                     "coding": {
-                                        "code": "ncit:C3262",
-                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                        "id": "ncit:C3262",
+                                        "code": "C3262",
+                                        "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                     },
-                                    "relation": "relatedMatch",
+                                    "relation": "exactMatch",
                                 }
                             ],
                         },
@@ -963,10 +985,11 @@ def civic_tid28():
                             "mappings": [
                                 {
                                     "coding": {
-                                        "code": "ncit:C2956",
-                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                        "id": "ncit:C2956",
+                                        "code": "C2956",
+                                        "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                     },
-                                    "relation": "relatedMatch",
+                                    "relation": "exactMatch",
                                 }
                             ],
                         },
@@ -1090,18 +1113,20 @@ def civic_did11():
             {
                 "coding": {
                     "label": "Malignant Colorectal Neoplasm",
-                    "code": "ncit:C4978",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C4978",
+                    "code": "C4978",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
-                    "code": "mondo:0005575",
-                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                    "id": "MONDO_0005575",
+                    "code": "MONDO:0005575",
+                    "system": "https://purl.obolibrary.org/obo/",
                 },
-                "relation": "relatedMatch",
+                "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],
@@ -1540,18 +1565,20 @@ def civic_did3():
             {
                 "coding": {
                     "label": "Acute Myeloid Leukemia",
-                    "code": "ncit:C3171",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C3171",
+                    "code": "C3171",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
-                    "code": "mondo:0018874",
-                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                    "id": "MONDO_0018874",
+                    "code": "MONDO:0018874",
+                    "system": "https://purl.obolibrary.org/obo/",
                 },
-                "relation": "relatedMatch",
+                "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],
@@ -1579,9 +1606,10 @@ def civic_gid29():
             {
                 "coding": {
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
-                    "code": "ncbigene:3815",
+                    "id": "ncbigene:3815",
+                    "code": "3815",
                 },
-                "relation": "relatedMatch",
+                "relation": "exactMatch",
                 "extensions": [
                     *get_vicc_normalizer_ext(is_priority=False),
                     {"name": "civic_annotation", "value": True},
@@ -1589,8 +1617,9 @@ def civic_gid29():
             },
             {
                 "coding": {
-                    "system": "https://www.genenames.org",
-                    "code": "hgnc:6342",
+                    "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+                    "id": "hgnc:6342",
+                    "code": "HGNC:6342",
                     "label": "KIT",
                 },
                 "relation": "exactMatch",
@@ -1791,18 +1820,20 @@ def moa_abl1():
             {
                 "coding": {
                     "label": "ABL1",
-                    "code": "hgnc:76",
-                    "system": "https://www.genenames.org",
+                    "id": "hgnc:76",
+                    "code": "HGNC:76",
+                    "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_ext(is_priority=True),
             },
             {
                 "coding": {
-                    "code": "ncbigene:25",
+                    "id": "ncbigene:25",
+                    "code": "25",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
-                "relation": "relatedMatch",
+                "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_ext(is_priority=False),
             },
         ],
@@ -1829,10 +1860,11 @@ def moa_imatinib():
                             "mappings": [
                                 {
                                     "coding": {
-                                        "code": "ncit:C9235",
-                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                        "id": "ncit:C9235",
+                                        "code": "C9235",
+                                        "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                     },
-                                    "relation": "relatedMatch",
+                                    "relation": "exactMatch",
                                 }
                             ],
                         },
@@ -1843,10 +1875,11 @@ def moa_imatinib():
                             "mappings": [
                                 {
                                     "coding": {
-                                        "code": "ncit:C3174",
-                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                        "id": "ncit:C3174",
+                                        "code": "C3174",
+                                        "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                     },
-                                    "relation": "relatedMatch",
+                                    "relation": "exactMatch",
                                 }
                             ],
                         },
@@ -1857,10 +1890,11 @@ def moa_imatinib():
                             "mappings": [
                                 {
                                     "coding": {
-                                        "code": "ncit:C3167",
-                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                        "id": "ncit:C3167",
+                                        "code": "C3167",
+                                        "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                     },
-                                    "relation": "relatedMatch",
+                                    "relation": "exactMatch",
                                 }
                             ],
                         },
@@ -1871,10 +1905,11 @@ def moa_imatinib():
                             "mappings": [
                                 {
                                     "coding": {
-                                        "code": "ncit:C3247",
-                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                        "id": "ncit:C3247",
+                                        "code": "C3247",
+                                        "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                     },
-                                    "relation": "relatedMatch",
+                                    "relation": "exactMatch",
                                 }
                             ],
                         },
@@ -1885,10 +1920,11 @@ def moa_imatinib():
                             "mappings": [
                                 {
                                     "coding": {
-                                        "code": "ncit:C3868",
-                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                        "id": "ncit:C3868",
+                                        "code": "C3868",
+                                        "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                     },
-                                    "relation": "relatedMatch",
+                                    "relation": "exactMatch",
                                 }
                             ],
                         },
@@ -1904,10 +1940,11 @@ def moa_imatinib():
                             "mappings": [
                                 {
                                     "coding": {
-                                        "code": "ncit:C9306",
-                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                        "id": "ncit:C9306",
+                                        "code": "C9306",
+                                        "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                     },
-                                    "relation": "relatedMatch",
+                                    "relation": "exactMatch",
                                 }
                             ],
                         },
@@ -1918,10 +1955,11 @@ def moa_imatinib():
                             "mappings": [
                                 {
                                     "coding": {
-                                        "code": "ncit:C27038",
-                                        "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                                        "id": "ncit:C27038",
+                                        "code": "C27038",
+                                        "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                                     },
-                                    "relation": "relatedMatch",
+                                    "relation": "exactMatch",
                                 }
                             ],
                         },
@@ -1933,8 +1971,9 @@ def moa_imatinib():
             {
                 "coding": {
                     "label": "imatinib",
-                    "code": "rxcui:282388",
-                    "system": "https://www.nlm.nih.gov/research/umls/rxnorm/index.html",
+                    "id": "rxcui:282388",
+                    "code": "282388",
+                    "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
@@ -1963,18 +2002,20 @@ def moa_chronic_myelogenous_leukemia():
             {
                 "coding": {
                     "label": "Chronic Myeloid Leukemia, BCR-ABL1 Positive",
-                    "code": "ncit:C3174",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C3174",
+                    "code": "C3174",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
-                    "code": "mondo:0011996",
-                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                    "id": "MONDO_0011996",
+                    "code": "MONDO:0011996",
+                    "system": "https://purl.obolibrary.org/obo/",
                 },
-                "relation": "relatedMatch",
+                "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],

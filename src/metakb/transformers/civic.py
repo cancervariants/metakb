@@ -858,8 +858,8 @@ class CivicTransformer(Transformer):
 
                 civic_ncbi_annotation_match = False
                 for mapping in mappings:
-                    if mapping.coding.code.root.startswith("ncbigene:"):
-                        if mapping.coding.code.root == ncbigene:
+                    if mapping.coding.id.startswith("ncbigene:"):
+                        if mapping.coding.id == ncbigene:
                             mapping.extensions.append(
                                 Extension(name="civic_annotation", value=True)
                             )
@@ -869,7 +869,7 @@ class CivicTransformer(Transformer):
                         _logger.debug(
                             "CIViC NCBI gene and Gene Normalizer mismatch: %s vs %s",
                             ncbigene,
-                            mapping.coding.code.root,
+                            mapping.coding.id,
                         )
 
                 if not civic_ncbi_annotation_match:
