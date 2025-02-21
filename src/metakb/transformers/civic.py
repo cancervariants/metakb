@@ -4,6 +4,7 @@ import logging
 import re
 from enum import Enum
 from pathlib import Path
+from typing import ClassVar
 
 from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
 from ga4gh.core.models import (
@@ -30,7 +31,7 @@ from ga4gh.va_spec.base import (
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from ga4gh.vrs.models import Expression, Syntax, Variation
+from ga4gh.vrs.models import Allele, Expression, Syntax, Variation
 from pydantic import BaseModel, ValidationError
 
 from metakb import APP_ROOT
@@ -43,6 +44,7 @@ from metakb.transformers.base import (
     MethodId,
     TherapyType,
     Transformer,
+    _TransformedRecordsCache,
 )
 
 _logger = logging.getLogger(__name__)
@@ -134,13 +136,14 @@ class _VariationCache(BaseModel):
     transforming MP data
     """
 
-    vrs_variation: Variation
+    vrs_variation: Variation | None = None
     civic_gene_id: str
     variant_types: list[Coding] | None = None
     mappings: list[ConceptMapping] | None = None
     aliases: list[Extension] | None = None
-    coordinates: dict | None
+    coordinates: dict | None = None
     members: list[Variation] | None = None
+    extensions: list[Extension] | None = None
 
 
 class SourcePrefix(str, Enum):
@@ -149,6 +152,21 @@ class SourcePrefix(str, Enum):
     PUBMED = "PUBMED"
     ASCO = "ASCO"
     ASH = "ASH"
+
+
+class _CivicTransformedCache(_TransformedRecordsCache):
+    """Create model for caching CIViC data"""
+
+    variations: ClassVar[dict[str, _VariationCache]] = {}
+    categorical_variants: ClassVar[dict[str, CategoricalVariant]] = {}
+    evidence: ClassVar[
+        dict[
+            str,
+            VariantDiagnosticStudyStatement
+            | VariantPrognosticStudyStatement
+            | VariantTherapeuticResponseStudyStatement,
+        ]
+    ] = {}
 
 
 class CivicTransformer(Transformer):
@@ -174,16 +192,11 @@ class CivicTransformer(Transformer):
         self.processed_data.methods = [
             self.methods_mapping[MethodId.CIVIC_EID_SOP.value]
         ]
-        self.able_to_normalize = {
-            "variations": {},  # will store _VariationCache data
-            "categorical_variants": {},
-            "conditions": {},
-            "therapies": {},
-            "genes": {},
-        }
+        self._cache = self._create_cache()
 
-        # CIViC EID ID: CIVIC EID
-        self._evidence_cache = {}
+    def _create_cache(self) -> _CivicTransformedCache:
+        """Create cache for transformed records"""
+        return _CivicTransformedCache()
 
     @staticmethod
     def _mp_to_variant_mapping(molecular_profiles: list[dict]) -> tuple[list, dict]:
@@ -265,13 +278,10 @@ class CivicTransformer(Transformer):
         await self._add_variations(variants)
         self._add_genes(harvested_data.genes)
 
-        # Only want to add MPs where variation-normalizer succeeded for the related
-        # variant. Will update `categorical_variants`
-        able_to_normalize_vids = self.able_to_normalize["variations"].keys()
         mps = [
             mp
             for mp in molecular_profiles
-            if f"civic.vid:{mp['variant_ids'][0]}" in able_to_normalize_vids
+            if f"civic.vid:{mp['variant_ids'][0]}" in self._cache.variations
         ]
         self._add_categorical_variants(mps, mp_id_to_v_id_mapping)
 
@@ -291,8 +301,7 @@ class CivicTransformer(Transformer):
         """Create Variant Study Statement given CIViC Evidence Items.
         Will add associated values to ``processed_data`` instance variable
         (``therapies``, ``conditions``, and ``documents``).
-        ``able_to_normalize`` and ``unable_to_normalize`` will also be mutated for
-        associated therapies and conditions.
+        ``_cache`` will also be mutated for associated therapies and conditions.
 
         :param record: CIViC Evidence Item or Assertion
         :param mp_id_to_v_id_mapping: Molecular Profile ID to Variant ID mapping
@@ -302,7 +311,7 @@ class CivicTransformer(Transformer):
         """
         # Check cache for molecular profile, variation and gene data
         mp_id = f"civic.mpid:{record['molecular_profile_id']}"
-        mp = self.able_to_normalize["categorical_variants"].get(mp_id)
+        mp = self._cache.categorical_variants.get(mp_id)
         if not mp:
             _logger.debug("mp_id not supported: %s", mp_id)
             return
@@ -310,7 +319,7 @@ class CivicTransformer(Transformer):
         variant_id = (
             f"civic.vid:{mp_id_to_v_id_mapping[record['molecular_profile_id']]}"
         )
-        variation_gene_map = self.able_to_normalize["variations"].get(variant_id)
+        variation_gene_map = self._cache.variations.get(variant_id)
         if not variation_gene_map:
             _logger.debug("variant_id not supported: %s", variant_id)
             return
@@ -342,7 +351,7 @@ class CivicTransformer(Transformer):
             evidence_lines = []
             for eid in record["evidence_ids"]:
                 civic_eid = f"civic.eid:{eid}"
-                evidence_item = self._evidence_cache.get(civic_eid)
+                evidence_item = self._cache.evidence.get(civic_eid)
                 if evidence_item:
                     evidence_lines.append(
                         EvidenceLine(
@@ -387,9 +396,7 @@ class CivicTransformer(Transformer):
             condition_key = "objectCondition"
 
         # Get qualifier
-        civic_gene = self.able_to_normalize["genes"].get(
-            variation_gene_map.civic_gene_id
-        )
+        civic_gene = self._cache.genes.get(variation_gene_map.civic_gene_id)
 
         variant_origin = record["variant_origin"].upper()
         if variant_origin == "SOMATIC":
@@ -454,7 +461,7 @@ class CivicTransformer(Transformer):
             statement = VariantDiagnosticStudyStatement(**stmt_params)
 
         if is_evidence:
-            self._evidence_cache[statement_id] = statement
+            self._cache.evidence[statement_id] = statement
             self.processed_data.statements_evidence.append(statement)
         else:
             self.processed_data.statements_assertions.append(statement)
@@ -495,31 +502,27 @@ class CivicTransformer(Transformer):
         self, molecular_profiles: list[dict], mp_id_to_v_id_mapping: dict
     ) -> None:
         """Create Categorical Variant objects for all supported MP records.
-        Mutates instance variables ``able_to_normalize['categorical_variants']`` and
+        Mutates instance variables ``_cache.categorical_variants`` and
         ``processed_data.categorical_variants``.
 
         :param molecular_profiles: List of supported Molecular Profiles in CIViC.
-            The associated, single variant record for each MP was successfully
-            normalized
+            The associated, single variant record for each MP
         :param mp_id_to_v_id_mapping: Mapping from Molecular Profile ID to Variant ID
             {mp_id: v_id}
         """
         for mp in molecular_profiles:
             mp_id = f"civic.mpid:{mp['id']}"
             vid = f"civic.vid:{mp_id_to_v_id_mapping[mp['id']]}"
-            civic_variation_data = self.able_to_normalize["variations"][vid]
+            civic_variation_data: _VariationCache = self._cache.variations[vid]
 
-            # Only support Alleles for now
-            if civic_variation_data.vrs_variation.root.type != "Allele":
-                continue
-
-            extensions = []
+            extensions = civic_variation_data.extensions or []
 
             # Get aliases from MP and Variant record
             if civic_variation_data.aliases:
                 aliases = civic_variation_data.aliases[0].value
             else:
                 aliases = []
+
             for a in mp["aliases"] or []:
                 if not SNP_RE.match(a) and a not in aliases:
                     aliases.append(a)
@@ -544,21 +547,27 @@ class CivicTransformer(Transformer):
                         Extension(name=ext_key, value=civic_variation_data_value)
                     )
 
+            constraints = None
+            if civic_variation_data.vrs_variation and isinstance(
+                civic_variation_data.vrs_variation.root, Allele
+            ):
+                constraints = [
+                    DefiningAlleleConstraint(
+                        allele=civic_variation_data.vrs_variation.root,
+                    )
+                ]
+
             cv = CategoricalVariant(
                 id=mp_id,
                 description=mp["description"],
                 label=mp["name"],
-                constraints=[
-                    DefiningAlleleConstraint(
-                        allele=civic_variation_data.vrs_variation.root,
-                    )
-                ],
+                constraints=constraints,
                 mappings=civic_variation_data.mappings,
                 extensions=extensions or None,
                 members=civic_variation_data.members,
             )
             self.processed_data.categorical_variants.append(cv)
-            self.able_to_normalize["categorical_variants"][mp_id] = cv
+            self._cache.categorical_variants[mp_id] = cv
 
     @staticmethod
     def _get_variant_name(variant: dict) -> str:
@@ -606,12 +615,11 @@ class CivicTransformer(Transformer):
 
         return True
 
-    async def _get_variation_members(self, variant: dict) -> list[Variation] | None:
+    async def _get_variation_members(self, variant: dict) -> list[Variation]:
         """Get members field for variation object. This is the related variant concepts.
-        For now, we will only do genomic HGVS expressions
 
         :param variant: CIViC Variant record
-        :return: List containing one VRS variation record for associated genomic HGVS
+        :return: List containing one VRS variation record for associated HGVS
             expression, if variation-normalizer was able to normalize
         """
         members = []
@@ -642,10 +650,10 @@ class CivicTransformer(Transformer):
         return members
 
     async def _add_variations(self, variants: list[dict]) -> None:
-        """Normalize supported CIViC variant records.
-        Mutates instance variables ``able_to_normalize['variations']`` and
-        ``processed_data.variations``, if the variation-normalizer can successfully
-        normalize the variant
+        """Transform supported CIViC variant records.
+
+        Mutates instance variables ``_cache.variations`` and
+        ``processed_data.variations``
 
         :param variants: List of all CIViC variant records
         """
@@ -653,35 +661,40 @@ class CivicTransformer(Transformer):
             variant_id = f"civic.vid:{variant['id']}"
             variant_name = self._get_variant_name(variant)
             variant_query = f"{variant['entrez_name']} {variant_name}"
+            vrs_variation = None
+            civic_variation = None
+            extensions = []
+            aliases_extensions = []
 
-            if not self._is_supported_variant_query(variant_name, variant_id):
-                continue
+            if self._is_supported_variant_query(variant_name, variant_id):
+                vrs_variation = await self.vicc_normalizers.normalize_variation(
+                    [variant_query]
+                )
 
-            vrs_variation = await self.vicc_normalizers.normalize_variation(
-                [variant_query]
-            )
-
-            # Couldn't find normalized concept
             if not vrs_variation:
                 _logger.debug(
                     "Variation Normalizer unable to normalize %s using query %s",
                     variant_id,
                     variant_query,
                 )
-                continue
+                extensions.append(self._get_vicc_normalizer_failure_ext())
+                members = None
+            else:
+                # Create VRS Variation object
+                params = vrs_variation.model_dump(exclude_none=True)
+                params["label"] = variant["name"]
+                civic_variation = Variation(**params)
 
-            # Create VRS Variation object
-            params = vrs_variation.model_dump(exclude_none=True)
-            params["label"] = variant["name"]
-            civic_variation = Variation(**params)
+                # Get members
+                members = await self._get_variation_members(variant)
 
             # Get expressions
             hgvs_exprs = self._get_expressions(variant)
             if hgvs_exprs:
-                civic_variation.root.expressions = hgvs_exprs
-
-            # Get members
-            members = await self._get_variation_members(variant)
+                if civic_variation:
+                    civic_variation.root.expressions = hgvs_exprs
+                else:
+                    extensions.append(Extension(name="expressions", value=hgvs_exprs))
 
             # Get variant types
             variant_types_value = [
@@ -692,6 +705,7 @@ class CivicTransformer(Transformer):
                     label="_".join(vt["name"].lower().split()),
                 )
                 for vt in variant["variant_types"]
+                if vt and vt["url"]  # system is required
             ]
 
             # Get mappings
@@ -743,7 +757,9 @@ class CivicTransformer(Transformer):
                     )
                 else:
                     aliases.append(a)
-            extensions = [Extension(name="aliases", value=aliases)] if aliases else []
+
+            if aliases:
+                aliases_extensions.append(Extension(name="aliases", value=aliases))
 
             if variant["coordinates"]:
                 coordinates = {
@@ -752,13 +768,16 @@ class CivicTransformer(Transformer):
             else:
                 coordinates = None
 
-            self.processed_data.variations.append(civic_variation.root)
-            self.able_to_normalize["variations"][variant_id] = _VariationCache(
+            if civic_variation:
+                self.processed_data.variations.append(civic_variation.root)
+
+            self._cache.variations[variant_id] = _VariationCache(
                 vrs_variation=civic_variation,
                 civic_gene_id=f"civic.gid:{variant['gene_id']}",
                 variant_types=variant_types_value or None,
                 mappings=mappings or None,
-                aliases=extensions or None,
+                aliases=aliases_extensions or None,
+                extensions=extensions,
                 coordinates=coordinates or None,
                 members=members,
             )
@@ -773,6 +792,16 @@ class CivicTransformer(Transformer):
         for hgvs_expr in variant["hgvs_expressions"]:
             if ":p." in hgvs_expr:
                 syntax = Syntax.HGVS_P
+            elif ":c." in hgvs_expr:
+                syntax = Syntax.HGVS_C
+            elif ":g." in hgvs_expr:
+                syntax = Syntax.HGVS_G
+            elif ":n." in hgvs_expr:
+                syntax = Syntax.HGVS_N
+            elif ":m." in hgvs_expr:
+                syntax = Syntax.HGVS_M
+            elif ":r." in hgvs_expr:
+                syntax = Syntax.HGVS_R
             else:
                 continue
 
@@ -782,9 +811,8 @@ class CivicTransformer(Transformer):
 
     def _add_genes(self, genes: list[dict]) -> None:
         """Create gene objects for all CIViC gene records.
-        Mutates instance variables ``able_to_normalize['genes']`` and
-        ``processed_data.genes``, if the gene-normalizer can successfully normalize the
-        gene
+
+        Mutates instance variables ``_cache.genes`` and ``processed_data.genes``
 
         :param genes: All genes in CIViC
         """
@@ -855,52 +883,40 @@ class CivicTransformer(Transformer):
                     Extension(name="description", value=gene["description"])
                 )
 
-            if normalized_gene_id:
-                civic_gene = MappableConcept(
-                    id=gene_id,
-                    conceptType="Gene",
-                    label=gene["name"],
-                    mappings=mappings,
-                    extensions=extensions or None,
-                )
-                self.able_to_normalize["genes"][gene_id] = civic_gene
-                self.processed_data.genes.append(civic_gene)
-            else:
-                _logger.debug(
-                    "Gene Normalizer unable to normalize %s using queries: %s",
-                    gene_id,
-                    queries,
-                )
+            civic_gene = MappableConcept(
+                id=gene_id,
+                conceptType="Gene",
+                label=gene["name"],
+                mappings=mappings,
+                extensions=extensions or None,
+            )
+            self._cache.genes[gene_id] = civic_gene
+            self.processed_data.genes.append(civic_gene)
 
-    def _add_disease(self, disease: dict) -> MappableConcept | None:
+    def _add_disease(self, disease: dict) -> MappableConcept:
         """Create or get disease given CIViC disease.
         First looks in cache for existing disease, if not found will attempt to
-        normalize. Will add CIViC disease ID to ``processed_data.conditions`` and
-        ``able_to_normalize['conditions']`` if disease-normalizer is able to normalize.
-        Else will add the CIViC disease ID to ``unable_to_normalize['conditions']``
+        transform. Will add CIViC disease ID to ``processed_data.conditions`` and
+        ``_cache.conditions``
 
         :param disease: CIViC Disease object
-        :return: Disease object if disease-normalizer was able to normalize
+        :return: Disease represented as mappable concept
         """
         disease_id = f"civic.did:{disease['id']}"
-        vrs_disease = self.able_to_normalize["conditions"].get(disease_id)
-        if vrs_disease:
-            return vrs_disease
-        vrs_disease = None
-        if disease_id not in self.unable_to_normalize["conditions"]:
-            vrs_disease = self._get_disease(disease)
-            if vrs_disease:
-                self.able_to_normalize["conditions"][disease_id] = vrs_disease
-                self.processed_data.conditions.append(vrs_disease)
-            else:
-                self.unable_to_normalize["conditions"].add(disease_id)
-        return vrs_disease
+        civic_disease = self._cache.conditions.get(disease_id)
+        if civic_disease:
+            return civic_disease
 
-    def _get_disease(self, disease: dict) -> MappableConcept | None:
+        civic_disease = self._get_disease(disease)
+        self._cache.conditions[disease_id] = civic_disease
+        self.processed_data.conditions.append(civic_disease)
+        return civic_disease
+
+    def _get_disease(self, disease: dict) -> MappableConcept:
         """Get Disease object for a CIViC disease
 
         :param disease: CIViC disease record
-        :return: If able to normalize, Disease. Otherwise, `None`
+        :return: Disease represented as a mappable concept
         """
         disease_id = f"civic.did:{disease['id']}"
         display_name = disease["display_name"]
@@ -928,6 +944,7 @@ class CivicTransformer(Transformer):
             disease_norm_resp,
             normalized_disease_id,
         ) = self.vicc_normalizers.normalize_disease(queries)
+        extensions = []
 
         if not normalized_disease_id:
             _logger.debug(
@@ -935,13 +952,20 @@ class CivicTransformer(Transformer):
                 disease_id,
                 queries,
             )
-            return None
+            extensions.append(self._get_vicc_normalizer_failure_ext())
+        else:
+            mappings.extend(
+                self._get_vicc_normalizer_mappings(
+                    normalized_disease_id, disease_norm_resp
+                )
+            )
 
-        mappings.extend(
-            self._get_vicc_normalizer_mappings(normalized_disease_id, disease_norm_resp)
-        )
         return MappableConcept(
-            id=disease_id, conceptType="Disease", label=display_name, mappings=mappings
+            id=disease_id,
+            conceptType="Disease",
+            label=display_name,
+            mappings=mappings or None,
+            extensions=extensions or None,
         )
 
     def _get_therapeutic_substitute_group(
@@ -955,8 +979,7 @@ class CivicTransformer(Transformer):
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
         :param therapies_in: List of CIViC therapy objects
         :param therapy_interaction_type: Therapy interaction type provided by CIViC
-        :return: If able to normalize all therapy objects in `therapies`, returns
-            Therapeutic Substitute Group
+        :return: Therapeutic Substitute Group
         """
         therapies = []
 
@@ -997,13 +1020,13 @@ class CivicTransformer(Transformer):
 
         return tg
 
-    def _get_therapy(self, therapy: dict) -> MappableConcept | None:
+    def _get_therapy(self, therapy_id: str, therapy: dict) -> MappableConcept:
         """Get Therapy mappable concept for CIViC therapy
 
+        :param therapy_id: ID for therapy
         :param therapy: CIViC therapy object
-        :return: If able to normalize therapy, returns therapy mappable concept
+        :return: Therapy represented as a mappable concept
         """
-        therapy_id = f"civic.tid:{therapy['id']}"
         label = therapy["name"]
         ncit_id = f"ncit:{therapy['ncit_id']}"
         mappings = []
@@ -1022,40 +1045,42 @@ class CivicTransformer(Transformer):
         else:
             queries = [label]
 
+        extensions = []
+        if therapy["aliases"]:
+            extensions.append(Extension(name="aliases", value=therapy["aliases"]))
+
         (
             therapy_norm_resp,
             normalized_therapeutic_id,
         ) = self.vicc_normalizers.normalize_therapy(queries)
-
         if not normalized_therapeutic_id:
             _logger.debug(
                 "Therapy Normalizer unable to normalize: using queries ncit:%s and %s",
                 ncit_id,
                 label,
             )
-            return None
-
-        regulatory_approval_extension = (
-            self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)
-        )
-        mappings.extend(
-            self._get_vicc_normalizer_mappings(
-                normalized_therapeutic_id, therapy_norm_resp
+            extensions.append(self._get_vicc_normalizer_failure_ext())
+        else:
+            regulatory_approval_extension = (
+                self.vicc_normalizers.get_regulatory_approval_extension(
+                    therapy_norm_resp
+                )
             )
-        )
 
-        extensions = []
-        if regulatory_approval_extension:
-            extensions.append(regulatory_approval_extension)
+            if regulatory_approval_extension:
+                extensions.append(regulatory_approval_extension)
 
-        if therapy["aliases"]:
-            extensions.append(Extension(name="aliases", value=therapy["aliases"]))
+            mappings.extend(
+                self._get_vicc_normalizer_mappings(
+                    normalized_therapeutic_id, therapy_norm_resp
+                )
+            )
 
         return MappableConcept(
             id=therapy_id,
             label=label,
             conceptType="Therapy",
-            mappings=mappings,
+            mappings=mappings or None,
             extensions=extensions or None,
         )
 

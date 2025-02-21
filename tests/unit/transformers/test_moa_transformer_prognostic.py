@@ -4,7 +4,11 @@ import json
 
 import pytest
 import pytest_asyncio
-from tests.conftest import TEST_TRANSFORMERS_DIR, get_vicc_normalizer_ext
+from tests.conftest import (
+    TEST_TRANSFORMERS_DIR,
+    get_vicc_normalizer_ext,
+    get_vicc_normalizer_priority_ext,
+)
 
 from metakb.transformers.moa import MoaTransformer
 
@@ -131,7 +135,7 @@ def moa_myelodysplasia():
                     "system": "http://purl.obolibrary.org/obo/ncit.owl",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
@@ -139,7 +143,7 @@ def moa_myelodysplasia():
                     "system": "http://purl.obolibrary.org/obo/mondo.owl",
                 },
                 "relation": "relatedMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=False),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],
     }
@@ -149,7 +153,7 @@ def moa_myelodysplasia():
 def moa_bcor():
     """Create MOA gene BCOR test fixture"""
     return {
-        "id": "moa.normalize.gene:BCOR",
+        "id": "moa.normalize.gene.hgnc:20893",
         "conceptType": "Gene",
         "label": "BCOR",
         "mappings": [
@@ -160,7 +164,7 @@ def moa_bcor():
                     "system": "https://www.genenames.org",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
@@ -324,7 +328,7 @@ def moa_vid532():
 def moa_sf3b1():
     """Create MOA gene SF3B1 test fixture"""
     return {
-        "id": "moa.normalize.gene:SF3B1",
+        "id": "moa.normalize.gene.hgnc:10768",
         "conceptType": "Gene",
         "label": "SF3B1",
         "mappings": [
@@ -335,7 +339,7 @@ def moa_sf3b1():
                     "system": "https://www.genenames.org",
                 },
                 "relation": "exactMatch",
-                "extensions": get_vicc_normalizer_ext(is_priority=True),
+                "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
