@@ -51,6 +51,9 @@ class _MoaTransformedCache(_TransformedRecordsCache):
 
     variations: ClassVar[dict[str, dict]] = {}
     documents: ClassVar[dict[str, Document]] = {}
+    normalized_therapies: ClassVar[
+        dict[str, MappableConcept]
+    ] = {}  # normalized_id: therapy
 
 
 class MoaTransformer(Transformer):
@@ -503,12 +506,62 @@ class MoaTransformer(Transformer):
         :param therapy: MOA therapy name
         :return: Therapy represented as a mappable concept
         """
+
+        def _resolve_therapy_discrepancy(
+            cached_id: str, moa_concept_label: str
+        ) -> MappableConcept:
+            """Resolve conflict where MOA therapy labels resolve to the same normalized
+            concept
+
+            If conflict occurs, the min label will be used as the primary label for the
+            mappable concept, and the other label will be added as an alias in
+            extensions. The cache will be updated.
+
+            :param cached_id: Cached ID for therapy concept that is in
+                ``self._cache.normalized_therapies``
+            :param moa_concept_label: MOA provided label for therapy concept
+            :return: Therapy represented as a mappable concept
+            """
+            therapy_norm_obj = self._cache.normalized_therapies[cached_id]
+            og_therapy_norm_label = therapy_norm_obj.label
+            if moa_concept_label != og_therapy_norm_label:
+                logger.debug(
+                    "MOA therapy %s and %s resolve to same concept %s",
+                    moa_concept_label,
+                    og_therapy_norm_label,
+                    cached_id,
+                )
+                alias = max(moa_concept_label, og_therapy_norm_label)
+                therapy_norm_obj.label = min(moa_concept_label, og_therapy_norm_label)
+                extensions = therapy_norm_obj.extensions or []
+
+                aliases_ext = next(
+                    (ext for ext in extensions if ext.name == "aliases"),
+                    None,
+                )
+                if aliases_ext:
+                    if therapy_norm_obj.label in aliases_ext.value:
+                        aliases_ext.value.remove(therapy_norm_obj.label)
+                    aliases_ext.value.append(alias)
+                else:
+                    extensions.append(Extension(name="aliases", value=[alias]))
+                    therapy_norm_obj.extensions = extensions
+
+                # Remove from processed (it will be added back in _add_therapy)
+                self.processed_data.therapies = [
+                    t for t in self.processed_data.therapies if t.id != cached_id
+                ]
+                self._cache.normalized_therapies[cached_id] = therapy_norm_obj
+            return therapy_norm_obj
+
         mappings = []
         extensions = []
+        label = therapy["label"]
+
         (
             therapy_norm_resp,
             normalized_therapeutic_id,
-        ) = self.vicc_normalizers.normalize_therapy([therapy["label"]])
+        ) = self.vicc_normalizers.normalize_therapy([label])
 
         if not normalized_therapeutic_id:
             logger.debug("Therapy Normalizer unable to normalize: %s", therapy)
@@ -516,6 +569,10 @@ class MoaTransformer(Transformer):
             id_ = therapy_id
         else:
             id_ = f"moa.{therapy_norm_resp.therapy.id}"
+
+            if id_ in self._cache.normalized_therapies:
+                return _resolve_therapy_discrepancy(id_, label)
+
             regulatory_approval_extension = (
                 self.vicc_normalizers.get_regulatory_approval_extension(
                     therapy_norm_resp
@@ -531,13 +588,15 @@ class MoaTransformer(Transformer):
                 )
             )
 
-        return MappableConcept(
+        therapy_concept = MappableConcept(
             id=id_,
             conceptType="Therapy",
-            label=therapy["label"],
+            label=label,
             mappings=mappings or None,
             extensions=extensions or None,
         )
+        self._cache.normalized_therapies[id_] = therapy_concept
+        return therapy_concept
 
     def _add_disease(self, disease: dict) -> MappableConcept | None:
         """Create or get disease given MOA disease.
