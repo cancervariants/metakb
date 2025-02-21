@@ -3,7 +3,7 @@
 import json
 import logging
 from pathlib import Path
-from urllib.parse import quote
+from typing import ClassVar
 
 from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
 from ga4gh.core import sha512t24u
@@ -39,9 +39,18 @@ from metakb.transformers.base import (
     MoaEvidenceLevel,
     TherapyType,
     Transformer,
+    _sanitize_name,
+    _TransformedRecordsCache,
 )
 
 logger = logging.getLogger(__name__)
+
+
+class _MoaTransformedCache(_TransformedRecordsCache):
+    """Create model for caching MOA data"""
+
+    variations: ClassVar[dict[str, dict]] = {}
+    documents: ClassVar[dict[str, Document]] = {}
 
 
 class MoaTransformer(Transformer):
@@ -67,13 +76,11 @@ class MoaTransformer(Transformer):
         self.processed_data.methods = [
             self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]
         ]
-        self.able_to_normalize = {
-            "variations": {},
-            "conditions": {},
-            "therapies": {},
-            "genes": {},
-            "documents": {},
-        }
+        self._cache = self._create_cache()
+
+    def _create_cache(self) -> _MoaTransformedCache:
+        """Create cache for transformed records"""
+        return _MoaTransformedCache()
 
     async def transform(self, harvested_data: MoaHarvestedData) -> None:
         """Transform MOA harvested JSON to common data model. Will store transformed
@@ -95,8 +102,7 @@ class MoaTransformer(Transformer):
         """Create Variant Study Statements from MOA assertions.
         Will add associated values to ``processed_data`` instance variable
         (``therapies``, ``conditions``, and ``statements``).
-        ``able_to_normalize`` and ``unable_to_normalize`` will
-        also be mutated for associated therapies and conditions.
+        ``_cache`` will also be mutated for associated therapies and conditions.
 
         :param assertions: MOA assertion record
         """
@@ -104,7 +110,7 @@ class MoaTransformer(Transformer):
         variant_id = assertion["variant"]["id"]
 
         # Check cache for variation record (which contains gene information)
-        variation_gene_map = self.able_to_normalize["variations"].get(variant_id)
+        variation_gene_map = self._cache.variations.get(variant_id)
         if not variation_gene_map:
             logger.debug(
                 "%s has no variation for variant_id %s", assertion_id, variant_id
@@ -131,7 +137,7 @@ class MoaTransformer(Transformer):
             return
 
         # Add document
-        document = self.able_to_normalize["documents"].get(assertion["source_id"])
+        document = self._cache.documents.get(assertion["source_id"])
 
         feature_type = assertion["variant"]["feature_type"]
         if feature_type == "somatic_variant":
@@ -204,49 +210,40 @@ class MoaTransformer(Transformer):
 
     async def _add_categorical_variants(self, variants: list[dict]) -> None:
         """Create Categorical Variant objects for all MOA variant records.
-        Mutates instance variables ``able_to_normalize['variations']`` and
-        ``processed_data.variations``, if the variation-normalizer can successfully
-        normalize the variant
+
+        Mutates instance variables ``_cache['variations']`` and
+        ``processed_data.variations``
 
         :param variants: All variants in MOAlmanac
         """
         for variant in variants:
+            if variant.get("gene2"):
+                # Do not support gene fusions for now
+                continue
+
             variant_id = variant["id"]
             moa_variant_id = f"moa.variant:{variant_id}"
             feature = variant["feature"]
-            # Skipping Fusion + Translocation + rearrangements that variation normalizer
-            # does not support
-            if "rearrangement_type" in variant:
+            moa_variation = None
+            gene = variant.get("gene") or variant.get("gene1")
+            moa_gene = self._cache.genes[_sanitize_name(gene)] if gene else None
+            protein_change = variant.get("protein_change")
+            constraints = None
+            extensions = []
+
+            if "rearrangement_type" in variant or not protein_change or not gene:
                 logger.debug(
                     "Variation Normalizer does not support %s: %s",
                     moa_variant_id,
                     feature,
                 )
-                continue
-
-            # Gene is required to form query
-            gene = variant.get("gene")
-            if not gene:
-                logger.debug(
-                    "Variation Normalizer does not support %s: %s (no gene provided)",
-                    moa_variant_id,
-                    feature,
-                )
-                continue
-
-            moa_gene = self.able_to_normalize["genes"].get(quote(gene))
-            if not moa_gene:
-                logger.debug(
-                    "moa.variant:%s has no gene for gene, %s", variant_id, gene
-                )
-                continue
-
-            # Form query and run through variation-normalizer
-            # For now, the normalizer only support amino acid substitution
-            vrs_variation = None
-            if variant.get("protein_change"):
+                extensions.append(self._get_vicc_normalizer_failure_ext())
+            else:
+                # Form query and run through variation-normalizer
+                # For now, the normalizer only support amino acid substitution
+                vrs_variation = None
                 gene = moa_gene.label
-                query = f"{gene} {variant['protein_change'][2:]}"
+                query = f"{gene} {protein_change[2:]}"
                 vrs_variation = await self.vicc_normalizers.normalize_variation([query])
 
                 if not vrs_variation:
@@ -255,20 +252,14 @@ class MoaTransformer(Transformer):
                         variant_id,
                         query,
                     )
-                    continue
-            else:
-                logger.debug(
-                    "Variation Normalizer does not support %s: %s",
-                    moa_variant_id,
-                    feature,
-                )
-                continue
-
-            # Create VRS Variation object
-            params = vrs_variation.model_dump(exclude_none=True)
-            moa_variant_id = f"moa.variant:{variant_id}"
-            params["id"] = vrs_variation.id
-            moa_variation = Variation(**params)
+                    extensions.append(self._get_vicc_normalizer_failure_ext())
+                else:
+                    # Create VRS Variation object
+                    params = vrs_variation.model_dump(exclude_none=True)
+                    moa_variant_id = f"moa.variant:{variant_id}"
+                    params["id"] = vrs_variation.id
+                    moa_variation = Variation(**params)
+                    constraints = [DefiningAlleleConstraint(allele=moa_variation.root)]
 
             # Add MOA representative coordinate data to extensions
             coordinates_keys = [
@@ -282,9 +273,14 @@ class MoaTransformer(Transformer):
                 "exon",
             ]
             moa_rep_coord = {k: variant.get(k) for k in coordinates_keys}
-            extensions = [
-                Extension(name="MOA representative coordinate", value=moa_rep_coord)
-            ]
+            if any(moa_rep_coord.values()):
+                extensions.append(
+                    Extension(name="MOA representative coordinate", value=moa_rep_coord)
+                )
+
+            if variant.get("locus"):
+                extensions.append(Extension(name="MOA locus", value=variant["locus"]))
+
             members = await self._get_variation_members(moa_rep_coord)
 
             # Add mappings data
@@ -299,7 +295,7 @@ class MoaTransformer(Transformer):
                 )
             ]
 
-            if variant["rsid"]:
+            if variant.get("rsid"):
                 mappings.append(
                     ConceptMapping(
                         coding=Coding(
@@ -313,13 +309,13 @@ class MoaTransformer(Transformer):
             cv = CategoricalVariant(
                 id=moa_variant_id,
                 label=feature,
-                constraints=[DefiningAlleleConstraint(allele=moa_variation.root)],
+                constraints=constraints,
                 mappings=mappings or None,
                 extensions=extensions,
                 members=members,
             )
 
-            self.able_to_normalize["variations"][variant_id] = {
+            self._cache.variations[variant_id] = {
                 "cv": cv,
                 "moa_gene": moa_gene,
             }
@@ -329,7 +325,8 @@ class MoaTransformer(Transformer):
         self, moa_rep_coord: dict
     ) -> list[Variation] | None:
         """Get members field for variation object. This is the related variant concepts.
-        FOr now, only looks at genomic representative coordinate.
+
+        For now, only looks at genomic representative coordinate.
 
         :param moa_rep_coord: MOA Representative Coordinate
         :return: List containing one VRS variation record for associated genomic
@@ -370,9 +367,8 @@ class MoaTransformer(Transformer):
 
     def _add_genes(self, genes: list[str]) -> None:
         """Create gene objects for all MOA gene records.
-        Mutates instance variables ``able_to_normalize['genes']`` and
-        ``processed_data.genes``, if the gene-normalizer can successfully normalize the
-        gene
+
+        Mutates instance variables ``_cache['genes']`` and ``processed_data.genes``
 
         :param genes: All genes in MOAlmanac
         """
@@ -380,24 +376,33 @@ class MoaTransformer(Transformer):
             gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(
                 [gene]
             )
+            mappings = []
+            extensions = []
             if normalized_gene_id:
-                moa_gene = MappableConcept(
-                    id=f"moa.normalize.gene:{quote(gene)}",
-                    conceptType="Gene",
-                    label=gene,
-                    mappings=self._get_vicc_normalizer_mappings(
+                mappings.extend(
+                    self._get_vicc_normalizer_mappings(
                         normalized_gene_id, gene_norm_resp
-                    ),
+                    )
                 )
-                self.able_to_normalize["genes"][quote(gene)] = moa_gene
-                self.processed_data.genes.append(moa_gene)
+                id_ = f"moa.{gene_norm_resp.gene.id}"
             else:
-                logger.debug("Gene Normalizer unable to normalize: %s", gene)
+                id_ = f"moa.gene:{_sanitize_name(gene)}"
+                extensions.append(self._get_vicc_normalizer_failure_ext())
+
+            moa_gene = MappableConcept(
+                id=id_,
+                conceptType="Gene",
+                label=gene,
+                mappings=mappings or None,
+                extensions=extensions or None,
+            )
+            self._cache.genes[_sanitize_name(gene)] = moa_gene
+            self.processed_data.genes.append(moa_gene)
 
     def _add_documents(self, sources: list) -> None:
         """Create document objects for all MOA sources.
         Mutates instance variables ``processed_data.documents`` and
-        ``self.able_to_normalize["documents"]``
+        ``self._cache.documents"]``
 
         :param sources: All sources in MOA
         """
@@ -426,7 +431,7 @@ class MoaTransformer(Transformer):
                 mappings=mappings,
                 extensions=[Extension(name="source_type", value=source["type"])],
             )
-            self.able_to_normalize["documents"][source_id] = document
+            self._cache.documents[source_id] = document
             self.processed_data.documents.append(document)
 
     def _get_therapy_or_group(
@@ -435,7 +440,7 @@ class MoaTransformer(Transformer):
         """Get therapy mappable concept (single) or therapy group (multiple)
 
         :param assertion: MOA assertion record
-        :return: Therapy object, if found and able to be normalized
+        :return: Therapy object represented as a mappable concept or therapy group
         """
         therapy = assertion["therapy"]
         therapy_name = therapy["name"]
@@ -464,7 +469,7 @@ class MoaTransformer(Transformer):
             )
             therapy_id = f"moa.ctid:{therapeutic_digest}"
         else:
-            therapy_id = f"moa.therapy:{therapy_name}"
+            therapy_id = f"moa.therapy:{_sanitize_name(therapy_name)}"
             therapies = [{"label": therapy_name}]
             therapy_type = TherapyType.THERAPY
 
@@ -489,14 +494,17 @@ class MoaTransformer(Transformer):
         :return: None, since not supported by MOA
         """
 
-    def _get_therapy(self, therapy: dict) -> MappableConcept | None:
+    def _get_therapy(self, therapy_id: str, therapy: dict) -> MappableConcept:
         """Get Therapy mappable concept for a MOA therapy name.
 
         Will run `label` through therapy-normalizer.
 
+        :param therapy_id: Generated therapy ID
         :param therapy: MOA therapy name
-        :return: If able to normalize therapy, returns therapy mappable concept
+        :return: Therapy represented as a mappable concept
         """
+        mappings = []
+        extensions = []
         (
             therapy_norm_resp,
             normalized_therapeutic_id,
@@ -504,43 +512,47 @@ class MoaTransformer(Transformer):
 
         if not normalized_therapeutic_id:
             logger.debug("Therapy Normalizer unable to normalize: %s", therapy)
-            return None
+            extensions.append(self._get_vicc_normalizer_failure_ext())
+            id_ = therapy_id
+        else:
+            id_ = f"moa.{therapy_norm_resp.therapy.id}"
+            regulatory_approval_extension = (
+                self.vicc_normalizers.get_regulatory_approval_extension(
+                    therapy_norm_resp
+                )
+            )
 
-        extensions = []
+            if regulatory_approval_extension:
+                extensions.append(regulatory_approval_extension)
 
-        regulatory_approval_extension = (
-            self.vicc_normalizers.get_regulatory_approval_extension(therapy_norm_resp)
-        )
-
-        if regulatory_approval_extension:
-            extensions.append(regulatory_approval_extension)
+            mappings.extend(
+                self._get_vicc_normalizer_mappings(
+                    normalized_therapeutic_id, therapy_norm_resp
+                )
+            )
 
         return MappableConcept(
-            id=f"moa.{therapy_norm_resp.therapy.id}",
+            id=id_,
             conceptType="Therapy",
             label=therapy["label"],
-            mappings=self._get_vicc_normalizer_mappings(
-                normalized_therapeutic_id, therapy_norm_resp
-            ),
+            mappings=mappings or None,
             extensions=extensions or None,
         )
 
-    def _add_disease(self, disease: dict) -> dict | None:
+    def _add_disease(self, disease: dict) -> MappableConcept | None:
         """Create or get disease given MOA disease.
 
         First looks in cache for existing disease, if not found will attempt to
-        normalize. Will generate a digest from the original MOA disease object oncotree
-        fields. This will be used as the key in the caches. Will add the generated digest
-        to ``processed_data.conditions`` and ``able_to_normalize['conditions']`` if
-        disease-normalizer is able to normalize. Else will add the generated digest to
-        ``unable_to_normalize['conditions']``.
+        transform. Will generate a digest from the original MOA disease object oncotree
+        fields. This will be used as the key in the caches. Will add the generated
+        digest to ``processed_data.conditions`` and ``_cache['conditions']``.
 
         Since there may be duplicate Oncotree code/terms with different names, the first
         name will be used as the Disease label. Others will be added to the extensions
         aliases field.
 
         :param disease: MOA disease object
-        :return: Disease object if disease-normalizer was able to normalize
+        :return: Disease represented as a mappable concept
         """
         if not all(value for value in disease.values()):
             return None
@@ -556,42 +568,39 @@ class MoaTransformer(Transformer):
         blob = json.dumps(oncotree_kv, separators=(",", ":")).encode("ascii")
         disease_id = sha512t24u(blob)
 
-        vrs_disease = self.able_to_normalize["conditions"].get(disease_id)
-        if vrs_disease:
+        moa_disease = self._cache.conditions.get(disease_id)
+        if moa_disease:
             source_disease_name = disease["name"]
-            if source_disease_name != vrs_disease.label:
-                if not vrs_disease.extensions:
-                    vrs_disease.extensions = [
+            if source_disease_name != moa_disease.label:
+                if not moa_disease.extensions:
+                    moa_disease.extensions = [
                         Extension(name="aliases", value=[source_disease_name])
                     ]
                 else:
-                    for ext in vrs_disease.extensions:
+                    for ext in moa_disease.extensions:
                         if (
                             ext.name == "aliases"
                             and source_disease_name not in ext.value
                         ):
                             ext.value.append(source_disease_name)
                             break
-            return vrs_disease
+            return moa_disease
 
-        vrs_disease = None
-        if disease_id not in self.unable_to_normalize["conditions"]:
-            vrs_disease = self._get_disease(disease)
-            if vrs_disease:
-                self.able_to_normalize["conditions"][disease_id] = vrs_disease
-                self.processed_data.conditions.append(vrs_disease)
-            else:
-                self.unable_to_normalize["conditions"].add(disease_id)
-        return vrs_disease
+        moa_disease = None
+        moa_disease = self._get_disease(disease)
+        self._cache.conditions[disease_id] = moa_disease
+        self.processed_data.conditions.append(moa_disease)
+        return moa_disease
 
-    def _get_disease(self, disease: dict) -> MappableConcept | None:
+    def _get_disease(self, disease: dict) -> MappableConcept:
         """Get Disease object for a MOA disease
 
         :param disease: MOA disease record
-        :return: If able to normalize, Disease. Otherwise, `None`
+        :return: Disease represented as a mappable concept
         """
         queries = []
         mappings = []
+        extensions = []
 
         ot_code = disease["oncotree_code"]
         ot_term = disease["oncotree_term"]
@@ -623,15 +632,20 @@ class MoaTransformer(Transformer):
 
         if not normalized_disease_id:
             logger.debug("Disease Normalizer unable to normalize: %s", queries)
-            return None
-
-        mappings.extend(
-            self._get_vicc_normalizer_mappings(normalized_disease_id, disease_norm_resp)
-        )
+            extensions.append(self._get_vicc_normalizer_failure_ext())
+            id_ = f"moa.disease:{_sanitize_name(disease_name)}"
+        else:
+            id_ = f"moa.{disease_norm_resp.disease.id}"
+            mappings.extend(
+                self._get_vicc_normalizer_mappings(
+                    normalized_disease_id, disease_norm_resp
+                )
+            )
 
         return MappableConcept(
-            id=f"moa.{disease_norm_resp.disease.id}",
+            id=id_,
             conceptType="Disease",
             label=disease_name,
-            mappings=mappings if mappings else None,
+            mappings=mappings or None,
+            extensions=extensions or None,
         )

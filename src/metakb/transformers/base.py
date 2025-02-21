@@ -3,10 +3,11 @@
 import datetime
 import json
 import logging
+import re
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, TypeVar
 
 from disease.schemas import (
     NamespacePrefix as DiseaseNamespacePrefix,
@@ -56,8 +57,24 @@ NORMALIZER_INSTANCE_TO_ATTR = {
     NormalizedGene: "gene",
 }
 
-# Normalizer priority extension name
-NORMALIZER_PRIORITY_EXT_NAME = "vicc_normalizer_priority"
+_CacheType = TypeVar("_CacheType", bound="_TransformedRecordsCache")
+
+
+def _sanitize_name(name: str) -> str:
+    """Trim leading and trailing whitespace and replace whitespace characters with
+    underscores
+
+    :param name: Name to sanitize
+    :return: Sanitized string with whitespace characters replaced by underscores
+    """
+    return re.sub(r"\s+", "_", name.strip())
+
+
+class NormalizerExtensionName(str, Enum):
+    """Define constraints for normalizer extension names"""
+
+    PRIORITY = "vicc_normalizer_priority"  # concept mapping is merged concept ID
+    FAILURE = "vicc_normalizer_failure"  # normalizer failed or is not supported
 
 
 class EcoLevel(str, Enum):
@@ -276,23 +293,14 @@ class Transformer(ABC):
         :param Optional[Path] harvester_path: Path to previously harvested data
         :param ViccNormalizers normalizers: normalizer collection instance
         """
+        self._cache = self._create_cache()
         self.name = self.__class__.__name__.lower().split("transformer")[0]
         self.data_dir = data_dir / self.name
         self.harvester_path = harvester_path
-
         self.vicc_normalizers = (
             ViccNormalizers() if normalizers is None else normalizers
         )
-
         self.processed_data = TransformedData()
-
-        # Cache for concepts that were unable to normalize. Set of source concept IDs
-        self.able_to_normalize = {}
-        self.unable_to_normalize = {
-            "conditions": set(),
-            "therapies": set(),
-        }
-
         self.evidence_level_to_vicc_concept_mapping = (
             self._evidence_level_to_vicc_concept_mapping()
         )
@@ -303,6 +311,10 @@ class Transformer(ABC):
 
         :param harvested_data: Source harvested data
         """
+
+    @abstractmethod
+    def _create_cache() -> _CacheType:
+        """Create cache for transformed records"""
 
     def extract_harvested_data(self) -> _HarvestedData:
         """Get harvested data from file.
@@ -406,12 +418,20 @@ class Transformer(ABC):
         )
         return sha512t24u(blob)
 
+    @staticmethod
+    def _get_vicc_normalizer_failure_ext() -> Extension:
+        """Return extension for a VICC normalizer failure
+
+        :return: Extension for VICC normalizer failure
+        """
+        return Extension(name=NormalizerExtensionName.FAILURE.value, value=True)
+
     @abstractmethod
     def _get_therapy(self, therapy: dict) -> MappableConcept | None:
         """Get therapy mappable concept for source therapy object
 
         :param therapy: source therapy object
-        :return: If able to normalize therapy, returns therapy mappable concept
+        :return: therapy mappable concept
         """
 
     @abstractmethod
@@ -426,8 +446,7 @@ class Transformer(ABC):
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
         :param therapies: List of therapy objects
         :param therapy_interaction_type: Therapy interaction type
-        :return: If able to normalize all therapy objects in `therapies`, returns
-            Therapeutic Substitute Group
+        :return: Therapeutic Substitute Group
         """
 
     def _get_combination_therapy(
@@ -441,15 +460,14 @@ class Transformer(ABC):
         :param combination_therapy_id: ID for Combination Therapy
         :param therapies: List of source therapy objects
         :param therapy_interaction_type: Therapy type provided by source
-        :return: If able to normalize all therapy objects in `therapies`, returns
-            Combination Therapy
+        :return: Combination Therapy
         """
         therapies = []
         source_name = type(self).__name__.lower().replace("transformer", "")
 
         for therapy in therapies_in:
             if source_name == SourceName.MOA:
-                therapy_id = f"moa.therapy:{therapy}"
+                therapy_id = f"moa.therapy:{_sanitize_name(therapy['label'])}"
             else:
                 therapy_id = f"civic.tid:{therapy['id']}"
             therapy_mc = self._add_therapy(
@@ -496,41 +514,36 @@ class Transformer(ABC):
         therapy_interaction_type: str | None = None,
     ) -> MappableConcept | None:
         """Create or get therapy mappable concept given therapies
-        First look in cache for existing therapy, if not found will attempt to
-        normalize. Will add `therapy_id` to `therapies` and
-        `able_to_normalize['therapies']` if therapy-normalizer is able to normalize all
-        `therapies`. Else, will add the `therapy_id` to
-        `unable_to_normalize['therapies']`
+        First look in ``_cache`` for existing therapy, if not found will attempt to
+        transform. Will add ``therapy_id`` to ``therapies`` and ``_cache.therapies``
 
         :param therapy_id: ID for therapy
         :param therapies: List of therapy objects. If `therapy_type` is
             `TherapyType.THERAPY`, the list will only contain a single therapy.
         :param therapy_type: The type of therapy
         :param therapy_interaction_type: drug interaction type
-        :return: Therapy mappable concept, if successful normalization
+        :return: Therapy mappable concept, if ``therapy_type`` is supported
         """
-        therapy = self.able_to_normalize["therapies"].get(therapy_id)
+        therapy = self._cache.therapies.get(therapy_id)
         if therapy:
             return therapy
 
-        if therapy_id not in self.unable_to_normalize["therapies"]:
-            if therapy_type == TherapyType.THERAPY:
-                therapy = self._get_therapy(therapies[0])
-            elif therapy_type == TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP:
-                therapy = self._get_therapeutic_substitute_group(
-                    therapy_id, therapies, therapy_interaction_type
-                )
-            elif therapy_type == TherapyType.COMBINATION_THERAPY:
-                therapy = self._get_combination_therapy(
-                    therapy_id, therapies, therapy_interaction_type
-                )
-            else:
-                # not supported
-                return None
+        if therapy_type == TherapyType.THERAPY:
+            therapy = self._get_therapy(therapy_id, therapies[0])
+        elif therapy_type == TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP:
+            therapy = self._get_therapeutic_substitute_group(
+                therapy_id, therapies, therapy_interaction_type
+            )
+        elif therapy_type == TherapyType.COMBINATION_THERAPY:
+            therapy = self._get_combination_therapy(
+                therapy_id, therapies, therapy_interaction_type
+            )
+        else:
+            logger.debug("Therapy type is not supported: %s", therapy_type)
+            return None
 
-            if therapy:
-                self.able_to_normalize["therapies"][therapy_id] = therapy
-                self.processed_data.therapies.append(therapy)
+        self._cache.therapies[therapy_id] = therapy
+        self.processed_data.therapies.append(therapy)
 
         return therapy
 
@@ -565,7 +578,7 @@ class Transformer(ABC):
             is_priority = normalized_id == mapping.coding.code.root
 
             merged_id_ext = Extension(
-                name=NORMALIZER_PRIORITY_EXT_NAME, value=is_priority
+                name=NormalizerExtensionName.PRIORITY.value, value=is_priority
             )
             if mapping.extensions:
                 mapping.extensions.append(merged_id_ext)
