@@ -563,6 +563,7 @@ class Transformer(ABC):
             mapping: ConceptMapping,
             normalized_id: str,
             normalizer_label: str,
+            match_on_coding_id: bool = True,
         ) -> Extension:
             """Update ``mapping`` to include extension on whether ``mapping`` contains
             code that matches the merged record's primary identifier.
@@ -572,10 +573,16 @@ class Transformer(ABC):
                 matches normalized merged identifier.
             :param normalized_id: Concept ID from normalized record
             :param normalizer_label: Label from normalized record
+            :param match_on_coding_id: Whether to match on ``coding.id`` or
+                ``coding.code`` (MONDO is represented differently)
             :return: ConceptMapping with normalizer extension added as well as label (
                 if mapping id matches normalized merged id)
             """
-            is_priority = normalized_id == mapping.coding.code.root
+            is_priority = (
+                normalized_id == mapping.coding.id
+                if match_on_coding_id
+                else normalized_id == mapping.coding.code.root.lower()
+            )
 
             merged_id_ext = Extension(
                 name=NormalizerExtensionName.PRIORITY.value, value=is_priority
@@ -599,25 +606,29 @@ class Transformer(ABC):
 
         normalizer_mappings = normalizer_resp_obj.mappings or []
         for mapping in normalizer_mappings:
-            if normalized_id == mapping.coding.code.root:
+            if normalized_id == mapping.coding.id:
                 mappings.append(
                     _update_mapping(mapping, normalized_id, normalizer_label)
                 )
             else:
-                mapping_code_lower = mapping.coding.code.root.lower()
                 if (
                     is_disease
-                    and mapping_code_lower.startswith(
+                    and mapping.coding.code.root.lower().startswith(
                         DiseaseNamespacePrefix.MONDO.value
                     )
                 ) or (
                     is_gene
-                    and mapping_code_lower.startswith(
+                    and mapping.coding.id.startswith(
                         (GeneNamespacePrefix.NCBI.value, GeneNamespacePrefix.HGNC.value)
                     )
                 ):
                     mappings.append(
-                        _update_mapping(mapping, normalized_id, normalizer_label)
+                        _update_mapping(
+                            mapping,
+                            normalized_id,
+                            normalizer_label,
+                            match_on_coding_id=is_gene,
+                        )
                     )
         return mappings
 

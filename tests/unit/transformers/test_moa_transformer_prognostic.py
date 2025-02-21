@@ -131,18 +131,20 @@ def moa_myelodysplasia():
             {
                 "coding": {
                     "label": "Myelodysplastic Syndrome",
-                    "code": "ncit:C3247",
-                    "system": "http://purl.obolibrary.org/obo/ncit.owl",
+                    "id": "ncit:C3247",
+                    "code": "C3247",
+                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
-                    "code": "mondo:0018881",
-                    "system": "http://purl.obolibrary.org/obo/mondo.owl",
+                    "id": "MONDO_0018881",
+                    "code": "MONDO:0018881",
+                    "system": "https://purl.obolibrary.org/obo/",
                 },
-                "relation": "relatedMatch",
+                "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=False),
             },
         ],
@@ -160,18 +162,20 @@ def moa_bcor():
             {
                 "coding": {
                     "label": "BCOR",
-                    "code": "hgnc:20893",
-                    "system": "https://www.genenames.org",
+                    "id": "hgnc:20893",
+                    "code": "HGNC:20893",
+                    "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
-                    "code": "ncbigene:54880",
+                    "id": "ncbigene:54880",
+                    "code": "54880",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
-                "relation": "relatedMatch",
+                "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_ext(is_priority=False),
             },
         ],
@@ -335,18 +339,20 @@ def moa_sf3b1():
             {
                 "coding": {
                     "label": "SF3B1",
-                    "code": "hgnc:10768",
-                    "system": "https://www.genenames.org",
+                    "id": "hgnc:10768",
+                    "code": "HGNC:10768",
+                    "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
                 },
                 "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_priority_ext(is_priority=True),
             },
             {
                 "coding": {
-                    "code": "ncbigene:23451",
+                    "id": "ncbigene:23451",
+                    "code": "23451",
                     "system": "https://www.ncbi.nlm.nih.gov/gene/",
                 },
-                "relation": "relatedMatch",
+                "relation": "exactMatch",
                 "extensions": get_vicc_normalizer_ext(is_priority=False),
             },
         ],
