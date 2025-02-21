@@ -282,6 +282,8 @@ def test_variation_rules(
         "digest",
         "state",
         "expression_hgvs_p",
+        "expression_hgvs_c",
+        "expression_hgvs_g",
         "type",
     }
 

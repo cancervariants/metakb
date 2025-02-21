@@ -1,0 +1,196 @@
+{
+    "evidence": [
+        {
+            "type": "evidence",
+            "id": 123456789,
+            "variant_origin": "SOMATIC",
+            "therapy_interaction_type": null,
+            "status": "accepted",
+            "significance": "SENSITIVITYRESPONSE",
+            "rating": 5,
+            "name": "EID123456789",
+            "molecular_profile_id": 473,
+            "evidence_type": "PREDICTIVE",
+            "evidence_level": "A",
+            "evidence_direction": "SUPPORTS",
+            "description": "This is a fake evidence item.",
+            "assertion_ids": [],
+            "therapies": [
+                {
+                    "id": 579,
+                    "name": "FOLFOX Regimen",
+                    "ncit_id": "C11197",
+                    "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C11197",
+                    "aliases": [
+                        "CF/5-FU/L-OHP",
+                        "FOLFOX",
+                        "Fluorouracil/Leucovorin Calcium/Oxaliplatin"
+                    ],
+                    "type": "therapie"
+                }
+            ],
+            "disease": {
+                "id": 3433,
+                "name": "B-lymphoblastic Leukemia/lymphoma With PAX5 P80R",
+                "display_name": "B-lymphoblastic Leukemia/lymphoma With PAX5 P80R",
+                "doid": null,
+                "disease_url": null,
+                "aliases": [],
+                "type": "disease"
+            },
+            "source": {
+                "id": 123456789,
+                "name": "PubMed: Fake name",
+                "title": "My fake civic source",
+                "citation": "John Doe et al., 2022",
+                "citation_id": "123456789",
+                "source_type": "PUBMED",
+                "abstract": "A really great abstract",
+                "asco_abstract_id": null,
+                "author_string": "John Doe",
+                "full_journal_title": "Drugs",
+                "journal": "Drugs",
+                "pmc_id": null,
+                "publication_date": "2022-9",
+                "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/123456789",
+                "clinical_trials": [],
+                "type": "source"
+            },
+            "phenotypes": []
+        }
+    ],
+    "assertions": [],
+    "genes": [
+        {
+            "type": "gene",
+            "id": 6,
+            "name": "BRCA1. This should fail normalization.",
+            "entrez_id": 0,
+            "description": "This is a fake gene that fails normalization.",
+            "sources": [
+                {
+                    "id": 11,
+                    "name": "PubMed: Nelson et al., 2014",
+                    "title": "Risk assessment, genetic counseling, and genetic testing for BRCA-related cancer in women: a systematic review to update the U.S. Preventive Services Task Force recommendation.",
+                    "citation": "Nelson et al., 2014",
+                    "citation_id": "24366442",
+                    "source_type": "PUBMED",
+                    "abstract": "Mutations in breast cancer susceptibility genes (BRCA1 and BRCA2) are associated with increased risks for breast, ovarian, and other types of cancer.To review new evidence on the benefits and harms of risk assessment, genetic counseling, and genetic testing for BRCA-related cancer in women.MEDLINE and PsycINFO between 2004 and 30 July 2013, the Cochrane Central Register of Controlled Trials and Cochrane Database of Systematic Reviews from 2004 through the second quarter of 2013, Health Technology Assessment during the fourth quarter of 2012, Scopus, and reference lists.English-language studies about accuracy of risk assessment and benefits and harms of genetic counseling, genetic testing, and interventions to reduce cancer incidence and mortality.Individual investigators extracted data on participants, study design, analysis, follow-up, and results, and a second investigator confirmed key data. Investigators independently dual-rated study quality and applicability by using established criteria.Five referral models accurately estimated individual risk for BRCA mutations. Genetic counseling increased the accuracy of risk perception and decreases the intention for genetic testing among unlikely carriers and cancer-related worry, anxiety, and depression. No trials evaluated the effectiveness of intensive screening or risk-reducing medications in mutation carriers, although false-positive rates, unneeded imaging, and unneeded surgeries were higher with screening. Among high-risk women and mutation carriers, risk-reducing mastectomy decreased breast cancer by 85% to 100% and breast cancer mortality by 81% to 100% compared with women without surgery; risk-reducing salpingo-oophorectomy decreased breast cancer incidence by 37% to 100%, ovarian cancer by 69% to 100%, and all-cause mortality by 55% to 100%.The analysis included only English-language articles;efficacy trials in mutation carriers were lacking.Studies of risk assessment, genetic counseling, genetic testing, and interventions to reduce cancer and mortality indicate potential benefits and harms that vary according to risk.",
+                    "asco_abstract_id": null,
+                    "author_string": "Heidi D Nelson, Miranda Pappas, Bernadette Zakher, Jennifer Priest Mitchell, Leila Okinaka-Hu, Rongwei Fu",
+                    "full_journal_title": "Annals of internal medicine",
+                    "journal": "Ann Intern Med",
+                    "pmc_id": null,
+                    "publication_date": "2014-2-18",
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/24366442",
+                    "clinical_trials": [],
+                    "type": "source"
+                },
+                {
+                    "id": 2544,
+                    "name": "PubMed: Mittica et al., 2018",
+                    "title": "PARP Inhibitors in Ovarian Cancer.",
+                    "citation": "Mittica et al., 2018",
+                    "citation_id": "29512470",
+                    "source_type": "PUBMED",
+                    "abstract": "Treatment of Epithelial Ovarian Cancer (EOC), historically based on surgery and platinum doublet chemotherapy, is associated with high risk of relapse and poor prognosis for recurrent disease. In this landscape, the innovative treatment with PARP inhibitors (PARPis) demonstrated an outstanding activity in EOC, and is currently changing clinical practice in BRCA mutant patients.The study aimed to highlight the mechanism of action, pharmacokinetics, clinical activity, indications and current strategies of development of Olaparib, Niraparib, Rucaparib, Talazoparib and Veliparib, the 5 most relevant PARPis.We performed a review on Pubmed using 'ovarian cancer' and the name of each PARPi (PARP inhibitor) discussed in the review as Medical Subject Headings (MeSH) keywords. The same search was performed on \"clinicaltrial.gov\" to identify ongoing clinical trials and on \"google. com/patents\" and \"uspto.gov\" for recent patents exploring PARPIs in ovarian cancer.Olaparib, Niraparib and Rucaparib are already approved for the treatment of recurrent EOC and their indications are partially overlapping. Talazoparib and Veliparib are promising PARPis, but currently under investigation in early phase trials. Several studies are evaluating PARPis in monotherapy or in associations, in a wide range of settings (i.e. first line, neoadjuvant, platinum-sensitive and resistant disease).PARPis are valuable options in patients with recurrent ovarian cancer with promising activity in different stages of this disease. Further studies are required to better define optimal clinical settings, predictors of response beyond BRCA mutations and strategies to overcome secondary resistance of PARPis therapy in EOC.",
+                    "asco_abstract_id": null,
+                    "author_string": "Gloria Mittica, Eleonora Ghisoni, Gaia Giannone, Sofia Genta, Massimo Aglietta, Anna Sapino, Giorgio Valabrega",
+                    "full_journal_title": "Recent patents on anti-cancer drug discovery",
+                    "journal": "Recent Pat Anticancer Drug Discov",
+                    "pmc_id": null,
+                    "publication_date": "2018",
+                    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/29512470",
+                    "clinical_trials": [],
+                    "type": "source"
+                }
+            ],
+            "aliases": [
+                "Fake alias 1",
+                "Fake alias 2"
+            ]
+        }
+    ],
+    "variants": [
+        {
+            "type": "variant",
+            "id": 477,
+            "single_variant_molecular_profile_id": 473,
+            "name": "P968FS",
+            "gene_id": 6,
+            "entrez_name": "BRCA1. This should fail normalization.",
+            "entrez_id": 0,
+            "allele_registry_id": "CA001889",
+            "clinvar_entries": [
+                "91602"
+            ],
+            "hgvs_expressions": [
+                "NM_007294.3:c.2902_2903insTC",
+                "NP_009225.1:p.Pro968Leufs",
+                "NC_000017.10:g.41244645_41244646insGA",
+                "ENST00000471181.2:c.2902_2903insTC"
+            ],
+            "variant_aliases": [
+                "3021INSTC",
+                "PRO968LEUFS",
+                "RS398122670"
+            ],
+            "coordinates": {
+                "ensembl_version": 75,
+                "reference_build": "GRCh37",
+                "reference_bases": null,
+                "variant_bases": "GA",
+                "representative_transcript": "ENST00000471181.2",
+                "chromosome": "17",
+                "start": 41244645,
+                "stop": 41244646,
+                "representative_transcript2": null,
+                "chromosome2": null,
+                "start2": null,
+                "stop2": null,
+                "type": "coordinates"
+            },
+            "variant_types": [
+                {
+                    "id": 134,
+                    "name": "Frameshift Truncation",
+                    "so_id": "SO:0001910",
+                    "description": "A frameshift variant that causes the translational reading frame to be shortened relative to the reference feature.",
+                    "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001910",
+                    "type": "variant_type"
+                }
+            ]
+        }
+    ],
+    "molecular_profiles": [
+        {
+            "type": "molecular_profile",
+            "id": 473,
+            "variant_ids": [
+                477
+            ],
+            "name": "BRCA1 P968FS",
+            "molecular_profile_score": 20.0,
+            "description": null,
+            "sources": [],
+            "aliases": [
+                "3021INSTC",
+                "PRO968LEUFS",
+                "RS398122670"
+            ],
+            "parsed_name": [
+                {
+                    "type": "feature",
+                    "id": 6,
+                    "name": "BRCA1"
+                },
+                {
+                    "type": "variant",
+                    "id": 477,
+                    "name": "P968FS",
+                    "deprecated": false
+                }
+            ]
+        }
+    ]
+}

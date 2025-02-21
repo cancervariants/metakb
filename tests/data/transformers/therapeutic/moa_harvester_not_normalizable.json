@@ -1,0 +1,63 @@
+{
+    "assertions": [
+        {
+            "id": 123456789,
+            "context": "",
+            "deprecated": false,
+            "description": "This is a fake assertion item.",
+            "disease": {
+                "name": "T-Cell Acute Lymphoid Leukemia",
+                "oncotree_code": "TALL",
+                "oncotree_term": "T-Cell Acute Lymphoid Leukemia"
+            },
+            "therapy": {
+                "name": "Mito-CP",
+                "type": "Targeted therapy",
+                "strategy": "Metabolism interference",
+                "resistance": "",
+                "sensitivity": 1
+            },
+            "predictive_implication": "Preclinical",
+            "favorable_prognosis": "",
+            "created_on": "12/05/24",
+            "last_updated": "2023-11-30",
+            "submitted_by": "John Doe",
+            "validated": true,
+            "source_id": 45,
+            "variant": {
+                "id": 21,
+                "feature_type": "rearrangement",
+                "gene1": "CCND3",
+                "gene2": null,
+                "locus": "t(6;14)",
+                "rearrangement_type": "Translocation",
+                "feature": "CCND3 Translocation"
+            }
+        }
+    ],
+    "sources": [
+        {
+            "id": 45,
+            "type": "Journal",
+            "doi": "10.1126/science.1062538",
+            "nct": "",
+            "pmid": 11423618,
+            "url": "https://doi.org/10.1126/science.1062538",
+            "citation": "Gorre, Mercedes E., et al. Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification. Science 293.5531 (2001): 876-880."
+        }
+    ],
+    "variants": [
+        {
+            "id": 21,
+            "feature_type": "rearrangement",
+            "gene1": "FakeGene",
+            "gene2": null,
+            "locus": "t(6;14)",
+            "rearrangement_type": "Translocation",
+            "feature": "FakeGene Translocation"
+        }
+    ],
+    "genes": [
+        "FakeGene"
+    ]
+}
