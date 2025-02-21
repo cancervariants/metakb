@@ -416,11 +416,11 @@ def test_moa_cdm_not_normalizable(
 
 
 @pytest.mark.asyncio()
-async def test_moa_therapy_conflict(normalizers):
-    """Test that MOA therapy conflict merges concept correctly"""
+async def test_moa_concept_conflicts(normalizers):
+    """Test that MOA therapy and disease conflict resolution works correctly"""
     t = MoaTransformer(
         data_dir=DATA_DIR,
-        harvester_path=DATA_DIR / "moa_harvester_conflict.json",
+        harvester_path=DATA_DIR / "moa_harvester_conflicts.json",
         normalizers=normalizers,
     )
     harvested_data = t.extract_harvested_data()
@@ -439,4 +439,19 @@ async def test_moa_therapy_conflict(normalizers):
     assert therapy_alias_ext.model_dump(exclude_none=True) == {
         "name": "aliases",
         "value": ["Selpercatinib"],
+    }
+
+    conditions = t.processed_data.conditions
+    assert len(conditions) == 1
+
+    condition = conditions[0]
+    assert condition.id == "moa.normalize.disease.ncit:C3247"
+    assert condition.label == "Myelodysplasia"
+    condition_alias_ext = next(
+        (ext for ext in condition.extensions if ext.name == "aliases"),
+        None,
+    )
+    assert condition_alias_ext.model_dump(exclude_none=True) == {
+        "name": "aliases",
+        "value": ["Myelodysplastic Syndromes"],
     }

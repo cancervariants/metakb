@@ -497,6 +497,65 @@ class MoaTransformer(Transformer):
         :return: None, since not supported by MOA
         """
 
+    def _resolve_concept_discrepancy(
+        self,
+        cached_id: str,
+        cached_obj: MappableConcept,
+        cached_label: str,
+        moa_concept_label: str,
+        is_disease: bool = False,
+    ) -> None:
+        """Resolve conflict where MOA disease or therapy resolve to same normalized
+        concept
+
+        The min label will be used as the primary label for the mappable concept, and
+        the other label will be added as an alias in extensions.
+        The cache will be updated with updated object.
+        The cached object will be removed from ``self.processed_data``
+
+        :param cached_id: ID found in cache
+        :param cached_obj: Mappable concept found in cache for ``cached_id``. This will
+            be mutated
+        :param cached_label: Label for ``cached_obj``
+        :param moa_concept_label: MOA concept label
+        :param is_disease: ``True`` if ``cached_obj`` is a disease. ``False`` if
+            ``cached_obj`` is a therapy
+        """
+        logger.debug(
+            "MOA %s and %s resolve to same concept %s",
+            moa_concept_label,
+            cached_label,
+            cached_id,
+        )
+        alias = max(moa_concept_label, cached_label)
+        cached_obj.label = min(moa_concept_label, cached_label)
+        extensions = cached_obj.extensions or []
+
+        aliases_ext = next(
+            (ext for ext in extensions if ext.name == "aliases"),
+            None,
+        )
+        if aliases_ext:
+            if cached_obj.label in aliases_ext.value:
+                aliases_ext.value.remove(cached_obj.label)
+            aliases_ext.value.append(alias)
+        else:
+            extensions.append(Extension(name="aliases", value=[alias]))
+            cached_obj.extensions = extensions
+
+        if is_disease:
+            self.processed_data.conditions = [
+                c for c in self.processed_data.conditions if c.id != cached_obj.id
+            ]
+            cache = self._cache.conditions
+        else:
+            self.processed_data.therapies = [
+                t for t in self.processed_data.therapies if t.id != cached_id
+            ]
+            cache = self._cache.normalized_therapies
+
+        cache[cached_id] = cached_obj
+
     def _get_therapy(self, therapy_id: str, therapy: dict) -> MappableConcept:
         """Get Therapy mappable concept for a MOA therapy name.
 
@@ -525,33 +584,13 @@ class MoaTransformer(Transformer):
             therapy_norm_obj = self._cache.normalized_therapies[cached_id]
             og_therapy_norm_label = therapy_norm_obj.label
             if moa_concept_label != og_therapy_norm_label:
-                logger.debug(
-                    "MOA therapy %s and %s resolve to same concept %s",
-                    moa_concept_label,
-                    og_therapy_norm_label,
+                self._resolve_concept_discrepancy(
                     cached_id,
+                    therapy_norm_obj,
+                    og_therapy_norm_label,
+                    moa_concept_label,
+                    is_disease=False,
                 )
-                alias = max(moa_concept_label, og_therapy_norm_label)
-                therapy_norm_obj.label = min(moa_concept_label, og_therapy_norm_label)
-                extensions = therapy_norm_obj.extensions or []
-
-                aliases_ext = next(
-                    (ext for ext in extensions if ext.name == "aliases"),
-                    None,
-                )
-                if aliases_ext:
-                    if therapy_norm_obj.label in aliases_ext.value:
-                        aliases_ext.value.remove(therapy_norm_obj.label)
-                    aliases_ext.value.append(alias)
-                else:
-                    extensions.append(Extension(name="aliases", value=[alias]))
-                    therapy_norm_obj.extensions = extensions
-
-                # Remove from processed (it will be added back in _add_therapy)
-                self.processed_data.therapies = [
-                    t for t in self.processed_data.therapies if t.id != cached_id
-                ]
-                self._cache.normalized_therapies[cached_id] = therapy_norm_obj
             return therapy_norm_obj
 
         mappings = []
@@ -626,23 +665,18 @@ class MoaTransformer(Transformer):
         oncotree_kv = [f"{oncotree_key}:{oncotree_value}"]
         blob = json.dumps(oncotree_kv, separators=(",", ":")).encode("ascii")
         disease_id = sha512t24u(blob)
-
         moa_disease = self._cache.conditions.get(disease_id)
         if moa_disease:
             source_disease_name = disease["name"]
             if source_disease_name != moa_disease.label:
-                if not moa_disease.extensions:
-                    moa_disease.extensions = [
-                        Extension(name="aliases", value=[source_disease_name])
-                    ]
-                else:
-                    for ext in moa_disease.extensions:
-                        if (
-                            ext.name == "aliases"
-                            and source_disease_name not in ext.value
-                        ):
-                            ext.value.append(source_disease_name)
-                            break
+                self._resolve_concept_discrepancy(
+                    disease_id,
+                    moa_disease,
+                    moa_disease.label,
+                    source_disease_name,
+                    is_disease=True,
+                )
+                self.processed_data.conditions.append(moa_disease)
             return moa_disease
 
         moa_disease = None
