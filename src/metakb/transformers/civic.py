@@ -816,7 +816,7 @@ class CivicTransformer(Transformer):
         civic_primary_id: str,
         get_concept_mapping_method: Callable,
     ) -> None:
-        """Update ``mappings`` when concepts successfully normalizer
+        """Update ``mappings`` when concepts successfully normalize
 
         There are some instances where CIViC and the VICC Normalizer provide the same
         identifier, in these cases the mapping will contain both a VICC normalizer
