@@ -113,7 +113,7 @@ class ViccNormalizers:
 
         >>> from metakb.normalizers import ViccNormalizers
         >>> v = ViccNormalizers()
-        >>> v.normalize_gene("BRAF")[0].normalized_id
+        >>> v.normalize_gene("BRAF")[1]
         'hgnc:1097'
 
         :param query: Gene query to normalize
@@ -130,7 +130,7 @@ class ViccNormalizers:
 
         >>> from metakb.normalizers import ViccNormalizers
         >>> v = ViccNormalizers()
-        >>> v.normalize_disease("von hippel-lindau syndrome")[0].normalized_id
+        >>> v.normalize_disease("von hippel-lindau syndrome")[1]
         'ncit:C3105'
 
         :param query: Disease query normalize
@@ -144,7 +144,7 @@ class ViccNormalizers:
 
         >>> from metakb.normalizers import ViccNormalizers
         >>> v = ViccNormalizers()
-        >>> v.normalize_therapy("VAZALORE")[0].normalized_id
+        >>> v.normalize_therapy("VAZALORE")[1]
         'rxcui:1191'
 
         :param query: Therapy query normalize
