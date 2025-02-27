@@ -112,6 +112,24 @@ class _CivicInteractionType(str, Enum):
     COMBINATION = "COMBINATION"
 
 
+class AmpAscoCapClassification(str, Enum):
+    """Define constraints for CIViC AMP/ASCO/CAP classification
+
+    This follows ClinVar: https://github.com/ncbi/clinvar/blob/master/submission_api_schema/submission_api_schema.json#L510-L514
+    """
+
+    TIER_I = "Tier I - Strong"
+    TIER_II = "Tier II - Potential"
+    TIER_III = "Tier III - Unknown"
+    TIER_IV = "Tier IV - Benign/Likely benign"
+
+
+TIER_TO_AMP_ASCO_CAP = {
+    m.value.split(" -")[0]: m.value
+    for m in AmpAscoCapClassification.__members__.values()
+}
+
+
 class _TherapeuticMetadata(BaseModel):
     """Define model for CIVIC therapeutic metadata"""
 
@@ -481,7 +499,7 @@ class CivicTransformer(Transformer):
             match = pattern.match(amp_level).groupdict()
             primary_code = f"Tier {match['tier']}"
             classification = MappableConcept(
-                primaryCode=primary_code,
+                primaryCode=TIER_TO_AMP_ASCO_CAP[primary_code],
                 extensions=[Extension(name="civic_amp_level", value=amp_level)],
             )
         return classification
