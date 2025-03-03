@@ -642,6 +642,7 @@ class QueryHandler:
         :return: Categorical Variant data
         """
         node["mappings"] = _deserialize_field(node, "mappings")
+        node["aliases"] = _deserialize_field(node, "aliases")
 
         extensions = []
         for node_key, ext_name in (
@@ -669,10 +670,6 @@ class QueryHandler:
                     value=mp_score,
                 )
             )
-
-        aliases = node.pop("aliases", None)
-        if aliases:
-            extensions.append(Extension(name="aliases", value=json.loads(aliases)))
 
         node["extensions"] = extensions or None
         node["constraints"] = [

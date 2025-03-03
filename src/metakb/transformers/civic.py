@@ -159,7 +159,7 @@ class _VariationCache(BaseModel):
     civic_gene_id: str
     variant_types: list[Coding] | None = None
     mappings: list[ConceptMapping] | None = None
-    aliases: list[Extension] | None = None
+    aliases: list[str] | None = None
     coordinates: dict | None = None
     members: list[Variation] | None = None
     extensions: list[Extension] | None = None
@@ -537,16 +537,11 @@ class CivicTransformer(Transformer):
             extensions = civic_variation_data.extensions or []
 
             # Get aliases from MP and Variant record
-            if civic_variation_data.aliases:
-                aliases = civic_variation_data.aliases[0].value
-            else:
-                aliases = []
+            aliases = civic_variation_data.aliases or []
 
             for a in mp["aliases"] or []:
                 if not SNP_RE.match(a) and a not in aliases:
                     aliases.append(a)
-            if aliases:
-                extensions.append(Extension(name="aliases", value=aliases))
 
             # Get molecular profile score data
             mp_score = mp["molecular_profile_score"]
@@ -581,6 +576,7 @@ class CivicTransformer(Transformer):
                 description=mp["description"],
                 name=mp["name"],
                 constraints=constraints,
+                aliases=aliases or None,
                 mappings=civic_variation_data.mappings,
                 extensions=extensions or None,
                 members=civic_variation_data.members,
@@ -683,7 +679,6 @@ class CivicTransformer(Transformer):
             vrs_variation = None
             civic_variation = None
             extensions = []
-            aliases_extensions = []
 
             if self._is_supported_variant_query(variant_name, variant_id):
                 vrs_variation = await self.vicc_normalizers.normalize_variation(
@@ -777,9 +772,6 @@ class CivicTransformer(Transformer):
                 else:
                     aliases.append(a)
 
-            if aliases:
-                aliases_extensions.append(Extension(name="aliases", value=aliases))
-
             if variant["coordinates"]:
                 coordinates = {
                     k: v for k, v in variant["coordinates"].items() if v is not None
@@ -795,7 +787,7 @@ class CivicTransformer(Transformer):
                 civic_gene_id=f"civic.gid:{variant['gene_id']}",
                 variant_types=variant_types_value or None,
                 mappings=mappings or None,
-                aliases=aliases_extensions or None,
+                aliases=aliases or None,
                 extensions=extensions,
                 coordinates=coordinates or None,
                 members=members,
