@@ -36,6 +36,14 @@ body:
       required: true
   - type: textarea
     attributes:
+      label: Acceptance Criteria
+      description: |
+        Provide the criteria that must be met in order for this issue to be considered fixed.
+        Be specific, and consider potential edge cases.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
       label: Possible reason(s)
       description: Provide any insights into what might be causing the issue.
     validations:
