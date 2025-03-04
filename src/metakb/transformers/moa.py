@@ -247,7 +247,7 @@ class MoaTransformer(Transformer):
                 vrs_variation = None
                 gene = moa_gene.label
                 query = f"{gene} {protein_change[2:]}"
-                vrs_variation = await self.vicc_normalizers.normalize_variation([query])
+                vrs_variation = await self.vicc_normalizers.normalize_variation(query)
 
                 if not vrs_variation:
                     logger.debug(
@@ -345,7 +345,7 @@ class MoaTransformer(Transformer):
             gnomad_vcf = f"{chromosome}-{pos}-{ref}-{alt}"
 
             vrs_genomic_variation = await self.vicc_normalizers.normalize_variation(
-                [gnomad_vcf]
+                gnomad_vcf
             )
 
             if vrs_genomic_variation:
@@ -377,7 +377,7 @@ class MoaTransformer(Transformer):
         """
         for gene in genes:
             gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(
-                [gene]
+                gene
             )
             mappings = []
             extensions = []
@@ -600,7 +600,7 @@ class MoaTransformer(Transformer):
         (
             therapy_norm_resp,
             normalized_therapeutic_id,
-        ) = self.vicc_normalizers.normalize_therapy([label])
+        ) = self.vicc_normalizers.normalize_therapy(label)
 
         if not normalized_therapeutic_id:
             logger.debug("Therapy Normalizer unable to normalize: %s", therapy)
@@ -718,10 +718,13 @@ class MoaTransformer(Transformer):
         if disease_name:
             queries.append(disease_name)
 
-        (
-            disease_norm_resp,
-            normalized_disease_id,
-        ) = self.vicc_normalizers.normalize_disease(queries)
+        for query in queries:  # Order matters (use highest match first)
+            (
+                disease_norm_resp,
+                normalized_disease_id,
+            ) = self.vicc_normalizers.normalize_disease(query)
+            if normalized_disease_id:
+                break
 
         if not normalized_disease_id:
             logger.debug("Disease Normalizer unable to normalize: %s", queries)
