@@ -17,6 +17,14 @@ body:
       required: true
   - type: textarea
     attributes:
+      label: Acceptance Criteria
+      description: |
+        Provide the criteria that must be met in order for this issue to be considered complete.
+        Be specific, and consider potential edge cases.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
       label: Proposed solution
       description: Provide proposed solution.
     validations:
