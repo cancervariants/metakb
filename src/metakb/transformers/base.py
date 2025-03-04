@@ -39,7 +39,12 @@ from gene.schemas import (
     NormalizeService as NormalizedGene,
 )
 from pydantic import BaseModel, Field, StrictStr, ValidationError
-from therapy.schemas import NormalizationService as NormalizedTherapy
+from therapy.schemas import (
+    NamespacePrefix as TherapyNamespacePrefix,
+)
+from therapy.schemas import (
+    NormalizationService as NormalizedTherapy,
+)
 
 from metakb import APP_ROOT, DATE_FMT
 from metakb.harvesters.base import _HarvestedData
@@ -603,33 +608,63 @@ class Transformer(ABC):
         normalizer_label = normalizer_resp_obj.label
         is_disease = isinstance(normalizer_resp, NormalizedDisease)
         is_gene = isinstance(normalizer_resp, NormalizedGene)
+        is_therapy = isinstance(normalizer_resp, NormalizedTherapy)
 
         normalizer_mappings = normalizer_resp_obj.mappings or []
         for mapping in normalizer_mappings:
             if normalized_id == mapping.coding.id:
                 mappings.append(
-                    _update_mapping(mapping, normalized_id, normalizer_label)
+                    _update_mapping(
+                        mapping,
+                        normalized_id,
+                        normalizer_label,
+                        match_on_coding_id=True,
+                    )
                 )
             else:
-                if (
-                    is_disease
-                    and mapping.coding.code.root.lower().startswith(
-                        DiseaseNamespacePrefix.MONDO.value
-                    )
-                ) or (
-                    is_gene
-                    and mapping.coding.id.startswith(
-                        (GeneNamespacePrefix.NCBI.value, GeneNamespacePrefix.HGNC.value)
-                    )
+                if is_disease and mapping.coding.code.root.lower().startswith(
+                    DiseaseNamespacePrefix.MONDO.value
                 ):
                     mappings.append(
                         _update_mapping(
                             mapping,
                             normalized_id,
                             normalizer_label,
-                            match_on_coding_id=is_gene,
+                            match_on_coding_id=False,
                         )
                     )
+                else:
+                    if (
+                        (
+                            is_gene
+                            and mapping.coding.id.startswith(
+                                (
+                                    GeneNamespacePrefix.NCBI.value,
+                                    GeneNamespacePrefix.HGNC.value,
+                                )
+                            )
+                        )
+                        or (
+                            is_disease
+                            and mapping.coding.id.startswith(
+                                DiseaseNamespacePrefix.DOID.value
+                            )
+                        )
+                        or (
+                            is_therapy
+                            and mapping.coding.id.startswith(
+                                TherapyNamespacePrefix.NCIT.value
+                            )
+                        )
+                    ):
+                        mappings.append(
+                            _update_mapping(
+                                mapping,
+                                normalized_id,
+                                normalizer_label,
+                                match_on_coding_id=True,
+                            )
+                        )
         return mappings
 
     def create_json(self, cdm_filepath: Path | None = None) -> None:

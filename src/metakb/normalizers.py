@@ -83,188 +83,75 @@ class ViccNormalizers:
         self.therapy_query_handler = TherapyQueryHandler(create_therapy_db(db_url))
 
     async def normalize_variation(
-        self, queries: list[str]
+        self, query: str
     ) -> Allele | CopyNumberChange | CopyNumberCount | None:
-        """Normalize variation queries.
+        """Attempt to normalize a variation query
 
-        :param queries: Candidate query strings to attempt to normalize. Should be
-            provided in order of preference, as the result of the first one to normalize
-            successfully will be returned. Use in the event that a prioritized MANE
-            transcript is unavailable and multiple possible candidates are known.
+        :param query: Variation query to normalize
         :raises TokenRetrievalError: If AWS credentials are expired
         :return: A normalized variation, if available.
         """
-        for query in queries:
-            if not query:
-                continue
-            try:
-                variation_norm_resp = (
-                    await self.variation_normalizer.normalize_handler.normalize(query)
-                )
-                if variation_norm_resp and variation_norm_resp.variation:
-                    return variation_norm_resp.variation
-            except TokenRetrievalError as e:
-                _logger.error(e)
-                raise e
-            except Exception as e:
-                _logger.error(
-                    "Variation Normalizer raised an exception using query %s: %s",
-                    query,
-                    e,
-                )
+        try:
+            variation_norm_resp = (
+                await self.variation_normalizer.normalize_handler.normalize(query)
+            )
+            if variation_norm_resp and variation_norm_resp.variation:
+                return variation_norm_resp.variation
+        except TokenRetrievalError as e:
+            _logger.error(e)
+            raise e
+        except Exception as e:
+            _logger.error(
+                "Variation Normalizer raised an exception using query %s: %s",
+                query,
+                e,
+            )
         return None
 
-    def normalize_gene(
-        self, queries: list[str]
-    ) -> tuple[NormalizedGene | None, str | None]:
-        """Normalize gene queries.
-
-        Given a collection of terms, return the normalized concept with the highest
-        match (see the
-        `Gene Normalizer docs <https://gene-normalizer.readthedocs.io/latest/usage.html#match-types>`_ for
-        more details on match types, and how queries are resolved).
+    def normalize_gene(self, query: str) -> tuple[NormalizedGene, str | None]:
+        """Attempt to normalize a gene query
 
         >>> from metakb.normalizers import ViccNormalizers
         >>> v = ViccNormalizers()
-        >>> gene_terms = [
-        ...     "gibberish",  # won't match
-        ...     "NETS",  # alias
-        ...     "hgnc:1097",  # HGNC identifier for BRAF
-        ...     "MARCH3",  # previous symbol
-        ... ]
-        >>> v.normalize_gene(gene_terms)[0].normalized_id
+        >>> v.normalize_gene("BRAF")[1]
         'hgnc:1097'
 
-        :param queries: A list of possible gene terms to normalize. Order is irrelevant,
-            except for breaking ties (choose earlier if equal).
+        :param query: Gene query to normalize
         :raises TokenRetrievalError: If AWS credentials are expired
-        :return: The highest matched gene's normalized response and ID
+        :return: Gene normalization response and normalized gene ID, if available.
         """
-        gene_norm_resp = None
-        normalized_gene_id = None
-        highest_match = 0
-        for query_str in queries:
-            if not query_str:
-                continue
+        return self._normalize_concept(query, self.gene_query_handler, "gene")
 
-            try:
-                gene_norm_resp = self.gene_query_handler.normalize(query_str)
-            except TokenRetrievalError as e:
-                _logger.error(e)
-                raise e
-            except Exception as e:
-                _logger.error(
-                    "Gene Normalizer raised an exception using query %s: %s",
-                    query_str,
-                    e,
-                )
-            else:
-                if gene_norm_resp.match_type > highest_match:
-                    highest_match = gene_norm_resp.match_type
-                    normalized_gene_id = gene_norm_resp.gene.primaryCode.root
-                    if highest_match == 100:
-                        break
-        return gene_norm_resp, normalized_gene_id
-
-    def normalize_disease(
-        self, queries: list[str]
-    ) -> tuple[NormalizedDisease | None, str | None]:
-        """Normalize disease queries.
+    def normalize_disease(self, query: str) -> tuple[NormalizedDisease, str | None]:
+        """Attempt to normalize a disease query
 
         Given a collection of terms, return the normalized concept with the highest
         match.
 
         >>> from metakb.normalizers import ViccNormalizers
         >>> v = ViccNormalizers()
-        >>> disease_terms = [
-        ...     "AML",  # alias
-        ...     "von hippel-lindau syndrome",  # alias
-        ...     "ncit:C9384",  # concept ID
-        ... ]
-        >>> v.normalize_disease(disease_terms)[0].normalized_id
-        'ncit:C9384'
+        >>> v.normalize_disease("von hippel-lindau syndrome")[1]
+        'ncit:C3105'
 
-        :param queries: Disease queries to normalize. Order is irrelevant, except for
-            breaking ties (choose earlier if equal).
+        :param query: Disease query normalize
         :raises TokenRetrievalError: If AWS credentials are expired
-        :return: The highest matched disease's normalized response and ID
+        :return: Disease normalization response and normalized disease ID, if available.
         """
-        highest_match = 0
-        normalized_disease_id = None
-        disease_norm_resp = None
+        return self._normalize_concept(query, self.disease_query_handler, "disease")
 
-        for query in queries:
-            if not query:
-                continue
-
-            try:
-                disease_norm_resp = self.disease_query_handler.normalize(query)
-            except TokenRetrievalError as e:
-                _logger.error(e)
-                raise e
-            except Exception as e:
-                _logger.error(
-                    "Disease Normalizer raised an exception using query %s: %s",
-                    query,
-                    e,
-                )
-            else:
-                if disease_norm_resp.match_type > highest_match:
-                    highest_match = disease_norm_resp.match_type
-                    normalized_disease_id = disease_norm_resp.disease.primaryCode.root
-                    if highest_match == 100:
-                        break
-        return disease_norm_resp, normalized_disease_id
-
-    def normalize_therapy(
-        self, queries: list[str]
-    ) -> tuple[NormalizedTherapy | None, str | None]:
-        """Normalize therapy queries
-
-        Given a collection of terms, return the normalized concept with the highest
-        match.
+    def normalize_therapy(self, query: str) -> tuple[NormalizedTherapy, str | None]:
+        """Attempt to normalize a therapy query
 
         >>> from metakb.normalizers import ViccNormalizers
         >>> v = ViccNormalizers()
-        >>> therapy_terms = [
-        ...     "VAZALORE",  # trade name
-        ...     "RHUMAB HER2",  # alias
-        ...     "rxcui:5032",  # concept ID
-        ... ]
-        >>> v.normalize_therapy(therapy_terms)[0].normalized_id
-        'rxcui:5032'
+        >>> v.normalize_therapy("VAZALORE")[1]
+        'rxcui:1191'
 
-        :param queries: Therapy queries to normalize. Order is irrelevant, except for
-            breaking ties (choose earlier term if equal).
+        :param query: Therapy query normalize
         :raises TokenRetrievalError: If AWS credentials are expired
-        :return: The highest matched therapy's normalized response and ID
+        :return: Therapy normalization response and normalized therapy ID, if available.
         """
-        highest_match = 0
-        normalized_therapy_id = None
-        therapy_norm_resp = None
-
-        for query in queries:
-            if not query:
-                continue
-
-            try:
-                therapy_norm_resp = self.therapy_query_handler.normalize(query)
-            except TokenRetrievalError as e:
-                _logger.error(e)
-                raise e
-            except Exception as e:
-                _logger.error(
-                    "Therapy Normalizer raised an exception using query %s: %s",
-                    query,
-                    e,
-                )
-            else:
-                if therapy_norm_resp.match_type > highest_match:
-                    highest_match = therapy_norm_resp.match_type
-                    normalized_therapy_id = therapy_norm_resp.therapy.primaryCode.root
-                    if highest_match == 100:
-                        break
-        return therapy_norm_resp, normalized_therapy_id
+        return self._normalize_concept(query, self.therapy_query_handler, "therapy")
 
     @staticmethod
     def get_regulatory_approval_extension(
@@ -330,6 +217,41 @@ class ViccNormalizers:
                 )
 
         return regulatory_approval_extension
+
+    @staticmethod
+    def _normalize_concept(
+        query: str,
+        query_handler: GeneQueryHandler | DiseaseQueryHandler | TherapyQueryHandler,
+        concept_name: str,
+    ) -> tuple[NormalizedGene | NormalizedDisease | NormalizedTherapy, str | None]:
+        """Attempt to normalize a concept
+
+        :param query: Query to normalize
+        :param query_handler: Query handler for normalizer
+        :param concept_name: Name of concept (gene, disease, therapy)
+        :raises TokenRetrievalError: If AWS credentials are expired
+        :return: Normalizer response and normalized ID, if available.
+        """
+        normalizer_resp = None
+        normalized_id = None
+
+        try:
+            normalizer_resp = query_handler.normalize(query)
+        except TokenRetrievalError as e:
+            _logger.error(e)
+            raise e
+        except Exception as e:
+            _logger.error(
+                "%s Normalizer raised an exception using query %s: %s",
+                concept_name.capitalize(),
+                query,
+                e,
+            )
+        else:
+            if normalizer_resp.match_type:
+                normalized_id = getattr(normalizer_resp, concept_name).primaryCode.root
+
+        return normalizer_resp, normalized_id
 
 
 class NormalizerName(str, Enum):
