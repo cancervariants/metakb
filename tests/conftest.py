@@ -409,7 +409,7 @@ def civic_mpid33(civic_vid33):
             },
         ],
         "extensions": [
-            {"name": "aliases", "value": ["LEU858ARG"]},
+            {"name": "aliases", "value": ["LEU858ARG", "L813R", "LEU813ARG"]},
             {
                 "name": "CIViC representative coordinate",
                 "value": {
