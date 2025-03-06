@@ -522,6 +522,14 @@ class QueryHandler:
             "specifiedBy": None,
         }
         params.update(stmt_node)
+        for prop_field in {
+            "propositionType",
+            "predicate",
+            "alleleOriginQualifier",
+            condition_key,
+        }:
+            params.pop(prop_field, None)
+
         statement_id = stmt_node["id"]
 
         # Get relationship and nodes for a statement
@@ -749,8 +757,6 @@ class QueryHandler:
         :param node: Document node data. This will be mutated
         :return: Document data
         """
-        node["mappings"] = _deserialize_field(node, "mappings")
-
         source_type = node.pop("source_type", None)
         if source_type:
             node["extensions"] = [Extension(name="source_type", value=source_type)]
@@ -779,6 +785,12 @@ class QueryHandler:
                         name="civic_therapy_interaction_type",
                         value=civic_therapy_interaction_type,
                     )
+                ]
+
+            moa_therapy_type = node.pop("moa_therapy_type", None)
+            if moa_therapy_type:
+                node["extensions"] = [
+                    Extension(name="moa_therapy_type", value=moa_therapy_type)
                 ]
 
             if node_type == TherapyType.COMBINATION_THERAPY:

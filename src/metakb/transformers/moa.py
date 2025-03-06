@@ -411,27 +411,12 @@ class MoaTransformer(Transformer):
         """
         for source in sources:
             source_id = source["id"]
-
-            if source["nct"]:
-                mappings = [
-                    ConceptMapping(
-                        coding=Coding(
-                            code=source["nct"],
-                            system="https://clinicaltrials.gov/search?term=",
-                        ),
-                        relation=Relation.EXACT_MATCH,
-                    )
-                ]
-            else:
-                mappings = None
-
             document = Document(
                 id=f"moa.source:{source_id}",
                 title=source["citation"],
                 urls=[source["url"]] if source["url"] else None,
                 pmid=source["pmid"] if source["pmid"] else None,
                 doi=source["doi"] if source["doi"] else None,
-                mappings=mappings,
                 extensions=[Extension(name="source_type", value=source["type"])],
             )
             self._cache.documents[source_id] = document
