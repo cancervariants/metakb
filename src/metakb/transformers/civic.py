@@ -414,19 +414,6 @@ class CivicTransformer(Transformer):
             else statement_id.replace("aid", "civic.aid:")
         )
 
-        mappings = [
-            ConceptMapping(
-                coding=Coding(
-                    id=statement_id,
-                    code=str(record["id"]),
-                    system="https://civicdb.org/evidence/"
-                    if is_evidence
-                    else "https://civicdb.org/assertions/",
-                ),
-                relation=Relation.EXACT_MATCH,
-            )
-        ]
-
         stmt_params = {
             "id": statement_id,
             "description": record["description"] or None,
@@ -437,7 +424,6 @@ class CivicTransformer(Transformer):
             "classification": classification,
             "extensions": extensions or None,
             "hasEvidenceLines": evidence_lines or None,
-            "mappings": mappings,
         }
 
         prop_params = {
