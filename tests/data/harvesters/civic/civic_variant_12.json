@@ -7,6 +7,16 @@
   "entrez_name": "BRAF",
   "entrez_id": 673,
   "allele_registry_id": "CA123643",
+  "clinvar_entries": [
+    "13961",
+    "376069"
+  ],
+  "variant_aliases": [
+    "RS113488022",
+    "VAL600GLU",
+    "V640E",
+    "VAL640GLU"
+  ],
   "hgvs_expressions": [
     "NM_004333.4:c.1799T>A",
     "NP_004324.2:p.Val600Glu",
@@ -32,20 +42,6 @@
     "chromosome": "7",
     "start": 140453136,
     "stop": 140453136,
-    "representative_transcript2": null,
-    "chromosome2": null,
-    "start2": null,
-    "stop2": null,
     "type": "coordinates"
-  },
-  "clinvar_entries": [
-    "13961",
-    "376069"
-  ],
-  "variant_aliases": [
-    "RS113488022",
-    "VAL600GLU",
-    "V640E",
-    "VAL640GLU"
-  ]
+  }
 }
