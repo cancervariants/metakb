@@ -3,6 +3,7 @@
 import json
 
 import pytest
+from deepdiff import DeepDiff
 from neo4j import Driver
 from neo4j.graph import Node
 from tests.conftest import get_mappings_normalizer_id
@@ -182,7 +183,8 @@ def check_node_props():
         assert node.keys() == expected_keys
         for k in expected_keys - extension_names:
             if k == "mappings" or (k == "subtype" and isinstance(fixture[k], dict)):
-                assert json.loads(node[k]) == fixture[k]
+                diff = DeepDiff(json.loads(node[k]), fixture[k], ignore_order=True)
+                assert diff == {}, k
             elif k == "normalizer_id":
                 normalizer_id = get_mappings_normalizer_id(fixture["mappings"])
                 assert node[k] == normalizer_id
@@ -222,7 +224,7 @@ def test_gene_rules(
     check_extension_props(gene, civic_gid5["extensions"], extension_names)
     expected_keys = {
         "normalizer_id",
-        "label",
+        "name",
         "id",
         "description",
         "mappings",
@@ -278,7 +280,7 @@ def test_variation_rules(
     v = get_node_by_id(civic_vid12["id"])
     assert set(v.keys()) == {
         "id",
-        "label",
+        "name",
         "digest",
         "state",
         "expression_hgvs_p",
@@ -288,7 +290,7 @@ def test_variation_rules(
     }
 
     assert v["type"] == "Allele"
-    assert v["label"] == civic_vid12["label"]
+    assert v["name"] == civic_vid12["name"]
     assert v["digest"] == civic_vid12["digest"]
     assert json.loads(v["state"]) == civic_vid12["state"]
     expected_p, expected_c, expected_g = [], [], []
@@ -327,7 +329,7 @@ def test_categorical_variant_rules(
     cv = get_node_by_id(civic_mpid12["id"])
     assert set(cv.keys()) == {
         "id",
-        "label",
+        "name",
         "description",
         "aliases",
         "civic_molecular_profile_score",
@@ -337,7 +339,7 @@ def test_categorical_variant_rules(
         "type",
     }
     assert cv["type"] == civic_mpid12["type"]
-    assert cv["label"] == civic_mpid12["label"]
+    assert cv["name"] == civic_mpid12["name"]
     assert cv["description"] == civic_mpid12["description"]
     expected_aliases = next(
         ext for ext in civic_mpid12["extensions"] if ext["name"] == "aliases"
@@ -363,7 +365,7 @@ def test_categorical_variant_rules(
 
     variant_types = json.loads(cv["variant_types"])
     for vt in variant_types:
-        assert set(vt.keys()) == {"id", "label", "system", "code"}
+        assert set(vt.keys()) == {"id", "name", "system", "code"}
 
 
 def test_location_rules(
@@ -384,13 +386,13 @@ def test_location_rules(
     assert set(loc.keys()) == {
         "id",
         "digest",
-        "sequence_reference",
+        "sequenceReference",
         "start",
         "end",
         "sequence",
         "type",
     }
-    assert json.loads(loc["sequence_reference"]) == {
+    assert json.loads(loc["sequenceReference"]) == {
         "type": "SequenceReference",
         "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
     }
@@ -463,7 +465,7 @@ def test_therapy_rules(
     check_extension_props(ta, civic_tid146["extensions"], extension_names)
     expected_keys = {
         "id",
-        "label",
+        "name",
         "aliases",
         "normalizer_id",
         "regulatory_approval",
@@ -477,14 +479,14 @@ def test_therapy_rules(
     check_extension_props(
         ct, civic_ct["extensions"], {"civic_therapy_interaction_type"}
     )
-    assert ct["groupType"] == civic_ct["groupType"]["label"]
+    assert ct["groupType"] == civic_ct["groupType"]["name"]
 
     # Test TherapeuticSubstituteGroup
     tsg = get_node_by_id(civic_tsg["id"])
     check_extension_props(
         tsg, civic_tsg["extensions"], {"civic_therapy_interaction_type"}
     )
-    assert tsg["groupType"] == civic_tsg["groupType"]["label"]
+    assert tsg["groupType"] == civic_tsg["groupType"]["name"]
 
 
 def test_condition_rules(
@@ -509,7 +511,7 @@ def test_condition_rules(
 
     expected_keys = {
         "id",
-        "label",
+        "name",
         "mappings",
         "normalizer_id",
         "conceptType",
@@ -594,7 +596,7 @@ def test_statement_rules(
     civic_eid2997_ss_cp = civic_eid2997_study_stmt.copy()
     civic_eid2997_ss_cp["alleleOriginQualifier"] = civic_eid2997_ss_cp["proposition"][
         "alleleOriginQualifier"
-    ]["label"]
+    ]["name"]
     civic_eid2997_ss_cp["predicate"] = civic_eid2997_ss_cp["proposition"]["predicate"]
     civic_eid2997_ss_cp["propositionType"] = civic_eid2997_ss_cp["proposition"]["type"]
     check_node_props(statement, civic_eid2997_ss_cp, expected_keys)
@@ -613,7 +615,7 @@ def test_statement_rules(
     civic_aid6_ss_cp = civic_aid6_statement.copy()
     civic_aid6_ss_cp["alleleOriginQualifier"] = civic_aid6_ss_cp["proposition"][
         "alleleOriginQualifier"
-    ]["label"]
+    ]["name"]
     civic_aid6_ss_cp["predicate"] = civic_aid6_ss_cp["proposition"]["predicate"]
     civic_aid6_ss_cp["propositionType"] = civic_aid6_ss_cp["proposition"]["type"]
     check_node_props(statement, civic_aid6_ss_cp, expected_keys)
@@ -623,7 +625,7 @@ def test_strength_rules(driver: Driver, check_relation_count, civic_eid2997_stud
     """Verify property and relationship rules for Strength nodes."""
     query = """
     MATCH (s:Strength)
-    WITH s.label AS label, s.primaryCode AS primaryCode, COUNT(*) AS count
+    WITH s.name AS name, s.primaryCode AS primaryCode, COUNT(*) AS count
     WHERE count > 1
     RETURN COUNT(*)
     """
@@ -656,7 +658,7 @@ def test_strength_rules(driver: Driver, check_relation_count, civic_eid2997_stud
     assert record.values()[0] == 0
 
     query = f"""
-    MATCH (s:Strength {{primaryCode: '{civic_eid2997_study_stmt['strength']['primaryCode']}', label: '{civic_eid2997_study_stmt['strength']['label']}'}})
+    MATCH (s:Strength {{primaryCode: '{civic_eid2997_study_stmt['strength']['primaryCode']}', name: '{civic_eid2997_study_stmt['strength']['name']}'}})
     RETURN s
     """
     result = driver.execute_query(query)
@@ -780,7 +782,7 @@ def test_method_rules(
     check_node_labels("Method", expected_node_labels, 1)
 
     method = get_node_by_id(civic_method["id"])
-    expected_keys = {"id", "label", "subtype"}
+    expected_keys = {"id", "name", "subtype"}
     check_node_props(method, civic_method, expected_keys)
 
 

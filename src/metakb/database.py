@@ -73,7 +73,7 @@ def _get_credentials(
 
 
 _CONSTRAINTS = {
-    "strength_constraint": "CREATE CONSTRAINT coding_constraint IF NOT EXISTS FOR (n:Strength) REQUIRE (n.label, n.primaryCode) IS UNIQUE;",
+    "strength_constraint": "CREATE CONSTRAINT coding_constraint IF NOT EXISTS FOR (n:Strength) REQUIRE (n.name, n.primaryCode) IS UNIQUE;",
     "gene_id_constraint": "CREATE CONSTRAINT gene_id_constraint IF NOT EXISTS FOR (n:Gene) REQUIRE n.id IS UNIQUE;",
     "disease_id_constraint": "CREATE CONSTRAINT disease_id_constraint IF NOT EXISTS FOR (n:Disease) REQUIRE n.id IS UNIQUE;",
     "therapy_id_constraint": "CREATE CONSTRAINT therapy_id_constraint IF NOT EXISTS FOR (n:Therapy) REQUIRE n.id IS UNIQUE;",

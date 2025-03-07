@@ -46,12 +46,12 @@ async def not_normalizable_data(normalizers):
 def moa_vid144(braf_v600e_genomic):
     """Create a test fixture for MOA VID144."""
     genomic_rep = braf_v600e_genomic.copy()
-    genomic_rep["label"] = "7-140453136-A-T"
+    genomic_rep["name"] = "7-140453136-A-T"
 
     return {
         "id": "moa.variant:144",
         "type": "CategoricalVariant",
-        "label": "BRAF p.V600E (Missense)",
+        "name": "BRAF p.V600E (Missense)",
         "constraints": [
             {
                 "allele": {
@@ -117,7 +117,7 @@ def moa_cetuximab(cetuximab_extensions, cetuximab_normalizer_mappings):
     return {
         "id": "moa.normalize.therapy.rxcui:318341",
         "conceptType": "Therapy",
-        "label": "Cetuximab",
+        "name": "Cetuximab",
         "extensions": cetuximab_extensions,
         "mappings": [
             *cetuximab_normalizer_mappings,
@@ -140,7 +140,7 @@ def moa_encorafenib(encorafenib_extensions, encorafenib_normalizer_mappings):
     return {
         "id": "moa.normalize.therapy.rxcui:2049106",
         "conceptType": "Therapy",
-        "label": "Encorafenib",
+        "name": "Encorafenib",
         "extensions": encorafenib_extensions,
         "mappings": [
             *encorafenib_normalizer_mappings,
@@ -185,14 +185,14 @@ def moa_aid154_study_stmt(
         "description": "The U.S. Food and Drug Administration (FDA) granted regular approval to encorafenib in combination with cetuximab for the treatment of adult patients with metastatic colorectal cancer (CRC) with BRAF V600E mutation, as detected by an FDA-approved test, after prior therapy.",
         "strength": {
             "primaryCode": "e000002",
-            "label": "FDA recognized evidence",
+            "name": "FDA recognized evidence",
             "mappings": [
                 {
                     "coding": {
                         "id": "vicc:e000002",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000002",
-                        "label": "FDA recognized evidence",
+                        "name": "FDA recognized evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -211,8 +211,8 @@ def moa_aid154_study_stmt(
             "predicate": "predictsSensitivityTo",
             "subjectVariant": moa_vid144,
             "objectTherapeutic": {
-                "groupType": {"label": "CombinationTherapy"},
-                "id": "moa.ctid:ZGlEkRBR4st6Y_nijjuR1KUV7EFHIF_S",
+                "groupType": {"name": "CombinationTherapy"},
+                "id": "moa.ctid:E8RHoiov2ULWPZVlCea5dqttCbNY0IyL",
                 "therapies": [moa_cetuximab, moa_encorafenib],
                 "extensions": [
                     {
@@ -224,11 +224,11 @@ def moa_aid154_study_stmt(
             "conditionQualifier": {
                 "id": "moa.normalize.disease.ncit:C5105",
                 "conceptType": "Disease",
-                "label": "Colorectal Adenocarcinoma",
+                "name": "Colorectal Adenocarcinoma",
                 "mappings": [
                     {
                         "coding": {
-                            "label": "Colorectal Adenocarcinoma",
+                            "name": "Colorectal Adenocarcinoma",
                             "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
                             "code": "COADREAD",
                             "id": "oncotree:COADREAD",
@@ -237,7 +237,7 @@ def moa_aid154_study_stmt(
                     },
                     {
                         "coding": {
-                            "label": "Colorectal Adenocarcinoma",
+                            "name": "Colorectal Adenocarcinoma",
                             "id": "ncit:C5105",
                             "code": "C5105",
                             "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
@@ -282,11 +282,11 @@ def moa_aid154_study_stmt(
                     },
                 ],
             },
-            "alleleOriginQualifier": {"label": "somatic"},
+            "alleleOriginQualifier": {"name": "somatic"},
             "geneContextQualifier": {
                 "id": "moa.normalize.gene.hgnc:1097",
                 "conceptType": "Gene",
-                "label": "BRAF",
+                "name": "BRAF",
                 "mappings": braf_normalizer_mappings_cpy,
             },
         },
@@ -311,7 +311,7 @@ def moa_vid21_modified():
     return {
         "id": "moa.variant:21",
         "type": "CategoricalVariant",
-        "label": "FakeGene Translocation",
+        "name": "FakeGene Translocation",
         "extensions": [
             get_vicc_normalizer_failure_ext(),
             {"name": "MOA locus", "value": "t(6;14)"},
@@ -335,7 +335,7 @@ def moa_mito_cp():
     return {
         "id": "moa.therapy:Mito-CP",
         "conceptType": "Therapy",
-        "label": "Mito-CP",
+        "name": "Mito-CP",
         "extensions": [get_vicc_normalizer_failure_ext()],
     }
 
@@ -346,13 +346,13 @@ def moa_t_cell_acute_lymphoid_leukemia():
     return {
         "id": "moa.disease:T-Cell_Acute_Lymphoid_Leukemia",
         "conceptType": "Disease",
-        "label": "T-Cell Acute Lymphoid Leukemia",
+        "name": "T-Cell Acute Lymphoid Leukemia",
         "extensions": [get_vicc_normalizer_failure_ext()],
         "mappings": [
             {
                 "coding": {
                     "id": "oncotree:TALL",
-                    "label": "T-Cell Acute Lymphoid Leukemia",
+                    "name": "T-Cell Acute Lymphoid Leukemia",
                     "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
                     "code": "TALL",
                 },
@@ -368,7 +368,7 @@ def moa_fake_gene():
     return {
         "id": "moa.gene:FakeGene",
         "conceptType": "Gene",
-        "label": "FakeGene",
+        "name": "FakeGene",
         "extensions": [get_vicc_normalizer_failure_ext()],
     }
 
@@ -390,14 +390,14 @@ def moa_not_normalizable_stmt(
         "description": "This is a fake assertion item.",
         "strength": {
             "primaryCode": "e000009",
-            "label": "preclinical evidence",
+            "name": "preclinical evidence",
             "mappings": [
                 {
                     "coding": {
                         "id": "vicc:e000009",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000009",
-                        "label": "preclinical evidence",
+                        "name": "preclinical evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -426,7 +426,7 @@ def moa_not_normalizable_stmt(
             "subjectVariant": moa_vid21_modified,
             "objectTherapeutic": moa_mito_cp,
             "conditionQualifier": moa_t_cell_acute_lymphoid_leukemia,
-            # "alleleOriginQualifier": {"label": "somatic"},
+            # "alleleOriginQualifier": {"name": "somatic"},
             "geneContextQualifier": moa_fake_gene,
         },
         "specifiedBy": moa_method,
@@ -477,7 +477,7 @@ async def test_moa_concept_conflicts(normalizers):
 
     therapy = therapies[0]
     assert therapy.id == "moa.normalize.therapy.rxcui:2370147"
-    assert therapy.label == "LOXO-292"
+    assert therapy.name == "LOXO-292"
     therapy_alias_ext = next(
         (ext for ext in therapy.extensions if ext.name == "aliases"),
         None,
@@ -492,7 +492,7 @@ async def test_moa_concept_conflicts(normalizers):
 
     condition = conditions[0]
     assert condition.id == "moa.normalize.disease.ncit:C3247"
-    assert condition.label == "Myelodysplasia"
+    assert condition.name == "Myelodysplasia"
     condition_alias_ext = next(
         (ext for ext in condition.extensions if ext.name == "aliases"),
         None,

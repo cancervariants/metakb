@@ -401,9 +401,9 @@ class CivicTransformer(Transformer):
 
         variant_origin = record["variant_origin"].upper()
         if variant_origin == "SOMATIC":
-            allele_origin_qualifier = MappableConcept(label="somatic")
+            allele_origin_qualifier = MappableConcept(name="somatic")
         elif variant_origin in {"RARE_GERMLINE", "COMMON_GERMLINE"}:
-            allele_origin_qualifier = MappableConcept(label="germline")
+            allele_origin_qualifier = MappableConcept(name="germline")
         else:
             allele_origin_qualifier = None
 
@@ -413,19 +413,6 @@ class CivicTransformer(Transformer):
             if is_evidence
             else statement_id.replace("aid", "civic.aid:")
         )
-
-        mappings = [
-            ConceptMapping(
-                coding=Coding(
-                    id=statement_id,
-                    code=str(record["id"]),
-                    system="https://civicdb.org/evidence/"
-                    if is_evidence
-                    else "https://civicdb.org/assertions/",
-                ),
-                relation=Relation.EXACT_MATCH,
-            )
-        ]
 
         stmt_params = {
             "id": statement_id,
@@ -437,7 +424,6 @@ class CivicTransformer(Transformer):
             "classification": classification,
             "extensions": extensions or None,
             "hasEvidenceLines": evidence_lines or None,
-            "mappings": mappings,
         }
 
         prop_params = {
@@ -561,7 +547,7 @@ class CivicTransformer(Transformer):
             cv = CategoricalVariant(
                 id=mp_id,
                 description=mp["description"],
-                label=mp["name"],
+                name=mp["name"],
                 constraints=constraints,
                 mappings=civic_variation_data.mappings,
                 extensions=extensions or None,
@@ -643,7 +629,7 @@ class CivicTransformer(Transformer):
                 variation_params["extensions"] = (
                     None  # Don't care about capturing extensions for now
                 )
-                variation_params["label"] = hgvs_expr
+                variation_params["name"] = hgvs_expr
                 variation_params["expressions"] = [
                     Expression(syntax=syntax, value=hgvs_expr)
                 ]
@@ -683,7 +669,7 @@ class CivicTransformer(Transformer):
             else:
                 # Create VRS Variation object
                 params = vrs_variation.model_dump(exclude_none=True)
-                params["label"] = variant["name"]
+                params["name"] = variant["name"]
                 civic_variation = Variation(**params)
 
                 # Get members
@@ -703,7 +689,7 @@ class CivicTransformer(Transformer):
                     id=vt["so_id"],
                     code=vt["so_id"],
                     system=f"{vt['url'].rsplit('/', 1)[0]}/",
-                    label="_".join(vt["name"].lower().split()),
+                    name="_".join(vt["name"].lower().split()),
                 )
                 for vt in variant["variant_types"]
                 if vt and vt["url"]  # system is required
@@ -920,7 +906,7 @@ class CivicTransformer(Transformer):
             civic_gene = MappableConcept(
                 id=gene_id,
                 conceptType="Gene",
-                label=gene["name"],
+                name=gene["name"],
                 mappings=mappings,
                 extensions=extensions or None,
             )
@@ -1010,7 +996,7 @@ class CivicTransformer(Transformer):
         return MappableConcept(
             id=disease_id,
             conceptType="Disease",
-            label=display_name,
+            name=display_name,
             mappings=mappings or None,
             extensions=extensions or None,
         )
@@ -1052,7 +1038,7 @@ class CivicTransformer(Transformer):
             tg = TherapyGroup(
                 id=therapeutic_sub_group_id,
                 groupType=MappableConcept(
-                    label=TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP.value
+                    name=TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP.value
                 ),
                 therapies=therapies,
                 extensions=extensions,
@@ -1090,9 +1076,9 @@ class CivicTransformer(Transformer):
                 relation=Relation.EXACT_MATCH,
             )
 
-        label = therapy["name"]
+        name = therapy["name"]
         ncit_id = f"ncit:{therapy['ncit_id']}"
-        queries = [ncit_id, label] if therapy["ncit_id"] else [label]
+        queries = [ncit_id, name] if therapy["ncit_id"] else [name]
 
         extensions = []
         if therapy["aliases"]:
@@ -1110,7 +1096,7 @@ class CivicTransformer(Transformer):
             _logger.debug(
                 "Therapy Normalizer unable to normalize: using queries ncit:%s and %s",
                 ncit_id,
-                label,
+                name,
             )
 
             mappings = (
@@ -1138,7 +1124,7 @@ class CivicTransformer(Transformer):
 
         return MappableConcept(
             id=therapy_id,
-            label=label,
+            name=name,
             conceptType="Therapy",
             mappings=mappings or None,
             extensions=extensions or None,
@@ -1196,7 +1182,7 @@ class CivicTransformer(Transformer):
         if source_type in SourcePrefix.__members__:
             document = Document(
                 id=f"civic.source:{source_id}",
-                label=source["citation"],
+                name=source["citation"],
                 title=source["title"],
             )
 
