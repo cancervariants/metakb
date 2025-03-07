@@ -169,15 +169,12 @@ def civic_mpid473():
                 "relation": "exactMatch",
             },
         ],
+        "aliases": [
+            "3021INSTC",
+            "PRO968LEUFS",
+        ],
         "extensions": [
             get_vicc_normalizer_failure_ext(),
-            {
-                "name": "aliases",
-                "value": [
-                    "3021INSTC",
-                    "PRO968LEUFS",
-                ],
-            },
             {
                 "name": "CIViC representative coordinate",
                 "value": {

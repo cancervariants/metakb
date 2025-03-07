@@ -408,8 +408,8 @@ def civic_mpid33(civic_vid33):
                 "relation": "exactMatch",
             },
         ],
+        "aliases": ["LEU858ARG", "L813R", "LEU813ARG"],
         "extensions": [
-            {"name": "aliases", "value": ["LEU858ARG", "L813R", "LEU813ARG"]},
             {
                 "name": "CIViC representative coordinate",
                 "value": {
@@ -679,8 +679,8 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
                 "relation": "exactMatch",
             },
         ],
+        "aliases": ["VAL600GLU", "V640E", "VAL640GLU"],
         "extensions": [
-            {"name": "aliases", "value": ["VAL600GLU", "V640E", "VAL640GLU"]},
             {
                 "name": "CIViC representative coordinate",
                 "value": {
@@ -1558,8 +1558,8 @@ def civic_mpid65(civic_vid65):
                 "relation": "exactMatch",
             },
         ],
+        "aliases": ["ASP816VAL"],
         "extensions": [
-            {"name": "aliases", "value": ["ASP816VAL"]},
             {
                 "name": "CIViC representative coordinate",
                 "value": {

@@ -143,8 +143,8 @@ def civic_mpid99():
                 "relation": "exactMatch",
             },
         ],
+        "aliases": ["ASP842VAL"],
         "extensions": [
-            {"name": "aliases", "value": ["ASP842VAL"]},
             {
                 "name": "CIViC representative coordinate",
                 "value": {
@@ -430,8 +430,8 @@ def civic_mpid113():
                 "relation": "exactMatch",
             },
         ],
+        "aliases": ["MET918THR"],
         "extensions": [
-            {"name": "aliases", "value": ["MET918THR"]},
             {
                 "name": "CIViC representative coordinate",
                 "value": {

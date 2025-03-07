@@ -295,6 +295,10 @@ def _add_categorical_variant(
         _create_parameterized_query(cv, ("id", "name", "description", "type"))
     ]
 
+    if "aliases" in cv:
+        cv["aliases"] = json.dumps(cv["aliases"])
+        mp_nonnull_keys.append("aliases:$aliases")
+
     _add_mappings_and_exts_to_obj(cv, mp_nonnull_keys)
     mp_keys = ", ".join(mp_nonnull_keys)
 
