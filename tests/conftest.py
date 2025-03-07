@@ -1339,7 +1339,7 @@ def civic_aid6_statement(
         },
         "direction": "supports",
         "classification": {
-            "primaryCode": "Tier I",
+            "primaryCode": "Tier I - Strong",
             "extensions": [{"name": "civic_amp_level", "value": "TIER_I_LEVEL_A"}],
         },
         "hasEvidenceLines": [
