@@ -47,13 +47,18 @@
       "aliases": [
         "BRAF Inhibitor GSK2118436",
         "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-",
+        "GSK 2118436",
+        "GSK 2118436A",
         "GSK-2118436",
         "GSK-2118436A",
-        "GSK2118436"
+        "GSK2118436",
+        "GSK2118436A"
       ],
       "type": "therapie"
     }
   ],
+  "phenotypes": [],
+  "clingen_codes": [],
   "disease": {
     "id": 7,
     "name": "Melanoma",
@@ -66,7 +71,5 @@
     ],
     "type": "disease"
   },
-  "phenotypes": [],
-  "clingen_codes": [],
   "acmg_codes": []
 }

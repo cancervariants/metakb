@@ -22,9 +22,12 @@
       "aliases": [
         "BRAF Inhibitor GSK2118436",
         "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-",
+        "GSK 2118436",
+        "GSK 2118436A",
         "GSK-2118436",
         "GSK-2118436A",
-        "GSK2118436"
+        "GSK2118436",
+        "GSK2118436A"
       ],
       "type": "therapie"
     },
@@ -43,6 +46,7 @@
       "type": "therapie"
     }
   ],
+  "phenotypes": [],
   "disease": {
     "id": 8,
     "name": "Lung Non-small Cell Carcinoma",
@@ -50,7 +54,6 @@
     "doid": "3908",
     "disease_url": "https://www.disease-ontology.org/?id=DOID:3908",
     "aliases": [
-      "NSCLC",
       "Non-small Cell Lung Cancer",
       "Non-small Cell Lung Carcinoma"
     ],
@@ -77,11 +80,10 @@
         "name": "Study of Selective BRAF Kinase Inhibitor Dabrafenib Monotherapy Twice Daily and in Combination With Dabrafenib Twice Daily and Trametinib Once Daily in Combination Therapy in Subjects With BRAF V600E Mutation Positive Metastatic (Stage IV) Non-small Cell Lung Cancer.",
         "description": "Dabrafenib is a potent and selective inhibitor of BRAF kinase activity. This is a Phase II, non-randomized, open-label study to assess the efficacy, safety, and tolerability of dabrafenib administered as a single agent and in combination with trametinib in stage IV disease to subjects with BRAF mutant advanced non-small cell lung cancer. Subjects will receive dabrafenib 150 mg twice daily (BID) in monotherapy treatment and dabrafenib 150 mg bid and trametinib 2 mg once daily in combination therapy and continue on treatment until disease progression, death, or unacceptable adverse event.",
         "nctId": "NCT01336634",
-        "url": "https://clinicaltrials.gov/ct2/show/NCT01336634",
+        "url": "https://clinicaltrials.gov/study/NCT01336634",
         "type": "clinical_trial"
       }
     ],
     "type": "source"
-  },
-  "phenotypes": []
+  }
 }

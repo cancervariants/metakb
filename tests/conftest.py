@@ -409,7 +409,7 @@ def civic_mpid33(civic_vid33):
             },
         ],
         "extensions": [
-            {"name": "aliases", "value": ["LEU858ARG"]},
+            {"name": "aliases", "value": ["LEU858ARG", "L813R", "LEU813ARG"]},
             {
                 "name": "CIViC representative coordinate",
                 "value": {
@@ -697,7 +697,7 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
             },
             {
                 "name": "CIViC Molecular Profile Score",
-                "value": 1378.5,
+                "value": 1433.5,
             },
             {
                 "name": "Variant types",
@@ -845,6 +845,7 @@ def civic_tid146():
                 "value": [
                     "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide",
                     "BIBW 2992",
+                    "BIBW-2992",
                     "BIBW2992",
                 ],
             },
