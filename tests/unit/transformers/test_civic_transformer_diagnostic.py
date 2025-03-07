@@ -37,13 +37,13 @@ def civic_mpid99():
         "id": "civic.mpid:99",
         "type": "CategoricalVariant",
         "description": "PDGFRA D842 mutations are characterized broadly as imatinib resistance mutations. This is most well characterized in gastrointestinal stromal tumors, but other cell lines containing these mutations have been shown to be resistant as well. Exogenous expression of the A842V mutation resulted in constitutive tyrosine phosphorylation of PDGFRA in the absence of ligand in 293T cells and cytokine-independent proliferation of the IL-3-dependent Ba/F3 cell line, both evidence that this is an activating mutation. In imatinib resistant cell lines, a number of other therapeutics have demonstrated efficacy. These include; crenolanib, sirolimus, and midostaurin (PKC412).",
-        "label": "PDGFRA D842V",
+        "name": "PDGFRA D842V",
         "constraints": [
             {
                 "allele": {
                     "id": "ga4gh:VA.Dy7soaZQU1vH9Eb93xG_pJyhu7xTDDC9",
                     "type": "Allele",
-                    "label": "D842V",
+                    "name": "D842V",
                     "digest": "Dy7soaZQU1vH9Eb93xG_pJyhu7xTDDC9",
                     "expressions": [
                         {"syntax": "hgvs.p", "value": "NP_006197.1:p.Asp842Val"},
@@ -72,7 +72,7 @@ def civic_mpid99():
             {
                 "id": "ga4gh:VA.TAskYi2zB3_dTtdyqyIxXKlYosf4cbJo",
                 "type": "Allele",
-                "label": "NM_006206.4:c.2525A>T",
+                "name": "NM_006206.4:c.2525A>T",
                 "digest": "TAskYi2zB3_dTtdyqyIxXKlYosf4cbJo",
                 "expressions": [{"syntax": "hgvs.c", "value": "NM_006206.4:c.2525A>T"}],
                 "location": {
@@ -92,7 +92,7 @@ def civic_mpid99():
             {
                 "id": "ga4gh:VA.B6-IjSb5S6K46BbJWPAvSD5vWz4tqW1j",
                 "type": "Allele",
-                "label": "NC_000004.11:g.55152093A>T",
+                "name": "NC_000004.11:g.55152093A>T",
                 "digest": "B6-IjSb5S6K46BbJWPAvSD5vWz4tqW1j",
                 "expressions": [
                     {"syntax": "hgvs.g", "value": "NC_000004.11:g.55152093A>T"}
@@ -170,7 +170,7 @@ def civic_mpid99():
                         "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "label": "missense_variant",
+                        "name": "missense_variant",
                     }
                 ],
             },
@@ -184,7 +184,7 @@ def civic_gid38():
     return {
         "id": "civic.gid:38",
         "conceptType": "Gene",
-        "label": "PDGFRA",
+        "name": "PDGFRA",
         "mappings": [
             {
                 "coding": {
@@ -200,7 +200,7 @@ def civic_gid38():
             },
             {
                 "coding": {
-                    "label": "PDGFRA",
+                    "name": "PDGFRA",
                     "id": "hgnc:8803",
                     "code": "HGNC:8803",
                     "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
@@ -228,7 +228,7 @@ def civic_did2():
     return {
         "id": "civic.did:2",
         "conceptType": "Disease",
-        "label": "Gastrointestinal Stromal Tumor",
+        "name": "Gastrointestinal Stromal Tumor",
         "mappings": [
             {
                 "coding": {
@@ -244,7 +244,7 @@ def civic_did2():
             },
             {
                 "coding": {
-                    "label": "Gastrointestinal Stromal Tumor",
+                    "name": "Gastrointestinal Stromal Tumor",
                     "id": "ncit:C3868",
                     "code": "C3868",
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
@@ -274,14 +274,14 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
         "direction": "supports",
         "strength": {
             "primaryCode": "e000005",
-            "label": "clinical cohort evidence",
+            "name": "clinical cohort evidence",
             "mappings": [
                 {
                     "coding": {
                         "id": "vicc:e000005",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000005",
-                        "label": "clinical cohort evidence",
+                        "name": "clinical cohort evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -298,7 +298,7 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
         "proposition": {
             "type": "VariantDiagnosticProposition",
             "predicate": "isDiagnosticExclusionCriterionFor",
-            "alleleOriginQualifier": {"label": "somatic"},
+            "alleleOriginQualifier": {"name": "somatic"},
             "subjectVariant": civic_mpid99,
             "geneContextQualifier": civic_gid38,
             "objectCondition": civic_did2,
@@ -307,7 +307,7 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
         "reportedIn": [
             {
                 "id": "civic.source:52",
-                "label": "Lasota et al., 2004",
+                "name": "Lasota et al., 2004",
                 "title": "A great majority of GISTs with PDGFRA mutations represent gastric tumors of low or no malignant potential.",
                 "pmid": 15146165,
                 "type": "Document",
@@ -324,13 +324,13 @@ def civic_mpid113():
         "id": "civic.mpid:113",
         "type": "CategoricalVariant",
         "description": "RET M819T is the most common somatically acquired mutation in medullary thyroid cancer (MTC). While there currently are no RET-specific inhibiting agents, promiscuous kinase inhibitors have seen some success in treating RET overactivity. Data suggests however, that the M918T mutation may lead to drug resistance, especially against the VEGFR-inhibitor motesanib. It has also been suggested that RET M819T leads to more aggressive MTC with a poorer prognosis.",
-        "label": "RET M918T",
+        "name": "RET M918T",
         "constraints": [
             {
                 "allele": {
                     "id": "ga4gh:VA.hEybNB_CeKflfFhT5AKOU5i1lgZPP-aS",
                     "type": "Allele",
-                    "label": "M918T",
+                    "name": "M918T",
                     "digest": "hEybNB_CeKflfFhT5AKOU5i1lgZPP-aS",
                     "expressions": [
                         {"syntax": "hgvs.p", "value": "NP_065681.1:p.Met918Thr"},
@@ -359,7 +359,7 @@ def civic_mpid113():
             {
                 "id": "ga4gh:VA.TZBjEPHhLRYxssQopcOQLWEBQrwzhH3T",
                 "type": "Allele",
-                "label": "NM_020975.4:c.2753T>C",
+                "name": "NM_020975.4:c.2753T>C",
                 "digest": "TZBjEPHhLRYxssQopcOQLWEBQrwzhH3T",
                 "expressions": [{"syntax": "hgvs.c", "value": "NM_020975.4:c.2753T>C"}],
                 "location": {
@@ -379,7 +379,7 @@ def civic_mpid113():
             {
                 "id": "ga4gh:VA.ON-Q17mJBYx3unmQ8GiqllzEphxR-Fie",
                 "type": "Allele",
-                "label": "NC_000010.10:g.43617416T>C",
+                "name": "NC_000010.10:g.43617416T>C",
                 "digest": "ON-Q17mJBYx3unmQ8GiqllzEphxR-Fie",
                 "expressions": [
                     {"syntax": "hgvs.g", "value": "NC_000010.10:g.43617416T>C"}
@@ -457,7 +457,7 @@ def civic_mpid113():
                         "id": "SO:0001583",
                         "code": "SO:0001583",
                         "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "label": "missense_variant",
+                        "name": "missense_variant",
                     }
                 ],
             },
@@ -471,7 +471,7 @@ def civic_gid42():
     return {
         "id": "civic.gid:42",
         "conceptType": "Gene",
-        "label": "RET",
+        "name": "RET",
         "mappings": [
             {
                 "coding": {
@@ -487,7 +487,7 @@ def civic_gid42():
             },
             {
                 "coding": {
-                    "label": "RET",
+                    "name": "RET",
                     "id": "hgnc:9967",
                     "code": "HGNC:9967",
                     "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
@@ -525,7 +525,7 @@ def civic_did15():
     return {
         "id": "civic.did:15",
         "conceptType": "Disease",
-        "label": "Medullary Thyroid Carcinoma",
+        "name": "Medullary Thyroid Carcinoma",
         "mappings": [
             {
                 "coding": {
@@ -541,7 +541,7 @@ def civic_did15():
             },
             {
                 "coding": {
-                    "label": "Thyroid Gland Medullary Carcinoma",
+                    "name": "Thyroid Gland Medullary Carcinoma",
                     "id": "ncit:C3879",
                     "code": "C3879",
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
@@ -571,14 +571,14 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
         "direction": "supports",
         "strength": {
             "primaryCode": "e000005",
-            "label": "clinical cohort evidence",
+            "name": "clinical cohort evidence",
             "mappings": [
                 {
                     "coding": {
                         "id": "vicc:e000005",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000005",
-                        "label": "clinical cohort evidence",
+                        "name": "clinical cohort evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -595,7 +595,7 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
         "proposition": {
             "type": "VariantDiagnosticProposition",
             "predicate": "isDiagnosticInclusionCriterionFor",
-            "alleleOriginQualifier": {"label": "somatic"},
+            "alleleOriginQualifier": {"name": "somatic"},
             "subjectVariant": civic_mpid113,
             "geneContextQualifier": civic_gid42,
             "objectCondition": civic_did15,
@@ -604,7 +604,7 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
         "reportedIn": [
             {
                 "id": "civic.source:44",
-                "label": "Elisei et al., 2008",
+                "name": "Elisei et al., 2008",
                 "title": "Prognostic significance of somatic RET oncogene mutations in sporadic medullary thyroid cancer: a 10-year follow-up study.",
                 "pmid": 18073307,
                 "type": "Document",

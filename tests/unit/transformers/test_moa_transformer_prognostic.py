@@ -37,7 +37,7 @@ def moa_vid141():
     return {
         "id": "moa.variant:141",
         "type": "CategoricalVariant",
-        "label": "BCOR p.N1425S (Missense)",
+        "name": "BCOR p.N1425S (Missense)",
         "constraints": [
             {
                 "allele": {
@@ -65,7 +65,7 @@ def moa_vid141():
             {
                 "id": "ga4gh:VA.e84USp97bhTBu8IC3wsm7nF8_GXU7Yk2",
                 "type": "Allele",
-                "label": "X-39921444-T-C",
+                "name": "X-39921444-T-C",
                 "digest": "e84USp97bhTBu8IC3wsm7nF8_GXU7Yk2",
                 "location": {
                     "id": "ga4gh:SL.6k6-KBncHr2M-nwSTTOLNYbUN5XsMmpB",
@@ -116,11 +116,11 @@ def moa_myelodysplasia():
     return {
         "id": "moa.normalize.disease.ncit:C3247",
         "conceptType": "Disease",
-        "label": "Myelodysplasia",
+        "name": "Myelodysplasia",
         "mappings": [
             {
                 "coding": {
-                    "label": "Myelodysplasia",
+                    "name": "Myelodysplasia",
                     "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
                     "code": "MDS",
                     "id": "oncotree:MDS",
@@ -129,7 +129,7 @@ def moa_myelodysplasia():
             },
             {
                 "coding": {
-                    "label": "Myelodysplastic Syndrome",
+                    "name": "Myelodysplastic Syndrome",
                     "id": "ncit:C3247",
                     "code": "C3247",
                     "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
@@ -167,11 +167,11 @@ def moa_bcor():
     return {
         "id": "moa.normalize.gene.hgnc:20893",
         "conceptType": "Gene",
-        "label": "BCOR",
+        "name": "BCOR",
         "mappings": [
             {
                 "coding": {
-                    "label": "BCOR",
+                    "name": "BCOR",
                     "id": "hgnc:20893",
                     "code": "HGNC:20893",
                     "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
@@ -218,14 +218,14 @@ def moa_aid141_study_stmt(
         "description": "More frequent in Chronic Myelomonocytic Leukemia.",
         "strength": {
             "primaryCode": "e000007",
-            "label": "observational study evidence",
+            "name": "observational study evidence",
             "mappings": [
                 {
                     "coding": {
                         "id": "vicc:e000007",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000007",
-                        "label": "observational study evidence",
+                        "name": "observational study evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -244,7 +244,7 @@ def moa_aid141_study_stmt(
             "predicate": "associatedWithWorseOutcomeFor",
             "subjectVariant": moa_vid141,
             "objectCondition": moa_myelodysplasia,
-            "alleleOriginQualifier": {"label": "somatic"},
+            "alleleOriginQualifier": {"name": "somatic"},
             "geneContextQualifier": moa_bcor,
         },
         "specifiedBy": moa_method,
@@ -258,7 +258,7 @@ def moa_vid532():
     return {
         "id": "moa.variant:532",
         "type": "CategoricalVariant",
-        "label": "SF3B1 p.E622D (Missense)",
+        "name": "SF3B1 p.E622D (Missense)",
         "constraints": [
             {
                 "allele": {
@@ -286,7 +286,7 @@ def moa_vid532():
             {
                 "id": "ga4gh:VA.Vj8RALpb4HP9RtsDNiaW_N3ODw3aSj5T",
                 "type": "Allele",
-                "label": "2-198267491-C-G",
+                "name": "2-198267491-C-G",
                 "digest": "Vj8RALpb4HP9RtsDNiaW_N3ODw3aSj5T",
                 "location": {
                     "id": "ga4gh:SL.R8r0t9A51FTOJ7Mb8VasF8L6D5Sa_FFU",
@@ -344,11 +344,11 @@ def moa_sf3b1():
     return {
         "id": "moa.normalize.gene.hgnc:10768",
         "conceptType": "Gene",
-        "label": "SF3B1",
+        "name": "SF3B1",
         "mappings": [
             {
                 "coding": {
-                    "label": "SF3B1",
+                    "name": "SF3B1",
                     "id": "hgnc:10768",
                     "code": "HGNC:10768",
                     "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
@@ -393,14 +393,14 @@ def moa_aid532_study_stmt(
         "description": "The National Comprehensive Cancer Network\u00ae (NCCN\u00ae) highlights SF3B1 E622, Y623, R625, N626, H662, T663, K666, K700E, I704, G740, G742, and D781 missense variants as being associated with a favorable prognosis in patients with myelodysplastic syndromes.",
         "strength": {
             "primaryCode": "e000003",
-            "label": "professional guideline evidence",
+            "name": "professional guideline evidence",
             "mappings": [
                 {
                     "coding": {
                         "id": "vicc:e000003",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000003",
-                        "label": "professional guideline evidence",
+                        "name": "professional guideline evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -419,7 +419,7 @@ def moa_aid532_study_stmt(
             "predicate": "associatedWithBetterOutcomeFor",
             "subjectVariant": moa_vid532,
             "objectCondition": moa_myelodysplasia,
-            "alleleOriginQualifier": {"label": "somatic"},
+            "alleleOriginQualifier": {"name": "somatic"},
             "geneContextQualifier": moa_sf3b1,
         },
         "specifiedBy": moa_method,

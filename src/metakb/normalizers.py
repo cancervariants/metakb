@@ -198,7 +198,7 @@ class ViccNormalizers:
                             matched_ind = {
                                 "id": indication["id"],
                                 "conceptType": indication["conceptType"],
-                                "label": indication["label"],
+                                "name": indication["name"],
                             }
 
                             if indication.get("mappings"):
