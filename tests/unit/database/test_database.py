@@ -341,10 +341,7 @@ def test_categorical_variant_rules(
     assert cv["type"] == civic_mpid12["type"]
     assert cv["name"] == civic_mpid12["name"]
     assert cv["description"] == civic_mpid12["description"]
-    expected_aliases = next(
-        ext for ext in civic_mpid12["extensions"] if ext["name"] == "aliases"
-    )["value"]
-    assert set(json.loads(cv["aliases"])) == set(expected_aliases)
+    assert set(json.loads(cv["aliases"])) == set(civic_mpid12["aliases"])
     assert isinstance(cv["civic_molecular_profile_score"], float)
     crc = json.loads(cv["civic_representative_coordinate"])
     assert set(crc.keys()) == {
