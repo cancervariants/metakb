@@ -172,9 +172,9 @@ class Transformer(ABC):
     _methods: ClassVar[list[Method]] = [
         Method(
             id=MethodId.CIVIC_EID_SOP,
-            label="CIViC Curation SOP (2019)",
+            name="CIViC Curation SOP (2019)",
             reportedIn=Document(
-                label="Danos et al., 2019, Genome Med.",
+                name="Danos et al., 2019, Genome Med.",
                 title="Standard operating procedure for curation and clinical interpretation of variants in cancer",
                 doi="10.1186/s13073-019-0687-x",
                 pmid=31779674,
@@ -185,9 +185,9 @@ class Transformer(ABC):
         ),
         Method(
             id=MethodId.MOA_ASSERTION_BIORXIV,
-            label="MOAlmanac (2021)",
+            name="MOAlmanac (2021)",
             reportedIn=Document(
-                label="Reardon, B., Moore, N.D., Moore, N.S. et al.",
+                name="Reardon, B., Moore, N.D., Moore, N.S. et al.",
                 title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
                 doi="10.1038/s43018-021-00243-3",
                 pmid=35121878,
@@ -390,7 +390,7 @@ class Transformer(ABC):
                         coding=Coding(
                             id=item.id,
                             system="https://go.osu.edu/evidence-codes",
-                            label=item.term,
+                            name=item.term,
                             code=code(primary_code),
                         ),
                         relation=Relation.EXACT_MATCH,
@@ -403,7 +403,7 @@ class Transformer(ABC):
                 )
 
                 mappings[exact_mapping] = MappableConcept(
-                    label=item.term,
+                    name=item.term,
                     primaryCode=primary_code,
                     mappings=concept_mappings,
                 )
@@ -472,7 +472,7 @@ class Transformer(ABC):
 
         for therapy in therapies_in:
             if source_name == SourceName.MOA:
-                therapy_id = f"moa.therapy:{_sanitize_name(therapy['label'])}"
+                therapy_id = f"moa.therapy:{_sanitize_name(therapy['name'])}"
             else:
                 therapy_id = f"civic.tid:{therapy['id']}"
             therapy_mc = self._add_therapy(
@@ -499,7 +499,7 @@ class Transformer(ABC):
                 id=combination_therapy_id,
                 therapies=therapies,
                 extensions=extensions,
-                groupType=MappableConcept(label=TherapyType.COMBINATION_THERAPY.value),
+                groupType=MappableConcept(name=TherapyType.COMBINATION_THERAPY.value),
             )
         except ValidationError as e:
             # if combination validation checks fail
@@ -580,7 +580,7 @@ class Transformer(ABC):
             :param normalizer_label: Label from normalized record
             :param match_on_coding_id: Whether to match on ``coding.id`` or
                 ``coding.code`` (MONDO is represented differently)
-            :return: ConceptMapping with normalizer extension added as well as label (
+            :return: ConceptMapping with normalizer extension added as well as name (
                 if mapping id matches normalized merged id)
             """
             is_priority = (
@@ -598,14 +598,14 @@ class Transformer(ABC):
                 mapping.extensions = [merged_id_ext]
 
             if is_priority:
-                mapping.coding.label = normalizer_label
+                mapping.coding.name = normalizer_label
 
             return mapping
 
         mappings: list[ConceptMapping] = []
         attr_name = NORMALIZER_INSTANCE_TO_ATTR[type(normalizer_resp)]
         normalizer_resp_obj = getattr(normalizer_resp, attr_name)
-        normalizer_label = normalizer_resp_obj.label
+        normalizer_label = normalizer_resp_obj.name
         is_disease = isinstance(normalizer_resp, NormalizedDisease)
         is_gene = isinstance(normalizer_resp, NormalizedGene)
         is_therapy = isinstance(normalizer_resp, NormalizedTherapy)
