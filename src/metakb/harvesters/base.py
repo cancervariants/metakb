@@ -75,7 +75,7 @@ class Harvester(ABC):
         try:
             with (harvested_filepath).open("w+") as f:
                 json.dump(harvested_data.model_dump(), f, indent=2)
-        except Exception as e:
-            logger.error("Error creating %s harvester JSON: %s", src_name, e)
+        except Exception:
+            logger.exception("Error creating %s harvester JSON", src_name)
             return False
         return True

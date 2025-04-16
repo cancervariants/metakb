@@ -171,13 +171,13 @@ def update_normalizers(
                 f"prohibited. Unset the environment variable "
                 f"{NORMALIZER_AWS_ENV_VARS[name]} to proceed."
             )
-            _logger.error(msg)
+            _logger.exception(msg)
             click.echo(msg)
             success = False
             continue
-        except (Exception, SystemExit) as e:
-            _logger.error(
-                "Encountered error while updating %s database: %s", name.value, e
+        except (Exception, SystemExit):
+            _logger.exception(
+                "Encountered error while updating %s database", name.value
             )
             click.echo(f"Failed to update {name.value} normalizer.")
             success = False

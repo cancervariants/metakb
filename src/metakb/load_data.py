@@ -661,7 +661,7 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
         for method in data.get("methods", []):
             session.execute_write(_add_method, method, ids_to_load)
 
-        for obj_type in {"genes", "conditions"}:
+        for obj_type in ("genes", "conditions"):
             for obj in data.get(obj_type, []):
                 session.execute_write(_add_gene_or_disease, obj, ids_to_load)
 

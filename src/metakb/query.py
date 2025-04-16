@@ -101,7 +101,7 @@ class QueryHandler:
         >>> from metakb.normalizers import ViccNormalizers
         >>> qh = QueryHandler(
         ...     get_driver("bolt://localhost:7687", ("neo4j", "password")),
-        ...     ViccNormalizers("http://localhost:8000")
+        ...     ViccNormalizers("http://localhost:8000"),
         ... )
 
         ``default_page_limit`` sets the default max number of statements to include in
@@ -114,10 +114,7 @@ class QueryHandler:
 
         This value is overruled by an explicit ``limit`` parameter:
 
-        >>> response = await limited_qh.batch_search_statements(
-        ...     ["BRAF V600E"],
-        ...     limit=2
-        ... )
+        >>> response = await limited_qh.batch_search_statements(["BRAF V600E"], limit=2)
         >>> print(len(response.statement_ids))
         2
 
@@ -482,8 +479,8 @@ class QueryHandler:
             if s_id not in added_stmts:
                 try:
                     nested_stmt = self._get_nested_stmt(s)
-                except ValidationError as e:
-                    logger.error("%s: %s", s_id, e)
+                except ValidationError:
+                    logger.exception("%s", s_id)
                 else:
                     if nested_stmt:
                         nested_stmts.append(nested_stmt)
