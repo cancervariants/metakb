@@ -1,0 +1,10 @@
+{
+  "name": "metakb",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev --parallel"
+  },
+  "devDependencies": {
+    "turbo": "^1.12.3"
+  }
+}
