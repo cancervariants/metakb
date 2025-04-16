@@ -1,0 +1,89 @@
+{
+  "type": "evidence",
+  "id": 3017,
+  "variant_origin": "SOMATIC",
+  "therapy_interaction_type": "COMBINATION",
+  "status": "accepted",
+  "significance": "SENSITIVITYRESPONSE",
+  "rating": 4,
+  "name": "EID3017",
+  "molecular_profile_id": 12,
+  "evidence_type": "PREDICTIVE",
+  "evidence_level": "A",
+  "evidence_direction": "SUPPORTS",
+  "description": "Patients with BRAF V600E-mutant NSCLC (n=57) were enrolled into a phase 2, multicentre, non-randomised, open-label study, administering dabrafenib plus trametinib. The overall response rate was 36/57 (63.2%, [95% CI 49.3-75.6]) and the median progression-free survival was 9.7 months (95% CI 6.9-19.6). At data cutoff (11.6 months of follow-up), 18/36  (50%) confirmed responses were ongoing and 23/57 (40%) of patients had died.",
+  "assertion_ids": [],
+  "therapies": [
+    {
+      "id": 22,
+      "name": "Dabrafenib",
+      "ncit_id": "C82386",
+      "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C82386",
+      "aliases": [
+        "BRAF Inhibitor GSK2118436",
+        "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-",
+        "GSK 2118436",
+        "GSK 2118436A",
+        "GSK-2118436",
+        "GSK-2118436A",
+        "GSK2118436",
+        "GSK2118436A"
+      ],
+      "type": "therapie"
+    },
+    {
+      "id": 19,
+      "name": "Trametinib",
+      "ncit_id": "C77908",
+      "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C77908",
+      "aliases": [
+        "GSK1120212",
+        "JTP-74057",
+        "MEK Inhibitor GSK1120212",
+        "Mekinist",
+        "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide"
+      ],
+      "type": "therapie"
+    }
+  ],
+  "phenotypes": [],
+  "disease": {
+    "id": 8,
+    "name": "Lung Non-small Cell Carcinoma",
+    "display_name": "Lung Non-small Cell Carcinoma",
+    "doid": "3908",
+    "disease_url": "https://www.disease-ontology.org/?id=DOID:3908",
+    "aliases": [
+      "Non-small Cell Lung Cancer",
+      "Non-small Cell Lung Carcinoma"
+    ],
+    "type": "disease"
+  },
+  "source": {
+    "id": 1296,
+    "name": "PubMed: Planchard et al., 2016",
+    "title": "Dabrafenib plus trametinib in patients with previously treated BRAF(V600E)-mutant metastatic non-small cell lung cancer: an open-label, multicentre phase 2 trial.",
+    "citation": "Planchard et al., 2016",
+    "citation_id": "27283860",
+    "source_type": "PUBMED",
+    "abstract": "BRAF mutations act as an oncogenic driver via the mitogen-activated protein kinase (MAPK) pathway in non-small cell lung cancer (NSCLC). BRAF inhibition has shown antitumour activity in patients with BRAF(V600E)-mutant NSCLC. Dual MAPK pathway inhibition with BRAF and MEK inhibitors in BRAF(V600E)-mutant NSCLC might improve efficacy over BRAF inhibitor monotherapy based on observations in BRAF(V600)-mutant melanoma. We aimed to assess the antitumour activity and safety of dabrafenib plus trametinib in patients with BRAF(V600E)-mutant NSCLC.In this phase 2, multicentre, non-randomised, open-label study, we enrolled adult patients (aged \u226518 years) with pretreated metastatic stage IV BRAF(V600E)-mutant NSCLC who had documented tumour progression after at least one previous platinum-based chemotherapy and had had no more than three previous systemic anticancer therapies. Patients with previous BRAF or MEK inhibitor treatment were ineligible. Patients with brain metastases were allowed to enrol only if the lesions were asymptomatic, untreated (or stable more than 3 weeks after local therapy if treated), and measured less than 1 cm. Enrolled patients received oral dabrafenib (150 mg twice daily) plus oral trametinib (2 mg once daily) in continuous 21-day cycles until disease progression, unacceptable adverse events, withdrawal of consent, or death. The primary endpoint was investigator-assessed overall response, which was assessed by intention to treat in the protocol-defined population (patients who received second-line or later treatment); safety was also assessed in this population and was assessed at least once every 3 weeks, with adverse events, laboratory values, and vital signs graded according to the Common Terminology Criteria for Adverse Events version 4.0. The study is ongoing but no longer recruiting patients. This trial is registered with ClinicalTrials.gov, number NCT01336634.Between Dec 20, 2013, and Jan 14, 2015, 59 patients from 30 centres in nine countries across North America, Europe, and Asia met eligibility criteria. Two patients who had previously been untreated due to protocol deviation were excluded; thus, 57 eligible patients were enrolled. 36 patients (63\u00b72% [95% CI 49\u00b73-75\u00b76]) achieved an investigator-assessed overall response. Serious adverse events were reported in 32 (56%) of 57 patients and included pyrexia in nine (16%), anaemia in three (5%), confusional state in two (4%), decreased appetite in two (4%), haemoptysis in two (4%), hypercalcaemia in two (4%), nausea in two (4%), and cutaneous squamous cell carcinoma in two (4%). The most common grade 3-4 adverse events were neutropenia in five patients (9%), hyponatraemia in four (7%), and anaemia in three (5%). Four patients died during the study from fatal adverse events judged to be unrelated to treatment (one retroperitoneal haemorrhage, one subarachnoid haemorrhage, one respiratory distress, and one from disease progression that was more severe than typical progression, as assessed by the investigator).Dabrafenib plus trametinib could represent a new targeted therapy with robust antitumour activity and a manageable safety profile in patients with BRAF(V600E)-mutant NSCLC.GlaxoSmithKline.",
+    "asco_abstract_id": null,
+    "author_string": "David Planchard, Benjamin Besse, Harry J M Groen, Pierre-Jean Souquet, Elisabeth Quoix, Christina S Baik, Fabrice Barlesi, Tae Min Kim, Julien Mazieres, Silvia Novello, James R Rigas, Allison Upalawanna, Anthony M D'Amelio, Pingkuan Zhang, Bijoyesh Mookerjee, Bruce E Johnson",
+    "full_journal_title": "The Lancet. Oncology",
+    "journal": "Lancet Oncol",
+    "pmc_id": "PMC4993103",
+    "publication_date": "2016-7",
+    "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/27283860",
+    "clinical_trials": [
+      {
+        "id": 112,
+        "name": "Study of Selective BRAF Kinase Inhibitor Dabrafenib Monotherapy Twice Daily and in Combination With Dabrafenib Twice Daily and Trametinib Once Daily in Combination Therapy in Subjects With BRAF V600E Mutation Positive Metastatic (Stage IV) Non-small Cell Lung Cancer.",
+        "description": "Dabrafenib is a potent and selective inhibitor of BRAF kinase activity. This is a Phase II, non-randomized, open-label study to assess the efficacy, safety, and tolerability of dabrafenib administered as a single agent and in combination with trametinib in stage IV disease to subjects with BRAF mutant advanced non-small cell lung cancer. Subjects will receive dabrafenib 150 mg twice daily (BID) in monotherapy treatment and dabrafenib 150 mg bid and trametinib 2 mg once daily in combination therapy and continue on treatment until disease progression, death, or unacceptable adverse event.",
+        "nctId": "NCT01336634",
+        "url": "https://clinicaltrials.gov/study/NCT01336634",
+        "type": "clinical_trial"
+      }
+    ],
+    "type": "source"
+  }
+}

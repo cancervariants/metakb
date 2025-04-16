@@ -1,0 +1,9 @@
+[run]
+source =
+   metakb/
+   tests/
+omit =
+   setup.py
+   docs/*
+   venv/*
+   metakb/harvesters/base.py

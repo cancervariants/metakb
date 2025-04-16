@@ -1,0 +1,30 @@
+{
+  "type": "molecular_profile",
+  "id": 12,
+  "variant_ids": [
+    12
+  ],
+  "name": "BRAF V600E",
+  "molecular_profile_score": 1433.5,
+  "description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
+  "sources": [],
+  "parsed_name": [
+    {
+      "type": "feature",
+      "id": 5,
+      "name": "BRAF"
+    },
+    {
+      "type": "variant",
+      "id": 12,
+      "name": "V600E",
+      "deprecated": false
+    }
+  ],
+  "aliases": [
+    "RS113488022",
+    "VAL600GLU",
+    "V640E",
+    "VAL640GLU"
+  ]
+}

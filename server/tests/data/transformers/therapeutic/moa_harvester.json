@@ -1,0 +1,144 @@
+{
+	"assertions": [
+		{
+			"id": 66,
+			"context": "",
+			"deprecated": false,
+			"description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
+			"disease": {
+				"name": "Chronic Myelogenous Leukemia",
+				"oncotree_code": "CML",
+				"oncotree_term": "Chronic Myelogenous Leukemia"
+			},
+			"therapy": {
+				"name": "Imatinib",
+				"type": "Targeted therapy",
+				"strategy": "BCR-ABL inhibition",
+				"resistance": 1,
+				"sensitivity": ""
+			},
+			"predictive_implication": "Preclinical",
+			"favorable_prognosis": "",
+			"created_on": "12/05/24",
+			"last_updated": "2023-11-30",
+			"submitted_by": "breardon@broadinstitute.org",
+			"validated": true,
+			"source_id": 45,
+			"variant": {
+				"id": 66,
+				"alternate_allele": "T",
+				"cdna_change": "c.944C>T",
+				"chromosome": "9",
+				"end_position": "133748283",
+				"exon": "5",
+				"feature_type": "somatic_variant",
+				"gene": "ABL1",
+				"protein_change": "p.T315I",
+				"reference_allele": "C",
+				"rsid": "rs121913459",
+				"start_position": "133748283",
+				"variant_annotation": "Missense",
+				"feature": "ABL1 p.T315I (Missense)"
+			}
+		},
+		{
+			"id": 154,
+			"context": "Metastatic, after prior therapy",
+			"deprecated": false,
+			"description": "The U.S. Food and Drug Administration (FDA) granted regular approval to encorafenib in combination with cetuximab for the treatment of adult patients with metastatic colorectal cancer (CRC) with BRAF V600E mutation, as detected by an FDA-approved test, after prior therapy.",
+			"disease": {
+				"name": "Colorectal Adenocarcinoma",
+				"oncotree_code": "COADREAD",
+				"oncotree_term": "Colorectal Adenocarcinoma"
+			},
+			"therapy": {
+				"name": "Cetuximab + Encorafenib",
+				"type": "Targeted therapy",
+				"strategy": "EGFR inhibition + B-RAF inhibition",
+				"resistance": "",
+				"sensitivity": 1
+			},
+			"predictive_implication": "FDA-Approved",
+			"favorable_prognosis": "",
+			"created_on": "12/05/24",
+			"last_updated": "2020-10-15",
+			"submitted_by": "breardon@broadinstitute.org",
+			"validated": true,
+			"source_id": 64,
+			"variant": {
+				"id": 144,
+				"alternate_allele": "T",
+				"cdna_change": "c.1799T>A",
+				"chromosome": "7",
+				"end_position": "140453136",
+				"exon": "15",
+				"feature_type": "somatic_variant",
+				"gene": "BRAF",
+				"protein_change": "p.V600E",
+				"reference_allele": "A",
+				"rsid": "rs113488022",
+				"start_position": "140453136",
+				"variant_annotation": "Missense",
+				"feature": "BRAF p.V600E (Missense)"
+			}
+		}
+	],
+	"sources": [
+		{
+			"id": 45,
+			"type": "Journal",
+			"doi": "10.1126/science.1062538",
+			"nct": "",
+			"pmid": 11423618,
+			"url": "https://doi.org/10.1126/science.1062538",
+			"citation": "Gorre, Mercedes E., et al. Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification. Science 293.5531 (2001): 876-880."
+		},
+    {
+      "id": 64,
+      "type": "FDA",
+      "doi": "",
+      "nct": "",
+      "pmid": "",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf",
+      "citation": "Array BioPharma Inc. Braftovi (encorafenib) [package insert]. U.S. Food and Drug Administration website. www.accessdata.fda.gov/drugsatfda_docs/label/2020/210496s006lbl.pdf. Revised April 2020. Accessed October 15, 2020."
+    }
+	],
+	"variants": [
+		{
+			"id": 66,
+			"alternate_allele": "T",
+			"cdna_change": "c.944C>T",
+			"chromosome": "9",
+			"end_position": "133748283",
+			"exon": "5",
+			"feature_type": "somatic_variant",
+			"gene": "ABL1",
+			"protein_change": "p.T315I",
+			"reference_allele": "C",
+			"rsid": "rs121913459",
+			"start_position": "133748283",
+			"variant_annotation": "Missense",
+			"feature": "ABL1 p.T315I (Missense)"
+		},
+		{
+      "id": 144,
+      "alternate_allele": "T",
+      "cdna_change": "c.1799T>A",
+      "chromosome": "7",
+      "end_position": "140453136",
+      "exon": "15",
+      "feature_type": "somatic_variant",
+      "gene": "BRAF",
+      "protein_change": "p.V600E",
+      "reference_allele": "A",
+      "rsid": "rs113488022",
+      "start_position": "140453136",
+      "variant_annotation": "Missense",
+      "feature": "BRAF p.V600E (Missense)"
+    }
+	],
+	"genes": [
+		"ABL1",
+		"BRAF"
+	]
+}

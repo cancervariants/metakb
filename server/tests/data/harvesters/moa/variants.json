@@ -1,0 +1,22 @@
+[
+	{
+		"attributes": [
+			{
+				"alternate_allele": "T",
+				"cdna_change": "c.1799T>A",
+				"chromosome": "7",
+				"end_position": "140453136",
+				"exon": "15",
+				"feature_type": "somatic_variant",
+				"gene": "BRAF",
+				"protein_change": "p.V600E",
+				"reference_allele": "A",
+				"rsid": "rs113488022",
+				"start_position": "140453136",
+				"variant_annotation": "Missense"
+			}
+		],
+		"feature_id": 145,
+		"feature_type": "somatic_variant"
+	}
+]

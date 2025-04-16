@@ -1,0 +1,127 @@
+{
+    "assertions": [
+        {
+            "id": 53,
+            "context": "Metastatic",
+            "deprecated": false,
+            "description": "The U.S. Food and Drug Administration (FDA) granted approval to selpercatinib for the treatment of adult patients with locally advanced or metastatic non-small cell lung cancer (NSCLC) with a RET gene fusion, as detected by an FDA-approved test.",
+            "disease": {
+                "name": "Myelodysplastic Syndromes",
+                "oncotree_code": "MDS",
+                "oncotree_term": "Myelodysplastic Syndromes"
+            },
+            "therapy": {
+                "name": "Selpercatinib",
+                "type": "Targeted therapy",
+                "strategy": "RET inhibition",
+                "resistance": "",
+                "sensitivity": 1
+            },
+            "predictive_implication": "FDA-Approved",
+            "favorable_prognosis": "",
+            "created_on": "01/27/25",
+            "last_updated": "2024-06-03",
+            "submitted_by": "breardon@broadinstitute.org",
+            "validated": true,
+            "source_id": 35,
+            "variant": {
+                "id": 52,
+                "feature_type": "rearrangement",
+                "gene1": "RET",
+                "gene2": null,
+                "locus": null,
+                "rearrangement_type": "Fusion",
+                "feature": "RET Fusion"
+            }
+        },
+        {
+            "id": 519,
+            "context": "",
+            "deprecated": false,
+            "description": "Certain missesnse mutations may predict resistance to RET inhibitors",
+            "disease": {
+                "name": "Myelodysplasia",
+                "oncotree_code": "MDS",
+                "oncotree_term": "Myelodysplasia"
+            },
+            "therapy": {
+                "name": "LOXO-292",
+                "type": "Targeted therapy",
+                "strategy": "RET inhibition",
+                "resistance": 1,
+                "sensitivity": ""
+            },
+            "predictive_implication": "Clinical evidence",
+            "favorable_prognosis": "",
+            "created_on": "01/27/25",
+            "last_updated": "2019-06-13",
+            "submitted_by": "breardon@broadinstitute.org",
+            "validated": true,
+            "source_id": 161,
+            "variant": {
+                "id": 519,
+                "alternate_allele": "A",
+                "cdna_change": "c.2410G>A",
+                "chromosome": "10",
+                "end_position": "43614996",
+                "exon": "14",
+                "feature_type": "somatic_variant",
+                "gene": "RET",
+                "protein_change": "p.V804M",
+                "reference_allele": "G",
+                "rsid": "rs79658334",
+                "start_position": "43614996",
+                "variant_annotation": "Missense",
+                "feature": "RET p.V804M (Missense)"
+            }
+        }
+    ],
+    "sources": [
+        {
+            "id": 35,
+            "type": "FDA",
+            "doi": "",
+            "nct": "",
+            "pmid": "",
+            "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/213246s000lbl.pdf",
+            "citation": "Eli Lily and Company. Retevmo (selpercatinib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/213246s000lbl.pdf. Revised May 2020. Accessed October 22, 2020."
+        },
+        {
+            "id": 161,
+            "type": "Journal",
+            "doi": "10.1093/annonc/mdy137",
+            "nct": "",
+            "pmid": 29912274,
+            "url": "https://doi.org/10.1093/annonc/mdy137",
+            "citation": "Subbiah V, Velcheti V, Tuch BB, et al. Selective RET kinase inhibition for patients with RET-altered cancers. Ann Oncol. 2018;29(8):1869-1876."
+        }
+    ],
+    "variants": [
+        {
+            "id": 52,
+            "feature_type": "rearrangement",
+            "gene1": "RET",
+            "gene2": null,
+            "locus": null,
+            "rearrangement_type": "Fusion",
+            "feature": "RET Fusion"
+        },
+        {
+            "id": 519,
+            "alternate_allele": "A",
+            "cdna_change": "c.2410G>A",
+            "chromosome": "10",
+            "end_position": "43614996",
+            "exon": "14",
+            "feature_type": "somatic_variant",
+            "gene": "RET",
+            "protein_change": "p.V804M",
+            "reference_allele": "G",
+            "rsid": "rs79658334",
+            "start_position": "43614996",
+            "variant_annotation": "Missense",
+            "feature": "RET p.V804M (Missense)"
+        }
+    ],
+    "genes": ["RET"]
+}

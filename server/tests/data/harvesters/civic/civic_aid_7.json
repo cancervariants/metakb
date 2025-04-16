@@ -1,0 +1,75 @@
+{
+  "type": "assertion",
+  "id": 7,
+  "variant_origin": "SOMATIC",
+  "therapy_interaction_type": "COMBINATION",
+  "summary": "BRAF V600E mutant melanoma is sensitive to dabrafenib and trametinib combination therapy",
+  "status": "accepted",
+  "significance": "SENSITIVITYRESPONSE",
+  "nccn_guideline_version": "2.2018",
+  "nccn_guideline": {
+    "name": "Melanoma"
+  },
+  "name": "AID7",
+  "molecular_profile_id": 12,
+  "fda_regulatory_approval": true,
+  "fda_companion_test": true,
+  "evidence_ids": [
+    3758,
+    6178,
+    6940,
+    6938
+  ],
+  "description": "Combination treatment of BRAF inhibitor dabrafenib and MEK inhibitor trametinib is recommended for adjuvant treatment of stage III or recurrent melanoma with BRAF V600E mutation detected by the approved THxID kit, as well as first line treatment for metastatic melanoma. The treatments are FDA approved based on studies including the Phase III COMBI-V, COMBI-D and COMBI-AD Trials. Combination therapy is now recommended above BRAF inhibitor monotherapy. Cutaneous squamous-cell carcinoma and keratoacanthoma occur at lower rates with combination therapy than with BRAF inhibitor alone.",
+  "assertion_type": "PREDICTIVE",
+  "assertion_direction": "SUPPORTS",
+  "amp_level": "TIER_I_LEVEL_A",
+  "therapies": [
+    {
+      "id": 19,
+      "name": "Trametinib",
+      "ncit_id": "C77908",
+      "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C77908",
+      "aliases": [
+        "GSK1120212",
+        "JTP-74057",
+        "MEK Inhibitor GSK1120212",
+        "Mekinist",
+        "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide"
+      ],
+      "type": "therapie"
+    },
+    {
+      "id": 22,
+      "name": "Dabrafenib",
+      "ncit_id": "C82386",
+      "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C82386",
+      "aliases": [
+        "BRAF Inhibitor GSK2118436",
+        "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-",
+        "GSK 2118436",
+        "GSK 2118436A",
+        "GSK-2118436",
+        "GSK-2118436A",
+        "GSK2118436",
+        "GSK2118436A"
+      ],
+      "type": "therapie"
+    }
+  ],
+  "phenotypes": [],
+  "clingen_codes": [],
+  "disease": {
+    "id": 7,
+    "name": "Melanoma",
+    "display_name": "Melanoma",
+    "doid": "1909",
+    "disease_url": "https://www.disease-ontology.org/?id=DOID:1909",
+    "aliases": [
+      "Malignant Melanoma",
+      "Naevocarcinoma"
+    ],
+    "type": "disease"
+  },
+  "acmg_codes": []
+}

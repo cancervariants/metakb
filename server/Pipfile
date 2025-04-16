@@ -1,0 +1,32 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+"ga4gh.vrs" = "==2.0.0a13"
+gene-normalizer = {version = "~=0.7.0", extras = ["etl"]}
+variation-normalizer = "~=0.12.1"
+disease-normalizer = {version = "~=0.8.0", extras = ["etl"]}
+thera-py = {version = "~=0.8.0", extras = ["etl"]}
+civicpy = "~=3.1"
+requests = "*"
+pydantic = "==2.*"
+requests-cache = "*"
+neo4j = "==5.*"
+uvicorn = "*"
+fastapi = "*"
+boto3 = "*"
+botocore = "*"
+asyncclick = "*"
+
+[dev-packages]
+metakb = {editable = true, path = "."}
+pytest = "*"
+pytest-cov = "*"
+pytest-asyncio = "*"
+mock = "*"
+pre-commit = ">=3.7.1"
+ruff = "==0.5.0"
+ipykernel = "*"
+jupyterlab = "*"

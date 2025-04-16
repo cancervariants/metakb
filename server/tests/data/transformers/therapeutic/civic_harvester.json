@@ -1,0 +1,585 @@
+{
+  "evidence": [
+    {
+      "type": "evidence",
+      "id": 2997,
+      "variant_origin": "SOMATIC",
+      "therapy_interaction_type": null,
+      "status": "accepted",
+      "significance": "SENSITIVITYRESPONSE",
+      "rating": 5,
+      "name": "EID2997",
+      "molecular_profile_id": 33,
+      "evidence_type": "PREDICTIVE",
+      "evidence_level": "A",
+      "evidence_direction": "SUPPORTS",
+      "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
+      "assertion_ids": [
+        6
+      ],
+      "therapies": [
+        {
+          "id": 146,
+          "name": "Afatinib",
+          "ncit_id": "C66940",
+          "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C66940",
+          "aliases": [
+            "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide",
+            "BIBW 2992",
+            "BIBW-2992",
+            "BIBW2992"
+          ],
+          "type": "therapie"
+        }
+      ],
+      "disease": {
+        "id": 8,
+        "name": "Lung Non-small Cell Carcinoma",
+        "display_name": "Lung Non-small Cell Carcinoma",
+        "doid": "3908",
+        "disease_url": "https://www.disease-ontology.org/?id=DOID:3908",
+        "aliases": [
+          "NSCLC",
+          "Non-small Cell Lung Cancer",
+          "Non-small Cell Lung Carcinoma"
+        ],
+        "type": "disease"
+      },
+      "source": {
+        "id": 1725,
+        "name": "PubMed: Dungo et al., 2013",
+        "title": "Afatinib: first global approval.",
+        "citation": "Dungo et al., 2013",
+        "citation_id": "23982599",
+        "source_type": "PUBMED",
+        "abstract": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases, is under development with Boehringer Ingelheim for the once-daily, oral treatment of cancer. Afatinib downregulates ErbB signalling by covalently binding to epidermal growth factor receptor (EGFR), human epidermal growth factor receptor (HER) 2 and HER4, irreversibly inhibiting tyrosine kinase autophosphorylation. It also inhibits transphosphorylation of HER3. Oral afatinib (Gilotrif\u2122) has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test. Afatinib has also been approved in Taiwan for the first-line treatment of patients with EGFR mutation-positive NSCLC. In addition, the European Medicines Agency's Committee for Medicinal Products for Human Use has recommended the approval of afatinib (Giotrif\u00ae) for the treatment of patients with locally advanced or metastatic NSCLC with activating EGFR mutations who are EGFR tyrosine kinase inhibitor na\u00efve. Afatinib is also under regulatory review in Canada, Japan and other Asian countries. This article summarizes the milestones in the development of afatinib, leading to this first approval in patients with metastatic NSCLC.",
+        "asco_abstract_id": null,
+        "author_string": "Rosselle T Dungo, Gillian M Keating",
+        "full_journal_title": "Drugs",
+        "journal": "Drugs",
+        "pmc_id": null,
+        "publication_date": "2013-9",
+        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23982599",
+        "clinical_trials": [],
+        "type": "source"
+      },
+      "phenotypes": []
+    },
+    {
+      "type": "evidence",
+      "id": 816,
+      "variant_origin": "SOMATIC",
+      "therapy_interaction_type": "SUBSTITUTES",
+      "status": "accepted",
+      "significance": "RESISTANCE",
+      "rating": 4,
+      "name": "EID816",
+      "molecular_profile_id": 12,
+      "evidence_type": "PREDICTIVE",
+      "evidence_level": "B",
+      "evidence_direction": "DOES_NOT_SUPPORT",
+      "description": "This meta-analysis of 7 randomized control trials evaluating overall survival (OS) (8 for progression free survival) could not definitely state that survival benefit of anti-EGFR monoclonal antibodies is limited to patients with wild type BRAF. In other words, the authors believe that there is insufficient data to justify the exclusion of anti-EGFR monoclonal antibody therapy for patients with mutant BRAF. In these studies, mutant BRAF specifically meant the V600E mutation.",
+      "assertion_ids": [],
+      "therapies": [
+        {
+          "id": 16,
+          "name": "Cetuximab",
+          "ncit_id": "C1723",
+          "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C1723",
+          "aliases": [
+            "Cetuximab Biosimilar CDP-1",
+            "Cetuximab Biosimilar CMAB009",
+            "Cetuximab Biosimilar KL 140",
+            "Chimeric Anti-EGFR Monoclonal Antibody",
+            "Chimeric MoAb C225",
+            "Chimeric Monoclonal Antibody C225",
+            "Erbitux",
+            "IMC-C225"
+          ],
+          "type": "therapie"
+        },
+        {
+          "id": 28,
+          "name": "Panitumumab",
+          "ncit_id": "C1857",
+          "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C1857",
+          "aliases": [
+            "ABX-EGF",
+            "ABX-EGF Monoclonal Antibody",
+            "ABX-EGF, Clone E7.6.3",
+            "E7.6.3",
+            "Human IgG2K Monoclonal Antibody",
+            "MoAb ABX-EGF",
+            "MoAb E7.6.3",
+            "Monoclonal Antibody ABX-EGF",
+            "Monoclonal Antibody E7.6.3",
+            "Vectibix"
+          ],
+          "type": "therapie"
+        }
+      ],
+      "disease": {
+        "id": 11,
+        "name": "Colorectal Cancer",
+        "display_name": "Colorectal Cancer",
+        "doid": "9256",
+        "disease_url": "https://www.disease-ontology.org/?id=DOID:9256",
+        "aliases": [],
+        "type": "disease"
+      },
+      "source": {
+        "id": 548,
+        "name": "PubMed: Rowland et al., 2015",
+        "title": "Meta-analysis of BRAF mutation as a predictive biomarker of benefit from anti-EGFR monoclonal antibody therapy for RAS wild-type metastatic colorectal cancer.",
+        "citation": "Rowland et al., 2015",
+        "citation_id": "25989278",
+        "source_type": "PUBMED",
+        "abstract": "Metastatic colorectal cancer (mCRC) that harbours a BRAF V600E mutation (BRAF MT) is associated with poorer outcomes. However, whether this mutation is predictive of treatment benefit from anti-epidermal growth factor receptor (EGFR) monoclonal antibodies (mAbs) is uncertain.We conducted a systematic review and meta-analysis of randomised controlled trials (RCTs) published up to July 2014 that evaluated the effect of BRAF MT on the treatment benefit from anti-EGFR mAbs for mCRC.Seven RCTs met the inclusion criteria for assessment of overall survival (OS), whereas eight RCTs met the inclusion criteria for assessment of progression-free survival (PFS). For RAS WT/BRAF MT tumours, the hazard ratio for OS benefit with anti-EGFR mAbs was 0.97 (95% CI; 0.67-1.41), whereas the hazard ratio was 0.81 (95% CI; 0.70-0.95) for RAS WT/BRAF WT tumours. However, the test of interaction (P=0.43) was not statistically significant, highlighting that the observed differences in the effect of anti-EGFR mAbs on OS according to the BRAF mutation status may be due to chance alone. Regarding PFS benefit with anti-EGFR mAbs, the hazard ratio was 0.86 (95% CI; 0.61-1.21) for RAS WT/BRAF MT tumours as compared with 0.62 (95% CI; 0.50-0.77) for RAS WT/BRAF WT tumours (test of interaction, P=0.07).This meta-analysis demonstrates that there is insufficient evidence to definitively state that RAS WT/BRAF MT individuals attain a different treatment benefit from anti-EGFR mAbs for mCRC compared with RAS WT/BRAF WT individuals. As such, there are insufficient data to justify the exclusion of anti-EGFR mAb therapy for patients with RAS WT/BRAF MT mCRC.",
+        "asco_abstract_id": null,
+        "author_string": "A Rowland, M M Dias, M D Wiese, G Kichenadasse, R A McKinnon, C S Karapetis, M J Sorich",
+        "full_journal_title": "British journal of cancer",
+        "journal": "Br J Cancer",
+        "pmc_id": "PMC4580381",
+        "publication_date": "2015-6-9",
+        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/25989278",
+        "clinical_trials": [],
+        "type": "source"
+      },
+      "phenotypes": []
+    },
+    {
+      "type": "evidence",
+      "id": 9851,
+      "variant_origin": "SOMATIC",
+      "therapy_interaction_type": "COMBINATION",
+      "status": "accepted",
+      "significance": "SENSITIVITYRESPONSE",
+      "rating": 5,
+      "name": "EID9851",
+      "molecular_profile_id": 12,
+      "evidence_type": "PREDICTIVE",
+      "evidence_level": "A",
+      "evidence_direction": "SUPPORTS",
+      "description": "The open-label phase 3 BEACON CRC trial included 665 patients with BRAF V600E-mutated metastatic CRC. Patients were randomly assigned in a 1:1:1 ratio to receive encorafenib, binimetinib, and cetuximab (triplet-therapy group); encorafenib and cetuximab (doublet-therapy group); or the investigators\u2019 choice of either cetuximab and irinotecan or cetuximab and FOLFIRI. The median overall survival was 8.4 months (95% CI, 7.5 to 11.0) in the doublet-therapy group and 5.4 months (95% CI, 4.8 to 6.6) in the control group, with a significantly lower risk of death compared to the control group (hazard ratio for death doublet-group vs. control, 0.60; 95% CI, 0.45 to 0.79; P<0.001). The confirmed response rate was 26% (95% CI, 18 to 35) in the triplet-therapy group, 20% in the doublet-therapy group (95% CI 13 to 29) and 2% (95% CI, 0 to 7) in the control group (doublet group vs. control P<0.001). Median PFS was 4.2 months (95% CI, 3.7 to 5.4) in the doublet-therapy group, and 1.5 months (95% CI, 1.5 to 1.7) in the control group (hazard ratio for disease progression doublet-group vs control, 0.40; 95% CI, 0.31 to 0.52, P<0.001).",
+      "assertion_ids": [],
+      "therapies": [
+        {
+          "id": 483,
+          "name": "Encorafenib",
+          "ncit_id": "C98283",
+          "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C98283",
+          "aliases": [
+            "Braftovi",
+            "LGX 818",
+            "LGX-818",
+            "LGX818"
+          ],
+          "type": "therapie"
+        },
+        {
+          "id": 16,
+          "name": "Cetuximab",
+          "ncit_id": "C1723",
+          "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C1723",
+          "aliases": [
+            "Cetuximab Biosimilar CDP-1",
+            "Cetuximab Biosimilar CMAB009",
+            "Cetuximab Biosimilar KL 140",
+            "Chimeric Anti-EGFR Monoclonal Antibody",
+            "Chimeric MoAb C225",
+            "Chimeric Monoclonal Antibody C225",
+            "Erbitux",
+            "IMC-C225"
+          ],
+          "type": "therapie"
+        }
+      ],
+      "disease": {
+        "id": 11,
+        "name": "Colorectal Cancer",
+        "display_name": "Colorectal Cancer",
+        "doid": "9256",
+        "disease_url": "https://www.disease-ontology.org/?id=DOID:9256",
+        "aliases": [],
+        "type": "disease"
+      },
+      "source": {
+        "id": 3025,
+        "name": "PubMed: Kopetz et al., 2019",
+        "title": "Encorafenib, Binimetinib, and Cetuximab in BRAF V600E-Mutated Colorectal Cancer.",
+        "citation": "Kopetz et al., 2019",
+        "citation_id": "31566309",
+        "source_type": "PUBMED",
+        "abstract": "Patients with metastatic colorectal cancer with the BRAF V600E mutation have a poor prognosis, with a median overall survival of 4 to 6 months after failure of initial therapy. Inhibition of BRAF alone has limited activity because of pathway reactivation through epidermal growth factor receptor signaling.In this open-label, phase 3 trial, we enrolled 665 patients with BRAF V600E-mutated metastatic colorectal cancer who had had disease progression after one or two previous regimens. Patients were randomly assigned in a 1:1:1 ratio to receive encorafenib, binimetinib, and cetuximab (triplet-therapy group); encorafenib and cetuximab (doublet-therapy group); or the investigators' choice of either cetuximab and irinotecan or cetuximab and FOLFIRI (folinic acid, fluorouracil, and irinotecan) (control group). The primary end points were overall survival and objective response rate in the triplet-therapy group as compared with the control group. A secondary end point was overall survival in the doublet-therapy group as compared with the control group. We report here the results of a prespecified interim analysis.The median overall survival was 9.0 months in the triplet-therapy group and 5.4 months in the control group (hazard ratio for death, 0.52; 95% confidence interval [CI], 0.39 to 0.70; P<0.001). The confirmed response rate was 26% (95% CI, 18 to 35) in the triplet-therapy group and 2% (95% CI, 0 to 7) in the control group (P<0.001). The median overall survival in the doublet-therapy group was 8.4 months (hazard ratio for death vs. control, 0.60; 95% CI, 0.45 to 0.79; P<0.001). Adverse events of grade 3 or higher occurred in 58% of patients in the triplet-therapy group, in 50% in the doublet-therapy group, and in 61% in the control group.A combination of encorafenib, cetuximab, and binimetinib resulted in significantly longer overall survival and a higher response rate than standard therapy in patients with metastatic colorectal cancer with the BRAF V600E mutation. (Funded by Array BioPharma and others; BEACON CRC ClinicalTrials.gov number, NCT02928224; EudraCT number, 2015-005805-35.).",
+        "asco_abstract_id": null,
+        "author_string": "Scott Kopetz, Axel Grothey, Rona Yaeger, Eric Van Cutsem, Jayesh Desai, Takayuki Yoshino, Harpreet Wasan, Fortunato Ciardiello, Fotios Loupakis, Yong Sang Hong, Neeltje Steeghs, Tormod K Guren, Hendrik-Tobias Arkenau, Pilar Garcia-Alfonso, Per Pfeiffer, Sergey Orlov, Sara Lonardi, Elena Elez, Tae-Won Kim, Jan H M Schellens, Christina Guo, Asha Krishnan, Jeroen Dekervel, Van Morris, Aitana Calvo Ferrandiz, L S Tarpgaard, Michael Braun, Ashwin Gollerkeri, Christopher Keir, Kati Maharry, Michael Pickard, Janna Christy-Bittel, Lisa Anderson, Victor Sandor, Josep Tabernero",
+        "full_journal_title": "The New England journal of medicine",
+        "journal": "N Engl J Med",
+        "pmc_id": null,
+        "publication_date": "2019-10-24",
+        "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/31566309",
+        "clinical_trials": [
+          {
+            "id": 36,
+            "name": "Study of Encorafenib + Cetuximab Plus or Minus Binimetinib vs. Irinotecan/Cetuximab or Infusional 5-Fluorouracil (5-FU)/Folinic Acid (FA)/Irinotecan (FOLFIRI)/Cetuximab With a Safety Lead-in of Encorafenib + Binimetinib + Cetuximab in Patients With BRAF V600E-mutant Metastatic Colorectal Cancer",
+            "description": "This is a multicenter, randomized, open-label, 3-arm Phase 3 study to evaluate encorafenib + cetuximab plus or minus binimetinib versus Investigator's choice of either irinotecan/cetuximab or FOLFIRI/cetuximab, as controls, in patients with BRAFV600E mCRC whose disease has progressed after 1 or 2 prior regimens in the metastatic setting. The study contains a Safety Lead-in Phase in which the safety and tolerability of encorafenib + binimetinib + cetuximab will be assessed prior to the Phase 3 portion of the study.",
+            "nctId": "NCT02928224",
+            "url": "https://clinicaltrials.gov/ct2/show/NCT02928224",
+            "type": "clinical_trial"
+          }
+        ],
+        "type": "source"
+      },
+      "phenotypes": []
+    }
+  ],
+  "assertions": [
+    {
+      "type": "assertion",
+      "id": 6,
+      "variant_origin": "SOMATIC",
+      "therapy_interaction_type": null,
+      "summary": "EGFR L858R positive NSCLC is sensitive to afatinib.",
+      "status": "accepted",
+      "significance": "SENSITIVITYRESPONSE",
+      "nccn_guideline_version": "3.2018",
+      "nccn_guideline": {
+        "name": "Non-Small Cell Lung Cancer"
+      },
+      "name": "AID6",
+      "molecular_profile_id": 33,
+      "fda_regulatory_approval": true,
+      "fda_companion_test": true,
+      "evidence_ids": [
+        2997,
+        2629,
+        982,
+        968,
+        883,
+        879
+      ],
+      "description": "L858R is among the most common sensitizing EGFR mutations in NSCLC, and is assessed via DNA mutational analysis, including Sanger sequencing and next generation sequencing methods. Tyrosine kinase inhibitor afatinib is FDA approved as a first line systemic therapy in NSCLC with sensitizing EGFR mutation (civic.EID:2997).",
+      "assertion_type": "PREDICTIVE",
+      "assertion_direction": "SUPPORTS",
+      "amp_level": "TIER_I_LEVEL_A",
+      "acmg_codes": [],
+      "therapies": [
+        {
+          "id": 146,
+          "name": "Afatinib",
+          "ncit_id": "C66940",
+          "therapy_url": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=C66940",
+          "aliases": [
+            "(2e)-N-(4-(3-Chloro-4-Fluoroanilino)-7-(((3s)-Oxolan-3-yl)Oxy)Quinoxazolin-6-yl)-4-(Dimethylamino)But-2-Enamide",
+            "BIBW 2992",
+            "BIBW-2992",
+            "BIBW2992"
+          ],
+          "type": "therapie"
+        }
+      ],
+      "disease": {
+        "id": 8,
+        "name": "Lung Non-small Cell Carcinoma",
+        "display_name": "Lung Non-small Cell Carcinoma",
+        "doid": "3908",
+        "disease_url": "https://www.disease-ontology.org/?id=DOID:3908",
+        "aliases": [
+          "Non-small Cell Lung Cancer",
+          "Non-small Cell Lung Carcinoma"
+        ],
+        "type": "disease"
+      },
+      "phenotypes": [],
+      "clingen_codes": []
+    }
+  ],
+  "genes": [
+    {
+      "type": "gene",
+      "id": 19,
+      "name": "EGFR",
+      "entrez_id": 1956,
+      "description": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. Overproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section).",
+      "sources": [
+        {
+          "id": 26,
+          "name": "PubMed: Yewale et al., 2013",
+          "title": "Epidermal growth factor receptor targeting in cancer: a review of trends and strategies.",
+          "citation": "Yewale et al., 2013",
+          "citation_id": "23953842",
+          "source_type": "PUBMED",
+          "abstract": "The epidermal growth factor receptor (EGFR) is a cell-surface receptor belonging to ErbB family of tyrosine kinase and it plays a vital role in the regulation of cell proliferation, survival and differentiation. However; EGFR is aberrantly activated by various mechanisms like receptor overexpression, mutation, ligand-dependent receptor dimerization, ligand-independent activation and is associated with development of variety of tumors. Therefore, specific EGFR inhibition is one of the key targets for cancer therapy. Two major approaches have been developed and demonstrated benefits in clinical trials for targeting EGFR; monoclonal antibodies (mAbs) and tyrosine kinase inhibitors (TKIs). EGFR inhibitors like, cetuximab, panitumumab, etc. (mAbs) and gefitinib, erlotinib, lapatinib, etc. (TKIs) are now commercially available for treatment of variety of cancers. Recently, many other agents like peptides, nanobodies, affibodies and antisense oligonucleotide have also shown better efficacy in targeting and inhibiting EGFR. Now a days, efforts are being focused to identify molecular markers that can predict patients more likely to respond to anti-EGFR therapy; to find out combinatorial approaches with EGFR inhibitors and to bring new therapeutic agents with clinical efficacy. In this review we have outlined the role of EGFR in cancer, different types of EGFR inhibitors, preclinical and clinical status of EGFR inhibitors as well as summarized the recent efforts made in the field of molecular EGFR targeting.",
+          "asco_abstract_id": null,
+          "author_string": "Chetan Yewale, Dipesh Baradia, Imran Vhora, Sushilkumar Patil, Ambikanandan Misra",
+          "full_journal_title": "Biomaterials",
+          "journal": "Biomaterials",
+          "pmc_id": null,
+          "publication_date": "2013-11",
+          "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23953842",
+          "clinical_trials": [],
+          "type": "source"
+        },
+        {
+          "id": 27,
+          "name": "PubMed: Charpidou et al., 2008",
+          "title": "Review. EGFR mutations in non-small cell lung cancer--clinical implications.",
+          "citation": "Charpidou et al., 2008",
+          "citation_id": "18712184",
+          "source_type": "PUBMED",
+          "abstract": "The epidermal growth factor receptor (EGFR) family members seem to play a critical role in lung tumourigenesis and are overexpressed in 40-80% of non-small cell lung carcinoma (NSCLC) tumours. EGFR activation results in a series of downstream signaling events that mediate cancer cell growth, proliferation, motility, adhesion, invasion, apoptosis inhibition and metastasis as well as resistance to chemotherapy. Therefore, EGFR inhibitors seem to be an effective therapy for some patients with previously treated NSCLC. A thorough investigation of EGFR, its major signaling pathways, its identification and biology in NSCLC and the responsiveness to gefitinib, erlotinib and cetuximab in connection to EGFR mutations as well as the possible mechanisms of resistance to tyrosine kinase inhibitors is the scope of this review.",
+          "asco_abstract_id": null,
+          "author_string": "Andriani Charpidou, Despoina Blatza, Valsamo Anagnostou, Elsa Anagnostou, Konstantinos N Syrigos, Konstantinos N Syrigos",
+          "full_journal_title": "In vivo (Athens, Greece)",
+          "journal": "In Vivo",
+          "pmc_id": null,
+          "publication_date": "2008",
+          "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/18712184",
+          "clinical_trials": [],
+          "type": "source"
+        },
+        {
+          "id": 513,
+          "name": "PubMed: Arteaga et al., 2014",
+          "title": "ERBB receptors: from oncogene discovery to basic science to mechanism-based cancer therapeutics.",
+          "citation": "Arteaga et al., 2014",
+          "citation_id": "24651011",
+          "source_type": "PUBMED",
+          "abstract": "ERBB receptors were linked to human cancer pathogenesis approximately three decades ago. Biomedical investigators have since developed substantial understanding of the biology underlying the dependence of cancers on aberrant ERBB receptor signaling. An array of cancer-associated genetic alterations in ERBB receptors has also been identified. These findings have led to the discovery and development of mechanism-based therapies targeting ERBB receptors that have improved outcome for many cancer patients. In this Perspective, we discuss current paradigms of targeting ERBB receptors with cancer therapeutics and our understanding of mechanisms of action and resistance to these drugs. As current strategies still have limitations, we also discuss challenges and opportunities that lie ahead as basic scientists and clinical investigators work toward more breakthroughs.",
+          "asco_abstract_id": null,
+          "author_string": "Carlos L Arteaga, Jeffrey A Engelman",
+          "full_journal_title": "Cancer cell",
+          "journal": "Cancer Cell",
+          "pmc_id": "PMC4018830",
+          "publication_date": "2014-3-17",
+          "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/24651011",
+          "clinical_trials": [],
+          "type": "source"
+        }
+      ],
+      "aliases": [
+        "EGFR",
+        "ERBB",
+        "ERBB1",
+        "ERRP",
+        "HER1",
+        "NISBD2",
+        "PIG61",
+        "mENA"
+      ]
+    },
+    {
+      "type": "gene",
+      "id": 5,
+      "name": "BRAF",
+      "entrez_id": 673,
+      "description": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase.",
+      "sources": [
+        {
+          "id": 9,
+          "name": "PubMed: Li et al., 2009",
+          "title": "Targeting of the BRAF gene in papillary thyroid carcinoma (review).",
+          "citation": "Li et al., 2009",
+          "citation_id": "19724843",
+          "source_type": "PUBMED",
+          "abstract": "Papillary thyroid carcinoma (PTC) is the most common type of thyroid malignancy and includes several histological variants. Patients suffering from PTC usually have a good outcome. However, a group of PTC patients still encounter high rates of recurrence and mortality. The BRAFV600E mutation is the most common genetic alteration identified in PTC, ranging from 29 to 83%, with the average rate about 40%. To date, a growing body of evidence has suggested that the BRAFV600E mutation plays an important role in the carcinogenesis of PTC, and it tends to be associated with special subtypes of PTC and predicts poor prognosis. Therefore, mutant BRAF has become an attractive cancer target for PTC. This article is focuses on reviewing the impact of the BRAFV600E mutation in the tumorigenesis of PTC, differences in the prevalence of the BRAFV600E mutation in variants of PTC, and its detection methods. The novel advantages of the BRAFV600E mutation-targeted therapies in studies of PTC are also discussed.",
+          "asco_abstract_id": null,
+          "author_string": "Yaqiong Li, Misa Nakamura, Kennichi Kakudo",
+          "full_journal_title": "Oncology reports",
+          "journal": "Oncol Rep",
+          "pmc_id": null,
+          "publication_date": "2009-10",
+          "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/19724843",
+          "clinical_trials": [],
+          "type": "source"
+        },
+        {
+          "id": 10,
+          "name": "PubMed: Pakneshan et al., 2013",
+          "title": "Clinicopathological relevance of BRAF mutations in human cancer.",
+          "citation": "Pakneshan et al., 2013",
+          "citation_id": "23594689",
+          "source_type": "PUBMED",
+          "abstract": "BRAF represents one of the most frequently mutated protein kinase genes in human tumours. The mutation is commonly tested in pathology practice. BRAF mutation is seen in melanoma, papillary thyroid carcinoma (including papillary thyroid carcinoma arising from ovarian teratoma), ovarian serous tumours, colorectal carcinoma, gliomas, hepatobiliary carcinomas and hairy cell leukaemia. In these cancers, various genetic aberrations of the BRAF proto-oncogene, such as different point mutations and chromosomal rearrangements, have been reported. The most common mutation, BRAF V600E, can be detected by DNA sequencing and immunohistochemistry on formalin fixed, paraffin embedded tumour tissue. Detection of BRAF V600E mutation has the potential for clinical use as a diagnostic and prognostic marker. In addition, a great deal of research effort has been spent in strategies inhibiting its activity. Indeed, recent clinical trials involving BRAF selective inhibitors exhibited promising response rates in metastatic melanoma patients. Clinical trials are underway for other cancers. However, cutaneous side effects of treatment have been reported and therapeutic response to cancer is short-lived due to the emergence of several resistance mechanisms. In this review, we give an update on the clinical pathological relevance of BRAF mutation in cancer. It is hoped that the review will enhance the direction of future research and assist in more effective use of the knowledge of BRAF mutation in clinical practice.",
+          "asco_abstract_id": null,
+          "author_string": "Sahar Pakneshan, Ali Salajegheh, Robert Anthony Smith, Alfred King-Yin Lam",
+          "full_journal_title": "Pathology",
+          "journal": "Pathology",
+          "pmc_id": null,
+          "publication_date": "2013-6",
+          "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/23594689",
+          "clinical_trials": [],
+          "type": "source"
+        },
+        {
+          "id": 3005,
+          "name": "PubMed: Yao et al., 2017",
+          "title": "Tumours with class 3 BRAF mutants are sensitive to the inhibition of activated RAS.",
+          "citation": "Yao et al., 2017",
+          "citation_id": "28783719",
+          "source_type": "PUBMED",
+          "abstract": "Approximately 200 BRAF mutant alleles have been identified in human tumours. Activating BRAF mutants cause feedback inhibition of GTP-bound RAS, are RAS-independent and signal either as active monomers (class 1) or constitutively active dimers (class 2). Here we characterize a third class of BRAF mutants-those that have impaired kinase activity or are kinase-dead. These mutants are sensitive to ERK-mediated feedback and their activation of signalling is RAS-dependent. The mutants bind more tightly than wild-type BRAF to RAS-GTP, and their binding to and activation of wild-type CRAF is enhanced, leading to increased ERK signalling. The model suggests that dysregulation of signalling by these mutants in tumours requires coexistent mechanisms for maintaining RAS activation despite ERK-dependent feedback. Consistent with this hypothesis, melanomas with these class 3 BRAF mutations also harbour RAS mutations or NF1 deletions. By contrast, in lung and colorectal cancers with class 3 BRAF mutants, RAS is typically activated by receptor tyrosine kinase signalling. These tumours are sensitive to the inhibition of RAS activation by inhibitors of receptor tyrosine kinases. We have thus defined three distinct functional classes of BRAF mutants in human tumours. The mutants activate ERK signalling by different mechanisms that dictate their sensitivity to therapeutic inhibitors of the pathway.",
+          "asco_abstract_id": null,
+          "author_string": "Zhan Yao, Rona Yaeger, Vanessa S Rodrik-Outmezguine, Anthony Tao, Neilawattie M Torres, Matthew T Chang, Matthias Drosten, Huiyong Zhao, Fabiola Cecchi, Todd Hembrough, Judith Michels, Herv\u00e9 Baumert, Linde Miles, Naomi M Campbell, Elisa de Stanchina, David B Solit, Mariano Barbacid, Barry S Taylor, Neal Rosen",
+          "full_journal_title": "Nature",
+          "journal": "Nature",
+          "pmc_id": "PMC5648058",
+          "publication_date": "2017-8-10",
+          "source_url": "http://www.ncbi.nlm.nih.gov/pubmed/28783719",
+          "clinical_trials": [],
+          "type": "source"
+        }
+      ],
+      "aliases": [
+        "B-RAF1",
+        "B-raf",
+        "BRAF",
+        "BRAF-1",
+        "BRAF1",
+        "NS7",
+        "RAFB1"
+      ]
+    }
+  ],
+  "variants": [
+    {
+      "type": "variant",
+      "id": 33,
+      "single_variant_molecular_profile_id": 33,
+      "name": "L858R",
+      "gene_id": 19,
+      "entrez_name": "EGFR",
+      "entrez_id": 1956,
+      "allele_registry_id": "CA126713",
+      "hgvs_expressions": [
+        "NC_000007.13:g.55259515T>G",
+        "NM_005228.4:c.2573T>G",
+        "ENST00000275493.2:c.2573T>G",
+        "NP_005219.2:p.Leu858Arg"
+      ],
+      "variant_types": [
+        {
+          "id": 47,
+          "name": "Missense Variant",
+          "so_id": "SO:0001583",
+          "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+          "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
+          "type": "variant_type"
+        }
+      ],
+      "coordinates": {
+        "ensembl_version": 75,
+        "reference_build": "GRCh37",
+        "reference_bases": "T",
+        "variant_bases": "G",
+        "representative_transcript": "ENST00000275493.2",
+        "chromosome": "7",
+        "start": 55259515,
+        "stop": 55259515,
+        "representative_transcript2": null,
+        "chromosome2": null,
+        "start2": null,
+        "stop2": null,
+        "type": "coordinates"
+      },
+      "clinvar_entries": [
+        "16609",
+        "376282",
+        "376280"
+      ],
+      "variant_aliases": [
+        "LEU858ARG",
+        "RS121434568",
+        "L813R",
+        "LEU813ARG"
+      ]
+    },
+    {
+      "type": "variant",
+      "id": 12,
+      "single_variant_molecular_profile_id": 12,
+      "name": "V600E",
+      "gene_id": 5,
+      "entrez_name": "BRAF",
+      "entrez_id": 673,
+      "allele_registry_id": "CA123643",
+      "hgvs_expressions": [
+        "NM_004333.4:c.1799T>A",
+        "NP_004324.2:p.Val600Glu",
+        "NC_000007.13:g.140453136A>T",
+        "ENST00000288602.6:c.1799T>A"
+      ],
+      "variant_types": [
+        {
+          "id": 47,
+          "name": "Missense Variant",
+          "so_id": "SO:0001583",
+          "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+          "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
+          "type": "variant_type"
+        }
+      ],
+      "coordinates": {
+        "ensembl_version": 75,
+        "reference_build": "GRCh37",
+        "reference_bases": "A",
+        "variant_bases": "T",
+        "representative_transcript": "ENST00000288602.6",
+        "chromosome": "7",
+        "start": 140453136,
+        "stop": 140453136,
+        "representative_transcript2": null,
+        "chromosome2": null,
+        "start2": null,
+        "stop2": null,
+        "type": "coordinates"
+      },
+      "clinvar_entries": [
+        "13961",
+        "376069"
+      ],
+      "variant_aliases": [
+        "RS113488022",
+        "VAL600GLU",
+        "V640E",
+        "VAL640GLU"
+      ]
+    }
+  ],
+  "molecular_profiles": [
+    {
+      "type": "molecular_profile",
+      "id": 33,
+      "variant_ids": [
+        33
+      ],
+      "name": "EGFR L858R",
+      "molecular_profile_score": 379.0,
+      "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",
+      "sources": [],
+      "aliases": [
+        "LEU858ARG",
+        "RS121434568",
+        "L813R",
+        "LEU813ARG"
+      ]
+    },
+    {
+      "type": "molecular_profile",
+      "id": 12,
+      "variant_ids": [
+        12
+      ],
+      "name": "BRAF V600E",
+      "molecular_profile_score": 1433.5,
+      "description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
+      "sources": [],
+      "aliases": [
+        "RS113488022",
+        "VAL600GLU",
+        "V640E",
+        "VAL640GLU"
+      ]
+    }
+  ]
+}

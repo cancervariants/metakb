@@ -1,0 +1,47 @@
+{
+  "type": "variant",
+  "id": 12,
+  "single_variant_molecular_profile_id": 12,
+  "name": "V600E",
+  "gene_id": 5,
+  "entrez_name": "BRAF",
+  "entrez_id": 673,
+  "allele_registry_id": "CA123643",
+  "clinvar_entries": [
+    "13961",
+    "376069"
+  ],
+  "variant_aliases": [
+    "RS113488022",
+    "VAL600GLU",
+    "V640E",
+    "VAL640GLU"
+  ],
+  "hgvs_expressions": [
+    "NM_004333.4:c.1799T>A",
+    "NP_004324.2:p.Val600Glu",
+    "NC_000007.13:g.140453136A>T",
+    "ENST00000288602.6:c.1799T>A"
+  ],
+  "variant_types": [
+    {
+      "id": 47,
+      "name": "Missense Variant",
+      "so_id": "SO:0001583",
+      "description": "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved.",
+      "url": "http://www.sequenceontology.org/browser/current_svn/term/SO:0001583",
+      "type": "variant_type"
+    }
+  ],
+  "coordinates": {
+    "ensembl_version": 75,
+    "reference_build": "GRCh37",
+    "reference_bases": "A",
+    "variant_bases": "T",
+    "representative_transcript": "ENST00000288602.6",
+    "chromosome": "7",
+    "start": 140453136,
+    "stop": 140453136,
+    "type": "coordinates"
+  }
+}

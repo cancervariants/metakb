@@ -1,0 +1,108 @@
+[
+	{
+		"assertion_id": 163,
+		"context": "",
+		"created_on": "02/07/25",
+		"deprecated": false,
+		"description": "The combination of ipilimumab and vemurafenib in a sequencing strategy showed limited efficacy in a phase II study.",
+		"disease": "Melanoma",
+		"favorable_prognosis": "",
+		"features": [
+			{
+				"attributes": [
+					{
+						"alternate_allele": "T",
+						"cdna_change": "c.1799T>A",
+						"chromosome": "7",
+						"end_position": "140453136",
+						"exon": "15",
+						"feature_type": "somatic_variant",
+						"gene": "BRAF",
+						"protein_change": "p.V600E",
+						"reference_allele": "A",
+						"rsid": "rs113488022",
+						"start_position": "140453136",
+						"variant_annotation": "Missense"
+					}
+				],
+				"feature_id": 163,
+				"feature_type": "somatic_variant"
+			}
+		],
+		"last_updated": "2019-06-13",
+		"oncotree_code": "MEL",
+		"oncotree_term": "Melanoma",
+		"predictive_implication": "Clinical trial",
+		"sources": [
+			{
+				"citation": "Amin A, Lawson DH, Salama AK, et al. Phase II study of vemurafenib followed by ipilimumab in patients with previously untreated BRAF-mutated metastatic melanoma. J Immunother Cancer. 2016;4:44.",
+				"doi": "10.1186/s40425-016-0148-7",
+				"nct": "NCT01673854",
+				"pmid": 27532019,
+				"source_id": 69,
+				"source_type": "Journal",
+				"url": "https://doi.org/10.1186/s40425-016-0148-7"
+			}
+		],
+		"submitted_by": "breardon@broadinstitute.org",
+		"therapy_name": "Ipilimumab + Vemurafenib",
+		"therapy_resistance": "",
+		"therapy_sensitivity": 1,
+		"therapy_strategy": "CTLA-4 inhibition + B-RAF inhibition",
+		"therapy_type": "Combination therapy",
+		"validated": true
+	},
+	{
+		"assertion_id": 164,
+		"context": "Resistance to BRAFi monotherapy",
+		"created_on": "02/07/25",
+		"deprecated": false,
+		"description": "Administration of bevacizumab in a dabrafenib-resistant melanoma cancer cell line (A375R) counteracted the tumor growth stimulating effect of administering dabrafenib post-resistance. This study suggests that a regime which combines BRAFi with bevacizumab or inhibitors of PI3K/Akt/mTOR may be more effective than BRAFi monotherapy in the setting of resistance.",
+		"disease": "Melanoma",
+		"favorable_prognosis": "",
+		"features": [
+			{
+				"attributes": [
+					{
+						"alternate_allele": "T",
+						"cdna_change": "c.1799T>A",
+						"chromosome": "7",
+						"end_position": "140453136",
+						"exon": "15",
+						"feature_type": "somatic_variant",
+						"gene": "BRAF",
+						"protein_change": "p.V600E",
+						"reference_allele": "A",
+						"rsid": "rs113488022",
+						"start_position": "140453136",
+						"variant_annotation": "Missense"
+					}
+				],
+				"feature_id": 164,
+				"feature_type": "somatic_variant"
+			}
+		],
+		"last_updated": "2019-06-13",
+		"oncotree_code": "MEL",
+		"oncotree_term": "Melanoma",
+		"predictive_implication": "Preclinical",
+		"sources": [
+			{
+				"citation": "Caporali S, Alvino E, Lacal PM, et al. Targeting the PI3K/AKT/mTOR pathway overcomes the stimulating effect of dabrafenib on the invasive behavior of melanoma cells with acquired resistance to the BRAF inhibitor. Int J Oncol. 2016;49(3):1164-74.",
+				"doi": "10.3892/ijo.2016.3594",
+				"nct": "",
+				"pmid": 27572607,
+				"source_id": 70,
+				"source_type": "Journal",
+				"url": "https://doi.org/10.3892/ijo.2016.3594"
+			}
+		],
+		"submitted_by": "breardon@broadinstitute.org",
+		"therapy_name": "Dabrafenib + Bevacizumab",
+		"therapy_resistance": "",
+		"therapy_sensitivity": 1,
+		"therapy_strategy": "B-RAF inhibition + VEGF/VEGFR inhibition",
+		"therapy_type": "Targeted therapy",
+		"validated": true
+	}
+]
