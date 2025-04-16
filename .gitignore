@@ -135,5 +135,23 @@ dynamodb_local_latest/
 # Zip
 *.zip
 
+# client (Vite)
+client/dist
+client/node_modules
+client/.env
+
+# server (Python)
+server/__pycache__/
+server/.venv/
+server/venv/
+server/.env
+
+# Turborepo
 .turbo/
+
+# General
+.DS_Store
+*.log
+*.pyc
+
 node_modules/
