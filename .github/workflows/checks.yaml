@@ -15,6 +15,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
+        working-directory: ./server
         run: python3 -m pip install ".[tests,dev,notebooks]"
 
   pipenv_install:
@@ -30,6 +31,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
+        working-directory: ./server
         run: |
           python -m pip install pipenv==2023.12.1
           pipenv install --skip-lock  # this is what Elastic beanstalk uses
@@ -45,9 +47,11 @@ jobs:
           python-version: "3.11"
 
       - name: Install dev dependencies
+        working-directory: ./server
         run: python3 -m pip install ".[dev]"
 
       - name: Check style
+        working-directory: ./server
         run: python3 -m ruff check . && python3 -m ruff format --check .
   docs:
     runs-on: ubuntu-latest
@@ -62,6 +66,7 @@ jobs:
           python-version: 3.11
 
       - name: Install dependencies
+        working-directory: ./server
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install '.[docs]'
