@@ -136,3 +136,4 @@ dynamodb_local_latest/
 *.zip
 
 .turbo/
+node_modules/
