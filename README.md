@@ -101,7 +101,7 @@ The graph will initially be empty, but once you have successfully loaded data, N
 
 ### Setting up normalizers
 
-The MetaKB calls a number of normalizer libraries to transform resource data and resolve incoming search queries. These will be installed as part of the package requirements, but may require additional setup. Optionally, you can point directly to deployed instances of the normalizers and bypass setting up the normalizers.
+The MetaKB calls a number of normalizer libraries to transform resource data and resolve incoming search queries. These will be installed as part of the package requirements, but may require additional setup. Optionally, you can point directly to deployed instances of the normalizers and bypass this setup if desired.
 
 #### Simple setup (recommended)
 
@@ -118,6 +118,8 @@ If you would like to simply use the dev normalizers, use the following environme
 ```
 
 #### Setup with local normalizers (optional)
+
+In some cases, it may be necessary to test MetaKB with locally running changes or data from the normalizers. In this case, you should follow the instructions below.
 
 First, [follow these instructions for deploying DynamoDB locally on your computer](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html). Once setup, in a separate terminal instance, navigate to its source directory and run the following to start the database instance:
 
