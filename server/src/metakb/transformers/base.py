@@ -30,7 +30,7 @@ from ga4gh.va_spec.aac_2017 import (
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base import Document, Method, TherapyGroup
+from ga4gh.va_spec.base import Document, MembershipOperator, Method, TherapyGroup
 from ga4gh.vrs.models import Allele
 from gene.schemas import (
     NamespacePrefix as GeneNamespacePrefix,
@@ -179,9 +179,7 @@ class Transformer(ABC):
                 doi="10.1186/s13073-019-0687-x",
                 pmid=31779674,
             ),
-            subtype=MappableConcept(
-                primaryCode="variant curation standard operating procedure"
-            ),
+            methodType="variant curation standard operating procedure",
         ),
         Method(
             id=MethodId.MOA_ASSERTION_BIORXIV,
@@ -362,16 +360,12 @@ class Transformer(ABC):
             :raises NotImplementedError: If SourceName not supported yet
             :return: Concept mapping object
             """
+            system = "AMP/ASCO/CAP (AAC) Guidelines, 2017"
             if isinstance(exact_mapping, EcoLevel):
                 id_ = exact_mapping.value.lower()
-                system = "https://www.evidenceontology.org/term/"
             elif isinstance(exact_mapping, CivicEvidenceLevel):
-                system = (
-                    "https://civic.readthedocs.io/en/latest/model/evidence/level.html"
-                )
                 id_ = f"{SourceName.CIVIC.value}.evidence_level:{exact_mapping.value}"
             elif isinstance(exact_mapping, MoaEvidenceLevel):
-                system = "https://moalmanac.org/about"
                 id_ = f"{SourceName.MOA.value}.assertion_level:{'_'.join(exact_mapping.value.lower().replace('-', '_').split())}"
             else:
                 raise NotImplementedError
@@ -383,28 +377,21 @@ class Transformer(ABC):
 
         mappings = {}
         for item in self._vicc_concept_vocabs:
-            primary_code = item.id.split(":")[-1]
+            primary_coding = Coding(
+                id=item.id,
+                system="https://go.osu.edu/evidence-codes",
+                name=item.term,
+                code=code(item.id.split(":")[-1]),
+            )
             for exact_mapping in item.exact_mappings:
                 concept_mappings = [
-                    ConceptMapping(
-                        coding=Coding(
-                            id=item.id,
-                            system="https://go.osu.edu/evidence-codes",
-                            name=item.term,
-                            code=code(primary_code),
-                        ),
-                        relation=Relation.EXACT_MATCH,
-                    )
-                ]
-
-                concept_mappings.extend(
                     _get_concept_mapping(exact_mapping_)
                     for exact_mapping_ in item.exact_mappings
-                )
+                ]
 
                 mappings[exact_mapping] = MappableConcept(
                     name=item.term,
-                    primaryCode=primary_code,
+                    primaryCoding=primary_coding,
                     mappings=concept_mappings,
                 )
 
@@ -499,7 +486,7 @@ class Transformer(ABC):
                 id=combination_therapy_id,
                 therapies=therapies,
                 extensions=extensions,
-                groupType=MappableConcept(name=TherapyType.COMBINATION_THERAPY.value),
+                membershipOperator=MembershipOperator.AND,
             )
         except ValidationError as e:
             # if combination validation checks fail
@@ -610,7 +597,13 @@ class Transformer(ABC):
         is_gene = isinstance(normalizer_resp, NormalizedGene)
         is_therapy = isinstance(normalizer_resp, NormalizedTherapy)
 
-        normalizer_mappings = normalizer_resp_obj.mappings or []
+        normalizer_mappings = [
+            ConceptMapping(
+                coding=normalizer_resp_obj.primaryCoding,
+                relation=Relation.EXACT_MATCH,
+            ),
+            *normalizer_resp_obj.mappings,
+        ]
         for mapping in normalizer_mappings:
             if normalized_id == mapping.coding.id:
                 mappings.append(

@@ -184,34 +184,23 @@ def moa_aid154_study_stmt(
         "direction": "supports",
         "description": "The U.S. Food and Drug Administration (FDA) granted regular approval to encorafenib in combination with cetuximab for the treatment of adult patients with metastatic colorectal cancer (CRC) with BRAF V600E mutation, as detected by an FDA-approved test, after prior therapy.",
         "strength": {
-            "primaryCode": "e000002",
-            "name": "FDA recognized evidence",
-            "mappings": [
-                {
-                    "coding": {
-                        "id": "vicc:e000002",
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000002",
-                        "name": "FDA recognized evidence",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "moa.assertion_level:fda_approved",
-                        "system": "https://moalmanac.org/about",
-                        "code": "FDA-Approved",
-                    },
-                    "relation": "exactMatch",
-                },
-            ],
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Level A",
+            },
+        },
+        "classification": {
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Tier I",
+            },
         },
         "proposition": {
             "type": "VariantTherapeuticResponseProposition",
             "predicate": "predictsSensitivityTo",
             "subjectVariant": moa_vid144,
             "objectTherapeutic": {
-                "groupType": {"name": "CombinationTherapy"},
+                "membershipOperator": "AND",
                 "id": "moa.ctid:E8RHoiov2ULWPZVlCea5dqttCbNY0IyL",
                 "therapies": [moa_cetuximab, moa_encorafenib],
                 "extensions": [
@@ -389,35 +378,16 @@ def moa_not_normalizable_stmt(
         "id": "moa.assertion:123456789",
         "description": "This is a fake assertion item.",
         "strength": {
-            "primaryCode": "e000009",
-            "name": "preclinical evidence",
-            "mappings": [
-                {
-                    "coding": {
-                        "id": "vicc:e000009",
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000009",
-                        "name": "preclinical evidence",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "civic.evidence_level:D",
-                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
-                        "code": "D",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "moa.assertion_level:preclinical_evidence",
-                        "system": "https://moalmanac.org/about",
-                        "code": "Preclinical evidence",
-                    },
-                    "relation": "exactMatch",
-                },
-            ],
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Level D",
+            },
+        },
+        "classification": {
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Tier II",
+            },
         },
         "direction": "supports",
         "proposition": {

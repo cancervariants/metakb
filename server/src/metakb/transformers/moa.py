@@ -15,6 +15,8 @@ from ga4gh.core.models import (
     Relation,
 )
 from ga4gh.va_spec.aac_2017 import (
+    Classification,
+    Strength,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
@@ -22,6 +24,7 @@ from ga4gh.va_spec.base import (
     Direction,
     Document,
     PrognosticPredicate,
+    System,
     TherapeuticResponsePredicate,
     TherapyGroup,
     VariantPrognosticProposition,
@@ -44,6 +47,15 @@ from metakb.transformers.base import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+LEVELS_TO_CLASS_STRENGTH = {
+    MoaEvidenceLevel.FDA_APPROVED: (Classification.TIER_I, Strength.LEVEL_A),
+    MoaEvidenceLevel.GUIDELINE: (Classification.TIER_I, Strength.LEVEL_A),
+    MoaEvidenceLevel.CLINICAL_TRIAL: (Classification.TIER_II, Strength.LEVEL_C),
+    MoaEvidenceLevel.CLINICAL_EVIDENCE: (Classification.TIER_II, Strength.LEVEL_C),
+    MoaEvidenceLevel.PRECLINICAL: (Classification.TIER_II, Strength.LEVEL_D),
+}
 
 
 class _MoaTransformedCache(_TransformedRecordsCache):
@@ -129,7 +141,17 @@ class MoaTransformer(Transformer):
             .upper()
         )
         moa_evidence_level = MoaEvidenceLevel[predictive_implication]
-        strength = self.evidence_level_to_vicc_concept_mapping[moa_evidence_level]
+        if moa_evidence_level == MoaEvidenceLevel.INFERENTIAL:
+            return
+        tier, level = LEVELS_TO_CLASS_STRENGTH[moa_evidence_level]
+        system = System.AMP_ASCO_CAP
+        strength = MappableConcept(primaryCoding=Coding(code=level, system=system))
+        classification = MappableConcept(
+            primaryCoding=Coding(
+                code=tier,
+                system=system,
+            )
+        )
 
         # Add disease
         moa_disease = self._add_disease(assertion["disease"])
@@ -154,6 +176,7 @@ class MoaTransformer(Transformer):
             "id": assertion_id,
             "description": assertion["description"],
             "strength": strength,
+            "classification": classification,
             "specifiedBy": self.processed_data.methods[0],
             "reportedIn": [document],
         }

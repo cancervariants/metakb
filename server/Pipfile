@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+# TODO: UPDATE ME!!!!!
 "ga4gh.vrs" = "==2.0.0a13"
 gene-normalizer = {version = "~=0.7.0", extras = ["etl"]}
 variation-normalizer = "~=0.12.1"

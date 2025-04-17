@@ -16,6 +16,8 @@ from ga4gh.core.models import (
     Relation,
 )
 from ga4gh.va_spec.aac_2017 import (
+    Classification,
+    Strength,
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
@@ -25,7 +27,9 @@ from ga4gh.va_spec.base import (
     Direction,
     Document,
     EvidenceLine,
+    MembershipOperator,
     PrognosticPredicate,
+    System,
     TherapeuticResponsePredicate,
     TherapyGroup,
     VariantDiagnosticProposition,
@@ -102,6 +106,14 @@ CLIN_SIG_TO_PREDICATE = {
 }
 
 
+LEVEL_TO_TIER = {
+    CivicEvidenceLevel.A: Classification.TIER_I,
+    CivicEvidenceLevel.B: Classification.TIER_I,
+    CivicEvidenceLevel.C: Classification.TIER_II,
+    CivicEvidenceLevel.D: Classification.TIER_II,
+}
+
+
 class _CivicInteractionType(str, Enum):
     """Define constraints for CIViC interaction types supported by MetaKB
 
@@ -110,24 +122,6 @@ class _CivicInteractionType(str, Enum):
 
     SUBSTITUTES = "SUBSTITUTES"
     COMBINATION = "COMBINATION"
-
-
-class AmpAscoCapClassification(str, Enum):
-    """Define constraints for CIViC AMP/ASCO/CAP classification
-
-    This follows ClinVar: https://github.com/ncbi/clinvar/blob/master/submission_api_schema/submission_api_schema.json#L510-L514
-    """
-
-    TIER_I = "Tier I - Strong"
-    TIER_II = "Tier II - Potential"
-    TIER_III = "Tier III - Unknown"
-    TIER_IV = "Tier IV - Benign/Likely benign"
-
-
-TIER_TO_AMP_ASCO_CAP = {
-    m.value.split(" -")[0]: m.value
-    for m in AmpAscoCapClassification.__members__.values()
-}
 
 
 class _TherapeuticMetadata(BaseModel):
@@ -355,16 +349,23 @@ class CivicTransformer(Transformer):
                 return
 
             reported_in = [document] if document else None
-            # Get strength
-            evidence_level = CivicEvidenceLevel[record["evidence_level"]]
-            strength = self.evidence_level_to_vicc_concept_mapping[evidence_level]
+
+            civic_level = CivicEvidenceLevel[record["evidence_level"]]
+            classification, strength = self._get_classification_and_strength(
+                evidence_level=civic_level
+            )
+            if not classification and not strength:
+                _logger.debug("No classification and/or strength found")
+                return
         else:
-            strength = None
             reported_in = None
 
             if record["amp_level"]:
-                classification = self._get_classification(record["amp_level"])
-                if not classification:
+                classification, strength = self._get_classification_and_strength(
+                    amp_level=record["amp_level"]
+                )
+                if not classification and not strength:
+                    _logger.debug("No classification and/or strength found")
                     return
 
             evidence_lines = []
@@ -472,23 +473,48 @@ class CivicTransformer(Transformer):
             self.processed_data.statements_assertions.append(statement)
 
     @staticmethod
-    def _get_classification(amp_level: str) -> MappableConcept | None:
-        """Get statement classification
+    def _get_classification_and_strength(
+        evidence_level: CivicEvidenceLevel | None = None, amp_level: str | None = None
+    ) -> tuple[MappableConcept | None, MappableConcept | None]:
+        """Get statement classification and strength
 
-        :param amp_level: AMP/ASCO/CAP level
-        :return: Classification represented as a mappable concept
+        :param evidence_level: CIViC evidence level
+        :param amp_level: AMP/ASCO/CAP level. This is provided for CIViC assertions
+        :return: Classification and strength, if found
         """
-        if amp_level == "NA":
-            classification = None
+        classification = None
+        strength = None
+        system = System.AMP_ASCO_CAP
+
+        if evidence_level == CivicEvidenceLevel.E:  # no tier mapping
+            return classification, strength
+
+        if amp_level is not None:  # assertion
+            if amp_level != "NA":
+                pattern = re.compile(
+                    r"TIER_(?P<tier>[IV]+)(?:_LEVEL_(?P<level>[A-D]))?"
+                )
+                match = pattern.match(amp_level).groupdict()
+                classification = MappableConcept(
+                    primaryCoding=Coding(
+                        code=Classification(f"Tier {match['tier']}"), system=system
+                    ),
+                )
+
+                civic_level = match["level"]
         else:
-            pattern = re.compile(r"TIER_(?P<tier>[IV]+)(?:_LEVEL_(?P<level>[A-D]))?")
-            match = pattern.match(amp_level).groupdict()
-            primary_code = f"Tier {match['tier']}"
             classification = MappableConcept(
-                primaryCode=TIER_TO_AMP_ASCO_CAP[primary_code],
-                extensions=[Extension(name="civic_amp_level", value=amp_level)],
+                primaryCoding=Coding(
+                    code=LEVEL_TO_TIER[evidence_level],
+                    system=system,
+                )
             )
-        return classification
+            civic_level = evidence_level.value
+
+        strength = MappableConcept(
+            primaryCoding=Coding(code=Strength(f"Level {civic_level}"), system=system)
+        )
+        return classification, strength
 
     def _get_direction(self, direction: str) -> Direction | None:
         """Get the normalized evidence or assertion direction
@@ -1046,10 +1072,8 @@ class CivicTransformer(Transformer):
 
         try:
             tg = TherapyGroup(
+                membershipOperator=MembershipOperator.OR,
                 id=therapeutic_sub_group_id,
-                groupType=MappableConcept(
-                    name=TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP.value
-                ),
                 therapies=therapies,
                 extensions=extensions,
             )

@@ -217,27 +217,16 @@ def moa_aid141_study_stmt(
         "direction": "disputes",
         "description": "More frequent in Chronic Myelomonocytic Leukemia.",
         "strength": {
-            "primaryCode": "e000007",
-            "name": "observational study evidence",
-            "mappings": [
-                {
-                    "coding": {
-                        "id": "vicc:e000007",
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000007",
-                        "name": "observational study evidence",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "moa.assertion_level:clinical_evidence",
-                        "system": "https://moalmanac.org/about",
-                        "code": "Clinical evidence",
-                    },
-                    "relation": "exactMatch",
-                },
-            ],
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Level C",
+            },
+        },
+        "classification": {
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Tier II",
+            },
         },
         "proposition": {
             "type": "VariantPrognosticProposition",
@@ -392,27 +381,16 @@ def moa_aid532_study_stmt(
         "direction": "supports",
         "description": "The National Comprehensive Cancer Network\u00ae (NCCN\u00ae) highlights SF3B1 E622, Y623, R625, N626, H662, T663, K666, K700E, I704, G740, G742, and D781 missense variants as being associated with a favorable prognosis in patients with myelodysplastic syndromes.",
         "strength": {
-            "primaryCode": "e000003",
-            "name": "professional guideline evidence",
-            "mappings": [
-                {
-                    "coding": {
-                        "id": "vicc:e000003",
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000003",
-                        "name": "professional guideline evidence",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "moa.assertion_level:guideline",
-                        "system": "https://moalmanac.org/about",
-                        "code": "Guideline",
-                    },
-                    "relation": "exactMatch",
-                },
-            ],
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Level A",
+            },
+        },
+        "classification": {
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Tier I",
+            },
         },
         "proposition": {
             "type": "VariantPrognosticProposition",

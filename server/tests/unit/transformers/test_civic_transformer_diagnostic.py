@@ -273,27 +273,16 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
         "description": "GIST tumors harboring PDGFRA D842V mutation are more likely to be benign than malignant.",
         "direction": "supports",
         "strength": {
-            "primaryCode": "e000005",
-            "name": "clinical cohort evidence",
-            "mappings": [
-                {
-                    "coding": {
-                        "id": "vicc:e000005",
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000005",
-                        "name": "clinical cohort evidence",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "civic.evidence_level:B",
-                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
-                        "code": "B",
-                    },
-                    "relation": "exactMatch",
-                },
-            ],
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Level B",
+            },
+        },
+        "classification": {
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Tier I",
+            },
         },
         "proposition": {
             "type": "VariantDiagnosticProposition",
@@ -570,27 +559,16 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
         "description": "In patients with medullary carcinoma, the presence of RET M918T mutation is associated with increased probability of lymph node metastases.",
         "direction": "supports",
         "strength": {
-            "primaryCode": "e000005",
-            "name": "clinical cohort evidence",
-            "mappings": [
-                {
-                    "coding": {
-                        "id": "vicc:e000005",
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000005",
-                        "name": "clinical cohort evidence",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "civic.evidence_level:B",
-                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
-                        "code": "B",
-                    },
-                    "relation": "exactMatch",
-                },
-            ],
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Level B",
+            },
+        },
+        "classification": {
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Tier I",
+            },
         },
         "proposition": {
             "type": "VariantDiagnosticProposition",
