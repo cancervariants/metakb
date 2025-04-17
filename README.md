@@ -182,9 +182,23 @@ MetaKB relies on environment variables to set in order to work.
 
 ### Unit tests
 
-```sh
-python3 -m pytest
+To run unit tests, make sure you have a venv active and proper dependencies installed.
+
+```bash
+cd server
+virtualenv venv
+source venv/bin/activate
+pip install -e ".[tests,dev]"
 ```
+
+Then run the tests:
+
+```sh
+cd tests
+pytest
+```
+
+Note: if you are getting errors signalling missing dependencies, make sure the dependency is installed with `pip show packagenamehere`. If it is installed, try refreshing your shell cache with `hash -r`. This will help your shell use the `pytest` in the `venv` instead of one that may be in your system elsewhere.
 
 ### And coding style tests
 
