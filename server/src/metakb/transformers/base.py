@@ -29,7 +29,13 @@ from ga4gh.va_spec.aac_2017 import (
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base import Document, MembershipOperator, Method, TherapyGroup
+from ga4gh.va_spec.base import (
+    Document,
+    MembershipOperator,
+    Method,
+    Statement,
+    TherapyGroup,
+)
 from ga4gh.vrs.models import Allele
 from gene.schemas import (
     NamespacePrefix as GeneNamespacePrefix,
@@ -146,11 +152,9 @@ class _TransformedRecordsCache(BaseModel):
 class TransformedData(BaseModel):
     """Define model for transformed data"""
 
-    statements_evidence: list[
-        VariantTherapeuticResponseStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantDiagnosticStudyStatement
-    ] = Field([], description="Statement objects for evidence records")
+    statements_evidence: list[Statement] = Field(
+        [], description="Statement objects for evidence records"
+    )
     statements_assertions: list[
         VariantTherapeuticResponseStudyStatement
         | VariantPrognosticStudyStatement
