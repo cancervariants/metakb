@@ -249,16 +249,21 @@ def civic_not_normalizable_stmt(
         "description": "This is a fake evidence item.",
         "direction": "supports",
         "strength": {
+            "name": "Validated association",
             "primaryCoding": {
-                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
-                "code": "Level A",
+                "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                "code": "A",
             },
-        },
-        "classification": {
-            "primaryCoding": {
-                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
-                "code": "Tier I",
-            },
+            "mappings": [
+                {
+                    "coding": {
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000001",
+                        "name": "authoritative evidence",
+                    },
+                    "relation": "exactMatch",
+                }
+            ],
         },
         "proposition": {
             "type": "VariantTherapeuticResponseProposition",

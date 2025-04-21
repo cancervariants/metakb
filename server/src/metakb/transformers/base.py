@@ -23,7 +23,6 @@ from ga4gh.core.models import (
     Extension,
     MappableConcept,
     Relation,
-    code,
 )
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
@@ -345,57 +344,27 @@ class Transformer(ABC):
 
     def _evidence_level_to_vicc_concept_mapping(
         self,
-    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, MappableConcept]:
+    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, list[ConceptMapping]]:
         """Get mapping of source evidence level to vicc concept vocab
 
         :return: Dictionary containing mapping from source evidence level (key)
-            to corresponding vicc concept vocab (value) represented as MappableConcept
-            object
+            to corresponding vicc concept vocab (value) represented as a list of
+            ConceptMapping
         """
-
-        def _get_concept_mapping(exact_mapping: str) -> ConceptMapping:
-            """Get system for an exact mapping
-
-            :param exact_mapping: Exact mapping code
-            :raises NotImplementedError: If SourceName not supported yet
-            :return: Concept mapping object
-            """
-            system = "AMP/ASCO/CAP (AAC) Guidelines, 2017"
-            if isinstance(exact_mapping, EcoLevel):
-                id_ = exact_mapping.value.lower()
-            elif isinstance(exact_mapping, CivicEvidenceLevel):
-                id_ = f"{SourceName.CIVIC.value}.evidence_level:{exact_mapping.value}"
-            elif isinstance(exact_mapping, MoaEvidenceLevel):
-                id_ = f"{SourceName.MOA.value}.assertion_level:{'_'.join(exact_mapping.value.lower().replace('-', '_').split())}"
-            else:
-                raise NotImplementedError
-
-            return ConceptMapping(
-                coding=Coding(id=id_, system=system, code=exact_mapping),
-                relation=Relation.EXACT_MATCH,
-            )
-
-        mappings = {}
+        concept_mappings: dict[str, list[ConceptMapping]] = {}
         for item in self._vicc_concept_vocabs:
-            primary_coding = Coding(
-                id=item.id,
-                system="https://go.osu.edu/evidence-codes",
-                name=item.term,
-                code=code(item.id.split(":")[-1]),
-            )
             for exact_mapping in item.exact_mappings:
-                concept_mappings = [
-                    _get_concept_mapping(exact_mapping_)
-                    for exact_mapping_ in item.exact_mappings
+                concept_mappings[exact_mapping] = [
+                    ConceptMapping(
+                        coding=Coding(
+                            system="https://go.osu.edu/evidence-codes",
+                            code=item.id.split("vicc:")[-1],
+                            name=item.term,
+                        ),
+                        relation=Relation.EXACT_MATCH,
+                    )
                 ]
-
-                mappings[exact_mapping] = MappableConcept(
-                    name=item.term,
-                    primaryCoding=primary_coding,
-                    mappings=concept_mappings,
-                )
-
-        return mappings
+        return concept_mappings
 
     @staticmethod
     def _get_digest_for_str_lists(str_list: list[str]) -> str:

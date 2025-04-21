@@ -5,6 +5,7 @@ import re
 from collections.abc import Callable
 from enum import Enum
 from pathlib import Path
+from types import MappingProxyType
 from typing import ClassVar
 
 from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
@@ -29,6 +30,7 @@ from ga4gh.va_spec.base import (
     EvidenceLine,
     MembershipOperator,
     PrognosticPredicate,
+    Statement,
     System,
     TherapeuticResponsePredicate,
     TherapyGroup,
@@ -165,6 +167,27 @@ class SourcePrefix(str, Enum):
     PUBMED = "PUBMED"
     ASCO = "ASCO"
     ASH = "ASH"
+
+
+class CivicEvidenceName(str, Enum):
+    """Define constraints for CIViC evidence names"""
+
+    VALIDATED_ASSOCIATION = "Validated association"
+    CLINICAL_EVIDENCE = "Clinical evidence"
+    CASE_STUDY = "Case study"
+    PRECLINICAL_EVIDENCE = "Preclinical evidence"
+    INFERENTIAL_ASSOCIATION = "Inferential association"
+
+
+CIVIC_EVIDENCE_LEVEL_TO_NAME = MappingProxyType(
+    {
+        CivicEvidenceLevel.A: CivicEvidenceName.VALIDATED_ASSOCIATION,
+        CivicEvidenceLevel.B: CivicEvidenceName.CLINICAL_EVIDENCE,
+        CivicEvidenceLevel.C: CivicEvidenceName.CASE_STUDY,
+        CivicEvidenceLevel.D: CivicEvidenceName.PRECLINICAL_EVIDENCE,
+        CivicEvidenceLevel.E: CivicEvidenceName.INFERENTIAL_ASSOCIATION,
+    }
+)
 
 
 class _CivicTransformedCache(_TransformedRecordsCache):
@@ -350,19 +373,14 @@ class CivicTransformer(Transformer):
 
             reported_in = [document] if document else None
 
-            civic_level = CivicEvidenceLevel[record["evidence_level"]]
-            classification, strength = self._get_classification_and_strength(
-                evidence_level=civic_level
-            )
-            if not classification and not strength:
-                _logger.debug("No classification and/or strength found")
-                return
+            evidence_level = CivicEvidenceLevel[record["evidence_level"]]
+            strength = self._get_eid_strength(evidence_level)
         else:
             reported_in = None
 
             if record["amp_level"]:
-                classification, strength = self._get_classification_and_strength(
-                    amp_level=record["amp_level"]
+                classification, strength = self._get_aid_classification_and_strength(
+                    record["amp_level"]
                 )
                 if not classification and not strength:
                     _logger.debug("No classification and/or strength found")
@@ -440,10 +458,12 @@ class CivicTransformer(Transformer):
             "strength": strength,
             "specifiedBy": self.processed_data.methods[0],
             "reportedIn": reported_in,
-            "classification": classification,
             "extensions": extensions or None,
             "hasEvidenceLines": evidence_lines or None,
         }
+
+        if not is_evidence:
+            stmt_params["classification"] = classification
 
         prop_params = {
             "predicate": predicate,
@@ -458,13 +478,25 @@ class CivicTransformer(Transformer):
             stmt_params["proposition"] = VariantTherapeuticResponseProposition(
                 **prop_params
             )
-            statement = VariantTherapeuticResponseStudyStatement(**stmt_params)
+            statement = (
+                Statement(**stmt_params)
+                if is_evidence
+                else VariantTherapeuticResponseStudyStatement(**stmt_params)
+            )
         elif record_type == _CivicEvidenceAssertionType.PROGNOSTIC:
             stmt_params["proposition"] = VariantPrognosticProposition(**prop_params)
-            statement = VariantPrognosticStudyStatement(**stmt_params)
+            statement = (
+                Statement(**stmt_params)
+                if is_evidence
+                else VariantPrognosticStudyStatement(**stmt_params)
+            )
         else:
             stmt_params["proposition"] = VariantDiagnosticProposition(**prop_params)
-            statement = VariantDiagnosticStudyStatement(**stmt_params)
+            statement = (
+                Statement(**stmt_params)
+                if is_evidence
+                else VariantDiagnosticStudyStatement(**stmt_params)
+            )
 
         if is_evidence:
             self._cache.evidence[statement_id] = statement
@@ -472,48 +504,59 @@ class CivicTransformer(Transformer):
         else:
             self.processed_data.statements_assertions.append(statement)
 
-    @staticmethod
-    def _get_classification_and_strength(
-        evidence_level: CivicEvidenceLevel | None = None, amp_level: str | None = None
+    def _get_eid_strength(self, evidence_level: CivicEvidenceLevel) -> MappableConcept:
+        """Get CIViC Evidence Item strength
+
+        :param evidence_level: CIViC evidence level
+        :return: Strength for CIViC evidence item
+        """
+        return MappableConcept(
+            name=CIVIC_EVIDENCE_LEVEL_TO_NAME[evidence_level],
+            primaryCoding=Coding(
+                system="https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                code=evidence_level.value,
+            ),
+            mappings=self.evidence_level_to_vicc_concept_mapping[evidence_level],
+        )
+
+    def _get_aid_classification_and_strength(
+        self,
+        amp_level: str,
     ) -> tuple[MappableConcept | None, MappableConcept | None]:
         """Get statement classification and strength
 
-        :param evidence_level: CIViC evidence level
-        :param amp_level: AMP/ASCO/CAP level. This is provided for CIViC assertions
+        :param amp_level: AMP/ASCO/CAP level
         :return: Classification and strength, if found
         """
         classification = None
         strength = None
         system = System.AMP_ASCO_CAP
 
-        if evidence_level == CivicEvidenceLevel.E:  # no tier mapping
-            return classification, strength
-
-        if amp_level is not None:  # assertion
-            if amp_level != "NA":
-                pattern = re.compile(
-                    r"TIER_(?P<tier>[IV]+)(?:_LEVEL_(?P<level>[A-D]))?"
-                )
-                match = pattern.match(amp_level).groupdict()
-                classification = MappableConcept(
-                    primaryCoding=Coding(
-                        code=Classification(f"Tier {match['tier']}"), system=system
-                    ),
-                )
-
-                civic_level = match["level"]
-        else:
+        if amp_level != "NA":
+            pattern = re.compile(r"TIER_(?P<tier>[IV]+)(?:_LEVEL_(?P<level>[A-D]))?")
+            match = pattern.match(amp_level).groupdict()
             classification = MappableConcept(
                 primaryCoding=Coding(
-                    code=LEVEL_TO_TIER[evidence_level],
-                    system=system,
+                    code=Classification(f"Tier {match['tier']}"), system=system
+                ),
+            )
+
+            level = match["level"]
+            _evidence_strength = self._get_eid_strength(CivicEvidenceLevel(level))
+            mappings = _evidence_strength.mappings
+            _evidence_strength.primaryCoding.name = _evidence_strength.name
+            mappings.append(
+                ConceptMapping(
+                    coding=_evidence_strength.primaryCoding,
+                    relation=Relation.EXACT_MATCH,
                 )
             )
-            civic_level = evidence_level.value
 
-        strength = MappableConcept(
-            primaryCoding=Coding(code=Strength(f"Level {civic_level}"), system=system)
-        )
+            strength = MappableConcept(
+                primaryCoding=Coding(code=Strength(f"Level {level}"), system=system),
+                mappings=mappings,
+            )
+
         return classification, strength
 
     def _get_direction(self, direction: str) -> Direction | None:
