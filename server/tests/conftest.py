@@ -1731,15 +1731,19 @@ def moa_aid66_study_stmt(
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
         "strength": {
             "primaryCoding": {
-                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
-                "code": "Level D",
+                "system": "https://moalmanac.org/about",
+                "code": "Preclinical evidence",
             },
-        },
-        "classification": {
-            "primaryCoding": {
-                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
-                "code": "Tier II",
-            },
+            "mappings": [
+                {
+                    "coding": {
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000009",
+                        "name": "preclinical evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
         },
         "direction": "supports",
         "proposition": {

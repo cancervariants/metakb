@@ -185,15 +185,19 @@ def moa_aid154_study_stmt(
         "description": "The U.S. Food and Drug Administration (FDA) granted regular approval to encorafenib in combination with cetuximab for the treatment of adult patients with metastatic colorectal cancer (CRC) with BRAF V600E mutation, as detected by an FDA-approved test, after prior therapy.",
         "strength": {
             "primaryCoding": {
-                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
-                "code": "Level A",
+                "system": "https://moalmanac.org/about",
+                "code": "FDA-Approved",
             },
-        },
-        "classification": {
-            "primaryCoding": {
-                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
-                "code": "Tier I",
-            },
+            "mappings": [
+                {
+                    "coding": {
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000002",
+                        "name": "FDA recognized evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
         },
         "proposition": {
             "type": "VariantTherapeuticResponseProposition",
@@ -379,15 +383,19 @@ def moa_not_normalizable_stmt(
         "description": "This is a fake assertion item.",
         "strength": {
             "primaryCoding": {
-                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
-                "code": "Level D",
+                "system": "https://moalmanac.org/about",
+                "code": "Preclinical evidence",
             },
-        },
-        "classification": {
-            "primaryCoding": {
-                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
-                "code": "Tier II",
-            },
+            "mappings": [
+                {
+                    "coding": {
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000009",
+                        "name": "preclinical evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
         },
         "direction": "supports",
         "proposition": {
