@@ -249,7 +249,9 @@ class ViccNormalizers:
             )
         else:
             if normalizer_resp.match_type:
-                normalized_id = getattr(normalizer_resp, concept_name).id.split(".")[-1]
+                normalized_id = getattr(normalizer_resp, concept_name).id.split(
+                    f"normalize.{concept_name}."
+                )[-1]
 
         return normalizer_resp, normalized_id
 

@@ -1066,12 +1066,6 @@ def civic_tsg(civic_tid16, civic_tid28):
         "id": "civic.tsgid:7IxyhCwID0QYyVCP2xuIyYvwwu-S_HrZ",
         "therapies": [civic_tid16, civic_tid28],
         "membershipOperator": "OR",
-        "extensions": [
-            {
-                "name": "civic_therapy_interaction_type",
-                "value": "SUBSTITUTES",
-            }
-        ],
     }
 
 
@@ -1111,12 +1105,6 @@ def civic_ct(civic_tid483, civic_tid16):
         "id": "civic.ctid:P1PY89shAjemg7jquQ0V9pg1VnYnkPeK",
         "therapies": [civic_tid483, civic_tid16],
         "membershipOperator": "AND",
-        "extensions": [
-            {
-                "name": "civic_therapy_interaction_type",
-                "value": "COMBINATION",
-            }
-        ],
     }
 
 

@@ -49,7 +49,6 @@ from metakb.normalizers import (
 from metakb.transformers.base import (
     CivicEvidenceLevel,
     MethodId,
-    TherapyType,
     Transformer,
     _TransformedRecordsCache,
 )
@@ -130,8 +129,7 @@ class _TherapeuticMetadata(BaseModel):
     """Define model for CIVIC therapeutic metadata"""
 
     therapy_id: str
-    interaction_type: _CivicInteractionType | None
-    therapy_type: TherapyType
+    membership_operator: MembershipOperator | None
     therapies: list[dict]
 
 
@@ -423,8 +421,7 @@ class CivicTransformer(Transformer):
                 civic_therapeutic = self._add_therapy(
                     therapeutic_metadata.therapy_id,
                     therapeutic_metadata.therapies,
-                    therapeutic_metadata.therapy_type,
-                    therapeutic_metadata.interaction_type,
+                    therapeutic_metadata.membership_operator,
                 )
             if not civic_therapeutic:
                 return
@@ -436,14 +433,8 @@ class CivicTransformer(Transformer):
         # Get qualifier
         civic_gene = self._cache.genes.get(variation_gene_map.civic_gene_id)
 
-        variant_origin = record["variant_origin"].upper()
-        if variant_origin == "SOMATIC":
-            allele_origin_qualifier = MappableConcept(name="somatic")
-        elif variant_origin in {"RARE_GERMLINE", "COMMON_GERMLINE"}:
-            allele_origin_qualifier = MappableConcept(name="germline")
-        else:
-            allele_origin_qualifier = None
-
+        variant_origin = record["variant_origin"].lower()
+        allele_origin_qualifier = MappableConcept(name=variant_origin)
         statement_id = record["name"].lower()
         statement_id = (
             statement_id.replace("eid", "civic.eid:")
@@ -1084,41 +1075,28 @@ class CivicTransformer(Transformer):
         self,
         therapeutic_sub_group_id: str,
         therapies_in: list[dict],
-        therapy_interaction_type: str,
     ) -> TherapyGroup | None:
         """Get Therapeutic Substitute Group for CIViC therapies
 
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
         :param therapies_in: List of CIViC therapy objects
-        :param therapy_interaction_type: Therapy interaction type provided by CIViC
         :return: Therapeutic Substitute Group
         """
         therapies = []
 
         for therapy in therapies_in:
             therapy_id = f"civic.tid:{therapy['id']}"
-            therapy = self._add_therapy(
-                therapy_id,
-                [therapy],
-                TherapyType.THERAPY,
-            )
+            therapy = self._add_therapy(therapy_id, [therapy], membership_operator=None)
             if not therapy:
                 return None
 
             therapies.append(therapy)
-
-        extensions = [
-            Extension(
-                name="civic_therapy_interaction_type", value=therapy_interaction_type
-            )
-        ]
 
         try:
             tg = TherapyGroup(
                 membershipOperator=MembershipOperator.OR,
                 id=therapeutic_sub_group_id,
                 therapies=therapies,
-                extensions=extensions,
             )
         except ValidationError as e:
             # If substitutes validation checks fail
@@ -1219,8 +1197,7 @@ class CivicTransformer(Transformer):
         if len(therapies) == 1:
             # Add therapy
             therapy_id = f"civic.tid:{therapies[0]['id']}"
-            therapy_interaction_type = None
-            therapy_type = TherapyType.THERAPY
+            membership_operator = None
         else:
             # Add therapy group
             therapy_interaction_type = evidence_item["therapy_interaction_type"]
@@ -1229,10 +1206,10 @@ class CivicTransformer(Transformer):
 
             if therapy_interaction_type == _CivicInteractionType.SUBSTITUTES:
                 therapy_id = f"civic.tsgid:{therapeutic_digest}"
-                therapy_type = TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP
+                membership_operator = MembershipOperator.OR
             elif therapy_interaction_type == _CivicInteractionType.COMBINATION:
                 therapy_id = f"civic.ctid:{therapeutic_digest}"
-                therapy_type = TherapyType.COMBINATION_THERAPY
+                membership_operator = MembershipOperator.AND
             else:
                 _logger.debug(
                     "civic therapy_interaction_type not supported: %s",
@@ -1242,8 +1219,7 @@ class CivicTransformer(Transformer):
 
         return _TherapeuticMetadata(
             therapy_id=therapy_id,
-            interaction_type=therapy_interaction_type,
-            therapy_type=therapy_type,
+            membership_operator=membership_operator,
             therapies=therapies,
         )
 

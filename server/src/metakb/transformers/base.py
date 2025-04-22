@@ -122,14 +122,6 @@ class MoaEvidenceLevel(str, Enum):
     INFERENTIAL = "Inferential evidence"
 
 
-class TherapyType(str, Enum):
-    """Define types for supported therapies"""
-
-    THERAPY = "Therapy"
-    THERAPEUTIC_SUBSTITUTE_GROUP = "TherapeuticSubstituteGroup"
-    COMBINATION_THERAPY = "CombinationTherapy"
-
-
 class ViccConceptVocab(BaseModel):
     """Define VICC Concept Vocab model"""
 
@@ -404,13 +396,11 @@ class Transformer(ABC):
         self,
         therapeutic_sub_group_id: str,
         therapies: list[dict],
-        therapy_interaction_type: str,
     ) -> TherapyGroup | None:
         """Get Therapeutic Substitute Group for therapies
 
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
         :param therapies: List of therapy objects
-        :param therapy_interaction_type: Therapy interaction type
         :return: Therapeutic Substitute Group
         """
 
@@ -418,13 +408,13 @@ class Transformer(ABC):
         self,
         combination_therapy_id: str,
         therapies_in: list[dict],
-        therapy_interaction_type: str,
+        therapy_type: str | None = None,
     ) -> TherapyGroup | None:
         """Get Combination Therapy representation for source therapies
 
         :param combination_therapy_id: ID for Combination Therapy
         :param therapies: List of source therapy objects
-        :param therapy_interaction_type: Therapy type provided by source
+        :param therapy_type: Therapy type provided by source
         :return: Combination Therapy
         """
         therapies = []
@@ -438,21 +428,21 @@ class Transformer(ABC):
             therapy_mc = self._add_therapy(
                 therapy_id,
                 [therapy],
-                TherapyType.THERAPY,
+                membership_operator=None,
             )
             if not therapy_mc:
                 return None
 
             therapies.append(therapy_mc)
 
-        extensions = [
-            Extension(
-                name="moa_therapy_type"
-                if source_name == SourceName.MOA
-                else "civic_therapy_interaction_type",
-                value=therapy_interaction_type,
-            )
-        ]
+        if source_name == SourceName.MOA:
+            extensions = [
+                Extension(
+                    name=f"{SourceName.MOA.value}_therapy_type", value=therapy_type
+                )
+            ]
+        else:
+            extensions = None
 
         try:
             tg = TherapyGroup(
@@ -464,7 +454,7 @@ class Transformer(ABC):
         except ValidationError as e:
             # if combination validation checks fail
             logger.debug(
-                "ValidationError raised when attempting to create CombinationTherapy: %s",
+                "ValidationError raised when attempting to create Combination Therapy: %s",
                 e,
             )
             tg = None
@@ -475,36 +465,36 @@ class Transformer(ABC):
         self,
         therapy_id: str,
         therapies: list[dict],
-        therapy_type: TherapyType,
-        therapy_interaction_type: str | None = None,
+        membership_operator: MembershipOperator | None,
+        therapy_type: str | None = None,
     ) -> MappableConcept | None:
         """Create or get therapy mappable concept given therapies
         First look in ``_cache`` for existing therapy, if not found will attempt to
         transform. Will add ``therapy_id`` to ``therapies`` and ``_cache.therapies``
 
         :param therapy_id: ID for therapy
-        :param therapies: List of therapy objects. If `therapy_type` is
-            `TherapyType.THERAPY`, the list will only contain a single therapy.
-        :param therapy_type: The type of therapy
-        :param therapy_interaction_type: drug interaction type
+        :param therapies: List of therapy objects. If `membership_operator` is `None`,
+            the list will only contain a single therapy.
+        :param membership_operator: The logical relationship between ``therapies``
+        :param therapy_type: Therapy type
         :return: Therapy mappable concept, if ``therapy_type`` is supported
         """
         therapy = self._cache.therapies.get(therapy_id)
         if therapy:
             return therapy
 
-        if therapy_type == TherapyType.THERAPY:
+        if membership_operator is None:
             therapy = self._get_therapy(therapy_id, therapies[0])
-        elif therapy_type == TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP:
-            therapy = self._get_therapeutic_substitute_group(
-                therapy_id, therapies, therapy_interaction_type
-            )
-        elif therapy_type == TherapyType.COMBINATION_THERAPY:
+        elif membership_operator == MembershipOperator.OR:
+            therapy = self._get_therapeutic_substitute_group(therapy_id, therapies)
+        elif membership_operator == MembershipOperator.AND:
             therapy = self._get_combination_therapy(
-                therapy_id, therapies, therapy_interaction_type
+                therapy_id, therapies, therapy_type=therapy_type
             )
         else:
-            logger.debug("Therapy type is not supported: %s", therapy_type)
+            logger.debug(
+                "Membership operator is not supported: %s", membership_operator
+            )
             return None
 
         self._cache.therapies[therapy_id] = therapy
@@ -575,8 +565,10 @@ class Transformer(ABC):
                 coding=normalizer_resp_obj.primaryCoding,
                 relation=Relation.EXACT_MATCH,
             ),
-            *normalizer_resp_obj.mappings,
         ]
+        if normalizer_resp_obj.mappings:
+            normalizer_mappings.extend(normalizer_resp_obj.mappings)
+
         for mapping in normalizer_mappings:
             if normalized_id == mapping.coding.id:
                 mappings.append(
