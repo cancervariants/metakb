@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "turbo run dev --parallel",
     "prepare": "husky install",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "format": "pnpm --filter client format && ruff format server"
   },
   "devDependencies": {
     "husky": "^9.1.7",
