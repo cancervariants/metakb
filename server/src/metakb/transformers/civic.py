@@ -107,14 +107,6 @@ CLIN_SIG_TO_PREDICATE = {
 }
 
 
-LEVEL_TO_TIER = {
-    CivicEvidenceLevel.A: Classification.TIER_I,
-    CivicEvidenceLevel.B: Classification.TIER_I,
-    CivicEvidenceLevel.C: Classification.TIER_II,
-    CivicEvidenceLevel.D: Classification.TIER_II,
-}
-
-
 class _CivicInteractionType(str, Enum):
     """Define constraints for CIViC interaction types supported by MetaKB
 
@@ -196,9 +188,7 @@ class _CivicTransformedCache(_TransformedRecordsCache):
     evidence: ClassVar[
         dict[
             str,
-            VariantDiagnosticStudyStatement
-            | VariantPrognosticStudyStatement
-            | VariantTherapeuticResponseStudyStatement,
+            Statement,
         ]
     ] = {}
 
@@ -533,12 +523,12 @@ class CivicTransformer(Transformer):
             )
 
             level = match["level"]
-            _evidence_strength = self._get_eid_strength(CivicEvidenceLevel(level))
-            mappings = _evidence_strength.mappings
-            _evidence_strength.primaryCoding.name = _evidence_strength.name
+            evidence_strength = self._get_eid_strength(CivicEvidenceLevel(level))
+            mappings = evidence_strength.mappings
+            evidence_strength.primaryCoding.name = evidence_strength.name
             mappings.append(
                 ConceptMapping(
-                    coding=_evidence_strength.primaryCoding,
+                    coding=evidence_strength.primaryCoding,
                     relation=Relation.EXACT_MATCH,
                 )
             )

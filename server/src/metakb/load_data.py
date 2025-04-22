@@ -472,6 +472,7 @@ def _get_statement_query(statement: dict, is_evidence: bool) -> str:
     relationships, based on shared properties of evidence and assertion records.
 
     :param statement: Statement record
+    :param is_evidence: Whether or not ``statement`` is an evidence or assertion record
     :return: The base Cypher query string for creating the statement node and
     relationships
     """
@@ -480,27 +481,22 @@ def _get_statement_query(statement: dict, is_evidence: bool) -> str:
 
     strength = statement.get("strength")
     if strength:
+        strength_prefix = "strength_"
         if strength.get("name"):
-            strength_key_fields = ("name",)
-
             strength_keys = [
                 _create_parameterized_query(
-                    strength, strength_key_fields, entity_param_prefix="strength_"
+                    strength, ("name",), entity_param_prefix=strength_prefix
                 )
             ]
-            statement["strength_name"] = strength["name"]
+            statement[f"{strength_prefix}name"] = strength["name"]
         else:
             strength_keys = []
 
-        primary_coding = strength.get("primaryCoding")
-        if primary_coding:
-            statement["strength_primaryCoding"] = json.dumps(primary_coding)
-            strength_keys.append("primaryCoding:$strength_primaryCoding")
-
-        mappings = strength.get("mappings", [])
-        if mappings:
-            statement["strength_mappings"] = json.dumps(mappings)
-            strength_keys.append("mappings:$strength_mappings")
+        for k in ("primaryCoding", "mappings"):
+            v = strength.get(k)
+            if v:
+                statement[f"{strength_prefix}{k}"] = json.dumps(v)
+                strength_keys.append(f"{k}:${strength_prefix}{k}")
         strength_keys = ", ".join(strength_keys)
 
         match_line += f"MERGE (strength:Strength {{ {strength_keys} }})"

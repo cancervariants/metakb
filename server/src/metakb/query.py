@@ -550,7 +550,7 @@ class QueryHandler:
             query, statement_id=statement_id
         ).records
 
-        has_evidence_lines = False
+        has_evidence_lines = False  # this is used to determine evidence vs assertion
 
         for item in nodes_and_rels:
             data = item.data()
@@ -590,7 +590,7 @@ class QueryHandler:
                 params["hasEvidenceLines"] = self._get_evidence_lines(statement_id)
 
         proposition_type = params.pop("propositionType", None)
-        if has_evidence_lines:
+        if has_evidence_lines:  # assertions should use AAC 2017 study statements
             return PROP_TYPE_TO_CLASS[prop_type](**params)
 
         params["proposition"]["type"] = proposition_type
@@ -793,16 +793,15 @@ class QueryHandler:
                     Extension(name="moa_therapy_type", value=moa_therapy_type)
                 ]
 
-            if node_type == MembershipOperator.AND:
-                node["therapies"] = self._get_therapies(
-                    node["id"],
-                    TherapeuticRelation.HAS_COMPONENTS,
-                )
-            else:
-                node["therapies"] = self._get_therapies(
-                    node["id"],
-                    TherapeuticRelation.HAS_SUBSTITUTES,
-                )
+            tp_relation = (
+                TherapeuticRelation.HAS_COMPONENTS
+                if node_type == MembershipOperator.AND
+                else TherapeuticRelation.HAS_SUBSTITUTES
+            )
+            node["therapies"] = self._get_therapies(
+                node["id"],
+                tp_relation,
+            )
             therapy = TherapyGroup(**node)
         elif node_type == "Therapy":
             therapy = self._get_therapy(node)
@@ -845,7 +844,6 @@ class QueryHandler:
         """Get list of therapies for therapeutic combination or substitutes group
 
         :param tp_id: ID for combination therapy or therapeutic substitute group
-        :param tp_type: Therapeutic object type
         :param tp_relation: Relationship type for therapies
         :return: List of therapies represented as Mappable Concepts for a combination
             therapy or therapeutic substitute group
