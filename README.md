@@ -101,23 +101,7 @@ The graph will initially be empty, but once you have successfully loaded data, N
 
 ### Setting up normalizers
 
-The MetaKB calls a number of normalizer libraries to transform resource data and resolve incoming search queries. These will be installed as part of the package requirements, but may require additional setup. Optionally, you can point directly to deployed instances of the normalizers and bypass setting up the normalizers.
-
-#### Simple setup (recommended)
-
-If you would like to simply use the dev normalizers, use the following environment variables:
-
-```bash
- export GENE_NORM_ENV="Dev"
- export GENE_DYNAMO_TABLE="gene_concepts_nonprod"
- export DISEASE_NORM_ENV="Dev"
- export DISEASE_DYNAMO_TABLE="disease_concepts_nonprod"
- export THERAPY_NORM_ENV="Dev"
- export THERAPY_DYNAMO_TABLE="therapy_concepts_nonprod"
- export SKIP_AWS_CONFIRMATION=true
-```
-
-#### Setup with local normalizers (optional)
+The MetaKB calls a number of normalizer libraries to transform resource data and resolve incoming search queries. These will be installed as part of the package requirements, but may require additional setup.
 
 First, [follow these instructions for deploying DynamoDB locally on your computer](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html). Once setup, in a separate terminal instance, navigate to its source directory and run the following to start the database instance:
 
@@ -155,34 +139,27 @@ MetaKB relies on environment variables to set in order to work.
     export UTA_DB_URL=postgresql://uta_admin:password@localhost:5432/uta/uta_20210129
     ```
 
-- Required when using the `--load_normalizers_db` or `--force_load_normalizers_db` arguments in CLI commands
-  - `UMLS_API_KEY`
-    - Used in Therapy Normalizer to retrieve RxNorm data
-    - RxNorm requires a UMLS license, which you can register for one [here](https://www.nlm.nih.gov/research/umls/index.html). You must set the `UMLS_API_KEY` environment variable to your API key. This can be found in the [UTS 'My Profile' area](https://uts.nlm.nih.gov/uts/profile) after singing in.
-
-    Example:
-
-    ```shell script
-    export UMLS_API_KEY={rxnorm_api_key}
-    ```
-
-  - `HARVARD_DATAVERSE_API_KEY`
-    - Used in Therapy Normalizer to retrieve HemOnc data
-    - HemOnc.org data requires a Harvard Dataverse API key. After creating a user account on the Harvard Dataverse website, you can follow [these instructions](https://guides.dataverse.org/en/latest/user/account.html) to generate a key. You will create or login to your account at [this](https://dataverse.harvard.edu/) site. You must set the `HARVARD_DATAVERSE_API_KEY` environment variable to your API key.
-
-    Example:
-
-    ```shell script
-    export HARVARD_DATAVERSE_API_KEY={dataverse_api_key}
-    ```
-
 ## Running tests
 
 ### Unit tests
 
-```sh
-python3 -m pytest
+To run unit tests, make sure you have a venv active and proper dependencies installed.
+
+```bash
+cd server
+virtualenv venv
+source venv/bin/activate
+pip install -e ".[tests,dev]"
 ```
+
+Then run the tests:
+
+```sh
+cd tests
+pytest
+```
+
+Note: if you are getting errors signalling missing dependencies, make sure the dependency is installed with `pip show packagenamehere`. If it is installed, try refreshing your shell cache with `hash -r`. This will help your shell use the `pytest` in the `venv` instead of one that may be in your system elsewhere.
 
 ### And coding style tests
 
