@@ -4,12 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-# TODO: UPDATE ME!!!!!
-"ga4gh.vrs" = "==2.0.0a13"
-gene-normalizer = {version = "~=0.7.0", extras = ["etl"]}
-variation-normalizer = "~=0.12.1"
-disease-normalizer = {version = "~=0.8.0", extras = ["etl"]}
-thera-py = {version = "~=0.8.0", extras = ["etl"]}
+"ga4gh.vrs" = "==2.*"
+"ga4gh.cat_vrs" = "~=0.6.0"
+"ga4gh.va_spec" = "~=0.3.0"
+gene-normalizer = {version = "~=0.10.0", extras = ["etl"]}
+variation-normalizer = "~=0.14.1"
+disease-normalizer = {version = "~=0.11.0", extras = ["etl"]}
+thera-py = {version = "~=0.10.0", extras = ["etl"]}
 civicpy = "~=3.1"
 requests = "*"
 pydantic = "==2.*"
