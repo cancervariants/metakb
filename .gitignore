@@ -134,7 +134,6 @@ dynamodb_local_latest/
 
 # client (Vite)
 client/dist
-client/node_modules
 client/.env
 
 # server (Python)
@@ -153,4 +152,4 @@ server/src/metakb/data/*
 *.log
 *.pyc
 
-node_modules/
+**/node_modules/

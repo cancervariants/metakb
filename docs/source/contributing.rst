@@ -46,6 +46,8 @@ Style
 
 Code style is managed by `Ruff <https://github.com/astral-sh/ruff>`_, and should be checked via pre-commit hook before commits. Final QC is applied with GitHub Actions to every pull request.
 
+For frontend code, style and formatting are managed by `ESLint <https://eslint.org/>`_ and `Prettier <https://prettier.io/>`_.
+
 Tests
 -----
 
