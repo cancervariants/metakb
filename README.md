@@ -10,7 +10,7 @@ The intent of the project is to leverage the collective knowledge of the dispara
 
 ### Prerequisites
 
-- A newer version of Python 3 (preferably 3.10+)
+- A newer version of Python 3 (preferably 3.11+)
 - [Node.js](https://nodejs.org/en) (v18 or later)
 - [pnpm](https://pnpm.io/) package manager
 - [Neo4j Desktop](https://neo4j.com/developer/neo4j-desktop) and Java (for local databases)
