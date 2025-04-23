@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "turbo run dev --parallel",
-    "prepare": "husky install",
+    "prepare": "husky",
     "lint-staged": "lint-staged",
     "format": "pnpm --filter client format && ruff format server"
   },
