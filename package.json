@@ -1,0 +1,25 @@
+{
+  "name": "metakb",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "prepare": "husky",
+    "lint-staged": "lint-staged",
+    "format": "pnpm --filter client format && ruff format server"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.1",
+    "turbo": "^1.12.3"
+  },
+  "lint-staged": {
+    "client/**/*.{js,ts,tsx}": [
+      "pnpm --filter client eslint --fix",
+      "pnpm --filter client prettier --write"
+    ],
+    "server/**/*.py": [
+      "ruff check --fix",
+      "ruff format"
+    ]
+  }
+}
