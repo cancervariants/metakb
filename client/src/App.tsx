@@ -6,7 +6,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        {/* Add more routes here */}
+        {/* Fallback for invalid routes */}
         <Route path="*" element={<Home />} />
       </Routes>
     </Router>
