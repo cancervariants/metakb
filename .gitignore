@@ -123,9 +123,6 @@ pytest.ini
 # system files
 .DS_Store
 
-# data files
-src/metakb/data/*
-
 # Build files
 Pipfile.lock
 
@@ -134,3 +131,25 @@ dynamodb_local_latest/
 
 # Zip
 *.zip
+
+# client (Vite)
+client/dist
+client/.env
+
+# server (Python)
+server/__pycache__/
+server/.venv/
+server/venv/
+server/.env
+# data files
+server/src/metakb/data/*
+
+# Turborepo
+.turbo/
+
+# General
+.DS_Store
+*.log
+*.pyc
+
+**/node_modules/
