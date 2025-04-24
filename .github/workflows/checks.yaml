@@ -51,11 +51,9 @@ jobs:
           python-version: "3.11"
 
       - name: Install dev dependencies
-        working-directory: ./server
         run: python3 -m pip install ".[dev]"
 
       - name: Check style
-        working-directory: ./server
         run: python3 -m ruff check . && python3 -m ruff format --check .
 
   lint_frontend:
