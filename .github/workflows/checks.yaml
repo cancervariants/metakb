@@ -35,9 +35,13 @@ jobs:
         run: |
           python -m pip install pipenv==2023.12.1
           pipenv install --skip-lock  # this is what Elastic beanstalk uses
-  lint:
+
+  lint_backend:
     name: lint
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server
     steps:
       - uses: actions/checkout@v4
 
@@ -53,6 +57,33 @@ jobs:
       - name: Check style
         working-directory: ./server
         run: python3 -m ruff check . && python3 -m ruff format --check .
+
+  lint_frontend:
+    name: Frontend lint + format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Lint code
+        working-directory: ./client
+        run: pnpm lint
+
+      - name: Check formatting
+        working-directory: ./client
+        run: pnpm format
+
   docs:
     runs-on: ubuntu-latest
     env:
