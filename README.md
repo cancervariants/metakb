@@ -10,34 +10,84 @@ The intent of the project is to leverage the collective knowledge of the dispara
 
 ### Prerequisites
 
-* A newer version of Python 3, preferably 3.10 or greater. To confirm on your system, run:
+- A newer version of Python 3 (preferably 3.11+)
+- [Node.js](https://nodejs.org/en) (v18 or later)
+- [pnpm](https://pnpm.io/) package manager
+- [Neo4j Desktop](https://neo4j.com/developer/neo4j-desktop) and Java (for local databases)
 
-```
+Check your python version with:
+
+```bash
 python3 --version
 ```
 
-* [Pipenv](https://pipenv.pypa.io/en/latest/), for package management.
+### Monorepo Installation & Setup
 
-```
-pip3 install --user pipenv
-```
+We use a monorepo with [Turborepo](https://turbo.build) to coordinate development of the backend (FastAPI) and frontend (Vite + React).
 
-### Installing
+#### 1. Clone the Repo
 
-
-Once Pipenv is installed, clone the repo and install the package requirements into a Pipenv environment:
-
-```sh
+```bash
 git clone https://github.com/cancervariants/metakb
 cd metakb
-pipenv lock && pipenv sync
 ```
 
-If you intend to provide development support, install the development dependencies:
+#### 2. Install dependencies
 
-```sh
-pipenv lock --dev && pipenv sync
+```bash
+pnpm install
 ```
+
+#### 3. Set up the Python backend
+
+```bash
+cd server
+python3 -m venv venv
+source venv/bin/activate
+pip install -e .
+```
+
+#### 4. Set up required services
+
+Before starting the app, you must set up required dependencies:
+
+- [Neo4j Setup](#setting-up-neo4j)
+- [Setting up Normalizers](#setting-up-normalizers)
+- [Environment Variables](#environment-variables)
+
+These services are required for the backend to function correctly.
+
+Once all service and data dependencies are available, clear the graph, load normalizer data, and initiate harvest, transform, and data loading operations:
+
+```shell
+metakb update-normalizers
+metakb update --refresh_source_caches
+```
+
+The `--help` flag can be provided to any CLI command to bring up additional documentation.
+
+Ensure that both the MetaKB Neo4j and Normalizers databases are running.
+
+#### 5. Start the development servers
+
+- Frontend: [http://localhost:5173](http://localhost:5173)
+- Backend Swagger docs: [http://localhost:8000/api/v2](http://localhost:8000/api/v2)
+
+---
+
+## Running the Backend by Itself
+
+If you want to run the backend only:
+
+```bash
+cd server
+source venv/bin/activate
+uvicorn src.metakb.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+You can then visit [http://localhost:8000/api/v2](http://localhost:8000/api/v2) for the Swagger UI.
+
+---
 
 ### Setting up Neo4j
 
@@ -49,10 +99,9 @@ Once you have opened Neo4j desktop, use the `New` button in the upper-left regio
 
 The graph will initially be empty, but once you have successfully loaded data, Neo4j Desktop provides an interface for exploring and visualizing relationships within the graph. To access it, click the blue "Open" button. The prompt at the top of this window processes [Cypher queries](https://neo4j.com/docs/cypher-refcard/current/); to start, try `MATCH (n:Statement {id:"civic.eid:1409"}) RETURN n`. Buttons on the left-hand edge of the results pane let you select graph, tabular, or textual output.
 
-
 ### Setting up normalizers
 
-The MetaKB calls a number of normalizer libraries to transform resource data and resolve incoming search queries. These will be installed as part of the package requirements, but require additional setup.
+The MetaKB calls a number of normalizer libraries to transform resource data and resolve incoming search queries. These will be installed as part of the package requirements, but may require additional setup.
 
 First, [follow these instructions for deploying DynamoDB locally on your computer](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html). Once setup, in a separate terminal instance, navigate to its source directory and run the following to start the database instance:
 
@@ -68,7 +117,6 @@ cd ~/.local/share/virtualenvs/metakb-<various characters>/lib/python<python-vers
 
 Next, initialize the [Variation Normalizer](https://github.com/cancervariants/variation-normalization) by following the instructions in the [README](https://github.com/cancervariants/variation-normalization#installation). When setting up the UTA database, [these](https://github.com/ga4gh/vrs-python/tree/main/docs/setup_help) docs may be helpful.
 
-
 The MetaKB can acquire all other needed normalizer data, except for that of [OMIM](https://www.omim.org/downloads), which must be manually placed:
 
 ```sh
@@ -79,11 +127,11 @@ cp ~/YOUR/PATH/TO/mimTitles.txt ~/.local/share/wags_tails/omim/omim_<date>.tsv  
 
 MetaKB relies on environment variables to set in order to work.
 
-* Always Required:
-  * `UTA_DB_URL`
-    * Used in Variation Normalizer which relies on UTA Tools
-    * Format: `driver://user:pass@host/database/schema`
-    * More info can be found [here](https://github.com/GenomicMedLab/uta-tools#connecting-to-the-database)
+- Always Required:
+  - `UTA_DB_URL`
+    - Used in Variation Normalizer which relies on UTA Tools
+    - Format: `driver://user:pass@host/database/schema`
+    - More info can be found [here](https://github.com/GenomicMedLab/uta-tools#connecting-to-the-database)
 
     Example:
 
@@ -91,67 +139,33 @@ MetaKB relies on environment variables to set in order to work.
     export UTA_DB_URL=postgresql://uta_admin:password@localhost:5432/uta/uta_20210129
     ```
 
-* Required when using the `--load_normalizers_db` or `--force_load_normalizers_db` arguments in CLI commands
-  * `UMLS_API_KEY`
-    * Used in Therapy Normalizer to retrieve RxNorm data
-    * RxNorm requires a UMLS license, which you can register for one [here](https://www.nlm.nih.gov/research/umls/index.html). You must set the `UMLS_API_KEY` environment variable to your API key. This can be found in the [UTS 'My Profile' area](https://uts.nlm.nih.gov/uts/profile) after singing in.
-
-    Example:
-
-    ```shell script
-    export UMLS_API_KEY={rxnorm_api_key}
-    ```
-
-  * `HARVARD_DATAVERSE_API_KEY`
-    * Used in Therapy Normalizer to retrieve HemOnc data
-    * HemOnc.org data requires a Harvard Dataverse API key. After creating a user account on the Harvard Dataverse website, you can follow [these instructions](https://guides.dataverse.org/en/latest/user/account.html) to generate a key. You will create or login to your account at [this](https://dataverse.harvard.edu/) site. You must set the `HARVARD_DATAVERSE_API_KEY` environment variable to your API key.
-
-    Example:
-
-    ```shell script
-    export HARVARD_DATAVERSE_API_KEY={dataverse_api_key}
-    ```
-
-### Loading data
-
-Once all service and data dependencies are available, clear the graph, load normalizer data, and initiate harvest, transform, and data loading operations:
-
-```shell
-pipenv shell
-metakb metakb load-normalizers
-metakb update --refresh_source_caches
-```
-
-The `--help` flag can be provided to any CLI command to bring up additional documentation.
-
-### Starting the server
-
-Once data has been loaded successfully, use the following to start service on localhost port 8000:
-
-```sh
-uvicorn metakb.main:app --reload
-```
-
-Ensure that both the MetaKB Neo4j and Normalizers databases are running.
-
-Navigate to [http://localhost:8000/api/v2](http://localhost:8000/api/v2) in your browser to enter queries.
-
 ## Running tests
 
 ### Unit tests
 
-Explain how to run the automated tests for this system
+To run unit tests, make sure you have a venv active and proper dependencies installed.
 
-```sh
-python3 -m pytest
+```bash
+cd server
+virtualenv venv
+source venv/bin/activate
+pip install -e ".[tests,dev]"
 ```
 
+Then run the tests:
+
+```sh
+cd tests
+pytest
+```
+
+Note: if you are getting errors signalling missing dependencies, make sure the dependency is installed with `pip show packagenamehere`. If it is installed, try refreshing your shell cache with `hash -r`. This will help your shell use the `pytest` in the `venv` instead of one that may be in your system elsewhere.
 
 ### And coding style tests
 
 Code style is managed by [ruff](https://astral.sh/ruff) and checked prior to commit.
 
-```
+```bash
 python3 -m ruff check --fix . && python3 -m ruff format .
 
 ```
@@ -166,10 +180,10 @@ We use [pre-commit](https://pre-commit.com/#usage) to run conformance tests.
 
 This ensures:
 
-* Check code style
-* Check for added large files
-* Detect AWS Credentials
-* Detect Private Key
+- Check code style
+- Check for added large files
+- Detect AWS Credentials
+- Detect Private Key
 
 Before first commit run:
 

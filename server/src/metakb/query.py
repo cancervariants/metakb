@@ -326,7 +326,7 @@ class QueryHandler:
         _, normalized_therapy_id = self.vicc_normalizers.normalize_therapy(therapy)
 
         if not normalized_therapy_id:
-            warnings.append(f"Therapy Normalizer unable to normalize: " f"{therapy}")
+            warnings.append(f"Therapy Normalizer unable to normalize: {therapy}")
         return normalized_therapy_id
 
     def _get_normalized_disease(self, disease: str, warnings: list[str]) -> str | None:
@@ -339,7 +339,7 @@ class QueryHandler:
         _, normalized_disease_id = self.vicc_normalizers.normalize_disease(disease)
 
         if not normalized_disease_id:
-            warnings.append(f"Disease Normalizer unable to normalize: " f"{disease}")
+            warnings.append(f"Disease Normalizer unable to normalize: {disease}")
         return normalized_disease_id
 
     async def _get_normalized_variation(
@@ -360,7 +360,7 @@ class QueryHandler:
                 normalized_variation = variation
             else:
                 warnings.append(
-                    f"Variation Normalizer unable to normalize: " f"{variation}"
+                    f"Variation Normalizer unable to normalize: {variation}"
                 )
         return normalized_variation
 

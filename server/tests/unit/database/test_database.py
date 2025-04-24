@@ -655,7 +655,7 @@ def test_strength_rules(driver: Driver, check_relation_count, civic_eid2997_stud
     assert record.values()[0] == 0
 
     query = f"""
-    MATCH (s:Strength {{primaryCode: '{civic_eid2997_study_stmt['strength']['primaryCode']}', name: '{civic_eid2997_study_stmt['strength']['name']}'}})
+    MATCH (s:Strength {{primaryCode: '{civic_eid2997_study_stmt["strength"]["primaryCode"]}', name: '{civic_eid2997_study_stmt["strength"]["name"]}'}})
     RETURN s
     """
     result = driver.execute_query(query)
