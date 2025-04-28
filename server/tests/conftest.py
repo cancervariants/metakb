@@ -1353,8 +1353,7 @@ def civic_aid6_document():
     """Create test fixture for civic aid6 document."""
     return {
         "id": "document:9WsQBGXOmTFRXBUanTaIec8Gvgg8bsMA",
-        "document_id": "https://www.nccn.org/professionals/"
-        "physician_gls/default.aspx",
+        "document_id": "https://www.nccn.org/professionals/physician_gls/default.aspx",
         "name": "NCCN Guidelines: Non-Small Cell Lung Cancer version 3.2018",
         "type": "Document",
     }

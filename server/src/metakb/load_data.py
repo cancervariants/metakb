@@ -219,7 +219,7 @@ def _add_location(tx: ManagedTransaction, location_in: dict) -> None:
     loc_keys = ", ".join(loc_keys)
 
     query = f"""
-    MERGE (loc:{loc['type']}:Location {{ id: '{loc['id']}' }})
+    MERGE (loc:{loc["type"]}:Location {{ id: '{loc["id"]}' }})
     ON CREATE SET {loc_keys}
     """
     tx.run(query, **loc)
@@ -254,7 +254,7 @@ def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
     v_keys = ", ".join(v_keys)
 
     query = f"""
-    MERGE (v:{v['type']}:Variation {{ id: '{v['id']}' }})
+    MERGE (v:{v["type"]}:Variation {{ id: '{v["id"]}' }})
     ON CREATE SET {v_keys}
     """
 
@@ -262,7 +262,7 @@ def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
     if loc:
         _add_location(tx, loc)
         query += f"""
-        MERGE (loc:{loc['type']}:Location {{ id: '{loc['id']}' }})
+        MERGE (loc:{loc["type"]}:Location {{ id: '{loc["id"]}' }})
         MERGE (v) -[:HAS_LOCATION] -> (loc)
         """
 
@@ -311,9 +311,9 @@ def _add_categorical_variant(
 
     query = f"""
     {members_match}
-    MERGE (cv:Variation:{dc_type} {{ id: '{defining_context['id']}' }})
+    MERGE (cv:Variation:{dc_type} {{ id: '{defining_context["id"]}' }})
     MERGE (cv) -[:HAS_LOCATION] -> (loc)
-    MERGE (v:Variation:{cv['type']} {{ {mp_keys} }})
+    MERGE (v:Variation:{cv["type"]} {{ {mp_keys} }})
     MERGE (v) -[:HAS_DEFINING_CONTEXT] -> (cv)
     {members_relation}
     """
@@ -655,7 +655,7 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
         for method in data.get("methods", []):
             session.execute_write(_add_method, method, ids_to_load)
 
-        for obj_type in {"genes", "conditions"}:
+        for obj_type in ("genes", "conditions"):
             for obj in data.get(obj_type, []):
                 session.execute_write(_add_gene_or_disease, obj, ids_to_load)
 
