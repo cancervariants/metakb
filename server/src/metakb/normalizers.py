@@ -237,6 +237,8 @@ class ViccNormalizers:
 
         try:
             normalizer_resp = query_handler.normalize(query)
+        except TokenRetrievalError:
+            raise
         except Exception:
             _logger.exception(
                 "%s Normalizer raised an exception using query %s",
