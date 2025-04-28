@@ -439,7 +439,7 @@ def test_moa_cdm_not_normalizable(
     )
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_moa_concept_conflicts(normalizers):
     """Test that MOA therapy and disease conflict resolution works correctly"""
     t = MoaTransformer(

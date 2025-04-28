@@ -97,7 +97,7 @@ import re
 
 from click.core import Context
 from sphinx.application import Sphinx
-from sphinx_click.ext import _get_usage, _format_usage, _indent
+from sphinx_click.ext import _get_usage, _indent
 
 CMD_PATTERN = r"--[^ ]+"
 STR_PATTERN = r"\"[^ ]+\""
