@@ -471,26 +471,20 @@ def civic_eid2997_study_stmt(
         "description": "Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test",
         "direction": "supports",
         "strength": {
-            "primaryCode": "e000001",
-            "name": "authoritative evidence",
+            "name": "Validated association",
+            "primaryCoding": {
+                "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                "code": "A",
+            },
             "mappings": [
                 {
                     "coding": {
-                        "id": "vicc:e000001",
                         "system": "https://go.osu.edu/evidence-codes",
-                        "name": "authoritative evidence",
                         "code": "e000001",
+                        "name": "authoritative evidence",
                     },
                     "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "civic.evidence_level:A",
-                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
-                        "code": "A",
-                    },
-                    "relation": "exactMatch",
-                },
+                }
             ],
         },
         "proposition": {
@@ -1071,13 +1065,7 @@ def civic_tsg(civic_tid16, civic_tid28):
     return {
         "id": "civic.tsgid:7IxyhCwID0QYyVCP2xuIyYvwwu-S_HrZ",
         "therapies": [civic_tid16, civic_tid28],
-        "groupType": {"name": "TherapeuticSubstituteGroup"},
-        "extensions": [
-            {
-                "name": "civic_therapy_interaction_type",
-                "value": "SUBSTITUTES",
-            }
-        ],
+        "membershipOperator": "OR",
     }
 
 
@@ -1116,13 +1104,7 @@ def civic_ct(civic_tid483, civic_tid16):
     return {
         "id": "civic.ctid:P1PY89shAjemg7jquQ0V9pg1VnYnkPeK",
         "therapies": [civic_tid483, civic_tid16],
-        "groupType": {"name": "CombinationTherapy"},
-        "extensions": [
-            {
-                "name": "civic_therapy_interaction_type",
-                "value": "COMBINATION",
-            }
-        ],
+        "membershipOperator": "AND",
     }
 
 
@@ -1191,26 +1173,20 @@ def civic_eid816_study_stmt(
         "description": "This meta-analysis of 7 randomized control trials evaluating overall survival (OS) (8 for progression free survival) could not definitely state that survival benefit of anti-EGFR monoclonal antibodies is limited to patients with wild type BRAF. In other words, the authors believe that there is insufficient data to justify the exclusion of anti-EGFR monoclonal antibody therapy for patients with mutant BRAF. In these studies, mutant BRAF specifically meant the V600E mutation.",
         "direction": "disputes",
         "strength": {
-            "primaryCode": "e000005",
-            "name": "clinical cohort evidence",
+            "name": "Clinical evidence",
+            "primaryCoding": {
+                "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                "code": "B",
+            },
             "mappings": [
                 {
                     "coding": {
-                        "id": "vicc:e000005",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000005",
                         "name": "clinical cohort evidence",
                     },
                     "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "civic.evidence_level:B",
-                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
-                        "code": "B",
-                    },
-                    "relation": "exactMatch",
-                },
+                }
             ],
         },
         "proposition": {
@@ -1250,26 +1226,20 @@ def civic_eid9851_study_stmt(
         "description": "The open-label phase 3 BEACON CRC trial included 665 patients with BRAF V600E-mutated metastatic CRC. Patients were randomly assigned in a 1:1:1 ratio to receive encorafenib, binimetinib, and cetuximab (triplet-therapy group); encorafenib and cetuximab (doublet-therapy group); or the investigators\u2019 choice of either cetuximab and irinotecan or cetuximab and FOLFIRI. The median overall survival was 8.4 months (95% CI, 7.5 to 11.0) in the doublet-therapy group and 5.4 months (95% CI, 4.8 to 6.6) in the control group, with a significantly lower risk of death compared to the control group (hazard ratio for death doublet-group vs. control, 0.60; 95% CI, 0.45 to 0.79; P<0.001). The confirmed response rate was 26% (95% CI, 18 to 35) in the triplet-therapy group, 20% in the doublet-therapy group (95% CI 13 to 29) and 2% (95% CI, 0 to 7) in the control group (doublet group vs. control P<0.001). Median PFS was 4.2 months (95% CI, 3.7 to 5.4) in the doublet-therapy group, and 1.5 months (95% CI, 1.5 to 1.7) in the control group (hazard ratio for disease progression doublet-group vs control, 0.40; 95% CI, 0.31 to 0.52, P<0.001).",
         "direction": "supports",
         "strength": {
-            "primaryCode": "e000001",
-            "name": "authoritative evidence",
+            "name": "Validated association",
+            "primaryCoding": {
+                "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                "code": "A",
+            },
             "mappings": [
                 {
                     "coding": {
-                        "id": "vicc:e000001",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000001",
                         "name": "authoritative evidence",
                     },
                     "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "civic.evidence_level:A",
-                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
-                        "code": "A",
-                    },
-                    "relation": "exactMatch",
-                },
+                }
             ],
         },
         "proposition": {
@@ -1338,9 +1308,35 @@ def civic_aid6_statement(
             "conditionQualifier": civic_did8,
         },
         "direction": "supports",
+        "strength": {
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Level A",
+            },
+            "mappings": [
+                {
+                    "coding": {
+                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                        "code": "A",
+                        "name": "Validated association",
+                    },
+                    "relation": "exactMatch",
+                },
+                {
+                    "coding": {
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000001",
+                        "name": "authoritative evidence",
+                    },
+                    "relation": "exactMatch",
+                },
+            ],
+        },
         "classification": {
-            "primaryCode": "Tier I - Strong",
-            "extensions": [{"name": "civic_amp_level", "value": "TIER_I_LEVEL_A"}],
+            "primaryCoding": {
+                "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                "code": "Tier I",
+            },
         },
         "hasEvidenceLines": [
             {
@@ -1373,26 +1369,20 @@ def civic_eid26_study_stmt(
         "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",
         "direction": "supports",
         "strength": {
-            "primaryCode": "e000005",
-            "name": "clinical cohort evidence",
+            "name": "Clinical evidence",
+            "primaryCoding": {
+                "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                "code": "B",
+            },
             "mappings": [
                 {
                     "coding": {
-                        "id": "vicc:e000005",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000005",
                         "name": "clinical cohort evidence",
                     },
                     "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "civic.evidence_level:B",
-                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
-                        "code": "B",
-                    },
-                    "relation": "exactMatch",
-                },
+                }
             ],
         },
         "proposition": {
@@ -1727,31 +1717,16 @@ def moa_aid66_study_stmt(
         "id": "moa.assertion:66",
         "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
         "strength": {
-            "primaryCode": "e000009",
-            "name": "preclinical evidence",
+            "primaryCoding": {
+                "system": "https://moalmanac.org/about",
+                "code": "Preclinical evidence",
+            },
             "mappings": [
                 {
                     "coding": {
-                        "id": "vicc:e000009",
                         "system": "https://go.osu.edu/evidence-codes",
                         "code": "e000009",
                         "name": "preclinical evidence",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "civic.evidence_level:D",
-                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
-                        "code": "D",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "moa.assertion_level:preclinical_evidence",
-                        "system": "https://moalmanac.org/about",
-                        "code": "Preclinical evidence",
                     },
                     "relation": "exactMatch",
                 },
@@ -2121,7 +2096,7 @@ def civic_method():
             "pmid": 31779674,
             "type": "Document",
         },
-        "subtype": {"primaryCode": "variant curation standard operating procedure"},
+        "methodType": "variant curation standard operating procedure",
         "type": "Method",
     }
 

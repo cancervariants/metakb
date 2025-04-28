@@ -12,7 +12,15 @@ from ga4gh.va_spec.aac_2017 import (
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base import Direction, Document, EvidenceLine, Method, TherapyGroup
+from ga4gh.va_spec.base import (
+    Direction,
+    Document,
+    EvidenceLine,
+    MembershipOperator,
+    Method,
+    Statement,
+    TherapyGroup,
+)
 from ga4gh.vrs.models import Expression, Variation
 from neo4j import Driver
 from neo4j.graph import Node
@@ -30,7 +38,6 @@ from metakb.schemas.api import (
     ServiceMeta,
 )
 from metakb.schemas.app import SourceName
-from metakb.transformers.base import TherapyType
 
 logger = logging.getLogger(__name__)
 
@@ -463,7 +470,8 @@ class QueryHandler:
     def _get_nested_stmts(
         self, statement_nodes: list[Node]
     ) -> list[
-        VariantDiagnosticStudyStatement
+        Statement
+        | VariantDiagnosticStudyStatement
         | VariantPrognosticStudyStatement
         | VariantTherapeuticResponseStudyStatement
     ]:
@@ -491,7 +499,8 @@ class QueryHandler:
     def _get_nested_stmt(
         self, stmt_node: Node
     ) -> (
-        VariantDiagnosticStudyStatement
+        Statement
+        | VariantDiagnosticStudyStatement
         | VariantPrognosticStudyStatement
         | VariantTherapeuticResponseStudyStatement
     ):
@@ -520,7 +529,6 @@ class QueryHandler:
         }
         params.update(stmt_node)
         for prop_field in {
-            "propositionType",
             "predicate",
             "alleleOriginQualifier",
             condition_key,
@@ -538,6 +546,8 @@ class QueryHandler:
         nodes_and_rels = self.driver.execute_query(
             query, statement_id=statement_id
         ).records
+
+        has_evidence_lines = False  # this is used to determine evidence vs assertion
 
         for item in nodes_and_rels:
             data = item.data()
@@ -557,27 +567,31 @@ class QueryHandler:
                 )
             elif rel_type == "IS_SPECIFIED_BY":
                 node["reportedIn"] = self._get_method_document(node["id"])
-                if "subtype" in node:
-                    node["subtype"] = json.loads(node["subtype"])
                 params["specifiedBy"] = Method(**node)
             elif rel_type == "IS_REPORTED_IN":
                 params["reportedIn"] = [self._get_document(node)]
             elif rel_type == "HAS_STRENGTH":
-                if "mappings" in node:
-                    node["mappings"] = json.loads(node["mappings"])
+                for k in ("mappings", "primaryCoding"):
+                    if k in node:
+                        node[k] = json.loads(node[k])
                 params["strength"] = MappableConcept(**node)
             elif rel_type == "HAS_THERAPEUTIC":
                 params["proposition"]["objectTherapeutic"] = self._get_therapy_or_group(
                     node
                 )
             elif rel_type == "HAS_CLASSIFICATION":
-                params["classification"] = self._get_classification(node)
+                node["primaryCoding"] = json.loads(node["primaryCoding"])
+                params["classification"] = MappableConcept(**node)
             elif rel_type == "HAS_EVIDENCE_LINE":
+                has_evidence_lines = True
                 params["hasEvidenceLines"] = self._get_evidence_lines(statement_id)
-            else:
-                logger.warning("relation type not supported: %s", rel_type)
 
-        return PROP_TYPE_TO_CLASS[prop_type](**params)
+        proposition_type = params.pop("propositionType", None)
+        if has_evidence_lines:  # assertions should use AAC 2017 study statements
+            return PROP_TYPE_TO_CLASS[prop_type](**params)
+
+        params["proposition"]["type"] = proposition_type
+        return Statement(**params)
 
     def _get_disease(self, node: dict) -> MappableConcept:
         """Get disease data from a node with relationship ``HAS_TUMOR_TYPE``
@@ -768,65 +782,31 @@ class QueryHandler:
         :param node: Therapy node data. This will be mutated.
         :return: Therapy if node type is supported.
         """
-        node_type = node.get("groupType") or node.get("conceptType")
-        if node_type in {
-            TherapyType.COMBINATION_THERAPY,
-            TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP,
-        }:
-            civic_therapy_interaction_type = node.pop(
-                "civic_therapy_interaction_type", None
-            )
-            if civic_therapy_interaction_type:
-                node["extensions"] = [
-                    Extension(
-                        name="civic_therapy_interaction_type",
-                        value=civic_therapy_interaction_type,
-                    )
-                ]
-
+        node_type = node.get("membershipOperator") or node.get("conceptType")
+        if node_type in MembershipOperator.__members__.values():
             moa_therapy_type = node.pop("moa_therapy_type", None)
             if moa_therapy_type:
                 node["extensions"] = [
                     Extension(name="moa_therapy_type", value=moa_therapy_type)
                 ]
 
-            if node_type == TherapyType.COMBINATION_THERAPY:
-                node["therapies"] = self._get_therapies(
-                    node["id"],
-                    TherapyType.COMBINATION_THERAPY,
-                    TherapeuticRelation.HAS_COMPONENTS,
-                )
-            else:
-                node["therapies"] = self._get_therapies(
-                    node["id"],
-                    TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP,
-                    TherapeuticRelation.HAS_SUBSTITUTES,
-                )
-
-            node["groupType"] = MappableConcept(name=node_type)
-
+            tp_relation = (
+                TherapeuticRelation.HAS_COMPONENTS
+                if node_type == MembershipOperator.AND
+                else TherapeuticRelation.HAS_SUBSTITUTES
+            )
+            node["therapies"] = self._get_therapies(
+                node["id"],
+                tp_relation,
+            )
             therapy = TherapyGroup(**node)
-        elif node_type == TherapyType.THERAPY:
+        elif node_type == "Therapy":
             therapy = self._get_therapy(node)
         else:
             logger.warning("node type not supported: %s", node_type)
             therapy = None
 
         return therapy
-
-    @staticmethod
-    def _get_classification(node: dict) -> MappableConcept:
-        """Get classification data from a node with relationship ``HAS_CLASSIFICATION``
-
-        :param node: CLassification node data. This will be mutated
-        :return: Classification data
-        """
-        civic_amp_level = node.pop("civic_amp_level")
-        if civic_amp_level:
-            node["extensions"] = [
-                Extension(name="civic_amp_level", value=civic_amp_level)
-            ]
-        return MappableConcept(**node)
 
     def _get_evidence_lines(self, statement_id: int) -> list[EvidenceLine]:
         """Get EvidenceLine data from a node with relationship ``HAS_CLASSIFICATION``
@@ -837,7 +817,7 @@ class QueryHandler:
         evidence_lines = []
 
         query = f"""
-        MATCH (s:Statement {{id: '{statement_id}'}}) -[:HAS_EVIDENCE_LINE] -> (el:EvidenceLine)
+        MATCH (s:StudyStatement {{id: '{statement_id}'}}) -[:HAS_EVIDENCE_LINE] -> (el:EvidenceLine)
         OPTIONAL MATCH (el) -[:HAS_EVIDENCE_ITEM] -> (ev:Statement)
         RETURN DISTINCT el, ev
         """
@@ -856,19 +836,17 @@ class QueryHandler:
     def _get_therapies(
         self,
         tp_id: str,
-        tp_type: TherapyType,
         tp_relation: TherapeuticRelation,
     ) -> list[MappableConcept]:
         """Get list of therapies for therapeutic combination or substitutes group
 
         :param tp_id: ID for combination therapy or therapeutic substitute group
-        :param tp_type: Therapeutic object type
         :param tp_relation: Relationship type for therapies
         :return: List of therapies represented as Mappable Concepts for a combination
             therapy or therapeutic substitute group
         """
         query = f"""
-        MATCH (tp:{tp_type.value} {{ id: $tp_id }}) -[:{tp_relation.value}]
+        MATCH (tp:TherapyGroup {{ id: $tp_id }}) -[:{tp_relation.value}]
             -> (ta:Therapy)
         RETURN ta
         """

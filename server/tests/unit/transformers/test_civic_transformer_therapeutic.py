@@ -249,26 +249,20 @@ def civic_not_normalizable_stmt(
         "description": "This is a fake evidence item.",
         "direction": "supports",
         "strength": {
-            "primaryCode": "e000001",
-            "name": "authoritative evidence",
+            "name": "Validated association",
+            "primaryCoding": {
+                "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                "code": "A",
+            },
             "mappings": [
                 {
                     "coding": {
-                        "id": "vicc:e000001",
                         "system": "https://go.osu.edu/evidence-codes",
-                        "name": "authoritative evidence",
                         "code": "e000001",
+                        "name": "authoritative evidence",
                     },
                     "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "id": "civic.evidence_level:A",
-                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
-                        "code": "A",
-                    },
-                    "relation": "exactMatch",
-                },
+                }
             ],
         },
         "proposition": {

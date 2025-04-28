@@ -5,10 +5,11 @@ import logging
 import uuid
 from pathlib import Path
 
+from ga4gh.va_spec.base import MembershipOperator
 from neo4j import Driver, ManagedTransaction
 
 from metakb.database import get_driver
-from metakb.transformers.base import NormalizerExtensionName, TherapyType
+from metakb.transformers.base import NormalizerExtensionName
 
 _logger = logging.getLogger(__name__)
 
@@ -82,13 +83,7 @@ def _add_method(tx: ManagedTransaction, method: dict, ids_to_load: set[str]) -> 
     if method["id"] not in ids_to_load:
         return
 
-    m_keys = [_create_parameterized_query(method, ("id", "name"))]
-
-    method_subtype = method.get("subtype")
-    if method_subtype:
-        method["subtype"] = json.dumps(method_subtype)
-        m_keys.append("subtype:$subtype")
-
+    m_keys = [_create_parameterized_query(method, ("id", "name", "methodType"))]
     m_keys = ", ".join(m_keys)
 
     query = f"""
@@ -158,35 +153,34 @@ def _add_therapy_or_group(
 
     therapy = therapy_in.copy()
     concept_type = therapy.get("conceptType")
-    group_type = therapy.get("groupType", {}).get("name")
+    membership_op = therapy.get("membershipOperator")
 
     if concept_type:
         _add_therapy(tx, therapy)
-    elif group_type in TherapyType.__members__.values():
-        therapy["groupType"] = group_type
-        keys = [_create_parameterized_query(therapy, ("id", "groupType"))]
+    elif membership_op in MembershipOperator.__members__.values():
+        keys = [_create_parameterized_query(therapy, ("id", "membershipOperator"))]
 
         _add_mappings_and_exts_to_obj(therapy, keys)
         keys = ", ".join(keys)
 
-        query = f"MERGE (tg:{group_type}:Therapy {{ {keys} }})"
+        query = f"MERGE (tg:TherapyGroup:Therapy {{ {keys} }})"
         tx.run(query, **therapy)
 
         for ta in therapy["therapies"]:
             _add_therapy(tx, ta)
             query = f"""
-            MERGE (tg:{group_type}:Therapy {{id: '{therapy["id"]}'}})
-            MERGE (t:Therapy {{id: '{ta["id"]}'}})
+            MERGE (tg:TherapyGroup:Therapy {{id: '{therapy['id']}'}})
+            MERGE (t:Therapy {{id: '{ta['id']}'}})
             """
 
-            if group_type == TherapyType.COMBINATION_THERAPY:
+            if membership_op == MembershipOperator.AND:
                 query += "MERGE (tg) -[:HAS_COMPONENTS] -> (t)"
             else:
                 query += "MERGE (tg) -[:HAS_SUBSTITUTES] -> (t)"
 
             tx.run(query)
     else:
-        msg = f"Therapy `conceptType` not provided and invalid `groupType` provided: {group_type}"
+        msg = f"Therapy `conceptType` not provided and invalid `membershipOperator` provided: {membership_op}"
         raise TypeError(msg)
 
 
@@ -473,16 +467,40 @@ def _get_ids_to_load(
     return new_ids_to_load
 
 
-def _get_statement_query(statement: dict) -> str:
+def _get_statement_query(statement: dict, is_evidence: bool) -> str:
     """Generate the initial Cypher query to create a statement node and its
     relationships, based on shared properties of evidence and assertion records.
 
     :param statement: Statement record
+    :param is_evidence: Whether or not ``statement`` is an evidence or assertion record
     :return: The base Cypher query string for creating the statement node and
     relationships
     """
     match_line = ""
     rel_line = ""
+
+    strength = statement.get("strength")
+    if strength:
+        strength_prefix = "strength_"
+        if strength.get("name"):
+            strength_keys = [
+                _create_parameterized_query(
+                    strength, ("name",), entity_param_prefix=strength_prefix
+                )
+            ]
+            statement[f"{strength_prefix}name"] = strength["name"]
+        else:
+            strength_keys = []
+
+        for k in ("primaryCoding", "mappings"):
+            v = strength.get(k)
+            if v:
+                statement[f"{strength_prefix}{k}"] = json.dumps(v)
+                strength_keys.append(f"{k}:${strength_prefix}{k}")
+        strength_keys = ", ".join(strength_keys)
+
+        match_line += f"MERGE (strength:Strength {{ {strength_keys} }})"
+        rel_line += "MERGE (s) -[:HAS_STRENGTH] -> (strength)"
 
     proposition = statement["proposition"]
     statement["propositionType"] = proposition["type"]
@@ -528,8 +546,9 @@ def _get_statement_query(statement: dict) -> str:
         statement, ("id", "description", "direction", "type")
     )
 
+    statement_type = "Statement" if is_evidence else "StudyStatement:Statement"
     return f"""
-    MERGE (s:{statement["type"]}:StudyStatement {{ {statement_keys} }})
+    MERGE (s:{statement_type} {{ {statement_keys} }})
     {match_line}
     {rel_line}\n
     """
@@ -547,7 +566,7 @@ def _add_statement_evidence(
         return
 
     statement = statement_in.copy()
-    query = _get_statement_query(statement)
+    query = _get_statement_query(statement, is_evidence=True)
 
     is_reported_in_docs = statement.get("reportedIn", [])
     for ri_doc in is_reported_in_docs:
@@ -556,31 +575,6 @@ def _add_statement_evidence(
         query += f"""
         MERGE ({name} {{ id: '{ri_doc_id}'}})
         MERGE (s) -[:IS_REPORTED_IN] -> ({name})
-        """
-
-    strength = statement.get("strength")
-    if strength:
-        strength_key_fields = ("primaryCode", "name")
-
-        strength_keys = [
-            _create_parameterized_query(
-                strength, strength_key_fields, entity_param_prefix="strength_"
-            )
-        ]
-        for k in strength_key_fields:
-            v = strength.get(k)
-            if v:
-                statement[f"strength_{k}"] = v
-
-        mappings = strength.get("mappings", [])
-        if mappings:
-            statement["strength_mappings"] = json.dumps(mappings)
-            strength_keys.append("mappings:$strength_mappings")
-        strength_keys = ", ".join(strength_keys)
-
-        query += f"""
-        MERGE (strength:Strength {{ {strength_keys} }})
-        MERGE (s) -[:HAS_STRENGTH] -> (strength)
         """
     tx.run(query, **statement)
 
@@ -597,15 +591,15 @@ def _add_statement_assertion(
         return
 
     statement = statement_in.copy()
-    query = _get_statement_query(statement)
+    query = _get_statement_query(statement, is_evidence=False)
 
     classification = statement["classification"]
-    classification_keys = [
-        _create_parameterized_query(
-            classification, ("primaryCode",), entity_param_prefix="classification_"
-        )
-    ]
-    statement["classification_primaryCode"] = classification["primaryCode"]
+    classification_keys = []
+    primary_coding = classification.get("primaryCoding")
+    if primary_coding:
+        statement["classification_primaryCoding"] = json.dumps(primary_coding)
+        classification_keys.append("primaryCoding:$classification_primaryCoding")
+
     _add_mappings_and_exts_to_obj(classification, classification_keys)
     statement.update(classification)
     classification_keys = ", ".join(classification_keys)

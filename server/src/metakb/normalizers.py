@@ -5,7 +5,8 @@ import os
 from collections.abc import Iterable
 from enum import Enum
 
-from disease.cli import update_db as update_disease_db
+from botocore.exceptions import TokenRetrievalError
+from disease.cli import update as update_disease_db
 from disease.database import create_db as create_disease_db
 from disease.database.database import AWS_ENV_VAR_NAME as DISEASE_AWS_ENV_VAR_NAME
 from disease.query import QueryHandler as DiseaseQueryHandler
@@ -16,7 +17,7 @@ from ga4gh.vrs.models import (
     CopyNumberChange,
     CopyNumberCount,
 )
-from gene.cli import update_normalizer_db as update_gene_db
+from gene.cli import update as update_gene_db
 from gene.database import create_db as create_gene_db
 from gene.database.database import AWS_ENV_VAR_NAME as GENE_AWS_ENV_VAR_NAME
 from gene.query import QueryHandler as GeneQueryHandler
@@ -98,6 +99,8 @@ class ViccNormalizers:
             )
             if variation_norm_resp and variation_norm_resp.variation:
                 return variation_norm_resp.variation
+        except TokenRetrievalError:
+            raise
         except Exception:
             _logger.exception(
                 "Variation Normalizer raised an exception using query %s",
@@ -242,7 +245,9 @@ class ViccNormalizers:
             )
         else:
             if normalizer_resp.match_type:
-                normalized_id = getattr(normalizer_resp, concept_name).primaryCode.root
+                normalized_id = getattr(normalizer_resp, concept_name).id.split(
+                    f"normalize.{concept_name}."
+                )[-1]
 
         return normalizer_resp, normalized_id
 
