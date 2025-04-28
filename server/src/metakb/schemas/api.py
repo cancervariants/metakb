@@ -7,6 +7,7 @@ from ga4gh.va_spec.aac_2017 import (
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
+from ga4gh.va_spec.base import Statement
 from pydantic import BaseModel, ConfigDict, StrictStr
 
 from metakb import __version__
@@ -49,7 +50,8 @@ class SearchStatementsService(BaseModel):
     warnings: list[StrictStr] = []
     statement_ids: list[StrictStr] = []
     statements: list[
-        VariantTherapeuticResponseStudyStatement
+        Statement
+        | VariantTherapeuticResponseStudyStatement
         | VariantPrognosticStudyStatement
         | VariantDiagnosticStudyStatement
     ] = []
@@ -76,7 +78,8 @@ class BatchSearchStatementsService(BaseModel):
     warnings: list[StrictStr] = []
     statement_ids: list[StrictStr] = []
     statements: list[
-        VariantTherapeuticResponseStudyStatement
+        Statement
+        | VariantTherapeuticResponseStudyStatement
         | VariantPrognosticStudyStatement
         | VariantDiagnosticStudyStatement
     ] = []
