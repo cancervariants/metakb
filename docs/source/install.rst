@@ -56,7 +56,7 @@ MetaKB requires access to `SeqRepo <https://github.com/biocommons/biocommons.seq
 .. code-block::
 
    pip install seqrepo
-   export SEQREPO_VERSION=2024-02-20  # or newer if available -- check `seqrepo list-remote-instances`
+   export SEQREPO_VERSION=2024-12-20  # or newer if available -- check `seqrepo list-remote-instances`
    sudo mkdir /usr/local/share/seqrepo
    sudo chown $USER /usr/local/share/seqrepo
    seqrepo pull -i $SEQREPO_VERSION
@@ -65,7 +65,7 @@ If you encounter a permission error similar to the one below:
 
 .. code-block::
 
-   PermissionError: [Error 13] Permission denied: '/usr/local/share/seqrepo/2024-02-20._fkuefgd' -> '/usr/local/share/seqrepo/2024-02-20'
+   PermissionError: [Error 13] Permission denied: '/usr/local/share/seqrepo/2024-12-20._fkuefgd' -> '/usr/local/share/seqrepo/2024-12-20'
 
 Try moving data manually with ``sudo``:
 

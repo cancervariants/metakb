@@ -33,14 +33,6 @@ Before your first commit, run: ::
 
     pre-commit install
 
-Deployment
-----------
-
-Currently, the MetaKB is hosted for public access on [AWS Elastic Beanstalk](https://aws.amazon.com/elasticbeanstalk/). When a new Beanstalk container is launched, it does so from the dependencies declared in ``Pipfile.lock``. ::
-
-  python -m pip install pipenv
-  pipenv install --skip-lock  # this is what Elastic beanstalk uses
-
 Style
 -----
 
