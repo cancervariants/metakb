@@ -189,6 +189,20 @@ pre-commit install
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/cancervariants/metakb/tags).
 
+## Generating requirements
+
+[requirements.txt](./requirements.txt) is used for Elastic Beanstalk to install the
+dependencies. Anytime you update package requirements in
+[pyproject.toml](./server/pyproject.toml) be sure to create a new virtual environment,
+install only the required packages (`pip install -e .`) and update the
+[requirements.txt](./requirements.txt).
+
+To generate run the below command from `server` directory (ensure you have started the venv):
+
+```commandline
+pip freeze --exclude-editable > ../requirements.txt
+```
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
