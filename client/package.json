@@ -9,8 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "format": "prettier --check .",
-    "format:fix": "prettier --write .",
-    "preinstall": "node check-install-location.cjs"
+    "format:fix": "prettier --write ."
   },
   "dependencies": {
     "react": "^19.0.0",
