@@ -1,0 +1,4 @@
+Value counts for column: CANCER_TYPE_DETAILED
+
+CANCER_TYPE_DETAILED
+Ewing Sarcoma    11614

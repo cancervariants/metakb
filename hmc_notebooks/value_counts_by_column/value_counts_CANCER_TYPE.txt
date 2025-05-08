@@ -1,0 +1,4 @@
+Value counts for column: CANCER_TYPE
+
+CANCER_TYPE
+Bone Cancer    11614
