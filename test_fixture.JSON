@@ -1,0 +1,93 @@
+{
+    "focusvariant": {
+        "type": "CategoricalVariant",
+        "name": "4-159603535-G-C",
+        "constraints": [
+            {
+                "name": "ETFDH p.G122R",
+                "allele": {
+                    "id": "ga4gh:VA._DKuUCjVVWUA3eQUkgNyyxwizboqfblX",
+                    "type": "Allele",
+                    "digest": "_DKuUCjVVWUA3eQUkgNyyxwizboqfblX",
+                    "location": {
+                        "id": "ga4gh:SL.U1uIODMdQ-cSuI6T4nICXcbBJgXpGbJG",
+                        "type": "SequenceLocation",
+                        "digest": "U1uIODMdQ-cSuI6T4nICXcbBJgXpGbJG",
+                        "sequenceReference": {
+                            "type": "SequenceReference",
+                            "refgetAccession": "SQ.XiPpWSmlIGO_vpRi89UEvm9He1YcCR3-"
+                        },
+                        "start": 121,
+                        "end": 122,
+                        "sequence": "G"
+                    },
+                    "state": {
+                        "type": "LiteralSequenceExpression",
+                        "sequence": "R"
+                    }
+                }
+            }
+        ],
+        "members": [
+            {
+                "id": "ga4gh:VA.dgQH6XBtJtUjnl-VOY8luzcpLsW7LvZc",
+                "type": "Allele",
+                "digest": "dgQH6XBtJtUjnl-VOY8luzcpLsW7LvZc",
+                "location": {
+                    "id": "ga4gh:SL.eU4gM3Dln_hzF-2zGnY0k-eMG4ibMjPM",
+                    "type": "SequenceLocation",
+                    "digest": "eU4gM3Dln_hzF-2zGnY0k-eMG4ibMjPM",
+                    "sequenceReference": {
+                        "type": "SequenceReference",
+                        "refgetAccession": "SQ.6SoJoDhdb9SNRrZfWgMHkDVmZ5UD9EBR"
+                    },
+                    "start": 524,
+                    "end": 525,
+                    "sequence": "G"
+                },
+                "state": {
+                    "type": "LiteralSequenceExpression",
+                    "sequence": "C"
+                },
+                "name": "NM_004453.2:c.364G>C"
+            },
+            {
+                "name": "4-159603535-G-C",
+                "id": "ga4gh:VA.T_rrgUwh6wHu-rkxboHLFQD08Ow4UxVm",
+                "type": "Allele",
+                "extensions": [
+                    {
+                        "name": "mane_genes",
+                        "value": [
+                            {
+                                "ncbi_gene_id": 2110,
+                                "hgnc_id": 3483,
+                                "symbol": "ETFDH",
+                                "status": [
+                                    "mane_select"
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "digest": "T_rrgUwh6wHu-rkxboHLFQD08Ow4UxVm",
+                "location": {
+                    "id": "ga4gh:SL.IBuIcH0EEOJJMDstPbzwNgu2o9JuQ5Ju",
+                    "type": "SequenceLocation",
+                    "digest": "IBuIcH0EEOJJMDstPbzwNgu2o9JuQ5Ju",
+                    "sequenceReference": {
+                        "type": "SequenceReference",
+                        "refgetAccession": "SQ.HxuclGHh0XCDuF8x6yQrpHUBL7ZntAHc"
+                    },
+                    "start": 158682382,
+                    "end": 158682383,
+                    "sequence": "G"
+                },
+                "state": {
+                    "type": "LiteralSequenceExpression",
+                    "sequence": "C"
+                }
+            }
+        ]
+    }
+}
