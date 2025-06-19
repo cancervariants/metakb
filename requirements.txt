@@ -97,7 +97,7 @@ typing_extensions==4.13.2
 tzdata==2025.2
 ujson==5.10.0
 url-normalize==2.2.1
-urllib3==2.4.0
+urllib3==2.5.0
 uvicorn==0.34.2
 variation-normalizer==0.14.1
 vcfpy==0.13.8
