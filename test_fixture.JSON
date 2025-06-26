@@ -8,6 +8,8 @@
                 "allele": {
                     "id": "ga4gh:VA._DKuUCjVVWUA3eQUkgNyyxwizboqfblX",
                     "type": "Allele",
+                    "extensions": [{"name": "variation_normalizer_endpoint",
+                        "value": "normalize"}],                                                                                                         
                     "digest": "_DKuUCjVVWUA3eQUkgNyyxwizboqfblX",
                     "location": {
                         "id": "ga4gh:SL.U1uIODMdQ-cSuI6T4nICXcbBJgXpGbJG",
