@@ -54,21 +54,13 @@ def _get_credentials(
             uri = f"bolt://{secret['host']}:{secret['port']}"
             credentials = (secret["username"], secret["password"])
         else:
-            if all(
-                [
-                    "METAKB_DB_URL" in environ,
-                    "METAKB_DB_USERNAME" in environ,
-                    "METAKB_DB_PASSWORD" in environ,
-                ]
-            ):
-                uri = environ["METAKB_DB_URL"]
+            if not uri:
+                uri = environ.get("METAKB_DB_URL", "bolt://localhost:7687")
+            if (not credentials[0]) and (not credentials[1]):
                 credentials = (
-                    environ["METAKB_DB_USERNAME"],
-                    environ["METAKB_DB_PASSWORD"],
+                    environ.get("METAKB_DB_USERNAME", "neo4j"),
+                    environ.get("METAKB_DB_PASSWORD", "neo4j"),
                 )
-            else:  # local default settings
-                uri = "bolt://localhost:7687"
-                credentials = ("neo4j", "password")
     return uri, credentials
 
 
