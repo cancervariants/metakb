@@ -36,7 +36,7 @@ def configure_logs(log_level: int = logging.DEBUG, quiet_upstream: bool = True) 
     if quiet_upstream:
         _quiet_upstream_libs()
     log_filename = (
-        "/tmp/metakb.log" if "METAKB_EB_PROD" in os.environ else "metakb.log"  # noqa: S108
+        "/tmp/metakb.log" if os.environ.get("METAKB_EB_PROD") else "metakb.log"  # noqa: S108
     )
     logging.basicConfig(
         filename=log_filename,
