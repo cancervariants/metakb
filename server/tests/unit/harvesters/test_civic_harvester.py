@@ -134,9 +134,9 @@ def test_civic_evidence(harvested_evidence, civic_eid_3017):
         elif e["id"] == 6178:
             assert e["assertion_ids"] == [12, 7]
             checked.append(e["id"])
-    assert (
-        len(checked) == 2
-    ), f"Expected to check CIViC Evidence Items 3017 and 6178, but only checked {checked}"
+    assert len(checked) == 2, (
+        f"Expected to check CIViC Evidence Items 3017 and 6178, but only checked {checked}"
+    )
     assert checked, "CIViC Evidence Item 3017 not in harvested evidence"
 
 

@@ -26,9 +26,9 @@ def find_and_check_stmt(
             break
 
     if should_find_match:
-        assert (
-            actual_stmt
-        ), f"Did not find statement ID {expected_stmt['id']} in statements"
+        assert actual_stmt, (
+            f"Did not find statement ID {expected_stmt['id']} in statements"
+        )
         resp_stmts = [actual_stmt.model_dump(exclude_none=True)]
         assertion_checks(resp_stmts, [expected_stmt])
     else:
