@@ -16,6 +16,7 @@ import asyncclick as click
 import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore.config import Config
+from dotenv import load_dotenv
 from neo4j import Driver
 
 from metakb import APP_ROOT, DATE_FMT
@@ -37,6 +38,8 @@ from metakb.schemas.app import SourceName
 from metakb.transformers import CivicTransformer, MoaTransformer
 
 _logger = logging.getLogger(__name__)
+
+load_dotenv()
 
 
 def _echo_info(msg: str) -> None:

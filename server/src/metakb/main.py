@@ -4,6 +4,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Annotated
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, Query
 from fastapi.openapi.utils import get_openapi
 
@@ -17,6 +18,8 @@ from metakb.schemas.api import (
     SearchStatementsService,
     ServiceMeta,
 )
+
+load_dotenv()
 
 query = QueryHandler()
 

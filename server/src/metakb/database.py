@@ -49,7 +49,7 @@ def _get_credentials(
     :return: tuple containing host, and a second tuple containing username/password
     """
     if not (uri and credentials[0] and credentials[1]):
-        if "METAKB_EB_PROD" in environ:
+        if environ.get("METAKB_EB_PROD"):
             secret = ast.literal_eval(_get_secret())
             uri = f"bolt://{secret['host']}:{secret['port']}"
             credentials = (secret["username"], secret["password"])
