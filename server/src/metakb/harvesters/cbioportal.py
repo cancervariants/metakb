@@ -25,7 +25,7 @@ class cBioportalHarvestedData(_HarvestedData):
 class cBioportalHarvester(Harvester):
     """A class for the cBioPortal Harvester"""
 
-    def __init__(self, study = STUDY_NAME[0]):
+    def __init__(self, study = STUDY_NAME[0]): # TODO: hard coded for now, eventually for study in STUDY_NAME
         """Initialize cBioPortal Harvester
         
         :param study: An individual study from the cBioPortal pediatric dataset"""
