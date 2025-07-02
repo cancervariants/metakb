@@ -1,5 +1,4 @@
-from metakb.harvesters.base import Harvester, _HarvestedData # Note: When testing before updating to the server / client switch, these imports worked, but as of right now I get: ModuleNotFoundError: No module named 'metakb.harvesters.base'
-# similarly, if I run from base import Harvester, _HarvestedData, I get ImportError: cannot import name 'APP_ROOT' from 'metakb' (unknown location) 
+from metakb.harvesters.base import Harvester, _HarvestedData
 import logging
 import pandas as pd
 
@@ -31,7 +30,8 @@ class cBioportalHarvester(Harvester):
         
         :param study: An individual study from the cBioPortal pediatric dataset"""
         self.filepath = f'{FILE_PATH}/{study}'
-       
+        #TODO: Methods to download and gunzip?
+
     def harvest(self):
         """Get cBioPortal datasets from specified study
         
