@@ -169,8 +169,8 @@ def _add_therapy_or_group(
         for ta in therapy["therapies"]:
             _add_therapy(tx, ta)
             query = f"""
-            MERGE (tg:TherapyGroup:Therapy {{id: '{therapy['id']}'}})
-            MERGE (t:Therapy {{id: '{ta['id']}'}})
+            MERGE (tg:TherapyGroup:Therapy {{id: '{therapy["id"]}'}})
+            MERGE (t:Therapy {{id: '{ta["id"]}'}})
             """
 
             if membership_op == MembershipOperator.AND:
