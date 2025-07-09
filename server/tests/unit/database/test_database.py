@@ -654,7 +654,7 @@ def test_strength_rules(driver: Driver, check_relation_count, civic_eid2997_stud
     assert record.values()[0] == 0
 
     query = f"""
-    MATCH (s:Strength {{primaryCoding: '{json.dumps(civic_eid2997_study_stmt['strength']['primaryCoding'])}', name: '{civic_eid2997_study_stmt['strength']['name']}'}})
+    MATCH (s:Strength {{primaryCoding: '{json.dumps(civic_eid2997_study_stmt["strength"]["primaryCoding"])}', name: '{civic_eid2997_study_stmt["strength"]["name"]}'}})
     RETURN s
     """
     result = driver.execute_query(query)
