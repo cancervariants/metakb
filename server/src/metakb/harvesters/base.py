@@ -8,7 +8,8 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from metakb import APP_ROOT, DATE_FMT
+from metakb import DATE_FMT
+from metakb.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -54,18 +55,20 @@ class Harvester(ABC):
     def save_harvested_data_to_file(
         self, harvested_data: _HarvestedData, harvested_filepath: Path | None = None
     ) -> bool:
-        """Save harvested data to JSON file
+        """Save harvested data to JSON file.
 
         :param harvested_data: harvested data from a source
-        :param harvested_filepath: Path to the JSON file where the harvested data will
-            be stored. If not provided, will use the default path of
-            ``<APP_ROOT>/data/<src_name>/harvester/<src_name>_harvester_YYYYMMDD.json``
+        :param harvested_filepath: Path to the JSON file location where the harvested data
+            will be stored. If not provided, will use the default path of
+            ``<METAKB_DATA_ROOT>/<src_name>/harvester/<src_name>_harvester_YYYYMMDD.json``,
+            where ``<METAKB_DATA_ROOT>`` is the configurable data root directory.
+            See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
         :return: ``True`` if JSON creation was successful. ``False`` otherwise.
         """
         src_name = self.__class__.__name__.lower().split("harvest")[0]
 
         if not harvested_filepath:
-            harvester_dir = APP_ROOT / "data" / src_name / "harvester"
+            harvester_dir = config.data_root / src_name / "harvester"
             harvester_dir.mkdir(exist_ok=True, parents=True)
             today = datetime.datetime.strftime(
                 datetime.datetime.now(tz=datetime.UTC), DATE_FMT

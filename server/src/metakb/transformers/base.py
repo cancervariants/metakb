@@ -51,7 +51,8 @@ from therapy.schemas import (
     NormalizationService as NormalizedTherapy,
 )
 
-from metakb import APP_ROOT, DATE_FMT
+from metakb import DATE_FMT
+from metakb.config import config
 from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import (
     ViccNormalizers,
@@ -281,19 +282,23 @@ class Transformer(ABC):
 
     def __init__(
         self,
-        data_dir: Path = APP_ROOT / "data",
+        data_dir: Path | None = None,
         harvester_path: Path | None = None,
         normalizers: ViccNormalizers | None = None,
     ) -> None:
         """Initialize Transformer base class.
 
-        :param Path data_dir: Path to source data directory
-        :param Optional[Path] harvester_path: Path to previously harvested data
-        :param ViccNormalizers normalizers: normalizer collection instance
+        :param data_dir: Path to source data directory. If not given, use a subdirectory
+            off of the MetaKB data directory as configured in the ``metakb.config`` module.
+        :param harvester_path: Path to previously harvested data
+        :param normalizers: normalizer collection instance
         """
         self._cache = self._create_cache()
         self.name = self.__class__.__name__.lower().split("transformer")[0]
-        self.data_dir = data_dir / self.name
+        if data_dir:
+            self.data_dir = data_dir
+        else:
+            self.data_dir = config.data_root
         self.harvester_path = harvester_path
         self.vicc_normalizers = (
             ViccNormalizers() if normalizers is None else normalizers
@@ -628,9 +633,11 @@ class Transformer(ABC):
     def create_json(self, cdm_filepath: Path | None = None) -> None:
         """Create a composite JSON for transformed data.
 
-        :param cdm_filepath: Path to the JSON file where the CDM data will be
-            stored. If not provided, will use the default path of
-            ``<APP_ROOT>/data/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``
+        :param cdm_filepath: Path to the JSON file locatio at which the CDM output will be
+            saved. If not provided, will use the default path of
+            ``<METAKB_DATA_ROOT>/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``,
+            where ``<METAKB_DATA_ROOT>`` is the configurable data root directory.
+            See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
         """
         if not cdm_filepath:
             transformers_dir = self.data_dir / "transformers"
