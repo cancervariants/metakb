@@ -19,7 +19,7 @@ from botocore.config import Config
 from dotenv import load_dotenv
 from neo4j import Driver
 
-from metakb import APP_ROOT, DATE_FMT
+from metakb import APP_ROOT, DATE_FMT, __version__
 from metakb.database import clear_graph as clear_metakb_graph
 from metakb.database import get_driver
 from metakb.harvesters.civic import CivicHarvester
@@ -65,6 +65,7 @@ def _help_msg(msg: str = "") -> None:
 
 
 @click.group()
+@click.version_option(__version__)
 def cli() -> None:
     """Manage MetaKB data.
 
