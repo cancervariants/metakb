@@ -20,7 +20,7 @@ import numpy
 # download data 
 study = "es_dfarber_broad_2014"
 url = f"https://cbioportal-datahub.s3.amazonaws.com/{study}.tar.gz"
-output_path = f"{study}}.tar.gz"
+output_path = f"{study}.tar.gz"
 query_parameters = {"downloadformat": "tar.gz"}
 
 response = requests.get(url, stream=True, params=query_parameters)
@@ -32,7 +32,7 @@ with open (output_path, mode="wb") as file:
     print(f"Downloaded {output_path}")
 
 #TODO: softcode this
-extract_dir = f"{study}}_extracted"
+extract_dir = f"{study}_extracted"
 os.makedirs(extract_dir, exist_ok=True)
 
 with tarfile.open(output_path, mode="r:gz") as tar:
@@ -76,13 +76,17 @@ class cBioportalHarvester(Harvester):
         """Get cBioPortal datasets from specified study
         
         :return: All data for mutations, patients, samples, and metadata for one study from cBioPortal pediatric dataset"""
+        
+        # _def_download_data()
+
+        # data = {}
+        # for study in STUDY_NAME:
         variants = pd.read_csv(f'{self.filepath}/{FILE_TYPES[0]}.txt', sep='\t').to_dict(orient='records')
         patients = pd.read_csv(f'{self.filepath}/{FILE_TYPES[1]}.txt', sep='\t', skiprows=4).to_dict(orient='records')
         samples = pd.read_csv(f'{self.filepath}/{FILE_TYPES[2]}.txt', sep='\t', skiprows=4).to_dict(orient='records')
         metadata = pd.read_csv(f'{self.filepath}/{FILE_TYPES[3]}.txt', sep='\t').to_dict(orient='records')
         
-        # TODO: better way to load in the four files?
-
+        # results[study] = cBioportalHarvestedData(variants=variants, patients=patients, samples=samples, metadata=metadata)
         return cBioportalHarvestedData(
             variants=variants,
             patients=patients,
@@ -90,4 +94,11 @@ class cBioportalHarvester(Harvester):
             metadata=metadata
         )
 
+        # TODO: Proposed usage: g = cBioportalHarvester(), data_by_study = g.harvest() ---> data_by_study['es_dfarber_broad_2014'] (one harvestedData obj per study, accessible by dictionary)
 
+    # def _download_data(self):
+        # Orient to correct working directory
+        # For study in STUDY_NAME 
+        #   Download the relevant data files
+        #   unzip the relevant data files
+        #   delete the .zips
