@@ -6,6 +6,7 @@ export default function Home() {
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [normalizedMessage, setNormalizedMessage] = useState('')
+  const [constraintType, setConstraintType] = useState('Allele')
 
 
   const handleQuery = async () => {
@@ -43,7 +44,23 @@ export default function Home() {
     <div className="home-container">
       <h1>MetaKB Jr.</h1>
 
-      <div className="query-bar">
+      <div className="query-bar" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <div className="dropdown-container">
+        <label htmlFor="constraint-select" style={{ fontWeight: 'bold' }}>Search Type:</label>
+        <select
+        id="constraint-select"
+        value={constraintType}
+        onChange={(e) => setConstraintType(e.target.value)}
+        style={{ marginLeft: '0.5rem', padding: '0.3rem' }}
+        >
+        <option value="Allele">Allele</option>
+        <option value="Gene Name">Gene Name</option>
+        <option value="Gain-of-Function">Gain-of-Function</option>
+        <option value="Loss-of-Function">Loss-of-Function</option>
+        <option value="Copy Number Change">Copy Number Change</option>
+        <option value="Fusion">Fusion (Help)</option>
+        </select>
+    </div>
         <input
           type="text"
           value={genes}
