@@ -635,8 +635,8 @@ class Transformer(ABC):
 
         :param cdm_filepath: Path to the JSON file locatio at which the CDM output will be
             saved. If not provided, will use the default path of
-            ``<METAKB_DATA_ROOT>/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``,
-            where ``<METAKB_DATA_ROOT>`` is the configurable data root directory.
+            ``<METAKB_DATA_DIR>/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``,
+            where ``<METAKB_DATA_DIR>`` is the configurable data root directory.
             See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
         """
         if not cdm_filepath:

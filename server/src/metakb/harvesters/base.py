@@ -60,8 +60,8 @@ class Harvester(ABC):
         :param harvested_data: harvested data from a source
         :param harvested_filepath: Path to the JSON file location where the harvested data
             will be stored. If not provided, will use the default path of
-            ``<METAKB_DATA_ROOT>/<src_name>/harvester/<src_name>_harvester_YYYYMMDD.json``,
-            where ``<METAKB_DATA_ROOT>`` is the configurable data root directory.
+            ``<METAKB_DATA_DIR>/<src_name>/harvester/<src_name>_harvester_YYYYMMDD.json``,
+            where ``<METAKB_DATA_DIR>`` is the configurable data root directory.
             See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
         :return: ``True`` if JSON creation was successful. ``False`` otherwise.
         """
