@@ -27,7 +27,6 @@ from ga4gh.va_spec.base import (
 )
 from ga4gh.vrs.models import Variation
 
-from metakb import APP_ROOT
 from metakb.harvesters.moa import MoaHarvestedData
 from metakb.normalizers import (
     ViccNormalizers,
@@ -58,7 +57,7 @@ class MoaTransformer(Transformer):
 
     def __init__(
         self,
-        data_dir: Path = APP_ROOT / "data",
+        data_dir: Path | None = None,
         harvester_path: Path | None = None,
         normalizers: ViccNormalizers | None = None,
     ) -> None:

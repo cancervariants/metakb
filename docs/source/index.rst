@@ -29,6 +29,7 @@ This documentation is also a work in progress, and may contain incomplete sectio
     Installation<install>
     Usage<usage>
     Normalization<normalization>
+    Configuration<config>
     CLI reference<cli_reference>
     API reference<reference/index>
     Source data licenses<source_licenses>
