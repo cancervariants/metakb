@@ -1,0 +1,36 @@
+/* Home.css */
+.home-container {
+    padding: 2rem;
+    font-family: sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  
+  .query-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .query-bar input {
+    flex: 1;
+    padding: 0.5rem;
+  }
+  
+  .query-bar button {
+    padding: 0.5rem 1rem;
+  }
+  
+  .results {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .result-card {
+    border: 1px solid #ccc;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #515151;
+  }
+  
