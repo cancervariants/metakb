@@ -45,7 +45,14 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-tests = ["pytest", "pytest-cov", "mock", "pytest-asyncio", "deepdiff"]
+tests = [
+    "pytest",
+    "pytest-cov",
+    "mock",
+    "pytest-asyncio",
+    "deepdiff",
+    "jsonschema"
+]
 dev = [
     "pre-commit>=4.2.0",
     "ruff==0.12.1"

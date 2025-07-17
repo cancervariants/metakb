@@ -9,11 +9,14 @@ from typing import NamedTuple
 
 from wags_tails.utils.storage import get_data_dir
 
+from metakb.schemas.api import ServiceEnvironment
+
 
 class _Config(NamedTuple):
     """Define config data structure."""
 
     data_root: Path
+    env: ServiceEnvironment
 
 
 def _get_configs() -> _Config:
@@ -28,7 +31,15 @@ def _get_configs() -> _Config:
         data_root_location = Path(env_var_data_dir)
     else:
         data_root_location = get_data_dir() / "metakb"
-    return _Config(data_root=data_root_location)
+    if env_var_env_name := os.environ.get("METAKB_ENV"):
+        try:
+            env = ServiceEnvironment(env_var_env_name)
+        except ValueError as e:
+            msg = f"METAKB_ENV must be set to one of {[e.value for e in ServiceEnvironment]}, got {env_var_env_name} instead"
+            raise ValueError(msg) from e
+    else:
+        env = ServiceEnvironment.DEV
+    return _Config(data_root=data_root_location, env=env)
 
 
 config = _get_configs()

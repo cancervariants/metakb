@@ -2,21 +2,26 @@
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from enum import Enum
 from typing import Annotated
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Query
-from fastapi.openapi.utils import get_openapi
 
 from metakb import __version__
+from metakb.config import config
 from metakb.log_handle import configure_logs
 from metakb.query import PaginationParamError, QueryHandler
 from metakb.schemas.api import (
+    METAKB_DESCRIPTION,
     BatchSearchStatementsQuery,
     BatchSearchStatementsService,
     SearchStatementsQuery,
     SearchStatementsService,
+    ServiceInfo,
     ServiceMeta,
+    ServiceOrganization,
+    ServiceType,
 )
 
 load_dotenv()
@@ -37,6 +42,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:  # noqa: ARG001
 
 
 app = FastAPI(
+    title="The VICC Meta-Knowledgebase",
+    description=METAKB_DESCRIPTION,
+    version=__version__,
+    license={
+        "name": "MIT",
+        "url": "https://github.com/cancervariants/metakb/blob/main/LICENSE",
+    },
+    contact={
+        "name": "Alex H. Wagner",
+        "email": "Alex.Wagner@nationwidechildrens.org",
+        "url": "https://www.nationwidechildrens.org/specialties/institute-for-genomic-medicine/research-labs/wagner-lab",
+    },
     docs_url="/api/v2",
     openapi_url="/api/v2/openapi.json",
     swagger_ui_parameters={"tryItOutEnabled": True},
@@ -44,29 +61,28 @@ app = FastAPI(
 )
 
 
-def custom_openapi() -> dict:
-    """Generate custom fields for OpenAPI response."""
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = get_openapi(
-        title="The VICC Meta-Knowledgebase",
-        version=__version__,
-        description="A search interface for cancer variant interpretations"
-        " assembled by aggregating and harmonizing across multiple"
-        " cancer variant interpretation knowledgebases.",
-        routes=app.routes,
+class _Tag(str, Enum):
+    """Define tag names for endpoints."""
+
+    META = "Meta"
+
+
+@app.get(
+    "/service-info",
+    summary="Get basic service information",
+    description="Retrieve service metadata, such as versioning and contact info. Structured in conformance with the [GA4GH service info API specification](https://www.ga4gh.org/product/service-info/)",
+    tags=[_Tag.META],
+)
+def service_info() -> ServiceInfo:
+    """Provide service info per GA4GH Service Info spec
+
+    :return: conformant service info description
+    """
+    return ServiceInfo(
+        organization=ServiceOrganization(), type=ServiceType(), environment=config.env
     )
 
-    openapi_schema["info"]["contact"] = {
-        "name": "VICC",
-        "email": "help@cancervariants.org",
-        "url": "https://cancervariants.org",
-    }
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
 
-
-app.openapi = custom_openapi
 search_stmts_summary = (
     "Get nested statements from queried concepts that match all conditions provided."
 )
