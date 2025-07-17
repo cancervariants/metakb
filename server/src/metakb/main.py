@@ -104,7 +104,6 @@ limit_description = "The maximum number of results to return. Use for pagination
 @app.get(
     "/api/v2/search/statements",
     summary=search_stmts_summary,
-    response_model=SearchStatementsService,
     response_model_exclude_none=True,
     description=search_stmts_descr,
     tags=[_Tag.SEARCH],
@@ -166,7 +165,6 @@ _batch_descr = {
 @app.get(
     "/api/v2/batch_search/statements",
     summary=_batch_descr["summary"],
-    response_model=BatchSearchStatementsService,
     response_model_exclude_none=True,
     description=_batch_descr["description"],
     tags=[_Tag.SEARCH],
