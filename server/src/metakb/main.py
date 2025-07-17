@@ -65,6 +65,7 @@ class _Tag(str, Enum):
     """Define tag names for endpoints."""
 
     META = "Meta"
+    SEARCH = "Search"
 
 
 @app.get(
@@ -106,6 +107,7 @@ limit_description = "The maximum number of results to return. Use for pagination
     response_model=SearchStatementsService,
     response_model_exclude_none=True,
     description=search_stmts_descr,
+    tags=[_Tag.SEARCH],
 )
 async def get_statements(
     variation: Annotated[str | None, Query(description=v_description)] = None,
@@ -164,6 +166,7 @@ _batch_descr = {
     response_model=BatchSearchStatementsService,
     response_model_exclude_none=True,
     description=_batch_descr["description"],
+    tags=[_Tag.SEARCH],
 )
 async def batch_get_statements(
     variations: Annotated[
