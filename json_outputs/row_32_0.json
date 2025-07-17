@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients with solid tumors that have a neurotrophic receptor tyrosine kinase (NTRK) gene fusion without a known acquired resistance mutation, are metastatic or where surgical resection is likely to result in severe morbidity, and have no satisfactory alternative treatments or that have progressed following treatment",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Larotrectinib [Vitrakvi]"
+}

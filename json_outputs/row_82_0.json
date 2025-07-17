@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of CD19-positive B-cell precursor acute lymphoblastic leukemia (ALL) in first or second complete remission with minimal residual disease (MRD) greater than or equal to 0.1% in adult and pediatric patients one month and older",
+    "geneContextQualifier": "CD19",
+    "objectTherapeutic": "Blinatumomab [Blincyto]"
+}

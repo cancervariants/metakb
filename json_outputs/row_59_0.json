@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of pediatric patients 2 years of age and older with neurofibromatosis type 1 (NF1) who have symptomatic, inoperable plexiform neurofibromas (PN)",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Selumetinib [Koselugo]"
+}

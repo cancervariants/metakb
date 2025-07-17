@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of relapsed or refractory CD19-positive B-cell precursor acute lymphoblastic leukemia (ALL) in adult and pediatric patients one month and older",
+    "geneContextQualifier": "CD19",
+    "objectTherapeutic": "Blinatumomab [Blincyto]"
+}

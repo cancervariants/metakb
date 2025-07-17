@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adults and pediatric patients with osteosarcoma as part of a combination chemotherapy regimen",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Methotrexate"
+}

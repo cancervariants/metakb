@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Acute leukemia; MULTIPLE (in combination)",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Vincristine Sulfate"
+}

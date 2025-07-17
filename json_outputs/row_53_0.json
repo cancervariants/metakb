@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients with unresectable or metastatic tumor mutational burden-high (TMB-H) [\u226510 mutations/megabase (mut/Mb)] solid tumors, as determined by an FDA-approved test, that have progressed following prior treatment and who have no satisfactory alternative treatment options",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Pembrolizumab [Keytruda]"
+}

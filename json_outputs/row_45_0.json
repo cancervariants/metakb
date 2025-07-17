@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "As a single agent or in combination with ipilimumab, for the treatment of adult and pediatric patients 12 years and older with unresectable or metastatic melanoma",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Nivolumab [Opdivo]"
+}

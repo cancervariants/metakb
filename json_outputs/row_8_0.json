@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of pediatric patients aged 1 month and older with newly diagnosed Juvenile Myelomonocytic Leukemia (JMML)",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Azacitidine [Vidaza]"
+}

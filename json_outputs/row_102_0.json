@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Induction of remission in adults and pediatric patients 1 year of age and older with acute promyelocytic leukemia (APL) characterized by the presence of the t(15;17) translocation or PML/RAR\u03b1 gene expression, and who are refractory to or who have relapsed from anthracycline chemotherapy or for whom anthracycline-based chemotherapy is contraindicated",
+    "geneContextQualifier": "PML | RARA",
+    "objectTherapeutic": "Tretinoin [Vesanoid]"
+}

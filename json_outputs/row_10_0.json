@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "For use in combination with cyclophosphamide as a conditioning regimen prior to allogeneic hematopoietic progenitor cell transplantation for chronic myelogenous leukemia",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Busulfan [Busulfex]"
+}

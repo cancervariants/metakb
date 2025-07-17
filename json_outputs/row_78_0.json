@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients 2 years of age and older with advanced or metastatic medullary thyroid cancer (MTC) with a RET mutation, as detected by an FDA-approved test, who require systemic therapy",
+    "geneContextQualifier": "RET",
+    "objectTherapeutic": "Selpercatinib [Retevmo]"
+}

@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "A component of a multi-agent chemotherapeutic regimen for the treatment of patients with acute lymphoblastic leukemia (ALL) who have developed hypersensitivity to E. coli-derived asparaginase",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Asparaginase Erwinia Chrysanthemi [Erwinaze] [currently in shortage]"
+}

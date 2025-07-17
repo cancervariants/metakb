@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "In combination with other anticancer drugs for the treatment of Stage III and IV Hodgkin's disease",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Procarbazine Hydrochloride [Matulane]"
+}

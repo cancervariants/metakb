@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "In combination with nivolumab, for the treatment of adult and pediatric patients 12 years and older with microsatellite instability-high (MSI-H) or mismatch repair deficient (dMMR) metastatic colorectal cancer (mCRC) that has progressed following treatment with a fluoropyrimidine, oxaliplatin, and irinotecan",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Ipilimumab [Yervoy]"
+}

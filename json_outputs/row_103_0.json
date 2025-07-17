@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "In combination with trametinib, for the treatment of adult and pediatric patients 1 year of age and older with unresectable or metastatic solid tumors with BRAF V600E mutation who have progressed following prior treatment and have no satisfactory alternative treatment options",
+    "geneContextQualifier": "BRAF",
+    "objectTherapeutic": "Dabrafenib [Tafinlar]"
+}

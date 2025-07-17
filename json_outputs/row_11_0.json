@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients 12 years of age and older with locally advanced or metastatic differentiated thyroid cancer (DTC) that has progressed following prior VEGFR-targeted therapy and who are radioactive iodine-refractory or ineligible",
+    "geneContextQualifier": "KDR",
+    "objectTherapeutic": "Cabozantinib [Cabometyx]"
+}

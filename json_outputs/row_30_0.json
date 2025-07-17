@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "As a single agent or in combination with nivolumab, for the treatment of unresectable or metastatic melanoma in adult and pediatric patients 12 years and older",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Ipilimumab [Yervoy]"
+}

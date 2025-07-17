@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "In combination with granulocyte-macrophage colony-stimulating factor (GM-CSF), interleukin-2 (IL-2), and 13-cis-retinoic acid (RA), for the treatment of pediatric patients with high-risk neuroblastoma who achieve at least a partial response to prior first-line multiagent, multimodality therapy",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Dinutuximab [Unituxin]"
+}

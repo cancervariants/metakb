@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adults and pediatric patients 12 years and older with metastatic Merkel cell carcinoma (MCC)",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Avelumab [Bavencio]"
+}

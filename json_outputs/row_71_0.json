@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients 1 year of age and older with chronic phase (CP) Philadelphia chromosome-positive chronic myelogenous leukemia (Ph+ CML), newly-diagnosed or resistant or intolerant to prior therapy",
+    "geneContextQualifier": "BCR | ABL1",
+    "objectTherapeutic": "Bosutinib [Bosulif]"
+}

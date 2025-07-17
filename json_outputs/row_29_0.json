@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients 12 years and older with iobenguane scan positive, unresectable, locally advanced or metastatic pheochromocytoma or paraganglioma who require systemic anticancer therapy",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Iobenguane I-131 [Azedra]"
+}

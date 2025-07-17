@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients 12 years of age and older with advanced or metastatic RET-mutant medullary thyroid cancer (MTC) who require systemic therapy",
+    "geneContextQualifier": "RET",
+    "objectTherapeutic": "Pralsetinib [Gavreto]"
+}

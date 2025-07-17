@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients 12 years and older with Grade 2 astrocytoma or oligodendroglioma with a susceptible isocitrate dehydrogenase-1 (IDH1) or isocitrate dehydrogenase-2 (IDH2) mutation following surgery including biopsy, sub-total resection, or gross total resection",
+    "geneContextQualifier": "IDH1 | IDH2",
+    "objectTherapeutic": "Vorasidenib [Voranigo]"
+}

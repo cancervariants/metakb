@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients 12 years of age and older with solid tumors that have a neurotrophic tyrosine receptor kinase (NTRK) gene fusion, are locally advanced or metastatic or where surgical resection is likely to result in severe morbidity, and have progressed following treatment or have no satisfactory alternative therapy",
+    "geneContextQualifier": "NTRK",
+    "objectTherapeutic": "Repotrectinib [Augtyro]"
+}

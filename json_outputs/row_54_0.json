@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients with recurrent locally advanced or metastatic Merkel cell carcinoma (MCC)",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Pembrolizumab [Keytruda]"
+}

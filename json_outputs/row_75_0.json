@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients 2 years of age and older with advanced or metastatic thyroid cancer with a RET gene fusion, as detected by an FDA-approved test, who require systemic therapy and who are radioactive iodine-refractory (if radioactive iodine is appropriate)",
+    "geneContextQualifier": "RET",
+    "objectTherapeutic": "Selpercatinib [Retevmo]"
+}

@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of patients with primary and metastatic brain tumors following appropriate surgical and/or radiotherapeutic procedures",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Lomustine [Gleostine]"
+}

@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients 12 years of age or older with unresectable or metastatic melanoma",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Nivolumab and Relatlimab-rmbw) [Opdualag]"
+}

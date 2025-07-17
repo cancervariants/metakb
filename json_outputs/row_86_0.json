@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of pediatric patients 1 year of age and older with newly diagnosed Philadelphia chromosome-positive acute lymphoblastic leukemia (Ph+ ALL) in combination with chemotherapy",
+    "geneContextQualifier": "BCR | ABL1",
+    "objectTherapeutic": "Dasatinib [Sprycel]"
+}

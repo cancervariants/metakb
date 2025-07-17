@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "In combination with other approved anti-cancer drugs, for remission induction in acute non-lymphocytic leukemia of adults and pediatric patients",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Cytarabine"
+}

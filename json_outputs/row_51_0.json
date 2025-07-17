@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Adjuvant treatment of adult and pediatric (12 years and older) patients with Stage IIB, IIC, or III melanoma following complete resection",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Pembrolizumab [Keytruda]"
+}

@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "As a component of a multi-agent chemotherapeutic regimen for the treatment of pediatric and adult patients with ALL and hypersensitivity to native forms of L-asparaginase",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Pegaspargase [Oncaspar]"
+}

@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of newly-diagnosed CD33-positive acute myeloid leukemia in adults and pediatric patients 1 month and older",
+    "geneContextQualifier": "CD33",
+    "objectTherapeutic": "Gemtuzumab ozogamicin [Mylotarg]"
+}

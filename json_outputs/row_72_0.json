@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients older than 1 month with solid tumors that have a neurotrophic tyrosine receptor kinase (NTRK) gene fusion without a known acquired resistance mutation, are metastatic or where surgical resection is likely to result in severe morbidity, and have progressed following treatment or have no satisfactory standard therapy",
+    "geneContextQualifier": "NTRK",
+    "objectTherapeutic": "Entrectinib [Rozlytrek]"
+}

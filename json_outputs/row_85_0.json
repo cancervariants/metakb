@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of pediatric patients 1 year of age and older and young adults with relapsed or refractory, systemic anaplastic large cell lymphoma (ALCL) that is ALK-positive",
+    "geneContextQualifier": "ALK",
+    "objectTherapeutic": "Crizotinib [Xalkori]"
+}

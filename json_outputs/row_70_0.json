@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of patients 6 months of age and older with relapsed or refractory pediatric low-grade glioma (LGG) harboring a BRAF fusion or rearrangement, or BRAF V600 mutation",
+    "geneContextQualifier": "BRAF",
+    "objectTherapeutic": "Tovorafenib [Ojemda]"
+}

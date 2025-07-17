@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of blastic plasmacytoid dendritic cell neoplasm (BPDCN) in adults and in pediatric patients 2 years and older",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Tagraxofusp-erzs [Elzonris]"
+}

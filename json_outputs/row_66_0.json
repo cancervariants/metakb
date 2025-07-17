@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Palliative treatment of malignancies including generalized Hodgkin\u2019s disease, histiocytosis X and testicular germ cell carcinoma",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Vinblastine sulfate"
+}

@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of pediatric patients 1 year of age and older with Philadelphia chromosome-positive (Ph+) chronic myeloid leukemia (CML) in chronic phase",
+    "geneContextQualifier": "BCR | ABL1",
+    "objectTherapeutic": "Dasatinib [Sprycel]"
+}

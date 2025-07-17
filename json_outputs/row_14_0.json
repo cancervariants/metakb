@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "MULTIPLE",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Cyclophosphamide [Cytoxan]"
+}

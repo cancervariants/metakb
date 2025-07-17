@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients with acute lymphoblastic leukemia (ALL) as part of a combination chemotherapy maintenance regimen",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Mercaptopurine [Purinethol tablet] &"
+}

@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Remission induction and remission consolidation treatment of acute nonlymphocytic leukemias",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Thioguanine [Tabloid]"
+}

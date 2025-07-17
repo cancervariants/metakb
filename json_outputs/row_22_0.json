@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adults and skeletally mature adolescents with giant cell tumor of bone that is unresectable or where surgical resection is likely to result in severe morbidity",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Denosumab [Xgeva]"
+}

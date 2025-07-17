@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of CD19-positive Philadelphia chromosome-negative B-cell precursor acute lymphoblastic leukemia (ALL) in the consolidation phase of multiphase chemotherapy in adult and pediatric patients one month and older",
+    "geneContextQualifier": "CD19",
+    "objectTherapeutic": "Blinatumomab [Blincyto]"
+}

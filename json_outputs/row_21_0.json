@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "In combination with other approved anticancer drugs, for remission induction in acute lymphocytic leukemia of children and adults",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Daunorubicin Hydrochloride"
+}

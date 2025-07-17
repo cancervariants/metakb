@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Prophylaxis and treatment of meningeal leukemia in adult and pediatric patients",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Methotrexate"
+}

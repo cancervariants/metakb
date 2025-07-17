@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "In combination with granulocyte-macrophage colony-stimulating factor (GM-CSF), for the treatment of pediatric patients 1 year of age and older and adult patients with relapsed or refractory high-risk neuroblastoma in the bone or bone marrow who have demonstrated a partial response, minor response, or stable disease to prior therapy",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Naxitamab-gqgk [Danyelza]"
+}

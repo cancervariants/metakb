@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Adult and pediatric patients aged 1 year and older with tuberous sclerosis complex (TSC) for the treatment of subependymal giant cell astrocytoma (SEGA) that requires therapeutic intervention but cannot be curatively resected",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Everolimus [Afinitor] &"
+}

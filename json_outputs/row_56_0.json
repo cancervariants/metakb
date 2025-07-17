@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients with unresectable or metastatic, microsatellite instability-high (MSI-H) or mismatch repair deficient (dMMR) solid tumors that have progressed following prior treatment and who have no satisfactory alternative treatment options",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Pembrolizumab [Keytruda]"
+}

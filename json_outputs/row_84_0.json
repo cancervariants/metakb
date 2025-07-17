@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients 1 year of age and older with unresectable, recurrent, or refractory inflammatory myofibroblastic tumor (IMT) that is ALK-positive",
+    "geneContextQualifier": "ALK",
+    "objectTherapeutic": "Crizotinib [Xalkori]"
+}

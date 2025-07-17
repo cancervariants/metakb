@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients with refractory primary mediastinal large B-Cell lymphoma (PMBCL), or who have relapsed after 2 or more prior lines of therapy",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Pembrolizumab [Keytruda]"
+}

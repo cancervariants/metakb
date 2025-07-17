@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "In combination with dabrafenib, for the treatment of pediatric patients 1 year of age and older with low-grade glioma (LGG) with a BRAF V600E mutation who require systemic therapy",
+    "geneContextQualifier": "BRAF",
+    "objectTherapeutic": "Trametinib [Mekinist]"
+}

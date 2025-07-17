@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "As a component of combination chemotherapy for the treatment of patients with Hodgkin's lymphoma whose disease has progressed following initial chemotherapy",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Lomustine [Gleostine]"
+}

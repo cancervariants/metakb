@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adults and pediatric patients aged 16 years and older with metastatic or locally advanced epithelioid sarcoma not eligible for complete resection",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Tazemetostat [Tazverik]"
+}

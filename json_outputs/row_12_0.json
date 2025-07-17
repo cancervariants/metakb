@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "As a component of a multi-agent chemotherapeutic regimen for the treatment of acute lymphoblastic leukemia in pediatric and young adult patients age 1 month to 21 years",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Calaspargase pegol - mknl [Asparlas]"
+}

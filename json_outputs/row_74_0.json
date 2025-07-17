@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients 2 years of age and older with locally advanced or metastatic solid tumors with a RET gene fusion, as detected by an FDA-approved test, that have progressed on or following prior systemic treatment or who have no satisfactory alternative treatment options",
+    "geneContextQualifier": "RET",
+    "objectTherapeutic": "Selpercatinib [Retevmo]"
+}

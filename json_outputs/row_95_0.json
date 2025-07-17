@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of pediatric patients greater than or equal to 1 year of age with chronic phase and accelerated phase Philadelphia chromosome positive chronic myeloid leukemia (Ph+ CML) with resistance or intolerance to prior tyrosine-kinase inhibitor (TKI) therapy",
+    "geneContextQualifier": "BCR | ABL1",
+    "objectTherapeutic": "Nilotinib [Tasigna]"
+}

@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric (newborn and older) patients with primary hemophagocytic lymphohistiocytosis (HLH) with refractory, recurrent or progressive disease or intolerance with conventional HLH therapy",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Emapalumab-lzsg [Gamifant]"
+}

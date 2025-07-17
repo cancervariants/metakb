@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "As a component of a multi-agent chemotherapeutic regimen for the first-line treatment of pediatric and adult patients with acute lymphoblastic leukemia (ALL)",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Pegaspargase [Oncaspar]"
+}

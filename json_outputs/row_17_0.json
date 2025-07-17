@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients with rhabdomyosarcoma, as part of a multi-phase, combination chemotherapy regimen",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Dactinomycin [Cosmegen]"
+}

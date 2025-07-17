@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients greater than or equal to 1 year of age with newly diagnosed Philadelphia chromosome positive chronic myeloid leukemia (Ph+ CML) in chronic phase",
+    "geneContextQualifier": "BCR | ABL1",
+    "objectTherapeutic": "Nilotinib [Tasigna]"
+}

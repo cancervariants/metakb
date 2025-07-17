@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adults and pediatric patients with Non-Hodgkin lymphoma",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Methotrexate"
+}

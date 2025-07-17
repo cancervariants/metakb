@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of newly-diagnosed therapy-related acute myeloid leukemia (t-AML) or AML with myelodysplasia-related changes (AML-MRC) in adults and pediatric patients 1 year and older",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Daunorubicin and cytarabine liposome [Vyxeos]"
+}

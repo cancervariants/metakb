@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "As a component of a multi-agent chemotherapeutic regimen for the treatment of acute lymphoblastic leukemia (ALL) and lymphoblastic lymphoma (LBL) in adult and pediatric patients 1 month or older who have developed hypersensitivity to E. coli-derived asparaginase",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Asparaginase Erwinia chrysanthemi (recombinant)-rywn [Rylaze]"
+}

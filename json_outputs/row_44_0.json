@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Adjuvant treatment of adult and pediatric patients 12 years and older with completely resected Stage IIB, Stage IIC, Stage III, or Stage IV melanoma",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Nivolumab [Opdivo]"
+}

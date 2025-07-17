@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "As a single agent, for the treatment of adult and pediatric patients 2 years of age and older with unresectable or metastatic alveolar soft part sarcoma (ASPS)",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Atezolizumab [Tecentriq]"
+}

@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Newly diagnosed adult and pediatric patients with Philadelphia chromosome positive chronic myeloid leukemia (Ph+ CML) in chronic phase",
+    "geneContextQualifier": "BCR | ABL1",
+    "objectTherapeutic": "Imatinib Mesylate [Gleevec] &"
+}

@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of relapsed or refractory CD22-positive B-cell precursor acute lymphoblastic leukemia (ALL) in adult and pediatric patients 1 year and older",
+    "geneContextQualifier": "CD22",
+    "objectTherapeutic": "Inotuzumab ozogamicin [Besponsa]"
+}

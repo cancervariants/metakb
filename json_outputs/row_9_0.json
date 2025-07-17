@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of pediatric patients 2 years and older with previously untreated high risk classical Hodgkin lymphoma (cHL), in combination with doxorubicin, vincristine, etoposide, prednisone, and cyclophosphamide",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Brentuximab vedotin [Adcetris]"
+}

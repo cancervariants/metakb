@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of patients up to 25 years of age with B-cell precursor acute lymphoblastic leukemia (ALL) that is refractory or in second or later relapse",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Tisagenlecleucel [Kymriah]"
+}

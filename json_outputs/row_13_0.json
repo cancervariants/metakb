@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of pediatric patients 1 to 21 years old with relapsed or refractory acute lymphoblastic leukemia after at least two prior regimens",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Clofarabine [Clolar]"
+}

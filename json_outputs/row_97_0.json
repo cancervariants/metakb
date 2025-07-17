@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of pediatric patients aged 6 months and older with previously untreated, advanced stage, CD20-positive diffuse large B-cell lymphoma (DLBCL), Burkitt lymphoma (BL), Burkitt-like lymphoma (BLL) or mature B-cell acute leukemia (B-AL) in combination with chemotherapy",
+    "geneContextQualifier": "MS4A1",
+    "objectTherapeutic": "Rituximab [Rituxan]"
+}

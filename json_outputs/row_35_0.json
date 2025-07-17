@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "Treatment of adult and pediatric patients 12 years and older with somatostatin receptor-positive gastroenteropancreatic neuroendocrine tumors (GEP-NETs), including foregut, midgut, and hindgut neuroendocrine tumors",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Lutetium Lu 177 dotatate [Lutathera]"
+}

@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": "To reduce the risk of relapse in adult and pediatric patients with high-risk neuroblastoma (HRNB) who have demonstrated at least a partial response to prior multiagent, multimodality therapy including anti-GD2 immunotherapy",
+    "geneContextQualifier": "--",
+    "objectTherapeutic": "Eflornithine [Iwilfin]"
+}

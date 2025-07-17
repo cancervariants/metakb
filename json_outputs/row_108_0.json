@@ -1,0 +1,7 @@
+{
+    "type": "VariantTherapeuticResponseProposition",
+    "predicate": "sensitivity",
+    "description": NaN,
+    "geneContextQualifier": "nan",
+    "objectTherapeutic": NaN
+}
