@@ -1,6 +1,7 @@
 import React from 'react'
 import { Routes, Route, Link } from 'react-router-dom'
 import Home from './pages/Home'
+import NavBar from './components/shared/NavBar'
 
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
@@ -13,9 +14,7 @@ import './App.css'
 export default function App() {  
   return (
     <div>
-      <nav>
-        <Link to='/'>Home</Link>
-      </nav>
+      <NavBar />
       <Routes>
         <Route path='/' element={<Home />} />
       </Routes>
