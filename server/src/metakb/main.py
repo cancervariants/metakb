@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Annotated
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Request
 
 from metakb import __version__
 from metakb.config import config
@@ -26,17 +26,17 @@ from metakb.schemas.api import (
 
 load_dotenv()
 
-query = QueryHandler()
-
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator:  # noqa: ARG001
+async def lifespan(app: FastAPI) -> AsyncGenerator:
     """Configure FastAPI instance lifespan.
 
     :param app: FastAPI app instance
     :return: async context handler
     """
     configure_logs()
+    query = QueryHandler()
+    app.state.query = query
     yield
     query.driver.close()
 
@@ -110,6 +110,7 @@ limit_description = "The maximum number of results to return. Use for pagination
     tags=[_Tag.SEARCH],
 )
 async def get_statements(
+    request: Request,
     variation: Annotated[str | None, Query(description=v_description)] = None,
     disease: Annotated[str | None, Query(description=d_description)] = None,
     therapy: Annotated[str | None, Query(description=t_description)] = None,
@@ -122,6 +123,7 @@ async def get_statements(
     For example, if `variation` and `therapy` are provided, will return all statements
     that have both the provided `variation` and `therapy`.
 
+    :param request: FastAPI request object
     :param variation: Variation query (Free text or VRS Variation ID)
     :param disease: Disease query
     :param therapy: Therapy query
@@ -132,6 +134,7 @@ async def get_statements(
     :return: SearchStatementsService response containing nested statements and service
         metadata
     """
+    query = request.app.state.query
     try:
         resp = await query.search_statements(
             variation, disease, therapy, gene, statement_id, start, limit
@@ -169,6 +172,7 @@ _batch_descr = {
     tags=[_Tag.SEARCH],
 )
 async def batch_get_statements(
+    request: Request,
     variations: Annotated[
         list[str] | None,
         Query(description=_batch_descr["arg_variations"]),
@@ -178,11 +182,13 @@ async def batch_get_statements(
 ) -> BatchSearchStatementsService:
     """Fetch all statements associated with `any` of the provided variations.
 
+    :param request: FastAPI request object
     :param variations: variations to match against
     :param start: The index of the first result to return. Use for pagination.
     :param limit: The maximum number of results to return. Use for pagination.
     :return: batch response object
     """
+    query = request.app.state.query
     try:
         response = await query.batch_search_statements(variations, start, limit)
     except PaginationParamError:
