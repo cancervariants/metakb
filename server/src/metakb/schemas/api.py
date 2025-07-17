@@ -9,6 +9,10 @@ from ga4gh.va_spec.aac_2017 import (
     VariantTherapeuticResponseStudyStatement,
 )
 from ga4gh.va_spec.base import Statement
+from ga4gh.vrs import VRS_VERSION
+from ga4gh.vrs import (
+    __version__ as vrs_python_version,
+)
 from pydantic import BaseModel, ConfigDict, StrictStr
 
 from metakb import __version__
@@ -40,6 +44,18 @@ class ServiceType(BaseModel):
     version: str = __version__
 
 
+class SpecMetadata(BaseModel):
+    """Define substructure for reporting specification metadata."""
+
+    vrs_version: str = VRS_VERSION
+
+
+class ImplMetadata(BaseModel):
+    """Define substructure for reporting metadata about internal software dependencies."""
+
+    vrs_python_version: str = vrs_python_version
+
+
 METAKB_DESCRIPTION = "A search interface for cancer variant interpretations assembled by aggregating and harmonizing across multiple cancer variant interpretation knowledgebases."
 
 
@@ -61,6 +77,8 @@ class ServiceInfo(BaseModel):
     updatedAt: Literal["2025-06-01T00:00:00Z"] = "2025-06-01T00:00:00Z"
     environment: ServiceEnvironment
     version: str = __version__
+    spec_metadata: SpecMetadata = SpecMetadata()
+    impl_metadata: ImplMetadata = ImplMetadata()
 
 
 class ServiceMeta(BaseModel):
