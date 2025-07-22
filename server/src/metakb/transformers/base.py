@@ -298,7 +298,7 @@ class Transformer(ABC):
         if data_dir:
             self.data_dir = data_dir
         else:
-            self.data_dir = config.data_root
+            self.data_dir = config.data_root / self.name
         self.harvester_path = harvester_path
         self.vicc_normalizers = (
             ViccNormalizers() if normalizers is None else normalizers
