@@ -108,7 +108,7 @@ SNAKE_PATTERN = r"[A-Z]+_[A-Z_]*[A-Z][., ]"
 def _add_formatting_to_string(line: str) -> str:
     """Add fixed-width code formatting to span sections in lines:
 
-    * shell options, eg `--update_all`
+    * shell options, eg `--all`
     * double-quoted strings, eg `"HGNC"`
     * all caps SNAKE_CASE env vars, eg `GENE_NORM_REMOTE_DB_URL`
     """
