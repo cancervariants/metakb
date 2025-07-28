@@ -269,6 +269,69 @@ def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
     tx.run(query, **v)
 
 
+def _add_psq_cv(
+    tx: ManagedTransaction,
+    catvar: dict,
+) -> None:
+    """Load ProteinSequenceConsequence CatVar."""
+    cv_merge_statement = """
+    UNWIND $members as m
+    MERGE (cv:CategoricalVariation { id: $cv_id })
+    ON CREATE SET
+        cv.name = $cv.name,
+        cv.description = $cv_description,
+        cv.aliases = $cv_aliases,
+        cv.extensions = $cv_extensions,
+        cv.mappings = $cv_mappings
+    MERGE (cv) -[:HAS_CONSTRAINT]-> (constr:DefiningAlleleConstraint { id: $constraint_id })
+    MERGE (allele:Allele { id: $allele.id })
+    ON CREATE SET
+        allele.name = $allele.name,
+        allele.literal_state = $allele.state.sequence,
+        allele.expressions = $allele_expressions
+    MERGE (constr) -[:HAS_DEFINING_ALLELE]-> (allele)
+    MERGE (sl:SequenceLocation { id: $sl.id })
+    ON CREATE SET
+        sl.start = $sl.start,
+        sl.end = $sl.end,
+        sl.refget_accession = $sl.sequenceReference.refgetAccession
+    MERGE (allele) -[:HAS_LOCATION]-> (sl)
+    MERGE (member_allele:Allele { id: m.id })
+    ON CREATE SET
+        member_allele.name = m.name
+    MERGE (cv) -[:HAS_MEMBER]-> (member_allele)
+    MERGE (member_sl:SequenceLocation { id: m.location.id })
+    ON CREATE SET
+        member_sl.start = m.location.start,
+        member_sl.end =  m.location.end,
+        member_sl.refget_accession = m.location.sequenceReference.refgetAccession
+    MERGE (member_allele) -[:HAS_LOCATION] -> (member_sl)
+    """
+
+    # catvars currently support a single constraint
+    constraint = catvar["constraints"][0]
+    allele = constraint["allele"]
+    seq_loc = allele["location"]
+
+    cv_id = catvar["id"]
+    constraint_id = f"{cv_id}:{constraint['type']}:{allele['id']}"
+
+    tx.run(
+        cv_merge_statement,
+        cv_id=cv_id,
+        cv=catvar,
+        cv_description=catvar.get("description", ""),
+        cv_aliases=catvar.get("aliases", []),
+        cv_extensions=json.dumps(catvar.get("extensions", [])),
+        cv_mappings=json.dumps(catvar.get("mappings", [])),
+        constraint_id=constraint_id,
+        allele=allele,
+        allele_expressions=json.dumps(allele.get("expressions", [])),
+        sl=seq_loc,
+        members=catvar.get("members", []),
+    )
+
+
 def _add_categorical_variant(
     tx: ManagedTransaction,
     categorical_variant_in: dict,
@@ -285,39 +348,46 @@ def _add_categorical_variant(
 
     cv = categorical_variant_in.copy()
 
-    mp_nonnull_keys = [
-        _create_parameterized_query(cv, ("id", "name", "description", "type"))
-    ]
+    if constraints := cv.get("constraints"):  # noqa: SIM102
+        # TODO some cleanup to be done here
+        # add relations check
+        # for now we just assume they're all PSQs
+        if constraints[0].get("type") == "DefiningAlleleConstraint":
+            _add_psq_cv(tx, cv)
 
-    if "aliases" in cv:
-        cv["aliases"] = json.dumps(cv["aliases"])
-        mp_nonnull_keys.append("aliases:$aliases")
-
-    _add_mappings_and_exts_to_obj(cv, mp_nonnull_keys)
-    mp_keys = ", ".join(mp_nonnull_keys)
-
-    defining_context = cv["constraints"][0]["allele"]
-    _add_variation(tx, defining_context)
-    dc_type = defining_context["type"]
-
-    members_match = ""
-    members_relation = ""
-    for ix, member in enumerate(cv.get("members", [])):
-        _add_variation(tx, member)
-        name = f"member_{ix}"
-        cv[name] = member
-        members_match += f"MERGE ({name} {{ id: '{member['id']}' }})\n"
-        members_relation += f"MERGE (v) -[:HAS_MEMBERS] -> ({name})\n"
-
-    query = f"""
-    {members_match}
-    MERGE (cv:Variation:{dc_type} {{ id: '{defining_context["id"]}' }})
-    MERGE (cv) -[:HAS_LOCATION] -> (loc)
-    MERGE (v:Variation:{cv["type"]} {{ {mp_keys} }})
-    MERGE (v) -[:HAS_DEFINING_CONTEXT] -> (cv)
-    {members_relation}
-    """
-    tx.run(query, **cv)
+    # mp_nonnull_keys = [
+    #     _create_parameterized_query(cv, ("id", "name", "description", "type"))
+    # ]
+    #
+    # if "aliases" in cv:
+    #     cv["aliases"] = json.dumps(cv["aliases"])
+    #     mp_nonnull_keys.append("aliases:$aliases")
+    #
+    # _add_mappings_and_exts_to_obj(cv, mp_nonnull_keys)
+    # mp_keys = ", ".join(mp_nonnull_keys)
+    #
+    # defining_context = cv["constraints"][0]["allele"]
+    # _add_variation(tx, defining_context)
+    # dc_type = defining_context["type"]
+    #
+    # members_match = ""
+    # members_relation = ""
+    # for ix, member in enumerate(cv.get("members", [])):
+    #     _add_variation(tx, member)
+    #     name = f"member_{ix}"
+    #     cv[name] = member
+    #     members_match += f"MERGE ({name} {{ id: '{member['id']}' }})\n"
+    #     members_relation += f"MERGE (v) -[:HAS_MEMBERS] -> ({name})\n"
+    #
+    # query = f"""
+    # {members_match}
+    # MERGE (cv:Variation:{dc_type} {{ id: '{defining_context["id"]}' }})
+    # MERGE (cv) -[:HAS_LOCATION] -> (loc)
+    # MERGE (v:Variation:{cv["type"]} {{ {mp_keys} }})
+    # MERGE (v) -[:HAS_DEFINING_CONTEXT] -> (cv)
+    # {members_relation}
+    # """
+    # tx.run(query, **cv)
 
 
 def _add_document(
@@ -363,11 +433,12 @@ def _add_document(
 
 def _get_ids_to_load(
     statements: list[dict], ids_to_load: set[str] | None = None
-) -> None:
+) -> set[str]:
     """Get unique IDs to load into the DB
 
     :param statements: List of statements
     :param ids_to_load: IDS to load into the DB (will be mutated)
+    :return: set of IDs to load
     """
 
     def _added_ids(statement: dict, ids_to_load: set[str]) -> set[str]:
@@ -649,32 +720,32 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
         for cv in data.get("categorical_variants", []):
             session.execute_write(_add_categorical_variant, cv, ids_to_load)
 
-        for doc in data.get("documents", []):
-            session.execute_write(_add_document, doc, ids_to_load)
+        # for doc in data.get("documents", []):
+        #     session.execute_write(_add_document, doc, ids_to_load)
 
-        for method in data.get("methods", []):
-            session.execute_write(_add_method, method, ids_to_load)
-
-        for obj_type in ("genes", "conditions"):
-            for obj in data.get(obj_type, []):
-                session.execute_write(_add_gene_or_disease, obj, ids_to_load)
-
-        for tp in data.get("therapies", []):
-            session.execute_write(_add_therapy_or_group, tp, ids_to_load)
-
-        # This should always be done last
-        for statement_evidence_item in statements_evidence:
-            session.execute_write(
-                _add_statement_evidence, statement_evidence_item, ids_to_load
-            )
-            loaded_stmt_count += 1
-
-        for statement_assertion in statements_assertions:
-            session.execute_write(
-                _add_statement_assertion, statement_assertion, ids_to_load
-            )
-            loaded_stmt_count += 1
-
+        # for method in data.get("methods", []):
+        #     session.execute_write(_add_method, method, ids_to_load)
+        #
+        # for obj_type in ("genes", "conditions"):
+        #     for obj in data.get(obj_type, []):
+        #         session.execute_write(_add_gene_or_disease, obj, ids_to_load)
+        #
+        # for tp in data.get("therapies", []):
+        #     session.execute_write(_add_therapy_or_group, tp, ids_to_load)
+        #
+        # # This should always be done last
+        # for statement_evidence_item in statements_evidence:
+        #     session.execute_write(
+        #         _add_statement_evidence, statement_evidence_item, ids_to_load
+        #     )
+        #     loaded_stmt_count += 1
+        #
+        # for statement_assertion in statements_assertions:
+        #     session.execute_write(
+        #         _add_statement_assertion, statement_assertion, ids_to_load
+        #     )
+        #     loaded_stmt_count += 1
+        #
         _logger.info("Successfully loaded %s statements.", loaded_stmt_count)
 
 
