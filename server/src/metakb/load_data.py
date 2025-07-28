@@ -270,7 +270,12 @@ def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
 
 
 def _reformat_allele(allele: dict) -> dict:
-    """Reformat allele to match graph representation"""
+    """Reformat allele to match graph representation
+
+    This is a temporary method used only for catvars, pending adoption of an OGM library
+    or some other graph input schema. At that point, something like this would be
+    rewritten for other objects and used in other entity methods.
+    """
     allele_dao = {
         "id": allele["id"],
         "state_object": json.dumps(allele["state"]),
@@ -281,7 +286,6 @@ def _reformat_allele(allele: dict) -> dict:
         "expression_hgvs_p": [],
         "expression_hgvs_c": [],
     }
-    # add expressions as top-level properties
     for expr in allele.get("expressions", []):
         key = f"expression_{expr['syntax'].replace('.', '_')}"
         allele_dao[key].append(expr["value"])
@@ -296,42 +300,47 @@ def _add_psq_cv(
     cv_merge_statement = """
     UNWIND $members as m
     MERGE (cv:CategoricalVariation { id: $cv_id })
-    ON CREATE SET
-        cv.name = $cv.name,
-        cv.description = $cv_description,
-        cv.aliases = $cv_aliases,
-        cv.extensions = $cv_extensions,
-        cv.mappings = $cv_mappings
+    ON CREATE SET cv += {
+        name: $cv.name,
+        description: $cv_description,
+        aliases: $cv_aliases,
+        extensions: $cv_extensions,
+        mappings: $cv_mappings
+    }
     MERGE (cv) -[:HAS_CONSTRAINT]-> (constr:DefiningAlleleConstraint { id: $constraint_id })
     MERGE (allele:Allele { id: $allele.id })
-    ON CREATE SET
-        allele.name = $allele.name,
-        allele.literal_state = $allele.literal_state,
-        allele.state_object = $allele.state_object,
-        allele.expression_hgvs_g = $allele.expression_hgvs_g,
-        allele.expression_hgvs_c = $allele.expression_hgvs_c,
-        allele.expression_hgvs_p = $allele.expression_hgvs_p
+    ON CREATE SET allele += {
+        name: $allele.name,
+        literal_state: $allele.literal_state,
+        state_object: $allele.state_object,
+        expression_hgvs_g: $allele.expression_hgvs_g,
+        expression_hgvs_c: $allele.expression_hgvs_c,
+        expression_hgvs_p: $allele.expression_hgvs_p
+    }
     MERGE (constr) -[:HAS_DEFINING_ALLELE]-> (allele)
     MERGE (sl:SequenceLocation { id: $sl.id })
-    ON CREATE SET
-        sl.start = $sl.start,
-        sl.end = $sl.end,
-        sl.refget_accession = $sl.sequenceReference.refgetAccession
+    ON CREATE SET sl += {
+        start: $sl.start,
+        end: $sl.end,
+        refget_accession: $sl.sequenceReference.refgetAccession
+    }
     MERGE (allele) -[:HAS_LOCATION]-> (sl)
     MERGE (member_allele:Allele { id: m.id })
-    ON CREATE SET
-        member_allele.name = m.name,
-        member_allele.literal_state = m.literal_state,
-        member_allele.state_object = m.state_object,
-        member_allele.expression_hgvs_g = m.expression_hgvs_g,
-        member_allele.expression_hgvs_c = m.expression_hgvs_c,
-        member_allele.expression_hgvs_p = m.expression_hgvs_p
+    ON CREATE SET member_allele += {
+        name: m.name,
+        literal_state: m.literal_state,
+        state_object: m.state_object,
+        expression_hgvs_g: m.expression_hgvs_g,
+        expression_hgvs_c: m.expression_hgvs_c,
+        expression_hgvs_p: m.expression_hgvs_p
+    }
     MERGE (cv) -[:HAS_MEMBER]-> (member_allele)
     MERGE (member_sl:SequenceLocation { id: m.location.id })
-    ON CREATE SET
-        member_sl.start = m.location.start,
-        member_sl.end =  m.location.end,
-        member_sl.refget_accession = m.location.sequenceReference.refgetAccession
+    ON CREATE SET member_sl += {
+        start: m.location.start,
+        end:  m.location.end,
+        refget_accession: m.location.sequenceReference.refgetAccession
+    }
     MERGE (member_allele) -[:HAS_LOCATION] -> (member_sl)
     """
 
