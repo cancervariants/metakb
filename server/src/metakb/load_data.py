@@ -270,18 +270,21 @@ def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
 
 
 def _reformat_allele(allele: dict) -> dict:
+    """Reformat allele to match graph representation"""
     allele_dao = {
         "id": allele["id"],
         "state_object": json.dumps(allele["state"]),
         "literal_state": allele["state"]["sequence"],
+        "name": allele.get("name", ""),
+        "location": allele["location"],
+        "expression_hgvs_g": [],
+        "expression_hgvs_p": [],
+        "expression_hgvs_c": [],
     }
+    # add expressions as top-level properties
     for expr in allele.get("expressions", []):
-        syntax = expr["syntax"].replace(".", "_")
-        key = f"expression_{syntax}"
-        if key in allele_dao:
-            allele_dao[key].append(expr["value"])
-        else:
-            allele_dao[key] = [expr["value"]]
+        key = f"expression_{expr['syntax'].replace('.', '_')}"
+        allele_dao[key].append(expr["value"])
     return allele_dao
 
 
@@ -303,8 +306,11 @@ def _add_psq_cv(
     MERGE (allele:Allele { id: $allele.id })
     ON CREATE SET
         allele.name = $allele.name,
-        allele.literal_state = $allele.state.sequence,
-        allele.expressions = $allele_expressions
+        allele.literal_state = $allele.literal_state,
+        allele.state_object = $allele.state_object,
+        allele.expression_hgvs_g = $allele.expression_hgvs_g,
+        allele.expression_hgvs_c = $allele.expression_hgvs_c,
+        allele.expression_hgvs_p = $allele.expression_hgvs_p
     MERGE (constr) -[:HAS_DEFINING_ALLELE]-> (allele)
     MERGE (sl:SequenceLocation { id: $sl.id })
     ON CREATE SET
@@ -314,7 +320,12 @@ def _add_psq_cv(
     MERGE (allele) -[:HAS_LOCATION]-> (sl)
     MERGE (member_allele:Allele { id: m.id })
     ON CREATE SET
-        member_allele.name = m.name
+        member_allele.name = m.name,
+        member_allele.literal_state = m.literal_state,
+        member_allele.state_object = m.state_object,
+        member_allele.expression_hgvs_g = m.expression_hgvs_g,
+        member_allele.expression_hgvs_c = m.expression_hgvs_c,
+        member_allele.expression_hgvs_p = m.expression_hgvs_p
     MERGE (cv) -[:HAS_MEMBER]-> (member_allele)
     MERGE (member_sl:SequenceLocation { id: m.location.id })
     ON CREATE SET
@@ -326,7 +337,7 @@ def _add_psq_cv(
 
     # catvars currently support a single constraint
     constraint = catvar["constraints"][0]
-    allele = constraint["allele"]
+    allele = _reformat_allele(constraint["allele"])
     seq_loc = allele["location"]
 
     cv_id = catvar["id"]
@@ -344,7 +355,7 @@ def _add_psq_cv(
         allele=allele,
         allele_expressions=json.dumps(allele.get("expressions", [])),
         sl=seq_loc,
-        members=catvar.get("members", []),
+        members=[_reformat_allele(a) for a in catvar.get("members", [])],
     )
 
 
