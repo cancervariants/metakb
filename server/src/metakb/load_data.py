@@ -269,6 +269,22 @@ def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
     tx.run(query, **v)
 
 
+def _reformat_allele(allele: dict) -> dict:
+    allele_dao = {
+        "id": allele["id"],
+        "state_object": json.dumps(allele["state"]),
+        "literal_state": allele["state"]["sequence"],
+    }
+    for expr in allele.get("expressions", []):
+        syntax = expr["syntax"].replace(".", "_")
+        key = f"expression_{syntax}"
+        if key in allele_dao:
+            allele_dao[key].append(expr["value"])
+        else:
+            allele_dao[key] = [expr["value"]]
+    return allele_dao
+
+
 def _add_psq_cv(
     tx: ManagedTransaction,
     catvar: dict,
