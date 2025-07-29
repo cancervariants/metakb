@@ -202,73 +202,6 @@ def _add_therapy(tx: ManagedTransaction, therapy_in: dict) -> None:
     tx.run(query, **therapy)
 
 
-def _add_location(tx: ManagedTransaction, location_in: dict) -> None:
-    """Add location node and its relationships
-
-    :param tx: Transaction object provided to transaction functions
-    :param location_in: Location CDM object
-    """
-    loc = location_in.copy()
-    loc_keys = [
-        f"loc.{key}=${key}"
-        for key in ("id", "digest", "start", "end", "sequence", "type")
-        if loc.get(key) is not None  # start could be 0
-    ]
-    loc["sequenceReference"] = json.dumps(loc["sequenceReference"])
-    loc_keys.append("loc.sequenceReference=$sequenceReference")
-    loc_keys = ", ".join(loc_keys)
-
-    query = f"""
-    MERGE (loc:{loc["type"]}:Location {{ id: '{loc["id"]}' }})
-    ON CREATE SET {loc_keys}
-    """
-    tx.run(query, **loc)
-
-
-def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
-    """Add variation node and its relationships
-
-    :param tx: Transaction object provided to transaction functions
-    :param variation_in: Variation CDM object
-    """
-    v = variation_in.copy()
-    v_keys = [
-        f"v.{key}=${key}" for key in ("id", "name", "digest", "type") if v.get(key)
-    ]
-
-    expressions = v.get("expressions", [])
-    for expr in expressions:
-        syntax = expr["syntax"].replace(".", "_")
-        key = f"expression_{syntax}"
-        if key in v:
-            v[key].append(expr["value"])
-        else:
-            v_keys.append(f"v.{key}=${key}")
-            v[key] = [expr["value"]]
-
-    state = v.get("state")
-    if state:
-        v["state"] = json.dumps(state)
-        v_keys.append("v.state=$state")
-
-    v_keys = ", ".join(v_keys)
-
-    query = f"""
-    MERGE (v:{v["type"]}:Variation {{ id: '{v["id"]}' }})
-    ON CREATE SET {v_keys}
-    """
-
-    loc = v.get("location")
-    if loc:
-        _add_location(tx, loc)
-        query += f"""
-        MERGE (loc:{loc["type"]}:Location {{ id: '{loc["id"]}' }})
-        MERGE (v) -[:HAS_LOCATION] -> (loc)
-        """
-
-    tx.run(query, **v)
-
-
 def _reformat_allele(allele: dict) -> dict:
     """Reformat allele to match graph representation
 
@@ -296,7 +229,15 @@ def _add_psq_cv(
     tx: ManagedTransaction,
     catvar: dict,
 ) -> None:
-    """Load ProteinSequenceConsequence CatVar."""
+    """Load ProteinSequenceConsequence CatVar.
+
+    Adds
+    * CategoricalVariation itself
+    * DefiningAlleleConstraint
+    * Allele which defines the constraint
+    * Member alleles of the category
+    * SequenceLocations for each allele
+    """
     cv_merge_statement = """
     UNWIND $members as m
     MERGE (cv:CategoricalVariation { id: $cv_id })
@@ -356,13 +297,14 @@ def _add_psq_cv(
         cv_merge_statement,
         cv_id=cv_id,
         cv=catvar,
-        cv_description=catvar.get("description", ""),
-        cv_aliases=catvar.get("aliases", []),
-        cv_extensions=json.dumps(catvar.get("extensions", [])),
-        cv_mappings=json.dumps(catvar.get("mappings", [])),
+        cv_description=catvar.get("description"),
+        cv_aliases=catvar.get("aliases"),
+        cv_extensions=json.dumps(catvar["extensions"])
+        if catvar.get("extensions")
+        else None,
+        cv_mappings=json.dumps(catvar["mappings"]) if catvar.get("mappings") else None,
         constraint_id=constraint_id,
         allele=allele,
-        allele_expressions=json.dumps(allele.get("expressions", [])),
         sl=seq_loc,
         members=[_reformat_allele(a) for a in catvar.get("members", [])],
     )
@@ -370,7 +312,7 @@ def _add_psq_cv(
 
 def _add_categorical_variant(
     tx: ManagedTransaction,
-    categorical_variant_in: dict,
+    catvar: dict,
     ids_to_load: set[str],
 ) -> None:
     """Add categorical variant objects to DB.
@@ -379,51 +321,22 @@ def _add_categorical_variant(
     :param categorical_variant_in: Categorical variant CDM object
     :param ids_to_load: IDs to load into the DB
     """
-    if categorical_variant_in["id"] not in ids_to_load:
+    if catvar["id"] not in ids_to_load:
         return
 
-    cv = categorical_variant_in.copy()
+    cv = catvar.copy()  # TODO why?
 
-    if constraints := cv.get("constraints"):  # noqa: SIM102
-        # TODO some cleanup to be done here
-        # add relations check
-        # for now we just assume they're all PSQs
-        if constraints[0].get("type") == "DefiningAlleleConstraint":
+    if cv.get("constraints") and len(cv["constraints"]) == 1:
+        constraints = cv["constraints"]
+
+        if (
+            constraints[0].get("type") == "DefiningAlleleConstraint"
+        ):  # TODO check relations array
             _add_psq_cv(tx, cv)
-
-    # mp_nonnull_keys = [
-    #     _create_parameterized_query(cv, ("id", "name", "description", "type"))
-    # ]
-    #
-    # if "aliases" in cv:
-    #     cv["aliases"] = json.dumps(cv["aliases"])
-    #     mp_nonnull_keys.append("aliases:$aliases")
-    #
-    # _add_mappings_and_exts_to_obj(cv, mp_nonnull_keys)
-    # mp_keys = ", ".join(mp_nonnull_keys)
-    #
-    # defining_context = cv["constraints"][0]["allele"]
-    # _add_variation(tx, defining_context)
-    # dc_type = defining_context["type"]
-    #
-    # members_match = ""
-    # members_relation = ""
-    # for ix, member in enumerate(cv.get("members", [])):
-    #     _add_variation(tx, member)
-    #     name = f"member_{ix}"
-    #     cv[name] = member
-    #     members_match += f"MERGE ({name} {{ id: '{member['id']}' }})\n"
-    #     members_relation += f"MERGE (v) -[:HAS_MEMBERS] -> ({name})\n"
-    #
-    # query = f"""
-    # {members_match}
-    # MERGE (cv:Variation:{dc_type} {{ id: '{defining_context["id"]}' }})
-    # MERGE (cv) -[:HAS_LOCATION] -> (loc)
-    # MERGE (v:Variation:{cv["type"]} {{ {mp_keys} }})
-    # MERGE (v) -[:HAS_DEFINING_CONTEXT] -> (cv)
-    # {members_relation}
-    # """
-    # tx.run(query, **cv)
+        # dispatch for other kinds of catvars here
+    else:
+        msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar['id']} is {catvar.get('constraints')}"
+        raise ValueError(msg)
 
 
 def _add_document(
@@ -756,32 +669,32 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
         for cv in data.get("categorical_variants", []):
             session.execute_write(_add_categorical_variant, cv, ids_to_load)
 
-        # for doc in data.get("documents", []):
-        #     session.execute_write(_add_document, doc, ids_to_load)
+        for doc in data.get("documents", []):
+            session.execute_write(_add_document, doc, ids_to_load)
 
-        # for method in data.get("methods", []):
-        #     session.execute_write(_add_method, method, ids_to_load)
-        #
-        # for obj_type in ("genes", "conditions"):
-        #     for obj in data.get(obj_type, []):
-        #         session.execute_write(_add_gene_or_disease, obj, ids_to_load)
-        #
-        # for tp in data.get("therapies", []):
-        #     session.execute_write(_add_therapy_or_group, tp, ids_to_load)
-        #
-        # # This should always be done last
-        # for statement_evidence_item in statements_evidence:
-        #     session.execute_write(
-        #         _add_statement_evidence, statement_evidence_item, ids_to_load
-        #     )
-        #     loaded_stmt_count += 1
-        #
-        # for statement_assertion in statements_assertions:
-        #     session.execute_write(
-        #         _add_statement_assertion, statement_assertion, ids_to_load
-        #     )
-        #     loaded_stmt_count += 1
-        #
+        for method in data.get("methods", []):
+            session.execute_write(_add_method, method, ids_to_load)
+
+        for obj_type in ("genes", "conditions"):
+            for obj in data.get(obj_type, []):
+                session.execute_write(_add_gene_or_disease, obj, ids_to_load)
+
+        for tp in data.get("therapies", []):
+            session.execute_write(_add_therapy_or_group, tp, ids_to_load)
+
+        # Statements presume existence of other nodes and should always be loaded last
+        for statement_evidence_item in statements_evidence:
+            session.execute_write(
+                _add_statement_evidence, statement_evidence_item, ids_to_load
+            )
+            loaded_stmt_count += 1
+
+        for statement_assertion in statements_assertions:
+            session.execute_write(
+                _add_statement_assertion, statement_assertion, ids_to_load
+            )
+            loaded_stmt_count += 1
+
         _logger.info("Successfully loaded %s statements.", loaded_stmt_count)
 
 
