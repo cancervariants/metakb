@@ -46,6 +46,11 @@ def pytest_configure(config):
             logging.getLogger(lib).setLevel(logging.ERROR)
 
 
+@pytest.fixture(scope="session")
+def test_data_dir() -> Path:
+    return TEST_DATA_DIR
+
+
 def check_source_harvest(tmp_path: Path, harvester: Harvester):
     """Test that source harvest method works correctly"""
     harvested_data = harvester.harvest()
