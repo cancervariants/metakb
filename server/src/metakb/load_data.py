@@ -232,7 +232,7 @@ def _add_psq_cv(
     """Load ProteinSequenceConsequence CatVar.
 
     Adds
-    * CategoricalVariation itself
+    * CategoricalVariant itself
     * DefiningAlleleConstraint
     * Allele which defines the constraint
     * Member alleles of the category
@@ -240,7 +240,7 @@ def _add_psq_cv(
     """
     cv_merge_statement = """
     UNWIND $members as m
-    MERGE (cv:CategoricalVariation { id: $cv_id })
+    MERGE (cv:CategoricalVariant:ProteinSequenceConsequence { id: $cv_id })
     ON CREATE SET cv += {
         name: $cv.name,
         description: $cv_description,
@@ -248,8 +248,8 @@ def _add_psq_cv(
         extensions: $cv_extensions,
         mappings: $cv_mappings
     }
-    MERGE (cv) -[:HAS_CONSTRAINT]-> (constr:DefiningAlleleConstraint { id: $constraint_id })
-    MERGE (allele:Allele { id: $allele.id })
+    MERGE (cv) -[:HAS_CONSTRAINT]-> (constr:Constraint:DefiningAlleleConstraint { id: $constraint_id })
+    MERGE (allele:MolecularVariation:Allele { id: $allele.id })
     ON CREATE SET allele += {
         name: $allele.name,
         literal_state: $allele.literal_state,
@@ -266,7 +266,7 @@ def _add_psq_cv(
         refget_accession: $sl.sequenceReference.refgetAccession
     }
     MERGE (allele) -[:HAS_LOCATION]-> (sl)
-    MERGE (member_allele:Allele { id: m.id })
+    MERGE (member_allele:MolecularVariation:Allele { id: m.id })
     ON CREATE SET member_allele += {
         name: m.name,
         literal_state: m.literal_state,
@@ -546,8 +546,8 @@ def _get_statement_query(statement: dict, is_evidence: bool) -> str:
     rel_line += "MERGE (s) -[:IS_SPECIFIED_BY] -> (m)\n"
 
     variant_id = proposition["subjectVariant"]["id"]
-    match_line += f"MERGE (v:Variation {{ id: '{variant_id}' }})\n"
-    rel_line += "MERGE (s) -[:HAS_VARIANT] -> (v)\n"
+    match_line += f"MERGE (v:CategoricalVariant {{ id: '{variant_id}' }})\n"
+    rel_line += "MERGE (s) -[:HAS_SUBJECT_VARIANT] -> (v)\n"
 
     therapeutic = proposition.get("objectTherapeutic")
     if therapeutic:

@@ -21,7 +21,12 @@ from ga4gh.va_spec.base import (
     Statement,
     TherapyGroup,
 )
-from ga4gh.vrs.models import Expression, Variation
+from ga4gh.vrs.models import (
+    Allele,
+    Expression,
+    LiteralSequenceExpression,
+    SequenceLocation,
+)
 from neo4j import Driver
 from neo4j.graph import Node
 from pydantic import ValidationError
@@ -37,7 +42,6 @@ from metakb.schemas.api import (
     SearchStatementsService,
     ServiceMeta,
 )
-from metakb.schemas.app import SourceName
 
 logger = logging.getLogger(__name__)
 
@@ -426,8 +430,9 @@ class QueryHandler:
 
         if normalized_variation:
             query += """
-            MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariant)
-            MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation {id:$v_id})
+            MATCH (s) -[:HAS_SUBJECT_VARIANT] -> (cv:CategoricalVariant)
+            MATCH (a:Allele { id: $v_id })
+            MATCH (cv: CategoricalVariant)-[:HAS_CONSTRAINT]->(con:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->(a)
             """
             params["v_id"] = normalized_variation
 
@@ -493,7 +498,6 @@ class QueryHandler:
                     if nested_stmt:
                         nested_stmts.append(nested_stmt)
                         added_stmts.add(s_id)
-
         return nested_stmts
 
     def _get_nested_stmt(
@@ -556,7 +560,7 @@ class QueryHandler:
 
             if rel_type == "HAS_TUMOR_TYPE":
                 params["proposition"][condition_key] = self._get_disease(node)
-            elif rel_type == "HAS_VARIANT":
+            elif rel_type == "HAS_SUBJECT_VARIANT":
                 params["proposition"]["subjectVariant"] = self._get_cat_var(node)
             elif rel_type == "HAS_GENE_CONTEXT":
                 params["proposition"]["geneContextQualifier"] = (
@@ -613,46 +617,23 @@ class QueryHandler:
             node["extensions"] = extensions
         return MappableConcept(**node)
 
-    def _get_variations(self, cv_id: str, relation: VariationRelation) -> list[dict]:
-        """Get list of variations associated to categorical variant
-
-        :param cv_id: ID for categorical variant
-        :param relation: Relation type for categorical variant and variation
-        :return: List of variations with `relation` to categorical variant. If
-            VariationRelation.HAS_MEMBERS, returns at least one variation. Otherwise,
-            returns exactly one variation
-        """
-        query = f"""
-        MATCH (v:Variation) <- [:{relation.value}] - (cv:CategoricalVariant
-            {{ id: $cv_id }})
-        MATCH (loc:Location) <- [:HAS_LOCATION] - (v)
-        RETURN v, loc
-        """
-        results = self.driver.execute_query(query, cv_id=cv_id).records
-        variations = []
-        for r in results:
-            r_params = r.data()
-            v_params = r_params["v"]
-            expressions = []
-            for variation_k, variation_v in list(v_params.items()):
-                if variation_k == "state":
-                    v_params[variation_k] = json.loads(variation_v)
-                elif variation_k.startswith("expression_hgvs_"):
-                    syntax = variation_k.split("expression_")[-1].replace("_", ".")
-                    expressions.extend(
-                        Expression(syntax=syntax, value=hgvs_expr)
-                        for hgvs_expr in variation_v
-                    )
-                    del v_params[variation_k]
-
-            v_params["expressions"] = expressions or None
-            loc_params = r_params["loc"]
-            v_params["location"] = loc_params
-            v_params["location"]["sequenceReference"] = json.loads(
-                loc_params["sequenceReference"]
-            )
-            variations.append(Variation(**v_params).model_dump())
-        return variations
+    @staticmethod
+    def _rebuild_allele(allele_node: dict, sl_node: dict) -> Allele:
+        """Reconstruct allele from graph nodes"""
+        state = LiteralSequenceExpression(sequence=allele_node["literal_state"])
+        location = SequenceLocation(
+            start=sl_node["start"],
+            end=sl_node["end"],
+            id=sl_node["id"],
+            sequenceReference={"refgetAccession": sl_node["refget_accession"]},
+        )
+        expressions = []
+        for expression_type, expression in [
+            (k, v) for k, v in allele_node.items() if k.startswith("expression")
+        ]:
+            syntax = expression_type.split("expression_")[-1].replace("_", ".")
+            expressions.extend(Expression(syntax=syntax, value=v) for v in expression)
+        return Allele(state=state, location=location, **allele_node)
 
     def _get_cat_var(self, node: dict) -> CategoricalVariant:
         """Get categorical variant data from a node with relationship ``HAS_VARIANT``
@@ -661,7 +642,7 @@ class QueryHandler:
         :return: Categorical Variant data
         """
         node["mappings"] = _deserialize_field(node, "mappings")
-        node["aliases"] = _deserialize_field(node, "aliases")
+        node["extensions"] = _deserialize_field(node, "extensions")
 
         extensions = []
         for node_key, ext_name in (
@@ -670,16 +651,10 @@ class QueryHandler:
             # ("civic_molecular_profile_score", "CIViC Molecular Profile Score"),
             ("variant_types", "Variant types"),
         ):
-            ext_val = _deserialize_field(node, node_key)
+            ext_val = node.get(node_key)
             node.pop(node_key, None)
             if ext_val:
                 extensions.append(Extension(name=ext_name, value=ext_val))
-                if node_key.startswith(SourceName.MOA.value):
-                    # no need to check additional fields if it's a MOA variant
-                    # this could be highly brittle to changes/new sources, and any edits
-                    # to the data model or inputs should be very careful to ensure
-                    # this remains correct
-                    break
 
         mp_score = node.pop("civic_molecular_profile_score", None)
         if mp_score:
@@ -691,17 +666,34 @@ class QueryHandler:
             )
 
         node["extensions"] = extensions or None
-        node["constraints"] = [
-            DefiningAlleleConstraint(
-                allele=self._get_variations(
-                    node["id"], VariationRelation.HAS_DEFINING_CONTEXT
-                )[0]
-            )
-        ]
-        node["members"] = self._get_variations(
-            node["id"], VariationRelation.HAS_MEMBERS
+
+        related_alleles_query = """
+        MATCH (cv:CategoricalVariant {id: $cv_id})
+        MATCH (cv)-[:HAS_CONSTRAINT]->(dac:DefiningAlleleConstraint)
+        MATCH (dac)-[:HAS_DEFINING_ALLELE]->(defining_allele:Allele)
+        MATCH (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
+        MATCH (cv)-[:HAS_MEMBER]->(member_allele:Allele)
+        MATCH (member_allele)-[:HAS_LOCATION]->(member_allele_sl:SequenceLocation)
+        RETURN defining_allele, defining_allele_sl, member_allele, member_allele_sl
+        """
+        records = self.driver.execute_query(
+            related_alleles_query, cv_id=node["id"]
+        ).records
+        def_allele, def_allele_sl, member_alleles, member_allele_sls = (
+            records[0]["defining_allele"],
+            records[0]["defining_allele_sl"],
+            [r["member_allele"] for r in records],
+            [r["member_allele_sl"] for r in records],
         )
-        return CategoricalVariant(**node)
+        constraint = DefiningAlleleConstraint(
+            allele=self._rebuild_allele(def_allele, def_allele_sl)
+        )
+        members = [
+            self._rebuild_allele(allele, sl)
+            for allele, sl in zip(member_alleles, member_allele_sls, strict=True)
+        ]
+
+        return CategoricalVariant(constraints=[constraint], members=members, **node)
 
     def _get_gene_context_qualifier(self, statement_id: str) -> MappableConcept | None:
         """Get gene context qualifier data for a statement
@@ -947,7 +939,7 @@ class QueryHandler:
 
         if limit is not None or self._default_page_limit is not None:
             query = """
-                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariant)
+                MATCH (s) -[:HAS_SUBJECT_VARIANT] -> (cv:CategoricalVariant)
                 MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
                 WHERE v.id IN $v_ids
                 RETURN DISTINCT s
@@ -958,7 +950,7 @@ class QueryHandler:
             limit = limit if limit is not None else self._default_page_limit
         else:
             query = """
-                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariant)
+                MATCH (s) -[:HAS_SUBJECT_VARIANT] -> (cv:CategoricalVariant)
                 MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
                 WHERE v.id IN $v_ids
                 RETURN DISTINCT s
