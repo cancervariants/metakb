@@ -51,7 +51,7 @@ tests = [
     "mock",
     "pytest-asyncio",
     "deepdiff",
-    "jsonschema"
+    "jsonschema~=4.24",  # pin to avoid deprecation of ref resolver
 ]
 dev = [
     "pre-commit>=4.2.0",

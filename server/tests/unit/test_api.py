@@ -15,6 +15,9 @@ def client():
     return TestClient(app)
 
 
+@pytest.mark.filterwarnings(
+    "ignore:jsonschema\\.RefResolver is deprecated:DeprecationWarning"
+)
 def test_service_info(client: TestClient, test_data_dir: Path):
     response = client.get("/service-info")
     response.raise_for_status()
