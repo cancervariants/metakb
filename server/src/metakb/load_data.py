@@ -242,7 +242,6 @@ def _add_psq_cv(
     * SequenceLocations for each allele
     """
     cv_merge_statement = """
-    UNWIND $members as m
     MERGE (cv:CategoricalVariant:ProteinSequenceConsequence { id: $cv_id })
     ON CREATE SET cv += {
         name: $cv.name,
@@ -269,23 +268,26 @@ def _add_psq_cv(
         refget_accession: $sl.sequenceReference.refgetAccession
     }
     MERGE (allele) -[:HAS_LOCATION]-> (sl)
-    MERGE (member_allele:MolecularVariation:Allele { id: m.id })
-    ON CREATE SET member_allele += {
-        name: m.name,
-        literal_state: m.literal_state,
-        state_object: m.state_object,
-        expression_hgvs_g: m.expression_hgvs_g,
-        expression_hgvs_c: m.expression_hgvs_c,
-        expression_hgvs_p: m.expression_hgvs_p
-    }
-    MERGE (cv) -[:HAS_MEMBER]-> (member_allele)
-    MERGE (member_sl:SequenceLocation { id: m.location.id })
-    ON CREATE SET member_sl += {
-        start: m.location.start,
-        end:  m.location.end,
-        refget_accession: m.location.sequenceReference.refgetAccession
-    }
-    MERGE (member_allele) -[:HAS_LOCATION] -> (member_sl)
+
+    WITH cv
+        UNWIND $members as m
+        MERGE (member_allele:MolecularVariation:Allele { id: m.id })
+        ON CREATE SET member_allele += {
+            name: m.name,
+            literal_state: m.literal_state,
+            state_object: m.state_object,
+            expression_hgvs_g: m.expression_hgvs_g,
+            expression_hgvs_c: m.expression_hgvs_c,
+            expression_hgvs_p: m.expression_hgvs_p
+        }
+        MERGE (cv) -[:HAS_MEMBER]-> (member_allele)
+        MERGE (member_sl:SequenceLocation { id: m.location.id })
+        ON CREATE SET member_sl += {
+            start: m.location.start,
+            end:  m.location.end,
+            refget_accession: m.location.sequenceReference.refgetAccession
+        }
+        MERGE (member_allele) -[:HAS_LOCATION] -> (member_sl)
     """
 
     # catvars currently support a single constraint

@@ -430,9 +430,16 @@ class QueryHandler:
 
         if normalized_variation:
             query += """
-            MATCH (s) -[:HAS_SUBJECT_VARIANT] -> (cv:CategoricalVariant)
+            MATCH (cv: CategoricalVariant)
             MATCH (a:Allele { id: $v_id })
-            MATCH (cv: CategoricalVariant)-[:HAS_CONSTRAINT]->(con:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->(a)
+            WHERE
+                EXISTS {
+                    MATCH (cv)-[:HAS_CONSTRAINT]->(con:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->(a)
+                }
+                OR
+                EXISTS {
+                    MATCH (cv)-[:HAS_MEMBER]->(a)
+                }
             """
             params["v_id"] = normalized_variation
 
@@ -669,8 +676,7 @@ class QueryHandler:
 
         related_alleles_query = """
         MATCH (cv:CategoricalVariant {id: $cv_id})
-        MATCH (cv)-[:HAS_CONSTRAINT]->(dac:DefiningAlleleConstraint)
-        MATCH (dac)-[:HAS_DEFINING_ALLELE]->(defining_allele:Allele)
+        MATCH (cv)-[:HAS_CONSTRAINT]->(dac:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->(defining_allele:Allele)
         MATCH (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
         MATCH (cv)-[:HAS_MEMBER]->(member_allele:Allele)
         MATCH (member_allele)-[:HAS_LOCATION]->(member_allele_sl:SequenceLocation)
@@ -939,13 +945,21 @@ class QueryHandler:
 
         query = """
             MATCH (s) -[:HAS_SUBJECT_VARIANT]-> (cv:CategoricalVariant)
-            MATCH (cv) -[:HAS_CONSTRAINT]-> (constr:DefiningAlleleConstraint)
-            MATCH (constr) -[:HAS_DEFINING_ALLELE]-> (a:Allele)
-            WHERE a.id IN $a_ids
-            SKIP coalesce($skip, 0)
-            LIMIT coalesce($limit, 1_000_000_000)
+            MATCH (a:Allele)
+            WHERE
+                EXISTS {
+                    MATCH (cv) -[:HAS_CONSTRAINT]-> (constr:DefiningAlleleConstraint) -[:HAS_DEFINING_ALLELE]-> (a)
+                    WHERE a.id in $a_ids
+                }
+                OR
+                EXISTS {
+                    MATCH (cv) -[:HAS_MEMBER]-> (a)
+                    WHERE a.id in $a_ids
+                }
             RETURN DISTINCT s
             ORDER BY s.id
+            SKIP coalesce($skip, 0)
+            LIMIT coalesce($limit, 1_000_000_000)
         """
         limit = limit if limit is not None else self._default_page_limit
         with self.driver.session() as session:
