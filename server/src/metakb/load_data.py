@@ -6,6 +6,7 @@ import uuid
 from pathlib import Path
 
 from ga4gh.va_spec.base import MembershipOperator
+from ga4gh.vrs import VrsType
 from neo4j import Driver, ManagedTransaction
 
 from metakb.database import get_driver
@@ -212,7 +213,9 @@ def _reformat_allele(allele: dict) -> dict:
     allele_dao = {
         "id": allele["id"],
         "state_object": json.dumps(allele["state"]),
-        "literal_state": allele["state"]["sequence"],
+        "literal_state": allele["state"]["sequence"]
+        if allele["state"]["type"] == VrsType.LIT_SEQ_EXPR
+        else None,
         "name": allele.get("name", ""),
         "location": allele["location"],
         "expression_hgvs_g": [],

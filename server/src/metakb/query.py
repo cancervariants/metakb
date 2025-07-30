@@ -633,7 +633,7 @@ class QueryHandler:
         ]:
             syntax = expression_type.split("expression_")[-1].replace("_", ".")
             expressions.extend(Expression(syntax=syntax, value=v) for v in expression)
-        return Allele(state=state, location=location, **allele_node)
+        return Allele(state=state, location=location, id=allele_node["id"])
 
     def _get_cat_var(self, node: dict) -> CategoricalVariant:
         """Get categorical variant data from a node with relationship ``HAS_VARIANT``
