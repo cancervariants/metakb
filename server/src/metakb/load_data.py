@@ -242,7 +242,7 @@ def _add_psq_cv(
     * SequenceLocations for each allele
     """
     cv_merge_statement = """
-    MERGE (cv:CategoricalVariant:ProteinSequenceConsequence { id: $cv_id })
+    MERGE (cv:Variation:CategoricalVariant:ProteinSequenceConsequence { id: $cv_id })
     ON CREATE SET cv += {
         name: $cv.name,
         description: $cv_description,
@@ -251,7 +251,7 @@ def _add_psq_cv(
         mappings: $cv_mappings
     }
     MERGE (cv) -[:HAS_CONSTRAINT]-> (constr:Constraint:DefiningAlleleConstraint { id: $constraint_id })
-    MERGE (allele:MolecularVariation:Allele { id: $allele.id })
+    MERGE (allele:Variation:MolecularVariation:Allele { id: $allele.id })
     ON CREATE SET allele += {
         name: $allele.name,
         literal_state: $allele.literal_state,
@@ -261,17 +261,18 @@ def _add_psq_cv(
         expression_hgvs_p: $allele.expression_hgvs_p
     }
     MERGE (constr) -[:HAS_DEFINING_ALLELE]-> (allele)
-    MERGE (sl:SequenceLocation { id: $sl.id })
+    MERGE (sl:Location:SequenceLocation { id: $sl.id })
     ON CREATE SET sl += {
         start: $sl.start,
         end: $sl.end,
-        refget_accession: $sl.sequenceReference.refgetAccession
+        refget_accession: $sl.sequenceReference.refgetAccession,
+        sequence: $sl.sequence
     }
     MERGE (allele) -[:HAS_LOCATION]-> (sl)
 
     WITH cv
         UNWIND $members as m
-        MERGE (member_allele:MolecularVariation:Allele { id: m.id })
+        MERGE (member_allele:Variation:MolecularVariation:Allele { id: m.id })
         ON CREATE SET member_allele += {
             name: m.name,
             literal_state: m.literal_state,
@@ -281,11 +282,12 @@ def _add_psq_cv(
             expression_hgvs_p: m.expression_hgvs_p
         }
         MERGE (cv) -[:HAS_MEMBER]-> (member_allele)
-        MERGE (member_sl:SequenceLocation { id: m.location.id })
+        MERGE (member_sl:Location:SequenceLocation { id: m.location.id })
         ON CREATE SET member_sl += {
             start: m.location.start,
             end:  m.location.end,
-            refget_accession: m.location.sequenceReference.refgetAccession
+            refget_accession: m.location.sequenceReference.refgetAccession,
+            sequence: m.location.sequence
         }
         MERGE (member_allele) -[:HAS_LOCATION] -> (member_sl)
     """

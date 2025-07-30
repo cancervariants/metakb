@@ -8,7 +8,6 @@ from neo4j import Driver
 from neo4j.graph import Node
 from tests.conftest import get_mappings_normalizer_id
 
-from metakb.database import get_driver
 from metakb.schemas.app import SourceName
 
 
@@ -16,14 +15,6 @@ from metakb.schemas.app import SourceName
 def sources_count():
     """Get length of sources"""
     return len(SourceName)
-
-
-@pytest.fixture(scope="module")
-def driver():
-    """Return Neo4j graph connection driver object."""
-    driver = get_driver(uri="bolt://localhost:7687", credentials=("neo4j", "password"))
-    yield driver
-    driver.close()
 
 
 @pytest.fixture(scope="module")
@@ -271,12 +262,12 @@ def test_variation_rules(
     check_unique_property("Variation", "id")
     # members dont have defining context
     check_relation_count(
-        "Variation",
+        "Constraint",
         "CategoricalVariant",
-        "HAS_DEFINING_CONTEXT",
+        "HAS_CONSTRAINT",
         direction="in",
-        min_rels=0,
-        max_rels=None,
+        min_rels=1,
+        max_rels=1,
     )
     check_relation_count(
         "Variation",
@@ -287,7 +278,10 @@ def test_variation_rules(
         direction="in",
     )
 
-    expected_labels = [{"Variation", "Allele"}, {"Variation", "CategoricalVariant"}]
+    expected_labels = [
+        {"Variation", "MolecularVariation", "Allele"},
+        {"Variation", "CategoricalVariant", "ProteinSequenceConsequence"},
+    ]
     check_node_labels("Variation", expected_labels, 2)
 
     # all Variations are either Alleles or CategoricalVariants, and all Alleles and CategoricalVariants are Variation
@@ -306,18 +300,15 @@ def test_variation_rules(
     assert set(v.keys()) == {
         "id",
         "name",
-        "digest",
-        "state",
+        "literal_state",
+        "state_object",
         "expression_hgvs_p",
         "expression_hgvs_c",
         "expression_hgvs_g",
-        "type",
     }
 
-    assert v["type"] == "Allele"
     assert v["name"] == civic_vid12["name"]
-    assert v["digest"] == civic_vid12["digest"]
-    assert json.loads(v["state"]) == civic_vid12["state"]
+    assert v["literal_state"] == civic_vid12["state"]["sequence"]
     expected_p, expected_c, expected_g = [], [], []
     for expr in civic_vid12["expressions"]:
         syntax = expr["syntax"]
@@ -342,13 +333,15 @@ def test_categorical_variant_rules(
     """Verify property and relationship rules for Categorical Variant nodes."""
     check_unique_property("CategoricalVariant", "id")
     check_relation_count(
-        "CategoricalVariant", "Variation", "HAS_DEFINING_CONTEXT", max_rels=1
+        "CategoricalVariant", "Constraint", "HAS_CONSTRAINT", min_rels=1, max_rels=1
     )
     check_relation_count(
         "CategoricalVariant", "Variation", "HAS_MEMBERS", min_rels=0, max_rels=None
     )
 
-    expected_node_labels = [{"CategoricalVariant", "Variation"}]
+    expected_node_labels = [
+        {"ProteinSequenceConsequence", "CategoricalVariant", "Variation"}
+    ]
     check_node_labels("CategoricalVariant", expected_node_labels, 1)
 
     cv = get_node_by_id(civic_mpid12["id"])
@@ -357,18 +350,20 @@ def test_categorical_variant_rules(
         "name",
         "description",
         "aliases",
-        "civic_molecular_profile_score",
-        "civic_representative_coordinate",
         "mappings",
-        "variant_types",
-        "type",
+        "extensions",
     }
-    assert cv["type"] == civic_mpid12["type"]
     assert cv["name"] == civic_mpid12["name"]
     assert cv["description"] == civic_mpid12["description"]
-    assert set(json.loads(cv["aliases"])) == set(civic_mpid12["aliases"])
-    assert isinstance(cv["civic_molecular_profile_score"], float)
-    crc = json.loads(cv["civic_representative_coordinate"])
+    assert set(cv["aliases"]) == set(civic_mpid12["aliases"])
+    cv_extensions = json.loads(cv["extensions"])
+    cmps = next(
+        ext for ext in cv_extensions if ext["name"] == "CIViC Molecular Profile Score"
+    )
+    assert isinstance(cmps["value"], float)
+    crc = next(
+        ext for ext in cv_extensions if ext["name"] == "CIViC representative coordinate"
+    )["value"]
     assert set(crc.keys()) == {
         "ensembl_version",
         "reference_build",
@@ -380,12 +375,13 @@ def test_categorical_variant_rules(
         "stop",
         "type",
     }
-    mappings = json.loads(cv["mappings"])
-    for m in mappings:
+    for m in json.loads(cv["mappings"]):
         assert isinstance(m["coding"], dict)
         assert isinstance(m["relation"], str)
 
-    variant_types = json.loads(cv["variant_types"])
+    variant_types = next(
+        ext for ext in cv_extensions if ext["name"] == "Variant types"
+    )["value"]
     for vt in variant_types:
         assert set(vt.keys()) == {"id", "name", "system", "code"}
 
@@ -405,23 +401,10 @@ def test_location_rules(
     # NP_005219.2:p.Val769_Asp770insAlaSerVal
     loc_digest = "7qyw-4VUk3oCczBuoaF_8vGQo19dM_mk"
     loc = get_node_by_id(f"ga4gh:SL.{loc_digest}")
-    assert set(loc.keys()) == {
-        "id",
-        "digest",
-        "sequenceReference",
-        "start",
-        "end",
-        "sequence",
-        "type",
-    }
-    assert json.loads(loc["sequenceReference"]) == {
-        "type": "SequenceReference",
-        "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
-    }
+    assert set(loc.keys()) == {"id", "start", "end", "sequence", "refget_accession"}
+    assert loc["refget_accession"] == "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE"
     assert loc["start"] == 766
     assert loc["end"] == 769
-    assert loc["type"] == "SequenceLocation"
-    assert loc["digest"] == loc_digest
 
 
 def test_therapy_rules(
@@ -527,7 +510,7 @@ def test_statement_rules(
     """Verify property and relationship rules for Statement nodes."""
     check_unique_property("Statement", "id")
 
-    check_relation_count("Statement", "CategoricalVariant", "HAS_VARIANT")
+    check_relation_count("Statement", "CategoricalVariant", "HAS_SUBJECT_VARIANT")
     check_relation_count("Statement", "Condition", "HAS_TUMOR_TYPE")
     check_relation_count("Statement", "Therapy", "HAS_THERAPEUTIC", min_rels=0)
     check_relation_count("Statement", "Strength", "HAS_STRENGTH", min_rels=0)
