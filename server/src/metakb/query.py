@@ -937,28 +937,19 @@ class QueryHandler:
         if not variation_ids:
             return response
 
-        if limit is not None or self._default_page_limit is not None:
-            query = """
-                MATCH (s) -[:HAS_SUBJECT_VARIANT] -> (cv:CategoricalVariant)
-                MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
-                WHERE v.id IN $v_ids
-                RETURN DISTINCT s
-                ORDER BY s.id
-                SKIP $skip
-                LIMIT $limit
-            """
-            limit = limit if limit is not None else self._default_page_limit
-        else:
-            query = """
-                MATCH (s) -[:HAS_SUBJECT_VARIANT] -> (cv:CategoricalVariant)
-                MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
-                WHERE v.id IN $v_ids
-                RETURN DISTINCT s
-                ORDER BY s.id
-                SKIP $skip
-            """
+        query = """
+            MATCH (s) -[:HAS_SUBJECT_VARIANT]-> (cv:CategoricalVariant)
+            MATCH (cv) -[:HAS_CONSTRAINT]-> (constr:DefiningAlleleConstraint)
+            MATCH (constr) -[:HAS_DEFINING_ALLELE]-> (a:Allele)
+            WHERE a.id IN $a_ids
+            SKIP coalesce($skip, 0)
+            LIMIT coalesce($limit, 1_000_000_000)
+            RETURN DISTINCT s
+            ORDER BY s.id
+        """
+        limit = limit if limit is not None else self._default_page_limit
         with self.driver.session() as session:
-            result = session.run(query, v_ids=variation_ids, skip=start, limit=limit)
+            result = session.run(query, a_ids=variation_ids, skip=start, limit=limit)
             statement_nodes = [r[0] for r in result]
         response.statement_ids = [n["id"] for n in statement_nodes]
         response.statements = self._get_nested_stmts(statement_nodes)
