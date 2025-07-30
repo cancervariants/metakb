@@ -430,7 +430,7 @@ class QueryHandler:
 
         if normalized_variation:
             query += """
-            MATCH (cv: CategoricalVariant)
+            MATCH (s) -[:HAS_SUBJECT_VARIANT]-> (cv: CategoricalVariant)
             MATCH (a:Allele { id: $v_id })
             WHERE
                 EXISTS {
@@ -678,26 +678,28 @@ class QueryHandler:
         MATCH (cv:CategoricalVariant {id: $cv_id})
         MATCH (cv)-[:HAS_CONSTRAINT]->(dac:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->(defining_allele:Allele)
         MATCH (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
-        MATCH (cv)-[:HAS_MEMBER]->(member_allele:Allele)
-        MATCH (member_allele)-[:HAS_LOCATION]->(member_allele_sl:SequenceLocation)
+        OPTIONAL MATCH (cv)-[:HAS_MEMBER]->(member_allele:Allele)-[HAS_LOCATION]->(member_allele_sl:SequenceLocation)
         RETURN defining_allele, defining_allele_sl, member_allele, member_allele_sl
         """
         records = self.driver.execute_query(
             related_alleles_query, cv_id=node["id"]
         ).records
-        def_allele, def_allele_sl, member_alleles, member_allele_sls = (
+        def_allele, def_allele_sl = (
             records[0]["defining_allele"],
             records[0]["defining_allele_sl"],
-            [r["member_allele"] for r in records],
-            [r["member_allele_sl"] for r in records],
         )
+        if records[0].get("member_allele"):
+            member_alleles = [r["member_allele"] for r in records]
+            member_allele_sls = [r["member_allele_sl"] for r in records]
+            members = [
+                self._rebuild_allele(allele, sl)
+                for allele, sl in zip(member_alleles, member_allele_sls, strict=True)
+            ]
+        else:
+            members = []
         constraint = DefiningAlleleConstraint(
             allele=self._rebuild_allele(def_allele, def_allele_sl)
         )
-        members = [
-            self._rebuild_allele(allele, sl)
-            for allele, sl in zip(member_alleles, member_allele_sls, strict=True)
-        ]
 
         return CategoricalVariant(constraints=[constraint], members=members, **node)
 
