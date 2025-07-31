@@ -6,7 +6,7 @@ Installation
 Prerequisites
 -------------
 
-* A recent version of Python (>= 3.10)
+* A recent version of Python (>= 3.11)
 * A recent Neo4j database server (e.g. `Neo4j Desktop <https://neo4j.com/download>`_, version 5.14 or newer)
 * A recent `PostgreSQL database server <https://www.postgresql.org/download/>`_ (version 14 or newer)
 
