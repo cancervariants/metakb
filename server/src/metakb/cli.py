@@ -15,6 +15,7 @@ from zipfile import ZipFile
 import asyncclick as click
 import boto3
 from boto3.exceptions import ResourceLoadException
+from botocore import UNSIGNED
 from botocore.config import Config
 from dotenv import load_dotenv
 from neo4j import Driver
@@ -713,7 +714,9 @@ def _retrieve_s3_cdms() -> str:
         VICC MetaKB bucket.
     """
     _echo_info("Attempting to fetch CDM files from S3 bucket")
-    s3 = boto3.resource("s3", config=Config(region_name="us-east-2"))
+    s3 = boto3.resource(
+        "s3", config=Config(region_name="us-east-2", signature_version=UNSIGNED)
+    )
 
     if not s3:
         msg = "Unable to initiate AWS S3 Resource"
