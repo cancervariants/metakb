@@ -642,6 +642,7 @@ class QueryHandler:
             end=sl_node["end"],
             id=sl_node["id"],
             sequenceReference={"refgetAccession": sl_node["refget_accession"]},
+            sequence=sl_node["sequence"],
         )
         expressions = []
         for expression_type, expression in [
