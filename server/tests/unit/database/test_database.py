@@ -300,15 +300,12 @@ def test_variation_rules(
     assert set(v.keys()) == {
         "id",
         "name",
-        "literal_state",
-        "state_object",
         "expression_hgvs_p",
         "expression_hgvs_c",
         "expression_hgvs_g",
     }
 
     assert v["name"] == civic_vid12["name"]
-    assert v["literal_state"] == civic_vid12["state"]["sequence"]
     expected_p, expected_c, expected_g = [], [], []
     for expr in civic_vid12["expressions"]:
         syntax = expr["syntax"]
