@@ -1,0 +1,756 @@
+{
+  "statements_evidence": [
+    {
+      "id": "civic.eid:26",
+      "type": "Statement",
+      "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",
+      "specifiedBy": {
+        "id": "civic.method:2019",
+        "type": "Method",
+        "name": "CIViC Curation SOP (2019)",
+        "methodType": "variant curation standard operating procedure",
+        "reportedIn": {
+          "type": "Document",
+          "name": "Danos et al., 2019, Genome Med.",
+          "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+          "doi": "10.1186/s13073-019-0687-x",
+          "pmid": 31779674
+        }
+      },
+      "reportedIn": [
+        {
+          "id": "civic.source:69",
+          "type": "Document",
+          "name": "Cairoli et al., 2006",
+          "title": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study.",
+          "pmid": 16384925
+        }
+      ],
+      "proposition": {
+        "type": "VariantPrognosticProposition",
+        "subjectVariant": {
+          "id": "civic.mpid:65",
+          "type": "CategoricalVariant",
+          "name": "KIT D816V",
+          "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",
+          "aliases": [
+            "ASP816VAL"
+          ],
+          "extensions": [
+            {
+              "name": "CIViC Molecular Profile Score",
+              "value": 67.0
+            },
+            {
+              "name": "CIViC representative coordinate",
+              "value": {
+                "ensembl_version": 75,
+                "reference_build": "GRCh37",
+                "reference_bases": "A",
+                "variant_bases": "T",
+                "representative_transcript": "ENST00000288135.5",
+                "chromosome": "4",
+                "start": 55599321,
+                "stop": 55599321,
+                "type": "coordinates"
+              }
+            },
+            {
+              "name": "Variant types",
+              "value": [
+                {
+                  "id": "SO:0001583",
+                  "name": "missense_variant",
+                  "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                  "code": "SO:0001583"
+                }
+              ]
+            }
+          ],
+          "members": [
+            {
+              "id": "ga4gh:VA.MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
+              "type": "Allele",
+              "name": "NM_000222.2:c.2447A>T",
+              "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
+              "expressions": [
+                {
+                  "syntax": "hgvs.c",
+                  "value": "NM_000222.2:c.2447A>T"
+                }
+              ],
+              "location": {
+                "id": "ga4gh:SL.vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
+                "type": "SequenceLocation",
+                "digest": "vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
+                "sequenceReference": {
+                  "type": "SequenceReference",
+                  "refgetAccession": "SQ.5UOthuwxqhwdsrbA4bVonC2ps_Njx1gh"
+                },
+                "start": 2504,
+                "end": 2505,
+                "sequence": "A"
+              },
+              "state": {
+                "type": "LiteralSequenceExpression",
+                "sequence": "T"
+              }
+            },
+            {
+              "id": "ga4gh:VA.MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
+              "type": "Allele",
+              "name": "ENST00000288135.5:c.2447A>T",
+              "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
+              "expressions": [
+                {
+                  "syntax": "hgvs.c",
+                  "value": "ENST00000288135.5:c.2447A>T"
+                }
+              ],
+              "location": {
+                "id": "ga4gh:SL.vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
+                "type": "SequenceLocation",
+                "digest": "vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
+                "sequenceReference": {
+                  "type": "SequenceReference",
+                  "refgetAccession": "SQ.5UOthuwxqhwdsrbA4bVonC2ps_Njx1gh"
+                },
+                "start": 2504,
+                "end": 2505,
+                "sequence": "A"
+              },
+              "state": {
+                "type": "LiteralSequenceExpression",
+                "sequence": "T"
+              }
+            },
+            {
+              "id": "ga4gh:VA.UQJIH49-agpdZzdyGiM4NQE_njoQy0m6",
+              "type": "Allele",
+              "name": "NC_000004.11:g.55599321A>T",
+              "digest": "UQJIH49-agpdZzdyGiM4NQE_njoQy0m6",
+              "expressions": [
+                {
+                  "syntax": "hgvs.g",
+                  "value": "NC_000004.11:g.55599321A>T"
+                }
+              ],
+              "location": {
+                "id": "ga4gh:SL.aAqDEdLIeXIQOX6LaJaaiOuC7lgo_DZk",
+                "type": "SequenceLocation",
+                "digest": "aAqDEdLIeXIQOX6LaJaaiOuC7lgo_DZk",
+                "sequenceReference": {
+                  "type": "SequenceReference",
+                  "refgetAccession": "SQ.HxuclGHh0XCDuF8x6yQrpHUBL7ZntAHc"
+                },
+                "start": 54733154,
+                "end": 54733155,
+                "sequence": "A"
+              },
+              "state": {
+                "type": "LiteralSequenceExpression",
+                "sequence": "T"
+              }
+            }
+          ],
+          "constraints": [
+            {
+              "type": "DefiningAlleleConstraint",
+              "allele": {
+                "id": "ga4gh:VA.nhiDwIq1klrGm3wtWO4a4BiS0jdW79Wd",
+                "type": "Allele",
+                "name": "D816V",
+                "digest": "nhiDwIq1klrGm3wtWO4a4BiS0jdW79Wd",
+                "expressions": [
+                  {
+                    "syntax": "hgvs.c",
+                    "value": "NM_000222.2:c.2447A>T"
+                  },
+                  {
+                    "syntax": "hgvs.p",
+                    "value": "NP_000213.1:p.Asp816Val"
+                  },
+                  {
+                    "syntax": "hgvs.c",
+                    "value": "ENST00000288135.5:c.2447A>T"
+                  },
+                  {
+                    "syntax": "hgvs.g",
+                    "value": "NC_000004.11:g.55599321A>T"
+                  }
+                ],
+                "location": {
+                  "id": "ga4gh:SL.FDPpCHrDqH_pR10oxpHZ17tyGhZXVnsj",
+                  "type": "SequenceLocation",
+                  "digest": "FDPpCHrDqH_pR10oxpHZ17tyGhZXVnsj",
+                  "sequenceReference": {
+                    "type": "SequenceReference",
+                    "refgetAccession": "SQ.TcMVFj5kDODDWpiy1d_1-3_gOf4BYaAB"
+                  },
+                  "start": 815,
+                  "end": 816,
+                  "sequence": "D"
+                },
+                "state": {
+                  "type": "LiteralSequenceExpression",
+                  "sequence": "V"
+                }
+              }
+            }
+          ],
+          "mappings": [
+            {
+              "coding": {
+                "id": "civic.vid:65",
+                "system": "https://civicdb.org/variants/",
+                "code": "65"
+              },
+              "relation": "exactMatch"
+            },
+            {
+              "coding": {
+                "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+                "code": "CA123513"
+              },
+              "relation": "relatedMatch"
+            },
+            {
+              "coding": {
+                "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+                "code": "13852"
+              },
+              "relation": "relatedMatch"
+            },
+            {
+              "coding": {
+                "system": "https://www.ncbi.nlm.nih.gov/snp/",
+                "code": "rs121913507"
+              },
+              "relation": "relatedMatch"
+            }
+          ]
+        },
+        "geneContextQualifier": {
+          "id": "civic.gid:29",
+          "extensions": [
+            {
+              "name": "aliases",
+              "value": [
+                "C-Kit",
+                "CD117",
+                "KIT",
+                "MASTC",
+                "PBT",
+                "SCFR"
+              ]
+            },
+            {
+              "name": "description",
+              "value": "c-KIT activation has been shown to have oncogenic activity in gastrointestinal stromal tumors (GISTs), melanomas, lung cancer, and other tumor types. The targeted therapeutics nilotinib and sunitinib have shown efficacy in treating KIT overactive patients, and are in late-stage trials in melanoma and GIST. KIT overactivity can be the result of many genomic events from genomic amplification to overexpression to missense mutations. Missense mutations have been shown to be key players in mediating clinical response and acquired resistance in patients being treated with these targeted therapeutics."
+            }
+          ],
+          "conceptType": "Gene",
+          "name": "KIT",
+          "mappings": [
+            {
+              "extensions": [
+                {
+                  "name": "vicc_normalizer_priority",
+                  "value": true
+                }
+              ],
+              "coding": {
+                "id": "hgnc:6342",
+                "name": "KIT",
+                "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+                "code": "HGNC:6342"
+              },
+              "relation": "exactMatch"
+            },
+            {
+              "extensions": [
+                {
+                  "name": "vicc_normalizer_priority",
+                  "value": false
+                },
+                {
+                  "name": "civic_annotation",
+                  "value": true
+                }
+              ],
+              "coding": {
+                "id": "ncbigene:3815",
+                "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                "code": "3815"
+              },
+              "relation": "exactMatch"
+            }
+          ]
+        },
+        "alleleOriginQualifier": {
+          "name": "somatic"
+        },
+        "predicate": "associatedWithWorseOutcomeFor",
+        "objectCondition": {
+          "id": "civic.did:3",
+          "conceptType": "Disease",
+          "name": "Acute Myeloid Leukemia",
+          "mappings": [
+            {
+              "extensions": [
+                {
+                  "name": "vicc_normalizer_priority",
+                  "value": true
+                }
+              ],
+              "coding": {
+                "id": "ncit:C3171",
+                "name": "Acute Myeloid Leukemia",
+                "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                "code": "C3171"
+              },
+              "relation": "exactMatch"
+            },
+            {
+              "extensions": [
+                {
+                  "name": "vicc_normalizer_priority",
+                  "value": false
+                },
+                {
+                  "name": "civic_annotation",
+                  "value": true
+                }
+              ],
+              "coding": {
+                "id": "DOID:9119",
+                "system": "https://disease-ontology.org/?id=",
+                "code": "DOID:9119"
+              },
+              "relation": "exactMatch"
+            },
+            {
+              "extensions": [
+                {
+                  "name": "vicc_normalizer_priority",
+                  "value": false
+                }
+              ],
+              "coding": {
+                "id": "MONDO_0018874",
+                "system": "https://purl.obolibrary.org/obo/",
+                "code": "MONDO:0018874"
+              },
+              "relation": "exactMatch"
+            }
+          ]
+        }
+      },
+      "direction": "supports",
+      "strength": {
+        "name": "Clinical evidence",
+        "primaryCoding": {
+          "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+          "code": "B"
+        },
+        "mappings": [
+          {
+            "coding": {
+              "name": "clinical cohort evidence",
+              "system": "https://go.osu.edu/evidence-codes",
+              "code": "e000005"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      }
+    }
+  ],
+  "statements_assertions": [],
+  "categorical_variants": [
+    {
+      "id": "civic.mpid:65",
+      "type": "CategoricalVariant",
+      "name": "KIT D816V",
+      "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",
+      "aliases": [
+        "ASP816VAL"
+      ],
+      "extensions": [
+        {
+          "name": "CIViC Molecular Profile Score",
+          "value": 67.0
+        },
+        {
+          "name": "CIViC representative coordinate",
+          "value": {
+            "ensembl_version": 75,
+            "reference_build": "GRCh37",
+            "reference_bases": "A",
+            "variant_bases": "T",
+            "representative_transcript": "ENST00000288135.5",
+            "chromosome": "4",
+            "start": 55599321,
+            "stop": 55599321,
+            "type": "coordinates"
+          }
+        },
+        {
+          "name": "Variant types",
+          "value": [
+            {
+              "id": "SO:0001583",
+              "name": "missense_variant",
+              "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+              "code": "SO:0001583"
+            }
+          ]
+        }
+      ],
+      "members": [
+        {
+          "id": "ga4gh:VA.MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
+          "type": "Allele",
+          "name": "NM_000222.2:c.2447A>T",
+          "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
+          "expressions": [
+            {
+              "syntax": "hgvs.c",
+              "value": "NM_000222.2:c.2447A>T"
+            }
+          ],
+          "location": {
+            "id": "ga4gh:SL.vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
+            "type": "SequenceLocation",
+            "digest": "vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
+            "sequenceReference": {
+              "type": "SequenceReference",
+              "refgetAccession": "SQ.5UOthuwxqhwdsrbA4bVonC2ps_Njx1gh"
+            },
+            "start": 2504,
+            "end": 2505,
+            "sequence": "A"
+          },
+          "state": {
+            "type": "LiteralSequenceExpression",
+            "sequence": "T"
+          }
+        },
+        {
+          "id": "ga4gh:VA.MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
+          "type": "Allele",
+          "name": "ENST00000288135.5:c.2447A>T",
+          "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
+          "expressions": [
+            {
+              "syntax": "hgvs.c",
+              "value": "ENST00000288135.5:c.2447A>T"
+            }
+          ],
+          "location": {
+            "id": "ga4gh:SL.vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
+            "type": "SequenceLocation",
+            "digest": "vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
+            "sequenceReference": {
+              "type": "SequenceReference",
+              "refgetAccession": "SQ.5UOthuwxqhwdsrbA4bVonC2ps_Njx1gh"
+            },
+            "start": 2504,
+            "end": 2505,
+            "sequence": "A"
+          },
+          "state": {
+            "type": "LiteralSequenceExpression",
+            "sequence": "T"
+          }
+        },
+        {
+          "id": "ga4gh:VA.UQJIH49-agpdZzdyGiM4NQE_njoQy0m6",
+          "type": "Allele",
+          "name": "NC_000004.11:g.55599321A>T",
+          "digest": "UQJIH49-agpdZzdyGiM4NQE_njoQy0m6",
+          "expressions": [
+            {
+              "syntax": "hgvs.g",
+              "value": "NC_000004.11:g.55599321A>T"
+            }
+          ],
+          "location": {
+            "id": "ga4gh:SL.aAqDEdLIeXIQOX6LaJaaiOuC7lgo_DZk",
+            "type": "SequenceLocation",
+            "digest": "aAqDEdLIeXIQOX6LaJaaiOuC7lgo_DZk",
+            "sequenceReference": {
+              "type": "SequenceReference",
+              "refgetAccession": "SQ.HxuclGHh0XCDuF8x6yQrpHUBL7ZntAHc"
+            },
+            "start": 54733154,
+            "end": 54733155,
+            "sequence": "A"
+          },
+          "state": {
+            "type": "LiteralSequenceExpression",
+            "sequence": "T"
+          }
+        }
+      ],
+      "constraints": [
+        {
+          "type": "DefiningAlleleConstraint",
+          "allele": {
+            "id": "ga4gh:VA.nhiDwIq1klrGm3wtWO4a4BiS0jdW79Wd",
+            "type": "Allele",
+            "name": "D816V",
+            "digest": "nhiDwIq1klrGm3wtWO4a4BiS0jdW79Wd",
+            "expressions": [
+              {
+                "syntax": "hgvs.c",
+                "value": "NM_000222.2:c.2447A>T"
+              },
+              {
+                "syntax": "hgvs.p",
+                "value": "NP_000213.1:p.Asp816Val"
+              },
+              {
+                "syntax": "hgvs.c",
+                "value": "ENST00000288135.5:c.2447A>T"
+              },
+              {
+                "syntax": "hgvs.g",
+                "value": "NC_000004.11:g.55599321A>T"
+              }
+            ],
+            "location": {
+              "id": "ga4gh:SL.FDPpCHrDqH_pR10oxpHZ17tyGhZXVnsj",
+              "type": "SequenceLocation",
+              "digest": "FDPpCHrDqH_pR10oxpHZ17tyGhZXVnsj",
+              "sequenceReference": {
+                "type": "SequenceReference",
+                "refgetAccession": "SQ.TcMVFj5kDODDWpiy1d_1-3_gOf4BYaAB"
+              },
+              "start": 815,
+              "end": 816,
+              "sequence": "D"
+            },
+            "state": {
+              "type": "LiteralSequenceExpression",
+              "sequence": "V"
+            }
+          }
+        }
+      ],
+      "mappings": [
+        {
+          "coding": {
+            "id": "civic.vid:65",
+            "system": "https://civicdb.org/variants/",
+            "code": "65"
+          },
+          "relation": "exactMatch"
+        },
+        {
+          "coding": {
+            "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+            "code": "CA123513"
+          },
+          "relation": "relatedMatch"
+        },
+        {
+          "coding": {
+            "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+            "code": "13852"
+          },
+          "relation": "relatedMatch"
+        },
+        {
+          "coding": {
+            "system": "https://www.ncbi.nlm.nih.gov/snp/",
+            "code": "rs121913507"
+          },
+          "relation": "relatedMatch"
+        }
+      ]
+    }
+  ],
+  "variations": [
+    {
+      "id": "ga4gh:VA.nhiDwIq1klrGm3wtWO4a4BiS0jdW79Wd",
+      "type": "Allele",
+      "name": "D816V",
+      "digest": "nhiDwIq1klrGm3wtWO4a4BiS0jdW79Wd",
+      "expressions": [
+        {
+          "syntax": "hgvs.c",
+          "value": "NM_000222.2:c.2447A>T"
+        },
+        {
+          "syntax": "hgvs.p",
+          "value": "NP_000213.1:p.Asp816Val"
+        },
+        {
+          "syntax": "hgvs.c",
+          "value": "ENST00000288135.5:c.2447A>T"
+        },
+        {
+          "syntax": "hgvs.g",
+          "value": "NC_000004.11:g.55599321A>T"
+        }
+      ],
+      "location": {
+        "id": "ga4gh:SL.FDPpCHrDqH_pR10oxpHZ17tyGhZXVnsj",
+        "type": "SequenceLocation",
+        "digest": "FDPpCHrDqH_pR10oxpHZ17tyGhZXVnsj",
+        "sequenceReference": {
+          "type": "SequenceReference",
+          "refgetAccession": "SQ.TcMVFj5kDODDWpiy1d_1-3_gOf4BYaAB"
+        },
+        "start": 815,
+        "end": 816,
+        "sequence": "D"
+      },
+      "state": {
+        "type": "LiteralSequenceExpression",
+        "sequence": "V"
+      }
+    }
+  ],
+  "genes": [
+    {
+      "id": "civic.gid:29",
+      "extensions": [
+        {
+          "name": "aliases",
+          "value": [
+            "C-Kit",
+            "CD117",
+            "KIT",
+            "MASTC",
+            "PBT",
+            "SCFR"
+          ]
+        },
+        {
+          "name": "description",
+          "value": "c-KIT activation has been shown to have oncogenic activity in gastrointestinal stromal tumors (GISTs), melanomas, lung cancer, and other tumor types. The targeted therapeutics nilotinib and sunitinib have shown efficacy in treating KIT overactive patients, and are in late-stage trials in melanoma and GIST. KIT overactivity can be the result of many genomic events from genomic amplification to overexpression to missense mutations. Missense mutations have been shown to be key players in mediating clinical response and acquired resistance in patients being treated with these targeted therapeutics."
+        }
+      ],
+      "conceptType": "Gene",
+      "name": "KIT",
+      "mappings": [
+        {
+          "extensions": [
+            {
+              "name": "vicc_normalizer_priority",
+              "value": true
+            }
+          ],
+          "coding": {
+            "id": "hgnc:6342",
+            "name": "KIT",
+            "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+            "code": "HGNC:6342"
+          },
+          "relation": "exactMatch"
+        },
+        {
+          "extensions": [
+            {
+              "name": "vicc_normalizer_priority",
+              "value": false
+            },
+            {
+              "name": "civic_annotation",
+              "value": true
+            }
+          ],
+          "coding": {
+            "id": "ncbigene:3815",
+            "system": "https://www.ncbi.nlm.nih.gov/gene/",
+            "code": "3815"
+          },
+          "relation": "exactMatch"
+        }
+      ]
+    }
+  ],
+  "therapies": [],
+  "conditions": [
+    {
+      "id": "civic.did:3",
+      "conceptType": "Disease",
+      "name": "Acute Myeloid Leukemia",
+      "mappings": [
+        {
+          "extensions": [
+            {
+              "name": "vicc_normalizer_priority",
+              "value": true
+            }
+          ],
+          "coding": {
+            "id": "ncit:C3171",
+            "name": "Acute Myeloid Leukemia",
+            "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+            "code": "C3171"
+          },
+          "relation": "exactMatch"
+        },
+        {
+          "extensions": [
+            {
+              "name": "vicc_normalizer_priority",
+              "value": false
+            },
+            {
+              "name": "civic_annotation",
+              "value": true
+            }
+          ],
+          "coding": {
+            "id": "DOID:9119",
+            "system": "https://disease-ontology.org/?id=",
+            "code": "DOID:9119"
+          },
+          "relation": "exactMatch"
+        },
+        {
+          "extensions": [
+            {
+              "name": "vicc_normalizer_priority",
+              "value": false
+            }
+          ],
+          "coding": {
+            "id": "MONDO_0018874",
+            "system": "https://purl.obolibrary.org/obo/",
+            "code": "MONDO:0018874"
+          },
+          "relation": "exactMatch"
+        }
+      ]
+    }
+  ],
+  "methods": [
+    {
+      "id": "civic.method:2019",
+      "type": "Method",
+      "name": "CIViC Curation SOP (2019)",
+      "methodType": "variant curation standard operating procedure",
+      "reportedIn": {
+        "type": "Document",
+        "name": "Danos et al., 2019, Genome Med.",
+        "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+        "doi": "10.1186/s13073-019-0687-x",
+        "pmid": 31779674
+      }
+    }
+  ],
+  "documents": [
+    {
+      "id": "civic.source:69",
+      "type": "Document",
+      "name": "Cairoli et al., 2006",
+      "title": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study.",
+      "pmid": 16384925
+    }
+  ]
+}

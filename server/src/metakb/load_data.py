@@ -6,7 +6,6 @@ import uuid
 from pathlib import Path
 
 from ga4gh.va_spec.base import MembershipOperator
-from ga4gh.vrs import VrsType
 from neo4j import Driver, ManagedTransaction
 
 from metakb.database import get_driver
@@ -213,9 +212,7 @@ def _reformat_allele(allele: dict) -> dict:
     allele_dao = {
         "id": allele["id"],
         "state_object": json.dumps(allele["state"]),
-        "literal_state": allele["state"]["sequence"]
-        if allele["state"]["type"] == VrsType.LIT_SEQ_EXPR
-        else None,
+        "state": allele["state"],
         "name": allele.get("name", ""),
         "location": allele["location"],
         "expression_hgvs_g": [],
@@ -228,34 +225,35 @@ def _reformat_allele(allele: dict) -> dict:
     return allele_dao
 
 
-def _add_psq_cv(
+def _add_dac_cv(
     tx: ManagedTransaction,
     catvar: dict,
 ) -> None:
-    """Load ProteinSequenceConsequence CatVar.
+    """Load DefiningAlleleConstraint CatVar.
 
     Adds
     * CategoricalVariant itself
     * DefiningAlleleConstraint
     * Allele which defines the constraint
     * Member alleles of the category
-    * SequenceLocations for each allele
+    * SequenceLocations and SequenceExpressions for each allele
     """
     cv_merge_statement = """
-    MERGE (cv:Variation:CategoricalVariant:ProteinSequenceConsequence { id: $cv_id })
+    MERGE (cv:Variation:CategoricalVariant:ProteinSequenceConsequence { id: $cv.id })
     ON CREATE SET cv += {
         name: $cv.name,
-        description: $cv_description,
-        aliases: $cv_aliases,
+        description: $cv.description,
+        aliases: $cv.aliases,
         extensions: $cv_extensions,
         mappings: $cv_mappings
     }
     MERGE (cv) -[:HAS_CONSTRAINT]-> (constr:Constraint:DefiningAlleleConstraint { id: $constraint_id })
+    ON CREATE SET cv += {
+        relations: $constr.relations
+    }
     MERGE (allele:Variation:MolecularVariation:Allele { id: $allele.id })
     ON CREATE SET allele += {
         name: $allele.name,
-        literal_state: $allele.literal_state,
-        state_object: $allele.state_object,
         expression_hgvs_g: $allele.expression_hgvs_g,
         expression_hgvs_c: $allele.expression_hgvs_c,
         expression_hgvs_p: $allele.expression_hgvs_p
@@ -270,13 +268,25 @@ def _add_psq_cv(
     }
     MERGE (allele) -[:HAS_LOCATION]-> (sl)
 
+    FOREACH (_ IN CASE WHEN $allele.state.type = 'LiteralSequenceExpression' THEN [1] ELSE [] END |
+        MERGE (lse:SequenceExpression:LiteralSequenceExpression { sequence: $allele.state.sequence })
+        MERGE (allele)-[:HAS_STATE]->(lse)
+    )
+
+    FOREACH (_ IN CASE WHEN $allele.state.type = 'ReferenceLengthExpression' THEN [1] ELSE [] END |
+        MERGE (rle:SequenceExpression:ReferenceLengthExpression {
+            length: $allele.state.length,
+            repeat_subunit_length: $allele.state.repeatSubunitLength,
+            sequence: $allele.state.sequence
+        })
+        MERGE (allele)-[:HAS_STATE]->(rle)
+    )
+
     WITH cv
         UNWIND $members as m
         MERGE (member_allele:Variation:MolecularVariation:Allele { id: m.id })
         ON CREATE SET member_allele += {
             name: m.name,
-            literal_state: m.literal_state,
-            state_object: m.state_object,
             expression_hgvs_g: m.expression_hgvs_g,
             expression_hgvs_c: m.expression_hgvs_c,
             expression_hgvs_p: m.expression_hgvs_p
@@ -290,6 +300,21 @@ def _add_psq_cv(
             sequence: m.location.sequence
         }
         MERGE (member_allele) -[:HAS_LOCATION] -> (member_sl)
+        FOREACH (_ IN CASE WHEN m.state.type = 'LiteralSequenceExpression' THEN [1] ELSE [] END |
+            MERGE (member_lse:SequenceExpression:LiteralSequenceExpression {
+                sequence: m.state.sequence
+            })
+            MERGE (member_allele)-[:HAS_STATE]->(member_lse)
+        )
+
+        FOREACH (_ IN CASE WHEN m.state.type = 'ReferenceLengthExpression' THEN [1] ELSE [] END |
+            MERGE (member_rle:SequenceExpression:ReferenceLengthExpression {
+                length: m.state.length,
+                repeat_subunit_length: m.state.repeatSubunitLength,
+                sequence: m.state.sequence
+            })
+            MERGE (member_allele)-[:HAS_STATE]->(member_rle)
+        )
     """
 
     # catvars currently support a single constraint
@@ -297,20 +322,17 @@ def _add_psq_cv(
     allele = _reformat_allele(constraint["allele"])
     seq_loc = allele["location"]
 
-    cv_id = catvar["id"]
-    constraint_id = f"{cv_id}:{constraint['type']}:{allele['id']}"
+    constraint_id = f"{catvar['id']}:{constraint['type']}:{allele['id']}"
 
     tx.run(
         cv_merge_statement,
-        cv_id=cv_id,
         cv=catvar,
-        cv_description=catvar.get("description"),
-        cv_aliases=catvar.get("aliases"),
         cv_extensions=json.dumps(catvar["extensions"])
         if catvar.get("extensions")
         else None,
         cv_mappings=json.dumps(catvar["mappings"]) if catvar.get("mappings") else None,
         constraint_id=constraint_id,
+        constr=constraint,
         allele=allele,
         sl=seq_loc,
         members=[_reformat_allele(a) for a in catvar.get("members", [])],
@@ -336,11 +358,9 @@ def _add_categorical_variant(
     if cv.get("constraints") and len(cv["constraints"]) == 1:
         constraints = cv["constraints"]
 
-        if (
-            constraints[0].get("type") == "DefiningAlleleConstraint"
-        ):  # TODO check relations array
-            _add_psq_cv(tx, cv)
-        # dispatch for other kinds of catvars here
+        if constraints[0].get("type") == "DefiningAlleleConstraint":
+            _add_dac_cv(tx, cv)
+        # handle other kinds of catvars here
     else:
         msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar['id']} is {catvar.get('constraints')}"
         raise ValueError(msg)

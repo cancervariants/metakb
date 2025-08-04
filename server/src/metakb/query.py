@@ -25,11 +25,11 @@ from ga4gh.vrs.models import (
     Allele,
     Expression,
     LiteralSequenceExpression,
+    ReferenceLengthExpression,
     SequenceLocation,
 )
 from neo4j import Driver
 from neo4j.graph import Node
-from pydantic import ValidationError
 
 from metakb.database import get_driver
 from metakb.normalizers import (
@@ -497,14 +497,10 @@ class QueryHandler:
         for s in statement_nodes:
             s_id = s.get("id")
             if s_id not in added_stmts:
-                try:
-                    nested_stmt = self._get_nested_stmt(s)
-                except ValidationError:
-                    logger.exception("%s", s_id)
-                else:
-                    if nested_stmt:
-                        nested_stmts.append(nested_stmt)
-                        added_stmts.add(s_id)
+                nested_stmt = self._get_nested_stmt(s)
+                if nested_stmt:
+                    nested_stmts.append(nested_stmt)
+                    added_stmts.add(s_id)
         return nested_stmts
 
     def _get_nested_stmt(
@@ -625,9 +621,22 @@ class QueryHandler:
         return MappableConcept(**node)
 
     @staticmethod
-    def _rebuild_allele(allele_node: dict, sl_node: dict) -> Allele:
+    def _rebuild_allele(allele_node: Node, sl_node: Node, se_node: Node) -> Allele:
         """Reconstruct allele from graph nodes"""
-        state = LiteralSequenceExpression(sequence=allele_node["literal_state"])
+        if se_node.labels == {"SequenceExpression", "LiteralSequenceExpression"}:
+            state = LiteralSequenceExpression(sequence=se_node["sequence"])
+        elif se_node.labels == {"SequenceExpression", "ReferenceLengthExpression"}:
+            state = ReferenceLengthExpression(
+                length=se_node["length"],
+                repeatSubunitLength=se_node["repeat_subunit_length"],
+                sequence=se_node["sequence"],
+            )
+        else:
+            msg = (
+                f"Unrecognized set of sequence expression node labels: {se_node.labels}"
+            )
+            raise ValueError(msg)
+
         location = SequenceLocation(
             start=sl_node["start"],
             end=sl_node["end"],
@@ -640,7 +649,16 @@ class QueryHandler:
         ]:
             syntax = expression_type.split("expression_")[-1].replace("_", ".")
             expressions.extend(Expression(syntax=syntax, value=v) for v in expression)
-        return Allele(state=state, location=location, id=allele_node["id"])
+        return Allele(
+            state=state,
+            location=location,
+            id=allele_node["id"],
+            expressions=expressions,
+            name=allele_node.get("name"),
+            description=allele_node.get("description"),
+            aliases=allele_node.get("aliases"),
+            extensions=allele_node.get("extensions"),
+        )
 
     def _get_cat_var(self, node: dict) -> CategoricalVariant:
         """Get categorical variant data from a node with relationship ``HAS_VARIANT``
@@ -651,57 +669,50 @@ class QueryHandler:
         node["mappings"] = _deserialize_field(node, "mappings")
         node["extensions"] = _deserialize_field(node, "extensions")
 
-        extensions = []
-        for node_key, ext_name in (
-            ("moa_representative_coordinate", "MOA representative coordinate"),
-            ("civic_representative_coordinate", "CIViC representative coordinate"),
-            # ("civic_molecular_profile_score", "CIViC Molecular Profile Score"),
-            ("variant_types", "Variant types"),
-        ):
-            ext_val = node.get(node_key)
-            node.pop(node_key, None)
-            if ext_val:
-                extensions.append(Extension(name=ext_name, value=ext_val))
-
-        mp_score = node.pop("civic_molecular_profile_score", None)
-        if mp_score:
-            extensions.append(
-                Extension(
-                    name="CIViC Molecular Profile Score",
-                    value=mp_score,
-                )
-            )
-
-        node["extensions"] = extensions or None
-
         related_alleles_query = """
         MATCH (cv:CategoricalVariant {id: $cv_id})
         MATCH (cv)-[:HAS_CONSTRAINT]->(dac:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->(defining_allele:Allele)
         MATCH (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
-        OPTIONAL MATCH (cv)-[:HAS_MEMBER]->(member_allele:Allele)-[HAS_LOCATION]->(member_allele_sl:SequenceLocation)
-        RETURN defining_allele, defining_allele_sl, member_allele, member_allele_sl
+        MATCH (defining_allele)-[:HAS_STATE]->(defining_allele_se:SequenceExpression)
+        OPTIONAL MATCH
+            (cv)-[:HAS_MEMBER]->(member_allele:Allele)-[HAS_LOCATION]->(member_allele_sl:SequenceLocation),
+            (member_allele)-[:HAS_STATE]->(member_allele_se:SequenceExpression)
+        RETURN cv, defining_allele, defining_allele_sl, defining_allele_se, member_allele, member_allele_sl, member_allele_se
         """
         records = self.driver.execute_query(
             related_alleles_query, cv_id=node["id"]
         ).records
-        def_allele, def_allele_sl = (
+        def_allele, def_allele_sl, def_allele_se = (
             records[0]["defining_allele"],
             records[0]["defining_allele_sl"],
+            records[0]["defining_allele_se"],
         )
         if records[0].get("member_allele"):
             member_alleles = [r["member_allele"] for r in records]
             member_allele_sls = [r["member_allele_sl"] for r in records]
+            member_allele_ses = [r["member_allele_se"] for r in records]
             members = [
-                self._rebuild_allele(allele, sl)
-                for allele, sl in zip(member_alleles, member_allele_sls, strict=True)
+                self._rebuild_allele(allele, sl, se)
+                for allele, sl, se in zip(
+                    member_alleles, member_allele_sls, member_allele_ses, strict=True
+                )
             ]
         else:
             members = []
         constraint = DefiningAlleleConstraint(
-            allele=self._rebuild_allele(def_allele, def_allele_sl)
+            allele=self._rebuild_allele(def_allele, def_allele_sl, def_allele_se)
         )
 
-        return CategoricalVariant(constraints=[constraint], members=members, **node)
+        return CategoricalVariant(
+            name=node.get("name"),
+            description=node.get("description"),
+            extensions=node.get("extensions"),
+            aliases=node.get("aliases"),
+            constraints=[constraint],
+            members=members,
+            id=node["id"],
+            mappings=node["mappings"],
+        )
 
     def _get_gene_context_qualifier(self, statement_id: str) -> MappableConcept | None:
         """Get gene context qualifier data for a statement
