@@ -8,7 +8,7 @@ from pathlib import Path
 from ga4gh.va_spec.base import MembershipOperator
 from neo4j import Driver, ManagedTransaction
 
-from metakb.database import get_driver
+# from metakb.database import get_driver
 from metakb.transformers.base import NormalizerExtensionName
 
 _logger = logging.getLogger(__name__)
