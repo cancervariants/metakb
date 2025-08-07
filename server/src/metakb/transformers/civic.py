@@ -143,7 +143,7 @@ class CivicTransformer(Transformer):
         variables.
         """
 
-        def _resolve_evidence(
+        async def _resolve_evidence(
             ev: CivicGksEvidence, assertion_id: str
         ) -> Statement | None:
             """Get annotated evidence from cache or create annotated evidence
@@ -157,8 +157,8 @@ class CivicTransformer(Transformer):
             if cached_evidence:
                 return cached_evidence
 
-            annotated_evidence = self._annotate_evidence(ev)
-            if not annotated_assertion:
+            annotated_evidence = await self._annotate_evidence(ev)
+            if not annotated_evidence:
                 _logger.warning(
                     "%s missing evidence item %s in evidence lines",
                     assertion_id,
@@ -166,16 +166,16 @@ class CivicTransformer(Transformer):
                 )
             return annotated_evidence
 
-        approved_evidence_items = civicpy.get_all_evidence(include_status=["approved"])
+        approved_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
         for evidence_item in approved_evidence_items:
             await self._annotate_evidence(evidence_item)
 
-        approved_assertions = civicpy.get_all_assertions(include_status=["approved"])
+        approved_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         for a in approved_assertions:
             try:
                 gks_assertion = create_gks_record_from_assertion(a)
             except Exception as e:
-                _logger.warning(e, exc_info=True)
+                _logger.warning(e)
                 continue
 
             updated_proposition = await self._get_updated_proposition(
@@ -188,7 +188,11 @@ class CivicTransformer(Transformer):
                 el.hasEvidenceItems = [
                     annotated_ev
                     for ev_item in el.hasEvidenceItems
-                    if (annotated_ev := _resolve_evidence(ev_item, gks_assertion.id))
+                    if (
+                        annotated_ev := await _resolve_evidence(
+                            ev_item, gks_assertion.id
+                        )
+                    )
                 ]
 
             annotated_assertion = gks_assertion.__class__.__base__(
@@ -202,21 +206,22 @@ class CivicTransformer(Transformer):
         return _CivicTransformedCache()
 
     async def _annotate_evidence(
-        self, evidence_item: CivicGksEvidence
+        self, evidence_item: civicpy.Evidence | CivicGksEvidence
     ) -> Statement | None:
         """Annotate evidence with additional information, such as normalizer info
 
         Annotated evidence will be added to the ``processed_data.statements_evidence``
         and ``_cache.evidence`` instance variables.
 
-        :param evidence_item: CIViC GKS evidence item
+        :param evidence_item: CIViC evidence item
         :return: Statement for CIViC evidence item, if able to annotate
         """
-        try:
-            gks_evidence_item = CivicGksEvidence(evidence_item)
-        except Exception as e:
-            _logger.warning(e, exc_info=True)
-            return None
+        if not isinstance(evidence_item, CivicGksEvidence):
+            try:
+                gks_evidence_item = CivicGksEvidence(evidence_item)
+            except Exception as e:
+                _logger.warning(e)
+                return None
 
         updated_proposition = await self._get_updated_proposition(
             gks_evidence_item.proposition
@@ -350,7 +355,7 @@ class CivicTransformer(Transformer):
             return entity_obj
 
         if isinstance(entity, CivicGksMolecularProfile):
-            annotated_entity = self._get_annotated_mp(entity)
+            annotated_entity = await self._get_annotated_mp(entity)
         else:
             annotated_entity = self._get_annotated_mappable_concept(entity)
 
@@ -381,11 +386,13 @@ class CivicTransformer(Transformer):
             else mapping.coding.id
             for mapping in entity_mappings
         ]
+        queries.append(entity.name)
+
         extensions = entity.extensions or []
-        aliases: list[str] = next(
-            (ext for ext in extensions if ext.name == "aliases"), []
-        )
-        queries.extend([entity.name, *aliases])
+        if aliases_ext := next(
+            (ext for ext in extensions if ext.name == "aliases"), None
+        ):
+            queries.extend(aliases_ext.value)
 
         normalized_id = None
         for query in queries:
@@ -394,7 +401,9 @@ class CivicTransformer(Transformer):
                 break
 
         if not normalized_id:
-            _logger.debug("Unable to normalize concept %s", entity_id)
+            _logger.debug(
+                "Unable to normalize concept %s using queries: %s", entity_id, queries
+            )
             extensions.append(self._get_vicc_normalizer_failure_ext())
             mappings = entity_mappings
         else:
@@ -491,6 +500,7 @@ class CivicTransformer(Transformer):
             )
 
             # Get members
+            protein_expressions = []
             if expressions_ext := next(
                 (
                     ext

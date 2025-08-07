@@ -625,7 +625,8 @@ def _harvest_sources(
             else None
         )
         harvested_data = source.harvest()
-        source.save_harvested_data_to_file(harvested_data, output_file)
+        if name == SourceName.MOA:
+            source.save_harvested_data_to_file(harvested_data, output_file)
         end = timer()
         _echo_info(f"{name.as_print_case()} harvest finished in {(end - start):.2f} s")
 
@@ -658,8 +659,11 @@ async def _transform_source(
     transformer: CivicTransformer | MoaTransformer = transformer_sources[source](
         normalizers=normalizer_handler, harvester_path=harvest_file
     )
-    harvested_data = transformer.extract_harvested_data()
-    await transformer.transform(harvested_data)
+    if source == SourceName.MOA:
+        harvested_data = transformer.extract_harvested_data()
+        await transformer.transform(harvested_data)
+    else:
+        await transformer.transform()
     end = timer()
     _echo_info(
         f"{source.as_print_case()} transformation finished in {(end - start):.2f} s."
