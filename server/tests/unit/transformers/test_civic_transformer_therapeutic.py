@@ -1,16 +1,11 @@
 """Test CIViC Transformation to common data model for Therapeutic Response."""
 
-import json
-from unittest.mock import patch
-
 import pytest
 import pytest_asyncio
 from civicpy import civic as civicpy
 from tests.conftest import (
     get_vicc_normalizer_failure_ext,
 )
-
-from metakb.transformers.civic import CivicTransformer
 
 NORMALIZABLE_FILENAME = "civic_cdm.json"
 NOT_NORMALIZABLE_FILE_NAME = "civic_cdm_normalization_failure.json"
@@ -180,7 +175,7 @@ def fake_evidence():
 
 
 @pytest_asyncio.fixture
-async def data(normalizers, tmp_path):
+async def data(civic_cdm_data):
     """Create a CIViC Transformer test fixture."""
     eid_2997 = civicpy.get_evidence_by_id(2997)
     eids = [816, 9851]
@@ -192,37 +187,13 @@ async def data(normalizers, tmp_path):
     assertion.evidence_ids = [2997]
     assertions = [assertion]
 
-    with (
-        patch.object(
-            civicpy,
-            "get_all_evidence",
-            return_value=evidence_items,
-        ),
-        patch.object(civicpy, "get_all_assertions", return_value=assertions),
-    ):
-        t = CivicTransformer(data_dir=tmp_path, normalizers=normalizers)
-        await t.transform()
-        t.create_json(tmp_path / NORMALIZABLE_FILENAME)
-        with (tmp_path / NORMALIZABLE_FILENAME).open() as f:
-            return json.load(f)
+    return await civic_cdm_data(evidence_items, assertions, NORMALIZABLE_FILENAME)
 
 
 @pytest_asyncio.fixture
-async def not_normalizable_data(normalizers, fake_evidence, tmp_path):
+async def not_normalizable_data(civic_cdm_data, fake_evidence):
     """Create a CIViC Transformer test fixture."""
-    with (
-        patch.object(
-            civicpy,
-            "get_all_evidence",
-            return_value=[fake_evidence],
-        ),
-        patch.object(civicpy, "get_all_assertions", return_value=[]),
-    ):
-        t = CivicTransformer(data_dir=tmp_path, normalizers=normalizers)
-        await t.transform()
-        t.create_json(tmp_path / NOT_NORMALIZABLE_FILE_NAME)
-        with (tmp_path / NOT_NORMALIZABLE_FILE_NAME).open() as f:
-            return json.load(f)
+    return await civic_cdm_data([fake_evidence], [], NOT_NORMALIZABLE_FILE_NAME)
 
 
 @pytest.fixture(scope="module")

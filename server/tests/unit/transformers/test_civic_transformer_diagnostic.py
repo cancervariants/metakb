@@ -1,8 +1,5 @@
 """Test CIViC Transformation to common data model for diagnostic."""
 
-import json
-from unittest.mock import patch
-
 import pytest
 import pytest_asyncio
 from civicpy import civic as civicpy
@@ -11,31 +8,15 @@ from tests.conftest import (
     get_vicc_normalizer_priority_ext,
 )
 
-from metakb.transformers.civic import CivicTransformer
-
 FILENAME = "civic_cdm.json"
 
 
 @pytest_asyncio.fixture
-async def data(normalizers, tmp_path):
+async def data(civic_cdm_data):
     """Create a CIViC Transformer test fixture."""
     eids = [2, 74]
-
     evidence_items = [civicpy.get_evidence_by_id(eid) for eid in eids]
-
-    with (
-        patch.object(
-            civicpy,
-            "get_all_evidence",
-            return_value=evidence_items,
-        ),
-        patch.object(civicpy, "get_all_assertions", return_value=[]),
-    ):
-        t = CivicTransformer(data_dir=tmp_path, normalizers=normalizers)
-        await t.transform()
-        t.create_json(tmp_path / FILENAME)
-        with (tmp_path / FILENAME).open() as f:
-            return json.load(f)
+    return await civic_cdm_data(evidence_items, [], FILENAME)
 
 
 @pytest.fixture(scope="module")

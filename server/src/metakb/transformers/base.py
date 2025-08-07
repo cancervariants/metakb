@@ -161,10 +161,6 @@ class TransformedData(BaseModel):
     documents: list[Document] = []
 
 
-class TransformerMixin:
-    """Mixin class for transformer"""
-
-
 class Transformer(ABC):
     """A base class for transforming harvester data."""
 
@@ -337,16 +333,14 @@ class Transformer(ABC):
 
     def _evidence_level_to_vicc_concept_mapping(
         self,
-    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel | EcoLevel, list[ConceptMapping]]:
+    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, list[ConceptMapping]]:
         """Get mapping of source evidence level to vicc concept vocab
 
         :return: Dictionary containing mapping from source evidence level (key)
             to corresponding vicc concept vocab (value) represented as a list of
             ConceptMapping
         """
-        concept_mappings: dict[
-            MoaEvidenceLevel | CivicEvidenceLevel | EcoLevel, list[ConceptMapping]
-        ] = {}
+        concept_mappings: dict[str, list[ConceptMapping]] = {}
         for item in self._vicc_concept_vocabs:
             for exact_mapping in item.exact_mappings:
                 concept_mappings[exact_mapping] = [

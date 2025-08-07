@@ -581,13 +581,9 @@ class MoaTransformer(Transformer):
         :return: Combination Therapy
         """
         therapies = []
-        source_name = type(self).__name__.lower().replace("transformer", "")
 
         for therapy in therapies_in:
-            if source_name == SourceName.MOA:
-                therapy_id = f"moa.therapy:{_sanitize_name(therapy['name'])}"
-            else:
-                therapy_id = f"civic.tid:{therapy['id']}"
+            therapy_id = f"moa.therapy:{_sanitize_name(therapy['name'])}"
             therapy_mc = self._add_therapy(
                 therapy_id,
                 [therapy],
@@ -598,14 +594,9 @@ class MoaTransformer(Transformer):
 
             therapies.append(therapy_mc)
 
-        if source_name == SourceName.MOA:
-            extensions = [
-                Extension(
-                    name=f"{SourceName.MOA.value}_therapy_type", value=therapy_type
-                )
-            ]
-        else:
-            extensions = None
+        extensions = [
+            Extension(name=f"{SourceName.MOA.value}_therapy_type", value=therapy_type)
+        ]
 
         try:
             tg = TherapyGroup(
