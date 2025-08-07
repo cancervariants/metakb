@@ -1,151 +1,81 @@
-"""Test CIViC Harvester class"""
-
-import json
+from pickle import UnpicklingError
+from unittest.mock import MagicMock
 
 import pytest
-from tests.conftest import TEST_HARVESTERS_DIR, check_source_harvest
+from civicpy import civic as civicpy
 
-from metakb.harvesters.civic import CivicHarvester
-from metakb.schemas.app import SourceName
+from metakb.harvesters.civic import LOCAL_CACHE_PATH, CivicHarvester
 
-TEST_DATA_PATH = TEST_HARVESTERS_DIR / SourceName.CIVIC.value
-TEST_CIVICPY_CACHE_PATH = sorted(TEST_DATA_PATH.glob("civicpy_cache_*.pkl"))[-1]
+_real_load_cache = civicpy.load_cache
 
 
-@pytest.fixture(scope="module")
-def harvester():
-    """Create test fixture for CivicHarvester"""
-    return CivicHarvester(local_cache_path=TEST_CIVICPY_CACHE_PATH)
+@pytest.fixture(autouse=True)
+def stub_civicpy(monkeypatch):
+    """Stub out civicpy.update_cache and civicpy.load_cache"""
+    monkeypatch.setattr(civicpy, "update_cache", MagicMock(spec=civicpy.update_cache))
+    monkeypatch.setattr(civicpy, "load_cache", MagicMock(spec=civicpy.load_cache))
 
 
-@pytest.fixture(scope="module")
-def harvested_variants(harvester):
-    """Create test fixture for harvested CIViC variants"""
-    return harvester.harvest_variants()
+def test_default_init():
+    """Test that default init works correctly"""
+    harvester = CivicHarvester()
+
+    civicpy.update_cache.assert_not_called()
+    assert harvester.local_cache_path == LOCAL_CACHE_PATH
 
 
-@pytest.fixture(scope="module")
-def harvested_molecular_profiles(harvester):
-    """Create test fixture for harvested CIViC molecular profiles"""
-    return harvester.harvest_molecular_profiles()
-
-
-@pytest.fixture(scope="module")
-def harvested_genes(harvester):
-    """Create test fixture for harvested CIViC genes"""
-    return harvester.harvest_genes()
-
-
-@pytest.fixture(scope="module")
-def harvested_evidence(harvester):
-    """Create test fixture for harvested CIViC evidence"""
-    return harvester.harvest_evidence()
-
-
-@pytest.fixture(scope="module")
-def harvested_assertions(harvester):
-    """Create test fixture for harvested CIViC assertions"""
-    return harvester.harvest_assertions()
-
-
-@pytest.fixture(scope="module")
-def civic_variant_12():
-    """Create test fixture for CIViC Variant 12"""
-    with (TEST_DATA_PATH / "civic_variant_12.json").open() as f:
-        return json.load(f)
-
-
-@pytest.fixture(scope="module")
-def civic_molecular_profile_12():
-    """Create test fixture for CIViC Molecular Profile 12"""
-    with (TEST_DATA_PATH / "civic_molecular_profile_12.json").open() as f:
-        return json.load(f)
-
-
-@pytest.fixture(scope="module")
-def civic_gene_5():
-    """Create test fixture for CIViC Gene 5"""
-    with (TEST_DATA_PATH / "civic_gene_5.json").open() as f:
-        return json.load(f)
-
-
-@pytest.fixture(scope="module")
-def civic_eid_3017():
-    """Create test fixture for CIViC EID 3017"""
-    with (TEST_DATA_PATH / "civic_eid_3017.json").open() as f:
-        return json.load(f)
-
-
-@pytest.fixture(scope="module")
-def civic_aid_7():
-    """Create test fixture for CIViC AID 7"""
-    with (TEST_DATA_PATH / "civic_aid_7.json").open() as f:
-        return json.load(f)
-
-
-def test_harvest(tmp_path, harvester):
-    """Test that CIViC harvest method works correctly"""
-    check_source_harvest(tmp_path, harvester)
-
-
-def test_harvest_variants(harvested_variants, civic_variant_12):
-    """Test that CIViC Variants are harvested correctly."""
-    assert harvested_variants
-    checked = False
-    for v in harvested_variants:
-        if v["id"] == civic_variant_12["id"]:
-            assert v == civic_variant_12
-            checked = True
-    assert checked, "CIViC Variant 12 not in harvested variants"
-
-
-def test_harvest_molecular_profiles(
-    harvested_molecular_profiles, civic_molecular_profile_12
-):
-    """Test that CIViC Molecular Profiles are harvested correctly."""
-    assert harvested_molecular_profiles
-    checked = False
-    for mp in harvested_molecular_profiles:
-        if mp["id"] == civic_molecular_profile_12["id"]:
-            assert mp == civic_molecular_profile_12
-            checked = True
-    assert checked, "CIViC Molecular Profile 12 not in harvested molecular profiles"
-
-
-def test_civic_genes(harvested_genes, civic_gene_5):
-    """Test that CIViC Genes are harvested correctly."""
-    assert harvested_genes
-    checked = False
-    for g in harvested_genes:
-        if g["id"] == civic_gene_5["id"]:
-            assert g == civic_gene_5
-            checked = True
-    assert checked, "CIViC Gene 5 not in harvested genes"
-
-
-def test_civic_evidence(harvested_evidence, civic_eid_3017):
-    """Test that CIViC Evidence are harvested correctly."""
-    assert harvested_evidence
-    checked = []
-    for e in harvested_evidence:
-        if e["id"] == civic_eid_3017["id"]:
-            assert e == civic_eid_3017
-            checked.append(e["id"])
-        elif e["id"] == 6178:
-            assert e["assertion_ids"] == [12, 7]
-            checked.append(e["id"])
-    assert len(checked) == 2, (
-        f"Expected to check CIViC Evidence Items 3017 and 6178, but only checked {checked}"
+def test_init_update_cache_custom_path(tmp_path):
+    """Test that init with update_cache and local_cache_path set work correctly"""
+    custom_path = tmp_path / "cache.pkl"
+    harvester = CivicHarvester(
+        update_cache=True,
+        update_from_remote=False,
+        local_cache_path=str(custom_path),
     )
-    assert checked, "CIViC Evidence Item 3017 not in harvested evidence"
+
+    civicpy.update_cache.assert_called_once_with(from_remote_cache=False)
+    assert harvester.local_cache_path == str(custom_path)
 
 
-def test_civic_assertion(harvested_assertions, civic_aid_7):
-    """Test that CIViC Assertions are harvested correctly."""
-    assert harvested_assertions
-    checked = False
-    for a in harvested_assertions:
-        if a["id"] == civic_aid_7["id"]:
-            assert a == civic_aid_7
-            checked = True
-    assert checked, "CIViC Assertion 7 not in harvested assertions"
+def test_init_update_cache_remote_default(tmp_path):
+    """Test that init with update_cache=True defaults to remote cache update"""
+    custom_path = tmp_path / "cache2.pkl"
+    harvester = CivicHarvester(
+        update_cache=True,
+        local_cache_path=str(custom_path),
+    )
+
+    civicpy.update_cache.assert_called_once_with(from_remote_cache=True)
+    assert harvester.local_cache_path == str(custom_path)
+
+
+def test_harvest_default_path_cache():
+    """Test that harvest uses default cache path, ignores stale data, and returns None"""
+    harvester = CivicHarvester(update_cache=False)
+    result = harvester.harvest()
+
+    civicpy.load_cache.assert_called_once_with(LOCAL_CACHE_PATH, on_stale="ignore")
+    assert result is None
+
+
+def test_harvest_custom_cache(tmp_path):
+    """Test that harvest uses custom cache path, ignores stale data, and returns None"""
+    custom_path = tmp_path / "harvest.pkl"
+    harvester = CivicHarvester(update_cache=False, local_cache_path=str(custom_path))
+    result = harvester.harvest()
+
+    civicpy.load_cache.assert_called_once_with(str(custom_path), on_stale="ignore")
+    assert not custom_path.exists()
+    assert result is None
+
+
+def test_harvest_raises_on_invalid_extension(tmp_path, monkeypatch):
+    """Test that harvest raises UnpicklingError on non-pickle file extension"""
+    custom_path = tmp_path / "cache.txt"
+    custom_path.write_text("hello world")
+
+    monkeypatch.setattr(civicpy, "load_cache", _real_load_cache)
+
+    harvester = CivicHarvester(update_cache=False, local_cache_path=str(custom_path))
+    with pytest.raises(UnpicklingError):
+        harvester.harvest()

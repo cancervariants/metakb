@@ -1,29 +1,37 @@
 """Test CIViC Transformation to common data model for prognostic."""
 
 import json
+from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
-from tests.conftest import TEST_TRANSFORMERS_DIR
+from civicpy import civic as civicpy
 
 from metakb.transformers.civic import CivicTransformer
 
-DATA_DIR = TEST_TRANSFORMERS_DIR / "prognostic"
 FILENAME = "civic_cdm.json"
 
 
-@pytest_asyncio.fixture(scope="module")
-async def data(normalizers):
+@pytest_asyncio.fixture
+async def data(normalizers, tmp_path):
     """Create a CIViC Transformer test fixture."""
-    harvester_path = DATA_DIR / "civic_harvester.json"
-    c = CivicTransformer(
-        data_dir=DATA_DIR, harvester_path=harvester_path, normalizers=normalizers
-    )
-    harvested_data = c.extract_harvested_data()
-    await c.transform(harvested_data)
-    c.create_json(DATA_DIR / FILENAME)
-    with (DATA_DIR / FILENAME).open() as f:
-        return json.load(f)
+    eids = [26]
+
+    evidence_items = [civicpy.get_evidence_by_id(eid) for eid in eids]
+
+    with (
+        patch.object(
+            civicpy,
+            "get_all_evidence",
+            return_value=evidence_items,
+        ),
+        patch.object(civicpy, "get_all_assertions", return_value=[]),
+    ):
+        t = CivicTransformer(data_dir=tmp_path, normalizers=normalizers)
+        await t.transform()
+        t.create_json(tmp_path / FILENAME)
+        with (tmp_path / FILENAME).open() as f:
+            return json.load(f)
 
 
 @pytest.fixture(scope="module")
@@ -32,6 +40,6 @@ def statements(civic_eid26_study_stmt):
     return [civic_eid26_study_stmt]
 
 
-def test_civic_cdm(data, statements, check_transformed_cdm):
+def test_civic_cdm(data, statements, check_transformed_cdm, tmp_path):
     """Test that civic transformation works correctly."""
-    check_transformed_cdm(data, statements, DATA_DIR / FILENAME)
+    check_transformed_cdm(data, statements, tmp_path / FILENAME)

@@ -26,11 +26,13 @@ from ga4gh.va_spec.base import (
     VariantTherapeuticResponseProposition,
 )
 from ga4gh.vrs.models import Variation
+from pydantic import ValidationError
 
 from metakb.harvesters.moa import MoaHarvestedData
 from metakb.normalizers import (
     ViccNormalizers,
 )
+from metakb.schemas.app import SourceName
 from metakb.transformers.base import (
     MethodId,
     MoaEvidenceLevel,
@@ -467,18 +469,6 @@ class MoaTransformer(Transformer):
             therapy_type,
         )
 
-    def _get_therapeutic_substitute_group(
-        self,
-        therapeutic_sub_group_id: str,
-        therapies: list[dict],
-    ) -> None:
-        """MOA does not support therapeutic substitute group
-
-        :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
-        :param therapies: List of therapy objects
-        :return: None, since not supported by MOA
-        """
-
     def _resolve_concept_discrepancy(
         self,
         cached_id: str,
@@ -537,6 +527,102 @@ class MoaTransformer(Transformer):
             cache = self._cache.normalized_therapies
 
         cache[cached_id] = cached_obj
+
+    def _add_therapy(
+        self,
+        therapy_id: str,
+        therapies: list[dict],
+        membership_operator: MembershipOperator | None,
+        therapy_type: str | None = None,
+    ) -> MappableConcept | None:
+        """Create or get therapy mappable concept given therapies
+        First look in ``_cache`` for existing therapy, if not found will attempt to
+        transform. Will add ``therapy_id`` to ``therapies`` and ``_cache.therapies``
+
+        :param therapy_id: ID for therapy
+        :param therapies: List of therapy objects. If `membership_operator` is `None`,
+            the list will only contain a single therapy.
+        :param membership_operator: The logical relationship between ``therapies``
+        :param therapy_type: Therapy type
+        :return: Therapy mappable concept, if ``therapy_type`` is supported
+        """
+        therapy = self._cache.therapies.get(therapy_id)
+        if therapy:
+            return therapy
+
+        if membership_operator is None:
+            therapy = self._get_therapy(therapy_id, therapies[0])
+        elif membership_operator == MembershipOperator.AND:
+            therapy = self._get_combination_therapy(
+                therapy_id, therapies, therapy_type=therapy_type
+            )
+        else:
+            logger.debug(
+                "Membership operator is not supported: %s", membership_operator
+            )
+            return None
+
+        self._cache.therapies[therapy_id] = therapy
+        self.processed_data.therapies.append(therapy)
+
+        return therapy
+
+    def _get_combination_therapy(
+        self,
+        combination_therapy_id: str,
+        therapies_in: list[dict],
+        therapy_type: str | None = None,
+    ) -> TherapyGroup | None:
+        """Get Combination Therapy representation for source therapies
+
+        :param combination_therapy_id: ID for Combination Therapy
+        :param therapies: List of source therapy objects
+        :param therapy_type: Therapy type provided by source
+        :return: Combination Therapy
+        """
+        therapies = []
+        source_name = type(self).__name__.lower().replace("transformer", "")
+
+        for therapy in therapies_in:
+            if source_name == SourceName.MOA:
+                therapy_id = f"moa.therapy:{_sanitize_name(therapy['name'])}"
+            else:
+                therapy_id = f"civic.tid:{therapy['id']}"
+            therapy_mc = self._add_therapy(
+                therapy_id,
+                [therapy],
+                membership_operator=None,
+            )
+            if not therapy_mc:
+                return None
+
+            therapies.append(therapy_mc)
+
+        if source_name == SourceName.MOA:
+            extensions = [
+                Extension(
+                    name=f"{SourceName.MOA.value}_therapy_type", value=therapy_type
+                )
+            ]
+        else:
+            extensions = None
+
+        try:
+            tg = TherapyGroup(
+                id=combination_therapy_id,
+                therapies=therapies,
+                extensions=extensions,
+                membershipOperator=MembershipOperator.AND,
+            )
+        except ValidationError as e:
+            # if combination validation checks fail
+            logger.debug(
+                "ValidationError raised when attempting to create Combination Therapy: %s",
+                e,
+            )
+            tg = None
+
+        return tg
 
     def _get_therapy(self, therapy_id: str, therapy: dict) -> MappableConcept:
         """Get Therapy mappable concept for a MOA therapy name.

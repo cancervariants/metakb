@@ -45,7 +45,14 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-tests = ["pytest", "pytest-cov", "mock", "pytest-asyncio", "deepdiff"]
+tests = [
+    "pytest",
+    "pytest-cov",
+    "mock",
+    "pytest-asyncio",
+    "deepdiff",
+    "jsonschema~=4.24",  # pin to avoid deprecation of ref resolver
+]
 dev = [
     "pre-commit>=4.2.0",
     "ruff==0.12.1"
@@ -126,6 +133,7 @@ select = [
     "ARG",  # https://docs.astral.sh/ruff/rules/#flake8-unused-arguments-arg
     "PTH",  # https://docs.astral.sh/ruff/rules/#flake8-use-pathlib-pth
     "PGH",  # https://docs.astral.sh/ruff/rules/#pygrep-hooks-pgh
+    "FAST",  # https://docs.astral.sh/ruff/rules/#fastapi-fast
     "PLC",  # https://docs.astral.sh/ruff/rules/#convention-c
     "PLE",  # https://docs.astral.sh/ruff/rules/#error-e_1
     "TRY",  # https://docs.astral.sh/ruff/rules/#tryceratops-try
@@ -147,6 +155,7 @@ fixable = [
     "PT",
     "RSE",
     "SIM",
+    "FAST",
     "PLC",
     "PLE",
     "TRY",
