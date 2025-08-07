@@ -12,7 +12,7 @@ from metakb.transformers.civic import CivicTransformer
 
 @pytest.fixture(scope="session", autouse=True)
 def civicpy_cache():
-    cache_dir = Path(__file__).resolve().parents[2] / "data" / "harvesters" / "civic"
+    cache_dir = Path(__file__).resolve().parents[2] / "data"
     cache_path = sorted(cache_dir.glob("civicpy_cache_*.pkl"))[-1]
     civicpy.load_cache(local_cache_path=cache_path, on_stale="ignore")
 
