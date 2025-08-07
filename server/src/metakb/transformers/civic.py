@@ -222,6 +222,8 @@ class CivicTransformer(Transformer):
             except Exception as e:
                 _logger.warning(e)
                 return None
+        else:
+            gks_evidence_item = evidence_item
 
         updated_proposition = await self._get_updated_proposition(
             gks_evidence_item.proposition
