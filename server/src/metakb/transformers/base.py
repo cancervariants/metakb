@@ -24,6 +24,7 @@ from ga4gh.core.models import (
     Extension,
     MappableConcept,
     Relation,
+    iriReference,
 )
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
@@ -158,7 +159,7 @@ class TransformedData(BaseModel):
     therapies: list[MappableConcept | TherapyGroup] = []
     conditions: list[MappableConcept] = []
     methods: list[Method] = []
-    documents: list[Document] = []
+    documents: list[Document | iriReference] = []
 
 
 class Transformer(ABC):
