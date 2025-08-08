@@ -7,7 +7,7 @@ from civicpy import civic as civicpy
 
 from metakb.harvesters.base import Harvester
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class CivicHarvester(Harvester[None]):
@@ -40,3 +40,4 @@ class CivicHarvester(Harvester[None]):
             civicpy.update_cache(from_remote_cache=update_from_remote)
 
         civicpy.load_cache(self.local_cache_path, on_stale="ignore")
+        _logger.info("Harvested data from %s", self.local_cache_path)
