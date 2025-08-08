@@ -611,11 +611,6 @@ def _harvest_sources(
     for name, source_class in harvester_sources.items():
         _echo_info(f"Harvesting {name.as_print_case()}...")
         start = timer()
-
-        if name == SourceName.CIVIC and refresh_cache:
-            # Use latest civic data
-            _echo_info("(CIViCPy cache is also being updated)")
-            source = source_class(update_cache=True, update_from_remote=False)
         source = source_class()
 
         output_file = (
