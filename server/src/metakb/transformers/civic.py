@@ -28,7 +28,6 @@ from ga4gh.core.models import (
 )
 from ga4gh.va_spec.base import (
     ConditionSet,
-    Document,
     Statement,
     TherapyGroup,
     VariantDiagnosticProposition,
@@ -142,64 +141,13 @@ class CivicTransformer(Transformer):
         Updated records will store results in ``processed_data`` and ``_cache`` instance
         variables.
         """
-
-        async def _resolve_evidence(
-            ev: CivicGksEvidence, assertion_id: str
-        ) -> Statement | None:
-            """Get annotated evidence from cache or create annotated evidence
-            (and add to cache)
-
-            :param ev: CIViC GKS evidence item
-            :param assertion_id: ID of assertion that ``ev`` belongs to
-            :return: Annotated evidence, if able to resolve
-            """
-            cached_evidence = self._cache.evidence.get(ev.id)
-            if cached_evidence:
-                return cached_evidence
-
-            annotated_evidence = await self._annotate_evidence(ev)
-            if not annotated_evidence:
-                _logger.warning(
-                    "%s missing evidence item %s in evidence lines",
-                    assertion_id,
-                    ev.id,
-                )
-            return annotated_evidence
-
-        approved_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
-        for evidence_item in approved_evidence_items:
+        accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
+        for evidence_item in accepted_evidence_items:
             await self._annotate_evidence(evidence_item)
 
-        approved_assertions = civicpy.get_all_assertions(include_status=["accepted"])
-        for a in approved_assertions:
-            try:
-                gks_assertion = create_gks_record_from_assertion(a)
-            except Exception as e:
-                _logger.warning(e)
-                continue
-
-            updated_proposition = await self._get_updated_proposition(
-                gks_assertion.proposition
-            )
-            if not updated_proposition:
-                continue
-
-            for el in gks_assertion.hasEvidenceLines or []:
-                el.hasEvidenceItems = [
-                    annotated_ev
-                    for ev_item in el.hasEvidenceItems
-                    if (
-                        annotated_ev := await _resolve_evidence(
-                            ev_item, gks_assertion.id
-                        )
-                    )
-                ]
-
-            annotated_assertion = gks_assertion.__class__.__base__(
-                **gks_assertion.model_dump(exclude_none=True, exclude={"proposition"}),
-                proposition=updated_proposition,
-            )
-            self.processed_data.statements_assertions.append(annotated_assertion)
+        accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
+        for assertion in accepted_assertions:
+            await self._annotate_assertion(assertion)
 
     def _create_cache(self) -> _CivicTransformedCache:
         """Create cache for transformed records"""
@@ -229,16 +177,15 @@ class CivicTransformer(Transformer):
             gks_evidence_item.proposition
         )
         if not updated_proposition:
+            # The only case where this happens is with condition sets
+            # This will be removed in issue-194
             return None
 
         if not self.processed_data.methods:
             self.processed_data.methods.append(gks_evidence_item.specifiedBy)
 
         for document in gks_evidence_item.reportedIn or []:
-            if (
-                isinstance(document, Document)
-                and document not in self.processed_data.documents
-            ):
+            if document not in self.processed_data.documents:
                 self.processed_data.documents.append(document)
 
         annotated_gks_evidence_item = Statement(
@@ -249,6 +196,64 @@ class CivicTransformer(Transformer):
         self.processed_data.statements_evidence.append(annotated_gks_evidence_item)
         return annotated_gks_evidence_item
 
+    async def _annotate_assertion(self, assertion: civicpy.Assertion) -> None:
+        """Annotate assertion with additional information, such as normalizer info
+
+        Annotated assertion will be added to the
+        ``processed_data.statements_assertions`` instance variable.
+
+        :param assertion: CIViC assertion
+        :return: AAC Study Statement for CIViC assertion, if able to annotate
+        """
+
+        async def _resolve_evidence(
+            ev: CivicGksEvidence, assertion_id: str
+        ) -> Statement | None:
+            """Get annotated evidence from cache or create annotated evidence
+            (and add to cache)
+
+            :param ev: CIViC GKS evidence item
+            :param assertion_id: ID of assertion that ``ev`` belongs to
+            :return: Annotated evidence, if able to resolve
+            """
+            cached_evidence = self._cache.evidence.get(ev.id)
+            if cached_evidence:
+                return cached_evidence
+
+            annotated_evidence = await self._annotate_evidence(ev)
+            if not annotated_evidence:
+                _logger.warning(
+                    "%s is unable to resolve evidence item %s in evidence lines",
+                    assertion_id,
+                    ev.id,
+                )
+            return annotated_evidence
+
+        try:
+            gks_assertion = create_gks_record_from_assertion(assertion)
+        except Exception as e:
+            _logger.warning(e)
+            return
+
+        updated_proposition = await self._get_updated_proposition(
+            gks_assertion.proposition
+        )
+        if not updated_proposition:
+            return
+
+        for el in gks_assertion.hasEvidenceLines or []:
+            el.hasEvidenceItems = [
+                annotated_ev
+                for ev_item in el.hasEvidenceItems
+                if (annotated_ev := await _resolve_evidence(ev_item, gks_assertion.id))
+            ]
+
+        annotated_assertion = gks_assertion.__class__.__base__(
+            **gks_assertion.model_dump(exclude_none=True, exclude={"proposition"}),
+            proposition=updated_proposition,
+        )
+        self.processed_data.statements_assertions.append(annotated_assertion)
+
     async def _get_updated_proposition(
         self,
         proposition: VariantDiagnosticProposition
@@ -258,6 +263,7 @@ class CivicTransformer(Transformer):
         VariantDiagnosticProposition
         | VariantPrognosticProposition
         | VariantTherapeuticResponseProposition
+        | None
     ):
         """Get updated proposition
 
