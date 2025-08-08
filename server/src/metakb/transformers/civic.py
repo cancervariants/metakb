@@ -25,6 +25,7 @@ from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence, SystemUri
 from ga4gh.core.models import (
     Coding,
     MappableConcept,
+    iriReference,
 )
 from ga4gh.va_spec.base import (
     ConditionSet,
@@ -185,6 +186,9 @@ class CivicTransformer(Transformer):
             self.processed_data.methods.append(gks_evidence_item.specifiedBy)
 
         for document in gks_evidence_item.reportedIn or []:
+            if isinstance(document, iriReference):
+                document = document.root
+
             if document not in self.processed_data.documents:
                 self.processed_data.documents.append(document)
 
