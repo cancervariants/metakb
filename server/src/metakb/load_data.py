@@ -211,6 +211,7 @@ def _reformat_allele(allele: dict) -> dict:
     """
     allele_dao = {
         "id": allele["id"],
+        "digest": allele.get("digest"),
         "state_object": json.dumps(allele["state"]),
         "state": allele["state"],
         "name": allele.get("name", ""),
@@ -254,17 +255,19 @@ def _add_dac_cv(
     MERGE (allele:Variation:MolecularVariation:Allele { id: $allele.id })
     ON CREATE SET allele += {
         name: $allele.name,
+        digest: $allele.digest,
         expression_hgvs_g: $allele.expression_hgvs_g,
         expression_hgvs_c: $allele.expression_hgvs_c,
         expression_hgvs_p: $allele.expression_hgvs_p
     }
     MERGE (constr) -[:HAS_DEFINING_ALLELE]-> (allele)
-    MERGE (sl:Location:SequenceLocation { id: $sl.id })
+    MERGE (sl:Location:SequenceLocation { id: $allele.location.id })
     ON CREATE SET sl += {
-        start: $sl.start,
-        end: $sl.end,
-        refget_accession: $sl.sequenceReference.refgetAccession,
-        sequence: $sl.sequence
+        digest: $allele.location.digest,
+        start: $allele.location.start,
+        end: $allele.location.end,
+        refget_accession: $allele.location.sequenceReference.refgetAccession,
+        sequence: $allele.location.sequence
     }
     MERGE (allele) -[:HAS_LOCATION]-> (sl)
 
@@ -287,6 +290,7 @@ def _add_dac_cv(
         MERGE (member_allele:Variation:MolecularVariation:Allele { id: m.id })
         ON CREATE SET member_allele += {
             name: m.name,
+            digest: m.digest,
             expression_hgvs_g: m.expression_hgvs_g,
             expression_hgvs_c: m.expression_hgvs_c,
             expression_hgvs_p: m.expression_hgvs_p
@@ -294,6 +298,7 @@ def _add_dac_cv(
         MERGE (cv) -[:HAS_MEMBER]-> (member_allele)
         MERGE (member_sl:Location:SequenceLocation { id: m.location.id })
         ON CREATE SET member_sl += {
+            digest: m.location.digest,
             start: m.location.start,
             end:  m.location.end,
             refget_accession: m.location.sequenceReference.refgetAccession,
@@ -320,7 +325,6 @@ def _add_dac_cv(
     # catvars currently support a single constraint
     constraint = catvar["constraints"][0]
     allele = _reformat_allele(constraint["allele"])
-    seq_loc = allele["location"]
 
     constraint_id = f"{catvar['id']}:{constraint['type']}:{allele['id']}"
 
@@ -334,7 +338,6 @@ def _add_dac_cv(
         constraint_id=constraint_id,
         constr=constraint,
         allele=allele,
-        sl=seq_loc,
         members=[_reformat_allele(a) for a in catvar.get("members", [])],
     )
 

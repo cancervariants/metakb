@@ -643,6 +643,7 @@ class QueryHandler:
             id=sl_node["id"],
             sequenceReference={"refgetAccession": sl_node["refget_accession"]},
             sequence=sl_node["sequence"],
+            digest=sl_node.get("digest"),
         )
         expressions = []
         for expression_type, expression in [
@@ -654,8 +655,9 @@ class QueryHandler:
             state=state,
             location=location,
             id=allele_node["id"],
-            expressions=expressions,
-            name=allele_node.get("name"),
+            digest=allele_node.get("digest"),
+            expressions=expressions or None,
+            name=allele_node.get("name") or None,
             description=allele_node.get("description"),
             aliases=allele_node.get("aliases"),
             extensions=allele_node.get("extensions"),
