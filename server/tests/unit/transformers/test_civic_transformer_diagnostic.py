@@ -23,7 +23,7 @@ async def data(civic_cdm_data):
 
 @pytest_asyncio.fixture
 async def phenotype_assertions():
-    """Create a test fixture for assertion with phenotype data"""
+    """Create a test fixture for assertions with phenotype data"""
     phenotype_assertions = []
     for aid in [115, 93]:
         assertion = civicpy.get_assertion_by_id(aid)

@@ -341,6 +341,7 @@ class CivicTransformer(Transformer):
         self,
         entity: CivicGksTherapy
         | CivicGksDisease
+        | CivicGksPhenotype
         | CivicGksGene
         | CivicGksMolecularProfile,
         cache: dict,
