@@ -205,25 +205,22 @@ def _add_therapy(tx: ManagedTransaction, therapy_in: dict) -> None:
 def _prepare_allele(allele: dict) -> dict:
     """Reformat allele to match graph representation in preparation for upload
 
-    This is a temporary method used only for catvars, pending adoption of an OGM library
-    or some other graph input schema. At that point, something like this would be
-    rewritten for other objects and used in other entity methods.
-    :param allele: model dump of VRS allele
+    :param allele: allele object from CDM
+    :return: reformatted object to better fit DB upload
     """
     allele_to_upload = {
         "id": allele["id"],
-        "digest": allele.get("digest"),
+        "digest": allele["digest"],
         "state_object": json.dumps(allele["state"]),
         "state": allele["state"],
-        "name": allele.get("name", ""),
+        "name": allele.get(
+            "name", ""
+        ),  # must be nonnull for use in ON CREATE statement
         "location": allele["location"],
-        "expression_hgvs_g": [],
-        "expression_hgvs_p": [],
-        "expression_hgvs_c": [],
     }
     for expr in allele.get("expressions", []):
         key = f"expression_{expr['syntax'].replace('.', '_')}"
-        allele_to_upload[key].append(expr["value"])
+        allele_to_upload.setdefault(key, []).append(expr["value"])
     return allele_to_upload
 
 
@@ -234,11 +231,11 @@ def _add_dac_cv(
     """Load DefiningAlleleConstraint CatVar.
 
     Adds
-    * CategoricalVariant itself
-    * DefiningAlleleConstraint
-    * Allele which defines the constraint
-    * Member alleles of the category
-    * SequenceLocations and SequenceExpressions for each allele
+    * CategoricalVariant node itself
+    * DefiningAlleleConstraint node
+    * Allele node which defines the constraint
+    * Nodes for member alleles of the category
+    * SequenceLocation and SequenceExpression nodes for each allele
 
     :param tx: neo4j transaction
     :param catvar: model dump of catvar
