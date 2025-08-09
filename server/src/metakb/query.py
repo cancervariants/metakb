@@ -687,8 +687,23 @@ class QueryHandler:
             (cv)-[:HAS_MEMBER]->(member_allele:Allele)-[HAS_LOCATION]->(member_allele_sl:SequenceLocation),
             (member_allele)-[:HAS_STATE]->(member_allele_se:SequenceExpression)
         WITH
+            cv, defining_allele, defining_allele_sl, defining_allele_se, member_allele,
+            member_allele_sl, member_allele_se
+            WHERE member_allele IS NULL OR (
+                member_allele IS NOT NULL
+                AND member_allele_sl IS NOT NULL
+                AND member_allele_se IS NOT NULL
+            )
+
+        WITH
             cv, defining_allele, defining_allele_sl, defining_allele_se,
-            COLLECT({ allele: member_allele, location: member_allele_sl, state: member_allele_se }) AS members
+            COLLECT(CASE
+                WHEN member_allele IS NOT NULL THEN {
+                    allele: member_allele,
+                    location: member_allele_sl,
+                    state: member_allele_se
+                }
+            END) AS members
         RETURN cv, defining_allele, defining_allele_sl, defining_allele_se, members
         """
         record = self.driver.execute_query(
