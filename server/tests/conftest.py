@@ -48,11 +48,6 @@ def pytest_configure(config):
             logging.getLogger(lib).setLevel(logging.ERROR)
 
 
-@pytest.fixture(scope="session")
-def test_data_dir() -> Path:
-    return TEST_DATA_DIR
-
-
 def check_source_harvest(tmp_path: Path, harvester: Harvester):
     """Test that source harvest method works correctly"""
     harvested_data = harvester.harvest()
@@ -330,8 +325,8 @@ def civic_mpid33(civic_vid33):
             {
                 "id": "ga4gh:VA.gV7_dnvF8SQSeUdvgDFhU65zK_csc6VE",
                 "type": "Allele",
-                "digest": "gV7_dnvF8SQSeUdvgDFhU65zK_csc6VE",
                 "name": "NM_005228.4:c.2573T>G",
+                "digest": "gV7_dnvF8SQSeUdvgDFhU65zK_csc6VE",
                 "location": {
                     "id": "ga4gh:SL.LREsUiEYvOrRhwXW1rG72kXFPegvkNzI",
                     "type": "SequenceLocation",
@@ -350,12 +345,12 @@ def civic_mpid33(civic_vid33):
             {
                 "id": "ga4gh:VA.pM_eD8ha-bnAu6wJOoQTtHYIvEShSN51",
                 "name": "NC_000007.13:g.55259515T>G",
-                "type": "Allele",
                 "digest": "pM_eD8ha-bnAu6wJOoQTtHYIvEShSN51",
+                "type": "Allele",
                 "location": {
                     "id": "ga4gh:SL.7g6PIIHJ_QkKe_dRvkuCe8UtZCmPxo5B",
-                    "type": "SequenceLocation",
                     "digest": "7g6PIIHJ_QkKe_dRvkuCe8UtZCmPxo5B",
+                    "type": "SequenceLocation",
                     "sequenceReference": {
                         "type": "SequenceReference",
                         "refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul",
@@ -557,12 +552,12 @@ def civic_vid12():
     return {
         "id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
         "type": "Allele",
-        "digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
         "name": "V600E",
+        "digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
         "location": {
             "id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
-            "type": "SequenceLocation",
             "digest": "t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+            "type": "SequenceLocation",
             "sequenceReference": {
                 "refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y",
                 "type": "SequenceReference",
@@ -586,12 +581,12 @@ def braf_v600e_genomic():
     """Genomic representation for BRAF V600E"""
     return {
         "id": "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe",
-        "type": "Allele",
         "digest": "Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+        "type": "Allele",
         "location": {
             "id": "ga4gh:SL.nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
-            "type": "SequenceLocation",
             "digest": "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+            "type": "SequenceLocation",
             "sequenceReference": {
                 "type": "SequenceReference",
                 "refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul",
@@ -620,11 +615,12 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
         "name": "BRAF V600E",
         "constraints": [{"allele": civic_vid12, "type": "DefiningAlleleConstraint"}],
         "members": [
+            genomic_rep,
             {
                 "id": "ga4gh:VA.W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
                 "type": "Allele",
-                "digest": "W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
                 "name": "NM_004333.4:c.1799T>A",
+                "digest": "W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
                 "expressions": [{"syntax": "hgvs.c", "value": "NM_004333.4:c.1799T>A"}],
                 "location": {
                     "id": "ga4gh:SL.8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
@@ -640,7 +636,6 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
                 },
                 "state": {"type": "LiteralSequenceExpression", "sequence": "A"},
             },
-            genomic_rep,
         ],
         "mappings": [
             {
@@ -721,12 +716,12 @@ def civic_vid33():
     return {
         "id": "ga4gh:VA.S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ",
         "type": "Allele",
-        "digest": "S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ",
         "name": "L858R",
+        "digest": "S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ",
         "location": {
             "id": "ga4gh:SL.v0_edynH98OIu-0QPVT5anCSOriAFSDQ",
-            "type": "SequenceLocation",
             "digest": "v0_edynH98OIu-0QPVT5anCSOriAFSDQ",
+            "type": "SequenceLocation",
             "sequenceReference": {
                 "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE",
                 "type": "SequenceReference",
@@ -856,11 +851,6 @@ def civic_tid146():
                     "approval_rating": "FDA",
                     "has_indications": [
                         {
-                            "id": "hemonc:25316",
-                            "conceptType": "Disease",
-                            "name": "Non-small cell lung cancer squamous",
-                        },
-                        {
                             "id": "hemonc:642",
                             "conceptType": "Disease",
                             "name": "Non-small cell lung cancer",
@@ -874,6 +864,11 @@ def civic_tid146():
                                     "relation": "exactMatch",
                                 }
                             ],
+                        },
+                        {
+                            "id": "hemonc:25316",
+                            "conceptType": "Disease",
+                            "name": "Non-small cell lung cancer squamous",
                         },
                     ],
                 },
@@ -1424,12 +1419,12 @@ def civic_vid65():
     return {
         "id": "ga4gh:VA.nhiDwIq1klrGm3wtWO4a4BiS0jdW79Wd",
         "type": "Allele",
-        "digest": "nhiDwIq1klrGm3wtWO4a4BiS0jdW79Wd",
         "name": "D816V",
+        "digest": "nhiDwIq1klrGm3wtWO4a4BiS0jdW79Wd",
         "location": {
             "id": "ga4gh:SL.FDPpCHrDqH_pR10oxpHZ17tyGhZXVnsj",
-            "type": "SequenceLocation",
             "digest": "FDPpCHrDqH_pR10oxpHZ17tyGhZXVnsj",
+            "type": "SequenceLocation",
             "sequenceReference": {
                 "refgetAccession": "SQ.TcMVFj5kDODDWpiy1d_1-3_gOf4BYaAB",
                 "type": "SequenceReference",
@@ -1461,8 +1456,8 @@ def civic_mpid65(civic_vid65):
             {
                 "id": "ga4gh:VA.MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
                 "type": "Allele",
-                "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
                 "name": "NM_000222.2:c.2447A>T",
+                "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
                 "expressions": [{"syntax": "hgvs.c", "value": "NM_000222.2:c.2447A>T"}],
                 "location": {
                     "id": "ga4gh:SL.vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
@@ -1481,8 +1476,8 @@ def civic_mpid65(civic_vid65):
             {
                 "id": "ga4gh:VA.MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
                 "type": "Allele",
-                "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
                 "name": "ENST00000288135.5:c.2447A>T",
+                "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
                 "expressions": [
                     {"syntax": "hgvs.c", "value": "ENST00000288135.5:c.2447A>T"}
                 ],
@@ -1503,8 +1498,8 @@ def civic_mpid65(civic_vid65):
             {
                 "id": "ga4gh:VA.UQJIH49-agpdZzdyGiM4NQE_njoQy0m6",
                 "type": "Allele",
-                "digest": "UQJIH49-agpdZzdyGiM4NQE_njoQy0m6",
                 "name": "NC_000004.11:g.55599321A>T",
+                "digest": "UQJIH49-agpdZzdyGiM4NQE_njoQy0m6",
                 "expressions": [
                     {"syntax": "hgvs.g", "value": "NC_000004.11:g.55599321A>T"}
                 ],
@@ -1766,12 +1761,12 @@ def moa_vid66():
             {
                 "allele": {
                     "id": "ga4gh:VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
-                    "type": "Allele",
                     "digest": "D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
+                    "type": "Allele",
                     "location": {
                         "id": "ga4gh:SL.jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
-                        "type": "SequenceLocation",
                         "digest": "jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
+                        "type": "SequenceLocation",
                         "sequenceReference": {
                             "type": "SequenceReference",
                             "refgetAccession": "SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg",
@@ -1793,8 +1788,8 @@ def moa_vid66():
                 "type": "Allele",
                 "location": {
                     "id": "ga4gh:SL.vd9Kb9rCPWBEUZ_wbBxZyulgOAq-jk0P",
-                    "type": "SequenceLocation",
                     "digest": "vd9Kb9rCPWBEUZ_wbBxZyulgOAq-jk0P",
+                    "type": "SequenceLocation",
                     "sequenceReference": {
                         "type": "SequenceReference",
                         "refgetAccession": "SQ.KEO-4XBcm1cxeo_DIQ8_ofqGUkp4iZhI",
