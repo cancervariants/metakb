@@ -202,14 +202,15 @@ def _add_therapy(tx: ManagedTransaction, therapy_in: dict) -> None:
     tx.run(query, **therapy)
 
 
-def _reformat_allele(allele: dict) -> dict:
-    """Reformat allele to match graph representation
+def _prepare_allele(allele: dict) -> dict:
+    """Reformat allele to match graph representation in preparation for upload
 
     This is a temporary method used only for catvars, pending adoption of an OGM library
     or some other graph input schema. At that point, something like this would be
     rewritten for other objects and used in other entity methods.
+    :param allele: model dump of VRS allele
     """
-    allele_dao = {
+    allele_to_upload = {
         "id": allele["id"],
         "digest": allele.get("digest"),
         "state_object": json.dumps(allele["state"]),
@@ -222,8 +223,8 @@ def _reformat_allele(allele: dict) -> dict:
     }
     for expr in allele.get("expressions", []):
         key = f"expression_{expr['syntax'].replace('.', '_')}"
-        allele_dao[key].append(expr["value"])
-    return allele_dao
+        allele_to_upload[key].append(expr["value"])
+    return allele_to_upload
 
 
 def _add_dac_cv(
@@ -238,6 +239,9 @@ def _add_dac_cv(
     * Allele which defines the constraint
     * Member alleles of the category
     * SequenceLocations and SequenceExpressions for each allele
+
+    :param tx: neo4j transaction
+    :param catvar: model dump of catvar
     """
     cv_merge_statement = """
     MERGE (cv:Variation:CategoricalVariant:ProteinSequenceConsequence { id: $cv.id })
@@ -324,7 +328,7 @@ def _add_dac_cv(
 
     # catvars currently support a single constraint
     constraint = catvar["constraints"][0]
-    allele = _reformat_allele(constraint["allele"])
+    allele = _prepare_allele(constraint["allele"])
 
     constraint_id = f"{catvar['id']}:{constraint['type']}:{allele['id']}"
 
@@ -338,7 +342,7 @@ def _add_dac_cv(
         constraint_id=constraint_id,
         constr=constraint,
         allele=allele,
-        members=[_reformat_allele(a) for a in catvar.get("members", [])],
+        members=[_prepare_allele(a) for a in catvar.get("members", [])],
     )
 
 
@@ -356,14 +360,12 @@ def _add_categorical_variant(
     if catvar["id"] not in ids_to_load:
         return
 
-    cv = catvar.copy()  # TODO why?
-
-    if cv.get("constraints") and len(cv["constraints"]) == 1:
-        constraints = cv["constraints"]
+    if catvar.get("constraints") and len(catvar["constraints"]) == 1:
+        constraints = catvar["constraints"]
 
         if constraints[0].get("type") == "DefiningAlleleConstraint":
-            _add_dac_cv(tx, cv)
-        # handle other kinds of catvars here
+            _add_dac_cv(tx, catvar)
+        # in the future, handle other kinds of catvars here
     else:
         msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar['id']} is {catvar.get('constraints')}"
         raise ValueError(msg)

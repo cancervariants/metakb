@@ -621,29 +621,35 @@ class QueryHandler:
         return MappableConcept(**node)
 
     @staticmethod
-    def _rebuild_allele(allele_node: Node, sl_node: Node, se_node: Node) -> Allele:
-        """Reconstruct allele from graph nodes"""
-        if se_node.labels == {"SequenceExpression", "LiteralSequenceExpression"}:
-            state = LiteralSequenceExpression(sequence=se_node["sequence"])
-        elif se_node.labels == {"SequenceExpression", "ReferenceLengthExpression"}:
+    def _rebuild_allele(
+        allele_node: Node, location_node: Node, state_node: Node
+    ) -> Allele:
+        """Reconstruct allele from graph nodes
+
+        :param allele_node: allele node
+        :param location_node: location node
+        :param state_node: state node
+        :return: constructed VRS allele
+        """
+        if state_node.labels == {"SequenceExpression", "LiteralSequenceExpression"}:
+            state = LiteralSequenceExpression(sequence=state_node["sequence"])
+        elif state_node.labels == {"SequenceExpression", "ReferenceLengthExpression"}:
             state = ReferenceLengthExpression(
-                length=se_node["length"],
-                repeatSubunitLength=se_node["repeat_subunit_length"],
-                sequence=se_node["sequence"],
+                length=state_node["length"],
+                repeatSubunitLength=state_node["repeat_subunit_length"],
+                sequence=state_node["sequence"],
             )
         else:
-            msg = (
-                f"Unrecognized set of sequence expression node labels: {se_node.labels}"
-            )
+            msg = f"Unrecognized set of sequence expression node labels: {state_node.labels}"
             raise ValueError(msg)
 
         location = SequenceLocation(
-            start=sl_node["start"],
-            end=sl_node["end"],
-            id=sl_node["id"],
-            sequenceReference={"refgetAccession": sl_node["refget_accession"]},
-            sequence=sl_node["sequence"],
-            digest=sl_node.get("digest"),
+            start=location_node["start"],
+            end=location_node["end"],
+            id=location_node["id"],
+            sequenceReference={"refgetAccession": location_node["refget_accession"]},
+            sequence=location_node["sequence"],
+            digest=location_node.get("digest"),
         )
         expressions = []
         for expression_type, expression in [
