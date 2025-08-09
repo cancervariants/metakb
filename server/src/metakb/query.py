@@ -686,32 +686,27 @@ class QueryHandler:
         OPTIONAL MATCH
             (cv)-[:HAS_MEMBER]->(member_allele:Allele)-[HAS_LOCATION]->(member_allele_sl:SequenceLocation),
             (member_allele)-[:HAS_STATE]->(member_allele_se:SequenceExpression)
-        RETURN cv, defining_allele, defining_allele_sl, defining_allele_se, member_allele, member_allele_sl, member_allele_se
+        WITH
+            cv, defining_allele, defining_allele_sl, defining_allele_se,
+            COLLECT({ allele: member_allele, location: member_allele_sl, state: member_allele_se }) AS members
+        RETURN cv, defining_allele, defining_allele_sl, defining_allele_se, members
         """
-        records = self.driver.execute_query(
+        record = self.driver.execute_query(
             related_alleles_query, cv_id=node["id"]
-        ).records
-        def_allele, def_allele_sl, def_allele_se = (
-            records[0]["defining_allele"],
-            records[0]["defining_allele_sl"],
-            records[0]["defining_allele_se"],
-        )
-        if records[0].get("member_allele"):
-            member_alleles = [r["member_allele"] for r in records]
-            member_allele_sls = [r["member_allele_sl"] for r in records]
-            member_allele_ses = [r["member_allele_se"] for r in records]
-            members = [
-                self._rebuild_allele(allele, sl, se)
-                for allele, sl, se in zip(
-                    member_alleles, member_allele_sls, member_allele_ses, strict=True
-                )
-            ]
-        else:
-            members = []
+        ).records[0]
+
         constraint = DefiningAlleleConstraint(
-            allele=self._rebuild_allele(def_allele, def_allele_sl, def_allele_se)
+            allele=self._rebuild_allele(
+                record["defining_allele"],
+                record["defining_allele_sl"],
+                record["defining_allele_se"],
+            )
         )
 
+        members = [
+            self._rebuild_allele(r["allele"], r["location"], r["state"])
+            for r in record.get("members", [])
+        ]
         return CategoricalVariant(
             name=node.get("name"),
             description=node.get("description"),
