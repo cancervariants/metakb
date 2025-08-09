@@ -173,9 +173,13 @@ def check_extension_props():
         for ext in fixture_extensions:
             if ext["name"] in ext_names:
                 try:
-                    assert json.loads(node[ext["name"]]) == ext["value"]
+                    diff = DeepDiff(
+                        json.loads(node[ext["name"]]), ext["value"], ignore_order=True
+                    )
+                    assert diff == {}, (node.get("id"), ext["name"])
                 except json.decoder.JSONDecodeError:
-                    assert node[ext["name"]] == ext["value"]
+                    diff = DeepDiff(node[ext["name"]], ext["value"], ignore_order=True)
+                    assert diff == {}, (node.get("id"), ext["name"])
                 checked.add(ext["name"])
         assert checked == ext_names
 
@@ -300,6 +304,7 @@ def test_variation_rules(
     assert set(v.keys()) == {
         "id",
         "name",
+        "digest",
         "expression_hgvs_p",
         "expression_hgvs_c",
         "expression_hgvs_g",
@@ -398,7 +403,14 @@ def test_location_rules(
     # NP_005219.2:p.Val769_Asp770insAlaSerVal
     loc_digest = "7qyw-4VUk3oCczBuoaF_8vGQo19dM_mk"
     loc = get_node_by_id(f"ga4gh:SL.{loc_digest}")
-    assert set(loc.keys()) == {"id", "start", "end", "sequence", "refget_accession"}
+    assert set(loc.keys()) == {
+        "id",
+        "start",
+        "end",
+        "sequence",
+        "refget_accession",
+        "digest",
+    }
     assert loc["refget_accession"] == "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE"
     assert loc["start"] == 766
     assert loc["end"] == 769
