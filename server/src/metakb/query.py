@@ -686,6 +686,8 @@ class QueryHandler:
         OPTIONAL MATCH
             (cv)-[:HAS_MEMBER]->(member_allele:Allele)-[HAS_LOCATION]->(member_allele_sl:SequenceLocation),
             (member_allele)-[:HAS_STATE]->(member_allele_se:SequenceExpression)
+
+        // if there are member alleles, collect them into joint objects
         WITH
             cv, defining_allele, defining_allele_sl, defining_allele_se, member_allele,
             member_allele_sl, member_allele_se
@@ -694,7 +696,6 @@ class QueryHandler:
                 AND member_allele_sl IS NOT NULL
                 AND member_allele_se IS NOT NULL
             )
-
         WITH
             cv, defining_allele, defining_allele_sl, defining_allele_se,
             COLLECT(CASE
@@ -704,6 +705,7 @@ class QueryHandler:
                     state: member_allele_se
                 }
             END) AS members
+
         RETURN cv, defining_allele, defining_allele_sl, defining_allele_se, members
         """
         record = self.driver.execute_query(

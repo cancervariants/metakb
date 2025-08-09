@@ -275,11 +275,11 @@ def _add_dac_cv(
     }
     MERGE (allele) -[:HAS_LOCATION]-> (sl)
 
+    // handle different kinds of state objects
     FOREACH (_ IN CASE WHEN $allele.state.type = 'LiteralSequenceExpression' THEN [1] ELSE [] END |
         MERGE (lse:SequenceExpression:LiteralSequenceExpression { sequence: $allele.state.sequence })
         MERGE (allele)-[:HAS_STATE]->(lse)
     )
-
     FOREACH (_ IN CASE WHEN $allele.state.type = 'ReferenceLengthExpression' THEN [1] ELSE [] END |
         MERGE (rle:SequenceExpression:ReferenceLengthExpression {
             length: $allele.state.length,
@@ -309,13 +309,12 @@ def _add_dac_cv(
             sequence: m.location.sequence
         }
         MERGE (member_allele) -[:HAS_LOCATION] -> (member_sl)
+
+        // handle different kinds of state objects
         FOREACH (_ IN CASE WHEN m.state.type = 'LiteralSequenceExpression' THEN [1] ELSE [] END |
-            MERGE (member_lse:SequenceExpression:LiteralSequenceExpression {
-                sequence: m.state.sequence
-            })
+            MERGE (member_lse:SequenceExpression:LiteralSequenceExpression { sequence: m.state.sequence })
             MERGE (member_allele)-[:HAS_STATE]->(member_lse)
         )
-
         FOREACH (_ IN CASE WHEN m.state.type = 'ReferenceLengthExpression' THEN [1] ELSE [] END |
             MERGE (member_rle:SequenceExpression:ReferenceLengthExpression {
                 length: m.state.length,
