@@ -346,7 +346,9 @@ def civic_eid26_study_stmt(
 async def civic_cdm_data(normalizers, tmp_path):
     """Get CIViC CDM data."""
 
-    async def _civic_cdm_data(evidence_items, assertions, file_name):
+    async def _civic_cdm_data(
+        evidence_items, assertions, file_name=None, create_json=True
+    ):
         with (
             patch.object(
                 civicpy,
@@ -357,8 +359,12 @@ async def civic_cdm_data(normalizers, tmp_path):
         ):
             t = CivicTransformer(data_dir=tmp_path, normalizers=normalizers)
             await t.transform()
-            t.create_json(tmp_path / file_name)
-            with (tmp_path / file_name).open() as f:
-                return json.load(f)
+
+            if create_json:
+                t.create_json(tmp_path / file_name)
+                with (tmp_path / file_name).open() as f:
+                    return json.load(f)
+
+            return t
 
     return _civic_cdm_data

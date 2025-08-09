@@ -3,6 +3,8 @@
 import pytest
 import pytest_asyncio
 from civicpy import civic as civicpy
+from deepdiff import DeepDiff
+from ga4gh.va_spec.base import ConditionSet
 from tests.conftest import (
     get_civic_annotation_ext,
     get_vicc_normalizer_priority_ext,
@@ -17,6 +19,19 @@ async def data(civic_cdm_data):
     eids = [2, 74]
     evidence_items = [civicpy.get_evidence_by_id(eid) for eid in eids]
     return await civic_cdm_data(evidence_items, [], FILENAME)
+
+
+@pytest_asyncio.fixture
+async def phenotype_assertions():
+    """Create a test fixture for assertion with phenotype data"""
+    phenotype_assertions = []
+    for aid in [115, 93]:
+        assertion = civicpy.get_assertion_by_id(aid)
+        assertion.evidence_items = []
+        assertion.evidence_ids = []
+        phenotype_assertions.append(assertion)
+
+    return phenotype_assertions
 
 
 @pytest.fixture(scope="module")
@@ -670,6 +685,115 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
 
 
 @pytest.fixture(scope="module")
+def aid93_object_condition():
+    """Create test fixture for AID 93 object condition"""
+    return {
+        "conditions": [
+            {
+                "id": "civic.did:3225",
+                "conceptType": "Disease",
+                "name": "CNS Neuroblastoma With FOXR2 Activation",
+                "mappings": [
+                    {
+                        "coding": {
+                            "system": "https://disease-ontology.org/?id=",
+                            "code": "DOID:0080906",
+                        },
+                        "relation": "exactMatch",
+                    }
+                ],
+            },
+            {
+                "id": "civic.phenotype:15320",
+                "conceptType": "Phenotype",
+                "name": "Pediatric onset",
+                "mappings": [
+                    {
+                        "coding": {
+                            "system": "https://hpo.jax.org/app/browse/term/",
+                            "code": "HP:0410280",
+                        },
+                        "relation": "exactMatch",
+                    }
+                ],
+            },
+        ],
+        "membershipOperator": "AND",
+    }
+
+
+@pytest.fixture(scope="module")
+def aid115_object_condition():
+    """Create test fixture for AID 115 object condition"""
+    return {
+        "conditions": [
+            {
+                "id": "civic.did:3387",
+                "conceptType": "Disease",
+                "name": "Diffuse Astrocytoma, MYB- Or MYBL1-altered",
+                "mappings": [
+                    {
+                        "coding": {
+                            "system": "https://disease-ontology.org/?id=",
+                            "code": "DOID:0081279",
+                        },
+                        "relation": "exactMatch",
+                    }
+                ],
+            },
+            {
+                "conditions": [
+                    {
+                        "id": "civic.phenotype:8121",
+                        "conceptType": "Phenotype",
+                        "name": "Childhood onset",
+                        "mappings": [
+                            {
+                                "coding": {
+                                    "system": "https://hpo.jax.org/app/browse/term/",
+                                    "code": "HP:0011463",
+                                },
+                                "relation": "exactMatch",
+                            }
+                        ],
+                    },
+                    {
+                        "id": "civic.phenotype:2656",
+                        "conceptType": "Phenotype",
+                        "name": "Juvenile onset",
+                        "mappings": [
+                            {
+                                "coding": {
+                                    "system": "https://hpo.jax.org/app/browse/term/",
+                                    "code": "HP:0003621",
+                                },
+                                "relation": "exactMatch",
+                            }
+                        ],
+                    },
+                    {
+                        "id": "civic.phenotype:2643",
+                        "conceptType": "Phenotype",
+                        "name": "Adult onset",
+                        "mappings": [
+                            {
+                                "coding": {
+                                    "system": "https://hpo.jax.org/app/browse/term/",
+                                    "code": "HP:0003581",
+                                },
+                                "relation": "exactMatch",
+                            }
+                        ],
+                    },
+                ],
+                "membershipOperator": "OR",
+            },
+        ],
+        "membershipOperator": "AND",
+    }
+
+
+@pytest.fixture(scope="module")
 def statements(civic_eid2_study_stmt, civic_eid74_study_stmt):
     """Create test fixture for CIViC Diagnostic statements."""
     return [civic_eid2_study_stmt, civic_eid74_study_stmt]
@@ -678,3 +802,37 @@ def statements(civic_eid2_study_stmt, civic_eid74_study_stmt):
 def test_civic_cdm(data, statements, check_transformed_cdm, tmp_path):
     """Test that civic transformation works correctly."""
     check_transformed_cdm(data, statements, tmp_path / FILENAME)
+
+
+@pytest.mark.asyncio
+async def test_phenotypes(
+    civic_cdm_data,
+    phenotype_assertions,
+    aid93_object_condition,
+    aid115_object_condition,
+    normalizers,
+    tmp_path,
+):
+    """Test that civic transformation works correctly for phenotype data"""
+    t = await civic_cdm_data([], phenotype_assertions, create_json=False)
+    assertions = t.processed_data.statements_assertions
+
+    assert len(assertions) == 2
+    assert {a.id for a in assertions} == {"civic.aid:93", "civic.aid:115"}
+
+    for assertion in assertions:
+        condition = assertion.proposition.objectCondition.root
+        assert isinstance(condition, ConditionSet)
+        expected_condition = (
+            aid115_object_condition
+            if assertion.id == "civic.aid:115"
+            else aid93_object_condition
+        )
+
+        assert DeepDiff(
+            condition.model_dump(exclude_none=True),
+            expected_condition,
+            ignore_order=True,
+        )
+
+    assert len(t.processed_data.conditions) == 6

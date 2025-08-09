@@ -13,6 +13,7 @@ from civicpy.exports.civic_gks_record import (
     CivicGksEvidence,
     CivicGksGene,
     CivicGksMolecularProfile,
+    CivicGksPhenotype,
     CivicGksTherapy,
     create_gks_record_from_assertion,
 )
@@ -27,6 +28,7 @@ from ga4gh.core.models import (
     MappableConcept,
 )
 from ga4gh.va_spec.base import (
+    Condition,
     ConditionSet,
     Statement,
     TherapyGroup,
@@ -176,10 +178,6 @@ class CivicTransformer(Transformer):
         updated_proposition = await self._get_updated_proposition(
             gks_evidence_item.proposition
         )
-        if not updated_proposition:
-            # The only case where this happens is with condition sets
-            # This will be removed in issue-194
-            return None
 
         if not self.processed_data.methods:
             self.processed_data.methods.append(gks_evidence_item.specifiedBy)
@@ -295,14 +293,14 @@ class CivicTransformer(Transformer):
 
         condition = getattr(proposition, condition_key)
         if condition and isinstance(condition.root, ConditionSet):
-            # This will be added in issue-194
-            return None
-
-        updated_condition = await self._resolve_entity(
-            condition.root,
-            self._cache.conditions,
-            self.processed_data.conditions,
-        )
+            updated_condition = await self._resolve_condition_set(condition.root)
+        else:
+            updated_condition = await self._resolve_entity(
+                condition.root,
+                self._cache.conditions,
+                self.processed_data.conditions,
+            )
+        updated_condition = Condition(root=updated_condition)
 
         updated_gene = await self._resolve_entity(
             proposition.geneContextQualifier,
@@ -364,8 +362,10 @@ class CivicTransformer(Transformer):
 
         if isinstance(entity, CivicGksMolecularProfile):
             annotated_entity = await self._get_annotated_mp(entity)
-        else:
+        elif isinstance(entity, CivicGksDisease | CivicGksGene | CivicGksTherapy):
             annotated_entity = self._get_annotated_mappable_concept(entity)
+        else:
+            annotated_entity = entity
 
         if inspect.isawaitable(annotated_entity):
             annotated_entity = await annotated_entity
@@ -373,6 +373,33 @@ class CivicTransformer(Transformer):
         cache[entityt_id] = annotated_entity
         processed_list.append(annotated_entity)
         return annotated_entity
+
+    async def _resolve_condition_set(self, condition_set: ConditionSet) -> ConditionSet:
+        """Get annotated condition set
+
+        Conditions will be added to the ``processed_data.conditions`` and
+        ``_cache.conditions``
+
+        :param condition_set: Condition set
+        :return: Annotated condition set
+        """
+        updated_conditions = []
+        for condition in condition_set.conditions:
+            if isinstance(condition, CivicGksDisease | CivicGksPhenotype):
+                updated_conditions.append(
+                    await self._resolve_entity(
+                        condition,
+                        self._cache.conditions,
+                        self.processed_data.conditions,
+                    )
+                )
+            elif isinstance(condition, ConditionSet):
+                updated_conditions.append(await self._resolve_condition_set(condition))
+
+        return ConditionSet(
+            **condition_set.model_dump(exclude_none=True, exclude={"conditions"}),
+            conditions=updated_conditions,
+        )
 
     def _get_annotated_mappable_concept(
         self,
