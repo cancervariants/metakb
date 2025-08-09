@@ -352,6 +352,7 @@ class CivicTransformer(Transformer):
         Annotated entity will be added to the ``processed_list`` and ``cache``
 
         :param entity: The entity to annotate with the VICC normalizers
+            If entity is CivicGksPhenotype, will not attempt to annotate
         :param cache: Concept cache
         :param processed_list: List of processed data
         :return: Annotated entity
