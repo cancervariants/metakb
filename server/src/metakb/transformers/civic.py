@@ -353,7 +353,7 @@ class CivicTransformer(Transformer):
         :param entity: The entity to annotate with the VICC normalizers
         :param cache: Concept cache
         :param processed_list: List of processed data
-        :return: _description_
+        :return: Annotated entity
         """
         entityt_id = entity.id
         entity_obj = cache.get(entityt_id)
