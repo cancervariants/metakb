@@ -141,8 +141,6 @@ server/__pycache__/
 server/.venv/
 server/venv/
 server/.env
-# data files
-server/src/metakb/data/*
 
 # Turborepo
 .turbo/
