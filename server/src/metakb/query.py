@@ -183,6 +183,8 @@ class QueryHandler:
             default defined at class initialization if not given.
         :return: Service response object containing nested statements and service
             metadata.
+        :raise EmptySearchError: if no search params given
+        :raise PaginationParamError: if either pagination param given is negative
         """
         if not any((variation, disease, therapy, gene, statement_id)):
             raise EmptySearchError
@@ -264,7 +266,6 @@ class QueryHandler:
         :param statement_id: Statement ID query
         :param response: The response for the query
         :return: A tuple containing the normalized concepts
-        :raise EmptySearchError: if no search arguments are given
         """
         if therapy:
             response["query"]["therapy"] = therapy
@@ -918,6 +919,8 @@ class QueryHandler:
             default defined at class initialization if not given.
         :return: response object including all matching statements
         :raise ValueError: if ``start`` or ``limit`` are nonnegative
+        :raise EmptySearchError: if no search params given
+        :raise PaginationParamError: if either pagination param given is negative
         """
         if not variations:
             raise EmptySearchError
