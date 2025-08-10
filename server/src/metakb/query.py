@@ -42,6 +42,10 @@ from metakb.schemas.app import SourceName
 logger = logging.getLogger(__name__)
 
 
+class EmptySearchError(Exception):
+    """Raise for invalid search parameters (e.g. no parameters given)"""
+
+
 class PaginationParamError(Exception):
     """Raise for invalid pagination parameters."""
 
@@ -180,12 +184,14 @@ class QueryHandler:
         :return: Service response object containing nested statements and service
             metadata.
         """
+        if not any((variation, disease, therapy, gene, statement_id)):
+            raise EmptySearchError
         if start < 0:
-            msg = "Can't start from an index of less than 0."
-            raise ValueError(msg)
+            msg = f"Invalid start value: {start}. Must be nonnegative."
+            raise PaginationParamError(msg)
         if isinstance(limit, int) and limit < 0:
-            msg = "Can't limit results to less than a negative number."
-            raise ValueError(msg)
+            msg = f"Invalid limit value: {limit}. Must be nonnegative."
+            raise PaginationParamError(msg)
 
         response: dict = {
             "query": {
@@ -258,12 +264,8 @@ class QueryHandler:
         :param statement_id: Statement ID query
         :param response: The response for the query
         :return: A tuple containing the normalized concepts
+        :raise EmptySearchError: if no search arguments are given
         """
-        if not any((variation, disease, therapy, gene, statement_id)):
-            response["warnings"].append("No query parameters were provided.")
-            return None
-
-        # Find normalized terms using VICC normalizers
         if therapy:
             response["query"]["therapy"] = therapy
             normalized_therapy = self._get_normalized_therapy(
@@ -917,12 +919,14 @@ class QueryHandler:
         :return: response object including all matching statements
         :raise ValueError: if ``start`` or ``limit`` are nonnegative
         """
+        if not variations:
+            raise EmptySearchError
         if start < 0:
-            msg = "Can't start from an index of less than 0."
-            raise ValueError(msg)
+            msg = f"Invalid start value: {start}. Must be nonnegative."
+            raise PaginationParamError(msg)
         if isinstance(limit, int) and limit < 0:
-            msg = "Can't limit results to less than a negative number."
-            raise ValueError(msg)
+            msg = f"Invalid limit value: {limit}. Must be nonnegative."
+            raise PaginationParamError(msg)
 
         response = BatchSearchStatementsService(
             query=BatchSearchStatementsQuery(variations=[]),
