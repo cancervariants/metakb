@@ -1,13 +1,13 @@
-"""Provide functions for acquiring and managing a connection to the Neo4j storage backend."""
+"""Manage Neo4j database lifecycle."""
 
 import ast
 import logging
 import os
+from urllib.parse import urlparse, urlunparse
 
 import boto3
 from botocore.exceptions import ClientError
-from neomodel import config as neomodel_config
-from neomodel import db
+from neo4j import Driver, GraphDatabase, ManagedTransaction
 
 from metakb.config import config as metakb_config
 from metakb.schemas.api import ServiceEnvironment
@@ -38,7 +38,31 @@ def _get_secret() -> str:
         return get_secret_value_response["SecretString"]
 
 
-def configure_db(url: str = "") -> None:
+class Neo4jCredentialsError(Exception):
+    """Raise for invalid or unparseable Neo4j credentials"""
+
+
+def _parse_credentials(url: str) -> tuple[str, str, str]:
+    """Extract credential parameters from URL
+
+    :param url: Neo4j connection URL
+    :return: tuple containing cleaned URL, username, and password
+    """
+    parsed = urlparse(url)
+    username = parsed.username
+    password = parsed.password
+    hostname = parsed.hostname
+    port = parsed.port
+    if not all([username, password, port, hostname]):
+        _logger.error("Unable to parse Neo4j credentials from URL %s", url)
+        raise Neo4jCredentialsError
+
+    clean_netloc = f"{hostname}:{port}"
+    new_url = urlunparse(parsed._replace(netloc=clean_netloc))
+    return (new_url, username, password)
+
+
+def get_driver(url: str | None = None, initialize: bool = False) -> Driver:
     """Call global DB configuration given provided connection params, or fall back on
     environment params/defaults if not provided.
 
@@ -52,6 +76,7 @@ def configure_db(url: str = "") -> None:
     * Otherwise, fall back on default
 
     :param url: connection URL, formatted a la ``bolt://<user>:<pass>@<host>:<port #>/<table name>``
+    :param initialize: if ``True``, perform graph setup (add constraints/indexes)
     """
     if metakb_config.env == ServiceEnvironment.PROD:
         # overrule ANY provided configs and get connection url from AWS secrets
@@ -59,27 +84,48 @@ def configure_db(url: str = "") -> None:
         secret = ast.literal_eval(_get_secret())
         url = f"bolt://{secret['username']}:{secret['password']}@{secret['host']}:{secret['port']}"
     elif url:
-        pass  # use explicitly-provided params
-    elif metakb_config.db_url:
-        url = metakb_config.db_url
+        pass  # use argument if given
     else:
-        # default -- Neo4j will probably force you to reconfigure this
-        url = "bolt://neo4j:neo4j@localhost:7687"
+        url = metakb_config.db_url  # fall back on configs
+    cleaned_url, username, password = _parse_credentials(url)
+    driver = GraphDatabase.driver(cleaned_url, auth=(username, password))
+    if initialize:
+        initialize_graph(driver)
+    return driver
 
-    neomodel_config.DATABASE_URL = url
+
+_TMP_INITIALIZE_QUERY = ""
+_TMP_DROP_CONSTRAINTS_QUERY = ""
 
 
-def initialize_graph() -> None:
+def initialize_graph(driver: Driver) -> None:
     """TODO"""
-    # add constraints
-    # add indexes
-    pass
+    # TODO add indexes
+    driver.execute_query(_TMP_INITIALIZE_QUERY)
 
 
-def clear_graph(clear_schema: bool = False) -> None:
-    """Wipe all nodes/relations in DB. Optionally wipe constraints and indices.
+def clear_graph(driver: Driver, keep_constraints: bool = False) -> None:
+    """Wipe all nodes/relations (not constraints) in DB.
 
     :param driver: Neo4j driver instance
     :param keep_constraints: if ``True``, don't clear constraints
     """
-    db.clear_neo4j_database(clear_constraints=clear_schema, clear_indexes=clear_schema)
+
+    def _delete_all(tx: ManagedTransaction) -> None:
+        """Delete all nodes and relationships
+
+        :param tx: Transaction object provided to transaction functions
+        """
+        tx.run("MATCH (n) DETACH DELETE n;")
+
+    def _delete_constraints(tx: ManagedTransaction) -> None:
+        """Delete all constraints
+
+        :param tx: Transaction object provided to transaction functions
+        """
+        tx.run(_TMP_DROP_CONSTRAINTS_QUERY)
+
+    with driver.session() as session:
+        session.execute_write(_delete_all)
+        if not keep_constraints:
+            session.execute_write(_delete_constraints)
