@@ -86,7 +86,7 @@ def get_driver(url: str | None = None, initialize: bool = False) -> Driver:
     elif url:
         pass  # use argument if given
     else:
-        url = metakb_config.db_url  # fall back on configs
+        url = metakb_config.db_url
     cleaned_url, username, password = _parse_credentials(url)
     driver = GraphDatabase.driver(cleaned_url, auth=(username, password))
     if initialize:
@@ -104,7 +104,7 @@ def initialize_graph(driver: Driver) -> None:
     driver.execute_query(_TMP_INITIALIZE_QUERY)
 
 
-def clear_graph(driver: Driver, keep_constraints: bool = False) -> None:
+def clear_graph(driver: Driver, keep_constraints_indexes: bool = False) -> None:
     """Wipe all nodes/relations (not constraints) in DB.
 
     :param driver: Neo4j driver instance
@@ -127,5 +127,5 @@ def clear_graph(driver: Driver, keep_constraints: bool = False) -> None:
 
     with driver.session() as session:
         session.execute_write(_delete_all)
-        if not keep_constraints:
+        if not keep_constraints_indexes:
             session.execute_write(_delete_constraints)

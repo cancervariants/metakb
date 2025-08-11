@@ -26,7 +26,7 @@ from neo4j import Driver
 from neo4j.graph import Node
 from pydantic import ValidationError
 
-from metakb.database import get_driver
+from metakb.database.connection import get_driver
 from metakb.normalizers import (
     ViccNormalizers,
 )

@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Query, Request
 
 from metakb import __version__
-from metakb.config import config
 from metakb.log_handle import configure_logs
 from metakb.query import PaginationParamError, QueryHandler
 from metakb.schemas.api import (
@@ -24,7 +23,9 @@ from metakb.schemas.api import (
     ServiceType,
 )
 
+# load dotenv before creating configs
 load_dotenv()
+from metakb.config import config  # noqa: E402
 
 
 @asynccontextmanager

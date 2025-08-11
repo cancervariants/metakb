@@ -21,9 +21,8 @@ from dotenv import load_dotenv
 from neo4j import Driver
 
 from metakb import DATE_FMT, __version__
-from metakb.config import config
-from metakb.database import clear_graph as clear_metakb_graph
-from metakb.database import get_driver
+from metakb.database.connection import clear_graph as clear_metakb_graph
+from metakb.database.connection import get_driver
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
 from metakb.load_data import load_from_json
@@ -41,7 +40,9 @@ from metakb.transformers import CivicTransformer, MoaTransformer
 
 _logger = logging.getLogger(__name__)
 
+# load dotenv before generating configs
 load_dotenv()
+from metakb.config import config  # noqa: E402
 
 
 def _echo_info(msg: str) -> None:
