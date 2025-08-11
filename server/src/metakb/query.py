@@ -42,6 +42,10 @@ from metakb.schemas.app import SourceName
 logger = logging.getLogger(__name__)
 
 
+class EmptySearchError(Exception):
+    """Raise for invalid search parameters (e.g. no parameters given)"""
+
+
 class PaginationParamError(Exception):
     """Raise for invalid pagination parameters."""
 
@@ -179,13 +183,17 @@ class QueryHandler:
             default defined at class initialization if not given.
         :return: Service response object containing nested statements and service
             metadata.
+        :raise EmptySearchError: if no search params given
+        :raise PaginationParamError: if either pagination param given is negative
         """
+        if not any((variation, disease, therapy, gene, statement_id)):
+            raise EmptySearchError
         if start < 0:
-            msg = "Can't start from an index of less than 0."
-            raise ValueError(msg)
+            msg = f"Invalid start value: {start}. Must be nonnegative."
+            raise PaginationParamError(msg)
         if isinstance(limit, int) and limit < 0:
-            msg = "Can't limit results to less than a negative number."
-            raise ValueError(msg)
+            msg = f"Invalid limit value: {limit}. Must be nonnegative."
+            raise PaginationParamError(msg)
 
         response: dict = {
             "query": {
@@ -259,11 +267,6 @@ class QueryHandler:
         :param response: The response for the query
         :return: A tuple containing the normalized concepts
         """
-        if not any((variation, disease, therapy, gene, statement_id)):
-            response["warnings"].append("No query parameters were provided.")
-            return None
-
-        # Find normalized terms using VICC normalizers
         if therapy:
             response["query"]["therapy"] = therapy
             normalized_therapy = self._get_normalized_therapy(
@@ -916,13 +919,17 @@ class QueryHandler:
             default defined at class initialization if not given.
         :return: response object including all matching statements
         :raise ValueError: if ``start`` or ``limit`` are nonnegative
+        :raise EmptySearchError: if no search params given
+        :raise PaginationParamError: if either pagination param given is negative
         """
+        if not variations:
+            raise EmptySearchError
         if start < 0:
-            msg = "Can't start from an index of less than 0."
-            raise ValueError(msg)
+            msg = f"Invalid start value: {start}. Must be nonnegative."
+            raise PaginationParamError(msg)
         if isinstance(limit, int) and limit < 0:
-            msg = "Can't limit results to less than a negative number."
-            raise ValueError(msg)
+            msg = f"Invalid limit value: {limit}. Must be nonnegative."
+            raise PaginationParamError(msg)
 
         response = BatchSearchStatementsService(
             query=BatchSearchStatementsQuery(variations=[]),

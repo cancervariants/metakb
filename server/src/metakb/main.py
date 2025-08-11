@@ -6,20 +6,17 @@ from enum import Enum
 from typing import Annotated
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 
 from metakb import __version__
 from metakb.config import config
 from metakb.log_handle import configure_logs
-from metakb.query import PaginationParamError, QueryHandler
+from metakb.query import EmptySearchError, QueryHandler
 from metakb.schemas.api import (
     METAKB_DESCRIPTION,
-    BatchSearchStatementsQuery,
     BatchSearchStatementsService,
-    SearchStatementsQuery,
     SearchStatementsService,
     ServiceInfo,
-    ServiceMeta,
     ServiceOrganization,
     ServiceType,
 )
@@ -115,8 +112,8 @@ async def get_statements(
     therapy: Annotated[str | None, Query(description=t_description)] = None,
     gene: Annotated[str | None, Query(description=g_description)] = None,
     statement_id: Annotated[str | None, Query(description=s_description)] = None,
-    start: Annotated[int, Query(description=start_description)] = 0,
-    limit: Annotated[int | None, Query(description=limit_description)] = None,
+    start: Annotated[int, Query(description=start_description, ge=0)] = 0,
+    limit: Annotated[int | None, Query(description=limit_description, ge=0)] = None,
 ) -> SearchStatementsService:
     """Get nested statements from queried concepts that match all conditions provided.
     For example, if `variation` and `therapy` are provided, will return all statements
@@ -135,22 +132,14 @@ async def get_statements(
     """
     query = request.app.state.query
     try:
-        resp = await query.search_statements(
+        return await query.search_statements(
             variation, disease, therapy, gene, statement_id, start, limit
         )
-    except PaginationParamError:
-        resp = SearchStatementsService(
-            query=SearchStatementsQuery(
-                variation=variation,
-                disease=disease,
-                therapy=therapy,
-                gene=gene,
-                statement_id=statement_id,
-            ),
-            service_meta_=ServiceMeta(),
-            warnings=["`start` and `limit` params must both be nonnegative"],
-        )
-    return resp
+    except EmptySearchError as e:
+        raise HTTPException(
+            status_code=422,
+            detail="At least one search parameter (variation, disease, therapy, gene, statement_id) must be provided.",
+        ) from e
 
 
 _batch_descr = {
@@ -188,12 +177,9 @@ async def batch_get_statements(
     """
     query = request.app.state.query
     try:
-        response = await query.batch_search_statements(variations, start, limit)
-    except PaginationParamError:
-        response = BatchSearchStatementsService(
-            query=BatchSearchStatementsQuery(variations=[]),
-            service_meta_=ServiceMeta(),
-            warnings=["`start` and `limit` params must both be nonnegative"],
-        )
-
-    return response
+        return await query.batch_search_statements(variations, start, limit)
+    except EmptySearchError as e:
+        raise HTTPException(
+            status_code=422,
+            detail="At least one search parameter must be provided, but no variations values have been given.",
+        ) from e
