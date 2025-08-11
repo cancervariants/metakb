@@ -28,7 +28,7 @@ export const themeOptions: ThemeOptions = {
       main: '#A1D044',
     },
     header: {
-      main: '#18252B', // your custom color
+      main: '#18252B',
       contrastText: '#FFFFFF',
     },
   },
