@@ -21,10 +21,15 @@ from ga4gh.va_spec.base import (
     Statement,
     TherapyGroup,
 )
-from ga4gh.vrs.models import Expression, Variation
+from ga4gh.vrs.models import (
+    Allele,
+    Expression,
+    LiteralSequenceExpression,
+    ReferenceLengthExpression,
+    SequenceLocation,
+)
 from neo4j import Driver
 from neo4j.graph import Node
-from pydantic import ValidationError
 
 from metakb.database import get_driver
 from metakb.normalizers import (
@@ -37,7 +42,6 @@ from metakb.schemas.api import (
     SearchStatementsService,
     ServiceMeta,
 )
-from metakb.schemas.app import SourceName
 
 logger = logging.getLogger(__name__)
 
@@ -429,8 +433,16 @@ class QueryHandler:
 
         if normalized_variation:
             query += """
-            MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariant)
-            MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation {id:$v_id})
+            MATCH (s) -[:HAS_SUBJECT_VARIANT]-> (cv: CategoricalVariant)
+            MATCH (a:Allele { id: $v_id })
+            WHERE
+                EXISTS {
+                    MATCH (cv)-[:HAS_CONSTRAINT]->(con:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->(a)
+                }
+                OR
+                EXISTS {
+                    MATCH (cv)-[:HAS_MEMBER]->(a)
+                }
             """
             params["v_id"] = normalized_variation
 
@@ -488,15 +500,10 @@ class QueryHandler:
         for s in statement_nodes:
             s_id = s.get("id")
             if s_id not in added_stmts:
-                try:
-                    nested_stmt = self._get_nested_stmt(s)
-                except ValidationError:
-                    logger.exception("%s", s_id)
-                else:
-                    if nested_stmt:
-                        nested_stmts.append(nested_stmt)
-                        added_stmts.add(s_id)
-
+                nested_stmt = self._get_nested_stmt(s)
+                if nested_stmt:
+                    nested_stmts.append(nested_stmt)
+                    added_stmts.add(s_id)
         return nested_stmts
 
     def _get_nested_stmt(
@@ -559,7 +566,7 @@ class QueryHandler:
 
             if rel_type == "HAS_TUMOR_TYPE":
                 params["proposition"][condition_key] = self._get_disease(node)
-            elif rel_type == "HAS_VARIANT":
+            elif rel_type == "HAS_SUBJECT_VARIANT":
                 params["proposition"]["subjectVariant"] = self._get_cat_var(node)
             elif rel_type == "HAS_GENE_CONTEXT":
                 params["proposition"]["geneContextQualifier"] = (
@@ -616,46 +623,54 @@ class QueryHandler:
             node["extensions"] = extensions
         return MappableConcept(**node)
 
-    def _get_variations(self, cv_id: str, relation: VariationRelation) -> list[dict]:
-        """Get list of variations associated to categorical variant
+    @staticmethod
+    def _rebuild_allele(
+        allele_node: Node, location_node: Node, state_node: Node
+    ) -> Allele:
+        """Reconstruct allele from graph nodes
 
-        :param cv_id: ID for categorical variant
-        :param relation: Relation type for categorical variant and variation
-        :return: List of variations with `relation` to categorical variant. If
-            VariationRelation.HAS_MEMBERS, returns at least one variation. Otherwise,
-            returns exactly one variation
+        :param allele_node: allele node
+        :param location_node: location node
+        :param state_node: state node
+        :return: constructed VRS allele
         """
-        query = f"""
-        MATCH (v:Variation) <- [:{relation.value}] - (cv:CategoricalVariant
-            {{ id: $cv_id }})
-        MATCH (loc:Location) <- [:HAS_LOCATION] - (v)
-        RETURN v, loc
-        """
-        results = self.driver.execute_query(query, cv_id=cv_id).records
-        variations = []
-        for r in results:
-            r_params = r.data()
-            v_params = r_params["v"]
-            expressions = []
-            for variation_k, variation_v in list(v_params.items()):
-                if variation_k == "state":
-                    v_params[variation_k] = json.loads(variation_v)
-                elif variation_k.startswith("expression_hgvs_"):
-                    syntax = variation_k.split("expression_")[-1].replace("_", ".")
-                    expressions.extend(
-                        Expression(syntax=syntax, value=hgvs_expr)
-                        for hgvs_expr in variation_v
-                    )
-                    del v_params[variation_k]
-
-            v_params["expressions"] = expressions or None
-            loc_params = r_params["loc"]
-            v_params["location"] = loc_params
-            v_params["location"]["sequenceReference"] = json.loads(
-                loc_params["sequenceReference"]
+        if state_node.labels == {"SequenceExpression", "LiteralSequenceExpression"}:
+            state = LiteralSequenceExpression(sequence=state_node["sequence"])
+        elif state_node.labels == {"SequenceExpression", "ReferenceLengthExpression"}:
+            state = ReferenceLengthExpression(
+                length=state_node["length"],
+                repeatSubunitLength=state_node["repeat_subunit_length"],
+                sequence=state_node["sequence"],
             )
-            variations.append(Variation(**v_params).model_dump())
-        return variations
+        else:
+            msg = f"Unrecognized set of sequence expression node labels: {state_node.labels}"
+            raise ValueError(msg)
+
+        location = SequenceLocation(
+            start=location_node["start"],
+            end=location_node["end"],
+            id=location_node["id"],
+            sequenceReference={"refgetAccession": location_node["refget_accession"]},
+            sequence=location_node["sequence"],
+            digest=location_node.get("digest"),
+        )
+        expressions = []
+        for expression_type, expression in [
+            (k, v) for k, v in allele_node.items() if k.startswith("expression")
+        ]:
+            syntax = expression_type.split("expression_")[-1].replace("_", ".")
+            expressions.extend(Expression(syntax=syntax, value=v) for v in expression)
+        return Allele(
+            state=state,
+            location=location,
+            id=allele_node["id"],
+            digest=allele_node.get("digest"),
+            expressions=expressions or None,
+            name=allele_node.get("name") or None,
+            description=allele_node.get("description"),
+            aliases=allele_node.get("aliases"),
+            extensions=allele_node.get("extensions"),
+        )
 
     def _get_cat_var(self, node: dict) -> CategoricalVariant:
         """Get categorical variant data from a node with relationship ``HAS_VARIANT``
@@ -664,47 +679,64 @@ class QueryHandler:
         :return: Categorical Variant data
         """
         node["mappings"] = _deserialize_field(node, "mappings")
-        node["aliases"] = _deserialize_field(node, "aliases")
+        node["extensions"] = _deserialize_field(node, "extensions")
 
-        extensions = []
-        for node_key, ext_name in (
-            ("moa_representative_coordinate", "MOA representative coordinate"),
-            ("civic_representative_coordinate", "CIViC representative coordinate"),
-            # ("civic_molecular_profile_score", "CIViC Molecular Profile Score"),
-            ("variant_types", "Variant types"),
-        ):
-            ext_val = _deserialize_field(node, node_key)
-            node.pop(node_key, None)
-            if ext_val:
-                extensions.append(Extension(name=ext_name, value=ext_val))
-                if node_key.startswith(SourceName.MOA.value):
-                    # no need to check additional fields if it's a MOA variant
-                    # this could be highly brittle to changes/new sources, and any edits
-                    # to the data model or inputs should be very careful to ensure
-                    # this remains correct
-                    break
+        related_alleles_query = """
+        MATCH (cv:CategoricalVariant {id: $cv_id})
+        MATCH (cv)-[:HAS_CONSTRAINT]->(dac:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->(defining_allele:Allele)
+        MATCH (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
+        MATCH (defining_allele)-[:HAS_STATE]->(defining_allele_se:SequenceExpression)
+        OPTIONAL MATCH
+            (cv)-[:HAS_MEMBER]->(member_allele:Allele)-[HAS_LOCATION]->(member_allele_sl:SequenceLocation),
+            (member_allele)-[:HAS_STATE]->(member_allele_se:SequenceExpression)
 
-        mp_score = node.pop("civic_molecular_profile_score", None)
-        if mp_score:
-            extensions.append(
-                Extension(
-                    name="CIViC Molecular Profile Score",
-                    value=mp_score,
-                )
+        // if there are member alleles, collect them into joint objects
+        WITH
+            cv, defining_allele, defining_allele_sl, defining_allele_se, member_allele,
+            member_allele_sl, member_allele_se
+            WHERE member_allele IS NULL OR (
+                member_allele IS NOT NULL
+                AND member_allele_sl IS NOT NULL
+                AND member_allele_se IS NOT NULL
             )
+        WITH
+            cv, defining_allele, defining_allele_sl, defining_allele_se,
+            COLLECT(CASE
+                WHEN member_allele IS NOT NULL THEN {
+                    allele: member_allele,
+                    location: member_allele_sl,
+                    state: member_allele_se
+                }
+            END) AS members
 
-        node["extensions"] = extensions or None
-        node["constraints"] = [
-            DefiningAlleleConstraint(
-                allele=self._get_variations(
-                    node["id"], VariationRelation.HAS_DEFINING_CONTEXT
-                )[0]
+        RETURN cv, defining_allele, defining_allele_sl, defining_allele_se, members
+        """
+        record = self.driver.execute_query(
+            related_alleles_query, cv_id=node["id"]
+        ).records[0]
+
+        constraint = DefiningAlleleConstraint(
+            allele=self._rebuild_allele(
+                record["defining_allele"],
+                record["defining_allele_sl"],
+                record["defining_allele_se"],
             )
-        ]
-        node["members"] = self._get_variations(
-            node["id"], VariationRelation.HAS_MEMBERS
         )
-        return CategoricalVariant(**node)
+
+        members = [
+            self._rebuild_allele(r["allele"], r["location"], r["state"])
+            for r in record.get("members", [])
+        ]
+        return CategoricalVariant(
+            name=node.get("name"),
+            description=node.get("description"),
+            extensions=node.get("extensions"),
+            aliases=node.get("aliases"),
+            constraints=[constraint],
+            members=members,
+            id=node["id"],
+            mappings=node["mappings"],
+        )
 
     def _get_gene_context_qualifier(self, statement_id: str) -> MappableConcept | None:
         """Get gene context qualifier data for a statement
@@ -952,28 +984,27 @@ class QueryHandler:
         if not variation_ids:
             return response
 
-        if limit is not None or self._default_page_limit is not None:
-            query = """
-                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariant)
-                MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
-                WHERE v.id IN $v_ids
-                RETURN DISTINCT s
-                ORDER BY s.id
-                SKIP $skip
-                LIMIT $limit
-            """
-            limit = limit if limit is not None else self._default_page_limit
-        else:
-            query = """
-                MATCH (s) -[:HAS_VARIANT] -> (cv:CategoricalVariant)
-                MATCH (cv) -[:HAS_DEFINING_CONTEXT|HAS_MEMBERS] -> (v:Variation)
-                WHERE v.id IN $v_ids
-                RETURN DISTINCT s
-                ORDER BY s.id
-                SKIP $skip
-            """
+        query = """
+            MATCH (s) -[:HAS_SUBJECT_VARIANT]-> (cv:CategoricalVariant)
+            MATCH (a:Allele)
+            WHERE
+                EXISTS {
+                    MATCH (cv) -[:HAS_CONSTRAINT]-> (constr:DefiningAlleleConstraint) -[:HAS_DEFINING_ALLELE]-> (a)
+                    WHERE a.id in $a_ids
+                }
+                OR
+                EXISTS {
+                    MATCH (cv) -[:HAS_MEMBER]-> (a)
+                    WHERE a.id in $a_ids
+                }
+            RETURN DISTINCT s
+            ORDER BY s.id
+            SKIP coalesce($skip, 0)
+            LIMIT coalesce($limit, 1_000_000_000)
+        """
+        limit = limit if limit is not None else self._default_page_limit
         with self.driver.session() as session:
-            result = session.run(query, v_ids=variation_ids, skip=start, limit=limit)
+            result = session.run(query, a_ids=variation_ids, skip=start, limit=limit)
             statement_nodes = [r[0] for r in result]
         response.statement_ids = [n["id"] for n in statement_nodes]
         response.statements = self._get_nested_stmts(statement_nodes)
