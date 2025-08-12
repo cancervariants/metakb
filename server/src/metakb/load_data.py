@@ -350,7 +350,7 @@ def _add_categorical_variant(
     """Add categorical variant objects to DB.
 
     :param tx: Transaction object provided to transaction functions
-    :param categorical_variant_in: Categorical variant CDM object
+    :param catvar: Categorical variant CDM object
     :param ids_to_load: IDs to load into the DB
     """
     if catvar["id"] not in ids_to_load:
