@@ -1,33 +1,22 @@
 """Test CIViC Transformation to common data model for diagnostic."""
 
-import json
-
 import pytest
 import pytest_asyncio
+from civicpy import civic as civicpy
 from tests.conftest import (
-    TEST_TRANSFORMERS_DIR,
     get_civic_annotation_ext,
     get_vicc_normalizer_priority_ext,
 )
 
-from metakb.transformers.civic import CivicTransformer
-
-DATA_DIR = TEST_TRANSFORMERS_DIR / "diagnostic"
 FILENAME = "civic_cdm.json"
 
 
-@pytest_asyncio.fixture(scope="module")
-async def data(normalizers):
+@pytest_asyncio.fixture
+async def data(civic_cdm_data):
     """Create a CIViC Transformer test fixture."""
-    harvester_path = DATA_DIR / "civic_harvester.json"
-    c = CivicTransformer(
-        data_dir=DATA_DIR, harvester_path=harvester_path, normalizers=normalizers
-    )
-    harvested_data = c.extract_harvested_data()
-    await c.transform(harvested_data)
-    c.create_json(DATA_DIR / FILENAME)
-    with (DATA_DIR / FILENAME).open() as f:
-        return json.load(f)
+    eids = [2, 74]
+    evidence_items = [civicpy.get_evidence_by_id(eid) for eid in eids]
+    return await civic_cdm_data(evidence_items, [], FILENAME)
 
 
 @pytest.fixture(scope="module")
@@ -47,9 +36,6 @@ def civic_mpid99():
                     "digest": "Dy7soaZQU1vH9Eb93xG_pJyhu7xTDDC9",
                     "expressions": [
                         {"syntax": "hgvs.p", "value": "NP_006197.1:p.Asp842Val"},
-                        {"syntax": "hgvs.c", "value": "NM_006206.4:c.2525A>T"},
-                        {"syntax": "hgvs.c", "value": "ENST00000257290.5:c.2525A>T"},
-                        {"syntax": "hgvs.g", "value": "NC_000004.11:g.55152093A>T"},
                     ],
                     "location": {
                         "id": "ga4gh:SL.xuh2OFm73UN7_0uLySrRY2Xe3FW7KJ5h",
@@ -65,6 +51,20 @@ def civic_mpid99():
                     },
                     "state": {"type": "LiteralSequenceExpression", "sequence": "V"},
                 },
+                "relations": [
+                    {
+                        "primaryCoding": {
+                            "system": "http://www.sequenceontology.org",
+                            "code": "liftover_to",
+                        }
+                    },
+                    {
+                        "primaryCoding": {
+                            "system": "http://www.sequenceontology.org",
+                            "code": "translation_of",
+                        }
+                    },
+                ],
                 "type": "DefiningAlleleConstraint",
             }
         ],
@@ -138,7 +138,33 @@ def civic_mpid99():
                 "coding": {
                     "id": "civic.vid:99",
                     "code": "99",
-                    "system": "https://civicdb.org/variants/",
+                    "system": "https://civicdb.org/links/variant/",
+                    "extensions": [
+                        {"name": "subtype", "value": "gene_variant"},
+                        {
+                            "name": "variant_types",
+                            "value": [
+                                {
+                                    "coding": {
+                                        "id": "civic.variant_type:47",
+                                        "name": "Missense Variant",
+                                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                                        "code": "SO:0001583",
+                                    },
+                                    "relation": "exactMatch",
+                                }
+                            ],
+                        },
+                    ],
+                    "name": "D842V",
+                },
+                "relation": "exactMatch",
+            },
+            {
+                "coding": {
+                    "id": "civic.mpid:99",
+                    "system": "https://civicdb.org/links/molecular_profile/",
+                    "code": "99",
                 },
                 "relation": "exactMatch",
             },
@@ -164,14 +190,12 @@ def civic_mpid99():
                 "value": 100.5,
             },
             {
-                "name": "Variant types",
+                "name": "expressions",
                 "value": [
-                    {
-                        "id": "SO:0001583",
-                        "code": "SO:0001583",
-                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "name": "missense_variant",
-                    }
+                    {"syntax": "hgvs.p", "value": "NP_006197.1:p.Asp842Val"},
+                    {"syntax": "hgvs.c", "value": "NM_006206.4:c.2525A>T"},
+                    {"syntax": "hgvs.c", "value": "ENST00000257290.5:c.2525A>T"},
+                    {"syntax": "hgvs.g", "value": "NC_000004.11:g.55152093A>T"},
                 ],
             },
         ],
@@ -292,7 +316,10 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
         "proposition": {
             "type": "VariantDiagnosticProposition",
             "predicate": "isDiagnosticExclusionCriterionFor",
-            "alleleOriginQualifier": {"name": "somatic"},
+            "alleleOriginQualifier": {
+                "name": "somatic",
+                "extensions": [{"name": "civic_variant_origin", "value": "SOMATIC"}],
+            },
             "subjectVariant": civic_mpid99,
             "geneContextQualifier": civic_gid38,
             "objectCondition": civic_did2,
@@ -303,9 +330,10 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
                 "id": "civic.source:52",
                 "name": "Lasota et al., 2004",
                 "title": "A great majority of GISTs with PDGFRA mutations represent gastric tumors of low or no malignant potential.",
-                "pmid": 15146165,
+                "pmid": "15146165",
                 "type": "Document",
-            }
+            },
+            "https://civicdb.org/links/evidence/2",
         ],
         "type": "Statement",
     }
@@ -328,9 +356,6 @@ def civic_mpid113():
                     "digest": "hEybNB_CeKflfFhT5AKOU5i1lgZPP-aS",
                     "expressions": [
                         {"syntax": "hgvs.p", "value": "NP_065681.1:p.Met918Thr"},
-                        {"syntax": "hgvs.c", "value": "NM_020975.4:c.2753T>C"},
-                        {"syntax": "hgvs.c", "value": "ENST00000355710.3:c.2753T>C"},
-                        {"syntax": "hgvs.g", "value": "NC_000010.10:g.43617416T>C"},
                     ],
                     "location": {
                         "id": "ga4gh:SL.oIeqSfOEuqO7KNOPt8YUIa9vo1f6yMao",
@@ -346,6 +371,20 @@ def civic_mpid113():
                     },
                     "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
                 },
+                "relations": [
+                    {
+                        "primaryCoding": {
+                            "system": "http://www.sequenceontology.org",
+                            "code": "liftover_to",
+                        }
+                    },
+                    {
+                        "primaryCoding": {
+                            "system": "http://www.sequenceontology.org",
+                            "code": "translation_of",
+                        }
+                    },
+                ],
                 "type": "DefiningAlleleConstraint",
             }
         ],
@@ -419,7 +458,33 @@ def civic_mpid113():
                 "coding": {
                     "id": "civic.vid:113",
                     "code": "113",
-                    "system": "https://civicdb.org/variants/",
+                    "system": "https://civicdb.org/links/variant/",
+                    "extensions": [
+                        {"name": "subtype", "value": "gene_variant"},
+                        {
+                            "name": "variant_types",
+                            "value": [
+                                {
+                                    "coding": {
+                                        "id": "civic.variant_type:47",
+                                        "name": "Missense Variant",
+                                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                                        "code": "SO:0001583",
+                                    },
+                                    "relation": "exactMatch",
+                                }
+                            ],
+                        },
+                    ],
+                    "name": "M918T",
+                },
+                "relation": "exactMatch",
+            },
+            {
+                "coding": {
+                    "id": "civic.mpid:113",
+                    "system": "https://civicdb.org/links/molecular_profile/",
+                    "code": "113",
                 },
                 "relation": "exactMatch",
             },
@@ -445,14 +510,12 @@ def civic_mpid113():
                 "value": 86.0,
             },
             {
-                "name": "Variant types",
+                "name": "expressions",
                 "value": [
-                    {
-                        "id": "SO:0001583",
-                        "code": "SO:0001583",
-                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "name": "missense_variant",
-                    }
+                    {"syntax": "hgvs.p", "value": "NP_065681.1:p.Met918Thr"},
+                    {"syntax": "hgvs.c", "value": "NM_020975.4:c.2753T>C"},
+                    {"syntax": "hgvs.c", "value": "ENST00000355710.3:c.2753T>C"},
+                    {"syntax": "hgvs.g", "value": "NC_000010.10:g.43617416T>C"},
                 ],
             },
         ],
@@ -583,7 +646,10 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
         "proposition": {
             "type": "VariantDiagnosticProposition",
             "predicate": "isDiagnosticInclusionCriterionFor",
-            "alleleOriginQualifier": {"name": "somatic"},
+            "alleleOriginQualifier": {
+                "name": "somatic",
+                "extensions": [{"name": "civic_variant_origin", "value": "SOMATIC"}],
+            },
             "subjectVariant": civic_mpid113,
             "geneContextQualifier": civic_gid42,
             "objectCondition": civic_did15,
@@ -594,9 +660,10 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
                 "id": "civic.source:44",
                 "name": "Elisei et al., 2008",
                 "title": "Prognostic significance of somatic RET oncogene mutations in sporadic medullary thyroid cancer: a 10-year follow-up study.",
-                "pmid": 18073307,
+                "pmid": "18073307",
                 "type": "Document",
-            }
+            },
+            "https://civicdb.org/links/evidence/74",
         ],
         "type": "Statement",
     }
@@ -608,6 +675,6 @@ def statements(civic_eid2_study_stmt, civic_eid74_study_stmt):
     return [civic_eid2_study_stmt, civic_eid74_study_stmt]
 
 
-def test_civic_cdm(data, statements, check_transformed_cdm):
+def test_civic_cdm(data, statements, check_transformed_cdm, tmp_path):
     """Test that civic transformation works correctly."""
-    check_transformed_cdm(data, statements, DATA_DIR / FILENAME)
+    check_transformed_cdm(data, statements, tmp_path / FILENAME)

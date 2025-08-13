@@ -318,14 +318,20 @@ def encorafenib_extensions():
 
 
 @pytest.fixture(scope="session")
-def civic_mpid33(civic_vid33):
+def civic_mpid33(civic_vid33, psc_relations):
     """Create CIViC MPID 33"""
     return {
         "id": "civic.mpid:33",
         "type": "CategoricalVariant",
         "description": "EGFR L858R has long been recognized as a functionally significant mutation in cancer, and is one of the most prevalent single mutations in lung cancer. Best described in non-small cell lung cancer (NSCLC), the mutation seems to confer sensitivity to first and second generation TKI's like gefitinib and neratinib. NSCLC patients with this mutation treated with TKI's show increased overall and progression-free survival, as compared to chemotherapy alone. Third generation TKI's are currently in clinical trials that specifically focus on mutant forms of EGFR, a few of which have shown efficacy in treating patients that failed to respond to earlier generation TKI therapies.",
         "name": "EGFR L858R",
-        "constraints": [{"allele": civic_vid33, "type": "DefiningAlleleConstraint"}],
+        "constraints": [
+            {
+                "allele": civic_vid33,
+                "type": "DefiningAlleleConstraint",
+                "relations": psc_relations,
+            }
+        ],
         "members": [
             {
                 "id": "ga4gh:VA.gV7_dnvF8SQSeUdvgDFhU65zK_csc6VE",
@@ -410,13 +416,48 @@ def civic_mpid33(civic_vid33):
                 "coding": {
                     "id": "civic.vid:33",
                     "code": "33",
-                    "system": "https://civicdb.org/variants/",
+                    "name": "L858R",
+                    "system": "https://civicdb.org/links/variant/",
+                    "extensions": [
+                        {"name": "subtype", "value": "gene_variant"},
+                        {
+                            "name": "variant_types",
+                            "value": [
+                                {
+                                    "coding": {
+                                        "id": "civic.variant_type:47",
+                                        "name": "Missense Variant",
+                                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                                        "code": "SO:0001583",
+                                    },
+                                    "relation": "exactMatch",
+                                }
+                            ],
+                        },
+                    ],
+                },
+                "relation": "exactMatch",
+            },
+            {
+                "coding": {
+                    "id": "civic.mpid:33",
+                    "code": "33",
+                    "system": "https://civicdb.org/links/molecular_profile/",
                 },
                 "relation": "exactMatch",
             },
         ],
         "aliases": ["LEU858ARG", "L813R", "LEU813ARG"],
         "extensions": [
+            {
+                "name": "expressions",
+                "value": [
+                    {"syntax": "hgvs.p", "value": "NP_005219.2:p.Leu858Arg"},
+                    {"syntax": "hgvs.g", "value": "NC_000007.13:g.55259515T>G"},
+                    {"syntax": "hgvs.c", "value": "NM_005228.4:c.2573T>G"},
+                    {"syntax": "hgvs.c", "value": "ENST00000275493.2:c.2573T>G"},
+                ],
+            },
             {
                 "name": "CIViC representative coordinate",
                 "value": {
@@ -435,17 +476,6 @@ def civic_mpid33(civic_vid33):
                 "name": "CIViC Molecular Profile Score",
                 "value": 379.0,
             },
-            {
-                "name": "Variant types",
-                "value": [
-                    {
-                        "id": "SO:0001583",
-                        "code": "SO:0001583",
-                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "name": "missense_variant",
-                    }
-                ],
-            },
         ],
     }
 
@@ -457,7 +487,7 @@ def civic_source592():
         "id": "civic.source:1725",
         "name": "Dungo et al., 2013",
         "title": "Afatinib: first global approval.",
-        "pmid": 23982599,
+        "pmid": "23982599",
         "type": "Document",
     }
 
@@ -499,12 +529,15 @@ def civic_eid2997_study_stmt(
             "predicate": "predictsSensitivityTo",
             "objectTherapeutic": civic_tid146,
             "conditionQualifier": civic_did8,
-            "alleleOriginQualifier": {"name": "somatic"},
+            "alleleOriginQualifier": {
+                "name": "somatic",
+                "extensions": [{"name": "civic_variant_origin", "value": "SOMATIC"}],
+            },
             "geneContextQualifier": civic_gid19,
             "subjectVariant": civic_mpid33,
         },
         "specifiedBy": civic_method,
-        "reportedIn": [civic_source592],
+        "reportedIn": [civic_source592, "https://civicdb.org/links/evidence/2997"],
     }
 
 
@@ -574,9 +607,6 @@ def civic_vid12():
         "state": {"sequence": "E", "type": "LiteralSequenceExpression"},
         "expressions": [
             {"syntax": "hgvs.p", "value": "NP_004324.2:p.Val600Glu"},
-            {"syntax": "hgvs.c", "value": "NM_004333.4:c.1799T>A"},
-            {"syntax": "hgvs.g", "value": "NC_000007.13:g.140453136A>T"},
-            {"syntax": "hgvs.c", "value": "ENST00000288602.6:c.1799T>A"},
         ],
     }
 
@@ -605,7 +635,26 @@ def braf_v600e_genomic():
 
 
 @pytest.fixture(scope="session")
-def civic_mpid12(civic_vid12, braf_v600e_genomic):
+def psc_relations():
+    """Return relations for protein sequence consequence"""
+    return [
+        {
+            "primaryCoding": {
+                "code": "translation_of",
+                "system": "http://www.sequenceontology.org",
+            }
+        },
+        {
+            "primaryCoding": {
+                "code": "liftover_to",
+                "system": "http://www.sequenceontology.org",
+            }
+        },
+    ]
+
+
+@pytest.fixture(scope="session")
+def civic_mpid12(civic_vid12, braf_v600e_genomic, psc_relations):
     """Create test fixture for CIViC Molecular Profile ID 12"""
     genomic_rep = braf_v600e_genomic.copy()
     genomic_rep["name"] = "NC_000007.13:g.140453136A>T"
@@ -618,7 +667,13 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
         "type": "CategoricalVariant",
         "description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
         "name": "BRAF V600E",
-        "constraints": [{"allele": civic_vid12, "type": "DefiningAlleleConstraint"}],
+        "constraints": [
+            {
+                "allele": civic_vid12,
+                "type": "DefiningAlleleConstraint",
+                "relations": psc_relations,
+            }
+        ],
         "members": [
             genomic_rep,
             {
@@ -675,13 +730,48 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
                 "coding": {
                     "id": "civic.vid:12",
                     "code": "12",
-                    "system": "https://civicdb.org/variants/",
+                    "name": "V600E",
+                    "system": "https://civicdb.org/links/variant/",
+                    "extensions": [
+                        {"name": "subtype", "value": "gene_variant"},
+                        {
+                            "name": "variant_types",
+                            "value": [
+                                {
+                                    "coding": {
+                                        "id": "civic.variant_type:47",
+                                        "name": "Missense Variant",
+                                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                                        "code": "SO:0001583",
+                                    },
+                                    "relation": "exactMatch",
+                                }
+                            ],
+                        },
+                    ],
+                },
+                "relation": "exactMatch",
+            },
+            {
+                "coding": {
+                    "id": "civic.mpid:12",
+                    "code": "12",
+                    "system": "https://civicdb.org/links/molecular_profile/",
                 },
                 "relation": "exactMatch",
             },
         ],
         "aliases": ["VAL600GLU", "V640E", "VAL640GLU"],
         "extensions": [
+            {
+                "name": "expressions",
+                "value": [
+                    {"syntax": "hgvs.p", "value": "NP_004324.2:p.Val600Glu"},
+                    {"syntax": "hgvs.c", "value": "NM_004333.4:c.1799T>A"},
+                    {"syntax": "hgvs.g", "value": "NC_000007.13:g.140453136A>T"},
+                    {"syntax": "hgvs.c", "value": "ENST00000288602.6:c.1799T>A"},
+                ],
+            },
             {
                 "name": "CIViC representative coordinate",
                 "value": {
@@ -698,18 +788,7 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic):
             },
             {
                 "name": "CIViC Molecular Profile Score",
-                "value": 1433.5,
-            },
-            {
-                "name": "Variant types",
-                "value": [
-                    {
-                        "id": "SO:0001583",
-                        "code": "SO:0001583",
-                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "name": "missense_variant",
-                    }
-                ],
+                "value": 1378.5,
             },
         ],
     }
@@ -738,9 +817,6 @@ def civic_vid33():
         "state": {"sequence": "R", "type": "LiteralSequenceExpression"},
         "expressions": [
             {"syntax": "hgvs.p", "value": "NP_005219.2:p.Leu858Arg"},
-            {"syntax": "hgvs.g", "value": "NC_000007.13:g.55259515T>G"},
-            {"syntax": "hgvs.c", "value": "NM_005228.4:c.2573T>G"},
-            {"syntax": "hgvs.c", "value": "ENST00000275493.2:c.2573T>G"},
         ],
     }
 
@@ -926,17 +1002,6 @@ def civic_did8():
 
 
 @pytest.fixture(scope="session")
-def pmid_23982599():
-    """Create test fixture for CIViC EID2997 document."""
-    return {
-        "id": "pmid:23982599",
-        "type": "Document",
-        "name": "Dungo et al., 2013",
-        "description": "Afatinib: first global approval.",
-    }
-
-
-@pytest.fixture(scope="session")
 def civic_tid28():
     """Create test fixture for CIViC therapy ID 28"""
     return {
@@ -1070,7 +1135,6 @@ def civic_tid16(cetuximab_extensions, cetuximab_normalizer_mappings):
 def civic_tsg(civic_tid16, civic_tid28):
     """Create test fixture for CIViC therapy subsitutes"""
     return {
-        "id": "civic.tsgid:7IxyhCwID0QYyVCP2xuIyYvwwu-S_HrZ",
         "therapies": [civic_tid16, civic_tid28],
         "membershipOperator": "OR",
     }
@@ -1109,7 +1173,6 @@ def civic_tid483(encorafenib_extensions, encorafenib_normalizer_mappings):
 def civic_ct(civic_tid483, civic_tid16):
     """Create test fixture for CIViC combination therapy"""
     return {
-        "id": "civic.ctid:P1PY89shAjemg7jquQ0V9pg1VnYnkPeK",
         "therapies": [civic_tid483, civic_tid16],
         "membershipOperator": "AND",
     }
@@ -1202,7 +1265,10 @@ def civic_eid816_study_stmt(
             "subjectVariant": civic_mpid12,
             "objectTherapeutic": civic_tsg,
             "conditionQualifier": civic_did11,
-            "alleleOriginQualifier": {"name": "somatic"},
+            "alleleOriginQualifier": {
+                "name": "somatic",
+                "extensions": [{"name": "civic_variant_origin", "value": "SOMATIC"}],
+            },
             "geneContextQualifier": civic_gid5,
         },
         "specifiedBy": civic_method,
@@ -1211,9 +1277,10 @@ def civic_eid816_study_stmt(
                 "id": "civic.source:548",
                 "name": "Rowland et al., 2015",
                 "title": "Meta-analysis of BRAF mutation as a predictive biomarker of benefit from anti-EGFR monoclonal antibody therapy for RAS wild-type metastatic colorectal cancer.",
-                "pmid": 25989278,
+                "pmid": "25989278",
                 "type": "Document",
-            }
+            },
+            "https://civicdb.org/links/evidence/816",
         ],
     }
 
@@ -1255,7 +1322,10 @@ def civic_eid9851_study_stmt(
             "subjectVariant": civic_mpid12,
             "objectTherapeutic": civic_ct,
             "conditionQualifier": civic_did11,
-            "alleleOriginQualifier": {"name": "somatic"},
+            "alleleOriginQualifier": {
+                "name": "somatic",
+                "extensions": [{"name": "civic_variant_origin", "value": "SOMATIC"}],
+            },
             "geneContextQualifier": civic_gid5,
         },
         "specifiedBy": civic_method,
@@ -1264,29 +1334,11 @@ def civic_eid9851_study_stmt(
                 "id": "civic.source:3025",
                 "name": "Kopetz et al., 2019",
                 "title": "Encorafenib, Binimetinib, and Cetuximab in BRAF V600E-Mutated Colorectal Cancer.",
-                "pmid": 31566309,
+                "pmid": "31566309",
                 "type": "Document",
-            }
+            },
+            "https://civicdb.org/links/evidence/9851",
         ],
-    }
-
-
-@pytest.fixture(scope="session")
-def civic_eid1409_statement():
-    """Create test fixture for CIViC Evidence 1406."""
-    return {
-        "id": "civic.eid:1409",
-        "description": "Phase 3 randomized clinical trial comparing vemurafenib with dacarbazine in 675 patients with previously untreated, metastatic melanoma with the BRAF V600E mutation. At 6 months, overall survival was 84% (95% confidence interval [CI], 78 to 89) in the vemurafenib group and 64% (95% CI, 56 to 73) in the dacarbazine group. A relative reduction of 63% in the risk of death and of 74% in the risk of either death or disease progression was observed with vemurafenib as compared with dacarbazine (P<0.001 for both comparisons).",
-        "direction": "supports",
-        "evidence_level": "civic.evidence_level:A",
-        "proposition": "proposition:wsW_PurZodw_qHg1Iw8iAR1CUQte1CLA",
-        "variation_origin": "somatic",
-        "variation_descriptor": "civic.vid:12",
-        "therapy_descriptor": "civic.tid:4",
-        "disease_descriptor": "civic.did:206",
-        "method": "method:1",
-        "supported_by": ["pmid:21639808"],
-        "type": "Statement",
     }
 
 
@@ -1309,7 +1361,10 @@ def civic_aid6_statement(
             "type": "VariantTherapeuticResponseProposition",
             "subjectVariant": civic_mpid33,
             "geneContextQualifier": civic_gid19,
-            "alleleOriginQualifier": {"name": "somatic"},
+            "alleleOriginQualifier": {
+                "name": "somatic",
+                "extensions": [{"name": "civic_variant_origin", "value": "SOMATIC"}],
+            },
             "predicate": "predictsSensitivityTo",
             "objectTherapeutic": civic_tid146,
             "conditionQualifier": civic_did8,
@@ -1320,24 +1375,6 @@ def civic_aid6_statement(
                 "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
                 "code": "Level A",
             },
-            "mappings": [
-                {
-                    "coding": {
-                        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
-                        "code": "A",
-                        "name": "Validated association",
-                    },
-                    "relation": "exactMatch",
-                },
-                {
-                    "coding": {
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000001",
-                        "name": "authoritative evidence",
-                    },
-                    "relation": "exactMatch",
-                },
-            ],
         },
         "classification": {
             "primaryCoding": {
@@ -1350,71 +1387,15 @@ def civic_aid6_statement(
                 "type": "EvidenceLine",
                 "hasEvidenceItems": [civic_eid2997_study_stmt],
                 "directionOfEvidenceProvided": "supports",
+                "strengthOfEvidenceProvided": {
+                    "primaryCoding": {
+                        "code": "Level A",
+                        "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+                    },
+                },
             }
         ],
-    }
-
-
-@pytest.fixture(scope="session")
-def civic_aid6_document():
-    """Create test fixture for civic aid6 document."""
-    return {
-        "id": "document:9WsQBGXOmTFRXBUanTaIec8Gvgg8bsMA",
-        "document_id": "https://www.nccn.org/professionals/physician_gls/default.aspx",
-        "name": "NCCN Guidelines: Non-Small Cell Lung Cancer version 3.2018",
-        "type": "Document",
-    }
-
-
-@pytest.fixture(scope="session")
-def civic_eid26_study_stmt(
-    civic_mpid65, civic_gid29, civic_did3, civic_method, pmid_16384925
-):
-    """Create a test fixture for CIViC EID26 study statement."""
-    return {
-        "id": "civic.eid:26",
-        "description": "In acute myloid leukemia patients, D816 mutation is associated with earlier relapse and poorer prognosis than wildtype KIT.",
-        "direction": "supports",
-        "strength": {
-            "name": "Clinical evidence",
-            "primaryCoding": {
-                "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
-                "code": "B",
-            },
-            "mappings": [
-                {
-                    "coding": {
-                        "system": "https://go.osu.edu/evidence-codes",
-                        "code": "e000005",
-                        "name": "clinical cohort evidence",
-                    },
-                    "relation": "exactMatch",
-                }
-            ],
-        },
-        "proposition": {
-            "type": "VariantPrognosticProposition",
-            "predicate": "associatedWithWorseOutcomeFor",
-            "alleleOriginQualifier": {"name": "somatic"},
-            "subjectVariant": civic_mpid65,
-            "geneContextQualifier": civic_gid29,
-            "objectCondition": civic_did3,
-        },
-        "specifiedBy": civic_method,
-        "reportedIn": [pmid_16384925],
-        "type": "Statement",
-    }
-
-
-@pytest.fixture(scope="session")
-def civic_eid26_proposition():
-    """Create a test fixture for CIViC EID26 proposition."""
-    return {
-        "id": "proposition:_HXqJtIo6MSmwagQUSOot4wdKE7O4DyN",
-        "predicate": "is_prognostic_of_worse_outcome_for",
-        "subject": "ga4gh:VA.QSLb0bR-CRIFfKIENdHhcuUZwW3IS1aP",
-        "object_qualifier": "ncit:C3171",
-        "type": "prognostic_proposition",
+        "reportedIn": ["https://civicdb.org/links/assertion/6"],
     }
 
 
@@ -1441,272 +1422,7 @@ def civic_vid65():
         "state": {"sequence": "V", "type": "LiteralSequenceExpression"},
         "expressions": [
             {"syntax": "hgvs.p", "value": "NP_000213.1:p.Asp816Val"},
-            {"syntax": "hgvs.c", "value": "NM_000222.2:c.2447A>T"},
-            {"syntax": "hgvs.c", "value": "ENST00000288135.5:c.2447A>T"},
-            {"syntax": "hgvs.g", "value": "NC_000004.11:g.55599321A>T"},
         ],
-    }
-
-
-@pytest.fixture(scope="session")
-def civic_mpid65(civic_vid65):
-    """Create a test fixture for CIViC VID65."""
-    return {
-        "id": "civic.mpid:65",
-        "type": "CategoricalVariant",
-        "description": "KIT D816V is a mutation observed in acute myeloid leukemia (AML). This variant has been linked to poorer prognosis and worse outcome in AML patients.",
-        "name": "KIT D816V",
-        "constraints": [{"allele": civic_vid65, "type": "DefiningAlleleConstraint"}],
-        "members": [
-            {
-                "id": "ga4gh:VA.MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
-                "type": "Allele",
-                "name": "NM_000222.2:c.2447A>T",
-                "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
-                "expressions": [{"syntax": "hgvs.c", "value": "NM_000222.2:c.2447A>T"}],
-                "location": {
-                    "id": "ga4gh:SL.vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
-                    "type": "SequenceLocation",
-                    "digest": "vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
-                    "sequenceReference": {
-                        "type": "SequenceReference",
-                        "refgetAccession": "SQ.5UOthuwxqhwdsrbA4bVonC2ps_Njx1gh",
-                    },
-                    "start": 2504,
-                    "end": 2505,
-                    "sequence": "A",
-                },
-                "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
-            },
-            {
-                "id": "ga4gh:VA.MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
-                "type": "Allele",
-                "name": "ENST00000288135.5:c.2447A>T",
-                "digest": "MQQ62X5KMlj9gDKjOkE1lIZjAY9k_7g4",
-                "expressions": [
-                    {"syntax": "hgvs.c", "value": "ENST00000288135.5:c.2447A>T"}
-                ],
-                "location": {
-                    "id": "ga4gh:SL.vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
-                    "type": "SequenceLocation",
-                    "digest": "vfWDYUfL2sqohE0wtojKCZ6PlLAPPvjl",
-                    "sequenceReference": {
-                        "type": "SequenceReference",
-                        "refgetAccession": "SQ.5UOthuwxqhwdsrbA4bVonC2ps_Njx1gh",
-                    },
-                    "start": 2504,
-                    "end": 2505,
-                    "sequence": "A",
-                },
-                "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
-            },
-            {
-                "id": "ga4gh:VA.UQJIH49-agpdZzdyGiM4NQE_njoQy0m6",
-                "type": "Allele",
-                "name": "NC_000004.11:g.55599321A>T",
-                "digest": "UQJIH49-agpdZzdyGiM4NQE_njoQy0m6",
-                "expressions": [
-                    {"syntax": "hgvs.g", "value": "NC_000004.11:g.55599321A>T"}
-                ],
-                "location": {
-                    "id": "ga4gh:SL.aAqDEdLIeXIQOX6LaJaaiOuC7lgo_DZk",
-                    "type": "SequenceLocation",
-                    "digest": "aAqDEdLIeXIQOX6LaJaaiOuC7lgo_DZk",
-                    "sequenceReference": {
-                        "type": "SequenceReference",
-                        "refgetAccession": "SQ.HxuclGHh0XCDuF8x6yQrpHUBL7ZntAHc",
-                    },
-                    "start": 54733154,
-                    "end": 54733155,
-                    "sequence": "A",
-                },
-                "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
-            },
-        ],
-        "mappings": [
-            {
-                "coding": {
-                    "code": "CA123513",
-                    "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
-                },
-                "relation": "relatedMatch",
-            },
-            {
-                "coding": {
-                    "code": "13852",
-                    "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
-                },
-                "relation": "relatedMatch",
-            },
-            {
-                "coding": {
-                    "code": "rs121913507",
-                    "system": "https://www.ncbi.nlm.nih.gov/snp/",
-                },
-                "relation": "relatedMatch",
-            },
-            {
-                "coding": {
-                    "id": "civic.vid:65",
-                    "code": "65",
-                    "system": "https://civicdb.org/variants/",
-                },
-                "relation": "exactMatch",
-            },
-        ],
-        "aliases": ["ASP816VAL"],
-        "extensions": [
-            {
-                "name": "CIViC representative coordinate",
-                "value": {
-                    "chromosome": "4",
-                    "start": 55599321,
-                    "stop": 55599321,
-                    "reference_bases": "A",
-                    "variant_bases": "T",
-                    "representative_transcript": "ENST00000288135.5",
-                    "ensembl_version": 75,
-                    "reference_build": "GRCh37",
-                    "type": "coordinates",
-                },
-            },
-            {
-                "name": "CIViC Molecular Profile Score",
-                "value": 67.0,
-            },
-            {
-                "name": "Variant types",
-                "value": [
-                    {
-                        "id": "SO:0001583",
-                        "code": "SO:0001583",
-                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "name": "missense_variant",
-                    }
-                ],
-            },
-        ],
-    }
-
-
-@pytest.fixture(scope="session")
-def civic_did3():
-    """Create test fixture for CIViC DID3."""
-    return {
-        "id": "civic.did:3",
-        "conceptType": "Disease",
-        "name": "Acute Myeloid Leukemia",
-        "mappings": [
-            {
-                "coding": {
-                    "id": "DOID:9119",
-                    "system": "https://disease-ontology.org/?id=",
-                    "code": "DOID:9119",
-                },
-                "relation": "exactMatch",
-                "extensions": [
-                    get_civic_annotation_ext(),
-                    get_vicc_normalizer_priority_ext(is_priority=False),
-                ],
-            },
-            {
-                "coding": {
-                    "name": "Acute Myeloid Leukemia",
-                    "id": "ncit:C3171",
-                    "code": "C3171",
-                    "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                },
-                "relation": "exactMatch",
-                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
-            },
-            {
-                "coding": {
-                    "id": "MONDO_0018874",
-                    "code": "MONDO:0018874",
-                    "system": "https://purl.obolibrary.org/obo/",
-                },
-                "relation": "exactMatch",
-                "extensions": [get_vicc_normalizer_priority_ext(is_priority=False)],
-            },
-        ],
-    }
-
-
-@pytest.fixture(scope="session")
-def civic_gid29():
-    """Create test fixture for CIViC GID29."""
-    return {
-        "id": "civic.gid:29",
-        "conceptType": "Gene",
-        "name": "KIT",
-        "extensions": [
-            {
-                "name": "description",
-                "value": "c-KIT activation has been shown to have oncogenic activity in gastrointestinal stromal tumors (GISTs), melanomas, lung cancer, and other tumor types. The targeted therapeutics nilotinib and sunitinib have shown efficacy in treating KIT overactive patients, and are in late-stage trials in melanoma and GIST. KIT overactivity can be the result of many genomic events from genomic amplification to overexpression to missense mutations. Missense mutations have been shown to be key players in mediating clinical response and acquired resistance in patients being treated with these targeted therapeutics.",
-            },
-            {
-                "name": "aliases",
-                "value": ["MASTC", "KIT", "SCFR", "PBT", "CD117", "C-Kit"],
-            },
-        ],
-        "mappings": [
-            {
-                "coding": {
-                    "system": "https://www.ncbi.nlm.nih.gov/gene/",
-                    "id": "ncbigene:3815",
-                    "code": "3815",
-                },
-                "relation": "exactMatch",
-                "extensions": [
-                    get_vicc_normalizer_priority_ext(is_priority=False),
-                    get_civic_annotation_ext(),
-                ],
-            },
-            {
-                "coding": {
-                    "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
-                    "id": "hgnc:6342",
-                    "code": "HGNC:6342",
-                    "name": "KIT",
-                },
-                "relation": "exactMatch",
-                "extensions": [get_vicc_normalizer_priority_ext(is_priority=True)],
-            },
-        ],
-    }
-
-
-@pytest.fixture(scope="session")
-def pmid_15146165():
-    """Create a test fixture for PMID 15146165."""
-    return {
-        "id": "pmid:15146165",
-        "name": "Lasota et al., 2004, Lab. Invest.",
-        "type": "Document",
-        "description": "A great majority of GISTs with PDGFRA mutations represent gastric tumors of low or no malignant potential.",
-    }
-
-
-@pytest.fixture(scope="session")
-def pmid_18073307():
-    """Create a test fixture for PMID 18073307."""
-    return {
-        "type": "Document",
-        "id": "pmid:18073307",
-        "name": "Elisei et al., 2008, J. Clin. Endocrinol. Metab.",
-        "description": "Prognostic significance of somatic RET oncogene mutations in sporadic medullary thyroid cancer: a 10-year follow-up study.",
-    }
-
-
-@pytest.fixture(scope="session")
-def pmid_16384925():
-    """Create a test fixture for PMID 16384925."""
-    return {
-        "id": "civic.source:69",
-        "name": "Cairoli et al., 2006",
-        "title": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study.",
-        "pmid": 16384925,
-        "type": "Document",
     }
 
 
@@ -1746,7 +1462,10 @@ def moa_aid66_study_stmt(
             "subjectVariant": moa_vid66,
             "objectTherapeutic": moa_imatinib,
             "conditionQualifier": moa_chronic_myelogenous_leukemia,
-            "alleleOriginQualifier": {"name": "somatic"},
+            "alleleOriginQualifier": {
+                "name": "somatic",
+                "extensions": [{"name": "civic_variant_origin", "value": "SOMATIC"}],
+            },
             "geneContextQualifier": moa_abl1,
         },
         "specifiedBy": moa_method,
@@ -2097,13 +1816,19 @@ def civic_method():
         "id": "civic.method:2019",
         "name": "CIViC Curation SOP (2019)",
         "reportedIn": {
+            "id": "pmid:31779674",
             "name": "Danos et al., 2019, Genome Med.",
             "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
             "doi": "10.1186/s13073-019-0687-x",
-            "pmid": 31779674,
+            "pmid": "31779674",
+            "aliases": ["CIViC curation SOP"],
+            "urls": [
+                "https://doi.org/10.1186/s13073-019-0687-x",
+                "https://pubmed.ncbi.nlm.nih.gov/31779674/",
+            ],
             "type": "Document",
         },
-        "methodType": "variant curation standard operating procedure",
+        "methodType": "curation",
         "type": "Method",
     }
 
@@ -2126,35 +1851,9 @@ def moa_method():
 
 
 @pytest.fixture(scope="session")
-def method3():
-    """Create test fixture for method:3."""
-    return {
-        "id": "method:3",
-        "name": "Standards and guidelines for the interpretation of sequence variants: a joint consensus recommendation of the American College of Medical Genetics and Genomics and the Association for Molecular Pathology",
-        "url": "https://pubmed.ncbi.nlm.nih.gov/25741868/",
-        "version": {"year": 2015, "month": 5},
-        "type": "Method",
-        "authors": "Richards S, Aziz N, Bale S, et al.",
-    }
-
-
-@pytest.fixture(scope="session")
-def method4():
-    """Create a test fixture for MOA method:4."""
-    return {
-        "id": "method:4",
-        "name": "Clinical interpretation of integrative molecular profiles to guide precision cancer medicine",
-        "url": "https://www.biorxiv.org/content/10.1101/2020.09.22.308833v1",
-        "type": "Method",
-        "version": {"year": 2020, "month": 9, "day": 22},
-        "authors": "Reardon, B., Moore, N.D., Moore, N. et al.",
-    }
-
-
-@pytest.fixture(scope="session")
-def civic_methods(civic_method, moa_method, method3):
+def civic_methods(civic_method, moa_method):
     """Create test fixture for methods."""
-    return [civic_method, moa_method, method3]
+    return [civic_method, moa_method]
 
 
 @pytest.fixture(scope="session")
@@ -2177,11 +1876,9 @@ def assertion_checks():
 
     :param actual_data: List of actual data
     :param test_data: List of expected data
-    :param is_cdm: Whether checks are for transformers (CDM) or query handler.
-        CDM have extra fields that are not exposed to the query handler
     """
 
-    def _check(actual_data: list, test_data: list, is_cdm: bool = False) -> None:
+    def _check(actual_data: list, test_data: list) -> None:
         assert len(actual_data) == len(test_data)
         for expected in test_data:
             found_match = False
@@ -2208,7 +1905,6 @@ def check_transformed_cdm(assertion_checks):
         assertion_checks(
             data["statements_evidence"] + data["statements_assertions"],
             statements,
-            is_cdm=True,
         )
         transformed_file.unlink()
 
