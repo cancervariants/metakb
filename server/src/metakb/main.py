@@ -21,8 +21,6 @@ from metakb.schemas.api import (
     ServiceType,
 )
 
-load_dotenv()
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
@@ -31,6 +29,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     :param app: FastAPI app instance
     :return: async context handler
     """
+    load_dotenv()
     configure_logs()
     query = QueryHandler()
     app.state.query = query
