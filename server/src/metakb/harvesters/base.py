@@ -5,6 +5,7 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel
 
@@ -12,6 +13,9 @@ from metakb import DATE_FMT
 from metakb.config import get_config
 
 logger = logging.getLogger(__name__)
+
+
+T = TypeVar("T")
 
 
 class _HarvestedData(BaseModel):
@@ -42,14 +46,14 @@ class _HarvestedData(BaseModel):
         raise ValueError(msg)
 
 
-class Harvester(ABC):
+class Harvester(ABC, Generic[T]):
     """A base class for content harvesters."""
 
     @abstractmethod
-    def harvest(self) -> _HarvestedData:
+    def harvest(self) -> T:
         """Get source harvester data
 
-        :return: Harvested data
+        :return: Harvested data, if applicable
         """
 
     def save_harvested_data_to_file(
