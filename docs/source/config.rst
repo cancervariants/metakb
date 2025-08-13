@@ -3,6 +3,13 @@
 Configuration
 -------------
 
+.. _metakb_db_url:
+
+MetaKB DB URL
+=============
+
+Use the environment variable ``METAKB_DB_URL`` to configure a connection to Neo4j, in the format of ``"<protocol>://<username>:<password>@<host>"``. The default value is ``bolt://neo4j:neo4j@localhost:7687``.
+
 .. _config-data-directory:
 
 Data directory
