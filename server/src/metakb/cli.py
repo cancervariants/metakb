@@ -611,21 +611,20 @@ def _harvest_sources(
     for name, source_class in harvester_sources.items():
         _echo_info(f"Harvesting {name.as_print_case()}...")
         start = timer()
-
-        if name == SourceName.CIVIC and refresh_cache:
-            # Use latest civic data
-            _echo_info("(CIViCPy cache is also being updated)")
-            source = source_class(update_cache=True, update_from_remote=False)
-        else:
-            source = source_class()
+        source = source_class()
 
         output_file = (
             output_directory / f"{name.value}_harvester_{_current_date_string()}.json"
             if output_directory
             else None
         )
-        harvested_data = source.harvest()
-        source.save_harvested_data_to_file(harvested_data, output_file)
+        if name == SourceName.CIVIC and refresh_cache:
+            source.harvest(update_cache=True, update_from_remote=False)
+        else:
+            harvested_data = source.harvest()
+
+            if name == SourceName.MOA:
+                source.save_harvested_data_to_file(harvested_data, output_file)
         end = timer()
         _echo_info(f"{name.as_print_case()} harvest finished in {(end - start):.2f} s")
 
@@ -658,8 +657,11 @@ async def _transform_source(
     transformer: CivicTransformer | MoaTransformer = transformer_sources[source](
         normalizers=normalizer_handler, harvester_path=harvest_file
     )
-    harvested_data = transformer.extract_harvested_data()
-    await transformer.transform(harvested_data)
+    if source == SourceName.MOA:
+        harvested_data = transformer.extract_harvested_data()
+        await transformer.transform(harvested_data)
+    else:
+        await transformer.transform()
     end = timer()
     _echo_info(
         f"{source.as_print_case()} transformation finished in {(end - start):.2f} s."

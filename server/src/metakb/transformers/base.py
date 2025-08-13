@@ -16,6 +16,7 @@ from disease.schemas import (
     NormalizationService as NormalizedDisease,
 )
 from ga4gh.cat_vrs.models import CategoricalVariant
+from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
 from ga4gh.core import sha512t24u
 from ga4gh.core.models import (
     Coding,
@@ -23,6 +24,7 @@ from ga4gh.core.models import (
     Extension,
     MappableConcept,
     Relation,
+    iriReference,
 )
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
@@ -31,7 +33,6 @@ from ga4gh.va_spec.aac_2017 import (
 )
 from ga4gh.va_spec.base import (
     Document,
-    MembershipOperator,
     Method,
     Statement,
     TherapyGroup,
@@ -43,7 +44,7 @@ from gene.schemas import (
 from gene.schemas import (
     NormalizeService as NormalizedGene,
 )
-from pydantic import BaseModel, Field, StrictStr, ValidationError
+from pydantic import BaseModel, Field, StrictStr
 from therapy.schemas import (
     NamespacePrefix as TherapyNamespacePrefix,
 )
@@ -57,7 +58,6 @@ from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import (
     ViccNormalizers,
 )
-from metakb.schemas.app import SourceName
 
 logger = logging.getLogger(__name__)
 
@@ -153,13 +153,13 @@ class TransformedData(BaseModel):
         | VariantPrognosticStudyStatement
         | VariantDiagnosticStudyStatement
     ] = Field([], description="Statement objects for assertion records")
-    categorical_variants: list[CategoricalVariant] = []
+    categorical_variants: list[CategoricalVariant | ProteinSequenceConsequence] = []
     variations: list[Allele] = []
     genes: list[MappableConcept] = []
     therapies: list[MappableConcept | TherapyGroup] = []
     conditions: list[MappableConcept] = []
     methods: list[Method] = []
-    documents: list[Document] = []
+    documents: list[Document | iriReference] = []
 
 
 class Transformer(ABC):
@@ -167,24 +167,13 @@ class Transformer(ABC):
 
     _methods: ClassVar[list[Method]] = [
         Method(
-            id=MethodId.CIVIC_EID_SOP,
-            name="CIViC Curation SOP (2019)",
-            reportedIn=Document(
-                name="Danos et al., 2019, Genome Med.",
-                title="Standard operating procedure for curation and clinical interpretation of variants in cancer",
-                doi="10.1186/s13073-019-0687-x",
-                pmid=31779674,
-            ),
-            methodType="variant curation standard operating procedure",
-        ),
-        Method(
             id=MethodId.MOA_ASSERTION_BIORXIV,
             name="MOAlmanac (2021)",
             reportedIn=Document(
                 name="Reardon, B., Moore, N.D., Moore, N.S. et al.",
                 title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
                 doi="10.1038/s43018-021-00243-3",
-                pmid=35121878,
+                pmid="35121878",
             ),
         ),
     ]
@@ -309,7 +298,7 @@ class Transformer(ABC):
         )
 
     @abstractmethod
-    async def transform(self, harvested_data: _HarvestedData) -> None:
+    async def transform(self, *args, **kwargs) -> None:  # noqa: ANN002
         """Transform harvested data to the Common Data Model.
 
         :param harvested_data: Source harvested data
@@ -387,125 +376,6 @@ class Transformer(ABC):
         :return: Extension for VICC normalizer failure
         """
         return Extension(name=NormalizerExtensionName.FAILURE.value, value=True)
-
-    @abstractmethod
-    def _get_therapy(self, therapy: dict) -> MappableConcept | None:
-        """Get therapy mappable concept for source therapy object
-
-        :param therapy: source therapy object
-        :return: therapy mappable concept
-        """
-
-    @abstractmethod
-    def _get_therapeutic_substitute_group(
-        self,
-        therapeutic_sub_group_id: str,
-        therapies: list[dict],
-    ) -> TherapyGroup | None:
-        """Get Therapeutic Substitute Group for therapies
-
-        :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
-        :param therapies: List of therapy objects
-        :return: Therapeutic Substitute Group
-        """
-
-    def _get_combination_therapy(
-        self,
-        combination_therapy_id: str,
-        therapies_in: list[dict],
-        therapy_type: str | None = None,
-    ) -> TherapyGroup | None:
-        """Get Combination Therapy representation for source therapies
-
-        :param combination_therapy_id: ID for Combination Therapy
-        :param therapies: List of source therapy objects
-        :param therapy_type: Therapy type provided by source
-        :return: Combination Therapy
-        """
-        therapies = []
-        source_name = type(self).__name__.lower().replace("transformer", "")
-
-        for therapy in therapies_in:
-            if source_name == SourceName.MOA:
-                therapy_id = f"moa.therapy:{_sanitize_name(therapy['name'])}"
-            else:
-                therapy_id = f"civic.tid:{therapy['id']}"
-            therapy_mc = self._add_therapy(
-                therapy_id,
-                [therapy],
-                membership_operator=None,
-            )
-            if not therapy_mc:
-                return None
-
-            therapies.append(therapy_mc)
-
-        if source_name == SourceName.MOA:
-            extensions = [
-                Extension(
-                    name=f"{SourceName.MOA.value}_therapy_type", value=therapy_type
-                )
-            ]
-        else:
-            extensions = None
-
-        try:
-            tg = TherapyGroup(
-                id=combination_therapy_id,
-                therapies=therapies,
-                extensions=extensions,
-                membershipOperator=MembershipOperator.AND,
-            )
-        except ValidationError as e:
-            # if combination validation checks fail
-            logger.debug(
-                "ValidationError raised when attempting to create Combination Therapy: %s",
-                e,
-            )
-            tg = None
-
-        return tg
-
-    def _add_therapy(
-        self,
-        therapy_id: str,
-        therapies: list[dict],
-        membership_operator: MembershipOperator | None,
-        therapy_type: str | None = None,
-    ) -> MappableConcept | None:
-        """Create or get therapy mappable concept given therapies
-        First look in ``_cache`` for existing therapy, if not found will attempt to
-        transform. Will add ``therapy_id`` to ``therapies`` and ``_cache.therapies``
-
-        :param therapy_id: ID for therapy
-        :param therapies: List of therapy objects. If `membership_operator` is `None`,
-            the list will only contain a single therapy.
-        :param membership_operator: The logical relationship between ``therapies``
-        :param therapy_type: Therapy type
-        :return: Therapy mappable concept, if ``therapy_type`` is supported
-        """
-        therapy = self._cache.therapies.get(therapy_id)
-        if therapy:
-            return therapy
-
-        if membership_operator is None:
-            therapy = self._get_therapy(therapy_id, therapies[0])
-        elif membership_operator == MembershipOperator.OR:
-            therapy = self._get_therapeutic_substitute_group(therapy_id, therapies)
-        elif membership_operator == MembershipOperator.AND:
-            therapy = self._get_combination_therapy(
-                therapy_id, therapies, therapy_type=therapy_type
-            )
-        else:
-            logger.debug(
-                "Membership operator is not supported: %s", membership_operator
-            )
-            return None
-
-        self._cache.therapies[therapy_id] = therapy
-        self.processed_data.therapies.append(therapy)
-
-        return therapy
 
     @staticmethod
     def _get_vicc_normalizer_mappings(
@@ -630,6 +500,40 @@ class Transformer(ABC):
                         )
         return mappings
 
+    def _merge_mappings(
+        self,
+        source_mappings: list[ConceptMapping],
+        normalizer_mappings: list[ConceptMapping],
+    ) -> list[ConceptMapping]:
+        """Merge source and normalizer concept mappings
+
+        Source mappings will be annotated with source annotation extension to retain
+        provenance of original source mapping.
+
+        :param source_mappings: List of concept mappings directly from a source
+        :param normalizer_mappings: List of concept mappings from VICC normalizer
+        :return: A list of merged concept mappings
+        """
+        merged_mappings = normalizer_mappings.copy()
+        code_to_idx = {m.coding.code.root: idx for idx, m in enumerate(merged_mappings)}
+        source_anno_exts = [Extension(name=f"{self.name}_annotation", value=True)]
+
+        for source_mapping in source_mappings:
+            code = source_mapping.coding.code.root
+            idx = code_to_idx.get(code)
+
+            base_mapping = merged_mappings[idx] if idx is not None else source_mapping
+            extensions = (base_mapping.extensions or []) + source_anno_exts
+
+            updated_mapping = base_mapping.model_copy(update={"extensions": extensions})
+
+            if idx is not None:
+                merged_mappings[idx] = updated_mapping
+            else:
+                code_to_idx[code] = len(merged_mappings)
+                merged_mappings.append(updated_mapping)
+        return merged_mappings
+
     def create_json(self, cdm_filepath: Path | None = None) -> None:
         """Create a composite JSON for transformed data.
 
@@ -646,6 +550,8 @@ class Transformer(ABC):
                 datetime.datetime.now(tz=datetime.UTC), DATE_FMT
             )
             cdm_filepath = transformers_dir / f"{self.name}_cdm_{today}.json"
+
+        cdm_filepath.parent.mkdir(parents=True, exist_ok=True)
 
         with cdm_filepath.open("w+") as f:
             json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
