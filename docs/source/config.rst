@@ -3,7 +3,7 @@
 Configuration
 -------------
 
-.. _metakb_db_url:
+.. _metakb-db-url:
 
 MetaKB DB URL
 =============
