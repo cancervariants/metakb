@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request
 
 from metakb import __version__
-from metakb.config import config
+from metakb.config import get_configs
 from metakb.log_handle import configure_logs
 from metakb.query import EmptySearchError, QueryHandler
 from metakb.schemas.api import (
@@ -77,7 +77,9 @@ def service_info() -> ServiceInfo:
     :return: conformant service info description
     """
     return ServiceInfo(
-        organization=ServiceOrganization(), type=ServiceType(), environment=config.env
+        organization=ServiceOrganization(),
+        type=ServiceType(),
+        environment=get_configs().env,
     )
 
 
