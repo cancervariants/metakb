@@ -27,13 +27,13 @@ description = "A search interface for cancer variant interpretations assembled b
 license = {file = "LICENSE"}
 dependencies = [
     "ga4gh.vrs>=2.1.4,<3.0",
-    "ga4gh.cat_vrs~=0.6.0",
-    "ga4gh.va_spec~=0.3.0",
+    "ga4gh.cat_vrs~=0.7.1",
+    "ga4gh.va_spec~=0.4.1",
     "gene-normalizer[etl]~=0.10.2",
     "variation-normalizer~=0.14.1",
     "disease-normalizer[etl]~=0.11.2",
     "thera-py[etl]~=0.11.0",
-    "civicpy~=3.1",
+    "civicpy @ git+https://github.com/griffithlab/civicpy.git@issue-187",
     "requests",
     "pydantic==2.*",
     "pydantic-settings",
