@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Header from '../components/Header'
-import { Box, Button, MenuItem, Select, TextField, Typography } from '@mui/material'
+import { Box, Button, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 
 const HomePage = () => {
@@ -26,7 +26,7 @@ const HomePage = () => {
             Search harmonized data across multiple genomic knowledgebases.
           </Typography>
           <Box id="search-container">
-            <Select value={searchType} onChange={(e) => setSearchType(e.target.value)} displayEmpty>
+            <Select value={searchType} onChange={(e) => setSearchType(e.target.value)} label="Search Type">
               <MenuItem value='gene'>Gene</MenuItem>
               <MenuItem value='variant'>Variant</MenuItem>
             </Select>
