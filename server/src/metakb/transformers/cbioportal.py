@@ -43,6 +43,8 @@ SAMPLE_HEADERS = {'PATIENT_ID',
                   'CANCER_TYPE_DETAIL',
                   'TMB_NONSYNONYMOUS'}
 
+PATTERN = re.compile(r'^23-')
+
 class cBioportalTransformer(Transformer):
     """A class for transforming cBioportal Data to the common data model."""
 
@@ -59,8 +61,403 @@ class cBioportalTransformer(Transformer):
     def _get_therapy(self, therapy):
         return super()._get_therapy(therapy)
     
-    def _create_cache():
+    def _create_cache(self):
         pass
+
+    def flag_rows_chrom_23(self, df):
+        """
+        Create "Chrom_23" column, True for those with Chromosome = 23
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Must contain column 'Chromosome'.
+        
+        Returns
+        -------
+        dataframe
+        """
+        df["Chrom_23"] = False
+        # print(combined_df.head)
+        df["Chrom_23"] = df["Chromosome"].astype(str).str.strip().eq("23")
+        df.loc[df["Chromosome"] == 23, "Chrom_23"] = True
+        return df
+    
+    def chr23_female(self, df):
+        """
+        Convert Chromosome 23 to 'X' for rows where SEX is female.
+        
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Must contain columns 'Chromosome' and 'SEX'.
+        
+        Returns
+        -------
+        dataframe
+        """
+        # Ensure we’re comparing like with like
+        chr_col = df["Chromosome"].astype(str).str.strip()
+        sex_col = df["SEX"].astype(str).str.upper().str.strip()   # handles 'F', 'f', 'Female', etc.
+        
+        mask = (chr_col == "23") & (sex_col.str.startswith("F"))
+        df.loc[mask, "Chromosome"] = "X"
+        return df
+    
+    def add_cols_chrom_23_male(self, df):
+        """
+        Create "Chr23_X and Chr23_Y" columns, fill with false
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Must contain column 'Chromosome'.
+        
+        Returns
+        -------
+        dataframe
+        """
+        df["Chr23_X"] = False
+        df["Chr23_Y"] = False
+        return df
+    
+    def chr23_to_X(self, variant: str) -> str:
+        """Convert a single '23-' prefix in a variant string to 'X-'."""
+        return PATTERN.sub('X-', variant) if isinstance(variant, str) else variant
+    
+    def chr23_to_Y(self, variant: str) -> str:
+        """Convert a '23-' prefix in a single variant string to 'Y-'."""
+        return PATTERN.sub('Y-', variant) if isinstance(variant, str) else variant
+    
+    def test_variant_tokenization(self, variant: str, delay=0.5):
+        """
+        Fetch normalized variant info from VICC API for a single variant string.
+
+        Parameters
+        ----------
+        variant : str
+            A GnomAD-style variant (e.g., '23-2408485-G-C').
+        delay : float
+            Seconds to wait between API requests (default 0.5).
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with original variant and raw JSON string response.
+        """
+        BASE_URL = "http://localhost:8001/variation/"
+        HEADERS = {
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"  # mimics a browser
+            }
+        results = []
+        url = f"{BASE_URL}normalize?q={variant}&hgvs_dup_del_mode=default&input_assembly=GRCh37"
+        try:
+            response = requests.get(url, headers=HEADERS)
+            if response.status_code == 200:
+                data = response.json()
+                results.append({
+                    "variant": variant,
+                    "response": json.dumps(data)
+                })
+            else:
+                results.append({
+                    "variant": variant,
+                    "response": f"Error {response.status_code}: {response.text}"
+                })
+        except Exception as e:
+            results.append({
+                "variant": variant,
+                "response": f"Exception: {str(e)}"
+            })
+        time.sleep(delay)
+        return pd.DataFrame(results)
+    
+    #test tokenization on X chromosome
+    def check_for_x_variant(self, df, variant):
+        # Convert the variant to X-style format (e.g., "23-..." → "X-...")
+        variant_x = self.chr23_to_X(variant)
+        # Query the API and get a one-row DataFrame
+        x_df = self.test_variant_tokenization(variant_x)  # returns a one-row DataFrame
+        # Extract and parse JSON string from the response
+        raw_response = x_df.loc[0, "response"]
+        try:
+            parsed_response = json.loads(raw_response)
+        except json.JSONDecodeError:
+            print(f"❌ Failed to parse JSON for: {variant_x}")
+            return df
+        # Ensure 'variation' is in the parsed response
+        if "variation" not in parsed_response:
+            print(f"⚠️ 'variation' key not found for: {variant_x}")
+            return df
+        # Try to extract hgnc_id if available
+        hgnc_id = None
+        try:
+            hgnc_id = parsed_response["variation"]["extensions"][0]["value"][0]["hgnc_id"]
+            print(f"✅ Extracted HGNC ID for {variant_x}: {hgnc_id}")
+        except (KeyError, IndexError, TypeError):
+            print(f"⚠️ No HGNC ID found for: {variant_x}")
+        # Initialize columns if needed
+        if "x_hgnc_id" not in df.columns:
+            df["x_hgnc_id"] = "no_value"
+        if "Chr23_X" not in df.columns:
+            df["Chr23_X"] = False
+        # Reconstruct variant string from each row to match normalized variant_x
+        reconstructed = (
+            "X-" +
+            df["Start_Position"].astype(str).str.strip() + "-" +
+            df["Reference_Allele"].astype(str).str.strip() + "-" +
+            df["Tumor_Seq_Allele2"].astype(str).str.strip()
+        )
+        # Mask: match rows on reconstructed X-variant and Chromosome == 23
+        chrom_col = df["Chromosome"].astype(str).str.strip()
+        mask = (chrom_col == "23") & (reconstructed == variant_x)
+        print(f"🧪 Matched {mask.sum()} row(s) for {variant_x}")
+        # Set Chr23_X = True
+        df.loc[mask, "Chr23_X"] = True
+        # Set x_hgnc_id if available
+        if hgnc_id is not None:
+            df.loc[mask, "x_hgnc_id"] = hgnc_id
+        return df
+    
+    #test tokenizationo n Y chromosome
+    def check_for_y_variant(self, df, variant):
+        # Convert the variant to Y-style format (e.g., "23-..." → "Y-...")
+        variant_y = self.chr23_to_Y(variant)
+        # Query the API and get a one-row DataFrame
+        y_df = self.test_variant_tokenization(variant_y)  # returns a one-row DataFrame
+        # Extract and parse JSON string from the response
+        raw_response = y_df.loc[0, "response"]
+        try:
+            parsed_response = json.loads(raw_response)
+        except json.JSONDecodeError:
+            print(f"❌ Failed to parse JSON for: {variant_y}")
+            return df
+        # Ensure 'variation' is in the parsed response
+        if "variation" not in parsed_response:
+            print(f"⚠️ 'variation' key not found for: {variant_y}")
+            return df
+        # Try to extract hgnc_id if available
+        hgnc_id = None
+        try:
+            hgnc_id = parsed_response["variation"]["extensions"][0]["value"][0]["hgnc_id"]
+            print(f"✅ Extracted HGNC ID for {variant_y}: {hgnc_id}")
+        except (KeyError, IndexError, TypeError):
+            print(f"⚠️ No HGNC ID found for: {variant_y}")
+        # Initialize columns if needed
+        if "y_hgnc_id" not in df.columns:
+            df["y_hgnc_id"] = "no_value"
+        if "Chr23_Y" not in df.columns:
+            df["Chr23_Y"] = False
+        # Reconstruct variant string from each row to match normalized variant_y
+        reconstructed = (
+            "Y-" +
+            df["Start_Position"].astype(str).str.strip() + "-" +
+            df["Reference_Allele"].astype(str).str.strip() + "-" +
+            df["Tumor_Seq_Allele2"].astype(str).str.strip()
+        )
+        # Mask: match rows on reconstructed Y-variant and Chromosome == 23
+        chrom_col = df["Chromosome"].astype(str).str.strip()
+        mask = (chrom_col == "23") & (reconstructed == variant_y)
+        print(f"🧪 Matched {mask.sum()} row(s) for {variant_y}")
+        # Set Chr23_Y = True
+        df.loc[mask, "Chr23_Y"] = True
+        # Set y_hgnc_id if available
+        if hgnc_id is not None:
+            df.loc[mask, "y_hgnc_id"] = hgnc_id
+        return df
+
+    # driver function for chr23
+    def chr23_male(self, df, variant):
+        if "Chr23_X" not in df.columns:
+            df["Chr23_X"] = False
+        if "Chr23_Y" not in df.columns:
+            df["Chr23_Y"] = False
+        df = self.check_for_x_variant(df, variant)    # pass **both** args
+        df = self.check_for_y_variant(df, variant)
+        return df
+
+    #reassign chromosome for male chromosome 23 variants
+    def correct_male_chrom23(self, df):
+        # Initialize ambig_chrom column
+        df["ambig_chrom"] = "non-ambiguous"
+        def update_row(row):
+            if row.get("Chrom_23") is True and str(row.get("SEX", "")).strip().lower() == "male":
+                if row["Chr23_X"] and not row["Chr23_Y"]:
+                    row["Chromosome"] = "X"
+                elif row["Chr23_Y"] and not row["Chr23_X"]:
+                    row["Chromosome"] = "Y"
+                elif row["Chr23_X"] and row["Chr23_Y"]:
+                    row["ambig_chrom"] = "XY"
+                else:  # neither Chr23_X nor Chr23_Y is True
+                    row["ambig_chrom"] = "neither"
+            return row
+        # Apply corrections row-by-row
+        df = df.apply(update_row, axis=1)
+        # Check for ambiguous rows
+        ambig_rows = df[df["ambig_chrom"].isin(["XY", "neither"])]
+        if not ambig_rows.empty:
+            print(f"⚠️ Found {len(ambig_rows)} row(s) with ambiguous chromosome identification.")
+            print(ambig_rows[["temp_Gnomad_Notation", "Hugo_Symbol", "ambig_chrom"]].head())
+        return df
+
+    def resolve_ambiguous_chromosomes(self, df):
+        """
+        Resolve ambiguous Chr23 variants in male samples and flag problematic rows.
+
+        - For Chrom_23 == True and SEX == male:
+        - If both x_hgnc_id and y_hgnc_id have values → ⚠️ warn
+        - If neither has values → ❌ warn
+        - If ambig_chrom == "XY" or "neither", try to resolve Chromosome field
+        """
+        chrom23_male_mask = (
+            (df["Chrom_23"] == True) &
+            (df["SEX"].str.lower().str.strip() == "male")
+        )
+
+        for idx, row in df[chrom23_male_mask].iterrows():
+            x_id = str(row.get("x_hgnc_id", "")).strip()
+            y_id = str(row.get("y_hgnc_id", "")).strip()
+            ambig_status = row.get("ambig_chrom", "not_set")
+
+            # ⚠️ Raise general warnings, regardless of ambig_chrom
+            if x_id != "no_value" and y_id != "no_value":
+                print(f"⚠️ Row {idx}: Both x_hgnc_id and y_hgnc_id have values. Manual check recommended.")
+            elif x_id == "no_value" and y_id == "no_value":
+                print(f"❌ Row {idx}: Neither x_hgnc_id nor y_hgnc_id has a value.")
+
+            # ✅ Try resolving ambiguous chromosomes
+            if ambig_status in ["XY", "neither"]:
+                if x_id != "no_value" and y_id == "no_value":
+                    df.at[idx, "Chromosome"] = "X"
+                    df.at[idx, "ambig_chrom"] = "resolved_X"
+                    print(f"✅ Resolved index {idx} to Chromosome X")
+                elif y_id != "no_value" and x_id == "no_value":
+                    df.at[idx, "Chromosome"] = "Y"
+                    df.at[idx, "ambig_chrom"] = "resolved_Y"
+                    print(f"✅ Resolved index {idx} to Chromosome Y")
+                elif x_id != "no_value" and y_id != "no_value":
+                    print(f"⚠️ Index {idx}: Ambiguous Chromosome with both HGNC IDs present.")
+                else:
+                    print(f"❌ Index {idx}: Ambiguous Chromosome with no HGNC ID found.")
+
+        return df
+
+    #get hgnc id from gene normalizer
+    def test_gene_tokenization(self, gene: str, delay=0.5):
+        BASE_URL = "https://normalize.cancervariants.org/gene/"
+        HEADERS = {
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0"
+        }
+        results = []
+        url = f"{BASE_URL}normalize?q={gene}"
+        try:
+            response = requests.get(url, headers=HEADERS)
+            if response.status_code == 200:
+                data = response.json()
+                results.append({
+                    "gene": gene,
+                    "response": json.dumps(data)
+                })
+            else:
+                results.append({
+                    "gene": gene,
+                    "response": f"Error {response.status_code}: {response.text}"
+                })
+        except Exception as e:
+            results.append({
+                "gene": gene,
+                "response": f"Exception: {str(e)}"
+            })
+        time.sleep(delay)
+        return pd.DataFrame(results)
+
+    #update hgnc_id gene column
+    def update_gene_hgnc_id_inplace(self, df):
+        for idx, row in df.iterrows():
+            if row.get("Chrom_23") and str(row.get("SEX", "")).strip().lower() == "male":
+                try:
+                    result = self.test_gene_tokenization(row["Hugo_Symbol"])
+                    full_id = result["gene"]["id"]  # e.g., "normalize.gene.hgnc:447"
+                    hgnc_id = full_id.split(":")[-1]  # Extract "447"
+                    df.at[idx, "gene_hgnc_id"] = hgnc_id
+                except Exception as e:
+                    print(f"⚠️ Could not extract HGNC ID for {row['Hugo_Symbol']}: {e}")
+        print(df.head())
+        return df
+    
+    # query gene normalizer
+    def populate_gene_hgnc_col(self, gene_list, df):
+        # Add the column once
+        if "gene_hgnc_id" not in df.columns:
+            df["gene_hgnc_id"] = None
+        for gene in gene_list:
+            print(f"▶️ Checking gene: {gene}")
+            gene_df = self.test_gene_tokenization(gene)
+            # Extract and parse JSON string from the response
+            raw_response = gene_df.loc[0, "response"]
+            try:
+                parsed_response = json.loads(raw_response)
+            except json.JSONDecodeError:
+                print(f"❌ Failed to parse JSON for: {gene}")
+                continue
+            if "gene" not in parsed_response:
+                print(f"⚠️ 'gene' key not found for: {gene}")
+                continue
+            try:
+                hgnc_id = parsed_response["gene"]["id"].split(":")[-1]
+                print(f"✅ Extracted HGNC ID for {gene}: {hgnc_id}")
+            except (KeyError, IndexError, TypeError):
+                print(f"⚠️ No HGNC ID found for: {gene}")
+                continue
+            # Apply to matching rows
+            df.loc[
+                (df["Chrom_23"] == True) & 
+                (df["SEX"].str.strip().str.lower() == "male") & 
+                (df["Hugo_Symbol"].str.strip() == gene.strip()),
+                "gene_hgnc_id"
+            ] = hgnc_id
+        return df
+    
+    #check to see if gene hgnc id matches x/y variant hgnc id
+    def validate_gene_hgnc_match(self, df):
+        """
+        Compare gene_hgnc_id to x_hgnc_id or y_hgnc_id for Chromosome 23 variants in male samples.
+        
+        Adds a column 'hgnc_id_match':
+            - "untested" (default)
+            - set to matching hgnc_id if match is found
+            - "no_match" if mismatch is found
+
+        Prints warnings for mismatches.
+        """
+        # Initialize column
+        if "hgnc_id_match" not in df.columns:
+            df["hgnc_id_match"] = "untested"
+        # Define mask for male Chr23 variants
+        mask = (df["Chrom_23"] == True) & (df["SEX"].str.strip().str.lower() == "male")
+        for idx, row in df[mask].iterrows():
+            gene_id = str(row.get("gene_hgnc_id", "")).strip()
+            chrom = str(row.get("Chromosome", "")).strip()
+            x_id = str(row.get("x_hgnc_id", "")).strip()
+            y_id = str(row.get("y_hgnc_id", "")).strip()
+            if chrom == "X":
+                if gene_id == x_id and gene_id != "no_value":
+                    df.at[idx, "hgnc_id_match"] = gene_id
+                else:
+                    df.at[idx, "hgnc_id_match"] = "no_match"
+                    print(f"❌ Row {idx}: X chromosome mismatch. gene_hgnc_id={gene_id}, x_hgnc_id={x_id}")
+            elif chrom == "Y":
+                if gene_id == y_id and gene_id != "no_value":
+                    df.at[idx, "hgnc_id_match"] = gene_id
+                else:
+                    df.at[idx, "hgnc_id_match"] = "no_match"
+                    print(f"❌ Row {idx}: Y chromosome mismatch. gene_hgnc_id={gene_id}, y_hgnc_id={y_id}")
+        return df
+
+
+
 
     def transform(self, harvested_data):
 
@@ -72,98 +469,64 @@ class cBioportalTransformer(Transformer):
 
         # TODO: Heather's methods for data cleanup, normalization, and formating to common data model goes here
 
-        # subset for necessary columns
-        mut_df = init_mut_df.filter(['Hugo_Symbol',
-                                'Chromosome',
-                                'Start_Position', 
-                                'End_Position',
-                                'Consequence',
-                                'Variant_Classification',
-                                'Variant_Type',
-                                'Reference_Allele',
-                                'Tumor_Seq_Allele2',
-                                'Tumor_Sample_Barcode',
-                                'Sequence_Source',
-                                'HGVSc',
-                                'HGVSp',
-                                'HGVSp_Short',
-                                'Transcript_ID',
-                                'RefSeq',
-                                'Protein_position'
-                            ], axis=1)
-        # Strip whitespace and retry
-        mut_df.columns = mut_df.columns.str.strip()
-        mut_df = mut_df.rename(columns={'Tumor_Sample_Barcode': 'SAMPLE_ID'})
-
-        # Check duplicate count mut df
-        num_duplicates = mut_df.duplicated().sum()
+        # MUT DF
+        # Strip whitespace and rename col
+        self.variants.columns = self.variants.columns.str.strip()
+        self.variants = self.variants.rename(columns={'Tumor_Sample_Barcode': 'SAMPLE_ID'})
+        # Check duplicate count
+        num_duplicates = self.variants.duplicated().sum()
         print(f"Number of duplicate rows : {num_duplicates}")
         # print duplicates (excluding first instance)
         if num_duplicates > 0:
             print("\nDuplicate rows (excluding first instance):")
-            print(mut_df[mut_df.duplicated()])
+            print(self.variants[self.variants.duplicated()])
         # save duplicate rows to file
-            dupes = mut_df[mut_df.duplicated(keep=False)]
-            mut_df.to_csv('mut_dupes.csv', index=False)
+            dupes = self.variants[self.variants.duplicated(keep=False)]
+            dupes.to_csv('mut_dupes.csv', index=False)
         # remove duplicates, but keep first occurrence
-            mut_df = mut_df.drop_duplicates()
-            print(f"\nDataFrame shape after removing duplicates: {mut_df.shape}")
+            self.variants = self.variants.drop_duplicates()
+            print(f"\nDataFrame shape after removing duplicates: {self.variants.shape}")
         else:
             print("No duplicate rows found.")
 
-        # subset for necessary columns
-        patient_df = init_patient_df.filter(['PATIENT_ID',
-                                'AGE',
-                                'SEX', 
-                                'ETHNICITY',
-                                'Consequence'
-                            ], axis=1)
-        # Check duplicate count patient df
-        num_duplicates = patient_df.duplicated().sum()
+        # PATIENT DF
+        # Check duplicate count
+        num_duplicates = self.patients.duplicated().sum()
         print(f"Number of duplicate rows : {num_duplicates}")
         # print duplicates (excluding first instance)
         if num_duplicates > 0:
             print("\nDuplicate rows (excluding first instance):")
-            print(patient_df[patient_df.duplicated()])
+            print(self.patients[self.patients.duplicated()])
         # remove duplicates, but keep first occurrence
-            patient_df = patient_df.drop_duplicates()
-            print(f"\nDataFrame shape after removing duplicates: {patient_df.shape}")
+            self.patients = self.patients.drop_duplicates()
+            print(f"\nDataFrame shape after removing duplicates: {self.patients.shape}")
         else:
             print("No duplicate rows found.")
-
-        # subset for necessary columns
-        sample_df = init_sample_df.filter(['PATIENT_ID',
-                                            'SAMPLE_ID',
-                                            'SAMPLE_CLASS',
-                                            'ONCOTREE_CODE',
-                                            'CANCER_TYPE',
-                                            'CANCER_TYPE_DETAILED',
-                                            'TMB_NONSYNONYMOUS'
-                                            ], axis=1)
-        # Check duplicate count sample df
-        num_duplicates = sample_df.duplicated().sum()
+        
+        # SAMPLE DF
+        # Check duplicate count
+        num_duplicates = self.samples.duplicated().sum()
         print(f"Number of duplicate rows : {num_duplicates}")
         # print duplicates (excluding first instance)
         if num_duplicates > 0:
             print("\nDuplicate rows (excluding first instance):")
-            print(sample_df[sample_df.duplicated()])
+            print(self.samples[self.samples.duplicated()])
         # remove duplicates, but keep first occurrence
-            sample_df = sample_df.drop_duplicates()
-            print(f"\nDataFrame shape after removing duplicates: {sample_df.shape}")
+            self.samples = self.samples.drop_duplicates()
+            print(f"\nDataFrame shape after removing duplicates: {self.samples.shape}")
         else:
             print("No duplicate rows found.")
-
+        
         # combine dataframes
-        init_combined_df = mut_df.merge(sample_df, on='SAMPLE_ID', how='left')
-        #add patient_df
-        combined_df = init_combined_df.merge(patient_df, on='PATIENT_ID', how='left')
+        init_combined_df = self.variants.merge(self.samples, on='SAMPLE_ID', how='left')
+        combined_df = init_combined_df.merge(self.patients, on='PATIENT_ID', how='left')
 
-        # add column for study id
-        study_id = init_study_meta.iloc[0, 0]
+        # add study_id column
+        study_id = self.metadata.iloc[0, 0]
         study_id = study_id.replace('cancer_study_identifier: ', '')
-        # study_id
         combined_df['STUDY_ID'] = study_id
 
+        # remove duplicates from combined dataframe
         # Check duplicate count
         num_duplicates = combined_df.duplicated().sum()
         print(f"Number of duplicate rows : {num_duplicates}")
@@ -176,7 +539,7 @@ class cBioportalTransformer(Transformer):
             print(f"\nDataFrame shape after removing duplicates: {combined_df.shape}")
         else:
             print("No duplicate rows found.")
-
+        
         # remove data from cell lines
         original_shape = combined_df.shape
         print(f"Original shape: {original_shape}")
@@ -194,287 +557,35 @@ class cBioportalTransformer(Transformer):
         removed_df.to_csv('cell_lines_removed.csv', index=False)
         removed_df.value_counts("SAMPLE_CLASS")
 
-        # replace missing sample and patient data with "No_Data"
-        # filling in NaNs - AGE, ETHNICITY, Consequence
-        # TODO add consequence with annotation
+        #filling in NaNs - AGE, ETHNICITY, Consequence
         cols_to_fill = ['Consequence', 'AGE', 'ETHNICITY']
         fill_value = "No_Data"
         for col in cols_to_fill:
             combined_df[col] = combined_df[col].fillna(fill_value)
-
-        # construct TEMP Gnomad variant ID column
+        
+    
+        # correcting Chromosome 23 samples
+        # construct temporary Gnomad variant ID column
         combined_df["temp_Gnomad_Notation"] = combined_df.apply(
             lambda row: f"{row['Chromosome']}-{row['Start_Position']}-{row['Reference_Allele']}-{row['Tumor_Seq_Allele2']}",
             axis=1
         )
 
-        # Chr23 corrections
-        PATTERN = re.compile(r'^23-')        # anchored ^ so only the chromosome prefix is substituted
-        combined_df.to_csv('output0.csv', index=False)   # write initial dataframe to file
-        def flag_rows_chrom_23(df):         # flag rows with Chromosome == 23
-            """
-            Create "Chrom_23" column, True for those with Chromosome = 23
+        #flag rows with chromosome 23
+        combined_df = self.flag_rows_chrom_23(combined_df)
+        #change chromosome to X for female chromosome 23 samples
+        combined_df = self.chr23_female(combined_df)
+        # add cols for Chr23_X and Chr23_Y, fill with false
+        combined_df = self.add_cols_chrom_23_male(combined_df)
 
-            Parameters
-            ----------
-            df : pd.DataFrame
-                Must contain column 'Chromosome'.
-            
-            Returns
-            -------
-            dataframe
-            """
-            df["Chrom_23"] = False
-            # print(combined_df.head)
-            df["Chrom_23"] = df["Chromosome"].astype(str).str.strip().eq("23")
-            df.loc[df["Chromosome"] == 23, "Chrom_23"] = True
-            # print(combined_df["Chrom_23"].value_counts())
-            # print(combined_df["Chromosome"].value_counts())
-            
-            return df
-        combined_df = flag_rows_chrom_23(combined_df)
-        combined_df.to_csv("output_flag_chrom_23.csv", index=False)
-
-
-        def chr23_female(df):       # for SEX == Female and Chromosome == 23, change Chromosome to X
-            """
-            Convert Chromosome 23 to 'X' for rows where SEX is female.
-            
-            Parameters
-            ----------
-            df : pd.DataFrame
-                Must contain columns 'Chromosome' and 'SEX'.
-            
-            Returns
-            -------
-            dataframe
-            """
-            # Ensure we’re comparing like with like
-            chr_col = df["Chromosome"].astype(str).str.strip()
-            sex_col = df["SEX"].astype(str).str.upper().str.strip()   # handles 'F', 'f', 'Female', etc.
-            
-            mask = (chr_col == "23") & (sex_col.str.startswith("F"))
-            df.loc[mask, "Chromosome"] = "X"
-            return df
-        combined_df = chr23_female(combined_df)
-        combined_df.to_csv('output1_femaleX.csv', index=False)
-
-
-
-        # Add boolean columns for X and Y
-        def add_cols_chrom_23_male(df):
-            """
-            Create "Chr23_X and Chr23_Y" columns, fill with false
-
-            Parameters
-            ----------
-            df : pd.DataFrame
-                Must contain column 'Chromosome'.
-            
-            Returns
-            -------
-            dataframe
-            """
-            df["Chr23_X"] = False
-            df["Chr23_Y"] = False
-            return df
-
-        combined_df = add_cols_chrom_23_male(combined_df)
-        combined_df.to_csv('output2_new_chr23_boolean_cols.csv', index=False)
-
-
-        # adjust gnomAD variant to accept X
-        def chr23_to_X(variant: str) -> str:
-            """Convert a single '23-' prefix in a variant string to 'X-'."""
-            return PATTERN.sub('X-', variant) if isinstance(variant, str) else variant
-
-        # adjust gnomAD variant to accept Y
-        def chr23_to_Y(variant: str) -> str:
-            """Convert a '23-' prefix in a single variant string to 'Y-'."""
-            return PATTERN.sub('Y-', variant) if isinstance(variant, str) else variant
-
-        # function for VICC variation normalizer call to test tokenization
-        def test_variant_tokenization(variant: str, delay=0.5):
-            """
-            Fetch normalized variant info from VICC API for a single variant string.
-
-            Parameters
-            ----------
-            variant : str
-                A GnomAD-style variant (e.g., '23-2408485-G-C').
-            delay : float
-                Seconds to wait between API requests (default 0.5).
-
-            Returns
-            -------
-            pd.DataFrame
-                DataFrame with original variant and raw JSON string response.
-            """
-            
-            # BASE_URL = "https://normalize.cancervariants.org/variation/"
-            BASE_URL = "http://localhost:8001/variation/"
-            HEADERS = {
-                "Accept": "application/json",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"  # mimics a browser
-                }
-
-            results = []
-
-            # url = f"{BASE_URL}normalize?q={variant}"
-            url = f"{BASE_URL}normalize?q={variant}&hgvs_dup_del_mode=default&input_assembly=GRCh37"
-            try:
-                response = requests.get(url, headers=HEADERS)
-                if response.status_code == 200:
-                    data = response.json()
-                    results.append({
-                        "variant": variant,
-                        "response": json.dumps(data)
-                    })
-                else:
-                    results.append({
-                        "variant": variant,
-                        "response": f"Error {response.status_code}: {response.text}"
-                    })
-            except Exception as e:
-                results.append({
-                    "variant": variant,
-                    "response": f"Exception: {str(e)}"
-                })
-            time.sleep(delay)
-            return pd.DataFrame(results)
-
-        # function to test if variant is on X chromosome
-        def check_for_x_variant(df, variant):
-            # Convert the variant to X-style format (e.g., "23-..." → "X-...")
-            variant_x = chr23_to_X(variant)
-
-            # Query the API and get a one-row DataFrame
-            x_df = test_variant_tokenization(variant_x)  # returns a one-row DataFrame
-
-            # Extract and parse JSON string from the response
-            raw_response = x_df.loc[0, "response"]
-
-            try:
-                parsed_response = json.loads(raw_response)
-            except json.JSONDecodeError:
-                print(f"❌ Failed to parse JSON for: {variant_x}")
-                return df
-
-            # Ensure 'variation' is in the parsed response
-            if "variation" not in parsed_response:
-                print(f"⚠️ 'variation' key not found for: {variant_x}")
-                return df
-
-            # Try to extract hgnc_id if available
-            hgnc_id = None
-            try:
-                hgnc_id = parsed_response["variation"]["extensions"][0]["value"][0]["hgnc_id"]
-                print(f"✅ Extracted HGNC ID for {variant_x}: {hgnc_id}")
-            except (KeyError, IndexError, TypeError):
-                print(f"⚠️ No HGNC ID found for: {variant_x}")
-
-            # Initialize columns if needed
-            if "x_hgnc_id" not in df.columns:
-                df["x_hgnc_id"] = "no_value"
-            if "Chr23_X" not in df.columns:
-                df["Chr23_X"] = False
-
-            # Reconstruct variant string from each row to match normalized variant_x
-            reconstructed = (
-                "X-" +
-                df["Start_Position"].astype(str).str.strip() + "-" +
-                df["Reference_Allele"].astype(str).str.strip() + "-" +
-                df["Tumor_Seq_Allele2"].astype(str).str.strip()
-            )
-
-            # Mask: match rows on reconstructed X-variant and Chromosome == 23
-            chrom_col = df["Chromosome"].astype(str).str.strip()
-            mask = (chrom_col == "23") & (reconstructed == variant_x)
-            print(f"🧪 Matched {mask.sum()} row(s) for {variant_x}")
-            # Set Chr23_X = True
-            df.loc[mask, "Chr23_X"] = True
-            # Set x_hgnc_id if available
-            if hgnc_id is not None:
-                df.loc[mask, "x_hgnc_id"] = hgnc_id
-            return df
-
-        # function to test if variant is on Y chromosome
-        def check_for_y_variant(df, variant):
-            # Convert the variant to Y-style format (e.g., "23-..." → "Y-...")
-            variant_y = chr23_to_Y(variant)
-
-            # Query the API and get a one-row DataFrame
-            y_df = test_variant_tokenization(variant_y)  # returns a one-row DataFrame
-
-            # Extract and parse JSON string from the response
-            raw_response = y_df.loc[0, "response"]
-
-            try:
-                parsed_response = json.loads(raw_response)
-            except json.JSONDecodeError:
-                print(f"❌ Failed to parse JSON for: {variant_y}")
-                return df
-
-            # Ensure 'variation' is in the parsed response
-            if "variation" not in parsed_response:
-                print(f"⚠️ 'variation' key not found for: {variant_y}")
-                return df
-
-            # Try to extract hgnc_id if available
-            hgnc_id = None
-            try:
-                hgnc_id = parsed_response["variation"]["extensions"][0]["value"][0]["hgnc_id"]
-                print(f"✅ Extracted HGNC ID for {variant_y}: {hgnc_id}")
-            except (KeyError, IndexError, TypeError):
-                print(f"⚠️ No HGNC ID found for: {variant_y}")
-
-            # Initialize columns if needed
-            if "y_hgnc_id" not in df.columns:
-                df["y_hgnc_id"] = "no_value"
-            if "Chr23_Y" not in df.columns:
-                df["Chr23_Y"] = False
-
-            # Reconstruct variant string from each row to match normalized variant_y
-            reconstructed = (
-                "Y-" +
-                df["Start_Position"].astype(str).str.strip() + "-" +
-                df["Reference_Allele"].astype(str).str.strip() + "-" +
-                df["Tumor_Seq_Allele2"].astype(str).str.strip()
-            )
-
-            # Mask: match rows on reconstructed Y-variant and Chromosome == 23
-            chrom_col = df["Chromosome"].astype(str).str.strip()
-            mask = (chrom_col == "23") & (reconstructed == variant_y)
-            print(f"🧪 Matched {mask.sum()} row(s) for {variant_y}")
-            # Set Chr23_Y = True
-            df.loc[mask, "Chr23_Y"] = True
-            # Set y_hgnc_id if available
-            if hgnc_id is not None:
-                df.loc[mask, "y_hgnc_id"] = hgnc_id
-            return df
-
-        # driver function for correcting male Chromosome 23
-        def chr23_male(df, variant):
-            # df = add_cols_chrom_23_male(df)          # prep chromosome-23 columns
-            if "Chr23_X" not in df.columns:
-                df["Chr23_X"] = False
-            if "Chr23_Y" not in df.columns:
-                df["Chr23_Y"] = False
-            df = check_for_x_variant(df, variant)    # pass **both** args
-            df = check_for_y_variant(df, variant)
-            df.to_csv("output2_new_chr23_boolean_cols.csv", index=False)
-            return df
-
-
-        # set Male chromosome 23 variants as a list
+        #set chromosome 23 variants as list
         chrom_23_list = combined_df[
-            (combined_df["SEX"].str.lower() == "male") &
-            (combined_df["Chrom_23"] == True)
+        (combined_df["SEX"].str.lower() == "male") &
+        (combined_df["Chrom_23"] == True)
         ]["temp_Gnomad_Notation"].dropna().tolist()
         print("Total variants in list:", len(chrom_23_list))
-        print("Sample of chrom_23_list:", chrom_23_list[:5])
 
-        # initialize x and y hgnc_id columns
+        #initialize x_hgnc_id and y_hgnc_id
         if "x_hgnc_id" not in combined_df.columns:
             combined_df["x_hgnc_id"] = "no_value"
         if "y_hgnc_id" not in combined_df.columns:
@@ -486,132 +597,19 @@ class cBioportalTransformer(Transformer):
         # Iterate through each chromosome 23 variant for male samples
         for variant in chrom_23_list:
             print(f"▶️ Checking variant: {variant}")  # Add this line
-            result_df = chr23_male(result_df, variant)
+            result_df = self.chr23_male(result_df, variant)
         # Now all updates are preserved in result_df
         print(result_df["Chr23_X"].value_counts(dropna=False))
         print(result_df["Chr23_Y"].value_counts(dropna=False))
-        # Save the final output to CSV
-        result_df.to_csv("output_post_23_BOOLEAN.csv", index=False)
 
-        # function reassign male chromosome 23s
-        def correct_male_chrom23(df):
-            # Initialize ambig_chrom column
-            df["ambig_chrom"] = "non-ambiguous"
-
-            def update_row(row):
-                if row.get("Chrom_23") is True and str(row.get("SEX", "")).strip().lower() == "male":
-                    if row["Chr23_X"] and not row["Chr23_Y"]:
-                        row["Chromosome"] = "X"
-                    elif row["Chr23_Y"] and not row["Chr23_X"]:
-                        row["Chromosome"] = "Y"
-                    elif row["Chr23_X"] and row["Chr23_Y"]:
-                        row["ambig_chrom"] = "XY"
-                    else:  # neither Chr23_X nor Chr23_Y is True
-                        row["ambig_chrom"] = "neither"
-                return row
-            # Apply corrections row-by-row
-            df = df.apply(update_row, axis=1)
-            # Check for ambiguous rows
-            ambig_rows = df[df["ambig_chrom"].isin(["XY", "neither"])]
-            if not ambig_rows.empty:
-                print(f"⚠️ Found {len(ambig_rows)} row(s) with ambiguous chromosome identification.")
-                print(ambig_rows[["temp_Gnomad_Notation", "Hugo_Symbol", "ambig_chrom"]].head())
-            return df
-
-        # run correct male chr23s and check for ambiguous chromosomes
-        result_df = correct_male_chrom23(result_df)
+        #correct male 23 chromosomes and check for ambiguous results
+        result_df = self.correct_male_chrom23(result_df)
         print(result_df["ambig_chrom"].value_counts())
-        result_df.to_csv("output_post_23_correction.csv", index=False)
 
-        # functions correct ambiguous chromosomes
-        def resolve_ambiguous_chromosomes(df):
-            """
-            Resolve ambiguous Chr23 variants in male samples and flag problematic rows.
+        #resolve ambiguous chromosomes
+        result_df = self.resolve_ambiguous_chromosomes(result_df)
 
-            - For Chrom_23 == True and SEX == male:
-            - If both x_hgnc_id and y_hgnc_id have values → ⚠️ warn
-            - If neither has values → ❌ warn
-            - If ambig_chrom == "XY" or "neither", try to resolve Chromosome field
-            """
-            chrom23_male_mask = (
-                (df["Chrom_23"] == True) &
-                (df["SEX"].str.lower().str.strip() == "male")
-            )
-            for idx, row in df[chrom23_male_mask].iterrows():
-                x_id = str(row.get("x_hgnc_id", "")).strip()
-                y_id = str(row.get("y_hgnc_id", "")).strip()
-                ambig_status = row.get("ambig_chrom", "not_set")
-
-                # ⚠️ Raise general warnings, regardless of ambig_chrom
-                if x_id != "no_value" and y_id != "no_value":
-                    print(f"⚠️ Row {idx}: Both x_hgnc_id and y_hgnc_id have values. Manual check recommended.")
-                elif x_id == "no_value" and y_id == "no_value":
-                    print(f"❌ Row {idx}: Neither x_hgnc_id nor y_hgnc_id has a value.")
-
-                # ✅ Try resolving ambiguous chromosomes
-                if ambig_status in ["XY", "neither"]:
-                    if x_id != "no_value" and y_id == "no_value":
-                        df.at[idx, "Chromosome"] = "X"
-                        df.at[idx, "ambig_chrom"] = "resolved_X"
-                        print(f"✅ Resolved index {idx} to Chromosome X")
-                    elif y_id != "no_value" and x_id == "no_value":
-                        df.at[idx, "Chromosome"] = "Y"
-                        df.at[idx, "ambig_chrom"] = "resolved_Y"
-                        print(f"✅ Resolved index {idx} to Chromosome Y")
-                    elif x_id != "no_value" and y_id != "no_value":
-                        print(f"⚠️ Index {idx}: Ambiguous Chromosome with both HGNC IDs present.")
-                    else:
-                        print(f"❌ Index {idx}: Ambiguous Chromosome with no HGNC ID found.")
-            return df
-
-        # resolve ambiguous chromosomes
-        resolve_ambiguous_chromosomes(result_df)
-
-        # function for API call to test gene tokenization
-        def test_gene_tokenization(gene: str, delay=0.5):
-            BASE_URL = "https://normalize.cancervariants.org/gene/"
-            HEADERS = {
-                "Accept": "application/json",
-                "User-Agent": "Mozilla/5.0"
-            }
-            results = []
-            url = f"{BASE_URL}normalize?q={gene}"
-            try:
-                response = requests.get(url, headers=HEADERS)
-                if response.status_code == 200:
-                    data = response.json()
-                    results.append({
-                        "gene": gene,
-                        "response": json.dumps(data)
-                    })
-                else:
-                    results.append({
-                        "gene": gene,
-                        "response": f"Error {response.status_code}: {response.text}"
-                    })
-            except Exception as e:
-                results.append({
-                    "gene": gene,
-                    "response": f"Exception: {str(e)}"
-                })
-            time.sleep(delay)
-            return pd.DataFrame(results)
-
-        # function to update gene_hgnc_id col
-        def update_gene_hgnc_id_inplace(df):
-            for idx, row in df.iterrows():
-                if row.get("Chrom_23") and str(row.get("SEX", "")).strip().lower() == "male":
-                    try:
-                        result = test_gene_tokenization(row["Hugo_Symbol"])
-                        full_id = result["gene"]["id"]  # e.g., "normalize.gene.hgnc:447"
-                        hgnc_id = full_id.split(":")[-1]  # Extract "447"
-                        df.at[idx, "gene_hgnc_id"] = hgnc_id
-                    except Exception as e:
-                        print(f"⚠️ Could not extract HGNC ID for {row['Hugo_Symbol']}: {e}")
-            print(df.head())
-            return df
-
-        # set gene list
+        #set genes to be queried as list
         # Ensure column exists and is initialized to "untested"
         if "gene_hgnc_id" not in result_df.columns:
             result_df["gene_hgnc_id"] = "untested"
@@ -622,95 +620,25 @@ class cBioportalTransformer(Transformer):
         print("Total genes in list:", len(gene_list))
         print("Sample of gene_list:", gene_list[:5])
 
-        # run gene tokenization
+
+        #run gene tokenization
         # Start with a copy of your combined_df
         result_post_23_df = result_df.copy()
-
-        def populate_gene_hgnc_col(gene_list, df):
-            # Add the column once
-            if "gene_hgnc_id" not in df.columns:
-                df["gene_hgnc_id"] = None
-            for gene in gene_list:
-                print(f"▶️ Checking gene: {gene}")
-                gene_df = test_gene_tokenization(gene)
-                # Extract and parse JSON string from the response
-                raw_response = gene_df.loc[0, "response"]
-                try:
-                    parsed_response = json.loads(raw_response)
-                except json.JSONDecodeError:
-                    print(f"❌ Failed to parse JSON for: {gene}")
-                    continue
-                if "gene" not in parsed_response:
-                    print(f"⚠️ 'gene' key not found for: {gene}")
-                    continue
-                try:
-                    hgnc_id = parsed_response["gene"]["id"].split(":")[-1]
-                    print(f"✅ Extracted HGNC ID for {gene}: {hgnc_id}")
-                except (KeyError, IndexError, TypeError):
-                    print(f"⚠️ No HGNC ID found for: {gene}")
-                    continue
-                # Apply to matching rows
-                df.loc[
-                    (df["Chrom_23"] == True) & 
-                    (df["SEX"].str.strip().str.lower() == "male") & 
-                    (df["Hugo_Symbol"].str.strip() == gene.strip()),
-                    "gene_hgnc_id"
-                ] = hgnc_id
-            return df
-        result_post_23_df = populate_gene_hgnc_col(gene_list, result_post_23_df)
+        result_post_23_df = self.populate_gene_hgnc_col(gene_list, result_post_23_df)
         print(result_post_23_df["gene_hgnc_id"].value_counts(dropna=False))
-        result_post_23_df.to_csv("output_post_gene_norm.csv", index=False)
 
-        # function to check hgnc_id matches
-        def validate_gene_hgnc_match(df):
-            """
-            Compare gene_hgnc_id to x_hgnc_id or y_hgnc_id for Chromosome 23 variants in male samples.
-            
-            Adds a column 'hgnc_id_match':
-                - "untested" (default)
-                - set to matching hgnc_id if match is found
-                - "no_match" if mismatch is found
+        # check hgnc id matches between variation and gene normalizers
+        post_validation_df = self.validate_gene_hgnc_match(result_post_23_df)
 
-            Prints warnings for mismatches.
-            """
-            # Initialize column
-            if "hgnc_id_match" not in df.columns:
-                df["hgnc_id_match"] = "untested"
-            # Define mask for male Chr23 variants
-            mask = (df["Chrom_23"] == True) & (df["SEX"].str.strip().str.lower() == "male")
-            for idx, row in df[mask].iterrows():
-                gene_id = str(row.get("gene_hgnc_id", "")).strip()
-                chrom = str(row.get("Chromosome", "")).strip()
-                x_id = str(row.get("x_hgnc_id", "")).strip()
-                y_id = str(row.get("y_hgnc_id", "")).strip()
-                if chrom == "X":
-                    if gene_id == x_id and gene_id != "no_value":
-                        df.at[idx, "hgnc_id_match"] = gene_id
-                    else:
-                        df.at[idx, "hgnc_id_match"] = "no_match"
-                        print(f"❌ Row {idx}: X chromosome mismatch. gene_hgnc_id={gene_id}, x_hgnc_id={x_id}")
-                elif chrom == "Y":
-                    if gene_id == y_id and gene_id != "no_value":
-                        df.at[idx, "hgnc_id_match"] = gene_id
-                    else:
-                        df.at[idx, "hgnc_id_match"] = "no_match"
-                        print(f"❌ Row {idx}: Y chromosome mismatch. gene_hgnc_id={gene_id}, y_hgnc_id={y_id}")
-            return df
-
-        # run validation of hgnc_id matches
-        post_validation_df = validate_gene_hgnc_match(result_post_23_df)
-        post_validation_df.to_csv("output_post_validation.csv", index=False)
-
-        # create final gnomad notation column
+        #create final gnomAD notation column and populate
+        # construct Gnomad variant ID column
         post_validation_df["Gnomad_Notation"] = post_validation_df.apply(
             lambda row: f"{row['Chromosome']}-{row['Start_Position']}-{row['Reference_Allele']}-{row['Tumor_Seq_Allele2']}",
             axis=1
         )
 
-        #TODO: fill in missing RefSeq, HGVSp, HGVSp_short, and protein position
-
-
         # remove variant dupes per patient
+
         # find duplicated (PATIENT_ID, Gnomad_Notation) pairs
         dupe_mask = post_validation_df.duplicated(subset=["PATIENT_ID", "Gnomad_Notation"], keep="first")
         # new DataFrame with the duplicated rows
@@ -721,11 +649,14 @@ class cBioportalTransformer(Transformer):
         patient_variant_dupes.to_csv("patient_variant_dupes.csv", index=False)
         # print the number of rows removed
         print(f"Removed {patient_variant_dupes.shape[0]} rows with duplicated Gnomad_Notation per PATIENT_ID.")
-        # reassign dataframe:
-        final_df = post_validation_df_cleaned
+        return post_validation_df_cleaned
+    
 
 
-        
+
+
+
+
 
         # TODO: Method's for mapping cleaned up data to Common Data Model format
         # civic.py transformer may have some logic to reuse here
