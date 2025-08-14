@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 from neo4j import Driver
 
 from metakb import DATE_FMT, __version__
-from metakb.config import config
+from metakb.config import get_configs
 from metakb.database import clear_graph as clear_metakb_graph
 from metakb.database import get_driver
 from metakb.harvesters.civic import CivicHarvester
@@ -473,7 +473,7 @@ def load_cdm(
 
         for src in sorted([s.value for s in SourceName]):
             pattern = f"{src}_cdm_{version}.json"
-            globbed = (config.data_root / src / "transformers").glob(pattern)
+            globbed = (get_configs().data_root / src / "transformers").glob(pattern)
 
             try:
                 path = sorted(globbed)[-1]
@@ -564,7 +564,7 @@ async def update(
         sources = tuple(SourceName)
     for src in sorted([s.value for s in sources]):
         pattern = f"{src}_cdm_*.json"
-        globbed = (config.data_root / src / "transformers").glob(pattern)
+        globbed = (get_configs().data_root / src / "transformers").glob(pattern)
 
         try:
             path = sorted(globbed)[-1]
@@ -747,7 +747,7 @@ def _retrieve_s3_cdms() -> str:
         with tmp_path.open("wb") as f:
             file.Object().download_fileobj(f)
 
-        cdm_dir = config.data_root / source / "transformers"
+        cdm_dir = get_configs().data_root / source / "transformers"
         cdm_zip = ZipFile(tmp_path, "r")
         cdm_zip.extract(f"{source}_cdm_{newest_version}.json", cdm_dir)
 
