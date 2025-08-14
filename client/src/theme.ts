@@ -1,20 +1,20 @@
-import { createTheme, ThemeOptions } from '@mui/material/styles';
+import { createTheme, ThemeOptions } from '@mui/material/styles'
 
 // theme.d.ts (or at the top of theme.ts if you're not splitting files)
-import { PaletteColorOptions, PaletteColor } from '@mui/material/styles';
+import { PaletteColorOptions, PaletteColor } from '@mui/material/styles'
 
 declare module '@mui/material/styles' {
   interface Palette {
-    header: PaletteColor;
+    header: PaletteColor
   }
   interface PaletteOptions {
-    header?: PaletteColorOptions;
+    header?: PaletteColorOptions
   }
 }
 
 declare module '@mui/material/AppBar' {
   interface AppBarPropsColorOverrides {
-    header: true;
+    header: true
   }
 }
 
@@ -32,8 +32,8 @@ export const themeOptions: ThemeOptions = {
       contrastText: '#FFFFFF',
     },
   },
-};
+}
 
-const theme = createTheme(themeOptions);
+const theme = createTheme(themeOptions)
 
-export default theme;
+export default theme
