@@ -137,6 +137,7 @@ dynamodb_local_latest/
 # client (Vite)
 client/dist
 client/.env
+client/.vite
 
 # server (Python)
 server/__pycache__/
