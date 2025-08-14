@@ -109,12 +109,6 @@ First, [follow these instructions for deploying DynamoDB locally on your compute
 java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb
 ```
 
-Next, navigate to the `site-packages` directory of your virtual environment. Assuming Pipenv is installed to your user directory, this should be something like:
-
-```sh
-cd ~/.local/share/virtualenvs/metakb-<various characters>/lib/python<python-version>/site-packages/  # replace <various characters> and <python-version>
-```
-
 Next, initialize the [Variation Normalizer](https://github.com/cancervariants/variation-normalization) by following the instructions in the [README](https://github.com/cancervariants/variation-normalization#installation). When setting up the UTA database, [these](https://github.com/ga4gh/vrs-python/tree/main/docs/setup_help) docs may be helpful.
 
 The MetaKB can acquire all other needed normalizer data, except for that of [OMIM](https://www.omim.org/downloads), which must be manually placed:
@@ -194,6 +188,20 @@ pre-commit install
 ## Versioning
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/cancervariants/metakb/tags).
+
+## Generating requirements
+
+[requirements.txt](./requirements.txt) is used for Elastic Beanstalk to install the
+dependencies. Anytime you update package requirements in
+[pyproject.toml](./server/pyproject.toml) be sure to create a new virtual environment,
+install only the required packages (`pip install -e .`) and update the
+[requirements.txt](./requirements.txt).
+
+To generate run the below command from `server` directory (ensure you have started the venv):
+
+```commandline
+pip freeze --exclude-editable > ../requirements.txt
+```
 
 ## License
 

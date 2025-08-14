@@ -14,14 +14,12 @@ from ga4gh.core.models import (
     MappableConcept,
     Relation,
 )
-from ga4gh.va_spec.aac_2017 import (
-    VariantPrognosticStudyStatement,
-    VariantTherapeuticResponseStudyStatement,
-)
 from ga4gh.va_spec.base import (
     Direction,
     Document,
+    MembershipOperator,
     PrognosticPredicate,
+    Statement,
     TherapeuticResponsePredicate,
     TherapyGroup,
     VariantPrognosticProposition,
@@ -29,7 +27,6 @@ from ga4gh.va_spec.base import (
 )
 from ga4gh.vrs.models import Variation
 
-from metakb import APP_ROOT
 from metakb.harvesters.moa import MoaHarvestedData
 from metakb.normalizers import (
     ViccNormalizers,
@@ -37,7 +34,6 @@ from metakb.normalizers import (
 from metakb.transformers.base import (
     MethodId,
     MoaEvidenceLevel,
-    TherapyType,
     Transformer,
     _sanitize_name,
     _TransformedRecordsCache,
@@ -61,7 +57,7 @@ class MoaTransformer(Transformer):
 
     def __init__(
         self,
-        data_dir: Path = APP_ROOT / "data",
+        data_dir: Path | None = None,
         harvester_path: Path | None = None,
         normalizers: ViccNormalizers | None = None,
     ) -> None:
@@ -128,8 +124,14 @@ class MoaTransformer(Transformer):
             .replace("-", "_")
             .upper()
         )
-        moa_evidence_level = MoaEvidenceLevel[predictive_implication]
-        strength = self.evidence_level_to_vicc_concept_mapping[moa_evidence_level]
+        evidence_level = MoaEvidenceLevel[predictive_implication]
+        strength = MappableConcept(
+            primaryCoding=Coding(
+                system="https://moalmanac.org/about",
+                code=evidence_level.value,
+            ),
+            mappings=self.evidence_level_to_vicc_concept_mapping[evidence_level],
+        )
 
         # Add disease
         moa_disease = self._add_disease(assertion["disease"])
@@ -194,7 +196,6 @@ class MoaTransformer(Transformer):
             stmt_params["proposition"] = VariantTherapeuticResponseProposition(
                 **prop_params
             )
-            statement = VariantTherapeuticResponseStudyStatement(**stmt_params)
         else:
             if assertion["favorable_prognosis"]:
                 predicate = PrognosticPredicate.BETTER_OUTCOME
@@ -207,9 +208,7 @@ class MoaTransformer(Transformer):
             stmt_params["direction"] = direction
             prop_params["objectCondition"] = moa_disease
             stmt_params["proposition"] = VariantPrognosticProposition(**prop_params)
-            statement = VariantPrognosticStudyStatement(**stmt_params)
-
-        self.processed_data.statements_evidence.append(statement)
+        self.processed_data.statements_evidence.append(Statement(**stmt_params))
 
     async def _add_categorical_variants(self, variants: list[dict]) -> None:
         """Create Categorical Variant objects for all MOA variant records.
@@ -436,17 +435,17 @@ class MoaTransformer(Transformer):
             logger.debug("%s has no therapy_name", assertion["id"])
             return None
 
-        therapy_interaction_type = therapy["type"]
+        therapy_type = therapy["type"]
 
         if "+" in therapy_name:
             # Indicates multiple therapies
-            if therapy_interaction_type.upper() in {
+            if therapy_type.upper() in {
                 "COMBINATION THERAPY",
                 "IMMUNOTHERAPY",
                 "RADIATION THERAPY",
                 "TARGETED THERAPY",
             }:
-                therapy_type = TherapyType.COMBINATION_THERAPY
+                membership_operator = MembershipOperator.AND
             else:
                 # skipping HORMONE and CHEMOTHERAPY for now
                 return None
@@ -459,26 +458,24 @@ class MoaTransformer(Transformer):
         else:
             therapy_id = f"moa.therapy:{_sanitize_name(therapy_name)}"
             therapies = [{"name": therapy_name}]
-            therapy_type = TherapyType.THERAPY
+            membership_operator = None
 
         return self._add_therapy(
             therapy_id,
             therapies,
+            membership_operator,
             therapy_type,
-            therapy_interaction_type,
         )
 
     def _get_therapeutic_substitute_group(
         self,
         therapeutic_sub_group_id: str,
         therapies: list[dict],
-        therapy_interaction_type: str,
     ) -> None:
         """MOA does not support therapeutic substitute group
 
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
         :param therapies: List of therapy objects
-        :param therapy_interaction_type: Therapy type provided by MOA
         :return: None, since not supported by MOA
         """
 

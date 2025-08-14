@@ -6,7 +6,7 @@ Installation
 Prerequisites
 -------------
 
-* A recent version of Python (>= 3.10)
+* A recent version of Python (>= 3.11)
 * A recent Neo4j database server (e.g. `Neo4j Desktop <https://neo4j.com/download>`_, version 5.14 or newer)
 * A recent `PostgreSQL database server <https://www.postgresql.org/download/>`_ (version 14 or newer)
 
@@ -56,7 +56,7 @@ MetaKB requires access to `SeqRepo <https://github.com/biocommons/biocommons.seq
 .. code-block::
 
    pip install seqrepo
-   export SEQREPO_VERSION=2024-02-20  # or newer if available -- check `seqrepo list-remote-instances`
+   export SEQREPO_VERSION=2024-12-20  # or newer if available -- check `seqrepo list-remote-instances`
    sudo mkdir /usr/local/share/seqrepo
    sudo chown $USER /usr/local/share/seqrepo
    seqrepo pull -i $SEQREPO_VERSION
@@ -65,7 +65,7 @@ If you encounter a permission error similar to the one below:
 
 .. code-block::
 
-   PermissionError: [Error 13] Permission denied: '/usr/local/share/seqrepo/2024-02-20._fkuefgd' -> '/usr/local/share/seqrepo/2024-02-20'
+   PermissionError: [Error 13] Permission denied: '/usr/local/share/seqrepo/2024-12-20._fkuefgd' -> '/usr/local/share/seqrepo/2024-12-20'
 
 Try moving data manually with ``sudo``:
 
@@ -140,7 +140,7 @@ For local use, we recommend Neo4j Desktop. First, follow the `desktop setup inst
 
 Once you have opened Neo4j desktop, use the ``New`` button in the upper-left region of the window to create a new project. Within that project, click the ``Add`` button in the upper-right region of the window and select ``Local DBMS``. The name of the DBMS doesn't matter, but the password will be used later to connect the database to MetaKB. Select version ``5.14.0`` (other versions have not been tested). Click ``Create``. Then, click the row within the project screen corresponding to your newly-created DBMS, and click the green Start button to start the database service.
 
-By default, Neo4j Desktop serves to port ``7687``. Use the enviroment variable ``METAKB_NORM_DB_URL`` to configure an alternate port (default value: ``bolt://localhost:7687``).
+See the :ref:`database configuration entry <metakb-db-url>` for instructions on configuring a connection to a Neo4j instance.
 
 Loading Data
 ------------

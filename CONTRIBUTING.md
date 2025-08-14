@@ -8,7 +8,7 @@ We welcome contributions! Please review the following guidelines before submitti
 
 - **Do not open a GitHub issue if the bug is a security vulnerability.**
 - **Check if the bug has already been reported** by searching [existing issues](https://github.com/cancervariants/metakb/issues).
-- If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/cancervariants/metakb/issues/new). Be sure to include a **title and clear description**, as much relevant information as possible, and a **code sample** or an **executable test case** demonstrating the expected behavior that is not occurring.
+- If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/cancervariants/metakb/issues/new?template=bug-report.yaml). Be sure to include a **title and clear description**, as much relevant information as possible, and a **code sample** or an **executable test case** demonstrating the expected behavior that is not occurring.
 - If possible, use the relevant bug report template when submitting.
 
 ---

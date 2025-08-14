@@ -1,12 +1,12 @@
 """Handle construction of and relay requests to VICC normalizer services."""
 
 import logging
-import os
 from collections.abc import Iterable
 from enum import Enum
+from os import environ
 
 from botocore.exceptions import TokenRetrievalError
-from disease.cli import update_db as update_disease_db
+from disease.cli import update as update_disease_db
 from disease.database import create_db as create_disease_db
 from disease.database.database import AWS_ENV_VAR_NAME as DISEASE_AWS_ENV_VAR_NAME
 from disease.query import QueryHandler as DiseaseQueryHandler
@@ -17,12 +17,12 @@ from ga4gh.vrs.models import (
     CopyNumberChange,
     CopyNumberCount,
 )
-from gene.cli import update_normalizer_db as update_gene_db
+from gene.cli import update as update_gene_db
 from gene.database import create_db as create_gene_db
 from gene.database.database import AWS_ENV_VAR_NAME as GENE_AWS_ENV_VAR_NAME
 from gene.query import QueryHandler as GeneQueryHandler
 from gene.schemas import NormalizeService as NormalizedGene
-from therapy.cli import update_normalizer_db as update_therapy_db
+from therapy.cli import update as update_therapy_db
 from therapy.database import create_db as create_therapy_db
 from therapy.database.database import AWS_ENV_VAR_NAME as THERAPY_AWS_ENV_VAR_NAME
 from therapy.query import QueryHandler as TherapyQueryHandler
@@ -31,12 +31,12 @@ from therapy.schemas import NormalizationService as NormalizedTherapy
 from variation.query import QueryHandler as VariationQueryHandler
 
 __all__ = [
-    "ViccNormalizers",
-    "NormalizerName",
-    "check_normalizers",
-    "IllegalUpdateError",
-    "update_normalizer",
     "NORMALIZER_AWS_ENV_VARS",
+    "IllegalUpdateError",
+    "NormalizerName",
+    "ViccNormalizers",
+    "check_normalizers",
+    "update_normalizer",
 ]
 
 _logger = logging.getLogger(__name__)
@@ -66,7 +66,9 @@ class ViccNormalizers:
         Note that gene concept lookups within the Variation Normalizer are resolved
         using the Gene Normalizer instance, rather than creating a second sub-instance.
 
-        >>> id(norm.gene_query_handler) == id(norm.variation_normalizer.gnomad_vcf_to_protein_handler.gene_normalizer)
+        >>> id(norm.gene_query_handler) == id(
+        ...     norm.variation_normalizer.gnomad_vcf_to_protein_handler.gene_normalizer
+        ... )
         True
 
         :param db_url: optional definition of shared normalizer database. Because the
@@ -97,14 +99,12 @@ class ViccNormalizers:
             )
             if variation_norm_resp and variation_norm_resp.variation:
                 return variation_norm_resp.variation
-        except TokenRetrievalError as e:
-            _logger.error(e)
-            raise e
-        except Exception as e:
-            _logger.error(
-                "Variation Normalizer raised an exception using query %s: %s",
+        except TokenRetrievalError:
+            raise
+        except Exception:
+            _logger.exception(
+                "Variation Normalizer raised an exception using query %s",
                 query,
-                e,
             )
         return None
 
@@ -237,19 +237,19 @@ class ViccNormalizers:
 
         try:
             normalizer_resp = query_handler.normalize(query)
-        except TokenRetrievalError as e:
-            _logger.error(e)
-            raise e
-        except Exception as e:
-            _logger.error(
-                "%s Normalizer raised an exception using query %s: %s",
+        except TokenRetrievalError:
+            raise
+        except Exception:
+            _logger.exception(
+                "%s Normalizer raised an exception using query %s",
                 concept_name.capitalize(),
                 query,
-                e,
             )
         else:
             if normalizer_resp.match_type:
-                normalized_id = getattr(normalizer_resp, concept_name).primaryCode.root
+                normalized_id = getattr(normalizer_resp, concept_name).id.split(
+                    f"normalize.{concept_name}."
+                )[-1]
 
         return normalizer_resp, normalized_id
 
@@ -319,9 +319,9 @@ def check_normalizers(
                     "Tables for %s normalizer appear to be unpopulated.", name.value
                 )
                 success = False
-        except Exception as e:
-            _logger.error(
-                "Encountered exception while checking %s normalizer: %s", name.value, e
+        except Exception:
+            _logger.exception(
+                "Encountered exception while checking %s normalizer", name.value
             )
             success = False
     return success
@@ -354,9 +354,9 @@ def update_normalizer(normalizer: NormalizerName, db_url: str | None) -> None:
         defaults.
     :raise IllegalUpdateError: if attempting to update cloud DB instances
     """
-    if NORMALIZER_AWS_ENV_VARS[normalizer] in os.environ:
+    if environ.get(NORMALIZER_AWS_ENV_VARS[normalizer]):
         raise IllegalUpdateError
-    updater_args = ["--update_all", "--update_merged"]
+    updater_args = ["--all", "--normalize"]
     if db_url:
         updater_args += ["--db_url", db_url]
     _NORMALIZER_METHOD_DISPATCH[normalizer](updater_args)

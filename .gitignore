@@ -81,7 +81,7 @@ celerybeat-schedule
 # SageMath parsed files
 *.sage.py
 
-# Environments
+# Package/executable/environment management
 .env
 .venv
 env/
@@ -89,6 +89,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+Pipfile.lock
+uv.lock
 
 # VSCode project settings
 .vscode

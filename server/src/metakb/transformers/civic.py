@@ -5,6 +5,7 @@ import re
 from collections.abc import Callable
 from enum import Enum
 from pathlib import Path
+from types import MappingProxyType
 from typing import ClassVar
 
 from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
@@ -16,6 +17,8 @@ from ga4gh.core.models import (
     Relation,
 )
 from ga4gh.va_spec.aac_2017 import (
+    Classification,
+    Strength,
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
@@ -25,7 +28,10 @@ from ga4gh.va_spec.base import (
     Direction,
     Document,
     EvidenceLine,
+    MembershipOperator,
     PrognosticPredicate,
+    Statement,
+    System,
     TherapeuticResponsePredicate,
     TherapyGroup,
     VariantDiagnosticProposition,
@@ -35,7 +41,6 @@ from ga4gh.va_spec.base import (
 from ga4gh.vrs.models import Allele, Expression, Syntax, Variation
 from pydantic import BaseModel, ValidationError
 
-from metakb import APP_ROOT
 from metakb.harvesters.civic import CivicHarvestedData
 from metakb.normalizers import (
     ViccNormalizers,
@@ -43,7 +48,6 @@ from metakb.normalizers import (
 from metakb.transformers.base import (
     CivicEvidenceLevel,
     MethodId,
-    TherapyType,
     Transformer,
     _TransformedRecordsCache,
 )
@@ -112,30 +116,11 @@ class _CivicInteractionType(str, Enum):
     COMBINATION = "COMBINATION"
 
 
-class AmpAscoCapClassification(str, Enum):
-    """Define constraints for CIViC AMP/ASCO/CAP classification
-
-    This follows ClinVar: https://github.com/ncbi/clinvar/blob/master/submission_api_schema/submission_api_schema.json#L510-L514
-    """
-
-    TIER_I = "Tier I - Strong"
-    TIER_II = "Tier II - Potential"
-    TIER_III = "Tier III - Unknown"
-    TIER_IV = "Tier IV - Benign/Likely benign"
-
-
-TIER_TO_AMP_ASCO_CAP = {
-    m.value.split(" -")[0]: m.value
-    for m in AmpAscoCapClassification.__members__.values()
-}
-
-
 class _TherapeuticMetadata(BaseModel):
     """Define model for CIVIC therapeutic metadata"""
 
     therapy_id: str
-    interaction_type: _CivicInteractionType | None
-    therapy_type: TherapyType
+    membership_operator: MembershipOperator | None
     therapies: list[dict]
 
 
@@ -173,6 +158,27 @@ class SourcePrefix(str, Enum):
     ASH = "ASH"
 
 
+class CivicEvidenceName(str, Enum):
+    """Define constraints for CIViC evidence names"""
+
+    VALIDATED_ASSOCIATION = "Validated association"
+    CLINICAL_EVIDENCE = "Clinical evidence"
+    CASE_STUDY = "Case study"
+    PRECLINICAL_EVIDENCE = "Preclinical evidence"
+    INFERENTIAL_ASSOCIATION = "Inferential association"
+
+
+CIVIC_EVIDENCE_LEVEL_TO_NAME = MappingProxyType(
+    {
+        CivicEvidenceLevel.A: CivicEvidenceName.VALIDATED_ASSOCIATION,
+        CivicEvidenceLevel.B: CivicEvidenceName.CLINICAL_EVIDENCE,
+        CivicEvidenceLevel.C: CivicEvidenceName.CASE_STUDY,
+        CivicEvidenceLevel.D: CivicEvidenceName.PRECLINICAL_EVIDENCE,
+        CivicEvidenceLevel.E: CivicEvidenceName.INFERENTIAL_ASSOCIATION,
+    }
+)
+
+
 class _CivicTransformedCache(_TransformedRecordsCache):
     """Create model for caching CIViC data"""
 
@@ -181,9 +187,7 @@ class _CivicTransformedCache(_TransformedRecordsCache):
     evidence: ClassVar[
         dict[
             str,
-            VariantDiagnosticStudyStatement
-            | VariantPrognosticStudyStatement
-            | VariantTherapeuticResponseStudyStatement,
+            Statement,
         ]
     ] = {}
 
@@ -193,7 +197,7 @@ class CivicTransformer(Transformer):
 
     def __init__(
         self,
-        data_dir: Path = APP_ROOT / "data",
+        data_dir: Path | None = None,
         harvester_path: Path | None = None,
         normalizers: ViccNormalizers | None = None,
     ) -> None:
@@ -355,16 +359,18 @@ class CivicTransformer(Transformer):
                 return
 
             reported_in = [document] if document else None
-            # Get strength
+
             evidence_level = CivicEvidenceLevel[record["evidence_level"]]
-            strength = self.evidence_level_to_vicc_concept_mapping[evidence_level]
+            strength = self._get_eid_strength(evidence_level)
         else:
-            strength = None
             reported_in = None
 
             if record["amp_level"]:
-                classification = self._get_classification(record["amp_level"])
-                if not classification:
+                classification, strength = self._get_aid_classification_and_strength(
+                    record["amp_level"]
+                )
+                if not classification and not strength:
+                    _logger.debug("No classification and/or strength found")
                     return
 
             evidence_lines = []
@@ -404,8 +410,7 @@ class CivicTransformer(Transformer):
                 civic_therapeutic = self._add_therapy(
                     therapeutic_metadata.therapy_id,
                     therapeutic_metadata.therapies,
-                    therapeutic_metadata.therapy_type,
-                    therapeutic_metadata.interaction_type,
+                    therapeutic_metadata.membership_operator,
                 )
             if not civic_therapeutic:
                 return
@@ -417,14 +422,8 @@ class CivicTransformer(Transformer):
         # Get qualifier
         civic_gene = self._cache.genes.get(variation_gene_map.civic_gene_id)
 
-        variant_origin = record["variant_origin"].upper()
-        if variant_origin == "SOMATIC":
-            allele_origin_qualifier = MappableConcept(name="somatic")
-        elif variant_origin in {"RARE_GERMLINE", "COMMON_GERMLINE"}:
-            allele_origin_qualifier = MappableConcept(name="germline")
-        else:
-            allele_origin_qualifier = None
-
+        variant_origin = record["variant_origin"].lower()
+        allele_origin_qualifier = MappableConcept(name=variant_origin)
         statement_id = record["name"].lower()
         statement_id = (
             statement_id.replace("eid", "civic.eid:")
@@ -439,10 +438,12 @@ class CivicTransformer(Transformer):
             "strength": strength,
             "specifiedBy": self.processed_data.methods[0],
             "reportedIn": reported_in,
-            "classification": classification,
             "extensions": extensions or None,
             "hasEvidenceLines": evidence_lines or None,
         }
+
+        if not is_evidence:
+            stmt_params["classification"] = classification
 
         prop_params = {
             "predicate": predicate,
@@ -457,13 +458,25 @@ class CivicTransformer(Transformer):
             stmt_params["proposition"] = VariantTherapeuticResponseProposition(
                 **prop_params
             )
-            statement = VariantTherapeuticResponseStudyStatement(**stmt_params)
+            statement = (
+                Statement(**stmt_params)
+                if is_evidence
+                else VariantTherapeuticResponseStudyStatement(**stmt_params)
+            )
         elif record_type == _CivicEvidenceAssertionType.PROGNOSTIC:
             stmt_params["proposition"] = VariantPrognosticProposition(**prop_params)
-            statement = VariantPrognosticStudyStatement(**stmt_params)
+            statement = (
+                Statement(**stmt_params)
+                if is_evidence
+                else VariantPrognosticStudyStatement(**stmt_params)
+            )
         else:
             stmt_params["proposition"] = VariantDiagnosticProposition(**prop_params)
-            statement = VariantDiagnosticStudyStatement(**stmt_params)
+            statement = (
+                Statement(**stmt_params)
+                if is_evidence
+                else VariantDiagnosticStudyStatement(**stmt_params)
+            )
 
         if is_evidence:
             self._cache.evidence[statement_id] = statement
@@ -471,24 +484,60 @@ class CivicTransformer(Transformer):
         else:
             self.processed_data.statements_assertions.append(statement)
 
-    @staticmethod
-    def _get_classification(amp_level: str) -> MappableConcept | None:
-        """Get statement classification
+    def _get_eid_strength(self, evidence_level: CivicEvidenceLevel) -> MappableConcept:
+        """Get CIViC Evidence Item strength
+
+        :param evidence_level: CIViC evidence level
+        :return: Strength for CIViC evidence item
+        """
+        return MappableConcept(
+            name=CIVIC_EVIDENCE_LEVEL_TO_NAME[evidence_level],
+            primaryCoding=Coding(
+                system="https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                code=evidence_level.value,
+            ),
+            mappings=self.evidence_level_to_vicc_concept_mapping[evidence_level],
+        )
+
+    def _get_aid_classification_and_strength(
+        self,
+        amp_level: str,
+    ) -> tuple[MappableConcept | None, MappableConcept | None]:
+        """Get statement classification and strength
 
         :param amp_level: AMP/ASCO/CAP level
-        :return: Classification represented as a mappable concept
+        :return: Classification and strength, if found
         """
-        if amp_level == "NA":
-            classification = None
-        else:
+        classification = None
+        strength = None
+        system = System.AMP_ASCO_CAP
+
+        if amp_level != "NA":
             pattern = re.compile(r"TIER_(?P<tier>[IV]+)(?:_LEVEL_(?P<level>[A-D]))?")
             match = pattern.match(amp_level).groupdict()
-            primary_code = f"Tier {match['tier']}"
             classification = MappableConcept(
-                primaryCode=TIER_TO_AMP_ASCO_CAP[primary_code],
-                extensions=[Extension(name="civic_amp_level", value=amp_level)],
+                primaryCoding=Coding(
+                    code=Classification(f"Tier {match['tier']}"), system=system
+                ),
             )
-        return classification
+
+            level = match["level"]
+            evidence_strength = self._get_eid_strength(CivicEvidenceLevel(level))
+            mappings = evidence_strength.mappings
+            evidence_strength.primaryCoding.name = evidence_strength.name
+            mappings.append(
+                ConceptMapping(
+                    coding=evidence_strength.primaryCoding,
+                    relation=Relation.EXACT_MATCH,
+                )
+            )
+
+            strength = MappableConcept(
+                primaryCoding=Coding(code=Strength(f"Level {level}"), system=system),
+                mappings=mappings,
+            )
+
+        return classification, strength
 
     def _get_direction(self, direction: str) -> Direction | None:
         """Get the normalized evidence or assertion direction
@@ -1015,43 +1064,28 @@ class CivicTransformer(Transformer):
         self,
         therapeutic_sub_group_id: str,
         therapies_in: list[dict],
-        therapy_interaction_type: str,
     ) -> TherapyGroup | None:
         """Get Therapeutic Substitute Group for CIViC therapies
 
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
         :param therapies_in: List of CIViC therapy objects
-        :param therapy_interaction_type: Therapy interaction type provided by CIViC
         :return: Therapeutic Substitute Group
         """
         therapies = []
 
         for therapy in therapies_in:
             therapy_id = f"civic.tid:{therapy['id']}"
-            therapy = self._add_therapy(
-                therapy_id,
-                [therapy],
-                TherapyType.THERAPY,
-            )
+            therapy = self._add_therapy(therapy_id, [therapy], membership_operator=None)
             if not therapy:
                 return None
 
             therapies.append(therapy)
 
-        extensions = [
-            Extension(
-                name="civic_therapy_interaction_type", value=therapy_interaction_type
-            )
-        ]
-
         try:
             tg = TherapyGroup(
+                membershipOperator=MembershipOperator.OR,
                 id=therapeutic_sub_group_id,
-                groupType=MappableConcept(
-                    name=TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP.value
-                ),
                 therapies=therapies,
-                extensions=extensions,
             )
         except ValidationError as e:
             # If substitutes validation checks fail
@@ -1152,8 +1186,7 @@ class CivicTransformer(Transformer):
         if len(therapies) == 1:
             # Add therapy
             therapy_id = f"civic.tid:{therapies[0]['id']}"
-            therapy_interaction_type = None
-            therapy_type = TherapyType.THERAPY
+            membership_operator = None
         else:
             # Add therapy group
             therapy_interaction_type = evidence_item["therapy_interaction_type"]
@@ -1162,10 +1195,10 @@ class CivicTransformer(Transformer):
 
             if therapy_interaction_type == _CivicInteractionType.SUBSTITUTES:
                 therapy_id = f"civic.tsgid:{therapeutic_digest}"
-                therapy_type = TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP
+                membership_operator = MembershipOperator.OR
             elif therapy_interaction_type == _CivicInteractionType.COMBINATION:
                 therapy_id = f"civic.ctid:{therapeutic_digest}"
-                therapy_type = TherapyType.COMBINATION_THERAPY
+                membership_operator = MembershipOperator.AND
             else:
                 _logger.debug(
                     "civic therapy_interaction_type not supported: %s",
@@ -1175,8 +1208,7 @@ class CivicTransformer(Transformer):
 
         return _TherapeuticMetadata(
             therapy_id=therapy_id,
-            interaction_type=therapy_interaction_type,
-            therapy_type=therapy_type,
+            membership_operator=membership_operator,
             therapies=therapies,
         )
 

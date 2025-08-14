@@ -23,14 +23,19 @@ from ga4gh.core.models import (
     Extension,
     MappableConcept,
     Relation,
-    code,
 )
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base import Document, Method, TherapyGroup
+from ga4gh.va_spec.base import (
+    Document,
+    MembershipOperator,
+    Method,
+    Statement,
+    TherapyGroup,
+)
 from ga4gh.vrs.models import Allele
 from gene.schemas import (
     NamespacePrefix as GeneNamespacePrefix,
@@ -46,7 +51,8 @@ from therapy.schemas import (
     NormalizationService as NormalizedTherapy,
 )
 
-from metakb import APP_ROOT, DATE_FMT
+from metakb import DATE_FMT
+from metakb.config import get_configs
 from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import (
     ViccNormalizers,
@@ -117,14 +123,6 @@ class MoaEvidenceLevel(str, Enum):
     INFERENTIAL = "Inferential evidence"
 
 
-class TherapyType(str, Enum):
-    """Define types for supported therapies"""
-
-    THERAPY = "Therapy"
-    THERAPEUTIC_SUBSTITUTE_GROUP = "TherapeuticSubstituteGroup"
-    COMBINATION_THERAPY = "CombinationTherapy"
-
-
 class ViccConceptVocab(BaseModel):
     """Define VICC Concept Vocab model"""
 
@@ -147,11 +145,9 @@ class _TransformedRecordsCache(BaseModel):
 class TransformedData(BaseModel):
     """Define model for transformed data"""
 
-    statements_evidence: list[
-        VariantTherapeuticResponseStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantDiagnosticStudyStatement
-    ] = Field([], description="Statement objects for evidence records")
+    statements_evidence: list[Statement] = Field(
+        [], description="Statement objects for evidence records"
+    )
     statements_assertions: list[
         VariantTherapeuticResponseStudyStatement
         | VariantPrognosticStudyStatement
@@ -179,9 +175,7 @@ class Transformer(ABC):
                 doi="10.1186/s13073-019-0687-x",
                 pmid=31779674,
             ),
-            subtype=MappableConcept(
-                primaryCode="variant curation standard operating procedure"
-            ),
+            methodType="variant curation standard operating procedure",
         ),
         Method(
             id=MethodId.MOA_ASSERTION_BIORXIV,
@@ -288,19 +282,23 @@ class Transformer(ABC):
 
     def __init__(
         self,
-        data_dir: Path = APP_ROOT / "data",
+        data_dir: Path | None = None,
         harvester_path: Path | None = None,
         normalizers: ViccNormalizers | None = None,
     ) -> None:
         """Initialize Transformer base class.
 
-        :param Path data_dir: Path to source data directory
-        :param Optional[Path] harvester_path: Path to previously harvested data
-        :param ViccNormalizers normalizers: normalizer collection instance
+        :param data_dir: Path to source data directory. If not given, use a subdirectory
+            off of the MetaKB data directory as configured in the ``metakb.config`` module.
+        :param harvester_path: Path to previously harvested data
+        :param normalizers: normalizer collection instance
         """
         self._cache = self._create_cache()
         self.name = self.__class__.__name__.lower().split("transformer")[0]
-        self.data_dir = data_dir / self.name
+        if data_dir:
+            self.data_dir = data_dir
+        else:
+            self.data_dir = get_configs().data_root / self.name
         self.harvester_path = harvester_path
         self.vicc_normalizers = (
             ViccNormalizers() if normalizers is None else normalizers
@@ -347,68 +345,27 @@ class Transformer(ABC):
 
     def _evidence_level_to_vicc_concept_mapping(
         self,
-    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, MappableConcept]:
+    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, list[ConceptMapping]]:
         """Get mapping of source evidence level to vicc concept vocab
 
         :return: Dictionary containing mapping from source evidence level (key)
-            to corresponding vicc concept vocab (value) represented as MappableConcept
-            object
+            to corresponding vicc concept vocab (value) represented as a list of
+            ConceptMapping
         """
-
-        def _get_concept_mapping(exact_mapping: str) -> ConceptMapping:
-            """Get system for an exact mapping
-
-            :param exact_mapping: Exact mapping code
-            :raises NotImplementedError: If SourceName not supported yet
-            :return: Concept mapping object
-            """
-            if isinstance(exact_mapping, EcoLevel):
-                id_ = exact_mapping.value.lower()
-                system = "https://www.evidenceontology.org/term/"
-            elif isinstance(exact_mapping, CivicEvidenceLevel):
-                system = (
-                    "https://civic.readthedocs.io/en/latest/model/evidence/level.html"
-                )
-                id_ = f"{SourceName.CIVIC.value}.evidence_level:{exact_mapping.value}"
-            elif isinstance(exact_mapping, MoaEvidenceLevel):
-                system = "https://moalmanac.org/about"
-                id_ = f"{SourceName.MOA.value}.assertion_level:{'_'.join(exact_mapping.value.lower().replace('-', '_').split())}"
-            else:
-                raise NotImplementedError
-
-            return ConceptMapping(
-                coding=Coding(id=id_, system=system, code=exact_mapping),
-                relation=Relation.EXACT_MATCH,
-            )
-
-        mappings = {}
+        concept_mappings: dict[str, list[ConceptMapping]] = {}
         for item in self._vicc_concept_vocabs:
-            primary_code = item.id.split(":")[-1]
             for exact_mapping in item.exact_mappings:
-                concept_mappings = [
+                concept_mappings[exact_mapping] = [
                     ConceptMapping(
                         coding=Coding(
-                            id=item.id,
                             system="https://go.osu.edu/evidence-codes",
+                            code=item.id.split("vicc:")[-1],
                             name=item.term,
-                            code=code(primary_code),
                         ),
                         relation=Relation.EXACT_MATCH,
                     )
                 ]
-
-                concept_mappings.extend(
-                    _get_concept_mapping(exact_mapping_)
-                    for exact_mapping_ in item.exact_mappings
-                )
-
-                mappings[exact_mapping] = MappableConcept(
-                    name=item.term,
-                    primaryCode=primary_code,
-                    mappings=concept_mappings,
-                )
-
-        return mappings
+        return concept_mappings
 
     @staticmethod
     def _get_digest_for_str_lists(str_list: list[str]) -> str:
@@ -444,13 +401,11 @@ class Transformer(ABC):
         self,
         therapeutic_sub_group_id: str,
         therapies: list[dict],
-        therapy_interaction_type: str,
     ) -> TherapyGroup | None:
         """Get Therapeutic Substitute Group for therapies
 
         :param therapeutic_sub_group_id: ID for Therapeutic Substitute Group
         :param therapies: List of therapy objects
-        :param therapy_interaction_type: Therapy interaction type
         :return: Therapeutic Substitute Group
         """
 
@@ -458,13 +413,13 @@ class Transformer(ABC):
         self,
         combination_therapy_id: str,
         therapies_in: list[dict],
-        therapy_interaction_type: str,
+        therapy_type: str | None = None,
     ) -> TherapyGroup | None:
         """Get Combination Therapy representation for source therapies
 
         :param combination_therapy_id: ID for Combination Therapy
         :param therapies: List of source therapy objects
-        :param therapy_interaction_type: Therapy type provided by source
+        :param therapy_type: Therapy type provided by source
         :return: Combination Therapy
         """
         therapies = []
@@ -478,33 +433,33 @@ class Transformer(ABC):
             therapy_mc = self._add_therapy(
                 therapy_id,
                 [therapy],
-                TherapyType.THERAPY,
+                membership_operator=None,
             )
             if not therapy_mc:
                 return None
 
             therapies.append(therapy_mc)
 
-        extensions = [
-            Extension(
-                name="moa_therapy_type"
-                if source_name == SourceName.MOA
-                else "civic_therapy_interaction_type",
-                value=therapy_interaction_type,
-            )
-        ]
+        if source_name == SourceName.MOA:
+            extensions = [
+                Extension(
+                    name=f"{SourceName.MOA.value}_therapy_type", value=therapy_type
+                )
+            ]
+        else:
+            extensions = None
 
         try:
             tg = TherapyGroup(
                 id=combination_therapy_id,
                 therapies=therapies,
                 extensions=extensions,
-                groupType=MappableConcept(name=TherapyType.COMBINATION_THERAPY.value),
+                membershipOperator=MembershipOperator.AND,
             )
         except ValidationError as e:
             # if combination validation checks fail
             logger.debug(
-                "ValidationError raised when attempting to create CombinationTherapy: %s",
+                "ValidationError raised when attempting to create Combination Therapy: %s",
                 e,
             )
             tg = None
@@ -515,36 +470,36 @@ class Transformer(ABC):
         self,
         therapy_id: str,
         therapies: list[dict],
-        therapy_type: TherapyType,
-        therapy_interaction_type: str | None = None,
+        membership_operator: MembershipOperator | None,
+        therapy_type: str | None = None,
     ) -> MappableConcept | None:
         """Create or get therapy mappable concept given therapies
         First look in ``_cache`` for existing therapy, if not found will attempt to
         transform. Will add ``therapy_id`` to ``therapies`` and ``_cache.therapies``
 
         :param therapy_id: ID for therapy
-        :param therapies: List of therapy objects. If `therapy_type` is
-            `TherapyType.THERAPY`, the list will only contain a single therapy.
-        :param therapy_type: The type of therapy
-        :param therapy_interaction_type: drug interaction type
+        :param therapies: List of therapy objects. If `membership_operator` is `None`,
+            the list will only contain a single therapy.
+        :param membership_operator: The logical relationship between ``therapies``
+        :param therapy_type: Therapy type
         :return: Therapy mappable concept, if ``therapy_type`` is supported
         """
         therapy = self._cache.therapies.get(therapy_id)
         if therapy:
             return therapy
 
-        if therapy_type == TherapyType.THERAPY:
+        if membership_operator is None:
             therapy = self._get_therapy(therapy_id, therapies[0])
-        elif therapy_type == TherapyType.THERAPEUTIC_SUBSTITUTE_GROUP:
-            therapy = self._get_therapeutic_substitute_group(
-                therapy_id, therapies, therapy_interaction_type
-            )
-        elif therapy_type == TherapyType.COMBINATION_THERAPY:
+        elif membership_operator == MembershipOperator.OR:
+            therapy = self._get_therapeutic_substitute_group(therapy_id, therapies)
+        elif membership_operator == MembershipOperator.AND:
             therapy = self._get_combination_therapy(
-                therapy_id, therapies, therapy_interaction_type
+                therapy_id, therapies, therapy_type=therapy_type
             )
         else:
-            logger.debug("Therapy type is not supported: %s", therapy_type)
+            logger.debug(
+                "Membership operator is not supported: %s", membership_operator
+            )
             return None
 
         self._cache.therapies[therapy_id] = therapy
@@ -610,7 +565,15 @@ class Transformer(ABC):
         is_gene = isinstance(normalizer_resp, NormalizedGene)
         is_therapy = isinstance(normalizer_resp, NormalizedTherapy)
 
-        normalizer_mappings = normalizer_resp_obj.mappings or []
+        normalizer_mappings = [
+            ConceptMapping(
+                coding=normalizer_resp_obj.primaryCoding,
+                relation=Relation.EXACT_MATCH,
+            ),
+        ]
+        if normalizer_resp_obj.mappings:
+            normalizer_mappings.extend(normalizer_resp_obj.mappings)
+
         for mapping in normalizer_mappings:
             if normalized_id == mapping.coding.id:
                 mappings.append(
@@ -670,9 +633,11 @@ class Transformer(ABC):
     def create_json(self, cdm_filepath: Path | None = None) -> None:
         """Create a composite JSON for transformed data.
 
-        :param cdm_filepath: Path to the JSON file where the CDM data will be
-            stored. If not provided, will use the default path of
-            ``<APP_ROOT>/data/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``
+        :param cdm_filepath: Path to the JSON file locatio at which the CDM output will be
+            saved. If not provided, will use the default path of
+            ``<METAKB_DATA_DIR>/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``,
+            where ``<METAKB_DATA_DIR>`` is the configurable data root directory.
+            See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
         """
         if not cdm_filepath:
             transformers_dir = self.data_dir / "transformers"
