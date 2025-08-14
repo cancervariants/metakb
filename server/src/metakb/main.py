@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request
 
 from metakb import __version__
-from metakb.config import config
+from metakb.config import get_configs
 from metakb.log_handle import configure_logs
 from metakb.query import EmptySearchError, QueryHandler
 from metakb.schemas.api import (
@@ -21,8 +21,6 @@ from metakb.schemas.api import (
     ServiceType,
 )
 
-load_dotenv()
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
@@ -31,6 +29,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     :param app: FastAPI app instance
     :return: async context handler
     """
+    load_dotenv()
     configure_logs()
     query = QueryHandler()
     app.state.query = query
@@ -77,7 +76,9 @@ def service_info() -> ServiceInfo:
     :return: conformant service info description
     """
     return ServiceInfo(
-        organization=ServiceOrganization(), type=ServiceType(), environment=config.env
+        organization=ServiceOrganization(),
+        type=ServiceType(),
+        environment=get_configs().env,
     )
 
 

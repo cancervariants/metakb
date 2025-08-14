@@ -9,7 +9,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from metakb import DATE_FMT
-from metakb.config import config
+from metakb.config import get_configs
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class Harvester(ABC):
         src_name = self.__class__.__name__.lower().split("harvest")[0]
 
         if not harvested_filepath:
-            harvester_dir = config.data_root / src_name / "harvester"
+            harvester_dir = get_configs().data_root / src_name / "harvester"
             harvester_dir.mkdir(exist_ok=True, parents=True)
             today = datetime.datetime.strftime(
                 datetime.datetime.now(tz=datetime.UTC), DATE_FMT

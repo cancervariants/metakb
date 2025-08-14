@@ -52,7 +52,7 @@ from therapy.schemas import (
 )
 
 from metakb import DATE_FMT
-from metakb.config import config
+from metakb.config import get_configs
 from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import (
     ViccNormalizers,
@@ -298,7 +298,7 @@ class Transformer(ABC):
         if data_dir:
             self.data_dir = data_dir
         else:
-            self.data_dir = config.data_root / self.name
+            self.data_dir = get_configs().data_root / self.name
         self.harvester_path = harvester_path
         self.vicc_normalizers = (
             ViccNormalizers() if normalizers is None else normalizers
