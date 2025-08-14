@@ -1,7 +1,12 @@
 """Neo4j implementation of the repository abstraction."""
 
-from neo4j import Driver, GraphDatabase
+import logging
+import os
+from importlib.resources import files
+from urllib.parse import urlparse, urlunparse
 
+import boto3
+from botocore.exceptions import ClientError
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.aac_2017 import (
@@ -10,9 +15,62 @@ from ga4gh.va_spec.aac_2017 import (
     VariantTherapeuticResponseStudyStatement,
 )
 from ga4gh.va_spec.base import Document, Method, Statement, TherapyGroup
+from neo4j import Driver, GraphDatabase, ManagedTransaction
 
+from metakb.config import get_configs
 from metakb.repository.base import AbstractRepository
-from metakb.config import .
+from metakb.repository.neo4j_models import CategoricalVariantNode
+from metakb.schemas.api import ServiceEnvironment
+from metakb.transformers.base import TransformedData
+
+_logger = logging.getLogger(__name__)
+
+
+def _get_secret() -> str:
+    """Get secrets for MetaKB instances.
+
+    :return: code structured as string for consumption in ``ast.literal_eval``
+    """
+    secret_name = os.environ["METAKB_DB_SECRET"]
+    region_name = "us-east-2"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(service_name="secretsmanager", region_name=region_name)
+
+    try:
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+    except ClientError:
+        # For a list of exceptions thrown, see
+        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+        _logger.exception("Encountered ClientError while fetching secrets")
+        raise
+    else:
+        return get_secret_value_response["SecretString"]
+
+
+class Neo4jCredentialsError(Exception):
+    """Raise for invalid or unparseable Neo4j credentials"""
+
+
+def _parse_credentials(url: str) -> tuple[str, tuple[str, str]]:
+    """Extract credential parameters from URL
+
+    :param url: Neo4j connection URL
+    :return: tuple containing cleaned URL, (username, and password)
+    """
+    parsed = urlparse(url)
+    username = parsed.username
+    password = parsed.password
+    hostname = parsed.hostname
+    port = parsed.port
+    if not all([username, password, port, hostname]):
+        _logger.error("Unable to parse Neo4j credentials from URL %s", url)
+        raise Neo4jCredentialsError
+
+    clean_netloc = f"{hostname}:{port}"
+    new_url = urlunparse(parsed._replace(netloc=clean_netloc))
+    return (new_url, (username, password))
 
 
 def get_driver(
@@ -45,10 +103,21 @@ def get_driver(
         url = configs.db_url
     cleaned_url, credentials = _parse_credentials(url)
     driver = GraphDatabase.driver(cleaned_url, auth=credentials)
-    if initialize:
-        with driver.session() as session:
-            session.execute_write(_create_constraints)
+    # TODO add initialization
+    # if initialize:
+    #     with driver.session() as session:
+    #         session.execute_write(_create_constraints)
     return driver
+
+
+class _QueryContainer:
+    def __init__(self):
+        query_dir = files("metakb.repository") / "queries"
+        self.initialize = (query_dir / "initialize.cypher").read_text(encoding="utf-8")
+        self.teardown = (query_dir / "teardown.cypher").read_text(encoding="utf-8")
+        self.load_dac_catvar = (
+            query_dir / "load_definingalleleconstraint_catvar.cypher"
+        ).read_text(encoding="utf-8")
 
 
 class Neo4jRepository(AbstractRepository):
@@ -57,42 +126,18 @@ class Neo4jRepository(AbstractRepository):
     Used to access and store core MetaKB data.
     """
 
-    def get_statement(
-        self, statement_id: str
-    ) -> (
-        Statement
-        | VariantDiagnosticStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantTherapeuticResponseStudyStatement
-    ):
-        """Given a single statement ID, get it back.
+    def __init__(self, driver: Driver) -> None:
+        """Initialize. TODO create driver? session? idk"""
+        self.driver = driver
+        self.queries = _QueryContainer()
 
-        :param statement_id: the ID of a statement
-        :raise KeyError: if unable to retrieve it
-        """
-        raise NotImplementedError
+    def _add_dac_catvar(
+        self, tx: ManagedTransaction, catvar: CategoricalVariant
+    ) -> None:
+        catvar_node = CategoricalVariantNode.from_vrs(catvar)
+        tx.run(self.queries.load_dac_catvar, cv=catvar_node.model_dump())
 
-    def search_statements(
-        self,
-        statement_id: str | None = None,
-        variation_id: str | None = None,
-        gene_id: str | None = None,
-        therapy_id: str | None = None,
-        disease_id: str | None = None,
-        start: int = 0,
-        limit: int | None = None,
-    ) -> list[
-        Statement
-        | VariantDiagnosticStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantTherapeuticResponseStudyStatement
-    ]:
-        raise NotImplementedError
-
-    def _add_dac_catvar(self, catvar: CategoricalVariant) -> None:
-        raise NotImplementedError
-
-    def add_catvar(self, catvar: CategoricalVariant) -> None:
+    def add_catvar(self, tx: ManagedTransaction, catvar: CategoricalVariant) -> None:
         """Add categorical variant to DB
 
         :param catvar: a full Categorical Variant object
@@ -101,7 +146,7 @@ class Neo4jRepository(AbstractRepository):
             constraint = catvar.constraints[0]
 
             if constraint.type == "DefiningAlleleConstraint":
-                self._add_dac_catvar(catvar)
+                self._add_dac_catvar(tx, catvar)
             # in the future, handle other kinds of catvars here
         else:
             msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar.id} is {catvar.constraints}"
@@ -133,3 +178,28 @@ class Neo4jRepository(AbstractRepository):
 
     def add_assertion(self, assertion) -> None:
         raise NotImplementedError
+
+    def add_transformed_data(self, data: TransformedData) -> None:
+        """Add a chunk of transformed data to the database.
+
+        :param data: data grouped by GKS entity type
+        """
+        # TODO prune unused stuff
+        # TODO some kind of session/transaction logic
+        with self.driver.session() as session:
+            for catvar in data.categorical_variants:
+                session.execute_write(self.add_catvar, catvar)
+            # for document in data.documents:
+            #     session.execute_write(self.add_document, document)
+            # for method in data.methods:
+            #     session.execute_write(self.add_method, method)
+            # for gene in data.genes:
+            #     session.execute_write(self.add_gene, gene)
+            # for condition in data.conditions:
+            #     session.execute_write(self.add_condition, condition)
+            # for therapy in data.therapies:
+            #     session.execute_write(self.add_therapy, therapy)
+            # for evidence in data.statements_evidence:
+            #     session.execute_write(self.add_evidence, evidence)
+            # for assertion in data.statements_assertions:
+            #     session.execute_write(self.add_assertion, assertion)
