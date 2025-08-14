@@ -1,8 +1,12 @@
+import * as React from 'react';
 import Header from '../components/Header'
-import { Box, Button, Select, TextField, Typography } from '@mui/material'
+import { Box, Button, MenuItem, Select, TextField, Typography } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 
 const HomePage = () => {
+  const [searchType, setSearchType] = React.useState('');
+  const [searchQuery, setSearchQuery] = React.useState('');
+
   return (
     <>
       <Header />
@@ -22,8 +26,11 @@ const HomePage = () => {
             Search harmonized data across multiple genomic knowledgebases.
           </Typography>
           <Box id="search-container">
-            <Select></Select>
-            <TextField></TextField>
+            <Select value={searchType} onChange={(e) => setSearchType(e.target.value)} displayEmpty>
+              <MenuItem value='gene'>Gene</MenuItem>
+              <MenuItem value='variant'>Variant</MenuItem>
+            </Select>
+            <TextField value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}></TextField>
             <Button variant="contained" color="secondary" sx={{ marginLeft: 1 }}>
               <SearchIcon />
               Search
