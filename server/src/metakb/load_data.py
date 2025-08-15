@@ -124,7 +124,7 @@ def _add_gene_or_disease(
         raise TypeError(msg)
 
     obj["conceptType"] = obj_type
-    obj_keys = [_create_parameterized_query(obj, ("id", "name", "conceptType"))]
+    obj_keys = [_create_parameterized_query(obj, ("id", "name"))]
 
     _add_mappings_and_exts_to_obj(obj, obj_keys)
     obj_keys = ", ".join(obj_keys)
@@ -191,7 +191,7 @@ def _add_therapy(tx: ManagedTransaction, therapy_in: dict) -> None:
     :param therapy_in: Therapy CDM object
     """
     therapy = therapy_in.copy()
-    nonnull_keys = [_create_parameterized_query(therapy, ("id", "name", "conceptType"))]
+    nonnull_keys = [_create_parameterized_query(therapy, ("id", "name"))]
 
     _add_mappings_and_exts_to_obj(therapy, nonnull_keys)
     nonnull_keys = ", ".join(nonnull_keys)
@@ -208,20 +208,18 @@ def _prepare_allele(allele: dict) -> dict:
     :param allele: allele object from CDM
     :return: reformatted object to better fit DB upload
     """
-    allele_to_upload = {
+    return {
         "id": allele["id"],
-        "digest": allele["digest"],
         "state_object": json.dumps(allele["state"]),
         "state": allele["state"],
         "name": allele.get(
             "name", ""
         ),  # must be nonnull for use in ON CREATE statement
         "location": allele["location"],
+        "expressions": json.dumps(allele["expressions"])
+        if allele.get("expressions")
+        else "[]",
     }
-    for expr in allele.get("expressions", []):
-        key = f"expression_{expr['syntax'].replace('.', '_')}"
-        allele_to_upload.setdefault(key, []).append(expr["value"])
-    return allele_to_upload
 
 
 def _add_dac_cv(
@@ -256,15 +254,11 @@ def _add_dac_cv(
     MERGE (allele:Variation:MolecularVariation:Allele { id: $allele.id })
     ON CREATE SET allele += {
         name: $allele.name,
-        digest: $allele.digest,
-        expression_hgvs_g: $allele.expression_hgvs_g,
-        expression_hgvs_c: $allele.expression_hgvs_c,
-        expression_hgvs_p: $allele.expression_hgvs_p
+        expressions: $allele.expressions
     }
     MERGE (constr) -[:HAS_DEFINING_ALLELE]-> (allele)
     MERGE (sl:Location:SequenceLocation { id: $allele.location.id })
     ON CREATE SET sl += {
-        digest: $allele.location.digest,
         start: $allele.location.start,
         end: $allele.location.end,
         refget_accession: $allele.location.sequenceReference.refgetAccession,
@@ -291,15 +285,11 @@ def _add_dac_cv(
         MERGE (member_allele:Variation:MolecularVariation:Allele { id: m.id })
         ON CREATE SET member_allele += {
             name: m.name,
-            digest: m.digest,
-            expression_hgvs_g: m.expression_hgvs_g,
-            expression_hgvs_c: m.expression_hgvs_c,
-            expression_hgvs_p: m.expression_hgvs_p
+            expressions: m.expressions
         }
         MERGE (cv) -[:HAS_MEMBER]-> (member_allele)
         MERGE (member_sl:Location:SequenceLocation { id: m.location.id })
         ON CREATE SET member_sl += {
-            digest: m.location.digest,
             start: m.location.start,
             end:  m.location.end,
             refget_accession: m.location.sequenceReference.refgetAccession,
@@ -591,7 +581,7 @@ def _get_statement_query(statement: dict, is_evidence: bool) -> str:
     rel_line += "MERGE (s) -[:HAS_TUMOR_TYPE] -> (tt)\n"
 
     statement_keys = _create_parameterized_query(
-        statement, ("id", "description", "direction", "type")
+        statement, ("id", "description", "direction")
     )
 
     statement_type = "Statement" if is_evidence else "StudyStatement:Statement"
