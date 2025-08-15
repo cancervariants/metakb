@@ -11,7 +11,7 @@ import re
 import json
 
 
-MUT_HEADERS = {'Hugo_Symbol',
+MUT_HEADERS = ['Hugo_Symbol',
             'Chromosome',
             'Start_Position', 
             'End_Position',
@@ -27,21 +27,21 @@ MUT_HEADERS = {'Hugo_Symbol',
             'HGVSp_Short',
             'Transcript_ID',
             'RefSeq',
-            'Protein_position'}
+            'Protein_position']
 
-PATIENT_HEADERS = {'PATIENT_ID',
+PATIENT_HEADERS = ['PATIENT_ID',
                    'AGE',
                    'SEX',
                    'ETHNICITY',
-                   'Consequence'}
+                   'Consequence']
 
-SAMPLE_HEADERS = {'PATIENT_ID',
+SAMPLE_HEADERS = ['PATIENT_ID',
                   'SAMPLE_ID',
                   'SAMPLE_CLASS',
                   'ONCOTREE_CODE',
                   'CANCER_TYPE',
-                  'CANCER_TYPE_DETAIL',
-                  'TMB_NONSYNONYMOUS'}
+                  'CANCER_TYPE_DETAILED',
+                  'TMB_NONSYNONYMOUS']
 
 PATTERN = re.compile(r'^23-')
 
@@ -64,7 +64,7 @@ class cBioportalTransformer(Transformer):
     def _create_cache(self):
         pass
 
-    def flag_rows_chrom_23(self, df):
+    def _flag_rows_chrom_23(self, df):
         """
         Create "Chrom_23" column, True for those with Chromosome = 23
 
@@ -83,7 +83,7 @@ class cBioportalTransformer(Transformer):
         df.loc[df["Chromosome"] == 23, "Chrom_23"] = True
         return df
     
-    def chr23_female(self, df):
+    def _chr23_female(self, df):
         """
         Convert Chromosome 23 to 'X' for rows where SEX is female.
         
@@ -104,7 +104,7 @@ class cBioportalTransformer(Transformer):
         df.loc[mask, "Chromosome"] = "X"
         return df
     
-    def add_cols_chrom_23_male(self, df):
+    def _add_cols_chrom_23_male(self, df):
         """
         Create "Chr23_X and Chr23_Y" columns, fill with false
 
@@ -121,15 +121,15 @@ class cBioportalTransformer(Transformer):
         df["Chr23_Y"] = False
         return df
     
-    def chr23_to_X(self, variant: str) -> str:
+    def _chr23_to_X(self, variant: str) -> str:
         """Convert a single '23-' prefix in a variant string to 'X-'."""
         return PATTERN.sub('X-', variant) if isinstance(variant, str) else variant
     
-    def chr23_to_Y(self, variant: str) -> str:
+    def _chr23_to_Y(self, variant: str) -> str:
         """Convert a '23-' prefix in a single variant string to 'Y-'."""
         return PATTERN.sub('Y-', variant) if isinstance(variant, str) else variant
     
-    def test_variant_tokenization(self, variant: str, delay=0.5):
+    def _test_variant_tokenization(self, variant: str, delay=0.5):
         """
         Fetch normalized variant info from VICC API for a single variant string.
 
@@ -174,11 +174,11 @@ class cBioportalTransformer(Transformer):
         return pd.DataFrame(results)
     
     #test tokenization on X chromosome
-    def check_for_x_variant(self, df, variant):
+    def _check_for_x_variant(self, df, variant):
         # Convert the variant to X-style format (e.g., "23-..." → "X-...")
-        variant_x = self.chr23_to_X(variant)
+        variant_x = self._chr23_to_X(variant)
         # Query the API and get a one-row DataFrame
-        x_df = self.test_variant_tokenization(variant_x)  # returns a one-row DataFrame
+        x_df = self._test_variant_tokenization(variant_x)  # returns a one-row DataFrame
         # Extract and parse JSON string from the response
         raw_response = x_df.loc[0, "response"]
         try:
@@ -221,11 +221,11 @@ class cBioportalTransformer(Transformer):
         return df
     
     #test tokenizationo n Y chromosome
-    def check_for_y_variant(self, df, variant):
+    def _check_for_y_variant(self, df, variant):
         # Convert the variant to Y-style format (e.g., "23-..." → "Y-...")
-        variant_y = self.chr23_to_Y(variant)
+        variant_y = self._chr23_to_Y(variant)
         # Query the API and get a one-row DataFrame
-        y_df = self.test_variant_tokenization(variant_y)  # returns a one-row DataFrame
+        y_df = self._test_variant_tokenization(variant_y)  # returns a one-row DataFrame
         # Extract and parse JSON string from the response
         raw_response = y_df.loc[0, "response"]
         try:
@@ -268,17 +268,17 @@ class cBioportalTransformer(Transformer):
         return df
 
     # driver function for chr23
-    def chr23_male(self, df, variant):
+    def _chr23_male(self, df, variant):
         if "Chr23_X" not in df.columns:
             df["Chr23_X"] = False
         if "Chr23_Y" not in df.columns:
             df["Chr23_Y"] = False
-        df = self.check_for_x_variant(df, variant)    # pass **both** args
-        df = self.check_for_y_variant(df, variant)
+        df = self._check_for_x_variant(df, variant)    # pass **both** args
+        df = self._check_for_y_variant(df, variant)
         return df
 
     #reassign chromosome for male chromosome 23 variants
-    def correct_male_chrom23(self, df):
+    def _correct_male_chrom23(self, df):
         # Initialize ambig_chrom column
         df["ambig_chrom"] = "non-ambiguous"
         def update_row(row):
@@ -301,7 +301,7 @@ class cBioportalTransformer(Transformer):
             print(ambig_rows[["temp_Gnomad_Notation", "Hugo_Symbol", "ambig_chrom"]].head())
         return df
 
-    def resolve_ambiguous_chromosomes(self, df):
+    def _resolve_ambiguous_chromosomes(self, df):
         """
         Resolve ambiguous Chr23 variants in male samples and flag problematic rows.
 
@@ -344,7 +344,7 @@ class cBioportalTransformer(Transformer):
         return df
 
     #get hgnc id from gene normalizer
-    def test_gene_tokenization(self, gene: str, delay=0.5):
+    def _test_gene_tokenization(self, gene: str, delay=0.5):
         BASE_URL = "https://normalize.cancervariants.org/gene/"
         HEADERS = {
             "Accept": "application/json",
@@ -373,12 +373,13 @@ class cBioportalTransformer(Transformer):
         time.sleep(delay)
         return pd.DataFrame(results)
 
+    #TODO: is this not used?
     #update hgnc_id gene column
-    def update_gene_hgnc_id_inplace(self, df):
+    def _update_gene_hgnc_id_inplace(self, df):
         for idx, row in df.iterrows():
             if row.get("Chrom_23") and str(row.get("SEX", "")).strip().lower() == "male":
                 try:
-                    result = self.test_gene_tokenization(row["Hugo_Symbol"])
+                    result = self._test_gene_tokenization(row["Hugo_Symbol"])
                     full_id = result["gene"]["id"]  # e.g., "normalize.gene.hgnc:447"
                     hgnc_id = full_id.split(":")[-1]  # Extract "447"
                     df.at[idx, "gene_hgnc_id"] = hgnc_id
@@ -388,13 +389,13 @@ class cBioportalTransformer(Transformer):
         return df
     
     # query gene normalizer
-    def populate_gene_hgnc_col(self, gene_list, df):
+    def _populate_gene_hgnc_col(self, gene_list, df):
         # Add the column once
         if "gene_hgnc_id" not in df.columns:
             df["gene_hgnc_id"] = None
         for gene in gene_list:
             print(f"▶️ Checking gene: {gene}")
-            gene_df = self.test_gene_tokenization(gene)
+            gene_df = self._test_gene_tokenization(gene)
             # Extract and parse JSON string from the response
             raw_response = gene_df.loc[0, "response"]
             try:
@@ -421,7 +422,7 @@ class cBioportalTransformer(Transformer):
         return df
     
     #check to see if gene hgnc id matches x/y variant hgnc id
-    def validate_gene_hgnc_match(self, df):
+    def _validate_gene_hgnc_match(self, df):
         """
         Compare gene_hgnc_id to x_hgnc_id or y_hgnc_id for Chromosome 23 variants in male samples.
         
@@ -459,7 +460,7 @@ class cBioportalTransformer(Transformer):
 
 
 
-    def transform(self, harvested_data):
+    def _transform(self, harvested_data):
 
         # for harvested_data_obj in harvested_data:
         self.variants = pd.DataFrame(harvested_data.variants).filter(MUT_HEADERS)
@@ -572,11 +573,11 @@ class cBioportalTransformer(Transformer):
         )
 
         #flag rows with chromosome 23
-        combined_df = self.flag_rows_chrom_23(combined_df)
+        combined_df = self._flag_rows_chrom_23(combined_df)
         #change chromosome to X for female chromosome 23 samples
-        combined_df = self.chr23_female(combined_df)
+        combined_df = self._chr23_female(combined_df)
         # add cols for Chr23_X and Chr23_Y, fill with false
-        combined_df = self.add_cols_chrom_23_male(combined_df)
+        combined_df = self._add_cols_chrom_23_male(combined_df)
 
         #set chromosome 23 variants as list
         chrom_23_list = combined_df[
@@ -597,17 +598,17 @@ class cBioportalTransformer(Transformer):
         # Iterate through each chromosome 23 variant for male samples
         for variant in chrom_23_list:
             print(f"▶️ Checking variant: {variant}")  # Add this line
-            result_df = self.chr23_male(result_df, variant)
+            result_df = self._chr23_male(result_df, variant)
         # Now all updates are preserved in result_df
         print(result_df["Chr23_X"].value_counts(dropna=False))
         print(result_df["Chr23_Y"].value_counts(dropna=False))
 
         #correct male 23 chromosomes and check for ambiguous results
-        result_df = self.correct_male_chrom23(result_df)
+        result_df = self._correct_male_chrom23(result_df)
         print(result_df["ambig_chrom"].value_counts())
 
         #resolve ambiguous chromosomes
-        result_df = self.resolve_ambiguous_chromosomes(result_df)
+        result_df = self._resolve_ambiguous_chromosomes(result_df)
 
         #set genes to be queried as list
         # Ensure column exists and is initialized to "untested"
@@ -624,11 +625,11 @@ class cBioportalTransformer(Transformer):
         #run gene tokenization
         # Start with a copy of your combined_df
         result_post_23_df = result_df.copy()
-        result_post_23_df = self.populate_gene_hgnc_col(gene_list, result_post_23_df)
+        result_post_23_df = self._populate_gene_hgnc_col(gene_list, result_post_23_df)
         print(result_post_23_df["gene_hgnc_id"].value_counts(dropna=False))
 
         # check hgnc id matches between variation and gene normalizers
-        post_validation_df = self.validate_gene_hgnc_match(result_post_23_df)
+        post_validation_df = self._validate_gene_hgnc_match(result_post_23_df)
 
         #create final gnomAD notation column and populate
         # construct Gnomad variant ID column
@@ -638,7 +639,6 @@ class cBioportalTransformer(Transformer):
         )
 
         # remove variant dupes per patient
-
         # find duplicated (PATIENT_ID, Gnomad_Notation) pairs
         dupe_mask = post_validation_df.duplicated(subset=["PATIENT_ID", "Gnomad_Notation"], keep="first")
         # new DataFrame with the duplicated rows
@@ -649,7 +649,16 @@ class cBioportalTransformer(Transformer):
         patient_variant_dupes.to_csv("patient_variant_dupes.csv", index=False)
         # print the number of rows removed
         print(f"Removed {patient_variant_dupes.shape[0]} rows with duplicated Gnomad_Notation per PATIENT_ID.")
-        return post_validation_df_cleaned
+        # post_validation_df_cleaned.to_csv("final_cbp_df.csv", index=False)
+
+
+        #filling NaNs
+        final_df = post_validation_df_cleaned.fillna("No_Data")
+        final_df = final_df.replace(r'^\s*$', pd.NA, regex=True).fillna("No_Data")
+        final_df.to_csv("final_cbp_df.csv", index=False)
+
+
+        return final_df
     
 
 
