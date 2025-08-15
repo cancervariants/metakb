@@ -357,9 +357,7 @@ def _get_driver(
             _help_msg(
                 f"Argument to --db_credentials appears invalid. Got '{db_creds}'. Should follow pattern 'username:password'."
             )
-    driver = get_driver(
-        uri=db_url, credentials=credentials, add_constraints=add_constraints
-    )
+    driver = get_driver(url=db_url, initialize=add_constraints)
     yield driver
     driver.close()
 

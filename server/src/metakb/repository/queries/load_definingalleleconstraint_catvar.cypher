@@ -3,48 +3,48 @@ ON CREATE SET cv += {
     name: $cv.name,
     description: $cv.description,
     aliases: $cv.aliases,
-    extensions: $cv_extensions,
-    mappings: $cv_mappings
+    extensions: $cv.extensions,
+    mappings: $cv.mappings
 }
-MERGE (cv) -[:HAS_CONSTRAINT]-> (constr:Constraint:DefiningAlleleConstraint { id: $constraint_id })
+MERGE (cv) -[:HAS_CONSTRAINT]-> (constr:Constraint:DefiningAlleleConstraint { id: $cv.constraint.id })
 ON CREATE SET cv += {
-    relations: $constr.relations
+    relations: $cv.constraint.relations
 }
-MERGE (allele:Variation:MolecularVariation:Allele { id: $allele.id })
+MERGE (allele:Variation:MolecularVariation:Allele { id: $cv.constraint.allele.id })
 ON CREATE SET allele += {
-    name: $allele.name,
-    digest: $allele.digest,
-    expression_hgvs_g: $allele.expression_hgvs_g,
-    expression_hgvs_c: $allele.expression_hgvs_c,
-    expression_hgvs_p: $allele.expression_hgvs_p
+    name: $cv.constraint.allele.name,
+    digest: $cv.constraint.allele.digest,
+    expression_hgvs_g: $cv.constraint.allele.expression_hgvs_g,
+    expression_hgvs_c: $cv.constraint.allele.expression_hgvs_c,
+    expression_hgvs_p: $cv.constraint.allele.expression_hgvs_p
 }
 MERGE (constr) -[:HAS_DEFINING_ALLELE]-> (allele)
-MERGE (sl:Location:SequenceLocation { id: $allele.location.id })
+MERGE (sl:Location:SequenceLocation { id: $cv.constraint.allele.location.id })
 ON CREATE SET sl += {
-    digest: $allele.location.digest,
-    start: $allele.location.start,
-    end: $allele.location.end,
-    refget_accession: $allele.location.sequenceReference.refgetAccession,
-    sequence: $allele.location.sequence
+    digest: $cv.constraint.allele.location.digest,
+    start: $cv.constraint.allele.location.start,
+    end: $cv.constraint.allele.location.end,
+    refget_accession: $cv.constraint.allele.location.sequenceReference.refgetAccession,
+    sequence: $cv.constraint.allele.location.sequence
 }
 MERGE (allele) -[:HAS_LOCATION]-> (sl)
 
 // handle different kinds of state objects
-FOREACH (_ IN CASE WHEN $allele.state.type = 'LiteralSequenceExpression' THEN [1] ELSE [] END |
-    MERGE (lse:SequenceExpression:LiteralSequenceExpression { sequence: $allele.state.sequence })
+FOREACH (_ IN CASE WHEN $cv.constraint.allele.state.type = 'LiteralSequenceExpression' THEN [1] ELSE [] END |
+    MERGE (lse:SequenceExpression:LiteralSequenceExpression { sequence: $cv.constraint.allele.state.sequence })
     MERGE (allele)-[:HAS_STATE]->(lse)
 )
-FOREACH (_ IN CASE WHEN $allele.state.type = 'ReferenceLengthExpression' THEN [1] ELSE [] END |
+FOREACH (_ IN CASE WHEN $cv.constraint.allele.state.type = 'ReferenceLengthExpression' THEN [1] ELSE [] END |
     MERGE (rle:SequenceExpression:ReferenceLengthExpression {
-        length: $allele.state.length,
-        repeat_subunit_length: $allele.state.repeatSubunitLength,
-        sequence: $allele.state.sequence
+        length: $cv.constraint.allele.state.length,
+        repeat_subunit_length: $cv.constraint.allele.state.repeatSubunitLength,
+        sequence: $cv.constraint.allele.state.sequence
     })
     MERGE (allele)-[:HAS_STATE]->(rle)
 )
 
 WITH cv
-    UNWIND $members as m
+    UNWIND $cv.members as m
     MERGE (member_allele:Variation:MolecularVariation:Allele { id: m.id })
     ON CREATE SET member_allele += {
         name: m.name,

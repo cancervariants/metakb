@@ -7,6 +7,7 @@ from ga4gh.cat_vrs.models import (
     CategoricalVariant,
     DefiningAlleleConstraint,
 )
+from ga4gh.core.models import ConceptMapping, Extension
 from ga4gh.vrs.models import (
     Allele,
     LiteralSequenceExpression,
@@ -14,13 +15,14 @@ from ga4gh.vrs.models import (
     SequenceLocation,
     VrsType,
 )
-from pydantic import BaseModel, Json
+from pydantic import BaseModel, Json, RootModel
 
 
 class SequenceLocationNode(BaseModel):
     id: str
     # I recognize that these are technically optional
     # for now I'm making them required because the alternative (working out nullability) is worse
+    # so we can figure it out later
     start: int
     end: int
     refget_accession: str
@@ -33,7 +35,7 @@ class SequenceLocationNode(BaseModel):
             start=sequence_location.start,
             end=sequence_location.end,
             refget_accession=sequence_location.sequenceReference.refgetAccession,
-            sequence=sequence_location.sequence,
+            sequence=str(sequence_location.sequence),
         )
 
 
@@ -43,7 +45,7 @@ class LiteralSequenceExpressionNode(BaseModel):
 
     @classmethod
     def from_vrs(cls, lse: LiteralSequenceExpression) -> Self:
-        return cls(sequence=lse.sequence)
+        return cls(sequence=str(lse.sequence))
 
 
 class ReferenceLengthExpressionNode(BaseModel):
@@ -72,10 +74,11 @@ class AlleleNode(BaseModel):
 
     @classmethod
     def from_vrs(cls, allele: Allele) -> Self:
-        expressions = {}
-        for expr in allele.get("expressions", []):
-            key = f"expression_{expr['syntax'].replace('.', '_')}"
-            expressions.setdefault(key, []).append(expr["value"])
+        grouped_expressions = {}
+        if expressions := getattr(allele, "expressions"):
+            for expr in expressions:
+                key = f"expression_{expr.syntax.replace('.', '_')}"
+                grouped_expressions.setdefault(key, []).append(expr.value)
         if allele.state.type == VrsType.LIT_SEQ_EXPR:
             state = LiteralSequenceExpressionNode.from_vrs(allele.state)
         elif allele.state.type == VrsType.REF_LEN_EXPR:
@@ -87,9 +90,9 @@ class AlleleNode(BaseModel):
         return cls(
             id=allele.id,
             name=allele.name if allele.name else "",
-            expression_hgvs_g=expressions.get("expression_hgvs_g", []),
-            expression_hgvs_c=expressions.get("expression_hgvs_c", []),
-            expression_hgvs_p=expressions.get("expression_hgvs_p", []),
+            expression_hgvs_g=grouped_expressions.get("expression_hgvs_g", []),
+            expression_hgvs_c=grouped_expressions.get("expression_hgvs_c", []),
+            expression_hgvs_p=grouped_expressions.get("expression_hgvs_p", []),
             location=SequenceLocationNode.from_vrs(allele.location),
             state=state,
         )
@@ -109,26 +112,33 @@ class DefiningAlleleConstraintNode(BaseModel):
         )
 
 
+# Helper models to enable quick serialization of array properties
+_Extensions = RootModel[list[Extension]]
+_Mappings = RootModel[list[ConceptMapping]]
+
+
 class CategoricalVariantNode(BaseModel):
     id: str
     name: str
     description: str
     aliases: list[str] = []
-    extensions: Json[
-        list
-    ]  # TODO double check how this works -- what's returned by neo4j?
-    mappings: Json[list]
+    extensions: str
+    mappings: str
     constraint: DefiningAlleleConstraintNode  # only currently-supported node
+    members: list[AlleleNode]
 
     @classmethod
     def from_vrs(cls, catvar: CategoricalVariant) -> Self:
         if len(catvar.constraints) != 1:
-            raise ValueError("Only single-constraint catvars are currently supported")
+            msg = "Only single-constraint catvars are currently supported"
+            raise ValueError(msg)
         constraint = catvar.constraints[0]
-        if constraint.type == "DefiningAlleleConstraint":
-            constraint_id = f"{catvar.id}:{constraint.type}:{constraint.allele.id}"
+        if constraint.root.type == "DefiningAlleleConstraint":
+            constraint_id = (
+                f"{catvar.id}:{constraint.root.type}:{constraint.root.allele.id}"
+            )
             constraint_node = DefiningAlleleConstraintNode.from_vrs(
-                constraint, constraint_id
+                constraint.root, constraint_id
             )
         else:
             msg = f"Unrecognized constraint type: {constraint}"
@@ -139,7 +149,8 @@ class CategoricalVariantNode(BaseModel):
             name=catvar.name,
             description=catvar.description,
             aliases=catvar.aliases,
-            extensions=json.dumps(catvar.extensions),
-            mappings=json.dumps(catvar.mappings),
+            extensions=_Extensions(catvar.extensions).model_dump_json(),
+            mappings=_Mappings(catvar.mappings).model_dump_json(),
             constraint=constraint_node,
+            members=[AlleleNode.from_vrs(m.root) for m in catvar.members],
         )

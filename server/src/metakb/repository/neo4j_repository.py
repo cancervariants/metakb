@@ -135,7 +135,7 @@ class Neo4jRepository(AbstractRepository):
         self, tx: ManagedTransaction, catvar: CategoricalVariant
     ) -> None:
         catvar_node = CategoricalVariantNode.from_vrs(catvar)
-        tx.run(self.queries.load_dac_catvar, cv=catvar_node.model_dump())
+        tx.run(self.queries.load_dac_catvar, cv=catvar_node.model_dump(mode="json"))
 
     def add_catvar(self, tx: ManagedTransaction, catvar: CategoricalVariant) -> None:
         """Add categorical variant to DB
@@ -145,7 +145,7 @@ class Neo4jRepository(AbstractRepository):
         if catvar.constraints and len(catvar.constraints) == 1:
             constraint = catvar.constraints[0]
 
-            if constraint.type == "DefiningAlleleConstraint":
+            if constraint.root.type == "DefiningAlleleConstraint":
                 self._add_dac_catvar(tx, catvar)
             # in the future, handle other kinds of catvars here
         else:
