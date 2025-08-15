@@ -121,10 +121,7 @@ class _QueryContainer:
 
 
 class Neo4jRepository(AbstractRepository):
-    """Abstract definition of a repository class.
-
-    Used to access and store core MetaKB data.
-    """
+    """Neo4j implementation of a repository abstraction."""
 
     def __init__(self, driver: Driver) -> None:
         """Initialize. TODO create driver? session? idk"""
@@ -139,6 +136,9 @@ class Neo4jRepository(AbstractRepository):
 
     def add_catvar(self, tx: ManagedTransaction, catvar: CategoricalVariant) -> None:
         """Add categorical variant to DB
+
+        Currently validates that the constraint property exists and has a length of
+        exactly 1.
 
         :param catvar: a full Categorical Variant object
         """

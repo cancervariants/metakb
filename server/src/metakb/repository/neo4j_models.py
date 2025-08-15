@@ -1,6 +1,5 @@
 """Define data structures for loading objects into DB."""
 
-import json
 from typing import Literal, Self
 
 from ga4gh.cat_vrs.models import (
@@ -20,7 +19,7 @@ from pydantic import BaseModel, Json, RootModel
 
 class SequenceLocationNode(BaseModel):
     id: str
-    # I recognize that these are technically optional
+    # I recognize that these are technically optional --
     # for now I'm making them required because the alternative (working out nullability) is worse
     # so we can figure it out later
     start: int
@@ -105,6 +104,14 @@ class DefiningAlleleConstraintNode(BaseModel):
 
     @classmethod
     def from_vrs(cls, constraint: DefiningAlleleConstraint, constraint_id: str) -> Self:
+        """Create new node instance from a Cat-VRS DefiningAlleleConstraint.
+
+        :param constraint: original constraint object
+        :param constraint_id: database identifier. Our working convention is to
+            incorporate the container categorical variant's ID as part of this, which means
+            we need to get this arg separately
+        :return: node instance
+        """
         return cls(
             id=constraint_id,
             relations=[],  # TODO more to think about how to convert to strings
