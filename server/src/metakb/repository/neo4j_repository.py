@@ -1,8 +1,8 @@
 """Neo4j implementation of the repository abstraction."""
 
-from functools import cached_property
 import logging
 import os
+from functools import cached_property
 from importlib.resources import files
 from urllib.parse import urlparse, urlunparse
 

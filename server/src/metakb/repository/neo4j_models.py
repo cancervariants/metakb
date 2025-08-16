@@ -12,6 +12,7 @@ from ga4gh.core.models import ConceptMapping, Extension, MappableConcept
 from ga4gh.va_spec.base import Document, MembershipOperator, Method, TherapyGroup
 from ga4gh.vrs.models import (
     Allele,
+    Expression,
     LiteralSequenceExpression,
     ReferenceLengthExpression,
     SequenceLocation,
@@ -69,22 +70,18 @@ class ReferenceLengthExpressionNode(BaseModel):
         )
 
 
+_Expressions = RootModel[list[Expression]]
+
+
 class AlleleNode(BaseModel):
     id: str
     name: str
-    expression_hgvs_g: list[str]
-    expression_hgvs_c: list[str]
-    expression_hgvs_p: list[str]
+    expressions: str  # just a jsonblob for now. we should update the harvest/transform to only grab relevant hgvs expr
     location: SequenceLocationNode
     state: LiteralSequenceExpressionNode | ReferenceLengthExpressionNode
 
     @classmethod
     def from_vrs(cls, allele: Allele) -> Self:
-        grouped_expressions = {}
-        if expressions := allele.expressions:
-            for expr in expressions:
-                key = f"expression_{expr.syntax.replace('.', '_')}"
-                grouped_expressions.setdefault(key, []).append(expr.value)
         if allele.state.type == VrsType.LIT_SEQ_EXPR:
             state = LiteralSequenceExpressionNode.from_vrs(allele.state)
         elif allele.state.type == VrsType.REF_LEN_EXPR:
@@ -96,9 +93,7 @@ class AlleleNode(BaseModel):
         return cls(
             id=allele.id,
             name=allele.name if allele.name else "",
-            expression_hgvs_g=grouped_expressions.get("expression_hgvs_g", []),
-            expression_hgvs_c=grouped_expressions.get("expression_hgvs_c", []),
-            expression_hgvs_p=grouped_expressions.get("expression_hgvs_p", []),
+            expressions=_Expressions(allele.expressions).model_dump_json(),
             location=SequenceLocationNode.from_vrs(allele.location),
             state=state,
         )
