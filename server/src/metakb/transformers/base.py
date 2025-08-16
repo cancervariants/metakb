@@ -154,12 +154,12 @@ class TransformedData(BaseModel):
         | VariantDiagnosticStudyStatement
     ] = Field([], description="Statement objects for assertion records")
     categorical_variants: list[CategoricalVariant] = []
-    # variations: list[Allele] = []
-    # genes: list[MappableConcept] = []
-    # therapies: list[MappableConcept | TherapyGroup] = []
-    # conditions: list[MappableConcept] = []
-    # methods: list[Method] = []
-    # documents: list[Document] = []
+    variations: list[Allele] = []
+    genes: list[MappableConcept] = []
+    therapies: list[MappableConcept | TherapyGroup] = []
+    conditions: list[MappableConcept] = []
+    methods: list[Method] = []
+    documents: list[Document] = []
 
 
 class Transformer(ABC):

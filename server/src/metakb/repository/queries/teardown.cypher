@@ -1,5 +1,6 @@
 // Drop all nodes
-MATCH (n) DETACH DELETE n;
+MATCH (n)
+DETACH DELETE n;
 
 // Drop constraints
 DROP CONSTRAINT coding_constraint IF EXISTS;

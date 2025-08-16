@@ -1,5 +1,6 @@
 """Neo4j implementation of the repository abstraction."""
 
+from functools import cached_property
 import logging
 import os
 from importlib.resources import files
@@ -9,17 +10,19 @@ import boto3
 from botocore.exceptions import ClientError
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import MappableConcept
-from ga4gh.va_spec.aac_2017 import (
-    VariantDiagnosticStudyStatement,
-    VariantPrognosticStudyStatement,
-    VariantTherapeuticResponseStudyStatement,
-)
-from ga4gh.va_spec.base import Document, Method, Statement, TherapyGroup
+from ga4gh.va_spec.base import Condition, Document, Method, TherapyGroup
 from neo4j import Driver, GraphDatabase, ManagedTransaction
 
 from metakb.config import get_configs
 from metakb.repository.base import AbstractRepository
-from metakb.repository.neo4j_models import CategoricalVariantNode
+from metakb.repository.neo4j_models import (
+    CategoricalVariantNode,
+    DiseaseNode,
+    DocumentNode,
+    DrugNode,
+    MethodNode,
+    TherapyGroupNode,
+)
 from metakb.schemas.api import ServiceEnvironment
 from metakb.transformers.base import TransformedData
 
@@ -112,12 +115,46 @@ def get_driver(
 
 class _QueryContainer:
     def __init__(self):
-        query_dir = files("metakb.repository") / "queries"
-        self.initialize = (query_dir / "initialize.cypher").read_text(encoding="utf-8")
-        self.teardown = (query_dir / "teardown.cypher").read_text(encoding="utf-8")
-        self.load_dac_catvar = (
-            query_dir / "load_definingalleleconstraint_catvar.cypher"
-        ).read_text(encoding="utf-8")
+        self._query_dir = files("metakb.repository") / "queries"
+
+    def _load(self, filename: str) -> str:
+        return (self._query_dir / filename).read_text(encoding="utf-8")
+
+    @cached_property
+    def initialize(self) -> str:
+        return self._load("initialize.cypher")
+
+    @cached_property
+    def teardown(self) -> str:
+        return self._load("teardown.cypher")
+
+    @cached_property
+    def load_dac_catvar(self) -> str:
+        return self._load("load_definingalleleconstraint_catvar.cypher")
+
+    @cached_property
+    def load_document(self) -> str:
+        return self._load("load_document.cypher")
+
+    @cached_property
+    def load_gene(self) -> str:
+        return self._load("load_gene.cypher")
+
+    @cached_property
+    def load_disease(self) -> str:
+        return self._load("load_disease.cypher")
+
+    @cached_property
+    def load_drug(self) -> str:
+        return self._load("load_drug.cypher")
+
+    @cached_property
+    def load_therapy_group(self) -> str:
+        return self._load("load_therapy_group.cypher")
+
+    @cached_property
+    def load_method(self) -> str:
+        return self._load("load_method.cypher")
 
 
 class Neo4jRepository(AbstractRepository):
@@ -127,12 +164,6 @@ class Neo4jRepository(AbstractRepository):
         """Initialize. TODO create driver? session? idk"""
         self.driver = driver
         self.queries = _QueryContainer()
-
-    def _add_dac_catvar(
-        self, tx: ManagedTransaction, catvar: CategoricalVariant
-    ) -> None:
-        catvar_node = CategoricalVariantNode.from_vrs(catvar)
-        tx.run(self.queries.load_dac_catvar, cv=catvar_node.model_dump(mode="json"))
 
     def add_catvar(self, tx: ManagedTransaction, catvar: CategoricalVariant) -> None:
         """Add categorical variant to DB
@@ -146,30 +177,65 @@ class Neo4jRepository(AbstractRepository):
             constraint = catvar.constraints[0]
 
             if constraint.root.type == "DefiningAlleleConstraint":
-                self._add_dac_catvar(tx, catvar)
+                catvar_node = CategoricalVariantNode.from_vrs(catvar)
+                tx.run(
+                    self.queries.load_dac_catvar, cv=catvar_node.model_dump(mode="json")
+                )
             # in the future, handle other kinds of catvars here
         else:
             msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar.id} is {catvar.constraints}"
             raise ValueError(msg)
 
-    def add_document(self, document: Document) -> None:
-        raise NotImplementedError
+    def add_document(self, tx: ManagedTransaction, document: Document) -> None:
+        """Add document to DB
 
-    def add_method(self, method: Method) -> None:
-        raise NotImplementedError
+        :param document:
+        """
+        document_node = DocumentNode.from_vrs(document)
+        tx.run(self.queries.load_document, doc=document_node.model_dump(mode="json"))
 
     def add_gene(
         self,
+        tx: ManagedTransaction,
         gene: MappableConcept,  # TODO double check
     ) -> None:
+        gene_node = GeneNode.from_vrs(gene)
+        tx.run(self.queries.load_gene, gene=gene_node.model_dump(mode="json"))
+
+    def add_condition(self, tx: ManagedTransaction, condition: Condition) -> None:
+        root = condition.root
+        if root.conceptType == "Disease":
+            disease_node = DiseaseNode.from_vrs(root)
+            tx.run(
+                self.queries.load_disease, disease=disease_node.model_dump(mode="json")
+            )
+        else:
+            msg = f"Unsupported condition type: {condition}"
+            raise ValueError(msg)
+
         raise NotImplementedError
 
-    def add_condition(self, condition: MappableConcept) -> None:
+    def add_therapeutic(
+        self, tx: ManagedTransaction, therapeutic: MappableConcept | TherapyGroup
+    ) -> None:
+        root = therapeutic.root
+        if root.conceptType == "Drug":
+            drug_node = DrugNode.from_vrs(root)
+            tx.run(self.queries.load_drug, drug=drug_node.model_dump(mode="json"))
+        else:
+            # presume it's a therapygroup?
+            therapy_group_node = TherapyGroupNode.from_vrs(root)
+            tx.run(
+                self.queries.load_therapy_group,
+                therapy_group=therapy_group_node.model_dump(mode="json"),
+            )
         raise NotImplementedError
 
-    def add_therapy(
-        self, therapy: MappableConcept | TherapyGroup
-    ) -> None:  # TODO double check
+    def add_method(self, tx: ManagedTransaction, method: Method) -> None:
+        tx.run(
+            self.queries.load_method,
+            method=MethodNode.from_vrs(method).model_dump(mode="json"),
+        )
         raise NotImplementedError
 
     # add statement evidence assertions
@@ -186,19 +252,20 @@ class Neo4jRepository(AbstractRepository):
         """
         # TODO prune unused stuff
         # TODO some kind of session/transaction logic
+        # TODO session by statement, not by entity type
         with self.driver.session() as session:
             for catvar in data.categorical_variants:
                 session.execute_write(self.add_catvar, catvar)
-            # for document in data.documents:
-            #     session.execute_write(self.add_document, document)
-            # for method in data.methods:
-            #     session.execute_write(self.add_method, method)
-            # for gene in data.genes:
-            #     session.execute_write(self.add_gene, gene)
-            # for condition in data.conditions:
-            #     session.execute_write(self.add_condition, condition)
-            # for therapy in data.therapies:
-            #     session.execute_write(self.add_therapy, therapy)
+            for document in data.documents:
+                session.execute_write(self.add_document, document)
+            for gene in data.genes:
+                session.execute_write(self.add_gene, gene)
+            for condition in data.conditions:
+                session.execute_write(self.add_condition, condition)
+            for therapy in data.therapies:
+                session.execute_write(self.add_therapy, therapy)
+            for method in data.methods:
+                session.execute_write(self.add_method, method)
             # for evidence in data.statements_evidence:
             #     session.execute_write(self.add_evidence, evidence)
             # for assertion in data.statements_assertions:
