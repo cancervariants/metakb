@@ -17,6 +17,7 @@ from ga4gh.va_spec.base import (
     TherapyGroup,
     VariantTherapeuticResponseProposition,
 )
+from ga4gh.va_spec.aac_2017.models import VariantTherapeuticResponseStudyStatement
 from ga4gh.vrs.models import (
     Allele,
     Expression,
