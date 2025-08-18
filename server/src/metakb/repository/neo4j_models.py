@@ -9,7 +9,14 @@ from ga4gh.cat_vrs.models import (
     DefiningAlleleConstraint,
 )
 from ga4gh.core.models import ConceptMapping, Extension, MappableConcept
-from ga4gh.va_spec.base import Document, MembershipOperator, Method, TherapyGroup
+from ga4gh.va_spec.base import (
+    Document,
+    MembershipOperator,
+    Method,
+    TherapeuticResponsePredicate,
+    TherapyGroup,
+    VariantTherapeuticResponseProposition,
+)
 from ga4gh.vrs.models import (
     Allele,
     Expression,
@@ -387,10 +394,41 @@ class EvidenceNode(BaseModel):
 
     id: str
     description: str
-    method_id: str
-    document_ids: list[str]
+    method_id: str  # is_specified_by
+    document_ids: list[str]  # is_reported_in
     has_strength: StrengthNode
 
-    # TODO think about proposition types
-    # Maybe make separate node classes for each kind?
-    # TODO also need to think about assertion vs evidence
+
+class TherapeuticResponsePropositionNode(BaseModel):
+    """Node model for a Therapeutic Response Proposition"""
+
+    predicate: TherapeuticResponsePredicate
+    has_tumor_type_id: str
+    has_gene_context_id: str
+    has_subject_variant_id: str
+    has_therapeutic_id: str
+    allele_origin_qualifier: str
+
+
+class TherapeuticReponseEvidence(EvidenceNode, TherapeuticResponsePropositionNode):
+    """Node model for a TR proposition serving as an evidence statement"""
+
+    @classmethod
+    def from_vrs(
+        cls,
+        statement:
+
+        # tr_proposition: VariantTherapeuticResponseProposition,
+        # method_id: str,
+        # document_ids: list[str],
+        # predicate: TherapeuticResponsePredicate,
+        # strength: MappableConcept,
+    ) -> Self:
+        return cls(
+            id=tr_proposition.id,
+            description=tr_proposition.description,
+            method_id=method_id,
+            document_ids=document_ids,
+            predicate=predicate,
+            has_strength=StrengthNode.from_vrs(strength),
+        )
