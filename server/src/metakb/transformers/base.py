@@ -298,7 +298,7 @@ class Transformer(ABC):
         )
 
     @abstractmethod
-    async def transform(self, *args, **kwargs) -> None:  # noqa: ANN002
+    async def transform(self, *args, **kwargs) -> None:
         """Transform harvested data to the Common Data Model.
 
         :param harvested_data: Source harvested data
