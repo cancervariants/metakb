@@ -22,8 +22,6 @@ from neo4j import Driver
 
 from metakb import DATE_FMT, __version__
 from metakb.config import get_configs
-from metakb.database import clear_graph as clear_metakb_graph
-from metakb.database import get_driver
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
 from metakb.load_data import load_from_json

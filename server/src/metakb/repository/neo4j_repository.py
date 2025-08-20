@@ -10,7 +10,7 @@ import boto3
 from botocore.exceptions import ClientError
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import MappableConcept
-from ga4gh.va_spec.base import Condition, Document, Method, TherapyGroup
+from ga4gh.va_spec.base import Condition, Document, Method, Statement, TherapyGroup
 from neo4j import Driver, GraphDatabase, ManagedTransaction
 
 from metakb.config import get_configs
@@ -21,7 +21,9 @@ from metakb.repository.neo4j_models import (
     DocumentNode,
     DrugNode,
     MethodNode,
+    TherapeuticResponseAssertionNode,
     TherapyGroupNode,
+    TherapeuticReponseEvidenceNode,
 )
 from metakb.schemas.api import ServiceEnvironment
 from metakb.transformers.base import TransformedData
@@ -156,6 +158,14 @@ class _QueryContainer:
     def load_method(self) -> str:
         return self._load("load_method.cypher")
 
+    @cached_property
+    def load_statement_evidence(self) -> str:
+        return self._load("load_statement_evidence.cypher")
+
+    @cached_property
+    def load_statement_assertion(self) -> str:
+        return self._load("load_statement_assertion.cypher")
+
 
 class Neo4jRepository(AbstractRepository):
     """Neo4j implementation of a repository abstraction."""
@@ -238,12 +248,25 @@ class Neo4jRepository(AbstractRepository):
         )
         raise NotImplementedError
 
-    # add statement evidence assertions
-    def add_evidence(self, evidence) -> None:
-        raise NotImplementedError
+    def add_evidence(self, tx: ManagedTransaction, evidence: Statement) -> None:
+        if evidence.proposition.type == "VariantDiagnosticProposition":
+            statement_node = TherapeuticReponseEvidenceNode.from_vrs(evidence)
+        else:
+            raise NotImplementedError
+        tx.run(
+            self.queries.load_statement_evidence,
+            statement=statement_node.model_dump(mode="json"),
+        )
 
-    def add_assertion(self, assertion) -> None:
-        raise NotImplementedError
+    def add_assertion(self, tx: ManagedTransaction, assertion: Statement) -> None:
+        if assertion.proposition.type == "VariantTherapeuticResponseProposition":
+            statement_node = TherapeuticResponseAssertionNode.from_vrs(assertion)
+        else:
+            raise NotImplementedError
+        tx.run(
+            self.queries.load_statement_assertion,
+            statement=statement_node.model_dump(mode="json"),
+        )
 
     def add_transformed_data(self, data: TransformedData) -> None:
         """Add a chunk of transformed data to the database.
@@ -253,6 +276,7 @@ class Neo4jRepository(AbstractRepository):
         # TODO prune unused stuff
         # TODO some kind of session/transaction logic
         # TODO session by statement, not by entity type
+        # TODO figure out weirdness around therapygroup/drug and conditionset/condition
         with self.driver.session() as session:
             for catvar in data.categorical_variants:
                 session.execute_write(self.add_catvar, catvar)
@@ -263,10 +287,10 @@ class Neo4jRepository(AbstractRepository):
             for condition in data.conditions:
                 session.execute_write(self.add_condition, condition)
             for therapy in data.therapies:
-                session.execute_write(self.add_therapy, therapy)
+                session.execute_write(self.add_therapeutic, therapy)
             for method in data.methods:
                 session.execute_write(self.add_method, method)
-            # for evidence in data.statements_evidence:
-            #     session.execute_write(self.add_evidence, evidence)
-            # for assertion in data.statements_assertions:
-            #     session.execute_write(self.add_assertion, assertion)
+            for evidence in data.statements_evidence:
+                session.execute_write(self.add_evidence, evidence)
+            for assertion in data.statements_assertions:
+                session.execute_write(self.add_assertion, assertion)

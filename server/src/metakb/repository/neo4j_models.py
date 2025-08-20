@@ -10,14 +10,17 @@ from ga4gh.cat_vrs.models import (
 )
 from ga4gh.core.models import ConceptMapping, Extension, MappableConcept
 from ga4gh.va_spec.base import (
+    Direction,
     Document,
+    EvidenceLine,
     MembershipOperator,
     Method,
+    Statement,
+    Strength,
     TherapeuticResponsePredicate,
     TherapyGroup,
     VariantTherapeuticResponseProposition,
 )
-from ga4gh.va_spec.aac_2017.models import VariantTherapeuticResponseStudyStatement
 from ga4gh.vrs.models import (
     Allele,
     Expression,
@@ -26,14 +29,20 @@ from ga4gh.vrs.models import (
     SequenceLocation,
     VrsType,
 )
-from pydantic import BaseModel, RootModel
+from pydantic import BaseModel, Field, RootModel
 
 from metakb.transformers.base import NormalizerExtensionName
 
 _logger = logging.getLogger(__name__)
 
+# Helper models to enable quick serialization of array properties
+_Extensions = RootModel[list[Extension]]
+_Mappings = RootModel[list[ConceptMapping]]
+
 
 class SequenceLocationNode(BaseModel):
+    """Node model for SequenceLocation"""
+
     id: str
     # I recognize that these are technically optional --
     # for now I'm making them required because the alternative (working out nullability) is worse
@@ -55,6 +64,8 @@ class SequenceLocationNode(BaseModel):
 
 
 class LiteralSequenceExpressionNode(BaseModel):
+    """Node model for LiteralSequenceExpression"""
+
     sequence: str
     type: Literal["LiteralSequenceExpression"] = "LiteralSequenceExpression"
 
@@ -64,6 +75,8 @@ class LiteralSequenceExpressionNode(BaseModel):
 
 
 class ReferenceLengthExpressionNode(BaseModel):
+    """Node model for ReferenceLengthExpression"""
+
     sequence: str
     length: int
     repeat_subunit_length: int
@@ -82,6 +95,8 @@ _Expressions = RootModel[list[Expression]]
 
 
 class AlleleNode(BaseModel):
+    """Node model for VRS allele"""
+
     id: str
     name: str
     expressions: str  # just a jsonblob for now. we should update the harvest/transform to only grab relevant hgvs expr
@@ -108,6 +123,8 @@ class AlleleNode(BaseModel):
 
 
 class DefiningAlleleConstraintNode(BaseModel):
+    """Node model for Cat-VRS DefiningAlleleConstraint"""
+
     id: str
     relations: list[str]
     allele: AlleleNode
@@ -127,11 +144,6 @@ class DefiningAlleleConstraintNode(BaseModel):
             relations=[],  # TODO more to think about how to convert to strings
             allele=AlleleNode.from_vrs(constraint.allele),
         )
-
-
-# Helper models to enable quick serialization of array properties
-_Extensions = RootModel[list[Extension]]
-_Mappings = RootModel[list[ConceptMapping]]
 
 
 class CategoricalVariantNode(BaseModel):
@@ -385,51 +397,105 @@ class StrengthNode(BaseModel):
         return cls(
             id=node_id,
             name=strength.name,
-            mappings=_Mappings(strenght.mappings).model_dump_json(),
+            mappings=_Mappings(strength.mappings).model_dump_json(),
             primary_coding=json.dumps(strength.primaryCoding),
         )
 
 
-class EvidenceNode(BaseModel):
-    """Node model for a Statement object serving as evidence."""
+class StatementEvidenceBase(BaseModel):
+    """Base properties for a Statement evidence node.
+
+    Use as a mixin for a flattened statement/proposition node.
+    """
 
     id: str
     description: str
-    method_id: str  # is_specified_by
-    document_ids: list[str]  # is_reported_in
+    method_id: str
+    document_ids: list[str]
     has_strength: StrengthNode
+    allele_origin_qualifier: str
 
 
-class TherapeuticResponsePropositionNode(BaseModel):
-    """Node model for a Therapeutic Response Proposition"""
+class TherapeuticResponsePropositionBase(BaseModel):
+    """Base properties for a TR proposition node.
+
+    Use as a mixin for a flattened statement/proposition node.
+    """
 
     predicate: TherapeuticResponsePredicate
     has_tumor_type_id: str
     has_gene_context_id: str
     has_subject_variant_id: str
     has_therapeutic_id: str
-    allele_origin_qualifier: str
 
 
-class TherapeuticReponseEvidence(EvidenceNode, TherapeuticResponsePropositionNode):
-    """Node model for a TR proposition serving as an evidence statement"""
+class TherapeuticReponseEvidenceNode(
+    StatementEvidenceBase, TherapeuticResponsePropositionBase
+):
+    """Node model for a statement about a therapeutic response proposition"""
 
     @classmethod
     def from_vrs(
         cls,
-        statement:
-
-        # tr_proposition: VariantTherapeuticResponseProposition,
-        # method_id: str,
-        # document_ids: list[str],
-        # predicate: TherapeuticResponsePredicate,
-        # strength: MappableConcept,
+        statement: Statement,
     ) -> Self:
+        tr_proposition = statement.proposition
+        strength_node = StrengthNode.from_vrs(statement.strength)
         return cls(
             id=tr_proposition.id,
             description=tr_proposition.description,
-            method_id=method_id,
-            document_ids=document_ids,
-            predicate=predicate,
-            has_strength=StrengthNode.from_vrs(strength),
+            method_id=statement.specifiedBy.id,
+            document_ids=[d.id for d in statement.reportedIn],
+            has_strength=strength_node,
+            predicate=tr_proposition.predicate,
+            has_tumor_type_id=tr_proposition.conditionQualifier.id,
+            has_gene_context_id=tr_proposition.geneContextQualifier.id,
+            has_subject_variant_id=tr_proposition.subjectVariant.id,
+            has_therapeutic_id=tr_proposition.objectTherapeutic.id,
+            allele_origin_qualifier=tr_proposition.alleleOriginQualifier.name,
+        )
+
+
+class EvidenceLineNode(BaseModel):
+    id: str
+    direction: Direction
+    evidence_item_ids: list[str] = Field(min_length=1)
+
+    @classmethod
+    def from_vrs(cls, evidence_line: EvidenceLine) -> Self:
+        return cls(
+            id=evidence_line.id,
+            direction=evidence_line.directionOfEvidenceProvided,
+            evidence_item_ids=[
+                statement.id for statement in evidence_line.hasEvidenceItems
+            ],
+        )
+
+
+class TherapeuticResponseAssertionNode(TherapeuticReponseEvidenceNode):
+    """Node model for a statement about a therapeutic response proposition that is built upon an evidence line of additional statements"""
+
+    evidence_lines: list[EvidenceLineNode] = Field(min_length=1)
+
+    @classmethod
+    def from_vrs(cls, statement: Statement) -> Self:
+        evidence_lines = [
+            EvidenceLineNode.from_vrs(evidence_line)
+            for evidence_line in statement.hasEvidenceLines
+        ]
+        tr_proposition = statement.proposition
+        strength_node = StrengthNode.from_vrs(statement.strength)
+        return cls(
+            id=tr_proposition.id,
+            description=tr_proposition.description,
+            method_id=statement.specifiedBy.id,
+            document_ids=[d.id for d in statement.reportedIn],
+            has_strength=strength_node,
+            predicate=tr_proposition.predicate,
+            has_tumor_type_id=tr_proposition.conditionQualifier.id,
+            has_gene_context_id=tr_proposition.geneContextQualifier.id,
+            has_subject_variant_id=tr_proposition.subjectVariant.id,
+            has_therapeutic_id=tr_proposition.objectTherapeutic.id,
+            allele_origin_qualifier=tr_proposition.alleleOriginQualifier.name,
+            evidence_lines=evidence_lines,
         )
