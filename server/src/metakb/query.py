@@ -238,6 +238,7 @@ MATCH (s)-[:IS_SPECIFIED_BY]->(mth:Method)-[:IS_REPORTED_IN]->(mthdoc:Document)
 MATCH (s)-[:HAS_SUBJECT_VARIANT]->(cv:CategoricalVariant)
 MATCH (s)-[:HAS_TUMOR_TYPE]->(c:Condition)
 MATCH (s)-[:HAS_GENE_CONTEXT]->(g:Gene)
+// handle search term nullity
 WHERE
   ($variation_id IS NULL OR
     EXISTS {
@@ -393,6 +394,7 @@ RETURN DISTINCT
   defining_allele_se,
   members // array of {allele, location, state} for cv members
 ORDER BY s.id;
+
         """
         result = self.driver.execute_query(
             query,
@@ -404,9 +406,8 @@ ORDER BY s.id;
         statement_ids = []
         statements = []
         for record in result.records:
-            breakpoint()
             statement_ids.append(record["s"]["id"])
-            statement_type = record["statementType"]
+            statement_type = record["s"]["propositionType"]
             if statement_type == "VariantTherapeuticResponseProposition":
                 proposition = self._get_tr_proposition(record)
                 statement_node = record["s"]
@@ -436,6 +437,7 @@ ORDER BY s.id;
                     proposition=proposition,
                 )
             else:
+                breakpoint()
                 raise NotImplementedError
             statements.append(statement)
         response["statement_ids"] = statement_ids
@@ -467,7 +469,71 @@ ORDER BY s.id;
     def _get_tr_proposition(
         self, record: Record
     ) -> VariantTherapeuticResponseProposition:
-        raise NotImplementedError
+        gene = MappableConcept(
+            conceptType="gene",
+            name=record["g"]["name"],
+            extensions=json.loads(record["g"]["extensions"])
+            if record["g"]["extensions"]
+            else None,
+            mappings=json.loads(record["g"]["mappings"])
+            if record["g"]["mappings"]
+            else None,
+        )
+        if drug_node := record["th"]:
+            therapeutic = MappableConcept(
+                id=drug_node["id"],
+                extensions=json.loads(drug_node["extensions"]),
+                conceptType="therapy",
+                name=drug_node["name"],
+                mappings=json.loads(drug_node["mappings"]),
+            )
+        elif therapy_group_node := record["tg"]:
+            group_member_nodes = record["therapies"]
+            therapeutic = TherapyGroup(
+                id=therapy_group_node["id"],
+                membershipOperator=therapy_group_node["membershipOperator"],
+                therapies=[
+                    MappableConcept(
+                        id=m["id"],
+                        extensions=json.loads(m["extensions"]),
+                        conceptType="therapy",
+                        name=m["name"],
+                        mappings=json.loads(m["mappings"]),
+                    )
+                    for m in group_member_nodes
+                ],
+            )
+        return VariantTherapeuticResponseProposition(
+            predicate=record["s"]["predicate"],
+            subjectVariant=self._get_cat_var(
+                record["cv"],
+                record["defining_allele"],
+                record["defining_allele_sl"],
+                record["defining_allele_se"],
+                record["members"],
+            ),
+            geneContextQualifier=gene,
+            alleleOriginQualifier=record["s"]["alleleOriginQualifier"],
+            objectTherapeutic=therapeutic,
+            conditionQualifier=condition,
+        )
+
+    def _get_cat_var(
+        self,
+        cv_node: Node,
+        allele_node: Node,
+        sl_node: Node,
+        se_node: Node,
+        members: list[Node],
+    ) -> CategoricalVariant:
+        return CategoricalVariant(
+            id=cv_node["id"],
+            name=cv_node["name"],
+            mappings=json.loads(cv_node["mappings"]) if cv_node["mappings"] else None,
+            extensions=json.loads(cv_node["extensions"])
+            if cv_node["extensions"]
+            else None,
+        )
 
     async def _get_normalized_terms(
         self,
@@ -889,71 +955,71 @@ ORDER BY s.id;
             extensions=allele_node.get("extensions"),
         )
 
-    def _get_cat_var(self, node: dict) -> CategoricalVariant:
-        """Get categorical variant data from a node with relationship ``HAS_VARIANT``
-
-        :param node: Variant node data. This will be mutated.
-        :return: Categorical Variant data
-        """
-        node["mappings"] = _deserialize_field(node, "mappings")
-        node["extensions"] = _deserialize_field(node, "extensions")
-
-        related_alleles_query = """
-        MATCH (cv:CategoricalVariant {id: $cv_id})
-        MATCH (cv)-[:HAS_CONSTRAINT]->(dac:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->(defining_allele:Allele)
-        MATCH (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
-        MATCH (defining_allele)-[:HAS_STATE]->(defining_allele_se:SequenceExpression)
-        OPTIONAL MATCH
-            (cv)-[:HAS_MEMBER]->(member_allele:Allele)-[HAS_LOCATION]->(member_allele_sl:SequenceLocation),
-            (member_allele)-[:HAS_STATE]->(member_allele_se:SequenceExpression)
-
-        // if there are member alleles, collect them into joint objects
-        WITH
-            cv, defining_allele, defining_allele_sl, defining_allele_se, member_allele,
-            member_allele_sl, member_allele_se
-            WHERE member_allele IS NULL OR (
-                member_allele IS NOT NULL
-                AND member_allele_sl IS NOT NULL
-                AND member_allele_se IS NOT NULL
-            )
-        WITH
-            cv, defining_allele, defining_allele_sl, defining_allele_se,
-            COLLECT(CASE
-                WHEN member_allele IS NOT NULL THEN {
-                    allele: member_allele,
-                    location: member_allele_sl,
-                    state: member_allele_se
-                }
-            END) AS members
-
-        RETURN cv, defining_allele, defining_allele_sl, defining_allele_se, members
-        """
-        record = self.driver.execute_query(
-            related_alleles_query, cv_id=node["id"]
-        ).records[0]
-
-        constraint = DefiningAlleleConstraint(
-            allele=self._rebuild_allele(
-                record["defining_allele"],
-                record["defining_allele_sl"],
-                record["defining_allele_se"],
-            )
-        )
-
-        members = [
-            self._rebuild_allele(r["allele"], r["location"], r["state"])
-            for r in record.get("members", [])
-        ]
-        return CategoricalVariant(
-            name=node.get("name"),
-            description=node.get("description"),
-            extensions=node.get("extensions"),
-            aliases=node.get("aliases"),
-            constraints=[constraint],
-            members=members,
-            id=node["id"],
-            mappings=node["mappings"],
-        )
+    # def _get_cat_var(self, node: dict) -> CategoricalVariant:
+    #     """Get categorical variant data from a node with relationship ``HAS_VARIANT``
+    #
+    #     :param node: Variant node data. This will be mutated.
+    #     :return: Categorical Variant data
+    #     """
+    #     node["mappings"] = _deserialize_field(node, "mappings")
+    #     node["extensions"] = _deserialize_field(node, "extensions")
+    #
+    #     related_alleles_query = """
+    #     MATCH (cv:CategoricalVariant {id: $cv_id})
+    #     MATCH (cv)-[:HAS_CONSTRAINT]->(dac:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->(defining_allele:Allele)
+    #     MATCH (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
+    #     MATCH (defining_allele)-[:HAS_STATE]->(defining_allele_se:SequenceExpression)
+    #     OPTIONAL MATCH
+    #         (cv)-[:HAS_MEMBER]->(member_allele:Allele)-[HAS_LOCATION]->(member_allele_sl:SequenceLocation),
+    #         (member_allele)-[:HAS_STATE]->(member_allele_se:SequenceExpression)
+    #
+    #     // if there are member alleles, collect them into joint objects
+    #     WITH
+    #         cv, defining_allele, defining_allele_sl, defining_allele_se, member_allele,
+    #         member_allele_sl, member_allele_se
+    #         WHERE member_allele IS NULL OR (
+    #             member_allele IS NOT NULL
+    #             AND member_allele_sl IS NOT NULL
+    #             AND member_allele_se IS NOT NULL
+    #         )
+    #     WITH
+    #         cv, defining_allele, defining_allele_sl, defining_allele_se,
+    #         COLLECT(CASE
+    #             WHEN member_allele IS NOT NULL THEN {
+    #                 allele: member_allele,
+    #                 location: member_allele_sl,
+    #                 state: member_allele_se
+    #             }
+    #         END) AS members
+    #
+    #     RETURN cv, defining_allele, defining_allele_sl, defining_allele_se, members
+    #     """
+    #     record = self.driver.execute_query(
+    #         related_alleles_query, cv_id=node["id"]
+    #     ).records[0]
+    #
+    #     constraint = DefiningAlleleConstraint(
+    #         allele=self._rebuild_allele(
+    #             record["defining_allele"],
+    #             record["defining_allele_sl"],
+    #             record["defining_allele_se"],
+    #         )
+    #     )
+    #
+    #     members = [
+    #         self._rebuild_allele(r["allele"], r["location"], r["state"])
+    #         for r in record.get("members", [])
+    #     ]
+    #     return CategoricalVariant(
+    #         name=node.get("name"),
+    #         description=node.get("description"),
+    #         extensions=node.get("extensions"),
+    #         aliases=node.get("aliases"),
+    #         constraints=[constraint],
+    #         members=members,
+    #         id=node["id"],
+    #         mappings=node["mappings"],
+    #     )
 
     def _get_gene_context_qualifier(self, statement_id: str) -> MappableConcept | None:
         """Get gene context qualifier data for a statement
