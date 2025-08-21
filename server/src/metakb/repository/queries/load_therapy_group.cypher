@@ -18,17 +18,17 @@ MERGE (member_drug:Therapeutic:Drug {id: m.id})
         aliases: m.aliases,
         extensions: m.extensions
       }
-
-// use subqueries to dynamically set relationship type based on membership operator
-CALL {
-  WITH thg, member_drug, tg
-  WHERE tg.membership_operator = 'OR'
+FOREACH (_ IN
+CASE
+  WHEN tg.membership_operator = 'OR' THEN [1]
+  ELSE []
+END |
   MERGE (thg)-[:HAS_SUBSTITUTE]->(member_drug)
-  RETURN 0
-}
-CALL {
-  WITH thg, member_drug, tg
-  WHERE tg.membership_operator <> 'OR'
+)
+FOREACH (_ IN
+CASE
+  WHEN tg.membership_operator <> 'OR' THEN [1]
+  ELSE []
+END |
   MERGE (thg)-[:HAS_COMPONENT]->(member_drug)
-  RETURN 0
-}
+)

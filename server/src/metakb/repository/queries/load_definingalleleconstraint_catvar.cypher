@@ -57,7 +57,8 @@ END |
     (rle:SequenceExpression:ReferenceLengthExpression
       {
         length: $cv.constraint.allele.state.length,
-        repeat_subunit_length: $cv.constraint.allele.state.repeatSubunitLength,
+        repeat_subunit_length:
+          $cv.constraint.allele.state.repeat_subunit_length,
         sequence: $cv.constraint.allele.state.sequence
       })
   MERGE (allele)-[:HAS_STATE]->(rle)
@@ -108,7 +109,7 @@ END |
     (member_rle:SequenceExpression:ReferenceLengthExpression
       {
         length: m.state.length,
-        repeat_subunit_length: m.state.repeatSubunitLength,
+        repeat_subunit_length: m.state.repeat_subunit_length,
         sequence: m.state.sequence
       })
   MERGE (member_allele)-[:HAS_STATE]->(member_rle)

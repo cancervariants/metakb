@@ -22,6 +22,9 @@ from ga4gh.va_spec.base import (
     Statement,
     Therapeutic,
     TherapyGroup,
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
 )
 from neo4j import Driver, GraphDatabase, ManagedTransaction
 
@@ -29,11 +32,13 @@ from metakb.config import get_configs
 from metakb.repository.base import AbstractRepository
 from metakb.repository.neo4j_models import (
     CategoricalVariantNode,
+    DiagnosticEvidenceNode,
     DiseaseNode,
     DocumentNode,
     DrugNode,
     GeneNode,
     MethodNode,
+    PrognosticEvidenceNode,
     TherapeuticReponseEvidenceNode,
     TherapeuticResponseAssertionNode,
     TherapyGroupNode,
@@ -48,28 +53,49 @@ def is_loadable_statement(statement: Statement) -> bool:
     """Check whether statement can be loaded to DB
 
     * All entity terms need to have normalized
+    * For variations, that means the catvar must have a constraint
     """
-    for extension in statement.proposition.subjectVariant.extensions:
-        if extension.name == "vicc_normalizer_failure" and extension.value:
-            return False
-    for extension in getattr(
-        statement.proposition.conditionQualifier, "extensions", []
-    ):
-        if extension.name == "vicc_normalizer_failure" and extension.value:
-            return False
-    for extension in statement.proposition.geneContextQualifier.extensions:
-        if extension.name == "vicc_normalizer_failure" and extension.value:
-            return False
-    if therapeutic := getattr(statement.proposition, "objectTherapeutic"):
-        if isinstance(therapeutic, MappableConcept):
-            for extension in therapeutic.extensions:
-                if extension.name == "vicc_normalizer_failure" and extension.value:
-                    return False
-        elif isinstance(therapeutic, TherapyGroup):
-            for drug in therapeutic.therapies:
-                for extension in drug.extensions:
+    proposition = statement.proposition
+    if not proposition.subjectVariant.constraints:
+        return False
+    match proposition:
+        case VariantTherapeuticResponseProposition():
+            if extensions := proposition.conditionQualifier.root.extensions:
+                for extension in extensions:
                     if extension.name == "vicc_normalizer_failure" and extension.value:
                         return False
+            if therapeutic := proposition.objectTherapeutic:
+                match therapeutic.root:
+                    case MappableConcept():
+                        if extensions := therapeutic.root.extensions:
+                            for extension in extensions:
+                                if (
+                                    extension.name == "vicc_normalizer_failure"
+                                    and extension.value
+                                ):
+                                    return False
+                    case TherapyGroup():
+                        for drug in therapeutic.root.therapies:
+                            if extensions := drug.extensions:
+                                for extension in extensions:
+                                    if (
+                                        extension.name == "vicc_normalizer_failure"
+                                        and extension.value
+                                    ):
+                                        return False
+                    case _:
+                        raise TypeError
+        case VariantDiagnosticProposition() | VariantPrognosticProposition():
+            for extension in getattr(proposition.objectCondition, "extensions", []):
+                if extension.name == "vicc_normalizer_failure" and extension.value:
+                    return False
+        case _:
+            msg = f"Unsupported proposition type: {proposition.type}"
+            raise NotImplementedError(msg)
+    if gene_extensions := proposition.geneContextQualifier.extensions:
+        for extension in gene_extensions:
+            if extension.name == "vicc_normalizer_failure" and extension.value:
+                return False
     return True
 
 
@@ -266,14 +292,14 @@ class Neo4jRepository(AbstractRepository):
 
     def add_condition(self, tx: ManagedTransaction, condition: Condition) -> None:
         root = condition.root
-        if root.conceptType == "Disease":
+        if isinstance(root, MappableConcept) and root.conceptType == "Disease":
             disease_node = DiseaseNode.from_vrs(root)
             tx.run(
                 self.queries.load_disease, disease=disease_node.model_dump(mode="json")
             )
         else:
             msg = f"Unsupported condition type: {condition}"
-            raise ValueError(msg)
+            raise NotImplementedError(msg)
 
     def add_therapeutic(self, tx: ManagedTransaction, therapeutic: Therapeutic) -> None:
         root = therapeutic.root
@@ -295,13 +321,18 @@ class Neo4jRepository(AbstractRepository):
             self.queries.load_method,
             method=MethodNode.from_vrs(method).model_dump(mode="json"),
         )
-        raise NotImplementedError
 
     def add_evidence(self, tx: ManagedTransaction, evidence: Statement) -> None:
-        if evidence.proposition.type == "VariantDiagnosticProposition":
-            statement_node = TherapeuticReponseEvidenceNode.from_vrs(evidence)
-        else:
-            raise NotImplementedError
+        match evidence.proposition:
+            case VariantTherapeuticResponseProposition():
+                statement_node = TherapeuticReponseEvidenceNode.from_vrs(evidence)
+            case VariantDiagnosticProposition():
+                statement_node = DiagnosticEvidenceNode.from_vrs(evidence)
+            case VariantPrognosticProposition():
+                statement_node = PrognosticEvidenceNode.from_vrs(evidence)
+            case _:
+                msg = f"Unsupported proposition type: {evidence.proposition.type}"
+                raise NotImplementedError(msg)
         tx.run(
             self.queries.load_statement_evidence,
             statement=statement_node.model_dump(mode="json"),
@@ -336,23 +367,28 @@ class Neo4jRepository(AbstractRepository):
                 session.execute_write(
                     self.add_catvar, statement.proposition.subjectVariant
                 )
-                session.execute_write(
-                    self.add_condition, statement.proposition.conditionQualifier
-                )
+                if isinstance(
+                    statement.proposition, VariantTherapeuticResponseProposition
+                ):
+                    session.execute_write(
+                        self.add_condition, statement.proposition.conditionQualifier
+                    )
+                    session.execute_write(
+                        self.add_therapeutic, statement.proposition.objectTherapeutic
+                    )
+                elif isinstance(statement.proposition, VariantDiagnosticProposition):
+                    session.execute_write(
+                        self.add_condition, statement.proposition.objectCondition
+                    )
                 session.execute_write(
                     self.add_gene, statement.proposition.geneContextQualifier
                 )
-                session.execute_write(
-                    self.add_therapeutic, statement.proposition.objectTherapeutic
-                )
-                session.execute_write(
-                    self.add_document, statement.specifiedBy.reportedIn
-                )
+                for document in statement.reportedIn:
+                    session.execute_write(self.add_document, document)
                 if statement.specifiedBy.id not in loaded_methods:
                     session.execute_write(self.add_method, statement.specifiedBy)
                     loaded_methods.add(statement.specifiedBy.id)
-                for document in statement.reportedIn:
-                    session.execute_write(self.add_document, document)
+                session.execute_write(self.add_evidence, statement)
 
     def search_statements(
         self,

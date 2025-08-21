@@ -1,6 +1,5 @@
 """Define data structures for loading objects into DB."""
 
-import json
 import logging
 from typing import Literal, Self
 
@@ -10,14 +9,19 @@ from ga4gh.cat_vrs.models import (
 )
 from ga4gh.core.models import ConceptMapping, Extension, MappableConcept
 from ga4gh.va_spec.base import (
+    DiagnosticPredicate,
     Direction,
     Document,
     EvidenceLine,
     MembershipOperator,
     Method,
+    PrognosticPredicate,
     Statement,
     TherapeuticResponsePredicate,
     TherapyGroup,
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
 )
 from ga4gh.vrs.models import (
     Allele,
@@ -83,7 +87,7 @@ class ReferenceLengthExpressionNode(BaseModel):
     @classmethod
     def from_vrs(cls, rle: ReferenceLengthExpression) -> Self:
         return cls(
-            sequence=rle.sequence,
+            sequence=rle.sequence.root,
             length=rle.length,
             repeat_subunit_length=rle.repeatSubunitLength,
         )
@@ -114,7 +118,7 @@ class AlleleNode(BaseModel):
         return cls(
             id=allele.id,
             name=allele.name if allele.name else "",
-            expressions=_Expressions(allele.expressions).model_dump_json(),
+            expressions=_Expressions(allele.expressions or []).model_dump_json(),
             location=SequenceLocationNode.from_vrs(allele.location),
             state=state,
         )
@@ -173,15 +177,21 @@ class CategoricalVariantNode(BaseModel):
             msg = f"Unrecognized constraint type: {constraint}"
             raise ValueError(msg)
 
+        members = (
+            [AlleleNode.from_vrs(m.root) for m in catvar.members]
+            if catvar.members
+            else []
+        )
+
         return cls(
             id=catvar.id,
-            name=catvar.name,
-            description=catvar.description,
-            aliases=catvar.aliases,
-            extensions=_Extensions(catvar.extensions).model_dump_json(),
-            mappings=_Mappings(catvar.mappings).model_dump_json(),
+            name=catvar.name or "",
+            description=catvar.description or "",
+            aliases=catvar.aliases or [],
+            extensions=_Extensions(catvar.extensions or []).model_dump_json(),
+            mappings=_Mappings(catvar.mappings or []).model_dump_json(),
             constraint=constraint_node,
-            members=[AlleleNode.from_vrs(m.root) for m in catvar.members],
+            members=members,
         )
 
 
@@ -190,9 +200,7 @@ class GeneNode(BaseModel):
 
     id: str
     normalized_id: str
-    description: str
     name: str
-    aliases: list[str]
     mappings: str
     extensions: str
 
@@ -208,23 +216,19 @@ class GeneNode(BaseModel):
                 break
         else:
             msg = f"Unable to locate normalized ID in gene {gene}"
-            breakpoint()
             raise ValueError(msg)
         description = ""
-        aliases = []
-        for extension in gene.extensions:
-            if extension.name == "description":
-                description = extension.value
-            elif extension.name == "aliases":
-                aliases = extension.value
+        if extensions := gene.extensions:
+            for extension in extensions:
+                if extension.name == "description":
+                    description = extension.value
         return cls(
             id=gene.id,
             normalized_id=normalized_id,
             description=description,
             name=gene.name,
-            aliases=aliases,
-            mappings=_Mappings(gene.mappings).model_dump_json(),
-            extensions=_Extensions(gene.extensions).model_dump_json(),
+            mappings=_Mappings(gene.mappings or []).model_dump_json(),
+            extensions=_Extensions(gene.extensions or []).model_dump_json(),
         )
 
 
@@ -240,20 +244,24 @@ class DiseaseNode(BaseModel):
     def from_vrs(cls, disease: MappableConcept) -> Self:
         normalized_id = None
         for mapping in disease.mappings:
-            for ext in getattr(mapping, "extensions", []):
-                if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
-                    normalized_id = mapping.coding.id
+            if extensions := mapping.extensions:
+                for extension in extensions:
+                    if (
+                        extension.name == NormalizerExtensionName.PRIORITY
+                        and extension.value
+                    ):
+                        normalized_id = mapping.coding.id
+                        break
+                if normalized_id:
                     break
-            if normalized_id:
-                break
         if not normalized_id:
             msg = f"Unable to locate normalized ID in disease {disease}"
             raise ValueError(msg)
         return cls(
             id=disease.id,
             normalized_id=normalized_id,
-            name=disease.name,
-            mappings=_Mappings(disease.mappings).model_dump_json(),
+            name=disease.name or "",
+            mappings=_Mappings(disease.mappings or []).model_dump_json(),
         )
 
 
@@ -263,7 +271,6 @@ class DrugNode(BaseModel):
     id: str
     normalized_id: str
     name: str
-    aliases: list[str]
     extensions: str
     mappings: str
 
@@ -280,17 +287,12 @@ class DrugNode(BaseModel):
         else:
             msg = f"Unable to locate normalized ID in therapy {therapy}"
             raise ValueError(msg)
-        aliases = []
-        for extension in therapy.extensions:
-            if extension.name == "aliases":
-                aliases = extension.value
         return cls(
             id=therapy.id,
             normalized_id=normalized_id,
-            name=therapy.name,
-            aliases=aliases,
-            mappings=_Mappings(therapy.mappings).model_dump_json(),
-            extensions=_Extensions(therapy.extensions).model_dump_json(),
+            name=therapy.name or "",
+            mappings=_Mappings(therapy.mappings or []).model_dump_json(),
+            extensions=_Extensions(therapy.extensions or []).model_dump_json(),
         )
 
 
@@ -306,7 +308,7 @@ class TherapyGroupNode(BaseModel):
     def from_vrs(cls, therapy_group: TherapyGroup) -> Self:
         return cls(
             id=therapy_group.id,
-            extensions=_Extensions(therapy_group.extensions).model_dump_json(),
+            extensions=_Extensions(therapy_group.extensions or []).model_dump_json(),
             membership_operator=MembershipOperator(therapy_group.membershipOperator),
             therapies=[
                 DrugNode.from_vrs(therapy) for therapy in therapy_group.therapies
@@ -350,6 +352,8 @@ class DocumentNode(BaseModel):
                 if extension.name == ["source_type"]:
                     src_type = extension.value
                     break
+            else:
+                src_type = ""
         else:
             src_type = ""
 
@@ -387,21 +391,21 @@ class StrengthNode(BaseModel):
 
     @classmethod
     def from_vrs(cls, strength: MappableConcept) -> Self:
-        if (
-            strength.primaryCoding.system
-            == "https://civic.readthedocs.io/en/latest/model/evidence/level.html"
-        ):
-            node_id = f"civic.strength:{strength.primaryCoding.code}"
-        elif strength.primaryCoding.system == "AMP/ASCO/CAP (AAC) Guidelines, 2017":
-            node_id = f"amp-asco-cap.strength:{strength.primaryCoding.code}"
-        else:
-            msg = f"Unrecognized strength concept: {strength}"
-            raise ValueError(msg)
+        match strength.primaryCoding.system:
+            case "https://civic.readthedocs.io/en/latest/model/evidence/level.html":
+                node_id = f"civic.strength:{strength.primaryCoding.code.root}"
+            case "AMP/ASCO/CAP (AAC) Guidelines, 2017":
+                node_id = f"amp-asco-cap.strength:{strength.primaryCoding.code.root}"
+            case "https://moalmanac.org/about":
+                node_id = f"moalmanac.strength:{strength.primaryCoding.code.root}"
+            case _:
+                msg = f"Unrecognized strength concept: {strength}"
+                raise ValueError(msg)
         return cls(
             id=node_id,
-            name=strength.name,
-            mappings=_Mappings(strength.mappings).model_dump_json(),
-            primary_coding=json.dumps(strength.primaryCoding),
+            name=strength.name or "",
+            mappings=_Mappings(strength.mappings or []).model_dump_json(),
+            primary_coding=strength.primaryCoding.model_dump_json(),
         )
 
 
@@ -417,6 +421,11 @@ class StatementEvidenceBase(BaseModel):
     document_ids: list[str]
     has_strength: StrengthNode
     allele_origin_qualifier: str
+    proposition_type: (
+        Literal["VariantTherapeuticResponseProposition"]
+        | Literal["VariantDiagnosticProposition"]
+        | Literal["VariantPrognosticProposition"]
+    )
 
 
 class TherapeuticResponsePropositionBase(BaseModel):
@@ -435,27 +444,108 @@ class TherapeuticResponsePropositionBase(BaseModel):
 class TherapeuticReponseEvidenceNode(
     StatementEvidenceBase, TherapeuticResponsePropositionBase
 ):
-    """Node model for a statement about a therapeutic response proposition"""
+    """Node model for an evidence statement about a therapeutic response proposition"""
 
     @classmethod
     def from_vrs(
         cls,
         statement: Statement,
     ) -> Self:
+        if not isinstance(statement.proposition, VariantTherapeuticResponseProposition):
+            raise TypeError
         tr_proposition = statement.proposition
         strength_node = StrengthNode.from_vrs(statement.strength)
+        condition_id = tr_proposition.conditionQualifier.root.id
+
         return cls(
-            id=tr_proposition.id,
-            description=tr_proposition.description,
+            id=statement.id,
+            description=tr_proposition.description or "",
             method_id=statement.specifiedBy.id,
             document_ids=[d.id for d in statement.reportedIn],
             has_strength=strength_node,
             predicate=tr_proposition.predicate,
-            has_tumor_type_id=tr_proposition.conditionQualifier.id,
+            has_tumor_type_id=condition_id,
             has_gene_context_id=tr_proposition.geneContextQualifier.id,
             has_subject_variant_id=tr_proposition.subjectVariant.id,
-            has_therapeutic_id=tr_proposition.objectTherapeutic.id,
+            has_therapeutic_id=tr_proposition.objectTherapeutic.root.id,
             allele_origin_qualifier=tr_proposition.alleleOriginQualifier.name,
+            proposition_type="VariantTherapeuticResponseProposition",
+        )
+
+
+class DiagnosticPropositionBase(BaseModel):
+    """Base properties for a diagnostic proposition.
+
+    Use as a mixin for a flattened statement/proposition node.
+    """
+
+    predicate: DiagnosticPredicate
+    has_tumor_type_id: str
+    has_gene_context_id: str
+    has_subject_variant_id: str
+
+
+class DiagnosticEvidenceNode(StatementEvidenceBase, DiagnosticPropositionBase):
+    """Node model for an evidence statement about a diagnostic proposition"""
+
+    @classmethod
+    def from_vrs(cls, statement: Statement) -> Self:
+        if not isinstance(statement.proposition, VariantDiagnosticProposition):
+            raise TypeError
+        diagnostic_proposition = statement.proposition
+        strength_node = StrengthNode.from_vrs(statement.strength)
+        condition_id = diagnostic_proposition.objectCondition.root.id
+
+        return cls(
+            id=statement.id,
+            description=diagnostic_proposition.description or "",
+            method_id=statement.specifiedBy.id,
+            document_ids=[d.id for d in statement.reportedIn],
+            has_strength=strength_node,
+            predicate=diagnostic_proposition.predicate,
+            has_tumor_type_id=condition_id,
+            has_gene_context_id=diagnostic_proposition.geneContextQualifier.id,
+            has_subject_variant_id=diagnostic_proposition.subjectVariant.id,
+            allele_origin_qualifier=diagnostic_proposition.alleleOriginQualifier.name,
+            proposition_type="VariantDiagnosticProposition",
+        )
+
+
+class PrognosticPropositionBase(BaseModel):
+    """Base properties for a prognostic proposition.
+
+    Use as a mixin for a flattened statement/proposition node.
+    """
+
+    predicate: PrognosticPredicate
+    has_tumor_type_id: str
+    has_gene_context_id: str
+    has_subject_variant_id: str
+
+
+class PrognosticEvidenceNode(StatementEvidenceBase, PrognosticPropositionBase):
+    """Node model for an evidence statement about a prognostic proposition"""
+
+    @classmethod
+    def from_vrs(cls, statement: Statement) -> Self:
+        if not isinstance(statement.proposition, VariantPrognosticProposition):
+            raise TypeError
+        prognostic_proposition = statement.proposition
+        strength_node = StrengthNode.from_vrs(statement.strength)
+        condition_id = prognostic_proposition.objectCondition.root.id
+
+        return cls(
+            id=statement.id,
+            description=prognostic_proposition.description or "",
+            method_id=statement.specifiedBy.id,
+            document_ids=[d.id for d in statement.reportedIn],
+            has_strength=strength_node,
+            predicate=prognostic_proposition.predicate,
+            has_tumor_type_id=condition_id,
+            has_gene_context_id=prognostic_proposition.geneContextQualifier.id,
+            has_subject_variant_id=prognostic_proposition.subjectVariant.id,
+            allele_origin_qualifier=prognostic_proposition.alleleOriginQualifier.name,
+            proposition_type="VariantPrognosticProposition",
         )
 
 
@@ -503,4 +593,5 @@ class TherapeuticResponseAssertionNode(TherapeuticReponseEvidenceNode):
             has_therapeutic_id=tr_proposition.objectTherapeutic.id,
             allele_origin_qualifier=tr_proposition.alleleOriginQualifier.name,
             evidence_lines=evidence_lines,
+            proposition_type="VariantTherapeuticResponseProposition",
         )
