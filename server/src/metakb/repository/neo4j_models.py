@@ -16,10 +16,8 @@ from ga4gh.va_spec.base import (
     MembershipOperator,
     Method,
     Statement,
-    Strength,
     TherapeuticResponsePredicate,
     TherapyGroup,
-    VariantTherapeuticResponseProposition,
 )
 from ga4gh.vrs.models import (
     Allele,
@@ -457,6 +455,8 @@ class TherapeuticReponseEvidenceNode(
 
 
 class EvidenceLineNode(BaseModel):
+    """Node model for an Evidence Line object."""
+
     id: str
     direction: Direction
     evidence_item_ids: list[str] = Field(min_length=1)

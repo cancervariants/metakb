@@ -10,6 +10,11 @@ import boto3
 from botocore.exceptions import ClientError
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import MappableConcept
+from ga4gh.va_spec.aac_2017 import (
+    VariantDiagnosticStudyStatement,
+    VariantPrognosticStudyStatement,
+    VariantTherapeuticResponseStudyStatement,
+)
 from ga4gh.va_spec.base import Condition, Document, Method, Statement, TherapyGroup
 from neo4j import Driver, GraphDatabase, ManagedTransaction
 
@@ -21,14 +26,35 @@ from metakb.repository.neo4j_models import (
     DocumentNode,
     DrugNode,
     MethodNode,
+    TherapeuticReponseEvidenceNode,
     TherapeuticResponseAssertionNode,
     TherapyGroupNode,
-    TherapeuticReponseEvidenceNode,
 )
 from metakb.schemas.api import ServiceEnvironment
 from metakb.transformers.base import TransformedData
 
 _logger = logging.getLogger(__name__)
+
+
+def is_loadable_statement(statement: Statement) -> bool:
+    """Check whether statement can be loaded to DB
+
+    * All entity terms need to have normalized
+    """
+    for extension in statement.proposition.subjectVariant.extensions:
+        if extension.name == "vicc_normalizer_failure" and extension.value:
+            return False
+    for extension in statement.proposition.objectCondition.extensions:
+        if extension.name == "vicc_normalizer_failure" and extension.value:
+            return False
+    for extension in statement.proposition.geneContextQualifier.extensions:
+        if extensnion.name == "vicc_normalizer_failure" and extension.value:
+            return False
+    if therapeutic := getattr(statement.proposition, "objectTherapeutic"):
+        for extension in therapeutic.extensions:
+            if extension.name == "vicc_normalizer_failure" and extension.value:
+                return False
+    return True
 
 
 def _get_secret() -> str:
@@ -122,13 +148,19 @@ class _QueryContainer:
     def _load(self, filename: str) -> str:
         return (self._query_dir / filename).read_text(encoding="utf-8")
 
-    @cached_property
-    def initialize(self) -> str:
-        return self._load("initialize.cypher")
+    def _load_multiple_queries(self, filename: str) -> list[str]:
+        raw_text = self._load(filename)
+        return " ".join(
+            filter(None, [line.split("//")[0] for line in raw_text.split("\n")])
+        ).split(";")[:-1]
 
     @cached_property
-    def teardown(self) -> str:
-        return self._load("teardown.cypher")
+    def initialize(self) -> list[str]:
+        return self._load_multiple_queries("initialize.cypher")
+
+    @cached_property
+    def teardown(self) -> list[str]:
+        return self._load_multiple_queries("teardown.cypher")
 
     @cached_property
     def load_dac_catvar(self) -> str:
@@ -174,6 +206,10 @@ class Neo4jRepository(AbstractRepository):
         """Initialize. TODO create driver? session? idk"""
         self.driver = driver
         self.queries = _QueryContainer()
+        # TODO not sure if initialize always?
+        with self.driver.session() as session:
+            for query in self.queries.initialize:
+                session.execute_write(lambda tx: tx.run(query))
 
     def add_catvar(self, tx: ManagedTransaction, catvar: CategoricalVariant) -> None:
         """Add categorical variant to DB
@@ -277,20 +313,81 @@ class Neo4jRepository(AbstractRepository):
         # TODO some kind of session/transaction logic
         # TODO session by statement, not by entity type
         # TODO figure out weirdness around therapygroup/drug and conditionset/condition
+        for statement in data.statements_evidence:
+            if not is_loadable_statement(statement):
+                continue
+            with self.driver.session() as session:
+                session.execute_write(
+                    self.add_catvar, statement.proposition.subjectVariant
+                )
+                session.execute_write(
+                    self.add_condition, statement.proposition.objectCondition
+                )
+                session.execute_write(
+                    self.add_gene, statement.proposition.geneContextQualifier
+                )
+                session.execute_write(
+                    self.add_therapeutic, statement.proposition.objectTherapeutic
+                )
+                session.execute_write(self.add_method, statement.specifiedBy)
+                for document in statement.reportedIn:
+                    session.execute_write(self.add_document, document)
+
+        # for statement in data.statements_assertions:
+        #     pass  # TODO
+        # with self.driver.session() as session:
+        #     for catvar in data.categorical_variants:
+        #         session.execute_write(self.add_catvar, catvar)
+        #     for document in data.documents:
+        #         session.execute_write(self.add_document, document)
+        #     for gene in data.genes:
+        #         session.execute_write(self.add_gene, gene)
+        #     for condition in data.conditions:
+        #         session.execute_write(self.add_condition, condition)
+        #     for therapy in data.therapies:
+        #         session.execute_write(self.add_therapeutic, therapy)
+        #     for method in data.methods:
+        #         session.execute_write(self.add_method, method)
+        #     for evidence in data.statements_evidence:
+        #         session.execute_write(self.add_evidence, evidence)
+        #     for assertion in data.statements_assertions:
+        #         session.execute_write(self.add_assertion, assertion)
+
+    def search_statements(
+        self,
+        statement_id: str | None = None,
+        variation_id: str | None = None,
+        gene_id: str | None = None,
+        therapy_id: str | None = None,
+        disease_id: str | None = None,
+        start: int = 0,
+        limit: int | None = None,
+    ) -> list[
+        Statement
+        | VariantDiagnosticStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantTherapeuticResponseStudyStatement
+    ]:
+        """TODO describe this"""
+        raise NotImplementedError
+
+    def get_statement(
+        self, statement_id: str
+    ) -> (
+        Statement
+        | VariantDiagnosticStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantTherapeuticResponseStudyStatement
+    ):
+        """Given a single statement ID, get it back.
+
+        :param statement_id: the ID of a statement
+        :raise KeyError: if unable to retrieve it
+        """
+        raise NotImplementedError
+
+    def teardown_db(self) -> None:
+        """Reset repository storage."""
         with self.driver.session() as session:
-            for catvar in data.categorical_variants:
-                session.execute_write(self.add_catvar, catvar)
-            for document in data.documents:
-                session.execute_write(self.add_document, document)
-            for gene in data.genes:
-                session.execute_write(self.add_gene, gene)
-            for condition in data.conditions:
-                session.execute_write(self.add_condition, condition)
-            for therapy in data.therapies:
-                session.execute_write(self.add_therapeutic, therapy)
-            for method in data.methods:
-                session.execute_write(self.add_method, method)
-            for evidence in data.statements_evidence:
-                session.execute_write(self.add_evidence, evidence)
-            for assertion in data.statements_assertions:
-                session.execute_write(self.add_assertion, assertion)
+            for query in self.queries.teardown:
+                session.execute_write(lambda tx: tx.run(query))

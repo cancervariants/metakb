@@ -1,8 +1,9 @@
-// Drop all nodes
+// these should, generally, be executed in a single transaction, and it'd be annoying to keep them in their own query files
+// but they all have to be executed separately so the repository class has to do a little post-processing to split them all up
+// First, drop all nodes
 MATCH (n)
 DETACH DELETE n;
-
-// Drop constraints
+// then, drop constraints
 DROP CONSTRAINT coding_constraint IF EXISTS;
 DROP CONSTRAINT gene_id_constraint IF EXISTS;
 DROP CONSTRAINT disease_id_constraint IF EXISTS;

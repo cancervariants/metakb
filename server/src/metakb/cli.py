@@ -4,6 +4,7 @@ to graph datastore.
 
 import datetime
 import logging
+import json
 import re
 import tempfile
 from collections.abc import Generator
@@ -24,7 +25,6 @@ from metakb import DATE_FMT, __version__
 from metakb.config import get_configs
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
-from metakb.load_data import load_from_json
 from metakb.log_handle import configure_logs
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
@@ -34,9 +34,10 @@ from metakb.normalizers import (
     update_normalizer,
 )
 from metakb.normalizers import check_normalizers as check_normalizer_health
-from metakb.repository.neo4j_repository import get_driver
+from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 from metakb.schemas.app import SourceName
 from metakb.transformers import CivicTransformer, MoaTransformer
+from metakb.transformers.base import TransformedData
 
 _logger = logging.getLogger(__name__)
 
@@ -364,8 +365,9 @@ def clear_graph(db_url: str) -> None:
     \f
     :param db_url: connection string for the application Neo4j database.
     """  # noqa: D301
-    _ = next(_get_driver(db_url))
-    # clear_metakb_graph(driver)
+    driver = next(_get_driver(db_url))
+    repository = Neo4jRepository(driver)
+    repository.teardown_db()
 
 
 @cli.command()
@@ -421,6 +423,7 @@ def load_cdm(
     _echo_info("Loading Neo4j database...")
 
     driver = next(_get_driver(db_url))
+    repository = Neo4jRepository(driver)
 
     if cdm_files:
         for file in cdm_files:
@@ -438,7 +441,14 @@ def load_cdm(
                 msg = f"No valid transformation file found matching pattern: {pattern}"
                 raise FileNotFoundError(msg) from e
 
-            load_from_json(path, driver)
+            with path.open() as f:
+                data = json.load(f)
+            tmp_new_data = {
+                "statements_evidence": data["statements_evidence"],
+                "statements_assertions": data["statements_assertions"],
+            }
+            transformed_data = TransformedData(**tmp_new_data)
+            repository.add_transformed_data(transformed_data)
 
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")

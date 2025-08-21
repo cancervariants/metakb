@@ -20,6 +20,7 @@ class AbstractRepository(abc.ABC):
     Used to access and store core MetaKB data.
     """
 
+    @abc.abstractmethod
     def get_statement(
         self, statement_id: str
     ) -> (
@@ -33,8 +34,8 @@ class AbstractRepository(abc.ABC):
         :param statement_id: the ID of a statement
         :raise KeyError: if unable to retrieve it
         """
-        raise NotImplementedError
 
+    @abc.abstractmethod
     def search_statements(
         self,
         statement_id: str | None = None,
@@ -50,11 +51,15 @@ class AbstractRepository(abc.ABC):
         | VariantPrognosticStudyStatement
         | VariantTherapeuticResponseStudyStatement
     ]:
-        raise NotImplementedError
+        """TODO describe this"""
 
+    @abc.abstractmethod
     def add_transformed_data(self, data: TransformedData) -> None:
         """Add a chunk of transformed data to the database.
 
         :param data: data grouped by GKS entity type
         """
-        raise NotImplementedError
+
+    @abc.abstractmethod
+    def teardown_db(self) -> None:
+        """Reset repository storage."""
