@@ -185,54 +185,6 @@ class CategoricalVariantNode(BaseModel):
         )
 
 
-class DocumentNode(BaseModel):
-    """Node model for Document."""
-
-    id: str
-    source_type: str
-    title: str
-    name: str
-    pmid: str
-    doi: str
-    urls: list[str]
-
-    @classmethod
-    def from_vrs(cls, document: Document) -> Self:
-        """We need to work out a policy for handling ID-less documents -- ie the documents
-        used to back methods used by sources.
-
-
-        """
-        if not document.id:
-            if pmid := document.pmid:
-                doc_id = f"pmid:{pmid}"
-            else:
-                if doi := document.doi:
-                    doc_id = f"doi:{doi}"
-                else:
-                    msg = f"Unable to create internal ID for document {document}"
-                    raise ValueError(msg)
-            _logger.warning("Designating %s as ID for document %s", doc_id, document)
-        else:
-            doc_id = document.id
-
-        for extension in getattr(document, "extensions", []):
-            if extension.name == ["source_type"]:
-                src_type = extension.value
-        else:
-            src_type = ""
-
-        return cls(
-            id=doc_id,
-            title=document.title if document.title else "",
-            urls=document.urls if document.urls else [],
-            pmid=str(document.pmid) if document.pmid else "",
-            name=document.name if document.name else "",
-            doi=document.doi if document.doi else "",
-            source_type=src_type,
-        )
-
-
 class GeneNode(BaseModel):
     """Node model for Gene."""
 
@@ -248,7 +200,7 @@ class GeneNode(BaseModel):
     def from_vrs(cls, gene: MappableConcept) -> Self:
         normalized_id = None
         for mapping in gene.mappings:
-            for ext in gene.extensions:
+            for ext in mapping.extensions:
                 if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
                     normalized_id = mapping.coding.id
                     break
@@ -256,6 +208,7 @@ class GeneNode(BaseModel):
                 break
         else:
             msg = f"Unable to locate normalized ID in gene {gene}"
+            breakpoint()
             raise ValueError(msg)
         description = ""
         aliases = []
@@ -287,7 +240,7 @@ class DiseaseNode(BaseModel):
     def from_vrs(cls, disease: MappableConcept) -> Self:
         normalized_id = None
         for mapping in disease.mappings:
-            for ext in disease.extensions:
+            for ext in getattr(mapping, "extensions", []):
                 if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
                     normalized_id = mapping.coding.id
                     break
@@ -318,7 +271,7 @@ class DrugNode(BaseModel):
     def from_vrs(cls, therapy: MappableConcept) -> Self:
         normalized_id = None
         for mapping in therapy.mappings:
-            for ext in therapy.extensions:
+            for ext in mapping.extensions:
                 if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
                     normalized_id = mapping.coding.id
                     break
@@ -361,15 +314,67 @@ class TherapyGroupNode(BaseModel):
         )
 
 
+class DocumentNode(BaseModel):
+    """Node model for Document."""
+
+    id: str
+    source_type: str
+    title: str
+    name: str
+    pmid: str
+    doi: str
+    urls: list[str]
+
+    @classmethod
+    def from_vrs(cls, document: Document) -> Self:
+        """We need to work out a policy for handling ID-less documents -- ie the documents
+        used to back methods used by sources.
+
+
+        """
+        if not document.id:
+            if pmid := document.pmid:
+                doc_id = f"pmid:{pmid}"
+            else:
+                if doi := document.doi:
+                    doc_id = f"doi:{doi}"
+                else:
+                    msg = f"Unable to create internal ID for document {document}"
+                    raise ValueError(msg)
+            _logger.warning("Designating %s as ID for document %s", doc_id, document)
+        else:
+            doc_id = document.id
+
+        if extensions := document.extensions:
+            for extension in extensions:
+                if extension.name == ["source_type"]:
+                    src_type = extension.value
+                    break
+        else:
+            src_type = ""
+
+        return cls(
+            id=doc_id,
+            title=document.title if document.title else "",
+            urls=document.urls if document.urls else [],
+            pmid=str(document.pmid) if document.pmid else "",
+            name=document.name if document.name else "",
+            doi=document.doi if document.doi else "",
+            source_type=src_type,
+        )
+
+
 class MethodNode(BaseModel):
     """Node model for Method."""
 
     id: str
     name: str
+    reported_in: DocumentNode
 
     @classmethod
     def from_vrs(cls, method: Method) -> Self:
-        return cls(id=method.id, name=method.name)
+        document_node = DocumentNode.from_vrs(method.reportedIn)
+        return cls(id=method.id, name=method.name, reported_in=document_node)
 
 
 class StrengthNode(BaseModel):

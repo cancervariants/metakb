@@ -15,7 +15,14 @@ from ga4gh.va_spec.aac_2017 import (
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base import Condition, Document, Method, Statement, TherapyGroup
+from ga4gh.va_spec.base import (
+    Condition,
+    Document,
+    Method,
+    Statement,
+    Therapeutic,
+    TherapyGroup,
+)
 from neo4j import Driver, GraphDatabase, ManagedTransaction
 
 from metakb.config import get_configs
@@ -25,6 +32,7 @@ from metakb.repository.neo4j_models import (
     DiseaseNode,
     DocumentNode,
     DrugNode,
+    GeneNode,
     MethodNode,
     TherapeuticReponseEvidenceNode,
     TherapeuticResponseAssertionNode,
@@ -44,16 +52,24 @@ def is_loadable_statement(statement: Statement) -> bool:
     for extension in statement.proposition.subjectVariant.extensions:
         if extension.name == "vicc_normalizer_failure" and extension.value:
             return False
-    for extension in statement.proposition.objectCondition.extensions:
+    for extension in getattr(
+        statement.proposition.conditionQualifier, "extensions", []
+    ):
         if extension.name == "vicc_normalizer_failure" and extension.value:
             return False
     for extension in statement.proposition.geneContextQualifier.extensions:
-        if extensnion.name == "vicc_normalizer_failure" and extension.value:
+        if extension.name == "vicc_normalizer_failure" and extension.value:
             return False
     if therapeutic := getattr(statement.proposition, "objectTherapeutic"):
-        for extension in therapeutic.extensions:
-            if extension.name == "vicc_normalizer_failure" and extension.value:
-                return False
+        if isinstance(therapeutic, MappableConcept):
+            for extension in therapeutic.extensions:
+                if extension.name == "vicc_normalizer_failure" and extension.value:
+                    return False
+        elif isinstance(therapeutic, TherapyGroup):
+            for drug in therapeutic.therapies:
+                for extension in drug.extensions:
+                    if extension.name == "vicc_normalizer_failure" and extension.value:
+                        return False
     return True
 
 
@@ -259,23 +275,20 @@ class Neo4jRepository(AbstractRepository):
             msg = f"Unsupported condition type: {condition}"
             raise ValueError(msg)
 
-        raise NotImplementedError
-
-    def add_therapeutic(
-        self, tx: ManagedTransaction, therapeutic: MappableConcept | TherapyGroup
-    ) -> None:
+    def add_therapeutic(self, tx: ManagedTransaction, therapeutic: Therapeutic) -> None:
         root = therapeutic.root
-        if root.conceptType == "Drug":
+        if isinstance(root, MappableConcept):
             drug_node = DrugNode.from_vrs(root)
             tx.run(self.queries.load_drug, drug=drug_node.model_dump(mode="json"))
-        else:
-            # presume it's a therapygroup?
+        elif isinstance(root, TherapyGroup):
             therapy_group_node = TherapyGroupNode.from_vrs(root)
             tx.run(
                 self.queries.load_therapy_group,
                 therapy_group=therapy_group_node.model_dump(mode="json"),
             )
-        raise NotImplementedError
+        else:
+            msg = f"Unrecognized therapeutic type: {therapeutic}"
+            raise TypeError(msg)
 
     def add_method(self, tx: ManagedTransaction, method: Method) -> None:
         tx.run(
@@ -309,10 +322,13 @@ class Neo4jRepository(AbstractRepository):
 
         :param data: data grouped by GKS entity type
         """
-        # TODO prune unused stuff
         # TODO some kind of session/transaction logic
         # TODO session by statement, not by entity type
         # TODO figure out weirdness around therapygroup/drug and conditionset/condition
+
+        # since methods are particularly redundant (usually ~1 per source)
+        # we should track whether or not they've been added already
+        loaded_methods = set()
         for statement in data.statements_evidence:
             if not is_loadable_statement(statement):
                 continue
@@ -321,7 +337,7 @@ class Neo4jRepository(AbstractRepository):
                     self.add_catvar, statement.proposition.subjectVariant
                 )
                 session.execute_write(
-                    self.add_condition, statement.proposition.objectCondition
+                    self.add_condition, statement.proposition.conditionQualifier
                 )
                 session.execute_write(
                     self.add_gene, statement.proposition.geneContextQualifier
@@ -329,29 +345,14 @@ class Neo4jRepository(AbstractRepository):
                 session.execute_write(
                     self.add_therapeutic, statement.proposition.objectTherapeutic
                 )
-                session.execute_write(self.add_method, statement.specifiedBy)
+                session.execute_write(
+                    self.add_document, statement.specifiedBy.reportedIn
+                )
+                if statement.specifiedBy.id not in loaded_methods:
+                    session.execute_write(self.add_method, statement.specifiedBy)
+                    loaded_methods.add(statement.specifiedBy.id)
                 for document in statement.reportedIn:
                     session.execute_write(self.add_document, document)
-
-        # for statement in data.statements_assertions:
-        #     pass  # TODO
-        # with self.driver.session() as session:
-        #     for catvar in data.categorical_variants:
-        #         session.execute_write(self.add_catvar, catvar)
-        #     for document in data.documents:
-        #         session.execute_write(self.add_document, document)
-        #     for gene in data.genes:
-        #         session.execute_write(self.add_gene, gene)
-        #     for condition in data.conditions:
-        #         session.execute_write(self.add_condition, condition)
-        #     for therapy in data.therapies:
-        #         session.execute_write(self.add_therapeutic, therapy)
-        #     for method in data.methods:
-        #         session.execute_write(self.add_method, method)
-        #     for evidence in data.statements_evidence:
-        #         session.execute_write(self.add_evidence, evidence)
-        #     for assertion in data.statements_assertions:
-        #         session.execute_write(self.add_assertion, assertion)
 
     def search_statements(
         self,
