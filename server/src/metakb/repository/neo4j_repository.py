@@ -357,6 +357,8 @@ class Neo4jRepository(AbstractRepository):
             case _:
                 msg = f"Unsupported proposition type: {statement.proposition.type}"
                 raise NotImplementedError(msg)
+        # if statement.id == "civic.aid:105":  # TODO
+        #     breakpoint()
         tx.run(
             self.queries.load_statement,
             statement=statement_node.model_dump(mode="json"),
