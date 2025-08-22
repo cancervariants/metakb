@@ -4,6 +4,7 @@ import logging
 import os
 from functools import cached_property
 from importlib.resources import files
+from pathlib import Path
 from urllib.parse import urlparse, urlunparse
 
 import boto3
@@ -175,7 +176,6 @@ def get_driver(
     configs = get_configs()
     if configs.env == ServiceEnvironment.PROD:
         # overrule ANY provided configs and get connection url from AWS secrets
-
         secret = ast.literal_eval(_get_secret())
         url = f"bolt://{secret['username']}:{secret['password']}@{secret['host']}:{secret['port']}"
     elif url:
@@ -192,13 +192,23 @@ def get_driver(
 
 
 class _QueryContainer:
+    """Container class for raw query strings.
+
+    Lazily load from an adjacent directory.
+    """
+
     def __init__(self):
-        self._query_dir = files("metakb.repository") / "queries"
+        """Initialize query holder."""
+        self._query_dir = Path(str(files("metakb.repository"))) / "queries"
 
     def _load(self, filename: str) -> str:
-        return (self._query_dir / filename).read_text(encoding="utf-8")
+        path = self._query_dir / filename
+        if not path.exists():
+            raise FileNotFoundError(path)
+        return (path).read_text(encoding="utf-8")
 
     def _load_multiple_queries(self, filename: str) -> list[str]:
+        """Load a file containing multiple queries, separated by semicolons."""
         raw_text = self._load(filename)
         return " ".join(
             filter(None, [line.split("//")[0] for line in raw_text.split("\n")])
@@ -243,6 +253,10 @@ class _QueryContainer:
     @cached_property
     def load_statement(self) -> str:
         return self._load("load_statement.cypher")
+
+    @cached_property
+    def search_statements(self) -> str:
+        return self._load("search_statements.cypher")
 
 
 class Neo4jRepository(AbstractRepository):
@@ -306,6 +320,7 @@ class Neo4jRepository(AbstractRepository):
             raise NotImplementedError(msg)
 
     def add_therapeutic(self, tx: ManagedTransaction, therapeutic: Therapeutic) -> None:
+        """Add a therapeutic -- either an individual Drug or a group."""
         root = therapeutic.root
         if isinstance(root, MappableConcept):
             drug_node = DrugNode.from_gks(root)
@@ -321,21 +336,26 @@ class Neo4jRepository(AbstractRepository):
             raise TypeError(msg)
 
     def add_method(self, tx: ManagedTransaction, method: Method) -> None:
+        """Add a Method object."""
         tx.run(
             self.queries.load_method,
             method=MethodNode.from_gks(method).model_dump(mode="json"),
         )
 
-    def add_statement(self, tx: ManagedTransaction, evidence: Statement) -> None:
-        match evidence.proposition:
+    def add_statement(self, tx: ManagedTransaction, statement: Statement) -> None:
+        """Add a Statement object.
+
+        Also add supporting documents and evidence lines, when included.
+        """
+        match statement.proposition:
             case VariantTherapeuticResponseProposition():
-                statement_node = TherapeuticReponseStatementNode.from_gks(evidence)
+                statement_node = TherapeuticReponseStatementNode.from_gks(statement)
             case VariantDiagnosticProposition():
-                statement_node = DiagnosticStatementNode.from_gks(evidence)
+                statement_node = DiagnosticStatementNode.from_gks(statement)
             case VariantPrognosticProposition():
-                statement_node = PrognosticStatementNode.from_gks(evidence)
+                statement_node = PrognosticStatementNode.from_gks(statement)
             case _:
-                msg = f"Unsupported proposition type: {evidence.proposition.type}"
+                msg = f"Unsupported proposition type: {statement.proposition.type}"
                 raise NotImplementedError(msg)
         tx.run(
             self.queries.load_statement,
@@ -347,10 +367,6 @@ class Neo4jRepository(AbstractRepository):
 
         :param data: data grouped by GKS entity type
         """
-        # TODO some kind of session/transaction logic
-        # TODO session by statement, not by entity type
-        # TODO figure out weirdness around therapygroup/drug and conditionset/condition
-
         # since methods are particularly redundant (usually ~1 per source)
         # we should track whether or not they've been added already
         loaded_methods = set()
@@ -402,7 +418,24 @@ class Neo4jRepository(AbstractRepository):
         | VariantTherapeuticResponseStudyStatement
     ]:
         """TODO describe this"""
-        raise NotImplementedError
+        result = self.driver.execute_query(
+            self.queries.search_statements,
+            variation_id=variation_id,
+            condition_id=disease_id,
+            gene_id=gene_id,
+            therapy_id=therapy_id,
+        )
+
+        statements = []
+        for record in result.records:
+            gene = GeneNode(**record["g"]).to_gks()
+            condition = DiseaseNode(**record["d"]).to_gks()
+            match record["s"]["proposition_type"]:
+                case "VariantDiagnosticProposition":
+                    raise NotImplementedError  # TODO
+                case _:
+                    pass  # TODO double check
+        return []
 
     def get_statement(
         self, statement_id: str
