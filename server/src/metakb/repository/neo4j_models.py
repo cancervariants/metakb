@@ -55,7 +55,8 @@ class SequenceLocationNode(BaseModel):
     sequence: str = ""
 
     @classmethod
-    def from_vrs(cls, sequence_location: SequenceLocation) -> Self:
+    def from_gks(cls, sequence_location: SequenceLocation) -> Self:
+        """Create Node instance from GKS class."""
         return cls(
             id=sequence_location.id,
             start=sequence_location.start,
@@ -72,7 +73,8 @@ class LiteralSequenceExpressionNode(BaseModel):
     type: Literal["LiteralSequenceExpression"] = "LiteralSequenceExpression"
 
     @classmethod
-    def from_vrs(cls, lse: LiteralSequenceExpression) -> Self:
+    def from_gks(cls, lse: LiteralSequenceExpression) -> Self:
+        """Create Node instance from GKS class."""
         return cls(sequence=str(lse.sequence))
 
 
@@ -85,7 +87,8 @@ class ReferenceLengthExpressionNode(BaseModel):
     type: Literal["ReferenceLengthExpression"] = "ReferenceLengthExpression"
 
     @classmethod
-    def from_vrs(cls, rle: ReferenceLengthExpression) -> Self:
+    def from_gks(cls, rle: ReferenceLengthExpression) -> Self:
+        """Create Node instance from GKS class."""
         return cls(
             sequence=rle.sequence.root,
             length=rle.length,
@@ -106,11 +109,12 @@ class AlleleNode(BaseModel):
     state: LiteralSequenceExpressionNode | ReferenceLengthExpressionNode
 
     @classmethod
-    def from_vrs(cls, allele: Allele) -> Self:
+    def from_gks(cls, allele: Allele) -> Self:
+        """Create Node instance from GKS class."""
         if allele.state.type == VrsType.LIT_SEQ_EXPR:
-            state = LiteralSequenceExpressionNode.from_vrs(allele.state)
+            state = LiteralSequenceExpressionNode.from_gks(allele.state)
         elif allele.state.type == VrsType.REF_LEN_EXPR:
-            state = ReferenceLengthExpressionNode.from_vrs(allele.state)
+            state = ReferenceLengthExpressionNode.from_gks(allele.state)
         else:
             msg = f"Unrecognized state type: {allele.state} for {allele.id}"
             raise ValueError(msg)
@@ -119,7 +123,7 @@ class AlleleNode(BaseModel):
             id=allele.id,
             name=allele.name if allele.name else "",
             expressions=_Expressions(allele.expressions or []).model_dump_json(),
-            location=SequenceLocationNode.from_vrs(allele.location),
+            location=SequenceLocationNode.from_gks(allele.location),
             state=state,
         )
 
@@ -132,7 +136,7 @@ class DefiningAlleleConstraintNode(BaseModel):
     allele: AlleleNode
 
     @classmethod
-    def from_vrs(cls, constraint: DefiningAlleleConstraint, constraint_id: str) -> Self:
+    def from_gks(cls, constraint: DefiningAlleleConstraint, constraint_id: str) -> Self:
         """Create new node instance from a Cat-VRS DefiningAlleleConstraint.
 
         :param constraint: original constraint object
@@ -144,7 +148,7 @@ class DefiningAlleleConstraintNode(BaseModel):
         return cls(
             id=constraint_id,
             relations=[],  # TODO more to think about how to convert to strings
-            allele=AlleleNode.from_vrs(constraint.allele),
+            allele=AlleleNode.from_gks(constraint.allele),
         )
 
 
@@ -161,7 +165,8 @@ class CategoricalVariantNode(BaseModel):
     members: list[AlleleNode]
 
     @classmethod
-    def from_vrs(cls, catvar: CategoricalVariant) -> Self:
+    def from_gks(cls, catvar: CategoricalVariant) -> Self:
+        """Create Node instance from GKS class."""
         if len(catvar.constraints) != 1:
             msg = "Only single-constraint catvars are currently supported"
             raise ValueError(msg)
@@ -170,7 +175,7 @@ class CategoricalVariantNode(BaseModel):
             constraint_id = (
                 f"{catvar.id}:{constraint.root.type}:{constraint.root.allele.id}"
             )
-            constraint_node = DefiningAlleleConstraintNode.from_vrs(
+            constraint_node = DefiningAlleleConstraintNode.from_gks(
                 constraint.root, constraint_id
             )
         else:
@@ -178,7 +183,7 @@ class CategoricalVariantNode(BaseModel):
             raise ValueError(msg)
 
         members = (
-            [AlleleNode.from_vrs(m.root) for m in catvar.members]
+            [AlleleNode.from_gks(m.root) for m in catvar.members]
             if catvar.members
             else []
         )
@@ -205,7 +210,8 @@ class GeneNode(BaseModel):
     extensions: str
 
     @classmethod
-    def from_vrs(cls, gene: MappableConcept) -> Self:
+    def from_gks(cls, gene: MappableConcept) -> Self:
+        """Create Node instance from GKS class."""
         normalized_id = None
         for mapping in gene.mappings:
             for ext in mapping.extensions:
@@ -241,7 +247,8 @@ class DiseaseNode(BaseModel):
     mappings: str
 
     @classmethod
-    def from_vrs(cls, disease: MappableConcept) -> Self:
+    def from_gks(cls, disease: MappableConcept) -> Self:
+        """Create Node instance from GKS class."""
         normalized_id = None
         for mapping in disease.mappings:
             if extensions := mapping.extensions:
@@ -275,7 +282,8 @@ class DrugNode(BaseModel):
     mappings: str
 
     @classmethod
-    def from_vrs(cls, therapy: MappableConcept) -> Self:
+    def from_gks(cls, therapy: MappableConcept) -> Self:
+        """Create Node instance from GKS class."""
         normalized_id = None
         for mapping in therapy.mappings:
             for ext in mapping.extensions:
@@ -305,13 +313,14 @@ class TherapyGroupNode(BaseModel):
     extensions: str
 
     @classmethod
-    def from_vrs(cls, therapy_group: TherapyGroup) -> Self:
+    def from_gks(cls, therapy_group: TherapyGroup) -> Self:
+        """Create Node instance from GKS class."""
         return cls(
             id=therapy_group.id,
             extensions=_Extensions(therapy_group.extensions or []).model_dump_json(),
             membership_operator=MembershipOperator(therapy_group.membershipOperator),
             therapies=[
-                DrugNode.from_vrs(therapy) for therapy in therapy_group.therapies
+                DrugNode.from_gks(therapy) for therapy in therapy_group.therapies
             ],
         )
 
@@ -328,11 +337,11 @@ class DocumentNode(BaseModel):
     urls: list[str]
 
     @classmethod
-    def from_vrs(cls, document: Document) -> Self:
-        """We need to work out a policy for handling ID-less documents -- ie the documents
+    def from_gks(cls, document: Document) -> Self:
+        """Create Node instance from GKS class.
+
+        **We need to work out a policy for handling ID-less documents -- ie the documents
         used to back methods used by sources.
-
-
         """
         if not document.id:
             if pmid := document.pmid:
@@ -343,7 +352,7 @@ class DocumentNode(BaseModel):
                 else:
                     msg = f"Unable to create internal ID for document {document}"
                     raise ValueError(msg)
-            _logger.warning("Designating %s as ID for document %s", doc_id, document)
+            _logger.info("Designating %s as ID for document %s", doc_id, document)
         else:
             doc_id = document.id
 
@@ -376,8 +385,9 @@ class MethodNode(BaseModel):
     reported_in: DocumentNode
 
     @classmethod
-    def from_vrs(cls, method: Method) -> Self:
-        document_node = DocumentNode.from_vrs(method.reportedIn)
+    def from_gks(cls, method: Method) -> Self:
+        """Create Node instance from GKS class."""
+        document_node = DocumentNode.from_gks(method.reportedIn)
         return cls(id=method.id, name=method.name, reported_in=document_node)
 
 
@@ -390,7 +400,8 @@ class StrengthNode(BaseModel):
     primary_coding: str
 
     @classmethod
-    def from_vrs(cls, strength: MappableConcept) -> Self:
+    def from_gks(cls, strength: MappableConcept) -> Self:
+        """Create Node instance from GKS class."""
         match strength.primaryCoding.system:
             case "https://civic.readthedocs.io/en/latest/model/evidence/level.html":
                 node_id = f"civic.strength:{strength.primaryCoding.code.root}"
@@ -406,6 +417,25 @@ class StrengthNode(BaseModel):
             name=strength.name or "",
             mappings=_Mappings(strength.mappings or []).model_dump_json(),
             primary_coding=strength.primaryCoding.model_dump_json(),
+        )
+
+
+class EvidenceLineNode(BaseModel):
+    """Node model for an Evidence Line object."""
+
+    id: str
+    direction: Direction
+    evidence_item_ids: list[str] = Field(min_length=1)
+
+    @classmethod
+    def from_gks(cls, evidence_line: EvidenceLine) -> Self:
+        evidence_line_id = f"evidence_line:{','.join(sorted(item.id for item in evidence_line.hasEvidenceItems))}"
+        return cls(
+            id=evidence_line_id,
+            direction=evidence_line.directionOfEvidenceProvided,
+            evidence_item_ids=[
+                statement.id for statement in evidence_line.hasEvidenceItems
+            ],
         )
 
 
@@ -426,13 +456,11 @@ class StatementEvidenceBase(BaseModel):
         | Literal["VariantDiagnosticProposition"]
         | Literal["VariantPrognosticProposition"]
     )
+    evidence_lines: list[EvidenceLineNode]
 
 
-class TherapeuticResponsePropositionBase(BaseModel):
-    """Base properties for a TR proposition node.
-
-    Use as a mixin for a flattened statement/proposition node.
-    """
+class TherapeuticReponseStatementNode(StatementEvidenceBase):
+    """Node model for an evidence statement about a therapeutic response proposition"""
 
     predicate: TherapeuticResponsePredicate
     has_tumor_type_id: str
@@ -440,28 +468,34 @@ class TherapeuticResponsePropositionBase(BaseModel):
     has_subject_variant_id: str
     has_therapeutic_id: str
 
-
-class TherapeuticReponseEvidenceNode(
-    StatementEvidenceBase, TherapeuticResponsePropositionBase
-):
-    """Node model for an evidence statement about a therapeutic response proposition"""
-
     @classmethod
-    def from_vrs(
+    def from_gks(
         cls,
         statement: Statement,
     ) -> Self:
+        """Create Node instance from GKS class."""
         if not isinstance(statement.proposition, VariantTherapeuticResponseProposition):
             raise TypeError
         tr_proposition = statement.proposition
-        strength_node = StrengthNode.from_vrs(statement.strength)
+        strength_node = StrengthNode.from_gks(statement.strength)
         condition_id = tr_proposition.conditionQualifier.root.id
+        evidence_lines = (
+            [
+                EvidenceLineNode.from_gks(evidence_line)
+                for evidence_line in statement.hasEvidenceLines
+            ]
+            if statement.hasEvidenceLines
+            else []
+        )
+        document_ids = (
+            [d.id for d in statement.reportedIn] if statement.reportedIn else []
+        )
 
         return cls(
             id=statement.id,
             description=tr_proposition.description or "",
             method_id=statement.specifiedBy.id,
-            document_ids=[d.id for d in statement.reportedIn],
+            document_ids=document_ids,
             has_strength=strength_node,
             predicate=tr_proposition.predicate,
             has_tumor_type_id=condition_id,
@@ -470,128 +504,91 @@ class TherapeuticReponseEvidenceNode(
             has_therapeutic_id=tr_proposition.objectTherapeutic.root.id,
             allele_origin_qualifier=tr_proposition.alleleOriginQualifier.name,
             proposition_type="VariantTherapeuticResponseProposition",
+            evidence_lines=evidence_lines,
         )
 
 
-class DiagnosticPropositionBase(BaseModel):
-    """Base properties for a diagnostic proposition.
-
-    Use as a mixin for a flattened statement/proposition node.
-    """
+class DiagnosticStatementNode(StatementEvidenceBase):
+    """Node model for an evidence statement about a diagnostic proposition"""
 
     predicate: DiagnosticPredicate
     has_tumor_type_id: str
     has_gene_context_id: str
     has_subject_variant_id: str
 
-
-class DiagnosticEvidenceNode(StatementEvidenceBase, DiagnosticPropositionBase):
-    """Node model for an evidence statement about a diagnostic proposition"""
-
     @classmethod
-    def from_vrs(cls, statement: Statement) -> Self:
-        if not isinstance(statement.proposition, VariantDiagnosticProposition):
-            raise TypeError
+    def from_gks(cls, statement: Statement) -> Self:
+        """Create Node instance from GKS class."""
         diagnostic_proposition = statement.proposition
-        strength_node = StrengthNode.from_vrs(statement.strength)
-        condition_id = diagnostic_proposition.objectCondition.root.id
+        if not isinstance(diagnostic_proposition, VariantDiagnosticProposition):
+            raise TypeError
+        strength_node = StrengthNode.from_gks(statement.strength)
+        evidence_lines = (
+            [
+                EvidenceLineNode.from_gks(evidence_line)
+                for evidence_line in statement.hasEvidenceLines
+            ]
+            if statement.hasEvidenceLines
+            else []
+        )
+        document_ids = (
+            [d.id for d in statement.reportedIn] if statement.reportedIn else []
+        )
 
         return cls(
             id=statement.id,
             description=diagnostic_proposition.description or "",
             method_id=statement.specifiedBy.id,
-            document_ids=[d.id for d in statement.reportedIn],
+            document_ids=document_ids,
             has_strength=strength_node,
             predicate=diagnostic_proposition.predicate,
-            has_tumor_type_id=condition_id,
+            has_tumor_type_id=diagnostic_proposition.objectCondition.root.id,
             has_gene_context_id=diagnostic_proposition.geneContextQualifier.id,
             has_subject_variant_id=diagnostic_proposition.subjectVariant.id,
             allele_origin_qualifier=diagnostic_proposition.alleleOriginQualifier.name,
             proposition_type="VariantDiagnosticProposition",
+            evidence_lines=evidence_lines,
         )
 
 
-class PrognosticPropositionBase(BaseModel):
-    """Base properties for a prognostic proposition.
-
-    Use as a mixin for a flattened statement/proposition node.
-    """
+class PrognosticStatementNode(StatementEvidenceBase):
+    """Node model for an evidence statement about a prognostic proposition"""
 
     predicate: PrognosticPredicate
     has_tumor_type_id: str
     has_gene_context_id: str
     has_subject_variant_id: str
 
-
-class PrognosticEvidenceNode(StatementEvidenceBase, PrognosticPropositionBase):
-    """Node model for an evidence statement about a prognostic proposition"""
-
     @classmethod
-    def from_vrs(cls, statement: Statement) -> Self:
-        if not isinstance(statement.proposition, VariantPrognosticProposition):
-            raise TypeError
+    def from_gks(cls, statement: Statement) -> Self:
+        """Create Node instance from GKS class."""
         prognostic_proposition = statement.proposition
-        strength_node = StrengthNode.from_vrs(statement.strength)
-        condition_id = prognostic_proposition.objectCondition.root.id
+        if not isinstance(prognostic_proposition, VariantPrognosticProposition):
+            raise TypeError
+        strength_node = StrengthNode.from_gks(statement.strength)
+        evidence_lines = (
+            [
+                EvidenceLineNode.from_gks(evidence_line)
+                for evidence_line in statement.hasEvidenceLines
+            ]
+            if statement.hasEvidenceLines
+            else []
+        )
+        document_ids = (
+            [d.id for d in statement.reportedIn] if statement.reportedIn else []
+        )
 
         return cls(
             id=statement.id,
             description=prognostic_proposition.description or "",
             method_id=statement.specifiedBy.id,
-            document_ids=[d.id for d in statement.reportedIn],
+            document_ids=document_ids,
             has_strength=strength_node,
             predicate=prognostic_proposition.predicate,
-            has_tumor_type_id=condition_id,
+            has_tumor_type_id=prognostic_proposition.objectCondition.root.id,
             has_gene_context_id=prognostic_proposition.geneContextQualifier.id,
             has_subject_variant_id=prognostic_proposition.subjectVariant.id,
             allele_origin_qualifier=prognostic_proposition.alleleOriginQualifier.name,
             proposition_type="VariantPrognosticProposition",
-        )
-
-
-class EvidenceLineNode(BaseModel):
-    """Node model for an Evidence Line object."""
-
-    id: str
-    direction: Direction
-    evidence_item_ids: list[str] = Field(min_length=1)
-
-    @classmethod
-    def from_vrs(cls, evidence_line: EvidenceLine) -> Self:
-        return cls(
-            id=evidence_line.id,
-            direction=evidence_line.directionOfEvidenceProvided,
-            evidence_item_ids=[
-                statement.id for statement in evidence_line.hasEvidenceItems
-            ],
-        )
-
-
-class TherapeuticResponseAssertionNode(TherapeuticReponseEvidenceNode):
-    """Node model for a statement about a therapeutic response proposition that is built upon an evidence line of additional statements"""
-
-    evidence_lines: list[EvidenceLineNode] = Field(min_length=1)
-
-    @classmethod
-    def from_vrs(cls, statement: Statement) -> Self:
-        evidence_lines = [
-            EvidenceLineNode.from_vrs(evidence_line)
-            for evidence_line in statement.hasEvidenceLines
-        ]
-        tr_proposition = statement.proposition
-        strength_node = StrengthNode.from_vrs(statement.strength)
-        return cls(
-            id=tr_proposition.id,
-            description=tr_proposition.description,
-            method_id=statement.specifiedBy.id,
-            document_ids=[d.id for d in statement.reportedIn],
-            has_strength=strength_node,
-            predicate=tr_proposition.predicate,
-            has_tumor_type_id=tr_proposition.conditionQualifier.id,
-            has_gene_context_id=tr_proposition.geneContextQualifier.id,
-            has_subject_variant_id=tr_proposition.subjectVariant.id,
-            has_therapeutic_id=tr_proposition.objectTherapeutic.id,
-            allele_origin_qualifier=tr_proposition.alleleOriginQualifier.name,
             evidence_lines=evidence_lines,
-            proposition_type="VariantTherapeuticResponseProposition",
         )
