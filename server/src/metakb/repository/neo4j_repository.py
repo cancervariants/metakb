@@ -467,16 +467,27 @@ class Neo4jRepository(AbstractRepository):
             method_node = MethodNode(**record["method"])
             document_nodes = [DocumentNode(**d) for d in record["documents"]]
             strength_node = StrengthNode(**record["str"])
+
             # TODO holy god this will be interesting
+            #
             # I think we need to collect statement IDs associated with nodes
             # and add them to some kind of query tracker thing
             # and then do a `get_statements()` fetch to get all of them separately by ID
             # and then add them back in here
-            evidence_line_nodes = None  # TODO just None for now
-            classification_node = ClassificationNode(**record["classification"])
+            evidence_line_nodes = []  # TODO just None for now
+            classification_node = (
+                ClassificationNode(**record["classification"])
+                if record["classification"]
+                else None
+            )
 
             match record["s"]["proposition_type"]:
                 case "VariantTherapeuticResponseStudyStatement":
+                    therapeutic_node = (
+                        TherapyGroupNode(**record["th"])
+                        if "TherapyGroup" in record["th"].labels
+                        else DrugNode(**record["th"])
+                    )
                     statement = TherapeuticReponseStatementNode(
                         has_method=method_node,
                         has_documents=document_nodes,
