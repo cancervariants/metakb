@@ -1,5 +1,6 @@
 MATCH (s:Statement)
 MATCH (s)-[:HAS_STRENGTH]->(str:Strength)
+OPTIONAL MATCH (s)-[:HAS_CLASSIFICATION]->(classification:Classification)
 MATCH (s)-[:HAS_SUBJECT_VARIANT]->(cv:CategoricalVariant)
 MATCH (s)-[:HAS_TUMOR_TYPE]->(c:Condition)
 MATCH (s)-[:HAS_GENE_CONTEXT]->(g:Gene)
@@ -51,10 +52,10 @@ WITH
     ELSE []
   END AS therapies
 
-// --- CategoricalVariant details ---
+// get catvar components
 MATCH
   (cv)-[:HAS_CONSTRAINT]->
-  (:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->
+  (constraint:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->
   (defining_allele:Allele)
 MATCH (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
 MATCH (defining_allele)-[:HAS_STATE]->(defining_allele_se:SequenceExpression)
@@ -80,9 +81,10 @@ WITH
           }
     END) AS members_raw
 
-// --- All documents per statement (no row blow-up) ---
+// get statement documents
 CALL (s) {
-  MATCH (s)-[:IS_SPECIFIED_BY]->(:Method)-[:IS_REPORTED_IN]->(doc:Document)
+  MATCH
+    (s)-[:IS_SPECIFIED_BY]->(method:Method)-[:IS_REPORTED_IN]->(doc:Document)
   RETURN collect(DISTINCT doc) AS documents
 }
 
@@ -90,14 +92,16 @@ RETURN DISTINCT
   s,
   str,
   cv,
+  constraint,
+  defining_allele,
+  defining_allele_sl,
+  defining_allele_se,
   c,
   g,
   th,
   tg_hit AS tg,
   therapies,
-  defining_allele,
-  defining_allele_sl,
-  defining_allele_se,
   [m IN members_raw WHERE m IS NOT NULL] AS members,
+  method,
   documents
 ORDER BY s.id;

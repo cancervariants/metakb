@@ -1,4 +1,16 @@
-"""Define data structures for loading objects into DB."""
+"""Define data structures for loading objects into DB.
+
+A few basic motifs are important here --
+
+* Node classes should define a `from_gks` classmethod, which accepts the corresponding
+  GKS class, and creates an instance of Self, as well as a `to_gks` instance method,
+  which returns the same GKS class
+* For now, node property names which begin with `HAS_` should be used for relationships
+  to other node classes. The property name should match the name used on the graph itself.
+  This pattern may not hold up to scrutiny, but I think it's helpful to try to stick to
+  for now.
+
+"""
 
 from __future__ import annotations
 
@@ -128,9 +140,9 @@ class AlleleNode(BaseModel):
 
     id: str
     name: str
-    expressions: str  # just a jsonblob for now. we should update the harvest/transform to only grab relevant hgvs expr
-    location: SequenceLocationNode
-    state: LiteralSequenceExpressionNode | ReferenceLengthExpressionNode
+    expressions: str
+    has_location: SequenceLocationNode
+    has_state: LiteralSequenceExpressionNode | ReferenceLengthExpressionNode
 
     @classmethod
     def from_gks(cls, allele: Allele) -> Self:
@@ -147,8 +159,8 @@ class AlleleNode(BaseModel):
             id=allele.id,
             name=allele.name if allele.name else "",
             expressions=_Expressions(allele.expressions or []).model_dump_json(),
-            location=SequenceLocationNode.from_gks(allele.location),
-            state=state,
+            has_location=SequenceLocationNode.from_gks(allele.location),
+            has_state=state,
         )
 
     def to_gks(self) -> Allele:
@@ -157,8 +169,8 @@ class AlleleNode(BaseModel):
             id=self.id,
             name=self.name if self.name else None,
             expressions=_Expressions(json.loads(self.expressions)).root,
-            location=self.location.to_gks(),
-            state=self.state.to_gks(),
+            location=self.has_location.to_gks(),
+            state=self.has_state.to_gks(),
         )
 
 
@@ -167,7 +179,7 @@ class DefiningAlleleConstraintNode(BaseModel):
 
     id: str
     relations: list[str]
-    allele: AlleleNode
+    has_defining_allele: AlleleNode
 
     @classmethod
     def from_gks(cls, constraint: DefiningAlleleConstraint, constraint_id: str) -> Self:
@@ -182,12 +194,12 @@ class DefiningAlleleConstraintNode(BaseModel):
         return cls(
             id=constraint_id,
             relations=[],  # TODO more to think about how to convert to strings
-            allele=AlleleNode.from_gks(constraint.allele),
+            has_defining_allele=AlleleNode.from_gks(constraint.allele),
         )
 
     def to_gks(self) -> DefiningAlleleConstraint:
         return DefiningAlleleConstraint(
-            relations=self.relations, allele=self.allele.to_gks()
+            relations=self.relations, allele=self.has_defining_allele.to_gks()
         )
 
 
@@ -200,8 +212,8 @@ class CategoricalVariantNode(BaseModel):
     aliases: list[str] = []
     extensions: str
     mappings: str
-    constraint: DefiningAlleleConstraintNode  # only currently-supported node
-    members: list[AlleleNode]
+    has_constraint: DefiningAlleleConstraintNode
+    has_members: list[AlleleNode]
 
     @classmethod
     def from_gks(cls, catvar: CategoricalVariant) -> Self:
@@ -234,8 +246,8 @@ class CategoricalVariantNode(BaseModel):
             aliases=catvar.aliases or [],
             extensions=_Extensions(catvar.extensions or []).model_dump_json(),
             mappings=_Mappings(catvar.mappings or []).model_dump_json(),
-            constraint=constraint_node,
-            members=members,
+            has_constraint=constraint_node,
+            has_members=members,
         )
 
     def to_gks(self) -> CategoricalVariant:
@@ -247,8 +259,8 @@ class CategoricalVariantNode(BaseModel):
             description=self.description if self.description else "",
             extensions=_Extensions(json.loads(self.extensions)).root,
             mappings=_Mappings(json.loads(self.mappings)).root,
-            constraints=[self.constraint.to_gks()],
-            members=[m.to_gks() for m in self.members],
+            constraints=[self.has_constraint.to_gks()],
+            members=[m.to_gks() for m in self.has_members],
         )
 
 
@@ -301,7 +313,10 @@ class GeneNode(BaseModel):
 
 
 class DiseaseNode(BaseModel):
-    """Node model for Disease."""
+    """Node model for an individual Disease.
+
+    More complex models will need to be built to handle conditionsets/etc.
+    """
 
     id: str
     normalized_id: str
@@ -390,7 +405,7 @@ class TherapyGroupNode(BaseModel):
 
     id: str
     membership_operator: MembershipOperator
-    therapies: list[DrugNode]
+    has_therapies: list[DrugNode]
     extensions: str
 
     @classmethod
@@ -400,7 +415,7 @@ class TherapyGroupNode(BaseModel):
             id=therapy_group.id,
             extensions=_Extensions(therapy_group.extensions or []).model_dump_json(),
             membership_operator=MembershipOperator(therapy_group.membershipOperator),
-            therapies=[
+            has_therapies=[
                 DrugNode.from_gks(therapy) for therapy in therapy_group.therapies
             ],
         )
@@ -410,7 +425,7 @@ class TherapyGroupNode(BaseModel):
         return TherapyGroup(
             id=self.id,
             membershipOperator=self.membership_operator,
-            therapies=[d.to_gks() for d in self.therapies],
+            therapies=[d.to_gks() for d in self.has_therapies],
             extensions=_Extensions(json.loads(self.extensions)).root,
         )
 
@@ -432,6 +447,8 @@ class DocumentNode(BaseModel):
 
         **We need to work out a policy for handling ID-less documents -- ie the documents
         used to back methods used by sources.
+
+        :raise ValueError: if unable to employ existing ID construction scheme to fill in ID
         """
         if not document.id:
             if pmid := document.pmid:
@@ -485,20 +502,27 @@ class MethodNode(BaseModel):
 
     id: str
     name: str
-    reported_in: DocumentNode
+    method_type: str
+    has_document: DocumentNode
 
     @classmethod
     def from_gks(cls, method: Method) -> Self:
         """Create Node instance from GKS class."""
         document_node = DocumentNode.from_gks(method.reportedIn)
-        return cls(id=method.id, name=method.name, reported_in=document_node)
+        return cls(
+            id=method.id,
+            name=method.name,
+            method_type=method.methodType if method.methodType else "",
+            has_document=document_node,
+        )
 
     def to_gks(self) -> Method:
         """Create VA-Spec Method instance."""
         return Method(
-            id=method.id,
-            name=method.name if method.name else None,
-            reportedIn=self.reported_in.to_gks(),
+            id=self.id,
+            name=self.name if self.name else None,
+            methodType=self.method_type if self.method_type else None,
+            reportedIn=self.has_document.to_gks(),
         )
 
 
@@ -532,12 +556,13 @@ class StrengthNode(BaseModel):
 
     def to_gks(self) -> MappableConcept:
         """Create VA-Spec Strength instance"""
+        coding = (
+            Coding(**json.loads(self.primary_coding)) if self.primary_coding else None
+        )
         return MappableConcept(
             name=self.name if self.name else None,
             mappings=_Mappings(json.loads(self.mappings)).root,
-            primaryCoding=Coding(**json.loads(self.primary_coding))
-            if self.primary_coding
-            else None,
+            primaryCoding=coding,
         )
 
 
@@ -546,7 +571,7 @@ class EvidenceLineNode(BaseModel):
 
     id: str
     direction: Direction
-    evidence_items: list[
+    has_evidence_items: list[
         TherapeuticReponseStatementNode
         | DiagnosticStatementNode
         | PrognosticStatementNode
@@ -573,7 +598,7 @@ class EvidenceLineNode(BaseModel):
         return cls(
             id=evidence_line_id,
             direction=evidence_line.directionOfEvidenceProvided,
-            evidence_items=evidence_items,
+            has_evidence_items=evidence_items,
         )
 
     def to_gks(self) -> EvidenceLine:
@@ -583,20 +608,55 @@ class EvidenceLineNode(BaseModel):
         """
         return EvidenceLine(
             directionOfEvidenceProvided=self.direction,
-            hasEvidenceItems=[],  # TODO: figure out how best to populate this
+            hasEvidenceItems=[st.to_gks() for st in self.has_evidence_items],
         )
 
 
-class StatementEvidenceBase(BaseModel):
-    """Base properties for a Statement evidence node.
+class ClassificationNode(BaseModel):
+    """Node model for a classification."""
+
+    id: str
+    primary_coding: str
+
+    @classmethod
+    def from_gks(cls, classification: MappableConcept) -> Self:
+        """Construct node representation of classification coding object."""
+        match classification.primaryCoding.system:
+            case "https://civic.readthedocs.io/en/latest/model/evidence/level.html":
+                node_id = f"civic.strength:{classification.primaryCoding.code.root}"
+            case "AMP/ASCO/CAP (AAC) Guidelines, 2017":
+                node_id = (
+                    f"amp-asco-cap.strength:{classification.primaryCoding.code.root}"
+                )
+            case "https://moalmanac.org/about":
+                node_id = f"moalmanac.strength:{classification.primaryCoding.code.root}"
+            case _:
+                msg = f"Unrecognized strength concept: {classification}"
+                raise ValueError(msg)
+        return cls(
+            id=node_id,
+            primary_coding=classification.primaryCoding.model_dump_json(),
+        )
+
+    def to_gks(self) -> MappableConcept:
+        """Return VA-Spec MappableConcept containing variant classification."""
+        return MappableConcept(primaryCoding=Coding(**json.loads(self.primary_coding)))
+
+
+class StatementNodeBase(BaseModel):
+    """Base properties for a Statement node.
 
     Use as a mixin for a flattened statement/proposition node.
+
+    Should be able to support both meta-level assertions about other statements, or
+    individual statements themselves (some of this may still be TBD)
     """
 
     id: str
     description: str
-    method: MethodNode
-    documents: list[DocumentNode]
+    direction: Direction
+    has_method: MethodNode
+    has_documents: list[DocumentNode]
     has_strength: StrengthNode
     allele_origin_qualifier: str
     proposition_type: (
@@ -604,16 +664,17 @@ class StatementEvidenceBase(BaseModel):
         | Literal["VariantDiagnosticProposition"]
         | Literal["VariantPrognosticProposition"]
     )
-    evidence_lines: list[EvidenceLineNode]
+    has_evidence_lines: list[EvidenceLineNode]
+    has_classification: ClassificationNode | None
 
 
-class TherapeuticReponseStatementNode(StatementEvidenceBase):
+class TherapeuticReponseStatementNode(StatementNodeBase):
     """Node model for an evidence statement about a therapeutic response proposition"""
 
     predicate: TherapeuticResponsePredicate
-    has_tumor_type: DiseaseNode
-    has_gene_context: GeneNode
-    has_subject_variant: CategoricalVariantNode
+    has_condition: DiseaseNode
+    has_gene: GeneNode
+    has_variant: CategoricalVariantNode
     has_therapeutic: TherapyGroupNode | DrugNode
 
     @classmethod
@@ -651,42 +712,68 @@ class TherapeuticReponseStatementNode(StatementEvidenceBase):
                 )
             case _:
                 raise ValueError
+        classification_node = (
+            ClassificationNode.from_gks(statement.classification)
+            if statement.classification
+            else None
+        )
 
         return cls(
             id=statement.id,
             description=tr_proposition.description or "",
-            method=method_node,
-            documents=document_nodes,
+            direction=statement.direction,
+            has_method=method_node,
+            has_documents=document_nodes,
             has_strength=strength_node,
             predicate=tr_proposition.predicate,
-            has_tumor_type=DiseaseNode.from_gks(tr_proposition.conditionQualifier.root),
-            has_gene_context=GeneNode.from_gks(tr_proposition.geneContextQualifier),
-            has_subject_variant=CategoricalVariantNode.from_gks(
-                tr_proposition.subjectVariant
-            ),
+            has_condition=DiseaseNode.from_gks(tr_proposition.conditionQualifier.root),
+            has_gene=GeneNode.from_gks(tr_proposition.geneContextQualifier),
+            has_variant=CategoricalVariantNode.from_gks(tr_proposition.subjectVariant),
             has_therapeutic=therapeutic_node,
             allele_origin_qualifier=tr_proposition.alleleOriginQualifier.name,
             proposition_type="VariantTherapeuticResponseProposition",
-            evidence_lines=evidence_line_nodes,
+            has_evidence_lines=evidence_line_nodes,
+            has_classification=classification_node,
         )
 
     def to_gks(self) -> Statement:
         """Create a Statement containing a TR proposition"""
+        proposition = VariantTherapeuticResponseProposition(
+            predicate=self.predicate,
+            conditionQualifier=self.has_condition.to_gks(),
+            geneContextQualifier=self.has_gene.to_gks(),
+            subjectVariant=self.has_variant.to_gks(),
+            objectTherapeutic=self.has_therapeutic.to_gks(),
+            alleleOriginQualifier=self.allele_origin_qualifier,
+        )
+        evidence_lines = (
+            [el.to_gks() for el in self.has_evidence_lines]
+            if self.has_evidence_lines
+            else None
+        )
+        classification = (
+            self.has_classification.to_gks() if self.has_classification else None
+        )
         return Statement(
             id=self.id,
             description=self.description if self.description else None,
-            reportedIn=self.method_id,
-            proposition=VariantDiagnosticProposition(),
-        )  # TODO figure out more
+            specifiedBy=self.has_method.to_gks(),
+            direction=self.direction,
+            strength=self.has_strength.to_gks(),
+            reportedIn=[d.to_gks() for d in self.has_documents],
+            proposition=proposition,
+            hasEvidenceLines=evidence_lines,
+            classification=classification,
+        )
 
 
-class DiagnosticStatementNode(StatementEvidenceBase):
+class DiagnosticStatementNode(StatementNodeBase):
     """Node model for an evidence statement about a diagnostic proposition"""
 
     predicate: DiagnosticPredicate
-    has_tumor_type: DiseaseNode
-    has_gene_context: GeneNode
-    has_subject_variant: CategoricalVariantNode
+    has_condition: DiseaseNode
+    has_gene: GeneNode
+    has_variant: CategoricalVariantNode
 
     @classmethod
     def from_gks(cls, statement: Statement) -> Self:
@@ -710,35 +797,70 @@ class DiagnosticStatementNode(StatementEvidenceBase):
             else []
         )
 
+        classification_node = (
+            ClassificationNode.from_gks(statement.classification)
+            if statement.classification
+            else None
+        )
+
         return cls(
             id=statement.id,
             description=diagnostic_proposition.description or "",
-            method=method,
-            documents=document_nodes,
+            direction=statement.direction,
+            has_method=method,
+            has_documents=document_nodes,
             has_strength=strength_node,
             predicate=diagnostic_proposition.predicate,
-            has_tumor_type=DiseaseNode.from_gks(
+            has_condition=DiseaseNode.from_gks(
                 diagnostic_proposition.objectCondition.root
             ),
-            has_gene_context=GeneNode.from_gks(
-                diagnostic_proposition.geneContextQualifier
-            ),
-            has_subject_variant=CategoricalVariantNode.from_gks(
+            has_gene=GeneNode.from_gks(diagnostic_proposition.geneContextQualifier),
+            has_variant=CategoricalVariantNode.from_gks(
                 diagnostic_proposition.subjectVariant
             ),
             allele_origin_qualifier=diagnostic_proposition.alleleOriginQualifier.name,
             proposition_type="VariantDiagnosticProposition",
-            evidence_lines=evidence_lines,
+            has_evidence_lines=evidence_lines,
+            has_classification=classification_node,
+        )
+
+    def to_gks(self) -> Statement:
+        """Create a Statement containing a diagnostic proposition"""
+        proposition = VariantDiagnosticProposition(
+            predicate=self.predicate,
+            objectCondition=self.has_condition.to_gks(),
+            geneContextQualifier=self.has_gene.to_gks(),
+            subjectVariant=self.has_variant.to_gks(),
+            alleleOriginQualifier=self.allele_origin_qualifier,
+        )
+        evidence_lines = (
+            [el.to_gks() for el in self.has_evidence_lines]
+            if self.has_evidence_lines
+            else None
+        )
+        classification = (
+            self.has_classification.to_gks() if self.has_classification else None
+        )
+        return Statement(
+            id=self.id,
+            description=self.description if self.description else None,
+            specifiedBy=self.has_method.to_gks(),
+            direction=self.direction,
+            strength=self.has_strength.to_gks(),
+            reportedIn=[d.to_gks() for d in self.has_documents],
+            proposition=proposition,
+            hasEvidenceLines=evidence_lines,
+            classification=classification,
         )
 
 
-class PrognosticStatementNode(StatementEvidenceBase):
+class PrognosticStatementNode(StatementNodeBase):
     """Node model for an evidence statement about a prognostic proposition"""
 
     predicate: PrognosticPredicate
-    has_tumor_type: DiseaseNode
-    has_gene_context: GeneNode
-    has_subject_variant: CategoricalVariantNode
+    has_condition: DiseaseNode
+    has_gene: GeneNode
+    has_variant: CategoricalVariantNode
 
     @classmethod
     def from_gks(cls, statement: Statement) -> Self:
@@ -746,9 +868,9 @@ class PrognosticStatementNode(StatementEvidenceBase):
         prognostic_proposition = statement.proposition
         if not isinstance(prognostic_proposition, VariantPrognosticProposition):
             raise TypeError
-        method = MethodNode.from_gks(statement.specifiedBy)
+        method_node = MethodNode.from_gks(statement.specifiedBy)
         strength_node = StrengthNode.from_gks(statement.strength)
-        evidence_lines = (
+        evidence_line_nodes = (
             [
                 EvidenceLineNode.from_gks(evidence_line)
                 for evidence_line in statement.hasEvidenceLines
@@ -761,24 +883,58 @@ class PrognosticStatementNode(StatementEvidenceBase):
             if statement.reportedIn
             else []
         )
+        classification_node = (
+            ClassificationNode.from_gks(statement.classification)
+            if statement.classification
+            else None
+        )
 
         return cls(
             id=statement.id,
             description=prognostic_proposition.description or "",
-            method=method,
-            documents=document_nodes,
+            direction=statement.direction,
+            has_method=method_node,
+            has_documents=document_nodes,
             has_strength=strength_node,
             predicate=prognostic_proposition.predicate,
-            has_tumor_type=DiseaseNode.from_gks(
+            has_condition=DiseaseNode.from_gks(
                 prognostic_proposition.objectCondition.root
             ),
-            has_gene_context=GeneNode.from_gks(
-                prognostic_proposition.geneContextQualifier
-            ),
-            has_subject_variant=CategoricalVariantNode.from_gks(
+            has_gene=GeneNode.from_gks(prognostic_proposition.geneContextQualifier),
+            has_variant=CategoricalVariantNode.from_gks(
                 prognostic_proposition.subjectVariant
             ),
             allele_origin_qualifier=prognostic_proposition.alleleOriginQualifier.name,
             proposition_type="VariantPrognosticProposition",
-            evidence_lines=evidence_lines,
+            has_evidence_lines=evidence_line_nodes,
+            has_classification=classification_node,
+        )
+
+    def to_gks(self) -> Statement:
+        """Create a Statement containing a prognostic proposition"""
+        proposition = VariantPrognosticProposition(
+            predicate=self.predicate,
+            objectCondition=self.has_condition.to_gks(),
+            geneContextQualifier=self.has_gene.to_gks(),
+            subjectVariant=self.has_variant.to_gks(),
+            alleleOriginQualifier=self.allele_origin_qualifier,
+        )
+        evidence_lines = (
+            [el.to_gks() for el in self.has_evidence_lines]
+            if self.has_evidence_lines
+            else None
+        )
+        classification = (
+            self.has_classification.to_gks() if self.has_classification else None
+        )
+        return Statement(
+            id=self.id,
+            description=self.description if self.description else None,
+            specifiedBy=self.has_method.to_gks(),
+            direction=self.direction,
+            strength=self.has_strength.to_gks(),
+            reportedIn=[d.to_gks() for d in self.has_documents],
+            proposition=proposition,
+            hasEvidenceLines=evidence_lines,
+            classification=classification,
         )

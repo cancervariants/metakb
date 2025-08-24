@@ -32,14 +32,21 @@ from neo4j import Driver, GraphDatabase, ManagedTransaction
 from metakb.config import get_configs
 from metakb.repository.base import AbstractRepository
 from metakb.repository.neo4j_models import (
+    AlleleNode,
     CategoricalVariantNode,
+    ClassificationNode,
+    DefiningAlleleConstraintNode,
     DiagnosticStatementNode,
     DiseaseNode,
     DocumentNode,
     DrugNode,
     GeneNode,
+    LiteralSequenceExpressionNode,
     MethodNode,
     PrognosticStatementNode,
+    ReferenceLengthExpressionNode,
+    SequenceLocationNode,
+    StrengthNode,
     TherapeuticReponseStatementNode,
     TherapyGroupNode,
 )
@@ -357,8 +364,6 @@ class Neo4jRepository(AbstractRepository):
             case _:
                 msg = f"Unsupported proposition type: {statement.proposition.type}"
                 raise NotImplementedError(msg)
-        # if statement.id == "civic.aid:105":  # TODO
-        #     breakpoint()
         tx.run(
             self.queries.load_statement,
             statement=statement_node.model_dump(mode="json"),
@@ -396,10 +401,15 @@ class Neo4jRepository(AbstractRepository):
                         session.execute_write(
                             self.add_condition, proposition.objectCondition
                         )
+                    case _:
+                        raise NotImplementedError(proposition)
                 if statement.reportedIn:
                     for document in statement.reportedIn:
                         session.execute_write(self.add_document, document)
                 if statement.specifiedBy.id not in loaded_methods:
+                    session.execute_write(
+                        self.add_document, statement.specifiedBy.reportedIn
+                    )
                     session.execute_write(self.add_method, statement.specifiedBy)
                     loaded_methods.add(statement.specifiedBy.id)
                 session.execute_write(self.add_statement, statement)
@@ -430,14 +440,63 @@ class Neo4jRepository(AbstractRepository):
 
         statements = []
         for record in result.records:
-            gene = GeneNode(**record["g"]).to_gks()
-            condition = DiseaseNode(**record["d"]).to_gks()
+            if "LiteralSequenceExpression" in record["defining_allele_se"].labels:
+                defining_allele_state_node = LiteralSequenceExpressionNode(
+                    **record["defining_allele_se"]
+                )
+            elif "ReferenceLengthExpression" in record["defining_allele_se"].labels:
+                defining_allele_state_node = ReferenceLengthExpressionNode(
+                    **record["defining_allele_se"]
+                )
+            else:
+                msg = f"Unrecognized sequence expression node structure: {record['defining_allele_se']}"
+                raise ValueError(msg)
+            defining_allele_node = AlleleNode(
+                has_location=SequenceLocationNode(**record["defining_allele_sl"]),
+                has_state=defining_allele_state_node,
+                **record["defining_allele"],
+            )
+            constraint_node = DefiningAlleleConstraintNode(
+                has_defining_allele=defining_allele_node, **record["constraint"]
+            )
+            variant_node = CategoricalVariantNode(
+                has_constraint=constraint_node, **record["cv"]
+            )
+            gene_node = GeneNode(**record["g"])
+            condition_node = DiseaseNode(**record["c"])
+            method_node = MethodNode(**record["method"])
+            document_nodes = [DocumentNode(**d) for d in record["documents"]]
+            strength_node = StrengthNode(**record["str"])
+            # TODO holy god this will be interesting
+            # I think we need to collect statement IDs associated with nodes
+            # and add them to some kind of query tracker thing
+            # and then do a `get_statements()` fetch to get all of them separately by ID
+            # and then add them back in here
+            evidence_line_nodes = None  # TODO just None for now
+            classification_node = ClassificationNode(**record["classification"])
+
             match record["s"]["proposition_type"]:
+                case "VariantTherapeuticResponseStudyStatement":
+                    statement = TherapeuticReponseStatementNode(
+                        has_method=method_node,
+                        has_documents=document_nodes,
+                        has_strength=strength_node,
+                        has_evidence_lines=evidence_line_nodes,
+                        has_classification=classification_node,
+                        has_condition=condition_node,
+                        has_gene=gene_node,
+                        has_variant=variant_node,
+                        has_therapeutic=therapeutic_node,
+                        **record["s"],
+                    )
                 case "VariantDiagnosticProposition":
-                    raise NotImplementedError  # TODO
+                    raise NotImplementedError
+                case "VariantPrognosticStudyStatement":
+                    raise NotImplementedError
                 case _:
-                    pass  # TODO double check
-        return []
+                    raise NotImplementedError
+            statements.append(statement.to_gks())
+        return statements
 
     def get_statement(
         self, statement_id: str
@@ -448,6 +507,8 @@ class Neo4jRepository(AbstractRepository):
         | VariantTherapeuticResponseStudyStatement
     ):
         """Given a single statement ID, get it back.
+
+        TODO: write this as "get statements" -- give list of statement IDs
 
         :param statement_id: the ID of a statement
         :raise KeyError: if unable to retrieve it

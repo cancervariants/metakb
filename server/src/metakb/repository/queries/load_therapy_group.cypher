@@ -7,7 +7,7 @@ MERGE (thg:Therapeutic:TherapyGroup {id: $therapy_group.id})
       }
 
 WITH thg, $therapy_group AS tg
-UNWIND tg.therapies AS m // TODO double check that this is right
+UNWIND tg.has_therapies AS m // TODO double check that this is right
 MERGE (member_drug:Therapeutic:Drug {id: m.id})
   ON CREATE SET
     member_drug +=
