@@ -1,9 +1,15 @@
 MATCH (s:Statement)
 MATCH (s)-[:HAS_STRENGTH]->(str:Strength)
+MATCH (s)-[:IS_SPECIFIED_BY]->(method:Method)
+MATCH (method)-[:IS_REPORTED_IN]->(method_doc:Document)
 OPTIONAL MATCH (s)-[:HAS_CLASSIFICATION]->(classification:Classification)
+
+// establish associations with basic proposition entities
 MATCH (s)-[:HAS_SUBJECT_VARIANT]->(cv:CategoricalVariant)
 MATCH (s)-[:HAS_TUMOR_TYPE]->(c:Condition)
 MATCH (s)-[:HAS_GENE_CONTEXT]->(g:Gene)
+
+// establish association with catvar/variations
 WHERE
   ($variation_id IS NULL OR
     EXISTS {
@@ -28,7 +34,7 @@ WHERE
         (:Therapy {normalized_id: $therapy_id})
     })
 
-// --- Therapy (direct or via group) ---
+// Establish association with therapeutic elements
 OPTIONAL MATCH (s)-[:HAS_THERAPEUTIC]->(th:Therapy)
 WHERE $therapy_id IS NOT NULL AND th.normalized_id = $therapy_id
 OPTIONAL MATCH (s)-[:HAS_THERAPEUTIC]->(tg:TherapyGroup)
@@ -52,7 +58,7 @@ WITH
     ELSE []
   END AS therapies
 
-// get catvar components
+// Get catvar components
 MATCH
   (cv)-[:HAS_CONSTRAINT]->
   (constraint:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->
@@ -81,16 +87,26 @@ WITH
           }
     END) AS members_raw
 
-// get statement documents
+// get documents
 CALL (s) {
-  MATCH
-    (s)-[:IS_SPECIFIED_BY]->(method:Method)-[:IS_REPORTED_IN]->(doc:Document)
+  MATCH (s)-[:IS_REPORTED_IN]->(doc:Document)
   RETURN collect(DISTINCT doc) AS documents
+}
+
+// get evidence lines
+// TODO -- just get IDs
+// needs to be optional
+CALL (s) {
+  OPTIONAL MATCH (s)-[:HAS_EVIDENCE_LINE]->(line:EvidenceLine)
+  RETURN collect(DISTINCT line) AS evidence_lines
 }
 
 RETURN DISTINCT
   s,
   str,
+  method,
+  method_doc,
+  classification,
   cv,
   constraint,
   defining_allele,
@@ -102,6 +118,6 @@ RETURN DISTINCT
   tg_hit AS tg,
   therapies,
   [m IN members_raw WHERE m IS NOT NULL] AS members,
-  method,
-  documents
+  documents,
+  evidence_lines
 ORDER BY s.id;
