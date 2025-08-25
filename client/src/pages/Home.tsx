@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Header from '../components/Header'
-import { Box, Button, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material'
+import { Box, Button, MenuItem, Select, TextField, Typography } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 
 const HomePage = () => {
