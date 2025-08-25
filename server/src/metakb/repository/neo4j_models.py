@@ -200,6 +200,7 @@ class DefiningAlleleConstraintNode(BaseModel):
         )
 
     def to_gks(self) -> DefiningAlleleConstraint:
+        """Create cat-vrs-python defining allele constraint class instance"""
         relations = _MappableConcepts(json.loads(self.relations)).root
         return DefiningAlleleConstraint(
             relations=relations if relations else None,
@@ -670,15 +671,15 @@ class StatementNodeBase(BaseModel):
     )
     has_evidence_lines: list[EvidenceLineNode]
     has_classification: ClassificationNode | None
+    has_condition: DiseaseNode
+    has_gene: GeneNode
+    has_variant: CategoricalVariantNode
 
 
 class TherapeuticReponseStatementNode(StatementNodeBase):
     """Node model for an evidence statement about a therapeutic response proposition"""
 
     predicate: TherapeuticResponsePredicate
-    has_condition: DiseaseNode
-    has_gene: GeneNode
-    has_variant: CategoricalVariantNode
     has_therapeutic: TherapyGroupNode | DrugNode
 
     @classmethod
@@ -775,9 +776,6 @@ class DiagnosticStatementNode(StatementNodeBase):
     """Node model for an evidence statement about a diagnostic proposition"""
 
     predicate: DiagnosticPredicate
-    has_condition: DiseaseNode
-    has_gene: GeneNode
-    has_variant: CategoricalVariantNode
 
     @classmethod
     def from_gks(cls, statement: Statement) -> Self:
@@ -862,9 +860,6 @@ class PrognosticStatementNode(StatementNodeBase):
     """Node model for an evidence statement about a prognostic proposition"""
 
     predicate: PrognosticPredicate
-    has_condition: DiseaseNode
-    has_gene: GeneNode
-    has_variant: CategoricalVariantNode
 
     @classmethod
     def from_gks(cls, statement: Statement) -> Self:

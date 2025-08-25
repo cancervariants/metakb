@@ -73,27 +73,15 @@ MATCH
   (defining_allele:Allele)
 MATCH (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
 MATCH (defining_allele)-[:HAS_STATE]->(defining_allele_se:SequenceExpression)
-OPTIONAL MATCH (cv)-[:HAS_MEMBER]->(member_allele:Allele)
-OPTIONAL MATCH
-  (member_allele)-[:HAS_LOCATION]->(member_allele_sl:SequenceLocation)
-OPTIONAL MATCH
-  (member_allele)-[:HAS_STATE]->(member_allele_se:SequenceExpression)
-WITH
-  *,
-  collect(
-    DISTINCT
-    CASE
-      WHEN
-        member_allele IS NOT NULL AND
-        member_allele_sl IS NOT NULL AND
-        member_allele_se IS NOT NULL
-        THEN
-          {
-            allele: member_allele,
-            location: member_allele_sl,
-            state: member_allele_se
-          }
-    END) AS members_raw
+CALL (cv) {
+  WITH cv
+  OPTIONAL MATCH (cv)-[:HAS_MEMBER]->(m:Allele)
+  OPTIONAL MATCH (m)-[:HAS_LOCATION]->(sl:SequenceLocation)
+  OPTIONAL MATCH (m)-[:HAS_STATE]->(se:SequenceExpression)
+  WITH m, sl, se
+  WHERE m IS NOT NULL AND sl IS NOT NULL AND se IS NOT NULL
+  RETURN collect(DISTINCT {allele: m, location: sl, state: se}) AS members
+}
 
 // get documents
 CALL (s) {
@@ -127,11 +115,11 @@ RETURN DISTINCT
   defining_allele,
   defining_allele_sl,
   defining_allele_se,
+  members,
   c,
   g,
   therapy_group,
   drug,
-  [m IN members_raw WHERE m IS NOT NULL] AS members,
   documents,
   evidence_lines
 ORDER BY s.id;
