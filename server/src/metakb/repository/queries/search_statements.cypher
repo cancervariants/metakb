@@ -1,15 +1,9 @@
 MATCH (s:Statement)
-MATCH (s)-[:HAS_STRENGTH]->(str:Strength)
-MATCH (s)-[:IS_SPECIFIED_BY]->(method:Method)
-MATCH (method)-[:IS_REPORTED_IN]->(method_doc:Document)
-OPTIONAL MATCH (s)-[:HAS_CLASSIFICATION]->(classification:Classification)
 
-// establish associations with basic proposition entities
+// use input args to select matching statements
 MATCH (s)-[:HAS_SUBJECT_VARIANT]->(cv:CategoricalVariant)
 MATCH (s)-[:HAS_TUMOR_TYPE]->(c:Condition)
 MATCH (s)-[:HAS_GENE_CONTEXT]->(g:Gene)
-
-// establish association with catvar/variations
 WHERE
   ($variation_id IS NULL OR
     EXISTS {
@@ -25,38 +19,52 @@ WHERE
   ($gene_id IS NULL OR g.normalized_id = $gene_id) AND
   ($therapy_id IS NULL OR
     EXISTS {
-      MATCH (s)-[:HAS_THERAPEUTIC]->(:Therapy {normalized_id: $therapy_id})
+      MATCH (s)-[:HAS_THERAPEUTIC]->(:Therapeutic {normalized_id: $therapy_id})
     } OR
     EXISTS {
       MATCH
         (s)-[:HAS_THERAPEUTIC]->
         (:TherapyGroup)-[:HAS_SUBSTITUTES|HAS_COMPONENTS]->
-        (:Therapy {normalized_id: $therapy_id})
+        (:Drug {normalized_id: $therapy_id})
     })
 
-// Establish association with therapeutic elements
-OPTIONAL MATCH (s)-[:HAS_THERAPEUTIC]->(th:Therapy)
-WHERE $therapy_id IS NOT NULL AND th.normalized_id = $therapy_id
+// get basic statement info
+MATCH (s)-[:HAS_STRENGTH]->(str:Strength)
+MATCH (s)-[:IS_SPECIFIED_BY]->(method:Method)
+MATCH (method)-[:IS_REPORTED_IN]->(method_doc:Document)
+OPTIONAL MATCH (s)-[:HAS_CLASSIFICATION]->(classification:Classification)
+
+// Get therapeutic components
 OPTIONAL MATCH (s)-[:HAS_THERAPEUTIC]->(tg:TherapyGroup)
-OPTIONAL MATCH (tg)-[:HAS_SUBSTITUTES|HAS_COMPONENTS]->(tm:Therapy)
-WITH *, collect(DISTINCT tm) AS all_tm
+OPTIONAL MATCH (tg)-[:HAS_SUBSTITUTE|HAS_COMPONENT]->(tm:Drug)
 WITH
-  *,
+  s,
+  str,
+  method,
+  method_doc,
+  classification,
+  cv,
+  c,
+  g,
+  tg,
+  collect(DISTINCT tm) AS tmembers
+
+OPTIONAL MATCH (s)-[:HAS_THERAPEUTIC]->(td:Drug)
+WITH
+  s,
+  str,
+  method,
+  method_doc,
+  classification,
+  cv,
+  c,
+  g,
   CASE
-    WHEN
-      $therapy_id IS NOT NULL AND
-      tg IS NOT NULL AND
-      any(t IN all_tm WHERE t.normalized_id = $therapy_id)
-      THEN tg
-  END AS tg_hit,
+    WHEN tg IS NOT NULL THEN {therapy_group: tg, members: tmembers}
+  END AS therapy_group,
   CASE
-    WHEN
-      $therapy_id IS NOT NULL AND
-      tg IS NOT NULL AND
-      any(t IN all_tm WHERE t.normalized_id = $therapy_id)
-      THEN all_tm
-    ELSE []
-  END AS therapies
+    WHEN tg IS NULL THEN td
+  END AS drug
 
 // Get catvar components
 MATCH
@@ -93,12 +101,19 @@ CALL (s) {
   RETURN collect(DISTINCT doc) AS documents
 }
 
-// get evidence lines
-// TODO -- just get IDs
-// needs to be optional
+// get evidence line IDs
 CALL (s) {
+  WITH s
   OPTIONAL MATCH (s)-[:HAS_EVIDENCE_LINE]->(line:EvidenceLine)
-  RETURN collect(DISTINCT line) AS evidence_lines
+  OPTIONAL MATCH (line)-[:HAS_EVIDENCE_ITEM]->(ei:Statement)
+  WITH line, collect(DISTINCT ei.id) AS item_ids
+  WITH
+    collect(
+      CASE
+        WHEN line IS NULL THEN null
+        ELSE line {.*, evidence_item_ids: item_ids}
+      END) AS tmp
+  RETURN [x IN tmp WHERE x IS NOT NULL] AS evidence_lines
 }
 
 RETURN DISTINCT
@@ -114,9 +129,8 @@ RETURN DISTINCT
   defining_allele_se,
   c,
   g,
-  th,
-  tg_hit AS tg,
-  therapies,
+  therapy_group,
+  drug,
   [m IN members_raw WHERE m IS NOT NULL] AS members,
   documents,
   evidence_lines

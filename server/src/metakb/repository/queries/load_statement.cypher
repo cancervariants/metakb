@@ -75,7 +75,7 @@ CALL {
   MERGE (statement)-[:HAS_EVIDENCE_LINE]->(el)
 
   WITH statement, el, ev_line
-  UNWIND coalesce(ev_line.evidence_items, []) AS ev_item
+  UNWIND coalesce(ev_line.has_evidence_items, []) AS ev_item
   MERGE (item:Statement {id: ev_item.id})
   MERGE (el)-[:HAS_EVIDENCE_ITEM]->(item)
   RETURN count(*) AS _ev

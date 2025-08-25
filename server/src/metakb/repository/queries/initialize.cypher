@@ -20,6 +20,9 @@ REQUIRE n.id IS UNIQUE;
 CREATE CONSTRAINT categoricalvariant_id_constraint IF NOT EXISTS
 FOR (n:CategoricalVariant)
 REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT categoricalvariantconstraint_id_constraint IF NOT EXISTS
+FOR (n:Constraint)
+REQUIRE n.id IS UNIQUE;
 CREATE CONSTRAINT location_id_constraint IF NOT EXISTS
 FOR (n:Location)
 REQUIRE n.id IS UNIQUE;

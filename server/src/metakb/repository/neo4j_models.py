@@ -5,10 +5,10 @@ A few basic motifs are important here --
 * Node classes should define a `from_gks` classmethod, which accepts the corresponding
   GKS class, and creates an instance of Self, as well as a `to_gks` instance method,
   which returns the same GKS class
-* For now, node property names which begin with `HAS_` should be used for relationships
-  to other node classes. The property name should match the name used on the graph itself.
-  This pattern may not hold up to scrutiny, but I think it's helpful to try to stick to
-  for now.
+* In general, class property names for properties consisting of other nodes should
+  reflect the relationship name used on the graph. This gets tricky in the context of
+  array-like relationships, since the property name should be plural but the graph
+  relationship name is usually singular. Not sure what the best solution is there.
 
 """
 
@@ -57,15 +57,15 @@ _logger = logging.getLogger(__name__)
 _Extensions = RootModel[list[Extension]]
 _Mappings = RootModel[list[ConceptMapping]]
 _Expressions = RootModel[list[Expression]]
+_MappableConcepts = RootModel[list[MappableConcept]]
 
 
 class SequenceLocationNode(BaseModel):
     """Node model for SequenceLocation"""
 
     id: str
-    # I recognize that these are technically optional --
-    # for now I'm making them required because the alternative (working out nullability) is worse
-    # so we can figure it out later
+    # start and end are both required for now --
+    # will need to think about how to handle null case in the future
     start: int
     end: int
     refget_accession: str
@@ -79,7 +79,9 @@ class SequenceLocationNode(BaseModel):
             start=sequence_location.start,
             end=sequence_location.end,
             refget_accession=sequence_location.sequenceReference.refgetAccession,
-            sequence=str(sequence_location.sequence),
+            sequence=sequence_location.sequence.root
+            if sequence_location.sequence
+            else "",
         )
 
     def to_gks(self) -> SequenceLocation:
@@ -102,7 +104,7 @@ class LiteralSequenceExpressionNode(BaseModel):
     @classmethod
     def from_gks(cls, lse: LiteralSequenceExpression) -> Self:
         """Create Node instance from GKS class."""
-        return cls(sequence=str(lse.sequence))
+        return cls(sequence=lse.sequence.root)
 
     def to_gks(self) -> LiteralSequenceExpression:
         """Return VRS-Python LiteralSequenceExpression"""
@@ -178,7 +180,7 @@ class DefiningAlleleConstraintNode(BaseModel):
     """Node model for Cat-VRS DefiningAlleleConstraint"""
 
     id: str
-    relations: list[str]
+    relations: str
     has_defining_allele: AlleleNode
 
     @classmethod
@@ -193,13 +195,15 @@ class DefiningAlleleConstraintNode(BaseModel):
         """
         return cls(
             id=constraint_id,
-            relations=[],  # TODO more to think about how to convert to strings
+            relations=_MappableConcepts(constraint.relations or []).model_dump_json(),
             has_defining_allele=AlleleNode.from_gks(constraint.allele),
         )
 
     def to_gks(self) -> DefiningAlleleConstraint:
+        relations = _MappableConcepts(json.loads(self.relations)).root
         return DefiningAlleleConstraint(
-            relations=self.relations, allele=self.has_defining_allele.to_gks()
+            relations=relations if relations else None,
+            allele=self.has_defining_allele.to_gks(),
         )
 
 
@@ -396,7 +400,7 @@ class DrugNode(BaseModel):
             conceptType="Drug",
             name=self.name if self.name else None,
             mappings=_Mappings(json.loads(self.mappings)).root,
-            extensions=_Extensions(json.loads(self.mappings)).root,
+            extensions=_Extensions(json.loads(self.extensions)).root,
         )
 
 
@@ -405,7 +409,7 @@ class TherapyGroupNode(BaseModel):
 
     id: str
     membership_operator: MembershipOperator
-    has_therapies: list[DrugNode]
+    has_therapies: list[DrugNode] = Field(min_length=2)
     extensions: str
 
     @classmethod

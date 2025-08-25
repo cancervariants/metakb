@@ -8,10 +8,9 @@ MERGE (cv:Variation:CategoricalVariant:ProteinSequenceConsequence {id: $cv.id})
         extensions: $cv.extensions,
         mappings: $cv.mappings
       }
-MERGE
-  (cv)-[:HAS_CONSTRAINT]->
-  (constr:Constraint:DefiningAlleleConstraint {id: $cv.has_constraint.id})
-  ON CREATE SET cv += {relations: $cv.has_constraint.relations}
+MERGE (constr:Constraint:DefiningAlleleConstraint {id: $cv.has_constraint.id})
+  ON CREATE SET constr += {relations: $cv.has_constraint.relations}
+MERGE (cv)-[:HAS_CONSTRAINT]->(constr)
 MERGE
   (allele:Variation:MolecularVariation:Allele
     {id: $cv.has_constraint.has_defining_allele.id})
@@ -42,20 +41,20 @@ MERGE (allele)-[:HAS_LOCATION]->(sl)
 FOREACH (_ IN
 CASE
   WHEN
-    $cv.has_constraint.has_defining_allele.state.type =
+    $cv.has_constraint.has_defining_allele.has_state.type =
     'LiteralSequenceExpression'
     THEN [1]
   ELSE []
 END |
   MERGE
     (lse:SequenceExpression:LiteralSequenceExpression
-      {sequence: $cv.has_constraint.has_defining_allele.state.sequence})
+      {sequence: $cv.has_constraint.has_defining_allele.has_state.sequence})
   MERGE (allele)-[:HAS_STATE]->(lse)
 )
 FOREACH (_ IN
 CASE
   WHEN
-    $cv.has_constraint.has_defining_allele.state.type =
+    $cv.has_constraint.has_defining_allele.has_state.type =
     'ReferenceLengthExpression'
     THEN [1]
   ELSE []
@@ -75,7 +74,8 @@ WITH cv
 UNWIND $cv.has_members AS m
 MERGE (member_allele:Variation:MolecularVariation:Allele {id: m.id})
   ON CREATE SET
-    member_allele += {name: m.name, digest: m.digest, expression: m.expressions}
+    member_allele +=
+      {name: m.name, digest: m.digest, expressions: m.expressions}
 MERGE (cv)-[:HAS_MEMBER]->(member_allele)
 MERGE (member_sl:Location:SequenceLocation {id: m.has_location.id})
   ON CREATE SET

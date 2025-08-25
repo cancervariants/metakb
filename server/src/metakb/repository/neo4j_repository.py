@@ -28,6 +28,7 @@ from ga4gh.va_spec.base import (
     VariantTherapeuticResponseProposition,
 )
 from neo4j import Driver, GraphDatabase, ManagedTransaction
+from neo4j.graph import Node
 
 from metakb.config import get_configs
 from metakb.repository.base import AbstractRepository
@@ -414,6 +415,41 @@ class Neo4jRepository(AbstractRepository):
                     loaded_methods.add(statement.specifiedBy.id)
                 session.execute_write(self.add_statement, statement)
 
+    @staticmethod
+    def _make_allele_node(
+        allele_record: Node, sl_record: Node, se_record: Node
+    ) -> AlleleNode:
+        if "LiteralSequenceExpression" in se_record.labels:
+            state_node = LiteralSequenceExpressionNode(**se_record)
+        elif "ReferenceLengthExpression" in se_record.labels:
+            state_node = ReferenceLengthExpressionNode(**se_record)
+        else:
+            msg = f"Unrecognized sequence expression node structure: {se_record}"
+            raise ValueError(msg)
+        return AlleleNode(
+            has_location=SequenceLocationNode(**sl_record),
+            has_state=state_node,
+            **allele_record,
+        )
+
+    @staticmethod
+    def _make_therapeutic_node(
+        therapy_group_record: Node | None, drug_record: Node | None
+    ) -> TherapyGroupNode | DrugNode:
+        """Make node fulfilling therapeutic proposition property.
+
+        :raise ValueError: if both nodes are None (this means something has gone wrong)
+        """
+        if therapy_group_record is None and drug_record is None:
+            msg = "Both `therapy_group` and `drug` keys in the statement response are NULL. Unable to build therapeutic object."
+            raise ValueError(msg)
+        if therapy_group_record:
+            return TherapyGroupNode(
+                has_therapies=[DrugNode(**m) for m in therapy_group_record["members"]],
+                **therapy_group_record["therapy_group"],
+            )
+        return DrugNode(**drug_record)
+
     def search_statements(
         self,
         statement_id: str | None = None,
@@ -440,31 +476,26 @@ class Neo4jRepository(AbstractRepository):
 
         statements = []
         for record in result.records:
-            if "LiteralSequenceExpression" in record["defining_allele_se"].labels:
-                defining_allele_state_node = LiteralSequenceExpressionNode(
-                    **record["defining_allele_se"]
-                )
-            elif "ReferenceLengthExpression" in record["defining_allele_se"].labels:
-                defining_allele_state_node = ReferenceLengthExpressionNode(
-                    **record["defining_allele_se"]
-                )
-            else:
-                msg = f"Unrecognized sequence expression node structure: {record['defining_allele_se']}"
-                raise ValueError(msg)
-            defining_allele_node = AlleleNode(
-                has_location=SequenceLocationNode(**record["defining_allele_sl"]),
-                has_state=defining_allele_state_node,
-                **record["defining_allele"],
+            defining_allele_node = self._make_allele_node(
+                record["defining_allele"],
+                record["defining_allele_sl"],
+                record["defining_allele_se"],
             )
             constraint_node = DefiningAlleleConstraintNode(
                 has_defining_allele=defining_allele_node, **record["constraint"]
             )
+            member_nodes = [
+                self._make_allele_node(m["allele"], m["location"], m["state"])
+                for m in record["members"]
+            ]
             variant_node = CategoricalVariantNode(
-                has_constraint=constraint_node, **record["cv"]
+                has_constraint=constraint_node, has_members=member_nodes, **record["cv"]
             )
             gene_node = GeneNode(**record["g"])
             condition_node = DiseaseNode(**record["c"])
-            method_node = MethodNode(**record["method"])
+            method_node = MethodNode(
+                has_document=DocumentNode(**record["method_doc"]), **record["method"]
+            )
             document_nodes = [DocumentNode(**d) for d in record["documents"]]
             strength_node = StrengthNode(**record["str"])
 
@@ -482,12 +513,7 @@ class Neo4jRepository(AbstractRepository):
             )
 
             match record["s"]["proposition_type"]:
-                case "VariantTherapeuticResponseStudyStatement":
-                    therapeutic_node = (
-                        TherapyGroupNode(**record["th"])
-                        if "TherapyGroup" in record["th"].labels
-                        else DrugNode(**record["th"])
-                    )
+                case "VariantTherapeuticResponseProposition":
                     statement = TherapeuticReponseStatementNode(
                         has_method=method_node,
                         has_documents=document_nodes,
@@ -497,15 +523,38 @@ class Neo4jRepository(AbstractRepository):
                         has_condition=condition_node,
                         has_gene=gene_node,
                         has_variant=variant_node,
-                        has_therapeutic=therapeutic_node,
+                        has_therapeutic=self._make_therapeutic_node(
+                            record["therapy_group"], record["drug"]
+                        ),
                         **record["s"],
                     )
                 case "VariantDiagnosticProposition":
-                    raise NotImplementedError
-                case "VariantPrognosticStudyStatement":
-                    raise NotImplementedError
+                    statement = DiagnosticStatementNode(
+                        has_method=method_node,
+                        has_documents=document_nodes,
+                        has_strength=strength_node,
+                        has_evidence_lines=evidence_line_nodes,
+                        has_classification=classification_node,
+                        has_condition=condition_node,
+                        has_gene=gene_node,
+                        has_variant=variant_node,
+                        **record["s"],
+                    )
+                case "VariantPrognosticProposition":
+                    statement = PrognosticStatementNode(
+                        has_method=method_node,
+                        has_documents=document_nodes,
+                        has_strength=strength_node,
+                        has_evidence_lines=evidence_line_nodes,
+                        has_classification=classification_node,
+                        has_condition=condition_node,
+                        has_gene=gene_node,
+                        has_variant=variant_node,
+                        **record["s"],
+                    )
                 case _:
-                    raise NotImplementedError
+                    msg = f"Unrecognized statement node: {record['s']}"
+                    raise ValueError(msg)
             statements.append(statement.to_gks())
         return statements
 
