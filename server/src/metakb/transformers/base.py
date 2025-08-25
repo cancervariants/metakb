@@ -649,14 +649,3 @@ class Transformer(ABC):
 
         with cdm_filepath.open("w+") as f:
             json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
-
-
-def prune_transformed_data(data: TransformedData) -> TransformedData:
-    """Remove unused entitites from data collection.
-
-    Data transformation tries to collect all entities (e.g. genes, therapies, diseases)
-    provided by a source, but we only want to import a statement if our data model supports
-    every one of its components, and we don't want to import an entity unless it is
-    connected to at least one imported statement.
-    """
-    raise NotImplementedError
