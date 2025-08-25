@@ -218,6 +218,7 @@ ignore = [
     "ARG001"
 ]
 "src/metakb/schemas/*" = ["ANN102", "N815"]
+"src/metakb/repository/queries/catalog.py" = ["D102"]
 
 [tool.ruff.lint.flake8-annotations]
 mypy-init-return = true
