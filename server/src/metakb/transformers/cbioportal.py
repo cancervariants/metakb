@@ -122,11 +122,33 @@ class cBioportalTransformer(Transformer):
         return df
     
     def _chr23_to_X(self, variant: str) -> str:
-        """Convert a single '23-' prefix in a variant string to 'X-'."""
+        """
+        Convert a single '23-' prefix in a variant string to 'X-'.
+
+        Parameters
+        ----------
+        variant : str
+            A GnomAD-style variant (e.g., '23-2408485-G-C').
+        
+        Returns
+        -------
+        variant: str
+        """
         return PATTERN.sub('X-', variant) if isinstance(variant, str) else variant
     
     def _chr23_to_Y(self, variant: str) -> str:
-        """Convert a '23-' prefix in a single variant string to 'Y-'."""
+        """
+        Convert a single '23-' prefix in a variant string to 'Y-'.
+
+        Parameters
+        ----------
+        variant : str
+            A GnomAD-style variant (e.g., '23-2408485-G-C').
+        
+        Returns
+        -------
+        variant: str
+        """
         return PATTERN.sub('Y-', variant) if isinstance(variant, str) else variant
     
     def _test_variant_tokenization(self, variant: str, delay=0.5):
@@ -175,6 +197,20 @@ class cBioportalTransformer(Transformer):
     
     #test tokenization on X chromosome
     def _check_for_x_variant(self, df, variant):
+        """
+        Test tokenization of chromosome 23 variants as X variants
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Must contain column 'Chromosome'.
+        variant : str
+            A GnomAD-style variant (e.g., '23-2408485-G-C').
+        
+        Returns
+        -------
+        dataframe
+        """
         # Convert the variant to X-style format (e.g., "23-..." → "X-...")
         variant_x = self._chr23_to_X(variant)
         # Query the API and get a one-row DataFrame
@@ -222,6 +258,20 @@ class cBioportalTransformer(Transformer):
     
     #test tokenizationo n Y chromosome
     def _check_for_y_variant(self, df, variant):
+        """
+        Test tokenization of chromosome 23 variants as Y variants
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Must contain column 'Chromosome'.
+        variant : str
+            A GnomAD-style variant (e.g., '23-2408485-G-C').
+        
+        Returns
+        -------
+        dataframe
+        """
         # Convert the variant to Y-style format (e.g., "23-..." → "Y-...")
         variant_y = self._chr23_to_Y(variant)
         # Query the API and get a one-row DataFrame
@@ -269,6 +319,20 @@ class cBioportalTransformer(Transformer):
 
     # driver function for chr23
     def _chr23_male(self, df, variant):
+        """
+        Driver function for _check_for_x_variant and _check_for_y_variant.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Must contain column 'Chromosome'.
+        variant : str
+            A GnomAD-style variant (e.g., '23-2408485-G-C').
+        
+        Returns
+        -------
+        dataframe
+        """
         if "Chr23_X" not in df.columns:
             df["Chr23_X"] = False
         if "Chr23_Y" not in df.columns:
@@ -279,6 +343,19 @@ class cBioportalTransformer(Transformer):
 
     #reassign chromosome for male chromosome 23 variants
     def _correct_male_chrom23(self, df):
+        """
+        Correct male chromosome 23 variants. 
+        Notes if variant is ambiguous in new col ("XY" for tokenizes to both X and Y. "neither if it tokenizes to neither X nor Y)
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Must contain column 'Chromosome'.
+        
+        Returns
+        -------
+        dataframe
+        """
         # Initialize ambig_chrom column
         df["ambig_chrom"] = "non-ambiguous"
         def update_row(row):
@@ -309,6 +386,15 @@ class cBioportalTransformer(Transformer):
         - If both x_hgnc_id and y_hgnc_id have values → ⚠️ warn
         - If neither has values → ❌ warn
         - If ambig_chrom == "XY" or "neither", try to resolve Chromosome field
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Must contain column 'Chromosome'.
+        
+        Returns
+        -------
+        dataframe
         """
         chrom23_male_mask = (
             (df["Chrom_23"] == True) &
