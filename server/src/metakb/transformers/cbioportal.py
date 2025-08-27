@@ -51,6 +51,7 @@ class cBioportalTransformer(Transformer):
     # TODO: TypeError: Can't instantiate abstract class cBioportalTransformer without an implementation for abstract method '_create_cache'
 
     def __init__(self):
+        self.final_df = None
         pass
 
     # TODO: These private methods don't do anything meaningful right towards cbioportal data now
@@ -546,7 +547,7 @@ class cBioportalTransformer(Transformer):
 
 
 
-    def _transform(self, harvested_data):
+    def transform(self, harvested_data):
 
         # for harvested_data_obj in harvested_data:
         self.variants = pd.DataFrame(harvested_data.variants).filter(MUT_HEADERS)
@@ -743,7 +744,8 @@ class cBioportalTransformer(Transformer):
         final_df = final_df.replace(r'^\s*$', pd.NA, regex=True).fillna("No_Data")
         final_df.to_csv("final_cbp_df.csv", index=False)
 
-
+        self.final_df = final_df
+        print('Done!')
         return final_df
     
 
