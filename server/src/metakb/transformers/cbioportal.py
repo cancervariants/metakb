@@ -431,6 +431,21 @@ class cBioportalTransformer(Transformer):
 
     #get hgnc id from gene normalizer
     def _test_gene_tokenization(self, gene: str, delay=0.5):
+        """
+        Fetch normalized gene info from VICC API for a single gene.
+
+        Parameters
+        ----------
+        gene : str
+            A GnomAD-style variant (e.g., '23-2408485-G-C').
+        delay : float
+            Seconds to wait between API requests (default 0.5).
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with original variant and raw JSON string response.
+        """
         BASE_URL = "https://normalize.cancervariants.org/gene/"
         HEADERS = {
             "Accept": "application/json",
