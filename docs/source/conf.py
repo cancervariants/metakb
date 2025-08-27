@@ -30,7 +30,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx_github_changelog",
     "sphinx_click",
-    "sphinxcontrib.images"
+    "sphinxcontrib.images",
 ]
 
 templates_path = ["_templates"]
@@ -59,7 +59,7 @@ html_theme_options = {
             "url": "https://cancervariants.org",
             "html": "",
             "class": "fa-solid fa-house",
-        }
+        },
     ],
 }
 # -- autodoc things ----------------------------------------------------------
@@ -73,6 +73,7 @@ autodoc_preserve_defaults = True
 from metakb import __version__
 
 release = version = __version__
+
 
 # -- linkcode ----------------------------------------------------------------
 def linkcode_resolve(domain, info):
@@ -107,7 +108,7 @@ SNAKE_PATTERN = r"[A-Z]+_[A-Z_]*[A-Z][., ]"
 def _add_formatting_to_string(line: str) -> str:
     """Add fixed-width code formatting to span sections in lines:
 
-    * shell options, eg `--update_all`
+    * shell options, eg `--all`
     * double-quoted strings, eg `"HGNC"`
     * all caps SNAKE_CASE env vars, eg `GENE_NORM_REMOTE_DB_URL`
     """
@@ -161,7 +162,7 @@ def process_description(app: Sphinx, ctx: Context, lines: List[str]):
         if lines[i].startswith(("    ", "|     ")):
             if lines[i].startswith("|     "):
                 lines[i] = lines[i][3:]
-            if (i == 0 or lines[i - 1] == "\b" or lines[i - 1] == ""):
+            if i == 0 or lines[i - 1] == "\b" or lines[i - 1] == "":
                 lines.insert(i, "")
                 lines.insert(i, ".. code-block:: console")
 
@@ -190,21 +191,22 @@ def setup(app):
     app.connect("sphinx-click-process-options", process_option)
     app.connect("sphinx-click-process-usage", lambda app, ctx, lines: lines.clear())
 
+
 ######## OLD
 
-# -- Options for Epub output -------------------------------------------------
-
-# Bibliographic Dublin Core info.
-epub_title = project
-
-# The unique identifier of the text. This can be a ISBN number
-# or the project homepage.
+# # -- Options for Epub output -------------------------------------------------
 #
-# epub_identifier = ''
-
-# A unique identification for the text.
+# # Bibliographic Dublin Core info.
+# epub_title = project
 #
-# epub_uid = ''
-
-# A list of files that should not be packed into the epub file.
-epub_exclude_files = ['search.html']
+# # The unique identifier of the text. This can be a ISBN number
+# # or the project homepage.
+# #
+# # epub_identifier = ''
+#
+# # A unique identification for the text.
+# #
+# # epub_uid = ''
+#
+# # A list of files that should not be packed into the epub file.
+# epub_exclude_files = ["search.html"]

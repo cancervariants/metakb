@@ -23,13 +23,13 @@ requires-python = ">=3.11"
 description = "A search interface for cancer variant interpretations assembled by aggregating and harmonizing across multiple cancer variant interpretation knowledgebases."
 license = {file = "LICENSE"}
 dependencies = [
-    "ga4gh.vrs==2.*",
+    "ga4gh.vrs>=2.1.3,<3.0",
     "ga4gh.cat_vrs~=0.6.0",
     "ga4gh.va_spec~=0.3.0",
-    "gene-normalizer[etl]~=0.10.0",
+    "gene-normalizer[etl]~=0.10.2",
     "variation-normalizer~=0.14.1",
-    "disease-normalizer[etl]~=0.11.0",
-    "thera-py[etl]~=0.10.0",
+    "disease-normalizer[etl]~=0.11.2",
+    "thera-py[etl]~=0.11.0",
     "civicpy~=3.1",
     "requests",
     "pydantic==2.*",
@@ -45,10 +45,17 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-tests = ["pytest", "pytest-cov", "mock", "pytest-asyncio", "deepdiff"]
+tests = [
+    "pytest",
+    "pytest-cov",
+    "mock",
+    "pytest-asyncio",
+    "deepdiff",
+    "jsonschema~=4.24",  # pin to avoid deprecation of ref resolver
+]
 dev = [
-    "pre-commit>=4.0.1",
-    "ruff==0.8.6"
+    "pre-commit>=4.2.0",
+    "ruff==0.12.1"
 ]
 notebooks = ["ipykernel", "jupyterlab"]
 docs = [
@@ -92,7 +99,7 @@ branch = true
 
 [tool.ruff]
 src = ["src"]
-exclude = ["docs/*", "codebuild/*"]
+exclude = ["../docs/*", "codebuild/*"]
 
 [tool.ruff.lint]
 select = [
@@ -126,6 +133,7 @@ select = [
     "ARG",  # https://docs.astral.sh/ruff/rules/#flake8-unused-arguments-arg
     "PTH",  # https://docs.astral.sh/ruff/rules/#flake8-use-pathlib-pth
     "PGH",  # https://docs.astral.sh/ruff/rules/#pygrep-hooks-pgh
+    "FAST",  # https://docs.astral.sh/ruff/rules/#fastapi-fast
     "PLC",  # https://docs.astral.sh/ruff/rules/#convention-c
     "PLE",  # https://docs.astral.sh/ruff/rules/#error-e_1
     "TRY",  # https://docs.astral.sh/ruff/rules/#tryceratops-try
@@ -147,6 +155,7 @@ fixable = [
     "PT",
     "RSE",
     "SIM",
+    "FAST",
     "PLC",
     "PLE",
     "TRY",

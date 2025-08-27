@@ -169,8 +169,8 @@ def _add_therapy_or_group(
         for ta in therapy["therapies"]:
             _add_therapy(tx, ta)
             query = f"""
-            MERGE (tg:TherapyGroup:Therapy {{id: '{therapy['id']}'}})
-            MERGE (t:Therapy {{id: '{ta['id']}'}})
+            MERGE (tg:TherapyGroup:Therapy {{id: '{therapy["id"]}'}})
+            MERGE (t:Therapy {{id: '{ta["id"]}'}})
             """
 
             if membership_op == MembershipOperator.AND:
@@ -202,122 +202,169 @@ def _add_therapy(tx: ManagedTransaction, therapy_in: dict) -> None:
     tx.run(query, **therapy)
 
 
-def _add_location(tx: ManagedTransaction, location_in: dict) -> None:
-    """Add location node and its relationships
+def _prepare_allele(allele: dict) -> dict:
+    """Reformat allele to match graph representation in preparation for upload
 
-    :param tx: Transaction object provided to transaction functions
-    :param location_in: Location CDM object
+    :param allele: allele object from CDM
+    :return: reformatted object to better fit DB upload
     """
-    loc = location_in.copy()
-    loc_keys = [
-        f"loc.{key}=${key}"
-        for key in ("id", "digest", "start", "end", "sequence", "type")
-        if loc.get(key) is not None  # start could be 0
-    ]
-    loc["sequenceReference"] = json.dumps(loc["sequenceReference"])
-    loc_keys.append("loc.sequenceReference=$sequenceReference")
-    loc_keys = ", ".join(loc_keys)
+    allele_to_upload = {
+        "id": allele["id"],
+        "digest": allele["digest"],
+        "state_object": json.dumps(allele["state"]),
+        "state": allele["state"],
+        "name": allele.get(
+            "name", ""
+        ),  # must be nonnull for use in ON CREATE statement
+        "location": allele["location"],
+    }
+    for expr in allele.get("expressions", []):
+        key = f"expression_{expr['syntax'].replace('.', '_')}"
+        allele_to_upload.setdefault(key, []).append(expr["value"])
+    return allele_to_upload
 
-    query = f"""
-    MERGE (loc:{loc["type"]}:Location {{ id: '{loc["id"]}' }})
-    ON CREATE SET {loc_keys}
+
+def _add_dac_cv(
+    tx: ManagedTransaction,
+    catvar: dict,
+) -> None:
+    """Load DefiningAlleleConstraint CatVar.
+
+    Adds
+    * CategoricalVariant node itself
+    * DefiningAlleleConstraint node
+    * Allele node which defines the constraint
+    * Nodes for member alleles of the category
+    * SequenceLocation and SequenceExpression nodes for each allele
+
+    :param tx: neo4j transaction
+    :param catvar: model dump of catvar
     """
-    tx.run(query, **loc)
+    cv_merge_statement = """
+    MERGE (cv:Variation:CategoricalVariant:ProteinSequenceConsequence { id: $cv.id })
+    ON CREATE SET cv += {
+        name: $cv.name,
+        description: $cv.description,
+        aliases: $cv.aliases,
+        extensions: $cv_extensions,
+        mappings: $cv_mappings
+    }
+    MERGE (cv) -[:HAS_CONSTRAINT]-> (constr:Constraint:DefiningAlleleConstraint { id: $constraint_id })
+    ON CREATE SET cv += {
+        relations: $constr.relations
+    }
+    MERGE (allele:Variation:MolecularVariation:Allele { id: $allele.id })
+    ON CREATE SET allele += {
+        name: $allele.name,
+        digest: $allele.digest,
+        expression_hgvs_g: $allele.expression_hgvs_g,
+        expression_hgvs_c: $allele.expression_hgvs_c,
+        expression_hgvs_p: $allele.expression_hgvs_p
+    }
+    MERGE (constr) -[:HAS_DEFINING_ALLELE]-> (allele)
+    MERGE (sl:Location:SequenceLocation { id: $allele.location.id })
+    ON CREATE SET sl += {
+        digest: $allele.location.digest,
+        start: $allele.location.start,
+        end: $allele.location.end,
+        refget_accession: $allele.location.sequenceReference.refgetAccession,
+        sequence: $allele.location.sequence
+    }
+    MERGE (allele) -[:HAS_LOCATION]-> (sl)
 
+    // handle different kinds of state objects
+    FOREACH (_ IN CASE WHEN $allele.state.type = 'LiteralSequenceExpression' THEN [1] ELSE [] END |
+        MERGE (lse:SequenceExpression:LiteralSequenceExpression { sequence: $allele.state.sequence })
+        MERGE (allele)-[:HAS_STATE]->(lse)
+    )
+    FOREACH (_ IN CASE WHEN $allele.state.type = 'ReferenceLengthExpression' THEN [1] ELSE [] END |
+        MERGE (rle:SequenceExpression:ReferenceLengthExpression {
+            length: $allele.state.length,
+            repeat_subunit_length: $allele.state.repeatSubunitLength,
+            sequence: $allele.state.sequence
+        })
+        MERGE (allele)-[:HAS_STATE]->(rle)
+    )
 
-def _add_variation(tx: ManagedTransaction, variation_in: dict) -> None:
-    """Add variation node and its relationships
+    WITH cv
+        UNWIND $members as m
+        MERGE (member_allele:Variation:MolecularVariation:Allele { id: m.id })
+        ON CREATE SET member_allele += {
+            name: m.name,
+            digest: m.digest,
+            expression_hgvs_g: m.expression_hgvs_g,
+            expression_hgvs_c: m.expression_hgvs_c,
+            expression_hgvs_p: m.expression_hgvs_p
+        }
+        MERGE (cv) -[:HAS_MEMBER]-> (member_allele)
+        MERGE (member_sl:Location:SequenceLocation { id: m.location.id })
+        ON CREATE SET member_sl += {
+            digest: m.location.digest,
+            start: m.location.start,
+            end:  m.location.end,
+            refget_accession: m.location.sequenceReference.refgetAccession,
+            sequence: m.location.sequence
+        }
+        MERGE (member_allele) -[:HAS_LOCATION] -> (member_sl)
 
-    :param tx: Transaction object provided to transaction functions
-    :param variation_in: Variation CDM object
+        // handle different kinds of state objects
+        FOREACH (_ IN CASE WHEN m.state.type = 'LiteralSequenceExpression' THEN [1] ELSE [] END |
+            MERGE (member_lse:SequenceExpression:LiteralSequenceExpression { sequence: m.state.sequence })
+            MERGE (member_allele)-[:HAS_STATE]->(member_lse)
+        )
+        FOREACH (_ IN CASE WHEN m.state.type = 'ReferenceLengthExpression' THEN [1] ELSE [] END |
+            MERGE (member_rle:SequenceExpression:ReferenceLengthExpression {
+                length: m.state.length,
+                repeat_subunit_length: m.state.repeatSubunitLength,
+                sequence: m.state.sequence
+            })
+            MERGE (member_allele)-[:HAS_STATE]->(member_rle)
+        )
     """
-    v = variation_in.copy()
-    v_keys = [
-        f"v.{key}=${key}" for key in ("id", "name", "digest", "type") if v.get(key)
-    ]
 
-    expressions = v.get("expressions", [])
-    for expr in expressions:
-        syntax = expr["syntax"].replace(".", "_")
-        key = f"expression_{syntax}"
-        if key in v:
-            v[key].append(expr["value"])
-        else:
-            v_keys.append(f"v.{key}=${key}")
-            v[key] = [expr["value"]]
+    # catvars currently support a single constraint
+    constraint = catvar["constraints"][0]
+    allele = _prepare_allele(constraint["allele"])
 
-    state = v.get("state")
-    if state:
-        v["state"] = json.dumps(state)
-        v_keys.append("v.state=$state")
+    constraint_id = f"{catvar['id']}:{constraint['type']}:{allele['id']}"
 
-    v_keys = ", ".join(v_keys)
-
-    query = f"""
-    MERGE (v:{v["type"]}:Variation {{ id: '{v["id"]}' }})
-    ON CREATE SET {v_keys}
-    """
-
-    loc = v.get("location")
-    if loc:
-        _add_location(tx, loc)
-        query += f"""
-        MERGE (loc:{loc["type"]}:Location {{ id: '{loc["id"]}' }})
-        MERGE (v) -[:HAS_LOCATION] -> (loc)
-        """
-
-    tx.run(query, **v)
+    tx.run(
+        cv_merge_statement,
+        cv=catvar,
+        cv_extensions=json.dumps(catvar["extensions"])
+        if catvar.get("extensions")
+        else None,
+        cv_mappings=json.dumps(catvar["mappings"]) if catvar.get("mappings") else None,
+        constraint_id=constraint_id,
+        constr=constraint,
+        allele=allele,
+        members=[_prepare_allele(a) for a in catvar.get("members", [])],
+    )
 
 
 def _add_categorical_variant(
     tx: ManagedTransaction,
-    categorical_variant_in: dict,
+    catvar: dict,
     ids_to_load: set[str],
 ) -> None:
     """Add categorical variant objects to DB.
 
     :param tx: Transaction object provided to transaction functions
-    :param categorical_variant_in: Categorical variant CDM object
+    :param catvar: Categorical variant CDM object
     :param ids_to_load: IDs to load into the DB
     """
-    if categorical_variant_in["id"] not in ids_to_load:
+    if catvar["id"] not in ids_to_load:
         return
 
-    cv = categorical_variant_in.copy()
+    if catvar.get("constraints") and len(catvar["constraints"]) == 1:
+        constraints = catvar["constraints"]
 
-    mp_nonnull_keys = [
-        _create_parameterized_query(cv, ("id", "name", "description", "type"))
-    ]
-
-    if "aliases" in cv:
-        cv["aliases"] = json.dumps(cv["aliases"])
-        mp_nonnull_keys.append("aliases:$aliases")
-
-    _add_mappings_and_exts_to_obj(cv, mp_nonnull_keys)
-    mp_keys = ", ".join(mp_nonnull_keys)
-
-    defining_context = cv["constraints"][0]["allele"]
-    _add_variation(tx, defining_context)
-    dc_type = defining_context["type"]
-
-    members_match = ""
-    members_relation = ""
-    for ix, member in enumerate(cv.get("members", [])):
-        _add_variation(tx, member)
-        name = f"member_{ix}"
-        cv[name] = member
-        members_match += f"MERGE ({name} {{ id: '{member['id']}' }})\n"
-        members_relation += f"MERGE (v) -[:HAS_MEMBERS] -> ({name})\n"
-
-    query = f"""
-    {members_match}
-    MERGE (cv:Variation:{dc_type} {{ id: '{defining_context["id"]}' }})
-    MERGE (cv) -[:HAS_LOCATION] -> (loc)
-    MERGE (v:Variation:{cv["type"]} {{ {mp_keys} }})
-    MERGE (v) -[:HAS_DEFINING_CONTEXT] -> (cv)
-    {members_relation}
-    """
-    tx.run(query, **cv)
+        if constraints[0].get("type") == "DefiningAlleleConstraint":
+            _add_dac_cv(tx, catvar)
+        # in the future, handle other kinds of catvars here
+    else:
+        msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar['id']} is {catvar.get('constraints')}"
+        raise ValueError(msg)
 
 
 def _add_document(
@@ -363,11 +410,12 @@ def _add_document(
 
 def _get_ids_to_load(
     statements: list[dict], ids_to_load: set[str] | None = None
-) -> None:
+) -> set[str]:
     """Get unique IDs to load into the DB
 
     :param statements: List of statements
     :param ids_to_load: IDS to load into the DB (will be mutated)
+    :return: set of IDs to load
     """
 
     def _added_ids(statement: dict, ids_to_load: set[str]) -> set[str]:
@@ -526,8 +574,8 @@ def _get_statement_query(statement: dict, is_evidence: bool) -> str:
     rel_line += "MERGE (s) -[:IS_SPECIFIED_BY] -> (m)\n"
 
     variant_id = proposition["subjectVariant"]["id"]
-    match_line += f"MERGE (v:Variation {{ id: '{variant_id}' }})\n"
-    rel_line += "MERGE (s) -[:HAS_VARIANT] -> (v)\n"
+    match_line += f"MERGE (v:CategoricalVariant {{ id: '{variant_id}' }})\n"
+    rel_line += "MERGE (s) -[:HAS_SUBJECT_VARIANT] -> (v)\n"
 
     therapeutic = proposition.get("objectTherapeutic")
     if therapeutic:
@@ -662,7 +710,7 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
         for tp in data.get("therapies", []):
             session.execute_write(_add_therapy_or_group, tp, ids_to_load)
 
-        # This should always be done last
+        # Statements presume existence of other nodes and should always be loaded last
         for statement_evidence_item in statements_evidence:
             session.execute_write(
                 _add_statement_evidence, statement_evidence_item, ids_to_load

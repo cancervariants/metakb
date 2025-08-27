@@ -7,8 +7,10 @@ from pathlib import Path
 
 import pytest
 from deepdiff import DeepDiff
+from dotenv import load_dotenv
 from ga4gh.core.models import ConceptMapping
 
+from metakb.database import get_driver
 from metakb.harvesters.base import Harvester
 from metakb.normalizers import ViccNormalizers
 from metakb.query import QueryHandler
@@ -44,6 +46,11 @@ def pytest_configure(config):
             "neo4j.io",
         ):
             logging.getLogger(lib).setLevel(logging.ERROR)
+
+
+@pytest.fixture(scope="session")
+def test_data_dir() -> Path:
+    return TEST_DATA_DIR
 
 
 def check_source_harvest(tmp_path: Path, harvester: Harvester):
@@ -2215,8 +2222,17 @@ def normalizers():
 
 
 @pytest.fixture(scope="module")
-def query_handler(normalizers):
+def driver():
+    """Return Neo4j graph connection driver object."""
+    load_dotenv()
+    driver = get_driver()
+    yield driver
+    driver.close()
+
+
+@pytest.fixture(scope="module")
+def query_handler(driver, normalizers):
     """Create query handler test fixture"""
-    qh = QueryHandler(normalizers=normalizers)
+    qh = QueryHandler(driver=driver, normalizers=normalizers)
     yield qh
     qh.driver.close()
