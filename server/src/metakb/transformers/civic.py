@@ -41,7 +41,6 @@ from ga4gh.va_spec.base import (
 from ga4gh.vrs.models import Allele, Expression, Syntax, Variation
 from pydantic import BaseModel, ValidationError
 
-from metakb import APP_ROOT
 from metakb.harvesters.civic import CivicHarvestedData
 from metakb.normalizers import (
     ViccNormalizers,
@@ -198,7 +197,7 @@ class CivicTransformer(Transformer):
 
     def __init__(
         self,
-        data_dir: Path = APP_ROOT / "data",
+        data_dir: Path | None = None,
         harvester_path: Path | None = None,
         normalizers: ViccNormalizers | None = None,
     ) -> None:

@@ -1,9 +1,9 @@
 """Handle construction of and relay requests to VICC normalizer services."""
 
 import logging
-import os
 from collections.abc import Iterable
 from enum import Enum
+from os import environ
 
 from botocore.exceptions import TokenRetrievalError
 from disease.cli import update as update_disease_db
@@ -22,7 +22,7 @@ from gene.database import create_db as create_gene_db
 from gene.database.database import AWS_ENV_VAR_NAME as GENE_AWS_ENV_VAR_NAME
 from gene.query import QueryHandler as GeneQueryHandler
 from gene.schemas import NormalizeService as NormalizedGene
-from therapy.cli import update_normalizer_db as update_therapy_db
+from therapy.cli import update as update_therapy_db
 from therapy.database import create_db as create_therapy_db
 from therapy.database.database import AWS_ENV_VAR_NAME as THERAPY_AWS_ENV_VAR_NAME
 from therapy.query import QueryHandler as TherapyQueryHandler
@@ -354,9 +354,9 @@ def update_normalizer(normalizer: NormalizerName, db_url: str | None) -> None:
         defaults.
     :raise IllegalUpdateError: if attempting to update cloud DB instances
     """
-    if NORMALIZER_AWS_ENV_VARS[normalizer] in os.environ:
+    if environ.get(NORMALIZER_AWS_ENV_VARS[normalizer]):
         raise IllegalUpdateError
-    updater_args = ["--update_all", "--update_merged"]
+    updater_args = ["--all", "--normalize"]
     if db_url:
         updater_args += ["--db_url", db_url]
     _NORMALIZER_METHOD_DISPATCH[normalizer](updater_args)

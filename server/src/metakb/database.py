@@ -3,12 +3,16 @@
 import ast
 import logging
 from os import environ
+from urllib.parse import urlparse, urlunparse
 
 import boto3
 from botocore.exceptions import ClientError
 from neo4j import Driver, GraphDatabase, ManagedTransaction
 
-logger = logging.getLogger(__name__)
+from metakb.config import get_configs
+from metakb.schemas.api import ServiceEnvironment
+
+_logger = logging.getLogger(__name__)
 
 
 def _get_secret() -> str:
@@ -28,40 +32,34 @@ def _get_secret() -> str:
     except ClientError:
         # For a list of exceptions thrown, see
         # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-        logger.exception("Encountered ClientError while fetching secrets")
+        _logger.exception("Encountered ClientError while fetching secrets")
         raise
     else:
         return get_secret_value_response["SecretString"]
 
 
-def _get_credentials(
-    uri: str, credentials: tuple[str, str]
-) -> tuple[str, tuple[str, str]]:
-    """Acquire structured credentials.
+class Neo4jCredentialsError(Exception):
+    """Raise for invalid or unparseable Neo4j credentials"""
 
-    * Arguments are required. If they're not empty strings, return them as credentials.
-    * If in a production environment, fetch from AWS Secrets Manager.
-    * If all env vars declared, use them
-    * Otherwise, use defaults
 
-    :param uri: connection URI, formatted a la ``bolt://<host>:<port #>``
-    :param credentials: tuple containing username and password
-    :return: tuple containing host, and a second tuple containing username/password
+def _parse_credentials(url: str) -> tuple[str, tuple[str, str]]:
+    """Extract credential parameters from URL
+
+    :param url: Neo4j connection URL
+    :return: tuple containing cleaned URL, (username, and password)
     """
-    if not (uri and credentials[0] and credentials[1]):
-        if environ.get("METAKB_EB_PROD"):
-            secret = ast.literal_eval(_get_secret())
-            uri = f"bolt://{secret['host']}:{secret['port']}"
-            credentials = (secret["username"], secret["password"])
-        else:
-            if not uri:
-                uri = environ.get("METAKB_DB_URL", "bolt://localhost:7687")
-            if (not credentials[0]) and (not credentials[1]):
-                credentials = (
-                    environ.get("METAKB_DB_USERNAME", "neo4j"),
-                    environ.get("METAKB_DB_PASSWORD", "neo4j"),
-                )
-    return uri, credentials
+    parsed = urlparse(url)
+    username = parsed.username
+    password = parsed.password
+    hostname = parsed.hostname
+    port = parsed.port
+    if not all([username, password, port, hostname]):
+        _logger.error("Unable to parse Neo4j credentials from URL %s", url)
+        raise Neo4jCredentialsError
+
+    clean_netloc = f"{hostname}:{port}"
+    new_url = urlunparse(parsed._replace(netloc=clean_netloc))
+    return (new_url, (username, password))
 
 
 _CONSTRAINTS = {
@@ -91,28 +89,36 @@ def _create_constraints(tx: ManagedTransaction) -> None:
 
 
 def get_driver(
-    uri: str = "",
-    credentials: tuple[str, str] = ("", ""),
-    add_constraints: bool = False,
+    url: str | None = None,
+    initialize: bool = False,
 ) -> Driver:
-    """Initialize Graph driver instance.
+    """Get DB connection given provided connection params, or fall back on environment
+    params/defaults if not provided.
 
-    Connection URI/credentials are resolved as follows:
+    Connection URL resolved in the following order:
 
-    1. Use function args if given
-    2. Use values from AWS secrets manager if env var ``METAKB_EB_PROD`` is set
-    3. Use values from env vars ``METAKB_DB_URL``, ``METAKB_DB_USERNAME``, and
-        ``METAKB_DB_PASSWORD``, if all are defined
-    4. Use local defaults: ``"bolt://localhost:7687"``, with username ``"neo4j"``
-        and password ``"password"``
+    * If in a prod environment, ignore all other configs and fetch from AWS Secrets Manager
+    * If connection string is provided, use it
+    * If connection string is given by env var ``METAKB_DB_URL``, use it
+    * Otherwise, fall back on default
 
-    :param uri: address of Neo4j DB
-    :param credentials: tuple containing username and password
+    :param url: connection string for Neo4j DB. Formatted as ``bolt://<username>:<password>@<hostname>``
+    :param initialize: whether to perform additional DB setup (e.g. add constraints, indexes)
     :return: Neo4j driver instance
     """
-    uri, credentials = _get_credentials(uri, credentials)
-    driver = GraphDatabase.driver(uri, auth=credentials)
-    if add_constraints:
+    configs = get_configs()
+    if configs.env == ServiceEnvironment.PROD:
+        # overrule ANY provided configs and get connection url from AWS secrets
+
+        secret = ast.literal_eval(_get_secret())
+        url = f"bolt://{secret['username']}:{secret['password']}@{secret['host']}:{secret['port']}"
+    elif url:
+        pass  # use argument if given
+    else:
+        url = configs.db_url
+    cleaned_url, credentials = _parse_credentials(url)
+    driver = GraphDatabase.driver(cleaned_url, auth=credentials)
+    if initialize:
         with driver.session() as session:
             session.execute_write(_create_constraints)
     return driver
