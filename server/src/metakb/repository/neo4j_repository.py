@@ -2,7 +2,6 @@
 
 import logging
 import os
-import sys
 from urllib.parse import urlparse, urlunparse
 
 import boto3
@@ -217,6 +216,7 @@ class Neo4jRepository(AbstractRepository):
         Currently validates that the constraint property exists and has a length of
         exactly 1.
 
+        :param tx: Neo4j transaction
         :param catvar: a full Categorical Variant object
         """
         if catvar.constraints and len(catvar.constraints) == 1:
@@ -235,7 +235,8 @@ class Neo4jRepository(AbstractRepository):
     def add_document(self, tx: ManagedTransaction, document: Document) -> None:
         """Add document to DB
 
-        :param document:
+        :param tx: Neo4j transaction
+        :param document: VA-Spec document
         """
         document_node = DocumentNode.from_gks(document)
         tx.run(self.queries.load_document, doc=document_node.model_dump(mode="json"))
@@ -245,10 +246,22 @@ class Neo4jRepository(AbstractRepository):
         tx: ManagedTransaction,
         gene: MappableConcept,
     ) -> None:
+        """Add gene to DB
+
+        :param tx: Neo4j transcation
+        :param gene: VA-Spec gene object
+        """
         gene_node = GeneNode.from_gks(gene)
         tx.run(self.queries.load_gene, gene=gene_node.model_dump(mode="json"))
 
     def add_condition(self, tx: ManagedTransaction, condition: Condition) -> None:
+        """Add condition to DB.
+
+        For now, only handles individual diseases.
+
+        :param tx: Neo4j transaction
+        :param condition: VA-Spec condition
+        """
         root = condition.root
         if isinstance(root, MappableConcept) and root.conceptType == "Disease":
             disease_node = DiseaseNode.from_gks(root)
@@ -260,7 +273,11 @@ class Neo4jRepository(AbstractRepository):
             raise NotImplementedError(msg)
 
     def add_therapeutic(self, tx: ManagedTransaction, therapeutic: Therapeutic) -> None:
-        """Add a therapeutic -- either an individual Drug or a group."""
+        """Add a therapeutic -- either an individual Drug or a group.
+
+        :param tx: Neo4j transaction
+        :param therapeutic: VA-Spec therapeutic object
+        """
         root = therapeutic.root
         if isinstance(root, MappableConcept):
             drug_node = DrugNode.from_gks(root)
@@ -276,7 +293,11 @@ class Neo4jRepository(AbstractRepository):
             raise TypeError(msg)
 
     def add_method(self, tx: ManagedTransaction, method: Method) -> None:
-        """Add a Method object."""
+        """Add a Method object.
+
+        :param tx: Neo4j transaction
+        :param method: VA-Spec method object
+        """
         tx.run(
             self.queries.load_method,
             method=MethodNode.from_gks(method).model_dump(mode="json"),
@@ -285,7 +306,15 @@ class Neo4jRepository(AbstractRepository):
     def add_statement(self, tx: ManagedTransaction, statement: Statement) -> None:
         """Add a Statement object.
 
-        Also add supporting documents and evidence lines, when included.
+        Currently supports statements based on
+        * VariantTherapeuticResponseProposition
+        * VariantPrognosticProposition
+        * VariantDiagnosticProposition
+
+        Also add included proposition, supporting documents/strength/evidence lines, etc
+
+        :param tx: Neo4j transaction
+        :param statement: VA-Spec Statement
         """
         match statement.proposition:
             case VariantTherapeuticResponseProposition():
@@ -308,7 +337,8 @@ class Neo4jRepository(AbstractRepository):
         :param data: data grouped by GKS entity type
         """
         # since methods are particularly redundant (usually ~1 per source)
-        # we should track whether or not they've been added already
+        # we might as well just track whether a method has been added and only
+        # do so once
         loaded_methods = set()
         # load evidence first so that assertions can be merged into them
         for statement in data.statements_evidence + data.statements_assertions:
@@ -351,6 +381,15 @@ class Neo4jRepository(AbstractRepository):
     def _make_allele_node(
         allele_record: Node, sl_record: Node, se_record: Node
     ) -> AlleleNode:
+        """Build a VRS Allele node from the raw Neo4j node results
+
+
+        :param allele_record: Neo4j allele record
+        :param sl_record: Neo4j sequence location record
+        :param se_record: Neo4j sequence expression record
+        :return: Repository Allele node
+        :raise ValueError: if unable to coerce SequenceExpression into a repository node model
+        """
         if "LiteralSequenceExpression" in se_record.labels:
             state_node = LiteralSequenceExpressionNode(**se_record)
         elif "ReferenceLengthExpression" in se_record.labels:
@@ -370,6 +409,8 @@ class Neo4jRepository(AbstractRepository):
     ) -> TherapyGroupNode | DrugNode:
         """Make node fulfilling therapeutic proposition property.
 
+        :param therapy_group_record: Neo4j therapy group column record
+        :param drug_record: Neo4j drug column record
         :raise ValueError: if both nodes are None (this means something has gone wrong)
         """
         if therapy_group_record is None and drug_record is None:
@@ -382,96 +423,128 @@ class Neo4jRepository(AbstractRepository):
             )
         return DrugNode(**drug_record)
 
+    def _get_statement_node_from_result(
+        self, record: Record
+    ) -> (
+        DiagnosticStatementNode
+        | PrognosticStatementNode
+        | TherapeuticReponseStatementNode
+    ):
+        """Given an individual Neo4j result row, produce the repository statement node
+
+        :param record: Neo4j result row
+        :return: A statement node with all entities/supporting data filled in
+        """
+        defining_allele_node = self._make_allele_node(
+            record["defining_allele"],
+            record["defining_allele_sl"],
+            record["defining_allele_se"],
+        )
+        constraint_node = DefiningAlleleConstraintNode(
+            has_defining_allele=defining_allele_node, **record["constraint"]
+        )
+        member_nodes = [
+            self._make_allele_node(m["allele"], m["location"], m["state"])
+            for m in record["members"]
+        ]
+        variant_node = CategoricalVariantNode(
+            has_constraint=constraint_node, has_members=member_nodes, **record["cv"]
+        )
+        gene_node = GeneNode(**record["g"])
+        condition_node = DiseaseNode(**record["c"])
+        method_node = MethodNode(
+            has_document=DocumentNode(**record["method_doc"]), **record["method"]
+        )
+        document_nodes = [DocumentNode(**d) for d in record["documents"]]
+        strength_node = StrengthNode(**record["str"])
+
+        # TODO holy god this will be interesting
+        #
+        # I think we need to collect statement IDs associated with nodes
+        # and add them to some kind of query tracker thing
+        # and then do a `get_statements()` fetch to get all of them separately by ID
+        # and then add them back in here
+        # evidence_line_nodes = [EvidenceLineNode(has_evidence_items=) for el in ]  # TODO just None for now
+        evidence_line_item_ids = [
+            item_id
+            for line in record["evidence_lines"]
+            for item_id in line["evidence_item_ids"]
+        ]
+        evidence_line_nodes = [
+            EvidenceLineNode(
+                id=record_line["direction"],
+                direction=record_line["direction"],
+                has_evidence_items=[
+                    self.get_evidence_item(statement_id)
+                    for statement_id in record_line["evidence_item_ids"]
+                ],
+            )
+            for record_line in record["evidence_lines"]
+        ]
+        classification_node = (
+            ClassificationNode(**record["classification"])
+            if record["classification"]
+            else None
+        )
+
+        match record["s"]["proposition_type"]:
+            case "VariantTherapeuticResponseProposition":
+                statement = TherapeuticReponseStatementNode(
+                    has_method=method_node,
+                    has_documents=document_nodes,
+                    has_strength=strength_node,
+                    has_evidence_lines=evidence_line_nodes,
+                    has_classification=classification_node,
+                    has_condition=condition_node,
+                    has_gene=gene_node,
+                    has_variant=variant_node,
+                    has_therapeutic=self._make_therapeutic_node(
+                        record["therapy_group"], record["drug"]
+                    ),
+                    **record["s"],
+                )
+            case "VariantDiagnosticProposition":
+                statement = DiagnosticStatementNode(
+                    has_method=method_node,
+                    has_documents=document_nodes,
+                    has_strength=strength_node,
+                    has_evidence_lines=evidence_line_nodes,
+                    has_classification=classification_node,
+                    has_condition=condition_node,
+                    has_gene=gene_node,
+                    has_variant=variant_node,
+                    **record["s"],
+                )
+            case "VariantPrognosticProposition":
+                statement = PrognosticStatementNode(
+                    has_method=method_node,
+                    has_documents=document_nodes,
+                    has_strength=strength_node,
+                    has_evidence_lines=evidence_line_nodes,
+                    has_classification=classification_node,
+                    has_condition=condition_node,
+                    has_gene=gene_node,
+                    has_variant=variant_node,
+                    **record["s"],
+                )
+            case _:
+                msg = f"Unrecognized statement node: {record['s']}"
+                raise ValueError(msg)
+        return statement
+
     def _get_statements_from_results(self, records: list[Record]) -> list[Statement]:
         """Craft a list of GKS-compliant Statement objects given the results of a Neo4j cypher lookup
 
         A lot of assumptions are being made that the shape/columns of the records are consistent
         between queries. If there are changes to the graph schema, this method will raise a
         lot of errors at runtime.
+
+        :param records:
+        :return: list of full statement objects
         """
         statements = []
-        evidence_line_statement_ids = []
         for record in records:
-            defining_allele_node = self._make_allele_node(
-                record["defining_allele"],
-                record["defining_allele_sl"],
-                record["defining_allele_se"],
-            )
-            constraint_node = DefiningAlleleConstraintNode(
-                has_defining_allele=defining_allele_node, **record["constraint"]
-            )
-            member_nodes = [
-                self._make_allele_node(m["allele"], m["location"], m["state"])
-                for m in record["members"]
-            ]
-            variant_node = CategoricalVariantNode(
-                has_constraint=constraint_node, has_members=member_nodes, **record["cv"]
-            )
-            gene_node = GeneNode(**record["g"])
-            condition_node = DiseaseNode(**record["c"])
-            method_node = MethodNode(
-                has_document=DocumentNode(**record["method_doc"]), **record["method"]
-            )
-            document_nodes = [DocumentNode(**d) for d in record["documents"]]
-            strength_node = StrengthNode(**record["str"])
-
-            # TODO holy god this will be interesting
-            #
-            # I think we need to collect statement IDs associated with nodes
-            # and add them to some kind of query tracker thing
-            # and then do a `get_statements()` fetch to get all of them separately by ID
-            # and then add them back in here
-            # evidence_line_nodes = [EvidenceLineNode(has_evidence_items=) for el in ]  # TODO just None for now
-            evidence_line_nodes = []  # TODO OSDFLKJSDFL:JKFDS
-            classification_node = (
-                ClassificationNode(**record["classification"])
-                if record["classification"]
-                else None
-            )
-
-            match record["s"]["proposition_type"]:
-                case "VariantTherapeuticResponseProposition":
-                    statement = TherapeuticReponseStatementNode(
-                        has_method=method_node,
-                        has_documents=document_nodes,
-                        has_strength=strength_node,
-                        has_evidence_lines=evidence_line_nodes,
-                        has_classification=classification_node,
-                        has_condition=condition_node,
-                        has_gene=gene_node,
-                        has_variant=variant_node,
-                        has_therapeutic=self._make_therapeutic_node(
-                            record["therapy_group"], record["drug"]
-                        ),
-                        **record["s"],
-                    )
-                case "VariantDiagnosticProposition":
-                    statement = DiagnosticStatementNode(
-                        has_method=method_node,
-                        has_documents=document_nodes,
-                        has_strength=strength_node,
-                        has_evidence_lines=evidence_line_nodes,
-                        has_classification=classification_node,
-                        has_condition=condition_node,
-                        has_gene=gene_node,
-                        has_variant=variant_node,
-                        **record["s"],
-                    )
-                case "VariantPrognosticProposition":
-                    statement = PrognosticStatementNode(
-                        has_method=method_node,
-                        has_documents=document_nodes,
-                        has_strength=strength_node,
-                        has_evidence_lines=evidence_line_nodes,
-                        has_classification=classification_node,
-                        has_condition=condition_node,
-                        has_gene=gene_node,
-                        has_variant=variant_node,
-                        **record["s"],
-                    )
-                case _:
-                    msg = f"Unrecognized statement node: {record['s']}"
-                    raise ValueError(msg)
+            statement = self._get_statement_node_from_result(record)
             statements.append(statement.to_gks())
         return statements
 
@@ -518,27 +591,11 @@ class Neo4jRepository(AbstractRepository):
         )
         return self._get_statements_from_results(result.records)
 
-    def get_statements(
-        self,
-        statement_ids: list[str],
-    ) -> list[
-        Statement
-        | VariantDiagnosticStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantTherapeuticResponseStudyStatement
-    ]:
-        """Retrieve statements for the corresponding statement IDs.
-
-        :param statement_ids: the IDs of a statement
-        :return: list of statements for which retrieval was successful
-        """
-        result = self.driver.execute_query(
-            self.queries.get_statements, statement_ids=statement_ids
-        )
-        return self._get_statements_from_results(result.records)
-
     def teardown_db(self) -> None:
-        """Reset repository storage."""
+        """Reset repository storage.
+
+        Delete all nodes/edges and constraints.
+        """
         with self.driver.session() as session:
             for query in self.queries.teardown:
                 session.execute_write(lambda tx: tx.run(query))
