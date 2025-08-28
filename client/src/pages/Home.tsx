@@ -1,11 +1,23 @@
-import * as React from 'react';
+import * as React from 'react'
 import Header from '../components/Header'
 import { Box, Button, MenuItem, Select, TextField, Typography } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
+import { useNavigate } from 'react-router-dom'
 
 const HomePage = () => {
-  const [searchType, setSearchType] = React.useState('');
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const navigate = useNavigate()
+
+  const [searchType, setSearchType] = React.useState('gene')
+  const [searchQuery, setSearchQuery] = React.useState('')
+
+  const doSearch = () => {
+    if (!searchQuery.trim()) return
+    navigate(`/search?${searchType}=${encodeURIComponent(searchQuery.trim())}`)
+  }
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') doSearch()
+  }
 
   return (
     <>
@@ -26,12 +38,20 @@ const HomePage = () => {
             Search harmonized data across multiple genomic knowledgebases.
           </Typography>
           <Box id="search-container">
-            <Select value={searchType} onChange={(e) => setSearchType(e.target.value)} label="Search Type">
-              <MenuItem value='gene'>Gene</MenuItem>
-              <MenuItem value='variant'>Variant</MenuItem>
+            <Select
+              value={searchType}
+              onChange={(e) => setSearchType(e.target.value)}
+              label="Search Type"
+            >
+              <MenuItem value="gene">Gene</MenuItem>
+              <MenuItem value="variation">Variant</MenuItem>
             </Select>
-            <TextField value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}></TextField>
-            <Button variant="contained" color="secondary" sx={{ marginLeft: 1 }}>
+            <TextField
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={onKeyDown}
+            ></TextField>
+            <Button variant="contained" color="secondary" sx={{ marginLeft: 1 }} onClick={doSearch}>
               <SearchIcon />
               Search
             </Button>
