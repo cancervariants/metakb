@@ -91,7 +91,7 @@ root = ".."
 where = ["src"]
 
 [tool.setuptools.package-data]
-metakb = ["queries/**/*"]  # TODO is this correct
+metakb = ["*.cypher"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=src --cov-report term-missing --ignore=codebuild/"
