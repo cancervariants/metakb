@@ -71,3 +71,7 @@ class CypherCatalog:
     @cached_property
     def search_statements(self) -> str:
         return self._load("search_statements.cypher")
+
+    @cached_property
+    def get_statements(self) -> str:
+        return self._load("get_statements.cypher")

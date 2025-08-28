@@ -2,6 +2,7 @@
 
 import logging
 import os
+import sys
 from urllib.parse import urlparse, urlunparse
 
 import boto3
@@ -24,7 +25,7 @@ from ga4gh.va_spec.base import (
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from neo4j import Driver, GraphDatabase, ManagedTransaction
+from neo4j import Driver, GraphDatabase, ManagedTransaction, Record
 from neo4j.graph import Node
 
 from metakb.config import get_configs
@@ -38,6 +39,7 @@ from metakb.repository.neo4j_models import (
     DiseaseNode,
     DocumentNode,
     DrugNode,
+    EvidenceLineNode,
     GeneNode,
     LiteralSequenceExpressionNode,
     MethodNode,
@@ -380,32 +382,16 @@ class Neo4jRepository(AbstractRepository):
             )
         return DrugNode(**drug_record)
 
-    def search_statements(
-        self,
-        statement_id: str | None = None,
-        variation_id: str | None = None,
-        gene_id: str | None = None,
-        therapy_id: str | None = None,
-        disease_id: str | None = None,
-        start: int = 0,
-        limit: int | None = None,
-    ) -> list[
-        Statement
-        | VariantDiagnosticStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantTherapeuticResponseStudyStatement
-    ]:
-        """TODO describe this"""
-        result = self.driver.execute_query(
-            self.queries.search_statements,
-            variation_id=variation_id,
-            condition_id=disease_id,
-            gene_id=gene_id,
-            therapy_id=therapy_id,
-        )
+    def _get_statements_from_results(self, records: list[Record]) -> list[Statement]:
+        """Craft a list of GKS-compliant Statement objects given the results of a Neo4j cypher lookup
 
+        A lot of assumptions are being made that the shape/columns of the records are consistent
+        between queries. If there are changes to the graph schema, this method will raise a
+        lot of errors at runtime.
+        """
         statements = []
-        for record in result.records:
+        evidence_line_statement_ids = []
+        for record in records:
             defining_allele_node = self._make_allele_node(
                 record["defining_allele"],
                 record["defining_allele_sl"],
@@ -435,7 +421,8 @@ class Neo4jRepository(AbstractRepository):
             # and add them to some kind of query tracker thing
             # and then do a `get_statements()` fetch to get all of them separately by ID
             # and then add them back in here
-            evidence_line_nodes = []  # TODO just None for now
+            # evidence_line_nodes = [EvidenceLineNode(has_evidence_items=) for el in ]  # TODO just None for now
+            evidence_line_nodes = []  # TODO OSDFLKJSDFL:JKFDS
             classification_node = (
                 ClassificationNode(**record["classification"])
                 if record["classification"]
@@ -488,22 +475,53 @@ class Neo4jRepository(AbstractRepository):
             statements.append(statement.to_gks())
         return statements
 
-    def get_statement(
-        self, statement_id: str
-    ) -> (
+    def search_statements(
+        self,
+        statement_id: str | None = None,
+        variation_id: str | None = None,
+        gene_id: str | None = None,
+        therapy_id: str | None = None,
+        disease_id: str | None = None,
+        start: int = 0,
+        limit: int | None = None,
+    ) -> list[
         Statement
         | VariantDiagnosticStudyStatement
         | VariantPrognosticStudyStatement
         | VariantTherapeuticResponseStudyStatement
-    ):
-        """Given a single statement ID, get it back.
+    ]:
+        """TODO describe this"""
+        if limit is None:
+            limit = 999999999  # arbitrary page size default
+        result = self.driver.execute_query(
+            self.queries.search_statements,
+            variation_id=variation_id,
+            condition_id=disease_id,
+            gene_id=gene_id,
+            therapy_id=therapy_id,
+            start=start,
+            limit=limit,
+        )
+        return self._get_statements_from_results(result.records)
 
-        TODO: write this as "get statements" -- give list of statement IDs
+    def get_statements(
+        self,
+        statement_ids: list[str],
+    ) -> list[
+        Statement
+        | VariantDiagnosticStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantTherapeuticResponseStudyStatement
+    ]:
+        """Retrieve statements for the corresponding statement IDs.
 
-        :param statement_id: the ID of a statement
-        :raise KeyError: if unable to retrieve it
+        :param statement_ids: the IDs of a statement
+        :return: list of statements for which retrieval was successful
         """
-        raise NotImplementedError
+        result = self.driver.execute_query(
+            self.queries.get_statements, statement_ids=statement_ids
+        )
+        return self._get_statements_from_results(result.records)
 
     def teardown_db(self) -> None:
         """Reset repository storage."""

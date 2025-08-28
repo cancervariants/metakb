@@ -21,18 +21,19 @@ class AbstractRepository(abc.ABC):
     """
 
     @abc.abstractmethod
-    def get_statement(
-        self, statement_id: str
-    ) -> (
+    def get_statements(
+        self,
+        statement_ids: list[str],
+    ) -> list[
         Statement
         | VariantDiagnosticStudyStatement
         | VariantPrognosticStudyStatement
         | VariantTherapeuticResponseStudyStatement
-    ):
-        """Given a single statement ID, get it back.
+    ]:
+        """Retrieve statements for the corresponding statement IDs.
 
-        :param statement_id: the ID of a statement
-        :raise KeyError: if unable to retrieve it
+        :param statement_ids: the IDs of a statement
+        :return: list of statements for which retrieval was successful
         """
 
     @abc.abstractmethod

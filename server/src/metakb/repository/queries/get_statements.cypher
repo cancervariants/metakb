@@ -1,32 +1,10 @@
 MATCH (s:Statement)
+WHERE (s.id IN $statement_ids)
 
 // use input args to select matching statements
 MATCH (s)-[:HAS_SUBJECT_VARIANT]->(cv:CategoricalVariant)
 MATCH (s)-[:HAS_TUMOR_TYPE]->(c:Condition)
 MATCH (s)-[:HAS_GENE_CONTEXT]->(g:Gene)
-WHERE
-  ($variation_id IS NULL OR
-    EXISTS {
-      MATCH
-        (cv)-[:HAS_CONSTRAINT]->
-        (:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->
-        (:Allele {id: $variation_id})
-    } OR
-    EXISTS {
-      MATCH (cv)-[:HAS_MEMBER]->(:Allele {id: $variation_id})
-    }) AND
-  ($condition_id IS NULL OR c.normalized_id = $condition_id) AND
-  ($gene_id IS NULL OR g.normalized_id = $gene_id) AND
-  ($therapy_id IS NULL OR
-    EXISTS {
-      MATCH (s)-[:HAS_THERAPEUTIC]->(:Therapeutic {normalized_id: $therapy_id})
-    } OR
-    EXISTS {
-      MATCH
-        (s)-[:HAS_THERAPEUTIC]->
-        (:TherapyGroup)-[:HAS_SUBSTITUTES|HAS_COMPONENTS]->
-        (:Drug {normalized_id: $therapy_id})
-    })
 
 // get basic statement info
 MATCH (s)-[:HAS_STRENGTH]->(str:Strength)
@@ -122,6 +100,4 @@ RETURN DISTINCT
   drug,
   documents,
   evidence_lines
-ORDER BY s.id
-SKIP $start
-LIMIT $limit;
+ORDER BY s.id;

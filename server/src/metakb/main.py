@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     query = QueryHandler()
     app.state.query = query
     yield
-    query.driver.close()
+    query.repository.driver.close()
 
 
 app = FastAPI(
@@ -176,11 +176,4 @@ async def batch_get_statements(
     :param limit: The maximum number of results to return. Use for pagination.
     :return: batch response object
     """
-    query = request.app.state.query
-    try:
-        return await query.batch_search_statements(variations, start, limit)
-    except EmptySearchError as e:
-        raise HTTPException(
-            status_code=422,
-            detail="At least one search parameter must be provided, but no variations values have been given.",
-        ) from e
+    raise NotImplementedError

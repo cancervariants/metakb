@@ -725,7 +725,7 @@ class TherapeuticReponseStatementNode(StatementNodeBase):
 
         return cls(
             id=statement.id,
-            description=tr_proposition.description or "",
+            description=statement.description or "",
             direction=statement.direction,
             has_method=method_node,
             has_documents=document_nodes,
@@ -751,6 +751,9 @@ class TherapeuticReponseStatementNode(StatementNodeBase):
             objectTherapeutic=self.has_therapeutic.to_gks(),
             alleleOriginQualifier=self.allele_origin_qualifier,
         )
+        reported_in = (
+            [d.to_gks() for d in self.has_documents] if self.has_documents else None
+        )
         evidence_lines = (
             [el.to_gks() for el in self.has_evidence_lines]
             if self.has_evidence_lines
@@ -765,7 +768,7 @@ class TherapeuticReponseStatementNode(StatementNodeBase):
             specifiedBy=self.has_method.to_gks(),
             direction=self.direction,
             strength=self.has_strength.to_gks(),
-            reportedIn=[d.to_gks() for d in self.has_documents],
+            reportedIn=reported_in,
             proposition=proposition,
             hasEvidenceLines=evidence_lines,
             classification=classification,
@@ -798,7 +801,6 @@ class DiagnosticStatementNode(StatementNodeBase):
             if statement.reportedIn
             else []
         )
-
         classification_node = (
             ClassificationNode.from_gks(statement.classification)
             if statement.classification
@@ -807,7 +809,7 @@ class DiagnosticStatementNode(StatementNodeBase):
 
         return cls(
             id=statement.id,
-            description=diagnostic_proposition.description or "",
+            description=statement.description or "",
             direction=statement.direction,
             has_method=method,
             has_documents=document_nodes,
@@ -835,6 +837,9 @@ class DiagnosticStatementNode(StatementNodeBase):
             subjectVariant=self.has_variant.to_gks(),
             alleleOriginQualifier=self.allele_origin_qualifier,
         )
+        reported_in = (
+            [d.to_gks() for d in self.has_documents] if self.has_documents else None
+        )
         evidence_lines = (
             [el.to_gks() for el in self.has_evidence_lines]
             if self.has_evidence_lines
@@ -849,7 +854,7 @@ class DiagnosticStatementNode(StatementNodeBase):
             specifiedBy=self.has_method.to_gks(),
             direction=self.direction,
             strength=self.has_strength.to_gks(),
-            reportedIn=[d.to_gks() for d in self.has_documents],
+            reportedIn=reported_in,
             proposition=proposition,
             hasEvidenceLines=evidence_lines,
             classification=classification,
@@ -890,7 +895,7 @@ class PrognosticStatementNode(StatementNodeBase):
 
         return cls(
             id=statement.id,
-            description=prognostic_proposition.description or "",
+            description=statement.description or "",
             direction=statement.direction,
             has_method=method_node,
             has_documents=document_nodes,
@@ -918,6 +923,9 @@ class PrognosticStatementNode(StatementNodeBase):
             subjectVariant=self.has_variant.to_gks(),
             alleleOriginQualifier=self.allele_origin_qualifier,
         )
+        reported_in = (
+            [d.to_gks() for d in self.has_documents] if self.has_documents else None
+        )
         evidence_lines = (
             [el.to_gks() for el in self.has_evidence_lines]
             if self.has_evidence_lines
@@ -932,7 +940,7 @@ class PrognosticStatementNode(StatementNodeBase):
             specifiedBy=self.has_method.to_gks(),
             direction=self.direction,
             strength=self.has_strength.to_gks(),
-            reportedIn=[d.to_gks() for d in self.has_documents],
+            reportedIn=reported_in,
             proposition=proposition,
             hasEvidenceLines=evidence_lines,
             classification=classification,

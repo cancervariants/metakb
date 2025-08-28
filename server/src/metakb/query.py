@@ -1,41 +1,20 @@
 """Provide class/methods/schemas for issuing queries against the database."""
 
-from timeit import default_timer as timer
 import json
 import logging
-from copy import copy
 from enum import Enum
 
-from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
-from ga4gh.core.models import Extension, MappableConcept
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base import (
-    Direction,
-    Document,
-    EvidenceLine,
-    MembershipOperator,
-    Method,
-    Statement,
-    TherapyGroup,
-)
-from ga4gh.vrs.models import (
-    Allele,
-    Expression,
-    LiteralSequenceExpression,
-    ReferenceLengthExpression,
-    SequenceLocation,
-)
 from neo4j import Driver
-from neo4j.graph import Node
 
 from metakb.normalizers import (
     ViccNormalizers,
 )
-from metakb.repository.neo4j_repository import get_driver, Neo4jRepository
+from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 from metakb.schemas.api import (
     BatchSearchStatementsQuery,
     BatchSearchStatementsService,
@@ -184,8 +163,7 @@ class QueryHandler:
             e.g. ``"ensembl:ENSG00000198400"``.
         :param statement_id: Statement ID query provided by source, e.g. ``"civic.eid:3017"``.
         :param start: Index of first result to fetch. Must be nonnegative.
-        :param limit: Max number of results to fetch. Must be nonnegative. Revert to
-            default defined at class initialization if not given.
+        :param limit: Max number of results to fetch. Must be nonnegative.
         :return: Service response object containing nested statements and service
             metadata.
         :raise EmptySearchError: if no search params given
@@ -215,7 +193,7 @@ class QueryHandler:
         }
 
         normalized_terms = await self._get_normalized_terms(
-            variation, disease, therapy, gene, statement_id, response
+            variation, disease, therapy, gene, response
         )
 
         if normalized_terms is None:
@@ -226,8 +204,6 @@ class QueryHandler:
             normalized_disease,
             normalized_therapy,
             normalized_gene,
-            statement,
-            valid_statement_id,
         ) = normalized_terms
 
         statements = self.repository.search_statements(
@@ -235,6 +211,8 @@ class QueryHandler:
             gene_id=normalized_gene,
             disease_id=normalized_disease,
             therapy_id=normalized_therapy,
+            start=start,
+            limit=limit,
         )
         response["statements"] = statements
 
@@ -251,7 +229,6 @@ class QueryHandler:
         disease: str | None,
         therapy: str | None,
         gene: str | None,
-        statement_id: str | None,
         response: dict,
     ) -> tuple | None:
         """Find normalized terms for queried concepts.
@@ -291,26 +268,12 @@ class QueryHandler:
         else:
             normalized_gene = None
 
-        # Check that queried statement_id is valid
-        valid_statement_id = None
-        statement = None
-        if statement_id:
-            response["query"]["statement_id"] = statement_id
-            statement = self._get_stmt_by_id(statement_id)
-            if statement:
-                valid_statement_id = statement.get("id")
-            else:
-                response["warnings"].append(
-                    f"Statement: {statement_id} does not exist."
-                )
-
         # If queried concept is given check that it is normalized / valid
         if (
             (variation and not normalized_variation)
             or (therapy and not normalized_therapy)
             or (disease and not normalized_disease)
             or (gene and not normalized_gene)
-            or (statement_id and not valid_statement_id)
         ):
             return None
 
@@ -319,8 +282,6 @@ class QueryHandler:
             normalized_disease,
             normalized_therapy,
             normalized_gene,
-            statement,
-            valid_statement_id,
         )
 
     def _get_normalized_therapy(self, therapy: str, warnings: list[str]) -> str | None:
