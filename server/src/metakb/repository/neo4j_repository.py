@@ -243,7 +243,7 @@ class Neo4jRepository(AbstractRepository):
     def add_gene(
         self,
         tx: ManagedTransaction,
-        gene: MappableConcept,  # TODO double check
+        gene: MappableConcept,
     ) -> None:
         gene_node = GeneNode.from_gks(gene)
         tx.run(self.queries.load_gene, gene=gene_node.model_dump(mode="json"))
@@ -477,7 +477,6 @@ class Neo4jRepository(AbstractRepository):
 
     def search_statements(
         self,
-        statement_id: str | None = None,
         variation_id: str | None = None,
         gene_id: str | None = None,
         therapy_id: str | None = None,
@@ -490,7 +489,22 @@ class Neo4jRepository(AbstractRepository):
         | VariantPrognosticStudyStatement
         | VariantTherapeuticResponseStudyStatement
     ]:
-        """TODO describe this"""
+        """Perform entity-based search over all statements.
+
+        Return all statements matching all provided entity parameters.
+
+        Probable future changes
+        * Search by list of entities
+        * Combo-therapy specific search
+
+        :param variation_id: GA4GH variation ID
+        :param gene_id: normalized gene ID
+        :param therapy_id: normalized drug ID
+        :param disease_id: normalized condition ID
+        :param start: page start
+        :param limit: length of page
+        :return: list of matching statements
+        """
         if limit is None:
             limit = 999999999  # arbitrary page size default
         result = self.driver.execute_query(

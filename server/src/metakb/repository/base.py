@@ -2,14 +2,12 @@
 
 import abc
 
-from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.base import Document, Method, Statement, TherapyGroup
+from ga4gh.va_spec.base import Statement
 
 from metakb.transformers.base import TransformedData
 
@@ -39,7 +37,6 @@ class AbstractRepository(abc.ABC):
     @abc.abstractmethod
     def search_statements(
         self,
-        statement_id: str | None = None,
         variation_id: str | None = None,
         gene_id: str | None = None,
         therapy_id: str | None = None,
@@ -52,7 +49,22 @@ class AbstractRepository(abc.ABC):
         | VariantPrognosticStudyStatement
         | VariantTherapeuticResponseStudyStatement
     ]:
-        """TODO describe this"""
+        """Perform entity-based search over all statements.
+
+        Return all statements matching all provided entity parameters.
+
+        Probable future changes
+        * Search by list of entities
+        * Combo-therapy specific search
+
+        :param variation_id: GA4GH variation ID
+        :param gene_id: normalized gene ID
+        :param therapy_id: normalized drug ID
+        :param disease_id: normalized condition ID
+        :param start: page start
+        :param limit: length of page
+        :return: list of matching statements
+        """
 
     @abc.abstractmethod
     def add_transformed_data(self, data: TransformedData) -> None:

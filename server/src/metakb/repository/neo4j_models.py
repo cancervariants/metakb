@@ -2,7 +2,7 @@
 
 A few basic motifs are important here --
 
-* Node classes should define a `from_gks` classmethod, which accepts the corresponding
+* Node classes MUST define a `from_gks` classmethod, which accepts the corresponding
   GKS class, and creates an instance of Self, as well as a `to_gks` instance method,
   which returns the same GKS class
 * In general, class property names for properties consisting of other nodes should
@@ -14,9 +14,10 @@ A few basic motifs are important here --
 
 from __future__ import annotations
 
+import abc
 import json
 import logging
-from typing import Literal, Self
+from typing import Any, Literal, Self
 
 from ga4gh.cat_vrs.models import (
     CategoricalVariant,
@@ -60,7 +61,20 @@ _Expressions = RootModel[list[Expression]]
 _MappableConcepts = RootModel[list[MappableConcept]]
 
 
-class SequenceLocationNode(BaseModel):
+class BaseNode(BaseModel, abc.ABC):
+    """Abstract base node."""
+
+    @classmethod
+    @abc.abstractmethod
+    def from_gks(cls, *args, **kwargs) -> Self:
+        """Create node instance from GKS class."""
+
+    @abc.abstractmethod
+    def to_gks(self) -> Any:
+        """Return corresponding GKS class."""
+
+
+class SequenceLocationNode(BaseNode):
     """Node model for SequenceLocation"""
 
     id: str
@@ -95,7 +109,7 @@ class SequenceLocationNode(BaseModel):
         )
 
 
-class LiteralSequenceExpressionNode(BaseModel):
+class LiteralSequenceExpressionNode(BaseNode):
     """Node model for LiteralSequenceExpression"""
 
     sequence: str
@@ -111,7 +125,7 @@ class LiteralSequenceExpressionNode(BaseModel):
         return LiteralSequenceExpression(sequence=self.sequence)
 
 
-class ReferenceLengthExpressionNode(BaseModel):
+class ReferenceLengthExpressionNode(BaseNode):
     """Node model for ReferenceLengthExpression"""
 
     sequence: str
@@ -137,7 +151,7 @@ class ReferenceLengthExpressionNode(BaseModel):
         )
 
 
-class AlleleNode(BaseModel):
+class AlleleNode(BaseNode):
     """Node model for VRS allele"""
 
     id: str
@@ -176,7 +190,7 @@ class AlleleNode(BaseModel):
         )
 
 
-class DefiningAlleleConstraintNode(BaseModel):
+class DefiningAlleleConstraintNode(BaseNode):
     """Node model for Cat-VRS DefiningAlleleConstraint"""
 
     id: str
@@ -208,7 +222,7 @@ class DefiningAlleleConstraintNode(BaseModel):
         )
 
 
-class CategoricalVariantNode(BaseModel):
+class CategoricalVariantNode(BaseNode):
     """Node model for Categorical Variant."""
 
     id: str
@@ -269,7 +283,7 @@ class CategoricalVariantNode(BaseModel):
         )
 
 
-class GeneNode(BaseModel):
+class GeneNode(BaseNode):
     """Node model for Gene."""
 
     id: str
@@ -317,7 +331,7 @@ class GeneNode(BaseModel):
         )
 
 
-class DiseaseNode(BaseModel):
+class DiseaseNode(BaseNode):
     """Node model for an individual Disease.
 
     More complex models will need to be built to handle conditionsets/etc.
@@ -363,7 +377,7 @@ class DiseaseNode(BaseModel):
         )
 
 
-class DrugNode(BaseModel):
+class DrugNode(BaseNode):
     """Node model for Drug."""
 
     id: str
@@ -405,7 +419,7 @@ class DrugNode(BaseModel):
         )
 
 
-class TherapyGroupNode(BaseModel):
+class TherapyGroupNode(BaseNode):
     """Node model for TherapyGroup."""
 
     id: str
@@ -435,7 +449,7 @@ class TherapyGroupNode(BaseModel):
         )
 
 
-class DocumentNode(BaseModel):
+class DocumentNode(BaseNode):
     """Node model for Document."""
 
     id: str
@@ -502,7 +516,7 @@ class DocumentNode(BaseModel):
         )
 
 
-class MethodNode(BaseModel):
+class MethodNode(BaseNode):
     """Node model for Method."""
 
     id: str
@@ -531,7 +545,7 @@ class MethodNode(BaseModel):
         )
 
 
-class StrengthNode(BaseModel):
+class StrengthNode(BaseNode):
     """Node model of a Strength object."""
 
     id: str
@@ -571,7 +585,7 @@ class StrengthNode(BaseModel):
         )
 
 
-class EvidenceLineNode(BaseModel):
+class EvidenceLineNode(BaseNode):
     """Node model for an Evidence Line object."""
 
     id: str
@@ -617,7 +631,7 @@ class EvidenceLineNode(BaseModel):
         )
 
 
-class ClassificationNode(BaseModel):
+class ClassificationNode(BaseNode):
     """Node model for a classification."""
 
     id: str
@@ -648,7 +662,7 @@ class ClassificationNode(BaseModel):
         return MappableConcept(primaryCoding=Coding(**json.loads(self.primary_coding)))
 
 
-class StatementNodeBase(BaseModel):
+class StatementNodeBase(BaseNode):
     """Base properties for a Statement node.
 
     Use as a mixin for a flattened statement/proposition node.
