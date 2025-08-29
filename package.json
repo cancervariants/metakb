@@ -14,8 +14,8 @@
   },
   "lint-staged": {
     "client/**/*.{js,ts,tsx}": [
-      "pnpm --filter client eslint --fix",
-      "pnpm --filter client prettier --write"
+      "eslint --fix",
+      "prettier --write"
     ],
     "server/**/*.py": [
       "ruff check --fix",
