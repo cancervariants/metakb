@@ -1871,7 +1871,7 @@ def civic_methods(civic_method, moa_method):
 def moa_source45():
     """Create a test fixture for MOA source 44."""
     return {
-        "id": "moa.sid:45",
+        "id": "moa.source:45",
         "extensions": [{"name": "source_type", "value": "Journal"}],
         "type": "Document",
         "title": "Gorre, Mercedes E., et al. Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification. Science 293.5531 (2001): 876-880.",
