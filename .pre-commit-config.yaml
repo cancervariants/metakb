@@ -17,11 +17,4 @@ repos:
       - id: ruff-format
       - id: ruff
         args: [ --fix, --exit-non-zero-on-fix ]
-  - repo: local
-    hooks:
-      - id: lint-staged
-        name: lint-staged
-        entry: pnpm lint-staged
-        language: system
-        files: \.(js|ts|tsx|py)$
 minimum_pre_commit_version: 4.2.0
