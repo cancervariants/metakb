@@ -4,7 +4,7 @@
   font-weight: 400;
 
   color: black;
-  background-color: white;
+  background-color: lightgrey;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -29,7 +29,7 @@ a:hover {
 
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 h1 {
