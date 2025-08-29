@@ -10,11 +10,17 @@ const HomePage = () => {
   return (
     <>
       <Header />
-      <main style={{height: '90%'}}>
+      <main style={{ height: '90%' }}>
         <Box
           id="main-page-container"
           mx={5}
-          sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: 'white', height: '100%'}}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            backgroundColor: 'white',
+            height: '100%',
+          }}
         >
           <Typography
             variant="h5"
@@ -26,12 +32,12 @@ const HomePage = () => {
             Search harmonized data across multiple genomic knowledgebases.
           </Typography>
           <Box id="search-container">
-              <InputLabel id="search-type-select-label">Search Type</InputLabel>
+            <InputLabel id="search-type-select-label">Search Type</InputLabel>
             <Select
               value={searchType}
               onChange={(e) => setSearchType(e.target.value)}
               label="Search Type"
-              labelId='search-type-select-label'
+              labelId="search-type-select-label"
               sx={{ minWidth: 120, marginRight: 1 }}
             >
               <MenuItem value="gene">Gene</MenuItem>
