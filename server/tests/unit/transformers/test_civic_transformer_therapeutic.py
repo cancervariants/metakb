@@ -395,11 +395,15 @@ def civic_mpid473():
 def civic_source123456789():
     """Create fixture for a fake civic source 123456789"""
     return {
-        "id": "civic.source:123456789",
+        "id": "civic.sid:123456789",
         "name": "John Doe et al., 2022",
         "title": "My fake civic source",
         "pmid": "123456789",
         "type": "Document",
+        "urls": [
+            "https://civicdb.org/links/source/123456789",
+            "http://www.ncbi.nlm.nih.gov/pubmed/123456789",
+        ],
     }
 
 

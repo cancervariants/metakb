@@ -30,7 +30,7 @@ dependencies = [
     "variation-normalizer~=0.14.1",
     "disease-normalizer[etl]~=0.11.2",
     "thera-py[etl]~=0.11.0",
-    "civicpy @ git+https://github.com/griffithlab/civicpy.git@issue-187",
+    "civicpy @ git+https://github.com/griffithlab/civicpy.git@d55d0a5d4e96c4642f8a9cc37edb1e61696bb2e1",
     "requests",
     "pydantic==2.*",
     "requests-cache",
@@ -163,6 +163,7 @@ fixable = [
     "FURB",
     "RUF"
 ]
+# ANN002 - missing-type-args
 # ANN003 - missing-type-kwargs
 # D203 - one-blank-line-before-class
 # D205 - blank-line-after-summary
@@ -180,7 +181,7 @@ fixable = [
 # PLC0206 - dict-index-missing-items
 # *ignored for compatibility with formatter
 ignore = [
-    "ANN003",
+    "ANN002", "ANN003",
     "D203", "D205", "D206", "D213", "D300", "D400", "D415",
     "E111", "E114", "E117", "E501",
     "W191",

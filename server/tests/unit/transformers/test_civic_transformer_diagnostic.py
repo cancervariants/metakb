@@ -4,6 +4,9 @@ import pytest
 import pytest_asyncio
 from civicpy import civic as civicpy
 from deepdiff import DeepDiff
+from ga4gh.va_spec.aac_2017 import (
+    VariantDiagnosticStudyStatement,
+)
 from ga4gh.va_spec.base import ConditionSet
 from tests.conftest import (
     get_civic_annotation_ext,
@@ -342,11 +345,15 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
         "specifiedBy": civic_method,
         "reportedIn": [
             {
-                "id": "civic.source:52",
+                "id": "civic.sid:52",
                 "name": "Lasota et al., 2004",
                 "title": "A great majority of GISTs with PDGFRA mutations represent gastric tumors of low or no malignant potential.",
                 "pmid": "15146165",
                 "type": "Document",
+                "urls": [
+                    "https://civicdb.org/links/source/52",
+                    "http://www.ncbi.nlm.nih.gov/pubmed/15146165",
+                ],
             },
             "https://civicdb.org/links/evidence/2",
         ],
@@ -672,11 +679,15 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
         "specifiedBy": civic_method,
         "reportedIn": [
             {
-                "id": "civic.source:44",
+                "id": "civic.sid:44",
                 "name": "Elisei et al., 2008",
                 "title": "Prognostic significance of somatic RET oncogene mutations in sporadic medullary thyroid cancer: a 10-year follow-up study.",
                 "pmid": "18073307",
                 "type": "Document",
+                "urls": [
+                    "https://civicdb.org/links/source/44",
+                    "http://www.ncbi.nlm.nih.gov/pubmed/18073307",
+                ],
             },
             "https://civicdb.org/links/evidence/74",
         ],
@@ -810,14 +821,13 @@ async def test_phenotypes(
     phenotype_assertions,
     aid93_object_condition,
     aid115_object_condition,
-    normalizers,
-    tmp_path,
 ):
     """Test that civic transformation works correctly for phenotype data"""
-    t = await civic_cdm_data([], phenotype_assertions, create_json=False)
-    assertions = t.processed_data.statements_assertions
+    data = await civic_cdm_data([], phenotype_assertions, FILENAME)
+    assertions_dict = data["statements_assertions"]
 
-    assert len(assertions) == 2
+    assert len(assertions_dict) == 2
+    assertions = [VariantDiagnosticStudyStatement(**a) for a in assertions_dict]
     assert {a.id for a in assertions} == {"civic.aid:93", "civic.aid:115"}
 
     for assertion in assertions:
@@ -835,4 +845,4 @@ async def test_phenotypes(
             ignore_order=True,
         )
 
-    assert len(t.processed_data.conditions) == 6
+    assert len(data["conditions"]) == 6

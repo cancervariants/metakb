@@ -482,10 +482,14 @@ def civic_mpid33(civic_vid33, psc_relations):
 def civic_source592():
     """Create fixture for civic source 592"""
     return {
-        "id": "civic.source:1725",
+        "id": "civic.sid:1725",
         "name": "Dungo et al., 2013",
         "title": "Afatinib: first global approval.",
         "pmid": "23982599",
+        "urls": [
+            "https://civicdb.org/links/source/1725",
+            "http://www.ncbi.nlm.nih.gov/pubmed/23982599",
+        ],
         "type": "Document",
     }
 
@@ -1272,11 +1276,16 @@ def civic_eid816_study_stmt(
         "specifiedBy": civic_method,
         "reportedIn": [
             {
-                "id": "civic.source:548",
+                "id": "civic.sid:548",
                 "name": "Rowland et al., 2015",
                 "title": "Meta-analysis of BRAF mutation as a predictive biomarker of benefit from anti-EGFR monoclonal antibody therapy for RAS wild-type metastatic colorectal cancer.",
                 "pmid": "25989278",
                 "type": "Document",
+                "urls": [
+                    "https://civicdb.org/links/source/548",
+                    "http://www.ncbi.nlm.nih.gov/pubmed/25989278",
+                    "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4580381",
+                ],
             },
             "https://civicdb.org/links/evidence/816",
         ],
@@ -1329,11 +1338,15 @@ def civic_eid9851_study_stmt(
         "specifiedBy": civic_method,
         "reportedIn": [
             {
-                "id": "civic.source:3025",
+                "id": "civic.sid:3025",
                 "name": "Kopetz et al., 2019",
                 "title": "Encorafenib, Binimetinib, and Cetuximab in BRAF V600E-Mutated Colorectal Cancer.",
                 "pmid": "31566309",
                 "type": "Document",
+                "urls": [
+                    "https://civicdb.org/links/source/3025",
+                    "http://www.ncbi.nlm.nih.gov/pubmed/31566309",
+                ],
             },
             "https://civicdb.org/links/evidence/9851",
         ],
@@ -1858,7 +1871,7 @@ def civic_methods(civic_method, moa_method):
 def moa_source45():
     """Create a test fixture for MOA source 44."""
     return {
-        "id": "moa.source:45",
+        "id": "moa.sid:45",
         "extensions": [{"name": "source_type", "value": "Journal"}],
         "type": "Document",
         "title": "Gorre, Mercedes E., et al. Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification. Science 293.5531 (2001): 876-880.",
