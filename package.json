@@ -13,10 +13,6 @@
     "turbo": "^1.12.3"
   },
   "lint-staged": {
-    "client/**/*.{js,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
     "server/**/*.py": [
       "ruff check --fix",
       "ruff format"
