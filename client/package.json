@@ -34,10 +34,10 @@
     "typescript-eslint": "^8.30.0",
     "vite": "^6.2.7"
   },
-    "lint-staged": {
+  "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "pnpm --filter client eslint --fix",
-      "pnpm --filter client prettier --write"
+      "pnpm lint",
+      "pnpm format:fix"
     ]
   }
 }
