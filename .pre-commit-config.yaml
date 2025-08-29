@@ -21,7 +21,7 @@ repos:
     hooks:
       - id: lint-staged
         name: lint-staged
-        entry: yarn lint-staged
+        entry: pnpm lint-staged
         language: system
-        files: \.[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
+        files: \.(js|ts|tsx|py)$
 minimum_pre_commit_version: 4.2.0
