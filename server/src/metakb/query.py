@@ -209,7 +209,9 @@ class QueryHandler:
             },
             "warnings": [],
             "statement_ids": [],
-            "statements": [],
+            "tr_statements": {},
+            "diagnostic_statements": {},
+            "prognostic_statements": {},
             "service_meta_": ServiceMeta(),
         }
 
@@ -243,13 +245,40 @@ class QueryHandler:
             )
             response["statement_ids"] = [s["id"] for s in statement_nodes]
 
-        response["statements"] = self._get_nested_stmts(statement_nodes)
+        statements = self._get_nested_stmts(statement_nodes)
+        for statement in statements:
+            proposition_type = statement.proposition.type
+            variant_id = statement.proposition.subjectVariant.id
+            predicate = statement.proposition.predicate
+            if proposition_type == "VariantTherapeuticResponseProposition":
+                key = f"{variant_id}|{statement.proposition.conditionQualifier.root.id}|{statement.proposition.objectTherapeutic.root.id}|{predicate}"
+                response["tr_statements"].setdefault(key, []).append(statement)
+            elif proposition_type == "VariantDiagnosticProposition":
+                key = f"{statement.proposition.subjectVariant.id}|{statement.proposition.objectCondition.root.id}|{predicate}"
+                response["diagnostic_statements"].setdefault(key, []).append(statement)
+            elif proposition_type == "VariantPrognosticProposition":
+                key = f"{statement.proposition.subjectVariant.id}|{statement.proposition.objectCondition.root.id}|{predicate}"
+                response["prognostic_statements"].setdefault(key, []).append(statement)
+            else:
+                msg = (
+                    f"Unrecognized proposition type `{proposition_type}` in {statement}"
+                )
+                raise ValueError(msg)
 
-        if not response["statements"]:
+        if not all(
+            [
+                response["tr_statements"],
+                response["diagnostic_statements"],
+                response["prognostic_statements"],
+            ]
+        ):
             response["warnings"].append(
                 "No statements found with the provided query parameters."
             )
 
+        import ipdb
+
+        ipdb.set_trace()
         return SearchStatementsService(**response)
 
     async def _get_normalized_terms(

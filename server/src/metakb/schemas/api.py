@@ -117,12 +117,9 @@ class SearchStatementsService(BaseModel):
     query: SearchStatementsQuery
     warnings: list[StrictStr] = []
     statement_ids: list[StrictStr] = []
-    statements: list[
-        Statement
-        | VariantTherapeuticResponseStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantDiagnosticStudyStatement
-    ] = []
+    tr_statements: dict[str, list[VariantTherapeuticResponseStudyStatement]] = {}
+    diagnostic_statements: dict[str, list[VariantDiagnosticStudyStatement]] = {}
+    prognostic_statements: dict[str, list[VariantPrognosticStudyStatement]] = {}
     service_meta_: ServiceMeta
 
 
