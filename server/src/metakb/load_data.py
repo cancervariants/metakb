@@ -10,9 +10,6 @@ from ga4gh.va_spec.base import (
     MembershipOperator,
     Statement,
     TherapyGroup,
-    VariantDiagnosticProposition,
-    VariantPrognosticProposition,
-    VariantTherapeuticResponseProposition,
 )
 from neo4j import Driver, ManagedTransaction
 
@@ -20,6 +17,112 @@ from metakb.database import get_driver
 from metakb.transformers.base import NormalizerExtensionName
 
 _logger = logging.getLogger(__name__)
+
+
+def is_loadable_statement(statement: Statement) -> bool:
+    """Check whether statement can be loaded to DB
+
+    * All entity terms need to have normalized
+    * For variations, that means the catvar must have a constraint
+    * For StudyStatements that are supported by other statements via evidence lines,
+        all supporting statements must be loadable for the overarching StudyStatement
+        to be loadable
+
+    :param statement: incoming statement from CDM. All parameters must be fully materialized,
+        not simply referenced as IRIs
+    :return: whether statement can be loaded given current data support policy
+    """
+    success = True
+    if evidence_lines := statement.hasEvidenceLines:
+        for evidence_line in evidence_lines:
+            for evidence_item in evidence_line.hasEvidenceItems:
+                if not is_loadable_statement(evidence_item):
+                    _logger.debug(
+                        "%s could not be loaded because %s is not supported",
+                        statement.id,
+                        evidence_item.id,
+                    )
+                    success = False
+    proposition = statement.proposition
+    if not proposition.subjectVariant.constraints:
+        _logger.debug(
+            "%s could not be loaded because subject variant object lacks constraints: %s",
+            statement.id,
+            proposition.subjectVariant,
+        )
+        success = False
+    proposition_type = proposition.type
+    if proposition_type == "VariantTherapeuticResponseProposition":
+        if extensions := proposition.conditionQualifier.root.extensions:
+            for extension in extensions:
+                if extension.name == "vicc_normalizer_failure" and extension.value:
+                    _logger.debug(
+                        "%s could not be loaded because condition failed to normalize: %s",
+                        statement.id,
+                        proposition.conditionQualifier.root,
+                    )
+                    success = False
+        if therapeutic := proposition.objectTherapeutic:
+            if isinstance(therapeutic.root, MappableConcept):
+                if extensions := therapeutic.root.extensions:
+                    for extension in extensions:
+                        if (
+                            extension.name == "vicc_normalizer_failure"
+                            and extension.value
+                        ):
+                            _logger.debug(
+                                "%s could not be loaded because drug failed to normalize: %s",
+                                statement.id,
+                                therapeutic.root,
+                            )
+                            success = False
+            elif isinstance(therapeutic.root, TherapyGroup):
+                for drug in therapeutic.root.therapies:
+                    if extensions := drug.extensions:
+                        for extension in extensions:
+                            if (
+                                extension.name == "vicc_normalizer_failure"
+                                and extension.value
+                            ):
+                                _logger.debug(
+                                    "%s could not be loaded because drug in therapygroup failed to normalize: %s",
+                                    statement.id,
+                                    drug,
+                                )
+                                success = False
+            else:
+                raise TypeError
+    elif proposition_type in (
+        "VariantDiagnosticProposition",
+        "VariantPrognosticProposition",
+    ):
+        if extensions := proposition.objectCondition.root.extensions:
+            for extension in extensions:
+                if extension.name == "vicc_normalizer_failure" and extension.value:
+                    _logger.debug(
+                        "%s could not be loaded because condition failed to normalize: %s",
+                        statement.id,
+                        proposition.objectCondition.root,
+                    )
+                    success = False
+    else:
+        msg = f"Unsupported proposition type: {proposition.type}"
+        raise NotImplementedError(msg)
+    if proposition.geneContextQualifier:  # noqa: SIM102
+        if gene_extensions := proposition.geneContextQualifier.extensions:
+            for extension in gene_extensions:
+                if extension.name == "vicc_normalizer_failure" and extension.value:
+                    _logger.debug(
+                        "%s could not be loaded because gene failed to normalize: %s",
+                        statement.id,
+                        proposition.geneContextQualifier,
+                    )
+                    success = False
+    if success:
+        _logger.debug("Success. %s can be loaded.", statement.id)
+    else:
+        _logger.debug("Failure. %s cannot be loaded.", statement.id)
+    return success
 
 
 def _create_parameterized_query(
@@ -614,106 +717,3 @@ def load_from_json(src_transformed_cdm: Path, driver: Driver | None = None) -> N
     with src_transformed_cdm.open() as f:
         items = json.load(f)
         add_transformed_data(driver, items)
-
-
-def is_loadable_statement(statement: Statement) -> bool:
-    """Check whether statement can be loaded to DB
-
-    * All entity terms need to have normalized
-    * For variations, that means the catvar must have a constraint
-    * For StudyStatements that are supported by other statements via evidence lines,
-        all supporting statements must be loadable for the overarching StudyStatement
-        to be loadable
-
-    :param statement: incoming statement from CDM. All parameters must be fully materialized,
-        not simply referenced as IRIs
-    :return: whether statement can be loaded given current data support policy
-    """
-    success = True
-    if evidence_lines := statement.hasEvidenceLines:
-        for evidence_line in evidence_lines:
-            for evidence_item in evidence_line.hasEvidenceItems:
-                if not is_loadable_statement(evidence_item):
-                    _logger.debug(
-                        "%s could not be loaded because %s is not supported",
-                        statement.id,
-                        evidence_item.id,
-                    )
-                    success = False
-    proposition = statement.proposition
-    if not proposition.subjectVariant.constraints:
-        _logger.debug(
-            "%s could not be loaded because subject variant object lacks constraints: %s",
-            statement.id,
-            proposition.subjectVariant,
-        )
-        success = False
-    match proposition:
-        case VariantTherapeuticResponseProposition():
-            if extensions := proposition.conditionQualifier.root.extensions:
-                for extension in extensions:
-                    if extension.name == "vicc_normalizer_failure" and extension.value:
-                        _logger.debug(
-                            "%s could not be loaded because condition failed to normalize: %s",
-                            statement.id,
-                            proposition.conditionQualifier.root,
-                        )
-                        success = False
-            if therapeutic := proposition.objectTherapeutic:
-                if isinstance(therapeutic.root, MappableConcept):
-                    if extensions := therapeutic.root.extensions:
-                        for extension in extensions:
-                            if (
-                                extension.name == "vicc_normalizer_failure"
-                                and extension.value
-                            ):
-                                _logger.debug(
-                                    "%s could not be loaded because drug failed to normalize: %s",
-                                    statement.id,
-                                    therapeutic.root,
-                                )
-                                success = False
-                elif isinstance(therapeutic.root, TherapyGroup):
-                    for drug in therapeutic.root.therapies:
-                        if extensions := drug.extensions:
-                            for extension in extensions:
-                                if (
-                                    extension.name == "vicc_normalizer_failure"
-                                    and extension.value
-                                ):
-                                    _logger.debug(
-                                        "%s could not be loaded because drug in therapygroup failed to normalize: %s",
-                                        statement.id,
-                                        drug,
-                                    )
-                                    success = False
-                else:
-                    raise TypeError
-        case VariantDiagnosticProposition() | VariantPrognosticProposition():
-            if extensions := proposition.objectCondition.root.extensions:
-                for extension in extensions:
-                    if extension.name == "vicc_normalizer_failure" and extension.value:
-                        _logger.debug(
-                            "%s could not be loaded because condition failed to normalize: %s",
-                            statement.id,
-                            proposition.objectCondition.root,
-                        )
-                        success = False
-        case _:
-            msg = f"Unsupported proposition type: {proposition.type}"
-            raise NotImplementedError(msg)
-    if proposition.geneContextQualifier:  # noqa: SIM102
-        if gene_extensions := proposition.geneContextQualifier.extensions:
-            for extension in gene_extensions:
-                if extension.name == "vicc_normalizer_failure" and extension.value:
-                    _logger.debug(
-                        "%s could not be loaded because gene failed to normalize: %s",
-                        statement.id,
-                        proposition.geneContextQualifier,
-                    )
-                    success = False
-    if success:
-        _logger.debug("Success. %s can be loaded.", statement.id)
-    else:
-        _logger.debug("Failure. %s cannot be loaded.", statement.id)
-    return success
