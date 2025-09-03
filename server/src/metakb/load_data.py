@@ -15,7 +15,7 @@ from ga4gh.va_spec.base import (
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from neo4j import Driver, ManagedTransaction
+from neo4j import Driver, ManagedTransaction, Transaction
 
 from metakb.database import get_driver
 from metakb.transformers.base import NormalizerExtensionName
@@ -210,10 +210,10 @@ def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
         obj_keys.append(f"{name}:${name}")
 
 
-def _add_method(tx: ManagedTransaction, method: dict) -> None:
+def _add_method(tx: Transaction, method: dict) -> None:
     """Add Method node and its relationships to DB
 
-    :param tx: Transaction object provided to transaction functions
+    :param tx: Transaction object
     :param method: CDM method object
     """
     m_keys = [_create_parameterized_query(method, ("id", "name", "methodType"))]
@@ -236,7 +236,7 @@ def _add_method(tx: ManagedTransaction, method: dict) -> None:
     tx.run(query, **method)
 
 
-def _add_gene_or_disease(tx: ManagedTransaction, obj_in: dict) -> None:
+def _add_gene_or_disease(tx: Transaction, obj_in: dict) -> None:
     """Add gene or disease node and its relationships to DB
 
     :param tx: Transaction object provided to transaction functions
@@ -264,7 +264,7 @@ def _add_gene_or_disease(tx: ManagedTransaction, obj_in: dict) -> None:
 
 
 def _add_therapy_or_group(
-    tx: ManagedTransaction,
+    tx: Transaction,
     therapy_in: dict,
 ) -> None:
     """Add therapy or therapy group node and its relationships
@@ -347,7 +347,7 @@ def _prepare_allele(allele: dict) -> dict:
 
 
 def _add_dac_cv(
-    tx: ManagedTransaction,
+    tx: Transaction,
     catvar: dict,
 ) -> None:
     """Load DefiningAlleleConstraint CatVar.
@@ -465,7 +465,7 @@ def _add_dac_cv(
 
 
 def _add_categorical_variant(
-    tx: ManagedTransaction,
+    tx: Transaction,
     catvar: dict,
 ) -> None:
     """Add categorical variant objects to DB.
@@ -484,10 +484,10 @@ def _add_categorical_variant(
         raise ValueError(msg)
 
 
-def _add_document(tx: ManagedTransaction, document_in: dict) -> None:
+def _add_document(tx: Transaction, document_in: dict) -> None:
     """Add Document object to DB.
 
-    :param tx: Transaction object provided to transaction functions
+    :param tx: Neo4j transaction object
     :param document: Document CDM object
     """
     # Not all document's have IDs. These are the fields that can uniquely identify
@@ -607,7 +607,7 @@ def _get_statement_query(statement: dict, is_evidence: bool) -> str:
     """
 
 
-def _add_statement_evidence(tx: ManagedTransaction, statement_in: dict) -> None:
+def _add_statement_evidence(tx: Transaction, statement_in: dict) -> None:
     """Add statement node and its relationships for evidence records
 
     :param tx: Transaction object provided to transaction functions
@@ -627,7 +627,7 @@ def _add_statement_evidence(tx: ManagedTransaction, statement_in: dict) -> None:
     tx.run(query, **statement)
 
 
-def _add_statement_assertion(tx: ManagedTransaction, statement_in: dict) -> None:
+def _add_statement_assertion(tx: Transaction, statement_in: dict) -> None:
     """Add statement node and its relationships for assertion records
 
     :param tx: Transaction object provided to transaction functions
@@ -680,51 +680,48 @@ def add_transformed_data(driver: Driver, data: dict) -> None:
         statements, variation, therapies, conditions, genes, methods, documents, etc.
     """
     loaded_stmt_count = 0
-    for statement in data.get("statements_evidence", []) + data.get(
-        "statements_assertions", []
-    ):
-        with driver.session() as session:
-            validated_statement = Statement(**statement)
-            if not is_loadable_statement(validated_statement):
-                continue
-            proposition = statement["proposition"]
-            session.execute_write(
-                _add_categorical_variant, proposition["subjectVariant"]
-            )
-            for document in [
-                *statement.get("reportedIn", []),
-                statement["specifiedBy"]["reportedIn"],
-            ]:
-                session.execute_write(_add_document, document)
-            session.execute_write(_add_method, statement["specifiedBy"])
-            session.execute_write(
-                _add_gene_or_disease, proposition["geneContextQualifier"]
-            )
-            if proposition["type"] == "VariantTherapeuticResponseProposition":
-                session.execute_write(
-                    _add_therapy_or_group,
-                    proposition["objectTherapeutic"],
-                )
-                session.execute_write(
-                    _add_gene_or_disease,
-                    proposition["conditionQualifier"],
-                )
-            elif proposition["type"] in (
-                "VariantDiagnosticProposition",
-                "VariantPrognosticProposition",
-            ):
-                session.execute_write(
-                    _add_gene_or_disease,
-                    proposition["objectCondition"],
-                )
-            else:
-                raise ValueError
-            if statement["id"].startswith("civic.aid"):
-                session.execute_write(_add_statement_assertion, statement)
-            else:
-                session.execute_write(_add_statement_evidence, statement)
+    with driver.session() as session:
+        for statement in data.get("statements_evidence", []) + data.get(
+            "statements_assertions", []
+        ):
+            with session.begin_transaction() as tx:
+                validated_statement = Statement(**statement)
+                if not is_loadable_statement(validated_statement):
+                    continue
+                proposition = statement["proposition"]
+                _add_categorical_variant(tx, proposition["subjectVariant"])
+                for document in [
+                    *statement.get("reportedIn", []),
+                    statement["specifiedBy"]["reportedIn"],
+                ]:
+                    _add_document(tx, document)
+                _add_method(tx, statement["specifiedBy"])
+                _add_gene_or_disease(tx, proposition["geneContextQualifier"])
+                if proposition["type"] == "VariantTherapeuticResponseProposition":
+                    _add_therapy_or_group(
+                        tx,
+                        proposition["objectTherapeutic"],
+                    )
+                    _add_gene_or_disease(
+                        tx,
+                        proposition["conditionQualifier"],
+                    )
+                elif proposition["type"] in (
+                    "VariantDiagnosticProposition",
+                    "VariantPrognosticProposition",
+                ):
+                    _add_gene_or_disease(
+                        tx,
+                        proposition["objectCondition"],
+                    )
+                else:
+                    raise ValueError
+                if statement["id"].startswith("civic.aid"):
+                    _add_statement_assertion(tx, statement)
+                else:
+                    _add_statement_evidence(tx, statement)
 
-            loaded_stmt_count += 1
+                loaded_stmt_count += 1
 
     _logger.info("Successfully loaded %s statements.", loaded_stmt_count)
 
