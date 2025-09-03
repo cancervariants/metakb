@@ -5,7 +5,7 @@ import logging
 import uuid
 from pathlib import Path
 
-from ga4gh.core.models import MappableConcept
+from ga4gh.core.models import Extension, MappableConcept
 from ga4gh.va_spec.base import (
     MembershipOperator,
     Statement,
@@ -17,6 +17,19 @@ from metakb.database import get_driver
 from metakb.transformers.base import NormalizerExtensionName
 
 _logger = logging.getLogger(__name__)
+
+
+def _has_normalize_failure(extensions: list[Extension] | None) -> bool:
+    """Check if extensions contain indication of normalization failure
+
+    :param extensions: list of extensions from an entity object
+    :return: True if contains normalize failure
+    """
+    if extensions:
+        for extension in extensions:
+            if extension.name == "vicc_normalizer_failure" and extension.value:
+                return True
+    return False
 
 
 def is_loadable_statement(statement: Statement) -> bool:
@@ -31,6 +44,7 @@ def is_loadable_statement(statement: Statement) -> bool:
     :param statement: incoming statement from CDM. All parameters must be fully materialized,
         not simply referenced as IRIs
     :return: whether statement can be loaded given current data support policy
+    :raise NotImplementedError: if unsupported proposition type is provided
     """
     success = True
     if evidence_lines := statement.hasEvidenceLines:
@@ -53,71 +67,56 @@ def is_loadable_statement(statement: Statement) -> bool:
         success = False
     proposition_type = proposition.type
     if proposition_type == "VariantTherapeuticResponseProposition":
-        if extensions := proposition.conditionQualifier.root.extensions:
-            for extension in extensions:
-                if extension.name == "vicc_normalizer_failure" and extension.value:
-                    _logger.debug(
-                        "%s could not be loaded because condition failed to normalize: %s",
-                        statement.id,
-                        proposition.conditionQualifier.root,
-                    )
-                    success = False
+        if _has_normalize_failure(proposition.conditionQualifier.root.extensions):
+            _logger.debug(
+                "%s could not be loaded because condition failed to normalize: %s",
+                statement.id,
+                proposition.conditionQualifier.root,
+            )
+            success = False
         if therapeutic := proposition.objectTherapeutic:
             if isinstance(therapeutic.root, MappableConcept):
-                if extensions := therapeutic.root.extensions:
-                    for extension in extensions:
-                        if (
-                            extension.name == "vicc_normalizer_failure"
-                            and extension.value
-                        ):
-                            _logger.debug(
-                                "%s could not be loaded because drug failed to normalize: %s",
-                                statement.id,
-                                therapeutic.root,
-                            )
-                            success = False
+                if _has_normalize_failure(therapeutic.root.extensions):
+                    _logger.debug(
+                        "%s could not be loaded because drug failed to normalize: %s",
+                        statement.id,
+                        therapeutic.root,
+                    )
+                    success = False
             elif isinstance(therapeutic.root, TherapyGroup):
                 for drug in therapeutic.root.therapies:
-                    if extensions := drug.extensions:
-                        for extension in extensions:
-                            if (
-                                extension.name == "vicc_normalizer_failure"
-                                and extension.value
-                            ):
-                                _logger.debug(
-                                    "%s could not be loaded because drug in therapygroup failed to normalize: %s",
-                                    statement.id,
-                                    drug,
-                                )
-                                success = False
+                    if _has_normalize_failure(drug.extensions):
+                        _logger.debug(
+                            "%s could not be loaded because drug in therapygroup failed to normalize: %s",
+                            statement.id,
+                            drug,
+                        )
+                        success = False
             else:
                 raise TypeError
     elif proposition_type in (
         "VariantDiagnosticProposition",
         "VariantPrognosticProposition",
     ):
-        if extensions := proposition.objectCondition.root.extensions:
-            for extension in extensions:
-                if extension.name == "vicc_normalizer_failure" and extension.value:
-                    _logger.debug(
-                        "%s could not be loaded because condition failed to normalize: %s",
-                        statement.id,
-                        proposition.objectCondition.root,
-                    )
-                    success = False
+        if _has_normalize_failure(proposition.objectCondition.root.extensions):
+            _logger.debug(
+                "%s could not be loaded because condition failed to normalize: %s",
+                statement.id,
+                proposition.objectCondition.root,
+            )
+            success = False
     else:
         msg = f"Unsupported proposition type: {proposition.type}"
         raise NotImplementedError(msg)
-    if proposition.geneContextQualifier:  # noqa: SIM102
-        if gene_extensions := proposition.geneContextQualifier.extensions:
-            for extension in gene_extensions:
-                if extension.name == "vicc_normalizer_failure" and extension.value:
-                    _logger.debug(
-                        "%s could not be loaded because gene failed to normalize: %s",
-                        statement.id,
-                        proposition.geneContextQualifier,
-                    )
-                    success = False
+    if proposition.geneContextQualifier and _has_normalize_failure(
+        proposition.geneContextQualifier.extensions
+    ):
+        _logger.debug(
+            "%s could not be loaded because gene failed to normalize: %s",
+            statement.id,
+            proposition.geneContextQualifier,
+        )
+        success = False
     if success:
         _logger.debug("Success. %s can be loaded.", statement.id)
     else:
