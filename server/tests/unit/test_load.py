@@ -7,7 +7,6 @@ from ga4gh.va_spec.base import Statement
 from metakb.load_data import is_loadable_statement
 
 
-@pytest.mark.ci
 @pytest.fixture(scope="session")
 def statements(test_data_dir: Path):
     with (test_data_dir / "statements_to_load.json").open() as f:
@@ -15,6 +14,7 @@ def statements(test_data_dir: Path):
     return {k: Statement(**v) for k, v in data.items()}
 
 
+@pytest.mark.ci
 def test_is_loadable_statement(
     civic_aid6_statement: dict, statements: dict[str, Statement]
 ):
