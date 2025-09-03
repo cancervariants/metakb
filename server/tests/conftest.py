@@ -10,10 +10,10 @@ from deepdiff import DeepDiff
 from dotenv import load_dotenv
 from ga4gh.core.models import ConceptMapping
 
-from metakb.database import get_driver
 from metakb.harvesters.base import Harvester
 from metakb.normalizers import ViccNormalizers
 from metakb.query import QueryHandler
+from metakb.repository.neo4j_repository import get_driver
 from metakb.transformers.base import NormalizerExtensionName, Transformer
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"

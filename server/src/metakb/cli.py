@@ -3,8 +3,8 @@ to graph datastore.
 """
 
 import datetime
-import logging
 import json
+import logging
 import re
 import tempfile
 from collections.abc import Generator

@@ -2,6 +2,7 @@
 
 import logging
 import os
+from typing import NamedTuple
 from urllib.parse import urlparse, urlunparse
 
 import boto3
@@ -28,7 +29,7 @@ from neo4j import Driver, GraphDatabase, ManagedTransaction, Record
 from neo4j.graph import Node
 
 from metakb.config import get_configs
-from metakb.repository.base import AbstractRepository
+from metakb.repository.base import AbstractRepository, is_loadable_statement
 from metakb.repository.neo4j_models import (
     AlleleNode,
     CategoricalVariantNode,
@@ -54,65 +55,6 @@ from metakb.schemas.api import ServiceEnvironment
 from metakb.transformers.base import TransformedData
 
 _logger = logging.getLogger(__name__)
-
-
-def is_loadable_statement(statement: Statement) -> bool:
-    """Check whether statement can be loaded to DB
-
-    * All entity terms need to have normalized
-    * For variations, that means the catvar must have a constraint
-    * For StudyStatements that are supported by other statements via evidence lines,
-        all supporting statements must be loadable for the overarching StudyStatement
-        to be loadable
-    """
-    if evidence_lines := statement.hasEvidenceLines:
-        for evidence_line in evidence_lines:
-            for evidence_item in evidence_line.hasEvidenceItems:
-                if not is_loadable_statement(evidence_item):
-                    return False
-    proposition = statement.proposition
-    if not proposition.subjectVariant.constraints:
-        return False
-    match proposition:
-        case VariantTherapeuticResponseProposition():
-            if extensions := proposition.conditionQualifier.root.extensions:
-                for extension in extensions:
-                    if extension.name == "vicc_normalizer_failure" and extension.value:
-                        return False
-            if therapeutic := proposition.objectTherapeutic:
-                match therapeutic.root:
-                    case MappableConcept():
-                        if extensions := therapeutic.root.extensions:
-                            for extension in extensions:
-                                if (
-                                    extension.name == "vicc_normalizer_failure"
-                                    and extension.value
-                                ):
-                                    return False
-                    case TherapyGroup():
-                        for drug in therapeutic.root.therapies:
-                            if extensions := drug.extensions:
-                                for extension in extensions:
-                                    if (
-                                        extension.name == "vicc_normalizer_failure"
-                                        and extension.value
-                                    ):
-                                        return False
-                    case _:
-                        raise TypeError
-        case VariantDiagnosticProposition() | VariantPrognosticProposition():
-            if extensions := proposition.objectCondition.root.extensions:
-                for extension in extensions:
-                    if extension.name == "vicc_normalizer_failure" and extension.value:
-                        return False
-        case _:
-            msg = f"Unsupported proposition type: {proposition.type}"
-            raise NotImplementedError(msg)
-    if gene_extensions := proposition.geneContextQualifier.extensions:
-        for extension in gene_extensions:
-            if extension.name == "vicc_normalizer_failure" and extension.value:
-                return False
-    return True
 
 
 def _get_secret() -> str:
@@ -142,7 +84,14 @@ class Neo4jCredentialsError(Exception):
     """Raise for invalid or unparseable Neo4j credentials"""
 
 
-def _parse_credentials(url: str) -> tuple[str, tuple[str, str]]:
+class _Neo4jConnectionParams(NamedTuple):
+    username: str
+    password: str
+    url: str
+    db_name: str | None
+
+
+def _parse_connection_params(url: str) -> _Neo4jConnectionParams:
     """Extract credential parameters from URL
 
     :param url: Neo4j connection URL
@@ -159,7 +108,10 @@ def _parse_credentials(url: str) -> tuple[str, tuple[str, str]]:
 
     clean_netloc = f"{hostname}:{port}"
     new_url = urlunparse(parsed._replace(netloc=clean_netloc))
-    return (new_url, (username, password))
+    db_name = parsed.path.lstrip("/") if parsed.path else None
+    return _Neo4jConnectionParams(
+        username=username, password=password, url=new_url, db_name=db_name
+    )
 
 
 def get_driver(
@@ -189,8 +141,11 @@ def get_driver(
         pass  # use argument if given
     else:
         url = configs.db_url
-    cleaned_url, credentials = _parse_credentials(url)
-    driver = GraphDatabase.driver(cleaned_url, auth=credentials)
+    connection_params = _parse_connection_params(url)
+    driver = GraphDatabase.driver(
+        connection_params.url,
+        auth=(connection_params.username, connection_params.password),
+    )
     # TODO add initialization
     # if initialize:
     #     with driver.session() as session:
