@@ -118,7 +118,8 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --extra docs
+        working-directory: ./server
 
       - name: Attempt docs build
-        working-directory: ./server/docs
-        run: source ../.venv/bin/activate && make html
+        working-directory: ./docs
+        run: source ../server/.venv/bin/activate && make html
