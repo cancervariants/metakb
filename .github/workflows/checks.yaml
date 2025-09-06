@@ -120,5 +120,5 @@ jobs:
         run: uv sync --extra docs
 
       - name: Attempt docs build
-        working-directory: ./docs
+        working-directory: ./server/docs
         run: source ../.venv/bin/activate && make html
