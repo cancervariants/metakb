@@ -36,17 +36,13 @@ from metakb.normalizers import (
     ViccNormalizers,
 )
 from metakb.schemas.api import (
-    BatchSearchStatementsQuery,
-    BatchSearchStatementsService,
     EntityType,
-    NormalizedQuery,
     NormalizedTerm,
     SearchResult,
-    ServiceMeta,
     StatementIdTerm,
 )
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class EmptySearchError(Exception):
@@ -241,8 +237,13 @@ class QueryHandler:
                 normalized_gene and normalized_gene.normalized_id is None,
             )
         ) or (statement_term and statement_term.validated_statement_id is None):
+            _logger.debug(
+                "One or more search terms failed to normalize/validate: %s",
+                search_terms,
+            )
             return SearchResult(search_terms=search_terms, start=start, limit=limit)
 
+        # get statement data
         if statement:
             statement_nodes = [statement]
         else:
@@ -737,14 +738,14 @@ class QueryHandler:
         """
         results = self.driver.execute_query(query, statement_id=statement_id)
         if not results.records:
-            logger.error(
+            _logger.error(
                 "Unable to complete gene context qualifier lookup for statement_id %s",
                 statement_id,
             )
             return None
         if len(results.records) > 1:
             # TODO should this be an error? can statements have multiple gene contexts?
-            logger.error(
+            _logger.error(
                 "Encountered multiple matches for gene context qualifier lookup for statement_id %s",
                 statement_id,
             )
@@ -825,7 +826,7 @@ class QueryHandler:
         elif node_type == "Therapy":
             therapy = self._get_therapy(node)
         else:
-            logger.warning("node type not supported: %s", node_type)
+            _logger.warning("node type not supported: %s", node_type)
             therapy = None
 
         return therapy
@@ -904,95 +905,3 @@ class QueryHandler:
         if extensions:
             ta_params["extensions"] = extensions
         return MappableConcept(**ta_params)
-
-    async def batch_search_statements(
-        self,
-        variations: list[str] | None = None,
-        start: int = 0,
-        limit: int | None = None,
-    ) -> BatchSearchStatementsService:
-        """Fetch all statements associated with any of the provided variation description
-        strings.
-
-        Because this method could be expanded to include other kinds of search terms,
-        ``variations`` is optionally nullable.
-
-        >>> from metakb.query import QueryHandler
-        >>> qh = QueryHandler()
-        >>> response = await qh.batch_search_statements(["EGFR L858R"])
-        >>> response.statement_ids[:3]
-        ['civic.eid:229', 'civic.eid:3811', 'moa.assertion:268']
-
-        All terms are normalized, so redundant terms don't alter search results:
-
-        >>> redundant_response = await qh.batch_search_statements(
-        ...     ["EGFR L858R", "NP_005219.2:p.Leu858Arg"]
-        ... )
-        >>> len(response.statement_ids) == len(redundant_response.statement_ids)
-        True
-
-        :param variations: a list of variation description strings, e.g.
-            ``["BRAF V600E"]``
-        :param start: Index of first result to fetch. Must be nonnegative.
-        :param limit: Max number of results to fetch. Must be nonnegative. Revert to
-            default defined at class initialization if not given.
-        :return: response object including all matching statements
-        :raise ValueError: if ``start`` or ``limit`` are nonnegative
-        :raise EmptySearchError: if no search params given
-        :raise PaginationParamError: if either pagination param given is negative
-        """
-        if not variations:
-            raise EmptySearchError
-        if start < 0:
-            msg = f"Invalid start value: {start}. Must be nonnegative."
-            raise PaginationParamError(msg)
-        if isinstance(limit, int) and limit < 0:
-            msg = f"Invalid limit value: {limit}. Must be nonnegative."
-            raise PaginationParamError(msg)
-
-        response = BatchSearchStatementsService(
-            query=BatchSearchStatementsQuery(variations=[]),
-            service_meta_=ServiceMeta(),
-            warnings=[],
-        )
-        if not variations:
-            return response
-
-        for query_variation in set(variations):
-            variation_id = await self._get_normalized_variation(
-                query_variation, response.warnings
-            )
-            response.query.variations.append(
-                NormalizedQuery(term=query_variation, normalized_id=variation_id)
-            )
-        variation_ids = list(
-            {v.normalized_id for v in response.query.variations if v.normalized_id}
-        )
-        if not variation_ids:
-            return response
-
-        query = """
-            MATCH (s) -[:HAS_SUBJECT_VARIANT]-> (cv:CategoricalVariant)
-            MATCH (a:Allele)
-            WHERE
-                EXISTS {
-                    MATCH (cv) -[:HAS_CONSTRAINT]-> (constr:DefiningAlleleConstraint) -[:HAS_DEFINING_ALLELE]-> (a)
-                    WHERE a.id in $a_ids
-                }
-                OR
-                EXISTS {
-                    MATCH (cv) -[:HAS_MEMBER]-> (a)
-                    WHERE a.id in $a_ids
-                }
-            RETURN DISTINCT s
-            ORDER BY s.id
-            SKIP coalesce($skip, 0)
-            LIMIT coalesce($limit, 1_000_000_000)
-        """
-        limit = limit if limit is not None else self._default_page_limit
-        with self.driver.session() as session:
-            result = session.run(query, a_ids=variation_ids, skip=start, limit=limit)
-            statement_nodes = [r[0] for r in result]
-        response.statement_ids = [n["id"] for n in statement_nodes]
-        response.statements = self._get_nested_stmts(statement_nodes)
-        return response

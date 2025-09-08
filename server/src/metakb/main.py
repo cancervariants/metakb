@@ -7,7 +7,6 @@ from typing import Annotated
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request
-from neo4j.graph import Entity
 
 from metakb import __version__
 from metakb.config import get_configs
@@ -15,7 +14,6 @@ from metakb.log_handle import configure_logs
 from metakb.query import EmptySearchError, QueryHandler
 from metakb.schemas.api import (
     METAKB_DESCRIPTION,
-    BatchSearchStatementsService,
     EntityType,
     NormalizedTerm,
     SearchStatementsQuery,
@@ -129,7 +127,7 @@ async def get_statements(
     """
     query: QueryHandler = request.app.state.query
     try:
-        search_result = await query.search_statements(
+        search_results = await query.search_statements(
             variation, disease, therapy, gene, statement_id, start, limit
         )
     except EmptySearchError as e:
@@ -145,7 +143,7 @@ async def get_statements(
         None,
     )
 
-    for term in search_result.search_terms:
+    for term in search_results.search_terms:
         match term:
             case NormalizedTerm(term_type=EntityType.VARIATION):
                 variation_term = term
@@ -159,6 +157,34 @@ async def get_statements(
                 statement_id_term = term
             case _:
                 raise ValueError
+    grouped_statements = {
+        "tr_statements": {},
+        "diagnostic_statements": {},
+        "prognostic_statements": {},
+    }
+    statement_ids = []
+    for statement in search_results.statements:
+        statement_ids.append(statement.id)
+        proposition_type = statement.proposition.type
+        variant_id = statement.proposition.subjectVariant.id
+        predicate = statement.proposition.predicate
+        if proposition_type == "VariantTherapeuticResponseProposition":
+            key = f"{variant_id}|{statement.proposition.conditionQualifier.root.id}|{statement.proposition.objectTherapeutic.root.id}|{predicate}"
+            grouped_statements["tr_statements"].setdefault(key, []).append(statement)
+        elif proposition_type == "VariantDiagnosticProposition":
+            key = f"{statement.proposition.subjectVariant.id}|{statement.proposition.objectCondition.root.id}|{predicate}"
+            grouped_statements["diagnostic_statements"].setdefault(key, []).append(
+                statement
+            )
+        elif proposition_type == "VariantPrognosticProposition":
+            key = f"{statement.proposition.subjectVariant.id}|{statement.proposition.objectCondition.root.id}|{predicate}"
+            grouped_statements["prognostic_statements"].setdefault(key, []).append(
+                statement
+            )
+        else:
+            msg = f"Unrecognized proposition type `{proposition_type}` in {statement}"
+            raise ValueError(msg)
+
     return SearchStatementsResponse(
         query=SearchStatementsQuery(
             variation=variation_term,
@@ -170,40 +196,6 @@ async def get_statements(
         start=start,
         limit=limit,
         service_meta_=ServiceMeta(),
+        statement_ids=statement_ids,
+        **grouped_statements,
     )
-
-
-_batch_descr = {
-    "summary": "Get nested statements for all provided variations.",
-    "description": "Return nested statements associated with any of the provided variations.",
-    "arg_variations": "Variations (subject) to search. Can be free text or VRS variation ID.",
-    "arg_start": "The index of the first result to return. Use for pagination.",
-    "arg_limit": "The maximum number of results to return. Use for pagination.",
-}
-
-
-@app.get(
-    "/api/v2/batch_search/statements",
-    summary=_batch_descr["summary"],
-    response_model_exclude_none=True,
-    description=_batch_descr["description"],
-    tags=[_Tag.SEARCH],
-)
-async def batch_get_statements(
-    request: Request,
-    variations: Annotated[
-        list[str] | None,
-        Query(description=_batch_descr["arg_variations"]),
-    ] = None,
-    start: Annotated[int, Query(description=_batch_descr["arg_start"])] = 0,
-    limit: Annotated[int | None, Query(description=_batch_descr["arg_limit"])] = None,
-) -> BatchSearchStatementsService:
-    """Fetch all statements associated with `any` of the provided variations."""
-    query = request.app.state.query
-    try:
-        return await query.batch_search_statements(variations, start, limit)
-    except EmptySearchError as e:
-        raise HTTPException(
-            status_code=422,
-            detail="At least one search parameter must be provided, but no variations values have been given.",
-        ) from e
