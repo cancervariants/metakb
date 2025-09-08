@@ -1,11 +1,7 @@
 import * as React from 'react'
 import { useEffect } from 'react'
 import Header from '../components/Header'
-import {
-  Box,
-  CircularProgress,
-  Typography,
-} from '@mui/material'
+import { Box, CircularProgress, Typography } from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
 import ResultTable from '../components/ResultTable'
 

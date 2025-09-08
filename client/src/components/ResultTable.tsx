@@ -78,7 +78,7 @@ interface ResultTableProps {
   results: any[]
 }
 
-const ResultTable: FC<ResultTableProps> = ({results}) => {
+const ResultTable: FC<ResultTableProps> = ({ results }) => {
   const [open, setOpen] = useState(false)
 
   const [page, setPage] = useState(0)
@@ -135,56 +135,54 @@ const ResultTable: FC<ResultTableProps> = ({results}) => {
   ]
 
   return (
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    {columns.map((column) => (
-                      <TableCell key={column.field} style={{ width: column.width }}>
-                        {column.headerName}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {results
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row) => (
-                      <>
-                        <TableRow key={row.id}>
-                          {columns.map((column) => {
-                            const value = column.render ? column.render(row) : row[column.field]
-                            return (
-                              <TableCell key={column.field} style={{ width: column.width }}>
-                                {value}
-                              </TableCell>
-                            )
-                          })}
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
-                            <Collapse in={open} timeout="auto" unmountOnExit>
-                              {row?.description}
-                            </Collapse>
-                          </TableCell>
-                        </TableRow>
-                      </>
-                    ))}
-                </TableBody>
-                <TableFooter>
-                  <TableRow>
-                    <TablePagination
-                      rowsPerPageOptions={[5, 10, 25]}
-                      ActionsComponent={TablePaginationActions}
-                      count={results.length}
-                      rowsPerPage={rowsPerPage}
-                      page={page}
-                      onPageChange={handleChangePage}
-                      onRowsPerPageChange={handleChangeRowsPerPage}
-                    />
-                  </TableRow>
-                </TableFooter>
-              </Table>
+    <Table>
+      <TableHead>
+        <TableRow>
+          {columns.map((column) => (
+            <TableCell key={column.field} style={{ width: column.width }}>
+              {column.headerName}
+            </TableCell>
+          ))}
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {results.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
+          <>
+            <TableRow key={row.id}>
+              {columns.map((column) => {
+                const value = column.render ? column.render(row) : row[column.field]
+                return (
+                  <TableCell key={column.field} style={{ width: column.width }}>
+                    {value}
+                  </TableCell>
+                )
+              })}
+            </TableRow>
+            <TableRow>
+              <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
+                <Collapse in={open} timeout="auto" unmountOnExit>
+                  {row?.description}
+                </Collapse>
+              </TableCell>
+            </TableRow>
+          </>
+        ))}
+      </TableBody>
+      <TableFooter>
+        <TableRow>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            ActionsComponent={TablePaginationActions}
+            count={results.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </TableRow>
+      </TableFooter>
+    </Table>
   )
 }
 
-export default ResultTable;
+export default ResultTable
