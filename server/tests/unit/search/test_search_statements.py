@@ -3,7 +3,7 @@
 import pytest
 from tests.conftest import get_mappings_normalizer_id
 
-from metakb.query import EmptySearchError, QueryHandler
+from metakb.query import EmptySearchError, PaginationParamError, QueryHandler
 
 from .utils import assert_no_match, find_and_check_stmt
 
@@ -283,7 +283,7 @@ async def test_paginate(query_handler: QueryHandler, normalizers):
     )
     # should be almost the same, just off by 1
     assert len(paged_response.statements) == len(full_response.statements) - 1
-    assert paged_response.statements == full_response.statements
+    assert paged_response.statements == full_response.statements[1:]
 
     # check that page limit > response doesn't affect response
     huge_page_response = await query_handler.search_statements(
@@ -316,10 +316,12 @@ async def test_paginate(query_handler: QueryHandler, normalizers):
     assert len(empty_response.statements) == 0
 
     # test raises exceptions
-    with pytest.raises(ValueError, match="Can't start from an index of less than 0."):
+    with pytest.raises(
+        PaginationParamError, match="Invalid start value: -1. Must be nonnegative."
+    ):
         await query_handler.search_statements(variation=braf_va_id, start=-1)
     with pytest.raises(
-        ValueError, match="Can't limit results to less than a negative number."
+        PaginationParamError, match="Invalid limit value: -1. Must be nonnegative."
     ):
         await query_handler.search_statements(variation=braf_va_id, limit=-1)
 
