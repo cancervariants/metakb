@@ -101,28 +101,6 @@ class ServiceMeta(BaseModel):
     )
 
 
-class SearchStatementsQuery(BaseModel):
-    """Queries for the Search Statements Endpoint."""
-
-    variation: StrictStr | None = None
-    disease: StrictStr | None = None
-    therapy: StrictStr | None = None
-    gene: StrictStr | None = None
-    statement_id: StrictStr | None = None
-
-
-class SearchStatementsService(BaseModel):
-    """Define model for Search Statements Endpoint Response."""
-
-    query: SearchStatementsQuery
-    warnings: list[StrictStr] = []
-    statement_ids: list[StrictStr] = []
-    tr_statements: dict[str, list[VariantTherapeuticResponseStudyStatement]] = {}
-    diagnostic_statements: dict[str, list[VariantDiagnosticStudyStatement]] = {}
-    prognostic_statements: dict[str, list[VariantPrognosticStudyStatement]] = {}
-    service_meta_: ServiceMeta
-
-
 class NormalizedQuery(BaseModel):
     """Define structure of user-provided query. If possible, add normalized ID."""
 
@@ -148,4 +126,73 @@ class BatchSearchStatementsService(BaseModel):
         | VariantPrognosticStudyStatement
         | VariantDiagnosticStudyStatement
     ] = []
+    service_meta_: ServiceMeta
+
+
+class EntityType(str, Enum):
+    """Type of entity being searched."""
+
+    VARIATION = "variation"
+    DISEASE = "disease"
+    THERAPY = "therapy"
+    GENE = "gene"
+
+
+class NormalizedTerm(BaseModel):
+    """Normalized biomedical entity search term.
+
+    Include user-provided input, the kind of entity, and the ID it normalizes to.
+    """
+
+    type: Literal["NormalizedTerm"] = "NormalizedTerm"
+    term: str
+    term_type: EntityType
+    normalized_id: str | None = None
+
+
+class StatementIdTerm(BaseModel):
+    """Statement ID search term."""
+
+    type: Literal["StatementIdTerm"] = "StatementIdTerm"
+    term: str
+    term_type: Literal["statement_id"] = "statement_id"
+    validated_statement_id: str | None
+
+
+class SearchResult(BaseModel):
+    """Results of a search.
+
+    Includes both processed search terms and all statements.
+    """
+
+    search_terms: list[NormalizedTerm | StatementIdTerm]
+    statements: list[
+        Statement
+        | VariantTherapeuticResponseStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantDiagnosticStudyStatement
+    ] = []
+    start: int = 0
+    limit: int | None = None
+
+
+class SearchStatementsQuery(BaseModel):
+    """Queries for the Search Statements Endpoint."""
+
+    variation: NormalizedTerm | None = None
+    disease: NormalizedTerm | None = None
+    therapy: NormalizedTerm | None = None
+    gene: NormalizedTerm | None = None
+    statement_id: StatementIdTerm | None = None
+
+
+class SearchStatementsResponse(BaseModel):
+    """Define model for /search_statements HTTP endpoint response."""
+
+    query: SearchStatementsQuery
+    start: int
+    limit: int | None
+    tr_statements: dict[str, list[VariantTherapeuticResponseStudyStatement]] = {}
+    diagnostic_statements: dict[str, list[VariantDiagnosticStudyStatement]] = {}
+    prognostic_statements: dict[str, list[VariantPrognosticStudyStatement]] = {}
     service_meta_: ServiceMeta

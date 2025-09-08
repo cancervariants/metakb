@@ -7,6 +7,7 @@ from typing import Annotated
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request
+from neo4j.graph import Entity
 
 from metakb import __version__
 from metakb.config import get_configs
@@ -15,10 +16,15 @@ from metakb.query import EmptySearchError, QueryHandler
 from metakb.schemas.api import (
     METAKB_DESCRIPTION,
     BatchSearchStatementsService,
-    SearchStatementsService,
+    EntityType,
+    NormalizedTerm,
+    SearchStatementsQuery,
+    SearchStatementsResponse,
     ServiceInfo,
+    ServiceMeta,
     ServiceOrganization,
     ServiceType,
+    StatementIdTerm,
 )
 
 
@@ -115,25 +121,15 @@ async def get_statements(
     statement_id: Annotated[str | None, Query(description=s_description)] = None,
     start: Annotated[int, Query(description=start_description, ge=0)] = 0,
     limit: Annotated[int | None, Query(description=limit_description, ge=0)] = None,
-) -> SearchStatementsService:
+) -> SearchStatementsResponse:
     """Get nested statements from queried concepts that match all conditions provided.
+
     For example, if `variation` and `therapy` are provided, will return all statements
     that have both the provided `variation` and `therapy`.
-
-    :param request: FastAPI request object
-    :param variation: Variation query (Free text or VRS Variation ID)
-    :param disease: Disease query
-    :param therapy: Therapy query
-    :param gene: Gene query
-    :param statement_id: Statement ID query.
-    :param start: The index of the first result to return. Use for pagination.
-    :param limit: The maximum number of results to return. Use for pagination.
-    :return: SearchStatementsService response containing nested statements and service
-        metadata
     """
-    query = request.app.state.query
+    query: QueryHandler = request.app.state.query
     try:
-        return await query.search_statements(
+        search_result = await query.search_statements(
             variation, disease, therapy, gene, statement_id, start, limit
         )
     except EmptySearchError as e:
@@ -141,6 +137,40 @@ async def get_statements(
             status_code=422,
             detail="At least one search parameter (variation, disease, therapy, gene, statement_id) must be provided.",
         ) from e
+    variation_term, disease_term, therapy_term, gene_term, statement_id_term = (
+        None,
+        None,
+        None,
+        None,
+        None,
+    )
+
+    for term in search_result.search_terms:
+        match term:
+            case NormalizedTerm(term_type=EntityType.VARIATION):
+                variation_term = term
+            case NormalizedTerm(term_type=EntityType.DISEASE):
+                disease_term = term
+            case NormalizedTerm(term_type=EntityType.THERAPY):
+                therapy_term = term
+            case NormalizedTerm(term_type=EntityType.GENE):
+                gene_term = term
+            case StatementIdTerm():
+                statement_id_term = term
+            case _:
+                raise ValueError
+    return SearchStatementsResponse(
+        query=SearchStatementsQuery(
+            variation=variation_term,
+            disease=disease_term,
+            therapy=therapy_term,
+            gene=gene_term,
+            statement_id=statement_id_term,
+        ),
+        start=start,
+        limit=limit,
+        service_meta_=ServiceMeta(),
+    )
 
 
 _batch_descr = {
@@ -168,14 +198,7 @@ async def batch_get_statements(
     start: Annotated[int, Query(description=_batch_descr["arg_start"])] = 0,
     limit: Annotated[int | None, Query(description=_batch_descr["arg_limit"])] = None,
 ) -> BatchSearchStatementsService:
-    """Fetch all statements associated with `any` of the provided variations.
-
-    :param request: FastAPI request object
-    :param variations: variations to match against
-    :param start: The index of the first result to return. Use for pagination.
-    :param limit: The maximum number of results to return. Use for pagination.
-    :return: batch response object
-    """
+    """Fetch all statements associated with `any` of the provided variations."""
     query = request.app.state.query
     try:
         return await query.batch_search_statements(variations, start, limit)
