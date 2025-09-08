@@ -6,8 +6,9 @@ const Header = () => {
     <AppBar position="static" color="header" sx={{ padding: 2 }}>
       <Link to="/">
         <Typography variant="h4" fontWeight="bold" color="white">
-        MetaKB
-      </Typography></Link>
+          MetaKB
+        </Typography>
+      </Link>
     </AppBar>
   )
 }

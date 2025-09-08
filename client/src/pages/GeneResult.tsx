@@ -1,8 +1,13 @@
 import * as React from 'react'
-import Header from '../components/Header'
-import { Box, CircularProgress, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material'
-import { useSearchParams } from 'react-router-dom'
 import { useEffect } from 'react'
+import Header from '../components/Header'
+import {
+  Box,
+  CircularProgress,
+  Typography,
+} from '@mui/material'
+import { useSearchParams } from 'react-router-dom'
+import ResultTable from '../components/ResultTable'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/cv-api/api/v2/search/statements'
@@ -46,9 +51,9 @@ const GeneResult = () => {
       } catch (e: any) {
         if (e.name !== 'AbortError') setError(e.message ?? 'Unknown error')
       } finally {
-          if (!controller.signal.aborted) {
-            setLoading(false);
-            }
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
     run()
@@ -63,56 +68,41 @@ const GeneResult = () => {
     setSearchQuery(queryFromUrl)
   }, [typeFromUrl, queryFromUrl])
 
-  const columns = [
-    { field: 'id', headerName: 'ID', width: 90 },
-    {
-      field: 'direction',
-      headerName: 'Direction',
-      width: 150,
-    },
-    {
-      field: 'description',
-      headerName: 'Description',
-      width: 150,
-      editable: true,
-    },
-  ]
+  console.log(results)
 
   return (
     <>
       <Header />
-      <Box
-        id="result-page-container"
-        m={5}
-        sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-      >
+      <Box id="result-page-container" m={5}>
         {loading && <CircularProgress />}
         {!loading && (
-          <Table>
-            <TableHead>
-              <TableRow>
-                {columns.map((column) => (
-                  <TableCell key={column.field} style={{ width: column.width }}>
-                    {column.headerName}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-            {results.map((row) => (
-              <TableRow key={row.id}>
-                {columns.map((column) => {
-                  const value = row[column.field]
-                  return (
-                    <TableCell key={column.field} style={{ width: column.width }}>
-                      {value}
-                    </TableCell>
-                  )
-                })}
-              </TableRow>
-            ))}
-            </TableBody>
-          </Table>
+          <Box>
+            <Box
+              id="results-info-container"
+              sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2 }}
+            >
+              <Typography variant="h4" mb={2} fontWeight="bold">
+                {searchQuery}
+              </Typography>
+              <Typography variant="h6" mb={2} fontWeight="bold" color="darkgrey">
+                Aliases: [list of aliases]
+              </Typography>
+              <Typography variant="body1" mb={2}>
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quos blanditiis tenetur
+                unde suscipit, quam beatae rerum inventore consectetur, neque doloribus, cupiditate
+                numquam dignissimos laborum fugiat deleniti? Eum quasi quidem quibusdam.
+              </Typography>
+            </Box>
+            <Box
+              id="results-table-container"
+              sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2, marginTop: 2 }}
+            >
+              <Typography variant="h6" mb={2} fontWeight="bold">
+                Search Results ({results.length})
+              </Typography>
+              <ResultTable results={results} />
+            </Box>
+          </Box>
         )}
       </Box>
     </>
