@@ -1,15 +1,15 @@
 """Main application for FastAPI."""
 
+import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from enum import Enum
 from typing import Annotated
 
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request
 
 from metakb import __version__
-from metakb.config import get_configs
+from metakb.config import get_config
 from metakb.log_handle import configure_logs
 from metakb.query import EmptySearchError, QueryHandler
 from metakb.schemas.api import (
@@ -34,8 +34,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     :param app: FastAPI app instance
     :return: async context handler
     """
-    load_dotenv()
-    configure_logs()
+    configure_logs(logging.DEBUG) if get_config().debug else configure_logs()
     query = QueryHandler()
     app.state.query = query
     yield
@@ -83,7 +82,7 @@ def service_info() -> ServiceInfo:
     return ServiceInfo(
         organization=ServiceOrganization(),
         type=ServiceType(),
-        environment=get_configs().env,
+        environment=get_config().env,
     )
 
 
