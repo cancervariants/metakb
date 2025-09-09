@@ -14,6 +14,7 @@ from metakb.log_handle import configure_logs
 from metakb.query import EmptySearchError, QueryHandler
 from metakb.schemas.api import (
     METAKB_DESCRIPTION,
+    BatchSearchStatementsResponse,
     EntityType,
     NormalizedTerm,
     SearchStatementsQuery,
@@ -198,4 +199,47 @@ async def get_statements(
         service_meta_=ServiceMeta(),
         statement_ids=statement_ids,
         **grouped_statements,
+    )
+
+
+_batch_descr = {
+    "summary": "Get nested statements for all provided variations.",
+    "description": "Return nested statements associated with any of the provided variations.",
+    "arg_variations": "Variations (subject) to search. Can be free text or VRS variation ID.",
+    "arg_start": "The index of the first result to return. Use for pagination.",
+    "arg_limit": "The maximum number of results to return. Use for pagination.",
+}
+
+
+@app.get(
+    "/api/v2/batch_search/statements",
+    summary=_batch_descr["summary"],
+    response_model_exclude_none=True,
+    description=_batch_descr["description"],
+    tags=[_Tag.SEARCH],
+)
+async def batch_get_statements(
+    request: Request,
+    variations: Annotated[
+        list[str] | None,
+        Query(description=_batch_descr["arg_variations"]),
+    ] = None,
+    start: Annotated[int, Query(description=_batch_descr["arg_start"])] = 0,
+    limit: Annotated[int | None, Query(description=_batch_descr["arg_limit"])] = None,
+) -> BatchSearchStatementsResponse:
+    """Fetch all statements associated with `any` of the provided variations."""
+    query = request.app.state.query
+    try:
+        results = await query.batch_search_statements(variations, start, limit)
+    except EmptySearchError as e:
+        raise HTTPException(
+            status_code=422,
+            detail="At least one search parameter must be provided, but no variations values have been given.",
+        ) from e
+    return BatchSearchStatementsResponse(
+        search_terms=results.search_terms,
+        start=start,
+        limit=limit,
+        service_meta_=ServiceMeta(),
+        statements=results.statements,
     )

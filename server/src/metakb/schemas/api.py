@@ -175,3 +175,18 @@ class SearchStatementsResponse(BaseModel):
         str, list[VariantPrognosticStudyStatement | Statement]
     ] = {}
     service_meta_: ServiceMeta
+
+
+class BatchSearchStatementsResponse(BaseModel):
+    """Define model for /batch_search_statements HTTP endpoint response."""
+
+    search_terms: list[NormalizedTerm]
+    statements: list[
+        Statement
+        | VariantTherapeuticResponseStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantDiagnosticStudyStatement
+    ] = []
+    start: int
+    limit: int | None
+    service_meta_: ServiceMeta

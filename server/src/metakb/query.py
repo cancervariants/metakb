@@ -905,3 +905,85 @@ class QueryHandler:
         if extensions:
             ta_params["extensions"] = extensions
         return MappableConcept(**ta_params)
+
+    async def batch_search_statements(
+        self,
+        variations: list[str] | None = None,
+        start: int = 0,
+        limit: int | None = None,
+    ) -> SearchResult:
+        """Fetch all statements associated with any of the provided variation description
+        strings.
+
+        Because this method could be expanded to include other kinds of search terms,
+        ``variations`` is optionally nullable.
+
+        >>> from metakb.query import QueryHandler
+        >>> qh = QueryHandler()
+        >>> response = await qh.batch_search_statements(["EGFR L858R"])
+        >>> response.statement_ids[:3]
+        ['civic.eid:229', 'civic.eid:3811', 'moa.assertion:268']
+        All terms are normalized, so redundant terms don't alter search results:
+        >>> redundant_response = await qh.batch_search_statements(
+        ...     ["EGFR L858R", "NP_005219.2:p.Leu858Arg"]
+        ... )
+        >>> len(response.statement_ids) == len(redundant_response.statement_ids)
+        True
+
+        :param variations: a list of variation description strings, e.g.
+            ``["BRAF V600E"]``
+        :param start: Index of first result to fetch. Must be nonnegative.
+        :param limit: Max number of results to fetch. Must be nonnegative. Revert to
+            default defined at class initialization if not given.
+        :return: response object including all matching statements
+        :raise ValueError: if ``start`` or ``limit`` are nonnegative
+        :raise EmptySearchError: if no search params given
+        :raise PaginationParamError: if either pagination param given is negative
+        """
+        if start < 0:
+            msg = f"Invalid start value: {start}. Must be nonnegative."
+            raise PaginationParamError(msg)
+        if isinstance(limit, int) and limit < 0:
+            msg = f"Invalid limit value: {limit}. Must be nonnegative."
+            raise PaginationParamError(msg)
+
+        if not variations:
+            return SearchResult(
+                search_terms=[], start=start, limit=limit, statements=[]
+            )
+
+        search_terms = [
+            await self._get_normalized_variation(v) for v in set(variations)
+        ]
+        variation_ids = [t.normalized_id for t in search_terms]
+        if not all(variation_ids):
+            return SearchResult(
+                search_terms=search_terms, start=start, limit=limit, statements=[]
+            )
+
+        query = """
+            MATCH (s) -[:HAS_SUBJECT_VARIANT]-> (cv:CategoricalVariant)
+            MATCH (a:Allele)
+            WHERE
+                EXISTS {
+                    MATCH (cv) -[:HAS_CONSTRAINT]-> (constr:DefiningAlleleConstraint) -[:HAS_DEFINING_ALLELE]-> (a)
+                    WHERE a.id in $a_ids
+                }
+                OR
+                EXISTS {
+                    MATCH (cv) -[:HAS_MEMBER]-> (a)
+                    WHERE a.id in $a_ids
+                }
+            RETURN DISTINCT s
+            ORDER BY s.id
+            SKIP coalesce($skip, 0)
+            LIMIT coalesce($limit, 1_000_000_000)
+        """
+        limit = limit if limit is not None else self._default_page_limit
+        with self.driver.session() as session:
+            result = session.run(query, a_ids=variation_ids, skip=start, limit=limit)
+            statement_nodes = [r[0] for r in result]
+        statements = self._get_nested_stmts(statement_nodes)
+        return SearchResult(
+            search_terms=search_terms, start=start, limit=limit, statements=statements
+        )

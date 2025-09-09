@@ -1,4 +1,4 @@
-from metakb.schemas.api import SearchStatementsResponse
+from metakb.schemas.api import SearchResult
 
 
 def assert_no_match(response):
@@ -7,7 +7,7 @@ def assert_no_match(response):
 
 
 def find_and_check_stmt(
-    resp: SearchStatementsResponse,
+    resp: SearchResult,
     expected_stmt: dict,
     assertion_checks: callable,
     should_find_match: bool = True,
