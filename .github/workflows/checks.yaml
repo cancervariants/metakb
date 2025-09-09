@@ -27,7 +27,7 @@ jobs:
 
       - name: Run tests
         working-directory: ./server
-        run: python3 -m pytest -m ci
+        run: uv run pytest -m ci
 
   lint_backend:
     name: lint
