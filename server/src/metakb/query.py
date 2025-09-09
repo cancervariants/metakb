@@ -923,7 +923,9 @@ class QueryHandler:
         >>> response = await qh.batch_search_statements(["EGFR L858R"])
         >>> response.statement_ids[:3]
         ['civic.eid:229', 'civic.eid:3811', 'moa.assertion:268']
+
         All terms are normalized, so redundant terms don't alter search results:
+
         >>> redundant_response = await qh.batch_search_statements(
         ...     ["EGFR L858R", "NP_005219.2:p.Leu858Arg"]
         ... )
