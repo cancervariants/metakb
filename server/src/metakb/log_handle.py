@@ -27,7 +27,7 @@ def _quiet_upstream_libs() -> None:
         logging.getLogger(lib).setLevel(logging.INFO)
 
 
-def configure_logs(log_level: int = logging.DEBUG, quiet_upstream: bool = True) -> None:
+def configure_logs(log_level: int = logging.INFO, quiet_upstream: bool = True) -> None:
     """Configure logging.
 
     :param log_level: global log level to set

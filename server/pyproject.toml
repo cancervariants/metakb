@@ -33,6 +33,7 @@ dependencies = [
     "civicpy~=3.1",
     "requests",
     "pydantic==2.*",
+    "pydantic-settings",
     "requests-cache",
     "neo4j==5.*",
     "uvicorn",
@@ -40,7 +41,6 @@ dependencies = [
     "boto3",
     "botocore",
     "asyncclick",
-    "python-dotenv",
 ]
 dynamic = ["version"]
 
@@ -51,11 +51,14 @@ tests = [
     "mock",
     "pytest-asyncio",
     "deepdiff",
+    "httpx",
     "jsonschema~=4.24",  # pin to avoid deprecation of ref resolver
+    "pyyaml",
 ]
 dev = [
     "pre-commit>=4.2.0",
-    "ruff==0.12.1"
+    "ruff==0.12.1",
+    "fastapi[standard]",
 ]
 notebooks = ["ipykernel", "jupyterlab"]
 docs = [
