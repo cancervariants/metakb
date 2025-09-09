@@ -3,53 +3,43 @@
 Currently restricted to a subset of overall app configuration.
 """
 
-import os
+from functools import cache
 from pathlib import Path
-from typing import NamedTuple
 
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from wags_tails.utils.storage import get_data_dir
 
 from metakb.schemas.api import ServiceEnvironment
 
 
-class _Config(NamedTuple):
-    """Define config data structure."""
+class Settings(BaseSettings):
+    """Create app settings
 
-    data_root: Path
-    env: ServiceEnvironment
-    db_url: str
-
-
-def _get_data_root_location() -> Path:
-    if env_var_data_dir := os.environ.get("METAKB_DATA_DIR"):
-        return Path(env_var_data_dir)
-    return get_data_dir() / "metakb"
-
-
-def _get_env_name() -> ServiceEnvironment:
-    if env_var_env_name := os.environ.get("METAKB_ENV"):
-        try:
-            return ServiceEnvironment(env_var_env_name)
-        except ValueError as e:
-            msg = f"METAKB_ENV must be set to one of {[e.value for e in ServiceEnvironment]}, got {env_var_env_name} instead"
-            raise ValueError(msg) from e
-    return ServiceEnvironment.DEV
-
-
-def _get_db_url() -> str:
-    return os.environ.get("METAKB_DB_URL", "bolt://neo4j:neo4j@localhost:7687")
-
-
-def get_configs() -> _Config:
-    """Fetch config values from environment.
-
-    Eventually this may be transformed into something using `pydantic-settings` but for
-    now it just assembles a NamedTuple.
-
-    :return: constructed config object
+    This is not a singleton, so every new call to this class will re-compute
+    configuration settings, defaults, etc.
     """
-    data_root_location = _get_data_root_location()
-    env = _get_env_name()
-    db_url = _get_db_url()
 
-    return _Config(data_root=data_root_location, env=env, db_url=db_url)
+    model_config = SettingsConfigDict(
+        env_prefix="metakb_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    env: ServiceEnvironment = ServiceEnvironment.DEV
+    debug: bool = False
+    test: bool = False
+    data_dir: Path = Field(default_factory=lambda: get_data_dir() / "metakb")
+    db_url: str = "bolt://neo4j:neo4j@localhost:7687"
+
+
+@cache
+def get_config() -> Settings:
+    """Get runtime configuration.
+
+    This function is cached, so the config object only gets created/calculated once.
+
+    :return: Settings instance
+    """
+    return Settings()
