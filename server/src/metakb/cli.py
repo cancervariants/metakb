@@ -17,11 +17,10 @@ import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore import UNSIGNED
 from botocore.config import Config
-from dotenv import load_dotenv
 from neo4j import Driver
 
 from metakb import DATE_FMT, __version__
-from metakb.config import get_configs
+from metakb.config import get_config
 from metakb.database import clear_graph as clear_metakb_graph
 from metakb.database import get_driver
 from metakb.harvesters.civic import CivicHarvester
@@ -40,8 +39,6 @@ from metakb.schemas.app import SourceName
 from metakb.transformers import CivicTransformer, MoaTransformer
 
 _logger = logging.getLogger(__name__)
-
-load_dotenv()
 
 
 def _echo_info(msg: str) -> None:
@@ -81,7 +78,7 @@ def cli() -> None:
 
     Other commands are available for more granular control over the update process.
     """  # noqa: D301
-    configure_logs()
+    configure_logs(logging.DEBUG) if get_config().debug else configure_logs()
 
 
 _normalizer_db_url_description = "URL endpoint of normalizer database. If not given, the individual normalizers will revert to their own defaults."
@@ -431,7 +428,7 @@ def load_cdm(
 
         for src in sorted([s.value for s in SourceName]):
             pattern = f"{src}_cdm_{version}.json"
-            globbed = (get_configs().data_root / src / "transformers").glob(pattern)
+            globbed = (get_config().data_dir / src / "transformers").glob(pattern)
 
             try:
                 path = sorted(globbed)[-1]
@@ -508,7 +505,7 @@ async def update(
         sources = tuple(SourceName)
     for src in sorted([s.value for s in sources]):
         pattern = f"{src}_cdm_*.json"
-        globbed = (get_configs().data_root / src / "transformers").glob(pattern)
+        globbed = (get_config().data_dir / src / "transformers").glob(pattern)
 
         try:
             path = sorted(globbed)[-1]
@@ -691,7 +688,7 @@ def _retrieve_s3_cdms() -> str:
         with tmp_path.open("wb") as f:
             file.Object().download_fileobj(f)
 
-        cdm_dir = get_configs().data_root / source / "transformers"
+        cdm_dir = get_config().data_dir / source / "transformers"
         cdm_zip = ZipFile(tmp_path, "r")
         cdm_zip.extract(f"{source}_cdm_{newest_version}.json", cdm_dir)
 
