@@ -9,7 +9,7 @@ import boto3
 from botocore.exceptions import ClientError
 from neo4j import Driver, GraphDatabase, ManagedTransaction
 
-from metakb.config import get_configs
+from metakb.config import get_config
 from metakb.schemas.api import ServiceEnvironment
 
 _logger = logging.getLogger(__name__)
@@ -106,7 +106,7 @@ def get_driver(
     :param initialize: whether to perform additional DB setup (e.g. add constraints, indexes)
     :return: Neo4j driver instance
     """
-    configs = get_configs()
+    configs = get_config()
     if configs.env == ServiceEnvironment.PROD:
         # overrule ANY provided configs and get connection url from AWS secrets
 
