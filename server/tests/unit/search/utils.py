@@ -1,5 +1,3 @@
-from itertools import chain
-
 from metakb.schemas.api import SearchStatementsResponse
 
 
