@@ -294,7 +294,7 @@ class CivicTransformer(Transformer):
                 else TherapyGroupNamespacePrefix.COMBINATION
             )
             therapy_group_digest = self._get_digest_for_str_lists(therapy_member_ids)
-            return f"{therapy_group_ns_prefix.value}:{therapy_group_digest}"
+            return f"{therapy_group_ns_prefix}:{therapy_group_digest}"
 
         async def _add_therapy(therapy: CivicGksTherapy) -> MappableConcept:
             """Create or get therapy given CIViC therapy.
