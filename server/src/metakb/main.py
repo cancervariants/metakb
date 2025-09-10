@@ -134,6 +134,8 @@ async def get_statements(
         ) from e
 
     mapped_terms = {term.term_type.value: term for term in search_results.search_terms}
+
+    # group statements
     grouped_statements = {
         "tr_statements": {},
         "diagnostic_statements": {},
