@@ -285,42 +285,32 @@ class Neo4jRepository(AbstractRepository):
             statement=statement_node.model_dump(mode="json"),
         )
 
-    def add_transformed_data(self, data: TransformedData) -> None:
-        """Add a chunk of transformed data to the database.
+    def load_statement(self, statement: Statement) -> None:
+        """Load individual statement, and contained entities, into DB
 
-        :param data: data grouped by GKS entity type
+        :param statement: statement to load
         """
-        # since methods are particularly redundant (usually ~1 per source)
-        # we might as well just track whether a method has been added and only
-        # do so once
-        loaded_methods = set()
-        # load evidence first so that assertions can be merged into them
-        for statement in data.statements_evidence + data.statements_assertions:
-            if not is_loadable_statement(statement):
-                continue
-            with self.driver.session().begin_transaction() as tx:
-                proposition = statement.proposition
-                self.add_catvar(tx, proposition.subjectVariant)
-                self.add_gene(tx, proposition.geneContextQualifier)
-                # handle proposition-specific properties
-                if proposition.type == "VariantTherapeuticResponseProposition":
-                    self.add_condition(tx, proposition.conditionQualifier)
-                    self.add_therapeutic(tx, proposition.objectTherapeutic)
-                elif proposition.type in {
-                    "VariantDiagnosticProposition",
-                    "VariantPrognosticProposition",
-                }:
-                    self.add_condition(tx, proposition.objectCondition)
-                else:
-                    raise NotImplementedError(proposition)
-                if statement.reportedIn:
-                    for document in statement.reportedIn:
-                        self.add_document(tx, document)
-                if statement.specifiedBy.id not in loaded_methods:
-                    self.add_document(tx, statement.specifiedBy.reportedIn)
-                    self.add_method(tx, statement.specifiedBy)
-                    loaded_methods.add(statement.specifiedBy.id)
-                self.add_statement(tx, statement)
+        with self.driver.session().begin_transaction() as tx:
+            proposition = statement.proposition
+            self.add_catvar(tx, proposition.subjectVariant)
+            self.add_gene(tx, proposition.geneContextQualifier)
+            # handle proposition-specific properties
+            if proposition.type == "VariantTherapeuticResponseProposition":
+                self.add_condition(tx, proposition.conditionQualifier)
+                self.add_therapeutic(tx, proposition.objectTherapeutic)
+            elif proposition.type in {
+                "VariantDiagnosticProposition",
+                "VariantPrognosticProposition",
+            }:
+                self.add_condition(tx, proposition.objectCondition)
+            else:
+                raise NotImplementedError(proposition)
+            if statement.reportedIn:
+                for document in statement.reportedIn:
+                    self.add_document(tx, document)
+            self.add_document(tx, statement.specifiedBy.reportedIn)
+            self.add_method(tx, statement.specifiedBy)
+            self.add_statement(tx, statement)
 
     @staticmethod
     def _make_allele_node(
