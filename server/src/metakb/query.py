@@ -36,10 +36,9 @@ from metakb.normalizers import (
     ViccNormalizers,
 )
 from metakb.schemas.api import (
-    EntityType,
-    NormalizedTerm,
     SearchResult,
-    StatementIdTerm,
+    SearchTerm,
+    SearchTermType,
 )
 
 _logger = logging.getLogger(__name__)
@@ -222,21 +221,22 @@ class QueryHandler:
         statement, statement_term = None, None
         if statement_id:
             statement = self._get_stmt_by_id(statement_id)
-            statement_term = StatementIdTerm(
+            statement_term = SearchTerm(
                 term=statement_id,
-                validated_statement_id=statement.get("id") if statement else None,
+                term_type=SearchTermType.STATEMENT_ID,
+                resolved_id=statement.get("id") if statement else None,
             )
             search_terms.append(statement_term)
 
         # return early if ANY search terms fail to resolve
         if any(
             (
-                normalized_therapy and normalized_therapy.normalized_id is None,
-                normalized_disease and normalized_disease.normalized_id is None,
-                normalized_variation and normalized_variation.normalized_id is None,
-                normalized_gene and normalized_gene.normalized_id is None,
+                normalized_therapy and normalized_therapy.resolved_id is None,
+                normalized_disease and normalized_disease.resolved_id is None,
+                normalized_variation and normalized_variation.resolved_id is None,
+                normalized_gene and normalized_gene.resolved_id is None,
             )
-        ) or (statement_term and statement_term.validated_statement_id is None):
+        ) or (statement_term and statement_term.resolved_id is None):
             _logger.debug(
                 "One or more search terms failed to normalize/validate: %s",
                 search_terms,
@@ -248,16 +248,16 @@ class QueryHandler:
             statement_nodes = [statement]
         else:
             statement_nodes = self._get_statements(
-                normalized_variation=normalized_variation.normalized_id
+                normalized_variation=normalized_variation.resolved_id
                 if normalized_variation
                 else None,
-                normalized_therapy=normalized_therapy.normalized_id
+                normalized_therapy=normalized_therapy.resolved_id
                 if normalized_therapy
                 else None,
-                normalized_disease=normalized_disease.normalized_id
+                normalized_disease=normalized_disease.resolved_id
                 if normalized_disease
                 else None,
-                normalized_gene=normalized_gene.normalized_id
+                normalized_gene=normalized_gene.resolved_id
                 if normalized_gene
                 else None,
                 start=start,
@@ -268,96 +268,38 @@ class QueryHandler:
             search_terms=search_terms, start=start, limit=limit, statements=statements
         )
 
-    def _get_normalized_disease(self, disease: str) -> NormalizedTerm:
+    def _get_normalized_disease(self, disease: str) -> SearchTerm:
         """Get normalized disease concept.
 
         :param disease: Disease query
         :return: A normalized disease concept if it exists
         """
         _, disease_id = self.vicc_normalizers.normalize_disease(disease)
-        return NormalizedTerm(
-            term=disease, term_type=EntityType.DISEASE, normalized_id=disease_id
+        return SearchTerm(
+            term=disease, term_type=SearchTermType.DISEASE, resolved_id=disease_id
         )
 
-    def _get_normalized_gene(self, gene: str) -> NormalizedTerm:
+    def _get_normalized_gene(self, gene: str) -> SearchTerm:
         """Get normalized gene concept.
 
         :param gene: Gene query
         :return: A normalized gene concept if it exists
         """
         _, gene_id = self.vicc_normalizers.normalize_gene(gene)
-        return NormalizedTerm(
-            term=gene, term_type=EntityType.GENE, normalized_id=gene_id
-        )
+        return SearchTerm(term=gene, term_type=SearchTermType.GENE, resolved_id=gene_id)
 
-    def _get_normalized_therapy(self, therapy: str) -> NormalizedTerm:
+    def _get_normalized_therapy(self, therapy: str) -> SearchTerm:
         """Get normalized therapy concept.
 
         :param therapy: Therapy query
         :return: A normalized therapy concept if it exists
         """
         _, therapy_id = self.vicc_normalizers.normalize_therapy(therapy)
-        return NormalizedTerm(
-            term=therapy, term_type=EntityType.THERAPY, normalized_id=therapy_id
+        return SearchTerm(
+            term=therapy, term_type=SearchTermType.THERAPY, resolved_id=therapy_id
         )
 
-    async def _get_normalized_terms(
-        self,
-        variation: str | None,
-        disease: str | None,
-        therapy: str | None,
-        gene: str | None,
-    ) -> list[NormalizedTerm]:
-        """Find normalized terms for queried concepts.
-
-        :param variation: Variation (subject) query
-        :param disease: Disease (object_qualifier) query
-        :param therapy: Therapy (object) query
-        :param gene: Gene query
-        :return: a list of normalization results
-        """
-        term_results = []
-        if therapy:
-            _, normalized_therapy_id = self.vicc_normalizers.normalize_therapy(therapy)
-            term_results.append(
-                NormalizedTerm(
-                    term=therapy,
-                    term_type=EntityType.THERAPY,
-                    normalized_id=normalized_therapy_id,
-                )
-            )
-        if disease:
-            _, normalized_disease_id = self.vicc_normalizers.normalize_disease(disease)
-            term_results.append(
-                NormalizedTerm(
-                    term=disease,
-                    term_type=EntityType.DISEASE,
-                    normalized_id=normalized_disease_id,
-                )
-            )
-        if variation:
-            normalized_variation_id = await self._get_normalized_variation(variation)
-            term_results.append(
-                NormalizedTerm(
-                    term=variation,
-                    term_type=EntityType.VARIATION,
-                    normalized_id=normalized_variation_id,
-                )
-            )
-        if gene:
-            _, normalized_gene_id = self.vicc_normalizers.normalize_gene(gene)
-            term_results.append(
-                NormalizedTerm(
-                    term=gene,
-                    term_type=EntityType.GENE,
-                    normalized_id=normalized_gene_id,
-                )
-            )
-
-        # If queried concept is given check that it is normalized / valid
-        return term_results
-
-    async def _get_normalized_variation(self, variation: str) -> NormalizedTerm:
+    async def _get_normalized_variation(self, variation: str) -> SearchTerm:
         """Get normalized variation concept.
 
         :param variation: Variation query
@@ -372,10 +314,10 @@ class QueryHandler:
             ("ga4gh:VA.", "ga4gh:CX.", "ga4gh:CN.")
         ):
             normalized_variation = variation
-        return NormalizedTerm(
+        return SearchTerm(
             term=variation,
-            term_type=EntityType.VARIATION,
-            normalized_id=normalized_variation,
+            term_type=SearchTermType.VARIATION,
+            resolved_id=normalized_variation,
         )
 
     def _get_stmt_by_id(self, statement_id: str) -> Node | None:
@@ -957,7 +899,7 @@ class QueryHandler:
         search_terms = [
             await self._get_normalized_variation(v) for v in set(variations)
         ]
-        variation_ids = [t.normalized_id for t in search_terms]
+        variation_ids = [t.resolved_id for t in search_terms]
         if not all(variation_ids):
             return SearchResult(
                 search_terms=search_terms, start=start, limit=limit, statements=[]

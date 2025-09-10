@@ -101,34 +101,22 @@ class ServiceMeta(BaseModel):
     )
 
 
-class EntityType(str, Enum):
-    """Type of entity being searched."""
+class SearchTermType(str, Enum):
+    """Type of term being searched."""
 
     VARIATION = "variation"
     DISEASE = "disease"
     THERAPY = "therapy"
     GENE = "gene"
+    STATEMENT_ID = "statement_id"
 
 
-class NormalizedTerm(BaseModel):
-    """Normalized biomedical entity search term.
+class SearchTerm(BaseModel):
+    """Generalized search term with validated/normalized ID."""
 
-    Include user-provided input, the kind of entity, and the ID it normalizes to.
-    """
-
-    type: Literal["NormalizedTerm"] = "NormalizedTerm"
     term: str
-    term_type: EntityType
-    normalized_id: str | None = None
-
-
-class StatementIdTerm(BaseModel):
-    """Statement ID search term."""
-
-    type: Literal["StatementIdTerm"] = "StatementIdTerm"
-    term: str
-    term_type: Literal["statement_id"] = "statement_id"
-    validated_statement_id: str | None
+    term_type: SearchTermType
+    resolved_id: str | None
 
 
 class SearchResult(BaseModel):
@@ -137,7 +125,7 @@ class SearchResult(BaseModel):
     Includes both processed search terms and all statements.
     """
 
-    search_terms: list[NormalizedTerm | StatementIdTerm]
+    search_terms: list[SearchTerm]
     statements: list[
         Statement
         | VariantTherapeuticResponseStudyStatement
@@ -151,11 +139,11 @@ class SearchResult(BaseModel):
 class SearchStatementsQuery(BaseModel):
     """Queries for the Search Statements Endpoint."""
 
-    variation: NormalizedTerm | None = None
-    disease: NormalizedTerm | None = None
-    therapy: NormalizedTerm | None = None
-    gene: NormalizedTerm | None = None
-    statement_id: StatementIdTerm | None = None
+    variation: SearchTerm | None = None
+    disease: SearchTerm | None = None
+    therapy: SearchTerm | None = None
+    gene: SearchTerm | None = None
+    statement_id: SearchTerm | None = None
 
 
 class SearchStatementsResponse(BaseModel):
@@ -180,7 +168,7 @@ class SearchStatementsResponse(BaseModel):
 class BatchSearchStatementsResponse(BaseModel):
     """Define model for /batch_search_statements HTTP endpoint response."""
 
-    search_terms: list[NormalizedTerm]
+    search_terms: list[SearchTerm]
     statements: list[
         Statement
         | VariantTherapeuticResponseStudyStatement

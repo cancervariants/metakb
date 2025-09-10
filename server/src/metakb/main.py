@@ -15,15 +15,12 @@ from metakb.query import EmptySearchError, QueryHandler
 from metakb.schemas.api import (
     METAKB_DESCRIPTION,
     BatchSearchStatementsResponse,
-    EntityType,
-    NormalizedTerm,
     SearchStatementsQuery,
     SearchStatementsResponse,
     ServiceInfo,
     ServiceMeta,
     ServiceOrganization,
     ServiceType,
-    StatementIdTerm,
 )
 
 
@@ -135,28 +132,8 @@ async def get_statements(
             status_code=422,
             detail="At least one search parameter (variation, disease, therapy, gene, statement_id) must be provided.",
         ) from e
-    variation_term, disease_term, therapy_term, gene_term, statement_id_term = (
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
 
-    for term in search_results.search_terms:
-        match term:
-            case NormalizedTerm(term_type=EntityType.VARIATION):
-                variation_term = term
-            case NormalizedTerm(term_type=EntityType.DISEASE):
-                disease_term = term
-            case NormalizedTerm(term_type=EntityType.THERAPY):
-                therapy_term = term
-            case NormalizedTerm(term_type=EntityType.GENE):
-                gene_term = term
-            case StatementIdTerm():
-                statement_id_term = term
-            case _:
-                raise ValueError
+    mapped_terms = {term.term_type.value: term for term in search_results.search_terms}
     grouped_statements = {
         "tr_statements": {},
         "diagnostic_statements": {},
@@ -186,13 +163,7 @@ async def get_statements(
             raise ValueError(msg)
 
     return SearchStatementsResponse(
-        query=SearchStatementsQuery(
-            variation=variation_term,
-            disease=disease_term,
-            therapy=therapy_term,
-            gene=gene_term,
-            statement_id=statement_id_term,
-        ),
+        query=SearchStatementsQuery(**mapped_terms),
         start=start,
         limit=limit,
         service_meta_=ServiceMeta(),

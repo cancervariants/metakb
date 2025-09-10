@@ -3,7 +3,7 @@
 import pytest
 
 from metakb.query import PaginationParamError, QueryHandler
-from metakb.schemas.api import EntityType, NormalizedTerm
+from metakb.schemas.api import SearchTerm, SearchTermType
 
 from .utils import assert_no_match, find_and_check_stmt
 
@@ -24,10 +24,10 @@ async def test_batch_search(
     braf_va_id = "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe"
     braf_response = await query_handler.batch_search_statements([braf_va_id])
     assert braf_response.search_terms == [
-        NormalizedTerm(
+        SearchTerm(
             term=braf_va_id,
-            term_type=EntityType.VARIATION,
-            normalized_id=braf_va_id,
+            term_type=SearchTermType.VARIATION,
+            resolved_id=braf_va_id,
         )
     ]
     find_and_check_stmt(braf_response, civic_eid816_study_stmt, assertion_checks)
@@ -37,18 +37,18 @@ async def test_batch_search(
     )
     assert len(redundant_braf_response.search_terms) == 2
     assert (
-        NormalizedTerm(
+        SearchTerm(
             term=braf_va_id,
-            term_type=EntityType.VARIATION,
-            normalized_id=braf_va_id,
+            term_type=SearchTermType.VARIATION,
+            resolved_id=braf_va_id,
         )
         in redundant_braf_response.search_terms
     )
     assert (
-        NormalizedTerm(
+        SearchTerm(
             term="NC_000007.13:g.140453136A>T",
-            term_type=EntityType.VARIATION,
-            normalized_id=braf_va_id,
+            term_type=SearchTermType.VARIATION,
+            resolved_id=braf_va_id,
         )
         in redundant_braf_response.search_terms
     )
