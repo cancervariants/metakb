@@ -7,6 +7,11 @@ from enum import Enum
 from typing import Annotated
 
 from fastapi import FastAPI, HTTPException, Query, Request
+from ga4gh.va_spec.base import (
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
+)
 
 from metakb import __version__
 from metakb.config import get_config
@@ -137,32 +142,33 @@ async def get_statements(
 
     # group statements
     grouped_statements = {
-        "tr_statements": {},
+        "therapeutic_statements": {},
         "diagnostic_statements": {},
         "prognostic_statements": {},
     }
     statement_ids = []
     for statement in search_results.statements:
         statement_ids.append(statement.id)
-        proposition_type = statement.proposition.type
         variant_id = statement.proposition.subjectVariant.id
         predicate = statement.proposition.predicate
-        if proposition_type == "VariantTherapeuticResponseProposition":
+        if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
             key = f"{variant_id}|{statement.proposition.conditionQualifier.root.id}|{statement.proposition.objectTherapeutic.root.id}|{predicate}"
-            grouped_statements["tr_statements"].setdefault(key, []).append(statement)
-        elif proposition_type == "VariantDiagnosticProposition":
-            key = f"{statement.proposition.subjectVariant.id}|{statement.proposition.objectCondition.root.id}|{predicate}"
+            grouped_statements["therapeutic_statements"].setdefault(key, []).append(
+                statement
+            )
+        elif isinstance(statement.proposition, VariantDiagnosticProposition):
+            key = f"{variant_id}|{statement.proposition.objectCondition.root.id}|{predicate}"
             grouped_statements["diagnostic_statements"].setdefault(key, []).append(
                 statement
             )
-        elif proposition_type == "VariantPrognosticProposition":
-            key = f"{statement.proposition.subjectVariant.id}|{statement.proposition.objectCondition.root.id}|{predicate}"
+        elif isinstance(statement.proposition, VariantPrognosticProposition):
+            key = f"{variant_id}|{statement.proposition.objectCondition.root.id}|{predicate}"
             grouped_statements["prognostic_statements"].setdefault(key, []).append(
                 statement
             )
         else:
-            msg = f"Unrecognized proposition type `{proposition_type}` in {statement}"
-            raise ValueError(msg)
+            msg = f"Unrecognized proposition type `{type(statement.proposition)}` in {statement}"
+            raise ValueError(msg)  # noqa: TRY004
 
     return SearchStatementsResponse(
         query=SearchStatementsQuery(**mapped_terms),

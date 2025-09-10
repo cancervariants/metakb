@@ -153,7 +153,7 @@ class SearchStatementsResponse(BaseModel):
     start: int
     limit: int | None
     statement_ids: list[str]
-    tr_statements: dict[
+    therapeutic_statements: dict[
         str, list[VariantTherapeuticResponseStudyStatement | Statement]
     ] = {}
     diagnostic_statements: dict[

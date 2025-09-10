@@ -230,13 +230,14 @@ class QueryHandler:
 
         # return early if ANY search terms fail to resolve
         if any(
-            (
-                normalized_therapy and normalized_therapy.resolved_id is None,
-                normalized_disease and normalized_disease.resolved_id is None,
-                normalized_variation and normalized_variation.resolved_id is None,
-                normalized_gene and normalized_gene.resolved_id is None,
+            obj and obj.resolved_id is None
+            for obj in (
+                normalized_therapy,
+                normalized_disease,
+                normalized_variation,
+                statement_term,
             )
-        ) or (statement_term and statement_term.resolved_id is None):
+        ):
             _logger.debug(
                 "One or more search terms failed to normalize/validate: %s",
                 search_terms,
@@ -305,15 +306,15 @@ class QueryHandler:
         :param variation: Variation query
         :return: A normalized variant concept if it exists
         """
-        variant_norm_resp = await self.vicc_normalizers.normalize_variation(variation)
-        normalized_variation = variant_norm_resp.id if variant_norm_resp else None
-
         # Check if VRS variation (allele, copy number change, copy number count)
-        # TODO should this happen before the normalizer call?
-        if not normalized_variation and variation.startswith(
-            ("ga4gh:VA.", "ga4gh:CX.", "ga4gh:CN.")
-        ):
+        if variation.startswith(("ga4gh:VA.", "ga4gh:CX.", "ga4gh:CN.")):
             normalized_variation = variation
+        else:
+            variant_norm_resp = await self.vicc_normalizers.normalize_variation(
+                variation
+            )
+            normalized_variation = variant_norm_resp.id if variant_norm_resp else None
+
         return SearchTerm(
             term=variation,
             term_type=SearchTermType.VARIATION,
