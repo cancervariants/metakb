@@ -30,7 +30,7 @@ dependencies = [
     "variation-normalizer~=0.14.1",
     "disease-normalizer[etl]~=0.11.2",
     "thera-py[etl]~=0.11.0",
-    "civicpy @ git+https://github.com/griffithlab/civicpy.git@issue-187",
+    "civicpy @ git+https://github.com/griffithlab/civicpy.git@d55d0a5d4e96c4642f8a9cc37edb1e61696bb2e1",
     "requests",
     "pydantic==2.*",
     "pydantic-settings",

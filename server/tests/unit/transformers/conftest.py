@@ -291,11 +291,15 @@ def civic_gid29():
 def pmid_16384925():
     """Create a test fixture for PMID 16384925."""
     return {
-        "id": "civic.source:69",
+        "id": "civic.sid:69",
         "name": "Cairoli et al., 2006",
         "title": "Prognostic impact of c-KIT mutations in core binding factor leukemias: an Italian retrospective study.",
         "pmid": "16384925",
         "type": "Document",
+        "urls": [
+            "https://civicdb.org/links/source/69",
+            "http://www.ncbi.nlm.nih.gov/pubmed/16384925",
+        ],
     }
 
 
