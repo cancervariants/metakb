@@ -1,16 +1,15 @@
 """Main application for FastAPI."""
 
+import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from enum import Enum
 from typing import Annotated
 
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request
 
 from metakb import __version__
-from metakb.config import get_configs
-from metakb.log_handle import configure_logs
+from metakb.config import get_config
 from metakb.query import EmptySearchError, QueryHandler
 from metakb.schemas.api import (
     METAKB_DESCRIPTION,
@@ -20,6 +19,7 @@ from metakb.schemas.api import (
     ServiceOrganization,
     ServiceType,
 )
+from metakb.utils import configure_logs
 
 
 @asynccontextmanager
@@ -29,12 +29,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     :param app: FastAPI app instance
     :return: async context handler
     """
-    load_dotenv()
-    configure_logs()
+    configure_logs(logging.DEBUG) if get_config().debug else configure_logs()
     query = QueryHandler()
     app.state.query = query
     yield
-    query.repository.driver.close()
+    query.driver.close()
 
 
 app = FastAPI(
@@ -71,14 +70,11 @@ class _Tag(str, Enum):
     tags=[_Tag.META],
 )
 def service_info() -> ServiceInfo:
-    """Provide service info per GA4GH Service Info spec
-
-    :return: conformant service info description
-    """
+    """Provide service info per GA4GH Service Info spec"""
     return ServiceInfo(
         organization=ServiceOrganization(),
         type=ServiceType(),
-        environment=get_configs().env,
+        environment=get_config().env,
     )
 
 
@@ -119,17 +115,6 @@ async def get_statements(
     """Get nested statements from queried concepts that match all conditions provided.
     For example, if `variation` and `therapy` are provided, will return all statements
     that have both the provided `variation` and `therapy`.
-
-    :param request: FastAPI request object
-    :param variation: Variation query (Free text or VRS Variation ID)
-    :param disease: Disease query
-    :param therapy: Therapy query
-    :param gene: Gene query
-    :param statement_id: Statement ID query.
-    :param start: The index of the first result to return. Use for pagination.
-    :param limit: The maximum number of results to return. Use for pagination.
-    :return: SearchStatementsService response containing nested statements and service
-        metadata
     """
     query = request.app.state.query
     try:
@@ -168,12 +153,12 @@ async def batch_get_statements(
     start: Annotated[int, Query(description=_batch_descr["arg_start"])] = 0,
     limit: Annotated[int | None, Query(description=_batch_descr["arg_limit"])] = None,
 ) -> BatchSearchStatementsService:
-    """Fetch all statements associated with `any` of the provided variations.
-
-    :param request: FastAPI request object
-    :param variations: variations to match against
-    :param start: The index of the first result to return. Use for pagination.
-    :param limit: The maximum number of results to return. Use for pagination.
-    :return: batch response object
-    """
-    raise NotImplementedError
+    """Fetch all statements associated with `any` of the provided variations."""
+    query = request.app.state.query
+    try:
+        return await query.batch_search_statements(variations, start, limit)
+    except EmptySearchError as e:
+        raise HTTPException(
+            status_code=422,
+            detail="At least one search parameter must be provided, but no variations values have been given.",
+        ) from e

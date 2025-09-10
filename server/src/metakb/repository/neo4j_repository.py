@@ -1,5 +1,6 @@
 """Neo4j implementation of the repository abstraction."""
 
+import ast
 import logging
 import os
 from typing import NamedTuple
@@ -25,10 +26,10 @@ from ga4gh.va_spec.base import (
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from neo4j import Driver, GraphDatabase, ManagedTransaction, Record
+from neo4j import Driver, GraphDatabase, Record, Transaction
 from neo4j.graph import Node
 
-from metakb.config import get_configs
+from metakb.config import get_config
 from metakb.repository.base import AbstractRepository, is_loadable_statement
 from metakb.repository.neo4j_models import (
     AlleleNode,
@@ -132,7 +133,7 @@ def get_driver(
     :param initialize: whether to perform additional DB setup (e.g. add constraints, indexes)
     :return: Neo4j driver instance
     """
-    configs = get_configs()
+    configs = get_config()
     if configs.env == ServiceEnvironment.PROD:
         # overrule ANY provided configs and get connection url from AWS secrets
         secret = ast.literal_eval(_get_secret())
@@ -161,11 +162,11 @@ class Neo4jRepository(AbstractRepository):
         self.driver = driver
         self.queries = CypherCatalog()
         # TODO not sure if initialize always?
-        with self.driver.session() as session:
+        with self.driver.session().begin_transaction() as tx:
             for query in self.queries.initialize:
-                session.execute_write(lambda tx: tx.run(query))
+                tx.run(query)
 
-    def add_catvar(self, tx: ManagedTransaction, catvar: CategoricalVariant) -> None:
+    def add_catvar(self, tx: Transaction, catvar: CategoricalVariant) -> None:
         """Add categorical variant to DB
 
         Currently validates that the constraint property exists and has a length of
@@ -187,7 +188,7 @@ class Neo4jRepository(AbstractRepository):
             msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar.id} is {catvar.constraints}"
             raise ValueError(msg)
 
-    def add_document(self, tx: ManagedTransaction, document: Document) -> None:
+    def add_document(self, tx: Transaction, document: Document) -> None:
         """Add document to DB
 
         :param tx: Neo4j transaction
@@ -198,7 +199,7 @@ class Neo4jRepository(AbstractRepository):
 
     def add_gene(
         self,
-        tx: ManagedTransaction,
+        tx: Transaction,
         gene: MappableConcept,
     ) -> None:
         """Add gene to DB
@@ -209,7 +210,7 @@ class Neo4jRepository(AbstractRepository):
         gene_node = GeneNode.from_gks(gene)
         tx.run(self.queries.load_gene, gene=gene_node.model_dump(mode="json"))
 
-    def add_condition(self, tx: ManagedTransaction, condition: Condition) -> None:
+    def add_condition(self, tx: Transaction, condition: Condition) -> None:
         """Add condition to DB.
 
         For now, only handles individual diseases.
@@ -227,7 +228,7 @@ class Neo4jRepository(AbstractRepository):
             msg = f"Unsupported condition type: {condition}"
             raise NotImplementedError(msg)
 
-    def add_therapeutic(self, tx: ManagedTransaction, therapeutic: Therapeutic) -> None:
+    def add_therapeutic(self, tx: Transaction, therapeutic: Therapeutic) -> None:
         """Add a therapeutic -- either an individual Drug or a group.
 
         :param tx: Neo4j transaction
@@ -247,7 +248,7 @@ class Neo4jRepository(AbstractRepository):
             msg = f"Unrecognized therapeutic type: {therapeutic}"
             raise TypeError(msg)
 
-    def add_method(self, tx: ManagedTransaction, method: Method) -> None:
+    def add_method(self, tx: Transaction, method: Method) -> None:
         """Add a Method object.
 
         :param tx: Neo4j transaction
@@ -258,15 +259,13 @@ class Neo4jRepository(AbstractRepository):
             method=MethodNode.from_gks(method).model_dump(mode="json"),
         )
 
-    def add_statement(self, tx: ManagedTransaction, statement: Statement) -> None:
+    def add_statement(self, tx: Transaction, statement: Statement) -> None:
         """Add a Statement object.
 
         Currently supports statements based on
         * VariantTherapeuticResponseProposition
         * VariantPrognosticProposition
         * VariantDiagnosticProposition
-
-        Also add included proposition, supporting documents/strength/evidence lines, etc
 
         :param tx: Neo4j transaction
         :param statement: VA-Spec Statement
@@ -299,38 +298,29 @@ class Neo4jRepository(AbstractRepository):
         for statement in data.statements_evidence + data.statements_assertions:
             if not is_loadable_statement(statement):
                 continue
-            with self.driver.session() as session:
+            with self.driver.session().begin_transaction() as tx:
                 proposition = statement.proposition
-                session.execute_write(self.add_catvar, proposition.subjectVariant)
-                session.execute_write(self.add_gene, proposition.geneContextQualifier)
+                self.add_catvar(tx, proposition.subjectVariant)
+                self.add_gene(tx, proposition.geneContextQualifier)
                 # handle proposition-specific properties
-                match proposition:
-                    case VariantTherapeuticResponseProposition():
-                        session.execute_write(
-                            self.add_condition, proposition.conditionQualifier
-                        )
-                        session.execute_write(
-                            self.add_therapeutic,
-                            proposition.objectTherapeutic,
-                        )
-                    case (
-                        VariantDiagnosticProposition() | VariantPrognosticProposition()
-                    ):
-                        session.execute_write(
-                            self.add_condition, proposition.objectCondition
-                        )
-                    case _:
-                        raise NotImplementedError(proposition)
+                if proposition.type == "VariantTherapeuticResponseProposition":
+                    self.add_condition(tx, proposition.conditionQualifier)
+                    self.add_therapeutic(tx, proposition.objectTherapeutic)
+                elif proposition.type in {
+                    "VariantDiagnosticProposition",
+                    "VariantPrognosticProposition",
+                }:
+                    self.add_condition(tx, proposition.objectCondition)
+                else:
+                    raise NotImplementedError(proposition)
                 if statement.reportedIn:
                     for document in statement.reportedIn:
-                        session.execute_write(self.add_document, document)
+                        self.add_document(tx, document)
                 if statement.specifiedBy.id not in loaded_methods:
-                    session.execute_write(
-                        self.add_document, statement.specifiedBy.reportedIn
-                    )
-                    session.execute_write(self.add_method, statement.specifiedBy)
+                    self.add_document(tx, statement.specifiedBy.reportedIn)
+                    self.add_method(tx, statement.specifiedBy)
                     loaded_methods.add(statement.specifiedBy.id)
-                session.execute_write(self.add_statement, statement)
+                self.add_statement(tx, statement)
 
     @staticmethod
     def _make_allele_node(
@@ -524,6 +514,7 @@ class Neo4jRepository(AbstractRepository):
         Probable future changes
         * Search by list of entities
         * Combo-therapy specific search
+        * ConditionSet based search
 
         :param variation_id: GA4GH variation ID
         :param gene_id: normalized gene ID
@@ -534,7 +525,8 @@ class Neo4jRepository(AbstractRepository):
         :return: list of matching statements
         """
         if limit is None:
-            limit = 999999999  # arbitrary page size default
+            # arbitrary page size default -- this value can't be null
+            limit = 999999999
         result = self.driver.execute_query(
             self.queries.search_statements,
             variation_id=variation_id,
@@ -551,6 +543,8 @@ class Neo4jRepository(AbstractRepository):
 
         Delete all nodes/edges and constraints.
         """
-        with self.driver.session() as session:
+        # this is a write query and needs to be in its own transaction
+        self.driver.execute_query("MATCH (n) DETACH DELETE n")
+        with self.driver.session().begin_transaction() as tx:
             for query in self.queries.teardown:
-                session.execute_write(lambda tx: tx.run(query))
+                tx.run(query)

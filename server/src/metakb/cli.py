@@ -3,7 +3,6 @@ to graph datastore.
 """
 
 import datetime
-import json
 import logging
 import re
 import tempfile
@@ -18,14 +17,12 @@ import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore import UNSIGNED
 from botocore.config import Config
-from dotenv import load_dotenv
 from neo4j import Driver
 
 from metakb import DATE_FMT, __version__
-from metakb.config import get_configs
+from metakb.config import get_config
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
-from metakb.log_handle import configure_logs
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
     IllegalUpdateError,
@@ -36,12 +33,11 @@ from metakb.normalizers import (
 from metakb.normalizers import check_normalizers as check_normalizer_health
 from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 from metakb.schemas.app import SourceName
+from metakb.services.manage_data import load_from_json
 from metakb.transformers import CivicTransformer, MoaTransformer
-from metakb.transformers.base import TransformedData
+from metakb.utils import configure_logs
 
 _logger = logging.getLogger(__name__)
-
-load_dotenv()
 
 
 def _echo_info(msg: str) -> None:
@@ -81,7 +77,7 @@ def cli() -> None:
 
     Other commands are available for more granular control over the update process.
     """  # noqa: D301
-    configure_logs()
+    configure_logs(logging.DEBUG) if get_config().debug else configure_logs()
 
 
 _normalizer_db_url_description = "URL endpoint of normalizer database. If not given, the individual normalizers will revert to their own defaults."
@@ -427,13 +423,13 @@ def load_cdm(
 
     if cdm_files:
         for file in cdm_files:
-            load_from_json(file, driver)
+            load_from_json(file, repository)
     else:
         version = _retrieve_s3_cdms() if from_s3 else "*"
 
         for src in sorted([s.value for s in SourceName]):
             pattern = f"{src}_cdm_{version}.json"
-            globbed = (get_configs().data_root / src / "transformers").glob(pattern)
+            globbed = (get_config().data_dir / src / "transformers").glob(pattern)
 
             try:
                 path = sorted(globbed)[-1]
@@ -441,14 +437,7 @@ def load_cdm(
                 msg = f"No valid transformation file found matching pattern: {pattern}"
                 raise FileNotFoundError(msg) from e
 
-            with path.open() as f:
-                data = json.load(f)
-            tmp_new_data = {
-                "statements_evidence": data["statements_evidence"],
-                "statements_assertions": data["statements_assertions"],
-            }
-            transformed_data = TransformedData(**tmp_new_data)
-            repository.add_transformed_data(transformed_data)
+            load_from_json(path, repository)
 
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
@@ -517,7 +506,7 @@ async def update(
         sources = tuple(SourceName)
     for src in sorted([s.value for s in sources]):
         pattern = f"{src}_cdm_*.json"
-        globbed = (get_configs().data_root / src / "transformers").glob(pattern)
+        globbed = (get_config().data_dir / src / "transformers").glob(pattern)
 
         try:
             path = sorted(globbed)[-1]
@@ -700,7 +689,7 @@ def _retrieve_s3_cdms() -> str:
         with tmp_path.open("wb") as f:
             file.Object().download_fileobj(f)
 
-        cdm_dir = get_configs().data_root / source / "transformers"
+        cdm_dir = get_config().data_dir / source / "transformers"
         cdm_zip = ZipFile(tmp_path, "r")
         cdm_zip.extract(f"{source}_cdm_{newest_version}.json", cdm_dir)
 
