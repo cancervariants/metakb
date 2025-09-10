@@ -30,7 +30,7 @@ from neo4j import Driver, GraphDatabase, Record, Transaction
 from neo4j.graph import Node
 
 from metakb.config import get_config
-from metakb.repository.base import AbstractRepository, is_loadable_statement
+from metakb.repository.base import AbstractRepository
 from metakb.repository.neo4j_models import (
     AlleleNode,
     CategoricalVariantNode,
@@ -53,7 +53,6 @@ from metakb.repository.neo4j_models import (
 )
 from metakb.repository.queries import CypherCatalog
 from metakb.schemas.api import ServiceEnvironment
-from metakb.transformers.base import TransformedData
 
 _logger = logging.getLogger(__name__)
 
