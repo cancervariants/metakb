@@ -98,6 +98,9 @@ where = ["src"]
 [tool.pytest.ini_options]
 addopts = "--cov=src --cov-report term-missing --ignore=codebuild/"
 testpaths = ["tests"]
+markers = [
+    "ci: tests safe to run in CI",
+]
 
 [tool.coverage.run]
 branch = true

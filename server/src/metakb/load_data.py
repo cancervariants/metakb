@@ -5,13 +5,150 @@ import logging
 import uuid
 from pathlib import Path
 
-from ga4gh.va_spec.base import MembershipOperator
-from neo4j import Driver, ManagedTransaction
+from ga4gh.core.models import Extension, MappableConcept
+from ga4gh.va_spec.base import (
+    ConditionSet,
+    MembershipOperator,
+    Statement,
+    TherapyGroup,
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
+)
+from neo4j import Driver, ManagedTransaction, Transaction
 
 from metakb.database import get_driver
 from metakb.transformers.base import NormalizerExtensionName
 
 _logger = logging.getLogger(__name__)
+
+
+def _has_normalize_failure(extensions: list[Extension] | None) -> bool:
+    """Check if extensions contain indication of normalization failure
+
+    :param extensions: list of extensions from an entity object
+    :return: True if contains normalize failure
+    """
+    if extensions:
+        for extension in extensions:
+            if extension.name == "vicc_normalizer_failure" and extension.value:
+                return True
+    return False
+
+
+def _is_loadable_condition(
+    condition: MappableConcept | ConditionSet, statement_id: str
+) -> bool:
+    """Check if condition or condition set can be loaded into DB
+
+    :param condition: condition or conditionset to check
+    :param statement_id: ID to use in logging failure message
+    :return: whether condition is loadable
+    :raise ValueError: if unsupported type of condition (eg IRI ref) is provided
+    """
+    if isinstance(condition, MappableConcept):
+        if _has_normalize_failure(condition.extensions):
+            _logger.info(
+                "%s could not be loaded because condition failed to normalize: %s",
+                statement_id,
+                condition,
+            )
+            return False
+    elif isinstance(condition, ConditionSet):
+        for member_condition in condition.conditions:
+            if _has_normalize_failure(member_condition.extensions):
+                _logger.info(
+                    "%s could not be loaded because condition in ConditionSet failed to normalize: %s",
+                    statement_id,
+                    condition,
+                )
+                return False
+    else:
+        raise ValueError  # noqa: TRY004
+    return True
+
+
+def is_loadable_statement(statement: Statement) -> bool:
+    """Check whether statement can be loaded to DB
+
+    * All entity terms need to have normalized
+    * For variations, that means the catvar must have a constraint
+    * For StudyStatements that are supported by other statements via evidence lines,
+        all supporting statements must be loadable for the overarching StudyStatement
+        to be loadable
+
+    :param statement: incoming statement from CDM. All parameters must be fully materialized,
+        not simply referenced as IRIs
+    :return: whether statement can be loaded given current data support policy
+    :raise NotImplementedError: if unsupported proposition type is provided
+    :raise ValueError: if unsupported type used for therapeutic (eg string IRI)
+    """
+    success = True
+    if evidence_lines := statement.hasEvidenceLines:
+        for evidence_line in evidence_lines:
+            for evidence_item in evidence_line.hasEvidenceItems:
+                if not is_loadable_statement(evidence_item):
+                    _logger.info(
+                        "%s could not be loaded because %s is not supported",
+                        statement.id,
+                        evidence_item.id,
+                    )
+                    success = False
+    proposition = statement.proposition
+    if not proposition.subjectVariant.constraints:
+        _logger.info(
+            "%s could not be loaded because subject variant object lacks constraints: %s",
+            statement.id,
+            proposition.subjectVariant,
+        )
+        success = False
+    if isinstance(proposition, VariantTherapeuticResponseProposition):
+        if not _is_loadable_condition(
+            proposition.conditionQualifier.root, statement.id
+        ):
+            success = False
+        therapeutic = proposition.objectTherapeutic.root
+        if isinstance(therapeutic, MappableConcept):
+            if _has_normalize_failure(therapeutic.extensions):
+                _logger.info(
+                    "%s could not be loaded because drug failed to normalize: %s",
+                    statement.id,
+                    therapeutic,
+                )
+                success = False
+        elif isinstance(therapeutic, TherapyGroup):
+            for drug in therapeutic.therapies:
+                if _has_normalize_failure(drug.extensions):
+                    _logger.info(
+                        "%s could not be loaded because drug in therapygroup failed to normalize: %s",
+                        statement.id,
+                        drug,
+                    )
+                    success = False
+        else:
+            raise ValueError  # noqa: TRY004
+    elif isinstance(
+        proposition, VariantDiagnosticProposition | VariantPrognosticProposition
+    ):
+        if not _is_loadable_condition(proposition.objectCondition.root, statement.id):
+            success = False
+    else:
+        msg = f"Unsupported proposition type: {proposition.type}"
+        raise NotImplementedError(msg)
+    if proposition.geneContextQualifier and _has_normalize_failure(
+        proposition.geneContextQualifier.extensions
+    ):
+        _logger.info(
+            "%s could not be loaded because gene failed to normalize: %s",
+            statement.id,
+            proposition.geneContextQualifier,
+        )
+        success = False
+    if success:
+        _logger.info("Success. %s can be loaded.", statement.id)
+    else:
+        _logger.info("Failure. %s cannot be loaded.", statement.id)
+    return success
 
 
 def _create_parameterized_query(
@@ -73,16 +210,12 @@ def _add_mappings_and_exts_to_obj(obj: dict, obj_keys: list[str]) -> None:
         obj_keys.append(f"{name}:${name}")
 
 
-def _add_method(tx: ManagedTransaction, method: dict, ids_to_load: set[str]) -> None:
+def _add_method(tx: Transaction, method: dict) -> None:
     """Add Method node and its relationships to DB
 
-    :param tx: Transaction object provided to transaction functions
+    :param tx: Transaction object
     :param method: CDM method object
-    :param ids_to_load: IDs to load into the DB
     """
-    if method["id"] not in ids_to_load:
-        return
-
     m_keys = [_create_parameterized_query(method, ("id", "name", "methodType"))]
     m_keys = ", ".join(m_keys)
 
@@ -93,7 +226,7 @@ def _add_method(tx: ManagedTransaction, method: dict, ids_to_load: set[str]) -> 
     is_reported_in = method.get("reportedIn")
     if is_reported_in:
         # Method's documents are unique and do not currently have IDs
-        _add_document(tx, is_reported_in, ids_to_load)
+        _add_document(tx, is_reported_in)
         doc_doi = is_reported_in["doi"]
         query += f"""
         MERGE (d:Document {{ doi:'{doc_doi}' }})
@@ -103,19 +236,13 @@ def _add_method(tx: ManagedTransaction, method: dict, ids_to_load: set[str]) -> 
     tx.run(query, **method)
 
 
-def _add_gene_or_disease(
-    tx: ManagedTransaction, obj_in: dict, ids_to_load: set[str]
-) -> None:
+def _add_gene_or_disease(tx: Transaction, obj_in: dict) -> None:
     """Add gene or disease node and its relationships to DB
 
     :param tx: Transaction object provided to transaction functions
     :param obj_in: CDM gene or disease object
-    :param ids_to_load: IDs to load into the DB
     :raises TypeError: When `obj_in` is not a disease or gene
     """
-    if obj_in["id"] not in ids_to_load:
-        return
-
     obj = obj_in.copy()
 
     obj_type = obj["conceptType"]
@@ -137,20 +264,15 @@ def _add_gene_or_disease(
 
 
 def _add_therapy_or_group(
-    tx: ManagedTransaction,
+    tx: Transaction,
     therapy_in: dict,
-    ids_to_load: set[str],
 ) -> None:
     """Add therapy or therapy group node and its relationships
 
     :param tx: Transaction object provided to transaction functions
     :param therapy: Therapy Mappable Concept or Therapy Group object
-    :param ids_to_load: IDs to load into the DB
     :raises TypeError: When therapy type is invalid
     """
-    if therapy_in["id"] not in ids_to_load:
-        return
-
     therapy = therapy_in.copy()
     concept_type = therapy.get("conceptType")
     membership_op = therapy.get("membershipOperator")
@@ -225,7 +347,7 @@ def _prepare_allele(allele: dict) -> dict:
 
 
 def _add_dac_cv(
-    tx: ManagedTransaction,
+    tx: Transaction,
     catvar: dict,
 ) -> None:
     """Load DefiningAlleleConstraint CatVar.
@@ -343,19 +465,14 @@ def _add_dac_cv(
 
 
 def _add_categorical_variant(
-    tx: ManagedTransaction,
+    tx: Transaction,
     catvar: dict,
-    ids_to_load: set[str],
 ) -> None:
     """Add categorical variant objects to DB.
 
     :param tx: Transaction object provided to transaction functions
     :param catvar: Categorical variant CDM object
-    :param ids_to_load: IDs to load into the DB
     """
-    if catvar["id"] not in ids_to_load:
-        return
-
     if catvar.get("constraints") and len(catvar["constraints"]) == 1:
         constraints = catvar["constraints"]
 
@@ -367,21 +484,16 @@ def _add_categorical_variant(
         raise ValueError(msg)
 
 
-def _add_document(
-    tx: ManagedTransaction, document_in: dict, ids_to_load: set[str]
-) -> None:
+def _add_document(tx: Transaction, document_in: dict) -> None:
     """Add Document object to DB.
 
-    :param tx: Transaction object provided to transaction functions
+    :param tx: Neo4j transaction object
     :param document: Document CDM object
-    :param ids_to_load: IDs to load into the DB
     """
     # Not all document's have IDs. These are the fields that can uniquely identify
     # a document
     if "id" in document_in:
         query = "MATCH (n:Document {id:$id}) RETURN n"
-        if document_in["id"] not in ids_to_load:
-            return
     elif "doi" in document_in:
         query = "MATCH (n:Document {doi:$doi}) RETURN n"
     elif "pmid" in document_in:
@@ -406,113 +518,6 @@ def _add_document(
         MERGE (n:Document {{ {formatted_keys} }});
         """
         tx.run(query, **document)
-
-
-def _get_ids_to_load(
-    statements: list[dict], ids_to_load: set[str] | None = None
-) -> set[str]:
-    """Get unique IDs to load into the DB
-
-    :param statements: List of statements
-    :param ids_to_load: IDS to load into the DB (will be mutated)
-    :return: set of IDs to load
-    """
-
-    def _added_ids(statement: dict, ids_to_load: set[str]) -> set[str]:
-        """Add IDs to load into the DB (mutates ``ids_to_load``)
-
-        IDs should be loaded if all concepts (gene/variant/disease/therapy) are
-        normalizable
-
-        :param statement: Statement object
-        :param ids_to_load: IDs to load into the DB. This will be mutated.
-        :return: ``True`` if statement and all nodes should be loaded. ``False`` if
-            statement and nodes should NOT be loaded into the DB (due to concept(s)
-            failing to normalize)
-        """
-        added_ids = set()
-
-        if "hasEvidenceLines" in statement:
-            for el in statement["hasEvidenceLines"]:
-                for ev in el["hasEvidenceItems"]:
-                    if ev["id"] not in ids_to_load:
-                        return added_ids
-
-        proposition = statement["proposition"]
-        variant = proposition["subjectVariant"]
-        if not variant.get("constraints"):
-            return added_ids
-
-        gene = proposition.get("geneContextQualifier", {})
-        disease = proposition.get("conditionQualifier", {}) or proposition.get(
-            "objectCondition", {}
-        )
-        concept_objs = [variant, gene, disease]
-        for concept in concept_objs:
-            if concept and _failed_to_normalize(concept):
-                return added_ids
-
-        if proposition["type"] == "VariantTherapeuticResponseProposition":
-            therapy = proposition.get("objectTherapeutic", {})
-            if "therapies" in therapy:
-                if any(_failed_to_normalize(tp) for tp in therapy["therapies"]):
-                    return added_ids
-            else:
-                if _failed_to_normalize(therapy):
-                    return added_ids
-
-            added_ids.add(therapy["id"])
-
-        for concept in [*concept_objs, statement]:
-            added_ids.add(concept["id"])
-
-        return added_ids
-
-    def _failed_to_normalize(obj: dict) -> bool:
-        """Check if variant, gene, disease, or therapy failed to normalize
-
-        For now, we will only load records that are able to normalize
-
-        :param obj: Variant, gene, disease, or therapy object
-        :return: Whether record failed to normalize
-        """
-        extensions = obj.get("extensions", [])
-        return any(
-            ext for ext in extensions if ext["name"] == NormalizerExtensionName.FAILURE
-        )
-
-    def _add_obj_id_to_set(obj: dict, ids_set: set[str]) -> None:
-        """Add object id to set of IDs
-
-        :param obj: Object to get ID for
-        :param ids_set: IDs found in statements. This will be mutated.
-        """
-        obj_id = obj.get("id")
-        if obj_id:
-            ids_set.add(obj_id)
-
-    if not ids_to_load:
-        ids_to_load = set()
-
-    new_ids_to_load = set()
-    for statement in statements:
-        added_ids = _added_ids(statement, ids_to_load)
-        if not added_ids:
-            continue
-
-        new_ids_to_load.update(added_ids)
-
-        for obj in [
-            statement.get("specifiedBy"),  # method
-            statement.get("reportedIn"),
-        ]:
-            if obj:
-                if isinstance(obj, list):
-                    for item in obj:
-                        _add_obj_id_to_set(item, new_ids_to_load)
-                else:  # This is a dictionary
-                    _add_obj_id_to_set(obj, new_ids_to_load)
-    return new_ids_to_load
 
 
 def _get_statement_query(statement: dict, is_evidence: bool) -> str:
@@ -602,17 +607,12 @@ def _get_statement_query(statement: dict, is_evidence: bool) -> str:
     """
 
 
-def _add_statement_evidence(
-    tx: ManagedTransaction, statement_in: dict, ids_to_load: set[str]
-) -> None:
+def _add_statement_evidence(tx: Transaction, statement_in: dict) -> None:
     """Add statement node and its relationships for evidence records
 
     :param tx: Transaction object provided to transaction functions
     :param statement_in: Statement CDM object for evidence items
     """
-    if statement_in["id"] not in ids_to_load:
-        return
-
     statement = statement_in.copy()
     query = _get_statement_query(statement, is_evidence=True)
 
@@ -627,17 +627,12 @@ def _add_statement_evidence(
     tx.run(query, **statement)
 
 
-def _add_statement_assertion(
-    tx: ManagedTransaction, statement_in: dict, ids_to_load: set[str]
-) -> None:
+def _add_statement_assertion(tx: Transaction, statement_in: dict) -> None:
     """Add statement node and its relationships for assertion records
 
     :param tx: Transaction object provided to transaction functions
     :param statement_in: Statement CDM object for assertions
     """
-    if statement_in["id"] not in ids_to_load:
-        return
-
     statement = statement_in.copy()
     query = _get_statement_query(statement, is_evidence=False)
 
@@ -680,50 +675,55 @@ def _add_statement_assertion(
 def add_transformed_data(driver: Driver, data: dict) -> None:
     """Add set of data formatted per Common Data Model to DB.
 
+    :param driver: Neo4j driver instance
     :param data: contains key/value pairs for data objects to add to DB, including
         statements, variation, therapies, conditions, genes, methods, documents, etc.
     """
-    # Used to keep track of IDs to load. This is used to prevent adding nodes that
-    # aren't associated to supported statements or nodes with no relationships
-    statements_evidence = data.get("statements_evidence", [])
-    ids_to_load = _get_ids_to_load(statements_evidence)
-
-    statements_assertions = data.get("statements_assertions", [])
-    ids_to_load.update(_get_ids_to_load(statements_assertions, ids_to_load=ids_to_load))
-
+    loaded_stmt_count = 0
     with driver.session() as session:
-        loaded_stmt_count = 0
+        for statement in data.get("statements_evidence", []) + data.get(
+            "statements_assertions", []
+        ):
+            with session.begin_transaction() as tx:
+                validated_statement = Statement(**statement)
+                if not is_loadable_statement(validated_statement):
+                    continue
+                proposition = statement["proposition"]
+                _add_categorical_variant(tx, proposition["subjectVariant"])
+                for document in [
+                    *statement.get("reportedIn", []),
+                    statement["specifiedBy"]["reportedIn"],
+                ]:
+                    _add_document(tx, document)
+                _add_method(tx, statement["specifiedBy"])
+                _add_gene_or_disease(tx, proposition["geneContextQualifier"])
+                if proposition["type"] == "VariantTherapeuticResponseProposition":
+                    _add_therapy_or_group(
+                        tx,
+                        proposition["objectTherapeutic"],
+                    )
+                    _add_gene_or_disease(
+                        tx,
+                        proposition["conditionQualifier"],
+                    )
+                elif proposition["type"] in (
+                    "VariantDiagnosticProposition",
+                    "VariantPrognosticProposition",
+                ):
+                    _add_gene_or_disease(
+                        tx,
+                        proposition["objectCondition"],
+                    )
+                else:
+                    raise ValueError
+                if statement["id"].startswith("civic.aid"):
+                    _add_statement_assertion(tx, statement)
+                else:
+                    _add_statement_evidence(tx, statement)
 
-        for cv in data.get("categorical_variants", []):
-            session.execute_write(_add_categorical_variant, cv, ids_to_load)
+                loaded_stmt_count += 1
 
-        for doc in data.get("documents", []):
-            session.execute_write(_add_document, doc, ids_to_load)
-
-        for method in data.get("methods", []):
-            session.execute_write(_add_method, method, ids_to_load)
-
-        for obj_type in ("genes", "conditions"):
-            for obj in data.get(obj_type, []):
-                session.execute_write(_add_gene_or_disease, obj, ids_to_load)
-
-        for tp in data.get("therapies", []):
-            session.execute_write(_add_therapy_or_group, tp, ids_to_load)
-
-        # Statements presume existence of other nodes and should always be loaded last
-        for statement_evidence_item in statements_evidence:
-            session.execute_write(
-                _add_statement_evidence, statement_evidence_item, ids_to_load
-            )
-            loaded_stmt_count += 1
-
-        for statement_assertion in statements_assertions:
-            session.execute_write(
-                _add_statement_assertion, statement_assertion, ids_to_load
-            )
-            loaded_stmt_count += 1
-
-        _logger.info("Successfully loaded %s statements.", loaded_stmt_count)
+    _logger.info("Successfully loaded %s statements.", loaded_stmt_count)
 
 
 def load_from_json(src_transformed_cdm: Path, driver: Driver | None = None) -> None:
