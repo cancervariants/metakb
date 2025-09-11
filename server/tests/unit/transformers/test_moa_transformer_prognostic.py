@@ -202,7 +202,7 @@ def moa_source60():
         "title": "O'Brien C, Wallin JJ, Sampath D, et al. Predictive biomarkers of sensitivity to the phosphatidylinositol 3' kinase inhibitor GDC-0941 in breast cancer preclinical models. Clin Cancer Res. 2010;16(14):3670-83.",
         "urls": ["https://doi.org/10.1158/1078-0432.CCR-09-2828"],
         "doi": "10.1158/1078-0432.CCR-09-2828",
-        "pmid": 20453058,
+        "pmid": "20453058",
     }
 
 
