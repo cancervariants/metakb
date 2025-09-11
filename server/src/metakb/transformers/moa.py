@@ -416,7 +416,7 @@ class MoaTransformer(Transformer):
                 id=f"moa.source:{source_id}",
                 title=source["citation"],
                 urls=[source["url"]] if source["url"] else None,
-                pmid=source["pmid"] if source["pmid"] else None,
+                pmid=str(source["pmid"]) if source["pmid"] else None,
                 doi=source["doi"] if source["doi"] else None,
                 extensions=[Extension(name="source_type", value=source["type"])],
             )

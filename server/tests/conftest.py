@@ -1479,7 +1479,6 @@ def moa_aid66_study_stmt(
             "conditionQualifier": moa_chronic_myelogenous_leukemia,
             "alleleOriginQualifier": {
                 "name": "somatic",
-                "extensions": [{"name": "civic_variant_origin", "value": "SOMATIC"}],
             },
             "geneContextQualifier": moa_abl1,
         },
@@ -1858,7 +1857,7 @@ def moa_method():
             "name": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
             "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
             "doi": "10.1038/s43018-021-00243-3",
-            "pmid": 35121878,
+            "pmid": "35121878",
             "type": "Document",
         },
         "type": "Method",
@@ -1881,7 +1880,7 @@ def moa_source45():
         "title": "Gorre, Mercedes E., et al. Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification. Science 293.5531 (2001): 876-880.",
         "urls": ["https://doi.org/10.1126/science.1062538"],
         "doi": "10.1126/science.1062538",
-        "pmid": 11423618,
+        "pmid": "11423618",
     }
 
 
