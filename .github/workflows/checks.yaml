@@ -1,7 +1,7 @@
 name: checks
 on: [push, pull_request]
 jobs:
-  pip_install:
+  test_backend:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -24,6 +24,10 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --extra tests --extra dev --extra notebooks
+
+      - name: Run tests
+        working-directory: ./server
+        run: uv run pytest -m ci
 
   lint_backend:
     name: lint
