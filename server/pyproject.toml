@@ -5,7 +5,9 @@ authors = [
     {name = "Kori Kuzma"},
     {name = "James Stevenson"},
     {name = "Brian Walsh"},
-    {name = "Jeff Liu"}
+    {name = "Jeff Liu"},
+    {name = "Matthew Cannon"},
+    {name = "Katie Stahl"},
 ]
 readme = "README.md"
 classifiers = [
