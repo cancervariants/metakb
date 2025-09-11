@@ -1,23 +1,22 @@
-from metakb.schemas.api import BatchSearchStatementsService, SearchStatementsService
+from metakb.schemas.api import SearchResult
 
 
 def assert_no_match(response):
     """No match assertions for queried concepts in search_statements."""
-    assert response.statements == response.statement_ids == []
-    assert len(response.warnings) > 0
+    assert response.statements == []
 
 
 def find_and_check_stmt(
-    resp: SearchStatementsService | BatchSearchStatementsService,
+    resp: SearchResult,
     expected_stmt: dict,
     assertion_checks: callable,
     should_find_match: bool = True,
 ):
     """Check that expected statement is or is not in response"""
     if should_find_match:
-        assert expected_stmt["id"] in resp.statement_ids
+        assert expected_stmt["id"] in [s.id for s in resp.statements]
     else:
-        assert expected_stmt["id"] not in resp.statement_ids
+        assert expected_stmt["id"] not in [s.id for s in resp.statements]
 
     actual_stmt = None
     for stmt in resp.statements:
