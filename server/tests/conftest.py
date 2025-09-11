@@ -1137,6 +1137,7 @@ def civic_tid16(cetuximab_extensions, cetuximab_normalizer_mappings):
 def civic_tsg(civic_tid16, civic_tid28):
     """Create test fixture for CIViC therapy subsitutes"""
     return {
+        "id": "civic.tsgid:7IxyhCwID0QYyVCP2xuIyYvwwu-S_HrZ",
         "therapies": [civic_tid16, civic_tid28],
         "membershipOperator": "OR",
     }
@@ -1175,6 +1176,7 @@ def civic_tid483(encorafenib_extensions, encorafenib_normalizer_mappings):
 def civic_ct(civic_tid483, civic_tid16):
     """Create test fixture for CIViC combination therapy"""
     return {
+        "id": "civic.ctid:P1PY89shAjemg7jquQ0V9pg1VnYnkPeK",
         "therapies": [civic_tid483, civic_tid16],
         "membershipOperator": "AND",
     }

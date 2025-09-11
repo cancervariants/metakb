@@ -2,7 +2,7 @@
 
 import inspect
 import logging
-from enum import Enum
+from enum import Enum, StrEnum
 from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
@@ -30,6 +30,7 @@ from ga4gh.core.models import (
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
+    MembershipOperator,
     Statement,
     TherapyGroup,
     VariantDiagnosticProposition,
@@ -93,6 +94,13 @@ class ConceptType(str, Enum):
     GENE = "Gene"
     DISEASE = "Disease"
     THERAPY = "Therapy"
+
+
+class TherapyGroupNamespacePrefix(StrEnum):
+    """Define therapy group namespace prefixes"""
+
+    COMBINATION = "civic.ctid"
+    SUBSTITUTES = "civic.tsgid"
 
 
 class _CivicTransformedCache(_TransformedRecordsCache):
@@ -271,6 +279,23 @@ class CivicTransformer(Transformer):
         :param proposition: Proposition for a given statement
         """
 
+        def _get_therapy_group_id(
+            therapy_group: TherapyGroup, therapy_member_ids: list[str]
+        ) -> str:
+            """Get therapy group computed identifier
+
+            :param therapy_group: Therapy group for civic therapies
+            :param therapy_member_ids: List of CIViC therapy IDs
+            :return: Computed identifier for CIViC therapy group
+            """
+            therapy_group_ns_prefix = (
+                TherapyGroupNamespacePrefix.SUBSTITUTES
+                if therapy_group.membershipOperator == MembershipOperator.OR
+                else TherapyGroupNamespacePrefix.COMBINATION
+            )
+            therapy_group_digest = self._get_digest_for_str_lists(therapy_member_ids)
+            return f"{therapy_group_ns_prefix}:{therapy_group_digest}"
+
         async def _add_therapy(therapy: CivicGksTherapy) -> MappableConcept:
             """Create or get therapy given CIViC therapy.
             First looks in cache for existing therapy, if not found will attempt to
@@ -322,12 +347,16 @@ class CivicTransformer(Transformer):
         therapeutic = getattr(proposition, "objectTherapeutic", None)
         if therapeutic:
             if isinstance(therapeutic.root, TherapyGroup):
+                therapy_member_ids = []
+                therapies = []
+                for therapy_member in therapeutic.root.therapies:
+                    therapy_member_ids.append(therapy_member.id)
+                    therapies.append(await _add_therapy(therapy_member))
+
                 updated_therapeutic = TherapyGroup(
                     **therapeutic.model_dump(exclude_none=True, exclude={"therapies"}),
-                    therapies=[
-                        await _add_therapy(therapy_member)
-                        for therapy_member in therapeutic.root.therapies
-                    ],
+                    id=_get_therapy_group_id(therapeutic.root, therapy_member_ids),
+                    therapies=therapies,
                 )
 
             else:
