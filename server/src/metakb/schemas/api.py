@@ -101,54 +101,80 @@ class ServiceMeta(BaseModel):
     )
 
 
+class SearchTermType(str, Enum):
+    """Type of term being searched."""
+
+    VARIATION = "variation"
+    DISEASE = "disease"
+    THERAPY = "therapy"
+    GENE = "gene"
+    STATEMENT_ID = "statement_id"
+
+
+class SearchTerm(BaseModel):
+    """Generalized search term with validated/normalized ID."""
+
+    term: str
+    term_type: SearchTermType
+    resolved_id: str | None
+
+
+class SearchResult(BaseModel):
+    """Results of a search.
+
+    Includes both processed search terms and all statements.
+    """
+
+    search_terms: list[SearchTerm]
+    statements: list[
+        Statement
+        | VariantTherapeuticResponseStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantDiagnosticStudyStatement
+    ] = []
+    start: int = 0
+    limit: int | None = None
+
+
 class SearchStatementsQuery(BaseModel):
     """Queries for the Search Statements Endpoint."""
 
-    variation: StrictStr | None = None
-    disease: StrictStr | None = None
-    therapy: StrictStr | None = None
-    gene: StrictStr | None = None
-    statement_id: StrictStr | None = None
+    variation: SearchTerm | None = None
+    disease: SearchTerm | None = None
+    therapy: SearchTerm | None = None
+    gene: SearchTerm | None = None
+    statement_id: SearchTerm | None = None
 
 
-class SearchStatementsService(BaseModel):
-    """Define model for Search Statements Endpoint Response."""
+class SearchStatementsResponse(BaseModel):
+    """Define model for /search_statements HTTP endpoint response."""
 
     query: SearchStatementsQuery
-    warnings: list[StrictStr] = []
-    statement_ids: list[StrictStr] = []
-    statements: list[
-        Statement
-        | VariantTherapeuticResponseStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantDiagnosticStudyStatement
-    ] = []
+    start: int
+    limit: int | None
+    statement_ids: list[str]
+    therapeutic_statements: dict[
+        str, list[VariantTherapeuticResponseStudyStatement | Statement]
+    ] = {}
+    diagnostic_statements: dict[
+        str, list[VariantDiagnosticStudyStatement | Statement]
+    ] = {}
+    prognostic_statements: dict[
+        str, list[VariantPrognosticStudyStatement | Statement]
+    ] = {}
     service_meta_: ServiceMeta
 
 
-class NormalizedQuery(BaseModel):
-    """Define structure of user-provided query. If possible, add normalized ID."""
+class BatchSearchStatementsResponse(BaseModel):
+    """Define model for /batch_search_statements HTTP endpoint response."""
 
-    term: StrictStr
-    normalized_id: StrictStr | None = None
-
-
-class BatchSearchStatementsQuery(BaseModel):
-    """Define query as reported in batch search statements endpoint."""
-
-    variations: list[NormalizedQuery] = []
-
-
-class BatchSearchStatementsService(BaseModel):
-    """Define response model for batch search statements endpoint response."""
-
-    query: BatchSearchStatementsQuery
-    warnings: list[StrictStr] = []
-    statement_ids: list[StrictStr] = []
+    search_terms: list[SearchTerm]
     statements: list[
         Statement
         | VariantTherapeuticResponseStudyStatement
         | VariantPrognosticStudyStatement
         | VariantDiagnosticStudyStatement
     ] = []
+    start: int
+    limit: int | None
     service_meta_: ServiceMeta

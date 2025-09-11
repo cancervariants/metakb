@@ -3,14 +3,15 @@
 import pytest
 from tests.conftest import get_mappings_normalizer_id
 
-from metakb.query import QueryHandler
+from metakb.query import EmptySearchError, PaginationParamError, QueryHandler
 
 from .utils import assert_no_match, find_and_check_stmt
 
 
 def assert_general_search_stmts(response):
     """Check that general search_statements queries return a valid response"""
-    len_stmt_id_matches = len(response.statement_ids)
+    statement_ids = [s.id for s in response.statements]
+    len_stmt_id_matches = len(statement_ids)
     assert len_stmt_id_matches > 0
     len_stmts = len(response.statements)
     assert len_stmts > 0
@@ -23,10 +24,10 @@ async def test_civic_eid2997(query_handler, civic_eid2997_study_stmt, assertion_
     resp = await query_handler.search_statements(
         statement_id=civic_eid2997_study_stmt["id"]
     )
-    assert resp.statement_ids == [civic_eid2997_study_stmt["id"]]
+    statement_ids = [s.id for s in resp.statements]
+    assert statement_ids == [civic_eid2997_study_stmt["id"]]
     resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
     assertion_checks(resp_stmts, [civic_eid2997_study_stmt])
-    assert resp.warnings == []
 
     resp = await query_handler.search_statements(variation="EGFR L858R")
     find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks)
@@ -72,10 +73,10 @@ async def test_civic816(query_handler, civic_eid816_study_stmt, assertion_checks
     resp = await query_handler.search_statements(
         statement_id=civic_eid816_study_stmt["id"]
     )
-    assert resp.statement_ids == [civic_eid816_study_stmt["id"]]
+    statement_ids = [s.id for s in resp.statements]
+    assert statement_ids == [civic_eid816_study_stmt["id"]]
     resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
     assertion_checks(resp_stmts, [civic_eid816_study_stmt])
-    assert resp.warnings == []
 
     # Try querying based on therapies in substitutes
     resp = await query_handler.search_statements(therapy="Cetuximab")
@@ -91,10 +92,10 @@ async def test_civic9851(query_handler, civic_eid9851_study_stmt, assertion_chec
     resp = await query_handler.search_statements(
         statement_id=civic_eid9851_study_stmt["id"]
     )
-    assert resp.statement_ids == [civic_eid9851_study_stmt["id"]]
+    statement_ids = [s.id for s in resp.statements]
+    assert statement_ids == [civic_eid9851_study_stmt["id"]]
     resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
     assertion_checks(resp_stmts, [civic_eid9851_study_stmt])
-    assert resp.warnings == []
 
     # Try querying based on therapies in components
     resp = await query_handler.search_statements(therapy="Encorafenib")
@@ -110,7 +111,8 @@ async def test_civic_assertion(query_handler, civic_aid6_statement, assertion_ch
     resp = await query_handler.search_statements(
         statement_id=civic_aid6_statement["id"]
     )
-    assert resp.statement_ids == [civic_aid6_statement["id"]]
+    statement_ids = [s.id for s in resp.statements]
+    assert statement_ids == [civic_aid6_statement["id"]]
     resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
     assert len(resp_stmts) == 1
     # Test fixture only has one evidence line, but actual has 6
@@ -134,7 +136,6 @@ async def test_civic_assertion(query_handler, civic_aid6_statement, assertion_ch
 
     actual_civic_aid6["hasEvidenceLines"] = expected_evidence_lines
     assertion_checks(resp_stmts, [civic_aid6_statement])
-    assert resp.warnings == []
 
 
 @pytest.mark.asyncio(scope="module")
@@ -143,10 +144,11 @@ async def test_moa_66(query_handler, moa_aid66_study_stmt, assertion_checks):
     resp = await query_handler.search_statements(
         statement_id=moa_aid66_study_stmt["id"]
     )
-    assert resp.statement_ids == [moa_aid66_study_stmt["id"]]
+
+    statement_ids = [s.id for s in resp.statements]
+    assert statement_ids == [moa_aid66_study_stmt["id"]]
     resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
     assertion_checks(resp_stmts, [moa_aid66_study_stmt])
-    assert resp.warnings == []
 
     resp = await query_handler.search_statements(variation="ABL1 Thr315Ile")
     find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks)
@@ -263,8 +265,8 @@ async def test_no_matches(query_handler):
     assert_no_match(resp)
 
     # empty query
-    resp = await query_handler.search_statements()
-    assert_no_match(resp)
+    with pytest.raises(EmptySearchError):
+        resp = await query_handler.search_statements()
 
     # valid queries, but no matches with combination
     resp = await query_handler.search_statements(variation="BRAF V600E", gene="EGFR")
@@ -280,44 +282,46 @@ async def test_paginate(query_handler: QueryHandler, normalizers):
         variation=braf_va_id, start=1
     )
     # should be almost the same, just off by 1
-    assert len(paged_response.statement_ids) == len(full_response.statement_ids) - 1
-    assert paged_response.statement_ids == full_response.statement_ids[1:]
+    assert len(paged_response.statements) == len(full_response.statements) - 1
+    assert paged_response.statements == full_response.statements[1:]
 
     # check that page limit > response doesn't affect response
     huge_page_response = await query_handler.search_statements(
         variation=braf_va_id, limit=1000
     )
-    assert len(huge_page_response.statement_ids) == len(full_response.statement_ids)
-    assert huge_page_response.statement_ids == full_response.statement_ids
+    assert len(huge_page_response.statements) == len(full_response.statements)
+    assert huge_page_response.statements == full_response.statements
 
     # get last item
     last_response = await query_handler.search_statements(
-        variation=braf_va_id, start=len(full_response.statement_ids) - 1
+        variation=braf_va_id, start=len(full_response.statements) - 1
     )
-    assert len(last_response.statement_ids) == 1
-    assert last_response.statement_ids[0] == full_response.statement_ids[-1]
+    assert len(last_response.statements) == 1
+    assert last_response.statements[0] == full_response.statements[-1]
 
     # test limit
     min_response = await query_handler.search_statements(variation=braf_va_id, limit=1)
-    assert min_response.statement_ids[0] == full_response.statement_ids[0]
+    assert min_response.statements[0] == full_response.statements[0]
 
     # test limit and start
     other_min_response = await query_handler.search_statements(
         variation=braf_va_id, start=1, limit=1
     )
-    assert other_min_response.statement_ids[0] == full_response.statement_ids[1]
+    assert other_min_response.statements[0] == full_response.statements[1]
 
     # test limit of 0
     empty_response = await query_handler.search_statements(
         variation=braf_va_id, limit=0
     )
-    assert len(empty_response.statement_ids) == 0
+    assert len(empty_response.statements) == 0
 
     # test raises exceptions
-    with pytest.raises(ValueError, match="Can't start from an index of less than 0."):
+    with pytest.raises(
+        PaginationParamError, match="Invalid start value: -1. Must be nonnegative."
+    ):
         await query_handler.search_statements(variation=braf_va_id, start=-1)
     with pytest.raises(
-        ValueError, match="Can't limit results to less than a negative number."
+        PaginationParamError, match="Invalid limit value: -1. Must be nonnegative."
     ):
         await query_handler.search_statements(variation=braf_va_id, limit=-1)
 
@@ -326,21 +330,21 @@ async def test_paginate(query_handler: QueryHandler, normalizers):
     default_limited_response = await limited_query_handler.search_statements(
         variation=braf_va_id
     )
-    assert len(default_limited_response.statement_ids) == 1
-    assert default_limited_response.statement_ids[0] == full_response.statement_ids[0]
+    assert len(default_limited_response.statements) == 1
+    assert default_limited_response.statements[0] == full_response.statements[0]
 
     # test overrideable
     less_limited_response = await limited_query_handler.search_statements(
         variation=braf_va_id, limit=2
     )
-    assert len(less_limited_response.statement_ids) == 2
-    assert less_limited_response.statement_ids == full_response.statement_ids[:2]
+    assert len(less_limited_response.statements) == 2
+    assert less_limited_response.statements == full_response.statements[:2]
 
     # test default limit and skip
     skipped_limited_response = await limited_query_handler.search_statements(
         variation=braf_va_id, start=1
     )
-    assert len(skipped_limited_response.statement_ids) == 1
-    assert skipped_limited_response.statement_ids[0] == full_response.statement_ids[1]
+    assert len(skipped_limited_response.statements) == 1
+    assert skipped_limited_response.statements[0] == full_response.statements[1]
 
     limited_query_handler.driver.close()
