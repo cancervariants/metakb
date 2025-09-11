@@ -3,6 +3,10 @@
 from enum import Enum
 from typing import Literal
 
+from ga4gh.cat_vrs import CATVRS_VERSION
+from ga4gh.cat_vrs import __version__ as cat_vrs_python_version
+from ga4gh.va_spec import VASPEC_VERSION
+from ga4gh.va_spec import __version__ as va_spec_python_version
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
@@ -48,12 +52,16 @@ class SpecMetadata(BaseModel):
     """Define substructure for reporting specification metadata."""
 
     vrs_version: str = VRS_VERSION
+    cat_vrs_version: str = CATVRS_VERSION
+    va_spec_version: str = VASPEC_VERSION
 
 
 class ImplMetadata(BaseModel):
     """Define substructure for reporting metadata about internal software dependencies."""
 
     vrs_python_version: str = vrs_python_version
+    cat_vrs_python_version: str = cat_vrs_python_version
+    va_spec_python_version: str = va_spec_python_version
 
 
 METAKB_DESCRIPTION = "A search interface for cancer variant interpretations assembled by aggregating and harmonizing across multiple cancer variant interpretation knowledgebases."
