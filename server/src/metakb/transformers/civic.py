@@ -15,6 +15,7 @@ from civicpy.exports.civic_gks_record import (
     CivicGksMolecularProfile,
     CivicGksPhenotype,
     CivicGksTherapy,
+    CivicGksTherapyGroup,
     create_gks_record_from_assertion,
 )
 from ga4gh.cat_vrs.models import (
@@ -101,6 +102,27 @@ class TherapyGroupNamespacePrefix(StrEnum):
 
     COMBINATION = "civic.ctid"
     SUBSTITUTES = "civic.tsgid"
+
+
+class ConditionSetNamespacePrefix(StrEnum):
+    """Define condition set namespace prefixes"""
+
+    UNION = "civic.condset_union"
+    INTERSECTION = "civic.condset_intersect"
+
+
+NAMESPACE_PREFIX_MAP = MappingProxyType(
+    {
+        CivicGksTherapyGroup: {
+            MembershipOperator.OR: TherapyGroupNamespacePrefix.SUBSTITUTES,
+            MembershipOperator.AND: TherapyGroupNamespacePrefix.COMBINATION,
+        },
+        ConditionSet: {
+            MembershipOperator.OR: ConditionSetNamespacePrefix.UNION,
+            MembershipOperator.AND: ConditionSetNamespacePrefix.INTERSECTION,
+        },
+    }
+)
 
 
 class _CivicTransformedCache(_TransformedRecordsCache):
@@ -279,23 +301,6 @@ class CivicTransformer(Transformer):
         :param proposition: Proposition for a given statement
         """
 
-        def _get_therapy_group_id(
-            therapy_group: TherapyGroup, therapy_member_ids: list[str]
-        ) -> str:
-            """Get therapy group computed identifier
-
-            :param therapy_group: Therapy group for civic therapies
-            :param therapy_member_ids: List of CIViC therapy IDs
-            :return: Computed identifier for CIViC therapy group
-            """
-            therapy_group_ns_prefix = (
-                TherapyGroupNamespacePrefix.SUBSTITUTES
-                if therapy_group.membershipOperator == MembershipOperator.OR
-                else TherapyGroupNamespacePrefix.COMBINATION
-            )
-            therapy_group_digest = self._get_digest_for_str_lists(therapy_member_ids)
-            return f"{therapy_group_ns_prefix}:{therapy_group_digest}"
-
         async def _add_therapy(therapy: CivicGksTherapy) -> MappableConcept:
             """Create or get therapy given CIViC therapy.
             First looks in cache for existing therapy, if not found will attempt to
@@ -355,7 +360,7 @@ class CivicTransformer(Transformer):
 
                 updated_therapeutic = TherapyGroup(
                     **therapeutic.model_dump(exclude_none=True, exclude={"therapies"}),
-                    id=_get_therapy_group_id(therapeutic.root, therapy_member_ids),
+                    id=self._compute_id(therapeutic.root, therapy_member_ids),
                     therapies=therapies,
                 )
 
@@ -365,6 +370,25 @@ class CivicTransformer(Transformer):
             updated_mappings["objectTherapeutic"] = updated_therapeutic
 
         return proposition.model_copy(update=updated_mappings)
+
+    def _compute_id(
+        self,
+        therapy_group_or_cond_set: CivicGksTherapyGroup | ConditionSet,
+        ids: list[str],
+    ) -> str:
+        """Compute identifier for therapy group or condition set
+
+        :param therapy_group_or_cond_set: Therapy group or condition set
+        :param ids: List of IDs for therapies or conditions in
+            ``therapy_group_or_cond_set``
+        :return: Computed identifier
+        """
+        ns_prefix = NAMESPACE_PREFIX_MAP[therapy_group_or_cond_set.__class__][
+            therapy_group_or_cond_set.membershipOperator
+        ]
+
+        digest = self._get_digest_for_str_lists(ids)
+        return f"{ns_prefix}:{digest}"
 
     async def _resolve_entity(
         self,
@@ -415,8 +439,10 @@ class CivicTransformer(Transformer):
         :return: Annotated condition set
         """
         updated_conditions = []
+        condition_ids = []
         for condition in condition_set.conditions:
             if isinstance(condition, CivicGksDisease | CivicGksPhenotype):
+                condition_ids.append(condition.id)
                 updated_conditions.append(
                     await self._resolve_entity(
                         condition,
@@ -425,11 +451,19 @@ class CivicTransformer(Transformer):
                     )
                 )
             elif isinstance(condition, ConditionSet):
-                updated_conditions.append(await self._resolve_condition_set(condition))
+                _condition_set = await self._resolve_condition_set(condition)
+                condition_ids.append(_condition_set.id)
+                updated_conditions.append(_condition_set)
 
         return ConditionSet(
-            **condition_set.model_dump(exclude_none=True, exclude={"conditions"}),
+            **condition_set.model_dump(
+                exclude_none=True,
+                exclude={
+                    "conditions",
+                },
+            ),
             conditions=updated_conditions,
+            id=self._compute_id(condition_set, condition_ids),
         )
 
     def _get_annotated_mappable_concept(

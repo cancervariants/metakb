@@ -699,6 +699,7 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
 def aid93_object_condition():
     """Create test fixture for AID 93 object condition"""
     return {
+        "id": "civic.condset_intersect:pJqdfQV9U73-EeZ45TntflMPBQYyjSIT",
         "conditions": [
             {
                 "id": "civic.did:3225",
@@ -707,11 +708,28 @@ def aid93_object_condition():
                 "mappings": [
                     {
                         "coding": {
+                            "id": "DOID:0080906",
                             "system": "https://disease-ontology.org/?id=",
                             "code": "DOID:0080906",
                         },
                         "relation": "exactMatch",
-                    }
+                        "extensions": [
+                            get_civic_annotation_ext(),
+                            get_vicc_normalizer_priority_ext(is_priority=False),
+                        ],
+                    },
+                    {
+                        "coding": {
+                            "id": "MONDO_0859597",
+                            "system": "https://purl.obolibrary.org/obo/",
+                            "code": "MONDO:0859597",
+                            "name": "cns neuroblastoma with FOXR2 activation",
+                        },
+                        "relation": "exactMatch",
+                        "extensions": [
+                            get_vicc_normalizer_priority_ext(is_priority=True),
+                        ],
+                    },
                 ],
             },
             {
@@ -737,6 +755,7 @@ def aid93_object_condition():
 def aid115_object_condition():
     """Create test fixture for AID 115 object condition"""
     return {
+        "id": "civic.condset_intersect:4WeLQvX7p2PjYxSYIRep5HQacNuawmSj",
         "conditions": [
             {
                 "id": "civic.did:3387",
@@ -745,14 +764,32 @@ def aid115_object_condition():
                 "mappings": [
                     {
                         "coding": {
+                            "id": "DOID:0081279",
                             "system": "https://disease-ontology.org/?id=",
                             "code": "DOID:0081279",
                         },
                         "relation": "exactMatch",
-                    }
+                        "extensions": [
+                            get_civic_annotation_ext(),
+                            get_vicc_normalizer_priority_ext(is_priority=False),
+                        ],
+                    },
+                    {
+                        "coding": {
+                            "id": "MONDO_0859615",
+                            "system": "https://purl.obolibrary.org/obo/",
+                            "code": "MONDO:0859615",
+                            "name": "diffuse astrocytoma, MYB- or MYBL1-altered",
+                        },
+                        "relation": "exactMatch",
+                        "extensions": [
+                            get_vicc_normalizer_priority_ext(is_priority=True),
+                        ],
+                    },
                 ],
             },
             {
+                "id": "civic.condset_union:kjakcUE5QVQqAMalnC9FUQnx0kPQGfG0",
                 "conditions": [
                     {
                         "id": "civic.phenotype:8121",
@@ -839,10 +876,11 @@ async def test_phenotypes(
             else aid93_object_condition
         )
 
-        assert DeepDiff(
+        diff = DeepDiff(
             condition.model_dump(exclude_none=True),
             expected_condition,
             ignore_order=True,
         )
+        assert diff == {}, assertion.id
 
     assert len(data["conditions"]) == 6
