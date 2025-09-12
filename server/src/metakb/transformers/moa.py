@@ -52,6 +52,7 @@ class _MoaTransformedCache(_TransformedRecordsCache):
     normalized_therapies: ClassVar[
         dict[str, MappableConcept]
     ] = {}  # normalized_id: therapy
+    therapy_groups: ClassVar[dict[str, TherapyGroup]] = {}
 
 
 class MoaTransformer(Transformer):
@@ -546,24 +547,27 @@ class MoaTransformer(Transformer):
         :param therapy_type: Therapy type
         :return: Therapy mappable concept, if ``therapy_type`` is supported
         """
-        therapy = self._cache.therapies.get(therapy_id)
+        therapy = self._cache.therapies.get(
+            therapy_id
+        ) or self._cache.therapy_groups.get(therapy_id)
         if therapy:
             return therapy
 
         if membership_operator is None:
             therapy = self._get_therapy(therapy_id, therapies[0])
+            self._cache.therapies[therapy_id] = therapy
+            self.processed_data.therapies.append(therapy)
         elif membership_operator == MembershipOperator.AND:
             therapy = self._get_combination_therapy(
                 therapy_id, therapies, therapy_type=therapy_type
             )
+            self._cache.therapy_groups[therapy_id] = therapy
+            self.processed_data.therapy_groups.append(therapy)
         else:
             logger.debug(
                 "Membership operator is not supported: %s", membership_operator
             )
             return None
-
-        self._cache.therapies[therapy_id] = therapy
-        self.processed_data.therapies.append(therapy)
 
         return therapy
 

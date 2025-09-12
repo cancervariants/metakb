@@ -875,12 +875,16 @@ async def test_phenotypes(
             if assertion.id == "civic.aid:115"
             else aid93_object_condition
         )
+        condition_dict = condition.model_dump(exclude_none=True)
 
         diff = DeepDiff(
-            condition.model_dump(exclude_none=True),
+            condition_dict,
             expected_condition,
             ignore_order=True,
         )
         assert diff == {}, assertion.id
+
+        assert condition_dict in data["condition_sets"]
+        assert condition_dict not in data["conditions"]
 
     assert len(data["conditions"]) == 6

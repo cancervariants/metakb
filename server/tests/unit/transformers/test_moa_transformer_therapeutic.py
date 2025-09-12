@@ -419,11 +419,21 @@ def statements(moa_aid66_study_stmt, moa_aid154_study_stmt):
     return [moa_aid66_study_stmt, moa_aid154_study_stmt]
 
 
-def test_moa_cdm(normalizable_data, statements, check_transformed_cdm):
+def test_moa_cdm(
+    normalizable_data, statements, check_transformed_cdm, moa_aid154_study_stmt
+):
     """Test that moa transformation works correctly."""
     check_transformed_cdm(
         normalizable_data, statements, DATA_DIR / NORMALIZABLE_FILENAME
     )
+
+    combo_therapy_id = moa_aid154_study_stmt["proposition"]["objectTherapeutic"]["id"]
+
+    therapy_group_ids = [tg["id"] for tg in normalizable_data["therapy_groups"]]
+    assert combo_therapy_id in therapy_group_ids
+
+    therapy_ids = [t["id"] for t in normalizable_data["therapies"]]
+    assert combo_therapy_id not in therapy_ids
 
 
 def test_moa_cdm_not_normalizable(
