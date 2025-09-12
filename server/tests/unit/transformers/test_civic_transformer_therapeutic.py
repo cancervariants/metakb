@@ -461,9 +461,15 @@ def civic_not_normalizable_stmt(
     }
 
 
-def test_civic_cdm(data, statements, check_transformed_cdm, tmp_path):
+def test_civic_cdm(data, statements, check_transformed_cdm, tmp_path, civic_tsg):
     """Test that civic transformation works correctly."""
     check_transformed_cdm(data, statements, tmp_path / NORMALIZABLE_FILENAME)
+
+    therapy_group_ids = [tg["id"] for tg in data["therapy_groups"]]
+    assert civic_tsg["id"] in therapy_group_ids
+
+    therapy_ids = [t["id"] for t in data["therapies"]]
+    assert civic_tsg["id"] not in therapy_ids
 
 
 def test_civic_cdm_not_normalizable(

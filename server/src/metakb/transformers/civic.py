@@ -363,6 +363,8 @@ class CivicTransformer(Transformer):
                     id=self._compute_id(therapeutic.root, therapy_member_ids),
                     therapies=therapies,
                 )
+                if updated_therapeutic not in self.processed_data.therapy_groups:
+                    self.processed_data.therapy_groups.append(updated_therapeutic)
 
             else:
                 updated_therapeutic = await _add_therapy(therapeutic.root)
@@ -455,7 +457,7 @@ class CivicTransformer(Transformer):
                 condition_ids.append(_condition_set.id)
                 updated_conditions.append(_condition_set)
 
-        return ConditionSet(
+        condition_set = ConditionSet(
             **condition_set.model_dump(
                 exclude_none=True,
                 exclude={
@@ -465,6 +467,9 @@ class CivicTransformer(Transformer):
             conditions=updated_conditions,
             id=self._compute_id(condition_set, condition_ids),
         )
+        if condition_set not in self.processed_data.condition_sets:
+            self.processed_data.condition_sets.append(condition_set)
+        return condition_set
 
     def _get_annotated_mappable_concept(
         self,

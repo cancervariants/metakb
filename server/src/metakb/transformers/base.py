@@ -32,6 +32,7 @@ from ga4gh.va_spec.aac_2017 import (
     VariantTherapeuticResponseStudyStatement,
 )
 from ga4gh.va_spec.base import (
+    ConditionSet,
     Document,
     Method,
     Statement,
@@ -156,8 +157,10 @@ class TransformedData(BaseModel):
     categorical_variants: list[CategoricalVariant] = []
     variations: list[CopyNumberChange | CopyNumberCount | Allele] = []
     genes: list[MappableConcept] = []
-    therapies: list[MappableConcept | TherapyGroup] = []
+    therapies: list[MappableConcept] = []
+    therapy_groups: list[TherapyGroup] = []
     conditions: list[MappableConcept] = []
+    condition_sets: list[ConditionSet] = []
     methods: list[Method] = []
     documents: list[Document | iriReference] = []
 
