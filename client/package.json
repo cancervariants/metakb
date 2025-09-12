@@ -38,6 +38,9 @@
     "*.{js,jsx,ts,tsx}": [
       "pnpm lint",
       "pnpm format:fix"
+    ],
+    "*.{css,scss}": [
+      "pnpm format:fix"
     ]
   }
 }
