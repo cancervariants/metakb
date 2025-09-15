@@ -5,7 +5,9 @@ authors = [
     {name = "Kori Kuzma"},
     {name = "James Stevenson"},
     {name = "Brian Walsh"},
-    {name = "Jeff Liu"}
+    {name = "Jeff Liu"},
+    {name = "Matthew Cannon"},
+    {name = "Katie Stahl"},
 ]
 readme = "README.md"
 classifiers = [
@@ -33,6 +35,7 @@ dependencies = [
     "civicpy~=3.1",
     "requests",
     "pydantic==2.*",
+    "pydantic-settings",
     "requests-cache",
     "neo4j==5.*",
     "uvicorn",
@@ -40,7 +43,6 @@ dependencies = [
     "boto3",
     "botocore",
     "asyncclick",
-    "python-dotenv",
 ]
 dynamic = ["version"]
 
@@ -51,11 +53,14 @@ tests = [
     "mock",
     "pytest-asyncio",
     "deepdiff",
+    "httpx",
     "jsonschema~=4.24",  # pin to avoid deprecation of ref resolver
+    "pyyaml",
 ]
 dev = [
     "pre-commit>=4.2.0",
-    "ruff==0.12.1"
+    "ruff==0.12.1",
+    "fastapi[standard]",
 ]
 notebooks = ["ipykernel", "jupyterlab"]
 docs = [
@@ -93,6 +98,9 @@ where = ["src"]
 [tool.pytest.ini_options]
 addopts = "--cov=src --cov-report term-missing --ignore=codebuild/"
 testpaths = ["tests"]
+markers = [
+    "ci: tests safe to run in CI",
+]
 
 [tool.coverage.run]
 branch = true

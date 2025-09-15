@@ -1,0 +1,4674 @@
+{
+	"civic.eid:116": {
+		"id": "civic.eid:116",
+		"type": "Statement",
+		"description": "AML with mutated NPM1 is a provisional entity in the World Health Organization (WHO) classification of acute myeloid leukemia (AML). This mutation should be tested for in clinical trials and is recommended for testing in patients with cytogentically normal AML.",
+		"specifiedBy": {
+			"id": "civic.method:2019",
+			"type": "Method",
+			"name": "CIViC Curation SOP (2019)",
+			"methodType": "variant curation standard operating procedure",
+			"reportedIn": {
+				"type": "Document",
+				"name": "Danos et al., 2019, Genome Med.",
+				"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+				"doi": "10.1186/s13073-019-0687-x",
+				"pmid": 31779674
+			}
+		},
+		"reportedIn": [
+			{
+				"id": "civic.source:19",
+				"type": "Document",
+				"name": "Vardiman et al., 2009",
+				"title": "The 2008 revision of the World Health Organization (WHO) classification of myeloid neoplasms and acute leukemia: rationale and important changes.",
+				"pmid": 19357394
+			}
+		],
+		"proposition": {
+			"type": "VariantDiagnosticProposition",
+			"subjectVariant": {
+				"id": "civic.mpid:86",
+				"type": "CategoricalVariant",
+				"name": "NPM1 EXON 11 MUTATION",
+				"description": "NPM1 exon 12 mutations are frequently identified in patients with cytogenetically normal acute myeloid leukemia (AML) and often co-occur with FLT3-ITD. FLT3 status should also be evaluated as co-occurence with FLT3-ITD may impact prognosis. Exon 12 mutations have been identified as a predictor of good prognostic outcomes in the absence of FLT3-ITD. Due to their high frequency, NPM1 mutations have been retrospectively analyzed in the context of a number of therapies including variable results following ATRA treatment as well as improved response to high-dose daunorubicin or valproic acid. Additionally, multiple groups have shown increased surface expression of CD33 associated with NPM1 mutation, suggesting these patients may respond to anti-CD33 therapy. Cytoplasmic sequestration of NPM1 (NPM1c) is associated with a good response to induction therapy.",
+				"aliases": ["EXON 12 MUTATION"],
+				"extensions": [
+					{
+						"name": "vicc_normalizer_failure",
+						"value": true
+					},
+					{
+						"name": "CIViC Molecular Profile Score",
+						"value": 454.0
+					},
+					{
+						"name": "CIViC representative coordinate",
+						"value": {
+							"ensembl_version": 75,
+							"reference_build": "GRCh37",
+							"representative_transcript": "ENST00000517671.1",
+							"chromosome": "5",
+							"start": 170837531,
+							"stop": 170837569,
+							"type": "coordinates"
+						}
+					},
+					{
+						"name": "Variant types",
+						"value": [
+							{
+								"id": "SO:0001791",
+								"name": "exon_variant",
+								"system": "http://www.sequenceontology.org/browser/current_svn/term/",
+								"code": "SO:0001791"
+							}
+						]
+					}
+				],
+				"mappings": [
+					{
+						"coding": {
+							"id": "civic.vid:86",
+							"system": "https://civicdb.org/variants/",
+							"code": "86"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"coding": {
+							"system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+							"code": "N/A"
+						},
+						"relation": "relatedMatch"
+					}
+				]
+			},
+			"geneContextQualifier": {
+				"id": "civic.gid:35",
+				"extensions": [
+					{
+						"name": "aliases",
+						"value": ["B23", "NPM", "NPM1"]
+					},
+					{
+						"name": "description",
+						"value": "AML with mutated NPM1 is a provisional entity in the WHO classification of AML and is recommended to be tested in patients with cytogenetically normal AML (CN-AML). FLT3 mutations should be evaluated concurrently as they have prognostic consequences. NPM1 mutations are concentrated in exon 12, most frequently W288fs which results in cytoplasmic sequestration of the protein. Exon 12 NPM1 mutations in the absence of FLT3-ITD are associated with good prognostic outcomes. Mice expressing the Npm1-W288fs mutation develop myeloproliferative neoplasms but not overt leukemia, indicating it may require additional mutations to promote leukemic development."
+					}
+				],
+				"conceptType": "Gene",
+				"name": "NPM1",
+				"mappings": [
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "hgnc:7910",
+							"name": "NPM1",
+							"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+							"code": "HGNC:7910"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							},
+							{
+								"name": "civic_annotation",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "ncbigene:4869",
+							"system": "https://www.ncbi.nlm.nih.gov/gene/",
+							"code": "4869"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			},
+			"alleleOriginQualifier": {
+				"name": "somatic"
+			},
+			"predicate": "isDiagnosticInclusionCriterionFor",
+			"objectCondition": {
+				"id": "civic.did:3",
+				"conceptType": "Disease",
+				"name": "Acute Myeloid Leukemia",
+				"mappings": [
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "ncit:C3171",
+							"name": "Acute Myeloid Leukemia",
+							"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+							"code": "C3171"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							},
+							{
+								"name": "civic_annotation",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "DOID:9119",
+							"system": "https://disease-ontology.org/?id=",
+							"code": "DOID:9119"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "MONDO_0018874",
+							"system": "https://purl.obolibrary.org/obo/",
+							"code": "MONDO:0018874"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			}
+		},
+		"direction": "supports",
+		"strength": {
+			"name": "Validated association",
+			"primaryCoding": {
+				"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+				"code": "A"
+			},
+			"mappings": [
+				{
+					"coding": {
+						"name": "authoritative evidence",
+						"system": "https://go.osu.edu/evidence-codes",
+						"code": "e000001"
+					},
+					"relation": "exactMatch"
+				}
+			]
+		}
+	},
+	"civic.aid:91": {
+		"id": "civic.aid:91",
+		"type": "Statement",
+		"description": "PAX5 missense variant p.Pro80Arg defines a genetic subtype of B-lymphoblastic leukemia characterized by a distinctive expression profile and recognized in the WHO and ICC classification. PAX5 P80R B-ALL accounts for approximately 2% of childhood B-ALLs. All cases feature the universal P80R (p.Pro80Arg) mutation and a deletion or mutation of the remaining PAX5  allele. Mutations in RAS and JAK signaling genes are common as secondary changes.",
+		"specifiedBy": {
+			"id": "civic.method:2019",
+			"type": "Method",
+			"name": "CIViC Curation SOP (2019)",
+			"methodType": "variant curation standard operating procedure",
+			"reportedIn": {
+				"type": "Document",
+				"name": "Danos et al., 2019, Genome Med.",
+				"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+				"doi": "10.1186/s13073-019-0687-x",
+				"pmid": 31779674
+			}
+		},
+		"proposition": {
+			"type": "VariantDiagnosticProposition",
+			"subjectVariant": {
+				"id": "civic.mpid:2566",
+				"type": "CategoricalVariant",
+				"name": "PAX5 P80R",
+				"extensions": [
+					{
+						"name": "CIViC Molecular Profile Score",
+						"value": 50.0
+					},
+					{
+						"name": "CIViC representative coordinate",
+						"value": {
+							"type": "coordinates"
+						}
+					}
+				],
+				"members": [],
+				"constraints": [
+					{
+						"type": "DefiningAlleleConstraint",
+						"allele": {
+							"id": "ga4gh:VA.ryP5yw_KiNk2Hhw5jsLamhaqvYDDmoQe",
+							"type": "Allele",
+							"name": "P80R",
+							"digest": "ryP5yw_KiNk2Hhw5jsLamhaqvYDDmoQe",
+							"location": {
+								"id": "ga4gh:SL.LsAXoUu770EWJCNSalwiPYOaRqaB5s0C",
+								"type": "SequenceLocation",
+								"digest": "LsAXoUu770EWJCNSalwiPYOaRqaB5s0C",
+								"sequenceReference": {
+									"type": "SequenceReference",
+									"refgetAccession": "SQ.Zr1FxRWiy0bT_82Dy8wdU0eTh1HGQyhj"
+								},
+								"start": 79,
+								"end": 80,
+								"sequence": "P"
+							},
+							"state": {
+								"type": "LiteralSequenceExpression",
+								"sequence": "R"
+							}
+						}
+					}
+				],
+				"mappings": [
+					{
+						"coding": {
+							"id": "civic.vid:2697",
+							"system": "https://civicdb.org/variants/",
+							"code": "2697"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			},
+			"geneContextQualifier": {
+				"id": "civic.gid:4111",
+				"extensions": [
+					{
+						"name": "aliases",
+						"value": ["ALL3", "BSAP", "PAX-5", "PAX5"]
+					}
+				],
+				"conceptType": "Gene",
+				"name": "PAX5",
+				"mappings": [
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "hgnc:8619",
+							"name": "PAX5",
+							"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+							"code": "HGNC:8619"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							},
+							{
+								"name": "civic_annotation",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "ncbigene:5079",
+							"system": "https://www.ncbi.nlm.nih.gov/gene/",
+							"code": "5079"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			},
+			"alleleOriginQualifier": {
+				"name": "somatic"
+			},
+			"predicate": "isDiagnosticInclusionCriterionFor",
+			"objectCondition": {
+				"id": "civic.did:3433",
+				"extensions": [
+					{
+						"name": "vicc_normalizer_failure",
+						"value": true
+					}
+				],
+				"conceptType": "Disease",
+				"name": "B-lymphoblastic Leukemia/lymphoma With PAX5 P80R"
+			}
+		},
+		"direction": "supports",
+		"strength": {
+			"primaryCoding": {
+				"system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+				"code": "Level A"
+			},
+			"mappings": [
+				{
+					"coding": {
+						"name": "authoritative evidence",
+						"system": "https://go.osu.edu/evidence-codes",
+						"code": "e000001"
+					},
+					"relation": "exactMatch"
+				},
+				{
+					"coding": {
+						"name": "Validated association",
+						"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+						"code": "A"
+					},
+					"relation": "exactMatch"
+				}
+			]
+		},
+		"classification": {
+			"primaryCoding": {
+				"system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+				"code": "Tier I"
+			}
+		},
+		"hasEvidenceLines": [
+			{
+				"type": "EvidenceLine",
+				"hasEvidenceItems": [
+					{
+						"id": "civic.eid:11519",
+						"type": "Statement",
+						"description": "RNA-seq transcriptome analysis in a discovery cohort of 170 B-cell precursor acute lymphoblastic leukemia (BCP-ALL)  cases negative for the common classifying cytogenetic aberrations identified several well-defined hierarchical expression clusters. Four clusters corresponded to known oncogenic subtypes, namely ZNF384, ERG/DUX4, BCR::ABL1-like, and KMT2A/MLL-rearranged. An additional cluster comprised 14 cases (8.2%), which lacked any fusion gene. Mutational analysis of RNA-seq data revealed the presence of a unique PAX5 mutation, c.239C>G, p.Pro80Arg (p.P80R), in all cases. In an additional cohort of 419 unselected BCP-ALL cases, PAX5 P80R was identified in 16 (5.3%). The authors conclude that the PAX5 P80R variant, with its distinct transcriptional signature, defines a subtype of BCP-ALL.",
+						"specifiedBy": {
+							"id": "civic.method:2019",
+							"type": "Method",
+							"name": "CIViC Curation SOP (2019)",
+							"methodType": "variant curation standard operating procedure",
+							"reportedIn": {
+								"type": "Document",
+								"name": "Danos et al., 2019, Genome Med.",
+								"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+								"doi": "10.1186/s13073-019-0687-x",
+								"pmid": 31779674
+							}
+						},
+						"reportedIn": [
+							{
+								"id": "civic.source:4774",
+								"type": "Document",
+								"name": "Passet et al., 2019",
+								"title": "PAX5 P80R mutation identifies a novel subtype of B-cell precursor acute lymphoblastic leukemia with favorable outcome.",
+								"pmid": 30510083
+							}
+						],
+						"proposition": {
+							"type": "VariantDiagnosticProposition",
+							"subjectVariant": {
+								"id": "civic.mpid:2566",
+								"type": "CategoricalVariant",
+								"name": "PAX5 P80R",
+								"extensions": [
+									{
+										"name": "CIViC Molecular Profile Score",
+										"value": 50.0
+									},
+									{
+										"name": "CIViC representative coordinate",
+										"value": {
+											"type": "coordinates"
+										}
+									}
+								],
+								"members": [],
+								"constraints": [
+									{
+										"type": "DefiningAlleleConstraint",
+										"allele": {
+											"id": "ga4gh:VA.ryP5yw_KiNk2Hhw5jsLamhaqvYDDmoQe",
+											"type": "Allele",
+											"name": "P80R",
+											"digest": "ryP5yw_KiNk2Hhw5jsLamhaqvYDDmoQe",
+											"location": {
+												"id": "ga4gh:SL.LsAXoUu770EWJCNSalwiPYOaRqaB5s0C",
+												"type": "SequenceLocation",
+												"digest": "LsAXoUu770EWJCNSalwiPYOaRqaB5s0C",
+												"sequenceReference": {
+													"type": "SequenceReference",
+													"refgetAccession": "SQ.Zr1FxRWiy0bT_82Dy8wdU0eTh1HGQyhj"
+												},
+												"start": 79,
+												"end": 80,
+												"sequence": "P"
+											},
+											"state": {
+												"type": "LiteralSequenceExpression",
+												"sequence": "R"
+											}
+										}
+									}
+								],
+								"mappings": [
+									{
+										"coding": {
+											"id": "civic.vid:2697",
+											"system": "https://civicdb.org/variants/",
+											"code": "2697"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"geneContextQualifier": {
+								"id": "civic.gid:4111",
+								"extensions": [
+									{
+										"name": "aliases",
+										"value": ["ALL3", "BSAP", "PAX-5", "PAX5"]
+									}
+								],
+								"conceptType": "Gene",
+								"name": "PAX5",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "hgnc:8619",
+											"name": "PAX5",
+											"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+											"code": "HGNC:8619"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncbigene:5079",
+											"system": "https://www.ncbi.nlm.nih.gov/gene/",
+											"code": "5079"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"alleleOriginQualifier": {
+								"name": "somatic"
+							},
+							"predicate": "isDiagnosticInclusionCriterionFor",
+							"objectCondition": {
+								"id": "civic.did:3459",
+								"conceptType": "Disease",
+								"name": "B-lymphoblastic Leukemia With PAX5 P.P80R",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "MONDO_0958161",
+											"name": "B acute lymphoblastic leukemia with PAX5 P80R mutation",
+											"system": "https://purl.obolibrary.org/obo/",
+											"code": "MONDO:0958161"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "DOID:0081411",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:0081411"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							}
+						},
+						"direction": "supports",
+						"strength": {
+							"name": "Clinical evidence",
+							"primaryCoding": {
+								"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+								"code": "B"
+							},
+							"mappings": [
+								{
+									"coding": {
+										"name": "clinical cohort evidence",
+										"system": "https://go.osu.edu/evidence-codes",
+										"code": "e000005"
+									},
+									"relation": "exactMatch"
+								}
+							]
+						}
+					}
+				],
+				"directionOfEvidenceProvided": "supports"
+			},
+			{
+				"type": "EvidenceLine",
+				"hasEvidenceItems": [
+					{
+						"id": "civic.eid:7290",
+						"type": "Statement",
+						"description": "In a large-scale international study RNA sequencing was performed to delineate the transcriptome landscape of 1,223 B-cell ALL cases. Twenty two cases were found to have P80R misense mutation in the DNA-binding domain of the PAX5 transcription factor gene. The P80R cases had unique expression profile and did not have any other known key driver mutations. The P80R is proposed to define a specific molecular/genetic subtype of B-ALL. \n .",
+						"specifiedBy": {
+							"id": "civic.method:2019",
+							"type": "Method",
+							"name": "CIViC Curation SOP (2019)",
+							"methodType": "variant curation standard operating procedure",
+							"reportedIn": {
+								"type": "Document",
+								"name": "Danos et al., 2019, Genome Med.",
+								"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+								"doi": "10.1186/s13073-019-0687-x",
+								"pmid": 31779674
+							}
+						},
+						"reportedIn": [
+							{
+								"id": "civic.source:2875",
+								"type": "Document",
+								"name": "Li et al., 2018",
+								"title": "Transcriptional landscape of B cell precursor acute lymphoblastic leukemia based on an international study of 1,223 cases.",
+								"pmid": 30487223
+							}
+						],
+						"proposition": {
+							"type": "VariantDiagnosticProposition",
+							"subjectVariant": {
+								"id": "civic.mpid:2566",
+								"type": "CategoricalVariant",
+								"name": "PAX5 P80R",
+								"extensions": [
+									{
+										"name": "CIViC Molecular Profile Score",
+										"value": 50.0
+									},
+									{
+										"name": "CIViC representative coordinate",
+										"value": {
+											"type": "coordinates"
+										}
+									}
+								],
+								"members": [],
+								"constraints": [
+									{
+										"type": "DefiningAlleleConstraint",
+										"allele": {
+											"id": "ga4gh:VA.ryP5yw_KiNk2Hhw5jsLamhaqvYDDmoQe",
+											"type": "Allele",
+											"name": "P80R",
+											"digest": "ryP5yw_KiNk2Hhw5jsLamhaqvYDDmoQe",
+											"location": {
+												"id": "ga4gh:SL.LsAXoUu770EWJCNSalwiPYOaRqaB5s0C",
+												"type": "SequenceLocation",
+												"digest": "LsAXoUu770EWJCNSalwiPYOaRqaB5s0C",
+												"sequenceReference": {
+													"type": "SequenceReference",
+													"refgetAccession": "SQ.Zr1FxRWiy0bT_82Dy8wdU0eTh1HGQyhj"
+												},
+												"start": 79,
+												"end": 80,
+												"sequence": "P"
+											},
+											"state": {
+												"type": "LiteralSequenceExpression",
+												"sequence": "R"
+											}
+										}
+									}
+								],
+								"mappings": [
+									{
+										"coding": {
+											"id": "civic.vid:2697",
+											"system": "https://civicdb.org/variants/",
+											"code": "2697"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"geneContextQualifier": {
+								"id": "civic.gid:4111",
+								"extensions": [
+									{
+										"name": "aliases",
+										"value": ["ALL3", "BSAP", "PAX-5", "PAX5"]
+									}
+								],
+								"conceptType": "Gene",
+								"name": "PAX5",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "hgnc:8619",
+											"name": "PAX5",
+											"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+											"code": "HGNC:8619"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncbigene:5079",
+											"system": "https://www.ncbi.nlm.nih.gov/gene/",
+											"code": "5079"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"alleleOriginQualifier": {
+								"name": "somatic"
+							},
+							"predicate": "isDiagnosticInclusionCriterionFor",
+							"objectCondition": {
+								"id": "civic.did:3459",
+								"conceptType": "Disease",
+								"name": "B-lymphoblastic Leukemia With PAX5 P.P80R",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "MONDO_0958161",
+											"name": "B acute lymphoblastic leukemia with PAX5 P80R mutation",
+											"system": "https://purl.obolibrary.org/obo/",
+											"code": "MONDO:0958161"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "DOID:0081411",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:0081411"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							}
+						},
+						"direction": "supports",
+						"strength": {
+							"name": "Clinical evidence",
+							"primaryCoding": {
+								"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+								"code": "B"
+							},
+							"mappings": [
+								{
+									"coding": {
+										"name": "clinical cohort evidence",
+										"system": "https://go.osu.edu/evidence-codes",
+										"code": "e000005"
+									},
+									"relation": "exactMatch"
+								}
+							]
+						}
+					}
+				],
+				"directionOfEvidenceProvided": "supports"
+			},
+			{
+				"type": "EvidenceLine",
+				"hasEvidenceItems": [
+					{
+						"id": "civic.eid:7291",
+						"type": "Statement",
+						"description": "Integrated genomic analysis was performed for 1,988 childhood and adult B-ALL cases. Forty four cases (2.2%) showed the P80R substitution in the DNA binding domain for the PAX5 transcription factor gene. These cases were characterized by a unique expression profile. In the majority of the cases the mutation was hemizygous or homozygous, owing to deletion of the wild-type PAX5 allele or copy-neutral loss of heterozygosity. In 96% (42 of 44) of cases, the PAK5 P80R was accompanied by RAS and/or JAK-STAT signaling-pathway alterations (such as NRAS, KRAS, PTPN11, NF1, IL7R), thereby suggesting cooperativity between deregulated PAX5 activity and kinase signaling.  The PAX5 P80R is proposed to define a distinct subtype of B-ALL.",
+						"specifiedBy": {
+							"id": "civic.method:2019",
+							"type": "Method",
+							"name": "CIViC Curation SOP (2019)",
+							"methodType": "variant curation standard operating procedure",
+							"reportedIn": {
+								"type": "Document",
+								"name": "Danos et al., 2019, Genome Med.",
+								"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+								"doi": "10.1186/s13073-019-0687-x",
+								"pmid": 31779674
+							}
+						},
+						"reportedIn": [
+							{
+								"id": "civic.source:2876",
+								"type": "Document",
+								"name": "Gu et al., 2019",
+								"title": "PAX5-driven subtypes of B-progenitor acute lymphoblastic leukemia.",
+								"pmid": 30643249
+							}
+						],
+						"proposition": {
+							"type": "VariantDiagnosticProposition",
+							"subjectVariant": {
+								"id": "civic.mpid:2566",
+								"type": "CategoricalVariant",
+								"name": "PAX5 P80R",
+								"extensions": [
+									{
+										"name": "CIViC Molecular Profile Score",
+										"value": 50.0
+									},
+									{
+										"name": "CIViC representative coordinate",
+										"value": {
+											"type": "coordinates"
+										}
+									}
+								],
+								"members": [],
+								"constraints": [
+									{
+										"type": "DefiningAlleleConstraint",
+										"allele": {
+											"id": "ga4gh:VA.ryP5yw_KiNk2Hhw5jsLamhaqvYDDmoQe",
+											"type": "Allele",
+											"name": "P80R",
+											"digest": "ryP5yw_KiNk2Hhw5jsLamhaqvYDDmoQe",
+											"location": {
+												"id": "ga4gh:SL.LsAXoUu770EWJCNSalwiPYOaRqaB5s0C",
+												"type": "SequenceLocation",
+												"digest": "LsAXoUu770EWJCNSalwiPYOaRqaB5s0C",
+												"sequenceReference": {
+													"type": "SequenceReference",
+													"refgetAccession": "SQ.Zr1FxRWiy0bT_82Dy8wdU0eTh1HGQyhj"
+												},
+												"start": 79,
+												"end": 80,
+												"sequence": "P"
+											},
+											"state": {
+												"type": "LiteralSequenceExpression",
+												"sequence": "R"
+											}
+										}
+									}
+								],
+								"mappings": [
+									{
+										"coding": {
+											"id": "civic.vid:2697",
+											"system": "https://civicdb.org/variants/",
+											"code": "2697"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"geneContextQualifier": {
+								"id": "civic.gid:4111",
+								"extensions": [
+									{
+										"name": "aliases",
+										"value": ["ALL3", "BSAP", "PAX-5", "PAX5"]
+									}
+								],
+								"conceptType": "Gene",
+								"name": "PAX5",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "hgnc:8619",
+											"name": "PAX5",
+											"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+											"code": "HGNC:8619"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncbigene:5079",
+											"system": "https://www.ncbi.nlm.nih.gov/gene/",
+											"code": "5079"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"alleleOriginQualifier": {
+								"name": "somatic"
+							},
+							"predicate": "isDiagnosticInclusionCriterionFor",
+							"objectCondition": {
+								"id": "civic.did:3459",
+								"conceptType": "Disease",
+								"name": "B-lymphoblastic Leukemia With PAX5 P.P80R",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "MONDO_0958161",
+											"name": "B acute lymphoblastic leukemia with PAX5 P80R mutation",
+											"system": "https://purl.obolibrary.org/obo/",
+											"code": "MONDO:0958161"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "DOID:0081411",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:0081411"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							}
+						},
+						"direction": "supports",
+						"strength": {
+							"name": "Clinical evidence",
+							"primaryCoding": {
+								"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+								"code": "B"
+							},
+							"mappings": [
+								{
+									"coding": {
+										"name": "clinical cohort evidence",
+										"system": "https://go.osu.edu/evidence-codes",
+										"code": "e000005"
+									},
+									"relation": "exactMatch"
+								}
+							]
+						}
+					}
+				],
+				"directionOfEvidenceProvided": "supports"
+			}
+		]
+	},
+	"civic.eid:12014": {
+		"id": "civic.eid:12014",
+		"type": "Statement",
+		"description": "In this phase 3 trial, 308 patients with NSCLC harbouring EGFR exon 20 insertions were treated with a combination of amivantamab and chemotherapy (carboplatin-pemetrexed) [n = 153] or chemotherapy alone [n = 155]. The median PFS in the aminvantamab-chemotherapy group was 11.4 months which was significantly higher than the chemotherapy group (median PFS of 6.7 months). The hazard ratio reported for disease progression was 0.40 (95% CI, 0.30 - 0.53, p <0.001), while the hazard ratio reported for death for amivantamab-chemotherapy compared to chemotherapy was 0.67 (95% CI; 0.42 - 1.09, p =0.11). The median objective response in the amivantamab-chemotherapy group was 9.7 months (95% CI; 8.2-13.5) compared to 4.4 months (95% CI; 4.1-5.6) in the chemotherapy group. The majority of patients in the cohort reported at least one adverse event. Overall, the study reported significantly better clinical results in the patients treated with amivantamab-chemotherapy combination therapy compared to patients treated with chemotherapy alone as a first-line treatment.",
+		"specifiedBy": {
+			"id": "civic.method:2019",
+			"type": "Method",
+			"name": "CIViC Curation SOP (2019)",
+			"methodType": "variant curation standard operating procedure",
+			"reportedIn": {
+				"type": "Document",
+				"name": "Danos et al., 2019, Genome Med.",
+				"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+				"doi": "10.1186/s13073-019-0687-x",
+				"pmid": 31779674
+			}
+		},
+		"reportedIn": [
+			{
+				"id": "civic.source:4989",
+				"type": "Document",
+				"name": "Zhou et al., 2023",
+				"title": "Amivantamab plus Chemotherapy in NSCLC with EGFR Exon 20 Insertions.",
+				"pmid": 37870976
+			}
+		],
+		"proposition": {
+			"type": "VariantTherapeuticResponseProposition",
+			"subjectVariant": {
+				"id": "civic.mpid:707",
+				"type": "CategoricalVariant",
+				"name": "EGFR Exon 20 Insertion",
+				"extensions": [
+					{
+						"name": "vicc_normalizer_failure",
+						"value": true
+					},
+					{
+						"name": "CIViC Molecular Profile Score",
+						"value": 105.0
+					},
+					{
+						"name": "CIViC representative coordinate",
+						"value": {
+							"ensembl_version": 75,
+							"reference_build": "GRCh37",
+							"representative_transcript": "ENST00000275493.2",
+							"chromosome": "7",
+							"start": 55248991,
+							"stop": 55249022,
+							"type": "coordinates"
+						}
+					},
+					{
+						"name": "Variant types",
+						"value": [
+							{
+								"id": "SO:0001821",
+								"name": "inframe_insertion",
+								"system": "http://www.sequenceontology.org/browser/current_svn/term/",
+								"code": "SO:0001821"
+							}
+						]
+					}
+				],
+				"mappings": [
+					{
+						"coding": {
+							"id": "civic.vid:726",
+							"system": "https://civicdb.org/variants/",
+							"code": "726"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			},
+			"geneContextQualifier": {
+				"id": "civic.gid:19",
+				"extensions": [
+					{
+						"name": "aliases",
+						"value": [
+							"EGFR",
+							"ERBB",
+							"ERBB1",
+							"ERRP",
+							"HER1",
+							"NISBD2",
+							"PIG61",
+							"mENA"
+						]
+					},
+					{
+						"name": "description",
+						"value": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. Overproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section)."
+					}
+				],
+				"conceptType": "Gene",
+				"name": "EGFR",
+				"mappings": [
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "hgnc:3236",
+							"name": "EGFR",
+							"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+							"code": "HGNC:3236"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							},
+							{
+								"name": "civic_annotation",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "ncbigene:1956",
+							"system": "https://www.ncbi.nlm.nih.gov/gene/",
+							"code": "1956"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			},
+			"alleleOriginQualifier": {
+				"name": "somatic"
+			},
+			"predicate": "predictsSensitivityTo",
+			"objectTherapeutic": {
+				"id": "civic.ctid:ATFtG92Xenp2ptQafudC-R1h5OdVbiJR",
+				"therapies": [
+					{
+						"id": "civic.tid:23640",
+						"extensions": [
+							{
+								"name": "aliases",
+								"value": [
+									"Amivantamab-vmjw",
+									"Anti-EGFR/c-Met Bispecific Antibody JNJ-61186372",
+									"CNTO-4424",
+									"JNJ-611",
+									"JNJ-61186372",
+									"JNJ61186372",
+									"Rybrevant"
+								]
+							}
+						],
+						"conceptType": "Therapy",
+						"name": "Amivantamab",
+						"mappings": [
+							{
+								"extensions": [
+									{
+										"name": "vicc_normalizer_priority",
+										"value": true
+									}
+								],
+								"coding": {
+									"id": "rxcui:2549199",
+									"name": "amivantamab",
+									"system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
+									"code": "2549199"
+								},
+								"relation": "exactMatch"
+							},
+							{
+								"extensions": [
+									{
+										"name": "vicc_normalizer_priority",
+										"value": false
+									},
+									{
+										"name": "civic_annotation",
+										"value": true
+									}
+								],
+								"coding": {
+									"id": "ncit:C124993",
+									"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+									"code": "C124993"
+								},
+								"relation": "exactMatch"
+							}
+						]
+					},
+					{
+						"id": "civic.tid:199",
+						"extensions": [
+							{
+								"name": "aliases",
+								"value": [
+									"Chemo",
+									"Chemotherapy (NOS)",
+									"Chemotherapy, Cancer, General"
+								]
+							},
+							{
+								"name": "vicc_normalizer_failure",
+								"value": true
+							}
+						],
+						"conceptType": "Therapy",
+						"name": "Chemotherapy",
+						"mappings": [
+							{
+								"coding": {
+									"id": "ncit:C15632",
+									"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+									"code": "C15632"
+								},
+								"relation": "exactMatch"
+							}
+						]
+					}
+				],
+				"membershipOperator": "AND"
+			},
+			"conditionQualifier": {
+				"id": "civic.did:8",
+				"conceptType": "Disease",
+				"name": "Lung Non-small Cell Carcinoma",
+				"mappings": [
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "ncit:C2926",
+							"name": "Lung Non-Small Cell Carcinoma",
+							"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+							"code": "C2926"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							},
+							{
+								"name": "civic_annotation",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "DOID:3908",
+							"system": "https://disease-ontology.org/?id=",
+							"code": "DOID:3908"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "MONDO_0005233",
+							"system": "https://purl.obolibrary.org/obo/",
+							"code": "MONDO:0005233"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			}
+		},
+		"direction": "supports",
+		"strength": {
+			"name": "Validated association",
+			"primaryCoding": {
+				"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+				"code": "A"
+			},
+			"mappings": [
+				{
+					"coding": {
+						"name": "authoritative evidence",
+						"system": "https://go.osu.edu/evidence-codes",
+						"code": "e000001"
+					},
+					"relation": "exactMatch"
+				}
+			]
+		}
+	},
+	"moa.assertion:166": {
+		"id": "moa.assertion:166",
+		"type": "Statement",
+		"description": "Treating mutant BRAF melanoma cell with both Selumetinib and PLX4720, a predecessor to Vemurafenib, prevented emergence of resistant clones.",
+		"specifiedBy": {
+			"id": "moa.method:2021",
+			"type": "Method",
+			"name": "MOAlmanac (2021)",
+			"reportedIn": {
+				"type": "Document",
+				"name": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
+				"title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+				"doi": "10.1038/s43018-021-00243-3",
+				"pmid": 35121878
+			}
+		},
+		"reportedIn": [
+			{
+				"id": "moa.source:71",
+				"type": "Document",
+				"extensions": [
+					{
+						"name": "source_type",
+						"value": "Journal"
+					}
+				],
+				"title": "Emery CM, Vijayendran KG, Zipser MC, et al. MEK1 mutations confer resistance to MEK and B-RAF inhibition. Proc Natl Acad Sci USA. 2009;106(48):20411-6.",
+				"urls": ["https://doi.org/10.1073/pnas.0905833106"],
+				"doi": "10.1073/pnas.0905833106",
+				"pmid": 19915144
+			}
+		],
+		"proposition": {
+			"type": "VariantTherapeuticResponseProposition",
+			"subjectVariant": {
+				"id": "moa.variant:166",
+				"type": "CategoricalVariant",
+				"name": "BRAF",
+				"extensions": [
+					{
+						"name": "vicc_normalizer_failure",
+						"value": true
+					},
+					{
+						"name": "MOA representative coordinate",
+						"value": {
+							"chromosome": "7",
+							"start_position": null,
+							"end_position": null,
+							"reference_allele": null,
+							"alternate_allele": null,
+							"cdna_change": null,
+							"protein_change": null,
+							"exon": null
+						}
+					}
+				],
+				"mappings": [
+					{
+						"coding": {
+							"id": "moa.variant:166",
+							"system": "https://moalmanac.org",
+							"code": "166"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			},
+			"geneContextQualifier": {
+				"id": "moa.normalize.gene.hgnc:1097",
+				"conceptType": "Gene",
+				"name": "BRAF",
+				"mappings": [
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "hgnc:1097",
+							"name": "BRAF",
+							"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+							"code": "HGNC:1097"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "ncbigene:673",
+							"system": "https://www.ncbi.nlm.nih.gov/gene/",
+							"code": "673"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			},
+			"alleleOriginQualifier": {
+				"name": "somatic"
+			},
+			"predicate": "predictsSensitivityTo",
+			"objectTherapeutic": {
+				"id": "moa.ctid:vwKGdxKMxM4BPnNbeMmVTg58zaG2ZyI1",
+				"extensions": [
+					{
+						"name": "moa_therapy_type",
+						"value": "Targeted therapy"
+					}
+				],
+				"therapies": [
+					{
+						"id": "moa.normalize.therapy.rxcui:2289380",
+						"extensions": [
+							{
+								"name": "regulatory_approval",
+								"value": {
+									"approval_rating": "FDA",
+									"has_indications": []
+								}
+							}
+						],
+						"conceptType": "Therapy",
+						"name": "Selumetinib",
+						"mappings": [
+							{
+								"extensions": [
+									{
+										"name": "vicc_normalizer_priority",
+										"value": true
+									}
+								],
+								"coding": {
+									"id": "rxcui:2289380",
+									"name": "selumetinib",
+									"system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
+									"code": "2289380"
+								},
+								"relation": "exactMatch"
+							},
+							{
+								"extensions": [
+									{
+										"name": "vicc_normalizer_priority",
+										"value": false
+									}
+								],
+								"coding": {
+									"id": "ncit:C66939",
+									"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+									"code": "C66939"
+								},
+								"relation": "exactMatch"
+							}
+						]
+					},
+					{
+						"id": "moa.normalize.therapy.rxcui:1147220",
+						"extensions": [
+							{
+								"name": "regulatory_approval",
+								"value": {
+									"approval_rating": "FDA",
+									"has_indications": [
+										{
+											"id": "hemonc:629",
+											"conceptType": "Disease",
+											"name": "Melanoma",
+											"mappings": [
+												{
+													"coding": {
+														"id": "ncit:C3224",
+														"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+														"code": "C3224"
+													},
+													"relation": "exactMatch"
+												}
+											]
+										},
+										{
+											"id": "hemonc:594",
+											"conceptType": "Disease",
+											"name": "Erdheim-Chester disease",
+											"mappings": [
+												{
+													"coding": {
+														"id": "ncit:C53972",
+														"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+														"code": "C53972"
+													},
+													"relation": "exactMatch"
+												}
+											]
+										}
+									]
+								}
+							}
+						],
+						"conceptType": "Therapy",
+						"name": "Vemurafenib",
+						"mappings": [
+							{
+								"extensions": [
+									{
+										"name": "vicc_normalizer_priority",
+										"value": true
+									}
+								],
+								"coding": {
+									"id": "rxcui:1147220",
+									"name": "vemurafenib",
+									"system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
+									"code": "1147220"
+								},
+								"relation": "exactMatch"
+							},
+							{
+								"extensions": [
+									{
+										"name": "vicc_normalizer_priority",
+										"value": false
+									}
+								],
+								"coding": {
+									"id": "ncit:C64768",
+									"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+									"code": "C64768"
+								},
+								"relation": "exactMatch"
+							}
+						]
+					}
+				],
+				"membershipOperator": "AND"
+			},
+			"conditionQualifier": {
+				"id": "moa.normalize.disease.ncit:C3224",
+				"conceptType": "Disease",
+				"name": "Melanoma",
+				"mappings": [
+					{
+						"coding": {
+							"id": "oncotree:MEL",
+							"name": "Melanoma",
+							"system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
+							"code": "MEL"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "ncit:C3224",
+							"name": "Melanoma",
+							"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+							"code": "C3224"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "DOID:1909",
+							"system": "https://disease-ontology.org/?id=",
+							"code": "DOID:1909"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "MONDO_0005105",
+							"system": "https://purl.obolibrary.org/obo/",
+							"code": "MONDO:0005105"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			}
+		},
+		"direction": "supports",
+		"strength": {
+			"primaryCoding": {
+				"system": "https://moalmanac.org/about",
+				"code": "Preclinical evidence"
+			},
+			"mappings": [
+				{
+					"coding": {
+						"name": "preclinical evidence",
+						"system": "https://go.osu.edu/evidence-codes",
+						"code": "e000009"
+					},
+					"relation": "exactMatch"
+				}
+			]
+		}
+	},
+	"civic.aid:20": {
+		"id": "civic.aid:20",
+		"type": "Statement",
+		"description": "BRAF V600E was associated with worse prognosis in Phase II and III colorectal cancer, with a stronger effect in MSI-Low or MSI-Stable tumors. In metastatic CRC, V600E was associated with worse prognosis, and meta-analysis showed BRAF mutation in CRC associated with multiple negative prognostic markers.",
+		"specifiedBy": {
+			"id": "civic.method:2019",
+			"type": "Method",
+			"name": "CIViC Curation SOP (2019)",
+			"methodType": "variant curation standard operating procedure",
+			"reportedIn": {
+				"type": "Document",
+				"name": "Danos et al., 2019, Genome Med.",
+				"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+				"doi": "10.1186/s13073-019-0687-x",
+				"pmid": 31779674
+			}
+		},
+		"proposition": {
+			"type": "VariantPrognosticProposition",
+			"subjectVariant": {
+				"id": "civic.mpid:12",
+				"type": "CategoricalVariant",
+				"name": "BRAF V600E",
+				"description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
+				"aliases": ["VAL600GLU", "V640E", "VAL640GLU"],
+				"extensions": [
+					{
+						"name": "CIViC Molecular Profile Score",
+						"value": 1433.5
+					},
+					{
+						"name": "CIViC representative coordinate",
+						"value": {
+							"ensembl_version": 75,
+							"reference_build": "GRCh37",
+							"reference_bases": "A",
+							"variant_bases": "T",
+							"representative_transcript": "ENST00000288602.6",
+							"chromosome": "7",
+							"start": 140453136,
+							"stop": 140453136,
+							"type": "coordinates"
+						}
+					},
+					{
+						"name": "Variant types",
+						"value": [
+							{
+								"id": "SO:0001583",
+								"name": "missense_variant",
+								"system": "http://www.sequenceontology.org/browser/current_svn/term/",
+								"code": "SO:0001583"
+							}
+						]
+					}
+				],
+				"members": [
+					{
+						"id": "ga4gh:VA.W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+						"type": "Allele",
+						"name": "NM_004333.4:c.1799T>A",
+						"digest": "W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+						"expressions": [
+							{
+								"syntax": "hgvs.c",
+								"value": "NM_004333.4:c.1799T>A"
+							}
+						],
+						"location": {
+							"id": "ga4gh:SL.8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+							"type": "SequenceLocation",
+							"digest": "8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+							"sequenceReference": {
+								"type": "SequenceReference",
+								"refgetAccession": "SQ.aKMPEJgmlZXt_F6gRY5cUG3THH2n-GUa"
+							},
+							"start": 2024,
+							"end": 2025,
+							"sequence": "T"
+						},
+						"state": {
+							"type": "LiteralSequenceExpression",
+							"sequence": "A"
+						}
+					},
+					{
+						"id": "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+						"type": "Allele",
+						"name": "NC_000007.13:g.140453136A>T",
+						"digest": "Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+						"expressions": [
+							{
+								"syntax": "hgvs.g",
+								"value": "NC_000007.13:g.140453136A>T"
+							}
+						],
+						"location": {
+							"id": "ga4gh:SL.nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+							"type": "SequenceLocation",
+							"digest": "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+							"sequenceReference": {
+								"type": "SequenceReference",
+								"refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul"
+							},
+							"start": 140753335,
+							"end": 140753336,
+							"sequence": "A"
+						},
+						"state": {
+							"type": "LiteralSequenceExpression",
+							"sequence": "T"
+						}
+					}
+				],
+				"constraints": [
+					{
+						"type": "DefiningAlleleConstraint",
+						"allele": {
+							"id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+							"type": "Allele",
+							"name": "V600E",
+							"digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+							"expressions": [
+								{
+									"syntax": "hgvs.c",
+									"value": "NM_004333.4:c.1799T>A"
+								},
+								{
+									"syntax": "hgvs.p",
+									"value": "NP_004324.2:p.Val600Glu"
+								},
+								{
+									"syntax": "hgvs.g",
+									"value": "NC_000007.13:g.140453136A>T"
+								},
+								{
+									"syntax": "hgvs.c",
+									"value": "ENST00000288602.6:c.1799T>A"
+								}
+							],
+							"location": {
+								"id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+								"type": "SequenceLocation",
+								"digest": "t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+								"sequenceReference": {
+									"type": "SequenceReference",
+									"refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y"
+								},
+								"start": 599,
+								"end": 600,
+								"sequence": "V"
+							},
+							"state": {
+								"type": "LiteralSequenceExpression",
+								"sequence": "E"
+							}
+						}
+					}
+				],
+				"mappings": [
+					{
+						"coding": {
+							"id": "civic.vid:12",
+							"system": "https://civicdb.org/variants/",
+							"code": "12"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"coding": {
+							"system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+							"code": "CA123643"
+						},
+						"relation": "relatedMatch"
+					},
+					{
+						"coding": {
+							"system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+							"code": "13961"
+						},
+						"relation": "relatedMatch"
+					},
+					{
+						"coding": {
+							"system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+							"code": "376069"
+						},
+						"relation": "relatedMatch"
+					},
+					{
+						"coding": {
+							"system": "https://www.ncbi.nlm.nih.gov/snp/",
+							"code": "rs113488022"
+						},
+						"relation": "relatedMatch"
+					}
+				]
+			},
+			"geneContextQualifier": {
+				"id": "civic.gid:5",
+				"extensions": [
+					{
+						"name": "aliases",
+						"value": [
+							"B-RAF1",
+							"B-raf",
+							"BRAF",
+							"BRAF-1",
+							"BRAF1",
+							"NS7",
+							"RAFB1"
+						]
+					},
+					{
+						"name": "description",
+						"value": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase."
+					}
+				],
+				"conceptType": "Gene",
+				"name": "BRAF",
+				"mappings": [
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "hgnc:1097",
+							"name": "BRAF",
+							"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+							"code": "HGNC:1097"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							},
+							{
+								"name": "civic_annotation",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "ncbigene:673",
+							"system": "https://www.ncbi.nlm.nih.gov/gene/",
+							"code": "673"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			},
+			"alleleOriginQualifier": {
+				"name": "somatic"
+			},
+			"predicate": "associatedWithWorseOutcomeFor",
+			"objectCondition": {
+				"id": "civic.did:11",
+				"conceptType": "Disease",
+				"name": "Colorectal Cancer",
+				"mappings": [
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "ncit:C4978",
+							"name": "Malignant Colorectal Neoplasm",
+							"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+							"code": "C4978"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "MONDO_0005575",
+							"system": "https://purl.obolibrary.org/obo/",
+							"code": "MONDO:0005575"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							},
+							{
+								"name": "civic_annotation",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "DOID:9256",
+							"system": "https://disease-ontology.org/?id=",
+							"code": "DOID:9256"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "DOID:5672",
+							"system": "https://disease-ontology.org/?id=",
+							"code": "DOID:5672"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			}
+		},
+		"direction": "supports",
+		"strength": {
+			"primaryCoding": {
+				"system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+				"code": "Level A"
+			},
+			"mappings": [
+				{
+					"coding": {
+						"name": "authoritative evidence",
+						"system": "https://go.osu.edu/evidence-codes",
+						"code": "e000001"
+					},
+					"relation": "exactMatch"
+				},
+				{
+					"coding": {
+						"name": "Validated association",
+						"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+						"code": "A"
+					},
+					"relation": "exactMatch"
+				}
+			]
+		},
+		"classification": {
+			"primaryCoding": {
+				"system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+				"code": "Tier I"
+			}
+		},
+		"hasEvidenceLines": [
+			{
+				"type": "EvidenceLine",
+				"hasEvidenceItems": [
+					{
+						"id": "civic.eid:7159",
+						"type": "Statement",
+						"description": "A meta analysis was performed using data from 21 published studies (n = 9885 patients) to assess prognostic value of BRAF mutations in colorectal cancer. When evaluating 14 studies (n = 7778 patients), the odds ratio (OR) of a proximal lesion, which is associated with greater mortality in colon cancer, was increased for patients with BRAF mutations (OR 5.222, 95% CI 3.801\u20137.174, P < 0.001). When evaluating 4 studies (n = 1526 patients), the odds ratio of T4 tumors, which indicates tumor growth past bowel lining, was increased for patients with BRAF mutations (OR 1.761, 95% CI 1.164\u20132.663, P = 0.007). When evaluating 8 studies (n = 2786 patients), the odds ratio of poor tumor differentiation was increased in patients with BRAF mutations (OR 3.816, 95% CI 2.714\u20135.365, P < 0.001). These results support that BRAF mutations indicate poor prognosis for patients with colorectal cancer.",
+						"specifiedBy": {
+							"id": "civic.method:2019",
+							"type": "Method",
+							"name": "CIViC Curation SOP (2019)",
+							"methodType": "variant curation standard operating procedure",
+							"reportedIn": {
+								"type": "Document",
+								"name": "Danos et al., 2019, Genome Med.",
+								"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+								"doi": "10.1186/s13073-019-0687-x",
+								"pmid": 31779674
+							}
+						},
+						"reportedIn": [
+							{
+								"id": "civic.source:2785",
+								"type": "Document",
+								"name": "Clancy et al., 2013",
+								"title": "BRAF mutation is associated with distinct clinicopathological characteristics in colorectal cancer: a systematic review and meta-analysis.",
+								"pmid": 24112392
+							}
+						],
+						"proposition": {
+							"type": "VariantPrognosticProposition",
+							"subjectVariant": {
+								"id": "civic.mpid:395",
+								"type": "CategoricalVariant",
+								"name": "BRAF Mutation",
+								"extensions": [
+									{
+										"name": "vicc_normalizer_failure",
+										"value": true
+									},
+									{
+										"name": "CIViC Molecular Profile Score",
+										"value": 166.0
+									},
+									{
+										"name": "CIViC representative coordinate",
+										"value": {
+											"ensembl_version": 75,
+											"reference_build": "GRCh37",
+											"representative_transcript": "ENST00000288602.6",
+											"chromosome": "7",
+											"start": 140453136,
+											"stop": 140481403,
+											"type": "coordinates"
+										}
+									},
+									{
+										"name": "Variant types",
+										"value": [
+											{
+												"id": "SO:0001564",
+												"name": "gene_variant",
+												"system": "http://www.sequenceontology.org/browser/current_svn/term/",
+												"code": "SO:0001564"
+											},
+											{
+												"id": "SO:0002053",
+												"name": "gain_of_function_variant",
+												"system": "http://www.sequenceontology.org/browser/current_svn/term/",
+												"code": "SO:0002053"
+											}
+										]
+									}
+								],
+								"mappings": [
+									{
+										"coding": {
+											"id": "civic.vid:399",
+											"system": "https://civicdb.org/variants/",
+											"code": "399"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"geneContextQualifier": {
+								"id": "civic.gid:5",
+								"extensions": [
+									{
+										"name": "aliases",
+										"value": [
+											"B-RAF1",
+											"B-raf",
+											"BRAF",
+											"BRAF-1",
+											"BRAF1",
+											"NS7",
+											"RAFB1"
+										]
+									},
+									{
+										"name": "description",
+										"value": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase."
+									}
+								],
+								"conceptType": "Gene",
+								"name": "BRAF",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "hgnc:1097",
+											"name": "BRAF",
+											"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+											"code": "HGNC:1097"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncbigene:673",
+											"system": "https://www.ncbi.nlm.nih.gov/gene/",
+											"code": "673"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"alleleOriginQualifier": {
+								"name": "somatic"
+							},
+							"predicate": "associatedWithWorseOutcomeFor",
+							"objectCondition": {
+								"id": "civic.did:11",
+								"conceptType": "Disease",
+								"name": "Colorectal Cancer",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncit:C4978",
+											"name": "Malignant Colorectal Neoplasm",
+											"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+											"code": "C4978"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											}
+										],
+										"coding": {
+											"id": "MONDO_0005575",
+											"system": "https://purl.obolibrary.org/obo/",
+											"code": "MONDO:0005575"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "DOID:9256",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:9256"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											}
+										],
+										"coding": {
+											"id": "DOID:5672",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:5672"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							}
+						},
+						"direction": "supports",
+						"strength": {
+							"name": "Clinical evidence",
+							"primaryCoding": {
+								"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+								"code": "B"
+							},
+							"mappings": [
+								{
+									"coding": {
+										"name": "clinical cohort evidence",
+										"system": "https://go.osu.edu/evidence-codes",
+										"code": "e000005"
+									},
+									"relation": "exactMatch"
+								}
+							]
+						}
+					}
+				],
+				"directionOfEvidenceProvided": "supports"
+			},
+			{
+				"type": "EvidenceLine",
+				"hasEvidenceItems": [
+					{
+						"id": "civic.eid:7158",
+						"type": "Statement",
+						"description": "In the Medical Research Council (MRC) COIN trial, ISRCTN27286448, patients who presented with advanced colorectal cancer were randomly assigned to chemotherapy (oxaliplatin and fluoropyrimidine; arm A), or chemotherapy plus cetuximab (arm B). Median overall survival was found to differ by mutation, regardless of treatment. Median overall survival was 8.8 months (IQR 4.5-27) for patients with BRAF variants, 14.4 months (IQR 8.5-24.0) for patients with KRAS variants, and 20.1 months (IQR 11.5-31.7) for wildtype patients. BRAF mutations were found in 102/1291 samples (7.90%), and of these, 12 were D594G and 90 V600E.",
+						"specifiedBy": {
+							"id": "civic.method:2019",
+							"type": "Method",
+							"name": "CIViC Curation SOP (2019)",
+							"methodType": "variant curation standard operating procedure",
+							"reportedIn": {
+								"type": "Document",
+								"name": "Danos et al., 2019, Genome Med.",
+								"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+								"doi": "10.1186/s13073-019-0687-x",
+								"pmid": 31779674
+							}
+						},
+						"reportedIn": [
+							{
+								"id": "civic.source:2784",
+								"type": "Document",
+								"name": "Maughan et al., 2011",
+								"title": "Addition of cetuximab to oxaliplatin-based first-line combination chemotherapy for treatment of advanced colorectal cancer: results of the randomised phase 3 MRC COIN trial.",
+								"pmid": 21641636
+							}
+						],
+						"proposition": {
+							"type": "VariantPrognosticProposition",
+							"subjectVariant": {
+								"id": "civic.mpid:395",
+								"type": "CategoricalVariant",
+								"name": "BRAF Mutation",
+								"extensions": [
+									{
+										"name": "vicc_normalizer_failure",
+										"value": true
+									},
+									{
+										"name": "CIViC Molecular Profile Score",
+										"value": 166.0
+									},
+									{
+										"name": "CIViC representative coordinate",
+										"value": {
+											"ensembl_version": 75,
+											"reference_build": "GRCh37",
+											"representative_transcript": "ENST00000288602.6",
+											"chromosome": "7",
+											"start": 140453136,
+											"stop": 140481403,
+											"type": "coordinates"
+										}
+									},
+									{
+										"name": "Variant types",
+										"value": [
+											{
+												"id": "SO:0001564",
+												"name": "gene_variant",
+												"system": "http://www.sequenceontology.org/browser/current_svn/term/",
+												"code": "SO:0001564"
+											},
+											{
+												"id": "SO:0002053",
+												"name": "gain_of_function_variant",
+												"system": "http://www.sequenceontology.org/browser/current_svn/term/",
+												"code": "SO:0002053"
+											}
+										]
+									}
+								],
+								"mappings": [
+									{
+										"coding": {
+											"id": "civic.vid:399",
+											"system": "https://civicdb.org/variants/",
+											"code": "399"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"geneContextQualifier": {
+								"id": "civic.gid:5",
+								"extensions": [
+									{
+										"name": "aliases",
+										"value": [
+											"B-RAF1",
+											"B-raf",
+											"BRAF",
+											"BRAF-1",
+											"BRAF1",
+											"NS7",
+											"RAFB1"
+										]
+									},
+									{
+										"name": "description",
+										"value": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase."
+									}
+								],
+								"conceptType": "Gene",
+								"name": "BRAF",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "hgnc:1097",
+											"name": "BRAF",
+											"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+											"code": "HGNC:1097"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncbigene:673",
+											"system": "https://www.ncbi.nlm.nih.gov/gene/",
+											"code": "673"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"alleleOriginQualifier": {
+								"name": "somatic"
+							},
+							"predicate": "associatedWithWorseOutcomeFor",
+							"objectCondition": {
+								"id": "civic.did:11",
+								"conceptType": "Disease",
+								"name": "Colorectal Cancer",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncit:C4978",
+											"name": "Malignant Colorectal Neoplasm",
+											"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+											"code": "C4978"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											}
+										],
+										"coding": {
+											"id": "MONDO_0005575",
+											"system": "https://purl.obolibrary.org/obo/",
+											"code": "MONDO:0005575"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "DOID:9256",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:9256"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											}
+										],
+										"coding": {
+											"id": "DOID:5672",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:5672"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							}
+						},
+						"direction": "supports",
+						"strength": {
+							"name": "Clinical evidence",
+							"primaryCoding": {
+								"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+								"code": "B"
+							},
+							"mappings": [
+								{
+									"coding": {
+										"name": "clinical cohort evidence",
+										"system": "https://go.osu.edu/evidence-codes",
+										"code": "e000005"
+									},
+									"relation": "exactMatch"
+								}
+							]
+						}
+					}
+				],
+				"directionOfEvidenceProvided": "supports"
+			},
+			{
+				"type": "EvidenceLine",
+				"hasEvidenceItems": [
+					{
+						"id": "civic.eid:7157",
+						"type": "Statement",
+						"description": "The CRYSTAL Phase III Trial evaluated efficacy of irinotecan, fluorouracil, and leucovorin (FOLFIRI) with or without Cetuximab for colorectal cancer patients who presented with unresectable metastatic disease. BRAF mutation status (V600E) was analyzed via LightMix BRAF V600E Kit. V600E mutations were detected in 60/999 tumor samples (6%), 59 of which were wild-type for KRAS. When comparing patients with wildtype KRAS (n=625), BRAF V600E tumors had worse outcomes relative to BRAF wildtype. For patients with BRAF V600E tumors (n=566), median overall survival (OS) was 25.1 months with cetuximab and 21.6 months without cetuximab. For patients with wildtype BRAF (n=59), median OS was 14.1 months with cetuximab and 10.3 months without cetuximab.",
+						"specifiedBy": {
+							"id": "civic.method:2019",
+							"type": "Method",
+							"name": "CIViC Curation SOP (2019)",
+							"methodType": "variant curation standard operating procedure",
+							"reportedIn": {
+								"type": "Document",
+								"name": "Danos et al., 2019, Genome Med.",
+								"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+								"doi": "10.1186/s13073-019-0687-x",
+								"pmid": 31779674
+							}
+						},
+						"reportedIn": [
+							{
+								"id": "civic.source:1931",
+								"type": "Document",
+								"name": "Van Cutsem et al., 2011",
+								"title": "Cetuximab plus irinotecan, fluorouracil, and leucovorin as first-line treatment for metastatic colorectal cancer: updated analysis of overall survival according to tumor KRAS and BRAF mutation status.",
+								"pmid": 21502544
+							}
+						],
+						"proposition": {
+							"type": "VariantPrognosticProposition",
+							"subjectVariant": {
+								"id": "civic.mpid:12",
+								"type": "CategoricalVariant",
+								"name": "BRAF V600E",
+								"description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
+								"aliases": ["VAL600GLU", "V640E", "VAL640GLU"],
+								"extensions": [
+									{
+										"name": "CIViC Molecular Profile Score",
+										"value": 1433.5
+									},
+									{
+										"name": "CIViC representative coordinate",
+										"value": {
+											"ensembl_version": 75,
+											"reference_build": "GRCh37",
+											"reference_bases": "A",
+											"variant_bases": "T",
+											"representative_transcript": "ENST00000288602.6",
+											"chromosome": "7",
+											"start": 140453136,
+											"stop": 140453136,
+											"type": "coordinates"
+										}
+									},
+									{
+										"name": "Variant types",
+										"value": [
+											{
+												"id": "SO:0001583",
+												"name": "missense_variant",
+												"system": "http://www.sequenceontology.org/browser/current_svn/term/",
+												"code": "SO:0001583"
+											}
+										]
+									}
+								],
+								"members": [
+									{
+										"id": "ga4gh:VA.W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+										"type": "Allele",
+										"name": "NM_004333.4:c.1799T>A",
+										"digest": "W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+										"expressions": [
+											{
+												"syntax": "hgvs.c",
+												"value": "NM_004333.4:c.1799T>A"
+											}
+										],
+										"location": {
+											"id": "ga4gh:SL.8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+											"type": "SequenceLocation",
+											"digest": "8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+											"sequenceReference": {
+												"type": "SequenceReference",
+												"refgetAccession": "SQ.aKMPEJgmlZXt_F6gRY5cUG3THH2n-GUa"
+											},
+											"start": 2024,
+											"end": 2025,
+											"sequence": "T"
+										},
+										"state": {
+											"type": "LiteralSequenceExpression",
+											"sequence": "A"
+										}
+									},
+									{
+										"id": "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+										"type": "Allele",
+										"name": "NC_000007.13:g.140453136A>T",
+										"digest": "Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+										"expressions": [
+											{
+												"syntax": "hgvs.g",
+												"value": "NC_000007.13:g.140453136A>T"
+											}
+										],
+										"location": {
+											"id": "ga4gh:SL.nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+											"type": "SequenceLocation",
+											"digest": "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+											"sequenceReference": {
+												"type": "SequenceReference",
+												"refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul"
+											},
+											"start": 140753335,
+											"end": 140753336,
+											"sequence": "A"
+										},
+										"state": {
+											"type": "LiteralSequenceExpression",
+											"sequence": "T"
+										}
+									}
+								],
+								"constraints": [
+									{
+										"type": "DefiningAlleleConstraint",
+										"allele": {
+											"id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+											"type": "Allele",
+											"name": "V600E",
+											"digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+											"expressions": [
+												{
+													"syntax": "hgvs.c",
+													"value": "NM_004333.4:c.1799T>A"
+												},
+												{
+													"syntax": "hgvs.p",
+													"value": "NP_004324.2:p.Val600Glu"
+												},
+												{
+													"syntax": "hgvs.g",
+													"value": "NC_000007.13:g.140453136A>T"
+												},
+												{
+													"syntax": "hgvs.c",
+													"value": "ENST00000288602.6:c.1799T>A"
+												}
+											],
+											"location": {
+												"id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+												"type": "SequenceLocation",
+												"digest": "t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+												"sequenceReference": {
+													"type": "SequenceReference",
+													"refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y"
+												},
+												"start": 599,
+												"end": 600,
+												"sequence": "V"
+											},
+											"state": {
+												"type": "LiteralSequenceExpression",
+												"sequence": "E"
+											}
+										}
+									}
+								],
+								"mappings": [
+									{
+										"coding": {
+											"id": "civic.vid:12",
+											"system": "https://civicdb.org/variants/",
+											"code": "12"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"coding": {
+											"system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+											"code": "CA123643"
+										},
+										"relation": "relatedMatch"
+									},
+									{
+										"coding": {
+											"system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+											"code": "13961"
+										},
+										"relation": "relatedMatch"
+									},
+									{
+										"coding": {
+											"system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+											"code": "376069"
+										},
+										"relation": "relatedMatch"
+									},
+									{
+										"coding": {
+											"system": "https://www.ncbi.nlm.nih.gov/snp/",
+											"code": "rs113488022"
+										},
+										"relation": "relatedMatch"
+									}
+								]
+							},
+							"geneContextQualifier": {
+								"id": "civic.gid:5",
+								"extensions": [
+									{
+										"name": "aliases",
+										"value": [
+											"B-RAF1",
+											"B-raf",
+											"BRAF",
+											"BRAF-1",
+											"BRAF1",
+											"NS7",
+											"RAFB1"
+										]
+									},
+									{
+										"name": "description",
+										"value": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase."
+									}
+								],
+								"conceptType": "Gene",
+								"name": "BRAF",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "hgnc:1097",
+											"name": "BRAF",
+											"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+											"code": "HGNC:1097"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncbigene:673",
+											"system": "https://www.ncbi.nlm.nih.gov/gene/",
+											"code": "673"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"alleleOriginQualifier": {
+								"name": "somatic"
+							},
+							"predicate": "associatedWithWorseOutcomeFor",
+							"objectCondition": {
+								"id": "civic.did:11",
+								"conceptType": "Disease",
+								"name": "Colorectal Cancer",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncit:C4978",
+											"name": "Malignant Colorectal Neoplasm",
+											"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+											"code": "C4978"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											}
+										],
+										"coding": {
+											"id": "MONDO_0005575",
+											"system": "https://purl.obolibrary.org/obo/",
+											"code": "MONDO:0005575"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "DOID:9256",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:9256"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											}
+										],
+										"coding": {
+											"id": "DOID:5672",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:5672"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							}
+						},
+						"direction": "supports",
+						"strength": {
+							"name": "Clinical evidence",
+							"primaryCoding": {
+								"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+								"code": "B"
+							},
+							"mappings": [
+								{
+									"coding": {
+										"name": "clinical cohort evidence",
+										"system": "https://go.osu.edu/evidence-codes",
+										"code": "e000005"
+									},
+									"relation": "exactMatch"
+								}
+							]
+						}
+					}
+				],
+				"directionOfEvidenceProvided": "supports"
+			},
+			{
+				"type": "EvidenceLine",
+				"hasEvidenceItems": [
+					{
+						"id": "civic.eid:7156",
+						"type": "Statement",
+						"description": "Patients with completely resected colorectal adenocarcinoma (Stage II-III) were treated with fluorouracil and leucovorin +/- ironotecan. Of the 1,307 FFPE samples tested, V600E was observed in 31 Stage II samples (7.6%) and 72 Stage III samples (7.9%). V600E was prognostic for overall survival, but not for relapse-free survival, in patients with stages II and III combined, and in stage III alone. For all MSI low and stable tumors, BRAF V600E positive samples had a hazard ratio (HR) of 2.19 (95% CI, 1.43 to 3.37, P=0.00034). For all samples in the cohort (MSI-H and MSI-L) BRAF V600E positive samples had a 1.66 HR (95% CI, 1.15 to 2.40, P=0.0069). The authors note prognostic value for BRAF V600E, especially in non-MSI high tumors.",
+						"specifiedBy": {
+							"id": "civic.method:2019",
+							"type": "Method",
+							"name": "CIViC Curation SOP (2019)",
+							"methodType": "variant curation standard operating procedure",
+							"reportedIn": {
+								"type": "Document",
+								"name": "Danos et al., 2019, Genome Med.",
+								"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+								"doi": "10.1186/s13073-019-0687-x",
+								"pmid": 31779674
+							}
+						},
+						"reportedIn": [
+							{
+								"id": "civic.source:2783",
+								"type": "Document",
+								"name": "Roth et al., 2010",
+								"title": "Prognostic role of KRAS and BRAF in stage II and III resected colon cancer: results of the translational study on the PETACC-3, EORTC 40993, SAKK 60-00 trial.",
+								"pmid": 20008640
+							}
+						],
+						"proposition": {
+							"type": "VariantPrognosticProposition",
+							"subjectVariant": {
+								"id": "civic.mpid:12",
+								"type": "CategoricalVariant",
+								"name": "BRAF V600E",
+								"description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
+								"aliases": ["VAL600GLU", "V640E", "VAL640GLU"],
+								"extensions": [
+									{
+										"name": "CIViC Molecular Profile Score",
+										"value": 1433.5
+									},
+									{
+										"name": "CIViC representative coordinate",
+										"value": {
+											"ensembl_version": 75,
+											"reference_build": "GRCh37",
+											"reference_bases": "A",
+											"variant_bases": "T",
+											"representative_transcript": "ENST00000288602.6",
+											"chromosome": "7",
+											"start": 140453136,
+											"stop": 140453136,
+											"type": "coordinates"
+										}
+									},
+									{
+										"name": "Variant types",
+										"value": [
+											{
+												"id": "SO:0001583",
+												"name": "missense_variant",
+												"system": "http://www.sequenceontology.org/browser/current_svn/term/",
+												"code": "SO:0001583"
+											}
+										]
+									}
+								],
+								"members": [
+									{
+										"id": "ga4gh:VA.W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+										"type": "Allele",
+										"name": "NM_004333.4:c.1799T>A",
+										"digest": "W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+										"expressions": [
+											{
+												"syntax": "hgvs.c",
+												"value": "NM_004333.4:c.1799T>A"
+											}
+										],
+										"location": {
+											"id": "ga4gh:SL.8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+											"type": "SequenceLocation",
+											"digest": "8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+											"sequenceReference": {
+												"type": "SequenceReference",
+												"refgetAccession": "SQ.aKMPEJgmlZXt_F6gRY5cUG3THH2n-GUa"
+											},
+											"start": 2024,
+											"end": 2025,
+											"sequence": "T"
+										},
+										"state": {
+											"type": "LiteralSequenceExpression",
+											"sequence": "A"
+										}
+									},
+									{
+										"id": "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+										"type": "Allele",
+										"name": "NC_000007.13:g.140453136A>T",
+										"digest": "Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+										"expressions": [
+											{
+												"syntax": "hgvs.g",
+												"value": "NC_000007.13:g.140453136A>T"
+											}
+										],
+										"location": {
+											"id": "ga4gh:SL.nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+											"type": "SequenceLocation",
+											"digest": "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+											"sequenceReference": {
+												"type": "SequenceReference",
+												"refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul"
+											},
+											"start": 140753335,
+											"end": 140753336,
+											"sequence": "A"
+										},
+										"state": {
+											"type": "LiteralSequenceExpression",
+											"sequence": "T"
+										}
+									}
+								],
+								"constraints": [
+									{
+										"type": "DefiningAlleleConstraint",
+										"allele": {
+											"id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+											"type": "Allele",
+											"name": "V600E",
+											"digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+											"expressions": [
+												{
+													"syntax": "hgvs.c",
+													"value": "NM_004333.4:c.1799T>A"
+												},
+												{
+													"syntax": "hgvs.p",
+													"value": "NP_004324.2:p.Val600Glu"
+												},
+												{
+													"syntax": "hgvs.g",
+													"value": "NC_000007.13:g.140453136A>T"
+												},
+												{
+													"syntax": "hgvs.c",
+													"value": "ENST00000288602.6:c.1799T>A"
+												}
+											],
+											"location": {
+												"id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+												"type": "SequenceLocation",
+												"digest": "t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+												"sequenceReference": {
+													"type": "SequenceReference",
+													"refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y"
+												},
+												"start": 599,
+												"end": 600,
+												"sequence": "V"
+											},
+											"state": {
+												"type": "LiteralSequenceExpression",
+												"sequence": "E"
+											}
+										}
+									}
+								],
+								"mappings": [
+									{
+										"coding": {
+											"id": "civic.vid:12",
+											"system": "https://civicdb.org/variants/",
+											"code": "12"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"coding": {
+											"system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+											"code": "CA123643"
+										},
+										"relation": "relatedMatch"
+									},
+									{
+										"coding": {
+											"system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+											"code": "13961"
+										},
+										"relation": "relatedMatch"
+									},
+									{
+										"coding": {
+											"system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+											"code": "376069"
+										},
+										"relation": "relatedMatch"
+									},
+									{
+										"coding": {
+											"system": "https://www.ncbi.nlm.nih.gov/snp/",
+											"code": "rs113488022"
+										},
+										"relation": "relatedMatch"
+									}
+								]
+							},
+							"geneContextQualifier": {
+								"id": "civic.gid:5",
+								"extensions": [
+									{
+										"name": "aliases",
+										"value": [
+											"B-RAF1",
+											"B-raf",
+											"BRAF",
+											"BRAF-1",
+											"BRAF1",
+											"NS7",
+											"RAFB1"
+										]
+									},
+									{
+										"name": "description",
+										"value": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase."
+									}
+								],
+								"conceptType": "Gene",
+								"name": "BRAF",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "hgnc:1097",
+											"name": "BRAF",
+											"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+											"code": "HGNC:1097"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncbigene:673",
+											"system": "https://www.ncbi.nlm.nih.gov/gene/",
+											"code": "673"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"alleleOriginQualifier": {
+								"name": "somatic"
+							},
+							"predicate": "associatedWithWorseOutcomeFor",
+							"objectCondition": {
+								"id": "civic.did:11",
+								"conceptType": "Disease",
+								"name": "Colorectal Cancer",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncit:C4978",
+											"name": "Malignant Colorectal Neoplasm",
+											"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+											"code": "C4978"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											}
+										],
+										"coding": {
+											"id": "MONDO_0005575",
+											"system": "https://purl.obolibrary.org/obo/",
+											"code": "MONDO:0005575"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "DOID:9256",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:9256"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											}
+										],
+										"coding": {
+											"id": "DOID:5672",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:5672"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							}
+						},
+						"direction": "supports",
+						"strength": {
+							"name": "Clinical evidence",
+							"primaryCoding": {
+								"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+								"code": "B"
+							},
+							"mappings": [
+								{
+									"coding": {
+										"name": "clinical cohort evidence",
+										"system": "https://go.osu.edu/evidence-codes",
+										"code": "e000005"
+									},
+									"relation": "exactMatch"
+								}
+							]
+						}
+					}
+				],
+				"directionOfEvidenceProvided": "supports"
+			},
+			{
+				"type": "EvidenceLine",
+				"hasEvidenceItems": [
+					{
+						"id": "civic.eid:103",
+						"type": "Statement",
+						"description": "V600E is associated with adverse pathological features of colorectal cancer. This can be concluded as a marker of poor prognosis.",
+						"specifiedBy": {
+							"id": "civic.method:2019",
+							"type": "Method",
+							"name": "CIViC Curation SOP (2019)",
+							"methodType": "variant curation standard operating procedure",
+							"reportedIn": {
+								"type": "Document",
+								"name": "Danos et al., 2019, Genome Med.",
+								"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+								"doi": "10.1186/s13073-019-0687-x",
+								"pmid": 31779674
+							}
+						},
+						"reportedIn": [
+							{
+								"id": "civic.source:110",
+								"type": "Document",
+								"name": "Chen et al., 2014",
+								"title": "BRAFV600E mutation and its association with clinicopathological features of colorectal cancer: a systematic review and meta-analysis.",
+								"pmid": 24594804
+							}
+						],
+						"proposition": {
+							"type": "VariantPrognosticProposition",
+							"subjectVariant": {
+								"id": "civic.mpid:12",
+								"type": "CategoricalVariant",
+								"name": "BRAF V600E",
+								"description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
+								"aliases": ["VAL600GLU", "V640E", "VAL640GLU"],
+								"extensions": [
+									{
+										"name": "CIViC Molecular Profile Score",
+										"value": 1433.5
+									},
+									{
+										"name": "CIViC representative coordinate",
+										"value": {
+											"ensembl_version": 75,
+											"reference_build": "GRCh37",
+											"reference_bases": "A",
+											"variant_bases": "T",
+											"representative_transcript": "ENST00000288602.6",
+											"chromosome": "7",
+											"start": 140453136,
+											"stop": 140453136,
+											"type": "coordinates"
+										}
+									},
+									{
+										"name": "Variant types",
+										"value": [
+											{
+												"id": "SO:0001583",
+												"name": "missense_variant",
+												"system": "http://www.sequenceontology.org/browser/current_svn/term/",
+												"code": "SO:0001583"
+											}
+										]
+									}
+								],
+								"members": [
+									{
+										"id": "ga4gh:VA.W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+										"type": "Allele",
+										"name": "NM_004333.4:c.1799T>A",
+										"digest": "W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+										"expressions": [
+											{
+												"syntax": "hgvs.c",
+												"value": "NM_004333.4:c.1799T>A"
+											}
+										],
+										"location": {
+											"id": "ga4gh:SL.8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+											"type": "SequenceLocation",
+											"digest": "8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+											"sequenceReference": {
+												"type": "SequenceReference",
+												"refgetAccession": "SQ.aKMPEJgmlZXt_F6gRY5cUG3THH2n-GUa"
+											},
+											"start": 2024,
+											"end": 2025,
+											"sequence": "T"
+										},
+										"state": {
+											"type": "LiteralSequenceExpression",
+											"sequence": "A"
+										}
+									},
+									{
+										"id": "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+										"type": "Allele",
+										"name": "NC_000007.13:g.140453136A>T",
+										"digest": "Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+										"expressions": [
+											{
+												"syntax": "hgvs.g",
+												"value": "NC_000007.13:g.140453136A>T"
+											}
+										],
+										"location": {
+											"id": "ga4gh:SL.nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+											"type": "SequenceLocation",
+											"digest": "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+											"sequenceReference": {
+												"type": "SequenceReference",
+												"refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul"
+											},
+											"start": 140753335,
+											"end": 140753336,
+											"sequence": "A"
+										},
+										"state": {
+											"type": "LiteralSequenceExpression",
+											"sequence": "T"
+										}
+									}
+								],
+								"constraints": [
+									{
+										"type": "DefiningAlleleConstraint",
+										"allele": {
+											"id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+											"type": "Allele",
+											"name": "V600E",
+											"digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+											"expressions": [
+												{
+													"syntax": "hgvs.c",
+													"value": "NM_004333.4:c.1799T>A"
+												},
+												{
+													"syntax": "hgvs.p",
+													"value": "NP_004324.2:p.Val600Glu"
+												},
+												{
+													"syntax": "hgvs.g",
+													"value": "NC_000007.13:g.140453136A>T"
+												},
+												{
+													"syntax": "hgvs.c",
+													"value": "ENST00000288602.6:c.1799T>A"
+												}
+											],
+											"location": {
+												"id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+												"type": "SequenceLocation",
+												"digest": "t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+												"sequenceReference": {
+													"type": "SequenceReference",
+													"refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y"
+												},
+												"start": 599,
+												"end": 600,
+												"sequence": "V"
+											},
+											"state": {
+												"type": "LiteralSequenceExpression",
+												"sequence": "E"
+											}
+										}
+									}
+								],
+								"mappings": [
+									{
+										"coding": {
+											"id": "civic.vid:12",
+											"system": "https://civicdb.org/variants/",
+											"code": "12"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"coding": {
+											"system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+											"code": "CA123643"
+										},
+										"relation": "relatedMatch"
+									},
+									{
+										"coding": {
+											"system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+											"code": "13961"
+										},
+										"relation": "relatedMatch"
+									},
+									{
+										"coding": {
+											"system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+											"code": "376069"
+										},
+										"relation": "relatedMatch"
+									},
+									{
+										"coding": {
+											"system": "https://www.ncbi.nlm.nih.gov/snp/",
+											"code": "rs113488022"
+										},
+										"relation": "relatedMatch"
+									}
+								]
+							},
+							"geneContextQualifier": {
+								"id": "civic.gid:5",
+								"extensions": [
+									{
+										"name": "aliases",
+										"value": [
+											"B-RAF1",
+											"B-raf",
+											"BRAF",
+											"BRAF-1",
+											"BRAF1",
+											"NS7",
+											"RAFB1"
+										]
+									},
+									{
+										"name": "description",
+										"value": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase."
+									}
+								],
+								"conceptType": "Gene",
+								"name": "BRAF",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "hgnc:1097",
+											"name": "BRAF",
+											"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+											"code": "HGNC:1097"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncbigene:673",
+											"system": "https://www.ncbi.nlm.nih.gov/gene/",
+											"code": "673"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"alleleOriginQualifier": {
+								"name": "somatic"
+							},
+							"predicate": "associatedWithWorseOutcomeFor",
+							"objectCondition": {
+								"id": "civic.did:11",
+								"conceptType": "Disease",
+								"name": "Colorectal Cancer",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncit:C4978",
+											"name": "Malignant Colorectal Neoplasm",
+											"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+											"code": "C4978"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											}
+										],
+										"coding": {
+											"id": "MONDO_0005575",
+											"system": "https://purl.obolibrary.org/obo/",
+											"code": "MONDO:0005575"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "DOID:9256",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:9256"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											}
+										],
+										"coding": {
+											"id": "DOID:5672",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:5672"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							}
+						},
+						"direction": "supports",
+						"strength": {
+							"name": "Clinical evidence",
+							"primaryCoding": {
+								"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+								"code": "B"
+							},
+							"mappings": [
+								{
+									"coding": {
+										"name": "clinical cohort evidence",
+										"system": "https://go.osu.edu/evidence-codes",
+										"code": "e000005"
+									},
+									"relation": "exactMatch"
+								}
+							]
+						}
+					}
+				],
+				"directionOfEvidenceProvided": "supports"
+			},
+			{
+				"type": "EvidenceLine",
+				"hasEvidenceItems": [
+					{
+						"id": "civic.eid:1552",
+						"type": "Statement",
+						"description": "In a study of 908 patients with colorectal cancer, 45 patients had BRAF V600E mutations and 589 patients were BRAF wild type.  BRAF V600E mutations were more likely to be proximal tumors (68.9%, 20.7%; p<0.0001), they were more likely to be poorly differentiated (17.7%, 1.9%; p<0.0001), they were more likely to be mucinous carcinoma type (20.0%, 4.2%; p=0.0003), they were more likely to have lymphatic invasion (77.6%, 49.9%; p=0.0003), and they had a shorter survival time (31.1 mo, 41.6 mo; p=0.001).  The 3-year survival rate was significantly poorer in the V600E group when compared to the wild type group (63.8%, 87.9%; p<0.0001).",
+						"specifiedBy": {
+							"id": "civic.method:2019",
+							"type": "Method",
+							"name": "CIViC Curation SOP (2019)",
+							"methodType": "variant curation standard operating procedure",
+							"reportedIn": {
+								"type": "Document",
+								"name": "Danos et al., 2019, Genome Med.",
+								"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+								"doi": "10.1186/s13073-019-0687-x",
+								"pmid": 31779674
+							}
+						},
+						"reportedIn": [
+							{
+								"id": "civic.source:1027",
+								"type": "Document",
+								"name": "Amaki-Takao et al., 2016",
+								"title": "Colorectal Cancer with BRAF D594G Mutation Is Not Associated with Microsatellite Instability or Poor Prognosis.",
+								"pmid": 27404270
+							}
+						],
+						"proposition": {
+							"type": "VariantPrognosticProposition",
+							"subjectVariant": {
+								"id": "civic.mpid:12",
+								"type": "CategoricalVariant",
+								"name": "BRAF V600E",
+								"description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
+								"aliases": ["VAL600GLU", "V640E", "VAL640GLU"],
+								"extensions": [
+									{
+										"name": "CIViC Molecular Profile Score",
+										"value": 1433.5
+									},
+									{
+										"name": "CIViC representative coordinate",
+										"value": {
+											"ensembl_version": 75,
+											"reference_build": "GRCh37",
+											"reference_bases": "A",
+											"variant_bases": "T",
+											"representative_transcript": "ENST00000288602.6",
+											"chromosome": "7",
+											"start": 140453136,
+											"stop": 140453136,
+											"type": "coordinates"
+										}
+									},
+									{
+										"name": "Variant types",
+										"value": [
+											{
+												"id": "SO:0001583",
+												"name": "missense_variant",
+												"system": "http://www.sequenceontology.org/browser/current_svn/term/",
+												"code": "SO:0001583"
+											}
+										]
+									}
+								],
+								"members": [
+									{
+										"id": "ga4gh:VA.W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+										"type": "Allele",
+										"name": "NM_004333.4:c.1799T>A",
+										"digest": "W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+										"expressions": [
+											{
+												"syntax": "hgvs.c",
+												"value": "NM_004333.4:c.1799T>A"
+											}
+										],
+										"location": {
+											"id": "ga4gh:SL.8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+											"type": "SequenceLocation",
+											"digest": "8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+											"sequenceReference": {
+												"type": "SequenceReference",
+												"refgetAccession": "SQ.aKMPEJgmlZXt_F6gRY5cUG3THH2n-GUa"
+											},
+											"start": 2024,
+											"end": 2025,
+											"sequence": "T"
+										},
+										"state": {
+											"type": "LiteralSequenceExpression",
+											"sequence": "A"
+										}
+									},
+									{
+										"id": "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+										"type": "Allele",
+										"name": "NC_000007.13:g.140453136A>T",
+										"digest": "Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+										"expressions": [
+											{
+												"syntax": "hgvs.g",
+												"value": "NC_000007.13:g.140453136A>T"
+											}
+										],
+										"location": {
+											"id": "ga4gh:SL.nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+											"type": "SequenceLocation",
+											"digest": "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+											"sequenceReference": {
+												"type": "SequenceReference",
+												"refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul"
+											},
+											"start": 140753335,
+											"end": 140753336,
+											"sequence": "A"
+										},
+										"state": {
+											"type": "LiteralSequenceExpression",
+											"sequence": "T"
+										}
+									}
+								],
+								"constraints": [
+									{
+										"type": "DefiningAlleleConstraint",
+										"allele": {
+											"id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+											"type": "Allele",
+											"name": "V600E",
+											"digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+											"expressions": [
+												{
+													"syntax": "hgvs.c",
+													"value": "NM_004333.4:c.1799T>A"
+												},
+												{
+													"syntax": "hgvs.p",
+													"value": "NP_004324.2:p.Val600Glu"
+												},
+												{
+													"syntax": "hgvs.g",
+													"value": "NC_000007.13:g.140453136A>T"
+												},
+												{
+													"syntax": "hgvs.c",
+													"value": "ENST00000288602.6:c.1799T>A"
+												}
+											],
+											"location": {
+												"id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+												"type": "SequenceLocation",
+												"digest": "t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+												"sequenceReference": {
+													"type": "SequenceReference",
+													"refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y"
+												},
+												"start": 599,
+												"end": 600,
+												"sequence": "V"
+											},
+											"state": {
+												"type": "LiteralSequenceExpression",
+												"sequence": "E"
+											}
+										}
+									}
+								],
+								"mappings": [
+									{
+										"coding": {
+											"id": "civic.vid:12",
+											"system": "https://civicdb.org/variants/",
+											"code": "12"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"coding": {
+											"system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+											"code": "CA123643"
+										},
+										"relation": "relatedMatch"
+									},
+									{
+										"coding": {
+											"system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+											"code": "13961"
+										},
+										"relation": "relatedMatch"
+									},
+									{
+										"coding": {
+											"system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+											"code": "376069"
+										},
+										"relation": "relatedMatch"
+									},
+									{
+										"coding": {
+											"system": "https://www.ncbi.nlm.nih.gov/snp/",
+											"code": "rs113488022"
+										},
+										"relation": "relatedMatch"
+									}
+								]
+							},
+							"geneContextQualifier": {
+								"id": "civic.gid:5",
+								"extensions": [
+									{
+										"name": "aliases",
+										"value": [
+											"B-RAF1",
+											"B-raf",
+											"BRAF",
+											"BRAF-1",
+											"BRAF1",
+											"NS7",
+											"RAFB1"
+										]
+									},
+									{
+										"name": "description",
+										"value": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase."
+									}
+								],
+								"conceptType": "Gene",
+								"name": "BRAF",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "hgnc:1097",
+											"name": "BRAF",
+											"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+											"code": "HGNC:1097"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncbigene:673",
+											"system": "https://www.ncbi.nlm.nih.gov/gene/",
+											"code": "673"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							},
+							"alleleOriginQualifier": {
+								"name": "somatic"
+							},
+							"predicate": "associatedWithWorseOutcomeFor",
+							"objectCondition": {
+								"id": "civic.did:11",
+								"conceptType": "Disease",
+								"name": "Colorectal Cancer",
+								"mappings": [
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "ncit:C4978",
+											"name": "Malignant Colorectal Neoplasm",
+											"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+											"code": "C4978"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											}
+										],
+										"coding": {
+											"id": "MONDO_0005575",
+											"system": "https://purl.obolibrary.org/obo/",
+											"code": "MONDO:0005575"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											},
+											{
+												"name": "civic_annotation",
+												"value": true
+											}
+										],
+										"coding": {
+											"id": "DOID:9256",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:9256"
+										},
+										"relation": "exactMatch"
+									},
+									{
+										"extensions": [
+											{
+												"name": "vicc_normalizer_priority",
+												"value": false
+											}
+										],
+										"coding": {
+											"id": "DOID:5672",
+											"system": "https://disease-ontology.org/?id=",
+											"code": "DOID:5672"
+										},
+										"relation": "exactMatch"
+									}
+								]
+							}
+						},
+						"direction": "supports",
+						"strength": {
+							"name": "Clinical evidence",
+							"primaryCoding": {
+								"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+								"code": "B"
+							},
+							"mappings": [
+								{
+									"coding": {
+										"name": "clinical cohort evidence",
+										"system": "https://go.osu.edu/evidence-codes",
+										"code": "e000005"
+									},
+									"relation": "exactMatch"
+								}
+							]
+						}
+					}
+				],
+				"directionOfEvidenceProvided": "supports"
+			}
+		]
+	},
+	"civic.eid:7157": {
+		"id": "civic.eid:7157",
+		"type": "Statement",
+		"description": "The CRYSTAL Phase III Trial evaluated efficacy of irinotecan, fluorouracil, and leucovorin (FOLFIRI) with or without Cetuximab for colorectal cancer patients who presented with unresectable metastatic disease. BRAF mutation status (V600E) was analyzed via LightMix BRAF V600E Kit. V600E mutations were detected in 60/999 tumor samples (6%), 59 of which were wild-type for KRAS. When comparing patients with wildtype KRAS (n=625), BRAF V600E tumors had worse outcomes relative to BRAF wildtype. For patients with BRAF V600E tumors (n=566), median overall survival (OS) was 25.1 months with cetuximab and 21.6 months without cetuximab. For patients with wildtype BRAF (n=59), median OS was 14.1 months with cetuximab and 10.3 months without cetuximab.",
+		"specifiedBy": {
+			"id": "civic.method:2019",
+			"type": "Method",
+			"name": "CIViC Curation SOP (2019)",
+			"methodType": "variant curation standard operating procedure",
+			"reportedIn": {
+				"type": "Document",
+				"name": "Danos et al., 2019, Genome Med.",
+				"title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+				"doi": "10.1186/s13073-019-0687-x",
+				"pmid": 31779674
+			}
+		},
+		"reportedIn": [
+			{
+				"id": "civic.source:1931",
+				"type": "Document",
+				"name": "Van Cutsem et al., 2011",
+				"title": "Cetuximab plus irinotecan, fluorouracil, and leucovorin as first-line treatment for metastatic colorectal cancer: updated analysis of overall survival according to tumor KRAS and BRAF mutation status.",
+				"pmid": 21502544
+			}
+		],
+		"proposition": {
+			"type": "VariantPrognosticProposition",
+			"subjectVariant": {
+				"id": "civic.mpid:12",
+				"type": "CategoricalVariant",
+				"name": "BRAF V600E",
+				"description": "BRAF V600E has been shown to be recurrent in many cancer types. It is one of the most widely studied variants in cancer. This variant is correlated with poor prognosis in certain cancer types, including colorectal cancer and papillary thyroid cancer. The targeted therapeutic dabrafenib has been shown to be effective in clinical trials with an array of BRAF mutations and cancer types. Dabrafenib has also shown to be effective when combined with the MEK inhibitor trametinib in colorectal cancer and melanoma. However, in patients with TP53, CDKN2A and KRAS mutations, dabrafenib resistance has been reported. Ipilimumab, regorafenib, vemurafenib, and a number of combination therapies have been successful in treating V600E mutations. However, cetuximab and panitumumab have been largely shown to be ineffective without supplementary treatment.",
+				"aliases": ["VAL600GLU", "V640E", "VAL640GLU"],
+				"extensions": [
+					{
+						"name": "CIViC Molecular Profile Score",
+						"value": 1433.5
+					},
+					{
+						"name": "CIViC representative coordinate",
+						"value": {
+							"ensembl_version": 75,
+							"reference_build": "GRCh37",
+							"reference_bases": "A",
+							"variant_bases": "T",
+							"representative_transcript": "ENST00000288602.6",
+							"chromosome": "7",
+							"start": 140453136,
+							"stop": 140453136,
+							"type": "coordinates"
+						}
+					},
+					{
+						"name": "Variant types",
+						"value": [
+							{
+								"id": "SO:0001583",
+								"name": "missense_variant",
+								"system": "http://www.sequenceontology.org/browser/current_svn/term/",
+								"code": "SO:0001583"
+							}
+						]
+					}
+				],
+				"members": [
+					{
+						"id": "ga4gh:VA.W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+						"type": "Allele",
+						"name": "NM_004333.4:c.1799T>A",
+						"digest": "W6xsV-aFm9yT2Bic5cFAV2j0rll6KK5R",
+						"expressions": [
+							{
+								"syntax": "hgvs.c",
+								"value": "NM_004333.4:c.1799T>A"
+							}
+						],
+						"location": {
+							"id": "ga4gh:SL.8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+							"type": "SequenceLocation",
+							"digest": "8HBKs9fzlT3tKWlM03REjkg_0Om6Y33U",
+							"sequenceReference": {
+								"type": "SequenceReference",
+								"refgetAccession": "SQ.aKMPEJgmlZXt_F6gRY5cUG3THH2n-GUa"
+							},
+							"start": 2024,
+							"end": 2025,
+							"sequence": "T"
+						},
+						"state": {
+							"type": "LiteralSequenceExpression",
+							"sequence": "A"
+						}
+					},
+					{
+						"id": "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+						"type": "Allele",
+						"name": "NC_000007.13:g.140453136A>T",
+						"digest": "Otc5ovrw906Ack087o1fhegB4jDRqCAe",
+						"expressions": [
+							{
+								"syntax": "hgvs.g",
+								"value": "NC_000007.13:g.140453136A>T"
+							}
+						],
+						"location": {
+							"id": "ga4gh:SL.nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+							"type": "SequenceLocation",
+							"digest": "nhul5x5P_fKjGEpY9PEkMIekJfZaKom2",
+							"sequenceReference": {
+								"type": "SequenceReference",
+								"refgetAccession": "SQ.F-LrLMe1SRpfUZHkQmvkVKFEGaoDeHul"
+							},
+							"start": 140753335,
+							"end": 140753336,
+							"sequence": "A"
+						},
+						"state": {
+							"type": "LiteralSequenceExpression",
+							"sequence": "T"
+						}
+					}
+				],
+				"constraints": [
+					{
+						"type": "DefiningAlleleConstraint",
+						"allele": {
+							"id": "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+							"type": "Allele",
+							"name": "V600E",
+							"digest": "j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L",
+							"expressions": [
+								{
+									"syntax": "hgvs.c",
+									"value": "NM_004333.4:c.1799T>A"
+								},
+								{
+									"syntax": "hgvs.p",
+									"value": "NP_004324.2:p.Val600Glu"
+								},
+								{
+									"syntax": "hgvs.g",
+									"value": "NC_000007.13:g.140453136A>T"
+								},
+								{
+									"syntax": "hgvs.c",
+									"value": "ENST00000288602.6:c.1799T>A"
+								}
+							],
+							"location": {
+								"id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+								"type": "SequenceLocation",
+								"digest": "t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+								"sequenceReference": {
+									"type": "SequenceReference",
+									"refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y"
+								},
+								"start": 599,
+								"end": 600,
+								"sequence": "V"
+							},
+							"state": {
+								"type": "LiteralSequenceExpression",
+								"sequence": "E"
+							}
+						}
+					}
+				],
+				"mappings": [
+					{
+						"coding": {
+							"id": "civic.vid:12",
+							"system": "https://civicdb.org/variants/",
+							"code": "12"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"coding": {
+							"system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+							"code": "CA123643"
+						},
+						"relation": "relatedMatch"
+					},
+					{
+						"coding": {
+							"system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+							"code": "13961"
+						},
+						"relation": "relatedMatch"
+					},
+					{
+						"coding": {
+							"system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+							"code": "376069"
+						},
+						"relation": "relatedMatch"
+					},
+					{
+						"coding": {
+							"system": "https://www.ncbi.nlm.nih.gov/snp/",
+							"code": "rs113488022"
+						},
+						"relation": "relatedMatch"
+					}
+				]
+			},
+			"geneContextQualifier": {
+				"id": "civic.gid:5",
+				"extensions": [
+					{
+						"name": "aliases",
+						"value": [
+							"B-RAF1",
+							"B-raf",
+							"BRAF",
+							"BRAF-1",
+							"BRAF1",
+							"NS7",
+							"RAFB1"
+						]
+					},
+					{
+						"name": "description",
+						"value": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase."
+					}
+				],
+				"conceptType": "Gene",
+				"name": "BRAF",
+				"mappings": [
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "hgnc:1097",
+							"name": "BRAF",
+							"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+							"code": "HGNC:1097"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							},
+							{
+								"name": "civic_annotation",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "ncbigene:673",
+							"system": "https://www.ncbi.nlm.nih.gov/gene/",
+							"code": "673"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			},
+			"alleleOriginQualifier": {
+				"name": "somatic"
+			},
+			"predicate": "associatedWithWorseOutcomeFor",
+			"objectCondition": {
+				"id": "civic.did:11",
+				"conceptType": "Disease",
+				"name": "Colorectal Cancer",
+				"mappings": [
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "ncit:C4978",
+							"name": "Malignant Colorectal Neoplasm",
+							"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+							"code": "C4978"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "MONDO_0005575",
+							"system": "https://purl.obolibrary.org/obo/",
+							"code": "MONDO:0005575"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							},
+							{
+								"name": "civic_annotation",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "DOID:9256",
+							"system": "https://disease-ontology.org/?id=",
+							"code": "DOID:9256"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "DOID:5672",
+							"system": "https://disease-ontology.org/?id=",
+							"code": "DOID:5672"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			}
+		},
+		"direction": "supports",
+		"strength": {
+			"name": "Clinical evidence",
+			"primaryCoding": {
+				"system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+				"code": "B"
+			},
+			"mappings": [
+				{
+					"coding": {
+						"name": "clinical cohort evidence",
+						"system": "https://go.osu.edu/evidence-codes",
+						"code": "e000005"
+					},
+					"relation": "exactMatch"
+				}
+			]
+		}
+	},
+	"moa.assertion:66": {
+		"id": "moa.assertion:66",
+		"type": "Statement",
+		"description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
+		"specifiedBy": {
+			"id": "moa.method:2021",
+			"type": "Method",
+			"name": "MOAlmanac (2021)",
+			"reportedIn": {
+				"type": "Document",
+				"name": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
+				"title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+				"doi": "10.1038/s43018-021-00243-3",
+				"pmid": 35121878
+			}
+		},
+		"reportedIn": [
+			{
+				"id": "moa.source:45",
+				"type": "Document",
+				"extensions": [
+					{
+						"name": "source_type",
+						"value": "Journal"
+					}
+				],
+				"title": "Gorre, Mercedes E., et al. Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification. Science 293.5531 (2001): 876-880.",
+				"urls": ["https://doi.org/10.1126/science.1062538"],
+				"doi": "10.1126/science.1062538",
+				"pmid": 11423618
+			}
+		],
+		"proposition": {
+			"type": "VariantTherapeuticResponseProposition",
+			"subjectVariant": {
+				"id": "moa.variant:66",
+				"type": "CategoricalVariant",
+				"name": "ABL1 p.T315I (Missense)",
+				"extensions": [
+					{
+						"name": "MOA representative coordinate",
+						"value": {
+							"chromosome": "9",
+							"start_position": "133748283",
+							"end_position": "133748283",
+							"reference_allele": "C",
+							"alternate_allele": "T",
+							"cdna_change": "c.944C>T",
+							"protein_change": "p.T315I",
+							"exon": "5"
+						}
+					}
+				],
+				"members": [
+					{
+						"id": "ga4gh:VA.HUJOQCml0LngKmUf5IJIYQk9CfKmagbf",
+						"type": "Allele",
+						"name": "9-133748283-C-T",
+						"digest": "HUJOQCml0LngKmUf5IJIYQk9CfKmagbf",
+						"location": {
+							"id": "ga4gh:SL.vd9Kb9rCPWBEUZ_wbBxZyulgOAq-jk0P",
+							"type": "SequenceLocation",
+							"digest": "vd9Kb9rCPWBEUZ_wbBxZyulgOAq-jk0P",
+							"sequenceReference": {
+								"type": "SequenceReference",
+								"refgetAccession": "SQ.KEO-4XBcm1cxeo_DIQ8_ofqGUkp4iZhI"
+							},
+							"start": 133748282,
+							"end": 133748283,
+							"sequence": "C"
+						},
+						"state": {
+							"type": "LiteralSequenceExpression",
+							"sequence": "T"
+						}
+					}
+				],
+				"constraints": [
+					{
+						"type": "DefiningAlleleConstraint",
+						"allele": {
+							"id": "ga4gh:VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
+							"type": "Allele",
+							"digest": "D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
+							"location": {
+								"id": "ga4gh:SL.jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
+								"type": "SequenceLocation",
+								"digest": "jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
+								"sequenceReference": {
+									"type": "SequenceReference",
+									"refgetAccession": "SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg"
+								},
+								"start": 314,
+								"end": 315,
+								"sequence": "T"
+							},
+							"state": {
+								"type": "LiteralSequenceExpression",
+								"sequence": "I"
+							}
+						}
+					}
+				],
+				"mappings": [
+					{
+						"coding": {
+							"id": "moa.variant:66",
+							"system": "https://moalmanac.org",
+							"code": "66"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"coding": {
+							"system": "https://www.ncbi.nlm.nih.gov/snp/",
+							"code": "rs121913459"
+						},
+						"relation": "relatedMatch"
+					}
+				]
+			},
+			"geneContextQualifier": {
+				"id": "moa.normalize.gene.hgnc:76",
+				"conceptType": "Gene",
+				"name": "ABL1",
+				"mappings": [
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "hgnc:76",
+							"name": "ABL1",
+							"system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+							"code": "HGNC:76"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "ncbigene:25",
+							"system": "https://www.ncbi.nlm.nih.gov/gene/",
+							"code": "25"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			},
+			"alleleOriginQualifier": {
+				"name": "somatic"
+			},
+			"predicate": "predictsResistanceTo",
+			"objectTherapeutic": {
+				"id": "moa.normalize.therapy.rxcui:282388",
+				"extensions": [
+					{
+						"name": "regulatory_approval",
+						"value": {
+							"approval_rating": "FDA",
+							"has_indications": [
+								{
+									"id": "hemonc:602",
+									"conceptType": "Disease",
+									"name": "Gastrointestinal stromal tumor",
+									"mappings": [
+										{
+											"coding": {
+												"id": "ncit:C3868",
+												"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+												"code": "C3868"
+											},
+											"relation": "exactMatch"
+										}
+									]
+								},
+								{
+									"id": "hemonc:634",
+									"conceptType": "Disease",
+									"name": "Myelodysplastic syndrome",
+									"mappings": [
+										{
+											"coding": {
+												"id": "ncit:C3247",
+												"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+												"code": "C3247"
+											},
+											"relation": "exactMatch"
+										}
+									]
+								},
+								{
+									"id": "hemonc:24309",
+									"conceptType": "Disease",
+									"name": "Acute lymphoblastic leukemia",
+									"mappings": [
+										{
+											"coding": {
+												"id": "ncit:C3167",
+												"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+												"code": "C3167"
+											},
+											"relation": "exactMatch"
+										}
+									]
+								},
+								{
+									"id": "hemonc:667",
+									"conceptType": "Disease",
+									"name": "Soft tissue sarcoma",
+									"mappings": [
+										{
+											"coding": {
+												"id": "ncit:C9306",
+												"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+												"code": "C9306"
+											},
+											"relation": "exactMatch"
+										}
+									]
+								},
+								{
+									"id": "hemonc:582",
+									"conceptType": "Disease",
+									"name": "Chronic myeloid leukemia",
+									"mappings": [
+										{
+											"coding": {
+												"id": "ncit:C3174",
+												"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+												"code": "C3174"
+											},
+											"relation": "exactMatch"
+										}
+									]
+								},
+								{
+									"id": "hemonc:33893",
+									"conceptType": "Disease",
+									"name": "Chronic myeloid leukemia pediatric"
+								},
+								{
+									"id": "hemonc:669",
+									"conceptType": "Disease",
+									"name": "Systemic mastocytosis",
+									"mappings": [
+										{
+											"coding": {
+												"id": "ncit:C9235",
+												"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+												"code": "C9235"
+											},
+											"relation": "exactMatch"
+										}
+									]
+								},
+								{
+									"id": "hemonc:616",
+									"conceptType": "Disease",
+									"name": "Hypereosinophilic syndrome",
+									"mappings": [
+										{
+											"coding": {
+												"id": "ncit:C27038",
+												"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+												"code": "C27038"
+											},
+											"relation": "exactMatch"
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"conceptType": "Therapy",
+				"name": "Imatinib",
+				"mappings": [
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "rxcui:282388",
+							"name": "imatinib",
+							"system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
+							"code": "282388"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "ncit:C1687",
+							"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+							"code": "C1687"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "ncit:C62035",
+							"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+							"code": "C62035"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			},
+			"conditionQualifier": {
+				"id": "moa.normalize.disease.ncit:C3174",
+				"conceptType": "Disease",
+				"name": "Chronic Myelogenous Leukemia",
+				"mappings": [
+					{
+						"coding": {
+							"id": "oncotree:CML",
+							"name": "Chronic Myelogenous Leukemia",
+							"system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
+							"code": "CML"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": true
+							}
+						],
+						"coding": {
+							"id": "ncit:C3174",
+							"name": "Chronic Myeloid Leukemia, BCR-ABL1 Positive",
+							"system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+							"code": "C3174"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "DOID:8552",
+							"system": "https://disease-ontology.org/?id=",
+							"code": "DOID:8552"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "DOID:0081088",
+							"system": "https://disease-ontology.org/?id=",
+							"code": "DOID:0081088"
+						},
+						"relation": "exactMatch"
+					},
+					{
+						"extensions": [
+							{
+								"name": "vicc_normalizer_priority",
+								"value": false
+							}
+						],
+						"coding": {
+							"id": "MONDO_0011996",
+							"system": "https://purl.obolibrary.org/obo/",
+							"code": "MONDO:0011996"
+						},
+						"relation": "exactMatch"
+					}
+				]
+			}
+		},
+		"direction": "supports",
+		"strength": {
+			"primaryCoding": {
+				"system": "https://moalmanac.org/about",
+				"code": "Preclinical evidence"
+			},
+			"mappings": [
+				{
+					"coding": {
+						"name": "preclinical evidence",
+						"system": "https://go.osu.edu/evidence-codes",
+						"code": "e000009"
+					},
+					"relation": "exactMatch"
+				}
+			]
+		}
+	}
+}
