@@ -792,7 +792,7 @@ def civic_mpid12(civic_vid12, braf_v600e_genomic, psc_relations):
             },
             {
                 "name": "CIViC Molecular Profile Score",
-                "value": 1378.5,
+                "value": 1433.5,
             },
         ],
     }

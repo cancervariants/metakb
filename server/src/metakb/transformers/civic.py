@@ -2,6 +2,7 @@
 
 import inspect
 import logging
+import re
 from enum import Enum, StrEnum
 from pathlib import Path
 from types import MappingProxyType
@@ -39,6 +40,7 @@ from ga4gh.va_spec.base import (
     VariantTherapeuticResponseProposition,
 )
 from ga4gh.vrs.models import Allele, Expression, Syntax, Variation
+from pydantic.dataclasses import dataclass
 
 from metakb.normalizers import (
     ViccNormalizers,
@@ -49,6 +51,10 @@ from metakb.transformers.base import (
 )
 
 _logger = logging.getLogger(__name__)
+
+MP_NAME_PATTERN = (
+    r"(?P<gene>\w+)(?:\s+(?P<p_change>\w+))?(?:\s+(?P<c_change>\(?c\..*\)?))?"
+)
 
 # Variant names that are known to not be supported in the variation-normalizer
 UNABLE_TO_NORMALIZE_VAR_NAMES = {
@@ -123,6 +129,15 @@ NAMESPACE_PREFIX_MAP = MappingProxyType(
         },
     }
 )
+
+
+@dataclass
+class MolecularProfileNameComponents:
+    """Define components for molecular profile name"""
+
+    gene: str
+    p_change: str | None
+    c_change: str | None
 
 
 class _CivicTransformedCache(_TransformedRecordsCache):
@@ -572,25 +587,37 @@ class CivicTransformer(Transformer):
             ]
 
         mp_id = molecular_profile.id
-        mp_name = self._get_protein_change(molecular_profile.name)
-
         constraints = None
         members = None
         normalized_variation = None
         annotated_variation = None
         extensions = molecular_profile.extensions or []
 
-        if self._is_supported_variant_query(mp_name, mp_id):
-            normalized_variation = await self.vicc_normalizers.normalize_variation(
-                mp_name
+        mp_match = self._parse_mp_name(molecular_profile.name)
+        if not mp_match:
+            _logger.warning(
+                "Unable to parse molecular profile %i name %s",
+                mp_id,
+                molecular_profile.name,
             )
+            mp_name = None
+        else:
+            mp_name = f"{mp_match.gene} {mp_match.p_change}"
+
+            is_supported_query = self._is_supported_variant_query(mp_name, mp_id)
+
+            if is_supported_query:
+                normalized_variation = await self.vicc_normalizers.normalize_variation(
+                    mp_name
+                )
 
         if not normalized_variation:
-            _logger.debug(
-                "Variation Normalizer unable to normalize %s using query %s",
-                mp_id,
-                mp_name,
-            )
+            if is_supported_query:
+                _logger.debug(
+                    "Variation Normalizer unable to normalize %s using query %s",
+                    mp_id,
+                    mp_name,
+                )
             extensions.append(self._get_vicc_normalizer_failure_ext())
         else:
             # Create VRS Variation object
@@ -678,17 +705,16 @@ class CivicTransformer(Transformer):
         return members
 
     @staticmethod
-    def _get_protein_change(molecular_profile_name: str) -> str:
-        """Get molecular profile name from CIViC Molecular Profile record.
-        If 'c.' in name, use the cDNA name
+    def _parse_mp_name(
+        molecular_profile_name: str,
+    ) -> MolecularProfileNameComponents | None:
+        """Extract components from molecular profile name
 
         :param molecular_profile_name: CIViC Molecular Profile name
-        :return: Molecular Profile name to use for query
+        :return: Molecular profile name components if pattern matches, otherwise None
         """
-        if "c." in molecular_profile_name and "(" in molecular_profile_name:
-            return molecular_profile_name.replace("(", "").replace(")", "").split()[-1]
-
-        return molecular_profile_name
+        match = re.match(MP_NAME_PATTERN, molecular_profile_name)
+        return MolecularProfileNameComponents(**match.groupdict()) if match else None
 
     @staticmethod
     def _is_supported_variant_query(molecular_profile_name: str, mpid: int) -> bool:
