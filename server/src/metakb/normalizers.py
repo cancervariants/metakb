@@ -81,8 +81,8 @@ class ViccNormalizers:
         self.variation_normalizer = VariationQueryHandler(
             gene_query_handler=self.gene_query_handler
         )
-        self.disease_query_handler = DiseaseQueryHandler(create_disease_db(db_url))
-        self.therapy_query_handler = TherapyQueryHandler(create_therapy_db(db_url))
+        #self.disease_query_handler = DiseaseQueryHandler(create_disease_db(db_url))
+        #self.therapy_query_handler = TherapyQueryHandler(create_therapy_db(db_url))
 
     async def normalize_variation(
         self, query: str
