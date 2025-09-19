@@ -7,15 +7,22 @@ from enum import Enum
 from typing import Annotated
 
 from fastapi import FastAPI, HTTPException, Query, Request
+from ga4gh.va_spec.base import (
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
+)
 
 from metakb import __version__
 from metakb.config import get_config
 from metakb.query import EmptySearchError, QueryHandler
 from metakb.schemas.api import (
     METAKB_DESCRIPTION,
-    BatchSearchStatementsService,
-    SearchStatementsService,
+    BatchSearchStatementsResponse,
+    SearchStatementsQuery,
+    SearchStatementsResponse,
     ServiceInfo,
+    ServiceMeta,
     ServiceOrganization,
     ServiceType,
 )
@@ -111,14 +118,15 @@ async def get_statements(
     statement_id: Annotated[str | None, Query(description=s_description)] = None,
     start: Annotated[int, Query(description=start_description, ge=0)] = 0,
     limit: Annotated[int | None, Query(description=limit_description, ge=0)] = None,
-) -> SearchStatementsService:
+) -> SearchStatementsResponse:
     """Get nested statements from queried concepts that match all conditions provided.
+
     For example, if `variation` and `therapy` are provided, will return all statements
     that have both the provided `variation` and `therapy`.
     """
-    query = request.app.state.query
+    query: QueryHandler = request.app.state.query
     try:
-        return await query.search_statements(
+        search_results = await query.search_statements(
             variation, disease, therapy, gene, statement_id, start, limit
         )
     except EmptySearchError as e:
@@ -126,6 +134,47 @@ async def get_statements(
             status_code=422,
             detail="At least one search parameter (variation, disease, therapy, gene, statement_id) must be provided.",
         ) from e
+
+    mapped_terms = {term.term_type.value: term for term in search_results.search_terms}
+
+    # group statements
+    grouped_statements = {
+        "therapeutic_statements": {},
+        "diagnostic_statements": {},
+        "prognostic_statements": {},
+    }
+    statement_ids = []
+    for statement in search_results.statements:
+        statement_ids.append(statement.id)
+        variant_id = statement.proposition.subjectVariant.id
+        predicate = statement.proposition.predicate
+        if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
+            key = f"{variant_id}|{statement.proposition.conditionQualifier.root.id}|{statement.proposition.objectTherapeutic.root.id}|{predicate}"
+            grouped_statements["therapeutic_statements"].setdefault(key, []).append(
+                statement
+            )
+        elif isinstance(statement.proposition, VariantDiagnosticProposition):
+            key = f"{variant_id}|{statement.proposition.objectCondition.root.id}|{predicate}"
+            grouped_statements["diagnostic_statements"].setdefault(key, []).append(
+                statement
+            )
+        elif isinstance(statement.proposition, VariantPrognosticProposition):
+            key = f"{variant_id}|{statement.proposition.objectCondition.root.id}|{predicate}"
+            grouped_statements["prognostic_statements"].setdefault(key, []).append(
+                statement
+            )
+        else:
+            msg = f"Unrecognized proposition type `{type(statement.proposition)}` in {statement}"
+            raise ValueError(msg)  # noqa: TRY004
+
+    return SearchStatementsResponse(
+        query=SearchStatementsQuery(**mapped_terms),
+        start=start,
+        limit=limit,
+        service_meta_=ServiceMeta(),
+        statement_ids=statement_ids,
+        **grouped_statements,
+    )
 
 
 _batch_descr = {
@@ -152,13 +201,20 @@ async def batch_get_statements(
     ] = None,
     start: Annotated[int, Query(description=_batch_descr["arg_start"])] = 0,
     limit: Annotated[int | None, Query(description=_batch_descr["arg_limit"])] = None,
-) -> BatchSearchStatementsService:
+) -> BatchSearchStatementsResponse:
     """Fetch all statements associated with `any` of the provided variations."""
     query = request.app.state.query
     try:
-        return await query.batch_search_statements(variations, start, limit)
+        results = await query.batch_search_statements(variations, start, limit)
     except EmptySearchError as e:
         raise HTTPException(
             status_code=422,
             detail="At least one search parameter must be provided, but no variations values have been given.",
         ) from e
+    return BatchSearchStatementsResponse(
+        search_terms=results.search_terms,
+        start=start,
+        limit=limit,
+        service_meta_=ServiceMeta(),
+        statements=results.statements,
+    )

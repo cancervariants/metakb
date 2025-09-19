@@ -5,7 +5,9 @@ authors = [
     {name = "Kori Kuzma"},
     {name = "James Stevenson"},
     {name = "Brian Walsh"},
-    {name = "Jeff Liu"}
+    {name = "Jeff Liu"},
+    {name = "Matthew Cannon"},
+    {name = "Katie Stahl"},
 ]
 readme = "README.md"
 classifiers = [
@@ -99,6 +101,9 @@ metakb = ["*.cypher"]
 [tool.pytest.ini_options]
 addopts = "--cov=src --cov-report term-missing --ignore=codebuild/"
 testpaths = ["tests"]
+markers = [
+    "ci: tests safe to run in CI",
+]
 
 [tool.coverage.run]
 branch = true

@@ -147,13 +147,21 @@ def is_loadable_statement(statement: Statement) -> bool:
     return success
 
 
-def load_transformed_data(
-    data: TransformedData, repository: AbstractRepository
-) -> None:
+def add_transformed_data(data: TransformedData, repository: AbstractRepository) -> None:
+    """Add set of data formatted per Common Data Model to DB.
+
+    :param driver: Neo4j driver instance
+    :param data: contains key/value pairs for data objects to add to DB, including
+        statements, variation, therapies, conditions, genes, methods, documents, etc.
+    """
+    loaded_stmt_count = 0
     for statement in data.statements_evidence + data.statements_assertions:
         if not is_loadable_statement(statement):
             continue
         repository.load_statement(statement)
+        loaded_stmt_count += 1
+
+    _logger.info("Successfully loaded %s statements.", loaded_stmt_count)
 
 
 def load_from_json(src_transformed_cdm: Path, repository: AbstractRepository) -> None:
@@ -168,4 +176,4 @@ def load_from_json(src_transformed_cdm: Path, repository: AbstractRepository) ->
     with src_transformed_cdm.open() as f:
         items = json.load(f)
         data = TransformedData(**items)
-        load_transformed_data(data, repository)
+        add_transformed_data(data, repository)

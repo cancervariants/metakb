@@ -16,14 +16,12 @@ from metakb.normalizers import (
 )
 from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 from metakb.schemas.api import (
-    BatchSearchStatementsQuery,
-    BatchSearchStatementsService,
-    NormalizedQuery,
-    SearchStatementsService,
-    ServiceMeta,
+    SearchResult,
+    SearchTerm,
+    SearchTermType,
 )
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class EmptySearchError(Exception):
@@ -135,7 +133,7 @@ class QueryHandler:
         statement_id: str | None = None,
         start: int = 0,
         limit: int | None = None,
-    ) -> SearchStatementsService:
+    ) -> SearchResult:
         """Get nested statements from queried concepts that match all conditions provided.
         For example, if ``variation`` and ``therapy`` are provided, will return all
         statements that have both the provided ``variation`` and ``therapy``.
@@ -163,9 +161,9 @@ class QueryHandler:
             e.g. ``"ensembl:ENSG00000198400"``.
         :param statement_id: Statement ID query provided by source, e.g. ``"civic.eid:3017"``.
         :param start: Index of first result to fetch. Must be nonnegative.
-        :param limit: Max number of results to fetch. Must be nonnegative.
-        :return: Service response object containing nested statements and service
-            metadata.
+        :param limit: Max number of results to fetch. Must be nonnegative. Revert to
+            default defined at class initialization if not given.
+        :return: Results including terms with normalization, and all statements
         :raise EmptySearchError: if no search params given
         :raise PaginationParamError: if either pagination param given is negative
         """
@@ -178,34 +176,35 @@ class QueryHandler:
             msg = f"Invalid limit value: {limit}. Must be nonnegative."
             raise PaginationParamError(msg)
 
-        response: dict = {
-            "query": {
-                "variation": None,
-                "disease": None,
-                "therapy": None,
-                "gene": None,
-                "statement_id": None,
-            },
-            "warnings": [],
-            "statement_ids": [],
-            "statements": [],
-            "service_meta_": ServiceMeta(),
-        }
-
-        normalized_terms = await self._get_normalized_terms(
-            variation, disease, therapy, gene, response
-        )
-
-        if normalized_terms is None:
-            return SearchStatementsService(**response)
-
+        # attempt normalization of entity terms
+        search_terms = []
         (
-            normalized_variation,
-            normalized_disease,
             normalized_therapy,
+            normalized_disease,
+            normalized_variation,
             normalized_gene,
-        ) = normalized_terms
-
+        ) = None, None, None, None
+        if therapy:
+            normalized_therapy = self._get_normalized_therapy(therapy)
+            search_terms.append(normalized_therapy)
+        if disease:
+            normalized_disease = self._get_normalized_disease(disease)
+            search_terms.append(normalized_disease)
+        if variation:
+            normalized_variation = await self._get_normalized_variation(variation)
+            search_terms.append(normalized_variation)
+        if gene:
+            normalized_gene = self._get_normalized_gene(gene)
+            search_terms.append(normalized_gene)
+        statement, statement_term = None, None
+        if statement_id:
+            statement = self._get_stmt_by_id(statement_id)
+            statement_term = SearchTerm(
+                term=statement_id,
+                term_type=SearchTermType.STATEMENT_ID,
+                resolved_id=statement.get("id") if statement else None,
+            )
+            search_terms.append(statement_term)
         statements = self.repository.search_statements(
             variation_id=normalized_variation,
             gene_id=normalized_gene,
@@ -223,12 +222,65 @@ class QueryHandler:
 
         return SearchStatementsService(**response)
 
+    def _get_normalized_disease(self, disease: str) -> SearchTerm:
+        """Get normalized disease concept.
+
+        :param disease: Disease query
+        :return: A normalized disease concept if it exists
+        """
+        _, disease_id = self.vicc_normalizers.normalize_disease(disease)
+        return SearchTerm(
+            term=disease, term_type=SearchTermType.DISEASE, resolved_id=disease_id
+        )
+
+    def _get_normalized_gene(self, gene: str) -> SearchTerm:
+        """Get normalized gene concept.
+
+        :param gene: Gene query
+        :return: A normalized gene concept if it exists
+        """
+        _, gene_id = self.vicc_normalizers.normalize_gene(gene)
+        return SearchTerm(term=gene, term_type=SearchTermType.GENE, resolved_id=gene_id)
+
+    def _get_normalized_therapy(self, therapy: str) -> SearchTerm:
+        """Get normalized therapy concept.
+
+        :param therapy: Therapy query
+        :return: A normalized therapy concept if it exists
+        """
+        _, therapy_id = self.vicc_normalizers.normalize_therapy(therapy)
+        return SearchTerm(
+            term=therapy, term_type=SearchTermType.THERAPY, resolved_id=therapy_id
+        )
+
+    async def _get_normalized_variation(self, variation: str) -> SearchTerm:
+        """Get normalized variation concept.
+
+        :param variation: Variation query
+        :return: A normalized variant concept if it exists
+        """
+        # Check if VRS variation (allele, copy number change, copy number count)
+        if variation.startswith(("ga4gh:VA.", "ga4gh:CX.", "ga4gh:CN.")):
+            normalized_variation = variation
+        else:
+            variant_norm_resp = await self.vicc_normalizers.normalize_variation(
+                variation
+            )
+            normalized_variation = variant_norm_resp.id if variant_norm_resp else None
+
+        return SearchTerm(
+            term=variation,
+            term_type=SearchTermType.VARIATION,
+            resolved_id=normalized_variation,
+        )
+
     async def _get_normalized_terms(
         self,
         variation: str | None,
         disease: str | None,
         therapy: str | None,
         gene: str | None,
+        statement_id: str | None,
         response: dict,
     ) -> tuple | None:
         """Find normalized terms for queried concepts.
@@ -268,12 +320,26 @@ class QueryHandler:
         else:
             normalized_gene = None
 
+        # Check that queried statement_id is valid
+        valid_statement_id = None
+        statement = None
+        if statement_id:
+            response["query"]["statement_id"] = statement_id
+            statement = self._get_stmt_by_id(statement_id)
+            if statement:
+                valid_statement_id = statement.get("id")
+            else:
+                response["warnings"].append(
+                    f"Statement: {statement_id} does not exist."
+                )
+
         # If queried concept is given check that it is normalized / valid
         if (
             (variation and not normalized_variation)
             or (therapy and not normalized_therapy)
             or (disease and not normalized_disease)
             or (gene and not normalized_gene)
+            or (statement_id and not valid_statement_id)
         ):
             return None
 
@@ -282,74 +348,120 @@ class QueryHandler:
             normalized_disease,
             normalized_therapy,
             normalized_gene,
+            statement,
+            valid_statement_id,
+=======
+        # Check that queried statement_id is valid
+        statement, statement_term = None, None
+        if statement_id:
+            statement = self._get_stmt_by_id(statement_id)
+            statement_term = SearchTerm(
+                term=statement_id,
+                term_type=SearchTermType.STATEMENT_ID,
+                resolved_id=statement.get("id") if statement else None,
+            )
+            search_terms.append(statement_term)
+
+        # return early if ANY search terms fail to resolve
+        if any(
+            obj and obj.resolved_id is None
+            for obj in (
+                normalized_therapy,
+                normalized_disease,
+                normalized_variation,
+                statement_term,
+            )
+        ):
+            _logger.debug(
+                "One or more search terms failed to normalize/validate: %s",
+                search_terms,
+            )
+            return SearchResult(search_terms=search_terms, start=start, limit=limit)
+
+        # get statement data
+        if statement:
+            statement_nodes = [statement]
+        else:
+            statement_nodes = self._get_statements(
+                normalized_variation=normalized_variation.resolved_id
+                if normalized_variation
+                else None,
+                normalized_therapy=normalized_therapy.resolved_id
+                if normalized_therapy
+                else None,
+                normalized_disease=normalized_disease.resolved_id
+                if normalized_disease
+                else None,
+                normalized_gene=normalized_gene.resolved_id
+                if normalized_gene
+                else None,
+                start=start,
+                limit=limit,
+            )
+        statements = self._get_nested_stmts(statement_nodes)
+        return SearchResult(
+            search_terms=search_terms, start=start, limit=limit, statements=statements
+>>>>>>> staging
         )
 
-    def _get_normalized_therapy(self, therapy: str, warnings: list[str]) -> str | None:
-        """Get normalized therapy concept.
-
-        :param therapy: Therapy query
-        :param warnings: A list of warnings for the search query
-        :return: A normalized therapy concept if it exists
-        """
-        _, normalized_therapy_id = self.vicc_normalizers.normalize_therapy(therapy)
-
-        if not normalized_therapy_id:
-            warnings.append(f"Therapy Normalizer unable to normalize: {therapy}")
-        return normalized_therapy_id
-
-    def _get_normalized_disease(self, disease: str, warnings: list[str]) -> str | None:
+    def _get_normalized_disease(self, disease: str) -> SearchTerm:
         """Get normalized disease concept.
 
         :param disease: Disease query
-        :param warnings: A list of warnings for the search query
         :return: A normalized disease concept if it exists
         """
-        _, normalized_disease_id = self.vicc_normalizers.normalize_disease(disease)
+        _, disease_id = self.vicc_normalizers.normalize_disease(disease)
+        return SearchTerm(
+            term=disease, term_type=SearchTermType.DISEASE, resolved_id=disease_id
+        )
 
-        if not normalized_disease_id:
-            warnings.append(f"Disease Normalizer unable to normalize: {disease}")
-        return normalized_disease_id
-
-    async def _get_normalized_variation(
-        self, variation: str, warnings: list[str]
-    ) -> str | None:
-        """Get normalized variation concept.
-
-        :param variation: Variation query
-        :param warnings: A list of warnings for the search query
-        :return: A normalized variant concept if it exists
-        """
-        variant_norm_resp = await self.vicc_normalizers.normalize_variation(variation)
-        normalized_variation = variant_norm_resp.id if variant_norm_resp else None
-
-        if not normalized_variation:
-            # Check if VRS variation (allele, copy number change, copy number count)
-            if variation.startswith(("ga4gh:VA.", "ga4gh:CX.", "ga4gh:CN.")):
-                normalized_variation = variation
-            else:
-                warnings.append(
-                    f"Variation Normalizer unable to normalize: {variation}"
-                )
-        return normalized_variation
-
-    def _get_normalized_gene(self, gene: str, warnings: list[str]) -> str | None:
+    def _get_normalized_gene(self, gene: str) -> SearchTerm:
         """Get normalized gene concept.
 
         :param gene: Gene query
-        :param warnings: A list of warnings for the search query.
         :return: A normalized gene concept if it exists
         """
-        _, normalized_gene_id = self.vicc_normalizers.normalize_gene(gene)
-        if not normalized_gene_id:
-            warnings.append(f"Gene Normalizer unable to normalize: {gene}")
-        return normalized_gene_id
+        _, gene_id = self.vicc_normalizers.normalize_gene(gene)
+        return SearchTerm(term=gene, term_type=SearchTermType.GENE, resolved_id=gene_id)
+
+    def _get_normalized_therapy(self, therapy: str) -> SearchTerm:
+        """Get normalized therapy concept.
+
+        :param therapy: Therapy query
+        :return: A normalized therapy concept if it exists
+        """
+        _, therapy_id = self.vicc_normalizers.normalize_therapy(therapy)
+        return SearchTerm(
+            term=therapy, term_type=SearchTermType.THERAPY, resolved_id=therapy_id
+        )
+
+    async def _get_normalized_variation(self, variation: str) -> SearchTerm:
+        """Get normalized variation concept.
+
+        :param variation: Variation query
+        :return: A normalized variant concept if it exists
+        """
+        # Check if VRS variation (allele, copy number change, copy number count)
+        if variation.startswith(("ga4gh:VA.", "ga4gh:CX.", "ga4gh:CN.")):
+            normalized_variation = variation
+        else:
+            variant_norm_resp = await self.vicc_normalizers.normalize_variation(
+                variation
+            )
+            normalized_variation = variant_norm_resp.id if variant_norm_resp else None
+
+        return SearchTerm(
+            term=variation,
+            term_type=SearchTermType.VARIATION,
+            resolved_id=normalized_variation,
+        )
 
     async def batch_search_statements(
         self,
         variations: list[str] | None = None,
         start: int = 0,
         limit: int | None = None,
-    ) -> BatchSearchStatementsService:
+    ) -> SearchResult:
         """Fetch all statements associated with any of the provided variation description
         strings.
 
@@ -380,8 +492,6 @@ class QueryHandler:
         :raise EmptySearchError: if no search params given
         :raise PaginationParamError: if either pagination param given is negative
         """
-        if not variations:
-            raise EmptySearchError
         if start < 0:
             msg = f"Invalid start value: {start}. Must be nonnegative."
             raise PaginationParamError(msg)
@@ -389,25 +499,18 @@ class QueryHandler:
             msg = f"Invalid limit value: {limit}. Must be nonnegative."
             raise PaginationParamError(msg)
 
-        response = BatchSearchStatementsService(
-            query=BatchSearchStatementsQuery(variations=[]),
-            service_meta_=ServiceMeta(),
-            warnings=[],
-        )
         if not variations:
-            return response
+            return SearchResult(
+                search_terms=[], start=start, limit=limit, statements=[]
+            )
 
-        for query_variation in set(variations):
-            variation_id = await self._get_normalized_variation(
-                query_variation, response.warnings
+        search_terms = [
+            await self._get_normalized_variation(v) for v in set(variations)
+        ]
+        variation_ids = [t.resolved_id for t in search_terms]
+        if not all(variation_ids):
+            return SearchResult(
+                search_terms=search_terms, start=start, limit=limit, statements=[]
             )
-            response.query.variations.append(
-                NormalizedQuery(term=query_variation, normalized_id=variation_id)
-            )
-        variation_ids = list(
-            {v.normalized_id for v in response.query.variations if v.normalized_id}
-        )
-        if not variation_ids:
-            return response
 
         raise NotImplementedError
