@@ -66,7 +66,7 @@ const GeneResult = () => {
   })
 
   const [activeTab, setActiveTab] = React.useState<'prognostic' | 'diagnostic' | 'therapeutic'>(
-  'prognostic'
+  'therapeutic'
 )
 
   // Figure out which key exists in the URL: gene or variation

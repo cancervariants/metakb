@@ -1,8 +1,6 @@
-import * as React from 'react'
 import { useState, MouseEvent, FC } from 'react'
 import {
   Box,
-  Collapse,
   IconButton,
   Table,
   TableBody,
@@ -19,6 +17,7 @@ import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight'
 import LastPageIcon from '@mui/icons-material/LastPage'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import ResultTableRow from './CollapsibleResult'
 
 interface TablePaginationActionsProps {
   count: number
@@ -162,26 +161,8 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
         </TableRow>
       </TableHead>
       <TableBody>
-        {results.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
-          <>
-            <TableRow key={row.id}>
-              {columns.map((column) => {
-                const value = column.render ? column.render(row) : row[column.field]
-                return (
-                  <TableCell key={column.field} style={{ width: column.width }}>
-                    {value}
-                  </TableCell>
-                )
-              })}
-            </TableRow>
-            <TableRow>
-              <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
-                <Collapse in={open} timeout="auto" unmountOnExit>
-                  {row?.description}
-                </Collapse>
-              </TableCell>
-            </TableRow>
-          </>
+        {results.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => (
+          <ResultTableRow key={index} row={row} columns={columns} />
         ))}
       </TableBody>
       <TableFooter>
