@@ -17,11 +17,10 @@ import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore import UNSIGNED
 from botocore.config import Config
-from dotenv import load_dotenv
 from neo4j import Driver
 
 from metakb import DATE_FMT, __version__
-from metakb.config import get_configs
+from metakb.config import get_config
 from metakb.database import clear_graph as clear_metakb_graph
 from metakb.database import get_driver
 from metakb.harvesters.civic import CivicHarvester
@@ -40,8 +39,6 @@ from metakb.schemas.app import SourceName
 from metakb.transformers import CivicTransformer, MoaTransformer
 
 _logger = logging.getLogger(__name__)
-
-load_dotenv()
 
 
 def _echo_info(msg: str) -> None:
@@ -81,11 +78,11 @@ def cli() -> None:
 
     Other commands are available for more granular control over the update process.
     """  # noqa: D301
-    configure_logs()
+    configure_logs(logging.DEBUG) if get_config().debug else configure_logs()
 
 
 _normalizer_db_url_description = "URL endpoint of normalizer database. If not given, the individual normalizers will revert to their own defaults."
-_neo4j_db_url_description = "URL endpoint for the application Neo4j database."
+_neo4j_db_url_description = "Connection string for the application Neo4j database."
 _neo4j_creds_description = "Username and password to provide to application Neo4j database. Format as 'username:password'."
 
 
@@ -336,76 +333,41 @@ async def transform_file(
     )
 
 
-def _get_driver(
-    db_url: str, db_creds: str | None, add_constraints: bool
-) -> Generator[Driver, None, None]:
+def _get_driver(db_url: str | None) -> Generator[Driver, None, None]:
     """Acquire Neo4j graph driver.
 
+    This function wraps the core driver function in a generator to ensure proper lifespan
+    management (i.e. close it when the session concludes)
+
     :param db_url: URL endpoint for the application Neo4j database.
-    :param db_creds: DB username and password, separated by a colon, e.g.
-        ``"username:password"``.
-    :param add_constraints: Whether or not to create Neo4j database constraints.
     :return: Graph driver instance
     """
-    if not db_creds:
-        credentials = ("", "")  # revert to default behavior in graph constructor
-    else:
-        try:
-            split_creds = db_creds.split(":", 1)
-            credentials = (split_creds[0], split_creds[1])
-        except IndexError:
-            _help_msg(
-                f"Argument to --db_credentials appears invalid. Got '{db_creds}'. Should follow pattern 'username:password'."
-            )
-    driver = get_driver(
-        uri=db_url, credentials=credentials, add_constraints=add_constraints
-    )
+    driver = get_driver(db_url)
     yield driver
     driver.close()
 
 
 @cli.command()
 @click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
-@click.option("--db_credentials", "-c", help=_neo4j_creds_description)
-@click.option(
-    "--keep_constraints",
-    is_flag=True,
-    default=False,
-    help="if true, don't clear graph constraints",
-)
-def clear_graph(
-    db_url: str, db_credentials: str | None, keep_constraints: bool
-) -> None:
+def clear_graph(db_url: str) -> None:
     """Wipe graph DB.
 
         $ metakb clear-graph
 
-    Note that the Neo4j database URL, username, and password can either be set by CLI
-    options, or by environment variables METAKB_DB_URL, METAKB_DB_USERNAME, and
-    METAKB_DB_PASSWORD. If both are set, then CLI parameters take precedence. Provide
-    credentials as a single string separated by a colon:
+    Note that the Neo4j database URL, username, and password can either be set by a CLI
+    options, or by the environment variable METAKB_DB_URL. For example:
 
-        $ metakb clear-graph --db_url=bolt://localhost:7687 --db_credentialss=username:password
+        $ metakb clear-graph --db_url=bolt://username:password@localhost:7687
 
     \f
-    :param db_url: URL endpoint for the application Neo4j database.
-    :param db_credentials: DB username and password, separated by a colon, e.g.
-        ``"username:password"``.
-    :param keep_constraints: if True, don't clear graph constraints
+    :param db_url: connection string for the application Neo4j database.
     """  # noqa: D301
-    driver = next(_get_driver(db_url, db_credentials, add_constraints=False))
-    clear_metakb_graph(driver, keep_constraints)
+    driver = next(_get_driver(db_url))
+    clear_metakb_graph(driver)
 
 
 @cli.command()
 @click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
-@click.option("--db_credentials", "-c", help=_neo4j_creds_description)
-@click.option(
-    "--add_constraints",
-    is_flag=True,
-    default=False,
-    help="if true, create neo4j database constraints",
-)
 @click.option(
     "--from_s3",
     "-s",
@@ -420,8 +382,6 @@ def clear_graph(
 )
 def load_cdm(
     db_url: str,
-    db_credentials: str | None,
-    add_constraints: bool,
     from_s3: bool,
     cdm_files: tuple[Path, ...],
 ) -> None:
@@ -440,18 +400,13 @@ def load_cdm(
 
         $ metakb load-cdm --from_s3
 
-    Note that the Neo4j database URL, username, and password can either be set by CLI
-    options, or by environment variables METAKB_DB_URL, METAKB_DB_USERNAME, and
-    METAKB_DB_PASSWORD. If both are set, then CLI parameters take precedence. Provide
-    credentials as a single string separated by a colon:
+    Note that the Neo4j database URL, username, and password can either be set by a CLI
+    options, or by the environment variable METAKB_DB_URL. For example:
 
-        $ metakb load-cdm --db_url=bolt://localhost:7687 --db_credentialss=username:password
+        $ metakb load-cdm --db_url=bolt://username:password@localhost:7687
 
     \f
     :param db_url: URL endpoint for the application Neo4j database.
-    :param db_credentials: DB username and password, separated by a colon, e.g.
-        ``"username:password"``.
-    :param add_constraints: Whether or not to create Neo4j database constraints.
     :param from_s3: Skip data harvest/transform and load latest existing CDM files from
         VICC S3 bucket. Exclusive with ``cdm_file`` arguments.
     :param cdm_files: tuple of specific file(s) to load from. If empty, just get latest
@@ -463,7 +418,7 @@ def load_cdm(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    driver = next(_get_driver(db_url, db_credentials, add_constraints))
+    driver = next(_get_driver(db_url))
 
     if cdm_files:
         for file in cdm_files:
@@ -473,7 +428,7 @@ def load_cdm(
 
         for src in sorted([s.value for s in SourceName]):
             pattern = f"{src}_cdm_{version}.json"
-            globbed = (get_configs().data_root / src / "transformers").glob(pattern)
+            globbed = (get_config().data_dir / src / "transformers").glob(pattern)
 
             try:
                 path = sorted(globbed)[-1]
@@ -489,13 +444,6 @@ def load_cdm(
 
 @cli.command()
 @click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
-@click.option("--db_credentials", "-c", help=_neo4j_creds_description)
-@click.option(
-    "--add_constraints",
-    is_flag=True,
-    default=False,
-    help="if true, create neo4j database constraints",
-)
 @click.option("--normalizer_db_url", "-n", help=_normalizer_db_url_description)
 @click.option(
     "--refresh_source_caches",
@@ -514,8 +462,6 @@ def load_cdm(
 )
 async def update(
     db_url: str,
-    db_credentials: str | None,
-    add_constraints: bool,
     normalizer_db_url: str | None,
     refresh_source_caches: bool,
     sources: tuple[SourceName, ...],
@@ -528,12 +474,10 @@ async def update(
 
         $ metakb update
 
-    Note that the Neo4j database URL, username, and password can either be set by CLI
-    options, or by environment variables METAKB_DB_URL, METAKB_DB_USERNAME, and
-    METAKB_DB_PASSWORD. If both are set, then CLI parameters take precedence. Provide
-    credentials as a single string separated by a colon:
+    Note that the Neo4j database URL, username, and password can either be set by a CLI
+    options, or by the environment variable METAKB_DB_URL. For example:
 
-        $ metakb update --db_url=bolt://localhost:7687 --db_credentials=username:password
+        $ metakb update --db_url=bolt://username:password@localhost:7687
 
     Provide one or more SOURCE arguments to limit data harvest and transformation to
     just those source(s):
@@ -541,10 +485,7 @@ async def update(
         $ metakb update moa
 
     \f
-    :param db_url: URL endpoint for the application Neo4j database.
-    :param db_credentials: DB username and password, separated by a colon, e.g.
-        ``"username:password"``.
-    :param add_constraints: Whether or not to create Neo4j database constraints.
+    :param db_url: connection string for the application Neo4j database.
     :param normalizer_db_url: URL endpoint of normalizers DynamoDB database. If not
         given, defaults to the configuration rules of the individual normalizers.
     :param refresh_source_caches: ``True`` if source caches, i.e. CIViCPy, should be
@@ -558,13 +499,13 @@ async def update(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    driver = next(_get_driver(db_url, db_credentials, add_constraints))
+    driver = next(_get_driver(db_url))
 
     if not sources:
         sources = tuple(SourceName)
     for src in sorted([s.value for s in sources]):
         pattern = f"{src}_cdm_*.json"
-        globbed = (get_configs().data_root / src / "transformers").glob(pattern)
+        globbed = (get_config().data_dir / src / "transformers").glob(pattern)
 
         try:
             path = sorted(globbed)[-1]
@@ -747,7 +688,7 @@ def _retrieve_s3_cdms() -> str:
         with tmp_path.open("wb") as f:
             file.Object().download_fileobj(f)
 
-        cdm_dir = get_configs().data_root / source / "transformers"
+        cdm_dir = get_config().data_dir / source / "transformers"
         cdm_zip = ZipFile(tmp_path, "r")
         cdm_zip.extract(f"{source}_cdm_{newest_version}.json", cdm_dir)
 
