@@ -1,15 +1,32 @@
 import * as React from 'react'
 import { useEffect } from 'react'
 import Header from '../components/Header'
-import { Box, CircularProgress, Typography } from '@mui/material'
+import { Box, CircularProgress, Tab, Tabs, Typography } from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
 import ResultTable from '../components/ResultTable'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/cv-api/api/v2/search/statements'
 
+type EvidenceBuckets = {
+  prognostic: any[]
+  diagnostic: any[]
+  therapeutic: any[]
+}
+
+
 const GeneResult = () => {
   const [params, setParams] = useSearchParams()
+
+  const [results, setResults] = React.useState<EvidenceBuckets>({
+    prognostic: [],
+    diagnostic: [],
+    therapeutic: [],
+  })
+
+  const [activeTab, setActiveTab] = React.useState<'prognostic' | 'diagnostic' | 'therapeutic'>(
+  'prognostic'
+)
 
   // Figure out which key exists in the URL: gene or variation
   const urlHasGene = params.has('gene')
@@ -20,14 +37,13 @@ const GeneResult = () => {
 
   const [searchType, setSearchType] = React.useState<SearchType>(typeFromUrl ?? 'gene')
   const [searchQuery, setSearchQuery] = React.useState<string>(queryFromUrl)
-  const [results, setResults] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState<boolean>(false)
   const [error, setError] = React.useState<string | null>(null)
 
   // Fetch when URL params change (source of truth is the URL)
   useEffect(() => {
     if (!typeFromUrl || !queryFromUrl.trim()) {
-      setResults([])
+      setResults({ prognostic: [], diagnostic: [], therapeutic: [] })
       return
     }
     setLoading(true)
@@ -43,7 +59,11 @@ const GeneResult = () => {
         })
         if (!res.ok) throw new Error(`Request failed: ${res.status}`)
         const data = await res.json()
-        setResults(Array.isArray(data?.statements) ? data.statements : [])
+        const therapeutic_statements = data?.therapeutic_statements
+        const diagnostic_statements = data?.diagnostic_statements
+        const prognostic_statements = data?.prognostic_statements
+
+        setResults({therapeutic: therapeutic_statements, diagnostic: diagnostic_statements, prognostic: prognostic_statements})
       } catch (e: any) {
         if (e.name !== 'AbortError') setError(e.message ?? 'Unknown error')
       } finally {
@@ -93,10 +113,15 @@ const GeneResult = () => {
               id="results-table-container"
               sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2, marginTop: 2 }}
             >
+            <Tabs onChange={(_, value) => setActiveTab(value)} value={activeTab} sx={{ marginBottom: 2 }}>
+      <Tab label="Therapeutic" value="therapeutic" />
+      <Tab label="Diagnostic" value="diagnostic" />
+      <Tab label="Prognostic" value="prognostic" />
+    </Tabs>
               <Typography variant="h6" mb={2} fontWeight="bold">
-                Search Results ({results.length})
+                Search Results ({results[activeTab].length})
               </Typography>
-              <ResultTable results={results} />
+              <ResultTable results={results[activeTab]} />
             </Box>
           </Box>
         )}

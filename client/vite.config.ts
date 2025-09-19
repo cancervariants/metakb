@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/cv-api': {
-        target: 'https://dev-search.cancervariants.org',
+        target: 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/cv-api/, ''),
         secure: true,

@@ -134,6 +134,21 @@ const ResultTable: FC<ResultTableProps> = ({ results }) => {
     },
   ]
 
+  console.log(results)
+  result = [
+    {
+      variant_name: 'BRAF V600E',
+      evidence_level: 'Level A',
+      disease: 'Melanoma',
+      significance: 'Predictive',
+      description: 'This is a description of the evidence item.',
+      grouped_evidence: [
+        // the array here
+      ]
+    }
+  ]
+  
+
   return (
     <Table>
       <TableHead>
