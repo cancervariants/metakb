@@ -76,9 +76,10 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
 
 interface ResultTableProps {
   results: any[]
+  resultType: string
 }
 
-const ResultTable: FC<ResultTableProps> = ({ results }) => {
+const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
   const [open, setOpen] = useState(false)
 
   const [page, setPage] = useState(0)
@@ -93,32 +94,31 @@ const ResultTable: FC<ResultTableProps> = ({ results }) => {
     setPage(0)
   }
 
-  const columns = [
-    { field: 'id', headerName: 'ID', width: 90 },
+  let columns = [
     {
       field: 'variant',
       headerName: 'Variant',
       width: 150,
-      render: (value: any) => value?.proposition?.subjectVariant?.name,
+      render: (value: any) => value?.variant_name,
     },
     {
       field: 'evidence_level',
       headerName: 'Evidence Level',
       width: 150,
-      render: (value: any) => value?.strength?.primaryCoding?.code,
+      render: (value: any) => value?.evidence_level,
     },
     {
       field: 'disease',
       headerName: 'Disease',
       width: 150,
       render: (value: any) =>
-        value?.proposition?.conditionQualifier?.name || value?.proposition?.objectCondition?.name,
+        value?.disease,
     },
     {
       field: 'significance',
       headerName: 'Significance',
       width: 150,
-      render: (value: any) => value?.proposition?.predicate,
+      render: (value: any) => value?.significance,
     },
     {
       field: 'expandRow',
@@ -134,20 +134,21 @@ const ResultTable: FC<ResultTableProps> = ({ results }) => {
     },
   ]
 
+    // only add therapy column for Therapeutic Response tab
+  if (resultType === 'therapeutic') {
+    columns = [
+      ...columns.slice(0, 3),
+      {
+      field: 'therapy',
+      headerName: 'Therapy',
+      width: 150,
+      render: (value: any) =>
+        value?.therapy,
+    },
+      ...columns.slice(3),
+    ]
+  }
   console.log(results)
-  result = [
-    {
-      variant_name: 'BRAF V600E',
-      evidence_level: 'Level A',
-      disease: 'Melanoma',
-      significance: 'Predictive',
-      description: 'This is a description of the evidence item.',
-      grouped_evidence: [
-        // the array here
-      ]
-    }
-  ]
-  
 
   return (
     <Table>

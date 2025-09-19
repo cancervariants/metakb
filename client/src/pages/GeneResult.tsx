@@ -14,6 +14,47 @@ type EvidenceBuckets = {
   therapeutic: any[]
 }
 
+const formatTherapies = (objectTherapeutic: any): string | null => {
+  if (!objectTherapeutic) return null
+
+  // multiple therapies with operator
+  if (Array.isArray(objectTherapeutic.therapies)) {
+    const names = objectTherapeutic.therapies.map((t: any) => t?.name).filter(Boolean)
+    if (names.length === 0) return null
+    if (names.length === 1) return names[0]
+
+    const operator = objectTherapeutic.membershipOperator?.toLowerCase() === "or" ? "or" : "and"
+    return `${names.slice(0, -1).join(", ")} ${operator} ${names[names.length - 1]}`
+  }
+
+  // single therapy
+  if (objectTherapeutic.conceptType === "Therapy") {
+    return objectTherapeutic.name ?? null
+  }
+
+  return null
+}
+
+
+const normalizeResults = (data: Record<string, any[]>): any[] => {
+  if (!data || Object.keys(data).length === 0) return []
+  return Object.values(data).flatMap((arr) => {
+    if (!Array.isArray(arr) || arr.length === 0) return []
+
+    const first = arr[0] // use first item for metadata
+    return [{
+      variant_name: first?.proposition?.subjectVariant?.name ?? "Unknown",
+      evidence_level: first?.strength?.primaryCoding?.code ?? "N/A",
+      disease: first?.proposition?.conditionQualifier?.name 
+            || first?.proposition?.objectCondition?.name 
+            || "N/A",
+      therapy: formatTherapies(first?.proposition?.objectTherapeutic) ?? "N/A",
+      significance: first?.proposition?.predicate ?? "N/A",
+      grouped_evidence: arr,
+    }]
+  })
+}
+
 
 const GeneResult = () => {
   const [params, setParams] = useSearchParams()
@@ -59,11 +100,18 @@ const GeneResult = () => {
         })
         if (!res.ok) throw new Error(`Request failed: ${res.status}`)
         const data = await res.json()
-        const therapeutic_statements = data?.therapeutic_statements
-        const diagnostic_statements = data?.diagnostic_statements
-        const prognostic_statements = data?.prognostic_statements
+        const prognostic_data = data.prognostic_statements
+        const diagnostic_data = data.diagnostic_statements
+        const therapeutic_data = data.therapeutic_statements
 
-        setResults({therapeutic: therapeutic_statements, diagnostic: diagnostic_statements, prognostic: prognostic_statements})
+        const norm_prog_data = normalizeResults(prognostic_data)
+        const norm_diag_data = normalizeResults(diagnostic_data)
+        const norm_ther_data = normalizeResults(therapeutic_data)
+        setResults({
+          prognostic: norm_prog_data,
+          diagnostic: norm_diag_data,
+          therapeutic: norm_ther_data,
+        })
       } catch (e: any) {
         if (e.name !== 'AbortError') setError(e.message ?? 'Unknown error')
       } finally {
@@ -119,9 +167,9 @@ const GeneResult = () => {
       <Tab label="Prognostic" value="prognostic" />
     </Tabs>
               <Typography variant="h6" mb={2} fontWeight="bold">
-                Search Results ({results[activeTab].length})
+                {activeTab} Search Results ({results[activeTab]?.length})
               </Typography>
-              <ResultTable results={results[activeTab]} />
+              <ResultTable results={results[activeTab]} resultType={activeTab} />
             </Box>
           </Box>
         )}
