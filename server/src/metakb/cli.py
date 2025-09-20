@@ -362,8 +362,9 @@ def clear_graph(db_url: str) -> None:
     :param db_url: connection string for the application Neo4j database.
     """  # noqa: D301
     driver = next(_get_driver(db_url))
-    repository = Neo4jRepository(driver)
-    repository.teardown_db()
+    with driver.session() as session:
+        repository = Neo4jRepository(session)
+        repository.teardown_db()
 
 
 @cli.command()
@@ -419,25 +420,26 @@ def load_cdm(
     _echo_info("Loading Neo4j database...")
 
     driver = next(_get_driver(db_url))
-    repository = Neo4jRepository(driver)
+    with driver.session() as session:
+        repository = Neo4jRepository(session)
 
-    if cdm_files:
-        for file in cdm_files:
-            load_from_json(file, repository)
-    else:
-        version = _retrieve_s3_cdms() if from_s3 else "*"
+        if cdm_files:
+            for file in cdm_files:
+                load_from_json(file, repository)
+        else:
+            version = _retrieve_s3_cdms() if from_s3 else "*"
 
-        for src in sorted([s.value for s in SourceName]):
-            pattern = f"{src}_cdm_{version}.json"
-            globbed = (get_config().data_dir / src / "transformers").glob(pattern)
+            for src in sorted([s.value for s in SourceName]):
+                pattern = f"{src}_cdm_{version}.json"
+                globbed = (get_config().data_dir / src / "transformers").glob(pattern)
 
-            try:
-                path = sorted(globbed)[-1]
-            except IndexError as e:
-                msg = f"No valid transformation file found matching pattern: {pattern}"
-                raise FileNotFoundError(msg) from e
+                try:
+                    path = sorted(globbed)[-1]
+                except IndexError as e:
+                    msg = f"No valid transformation file found matching pattern: {pattern}"
+                    raise FileNotFoundError(msg) from e
 
-            load_from_json(path, repository)
+                load_from_json(path, repository)
 
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
@@ -514,9 +516,9 @@ async def update(
             msg = f"No valid transformation files found matching pattern: {pattern}"
             raise FileNotFoundError(msg) from e
 
-        load_from_json(path, driver)
+        with driver.session() as session:
+            load_from_json(path, Neo4jRepository(session))
 
-    driver.close()
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
 
