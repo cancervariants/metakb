@@ -19,12 +19,29 @@ class AbstractRepository(abc.ABC):
     """
 
     @abc.abstractmethod
+    def get_statement(
+        self, statement_id: str
+    ) -> (
+        Statement
+        | VariantDiagnosticStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantTherapeuticResponseStudyStatement
+        | None
+    ):
+        """Retrieve a statement
+
+        :param statement_id: ID of the statement minted by the source
+        :return: complete statement if available
+        """
+
+    @abc.abstractmethod
     def search_statements(
         self,
         variation_id: str | None = None,
         gene_id: str | None = None,
         therapy_id: str | None = None,
         disease_id: str | None = None,
+        statement_id: str | None = None,
         start: int = 0,
         limit: int | None = None,
     ) -> list[

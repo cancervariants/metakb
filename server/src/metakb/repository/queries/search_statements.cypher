@@ -1,4 +1,9 @@
 MATCH (s:Statement)
+WHERE
+  ($statement_id IS NULL OR
+    EXISTS {
+      MATCH (s {id: $statement_id})
+    })
 
 // use input args to select matching statements
 MATCH (s)-[:HAS_SUBJECT_VARIANT]->(cv:CategoricalVariant)

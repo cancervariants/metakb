@@ -162,6 +162,7 @@ class SearchStatementsResponse(BaseModel):
     prognostic_statements: dict[
         str, list[VariantPrognosticStudyStatement | Statement]
     ] = {}
+    duration_s: str
     service_meta_: ServiceMeta
 
 
@@ -176,5 +177,5 @@ class BatchSearchStatementsResponse(BaseModel):
         | VariantDiagnosticStudyStatement
     ] = []
     start: int
-    limit: int | None
+    duration_ms: int | None
     service_meta_: ServiceMeta

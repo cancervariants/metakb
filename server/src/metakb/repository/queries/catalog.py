@@ -9,6 +9,8 @@ class CypherCatalog:
     """Container class for raw query strings.
 
     Lazily load from an adjacent directory.
+
+    TODO -- make this a singleton
     """
 
     def __init__(self) -> None:

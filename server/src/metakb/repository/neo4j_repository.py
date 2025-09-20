@@ -26,7 +26,13 @@ from ga4gh.va_spec.base import (
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from neo4j import Driver, GraphDatabase, Record, Transaction
+from neo4j import (
+    Driver,
+    GraphDatabase,
+    Record,
+    Session,
+    Transaction,
+)
 from neo4j.graph import Node
 
 from metakb.config import get_config
@@ -55,6 +61,9 @@ from metakb.repository.queries import CypherCatalog
 from metakb.schemas.api import ServiceEnvironment
 
 _logger = logging.getLogger(__name__)
+
+
+CYPHER_PAGE_LIMIT = 999999999
 
 
 def _get_secret() -> str:
@@ -116,7 +125,6 @@ def _parse_connection_params(url: str) -> _Neo4jConnectionParams:
 
 def get_driver(
     url: str | None = None,
-    initialize: bool = False,
 ) -> Driver:
     """Get DB connection given provided connection params, or fall back on environment
     params/defaults if not provided.
@@ -129,7 +137,6 @@ def get_driver(
     * Otherwise, fall back on default
 
     :param url: connection string for Neo4j DB. Formatted as ``bolt://<username>:<password>@<hostname>``
-    :param initialize: whether to perform additional DB setup (e.g. add constraints, indexes)
     :return: Neo4j driver instance
     """
     configs = get_config()
@@ -142,26 +149,25 @@ def get_driver(
     else:
         url = configs.db_url
     connection_params = _parse_connection_params(url)
-    driver = GraphDatabase.driver(
+    return GraphDatabase.driver(
         connection_params.url,
         auth=(connection_params.username, connection_params.password),
     )
-    # TODO add initialization
-    # if initialize:
-    #     with driver.session() as session:
-    #         session.execute_write(_create_constraints)
-    return driver
 
 
 class Neo4jRepository(AbstractRepository):
     """Neo4j implementation of a repository abstraction."""
 
-    def __init__(self, driver: Driver) -> None:
-        """Initialize. TODO create driver? session? idk"""
-        self.driver = driver
+    def __init__(self, session: Session) -> None:
+        """Initialize repository instance"""
+        self.session = session
         self.queries = CypherCatalog()
-        # TODO not sure if initialize always?
-        with self.driver.session().begin_transaction() as tx:
+
+    def initialize(
+        self,
+    ) -> None:
+        """Set up DB schema"""
+        with self.session.begin_transaction() as tx:
             for query in self.queries.initialize:
                 tx.run(query)
 
@@ -289,7 +295,7 @@ class Neo4jRepository(AbstractRepository):
 
         :param statement: statement to load
         """
-        with self.driver.session().begin_transaction() as tx:
+        with self.session.begin_transaction() as tx:
             proposition = statement.proposition
             self.add_catvar(tx, proposition.subjectVariant)
             self.add_gene(tx, proposition.geneContextQualifier)
@@ -357,6 +363,41 @@ class Neo4jRepository(AbstractRepository):
             )
         return DrugNode(**drug_record)
 
+    def get_statement(
+        self, statement_id: str
+    ) -> (
+        Statement
+        | VariantDiagnosticStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantTherapeuticResponseStudyStatement
+        | None
+    ):
+        """Retrieve a statement
+
+        :param statement_id: ID of the statement minted by the source
+        :return: complete statement if available
+        """
+        results = self.session.execute_read(
+            lambda tx, **kwargs: list(tx.run(self.queries.search_statements, **kwargs)),
+            variation_id=None,
+            therapy_id=None,
+            condition_id=None,
+            gene_id=None,
+            statement_id=statement_id,
+            start=0,
+            limit=1,
+        )
+        if not results:
+            return None
+        processed_results = self._get_statements_from_results(results)
+        if len(processed_results) != 1:
+            _logger.error(
+                "Unexpected quantity of statements in processed results list: %s",
+                processed_results,
+            )
+            raise RuntimeError
+        return processed_results[0]
+
     def _get_statement_node_from_result(
         self, record: Record
     ) -> (
@@ -391,25 +432,12 @@ class Neo4jRepository(AbstractRepository):
         )
         document_nodes = [DocumentNode(**d) for d in record["documents"]]
         strength_node = StrengthNode(**record["str"])
-
-        # TODO holy god this will be interesting
-        #
-        # I think we need to collect statement IDs associated with nodes
-        # and add them to some kind of query tracker thing
-        # and then do a `get_statements()` fetch to get all of them separately by ID
-        # and then add them back in here
-        # evidence_line_nodes = [EvidenceLineNode(has_evidence_items=) for el in ]  # TODO just None for now
-        evidence_line_item_ids = [
-            item_id
-            for line in record["evidence_lines"]
-            for item_id in line["evidence_item_ids"]
-        ]
         evidence_line_nodes = [
             EvidenceLineNode(
                 id=record_line["direction"],
                 direction=record_line["direction"],
                 has_evidence_items=[
-                    self.get_evidence_item(statement_id)
+                    self._get_evidence_line_statement_node(statement_id)
                     for statement_id in record_line["evidence_item_ids"]
                 ],
             )
@@ -466,6 +494,32 @@ class Neo4jRepository(AbstractRepository):
                 raise ValueError(msg)
         return statement
 
+    def _get_evidence_line_statement_node(
+        self, statement_id: str
+    ) -> (
+        TherapeuticReponseStatementNode
+        | DiagnosticStatementNode
+        | PrognosticStatementNode
+        | None
+    ):
+        result = self.session.execute_read(
+            lambda tx, **kwargs: list(tx.run(self.queries.search_statements, **kwargs)),
+            variation_id=None,
+            therapy_id=None,
+            condition_id=None,
+            gene_id=None,
+            statement_id=statement_id,
+            start=0,
+            limit=9999,
+        )
+        if len(result) == 0:
+            # TODO warning or error?
+            return None
+        if len(result) >= 2:
+            # how to log
+            raise RuntimeError
+        return self._get_statement_node_from_result(result[0])
+
     def _get_statements_from_results(self, records: list[Record]) -> list[Statement]:
         """Craft a list of GKS-compliant Statement objects given the results of a Neo4j cypher lookup
 
@@ -488,6 +542,7 @@ class Neo4jRepository(AbstractRepository):
         gene_id: str | None = None,
         therapy_id: str | None = None,
         disease_id: str | None = None,
+        statement_id: str | None = None,
         start: int = 0,
         limit: int | None = None,
     ) -> list[
@@ -515,17 +570,18 @@ class Neo4jRepository(AbstractRepository):
         """
         if limit is None:
             # arbitrary page size default -- this value can't be null
-            limit = 999999999
-        result = self.driver.execute_query(
-            self.queries.search_statements,
+            limit = CYPHER_PAGE_LIMIT
+        result = self.session.execute_read(
+            lambda tx, **kwargs: list(tx.run(self.queries.search_statements, **kwargs)),
             variation_id=variation_id,
             condition_id=disease_id,
             gene_id=gene_id,
             therapy_id=therapy_id,
+            statement_id=statement_id,
             start=start,
             limit=limit,
         )
-        return self._get_statements_from_results(result.records)
+        return self._get_statements_from_results(result)
 
     def teardown_db(self) -> None:
         """Reset repository storage.
@@ -533,7 +589,7 @@ class Neo4jRepository(AbstractRepository):
         Delete all nodes/edges and constraints.
         """
         # this is a write query and needs to be in its own transaction
-        self.driver.execute_query("MATCH (n) DETACH DELETE n")
-        with self.driver.session().begin_transaction() as tx:
+        self.session.execute_write(lambda tx: tx.run("MATCH (n) DETACH DELETE n"))
+        with self.session.begin_transaction() as tx:
             for query in self.queries.teardown:
                 tx.run(query)

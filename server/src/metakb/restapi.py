@@ -1,12 +1,13 @@
 """Main application for FastAPI."""
 
 import logging
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager
 from enum import Enum
+from time import perf_counter
 from typing import Annotated
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from ga4gh.va_spec.base import (
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
@@ -15,7 +16,9 @@ from ga4gh.va_spec.base import (
 
 from metakb import __version__
 from metakb.config import get_config
-from metakb.query import EmptySearchError, QueryHandler
+from metakb.normalizers import ViccNormalizers
+from metakb.repository.base import AbstractRepository
+from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 from metakb.schemas.api import (
     METAKB_DESCRIPTION,
     BatchSearchStatementsResponse,
@@ -26,6 +29,7 @@ from metakb.schemas.api import (
     ServiceOrganization,
     ServiceType,
 )
+from metakb.services.search import EmptySearchError, search_statements
 from metakb.utils import configure_logs
 
 
@@ -37,10 +41,21 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     :return: async context handler
     """
     configure_logs(logging.DEBUG) if get_config().debug else configure_logs()
-    query = QueryHandler()
-    app.state.query = query
+    driver = get_driver()
+    with driver.session() as session:
+        Neo4jRepository(session).initialize()
+    app.state.driver = driver
+    app.state.normalizer = ViccNormalizers()
     yield
-    query.driver.close()
+    driver.close()
+
+
+def get_repository() -> Generator[AbstractRepository, None, None]:
+    """Provide repository factory for dependency injection"""
+    session = app.state.driver.session()
+    repository = Neo4jRepository(session)
+    yield repository
+    session.close()
 
 
 app = FastAPI(
@@ -111,6 +126,7 @@ limit_description = "The maximum number of results to return. Use for pagination
 )
 async def get_statements(
     request: Request,
+    repository: Annotated[AbstractRepository, Depends(get_repository)],
     variation: Annotated[str | None, Query(description=v_description)] = None,
     disease: Annotated[str | None, Query(description=d_description)] = None,
     therapy: Annotated[str | None, Query(description=t_description)] = None,
@@ -124,10 +140,20 @@ async def get_statements(
     For example, if `variation` and `therapy` are provided, will return all statements
     that have both the provided `variation` and `therapy`.
     """
-    query: QueryHandler = request.app.state.query
+    start_time = perf_counter()
+    # repository: AbstractRepository = request.app.state.repository
+    normalizer: ViccNormalizers = request.app.state.normalizer
     try:
-        search_results = await query.search_statements(
-            variation, disease, therapy, gene, statement_id, start, limit
+        search_results = await search_statements(
+            repository,
+            normalizer,
+            variation,
+            disease,
+            therapy,
+            gene,
+            statement_id,
+            start,
+            limit,
         )
     except EmptySearchError as e:
         raise HTTPException(
@@ -167,12 +193,14 @@ async def get_statements(
             msg = f"Unrecognized proposition type `{type(statement.proposition)}` in {statement}"
             raise ValueError(msg)  # noqa: TRY004
 
+    end_time = perf_counter()
     return SearchStatementsResponse(
         query=SearchStatementsQuery(**mapped_terms),
         start=start,
         limit=limit,
         service_meta_=ServiceMeta(),
         statement_ids=statement_ids,
+        duration_s=end_time - start_time,
         **grouped_statements,
     )
 

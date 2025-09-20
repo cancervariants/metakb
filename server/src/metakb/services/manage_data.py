@@ -8,13 +8,13 @@ from ga4gh.core.models import Extension, MappableConcept
 from ga4gh.va_spec.base import (
     ConditionSet,
     Statement,
+    TherapyGroup,
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
 
 from metakb.repository.base import AbstractRepository
-from metakb.transformers.base import TransformedData
 
 _logger = logging.getLogger(__name__)
 
@@ -147,7 +147,9 @@ def is_loadable_statement(statement: Statement) -> bool:
     return success
 
 
-def add_transformed_data(data: TransformedData, repository: AbstractRepository) -> None:
+def add_transformed_data(
+    statements: list[Statement], repository: AbstractRepository
+) -> None:
     """Add set of data formatted per Common Data Model to DB.
 
     :param driver: Neo4j driver instance
@@ -155,7 +157,7 @@ def add_transformed_data(data: TransformedData, repository: AbstractRepository) 
         statements, variation, therapies, conditions, genes, methods, documents, etc.
     """
     loaded_stmt_count = 0
-    for statement in data.statements_evidence + data.statements_assertions:
+    for statement in statements:
         if not is_loadable_statement(statement):
             continue
         repository.load_statement(statement)
@@ -174,6 +176,10 @@ def load_from_json(src_transformed_cdm: Path, repository: AbstractRepository) ->
     """
     _logger.info("Loading data from %s", src_transformed_cdm)
     with src_transformed_cdm.open() as f:
-        items = json.load(f)
-        data = TransformedData(**items)
-        add_transformed_data(data, repository)
+        dumped_data = json.load(f)
+        statements = [
+            Statement(**i)
+            for i in dumped_data.get("statements_evidence", [])
+            + dumped_data.get("statements_assertions", [])
+        ]
+        add_transformed_data(statements, repository)

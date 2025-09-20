@@ -70,7 +70,7 @@ class BaseNode(BaseModel, abc.ABC):
         """Create node instance from GKS class."""
 
     @abc.abstractmethod
-    def to_gks(self) -> Any:
+    def to_gks(self) -> Any:  # noqa: ANN401
         """Return corresponding GKS class."""
 
 
