@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from ga4gh.va_spec.base import Statement
 
-from metakb.load_data import is_loadable_statement
+from metakb.services.manage_data import is_loadable_statement
 
 
 @pytest.fixture(scope="session")
