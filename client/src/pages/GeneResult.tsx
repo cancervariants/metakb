@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 import Header from '../components/Header'
-import { Box, CircularProgress, Tab, Tabs, Typography } from '@mui/material'
+import { Box, Button, Chip, CircularProgress, Stack, Tab, Tabs, Typography } from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
 import ResultTable from '../components/ResultTable'
 import FilterSection from '../components/FilterSection'
@@ -175,17 +175,24 @@ const GeneResult = () => {
     setSearchQuery(queryFromUrl)
   }, [typeFromUrl, queryFromUrl])
 
-  console.log(results)
+  const buildFilterOptions = (results: any[], key: keyof any): string[] => {
+    const counts = results.reduce((acc: Record<string, number>, item: any) => {
+      const val = item[key]
+      if (val) {
+        acc[val] = (acc[val] || 0) + 1
+      }
+      return acc
+    }, {})
 
-  const variantOptions = Array.from(
-    new Set(results[activeTab].map((r) => r.variant_name).filter(Boolean)),
-  )
-  const diseaseOptions = Array.from(
-    new Set(results[activeTab].map((r) => r.disease).filter(Boolean)),
-  )
-  const therapyOptions = Array.from(
-    new Set(results[activeTab].map((r) => r.therapies).filter(Boolean)),
-  )
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1]) // sort by count desc
+      .map(([value]) => value)
+  }
+
+  const variantOptions = buildFilterOptions(results[activeTab], 'variant_name')
+  const diseaseOptions = buildFilterOptions(results[activeTab], 'disease')
+  const therapyOptions = buildFilterOptions(results[activeTab], 'therapy')
+
   const evidenceLevelOptions = Array.from(
     new Set(results[activeTab].map((r) => r.evidence_level).filter(Boolean)),
   )
@@ -193,7 +200,41 @@ const GeneResult = () => {
     new Set(results[activeTab].map((r) => r.significance).filter(Boolean)),
   )
 
-  console.log(variantOptions)
+  const clearAllFilters = () => {
+    setSelectedVariants([])
+    setSelectedDiseases([])
+    setSelectedTherapies([])
+    setSelectedEvidenceLevels([])
+    setSelectedSignificance([])
+  }
+
+  const activeFilters = [
+    ...selectedVariants.map((v) => ({ type: 'variant', value: v })),
+    ...selectedDiseases.map((d) => ({ type: 'disease', value: d })),
+    ...selectedTherapies.map((t) => ({ type: 'therapy', value: t })),
+    ...selectedEvidenceLevels.map((e) => ({ type: 'evidence_level', value: e })),
+    ...selectedSignificance.map((s) => ({ type: 'significance', value: s })),
+  ]
+
+  const removeFilter = (filter: { type: string; value: string }) => {
+    switch (filter.type) {
+      case 'variant':
+        setSelectedVariants((prev) => prev.filter((v) => v !== filter.value))
+        break
+      case 'disease':
+        setSelectedDiseases((prev) => prev.filter((d) => d !== filter.value))
+        break
+      case 'therapy':
+        setSelectedTherapies((prev) => prev.filter((t) => t !== filter.value))
+        break
+      case 'evidence_level':
+        setSelectedEvidenceLevels((prev) => prev.filter((e) => e !== filter.value))
+        break
+      case 'significance':
+        setSelectedSignificance((prev) => prev.filter((s) => s !== filter.value))
+        break
+    }
+  }
 
   return (
     <>
@@ -237,30 +278,56 @@ const GeneResult = () => {
               <Box display="flex">
                 <Box id="filter-container">
                   <Box width={250} p={2} sx={{ borderRight: '1px solid #ddd' }}>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                      <strong>Filters</strong>
+                      <Button variant="outlined" size="small" onClick={clearAllFilters}>
+                        clear all
+                      </Button>
+                    </Box>
+                    <Box id="active-filters">
+                      {activeFilters.length > 0 && (
+                        <Stack direction="row" flexWrap="wrap">
+                          {activeFilters.map((f) => (
+                            <Chip
+                              key={`${f.type}-${f.value}`}
+                              label={f.value}
+                              onDelete={() => removeFilter(f)}
+                              color="primary"
+                              variant="outlined"
+                            />
+                          ))}
+                        </Stack>
+                      )}
+                    </Box>
+                    <hr></hr>
                     <FilterSection
                       title="Variant"
                       options={variantOptions}
                       selected={selectedVariants}
                       setSelected={setSelectedVariants}
                     />
+                    <hr></hr>
                     <FilterSection
                       title="Disease"
                       options={diseaseOptions}
                       selected={selectedDiseases}
                       setSelected={setSelectedDiseases}
                     />
+                    <hr></hr>
                     <FilterSection
                       title="Therapy"
                       options={therapyOptions}
                       selected={selectedTherapies}
                       setSelected={setSelectedTherapies}
                     />
+                    <hr></hr>
                     <FilterSection
                       title="Evidence Level"
                       options={evidenceLevelOptions}
                       selected={selectedEvidenceLevels}
                       setSelected={setSelectedEvidenceLevels}
                     />
+                    <hr></hr>
                     <FilterSection
                       title="Significance"
                       options={significanceOptions}
