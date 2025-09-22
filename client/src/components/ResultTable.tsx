@@ -110,8 +110,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       field: 'disease',
       headerName: 'Disease',
       width: 150,
-      render: (value: any) =>
-        value?.disease,
+      render: (value: any) => value?.disease,
     },
     {
       field: 'significance',
@@ -133,17 +132,16 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
     },
   ]
 
-    // only add therapy column for Therapeutic Response tab
+  // only add therapy column for Therapeutic Response tab
   if (resultType === 'therapeutic') {
     columns = [
       ...columns.slice(0, 3),
       {
-      field: 'therapy',
-      headerName: 'Therapy',
-      width: 150,
-      render: (value: any) =>
-        value?.therapy,
-    },
+        field: 'therapy',
+        headerName: 'Therapy',
+        width: 150,
+        render: (value: any) => value?.therapy,
+      },
       ...columns.slice(3),
     ]
   }

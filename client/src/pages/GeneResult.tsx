@@ -1,9 +1,10 @@
 import * as React from 'react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Header from '../components/Header'
 import { Box, CircularProgress, Tab, Tabs, Typography } from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
 import ResultTable from '../components/ResultTable'
+import FilterSection from '../components/FilterSection'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/cv-api/api/v2/search/statements'
@@ -23,18 +24,39 @@ const formatTherapies = (objectTherapeutic: any): string | null => {
     if (names.length === 0) return null
     if (names.length === 1) return names[0]
 
-    const operator = objectTherapeutic.membershipOperator?.toLowerCase() === "or" ? "or" : "and"
-    return `${names.slice(0, -1).join(", ")} ${operator} ${names[names.length - 1]}`
+    const operator = objectTherapeutic.membershipOperator?.toLowerCase() === 'or' ? 'or' : 'and'
+    return `${names.slice(0, -1).join(', ')} ${operator} ${names[names.length - 1]}`
   }
 
   // single therapy
-  if (objectTherapeutic.conceptType === "Therapy") {
+  if (objectTherapeutic.conceptType === 'Therapy') {
     return objectTherapeutic.name ?? null
   }
 
   return null
 }
 
+const formatSignificance = (predicate: string): string => {
+  if (predicate === 'predictsSensitivityTo') {
+    return 'Sensitivity'
+  }
+  if (predicate === 'predictsResistanceTo') {
+    return 'Resistance'
+  }
+  if (predicate === 'isDiagnosticInclusionCriterionFor') {
+    return 'Inclusion Criterion'
+  }
+  if (predicate === 'isDiagnosticExclusionCriterionFor') {
+    return 'Exclusion Criterion'
+  }
+  if (predicate === 'associatedWithWorseOutcomeFor') {
+    return 'Worse Outcome'
+  }
+  if (predicate === 'associatedWithBetterOutcomeFor') {
+    return 'Better Outcome'
+  }
+  return ''
+}
 
 const normalizeResults = (data: Record<string, any[]>): any[] => {
   if (!data || Object.keys(data).length === 0) return []
@@ -42,19 +64,23 @@ const normalizeResults = (data: Record<string, any[]>): any[] => {
     if (!Array.isArray(arr) || arr.length === 0) return []
 
     const first = arr[0] // use first item for metadata
-    return [{
-      variant_name: first?.proposition?.subjectVariant?.name ?? "Unknown",
-      evidence_level: first?.strength?.primaryCoding?.code ?? "N/A",
-      disease: first?.proposition?.conditionQualifier?.name 
-            || first?.proposition?.objectCondition?.name 
-            || "N/A",
-      therapy: formatTherapies(first?.proposition?.objectTherapeutic) ?? "N/A",
-      significance: first?.proposition?.predicate ?? "N/A",
-      grouped_evidence: arr,
-    }]
+    return [
+      {
+        variant_name: first?.proposition?.subjectVariant?.name ?? 'Unknown',
+        evidence_level: first?.strength?.primaryCoding?.code ?? 'N/A',
+        disease:
+          first?.proposition?.conditionQualifier?.name ||
+          first?.proposition?.objectCondition?.name ||
+          'N/A',
+        therapy: formatTherapies(first?.proposition?.objectTherapeutic) ?? 'N/A',
+        significance: first?.proposition?.predicate
+          ? formatSignificance(first?.proposition?.predicate)
+          : 'N/A',
+        grouped_evidence: arr,
+      },
+    ]
   })
 }
-
 
 const GeneResult = () => {
   const [params, setParams] = useSearchParams()
@@ -66,8 +92,8 @@ const GeneResult = () => {
   })
 
   const [activeTab, setActiveTab] = React.useState<'prognostic' | 'diagnostic' | 'therapeutic'>(
-  'therapeutic'
-)
+    'therapeutic',
+  )
 
   // Figure out which key exists in the URL: gene or variation
   const urlHasGene = params.has('gene')
@@ -76,10 +102,27 @@ const GeneResult = () => {
   const typeFromUrl: SearchType | null = urlHasGene ? 'gene' : urlHasVariation ? 'variation' : null
   const queryFromUrl = typeFromUrl ? (params.get(typeFromUrl) ?? '') : ''
 
-  const [searchType, setSearchType] = React.useState<SearchType>(typeFromUrl ?? 'gene')
-  const [searchQuery, setSearchQuery] = React.useState<string>(queryFromUrl)
-  const [loading, setLoading] = React.useState<boolean>(false)
-  const [error, setError] = React.useState<string | null>(null)
+  const [searchType, setSearchType] = useState<SearchType>(typeFromUrl ?? 'gene')
+  const [searchQuery, setSearchQuery] = useState<string>(queryFromUrl)
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedVariants, setSelectedVariants] = useState<string[]>([])
+  const [selectedDiseases, setSelectedDiseases] = useState<string[]>([])
+  const [selectedTherapies, setSelectedTherapies] = useState<string[]>([])
+  const [selectedEvidenceLevels, setSelectedEvidenceLevels] = useState<string[]>([])
+  const [selectedSignificance, setSelectedSignificance] = useState<string[]>([])
+
+  const filteredResults = results[activeTab].filter((r) => {
+    const variantMatch = selectedVariants.length === 0 || selectedVariants.includes(r.variant_name)
+    const diseaseMatch = selectedDiseases.length === 0 || selectedDiseases.includes(r.disease)
+    const therapyMatch = selectedTherapies.length === 0 || selectedTherapies.includes(r.therapies)
+    const levelMatch =
+      selectedEvidenceLevels.length === 0 || selectedEvidenceLevels.includes(r.evidence_level)
+    const significanceMatch =
+      selectedSignificance.length === 0 || selectedSignificance.includes(r.significance)
+
+    return variantMatch && diseaseMatch && therapyMatch && levelMatch && significanceMatch
+  })
 
   // Fetch when URL params change (source of truth is the URL)
   useEffect(() => {
@@ -134,6 +177,24 @@ const GeneResult = () => {
 
   console.log(results)
 
+  const variantOptions = Array.from(
+    new Set(results[activeTab].map((r) => r.variant_name).filter(Boolean)),
+  )
+  const diseaseOptions = Array.from(
+    new Set(results[activeTab].map((r) => r.disease).filter(Boolean)),
+  )
+  const therapyOptions = Array.from(
+    new Set(results[activeTab].map((r) => r.therapies).filter(Boolean)),
+  )
+  const evidenceLevelOptions = Array.from(
+    new Set(results[activeTab].map((r) => r.evidence_level).filter(Boolean)),
+  )
+  const significanceOptions = Array.from(
+    new Set(results[activeTab].map((r) => r.significance).filter(Boolean)),
+  )
+
+  console.log(variantOptions)
+
   return (
     <>
       <Header />
@@ -161,15 +222,57 @@ const GeneResult = () => {
               id="results-table-container"
               sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2, marginTop: 2 }}
             >
-            <Tabs onChange={(_, value) => setActiveTab(value)} value={activeTab} sx={{ marginBottom: 2 }}>
-      <Tab label="Therapeutic" value="therapeutic" />
-      <Tab label="Diagnostic" value="diagnostic" />
-      <Tab label="Prognostic" value="prognostic" />
-    </Tabs>
+              <Tabs
+                onChange={(_, value) => setActiveTab(value)}
+                value={activeTab}
+                sx={{ marginBottom: 2 }}
+              >
+                <Tab label="Therapeutic" value="therapeutic" />
+                <Tab label="Diagnostic" value="diagnostic" />
+                <Tab label="Prognostic" value="prognostic" />
+              </Tabs>
               <Typography variant="h6" mb={2} fontWeight="bold">
-                {activeTab} Search Results ({results[activeTab]?.length})
+                {activeTab} Search Results ({filteredResults?.length})
               </Typography>
-              <ResultTable results={results[activeTab]} resultType={activeTab} />
+              <Box display="flex">
+                <Box id="filter-container">
+                  <Box width={250} p={2} sx={{ borderRight: '1px solid #ddd' }}>
+                    <FilterSection
+                      title="Variant"
+                      options={variantOptions}
+                      selected={selectedVariants}
+                      setSelected={setSelectedVariants}
+                    />
+                    <FilterSection
+                      title="Disease"
+                      options={diseaseOptions}
+                      selected={selectedDiseases}
+                      setSelected={setSelectedDiseases}
+                    />
+                    <FilterSection
+                      title="Therapy"
+                      options={therapyOptions}
+                      selected={selectedTherapies}
+                      setSelected={setSelectedTherapies}
+                    />
+                    <FilterSection
+                      title="Evidence Level"
+                      options={evidenceLevelOptions}
+                      selected={selectedEvidenceLevels}
+                      setSelected={setSelectedEvidenceLevels}
+                    />
+                    <FilterSection
+                      title="Significance"
+                      options={significanceOptions}
+                      selected={selectedSignificance}
+                      setSelected={setSelectedSignificance}
+                    />
+                  </Box>
+                </Box>
+                <Box>
+                  <ResultTable results={filteredResults} resultType={activeTab} />
+                </Box>
+              </Box>
             </Box>
           </Box>
         )}
