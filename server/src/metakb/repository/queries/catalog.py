@@ -1,79 +1,82 @@
 """Provide class for accessing static Neo4j queries."""
 
-from functools import cached_property
+from functools import cache
 from importlib.resources import files
 from pathlib import Path
 
+_query_dir = Path(str(files("metakb.repository.queries")))
 
-class CypherCatalog:
-    """Container class for raw query strings.
 
-    Lazily load from an adjacent directory.
+def _load(filename: str) -> str:
+    path = _query_dir / filename
+    if not path.exists():
+        raise FileNotFoundError(path)
+    return (path).read_text(encoding="utf-8")
 
-    TODO -- make this a singleton
-    """
 
-    def __init__(self) -> None:
-        """Initialize query holder."""
-        self._query_dir = Path(str(files("metakb.repository.queries")))
+def _load_multiple_queries(filename: str) -> list[str]:
+    """Load a file containing multiple queries, separated by semicolons."""
+    raw_text = _load(filename)
+    return " ".join(
+        filter(None, [line.split("//")[0] for line in raw_text.split("\n")])
+    ).split(";")[:-1]
 
-    def _load(self, filename: str) -> str:
-        path = self._query_dir / filename
-        if not path.exists():
-            raise FileNotFoundError(path)
-        return (path).read_text(encoding="utf-8")
 
-    def _load_multiple_queries(self, filename: str) -> list[str]:
-        """Load a file containing multiple queries, separated by semicolons."""
-        raw_text = self._load(filename)
-        return " ".join(
-            filter(None, [line.split("//")[0] for line in raw_text.split("\n")])
-        ).split(";")[:-1]
+@cache
+def initialize() -> list[str]:
+    return _load_multiple_queries("initialize.cypher")
 
-    @cached_property
-    def initialize(self) -> list[str]:
-        return self._load_multiple_queries("initialize.cypher")
 
-    @cached_property
-    def teardown(self) -> list[str]:
-        return self._load_multiple_queries("teardown.cypher")
+@cache
+def teardown() -> list[str]:
+    return _load_multiple_queries("teardown.cypher")
 
-    @cached_property
-    def load_dac_catvar(self) -> str:
-        return self._load("load_definingalleleconstraint_catvar.cypher")
 
-    @cached_property
-    def load_document(self) -> str:
-        return self._load("load_document.cypher")
+@cache
+def load_dac_catvar() -> str:
+    return _load("load_definingalleleconstraint_catvar.cypher")
 
-    @cached_property
-    def load_gene(self) -> str:
-        return self._load("load_gene.cypher")
 
-    @cached_property
-    def load_disease(self) -> str:
-        return self._load("load_disease.cypher")
+@cache
+def load_document() -> str:
+    return _load("load_document.cypher")
 
-    @cached_property
-    def load_drug(self) -> str:
-        return self._load("load_drug.cypher")
 
-    @cached_property
-    def load_therapy_group(self) -> str:
-        return self._load("load_therapy_group.cypher")
+@cache
+def load_gene() -> str:
+    return _load("load_gene.cypher")
 
-    @cached_property
-    def load_method(self) -> str:
-        return self._load("load_method.cypher")
 
-    @cached_property
-    def load_statement(self) -> str:
-        return self._load("load_statement.cypher")
+@cache
+def load_disease() -> str:
+    return _load("load_disease.cypher")
 
-    @cached_property
-    def search_statements(self) -> str:
-        return self._load("search_statements.cypher")
 
-    @cached_property
-    def get_statements(self) -> str:
-        return self._load("get_statements.cypher")
+@cache
+def load_drug() -> str:
+    return _load("load_drug.cypher")
+
+
+@cache
+def load_therapy_group() -> str:
+    return _load("load_therapy_group.cypher")
+
+
+@cache
+def load_method() -> str:
+    return _load("load_method.cypher")
+
+
+@cache
+def load_statement() -> str:
+    return _load("load_statement.cypher")
+
+
+@cache
+def search_statements() -> str:
+    return _load("search_statements.cypher")
+
+
+@cache
+def get_statements() -> str:
+    return _load("get_statements.cypher")

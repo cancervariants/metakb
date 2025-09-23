@@ -57,7 +57,7 @@ from metakb.repository.neo4j_models import (
     TherapeuticReponseStatementNode,
     TherapyGroupNode,
 )
-from metakb.repository.queries import CypherCatalog
+from metakb.repository.queries import catalog as queries_catalog
 from metakb.schemas.api import ServiceEnvironment
 
 _logger = logging.getLogger(__name__)
@@ -165,14 +165,13 @@ class Neo4jRepository(AbstractRepository):
     def __init__(self, session: Session) -> None:
         """Initialize repository instance"""
         self.session = session
-        self.queries = CypherCatalog()
 
     def initialize(
         self,
     ) -> None:
         """Set up DB schema"""
         with self.session.begin_transaction() as tx:
-            for query in self.queries.initialize:
+            for query in queries_catalog.initialize():
                 tx.run(query)
 
     def add_catvar(self, tx: Transaction, catvar: CategoricalVariant) -> None:
@@ -190,7 +189,8 @@ class Neo4jRepository(AbstractRepository):
             if constraint.root.type == "DefiningAlleleConstraint":
                 catvar_node = CategoricalVariantNode.from_gks(catvar)
                 tx.run(
-                    self.queries.load_dac_catvar, cv=catvar_node.model_dump(mode="json")
+                    queries_catalog.load_dac_catvar(),
+                    cv=catvar_node.model_dump(mode="json"),
                 )
             # in the future, handle other kinds of catvars here
         else:
@@ -204,7 +204,9 @@ class Neo4jRepository(AbstractRepository):
         :param document: VA-Spec document
         """
         document_node = DocumentNode.from_gks(document)
-        tx.run(self.queries.load_document, doc=document_node.model_dump(mode="json"))
+        tx.run(
+            queries_catalog.load_document(), doc=document_node.model_dump(mode="json")
+        )
 
     def add_gene(
         self,
@@ -217,7 +219,7 @@ class Neo4jRepository(AbstractRepository):
         :param gene: VA-Spec gene object
         """
         gene_node = GeneNode.from_gks(gene)
-        tx.run(self.queries.load_gene, gene=gene_node.model_dump(mode="json"))
+        tx.run(queries_catalog.load_gene(), gene=gene_node.model_dump(mode="json"))
 
     def add_condition(self, tx: Transaction, condition: Condition) -> None:
         """Add condition to DB.
@@ -231,7 +233,8 @@ class Neo4jRepository(AbstractRepository):
         if isinstance(root, MappableConcept) and root.conceptType == "Disease":
             disease_node = DiseaseNode.from_gks(root)
             tx.run(
-                self.queries.load_disease, disease=disease_node.model_dump(mode="json")
+                queries_catalog.load_disease(),
+                disease=disease_node.model_dump(mode="json"),
             )
         else:
             msg = f"Unsupported condition type: {condition}"
@@ -246,11 +249,11 @@ class Neo4jRepository(AbstractRepository):
         root = therapeutic.root
         if isinstance(root, MappableConcept):
             drug_node = DrugNode.from_gks(root)
-            tx.run(self.queries.load_drug, drug=drug_node.model_dump(mode="json"))
+            tx.run(queries_catalog.load_drug(), drug=drug_node.model_dump(mode="json"))
         elif isinstance(root, TherapyGroup):
             therapy_group_node = TherapyGroupNode.from_gks(root)
             tx.run(
-                self.queries.load_therapy_group,
+                queries_catalog.load_therapy_group(),
                 therapy_group=therapy_group_node.model_dump(mode="json"),
             )
         else:
@@ -264,7 +267,7 @@ class Neo4jRepository(AbstractRepository):
         :param method: VA-Spec method object
         """
         tx.run(
-            self.queries.load_method,
+            queries_catalog.load_method(),
             method=MethodNode.from_gks(method).model_dump(mode="json"),
         )
 
@@ -290,7 +293,7 @@ class Neo4jRepository(AbstractRepository):
                 msg = f"Unsupported proposition type: {statement.proposition.type}"
                 raise NotImplementedError(msg)
         tx.run(
-            self.queries.load_statement,
+            queries_catalog.load_statement(),
             statement=statement_node.model_dump(mode="json"),
         )
 
@@ -382,7 +385,9 @@ class Neo4jRepository(AbstractRepository):
         :return: complete statement if available
         """
         results = self.session.execute_read(
-            lambda tx, **kwargs: list(tx.run(self.queries.search_statements, **kwargs)),
+            lambda tx, **kwargs: list(
+                tx.run(queries_catalog.search_statements(), **kwargs)
+            ),
             variation_ids=[],
             therapy_ids=[],
             condition_ids=[],
@@ -507,7 +512,9 @@ class Neo4jRepository(AbstractRepository):
         | None
     ):
         result = self.session.execute_read(
-            lambda tx, **kwargs: list(tx.run(self.queries.search_statements, **kwargs)),
+            lambda tx, **kwargs: list(
+                tx.run(queries_catalog.search_statements(), **kwargs)
+            ),
             variation_ids=[],
             therapy_ids=[],
             condition_ids=[],
@@ -563,7 +570,9 @@ class Neo4jRepository(AbstractRepository):
             limit = CYPHER_PAGE_LIMIT
         # IDs args MUST be lists -- can't be null
         result = self.session.execute_read(
-            lambda tx, **kwargs: list(tx.run(self.queries.search_statements, **kwargs)),
+            lambda tx, **kwargs: list(
+                tx.run(queries_catalog.search_statements(), **kwargs)
+            ),
             statement_ids=statement_ids or [],
             variation_ids=variation_ids or [],
             condition_ids=disease_ids or [],
@@ -582,5 +591,5 @@ class Neo4jRepository(AbstractRepository):
         # this is a write query and needs to be in its own transaction
         self.session.execute_write(lambda tx: tx.run("MATCH (n) DETACH DELETE n"))
         with self.session.begin_transaction() as tx:
-            for query in self.queries.teardown:
+            for query in queries_catalog.teardown():
                 tx.run(query)
