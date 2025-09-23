@@ -7,9 +7,7 @@ from pathlib import Path
 
 import pytest
 from deepdiff import DeepDiff
-from dotenv import load_dotenv
 from ga4gh.core.models import ConceptMapping
-from neo4j import Driver
 
 from metakb.harvesters.base import Harvester
 from metakb.normalizers import ViccNormalizers
@@ -2221,17 +2219,13 @@ def normalizers():
     return ViccNormalizers()
 
 
-@pytest.fixture(scope="module")
-def driver():
-    """Return Neo4j graph connection driver object."""
-    load_dotenv()
-    driver = get_driver()
-    yield driver
-    driver.close()
-
-
 @pytest.fixture
-def repository(driver: Driver):
+def repository():
     """Provide a new repository session"""
-    with driver.session() as session:
-        return Neo4jRepository(session)
+    driver = get_driver()
+    session = driver.session()
+
+    yield Neo4jRepository(session)
+
+    session.close()
+    driver.close()

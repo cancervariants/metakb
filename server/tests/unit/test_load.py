@@ -14,7 +14,7 @@ def statements(test_data_dir: Path):
     return {k: Statement(**v) for k, v in data.items()}
 
 
-@pytest.mark.ci
+@pytest.mark.ci_ok
 def test_is_loadable_statement(
     civic_aid6_statement: dict, statements: dict[str, Statement]
 ):

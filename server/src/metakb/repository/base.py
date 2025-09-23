@@ -19,6 +19,10 @@ class AbstractRepository(abc.ABC):
     """
 
     @abc.abstractmethod
+    def initialize(self) -> None:
+        """Set up DB schema"""
+
+    @abc.abstractmethod
     def get_statement(
         self, statement_id: str
     ) -> (

@@ -17,7 +17,6 @@ import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore import UNSIGNED
 from botocore.config import Config
-from neo4j import Driver
 
 from metakb import DATE_FMT, __version__
 from metakb.config import get_config
@@ -31,7 +30,11 @@ from metakb.normalizers import (
     update_normalizer,
 )
 from metakb.normalizers import check_normalizers as check_normalizer_health
-from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
+from metakb.repository.base import AbstractRepository
+from metakb.repository.neo4j_repository import (
+    Neo4jRepository,
+    get_driver,
+)
 from metakb.schemas.app import SourceName
 from metakb.services.manage_data import load_from_json
 from metakb.transformers import CivicTransformer, MoaTransformer
@@ -332,7 +335,7 @@ async def transform_file(
     )
 
 
-def _get_driver(db_url: str | None) -> Generator[Driver, None, None]:
+def _get_repository(db_url: str | None) -> Generator[AbstractRepository, None, None]:
     """Acquire Neo4j graph driver.
 
     This function wraps the core driver function in a generator to ensure proper lifespan
@@ -342,8 +345,9 @@ def _get_driver(db_url: str | None) -> Generator[Driver, None, None]:
     :return: Graph driver instance
     """
     driver = get_driver(db_url)
-    yield driver
-    driver.close()
+    session = driver.session()
+    yield Neo4jRepository(session)
+    session.close()
 
 
 @cli.command()
@@ -361,10 +365,8 @@ def clear_graph(db_url: str) -> None:
     \f
     :param db_url: connection string for the application Neo4j database.
     """  # noqa: D301
-    driver = next(_get_driver(db_url))
-    with driver.session() as session:
-        repository = Neo4jRepository(session)
-        repository.teardown_db()
+    repository = next(_get_repository(db_url))
+    repository.teardown_db()
 
 
 @cli.command()
@@ -419,28 +421,26 @@ def load_cdm(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    driver = next(_get_driver(db_url))
-    with driver.session() as session:
-        repository = Neo4jRepository(session)
-        repository.initialize()
+    repository = next(_get_repository(db_url))
+    repository.initialize()
 
-        if cdm_files:
-            for file in cdm_files:
-                load_from_json(file, repository)
-        else:
-            version = _retrieve_s3_cdms() if from_s3 else "*"
+    if cdm_files:
+        for file in cdm_files:
+            load_from_json(file, repository)
+    else:
+        version = _retrieve_s3_cdms() if from_s3 else "*"
 
-            for src in sorted([s.value for s in SourceName]):
-                pattern = f"{src}_cdm_{version}.json"
-                globbed = (get_config().data_dir / src / "transformers").glob(pattern)
+        for src in sorted([s.value for s in SourceName]):
+            pattern = f"{src}_cdm_{version}.json"
+            globbed = (get_config().data_dir / src / "transformers").glob(pattern)
 
-                try:
-                    path = sorted(globbed)[-1]
-                except IndexError as e:
-                    msg = f"No valid transformation file found matching pattern: {pattern}"
-                    raise FileNotFoundError(msg) from e
+            try:
+                path = sorted(globbed)[-1]
+            except IndexError as e:
+                msg = f"No valid transformation file found matching pattern: {pattern}"
+                raise FileNotFoundError(msg) from e
 
-                load_from_json(path, repository)
+            load_from_json(path, repository)
 
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
@@ -503,7 +503,8 @@ async def update(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    driver = next(_get_driver(db_url))
+    repository = next(_get_repository(db_url))
+    repository.initialize()
 
     if not sources:
         sources = tuple(SourceName)
@@ -517,10 +518,7 @@ async def update(
             msg = f"No valid transformation files found matching pattern: {pattern}"
             raise FileNotFoundError(msg) from e
 
-        with driver.session() as session:
-            repository = Neo4jRepository(session)
-            repository.initialize()
-            load_from_json(path, repository)
+        load_from_json(path, repository)
 
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")

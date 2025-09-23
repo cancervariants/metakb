@@ -18,7 +18,10 @@ from metakb import __version__
 from metakb.config import get_config
 from metakb.normalizers import ViccNormalizers
 from metakb.repository.base import AbstractRepository
-from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
+from metakb.repository.neo4j_repository import (
+    Neo4jRepository,
+    get_driver,
+)
 from metakb.schemas.api import (
     METAKB_DESCRIPTION,
     BatchSearchStatementsResponse,

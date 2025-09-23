@@ -99,10 +99,11 @@ where = ["src"]
 metakb = ["*.cypher"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=src --cov-report term-missing --ignore=codebuild/"
+addopts = "--cov=src --cov-report term-missing -m 'not ci_only'"
 testpaths = ["tests"]
 markers = [
-    "ci: tests safe to run in CI",
+    "ci_ok: tests safe to run in CI",
+    "ci_only: run only in CI",
 ]
 
 [tool.coverage.run]

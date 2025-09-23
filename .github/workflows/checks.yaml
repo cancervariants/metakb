@@ -9,6 +9,20 @@ jobs:
     defaults:
       run:
         working-directory: ./server
+    services:
+      neo4j:
+        image: neo4j:5-community
+        ports:
+          - 7687:7687
+        env:
+          NEO$J_AUTH: neo4j/test
+          NEO4J_dbms_memory_heap_initial__size: 256m
+          NEO4J_dbms_memory_heap_max__size: 512m
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p test 'RETURN 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
     steps:
       - uses: actions/checkout@v4
 
@@ -27,7 +41,9 @@ jobs:
 
       - name: Run tests
         working-directory: ./server
-        run: uv run pytest -m ci
+        run: uv run pytest -m "ci_ok or ci_only"
+        env:
+          METAKB_DB_URL: "bolt://neo4j:test@localhost:7687"
 
   lint_backend:
     name: lint

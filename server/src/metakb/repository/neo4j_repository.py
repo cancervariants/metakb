@@ -97,7 +97,6 @@ class _Neo4jConnectionParams(NamedTuple):
     username: str
     password: str
     url: str
-    db_name: str | None
 
 
 def _parse_connection_params(url: str) -> _Neo4jConnectionParams:
@@ -111,16 +110,21 @@ def _parse_connection_params(url: str) -> _Neo4jConnectionParams:
     password = parsed.password
     hostname = parsed.hostname
     port = parsed.port
+    if not password:
+        _logger.error("Unable to parse password")
+        raise Neo4jCredentialsError
     if not all([username, password, port, hostname]):
-        _logger.error("Unable to parse Neo4j credentials from URL %s", url)
+        _logger.error(
+            "Unable to parse Neo4j credentials from URL. Got username:%s, password:****, port:%s, hostname:%s",
+            username,
+            port,
+            hostname,
+        )
         raise Neo4jCredentialsError
 
     clean_netloc = f"{hostname}:{port}"
     new_url = urlunparse(parsed._replace(netloc=clean_netloc))
-    db_name = parsed.path.lstrip("/") if parsed.path else None
-    return _Neo4jConnectionParams(
-        username=username, password=password, url=new_url, db_name=db_name
-    )
+    return _Neo4jConnectionParams(username=username, password=password, url=new_url)
 
 
 def get_driver(
