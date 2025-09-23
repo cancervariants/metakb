@@ -29,7 +29,7 @@ WHERE
     EXISTS {
       MATCH
         (s)-[:HAS_THERAPEUTIC]->
-        (:TherapyGroup)-[:HAS_SUBSTITUTES|HAS_COMPONENTS]->
+        (:TherapyGroup)-[:HAS_SUBSTITUTE|HAS_COMPONENT]->
         (d:Drug)
       WHERE d.normalized_id IN $therapy_ids
     })

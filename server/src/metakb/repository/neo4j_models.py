@@ -181,10 +181,11 @@ class AlleleNode(BaseNode):
 
     def to_gks(self) -> Allele:
         """Return VRS-Python Allele instance"""
+        expressions = _Expressions(json.loads(self.expressions)).root
         return Allele(
             id=self.id,
-            name=self.name if self.name else None,
-            expressions=_Expressions(json.loads(self.expressions)).root,
+            name=self.name or None,
+            expressions=expressions or None,
             location=self.has_location.to_gks(),
             state=self.has_state.to_gks(),
         )
@@ -273,9 +274,9 @@ class CategoricalVariantNode(BaseNode):
         """Construct cat-vrs-python CategoricalVariant instance"""
         return CategoricalVariant(
             id=self.id,
-            name=self.name if self.name else "",
-            aliases=self.aliases if self.aliases else None,
-            description=self.description if self.description else "",
+            name=self.name or None,
+            aliases=self.aliases or None,
+            description=self.description or None,
             extensions=_Extensions(json.loads(self.extensions)).root,
             mappings=_Mappings(json.loads(self.mappings)).root,
             constraints=[self.has_constraint.to_gks()],
@@ -326,8 +327,8 @@ class GeneNode(BaseNode):
             id=self.id,
             conceptType="Gene",
             name=self.name if self.name else None,
-            mappings=_Mappings(json.loads(self.mappings)).root,
-            extensions=_Extensions(json.loads(self.extensions)).root,
+            mappings=_Mappings(json.loads(self.mappings)).root or None,
+            extensions=_Extensions(json.loads(self.extensions)).root or None,
         )
 
 
@@ -460,6 +461,7 @@ class DocumentNode(BaseNode):
     pmid: str
     doi: str
     urls: list[str]
+    extensions: str
 
     @classmethod
     def from_gks(cls, document: Document) -> Self:
@@ -501,13 +503,14 @@ class DocumentNode(BaseNode):
             name=document.name if document.name else "",
             doi=document.doi if document.doi else "",
             source_type=src_type,
+            extensions=_Extensions(document.extensions or []).model_dump_json(),
         )
 
     def to_gks(self) -> Document:
         """Create va-spec-python Document instance"""
-        # TODO this is breaking tests. IDK why I did it?
+        # TODO this part is breaking tests. IDK why I did it?
         # doc_id = None if self.id.startswith(("civic", "moa")) else self.id
-        # TODO source type?
+        extensions = _Extensions(json.loads(self.extensions)).root
         return Document(
             id=self.id,
             title=self.title if self.title else None,
@@ -515,6 +518,7 @@ class DocumentNode(BaseNode):
             pmid=self.pmid if self.pmid else None,
             doi=self.doi if self.doi else None,
             urls=self.urls if self.urls else None,
+            extensions=extensions if extensions else None,
         )
 
 

@@ -7,5 +7,6 @@ MERGE (d:Document {id: $doc.id})
         pmid: $doc.pmid,
         name: $doc.name,
         doi: $doc.doi,
-        source_type: $doc.source_type
+        source_type: $doc.source_type,
+        extensions: $doc.extensions
       }
