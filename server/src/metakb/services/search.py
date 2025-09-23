@@ -252,7 +252,9 @@ async def batch_search_statements(
         return SearchResult(
             search_terms=search_terms, start=start, limit=limit, statements=[]
         )
-    statements = repository.search_statements(variation_ids=variation_ids)
+    statements = repository.search_statements(
+        variation_ids=variation_ids, start=start, limit=limit
+    )
     return SearchResult(
         search_terms=search_terms, start=start, limit=limit, statements=statements
     )

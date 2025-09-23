@@ -383,11 +383,11 @@ class Neo4jRepository(AbstractRepository):
         """
         results = self.session.execute_read(
             lambda tx, **kwargs: list(tx.run(self.queries.search_statements, **kwargs)),
-            variation_id=None,
-            therapy_id=None,
-            condition_id=None,
-            gene_id=None,
-            statement_id=statement_id,
+            variation_ids=[],
+            therapy_ids=[],
+            condition_ids=[],
+            gene_ids=[],
+            statement_ids=[statement_id],
             start=0,
             limit=1,
         )
@@ -559,6 +559,8 @@ class Neo4jRepository(AbstractRepository):
 
         TODO update description
         """
+        if limit is None:
+            limit = CYPHER_PAGE_LIMIT
         # IDs args MUST be lists -- can't be null
         result = self.session.execute_read(
             lambda tx, **kwargs: list(tx.run(self.queries.search_statements, **kwargs)),
@@ -568,7 +570,7 @@ class Neo4jRepository(AbstractRepository):
             gene_ids=gene_ids or [],
             therapy_ids=therapy_ids or [],
             start=start,
-            limit=limit or CYPHER_PAGE_LIMIT,
+            limit=limit,
         )
         return self._get_statements_from_results(result)
 
