@@ -46,8 +46,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     """
     configure_logs(logging.DEBUG) if get_config().debug else configure_logs()
     driver = get_driver()
-    with driver.session() as session:
-        Neo4jRepository(session).initialize()
     app.state.driver = driver
     app.state.normalizer = ViccNormalizers()
     yield

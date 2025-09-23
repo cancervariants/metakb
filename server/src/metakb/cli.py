@@ -422,6 +422,7 @@ def load_cdm(
     driver = next(_get_driver(db_url))
     with driver.session() as session:
         repository = Neo4jRepository(session)
+        repository.initialize()
 
         if cdm_files:
             for file in cdm_files:
@@ -517,7 +518,9 @@ async def update(
             raise FileNotFoundError(msg) from e
 
         with driver.session() as session:
-            load_from_json(path, Neo4jRepository(session))
+            repository = Neo4jRepository(session)
+            repository.initialize()
+            load_from_json(path, repository)
 
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
