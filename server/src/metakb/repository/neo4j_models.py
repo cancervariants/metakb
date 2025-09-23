@@ -324,7 +324,7 @@ class GeneNode(BaseNode):
         """Create GKS class for Gene from node."""
         return MappableConcept(
             id=self.id,
-            conceptType="gene",
+            conceptType="Gene",
             name=self.name if self.name else None,
             mappings=_Mappings(json.loads(self.mappings)).root,
             extensions=_Extensions(json.loads(self.extensions)).root,
@@ -412,7 +412,7 @@ class DrugNode(BaseNode):
         """Create GKS MappableConcept (drug) from node."""
         return MappableConcept(
             id=self.id,
-            conceptType="Drug",
+            conceptType="Therapy",
             name=self.name if self.name else None,
             mappings=_Mappings(json.loads(self.mappings)).root,
             extensions=_Extensions(json.loads(self.extensions)).root,
@@ -441,11 +441,12 @@ class TherapyGroupNode(BaseNode):
 
     def to_gks(self) -> TherapyGroup:
         """Create TherapyGroup GKS class from Node instance."""
+        extensions = _Extensions(json.loads(self.extensions)).root
         return TherapyGroup(
             id=self.id,
             membershipOperator=self.membership_operator,
             therapies=[d.to_gks() for d in self.has_therapies],
-            extensions=_Extensions(json.loads(self.extensions)).root,
+            extensions=extensions if extensions else None,
         )
 
 
@@ -504,10 +505,11 @@ class DocumentNode(BaseNode):
 
     def to_gks(self) -> Document:
         """Create va-spec-python Document instance"""
-        doc_id = None if self.id.startswith(("civic", "moa")) else self.id
+        # TODO this is breaking tests. IDK why I did it?
+        # doc_id = None if self.id.startswith(("civic", "moa")) else self.id
         # TODO source type?
         return Document(
-            id=doc_id,
+            id=self.id,
             title=self.title if self.title else None,
             name=self.name if self.name else None,
             pmid=self.pmid if self.pmid else None,
@@ -763,7 +765,7 @@ class TherapeuticReponseStatementNode(StatementNodeBase):
             geneContextQualifier=self.has_gene.to_gks(),
             subjectVariant=self.has_variant.to_gks(),
             objectTherapeutic=self.has_therapeutic.to_gks(),
-            alleleOriginQualifier=self.allele_origin_qualifier,
+            alleleOriginQualifier=MappableConcept(name=self.allele_origin_qualifier),
         )
         reported_in = (
             [d.to_gks() for d in self.has_documents] if self.has_documents else None
@@ -849,7 +851,7 @@ class DiagnosticStatementNode(StatementNodeBase):
             objectCondition=self.has_condition.to_gks(),
             geneContextQualifier=self.has_gene.to_gks(),
             subjectVariant=self.has_variant.to_gks(),
-            alleleOriginQualifier=self.allele_origin_qualifier,
+            alleleOriginQualifier=MappableConcept(name=self.allele_origin_qualifier),
         )
         reported_in = (
             [d.to_gks() for d in self.has_documents] if self.has_documents else None
@@ -935,7 +937,7 @@ class PrognosticStatementNode(StatementNodeBase):
             objectCondition=self.has_condition.to_gks(),
             geneContextQualifier=self.has_gene.to_gks(),
             subjectVariant=self.has_variant.to_gks(),
-            alleleOriginQualifier=self.allele_origin_qualifier,
+            alleleOriginQualifier=MappableConcept(name=self.allele_origin_qualifier),
         )
         reported_in = (
             [d.to_gks() for d in self.has_documents] if self.has_documents else None

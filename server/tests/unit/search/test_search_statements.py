@@ -3,6 +3,8 @@
 import pytest
 from tests.conftest import get_mappings_normalizer_id
 
+from metakb.normalizers import ViccNormalizers
+from metakb.repository.base import AbstractRepository
 from metakb.services.search import (
     EmptySearchError,
     PaginationParamError,
@@ -201,19 +203,21 @@ async def test_moa_66(repository, normalizers, moa_aid66_study_stmt, assertion_c
 
 
 @pytest.mark.asyncio(scope="module")
-async def test_general_search_statements(query_handler):
+async def test_general_search_statements(
+    repository: AbstractRepository, normalizers: ViccNormalizers
+):
     """Test that queries do not return errors"""
-    resp = await query_handler.search_statements(variation="BRAF V600E")
+    resp = await search_statements(repository, normalizers, variation="BRAF V600E")
     assert_general_search_stmts(resp)
 
-    resp = await query_handler.search_statements(variation="EGFR L858R")
+    resp = await search_statements(repository, normalizers, variation="EGFR L858R")
     assert_general_search_stmts(resp)
 
-    resp = await query_handler.search_statements(disease="cancer")
+    resp = await search_statements(repository, normalizers, disease="cancer")
     assert_general_search_stmts(resp)
 
     # Case: Handling therapy for single therapy / combination / substitutes
-    resp = await query_handler.search_statements(therapy="Cetuximab")
+    resp = await search_statements(repository, normalizers, therapy="Cetuximab")
     assert_general_search_stmts(resp)
     expected_therapy_id = "rxcui:318341"
     for statement in resp.statements:
@@ -232,14 +236,16 @@ async def test_general_search_statements(query_handler):
                     break
             assert found_expected
 
-    resp = await query_handler.search_statements(gene="VHL")
+    resp = await search_statements(repository, normalizers, gene="VHL")
     assert_general_search_stmts(resp)
 
     # Case: multiple concepts provided
     expected_variation_id = "ga4gh:VA._8jTS8nAvWwPZGOadQuD1o-tbbTQ5g3H"
     expected_disease_id = "ncit:C2926"
     expected_therapy_id = "ncit:C104732"
-    resp = await query_handler.search_statements(
+    resp = await search_statements(
+        repository,
+        normalizers,
         variation=expected_variation_id,
         disease=expected_disease_id,
         therapy=expected_therapy_id,  # Single Therapy

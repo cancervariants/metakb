@@ -299,6 +299,11 @@
                 "approval_rating": "FDA",
                 "has_indications": [
                   {
+                    "id": "hemonc:25316",
+                    "conceptType": "Disease",
+                    "name": "Non-small cell lung cancer squamous"
+                  },
+                  {
                     "id": "hemonc:642",
                     "conceptType": "Disease",
                     "name": "Non-small cell lung cancer",
@@ -312,11 +317,6 @@
                         "relation": "exactMatch"
                       }
                     ]
-                  },
-                  {
-                    "id": "hemonc:25316",
-                    "conceptType": "Disease",
-                    "name": "Non-small cell lung cancer squamous"
                   }
                 ]
               }
@@ -746,36 +746,6 @@
                     "approval_rating": "ChEMBL",
                     "has_indications": [
                       {
-                        "id": "mesh:D006258",
-                        "conceptType": "Disease",
-                        "name": "Head and Neck Neoplasms",
-                        "mappings": [
-                          {
-                            "coding": {
-                              "id": "ncit:C4013",
-                              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                              "code": "C4013"
-                            },
-                            "relation": "exactMatch"
-                          }
-                        ]
-                      },
-                      {
-                        "id": "mesh:D015179",
-                        "conceptType": "Disease",
-                        "name": "Colorectal Neoplasms",
-                        "mappings": [
-                          {
-                            "coding": {
-                              "id": "ncit:C2956",
-                              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                              "code": "C2956"
-                            },
-                            "relation": "exactMatch"
-                          }
-                        ]
-                      },
-                      {
                         "id": "mesh:D009369",
                         "conceptType": "Disease",
                         "name": "Neoplasms",
@@ -800,6 +770,36 @@
                               "id": "ncit:C2929",
                               "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                               "code": "C2929"
+                            },
+                            "relation": "exactMatch"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "mesh:D006258",
+                        "conceptType": "Disease",
+                        "name": "Head and Neck Neoplasms",
+                        "mappings": [
+                          {
+                            "coding": {
+                              "id": "ncit:C4013",
+                              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                              "code": "C4013"
+                            },
+                            "relation": "exactMatch"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "mesh:D015179",
+                        "conceptType": "Disease",
+                        "name": "Colorectal Neoplasms",
+                        "mappings": [
+                          {
+                            "coding": {
+                              "id": "ncit:C2956",
+                              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                              "code": "C2956"
                             },
                             "relation": "exactMatch"
                           }
@@ -871,21 +871,6 @@
                     "approval_rating": "ChEMBL",
                     "has_indications": [
                       {
-                        "id": "mesh:D015179",
-                        "conceptType": "Disease",
-                        "name": "Colorectal Neoplasms",
-                        "mappings": [
-                          {
-                            "coding": {
-                              "id": "ncit:C2956",
-                              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                              "code": "C2956"
-                            },
-                            "relation": "exactMatch"
-                          }
-                        ]
-                      },
-                      {
                         "id": "mesh:D009369",
                         "conceptType": "Disease",
                         "name": "Neoplasms",
@@ -895,6 +880,21 @@
                               "id": "ncit:C3262",
                               "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                               "code": "C3262"
+                            },
+                            "relation": "exactMatch"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "mesh:D015179",
+                        "conceptType": "Disease",
+                        "name": "Colorectal Neoplasms",
+                        "mappings": [
+                          {
+                            "coding": {
+                              "id": "ncit:C2956",
+                              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                              "code": "C2956"
                             },
                             "relation": "exactMatch"
                           }
@@ -1331,6 +1331,21 @@
                     "approval_rating": "ChEMBL",
                     "has_indications": [
                       {
+                        "id": "mesh:D008545",
+                        "conceptType": "Disease",
+                        "name": "Melanoma",
+                        "mappings": [
+                          {
+                            "coding": {
+                              "id": "ncit:C3224",
+                              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                              "code": "C3224"
+                            },
+                            "relation": "exactMatch"
+                          }
+                        ]
+                      },
+                      {
                         "id": "mesh:D009369",
                         "conceptType": "Disease",
                         "name": "Neoplasms",
@@ -1355,21 +1370,6 @@
                               "id": "ncit:C2956",
                               "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                               "code": "C2956"
-                            },
-                            "relation": "exactMatch"
-                          }
-                        ]
-                      },
-                      {
-                        "id": "mesh:D008545",
-                        "conceptType": "Disease",
-                        "name": "Melanoma",
-                        "mappings": [
-                          {
-                            "coding": {
-                              "id": "ncit:C3224",
-                              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                              "code": "C3224"
                             },
                             "relation": "exactMatch"
                           }
@@ -1439,36 +1439,6 @@
                     "approval_rating": "ChEMBL",
                     "has_indications": [
                       {
-                        "id": "mesh:D006258",
-                        "conceptType": "Disease",
-                        "name": "Head and Neck Neoplasms",
-                        "mappings": [
-                          {
-                            "coding": {
-                              "id": "ncit:C4013",
-                              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                              "code": "C4013"
-                            },
-                            "relation": "exactMatch"
-                          }
-                        ]
-                      },
-                      {
-                        "id": "mesh:D015179",
-                        "conceptType": "Disease",
-                        "name": "Colorectal Neoplasms",
-                        "mappings": [
-                          {
-                            "coding": {
-                              "id": "ncit:C2956",
-                              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                              "code": "C2956"
-                            },
-                            "relation": "exactMatch"
-                          }
-                        ]
-                      },
-                      {
                         "id": "mesh:D009369",
                         "conceptType": "Disease",
                         "name": "Neoplasms",
@@ -1493,6 +1463,36 @@
                               "id": "ncit:C2929",
                               "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                               "code": "C2929"
+                            },
+                            "relation": "exactMatch"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "mesh:D006258",
+                        "conceptType": "Disease",
+                        "name": "Head and Neck Neoplasms",
+                        "mappings": [
+                          {
+                            "coding": {
+                              "id": "ncit:C4013",
+                              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                              "code": "C4013"
+                            },
+                            "relation": "exactMatch"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "mesh:D015179",
+                        "conceptType": "Disease",
+                        "name": "Colorectal Neoplasms",
+                        "mappings": [
+                          {
+                            "coding": {
+                              "id": "ncit:C2956",
+                              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                              "code": "C2956"
                             },
                             "relation": "exactMatch"
                           }
@@ -1927,6 +1927,11 @@
                 "approval_rating": "FDA",
                 "has_indications": [
                   {
+                    "id": "hemonc:25316",
+                    "conceptType": "Disease",
+                    "name": "Non-small cell lung cancer squamous"
+                  },
+                  {
                     "id": "hemonc:642",
                     "conceptType": "Disease",
                     "name": "Non-small cell lung cancer",
@@ -1940,11 +1945,6 @@
                         "relation": "exactMatch"
                       }
                     ]
-                  },
-                  {
-                    "id": "hemonc:25316",
-                    "conceptType": "Disease",
-                    "name": "Non-small cell lung cancer squamous"
                   }
                 ]
               }
@@ -2391,6 +2391,11 @@
                         "approval_rating": "FDA",
                         "has_indications": [
                           {
+                            "id": "hemonc:25316",
+                            "conceptType": "Disease",
+                            "name": "Non-small cell lung cancer squamous"
+                          },
+                          {
                             "id": "hemonc:642",
                             "conceptType": "Disease",
                             "name": "Non-small cell lung cancer",
@@ -2404,11 +2409,6 @@
                                 "relation": "exactMatch"
                               }
                             ]
-                          },
-                          {
-                            "id": "hemonc:25316",
-                            "conceptType": "Disease",
-                            "name": "Non-small cell lung cancer squamous"
                           }
                         ]
                       }
@@ -3141,6 +3141,11 @@
             "approval_rating": "FDA",
             "has_indications": [
               {
+                "id": "hemonc:25316",
+                "conceptType": "Disease",
+                "name": "Non-small cell lung cancer squamous"
+              },
+              {
                 "id": "hemonc:642",
                 "conceptType": "Disease",
                 "name": "Non-small cell lung cancer",
@@ -3154,11 +3159,6 @@
                     "relation": "exactMatch"
                   }
                 ]
-              },
-              {
-                "id": "hemonc:25316",
-                "conceptType": "Disease",
-                "name": "Non-small cell lung cancer squamous"
               }
             ]
           }
@@ -3238,36 +3238,6 @@
             "approval_rating": "ChEMBL",
             "has_indications": [
               {
-                "id": "mesh:D006258",
-                "conceptType": "Disease",
-                "name": "Head and Neck Neoplasms",
-                "mappings": [
-                  {
-                    "coding": {
-                      "id": "ncit:C4013",
-                      "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                      "code": "C4013"
-                    },
-                    "relation": "exactMatch"
-                  }
-                ]
-              },
-              {
-                "id": "mesh:D015179",
-                "conceptType": "Disease",
-                "name": "Colorectal Neoplasms",
-                "mappings": [
-                  {
-                    "coding": {
-                      "id": "ncit:C2956",
-                      "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                      "code": "C2956"
-                    },
-                    "relation": "exactMatch"
-                  }
-                ]
-              },
-              {
                 "id": "mesh:D009369",
                 "conceptType": "Disease",
                 "name": "Neoplasms",
@@ -3292,6 +3262,36 @@
                       "id": "ncit:C2929",
                       "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                       "code": "C2929"
+                    },
+                    "relation": "exactMatch"
+                  }
+                ]
+              },
+              {
+                "id": "mesh:D006258",
+                "conceptType": "Disease",
+                "name": "Head and Neck Neoplasms",
+                "mappings": [
+                  {
+                    "coding": {
+                      "id": "ncit:C4013",
+                      "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                      "code": "C4013"
+                    },
+                    "relation": "exactMatch"
+                  }
+                ]
+              },
+              {
+                "id": "mesh:D015179",
+                "conceptType": "Disease",
+                "name": "Colorectal Neoplasms",
+                "mappings": [
+                  {
+                    "coding": {
+                      "id": "ncit:C2956",
+                      "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                      "code": "C2956"
                     },
                     "relation": "exactMatch"
                   }
@@ -3363,21 +3363,6 @@
             "approval_rating": "ChEMBL",
             "has_indications": [
               {
-                "id": "mesh:D015179",
-                "conceptType": "Disease",
-                "name": "Colorectal Neoplasms",
-                "mappings": [
-                  {
-                    "coding": {
-                      "id": "ncit:C2956",
-                      "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                      "code": "C2956"
-                    },
-                    "relation": "exactMatch"
-                  }
-                ]
-              },
-              {
                 "id": "mesh:D009369",
                 "conceptType": "Disease",
                 "name": "Neoplasms",
@@ -3387,6 +3372,21 @@
                       "id": "ncit:C3262",
                       "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                       "code": "C3262"
+                    },
+                    "relation": "exactMatch"
+                  }
+                ]
+              },
+              {
+                "id": "mesh:D015179",
+                "conceptType": "Disease",
+                "name": "Colorectal Neoplasms",
+                "mappings": [
+                  {
+                    "coding": {
+                      "id": "ncit:C2956",
+                      "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                      "code": "C2956"
                     },
                     "relation": "exactMatch"
                   }
@@ -3459,36 +3459,6 @@
                 "approval_rating": "ChEMBL",
                 "has_indications": [
                   {
-                    "id": "mesh:D006258",
-                    "conceptType": "Disease",
-                    "name": "Head and Neck Neoplasms",
-                    "mappings": [
-                      {
-                        "coding": {
-                          "id": "ncit:C4013",
-                          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                          "code": "C4013"
-                        },
-                        "relation": "exactMatch"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "mesh:D015179",
-                    "conceptType": "Disease",
-                    "name": "Colorectal Neoplasms",
-                    "mappings": [
-                      {
-                        "coding": {
-                          "id": "ncit:C2956",
-                          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                          "code": "C2956"
-                        },
-                        "relation": "exactMatch"
-                      }
-                    ]
-                  },
-                  {
                     "id": "mesh:D009369",
                     "conceptType": "Disease",
                     "name": "Neoplasms",
@@ -3513,6 +3483,36 @@
                           "id": "ncit:C2929",
                           "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                           "code": "C2929"
+                        },
+                        "relation": "exactMatch"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "mesh:D006258",
+                    "conceptType": "Disease",
+                    "name": "Head and Neck Neoplasms",
+                    "mappings": [
+                      {
+                        "coding": {
+                          "id": "ncit:C4013",
+                          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                          "code": "C4013"
+                        },
+                        "relation": "exactMatch"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "mesh:D015179",
+                    "conceptType": "Disease",
+                    "name": "Colorectal Neoplasms",
+                    "mappings": [
+                      {
+                        "coding": {
+                          "id": "ncit:C2956",
+                          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                          "code": "C2956"
                         },
                         "relation": "exactMatch"
                       }
@@ -3584,21 +3584,6 @@
                 "approval_rating": "ChEMBL",
                 "has_indications": [
                   {
-                    "id": "mesh:D015179",
-                    "conceptType": "Disease",
-                    "name": "Colorectal Neoplasms",
-                    "mappings": [
-                      {
-                        "coding": {
-                          "id": "ncit:C2956",
-                          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                          "code": "C2956"
-                        },
-                        "relation": "exactMatch"
-                      }
-                    ]
-                  },
-                  {
                     "id": "mesh:D009369",
                     "conceptType": "Disease",
                     "name": "Neoplasms",
@@ -3608,6 +3593,21 @@
                           "id": "ncit:C3262",
                           "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                           "code": "C3262"
+                        },
+                        "relation": "exactMatch"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "mesh:D015179",
+                    "conceptType": "Disease",
+                    "name": "Colorectal Neoplasms",
+                    "mappings": [
+                      {
+                        "coding": {
+                          "id": "ncit:C2956",
+                          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                          "code": "C2956"
                         },
                         "relation": "exactMatch"
                       }
@@ -3676,6 +3676,21 @@
             "approval_rating": "ChEMBL",
             "has_indications": [
               {
+                "id": "mesh:D008545",
+                "conceptType": "Disease",
+                "name": "Melanoma",
+                "mappings": [
+                  {
+                    "coding": {
+                      "id": "ncit:C3224",
+                      "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                      "code": "C3224"
+                    },
+                    "relation": "exactMatch"
+                  }
+                ]
+              },
+              {
                 "id": "mesh:D009369",
                 "conceptType": "Disease",
                 "name": "Neoplasms",
@@ -3700,21 +3715,6 @@
                       "id": "ncit:C2956",
                       "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                       "code": "C2956"
-                    },
-                    "relation": "exactMatch"
-                  }
-                ]
-              },
-              {
-                "id": "mesh:D008545",
-                "conceptType": "Disease",
-                "name": "Melanoma",
-                "mappings": [
-                  {
-                    "coding": {
-                      "id": "ncit:C3224",
-                      "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                      "code": "C3224"
                     },
                     "relation": "exactMatch"
                   }
@@ -3783,6 +3783,21 @@
                 "approval_rating": "ChEMBL",
                 "has_indications": [
                   {
+                    "id": "mesh:D008545",
+                    "conceptType": "Disease",
+                    "name": "Melanoma",
+                    "mappings": [
+                      {
+                        "coding": {
+                          "id": "ncit:C3224",
+                          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                          "code": "C3224"
+                        },
+                        "relation": "exactMatch"
+                      }
+                    ]
+                  },
+                  {
                     "id": "mesh:D009369",
                     "conceptType": "Disease",
                     "name": "Neoplasms",
@@ -3807,21 +3822,6 @@
                           "id": "ncit:C2956",
                           "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                           "code": "C2956"
-                        },
-                        "relation": "exactMatch"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "mesh:D008545",
-                    "conceptType": "Disease",
-                    "name": "Melanoma",
-                    "mappings": [
-                      {
-                        "coding": {
-                          "id": "ncit:C3224",
-                          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                          "code": "C3224"
                         },
                         "relation": "exactMatch"
                       }
@@ -3891,36 +3891,6 @@
                 "approval_rating": "ChEMBL",
                 "has_indications": [
                   {
-                    "id": "mesh:D006258",
-                    "conceptType": "Disease",
-                    "name": "Head and Neck Neoplasms",
-                    "mappings": [
-                      {
-                        "coding": {
-                          "id": "ncit:C4013",
-                          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                          "code": "C4013"
-                        },
-                        "relation": "exactMatch"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "mesh:D015179",
-                    "conceptType": "Disease",
-                    "name": "Colorectal Neoplasms",
-                    "mappings": [
-                      {
-                        "coding": {
-                          "id": "ncit:C2956",
-                          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                          "code": "C2956"
-                        },
-                        "relation": "exactMatch"
-                      }
-                    ]
-                  },
-                  {
                     "id": "mesh:D009369",
                     "conceptType": "Disease",
                     "name": "Neoplasms",
@@ -3945,6 +3915,36 @@
                           "id": "ncit:C2929",
                           "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
                           "code": "C2929"
+                        },
+                        "relation": "exactMatch"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "mesh:D006258",
+                    "conceptType": "Disease",
+                    "name": "Head and Neck Neoplasms",
+                    "mappings": [
+                      {
+                        "coding": {
+                          "id": "ncit:C4013",
+                          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                          "code": "C4013"
+                        },
+                        "relation": "exactMatch"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "mesh:D015179",
+                    "conceptType": "Disease",
+                    "name": "Colorectal Neoplasms",
+                    "mappings": [
+                      {
+                        "coding": {
+                          "id": "ncit:C2956",
+                          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                          "code": "C2956"
                         },
                         "relation": "exactMatch"
                       }

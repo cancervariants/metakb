@@ -2188,7 +2188,15 @@ def assertion_checks():
                     found_match = True
                     assert actual.keys() == expected.keys(), expected["id"]
                     expected_copy = deepcopy(expected)
-                    diff = DeepDiff(actual, expected_copy, ignore_order=True)
+                    diff = DeepDiff(
+                        actual,
+                        expected_copy,
+                        ignore_order=True,
+                        exclude_regex_paths=[
+                            r"\['digest'\]",  # digest is optional in return object
+                            r"\['reportedIn'\]\['id'\]",  # doc ID is optional in return object
+                        ],
+                    )
                     assert diff == {}, expected["id"]
                     continue
 

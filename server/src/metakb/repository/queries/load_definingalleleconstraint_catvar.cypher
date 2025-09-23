@@ -85,7 +85,7 @@ MERGE (member_sl:Location:SequenceLocation {id: m.has_location.id})
         start: m.has_location.start,
         end: m.has_location.end,
         refget_accession: m.has_location.refget_accession,
-        sequence: m.haslocation.sequence
+        sequence: m.has_location.sequence
       }
 MERGE (member_allele)-[:HAS_LOCATION]->(member_sl)
 
