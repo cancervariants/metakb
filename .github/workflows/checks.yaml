@@ -16,7 +16,7 @@ jobs:
           - 7687:7687
           - 7474:7474
         env:
-          NEO4J_AUTH: neo4j/test
+          NEO4J_AUTH: neo4j/test_password
           NEO4J_dbms_memory_heap_initial__size: 256m
           NEO4J_dbms_memory_heap_max__size: 512m
         options: >-
@@ -44,7 +44,7 @@ jobs:
         working-directory: ./server
         run: uv run pytest -m "ci_ok or ci_only"
         env:
-          METAKB_DB_URL: "bolt://neo4j:test@localhost:7687"
+          METAKB_DB_URL: "bolt://neo4j:test_password@localhost:7687"
 
   lint_backend:
     name: lint
