@@ -3,7 +3,11 @@
 import pytest
 from tests.conftest import get_mappings_normalizer_id
 
-from metakb.query import EmptySearchError, PaginationParamError, QueryHandler
+from metakb.services.search import (
+    EmptySearchError,
+    PaginationParamError,
+    search_statements,
+)
 
 from .utils import assert_no_match, find_and_check_stmt
 
@@ -19,59 +23,65 @@ def assert_general_search_stmts(response):
 
 
 @pytest.mark.asyncio(scope="module")
-async def test_civic_eid2997(query_handler, civic_eid2997_study_stmt, assertion_checks):
+async def test_civic_eid2997(
+    repository, normalizers, civic_eid2997_study_stmt, assertion_checks
+):
     """Test that search_statements method works correctly for CIViC EID2997"""
-    resp = await query_handler.search_statements(
-        statement_id=civic_eid2997_study_stmt["id"]
+    resp = await search_statements(
+        repository, normalizers, statement_id=civic_eid2997_study_stmt["id"]
     )
     statement_ids = [s.id for s in resp.statements]
     assert statement_ids == [civic_eid2997_study_stmt["id"]]
     resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
     assertion_checks(resp_stmts, [civic_eid2997_study_stmt])
 
-    resp = await query_handler.search_statements(variation="EGFR L858R")
+    resp = await search_statements(repository, normalizers, variation="EGFR L858R")
     find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks)
 
-    resp = await query_handler.search_statements(
-        variation="ga4gh:VA.S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ"
+    resp = await search_statements(
+        repository, normalizers, variation="ga4gh:VA.S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ"
     )
     find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks)
 
     # genomic query
-    resp = await query_handler.search_statements(variation="7-55259515-T-G")
+    resp = await search_statements(repository, normalizers, variation="7-55259515-T-G")
     find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks)
 
-    resp = await query_handler.search_statements(therapy="ncit:C66940")
+    resp = await search_statements(repository, normalizers, therapy="ncit:C66940")
     find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks)
 
-    resp = await query_handler.search_statements(gene="EGFR")
+    resp = await search_statements(repository, normalizers, gene="EGFR")
     find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks)
 
-    resp = await query_handler.search_statements(disease="nsclc")
+    resp = await search_statements(repository, normalizers, disease="nsclc")
     find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks)
 
     # We should not find CIViC EID2997 using these queries
-    resp = await query_handler.search_statements(statement_id="civic.eid:3017")
+    resp = await search_statements(
+        repository, normalizers, statement_id="civic.eid:3017"
+    )
     find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks, False)
 
-    resp = await query_handler.search_statements(variation="BRAF V600E")
+    resp = await search_statements(repository, normalizers, variation="BRAF V600E")
     find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks, False)
 
-    resp = await query_handler.search_statements(therapy="imatinib")
+    resp = await search_statements(repository, normalizers, therapy="imatinib")
     find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks, False)
 
-    resp = await query_handler.search_statements(gene="BRAF")
+    resp = await search_statements(repository, normalizers, gene="BRAF")
     find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks, False)
 
-    resp = await query_handler.search_statements(disease="DOID:9253")
+    resp = await search_statements(repository, normalizers, disease="DOID:9253")
     find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks, False)
 
 
 @pytest.mark.asyncio(scope="module")
-async def test_civic816(query_handler, civic_eid816_study_stmt, assertion_checks):
+async def test_civic816(
+    repository, normalizers, civic_eid816_study_stmt, assertion_checks
+):
     """Test that search_statements method works correctly for CIViC EID816"""
-    resp = await query_handler.search_statements(
-        statement_id=civic_eid816_study_stmt["id"]
+    resp = await search_statements(
+        repository, normalizers, statement_id=civic_eid816_study_stmt["id"]
     )
     statement_ids = [s.id for s in resp.statements]
     assert statement_ids == [civic_eid816_study_stmt["id"]]
@@ -79,18 +89,20 @@ async def test_civic816(query_handler, civic_eid816_study_stmt, assertion_checks
     assertion_checks(resp_stmts, [civic_eid816_study_stmt])
 
     # Try querying based on therapies in substitutes
-    resp = await query_handler.search_statements(therapy="Cetuximab")
+    resp = await search_statements(repository, normalizers, therapy="Cetuximab")
     find_and_check_stmt(resp, civic_eid816_study_stmt, assertion_checks)
 
-    resp = await query_handler.search_statements(therapy="Panitumumab")
+    resp = await search_statements(repository, normalizers, therapy="Panitumumab")
     find_and_check_stmt(resp, civic_eid816_study_stmt, assertion_checks)
 
 
 @pytest.mark.asyncio(scope="module")
-async def test_civic9851(query_handler, civic_eid9851_study_stmt, assertion_checks):
+async def test_civic9851(
+    repository, normalizers, civic_eid9851_study_stmt, assertion_checks
+):
     """Test that search_statements method works correctly for CIViC EID9851"""
-    resp = await query_handler.search_statements(
-        statement_id=civic_eid9851_study_stmt["id"]
+    resp = await search_statements(
+        repository, normalizers, statement_id=civic_eid9851_study_stmt["id"]
     )
     statement_ids = [s.id for s in resp.statements]
     assert statement_ids == [civic_eid9851_study_stmt["id"]]
@@ -98,18 +110,20 @@ async def test_civic9851(query_handler, civic_eid9851_study_stmt, assertion_chec
     assertion_checks(resp_stmts, [civic_eid9851_study_stmt])
 
     # Try querying based on therapies in components
-    resp = await query_handler.search_statements(therapy="Encorafenib")
+    resp = await search_statements(repository, normalizers, therapy="Encorafenib")
     find_and_check_stmt(resp, civic_eid9851_study_stmt, assertion_checks)
 
-    resp = await query_handler.search_statements(therapy="Cetuximab")
+    resp = await search_statements(repository, normalizers, therapy="Cetuximab")
     find_and_check_stmt(resp, civic_eid9851_study_stmt, assertion_checks)
 
 
 @pytest.mark.asyncio(scope="module")
-async def test_civic_assertion(query_handler, civic_aid6_statement, assertion_checks):
+async def test_civic_assertion(
+    repository, normalizers, civic_aid6_statement, assertion_checks
+):
     """Test that search_statements method works correctly for civic assertions"""
-    resp = await query_handler.search_statements(
-        statement_id=civic_aid6_statement["id"]
+    resp = await search_statements(
+        repository, normalizers, statement_id=civic_aid6_statement["id"]
     )
     statement_ids = [s.id for s in resp.statements]
     assert statement_ids == [civic_aid6_statement["id"]]
@@ -139,10 +153,10 @@ async def test_civic_assertion(query_handler, civic_aid6_statement, assertion_ch
 
 
 @pytest.mark.asyncio(scope="module")
-async def test_moa_66(query_handler, moa_aid66_study_stmt, assertion_checks):
+async def test_moa_66(repository, normalizers, moa_aid66_study_stmt, assertion_checks):
     """Test that search_statements method works correctly for MOA Assertion 66"""
-    resp = await query_handler.search_statements(
-        statement_id=moa_aid66_study_stmt["id"]
+    resp = await search_statements(
+        repository, normalizers, statement_id=moa_aid66_study_stmt["id"]
     )
 
     statement_ids = [s.id for s in resp.statements]
@@ -150,37 +164,39 @@ async def test_moa_66(query_handler, moa_aid66_study_stmt, assertion_checks):
     resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
     assertion_checks(resp_stmts, [moa_aid66_study_stmt])
 
-    resp = await query_handler.search_statements(variation="ABL1 Thr315Ile")
+    resp = await search_statements(repository, normalizers, variation="ABL1 Thr315Ile")
     find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks)
 
-    resp = await query_handler.search_statements(
-        variation="ga4gh:VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ"
+    resp = await search_statements(
+        repository, normalizers, variation="ga4gh:VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ"
     )
     find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks)
 
-    resp = await query_handler.search_statements(therapy="rxcui:282388")
+    resp = await search_statements(repository, normalizers, therapy="rxcui:282388")
     find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks)
 
-    resp = await query_handler.search_statements(gene="ncbigene:25")
+    resp = await search_statements(repository, normalizers, gene="ncbigene:25")
     find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks)
 
-    resp = await query_handler.search_statements(disease="CML")
+    resp = await search_statements(repository, normalizers, disease="CML")
     find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks)
 
     # We should not find MOA Assertion 67 using these queries
-    resp = await query_handler.search_statements(statement_id="moa.assertion:71")
+    resp = await search_statements(
+        repository, normalizers, statement_id="moa.assertion:71"
+    )
     find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks, False)
 
-    resp = await query_handler.search_statements(variation="BRAF V600E")
+    resp = await search_statements(repository, normalizers, variation="BRAF V600E")
     find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks, False)
 
-    resp = await query_handler.search_statements(therapy="Afatinib")
+    resp = await search_statements(repository, normalizers, therapy="Afatinib")
     find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks, False)
 
-    resp = await query_handler.search_statements(gene="ABL2")
+    resp = await search_statements(repository, normalizers, gene="ABL2")
     find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks, False)
 
-    resp = await query_handler.search_statements(disease="ncit:C2926")
+    resp = await search_statements(repository, normalizers, disease="ncit:C2926")
     find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks, False)
 
 
@@ -250,68 +266,82 @@ async def test_general_search_statements(query_handler):
 
 
 @pytest.mark.asyncio(scope="module")
-async def test_no_matches(query_handler):
+async def test_no_matches(repository, normalizers):
     """Test invalid queries"""
     # invalid vrs variation prefix (digest is correct)
-    resp = await query_handler.search_statements(
-        variation="ga4gh:variation.TAARa2cxRHmOiij9UBwvW-noMDoOq2x9"
+    resp = await search_statements(
+        repository,
+        normalizers,
+        variation="ga4gh:variation.TAARa2cxRHmOiij9UBwvW-noMDoOq2x9",
     )
     assert_no_match(resp)
 
     # invalid id
-    resp = await query_handler.search_statements(
-        disease="ncit:C292632425235321524352435623462"
+    resp = await search_statements(
+        repository, normalizers, disease="ncit:C292632425235321524352435623462"
     )
     assert_no_match(resp)
 
     # empty query
     with pytest.raises(EmptySearchError):
-        resp = await query_handler.search_statements()
+        resp = await search_statements(
+            repository,
+            normalizers,
+        )
 
     # valid queries, but no matches with combination
-    resp = await query_handler.search_statements(variation="BRAF V600E", gene="EGFR")
+    resp = await search_statements(
+        repository, normalizers, variation="BRAF V600E", gene="EGFR"
+    )
     assert_no_match(resp)
 
 
 @pytest.mark.asyncio(scope="module")
-async def test_paginate(query_handler: QueryHandler, normalizers):
+async def test_paginate(repository, normalizers):
     """Test pagination parameters."""
     braf_va_id = "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe"
-    full_response = await query_handler.search_statements(variation=braf_va_id)
-    paged_response = await query_handler.search_statements(
-        variation=braf_va_id, start=1
+    full_response = await search_statements(
+        repository, normalizers, variation=braf_va_id
+    )
+    paged_response = await search_statements(
+        repository, normalizers, variation=braf_va_id, start=1
     )
     # should be almost the same, just off by 1
     assert len(paged_response.statements) == len(full_response.statements) - 1
     assert paged_response.statements == full_response.statements[1:]
 
     # check that page limit > response doesn't affect response
-    huge_page_response = await query_handler.search_statements(
-        variation=braf_va_id, limit=1000
+    huge_page_response = await search_statements(
+        repository, normalizers, variation=braf_va_id, limit=1000
     )
     assert len(huge_page_response.statements) == len(full_response.statements)
     assert huge_page_response.statements == full_response.statements
 
     # get last item
-    last_response = await query_handler.search_statements(
-        variation=braf_va_id, start=len(full_response.statements) - 1
+    last_response = await search_statements(
+        repository,
+        normalizers,
+        variation=braf_va_id,
+        start=len(full_response.statements) - 1,
     )
     assert len(last_response.statements) == 1
     assert last_response.statements[0] == full_response.statements[-1]
 
     # test limit
-    min_response = await query_handler.search_statements(variation=braf_va_id, limit=1)
+    min_response = await search_statements(
+        repository, normalizers, variation=braf_va_id, limit=1
+    )
     assert min_response.statements[0] == full_response.statements[0]
 
     # test limit and start
-    other_min_response = await query_handler.search_statements(
-        variation=braf_va_id, start=1, limit=1
+    other_min_response = await search_statements(
+        repository, normalizers, variation=braf_va_id, start=1, limit=1
     )
     assert other_min_response.statements[0] == full_response.statements[1]
 
     # test limit of 0
-    empty_response = await query_handler.search_statements(
-        variation=braf_va_id, limit=0
+    empty_response = await search_statements(
+        repository, normalizers, variation=braf_va_id, limit=0
     )
     assert len(empty_response.statements) == 0
 
@@ -319,32 +349,8 @@ async def test_paginate(query_handler: QueryHandler, normalizers):
     with pytest.raises(
         PaginationParamError, match="Invalid start value: -1. Must be nonnegative."
     ):
-        await query_handler.search_statements(variation=braf_va_id, start=-1)
+        await search_statements(repository, normalizers, variation=braf_va_id, start=-1)
     with pytest.raises(
         PaginationParamError, match="Invalid limit value: -1. Must be nonnegative."
     ):
-        await query_handler.search_statements(variation=braf_va_id, limit=-1)
-
-    # test default limit
-    limited_query_handler = QueryHandler(normalizers=normalizers, default_page_limit=1)
-    default_limited_response = await limited_query_handler.search_statements(
-        variation=braf_va_id
-    )
-    assert len(default_limited_response.statements) == 1
-    assert default_limited_response.statements[0] == full_response.statements[0]
-
-    # test overrideable
-    less_limited_response = await limited_query_handler.search_statements(
-        variation=braf_va_id, limit=2
-    )
-    assert len(less_limited_response.statements) == 2
-    assert less_limited_response.statements == full_response.statements[:2]
-
-    # test default limit and skip
-    skipped_limited_response = await limited_query_handler.search_statements(
-        variation=braf_va_id, start=1
-    )
-    assert len(skipped_limited_response.statements) == 1
-    assert skipped_limited_response.statements[0] == full_response.statements[1]
-
-    limited_query_handler.driver.close()
+        await search_statements(repository, normalizers, variation=braf_va_id, limit=-1)

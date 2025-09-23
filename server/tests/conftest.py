@@ -9,11 +9,11 @@ import pytest
 from deepdiff import DeepDiff
 from dotenv import load_dotenv
 from ga4gh.core.models import ConceptMapping
+from neo4j import Driver
 
 from metakb.harvesters.base import Harvester
 from metakb.normalizers import ViccNormalizers
-from metakb.query import QueryHandler
-from metakb.repository.neo4j_repository import get_driver
+from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 from metakb.transformers.base import NormalizerExtensionName, Transformer
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
@@ -2230,9 +2230,8 @@ def driver():
     driver.close()
 
 
-@pytest.fixture(scope="module")
-def query_handler(driver, normalizers):
-    """Create query handler test fixture"""
-    qh = QueryHandler(driver=driver, normalizers=normalizers)
-    yield qh
-    qh.driver.close()
+@pytest.fixture
+def repository(driver: Driver):
+    """Provide a new repository session"""
+    with driver.session() as session:
+        return Neo4jRepository(session)
