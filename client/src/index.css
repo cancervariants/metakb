@@ -17,6 +17,7 @@ body,
 #root {
   height: 100%;
   background-color: lightgrey;
+  overflow: scroll;
 }
 
 a {
