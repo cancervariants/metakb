@@ -112,17 +112,50 @@ const GeneResult = () => {
   const [selectedEvidenceLevels, setSelectedEvidenceLevels] = useState<string[]>([])
   const [selectedSignificance, setSelectedSignificance] = useState<string[]>([])
 
-  const filteredResults = results[activeTab].filter((r) => {
-    const variantMatch = selectedVariants.length === 0 || selectedVariants.includes(r.variant_name)
-    const diseaseMatch = selectedDiseases.length === 0 || selectedDiseases.includes(r.disease)
-    const therapyMatch = selectedTherapies.length === 0 || selectedTherapies.includes(r.therapies)
+  const applyFilters = (
+  items: any[],
+  selected: {
+    variants: string[]
+    diseases: string[]
+    therapies: string[]
+    evidenceLevels: string[]
+    significance: string[]
+  },
+): any[] => {
+  return items.filter((r) => {
+    const variantMatch =
+      selected.variants.length === 0 || selected.variants.includes(r.variant_name)
+    const diseaseMatch =
+      selected.diseases.length === 0 || selected.diseases.includes(r.disease)
+    const therapyMatch =
+      selected.therapies.length === 0 || selected.therapies.includes(r.therapy)
     const levelMatch =
-      selectedEvidenceLevels.length === 0 || selectedEvidenceLevels.includes(r.evidence_level)
+      selected.evidenceLevels.length === 0 ||
+      selected.evidenceLevels.includes(r.evidence_level)
     const significanceMatch =
-      selectedSignificance.length === 0 || selectedSignificance.includes(r.significance)
+      selected.significance.length === 0 ||
+      selected.significance.includes(r.significance)
 
     return variantMatch && diseaseMatch && therapyMatch && levelMatch && significanceMatch
   })
+}
+
+const selectedFilters = {
+  variants: selectedVariants,
+  diseases: selectedDiseases,
+  therapies: selectedTherapies,
+  evidenceLevels: selectedEvidenceLevels,
+  significance: selectedSignificance,
+}
+
+const filteredByTab: Record<'therapeutic' | 'diagnostic' | 'prognostic', any[]> = {
+  therapeutic: applyFilters(results.therapeutic, selectedFilters),
+  diagnostic: applyFilters(results.diagnostic, selectedFilters),
+  prognostic: applyFilters(results.prognostic, selectedFilters),
+}
+
+const filteredResults = filteredByTab[activeTab]
+
 
   // Fetch when URL params change (source of truth is the URL)
   useEffect(() => {
@@ -268,9 +301,9 @@ const GeneResult = () => {
                 value={activeTab}
                 sx={{ marginBottom: 2 }}
               >
-                <Tab label="Therapeutic" value="therapeutic" />
-                <Tab label="Diagnostic" value="diagnostic" />
-                <Tab label="Prognostic" value="prognostic" />
+                <Tab label={`Therapeutic (${filteredByTab.therapeutic.length})`} value="therapeutic" />
+                <Tab label={`Diagnostic (${filteredByTab.diagnostic.length})`} value="diagnostic" />
+                <Tab label={`Prognostic (${filteredByTab.prognostic.length})`} value="prognostic" />
               </Tabs>
               <Typography variant="h6" mb={2} fontWeight="bold">
                 {activeTab} Search Results ({filteredResults?.length})
