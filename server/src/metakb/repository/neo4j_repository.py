@@ -504,11 +504,11 @@ class Neo4jRepository(AbstractRepository):
     ):
         result = self.session.execute_read(
             lambda tx, **kwargs: list(tx.run(self.queries.search_statements, **kwargs)),
-            variation_id=None,
-            therapy_id=None,
-            condition_id=None,
-            gene_id=None,
-            statement_id=statement_id,
+            variation_ids=[],
+            therapy_ids=[],
+            condition_ids=[],
+            gene_ids=[],
+            statement_ids=[statement_id],
             start=0,
             limit=9999,
         )
@@ -516,7 +516,7 @@ class Neo4jRepository(AbstractRepository):
             # TODO warning or error?
             return None
         if len(result) >= 2:
-            # how to log
+            # should be impossible due to uniqueness constraint, how to log?
             raise RuntimeError
         return self._get_statement_node_from_result(result[0])
 
@@ -538,11 +538,11 @@ class Neo4jRepository(AbstractRepository):
 
     def search_statements(
         self,
-        variation_id: str | None = None,
-        gene_id: str | None = None,
-        therapy_id: str | None = None,
-        disease_id: str | None = None,
-        statement_id: str | None = None,
+        variation_ids: list[str] | None = None,
+        gene_ids: list[str] | None = None,
+        therapy_ids: list[str] | None = None,
+        disease_ids: list[str] | None = None,
+        statement_ids: list[str] | None = None,
         start: int = 0,
         limit: int | None = None,
     ) -> list[
@@ -553,33 +553,18 @@ class Neo4jRepository(AbstractRepository):
     ]:
         """Perform entity-based search over all statements.
 
-        Return all statements matching all provided entity parameters.
-
-        Probable future changes
-        * Search by list of entities
-        * Combo-therapy specific search
-        * ConditionSet based search
-
-        :param variation_id: GA4GH variation ID
-        :param gene_id: normalized gene ID
-        :param therapy_id: normalized drug ID
-        :param disease_id: normalized condition ID
-        :param start: page start
-        :param limit: length of page
-        :return: list of matching statements
+        TODO update description
         """
-        if limit is None:
-            # arbitrary page size default -- this value can't be null
-            limit = CYPHER_PAGE_LIMIT
+        # IDs args MUST be lists -- can't be null
         result = self.session.execute_read(
             lambda tx, **kwargs: list(tx.run(self.queries.search_statements, **kwargs)),
-            variation_id=variation_id,
-            condition_id=disease_id,
-            gene_id=gene_id,
-            therapy_id=therapy_id,
-            statement_id=statement_id,
+            statement_ids=statement_ids or [],
+            variation_ids=variation_ids or [],
+            condition_ids=disease_ids or [],
+            gene_ids=gene_ids or [],
+            therapy_ids=therapy_ids or [],
             start=start,
-            limit=limit,
+            limit=limit or CYPHER_PAGE_LIMIT,
         )
         return self._get_statements_from_results(result)
 

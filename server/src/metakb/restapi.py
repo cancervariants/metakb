@@ -29,7 +29,11 @@ from metakb.schemas.api import (
     ServiceOrganization,
     ServiceType,
 )
-from metakb.services.search import EmptySearchError, search_statements
+from metakb.services.search import (
+    EmptySearchError,
+    batch_search_statements,
+    search_statements,
+)
 from metakb.utils import configure_logs
 
 
@@ -141,7 +145,6 @@ async def get_statements(
     that have both the provided `variation` and `therapy`.
     """
     start_time = perf_counter()
-    # repository: AbstractRepository = request.app.state.repository
     normalizer: ViccNormalizers = request.app.state.normalizer
     try:
         search_results = await search_statements(
@@ -223,6 +226,7 @@ _batch_descr = {
 )
 async def batch_get_statements(
     request: Request,
+    repository: Annotated[AbstractRepository, Depends(get_repository)],
     variations: Annotated[
         list[str] | None,
         Query(description=_batch_descr["arg_variations"]),
@@ -231,18 +235,24 @@ async def batch_get_statements(
     limit: Annotated[int | None, Query(description=_batch_descr["arg_limit"])] = None,
 ) -> BatchSearchStatementsResponse:
     """Fetch all statements associated with `any` of the provided variations."""
-    query = request.app.state.query
+    start_time = perf_counter()
+
+    normalizer: ViccNormalizers = request.app.state.normalizer
     try:
-        results = await query.batch_search_statements(variations, start, limit)
+        results = await batch_search_statements(
+            repository, normalizer, variations, start, limit
+        )
     except EmptySearchError as e:
         raise HTTPException(
             status_code=422,
             detail="At least one search parameter must be provided, but no variations values have been given.",
         ) from e
+    end_time = perf_counter()
     return BatchSearchStatementsResponse(
         search_terms=results.search_terms,
         start=start,
         limit=limit,
         service_meta_=ServiceMeta(),
         statements=results.statements,
+        duration_s=end_time - start_time,
     )

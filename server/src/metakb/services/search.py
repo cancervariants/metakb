@@ -1,22 +1,12 @@
 """Provide search services."""
 
 import logging
-from enum import Enum
 
 from metakb.normalizers import ViccNormalizers
 from metakb.repository.base import AbstractRepository
 from metakb.schemas.api import SearchResult, SearchTerm, SearchTermType
 
 _logger = logging.getLogger(__name__)
-
-
-class EntityType(str, Enum):
-    """Type of entity being searched."""
-
-    VARIATION = "variation"
-    DISEASE = "disease"
-    THERAPY = "therapy"
-    GENE = "gene"
 
 
 class EmptySearchError(Exception):
@@ -164,7 +154,6 @@ async def search_statements(
         search_terms.append(normalized_gene)
 
     # Check that queried statement_id is valid
-    # TODO figure out how to implement
     statement, statement_term = None, None
     if statement_id:
         statement = repository.get_statement(statement_id)
@@ -195,14 +184,75 @@ async def search_statements(
         statements = [statement]
     else:
         statements = repository.search_statements(
-            normalized_variation.resolved_id if normalized_variation else None,
-            normalized_gene.resolved_id if normalized_gene else None,
-            normalized_therapy.resolved_id if normalized_therapy else None,
-            normalized_disease.resolved_id if normalized_disease else None,
-            statement_id=None,
+            [normalized_variation.resolved_id] if normalized_variation else None,
+            [normalized_gene.resolved_id] if normalized_gene else None,
+            [normalized_therapy.resolved_id] if normalized_therapy else None,
+            [normalized_disease.resolved_id] if normalized_disease else None,
+            statement_ids=None,
             start=start,
             limit=limit,
         )
+    return SearchResult(
+        search_terms=search_terms, start=start, limit=limit, statements=statements
+    )
+
+
+async def batch_search_statements(
+    repository: AbstractRepository,
+    normalizer: ViccNormalizers,
+    variations: list[str] | None = None,
+    start: int = 0,
+    limit: int | None = None,
+) -> SearchResult:
+    """Fetch all statements associated with any of the provided variation description
+    strings.
+
+    Because this method could be expanded to include other kinds of search terms,
+    ``variations`` is optionally nullable.
+
+    >>> # TODO update code example
+    >>> response = await qh.batch_search_statements(["EGFR L858R"])
+    >>> response.statement_ids[:3]
+    ['civic.eid:229', 'civic.eid:3811', 'moa.assertion:268']
+
+    All terms are normalized, so redundant terms don't alter search results:
+
+    >>> redundant_response = await qh.batch_search_statements(
+    ...     ["EGFR L858R", "NP_005219.2:p.Leu858Arg"]
+    ... )
+    >>> len(response.statement_ids) == len(redundant_response.statement_ids)
+    True
+
+    :param repository:
+    :param normalizer:
+    :param variations: a list of variation description strings, e.g. ``["BRAF V600E"]``
+    :param start: Index of first result to fetch. Must be nonnegative.
+    :param limit: Max number of results to fetch. Must be nonnegative. Revert to
+        default defined at class initialization if not given.
+    :return: response object including all matching statements
+    :raise ValueError: if ``start`` or ``limit`` are nonnegative
+    :raise EmptySearchError: if no search params given
+    :raise PaginationParamError: if either pagination param given is negative
+    """
+    if start < 0:
+        msg = f"Invalid start value: {start}. Must be nonnegative."
+        raise PaginationParamError(msg)
+    if isinstance(limit, int) and limit < 0:
+        msg = f"Invalid limit value: {limit}. Must be nonnegative."
+        raise PaginationParamError(msg)
+
+    if not variations:
+        return SearchResult(search_terms=[], start=start, limit=limit, statements=[])
+
+    search_terms = [
+        await _get_normalized_variation(normalizer, v) for v in set(variations)
+    ]
+    variation_ids = [t.resolved_id for t in search_terms]
+    if not all(variation_ids):
+        return SearchResult(
+            search_terms=search_terms, start=start, limit=limit, statements=[]
+        )
+    statements = repository.search_statements(variation_ids=variation_ids)
     return SearchResult(
         search_terms=search_terms, start=start, limit=limit, statements=statements
     )

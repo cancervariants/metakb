@@ -1,36 +1,37 @@
+// Expect all params to be lists (possibly empty), never null:
+// $statement_ids, $variation_ids, $condition_ids, $gene_ids, $therapy_ids
 MATCH (s:Statement)
-WHERE
-  ($statement_id IS NULL OR
-    EXISTS {
-      MATCH (s {id: $statement_id})
-    })
+WHERE $statement_ids = [] OR s.id IN $statement_ids
 
-// use input args to select matching statements
 MATCH (s)-[:HAS_SUBJECT_VARIANT]->(cv:CategoricalVariant)
 MATCH (s)-[:HAS_TUMOR_TYPE]->(c:Condition)
 MATCH (s)-[:HAS_GENE_CONTEXT]->(g:Gene)
 WHERE
-  ($variation_id IS NULL OR
+  ($variation_ids = [] OR
     EXISTS {
       MATCH
         (cv)-[:HAS_CONSTRAINT]->
         (:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->
-        (:Allele {id: $variation_id})
+        (a:Allele)
+      WHERE a.id IN $variation_ids
     } OR
     EXISTS {
-      MATCH (cv)-[:HAS_MEMBER]->(:Allele {id: $variation_id})
+      MATCH (cv)-[:HAS_MEMBER]->(a:Allele)
+      WHERE a.id IN $variation_ids
     }) AND
-  ($condition_id IS NULL OR c.normalized_id = $condition_id) AND
-  ($gene_id IS NULL OR g.normalized_id = $gene_id) AND
-  ($therapy_id IS NULL OR
+  ($condition_ids = [] OR c.normalized_id IN $condition_ids) AND
+  ($gene_ids = [] OR g.normalized_id IN $gene_ids) AND
+  ($therapy_ids = [] OR
     EXISTS {
-      MATCH (s)-[:HAS_THERAPEUTIC]->(:Therapeutic {normalized_id: $therapy_id})
+      MATCH (s)-[:HAS_THERAPEUTIC]->(t:Therapeutic)
+      WHERE t.normalized_id IN $therapy_ids
     } OR
     EXISTS {
       MATCH
         (s)-[:HAS_THERAPEUTIC]->
         (:TherapyGroup)-[:HAS_SUBSTITUTES|HAS_COMPONENTS]->
-        (:Drug {normalized_id: $therapy_id})
+        (d:Drug)
+      WHERE d.normalized_id IN $therapy_ids
     })
 
 // get basic statement info

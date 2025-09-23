@@ -37,11 +37,11 @@ class AbstractRepository(abc.ABC):
     @abc.abstractmethod
     def search_statements(
         self,
-        variation_id: str | None = None,
-        gene_id: str | None = None,
-        therapy_id: str | None = None,
-        disease_id: str | None = None,
-        statement_id: str | None = None,
+        variation_ids: list[str] | None = None,
+        gene_ids: list[str] | None = None,
+        therapy_ids: list[str] | None = None,
+        disease_ids: list[str] | None = None,
+        statement_ids: list[str] | None = None,
         start: int = 0,
         limit: int | None = None,
     ) -> list[
@@ -52,19 +52,17 @@ class AbstractRepository(abc.ABC):
     ]:
         """Perform entity-based search over all statements.
 
-        Return all statements matching all provided entity parameters.
+        Return all statements matching any item within a given list of entity IDs.
+
+        IE: Given a list for [DrugA, DrugB] and [GeneA, GeneB], return all statements
+        that involve both one of the two given drugs AND one of the two given genes.
 
         Probable future changes
-        * Search by list of entities
         * Combo-therapy specific search
+        * Specific logic for searching diseases/conditionsets
+        * Search on source values rather than normalized values
 
-        :param variation_id: GA4GH variation ID
-        :param gene_id: normalized gene ID
-        :param therapy_id: normalized drug ID
-        :param disease_id: normalized condition ID
-        :param start: page start
-        :param limit: length of page
-        :return: list of matching statements
+        todo update description
         """
 
     @abc.abstractmethod
