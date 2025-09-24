@@ -66,7 +66,14 @@ class AbstractRepository(abc.ABC):
         * Specific logic for searching diseases/conditionsets
         * Search on source values rather than normalized values
 
-        todo update description
+        :param variation_ids: list of normalized variation IDs
+        :param gene_ids: list of normalized gene IDs
+        :param therapy_ids: list of normalized therapy IDs
+        :param disease_ids: list of normalized disease IDs
+        :param statement_ids: list of source statement IDs
+        :start: pagination start point
+        :limit: page size
+        :return: list of statements matching provided criteria
         """
 
     @abc.abstractmethod

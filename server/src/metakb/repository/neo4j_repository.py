@@ -94,6 +94,8 @@ class Neo4jCredentialsError(Exception):
 
 
 class _Neo4jConnectionParams(NamedTuple):
+    """Contain components of a Neo4j db connection"""
+
     username: str
     password: str
     url: str
@@ -163,7 +165,10 @@ class Neo4jRepository(AbstractRepository):
     """Neo4j implementation of a repository abstraction."""
 
     def __init__(self, session: Session) -> None:
-        """Initialize repository instance"""
+        """Initialize repository instance
+
+        :param session: Neo4j driver session
+        """
         self.session = session
 
     def initialize(
@@ -511,6 +516,14 @@ class Neo4jRepository(AbstractRepository):
         | PrognosticStatementNode
         | None
     ):
+        """Get the DB node model for a statement ID, to be attached to an Evidence Line.
+
+        This gives us a single level of recursion for statements that are supported by
+        evidence lines.
+
+        :param statement_id: ID of statement to fetch
+        :return: Node model containing all parts of the statement
+        """
         result = self.session.execute_read(
             lambda tx, **kwargs: list(
                 tx.run(queries_catalog.search_statements(), **kwargs)
@@ -564,7 +577,24 @@ class Neo4jRepository(AbstractRepository):
     ]:
         """Perform entity-based search over all statements.
 
-        TODO update description
+        Return all statements matching any item within a given list of entity IDs.
+
+        IE: Given a list for [DrugA, DrugB] and [GeneA, GeneB], return all statements
+        that involve both one of the two given drugs AND one of the two given genes.
+
+        Probable future changes
+        * Combo-therapy specific search
+        * Specific logic for searching diseases/conditionsets
+        * Search on source values rather than normalized values
+
+        :param variation_ids: list of normalized variation IDs
+        :param gene_ids: list of normalized gene IDs
+        :param therapy_ids: list of normalized therapy IDs
+        :param disease_ids: list of normalized disease IDs
+        :param statement_ids: list of source statement IDs
+        :start: pagination start point
+        :limit: page size
+        :return: list of statements matching provided criteria
         """
         if limit is None:
             limit = CYPHER_PAGE_LIMIT

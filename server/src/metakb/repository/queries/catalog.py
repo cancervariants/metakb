@@ -1,4 +1,8 @@
-"""Provide class for accessing static Neo4j queries."""
+"""Provide access to static Neo4j queries.
+
+All queries should be provided as functions wrapped by a cache decorator so that repeat
+fetches don't reload the file.
+"""
 
 from functools import cache
 from importlib.resources import files
@@ -8,6 +12,11 @@ _query_dir = Path(str(files("metakb.repository.queries")))
 
 
 def _load(filename: str) -> str:
+    """Load a query file
+
+    :param filename: path toquery file (probably relative location)
+    :return: file contents
+    """
     path = _query_dir / filename
     if not path.exists():
         raise FileNotFoundError(path)
@@ -15,7 +24,15 @@ def _load(filename: str) -> str:
 
 
 def _load_multiple_queries(filename: str) -> list[str]:
-    """Load a file containing multiple queries, separated by semicolons."""
+    """Load a file containing multiple queries, separated by semicolons.
+
+    For some actions, like adding a bunch of constraints, it's convenient to keep them
+    all in one file, but Neo4j will get mad if you try to get it to execute multiple
+    queries at once; this splits them up.
+
+    :param filename: path to file
+    :return: list of queries contained within, with comments removed
+    """
     raw_text = _load(filename)
     return " ".join(
         filter(None, [line.split("//")[0] for line in raw_text.split("\n")])

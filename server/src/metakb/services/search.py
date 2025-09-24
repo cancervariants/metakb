@@ -92,19 +92,19 @@ async def search_statements(
     For example, if ``variation`` and ``therapy`` are provided, will return all
     statements that have both the provided ``variation`` and ``therapy``.
 
-    >>> from metakb.query import QueryHandler
-    >>> qh = QueryHandler()
-    >>> result = qh.search_statements("BRAF V600E")
-    >>> result.statement_ids[:3]
-    ['moa.assertion:944', 'moa.assertion:911', 'moa.assertion:865']
+    >>> from metakb.repository.neo4j_repository import get_driver, Neo4jRepository
+    >>> from metakb.normalizers import ViccNormalizers
+    >>> from metakb.services.search import search_statements
+    >>> repo, normalizer = Neo4jRepository(get_driver()), ViccNormalizers()
+    >>> result = search_statements(repo, normalizer, variation="BRAF V600E")
     >>> result.statements[0].reportedIn[0].urls[0]
     'https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/202429s019lbl.pdf'
 
     Variation, disease, therapy, and gene terms are resolved via their respective
     :ref:`concept normalization services<normalization>`.
 
-    :param repository:
-    :param normalizer:
+    :param repository: data repository instance
+    :param normalizer: normalizers container instance
     :param variation: Variation query. Free text variation description, e.g.
         ``"BRAF V600E"``, or GA4GH variation ID, e.g.
         ``"ga4gh:VA.4XBXAxSAk-WyAu5H0S1-plrk_SCTW1PO"``. Case-insensitive.
@@ -210,15 +210,16 @@ async def batch_search_statements(
     Because this method could be expanded to include other kinds of search terms,
     ``variations`` is optionally nullable.
 
-    >>> # TODO update code example
-    >>> response = await qh.batch_search_statements(["EGFR L858R"])
-    >>> response.statement_ids[:3]
-    ['civic.eid:229', 'civic.eid:3811', 'moa.assertion:268']
+    >>> from metakb.repository.neo4j_repository import get_driver, Neo4jRepository
+    >>> from metakb.normalizers import ViccNormalizers
+    >>> from metakb.services.search import batch_search_statements
+    >>> repo, normalizer = Neo4jRepository(get_driver()), ViccNormalizers()
+    >>> response = await batch_search_statements(repo, normalizer, ["EGFR L858R"])
 
-    All terms are normalized, so redundant terms don't alter search results:
+    All terms are normalized, so redundant terms don't alter search results.
 
-    >>> redundant_response = await qh.batch_search_statements(
-    ...     ["EGFR L858R", "NP_005219.2:p.Leu858Arg"]
+    >>> redundant_response = await batch_search_statements(
+    ...     repo, normalizer, ["EGFR L858R", "NP_005219.2:p.Leu858Arg"]
     ... )
     >>> len(response.statement_ids) == len(redundant_response.statement_ids)
     True

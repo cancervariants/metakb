@@ -9,6 +9,11 @@ A few basic motifs are important here --
   reflect the relationship name used on the graph. This gets tricky in the context of
   array-like relationships, since the property name should be plural but the graph
   relationship name is usually singular. Not sure what the best solution is there.
+* The cypher queries employ `ON CREATE SET` to assign properties, which doesn't allow
+  for null values. That's why a lot of values default to empty arrays or strings.
+  These should be returned as `None` in the `to_gks()` method.
+* In general, nodes should have some deterministic ID based on their values, if an ID
+  isn't already given. This is to ensure that repeat nodes aren't inadvertently added.
 
 """
 
@@ -467,8 +472,8 @@ class DocumentNode(BaseNode):
     def from_gks(cls, document: Document) -> Self:
         """Create Node instance from GKS class.
 
-        **We need to work out a policy for handling ID-less documents -- ie the documents
-        used to back methods used by sources.
+        * Here, we define a policy about how to make document IDs in cases where the
+          CDM doesn't provide them (i.e. documents supporting source methods).
 
         :raise ValueError: if unable to employ existing ID construction scheme to fill in ID
         """
@@ -508,8 +513,6 @@ class DocumentNode(BaseNode):
 
     def to_gks(self) -> Document:
         """Create va-spec-python Document instance"""
-        # TODO this part is breaking tests. IDK why I did it?
-        # doc_id = None if self.id.startswith(("civic", "moa")) else self.id
         extensions = _Extensions(json.loads(self.extensions)).root
         return Document(
             id=self.id,
@@ -627,10 +630,7 @@ class EvidenceLineNode(BaseNode):
         )
 
     def to_gks(self) -> EvidenceLine:
-        """Create EvidenceLine instance.
-
-        To figure out: the node object just tracks IDs... maybe it should embed whole nodes
-        """
+        """Create EvidenceLine instance."""
         return EvidenceLine(
             directionOfEvidenceProvided=self.direction,
             hasEvidenceItems=[st.to_gks() for st in self.has_evidence_items],
@@ -674,7 +674,7 @@ class StatementNodeBase(BaseNode):
     Use as a mixin for a flattened statement/proposition node.
 
     Should be able to support both meta-level assertions about other statements, or
-    individual statements themselves (some of this may still be TBD)
+    individual statements themselves
     """
 
     id: str
