@@ -1,7 +1,7 @@
-﻿metakb.query
-============
+﻿metakb.repository.neo4j_models
+==============================
 
-.. automodule:: metakb.query
+.. automodule:: metakb.repository.neo4j_models
    :members:
    :undoc-members:
    :special-members: __init__
