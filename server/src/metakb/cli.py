@@ -336,9 +336,9 @@ async def transform_file(
 
 
 def _get_repository(db_url: str | None) -> Generator[AbstractRepository, None, None]:
-    """Acquire Neo4j graph driver.
+    """Acquire repository session instance for CLI functions.
 
-    This function wraps the core driver function in a generator to ensure proper lifespan
+    This function wraps the driver factory function in a generator to ensure proper lifespan
     management (i.e. close it when the session concludes)
 
     :param db_url: URL endpoint for the application Neo4j database.
@@ -348,6 +348,7 @@ def _get_repository(db_url: str | None) -> Generator[AbstractRepository, None, N
     session = driver.session()
     yield Neo4jRepository(session)
     session.close()
+    driver.close()
 
 
 @cli.command()

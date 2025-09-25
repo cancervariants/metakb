@@ -56,7 +56,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
 
 
 def get_repository() -> Generator[AbstractRepository, None, None]:
-    """Provide repository factory for dependency injection"""
+    """Provide repository factory for REST API route dependency injection
+
+    :return: generator yielding a repository instance. Performs cleanup when route
+        invocation concludes.
+    """
     session = app.state.driver.session()
     repository = Neo4jRepository(session)
     yield repository
