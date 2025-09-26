@@ -17,16 +17,11 @@ import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore import UNSIGNED
 from botocore.config import Config
-from neo4j import Driver
 
 from metakb import DATE_FMT, __version__
 from metakb.config import get_config
-from metakb.database import clear_graph as clear_metakb_graph
-from metakb.database import get_driver
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
-from metakb.load_data import load_from_json
-from metakb.log_handle import configure_logs
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
     IllegalUpdateError,
@@ -35,8 +30,15 @@ from metakb.normalizers import (
     update_normalizer,
 )
 from metakb.normalizers import check_normalizers as check_normalizer_health
+from metakb.repository.base import AbstractRepository
+from metakb.repository.neo4j_repository import (
+    Neo4jRepository,
+    get_driver,
+)
 from metakb.schemas.app import SourceName
+from metakb.services.manage_data import load_from_json
 from metakb.transformers import CivicTransformer, MoaTransformer
+from metakb.utils import configure_logs
 
 _logger = logging.getLogger(__name__)
 
@@ -333,17 +335,19 @@ async def transform_file(
     )
 
 
-def _get_driver(db_url: str | None) -> Generator[Driver, None, None]:
-    """Acquire Neo4j graph driver.
+def _get_repository(db_url: str | None) -> Generator[AbstractRepository, None, None]:
+    """Acquire repository session instance for CLI functions.
 
-    This function wraps the core driver function in a generator to ensure proper lifespan
+    This function wraps the driver factory function in a generator to ensure proper lifespan
     management (i.e. close it when the session concludes)
 
     :param db_url: URL endpoint for the application Neo4j database.
     :return: Graph driver instance
     """
     driver = get_driver(db_url)
-    yield driver
+    session = driver.session()
+    yield Neo4jRepository(session)
+    session.close()
     driver.close()
 
 
@@ -362,8 +366,8 @@ def clear_graph(db_url: str) -> None:
     \f
     :param db_url: connection string for the application Neo4j database.
     """  # noqa: D301
-    driver = next(_get_driver(db_url))
-    clear_metakb_graph(driver)
+    repository = next(_get_repository(db_url))
+    repository.teardown_db()
 
 
 @cli.command()
@@ -418,11 +422,12 @@ def load_cdm(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    driver = next(_get_driver(db_url))
+    repository = next(_get_repository(db_url))
+    repository.initialize()
 
     if cdm_files:
         for file in cdm_files:
-            load_from_json(file, driver)
+            load_from_json(file, repository)
     else:
         version = _retrieve_s3_cdms() if from_s3 else "*"
 
@@ -436,7 +441,7 @@ def load_cdm(
                 msg = f"No valid transformation file found matching pattern: {pattern}"
                 raise FileNotFoundError(msg) from e
 
-            load_from_json(path, driver)
+            load_from_json(path, repository)
 
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
@@ -499,7 +504,8 @@ async def update(
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    driver = next(_get_driver(db_url))
+    repository = next(_get_repository(db_url))
+    repository.initialize()
 
     if not sources:
         sources = tuple(SourceName)
@@ -513,9 +519,8 @@ async def update(
             msg = f"No valid transformation files found matching pattern: {pattern}"
             raise FileNotFoundError(msg) from e
 
-        load_from_json(path, driver)
+        load_from_json(path, repository)
 
-    driver.close()
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
 

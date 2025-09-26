@@ -7,13 +7,11 @@ from pathlib import Path
 
 import pytest
 from deepdiff import DeepDiff
-from dotenv import load_dotenv
 from ga4gh.core.models import ConceptMapping
 
-from metakb.database import get_driver
 from metakb.harvesters.base import Harvester
 from metakb.normalizers import ViccNormalizers
-from metakb.query import QueryHandler
+from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 from metakb.transformers.base import NormalizerExtensionName, Transformer
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
@@ -2190,7 +2188,15 @@ def assertion_checks():
                     found_match = True
                     assert actual.keys() == expected.keys(), expected["id"]
                     expected_copy = deepcopy(expected)
-                    diff = DeepDiff(actual, expected_copy, ignore_order=True)
+                    diff = DeepDiff(
+                        actual,
+                        expected_copy,
+                        ignore_order=True,
+                        exclude_regex_paths=[
+                            r"\['digest'\]",  # digest is optional in return object
+                            r"\['reportedIn'\]\['id'\]",  # doc ID is optional in return object
+                        ],
+                    )
                     assert diff == {}, expected["id"]
                     continue
 
@@ -2221,18 +2227,13 @@ def normalizers():
     return ViccNormalizers()
 
 
-@pytest.fixture(scope="module")
-def driver():
-    """Return Neo4j graph connection driver object."""
-    load_dotenv()
+@pytest.fixture
+def repository():
+    """Provide a new repository session"""
     driver = get_driver()
-    yield driver
+    session = driver.session()
+
+    yield Neo4jRepository(session)
+
+    session.close()
     driver.close()
-
-
-@pytest.fixture(scope="module")
-def query_handler(driver, normalizers):
-    """Create query handler test fixture"""
-    qh = QueryHandler(driver=driver, normalizers=normalizers)
-    yield qh
-    qh.driver.close()

@@ -1,7 +1,7 @@
-﻿metakb.load_data
-================
+﻿metakb.repository.queries.catalog
+=================================
 
-.. automodule:: metakb.load_data
+.. automodule:: metakb.repository.queries.catalog
    :members:
    :undoc-members:
    :special-members: __init__
