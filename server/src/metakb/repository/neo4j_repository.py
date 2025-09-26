@@ -592,8 +592,8 @@ class Neo4jRepository(AbstractRepository):
         :param therapy_ids: list of normalized therapy IDs
         :param disease_ids: list of normalized disease IDs
         :param statement_ids: list of source statement IDs
-        :start: pagination start point
-        :limit: page size
+        :param start: pagination start point
+        :param limit: page size
         :return: list of statements matching provided criteria
         """
         if limit is None:

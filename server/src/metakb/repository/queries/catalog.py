@@ -14,8 +14,9 @@ _query_dir = Path(str(files("metakb.repository.queries")))
 def _load(filename: str) -> str:
     """Load a query file
 
-    :param filename: path toquery file (probably relative location)
+    :param filename: path to query file (probably relative location)
     :return: file contents
+    :raise FileNotFoundError: if filename can't be found in queries directory
     """
     path = _query_dir / filename
     if not path.exists():

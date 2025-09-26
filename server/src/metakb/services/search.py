@@ -20,7 +20,7 @@ class PaginationParamError(Exception):
 def _get_normalized_disease(normalizer: ViccNormalizers, disease: str) -> SearchTerm:
     """Get normalized disease concept.
 
-    :param normalizer:
+    :param normalizer: Normalizer container instance
     :param disease: Disease query
     :return: A normalized disease concept if it exists
     """
@@ -33,7 +33,7 @@ def _get_normalized_disease(normalizer: ViccNormalizers, disease: str) -> Search
 def _get_normalized_gene(normalizer: ViccNormalizers, gene: str) -> SearchTerm:
     """Get normalized gene concept.
 
-    :param normalizer:
+    :param normalizer: normalizer container instance
     :param gene: Gene query
     :return: A normalized gene concept if it exists
     """
@@ -44,7 +44,7 @@ def _get_normalized_gene(normalizer: ViccNormalizers, gene: str) -> SearchTerm:
 def _get_normalized_therapy(normalizer: ViccNormalizers, therapy: str) -> SearchTerm:
     """Get normalized therapy concept.
 
-    :param normalizer:
+    :param normalizer: normalizer container instance
     :param therapy: Therapy query
     :return: A normalized therapy concept if it exists
     """
@@ -59,7 +59,7 @@ async def _get_normalized_variation(
 ) -> SearchTerm:
     """Get normalized variation concept.
 
-    :param normalizer:
+    :param normalizer: normalizer container instance
     :param variation: Variation query
     :return: A normalized variant concept if it exists
     """

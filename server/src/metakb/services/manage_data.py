@@ -152,9 +152,8 @@ def add_transformed_data(
 ) -> None:
     """Add set of data formatted per Common Data Model to DB.
 
-    :param driver: Neo4j driver instance
-    :param data: contains key/value pairs for data objects to add to DB, including
-        statements, variation, therapies, conditions, genes, methods, documents, etc.
+    :param statements: Statements from CDM
+    :param repository: data repository instance
     """
     loaded_stmt_count = 0
     for statement in statements:
@@ -172,7 +171,7 @@ def load_from_json(src_transformed_cdm: Path, repository: AbstractRepository) ->
     :param src_transformed_cdm: path to file for a source's transformed data to
         common data model containing statements, variation, therapies, conditions,
         genes, methods, documents, etc.
-    :param driver: Neo4j graph driver, if available
+    :param repository: data repository instance
     """
     _logger.info("Loading data from %s", src_transformed_cdm)
     with src_transformed_cdm.open() as f:
