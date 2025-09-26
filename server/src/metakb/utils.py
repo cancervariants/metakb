@@ -1,10 +1,4 @@
-"""Manage logging configurations.
-
-MetaKB is a downstream consumer of a *lot* of different data libraries that produce
-very noisy logs. We don't want to restrict our own downstream users too much, but need
-a way to manage logs in our own production environments, so the entry points that we
-define in the library make use of methods here to set some of our preferred baselines.
-"""
+"""Provide miscellaneous helper utilities."""
 
 import logging
 import os
@@ -29,6 +23,11 @@ def _quiet_upstream_libs() -> None:
 
 def configure_logs(log_level: int = logging.INFO, quiet_upstream: bool = True) -> None:
     """Configure logging.
+
+    MetaKB is a downstream consumer of a *lot* of different data libraries that produce
+    very noisy logs. We don't want to restrict our own downstream users too much, but need
+    a way to manage logs in our own production environments, so the entry points that we
+    define in the library make use of methods here to set some of our preferred baselines.
 
     :param log_level: global log level to set
     :param quiet_upstream: if True, turn off debug logging for a selection of libraries

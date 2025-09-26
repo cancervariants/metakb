@@ -1,7 +1,7 @@
-﻿metakb.database
-===============
+﻿metakb.config
+=============
 
-.. automodule:: metakb.database
+.. automodule:: metakb.config
    :members:
    :undoc-members:
    :special-members: __init__
