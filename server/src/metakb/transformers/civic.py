@@ -220,9 +220,12 @@ class CivicTransformer(Transformer):
         else:
             gks_evidence_item = evidence_item
 
-        updated_proposition = await self._get_updated_proposition(
-            gks_evidence_item.proposition
-        )
+        try:
+            updated_proposition = await self._get_updated_proposition(
+                gks_evidence_item.proposition
+            )
+        except NotImplementedError:
+            return None
 
         if not self.processed_data.methods:
             self.processed_data.methods.append(gks_evidence_item.specifiedBy)
@@ -278,10 +281,11 @@ class CivicTransformer(Transformer):
             _logger.warning(e)
             return
 
-        updated_proposition = await self._get_updated_proposition(
-            gks_assertion.proposition
-        )
-        if not updated_proposition:
+        try:
+            updated_proposition = await self._get_updated_proposition(
+                gks_assertion.proposition
+            )
+        except NotImplementedError:
             return
 
         for el in gks_assertion.hasEvidenceLines or []:
@@ -314,6 +318,7 @@ class CivicTransformer(Transformer):
         info.
 
         :param proposition: Proposition for a given statement
+        :return: Annotated proposition
         """
 
         async def _add_therapy(therapy: CivicGksTherapy) -> MappableConcept:
@@ -330,6 +335,12 @@ class CivicTransformer(Transformer):
                 self._cache.therapies,
                 self.processed_data.therapies,
             )
+
+        updated_molecular_profile = await self._resolve_entity(
+            proposition.subjectVariant,
+            self._cache.categorical_variants,
+            self.processed_data.categorical_variants,
+        )
 
         if getattr(proposition, "objectCondition", None):
             condition_key = "objectCondition"
@@ -351,12 +362,6 @@ class CivicTransformer(Transformer):
             proposition.geneContextQualifier,
             self._cache.genes,
             self.processed_data.genes,
-        )
-
-        updated_molecular_profile = await self._resolve_entity(
-            proposition.subjectVariant,
-            self._cache.categorical_variants,
-            self.processed_data.categorical_variants,
         )
 
         updated_mappings = {
@@ -555,8 +560,10 @@ class CivicTransformer(Transformer):
         :return: Categorical Variant or Protein Sequence Consequence with additional
             info, such as normalizer info.
             A Protein Sequence Consequence will be returned only if the molecular
-            profile successfully normalizes, otherwise a Categorical Variant will be
-            returned.
+            profile is a protein variant and it successfully normalizes, otherwise a
+            Categorical Variant will be returned.
+        :raises NotImplementedError: For molecular profiles with c. in the name.
+            This will be added in issue-225.
         """
 
         def _get_psc_constraints(allele: Allele) -> list[Constraint]:
@@ -602,6 +609,12 @@ class CivicTransformer(Transformer):
             )
             mp_name = None
         else:
+            is_cdna = bool(mp_match.c_change)
+            if is_cdna:
+                msg = "cDNA variant not yet supported. This will be added in issue-225"
+                _logger.warning(msg)
+                raise NotImplementedError(msg)
+
             mp_name = f"{mp_match.gene} {mp_match.p_change}"
 
             is_supported_query = self._is_supported_variant_query(mp_name, mp_id)
@@ -632,7 +645,8 @@ class CivicTransformer(Transformer):
             )
 
             # Get members
-            protein_expressions = []
+            syntax = Syntax.HGVS_P
+            syntax_expressions = []
             if expressions_ext := next(
                 (
                     ext
@@ -642,15 +656,17 @@ class CivicTransformer(Transformer):
                 None,
             ):
                 expressions = expressions_ext.value
-                members = await self._get_mp_members(expressions, incl_protein=False)
-                protein_expressions = [
-                    expr for expr in expressions if expr.syntax == Syntax.HGVS_P
+                members = await self._get_mp_members(
+                    expressions, syntax_to_exclude=syntax
+                )
+                syntax_expressions = [
+                    expr for expr in expressions if expr.syntax == syntax
                 ]
 
             annotated_variation_root = annotated_variation.root
             if isinstance(annotated_variation_root, Allele):
-                if protein_expressions:
-                    annotated_variation_root.expressions = protein_expressions
+                if syntax_expressions:
+                    annotated_variation_root.expressions = syntax_expressions
 
                 constraints = _get_psc_constraints(annotated_variation_root)
 
@@ -667,23 +683,21 @@ class CivicTransformer(Transformer):
         )
 
     async def _get_mp_members(
-        self, expressions: list[Expression], incl_protein: bool = False
+        self, expressions: list[Expression], syntax_to_exclude: Syntax
     ) -> list[Variation]:
         """Get molecular profile members. This is the related variant concepts.
 
         Successfully normalized variants will be stored in ``processed_data.variations``
 
         :param expressions: List of HGVS expressions
-        :param incl_protein: Whether or not protein expression should be included in
-            members. Usually set to ``False`` if it's included in the defining allele
-            constraint.
+        :param syntax_to_exclude: Syntax expression to exclude since it's included in
+            the defining allele constraint
         :return: List containing one VRS variation record for each associated HGVS
             expression, if variation-normalizer was able to normalize
         """
         members = []
         for expression in expressions:
-            # Protein variant is stored as defining allele constraint
-            if expression.syntax == Syntax.HGVS_P and not incl_protein:
+            if expression.syntax == syntax_to_exclude:
                 continue
 
             hgvs_expr = expression.value

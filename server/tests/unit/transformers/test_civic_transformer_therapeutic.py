@@ -178,7 +178,7 @@ def fake_evidence():
 async def data(civic_cdm_data):
     """Create a CIViC Transformer test fixture."""
     eid_2997 = civicpy.get_evidence_by_id(2997)
-    eids = [816, 9851]
+    eids = [816, 9851, 1608]
     evidence_items = [civicpy.get_evidence_by_id(eid) for eid in eids] + [eid_2997]
 
     # We only care about testing one evidence item
