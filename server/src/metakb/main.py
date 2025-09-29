@@ -4,15 +4,20 @@ import logging
 from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager
 from enum import Enum
+from pathlib import Path
 from time import perf_counter
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from ga4gh.va_spec.base import (
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
+from starlette.templating import Jinja2Templates
+from starlette.templating import _TemplateResponse as TemplateResponse
 
 from metakb import __version__
 from metakb.config import get_config
@@ -38,6 +43,8 @@ from metakb.services.search import (
     search_statements,
 )
 from metakb.utils import configure_logs
+
+_logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -67,6 +74,9 @@ def get_repository() -> Generator[AbstractRepository, None, None]:
     session.close()
 
 
+API_PREFIX = "/api/v2"
+
+
 app = FastAPI(
     title="The VICC Meta-Knowledgebase",
     description=METAKB_DESCRIPTION,
@@ -80,11 +90,73 @@ app = FastAPI(
         "email": "Alex.Wagner@nationwidechildrens.org",
         "url": "https://www.nationwidechildrens.org/specialties/institute-for-genomic-medicine/research-labs/wagner-lab",
     },
-    docs_url="/api/v2",
+    docs_url=API_PREFIX,
     openapi_url="/api/v2/openapi.json",
     swagger_ui_parameters={"tryItOutEnabled": True},
     lifespan=lifespan,
 )
+
+# TODO double check that this is necessary
+# if it is, write up why
+origins = ["http://localhost", "http://localhost:3000"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+BUILD_DIR = Path(__file__).parent / "build"
+
+
+def serve_react_app(app: FastAPI) -> FastAPI:
+    """Wrap application initialization in Starlette route param converter. This ensures
+    that the static web client files can be served from the backend.
+
+    Client source must be available at the location specified by `BUILD_DIR` in a
+    production environment. However, this may not be necessary during local development,
+    so the `RuntimeError` is simply caught and logged.
+
+    For the live service, `.ebextensions/01_build.config` includes code to build a
+    production version of the client and move it to the proper location.
+    """
+    try:
+        assets = StaticFiles(directory=BUILD_DIR / "assets")
+    except RuntimeError:
+        _logger.exception(
+            "Unable to access static build files '%s' -- does the folder exist?",
+            BUILD_DIR,
+        )
+    else:
+        app.mount(
+            "/assets/",
+            assets,
+            name="Vite application assets",
+        )
+        templates = Jinja2Templates(directory=BUILD_DIR.as_posix())
+
+        @app.get(f"{API_PREFIX}/{{full_path:path}}", include_in_schema=False)
+        async def serve_react_app(request: Request, full_path: str) -> TemplateResponse:  # noqa: ARG001
+            """Add arbitrary path support to FastAPI service.
+
+            React-router provides something akin to client-side routing based out
+            of the Javascript embedded in index.html. However, FastAPI will intercede
+            and handle all client requests, and will 404 on any non-server-defined paths.
+            This function reroutes those otherwise failed requests against the React-Router
+            client, allowing it to redirect the client to the appropriate location.
+
+            :param request: client request object
+            :param full_path: request path
+            :return: Starlette template response object
+            """
+            return templates.TemplateResponse("index.html", {"request": request})
+
+    return app
+
+
+app = serve_react_app(app)
 
 
 class _Tag(str, Enum):
@@ -95,7 +167,7 @@ class _Tag(str, Enum):
 
 
 @app.get(
-    "/service-info",
+    f"{API_PREFIX}/service-info",
     summary="Get basic service information",
     description="Retrieve service metadata, such as versioning and contact info. Structured in conformance with the [GA4GH service info API specification](https://www.ga4gh.org/product/service-info/)",
     tags=[_Tag.META],
@@ -127,7 +199,7 @@ limit_description = "The maximum number of results to return. Use for pagination
 
 
 @app.get(
-    "/api/v2/search/statements",
+    f"{API_PREFIX}/search/statements",
     summary=search_stmts_summary,
     response_model_exclude_none=True,
     description=search_stmts_descr,
@@ -223,7 +295,7 @@ _batch_descr = {
 
 
 @app.get(
-    "/api/v2/batch_search/statements",
+    f"{API_PREFIX}/batch_search/statements",
     summary=_batch_descr["summary"],
     response_model_exclude_none=True,
     description=_batch_descr["description"],
