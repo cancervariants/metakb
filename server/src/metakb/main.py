@@ -1,4 +1,4 @@
-"""Main application for FastAPI."""
+"""Main application entrypoint."""
 
 import logging
 from collections.abc import AsyncGenerator
@@ -99,15 +99,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 BUILD_DIR = Path(__file__).parent / "build"
-app.mount("/assets", StaticFiles(directory=BUILD_DIR / "assets"), name="assets")
-templates = Jinja2Templates(directory=BUILD_DIR.as_posix())
+try:
+    app.mount("/assets", StaticFiles(directory=BUILD_DIR / "assets"), name="assets")
+except RuntimeError:
+    _logger.warning(
+        "Unable to locate static frontend files under path `%s`. Proceeding without defining `get_client()`"
+    )
+else:
+    templates = Jinja2Templates(directory=BUILD_DIR.as_posix())
 
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def get_client(request: Request, full_path: str):  # noqa: ANN201, ARG001
+        """Serve static client files
 
-@app.get("/{full_path:path}", include_in_schema=False)
-async def spa(request: Request, full_path: str):
-    """Serve static client files
-
-    This route should be the VERY LAST thing associated with the Fastapi `app` object,
-    because it should shadow all unclaimed paths
-    """
-    return templates.TemplateResponse("index.html", {"request": request})
+        This route should be the VERY LAST thing associated with the Fastapi `app` object,
+        because it should shadow all unclaimed paths
+        """
+        return templates.TemplateResponse("index.html", {"request": request})

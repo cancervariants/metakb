@@ -1,3 +1,5 @@
+"""Declare search API endpoints"""
+
 from time import perf_counter
 from typing import Annotated
 
