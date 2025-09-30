@@ -7,6 +7,7 @@ from enum import Enum
 from pathlib import Path
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -91,11 +92,9 @@ def service_info() -> ServiceInfo:
     )
 
 
-from fastapi.middleware.cors import CORSMiddleware
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # or ["*"] temporarily
+    allow_origins=["*"],  # TODO should be changed for prod I think
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -104,7 +103,11 @@ app.mount("/assets", StaticFiles(directory=BUILD_DIR / "assets"), name="assets")
 templates = Jinja2Templates(directory=BUILD_DIR.as_posix())
 
 
-# Catch-all for the SPA (put this LAST so it doesn't shadow others)
 @app.get("/{full_path:path}", include_in_schema=False)
 async def spa(request: Request, full_path: str):
+    """Serve static client files
+
+    This route should be the VERY LAST thing associated with the Fastapi `app` object,
+    because it should shadow all unclaimed paths
+    """
     return templates.TemplateResponse("index.html", {"request": request})
