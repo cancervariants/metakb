@@ -109,54 +109,57 @@ app.add_middleware(
 
 
 BUILD_DIR = Path(__file__).parent / "build"
+app.mount("/assets", StaticFiles(directory=BUILD_DIR / "assets"), name="assets")
+
+templates = Jinja2Templates(directory=BUILD_DIR.as_posix())
 
 
-def serve_react_app(app: FastAPI) -> FastAPI:
-    """Wrap application initialization in Starlette route param converter. This ensures
-    that the static web client files can be served from the backend.
-
-    Client source must be available at the location specified by `BUILD_DIR` in a
-    production environment. However, this may not be necessary during local development,
-    so the `RuntimeError` is simply caught and logged.
-
-    For the live service, `.ebextensions/01_build.config` includes code to build a
-    production version of the client and move it to the proper location.
-    """
-    try:
-        assets = StaticFiles(directory=BUILD_DIR / "assets")
-    except RuntimeError:
-        _logger.exception(
-            "Unable to access static build files '%s' -- does the folder exist?",
-            BUILD_DIR,
-        )
-    else:
-        app.mount(
-            "/assets/",
-            assets,
-            name="Vite application assets",
-        )
-        templates = Jinja2Templates(directory=BUILD_DIR.as_posix())
-
-        @app.get(f"{API_PREFIX}/{{full_path:path}}", include_in_schema=False)
-        async def serve_react_app(request: Request, full_path: str) -> TemplateResponse:  # noqa: ARG001
-            """Add arbitrary path support to FastAPI service.
-
-            React-router provides something akin to client-side routing based out
-            of the Javascript embedded in index.html. However, FastAPI will intercede
-            and handle all client requests, and will 404 on any non-server-defined paths.
-            This function reroutes those otherwise failed requests against the React-Router
-            client, allowing it to redirect the client to the appropriate location.
-
-            :param request: client request object
-            :param full_path: request path
-            :return: Starlette template response object
-            """
-            return templates.TemplateResponse("index.html", {"request": request})
-
-    return app
-
-
-app = serve_react_app(app)
+# def serve_react_app(app: FastAPI) -> FastAPI:
+#     """Wrap application initialization in Starlette route param converter. This ensures
+#     that the static web client files can be served from the backend.
+#
+#     Client source must be available at the location specified by `BUILD_DIR` in a
+#     production environment. However, this may not be necessary during local development,
+#     so the `RuntimeError` is simply caught and logged.
+#
+#     For the live service, `.ebextensions/01_build.config` includes code to build a
+#     production version of the client and move it to the proper location.
+#     """
+#     try:
+#         assets = StaticFiles(directory=BUILD_DIR / "assets")
+#     except RuntimeError:
+#         _logger.exception(
+#             "Unable to access static build files '%s' -- does the folder exist?",
+#             BUILD_DIR,
+#         )
+#     else:
+#         app.mount(
+#             "/assets/",
+#             assets,
+#             name="Vite application assets",
+#         )
+#         templates = Jinja2Templates(directory=BUILD_DIR.as_posix())
+#
+#         @app.get(f"{API_PREFIX}/{{full_path:path}}", include_in_schema=False)
+#         async def serve_react_app(request: Request, full_path: str) -> TemplateResponse:  # noqa: ARG001
+#             """Add arbitrary path support to FastAPI service.
+#
+#             React-router provides something akin to client-side routing based out
+#             of the Javascript embedded in index.html. However, FastAPI will intercede
+#             and handle all client requests, and will 404 on any non-server-defined paths.
+#             This function reroutes those otherwise failed requests against the React-Router
+#             client, allowing it to redirect the client to the appropriate location.
+#
+#             :param request: client request object
+#             :param full_path: request path
+#             :return: Starlette template response object
+#             """
+#             return templates.TemplateResponse("index.html", {"request": request})
+#
+#     return app
+#
+#
+# app = serve_react_app(app)
 
 
 class _Tag(str, Enum):
@@ -333,3 +336,9 @@ async def batch_get_statements(
         statements=results.statements,
         duration_s=end_time - start_time,
     )
+
+
+# Catch-all for the SPA (put this LAST so it doesn't shadow others)
+@app.get("/{full_path:path}", include_in_schema=False)
+async def spa(request: Request, full_path: str):
+    return templates.TemplateResponse("index.html", {"request": request})
