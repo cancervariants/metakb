@@ -94,7 +94,8 @@ def service_info() -> ServiceInfo:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # TODO should be changed for prod I think
+    allow_origins=["http://localhost", "http://localhost:3000"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
