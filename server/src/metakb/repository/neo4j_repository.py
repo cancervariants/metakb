@@ -146,8 +146,21 @@ def get_driver(
     :return: Neo4j driver instance
     """
     configs = get_config()
-    if configs.env == ServiceEnvironment.PROD:
-        # overrule ANY provided configs and get connection url from AWS secrets
+    if configs.env in (
+        ServiceEnvironment.PROD,
+        ServiceEnvironment.STAGING,
+        ServiceEnvironment.DEV,
+    ):
+        if url:
+            _logger.warning(
+                "Overriding DB connection string from `url` param because %s environment is declared",
+                configs.env,
+            )
+        if configs.db_url:
+            _logger.warning(
+                "Overriding DB connection string from env variable because %s environment is declared",
+                configs.env,
+            )
         secret = ast.literal_eval(_get_secret())
         url = f"bolt://{secret['username']}:{secret['password']}@{secret['host']}:{secret['port']}"
     elif url:
