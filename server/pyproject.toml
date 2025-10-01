@@ -47,6 +47,12 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
+deploy = [
+    "uvloop",
+    "websockets",
+    "httptools",
+    "typing-extensions",
+]
 tests = [
     "pytest",
     "pytest-cov",
