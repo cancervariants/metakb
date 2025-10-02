@@ -1,14 +1,36 @@
+import os
+from os import environ
+environ["AWS_ACCESS_KEY_ID"]="dummy"
+environ["AWS_SECRET_ACCESS_KEY"]="dummy"
+environ["AWS_SESSION_TOKEN"]="dummy"
+# environ["SEQREPO_ROOT_DIR"]="/usr/local/share/seqrepo/2024-12-20"
+# os.environ["SEQREPO_ROOT_DIR"] = "/usr/local/share/seqrepo/2024-12-20"
+# os.environ["SEQREPO_ROOT"] = "/usr/local/share/seqrepo/2024-12-20"
+
 from metakb.transformers.base import (
-    Transformer 
+    Transformer
 )
 import pandas as pd
-import os
 import requests
 import time
 import pprint
 from urllib.parse import quote_plus
 import re
 import json
+from tqdm import tqdm
+from typing import List
+
+import logging
+_logger = logging.getLogger(__name__)
+
+from ga4gh.core.models import (
+    Coding,
+    ConceptMapping,
+    Extension,
+    MappableConcept,
+    Relation,
+)
+
 
 
 MUT_HEADERS = ['Hugo_Symbol',
@@ -51,8 +73,8 @@ class cBioportalTransformer(Transformer):
     # TODO: TypeError: Can't instantiate abstract class cBioportalTransformer without an implementation for abstract method '_create_cache'
 
     def __init__(self):
+        super().__init__()
         self.final_df = None
-        pass
 
     # TODO: These private methods don't do anything meaningful right towards cbioportal data now
     def _get_therapeutic_substitute_group(self, therapeutic_sub_group_id, therapies, therapy_interaction_type):
@@ -558,8 +580,87 @@ class cBioportalTransformer(Transformer):
                     df.at[idx, "hgnc_id_match"] = "no_match"
                     print(f"❌ Row {idx}: Y chromosome mismatch. gene_hgnc_id={gene_id}, y_hgnc_id={y_id}")
         return df
+    # Gene mappable concept
+    # loop to get variant data processed
+    def _get_exact_gene_mappings(self, hgnc_id: str, gene_symbol: str) -> list[ConceptMapping]:
+        """ Get HGNC gene mapping 
+
+        param hgnc_id: the unique numeric identifier provided by HGNC to each gene (with no "hgnc:" prefix) that is present in the CBP data in the column gene_hgnc_id
+        param gene_symbol: the gene symbol provided in the CBP data in the column Hugo_Symbol
+
+        return: Concept Mapping for HGNC Gene
+        """
+
+        #if there is a value in the gene_hgnc_id column that is the string "untested"
+        if not hgnc_id or hgnc_id == "untested":
+            return []
+        
+        #add the "hgnc:" prefix to the unique numeric identifier
+        gene_id = f"hgnc:{hgnc_id}"
+
+        return[
+            ConceptMapping(
+                coding=Coding(
+                    id= gene_id,
+                    name=gene_symbol,
+                    code=gene_id.upper(),
+                    system="https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+                ),
+                relation=Relation.EXACT_MATCH,
+                extensions= [Extension(name="cbioportal_annotation", value=True)],
+            )]
+
+    def _add_genes(self, genes:list[dict]) -> list:
+            """Create gene objects for all CBP records.
+
+            Mutates instance variables ``_cache.genes`` and ``processed_data.genes``
+
+            :param genes: All genes in CBP
+            """
+            transform_genes = []
+
+        #for gene in genes: #if want ot remove tqdm for backend
+            for gene in tqdm(genes, desc="Processing genes"):
+
+                gene_symbol = gene.get("Hugo_Symbol")
+                hgnc_id = gene.get("gene_hgnc_id")
 
 
+                queries = [hgnc_id, gene_symbol] if hgnc_id and hgnc_id != "untested" else [gene_symbol]
+                extensions = []
+
+                normalized_gene_id = None
+                gene_norm_resp = None
+
+                for query in queries:
+                    gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(query)
+                    if normalized_gene_id:
+                        break
+
+                cbp_mappings = _get_exact_gene_mappings(hgnc_id,gene_symbol)
+
+                if not normalized_gene_id:
+                    _logger.debug(
+                        "Gene Normalizer unable to normalize: using queries %s",
+                        queries,
+                    )
+                    mappings = cbp_mappings
+                    extensions.append(self._get_vicc_normalizer_failure_ext())
+                else:
+                    mappings = self._get_vicc_normalizer_mappings(normalized_gene_id, gene_norm_resp)
+                    #self._update_normalizer_mappings(mappings, _get_exact_gene_mappings) 
+                    #TODO: add this back, figure out how
+
+                cbp_gene = MappableConcept(
+                    conceptType="Gene",
+                    name=gene_symbol,
+                    mappings=mappings,
+                    extensions=extensions or None,
+                )
+                transform_genes.append(cbp_gene)
+
+                #self._cache.genes[gene_symbol] = cbp_gene
+            return transform_genes
 
 
     def transform(self, harvested_data):
@@ -761,13 +862,25 @@ class cBioportalTransformer(Transformer):
 
         self.final_df = final_df
         print('Done!')
-        return final_df
+        # return final_df
     
+        # Mappable gene object
+        genes = final_df.to_dict(orient='records')
+        print(genes[0:5])
+
+        mappable_genes = self._add_genes(genes)
+        print(mappable_genes)
 
 
 
+        return final_df
 
-
+        
+    
+        #Convert CBP data df to a list of dictionaries (each row its own dictionary)
+        # genes = df.to_dict(orient='records')
+        #Take just a subset to test
+        # sub_genes = genes[0:5]
 
 
         # TODO: Method's for mapping cleaned up data to Common Data Model format
