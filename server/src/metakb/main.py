@@ -106,6 +106,7 @@ except RuntimeError:
     _logger.warning(
         "Unable to locate static frontend files under path `%s`. Proceeding without defining `get_client()`"
     )
+    _logger.debug("Build dir contents: %s", BUILD_DIR.rglob("*"))
 else:
     templates = Jinja2Templates(directory=BUILD_DIR.as_posix())
 
