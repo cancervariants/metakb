@@ -31,3 +31,5 @@ requirements:
 	cd $(SERVER_DIR) && uv pip freeze --exclude-editable > "$$tmp"; \
 	mv "$$tmp" "$$dest"; \
 	echo "Updated $$dest"
+	uv sync --all-extras
+	echo "Restored full dev environment"
