@@ -43,6 +43,7 @@ dependencies = [
     "boto3",
     "botocore",
     "asyncclick",
+    "jinja2",
 ]
 dynamic = ["version"]
 

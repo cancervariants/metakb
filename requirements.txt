@@ -11,8 +11,8 @@ backoff==2.2.1
 backports-datetime-fromisoformat==2.0.3
 biocommons-seqrepo==0.6.11
 bioutils==0.6.1
-boto3==1.40.42
-botocore==1.40.42
+boto3==1.40.43
+botocore==1.40.43
 canonicaljson==2.0.0
 cattrs==25.2.0
 certifi==2025.8.3
@@ -43,8 +43,10 @@ importlib-metadata==8.7.0
 importlib-resources==6.5.2
 ipython==8.37.0
 jedi==0.19.2
+jinja2==3.1.6
 jmespath==1.0.1
 markdown-it-py==4.0.0
+markupsafe==3.0.3
 matplotlib-inline==0.1.7
 mdurl==0.1.2
 mwoauth==0.4.0
