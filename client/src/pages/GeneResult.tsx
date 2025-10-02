@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Header from '../components/Header'
 import { Box, Button, Chip, CircularProgress, Stack, Tab, Tabs, Typography } from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
@@ -35,6 +35,7 @@ const formatTherapies = (objectTherapeutic: any): string | null => {
 
   return null
 }
+// aliases and description in geneContextQualifier
 
 const formatSignificance = (predicate: string): string => {
   if (predicate === 'predictsSensitivityTo') {
@@ -112,50 +113,62 @@ const GeneResult = () => {
   const [selectedEvidenceLevels, setSelectedEvidenceLevels] = useState<string[]>([])
   const [selectedSignificance, setSelectedSignificance] = useState<string[]>([])
 
+  const { description, aliases } = useMemo(() => {
+    const exts =
+      results.therapeutic[0]?.grouped_evidence?.[0]?.proposition?.geneContextQualifier
+        ?.extensions ??
+      results.prognostic[0]?.grouped_evidence?.[0]?.proposition?.geneContextQualifier?.extensions ??
+      results.diagnostic[0]?.grouped_evidence?.[0]?.proposition?.geneContextQualifier?.extensions ??
+      []
+
+    const descriptionExt = exts.find((e) => e.name === 'description')
+    const aliasesExt = exts.find((e) => e.name === 'aliases')
+
+    return {
+      description: descriptionExt?.value ?? null,
+      aliases: aliasesExt?.value ?? [],
+    }
+  }, [results])
+
   const applyFilters = (
-  items: any[],
-  selected: {
-    variants: string[]
-    diseases: string[]
-    therapies: string[]
-    evidenceLevels: string[]
-    significance: string[]
-  },
-): any[] => {
-  return items.filter((r) => {
-    const variantMatch =
-      selected.variants.length === 0 || selected.variants.includes(r.variant_name)
-    const diseaseMatch =
-      selected.diseases.length === 0 || selected.diseases.includes(r.disease)
-    const therapyMatch =
-      selected.therapies.length === 0 || selected.therapies.includes(r.therapy)
-    const levelMatch =
-      selected.evidenceLevels.length === 0 ||
-      selected.evidenceLevels.includes(r.evidence_level)
-    const significanceMatch =
-      selected.significance.length === 0 ||
-      selected.significance.includes(r.significance)
+    items: any[],
+    selected: {
+      variants: string[]
+      diseases: string[]
+      therapies: string[]
+      evidenceLevels: string[]
+      significance: string[]
+    },
+  ): any[] => {
+    return items.filter((r) => {
+      const variantMatch =
+        selected.variants.length === 0 || selected.variants.includes(r.variant_name)
+      const diseaseMatch = selected.diseases.length === 0 || selected.diseases.includes(r.disease)
+      const therapyMatch = selected.therapies.length === 0 || selected.therapies.includes(r.therapy)
+      const levelMatch =
+        selected.evidenceLevels.length === 0 || selected.evidenceLevels.includes(r.evidence_level)
+      const significanceMatch =
+        selected.significance.length === 0 || selected.significance.includes(r.significance)
 
-    return variantMatch && diseaseMatch && therapyMatch && levelMatch && significanceMatch
-  })
-}
+      return variantMatch && diseaseMatch && therapyMatch && levelMatch && significanceMatch
+    })
+  }
 
-const selectedFilters = {
-  variants: selectedVariants,
-  diseases: selectedDiseases,
-  therapies: selectedTherapies,
-  evidenceLevels: selectedEvidenceLevels,
-  significance: selectedSignificance,
-}
+  const selectedFilters = {
+    variants: selectedVariants,
+    diseases: selectedDiseases,
+    therapies: selectedTherapies,
+    evidenceLevels: selectedEvidenceLevels,
+    significance: selectedSignificance,
+  }
 
-const filteredByTab: Record<'therapeutic' | 'diagnostic' | 'prognostic', any[]> = {
-  therapeutic: applyFilters(results.therapeutic, selectedFilters),
-  diagnostic: applyFilters(results.diagnostic, selectedFilters),
-  prognostic: applyFilters(results.prognostic, selectedFilters),
-}
+  const filteredByTab: Record<'therapeutic' | 'diagnostic' | 'prognostic', any[]> = {
+    therapeutic: applyFilters(results.therapeutic, selectedFilters),
+    diagnostic: applyFilters(results.diagnostic, selectedFilters),
+    prognostic: applyFilters(results.prognostic, selectedFilters),
+  }
 
-const filteredResults = filteredByTab[activeTab]
-
+  const filteredResults = filteredByTab[activeTab]
 
   // Fetch when URL params change (source of truth is the URL)
   useEffect(() => {
@@ -183,6 +196,7 @@ const filteredResults = filteredByTab[activeTab]
         const norm_prog_data = normalizeResults(prognostic_data)
         const norm_diag_data = normalizeResults(diagnostic_data)
         const norm_ther_data = normalizeResults(therapeutic_data)
+
         setResults({
           prognostic: norm_prog_data,
           diagnostic: norm_diag_data,
@@ -284,12 +298,10 @@ const filteredResults = filteredByTab[activeTab]
                 {searchQuery}
               </Typography>
               <Typography variant="h6" mb={2} fontWeight="bold" color="darkgrey">
-                Aliases: [list of aliases]
+                Aliases: {aliases.join(', ')}
               </Typography>
               <Typography variant="body1" mb={2}>
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quos blanditiis tenetur
-                unde suscipit, quam beatae rerum inventore consectetur, neque doloribus, cupiditate
-                numquam dignissimos laborum fugiat deleniti? Eum quasi quidem quibusdam.
+                {description}
               </Typography>
             </Box>
             <Box
@@ -301,7 +313,10 @@ const filteredResults = filteredByTab[activeTab]
                 value={activeTab}
                 sx={{ marginBottom: 2 }}
               >
-                <Tab label={`Therapeutic (${filteredByTab.therapeutic.length})`} value="therapeutic" />
+                <Tab
+                  label={`Therapeutic (${filteredByTab.therapeutic.length})`}
+                  value="therapeutic"
+                />
                 <Tab label={`Diagnostic (${filteredByTab.diagnostic.length})`} value="diagnostic" />
                 <Tab label={`Prognostic (${filteredByTab.prognostic.length})`} value="prognostic" />
               </Tabs>
