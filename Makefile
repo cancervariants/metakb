@@ -24,6 +24,7 @@ $(OUT):
 clean:
 	@rm -f $(OUT_DIR)/*.zip
 
+# Update requirements.txt file used for elastic beanstalk deployment
 requirements:
 	@command -v uv >/dev/null || { echo "uv not found"; exit 1; }
 	cd $(SERVER_DIR) && uv sync --extra deploy --upgrade
