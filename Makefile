@@ -26,7 +26,7 @@ clean:
 
 # Update requirements.txt file used for elastic beanstalk deployment
 requirements:
-	@command -v uv >/dev/null || { echo "uv not found"; exit 1; }
+	@command -v uv >/dev/null || { echo "uv not found -- it's required for this step"; exit 1; }
 	cd $(SERVER_DIR) && uv sync --extra deploy --upgrade
 	@tmp=$$(mktemp); dest="$$(pwd)/$(ROOT_REQS)"; \
 	cd $(SERVER_DIR) && uv pip freeze --exclude-editable > "$$tmp"; \
