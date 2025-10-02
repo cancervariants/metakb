@@ -119,6 +119,14 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       render: (value: any) => value?.significance,
     },
     {
+      field: 'resultCount',
+      headerName: 'Records',
+      width: 150,
+      render: (value: any) => {
+        return value?.grouped_evidence.length
+      },
+    },
+    {
       field: 'expandRow',
       headerName: '',
       width: 10,
