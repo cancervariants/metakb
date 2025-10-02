@@ -1,29 +1,15 @@
 """Provide route dependencies"""
 
 from collections.abc import Generator
-from typing import Annotated
 
-from fastapi import Depends, Request
-from neo4j import Driver
+from fastapi import Request
 
 from metakb.repository.base import AbstractRepository
 from metakb.repository.neo4j_repository import Neo4jRepository
 
 
-def _get_driver(request: Request) -> Driver:
-    """Pass driver from app state to dependency function
-
-    Don't bother trying to refactor this. Having a separate sub-function to get something
-    from the app state is just a quirk of the FastAPI DI system.
-
-    :param request: fastapi request instance
-    :return: neo4j driver
-    """
-    return request.app.state.driver
-
-
 def get_repository(
-    driver: Annotated[Driver, Depends(_get_driver)],
+    request: Request,
 ) -> Generator[AbstractRepository, None, None]:
     """Provide repository factory for REST API route dependency injection
 
@@ -31,7 +17,7 @@ def get_repository(
     :return: generator yielding a repository instance. Performs cleanup when route
         invocation concludes.
     """
-    session = driver.session()
+    session = request.app.state.driver.session()
     repository = Neo4jRepository(session)
     yield repository
     session.close()
