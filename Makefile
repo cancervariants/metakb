@@ -1,9 +1,15 @@
+SHELL := bash
+.SHELLFLAGS := -euo pipefail -c
+
 OUT_DIR  ?= build
 APP_NAME ?= metakb
 STAMP    := $(shell date +%Y%m%d-%H%M%S)
 OUT      := $(OUT_DIR)/$(APP_NAME)-$(STAMP).zip
 
-.PHONY: ebzip clean
+SERVER_DIR := server
+ROOT_REQS  := requirements.txt
+
+.PHONY: ebzip clean requirements
 
 # Make source archive for manual deployment on elasticbeanstalk
 ebzip: $(OUT)
@@ -17,3 +23,11 @@ $(OUT):
 
 clean:
 	@rm -f $(OUT_DIR)/*.zip
+
+requirements:
+	@command -v uv >/dev/null || { echo "uv not found"; exit 1; }
+	cd $(SERVER_DIR) && uv sync --extra deploy --upgrade
+	@tmp=$$(mktemp); dest="$$(pwd)/$(ROOT_REQS)"; \
+	cd $(SERVER_DIR) && uv pip freeze --exclude-editable > "$$tmp"; \
+	mv "$$tmp" "$$dest"; \
+	echo "Updated $$dest"
