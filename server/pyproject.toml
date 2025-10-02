@@ -43,10 +43,17 @@ dependencies = [
     "boto3",
     "botocore",
     "asyncclick",
+    "jinja2",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
+deploy = [
+    "uvloop",
+    "websockets",
+    "httptools",
+    "typing-extensions",
+]
 tests = [
     "pytest",
     "pytest-cov",
@@ -95,11 +102,15 @@ root = ".."
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+metakb = ["*.cypher"]
+
 [tool.pytest.ini_options]
-addopts = "--cov=src --cov-report term-missing --ignore=codebuild/"
+addopts = "--cov=src --cov-report term-missing -m 'not ci_only'"
 testpaths = ["tests"]
 markers = [
-    "ci: tests safe to run in CI",
+    "ci_ok: tests safe to run in CI",
+    "ci_only: run only in CI",
 ]
 
 [tool.coverage.run]
@@ -171,6 +182,7 @@ fixable = [
     "FURB",
     "RUF"
 ]
+# ANN002 - missing-type-args
 # ANN003 - missing-type-kwargs
 # D203 - one-blank-line-before-class
 # D205 - blank-line-after-summary
@@ -188,7 +200,7 @@ fixable = [
 # PLC0206 - dict-index-missing-items
 # *ignored for compatibility with formatter
 ignore = [
-    "ANN003",
+    "ANN002", "ANN003",
     "D203", "D205", "D206", "D213", "D300", "D400", "D415",
     "E111", "E114", "E117", "E501",
     "W191",
@@ -223,6 +235,7 @@ ignore = [
     "ARG001"
 ]
 "src/metakb/schemas/*" = ["ANN102", "N815"]
+"src/metakb/repository/queries/catalog.py" = ["D103"]
 
 [tool.ruff.lint.flake8-annotations]
 mypy-init-return = true

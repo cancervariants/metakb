@@ -3,27 +3,29 @@
 API Reference
 =============
 
-Core
-----
+Service Layer
+-------------
 
 .. autosummary::
    :nosignatures:
    :toctree: api/
    :template: module_summary.rst
 
-   metakb.query
-   metakb.normalizers
+   metakb.services.search
+   metakb.services.manage_data
 
-Data Management
----------------
+Repository
+----------
 
 .. autosummary::
    :nosignatures:
    :toctree: api/
    :template: module_summary.rst
 
-   metakb.load_data
-   metakb.database
+   metakb.repository.base
+   metakb.repository.neo4j_repository
+   metakb.repository.neo4j_models
+   metakb.repository.queries.catalog
 
 
 Data Schemas
@@ -60,3 +62,15 @@ Transformers
    metakb.transformers.base
    metakb.transformers.civic
    metakb.transformers.moa
+
+Misc
+----
+
+.. autosummary::
+   :nosignatures:
+   :toctree: api/
+   :template: module_summary.rst
+
+   metakb.normalizers
+   metakb.config
+   metakb.utils

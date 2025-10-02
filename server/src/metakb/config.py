@@ -27,7 +27,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    env: ServiceEnvironment = ServiceEnvironment.DEV
+    env: ServiceEnvironment = ServiceEnvironment.LOCAL
     debug: bool = False
     test: bool = False
     data_dir: Path = Field(default_factory=lambda: get_data_dir() / "metakb")

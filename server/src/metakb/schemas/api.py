@@ -21,10 +21,11 @@ from metakb import __version__
 class ServiceEnvironment(str, Enum):
     """Define current runtime environment."""
 
-    DEV = "dev"
-    PROD = "prod"
+    LOCAL = "local"
     TEST = "test"
+    DEV = "dev"
     STAGING = "staging"
+    PROD = "prod"
 
 
 class ServiceOrganization(BaseModel):
@@ -162,6 +163,7 @@ class SearchStatementsResponse(BaseModel):
     prognostic_statements: dict[
         str, list[VariantPrognosticStudyStatement | Statement]
     ] = {}
+    duration_s: float
     service_meta_: ServiceMeta
 
 
@@ -169,12 +171,13 @@ class BatchSearchStatementsResponse(BaseModel):
     """Define model for /batch_search_statements HTTP endpoint response."""
 
     search_terms: list[SearchTerm]
+    start: int
+    limit: int | None
     statements: list[
         Statement
         | VariantTherapeuticResponseStudyStatement
         | VariantPrognosticStudyStatement
         | VariantDiagnosticStudyStatement
     ] = []
-    start: int
-    limit: int | None
+    duration_s: float
     service_meta_: ServiceMeta

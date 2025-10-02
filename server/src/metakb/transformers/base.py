@@ -36,7 +36,7 @@ from ga4gh.va_spec.base import (
     Statement,
     TherapyGroup,
 )
-from ga4gh.vrs.models import Allele
+from ga4gh.vrs.models import Allele, CopyNumberChange, CopyNumberCount
 from gene.schemas import (
     NamespacePrefix as GeneNamespacePrefix,
 )
@@ -154,7 +154,7 @@ class TransformedData(BaseModel):
         | VariantDiagnosticStudyStatement
     ] = Field([], description="Statement objects for assertion records")
     categorical_variants: list[CategoricalVariant] = []
-    variations: list[Allele] = []
+    variations: list[CopyNumberChange | CopyNumberCount | Allele] = []
     genes: list[MappableConcept] = []
     therapies: list[MappableConcept | TherapyGroup] = []
     conditions: list[MappableConcept] = []
