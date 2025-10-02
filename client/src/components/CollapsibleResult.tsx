@@ -2,9 +2,12 @@ import { useState, FC } from 'react'
 import { Box, Collapse, IconButton, TableCell, TableRow } from '@mui/material'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import { getEvidenceLabelUrl } from '../pages/Results/utils'
 
 const ResultTableRow: FC<{ row: any; columns: any[] }> = ({ row, columns }) => {
   const [open, setOpen] = useState(false)
+
+  console.log(row)
 
   return (
     <>
@@ -26,19 +29,30 @@ const ResultTableRow: FC<{ row: any; columns: any[] }> = ({ row, columns }) => {
       <TableRow>
         <TableCell colSpan={columns.length} style={{ paddingBottom: 0, paddingTop: 0 }}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            {row.grouped_evidence.map((e: any) => (
-              <Box key={e.id} margin={1} sx={{ border: '1px solid #ccc', mb: 2, p: 2 }}>
-                <div>
-                  <strong>Evidence ID:</strong> {e.id}
-                </div>
-                <div>
-                  <strong>Evidence Level:</strong> {e.strength?.primaryCoding?.code}
-                </div>
-                <div>
-                  <strong>Description:</strong> {e.description}
-                </div>
-              </Box>
-            ))}
+            {row.grouped_evidence.map((e: any) => {
+              const { evidenceLabel, evidenceUrl } = getEvidenceLabelUrl(e.id)
+
+              return (
+                <Box key={e.id} margin={1} sx={{ border: '1px solid #ccc', mb: 2, p: 2 }}>
+                  <div>
+                    <a
+                      href={evidenceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ fontWeight: 'bold' }}
+                    >
+                      <span>{evidenceLabel}</span>
+                    </a>
+                  </div>
+                  <div>
+                    <strong>Evidence Level:</strong> {e.strength?.primaryCoding?.code}
+                  </div>
+                  <div>
+                    <strong>Description:</strong> {e.description}
+                  </div>
+                </Box>
+              )
+            })}
           </Collapse>
         </TableCell>
       </TableRow>
