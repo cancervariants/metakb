@@ -66,10 +66,18 @@ const normalizeResults = (data: Record<string, any[]>): any[] => {
     if (!Array.isArray(arr) || arr.length === 0) return []
 
     const first = arr[0] // use first item for metadata
+
+    // get highest evidence level for display
+    const highestEvidenceLevel = arr.reduce((highest, item) => {
+      const code = item?.strength?.primaryCoding?.code ?? 'N/A'
+      const rank = evidenceOrder[code] ?? 999
+      const bestRank = evidenceOrder[highest] ?? 999
+      return rank < bestRank ? code : highest
+    }, 'N/A')
     return [
       {
         variant_name: first?.proposition?.subjectVariant?.name ?? 'Unknown',
-        evidence_level: first?.strength?.primaryCoding?.code ?? 'N/A',
+        evidence_level: highestEvidenceLevel,
         disease:
           first?.proposition?.conditionQualifier?.name ||
           first?.proposition?.objectCondition?.name ||

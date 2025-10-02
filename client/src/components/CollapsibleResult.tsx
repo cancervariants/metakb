@@ -32,6 +32,9 @@ const ResultTableRow: FC<{ row: any; columns: any[] }> = ({ row, columns }) => {
                   <strong>Evidence ID:</strong> {e.id}
                 </div>
                 <div>
+                  <strong>Evidence Level:</strong> {e.strength?.primaryCoding?.code}
+                </div>
+                <div>
                   <strong>Description:</strong> {e.description}
                 </div>
               </Box>
