@@ -637,7 +637,7 @@ class cBioportalTransformer(Transformer):
                     if normalized_gene_id:
                         break
 
-                cbp_mappings = _get_exact_gene_mappings(hgnc_id,gene_symbol)
+                cbp_mappings = self._get_exact_gene_mappings(hgnc_id,gene_symbol)
 
                 if not normalized_gene_id:
                     _logger.debug(
