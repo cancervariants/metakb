@@ -1,7 +1,9 @@
 """Provide miscellaneous helper utilities."""
 
 import logging
-import os
+
+from metakb.config import get_config
+from metakb.schemas.api import ServiceEnvironment
 
 
 def _quiet_upstream_libs() -> None:
@@ -34,8 +36,13 @@ def configure_logs(log_level: int = logging.INFO, quiet_upstream: bool = True) -
     """
     if quiet_upstream:
         _quiet_upstream_libs()
+    is_deployed = get_config().env in (
+        ServiceEnvironment.PROD,
+        ServiceEnvironment.STAGING,
+        ServiceEnvironment.DEV,
+    )
     log_filename = (
-        "/tmp/metakb.log" if os.environ.get("METAKB_EB_PROD") else "metakb.log"  # noqa: S108
+        "/tmp/metakb.log" if is_deployed else "metakb.log"  # noqa: S108
     )
     logging.basicConfig(
         filename=log_filename,
@@ -44,7 +51,7 @@ def configure_logs(log_level: int = logging.INFO, quiet_upstream: bool = True) -
     logger = logging.getLogger("metakb")
     logger.setLevel(log_level)
 
-    if "METAKB_EB_PROD" in os.environ:
+    if is_deployed:
         # force debug logging in production server
         logger.handlers = []
         handler = logging.StreamHandler()

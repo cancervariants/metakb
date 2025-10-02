@@ -21,10 +21,11 @@ from metakb import __version__
 class ServiceEnvironment(str, Enum):
     """Define current runtime environment."""
 
-    DEV = "dev"
-    PROD = "prod"
+    LOCAL = "local"
     TEST = "test"
+    DEV = "dev"
     STAGING = "staging"
+    PROD = "prod"
 
 
 class ServiceOrganization(BaseModel):
