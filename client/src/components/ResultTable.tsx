@@ -153,7 +153,6 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       ...columns.slice(3),
     ]
   }
-  console.log(results)
 
   return (
     <Table>

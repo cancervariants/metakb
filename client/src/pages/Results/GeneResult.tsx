@@ -1,10 +1,11 @@
 import * as React from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import Header from '../components/Header'
+import Header from '../../components/Header'
 import { Box, Button, Chip, CircularProgress, Stack, Tab, Tabs, Typography } from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
-import ResultTable from '../components/ResultTable'
-import FilterSection from '../components/FilterSection'
+import ResultTable from '../../components/ResultTable'
+import FilterSection from '../../components/FilterSection'
+import { buildCountMap, evidenceOrder } from './utils'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/cv-api/api/v2/search/statements'
@@ -170,6 +171,34 @@ const GeneResult = () => {
 
   const filteredResults = filteredByTab[activeTab]
 
+  const sortedResults = useMemo(() => {
+    const variantCounts = buildCountMap(filteredResults, 'variant_name')
+
+    return [...filteredResults].sort((a, b) => {
+      // variant cluster by total count (desc)
+      const countA = variantCounts[a.variant_name] ?? 0
+      const countB = variantCounts[b.variant_name] ?? 0
+      if (countA !== countB) return countB - countA
+
+      // fallback: variant name alphabetical
+      const variantCmp = a.variant_name.localeCompare(b.variant_name)
+      if (variantCmp !== 0) return variantCmp
+
+      // evidence level
+      const levelA = evidenceOrder[a.evidence_level] ?? 999
+      const levelB = evidenceOrder[b.evidence_level] ?? 999
+      if (levelA !== levelB) return levelA - levelB
+
+      // number of records per row
+      const recordCountA = a.grouped_evidence?.length ?? 0
+      const recordCountB = b.grouped_evidence?.length ?? 0
+      if (recordCountA !== recordCountB) return recordCountB - recordCountA
+
+      // disease alphabetical
+      return a.disease.localeCompare(b.disease)
+    })
+  }, [filteredResults])
+
   // Fetch when URL params change (source of truth is the URL)
   useEffect(() => {
     if (!typeFromUrl || !queryFromUrl.trim()) {
@@ -223,13 +252,7 @@ const GeneResult = () => {
   }, [typeFromUrl, queryFromUrl])
 
   const buildFilterOptions = (results: any[], key: keyof any): string[] => {
-    const counts = results.reduce((acc: Record<string, number>, item: any) => {
-      const val = item[key]
-      if (val) {
-        acc[val] = (acc[val] || 0) + 1
-      }
-      return acc
-    }, {})
+    const counts = buildCountMap(results, key)
 
     return Object.entries(counts)
       .sort((a, b) => b[1] - a[1]) // sort by count desc
@@ -385,7 +408,7 @@ const GeneResult = () => {
                   </Box>
                 </Box>
                 <Box>
-                  <ResultTable results={filteredResults} resultType={activeTab} />
+                  <ResultTable results={sortedResults} resultType={activeTab} />
                 </Box>
               </Box>
             </Box>

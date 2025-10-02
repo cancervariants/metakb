@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import { ThemeProvider } from '@mui/material'
 import theme from './theme'
-import GeneResult from './pages/GeneResult'
+import GeneResult from './pages/Results/GeneResult'
 
 function App() {
   return (
