@@ -18,13 +18,10 @@ import FilterSection from '../../components/FilterSection'
 import {
   buildCountMap,
   evidenceOrder,
-  getDiseaseFromProposition,
-  getSources,
-  getTherapyFromProposition,
   hasGeneContextQualifier,
   NormalizedResult,
+  normalizeResults,
 } from './utils'
-import { Statement } from '../../ts_models'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/cv-api/api/v2/search/statements'
@@ -33,62 +30,6 @@ type EvidenceBuckets = {
   prognostic: NormalizedResult[]
   diagnostic: NormalizedResult[]
   therapeutic: NormalizedResult[]
-}
-
-const formatSignificance = (predicate: string): string => {
-  if (predicate === 'predictsSensitivityTo') {
-    return 'Sensitivity'
-  }
-  if (predicate === 'predictsResistanceTo') {
-    return 'Resistance'
-  }
-  if (predicate === 'isDiagnosticInclusionCriterionFor') {
-    return 'Inclusion Criterion'
-  }
-  if (predicate === 'isDiagnosticExclusionCriterionFor') {
-    return 'Exclusion Criterion'
-  }
-  if (predicate === 'associatedWithWorseOutcomeFor') {
-    return 'Worse Outcome'
-  }
-  if (predicate === 'associatedWithBetterOutcomeFor') {
-    return 'Better Outcome'
-  }
-  return ''
-}
-
-const normalizeResults = (data: Record<string, Statement[]>): NormalizedResult[] => {
-  if (!data || Object.keys(data).length === 0) return []
-  return Object.values(data).flatMap((arr) => {
-    if (!Array.isArray(arr) || arr.length === 0) return []
-
-    const first = arr[0] // use first item for metadata
-
-    // get highest evidence level for display
-    const highestEvidenceLevel = arr.reduce((highest, item) => {
-      const code = item?.strength?.primaryCoding?.code ?? 'N/A'
-      const rank = evidenceOrder[code] ?? 999
-      const bestRank = evidenceOrder[highest] ?? 999
-      return rank < bestRank ? code : highest
-    }, 'N/A')
-    return [
-      {
-        variant_name:
-          typeof first?.proposition?.subjectVariant === 'string'
-            ? first.proposition.subjectVariant
-            : (first?.proposition?.subjectVariant?.name ?? 'Unknown'),
-
-        evidence_level: highestEvidenceLevel,
-        disease: getDiseaseFromProposition(first?.proposition),
-        therapy: getTherapyFromProposition(first?.proposition),
-        significance: first?.proposition?.predicate
-          ? formatSignificance(first?.proposition?.predicate)
-          : 'N/A',
-        sources: getSources(arr),
-        grouped_evidence: arr,
-      },
-    ]
-  })
 }
 
 const GeneResult = () => {

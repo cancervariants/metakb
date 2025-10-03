@@ -11,18 +11,87 @@ import {
   VariantTherapeuticResponseProposition,
 } from '../../ts_models'
 
-// model for storing the data needed to display the aggregated evidence rows for the results table
+/**
+ * Represents a single normalized row of evidence results, aggregating evidence
+ * from one or more `Statement` objects into a single table row.
+ */
 export interface NormalizedResult {
+  /** Human-readable variant name (normalized for display) */
   variant_name: string
+  /** Highest evidence level among grouped evidence */
   evidence_level: string
+  /** Associated diseases, may include multiple names */
   disease: string[]
+  /** Therapy or combination therapy (if applicable) */
   therapy: string
+  /** Clinical significance string */
   significance: string
+  /** All evidence statements grouped into this row */
   grouped_evidence: Statement[]
+  /** Sources (databases) that contributed evidence to this row */
   sources: string[]
 }
 
-// evidence level ranking
+const formatSignificance = (predicate: string): string => {
+  if (predicate === 'predictsSensitivityTo') {
+    return 'Sensitivity'
+  }
+  if (predicate === 'predictsResistanceTo') {
+    return 'Resistance'
+  }
+  if (predicate === 'isDiagnosticInclusionCriterionFor') {
+    return 'Inclusion Criterion'
+  }
+  if (predicate === 'isDiagnosticExclusionCriterionFor') {
+    return 'Exclusion Criterion'
+  }
+  if (predicate === 'associatedWithWorseOutcomeFor') {
+    return 'Worse Outcome'
+  }
+  if (predicate === 'associatedWithBetterOutcomeFor') {
+    return 'Better Outcome'
+  }
+  return ''
+}
+
+export const normalizeResults = (data: Record<string, Statement[]>): NormalizedResult[] => {
+  if (!data || Object.keys(data).length === 0) return []
+  return Object.values(data).flatMap((arr) => {
+    if (!Array.isArray(arr) || arr.length === 0) return []
+
+    const first = arr[0] // use first item for metadata
+
+    // get highest evidence level for display
+    const highestEvidenceLevel = arr.reduce((highest, item) => {
+      const code = item?.strength?.primaryCoding?.code ?? 'N/A'
+      const rank = evidenceOrder[code] ?? 999
+      const bestRank = evidenceOrder[highest] ?? 999
+      return rank < bestRank ? code : highest
+    }, 'N/A')
+    return [
+      {
+        variant_name:
+          typeof first?.proposition?.subjectVariant === 'string'
+            ? first.proposition.subjectVariant
+            : (first?.proposition?.subjectVariant?.name ?? 'Unknown'),
+
+        evidence_level: highestEvidenceLevel,
+        disease: getDiseaseFromProposition(first?.proposition),
+        therapy: getTherapyFromProposition(first?.proposition),
+        significance: first?.proposition?.predicate
+          ? formatSignificance(first?.proposition?.predicate)
+          : 'N/A',
+        sources: getSources(arr),
+        grouped_evidence: arr,
+      },
+    ]
+  })
+}
+
+/**
+ * Mapping of evidence level codes to numeric ranks used for sorting.
+ * Lower numbers indicate stronger evidence.
+ */
 export const evidenceOrder: Record<string, number> = {
   A: 1,
   'Level A': 1,
@@ -33,6 +102,16 @@ export const evidenceOrder: Record<string, number> = {
   'N/A': 999,
 }
 
+/**
+ * Builds a frequency map of values from a list of results.
+ *
+ * @typeParam T - The type of each row in the results
+ * @typeParam K - The key in `T` to count by
+ *
+ * @param results - Array of result objects
+ * @param key - The property key in `T` to count occurrences of
+ * @returns A record mapping each distinct value (stringified) to its count
+ */
 export function buildCountMap<T, K extends keyof T>(results: T[], key: K): Record<string, number> {
   return results.reduce((acc: Record<string, number>, item) => {
     const val = item[key]
@@ -53,13 +132,17 @@ export function buildCountMap<T, K extends keyof T>(results: T[], key: K): Recor
   }, {})
 }
 
-// Values for sources
+/**
+ * Enum of supported evidence source names.
+ */
 export enum SourceName {
   Civic = 'CIViC',
   Moalmanac = 'MOAlmanac',
 }
 
-// Values for source namespace prefix
+/**
+ * Enum of namespace prefixes that identify evidence sources in identifiers.
+ */
 export enum SourceNamespacePrefix {
   Civic = 'civic',
   Moalmanac = 'moa',
@@ -97,7 +180,10 @@ export function getEvidenceLabelUrl(evidenceIdentifier: string): {
 }
 
 /**
- * Given an evidence identifier, return the source name
+ * Infers the source name (CIViC, MOAlmanac, etc.) from an evidence identifier.
+ *
+ * @param evidenceIdentifier - The identifier string from a Statement
+ * @returns Source name if recognized, otherwise null
  */
 export function getEvidenceSource(evidenceIdentifier: string): SourceName | null {
   if (evidenceIdentifier.startsWith(SourceNamespacePrefix.Moalmanac)) {
@@ -112,7 +198,10 @@ export function getEvidenceSource(evidenceIdentifier: string): SourceName | null
 }
 
 /**
- * Given an array of evidence statements, return unique source names
+ * Collects unique source names from an array of evidence statements.
+ *
+ * @param statements - Array of `Statement` objects
+ * @returns Array of distinct source names found in the evidence identifiers
  */
 export function getSources(statements: Statement[]): string[] {
   const sources = new Set<string>()
@@ -130,6 +219,12 @@ export function getSources(statements: Statement[]): string[] {
   return Array.from(sources)
 }
 
+/**
+ * Extracts human-readable condition names from a Condition object.
+ *
+ * @param condition - A string, MappableConcept, ConditionSet, or undefined
+ * @returns Array of condition names (may be multiple for ConditionSet)
+ */
 function getConditionNames(condition: string | Condition | undefined): string[] {
   if (!condition) return ['N/A']
 
@@ -150,6 +245,12 @@ function getConditionNames(condition: string | Condition | undefined): string[] 
   return ['N/A']
 }
 
+/**
+ * Extracts associated disease names from a proposition, based on its type.
+ *
+ * @param prop - A variant proposition of various supported types
+ * @returns Array of disease/condition names, or ["N/A"] if not available
+ */
 export function getDiseaseFromProposition(
   prop:
     | VariantTherapeuticResponseProposition
@@ -182,10 +283,21 @@ export function getDiseaseFromProposition(
   }
 }
 
+/**
+ * Type guard to determine if a Therapeutic is a TherapyGroup.
+ */
 function isTherapyGroup(obj: Therapeutic): obj is TherapyGroup {
   return Array.isArray((obj as TherapyGroup).therapies)
 }
 
+/**
+ * Formats a Therapeutic into a human-readable therapy string.
+ * - For TherapyGroup, joins multiple therapies with "and"/"or"
+ * - For MappableConcept of type "Therapy", returns its name
+ *
+ * @param objectTherapeutic - Therapeutic object to format
+ * @returns Formatted therapy name or null if not available
+ */
 const formatTherapies = (objectTherapeutic: Therapeutic): string | null => {
   if (!objectTherapeutic) return null
 
@@ -207,6 +319,13 @@ const formatTherapies = (objectTherapeutic: Therapeutic): string | null => {
   return null
 }
 
+/**
+ * Extracts therapy information from a proposition.
+ * Only VariantTherapeuticResponseProposition objects have therapies.
+ *
+ * @param prop - Proposition object (may be undefined)
+ * @returns Therapy name string, or "N/A" if not applicable
+ */
 export function getTherapyFromProposition(
   prop:
     | VariantTherapeuticResponseProposition
@@ -227,6 +346,12 @@ export function getTherapyFromProposition(
   return 'N/A'
 }
 
+/**
+ * Type guard to check if a proposition includes a geneContextQualifier.
+ *
+ * @param prop - Proposition object (may be undefined)
+ * @returns True if the proposition has a geneContextQualifier property
+ */
 export function hasGeneContextQualifier(
   prop:
     | ExperimentalVariantFunctionalImpactProposition
