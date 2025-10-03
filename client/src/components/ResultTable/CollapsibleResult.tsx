@@ -12,8 +12,6 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
 }) => {
   const [open, setOpen] = useState(false)
 
-  console.log(row)
-
   return (
     <>
       <TableRow>

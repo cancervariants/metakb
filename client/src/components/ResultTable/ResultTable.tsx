@@ -76,8 +76,10 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
 }
 
 interface ResultTableProps {
+  // list of results
   results: NormalizedResult[]
-  resultType: string
+  // result type - used for determining which columns to show
+  resultType: 'therapeutic' | 'prognostic' | 'diagnostic'
 }
 
 const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
