@@ -2,9 +2,9 @@ import { useState, FC } from 'react'
 import { Box, Collapse, IconButton, TableCell, TableRow } from '@mui/material'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import { getEvidenceLabelUrl, NormalizedResult } from '../pages/Results/utils'
-import { Statement } from '../ts_models'
-import { ResultColumn } from './utils'
+import { Statement } from '../../models/domain'
+import { ResultColumn } from './types'
+import { getEvidenceLabelUrl, NormalizedResult } from '../../utils'
 
 const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = ({
   row,

@@ -13,15 +13,17 @@ import {
   Typography,
 } from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
-import ResultTable from '../../components/ResultTable'
-import FilterSection from '../../components/FilterSection'
+import ResultTable from '../../components/ResultTable/ResultTable'
+import FilterSection from '../../components/FilterSection/FilterSection'
 import {
+  NormalizedResult,
+  hasGeneContextQualifier,
   buildCountMap,
   evidenceOrder,
-  hasGeneContextQualifier,
-  NormalizedResult,
   normalizeResults,
-} from './utils'
+  applyFilters,
+  buildFilterOptions,
+} from '../../utils'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/cv-api/api/v2/search/statements'
@@ -80,44 +82,6 @@ const GeneResult = () => {
       aliases: (aliasesExt?.value as string[]) ?? [],
     }
   }, [results])
-
-  const applyFilters = (
-    items: NormalizedResult[],
-    selected: {
-      variants: string[]
-      diseases: string[]
-      therapies: string[]
-      evidenceLevels: string[]
-      significance: string[]
-      sources: string[]
-    },
-  ): NormalizedResult[] => {
-    return items.filter((r) => {
-      const variantMatch =
-        selected.variants.length === 0 || selected.variants.includes(r.variant_name)
-      const diseaseMatch =
-        selected.diseases.length === 0 ||
-        r.disease.some((d: string) => selected.diseases.includes(d))
-
-      const therapyMatch = selected.therapies.length === 0 || selected.therapies.includes(r.therapy)
-      const levelMatch =
-        selected.evidenceLevels.length === 0 || selected.evidenceLevels.includes(r.evidence_level)
-      const significanceMatch =
-        selected.significance.length === 0 || selected.significance.includes(r.significance)
-
-      const sourceMatch =
-        selected.sources.length === 0 || selected.sources.some((s) => r.sources.includes(s))
-
-      return (
-        variantMatch &&
-        diseaseMatch &&
-        therapyMatch &&
-        levelMatch &&
-        significanceMatch &&
-        sourceMatch
-      )
-    })
-  }
 
   const selectedFilters = {
     variants: selectedVariants,
@@ -221,17 +185,6 @@ const GeneResult = () => {
   useEffect(() => {
     setSearchQuery(queryFromUrl)
   }, [queryFromUrl])
-
-  const buildFilterOptions = (
-    results: NormalizedResult[],
-    key: keyof NormalizedResult,
-  ): string[] => {
-    const counts = buildCountMap(results, key)
-
-    return Object.entries(counts)
-      .sort((a, b) => b[1] - a[1]) // sort by count desc
-      .map(([value]) => value)
-  }
 
   const variantOptions = buildFilterOptions(results[activeTab], 'variant_name')
   const diseaseOptions = Array.from(
