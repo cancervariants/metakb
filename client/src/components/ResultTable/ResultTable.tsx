@@ -17,7 +17,7 @@ import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight'
 import LastPageIcon from '@mui/icons-material/LastPage'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import ResultTableRow from './CollapsibleResult'
+import ResultTableRow from './ResultTableRow'
 import { ResultColumn } from './types'
 import { NormalizedResult } from '../../utils'
 
