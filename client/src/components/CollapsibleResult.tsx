@@ -2,9 +2,14 @@ import { useState, FC } from 'react'
 import { Box, Collapse, IconButton, TableCell, TableRow } from '@mui/material'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import { getEvidenceLabelUrl } from '../pages/Results/utils'
+import { getEvidenceLabelUrl, NormalizedResult } from '../pages/Results/utils'
+import { Statement } from '../ts_models'
+import { ResultColumn } from './utils'
 
-const ResultTableRow: FC<{ row: any; columns: any[] }> = ({ row, columns }) => {
+const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = ({
+  row,
+  columns,
+}) => {
   const [open, setOpen] = useState(false)
 
   console.log(row)
@@ -21,7 +26,10 @@ const ResultTableRow: FC<{ row: any; columns: any[] }> = ({ row, columns }) => {
             ) : column.render ? (
               column.render(row)
             ) : (
-              row[column.field]
+              (() => {
+                const val = row[column.field as keyof NormalizedResult]
+                return Array.isArray(val) ? val.join(', ') : (val as React.ReactNode)
+              })()
             )}
           </TableCell>
         ))}
@@ -29,8 +37,8 @@ const ResultTableRow: FC<{ row: any; columns: any[] }> = ({ row, columns }) => {
       <TableRow>
         <TableCell colSpan={columns.length} style={{ paddingBottom: 0, paddingTop: 0 }}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            {row.grouped_evidence.map((e: any) => {
-              const { evidenceLabel, evidenceUrl } = getEvidenceLabelUrl(e.id)
+            {row.grouped_evidence.map((e: Statement) => {
+              const { evidenceLabel, evidenceUrl } = getEvidenceLabelUrl(e.id || '')
 
               return (
                 <Box key={e.id} margin={1} sx={{ border: '1px solid #ccc', mb: 2, p: 2 }}>

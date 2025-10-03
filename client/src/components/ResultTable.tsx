@@ -19,6 +19,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import ResultTableRow from './CollapsibleResult'
 import { NormalizedResult } from '../pages/Results/utils'
+import { ResultColumn } from './utils'
 
 interface TablePaginationActionsProps {
   count: number
@@ -85,18 +86,20 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
-  function handleChangePage(event: any, newpage: any) {
+  function handleChangePage(event: React.MouseEvent<HTMLButtonElement> | null, newpage: number) {
     setPage(newpage)
   }
 
-  function handleChangeRowsPerPage(event: any) {
+  function handleChangeRowsPerPage(
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) {
     setRowsPerPage(parseInt(event.target.value, 10))
     setPage(0)
   }
 
-  let columns = [
+  let columns: ResultColumn[] = [
     {
-      field: 'variant',
+      field: 'variant_name',
       headerName: 'Variant',
       width: 150,
       render: (value: NormalizedResult) => value?.variant_name,

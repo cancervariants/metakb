@@ -21,6 +21,7 @@ import {
   getDiseaseFromProposition,
   getSources,
   getTherapyFromProposition,
+  hasGeneContextQualifier,
   NormalizedResult,
 } from './utils'
 import { Statement } from '../../ts_models'
@@ -121,24 +122,26 @@ const GeneResult = () => {
   const [selectedSources, setSelectedSources] = useState<string[]>([])
 
   const { description, aliases } = useMemo(() => {
-    const exts =
-      results.therapeutic[0]?.grouped_evidence?.[0]?.proposition?.geneContextQualifier
-        ?.extensions ??
-      results.prognostic[0]?.grouped_evidence?.[0]?.proposition?.geneContextQualifier?.extensions ??
-      results.diagnostic[0]?.grouped_evidence?.[0]?.proposition?.geneContextQualifier?.extensions ??
-      []
+    const firstWithQualifier =
+      results.therapeutic[0]?.grouped_evidence?.[0]?.proposition ??
+      results.prognostic[0]?.grouped_evidence?.[0]?.proposition ??
+      results.diagnostic[0]?.grouped_evidence?.[0]?.proposition
+
+    const exts = hasGeneContextQualifier(firstWithQualifier)
+      ? (firstWithQualifier.geneContextQualifier?.extensions ?? [])
+      : []
 
     const descriptionExt = exts.find((e) => e.name === 'description')
     const aliasesExt = exts.find((e) => e.name === 'aliases')
 
     return {
-      description: descriptionExt?.value ?? null,
-      aliases: aliasesExt?.value ?? [],
+      description: (descriptionExt?.value as string) ?? null,
+      aliases: (aliasesExt?.value as string[]) ?? [],
     }
   }, [results])
 
   const applyFilters = (
-    items: any[],
+    items: NormalizedResult[],
     selected: {
       variants: string[]
       diseases: string[]
@@ -147,7 +150,7 @@ const GeneResult = () => {
       significance: string[]
       sources: string[]
     },
-  ): any[] => {
+  ): NormalizedResult[] => {
     return items.filter((r) => {
       const variantMatch =
         selected.variants.length === 0 || selected.variants.includes(r.variant_name)
@@ -184,7 +187,7 @@ const GeneResult = () => {
     sources: selectedSources,
   }
 
-  const filteredByTab: Record<'therapeutic' | 'diagnostic' | 'prognostic', any[]> = {
+  const filteredByTab: Record<'therapeutic' | 'diagnostic' | 'prognostic', NormalizedResult[]> = {
     therapeutic: applyFilters(results.therapeutic, selectedFilters),
     diagnostic: applyFilters(results.diagnostic, selectedFilters),
     prognostic: applyFilters(results.prognostic, selectedFilters),
@@ -252,8 +255,15 @@ const GeneResult = () => {
           diagnostic: norm_diag_data,
           therapeutic: norm_ther_data,
         })
-      } catch (e: any) {
-        if (e.name !== 'AbortError') setError(e.message ?? 'Unknown error')
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          if (e.name !== 'AbortError') {
+            setError(e.message ?? 'Unknown error')
+          }
+        } else {
+          // fallback if it's not an Error (rare, but possible)
+          setError('Unknown error')
+        }
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false)
@@ -271,7 +281,10 @@ const GeneResult = () => {
     setSearchQuery(queryFromUrl)
   }, [queryFromUrl])
 
-  const buildFilterOptions = (results: any[], key: keyof any): string[] => {
+  const buildFilterOptions = (
+    results: NormalizedResult[],
+    key: keyof NormalizedResult,
+  ): string[] => {
     const counts = buildCountMap(results, key)
 
     return Object.entries(counts)

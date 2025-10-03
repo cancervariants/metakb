@@ -19,6 +19,7 @@ export interface NormalizedResult {
   therapy: string
   significance: string
   grouped_evidence: Statement[]
+  sources: string[]
 }
 
 // evidence level ranking
@@ -32,13 +33,22 @@ export const evidenceOrder: Record<string, number> = {
   'N/A': 999,
 }
 
-// helper: compute counts by variant name
-export function buildCountMap(results: any[], key: keyof any): Record<string, number> {
-  return results.reduce((acc: Record<string, number>, item: any) => {
+export function buildCountMap<T, K extends keyof T>(results: T[], key: K): Record<string, number> {
+  return results.reduce((acc: Record<string, number>, item) => {
     const val = item[key]
-    if (val) {
-      acc[val] = (acc[val] || 0) + 1
+
+    if (val != null) {
+      if (Array.isArray(val)) {
+        val.forEach((v) => {
+          if (v != null) {
+            acc[String(v)] = (acc[String(v)] || 0) + 1
+          }
+        })
+      } else {
+        acc[String(val)] = (acc[String(val)] || 0) + 1
+      }
     }
+
     return acc
   }, {})
 }
@@ -215,4 +225,19 @@ export function getTherapyFromProposition(
   }
 
   return 'N/A'
+}
+
+export function hasGeneContextQualifier(
+  prop:
+    | ExperimentalVariantFunctionalImpactProposition
+    | VariantDiagnosticProposition
+    | VariantOncogenicityProposition
+    | VariantPathogenicityProposition
+    | VariantPrognosticProposition
+    | VariantTherapeuticResponseProposition
+    | undefined,
+): prop is Exclude<typeof prop, ExperimentalVariantFunctionalImpactProposition | undefined> & {
+  geneContextQualifier?: { extensions?: { name: string; value: unknown }[] }
+} {
+  return !!prop && 'geneContextQualifier' in prop
 }
