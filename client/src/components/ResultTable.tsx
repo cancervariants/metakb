@@ -18,6 +18,7 @@ import LastPageIcon from '@mui/icons-material/LastPage'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import ResultTableRow from './CollapsibleResult'
+import { NormalizedResult } from '../pages/Results/utils'
 
 interface TablePaginationActionsProps {
   count: number
@@ -74,7 +75,7 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
 }
 
 interface ResultTableProps {
-  results: any[]
+  results: NormalizedResult[]
   resultType: string
 }
 
@@ -98,31 +99,31 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       field: 'variant',
       headerName: 'Variant',
       width: 150,
-      render: (value: any) => value?.variant_name,
+      render: (value: NormalizedResult) => value?.variant_name,
     },
     {
       field: 'evidence_level',
       headerName: 'Evidence Level',
       width: 150,
-      render: (value: any) => value?.evidence_level,
+      render: (value: NormalizedResult) => value?.evidence_level,
     },
     {
       field: 'disease',
       headerName: 'Disease',
       width: 150,
-      render: (value: any) => value?.disease,
+      render: (value: NormalizedResult) => value?.disease,
     },
     {
       field: 'significance',
       headerName: 'Significance',
       width: 150,
-      render: (value: any) => value?.significance,
+      render: (value: NormalizedResult) => value?.significance,
     },
     {
       field: 'resultCount',
       headerName: 'Records',
       width: 150,
-      render: (value: any) => {
+      render: (value: NormalizedResult) => {
         return value?.grouped_evidence.length
       },
     },
@@ -148,7 +149,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
         field: 'therapy',
         headerName: 'Therapy',
         width: 150,
-        render: (value: any) => value?.therapy,
+        render: (value: NormalizedResult) => value?.therapy,
       },
       ...columns.slice(3),
     ]

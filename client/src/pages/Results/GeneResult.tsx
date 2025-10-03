@@ -1,45 +1,37 @@
 import * as React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import Header from '../../components/Header'
-import { Box, Button, Chip, CircularProgress, Stack, Tab, Tabs, Typography } from '@mui/material'
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Stack,
+  Tab,
+  Tabs,
+  Typography,
+} from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
 import ResultTable from '../../components/ResultTable'
 import FilterSection from '../../components/FilterSection'
-import { buildCountMap, evidenceOrder, getSources, NormalizedResult } from './utils'
-import { Statement, Therapeutic, TherapyGroup } from '../../ts_models'
+import {
+  buildCountMap,
+  evidenceOrder,
+  getDiseaseFromProposition,
+  getSources,
+  getTherapyFromProposition,
+  NormalizedResult,
+} from './utils'
+import { Statement } from '../../ts_models'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/cv-api/api/v2/search/statements'
 
 type EvidenceBuckets = {
-  prognostic: Statement[]
-  diagnostic: Statement[]
-  therapeutic: Statement[]
-}
-
-function isTherapyGroup(obj: Therapeutic): obj is TherapyGroup {
-  return Array.isArray((obj as TherapyGroup).therapies)
-}
-
-const formatTherapies = (objectTherapeutic: Therapeutic): string | null => {
-  if (!objectTherapeutic) return null
-
-  if (isTherapyGroup(objectTherapeutic)) {
-    // It's a TherapyGroup
-    const names = objectTherapeutic.therapies.map((t) => t?.name).filter(Boolean)
-    if (names.length === 0) return null
-    if (names.length === 1) return names[0] ?? null
-
-    const operator = objectTherapeutic.membershipOperator?.toLowerCase() === 'or' ? 'or' : 'and'
-    return `${names.slice(0, -1).join(', ')} ${operator} ${names[names.length - 1]}`
-  }
-
-  // Otherwise it's a MappableConcept
-  if (objectTherapeutic.conceptType === 'Therapy') {
-    return objectTherapeutic.name ?? null
-  }
-
-  return null
+  prognostic: NormalizedResult[]
+  diagnostic: NormalizedResult[]
+  therapeutic: NormalizedResult[]
 }
 
 const formatSignificance = (predicate: string): string => {
@@ -80,13 +72,14 @@ const normalizeResults = (data: Record<string, Statement[]>): NormalizedResult[]
     }, 'N/A')
     return [
       {
-        variant_name: first?.proposition?.subjectVariant?.name ?? 'Unknown',
+        variant_name:
+          typeof first?.proposition?.subjectVariant === 'string'
+            ? first.proposition.subjectVariant
+            : (first?.proposition?.subjectVariant?.name ?? 'Unknown'),
+
         evidence_level: highestEvidenceLevel,
-        disease:
-          first?.proposition?.conditionQualifier?.name ||
-          first?.proposition?.objectCondition?.name ||
-          'N/A',
-        therapy: formatTherapies(first?.proposition?.objectTherapeutic) ?? 'N/A',
+        disease: getDiseaseFromProposition(first?.proposition),
+        therapy: getTherapyFromProposition(first?.proposition),
         significance: first?.proposition?.predicate
           ? formatSignificance(first?.proposition?.predicate)
           : 'N/A',
@@ -98,7 +91,7 @@ const normalizeResults = (data: Record<string, Statement[]>): NormalizedResult[]
 }
 
 const GeneResult = () => {
-  const [params, setParams] = useSearchParams()
+  const [params] = useSearchParams()
 
   const [results, setResults] = React.useState<EvidenceBuckets>({
     prognostic: [],
@@ -117,7 +110,6 @@ const GeneResult = () => {
   const typeFromUrl: SearchType | null = urlHasGene ? 'gene' : urlHasVariation ? 'variation' : null
   const queryFromUrl = typeFromUrl ? (params.get(typeFromUrl) ?? '') : ''
 
-  const [searchType, setSearchType] = useState<SearchType>(typeFromUrl ?? 'gene')
   const [searchQuery, setSearchQuery] = useState<string>(queryFromUrl)
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
@@ -159,7 +151,10 @@ const GeneResult = () => {
     return items.filter((r) => {
       const variantMatch =
         selected.variants.length === 0 || selected.variants.includes(r.variant_name)
-      const diseaseMatch = selected.diseases.length === 0 || selected.diseases.includes(r.disease)
+      const diseaseMatch =
+        selected.diseases.length === 0 ||
+        r.disease.some((d: string) => selected.diseases.includes(d))
+
       const therapyMatch = selected.therapies.length === 0 || selected.therapies.includes(r.therapy)
       const levelMatch =
         selected.evidenceLevels.length === 0 || selected.evidenceLevels.includes(r.evidence_level)
@@ -221,7 +216,7 @@ const GeneResult = () => {
       if (recordCountA !== recordCountB) return recordCountB - recordCountA
 
       // disease alphabetical
-      return a.disease.localeCompare(b.disease)
+      return a.disease[0].localeCompare(b.disease[0])
     })
   }, [filteredResults])
 
@@ -273,9 +268,8 @@ const GeneResult = () => {
 
   // Keep the controls in sync if the user lands directly on /search?gene=TP53
   useEffect(() => {
-    if (typeFromUrl) setSearchType(typeFromUrl)
     setSearchQuery(queryFromUrl)
-  }, [typeFromUrl, queryFromUrl])
+  }, [queryFromUrl])
 
   const buildFilterOptions = (results: any[], key: keyof any): string[] => {
     const counts = buildCountMap(results, key)
@@ -286,7 +280,9 @@ const GeneResult = () => {
   }
 
   const variantOptions = buildFilterOptions(results[activeTab], 'variant_name')
-  const diseaseOptions = buildFilterOptions(results[activeTab], 'disease')
+  const diseaseOptions = Array.from(
+    new Set(results[activeTab].flatMap((r) => r.disease).filter(Boolean)),
+  )
   const therapyOptions = buildFilterOptions(results[activeTab], 'therapy')
 
   const evidenceLevelOptions = Array.from(
@@ -346,6 +342,7 @@ const GeneResult = () => {
       <Header />
       <Box id="result-page-container" m={5}>
         {loading && <CircularProgress />}
+        {error && <Alert severity="error">{error}</Alert>}
         {!loading && (
           <Box>
             <Box
