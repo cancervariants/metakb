@@ -74,3 +74,37 @@ export function getEvidenceLabelUrl(evidenceIdentifier: string): {
     evidenceUrl: evidenceUrl,
   }
 }
+
+/**
+ * Given an evidence identifier, return the source name
+ */
+export function getEvidenceSource(evidenceIdentifier: string): SourceName | null {
+  if (evidenceIdentifier.startsWith(SourceNamespacePrefix.Moalmanac)) {
+    return SourceName.Moalmanac
+  } else if (
+    evidenceIdentifier.startsWith(`${SourceNamespacePrefix.Civic}.eid`) ||
+    evidenceIdentifier.startsWith(`${SourceNamespacePrefix.Civic}.aid`)
+  ) {
+    return SourceName.Civic
+  }
+  return null
+}
+
+/**
+ * Given an array of evidence statements, return unique source names
+ */
+export function getSources(statements: Statement[]): string[] {
+  const sources = new Set<string>()
+
+  for (const s of statements) {
+    const id = s.id
+    if (!id) continue
+
+    const source = getEvidenceSource(id)
+    if (source) {
+      sources.add(source)
+    }
+  }
+
+  return Array.from(sources)
+}

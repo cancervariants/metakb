@@ -5,7 +5,7 @@ import { Box, Button, Chip, CircularProgress, Stack, Tab, Tabs, Typography } fro
 import { useSearchParams } from 'react-router-dom'
 import ResultTable from '../../components/ResultTable'
 import FilterSection from '../../components/FilterSection'
-import { buildCountMap, evidenceOrder, NormalizedResult } from './utils'
+import { buildCountMap, evidenceOrder, getSources, NormalizedResult } from './utils'
 import { Statement, Therapeutic, TherapyGroup } from '../../ts_models'
 
 type SearchType = 'gene' | 'variation'
@@ -90,6 +90,7 @@ const normalizeResults = (data: Record<string, Statement[]>): NormalizedResult[]
         significance: first?.proposition?.predicate
           ? formatSignificance(first?.proposition?.predicate)
           : 'N/A',
+        sources: getSources(arr),
         grouped_evidence: arr,
       },
     ]
@@ -125,6 +126,7 @@ const GeneResult = () => {
   const [selectedTherapies, setSelectedTherapies] = useState<string[]>([])
   const [selectedEvidenceLevels, setSelectedEvidenceLevels] = useState<string[]>([])
   const [selectedSignificance, setSelectedSignificance] = useState<string[]>([])
+  const [selectedSources, setSelectedSources] = useState<string[]>([])
 
   const { description, aliases } = useMemo(() => {
     const exts =
@@ -151,6 +153,7 @@ const GeneResult = () => {
       therapies: string[]
       evidenceLevels: string[]
       significance: string[]
+      sources: string[]
     },
   ): any[] => {
     return items.filter((r) => {
@@ -163,7 +166,17 @@ const GeneResult = () => {
       const significanceMatch =
         selected.significance.length === 0 || selected.significance.includes(r.significance)
 
-      return variantMatch && diseaseMatch && therapyMatch && levelMatch && significanceMatch
+      const sourceMatch =
+        selected.sources.length === 0 || selected.sources.some((s) => r.sources.includes(s))
+
+      return (
+        variantMatch &&
+        diseaseMatch &&
+        therapyMatch &&
+        levelMatch &&
+        significanceMatch &&
+        sourceMatch
+      )
     })
   }
 
@@ -173,6 +186,7 @@ const GeneResult = () => {
     therapies: selectedTherapies,
     evidenceLevels: selectedEvidenceLevels,
     significance: selectedSignificance,
+    sources: selectedSources,
   }
 
   const filteredByTab: Record<'therapeutic' | 'diagnostic' | 'prognostic', any[]> = {
@@ -282,12 +296,17 @@ const GeneResult = () => {
     new Set(results[activeTab].map((r) => r.significance).filter(Boolean)),
   )
 
+  const sourceOptions = Array.from(
+    new Set(results[activeTab].flatMap((r) => r.sources).filter(Boolean)),
+  )
+
   const clearAllFilters = () => {
     setSelectedVariants([])
     setSelectedDiseases([])
     setSelectedTherapies([])
     setSelectedEvidenceLevels([])
     setSelectedSignificance([])
+    setSelectedSources([])
   }
 
   const activeFilters = [
@@ -296,6 +315,7 @@ const GeneResult = () => {
     ...selectedTherapies.map((t) => ({ type: 'therapy', value: t })),
     ...selectedEvidenceLevels.map((e) => ({ type: 'evidence_level', value: e })),
     ...selectedSignificance.map((s) => ({ type: 'significance', value: s })),
+    ...selectedSources.map((src) => ({ type: 'source', value: src })),
   ]
 
   const removeFilter = (filter: { type: string; value: string }) => {
@@ -314,6 +334,9 @@ const GeneResult = () => {
         break
       case 'significance':
         setSelectedSignificance((prev) => prev.filter((s) => s !== filter.value))
+        break
+      case 'source':
+        setSelectedSources((prev) => prev.filter((s) => s !== filter.value))
         break
     }
   }
@@ -416,6 +439,13 @@ const GeneResult = () => {
                       options={significanceOptions}
                       selected={selectedSignificance}
                       setSelected={setSelectedSignificance}
+                    />
+                    <hr />
+                    <FilterSection
+                      title="Source"
+                      options={sourceOptions}
+                      selected={selectedSources}
+                      setSelected={setSelectedSources}
                     />
                   </Box>
                 </Box>
