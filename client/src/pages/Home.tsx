@@ -26,18 +26,24 @@ const HomePage = () => {
         <Box
           id="main-page-container"
           m={5}
-          sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            backgroundColor: 'white',
+            borderRadius: '5px',
+          }}
         >
           <Typography
             variant="h5"
             color="primary"
             fontWeight="bold"
             mb={2}
-            sx={{ width: '50%', justifyContent: 'center', textAlign: 'center' }}
+            sx={{ width: '50%', justifyContent: 'center', textAlign: 'center', mt: '50px' }}
           >
             Search harmonized data across multiple genomic knowledgebases.
           </Typography>
-          <Box id="search-container">
+          <Box id="search-container" mb={50}>
             <Select
               value={searchType}
               onChange={(e) => setSearchType(e.target.value)}
