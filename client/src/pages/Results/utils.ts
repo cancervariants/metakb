@@ -1,3 +1,15 @@
+import { Statement } from '../../ts_models'
+
+// model for storing the data needed to display the aggregated evidence rows for the results table
+export interface NormalizedResult {
+  variant_name: string
+  evidence_level: string
+  disease: string
+  therapy: string
+  significance: string
+  grouped_evidence: Statement[]
+}
+
 // evidence level ranking
 export const evidenceOrder: Record<string, number> = {
   A: 1,

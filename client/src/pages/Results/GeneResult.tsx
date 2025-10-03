@@ -5,38 +5,42 @@ import { Box, Button, Chip, CircularProgress, Stack, Tab, Tabs, Typography } fro
 import { useSearchParams } from 'react-router-dom'
 import ResultTable from '../../components/ResultTable'
 import FilterSection from '../../components/FilterSection'
-import { buildCountMap, evidenceOrder } from './utils'
+import { buildCountMap, evidenceOrder, NormalizedResult } from './utils'
+import { Statement, Therapeutic, TherapyGroup } from '../../ts_models'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/cv-api/api/v2/search/statements'
 
 type EvidenceBuckets = {
-  prognostic: any[]
-  diagnostic: any[]
-  therapeutic: any[]
+  prognostic: Statement[]
+  diagnostic: Statement[]
+  therapeutic: Statement[]
 }
 
-const formatTherapies = (objectTherapeutic: any): string | null => {
+function isTherapyGroup(obj: Therapeutic): obj is TherapyGroup {
+  return Array.isArray((obj as TherapyGroup).therapies)
+}
+
+const formatTherapies = (objectTherapeutic: Therapeutic): string | null => {
   if (!objectTherapeutic) return null
 
-  // multiple therapies with operator
-  if (Array.isArray(objectTherapeutic.therapies)) {
-    const names = objectTherapeutic.therapies.map((t: any) => t?.name).filter(Boolean)
+  if (isTherapyGroup(objectTherapeutic)) {
+    // It's a TherapyGroup
+    const names = objectTherapeutic.therapies.map((t) => t?.name).filter(Boolean)
     if (names.length === 0) return null
-    if (names.length === 1) return names[0]
+    if (names.length === 1) return names[0] ?? null
 
     const operator = objectTherapeutic.membershipOperator?.toLowerCase() === 'or' ? 'or' : 'and'
     return `${names.slice(0, -1).join(', ')} ${operator} ${names[names.length - 1]}`
   }
 
-  // single therapy
+  // Otherwise it's a MappableConcept
   if (objectTherapeutic.conceptType === 'Therapy') {
     return objectTherapeutic.name ?? null
   }
 
   return null
 }
-// aliases and description in geneContextQualifier
 
 const formatSignificance = (predicate: string): string => {
   if (predicate === 'predictsSensitivityTo') {
@@ -60,7 +64,7 @@ const formatSignificance = (predicate: string): string => {
   return ''
 }
 
-const normalizeResults = (data: Record<string, any[]>): any[] => {
+const normalizeResults = (data: Record<string, Statement[]>): NormalizedResult[] => {
   if (!data || Object.keys(data).length === 0) return []
   return Object.values(data).flatMap((arr) => {
     if (!Array.isArray(arr) || arr.length === 0) return []
