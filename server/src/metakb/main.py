@@ -104,7 +104,8 @@ try:
     app.mount("/assets", StaticFiles(directory=BUILD_DIR / "assets"), name="assets")
 except RuntimeError:
     _logger.warning(
-        "Unable to locate static frontend files under path `%s`. Proceeding without defining `get_client()`"
+        "Unable to locate static frontend files under path `%s`. Proceeding without defining `get_client()`",
+        BUILD_DIR,
     )
     _logger.debug("Build dir contents: %s", BUILD_DIR.rglob("*"))
 else:
