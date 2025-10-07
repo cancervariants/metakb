@@ -1,0 +1,117 @@
+#Patient Identifier	Sex	Diagnosis Age	Primary tissue	Localized or Metastaic at Diagnosis	Disease Free (Months)	Overall Survival (Months)	Event Free Status	Disease Free Status	Patient's Vital Status	Overall Survival Status
+#Identifier to uniquely specify a patient.	Sex	Age at which a condition or disease was first diagnosed.	Primary tissue	Localized or Metastaic at Diagnosis	Disease free (months) since initial treatment.	Overall survival in months since initial diagonosis.	Event Free Status	Disease free status since initial treatment.	The survival state of the person.	Overall patient survival status.
+#STRING	STRING	NUMBER	STRING	STRING	NUMBER	NUMBER	STRING	STRING	STRING	STRING
+#1	1	1	1	1	1	1	1	1	1	9
+PATIENT_ID	SEX	AGE	PRIMARY_TISSUE	LOCALIZED_VS_METS_AT_DX	DFS_MONTHS	OS_MONTHS	EFS_STATUS	DFS_STATUS	VITAL_STATUS	OS_STATUS
+IC009	Male	11.5	Osseous lesion with or without soft tissue component	Metastatic	17.6	17.6	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC015	Female	4.1	Osseous lesion with or without soft tissue component	Localized	40.5	163.1	Metastatic Relapse	1:Recurred/Progressed	Alive	0:LIVING
+IC024	Male	11.7	Osseous lesion with or without soft tissue component	Localized	195.7	195.7	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC034	Male	13.4	Osseous lesion with or without soft tissue component	Localized	11.7	15.8	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC044	Female	15.3	Osseous lesion with or without soft tissue component	Localized	10.8	16.1	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC046	Male	5.8	Osseous lesion with or without soft tissue component	Localized	10.6	10.6			Alive	0:LIVING
+IC049	Female	12.0	Osseous lesion with or without soft tissue component	Localized	101.8	120.7	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC053	Female	16.1	Osseous lesion with or without soft tissue component	Metastatic	59.8	59.8	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC054	Male	15.7	Osseous lesion with or without soft tissue component	Metastatic	14.6	17.1	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC057	Female	14.9	Osseous lesion with or without soft tissue component	Localized	40.2	40.2	Metastatic Relapse	1:Recurred/Progressed	Alive	0:LIVING
+IC058	Female	4.2	Osseous lesion with or without soft tissue component	Localized	38.9	199.1	Localized Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC066	Female	15.1	Extra-osseous lesion	Localized	17.8	55.0	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC067	Male	5.8	Osseous lesion with or without soft tissue component	Localized	14.7	37.7	Localized Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC076	Male	11.0	Osseous lesion with or without soft tissue component	Localized	133.9	133.9	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC080	Male	20.6	Extra-osseous lesion	Metastatic	123.3	123.3	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC082	Female	4.6	Osseous lesion with or without soft tissue component	Localized	123.3	123.3	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC086	Female	13.3	Osseous lesion with or without soft tissue component	Localized	4.6	9.3	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC092	Male	15.1	Extra-osseous lesion	Metastatic	11.6	14.1	Localized Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC093	Female	15.6	Osseous lesion with or without soft tissue component	Metastatic	11.9	16.4	Localized Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC096	Male	15.0	Extra-osseous lesion	Localized	30.0	43.4	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC105	Male	20.1	Osseous lesion with or without soft tissue component	Metastatic	9.9	11.7	Localized Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC106	Male	15.6	Osseous lesion with or without soft tissue component	Metastatic	11.0	13.3	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC111	Female	15.4	Osseous lesion with or without soft tissue component	Localized	115.4	115.4	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC112	Male	35.3	Extra-osseous lesion	Metastatic	10.1	12.1	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC114	Male	2.9	Osseous lesion with or without soft tissue component	Localized	11.6	11.6	No Relapse	0:DiseaseFree	DOC	1:DECEASED
+IC116	Female	13.8	Osseous lesion with or without soft tissue component	Metastatic	105.3	105.3	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC121	Male	21.9	Osseous lesion with or without soft tissue component	Metastatic	10.6	13.1	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC128	Male	20.3	Osseous lesion with or without soft tissue component	Localized	22.0	95.8	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC130	Male	12.7	Osseous lesion with or without soft tissue component	Localized	97.8	97.8	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC147	Female	11.8	Osseous lesion with or without soft tissue component	Metastatic	40.7	87.6	Metastatic Relapse	1:Recurred/Progressed	Alive	0:LIVING
+IC149	Female	8.3	Osseous lesion with or without soft tissue component	Localized	86.7	86.7	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC151	Male	14.8	Osseous lesion with or without soft tissue component	Localized	101.3	101.3	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC158	Female	10.1	Osseous lesion with or without soft tissue component	Localized	25.1	51.1	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC165	Female	13.8	Osseous lesion with or without soft tissue component	Localized	78.3	78.3	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC168	Male	11.8	Osseous lesion with or without soft tissue component	Localized	121.4	121.4	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC174	Female	21.3	Osseous lesion with or without soft tissue component	Localized	125.1	125.1	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC193	Female	13.1	Osseous lesion with or without soft tissue component	Metastatic	77.5	77.5	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC196	Male	16.9	Osseous lesion with or without soft tissue component	Metastatic	91.8	91.8	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC197	Male	12.5	Osseous lesion with or without soft tissue component	Metastatic	9.0	9.0	No Relapse	0:DiseaseFree	DOC	1:DECEASED
+IC198	Male	9.5	Osseous lesion with or without soft tissue component	Metastatic	10.8	14.4	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC224	Male	8.6	Osseous lesion with or without soft tissue component	Localized	107.4	107.4	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC242	Female	6.7	Osseous lesion with or without soft tissue component	Localized	15.3	17.9	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC248	Female	25.0	Osseous lesion with or without soft tissue component	Localized	97.9	97.9	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC254	Male	11.4	Extra-osseous lesion	Localized	29.9	37.5	Localized Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC262	Male	14.6	Osseous lesion with or without soft tissue component	Localized	128.7	128.7			Alive	0:LIVING
+IC263	Female	10.4	Extra-osseous lesion		192.0	192.0				1:DECEASED
+IC264	Male	12.3	Osseous lesion with or without soft tissue component	Metastatic	13.1	18.2	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC267	Male	24.0	Osseous lesion with or without soft tissue component	Metastatic	11.2	12.3	Metastatic Relapse	1:Recurred/Progressed		1:DECEASED
+IC268	Male	11.6	Osseous lesion with or without soft tissue component	Localized	126.8	126.8	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC270	Male	23.6	Extra-osseous lesion	Localized	76.9	76.9	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC272	Male	17.4	Osseous lesion with or without soft tissue component	Metastatic	17.2	32.3	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC273	Male	23.6	Osseous lesion with or without soft tissue component		43.5	121.0	Localized Relapse	1:Recurred/Progressed	Alive	0:LIVING
+IC274	Male	11.0	Osseous lesion with or without soft tissue component	Metastatic	43.1	43.7	Metastatic Relapse	1:Recurred/Progressed	Alive	0:LIVING
+IC275	Male	14.9	Osseous lesion with or without soft tissue component	Localized	97.1	97.1	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC277	Male	39.0	Osseous lesion with or without soft tissue component		63.7	64.1	Metastatic Relapse	1:Recurred/Progressed		1:DECEASED
+IC278	Male	20.7	Extra-osseous lesion	Localized	93.2	93.2	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC279	Female	17.2	Osseous lesion with or without soft tissue component	Localized	11.1	15.3	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC280	Female	31.9			17.3	17.5	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC282	Female	49.9	Extra-osseous lesion	Localized	64.9	64.9	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC283	Male	16.3	Osseous lesion with or without soft tissue component	Localized	90.3	90.3	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC284	Male	17.0	Osseous lesion with or without soft tissue component	Localized	18.8	42.5	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC286	Male	25.8	Extra-osseous lesion	Metastatic	72.6	72.6	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC288	Male	17.6	Osseous lesion with or without soft tissue component	Metastatic	5.2	17.5	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC294	Female	15.8	Osseous lesion with or without soft tissue component	Localized	67.7	67.7	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC295	Female	28.8	Osseous lesion with or without soft tissue component	Localized	93.4	93.4	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC296	Female	27.8	Osseous lesion with or without soft tissue component	Metastatic	94.0	94.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC297	Male	14.2	Osseous lesion with or without soft tissue component	Metastatic	4.7	45.2	Localized Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC299	Female	7.5	Osseous lesion with or without soft tissue component	Metastatic	17.7	46.9	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC300	Male	19.5	Osseous lesion with or without soft tissue component	Metastatic	54.9	54.9	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC301	Male	15.5	Osseous lesion with or without soft tissue component	Localized	20.5	38.9	Localized Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC302	Female	8.1	Osseous lesion with or without soft tissue component	Localized	24.4	34.4	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC303	Female	13.2	Osseous lesion with or without soft tissue component	Localized	59.6	59.6	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC305	Female	16.5	Osseous lesion with or without soft tissue component	Metastatic	18.1	27.2	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC306	Male	17.0	Osseous lesion with or without soft tissue component	Localized	19.0	52.2	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC309	Male	24.4	Osseous lesion with or without soft tissue component	Metastatic	6.9	32.5	Metastatic Relapse	1:Recurred/Progressed	Alive	0:LIVING
+IC311	Male	35.6	Osseous lesion with or without soft tissue component	Metastatic	21.3	30.4	Metastatic Relapse	1:Recurred/Progressed	DCD	1:DECEASED
+IC318	Male	13.2	Osseous lesion with or without soft tissue component	Localized	8.4	17.2			Alive	0:LIVING
+IC323	Male	11.2	Extra-osseous lesion	Localized	59.4	59.4	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC324	Male	17.8	Osseous lesion with or without soft tissue component	Localized	11.4	13.1	Metastatic Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+IC325	Male	13.7	Osseous lesion with or without soft tissue component	Metastatic	7.8	11.2	Metastatic Relapse	1:Recurred/Progressed	Alive	0:LIVING
+IC343	Female	10.0	Osseous lesion with or without soft tissue component	Localized	58.7	58.7	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC349	Female	15.5	Osseous lesion with or without soft tissue component	Metastatic	15.6	15.6	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC831	Female	10.3	Extra-osseous lesion	Localized	62.6	62.6	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC929	Female	5.9	Osseous lesion with or without soft tissue component	Metastatic	59.3	59.3	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC973	Male	27.3	Osseous lesion with or without soft tissue component	Localized	8.2	8.2	Metastatic Relapse	1:Recurred/Progressed	Alive	0:LIVING
+SJEWS001301	Male	13.7	Osseous lesion with or without soft tissue component	Localized		205.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001302	Male	12.6	Osseous lesion with or without soft tissue component	Localized		151.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001303	Male	11.4	Extra-osseous lesion	Localized		5.0	Localized Relapse	1:Recurred/Progressed	DOD	1:DECEASED
+SJEWS001304	Female	13.7	Osseous lesion with or without soft tissue component	Localized		113.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001305	Male	13.7	Osseous lesion with or without soft tissue component	Localized		50.0	No Relapse	0:DiseaseFree	DOC	1:DECEASED
+SJEWS001306	Male	15.3	Osseous lesion with or without soft tissue component	Localized		72.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001307	Female	2.9	Osseous lesion with or without soft tissue component	Localized		67.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001308	Male	12.0	Extra-osseous lesion with soft tissue component	Localized		66.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001309	Male	13.8	Extra-osseous lesion with soft tissue component	Localized		53.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001311	Female	10.8	Osseous lesion with or without soft tissue component	Localized		42.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001312	Female	11.8	Extra-osseous lesion	Localized		36.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001313	Male	14.8	Osseous lesion with or without soft tissue component	Localized		35.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001314	Female	16.4	Extra-osseous lesion	Localized		31.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001316	Male	6.2	Osseous lesion with or without soft tissue component	Metastatic		18.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001317	Female	3.3	Extra-osseous lesion	Metastatic		15.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001318	Male	11.4	Osseous lesion with or without soft tissue component	Metastatic		9.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001319	Male	13.9	Osseous lesion with or without soft tissue component	Localized		2.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+SJEWS001320	Female	10.3	Osseous lesion with or without soft tissue component	Metastatic		14.0	No Relapse	0:DiseaseFree	Alive	0:LIVING
+IC213										
+IC071										
+IC077										
+IC136										
+IC204										
+IC215										
+IC310										
+IC340										
+IC1057										

@@ -1,0 +1,40 @@
+Value counts for column: Consequence
+
+Consequence
+missense_variant                                                      5713
+synonymous_variant                                                    4483
+frameshift_variant                                                     298
+missense_variant,splice_region_variant                                 225
+stop_gained                                                            215
+inframe_deletion                                                       166
+NaN                                                                    124
+splice_region_variant,synonymous_variant                               104
+splice_donor_variant                                                    72
+splice_acceptor_variant                                                 52
+intron_variant                                                          49
+inframe_insertion                                                       33
+splice_region_variant,intron_variant                                     8
+downstream_gene_variant                                                  8
+stop_gained,splice_region_variant                                        7
+3_prime_UTR_variant                                                      6
+missense_variant,NMD_transcript_variant                                  6
+frameshift_variant,splice_region_variant                                 5
+upstream_gene_variant                                                    4
+synonymous_variant,NMD_transcript_variant                                4
+5_prime_UTR_variant                                                      4
+stop_lost                                                                3
+stop_gained,frameshift_variant                                           3
+splice_donor_variant,intron_variant                                      3
+stop_retained_variant                                                    3
+intron_variant,non_coding_transcript_variant                             3
+stop_lost,3_prime_UTR_variant                                            2
+non_coding_transcript_exon_variant                                       2
+stop_retained_variant,3_prime_UTR_variant                                1
+frameshift_variant,start_lost                                            1
+splice_acceptor_variant,intron_variant                                   1
+splice_region_variant,5_prime_UTR_variant                                1
+splice_donor_variant,coding_sequence_variant,intron_variant              1
+start_lost                                                               1
+splice_donor_variant,coding_sequence_variant                             1
+inframe_deletion,splice_region_variant                                   1
+splice_region_variant,intron_variant,non_coding_transcript_variant       1

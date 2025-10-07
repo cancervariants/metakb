@@ -1,0 +1,5 @@
+Value counts for column: SEX
+
+SEX
+Male      6311
+Female    5303

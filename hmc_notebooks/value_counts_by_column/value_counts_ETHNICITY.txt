@@ -1,0 +1,8 @@
+Value counts for column: ETHNICITY
+
+ETHNICITY
+NaN                         10900
+White/Europe                  566
+White/Latin America           133
+White/North Africa              9
+Black/Sub-Saharan Africa        6

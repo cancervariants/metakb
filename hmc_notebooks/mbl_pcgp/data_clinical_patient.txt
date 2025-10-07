@@ -1,0 +1,42 @@
+#Patient Identifier	Diagnosis Age	Sex	M Stage	Patient's Vital Status	Overall Survival Status	Follow up length (year)	Ethnicity Category
+#Identifier to uniquely specify a patient.	Age at which a condition or disease was first diagnosed.	Sex	M Stage	The survival state of the person.	Overall patient survival status.	Follow up length	The text for reporting information about ethnicity.
+#STRING	NUMBER	STRING	STRING	STRING	STRING	STRING	STRING
+#1	1	1	1	1	9	1	1
+PATIENT_ID	AGE	SEX	M_STAGE	VITAL_STATUS	OS_STATUS	FOLLOWUP_LENGTH	ETHNICITY
+WNT-02	7.5	Female	3	No Evidence Of Disease	LIVING	1.666666667	White
+WNT-07	6.5	Female	0	No Evidence Of Disease	LIVING	6.833333333	White
+WNT-08	11.6	Male	0	No Evidence Of Disease	LIVING	4.75	White
+WNT-09	8.2	Female	0	No Evidence Of Disease	LIVING	1.75	Hispanic
+WNT-11	9.8	Male	2	No Evidence Of Disease	LIVING	5.333333333	Black
+SHH-03	8.5	Male	0	No Evidence Of Disease	LIVING	7.083333333	Asian
+SHH-04	7.0	Female	0	No Evidence Of Disease	LIVING	3	Asian
+SHH-05	5.1	Male	0	No Evidence Of Disease	LIVING	2.916666667	White
+SHH-09	8.8	Male	0	Died Of Disease	DECEASED	2	Hispanic
+SHH-12	16.7	Male	0	No Evidence Of Disease	LIVING	2.916666667	White
+G3-02	10.8	Male	0	No Evidence Of Disease	LIVING	6	White
+G3-03	12.9	Male	0	Died Of Disease	DECEASED	0.916666667	White
+G3-04	8.6	Male	0	No Evidence Of Disease	LIVING	4	White
+G3-13	6.9	Male	0	No Evidence Of Disease	LIVING	3.5	Hispanic
+G3-14	3.3	Male	0	Died Of Disease	DECEASED	1.166666667	White
+G3-16	13.6	Male	3	No Evidence Of Disease	LIVING	2.25	White
+G4-03	8.7	Male	3	No Evidence Of Disease	LIVING	1.916666667	White
+G4-04	9.8	Male	3	No Evidence Of Disease	LIVING	4.666666667	White
+G4-05	12.9	Female	0	No Evidence Of Disease	LIVING	3.583333333	Asian
+G4-06	7.8	Female	0	No Evidence Of Disease	LIVING	4.916666667	Asian Indian
+G4-07	8.7	Male	3	No Evidence Of Disease	LIVING	6.333333333	White
+G4-08	8.2	Male	0	No Evidence Of Disease	LIVING	2	White
+G4-09	10.8	Male	0	No Evidence Of Disease	LIVING	2.916666667	Hispanic
+G4-10	8.8	Male	0	No Evidence Of Disease	LIVING	5.416666667	Hispanic
+G4-11	6.8	Female	3	Died Of Other Causes	DECEASED	2.75	Black
+G4-12	5.4	Male	3	No Evidence Of Disease	LIVING	5	White
+G4-13	6.3	Male	0	Died Of Other Causes	DECEASED	0.583333333	Hispanic
+G4-20	9.3	Male	0	No Evidence Of Disease	LIVING	5.5	White
+G4-21	8.7	Male	0	No Evidence Of Disease	LIVING	3	White
+G4-23	9.2	Male	3	No Evidence Of Disease	LIVING	6.166666667	White
+G4-26	8.3	Male	0	No Evidence Of Disease	LIVING	7.416666667	White
+G4-29	6.3	Female	1	No Evidence Of Disease	LIVING	2.333333333	Black
+G4-32	5.8	Male	0	No Evidence Of Disease	LIVING	2.166666667	Black
+G4-35	6.8	Male	2	Stable Disease/No Evidence Of Disease	DECEASED	5.166666667	Hispanic
+G4-36	8.1	Female	0	No Evidence Of Disease	LIVING	6.916666667	White
+U-01	4.3	Female	0	No Evidence Of Disease	LIVING	5	Asian
+U-02	10.4	Male	0	Progressive Disease	LIVING	5.166666667	White

@@ -1,0 +1,2 @@
+variant,response
+Y-15552431-G-A,"{""warnings"": [""Unable to translate Y-15552431-G-A""], ""service_meta_"": {""name"": ""variation-normalizer"", ""version"": ""0.13.0"", ""response_datetime"": ""2025-07-18T17:51:06.144581Z"", ""url"": ""https://github.com/cancervariants/variation-normalization""}, ""variation_query"": ""Y-15552431-G-A""}"
