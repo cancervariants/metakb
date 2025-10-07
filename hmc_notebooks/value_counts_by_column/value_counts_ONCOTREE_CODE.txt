@@ -1,4 +1,0 @@
-Value counts for column: ONCOTREE_CODE
-
-ONCOTREE_CODE
-ES    11614

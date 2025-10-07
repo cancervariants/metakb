@@ -1,4 +1,0 @@
-Value counts for column: STUDY_ID
-
-STUDY_ID
-es_dfarber_broad_2014    11614

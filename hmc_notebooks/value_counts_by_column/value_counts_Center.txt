@@ -1,4 +1,0 @@
-Value counts for column: Center
-
-Center
-Institut Curie    2043

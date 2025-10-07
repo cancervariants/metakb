@@ -1,7 +1,0 @@
-Value counts for column: Variant_Type
-
-Variant_Type
-SNP    11077
-DEL      404
-INS      130
-DNP        3
