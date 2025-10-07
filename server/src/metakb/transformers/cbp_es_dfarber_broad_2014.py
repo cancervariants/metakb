@@ -517,7 +517,8 @@ class cBioportalTransformer(Transformer):
         # Add the column once
         if "gene_hgnc_id" not in df.columns:
             df["gene_hgnc_id"] = None
-        for gene in gene_list:
+        for gene in tqdm(gene_list, desc="Processing genes"):
+        # for gene in gene_list:
             print(f"▶️ Checking gene: {gene}")
             gene_df = self._test_gene_tokenization(gene)
             # Extract and parse JSON string from the response
@@ -799,7 +800,8 @@ class cBioportalTransformer(Transformer):
         # Start with a copy of your combined_df
         result_df = combined_df.copy()
         # Iterate through each chromosome 23 variant for male samples
-        for variant in chrom_23_list:
+        for variant in tqdm (chrom_23_list, desc="Processing variants"):
+        # for variant in chrom_23_list:
             print(f"▶️ Checking variant: {variant}")  # Add this line
             result_df = self._chr23_male(result_df, variant)
         # Now all updates are preserved in result_df
