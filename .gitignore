@@ -158,3 +158,4 @@ server/src/metakb/data/*
 **/node_modules/
 
 **/.neo4j_data/
+biome.json

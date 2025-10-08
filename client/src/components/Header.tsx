@@ -1,15 +1,21 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AppBar, Typography } from '@mui/material'
 import { Link } from 'react-router-dom'
-import { fetchVersion } from '../utils/'
 
 const Header = () => {
   const [version, setVersion] = useState('')
 
   useEffect(() => {
-    fetchVersion().then((versionResponse) => {
-      setVersion(versionResponse)
-    })
+    const run = async () => {
+      const url = '/cv-api/api/v2/service-info'
+      const res = await fetch(url, {
+        headers: { 'Content-Type': 'application/json' },
+      })
+      if (!res.ok) throw new Error(`Service info API request failed: ${res.status}`)
+      const data = await res.json()
+      setVersion(data.version)
+    }
+    run()
   }, [])
 
   return (
@@ -19,7 +25,7 @@ const Header = () => {
           MetaKB
         </Typography>
       </Link>
-      <Typography>{version}</Typography>
+      <Typography>{version ? `v${version}` : ''}</Typography>
     </AppBar>
   )
 }
