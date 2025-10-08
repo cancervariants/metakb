@@ -283,9 +283,11 @@ const GeneResult = () => {
                 <Tab label={`Diagnostic (${filteredByTab.diagnostic.length})`} value="diagnostic" />
                 <Tab label={`Prognostic (${filteredByTab.prognostic.length})`} value="prognostic" />
               </Tabs>
-              <Typography variant="h6" mb={2} fontWeight="bold">
-                {TAB_LABELS[activeTab]} Search Results ({filteredResults?.length})
-              </Typography>
+              <Box id="search-type-label" m={2}>
+                <Typography variant="h6" fontWeight="bold">
+                  {TAB_LABELS[activeTab]} Search Results ({filteredResults?.length})
+                </Typography>
+              </Box>
               <Box display="flex">
                 <Box id="filter-container">
                   <Box width={250} p={2} sx={{ borderRight: '1px solid #ddd' }}>
