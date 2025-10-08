@@ -257,6 +257,9 @@ const GeneResult = () => {
     <>
       <Header />
       <Box id="result-page-container" m={5}>
+        <Typography variant="h5" color="primary" fontWeight="bold" mb={2}>
+          Showing results for {typeFromUrl}: {searchQuery}
+        </Typography>
         {loading && <CircularProgress />}
         {error && <Alert severity="error">{error}</Alert>}
         {!loading && (
@@ -264,14 +267,21 @@ const GeneResult = () => {
             <Box
               id="results-info-container"
               sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2 }}
+              display={description || aliases.length ? 'block' : 'none'}
             >
               <Typography variant="h4" mb={2} fontWeight="bold">
                 {searchQuery}
               </Typography>
-              <Typography variant="h6" mb={2} fontWeight="bold" color="darkgrey">
+              <Typography
+                variant="h6"
+                mb={2}
+                fontWeight="bold"
+                color="darkgrey"
+                display={aliases.length ? 'block' : 'none'}
+              >
                 Aliases: {aliases.join(', ')}
               </Typography>
-              <Typography variant="body1" mb={2}>
+              <Typography variant="body1" mb={2} display={description ? 'block' : 'none'}>
                 {description}
               </Typography>
             </Box>
