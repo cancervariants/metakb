@@ -17,5 +17,8 @@
       "ruff check --fix",
       "ruff format"
     ]
+  },
+  "dependencies": {
+    "@mui/x-data-grid": "^8.10.2"
   }
 }
