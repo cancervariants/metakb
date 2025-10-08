@@ -1,11 +1,14 @@
 import { AppBar, Typography } from '@mui/material'
+import { Link } from 'react-router-dom'
 
 const Header = () => {
   return (
     <AppBar position="static" color="header" sx={{ padding: 2 }}>
-      <Typography variant="h4" fontWeight="bold">
-        MetaKB
-      </Typography>
+      <Link to="/">
+        <Typography variant="h4" fontWeight="bold" color="white">
+          MetaKB
+        </Typography>
+      </Link>
     </AppBar>
   )
 }

@@ -4,7 +4,7 @@
   font-weight: 400;
 
   color: black;
-  background-color: lightgrey;
+  background-color: white;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -16,6 +16,8 @@ html,
 body,
 #root {
   height: 100%;
+  background-color: lightgrey;
+  overflow: scroll;
 }
 
 a {
@@ -29,7 +31,7 @@ a:hover {
 
 body {
   margin: 0;
-  min-height: 100%;
+  min-height: 100vh;
 }
 
 h1 {

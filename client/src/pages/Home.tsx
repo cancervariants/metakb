@@ -1,53 +1,63 @@
 import * as React from 'react'
 import Header from '../components/Header'
-import { Box, Button, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material'
+import { Box, Button, MenuItem, Select, TextField, Typography } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
+import { useNavigate } from 'react-router-dom'
 
 const HomePage = () => {
-  const [searchType, setSearchType] = React.useState('')
+  const navigate = useNavigate()
+
+  const [searchType, setSearchType] = React.useState('gene')
   const [searchQuery, setSearchQuery] = React.useState('')
+
+  const doSearch = () => {
+    if (!searchQuery.trim()) return
+    navigate(`/search?${searchType}=${encodeURIComponent(searchQuery.trim())}`)
+  }
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') doSearch()
+  }
 
   return (
     <>
       <Header />
-      <main style={{ height: '90%' }}>
+      <main>
         <Box
           id="main-page-container"
-          mx={5}
+          m={5}
           sx={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             backgroundColor: 'white',
-            height: '100%',
+            borderRadius: '5px',
           }}
         >
           <Typography
             variant="h5"
             color="primary"
             fontWeight="bold"
-            my={5}
-            sx={{ width: '50%', justifyContent: 'center', textAlign: 'center' }}
+            mb={2}
+            sx={{ width: '50%', justifyContent: 'center', textAlign: 'center', mt: '50px' }}
           >
             Search harmonized data across multiple genomic knowledgebases.
           </Typography>
-          <Box id="search-container">
-            <InputLabel id="search-type-select-label">Search Type</InputLabel>
+          <Box id="search-container" mb={50}>
             <Select
               value={searchType}
               onChange={(e) => setSearchType(e.target.value)}
               label="Search Type"
-              labelId="search-type-select-label"
-              sx={{ minWidth: 120, marginRight: 1 }}
             >
               <MenuItem value="gene">Gene</MenuItem>
-              <MenuItem value="variant">Variant</MenuItem>
+              <MenuItem value="variation">Variant</MenuItem>
             </Select>
             <TextField
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={onKeyDown}
             ></TextField>
-            <Button variant="contained" color="secondary" sx={{ marginLeft: 1 }}>
+            <Button variant="contained" color="secondary" sx={{ marginLeft: 1 }} onClick={doSearch}>
               <SearchIcon />
               Search
             </Button>
