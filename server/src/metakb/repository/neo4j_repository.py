@@ -36,7 +36,7 @@ from neo4j import (
 from neo4j.graph import Node
 
 from metakb.config import get_config
-from metakb.repository.base import AbstractRepository
+from metakb.repository.base import AbstractRepository, RepositoryStats
 from metakb.repository.neo4j_models import (
     AlleleNode,
     CategoricalVariantNode,
@@ -625,6 +625,18 @@ class Neo4jRepository(AbstractRepository):
             limit=limit,
         )
         return self._get_statements_from_results(result)
+
+    def get_stats(self) -> RepositoryStats:
+        """Fetch counts for entities
+
+        :return: structured stats data class
+        """
+        result = self.session.execute_read(
+            lambda tx: list(tx.run(queries_catalog.get_counts()))
+        )
+        return RepositoryStats(
+            **{i["info"]["label"]: i["info"]["count"] for i in result}
+        )
 
     def teardown_db(self) -> None:
         """Reset repository storage.
