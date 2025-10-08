@@ -10,6 +10,18 @@ from ga4gh.va_spec.aac_2017 import (
 from ga4gh.va_spec.base import (
     Statement,
 )
+from pydantic import BaseModel
+
+
+class RepositoryStats(BaseModel):
+    """Define structure for reporting entity counts from the DB"""
+
+    num_genes: int
+    num_therapeutics: int
+    num_conditions: int
+    num_variations: int
+    num_statements: int
+    num_documents: int
 
 
 class AbstractRepository(abc.ABC):
@@ -74,6 +86,13 @@ class AbstractRepository(abc.ABC):
         :param start: pagination start point
         :param limit: page size
         :return: list of statements matching provided criteria
+        """
+
+    @abc.abstractmethod
+    def get_stats(self) -> RepositoryStats:
+        """Fetch counts for entities
+
+        :return: structured stats data class
         """
 
     @abc.abstractmethod
