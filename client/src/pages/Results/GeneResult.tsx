@@ -253,17 +253,20 @@ const GeneResult = () => {
     }
   }
 
+  const hasInitialResults = results[activeTab].length > 0
+  const hasFilteredResults = filteredResults.length > 0
+
   return (
     <>
       <Header />
       <Box id="result-page-container" m={5}>
-        <Typography variant="h5" color="primary" fontWeight="bold" mb={2}>
-          Showing results for {typeFromUrl}: {searchQuery}
-        </Typography>
         {loading && <CircularProgress />}
         {error && <Alert severity="error">{error}</Alert>}
         {!loading && (
           <Box>
+            <Typography variant="h5" color="primary" fontWeight="bold" mb={2}>
+              Showing results for {typeFromUrl}: {searchQuery}
+            </Typography>
             <Box
               id="results-info-container"
               sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2 }}
@@ -306,78 +309,88 @@ const GeneResult = () => {
                   {TAB_LABELS[activeTab]} Search Results ({filteredResults?.length})
                 </Typography>
               </Box>
-              <Box display="flex">
-                <Box id="filter-container">
-                  <Box width={250} p={2} sx={{ borderRight: '1px solid #ddd' }}>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                      <strong>Filters</strong>
-                      <Button variant="outlined" size="small" onClick={clearAllFilters}>
-                        clear all
-                      </Button>
+              {hasInitialResults ? (
+                <Box display="flex">
+                  <Box id="filter-container">
+                    <Box width={250} p={2} sx={{ borderRight: '1px solid #ddd' }}>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                        <strong>Filters</strong>
+                        <Button variant="outlined" size="small" onClick={clearAllFilters}>
+                          clear all
+                        </Button>
+                      </Box>
+                      <Box id="active-filters">
+                        {activeFilters.length > 0 && (
+                          <Stack direction="row" flexWrap="wrap">
+                            {activeFilters.map((f) => (
+                              <Chip
+                                key={`${f.type}-${f.value}`}
+                                label={f.value}
+                                onDelete={() => removeFilter(f)}
+                                color="primary"
+                                variant="outlined"
+                              />
+                            ))}
+                          </Stack>
+                        )}
+                      </Box>
+                      <hr></hr>
+                      <FilterSection
+                        title="Variant"
+                        options={variantOptions}
+                        selected={selectedVariants}
+                        setSelected={setSelectedVariants}
+                      />
+                      <hr></hr>
+                      <FilterSection
+                        title="Disease"
+                        options={diseaseOptions}
+                        selected={selectedDiseases}
+                        setSelected={setSelectedDiseases}
+                      />
+                      <hr></hr>
+                      <FilterSection
+                        title="Therapy"
+                        options={therapyOptions}
+                        selected={selectedTherapies}
+                        setSelected={setSelectedTherapies}
+                      />
+                      <hr></hr>
+                      <FilterSection
+                        title="Evidence Level"
+                        options={evidenceLevelOptions}
+                        selected={selectedEvidenceLevels}
+                        setSelected={setSelectedEvidenceLevels}
+                      />
+                      <hr></hr>
+                      <FilterSection
+                        title="Significance"
+                        options={significanceOptions}
+                        selected={selectedSignificance}
+                        setSelected={setSelectedSignificance}
+                      />
+                      <hr />
+                      <FilterSection
+                        title="Source"
+                        options={sourceOptions}
+                        selected={selectedSources}
+                        setSelected={setSelectedSources}
+                      />
                     </Box>
-                    <Box id="active-filters">
-                      {activeFilters.length > 0 && (
-                        <Stack direction="row" flexWrap="wrap">
-                          {activeFilters.map((f) => (
-                            <Chip
-                              key={`${f.type}-${f.value}`}
-                              label={f.value}
-                              onDelete={() => removeFilter(f)}
-                              color="primary"
-                              variant="outlined"
-                            />
-                          ))}
-                        </Stack>
-                      )}
-                    </Box>
-                    <hr></hr>
-                    <FilterSection
-                      title="Variant"
-                      options={variantOptions}
-                      selected={selectedVariants}
-                      setSelected={setSelectedVariants}
-                    />
-                    <hr></hr>
-                    <FilterSection
-                      title="Disease"
-                      options={diseaseOptions}
-                      selected={selectedDiseases}
-                      setSelected={setSelectedDiseases}
-                    />
-                    <hr></hr>
-                    <FilterSection
-                      title="Therapy"
-                      options={therapyOptions}
-                      selected={selectedTherapies}
-                      setSelected={setSelectedTherapies}
-                    />
-                    <hr></hr>
-                    <FilterSection
-                      title="Evidence Level"
-                      options={evidenceLevelOptions}
-                      selected={selectedEvidenceLevels}
-                      setSelected={setSelectedEvidenceLevels}
-                    />
-                    <hr></hr>
-                    <FilterSection
-                      title="Significance"
-                      options={significanceOptions}
-                      selected={selectedSignificance}
-                      setSelected={setSelectedSignificance}
-                    />
-                    <hr />
-                    <FilterSection
-                      title="Source"
-                      options={sourceOptions}
-                      selected={selectedSources}
-                      setSelected={setSelectedSources}
-                    />
+                  </Box>
+                  <Box id="results" width="100%" p={2}>
+                    {hasFilteredResults ? (
+                      <ResultTable results={sortedResults} resultType={activeTab} />
+                    ) : (
+                      <Alert severity="info" sx={{ width: '100%' }}>
+                        No results match your current filters.
+                      </Alert>
+                    )}
                   </Box>
                 </Box>
-                <Box>
-                  <ResultTable results={sortedResults} resultType={activeTab} />
-                </Box>
-              </Box>
+              ) : (
+                <Alert severity="info">No results were found for your query.</Alert>
+              )}
             </Box>
           </Box>
         )}
