@@ -262,7 +262,7 @@ const GeneResult = () => {
       <Box id="result-page-container" m={5}>
         {loading && <CircularProgress />}
         {error && <Alert severity="error">{error}</Alert>}
-        {!loading && (
+        {!loading && !error && (
           <Box>
             <Typography variant="h5" color="primary" fontWeight="bold" mb={2}>
               Showing results for {typeFromUrl}: {searchQuery}
