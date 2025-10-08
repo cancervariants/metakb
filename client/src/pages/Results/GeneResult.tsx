@@ -187,6 +187,14 @@ const GeneResult = () => {
     setSearchQuery(queryFromUrl)
   }, [queryFromUrl])
 
+  useEffect(() => {
+    if (searchQuery) {
+      document.title = `${TAB_LABELS[activeTab]} results for "${searchQuery}" | VICC MetaKB`
+    } else {
+      document.title = 'VICC | MetaKB'
+    }
+  }, [activeTab, searchQuery])
+
   const variantOptions = buildFilterOptions(results[activeTab], 'variant_name')
   const diseaseOptions = Array.from(
     new Set(results[activeTab].flatMap((r) => r.disease).filter(Boolean)),
