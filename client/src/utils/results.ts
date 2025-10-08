@@ -17,6 +17,12 @@ import { Statement } from '../models/domain'
 import { getDiseaseFromProposition, getTherapyFromProposition } from './propositions'
 import { getSources } from './sources'
 
+export const TAB_LABELS: Record<'therapeutic' | 'diagnostic' | 'prognostic', string> = {
+  therapeutic: 'Therapeutic',
+  diagnostic: 'Diagnostic',
+  prognostic: 'Prognostic',
+}
+
 /**
  * Represents a single normalized row of evidence results, aggregating evidence
  * from one or more `Statement` objects into a single table row.

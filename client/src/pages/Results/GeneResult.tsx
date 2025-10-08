@@ -23,6 +23,7 @@ import {
   normalizeResults,
   applyFilters,
   buildFilterOptions,
+  TAB_LABELS,
 } from '../../utils'
 
 type SearchType = 'gene' | 'variation'
@@ -283,7 +284,7 @@ const GeneResult = () => {
                 <Tab label={`Prognostic (${filteredByTab.prognostic.length})`} value="prognostic" />
               </Tabs>
               <Typography variant="h6" mb={2} fontWeight="bold">
-                {activeTab} Search Results ({filteredResults?.length})
+                {TAB_LABELS[activeTab]} Search Results ({filteredResults?.length})
               </Typography>
               <Box display="flex">
                 <Box id="filter-container">
