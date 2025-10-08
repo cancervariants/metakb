@@ -1,5 +1,5 @@
 import { useState, FC } from 'react'
-import { Box, Collapse, IconButton, TableCell, TableRow } from '@mui/material'
+import { Box, Collapse, IconButton, Link, TableCell, TableRow } from '@mui/material'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import { Statement } from '../../models/domain'
@@ -41,14 +41,14 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
               return (
                 <Box key={e.id} margin={1} sx={{ border: '1px solid #ccc', mb: 2, p: 2 }}>
                   <div>
-                    <a
+                    <Link
                       href={evidenceUrl}
                       target="_blank"
                       rel="noreferrer"
                       style={{ fontWeight: 'bold' }}
                     >
                       <span>{evidenceLabel}</span>
-                    </a>
+                    </Link>
                   </div>
                   <div>
                     <strong>Evidence Level:</strong> {e.strength?.primaryCoding?.code}
