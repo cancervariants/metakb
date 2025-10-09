@@ -55,6 +55,6 @@ make typescript-models
 
 ### Notes
 
-- This script should only be run if the Pydantic models have changed (e,g. whenever va-spec version is updated).
+- This script should only be run if the Pydantic models have changed (e.g., whenever va-spec version is updated).
 - The generated file should be committed so the frontend can use it.
 - The python package `pydantic-to-typescript` is used for Pydantic v2 compatibility. The old `pydantic2ts` package is not compatible with Pydantic v2.
