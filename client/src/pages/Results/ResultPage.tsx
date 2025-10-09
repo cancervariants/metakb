@@ -77,7 +77,6 @@ const ResultPage = () => {
       ? (firstWithQualifier.geneContextQualifier?.extensions ?? [])
       : []
 
-    console.log(firstWithQualifier)
     const descriptionExt = exts.find((e) => e.name === 'description')
     const aliasesExt = exts.find((e) => e.name === 'aliases')
 
