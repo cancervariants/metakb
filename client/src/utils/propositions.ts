@@ -167,3 +167,68 @@ export function getDiseaseFromProposition(
       return ['N/A']
   }
 }
+
+/**
+ * Extracts associated variant name from a proposition.
+ *
+ * @param prop - A variant proposition of various supported types
+ * @returns String variant name, or "" if not available
+ */
+export function getVariantNameFromProposition(
+  prop:
+    | VariantTherapeuticResponseProposition
+    | VariantDiagnosticProposition
+    | VariantPrognosticProposition
+    | VariantOncogenicityProposition
+    | VariantPathogenicityProposition
+    | ExperimentalVariantFunctionalImpactProposition,
+): string {
+  if (!prop) return ''
+
+  const subjectVariant = prop.subjectVariant
+
+  if (typeof subjectVariant === 'string') {
+    return subjectVariant
+  } else if (subjectVariant && 'name' in subjectVariant) {
+    return subjectVariant.name ?? ''
+  }
+  return ''
+}
+
+/**
+ * Extracts associated gene name from a proposition.
+ *
+ * @param prop - A variant proposition of various supported types
+ * @returns String gene name, or "" if not available
+ */
+export function getGeneNameFromProposition(
+  prop:
+    | VariantTherapeuticResponseProposition
+    | VariantDiagnosticProposition
+    | VariantPrognosticProposition
+    | VariantOncogenicityProposition
+    | VariantPathogenicityProposition
+    | ExperimentalVariantFunctionalImpactProposition
+    | undefined,
+): string {
+  if (!prop) return ''
+
+  if (prop.type === 'ExperimentalVariantFunctionalImpactProposition') {
+    return typeof prop.objectSequenceFeature === 'string'
+      ? prop.objectSequenceFeature
+      : (prop.objectSequenceFeature?.name ?? '')
+  }
+
+  if (hasGeneContextQualifier(prop)) {
+    const geneContextQualifier = prop.geneContextQualifier
+    if (geneContextQualifier) {
+      if (typeof geneContextQualifier === 'string') {
+        return geneContextQualifier
+      } else if ('name' in geneContextQualifier) {
+        return geneContextQualifier.name ?? ''
+      }
+    }
+  }
+
+  return ''
+}
