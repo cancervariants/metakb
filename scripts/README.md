@@ -49,7 +49,7 @@ make typescript-models
 
 | Problem | Cause | Fix |
 | - | - | - |
-| `json2t: command not found` | `node_modules` missing or stale | run `pnpm install --workspace-root` |
+| `json2ts: command not found` | `node_modules` missing or stale | run `pnpm install --workspace-root` |
 | `pydantic2ts` import errors | outdated virtual environment | Delete `server/.venv` and rerun `make typescript-models` |
 | Generated file not updating | Possible path mismatch | Confirm the output path in `scripts/generate_ts_models.py` points to `client/models/domain.ts` |
 
@@ -57,4 +57,4 @@ make typescript-models
 
 - This script should only be run if the Pydantic models have changed (e.g., whenever va-spec version is updated).
 - The generated file should be committed so the frontend can use it.
-- The python package `pydantic-to-typescript` is used for Pydantic v2 compatibility. The old `pydantic2ts` package is not compatible with Pydantic v2.
+- The Python package `pydantic-to-typescript` is used for Pydantic v2 compatibility. The old `pydantic2ts` package is not compatible with Pydantic v2.
