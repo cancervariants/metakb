@@ -8,6 +8,9 @@ OUT      := $(OUT_DIR)/$(APP_NAME)-$(STAMP).zip
 
 SERVER_DIR := server
 ROOT_REQS  := requirements.txt
+PYTHON := python3
+VENV := $(SERVER_DIR)/.venv
+
 
 .PHONY: ebzip clean requirements
 
@@ -34,3 +37,24 @@ requirements:
 	echo "Updated $$dest"
 	uv sync --all-extras
 	echo "Restored full dev environment"
+
+
+# ============================================================
+# TypeScript model generation (local development)
+# ============================================================
+
+typescript-models: $(VENV)/bin/activate
+	@echo "Checking for json2ts..."
+	@if [ ! -f node_modules/.bin/json2ts ]; then \
+		echo "json2ts not found. Installing dev dependencies with pnpm..."; \
+		pnpm install --workspace-root; \
+	fi
+	@echo "Installing Python codegen dependencies..."
+	cd $(SERVER_DIR) && . .venv/bin/activate && pip install -q .[codegen]
+	@echo "Generating TypeScript models..."
+	PATH=node_modules/.bin:$$PATH cd scripts && . ../server/.venv/bin/activate && python generate_ts_models.py
+	@echo "TypeScript models updated successfully."
+
+$(VENV)/bin/activate:
+	@echo "Creating virtual environment in $(VENV)..."
+	cd $(SERVER_DIR) && python3 -m venv .venv

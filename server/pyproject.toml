@@ -69,6 +69,11 @@ dev = [
     "ruff==0.12.1",
     "fastapi[standard]",
 ]
+codegen = [
+    "pydantic-to-typescript>=2.0.0",
+    "astor>=0.8.1",
+    "typing_extensions>=4.8.0",
+]
 notebooks = ["ipykernel", "jupyterlab"]
 docs = [
     "sphinx==6.1.3",
