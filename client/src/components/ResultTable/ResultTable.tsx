@@ -88,7 +88,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
-  function handleChangePage(event: React.MouseEvent<HTMLButtonElement> | null, newpage: number) {
+  function handleChangePage(_event: React.MouseEvent<HTMLButtonElement> | null, newpage: number) {
     setPage(newpage)
   }
 
