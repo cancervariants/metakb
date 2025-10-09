@@ -73,3 +73,11 @@ def test_statement_roundtrip(
         disease_ids=["ncit:C2926"],
     )
     assert partial_combo_result == eid_result
+
+
+@pytest.mark.ci_only
+def test_get_stats(repository: Neo4jRepository):
+    """If we had a robust test dataset, we could check for specific expected counts, but for now this just checks that they're nonzero"""
+    stats = repository.get_stats()
+    for k, v in stats.model_dump().items():
+        assert v, f"Count of {k} is {v}"

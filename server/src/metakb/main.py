@@ -5,8 +5,9 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from enum import Enum
 from pathlib import Path
+from typing import Annotated
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -14,9 +15,11 @@ from fastapi.templating import Jinja2Templates
 from metakb import __version__
 from metakb.config import get_config
 from metakb.normalizers import ViccNormalizers
+from metakb.repository.base import AbstractRepository, RepositoryStats
 from metakb.repository.neo4j_repository import (
     get_driver,
 )
+from metakb.restapi.dependencies import get_repository
 from metakb.restapi.search import api_router as search_router
 from metakb.schemas.api import (
     METAKB_DESCRIPTION,
@@ -92,6 +95,18 @@ def service_info() -> ServiceInfo:
     )
 
 
+@app.get(
+    f"{API_PREFIX}/stats",
+    summary="Get basic statistics about MetaKB data.",
+    tags=[_Tag.META],
+)
+def stats(
+    repository: Annotated[AbstractRepository, Depends(get_repository)],
+) -> RepositoryStats:
+    """Provide stats for MetaKB data"""
+    return repository.get_stats()
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost", "http://localhost:3000"],
@@ -99,6 +114,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 BUILD_DIR = Path(__file__).parent / "build"
 try:
     app.mount("/assets", StaticFiles(directory=BUILD_DIR / "assets"), name="assets")
