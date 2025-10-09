@@ -34,6 +34,7 @@ from ga4gh.core.models import (
 
 
 MUT_HEADERS = ['Hugo_Symbol',
+            'Center',
             'Chromosome',
             'Start_Position', 
             'End_Position',
