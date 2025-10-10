@@ -17,13 +17,13 @@ import ResultTable from '../../components/ResultTable/ResultTable'
 import FilterSection from '../../components/FilterSection/FilterSection'
 import {
   NormalizedResult,
-  hasGeneContextQualifier,
   buildCountMap,
   evidenceOrder,
   normalizeResults,
   applyFilters,
   buildFilterOptions,
   TAB_LABELS,
+  getEntityMetadataFromProposition,
 } from '../../utils'
 
 type SearchType = 'gene' | 'variation'
@@ -35,7 +35,7 @@ type EvidenceBuckets = {
   therapeutic: NormalizedResult[]
 }
 
-const GeneResult = () => {
+const ResultPage = () => {
   const [params] = useSearchParams()
 
   const [results, setResults] = React.useState<EvidenceBuckets>({
@@ -65,24 +65,14 @@ const GeneResult = () => {
   const [selectedSignificance, setSelectedSignificance] = useState<string[]>([])
   const [selectedSources, setSelectedSources] = useState<string[]>([])
 
-  const { description, aliases } = useMemo(() => {
+  const { description, aliases, displayName } = useMemo(() => {
     const firstWithQualifier =
       results.therapeutic[0]?.grouped_evidence?.[0]?.proposition ??
       results.prognostic[0]?.grouped_evidence?.[0]?.proposition ??
       results.diagnostic[0]?.grouped_evidence?.[0]?.proposition
 
-    const exts = hasGeneContextQualifier(firstWithQualifier)
-      ? (firstWithQualifier.geneContextQualifier?.extensions ?? [])
-      : []
-
-    const descriptionExt = exts.find((e) => e.name === 'description')
-    const aliasesExt = exts.find((e) => e.name === 'aliases')
-
-    return {
-      description: (descriptionExt?.value as string) ?? null,
-      aliases: (aliasesExt?.value as string[]) ?? [],
-    }
-  }, [results])
+    return getEntityMetadataFromProposition(firstWithQualifier, typeFromUrl as 'gene' | 'variation')
+  }, [results.diagnostic, results.prognostic, results.therapeutic, typeFromUrl])
 
   const selectedFilters = {
     variants: selectedVariants,
@@ -273,7 +263,7 @@ const GeneResult = () => {
               display={description || aliases.length ? 'block' : 'none'}
             >
               <Typography variant="h4" mb={2} fontWeight="bold">
-                {searchQuery}
+                {displayName}
               </Typography>
               <Typography
                 variant="h6"
@@ -399,4 +389,4 @@ const GeneResult = () => {
   )
 }
 
-export default GeneResult
+export default ResultPage
