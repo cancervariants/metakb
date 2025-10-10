@@ -26,6 +26,7 @@ import {
   TAB_LABELS,
   getGeneNameFromProposition,
   getVariantNameFromProposition,
+  getEntityMetadataFromProposition,
 } from '../../utils'
 
 type SearchType = 'gene' | 'variation'
@@ -73,27 +74,8 @@ const ResultPage = () => {
       results.prognostic[0]?.grouped_evidence?.[0]?.proposition ??
       results.diagnostic[0]?.grouped_evidence?.[0]?.proposition
 
-    const exts = hasGeneContextQualifier(firstWithQualifier)
-      ? (firstWithQualifier.geneContextQualifier?.extensions ?? [])
-      : []
-
-    const descriptionExt = exts.find((e) => e.name === 'description')
-    const aliasesExt = exts.find((e) => e.name === 'aliases')
-
-    let displayName = searchQuery
-
-    if (typeFromUrl === 'gene') {
-      displayName = getGeneNameFromProposition(firstWithQualifier)
-    } else if (typeFromUrl === 'variation') {
-      displayName = getVariantNameFromProposition(firstWithQualifier)
-    }
-
-    return {
-      description: (descriptionExt?.value as string) ?? null,
-      aliases: (aliasesExt?.value as string[]) ?? [],
-      displayName,
-    }
-  }, [results.diagnostic, results.prognostic, results.therapeutic, searchQuery, typeFromUrl])
+    return getEntityMetadataFromProposition(firstWithQualifier, typeFromUrl as 'gene' | 'variation')
+  }, [results.diagnostic, results.prognostic, results.therapeutic, typeFromUrl])
 
   const selectedFilters = {
     variants: selectedVariants,

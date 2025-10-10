@@ -87,7 +87,9 @@ const HomePage = () => {
                   <Link href="/search?variation=BRAF%20V600E" rel="noreferrer">
                     <span>BRAF V600E</span>
                   </Link>
-                  {/* TODO: other types of variant searches? */}
+                  <Link href="/search?variation=NC_000007.13:g.55259515T>G" rel="noreferrer">
+                    <span>{'NC_000007.13:g.55259515T>G'}</span>
+                  </Link>
                 </Box>
               )}
             </Box>
