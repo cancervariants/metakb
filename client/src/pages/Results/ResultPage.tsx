@@ -17,15 +17,12 @@ import ResultTable from '../../components/ResultTable/ResultTable'
 import FilterSection from '../../components/FilterSection/FilterSection'
 import {
   NormalizedResult,
-  hasGeneContextQualifier,
   buildCountMap,
   evidenceOrder,
   normalizeResults,
   applyFilters,
   buildFilterOptions,
   TAB_LABELS,
-  getGeneNameFromProposition,
-  getVariantNameFromProposition,
   getEntityMetadataFromProposition,
 } from '../../utils'
 
