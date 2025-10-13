@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Header from '../components/Header'
-import { Box, Button, MenuItem, Select, TextField, Typography } from '@mui/material'
+import { Box, Button, Link, MenuItem, Select, TextField, Typography } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import { useNavigate } from 'react-router-dom'
 
@@ -39,7 +39,13 @@ const HomePage = () => {
             color="primary"
             fontWeight="bold"
             mb={2}
-            sx={{ width: '50%', justifyContent: 'center', textAlign: 'center', mt: '50px' }}
+            sx={{
+              width: '50%',
+              justifyContent: 'center',
+              textAlign: 'center',
+              mt: '50px',
+              mb: '75px',
+            }}
           >
             Search harmonized data across multiple genomic knowledgebases.
           </Typography>
@@ -61,6 +67,32 @@ const HomePage = () => {
               <SearchIcon />
               Search
             </Button>
+            <Box id="example-searches" display="flex" mt={1} gap={1}>
+              <Typography>Examples: </Typography>
+              {searchType === 'gene' && (
+                <Box id="gene-example-searches" gap={1} display="flex">
+                  <Link href="/search?gene=BRAF" rel="noreferrer">
+                    <span>BRAF</span>
+                  </Link>
+                  <Link href="/search?gene=hgnc:427" rel="noreferrer">
+                    <span>hgnc:427</span>
+                  </Link>
+                  <Link href="/search?gene=ncbigene:5290" rel="noreferrer">
+                    <span>ncbigene:5290</span>
+                  </Link>
+                </Box>
+              )}
+              {searchType === 'variation' && (
+                <Box id="gene-example-searches" gap={1} display="flex">
+                  <Link href="/search?variation=BRAF%20V600E" rel="noreferrer">
+                    <span>BRAF V600E</span>
+                  </Link>
+                  <Link href="/search?variation=NC_000007.13:g.55259515T>G" rel="noreferrer">
+                    <span>{'NC_000007.13:g.55259515T>G'}</span>
+                  </Link>
+                </Box>
+              )}
+            </Box>
           </Box>
         </Box>
       </main>
