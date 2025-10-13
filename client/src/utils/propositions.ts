@@ -167,3 +167,121 @@ export function getDiseaseFromProposition(
       return ['N/A']
   }
 }
+
+/**
+ * Extracts associated variant name from a proposition.
+ *
+ * @param prop - A variant proposition of various supported types
+ * @returns String variant name, or "" if not available
+ */
+export function getVariantNameFromProposition(
+  prop:
+    | VariantTherapeuticResponseProposition
+    | VariantDiagnosticProposition
+    | VariantPrognosticProposition
+    | VariantOncogenicityProposition
+    | VariantPathogenicityProposition
+    | ExperimentalVariantFunctionalImpactProposition,
+): string {
+  if (!prop) return ''
+
+  const subjectVariant = prop.subjectVariant
+
+  if (typeof subjectVariant === 'string') {
+    return subjectVariant
+  } else if (subjectVariant && 'name' in subjectVariant) {
+    return subjectVariant.name ?? ''
+  }
+  return ''
+}
+
+/**
+ * Extracts associated gene name from a proposition.
+ *
+ * @param prop - A variant proposition of various supported types
+ * @returns String gene name, or "" if not available
+ */
+export function getGeneNameFromProposition(
+  prop:
+    | VariantTherapeuticResponseProposition
+    | VariantDiagnosticProposition
+    | VariantPrognosticProposition
+    | VariantOncogenicityProposition
+    | VariantPathogenicityProposition
+    | ExperimentalVariantFunctionalImpactProposition
+    | undefined,
+): string {
+  if (!prop) return ''
+
+  if (prop.type === 'ExperimentalVariantFunctionalImpactProposition') {
+    return typeof prop.objectSequenceFeature === 'string'
+      ? prop.objectSequenceFeature
+      : (prop.objectSequenceFeature?.name ?? '')
+  }
+
+  if (hasGeneContextQualifier(prop)) {
+    const geneContextQualifier = prop.geneContextQualifier
+    if (geneContextQualifier) {
+      if (typeof geneContextQualifier === 'string') {
+        return geneContextQualifier
+      } else if ('name' in geneContextQualifier) {
+        return geneContextQualifier.name ?? ''
+      }
+    }
+  }
+
+  return ''
+}
+
+/**
+ * Extracts name, aliases, and description from a proposition.
+ * Handles both gene- and variant-based propositions.
+ *
+ * @param prop - Proposition object (may be undefined)
+ * @param type - 'gene' or 'variation'
+ * @returns Object with displayName, aliases, and description
+ */
+export function getEntityMetadataFromProposition(
+  prop:
+    | VariantTherapeuticResponseProposition
+    | VariantDiagnosticProposition
+    | VariantPrognosticProposition
+    | VariantOncogenicityProposition
+    | VariantPathogenicityProposition
+    | ExperimentalVariantFunctionalImpactProposition
+    | undefined,
+  type: 'gene' | 'variation',
+): { displayName: string; aliases: string[]; description: string } {
+  if (!prop) return { displayName: '', aliases: [], description: '' }
+
+  if (type === 'gene') {
+    const displayName = getGeneNameFromProposition(prop)
+    if (hasGeneContextQualifier(prop)) {
+      const extensions = prop.geneContextQualifier?.extensions ?? []
+      const descriptionExt = extensions.find((e) => e.name === 'description')
+      const aliasesExt = extensions.find((e) => e.name === 'aliases')
+
+      return {
+        displayName,
+        description: (descriptionExt?.value as string) ?? '',
+        aliases: (aliasesExt?.value as string[]) ?? [],
+      }
+    }
+    return { displayName, aliases: [], description: '' }
+  }
+
+  if (type === 'variation') {
+    const displayName = getVariantNameFromProposition(prop)
+    const subjectVariant = prop?.subjectVariant
+    if (typeof subjectVariant === 'string') {
+      return { displayName, aliases: [], description: '' }
+    }
+    return {
+      displayName,
+      aliases: subjectVariant?.aliases ?? [],
+      description: subjectVariant?.description ?? '',
+    }
+  }
+
+  return { displayName: '', aliases: [], description: '' }
+}

@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import { ThemeProvider } from '@mui/material'
 import theme from './theme'
-import GeneResult from './pages/Results/GeneResult'
+import ResultPage from './pages/Results/ResultPage'
 
 function App() {
   return (
@@ -10,7 +10,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/search" element={<GeneResult />} />
+          <Route path="/search" element={<ResultPage />} />
           {/* Fallback for invalid routes */}
           <Route path="*" element={<Home />} />
         </Routes>
