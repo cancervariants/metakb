@@ -107,9 +107,15 @@ def stats(
     return repository.get_stats()
 
 
+origins = [
+    "http://localhost",
+    "http://localhost:5173",
+    "http://metakb-dev-eb.us-east-2.elasticbeanstalk.com/",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost", "http://localhost:5173"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
