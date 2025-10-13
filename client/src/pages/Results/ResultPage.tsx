@@ -27,7 +27,7 @@ import {
 } from '../../utils'
 
 type SearchType = 'gene' | 'variation'
-const API_BASE = 'http://localhost:8000/api/v2/search/statements'
+const API_BASE = '/api/v2/search/statements'
 
 type EvidenceBuckets = {
   prognostic: NormalizedResult[]
