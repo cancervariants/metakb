@@ -14,7 +14,11 @@
  */
 
 import { Statement } from '../models/domain'
-import { getDiseaseFromProposition, getTherapyFromProposition } from './propositions'
+import {
+  getDiseaseFromProposition,
+  getTherapyFromProposition,
+  getVariantNameFromProposition,
+} from './propositions'
 import { getSources } from './sources'
 
 export const TAB_LABELS: Record<'therapeutic' | 'diagnostic' | 'prognostic', string> = {
@@ -132,11 +136,7 @@ export const normalizeResults = (data: Record<string, Statement[]>): NormalizedR
     }, 'N/A')
     return [
       {
-        variant_name:
-          typeof first?.proposition?.subjectVariant === 'string'
-            ? first.proposition.subjectVariant
-            : (first?.proposition?.subjectVariant?.name ?? 'Unknown'),
-
+        variant_name: getVariantNameFromProposition(first?.proposition),
         evidence_level: highestEvidenceLevel,
         disease: getDiseaseFromProposition(first?.proposition),
         therapy: getTherapyFromProposition(first?.proposition),
