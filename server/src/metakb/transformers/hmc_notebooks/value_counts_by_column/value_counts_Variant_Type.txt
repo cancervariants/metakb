@@ -1,7 +1,9 @@
 Value counts for column: Variant_Type
 
 Variant_Type
-SNP    11077
-DEL      404
-INS      130
-DNP        3
+SNP    46743
+DEL     3245
+INS     2480
+ONP       16
+DNP       13
+TNP        5

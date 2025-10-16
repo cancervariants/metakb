@@ -1,0 +1,10 @@
+Value counts for column: REPORTED_ETHNICITY
+
+REPORTED_ETHNICITY
+Unknown               28152
+Non-Hispanic           8115
+European               3221
+Hispanic or Latino     1481
+African American       1436
+Other                   325
+Mixed                   170

@@ -1,0 +1,10 @@
+Value counts for column: RACE
+
+RACE
+White                                        772
+Black or African American                    113
+Not Reported                                  51
+Asian                                         45
+Unknown                                       40
+Native Hawaiian or other Pacific Islander     10
+American Indian or Alaska Native               4

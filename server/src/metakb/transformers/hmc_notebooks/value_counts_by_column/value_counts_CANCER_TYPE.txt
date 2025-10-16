@@ -1,4 +1,30 @@
 Value counts for column: CANCER_TYPE
 
 CANCER_TYPE
-Bone Cancer    11614
+Ependymomal Tumor                               19414
+Leukemia                                         7862
+Lymphoid Neoplasm                                6937
+Bone Cancer                                      4510
+Mature T and NK Neoplasms                        2216
+Embryonal Tumor                                  2054
+Liver Tumor                                      1974
+Brain Cancer                                     1888
+Soft Tissue Sarcoma                              1264
+Renal cancer                                      976
+Non-Seminomatous Germ Cell Tumor                  747
+Non-Germinomatous Germ Cell Tumor                 530
+Soft Tissue Tumor                                 257
+Encapsulated Glioma                               227
+Adrenal Tumor                                     219
+Glioblastoma                                      217
+Diffuse Glioma                                    170
+Lung Cancer                                       147
+Salivary Gland-Type Tumor of the Lung             132
+Nerve Sheath Tumor                                128
+Choroid Plexus Tumor                              120
+Nested stromal epithelial tumor of the liver      119
+Pineal Tumor                                      109
+Ovarian Germ Cell Tumor                           104
+Non-Hodgkin Lymphoma                               66
+Hodgkin Lymphoma-like PTLD                         62
+Cutaneous malignancy of hair matrix cells          53

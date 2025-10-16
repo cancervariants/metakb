@@ -1,0 +1,249 @@
+#Patient Identifier	Sex	Reported Ethnicity	Inferred Ethnicity	Age
+#Identifier to uniquely specify a patient.	Sex	Reported Ethnicity	Inferred Ethnicity	Age
+#STRING	STRING	STRING	STRING	NUMBER
+#1	1	1	1	1
+PATIENT_ID	SEX	REPORTED_ETHNICITY	INFERRED_ETHNICITY	AGE
+P0001	Female	Unknown	Mixed_or_Unknown	5.42
+P0002	Female	Unknown	European	12.92
+P0003	Male	Unknown	European	8.67
+P0004	Male	Unknown	European	7.33
+P0005	Male	Unknown	African	12.58
+P0006	Male	Unknown	European	4
+P0007	Male	Unknown	European	3.08
+P0008	Male	Unknown	SouthAsianOrHispanic	14.92
+P0009	Male	Unknown	Mixed_or_Unknown	5.5
+P0010	Female	Unknown	European	6.17
+P0011	Female	Unknown	European	3.08
+P0012	Female	Unknown	European	16.58
+P0013	Male	Unknown	European	14.08
+P0014	Female	Unknown	European	12.92
+P0015	Male	Unknown	European	15.83
+P0016	Female	Unknown	SouthAsianOrHispanic	4.92
+P0017	Female	Unknown	European	2.42
+P0018	Female	Unknown	European	10.17
+P0019	Female	Unknown		8.92
+P0020	Male	Unknown	European	16.08
+P0021	Male	Unknown	European	12.17
+P0022	Female	Unknown	European	3.58
+P0023	Male	Unknown	European	8.5
+P0024	Male	Unknown	European	1.58
+P0025	Male	Unknown	European	4.92
+P0026	Male	Unknown	EastAsian	7.42
+P0027	Male	Unknown	European	10.08
+P0028	Male	Unknown	European	11.08
+P0029	Male	Unknown	European	7.33
+P0030	Male	Unknown	Mixed_or_Unknown	7.17
+P0031	Male	Unknown	European	2.58
+P0032	Male	Unknown	European	6.08
+P0033	Female	Unknown	European	6.42
+P0034	Male	Unknown	European	10.83
+P0035	Male	Unknown	European	1.58
+P0036	Male	Unknown	European	11.33
+P0037	Male	Unknown	European	7.17
+P0038	Male	Unknown	Mixed_or_Unknown	7.33
+P0039	Male	Unknown	European	14.5
+P0040	Male	Unknown	European	10
+P0041	Female	Unknown	European	5.92
+P0042	Female	Unknown	European	13.5
+P0043	Female	Unknown	European	16.08
+P0044	Female	Unknown	European	14.67
+P0045	Female	Unknown	European	0.92
+P0046	Male	Unknown	European	4.58
+P0047	Female	Unknown	European	5.17
+P0048	Male	Unknown	European	14.5
+P0049	Male	Unknown	European	11.5
+P0050	Male	Unknown	European	2.33
+P0051	Male	Unknown	European	10.67
+P0052	Male	Unknown	European	2.67
+P0053	Male	Unknown	European	12
+P0054	Male	Unknown	EastAsian	2.33
+P0055	Male	Unknown	European	1.58
+P0056	Male	Unknown	Mixed_or_Unknown	2.83
+P0057	Unknown	Unknown	EastAsian	
+P0058	Unknown	Unknown	European	
+P0059	Male	European	European	
+P0060	Female	Hispanic or Latino	SouthAsianOrHispanic	14
+P0061	Female	Unknown	European	2
+P0062	Female	Unknown	European	1.4
+P0063	Male	Unknown	European	2.73
+P0064	Male	Unknown	European	0.5
+P0065	Male	Unknown	European	4
+P0066	Female	Unknown	European	0.93
+P0067	Male	Unknown	European	1.4
+P0068	Female	Unknown	SouthAsianOrHispanic	2.58
+P0069	Male	Unknown	European	0.95
+P0070	Female	Unknown	European	3.2
+P0071	Male	Unknown	European	2
+P0072	Male	Unknown	European	1.2
+P0073	Male	Unknown	Mixed_or_Unknown	2.68
+P0074	Female	Unknown	European	1
+P0075	Female	Unknown	European	1.6
+P0076	Female	Unknown	European	
+P0077	Female	Unknown	African	4.94
+P0078	Male	Unknown	European	4.63
+P0079	Male	Unknown	European	0.72
+P0080	Male	Unknown	SouthAsianOrHispanic	2.7
+P0081	Male	Unknown	African	5.36
+P0082	Female	Unknown	European	2.5
+P0083	Male	Unknown	European	4.98
+P0084	Female	Unknown	EastAsian	2.4
+P0085	Female	Unknown	European	45
+P0086	Male	Unknown	European	18
+P0087	Male	Unknown	European	17
+P0088	Male	Unknown	European	10
+P0089	Male	Unknown	European	16
+P0090	Male	Unknown	European	3
+P0091	Male	Unknown	African	14
+P0092	Male	Unknown	European	8.92
+P0093	Male	Unknown	European	15.92
+P0094	Female	Unknown	African	19.5
+P0095	Male	European	European	16.75
+P0096	Male	European	European	18
+P0097	Male	European	European	0.25
+P0098	Male	Hispanic or Latino	SouthAsianOrHispanic	3
+P0099	Male	Unknown	European	
+P0100	Male	Unknown	European	
+P0101	Male	Hispanic or Latino	European	8.5
+P0102	Male	Non-Hispanic		9.8
+P0103	Female	Hispanic or Latino	SouthAsianOrHispanic	2.17
+P0104	Male	Non-Hispanic	SouthAsianOrHispanic	6
+P0105	Female	Hispanic or Latino	SouthAsianOrHispanic	2
+P0106	Male	Hispanic or Latino	SouthAsianOrHispanic	9
+P0107	Female	Unknown	SouthAsianOrHispanic	13
+P0108	Female	Unknown	European	10
+P0109	Male	Hispanic or Latino		12
+P0110	Female	Non-Hispanic	European	5
+P0111	Male	Hispanic or Latino	European	17
+P0112	Female	Unknown	Mixed_or_Unknown	
+P0113	Female	Non-Hispanic	African	19
+P0114	Male	Hispanic or Latino	SouthAsianOrHispanic	3
+P0115	Male	Non-Hispanic	African	0.5
+P0116	Male	Non-Hispanic	European	5
+P0117	Male	Non-Hispanic	European	11.8
+P0118	Male	Hispanic or Latino	European	6
+P0119	Male	Non-Hispanic	European	5
+P0120	Female	Non-Hispanic	European	3.08
+P0121	Male	Non-Hispanic		0.5
+P0122	Female	Unknown	SouthAsianOrHispanic	0.58
+P0123	Male	Non-Hispanic	European	6.9
+P0124	Female	Unknown	SouthAsianOrHispanic	5.2
+P0125	Male	Non-Hispanic	European	14.8
+P0126	Male	Hispanic or Latino	SouthAsianOrHispanic	1.3
+P0127	Male	Unknown	European	3
+P0128	Male	Hispanic or Latino	SouthAsianOrHispanic	14
+P0129	Female	Hispanic or Latino		0.5
+P0130	Male	Unknown	European	5
+P0131	Male	Hispanic or Latino	SouthAsianOrHispanic	5
+P0132	Male	Non-Hispanic	European	12
+P0133	Male	Hispanic or Latino	SouthAsianOrHispanic	15
+P0134	Male	Unknown	African	1
+P0135	Female	Non-Hispanic	SouthAsianOrHispanic	5
+P0136	Female	Non-Hispanic	European	13
+P0137	Female	Non-Hispanic	European	1.5
+P0138	Male	Hispanic or Latino	SouthAsianOrHispanic	10
+P0139	Male	Hispanic or Latino	Mixed_or_Unknown	0.9
+P0140	Female	Unknown	European	7.8
+P0141	Male	Unknown	European	
+P0142	Male	Unknown	European	0.25
+P0143	Female	Unknown		1.42
+P0144	Male	Unknown	African	3
+P0145	Male	Unknown	European	13
+P0146	Male	African American	African	6.75
+P0147	Female	African American	African	4.83
+P0148	Male	European	European	0.5
+P0149	Female	European	European	3
+P0150	Male	Unknown	European	16.83
+P0151	Male	Unknown	European	5
+P0152	Male	European		6
+P0153	Male	Unknown	African	
+P0154	Male	Unknown	European	
+P0155	Male	Unknown	African	9
+P0156	Female	Unknown	Mixed_or_Unknown	0.92
+P0157	Female	Unknown	European	0.17
+P0158	Male	Unknown	European	0.92
+P0159	Male	Unknown	European	0.92
+P0160	Male	Unknown	European	0.92
+P0161	Male	Unknown	European	0.92
+P0162	Male	Unknown	Mixed_or_Unknown	0.92
+P0163	Female	Unknown	European	0.92
+P0164	Female	Unknown	SouthAsianOrHispanic	0.33
+P0165	Female	Unknown	European	
+P0166	Male	Unknown	European	2
+P0167	Male	Unknown	European	
+P0168	Male	Unknown	European	
+P0169	Male	Unknown	European	2.6
+P0170	Male	Unknown	European	14
+P0171	Male	Unknown	African	
+P0172	Female	Unknown	European	16
+P0173	Female	Unknown	European	7
+P0174	Male	Unknown	African	4
+P0175	Female	European	European	14
+P0176	Male	Unknown	European	5
+P0177	Male	European	European	15
+P0178	Male	Unknown	European	0.92
+P0179	Male	Unknown	European	10
+P0180	Female	Unknown	Mixed_or_Unknown	16
+P0181	Female	Unknown	European	0.92
+P0182	Male	Unknown	European	24
+P0183	Male	Unknown	African	6
+P0184	Unknown	Unknown	European	
+P0185	Female	Unknown	European	0.75
+P0186	Female	Unknown	EastAsian	13
+P0187	Male	Unknown	European	4
+P0188	Female	Unknown	European	1
+P0189	Female	Unknown	European	1
+P0190	Male	Unknown	European	5
+P0191	Female	Unknown	European	2
+P0192	Unknown	Unknown	European	
+P0193	Male	African American	African	
+P0194	Male	European	European	16.42
+P0195	Female	European	European	14.58
+P0196	Male	Unknown		
+P0197	Male	European	European	
+P0198	Female	African American	African	
+P0199	Female	European	European	16
+P0200	Female	European	European	
+P0201	Female	Unknown	European	14
+P0202	Male	Unknown	European	13
+P0203	Male	European	European	24
+P0204	Male	African American	European	13
+P0205	Female	Unknown	European	17
+P0206	Male	Unknown	European	8
+P0207	Male	Unknown	European	17
+P0208	Male	Unknown	African	12
+P0209	Male	Unknown	European	12
+P0210	Male	European	African	0.83
+P0211	Female	Unknown	European	14
+P0212	Male	African American	African	8
+P0213	Male	Unknown	European	40
+P0214	Female	European	European	
+P0215	Male	European	European	16
+P0216	Female	European	European	1.17
+P0217	Male	Unknown	European	16
+P0218	Female	Mixed	EastAsian	1.17
+P0219	Male	Other	Mixed_or_Unknown	18
+P0220	Male	Other	European	18
+P0221	Female	Unknown	African	14
+P0222	Male	African American	European	14
+P0223	Male	Unknown	European	21
+P0224	Male	European	European	
+P0225	Male	Unknown	SouthAsianOrHispanic	13.92
+P0226	Female	Unknown	SouthAsianOrHispanic	13.67
+P0227	Male	Unknown	SouthAsianOrHispanic	15.08
+P0228	Male	Unknown	SouthAsianOrHispanic	14.42
+P0229	Male	Unknown	Mixed_or_Unknown	2.67
+P0230	Male	Unknown	European	3.17
+P0231	Female	Unknown	SouthAsianOrHispanic	6.08
+P0232	Male	Unknown	European	14.17
+P0233	Female	Unknown	European	8.67
+P0234	Male	Unknown	SouthAsianOrHispanic	14.17
+P0235	Male	Unknown	Mixed_or_Unknown	7.92
+P0236	Female	European	European	15
+P0237	Male	Unknown	European	
+P0238	Male	European	European	16
+P0239	Male	European	European	15
+P0240	Female	European	European	7
+P0241	Female	European	European	18.5
+P0242	Male	African American	European	4
+P0243	Female	European	European	25
+P0244	Male	Unknown	European	22

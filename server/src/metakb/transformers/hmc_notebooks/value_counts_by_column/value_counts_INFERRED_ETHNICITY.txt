@@ -1,0 +1,9 @@
+Value counts for column: INFERRED_ETHNICITY
+
+INFERRED_ETHNICITY
+European                24271
+SouthAsianOrHispanic    10317
+African                  3637
+Mixed_or_Unknown         2488
+EastAsian                1113
+NaN                      1074

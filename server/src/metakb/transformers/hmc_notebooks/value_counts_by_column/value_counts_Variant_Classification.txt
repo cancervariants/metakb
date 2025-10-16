@@ -1,20 +1,21 @@
 Value counts for column: Variant_Classification
 
 Variant_Classification
-Missense_Mutation         5944
-Silent                    4615
-Nonsense_Mutation          225
-Frame_Shift_Del            220
-In_Frame_Del               167
-Splice_Site                130
-Splice_Region              114
-Frame_Shift_Ins             84
-Intron                      52
-In_Frame_Ins                33
-3'Flank                      8
-3'UTR                        6
-Nonstop_Mutation             5
-5'UTR                        4
-5'Flank                      4
-RNA                          2
-Translation_Start_Site       1
+Silent                    21548
+Missense_Mutation         20604
+Intron                     2779
+Splice_Region              2138
+Frame_Shift_Ins            1274
+RNA                         725
+Frame_Shift_Del             717
+In_Frame_Del                662
+3'UTR                       444
+In_Frame_Ins                399
+Nonsense_Mutation           347
+5'UTR                       240
+5'Flank                     228
+Splice_Site                 174
+3'Flank                     170
+Nonstop_Mutation             23
+Translation_Start_Site       21
+IGR                           9

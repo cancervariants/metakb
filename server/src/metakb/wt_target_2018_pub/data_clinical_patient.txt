@@ -1,0 +1,657 @@
+#Patient Identifier	Protocol	Diagnosis Age	Diagnosis Age (days)	Sex	Ethnicity Category	Race Category	Neoplasm American Joint Committee on Cancer Clinical Group Stage	Event Type	Time To Event (days)	International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code	Overall Survival Status	Overall Survival (Months)	Overall Survival Days	Patient Death Reason
+#Identifier to uniquely specify a patient.	Protocol.	Age at which a condition or disease was first diagnosed.	Age at which a condition or disease was first diagnosed.	Sex	The text for reporting information about ethnicity.	The text for reporting information about race.	Stage group determined from clinical information on the tumor (T), regional node (N) and metastases (M) and by grouping cases with similar prognosis for cancer.	Event Type	Time To Event (days)	The third edition of the International Classification of Diseases for Oncology, published in 2000, used principally in tumor and cancer registries for coding the site (topography) and the histology (morphology) of neoplasms._The description of an anatomical region or of a body part._Named locations of, or within, the body._A system of numbered categories for representation of data.	Overall patient survival status.	Overall survival in months since initial diagonosis.	Overall patient survival days	Text term to identify the cause of death for a patient.
+#STRING	STRING	NUMBER	NUMBER	STRING	STRING	STRING	STRING	STRING	NUMBER	STRING	STRING	NUMBER	NUMBER	STRING
+#1	1	1	1	1	1	1	1	1	1	1	9	1	1	1
+PATIENT_ID	PROTOCOL	AGE	AGE_IN_DAYS	SEX	ETHNICITY	RACE	CLINICAL_STAGE	EVENT_TYPE	DAYS_TO_EVENT	ICD_O_3_SITE	OS_STATUS	OS_MONTHS	OS_DAYS	PATIENT_DEATH_REASON
+TARGET-50-PAJNFD	NWTS-5	5	1554	Female	Not Hispanic or Latino	White	II	None	3145	8960/3	0:LIVING	104	3145	None
+TARGET-50-PAECWU	NWTS-5	6	2163	Female	Not Hispanic or Latino	White	I	None	4058	8960/3	0:LIVING	134	4058	None
+TARGET-50-PAKXSD	NWTS-5	1	219	Male	Not Hispanic or Latino	White	III	None	377	8960/3	0:LIVING	13	377	None
+TARGET-50-PAJLLD	NWTS-5	4	1298	Male	Not reported	White	IIIB	Progression	491	8960/3	1:DECEASED	17	491	TUMOR
+TARGET-50-PAKZMW	NWTS-5	3	932	Female	Not Hispanic or Latino	White	II	None	1717	8960/3	0:LIVING	57	1717	None
+TARGET-50-CAAAAQ	NWTS-5	4	1287	Female	Not reported	Not reported	IV/V	Relapse	1940	8960/3	0:LIVING	83	2501	None
+TARGET-50-PADCRV	NWTS-5	7	2523	Male	Not Hispanic or Latino	White	III	Relapse	271	8960/3	1:DECEASED	27	817	TUMOR
+TARGET-50-PALEJW	NWTS-5	8	2773	Female	Not Hispanic or Latino	Black or African American	II	None	2366	8960/3	0:LIVING	78	2366	None
+TARGET-50-PAJNME	NWTS-5	7	2227	Male	Not Hispanic or Latino	Black or African American	II	None	1811	8960/3	0:LIVING	60	1811	None
+TARGET-50-PAJPEJ	NWTS-5	7	2226	Female	Not Hispanic or Latino	White	II	Relapse	646	8960/3	0:LIVING	80	2431	None
+TARGET-50-PAJLSL	NWTS-5	1	322	Male	Hispanic or Latino	White	II	None	3821	8960/3	0:LIVING	126	3821	None
+TARGET-50-PAJNFB	NWTS-5	4	1305	Male	Not reported	White	II	None	2716	8960/3	0:LIVING	90	2716	None
+TARGET-50-PAJMSK	NWTS-5	7	2380	Female	Not reported	Not reported	II	None	3892	8960/3	0:LIVING	128	3892	None
+TARGET-50-PAKMDX	NWTS-5	2	387	Female	Hispanic or Latino	Other	I	None	2757	8960/3	0:LIVING	91	2757	None
+TARGET-50-PAJMKW	NWTS-5	9	3036	Female	Not reported	White	III	Relapse	727	8960/3	1:DECEASED	26	771	TUMOR
+TARGET-50-PAJMXK	NWTS-5	2	614	Male	Not Hispanic or Latino	White	I	None	3537	8960/3	0:LIVING	117	3537	None
+TARGET-50-PAJNNR	NWTS-5	7	2265	Male	Not reported	White	III	Progression	217	8960/3	1:DECEASED	8	217	TUMOR
+TARGET-50-PAJLMB	NWTS-5	3	797	Female	Not Hispanic or Latino	Black or African American	III	None	4706	8960/3	0:LIVING	155	4706	None
+TARGET-50-PAKHNC	NWTS-5	5	1749	Male	Not Hispanic or Latino	White	II	None	3305	8960/3	0:LIVING	109	3305	None
+TARGET-50-PAJMNW	NWTS-5	4	1357	Male	Not Hispanic or Latino	White	III	None	3425	8960/3	0:LIVING	113	3425	None
+TARGET-50-PAKGZX	NWTS-5	7	2201	Male	Hispanic or Latino	White	IIIB	Relapse	158	8960/3	0:LIVING	65	1963	None
+TARGET-50-PAKGMM	NWTS-5	4	1402	Female	Not Hispanic or Latino	White	IIIB/V	Relapse	152	8960/3	1:DECEASED	6	182	TUMOR
+TARGET-50-PAJLTJ	NWTS-5	5	1688	Male	Not reported	White	II	None	3539	8960/3	0:LIVING	117	3539	None
+TARGET-50-CAAAAM	NWTS-5	8	2750	Female	Not Hispanic or Latino	White	III	None	3260	8960/3	0:LIVING	108	3260	None
+TARGET-50-PADWUE	NWTS-5	5	1726	Male	Not Hispanic or Latino	White	III	None	4030	8960/3	0:LIVING	133	4030	None
+TARGET-50-PAJMRX	NWTS-5	9	3141	Female	Not Hispanic or Latino	White	I	None	2128	8960/3	0:LIVING	70	2128	None
+TARGET-50-PAJLND	NWTS-5	5	1532	Male	Not reported	White	IV	Relapse	419	8960/3	1:DECEASED	103	3121	TUMOR
+TARGET-50-PAJMJK	NWTS-5	2	466	Female	Not reported	White	I	Relapse	423	8960/3	0:LIVING	57	1732	None
+TARGET-50-PAKTCE	NWTS-5	2	474	Female	Not Hispanic or Latino	White	I	None	3179	8960/3	0:LIVING	105	3179	None
+TARGET-50-PALCVC	NWTS-5	2	727	Female	Not Hispanic or Latino	White	II	None	561	8960/3	0:LIVING	19	561	None
+TARGET-50-PAJNPW	NWTS-5	13	4403	Male	Not Hispanic or Latino	White	III	None	3262	8960/3	0:LIVING	108	3262	None
+TARGET-50-PADYHT	NWTS-5	4	1287	Male	Not Hispanic or Latino	White	III	None	4507	8960/3	0:LIVING	149	4507	None
+TARGET-50-PAJPFN	NWTS-5	6	2191	Female	Hispanic or Latino	White	III	None	1867	8960/3	0:LIVING	62	1867	None
+TARGET-50-PAKGXL	NWTS-5	2	479	Male	Not Hispanic or Latino	Black or African American	I	None	2485	8960/3	0:LIVING	82	2485	None
+TARGET-50-CAAAAS	NWTS-5	7	2476	Female	Not Hispanic or Latino	White	III	Relapse	362	8960/3	0:LIVING	22	639	None
+TARGET-50-PAJNTM	NWTS-5	2	615	Female	Not Hispanic or Latino	White	I	None	3444	8960/3	0:LIVING	114	3444	None
+TARGET-50-PAJLXM	NWTS-5	4	1200	Female	Not reported	White	II	Relapse	378	8960/3	0:LIVING	30	907	None
+TARGET-50-PAJNWD	NWTS-5	6	2069	Female	Not Hispanic or Latino	Black or African American	II	None	2253	8960/3	0:LIVING	75	2253	None
+TARGET-50-PAKKRK	NWTS-5	16	5629	Male	Not Hispanic or Latino	Black or African American	II	None	1287	8960/3	0:LIVING	43	1287	None
+TARGET-50-PAJNDX	NWTS-5	3	972	Male	Not Hispanic or Latino	White	IIIB/V	None	3758	8960/3	0:LIVING	124	3758	None
+TARGET-50-PAJNHN	NWTS-5	6	1905	Female	Not reported	White	II	Relapse	215	8960/3	0:LIVING	52	1562	None
+TARGET-50-PAKGDL	NWTS-5	1	314	Male	Not Hispanic or Latino	Other	III	Relapse	339	8960/3	1:DECEASED	16	465	TUMOR
+TARGET-50-PAJLYP	NWTS-5	6	1949	Male	Not Hispanic or Latino	Black or African American	II	None	1217	8960/3	0:LIVING	41	1217	None
+TARGET-50-PAJPCV	NWTS-5	8	2852	Female	Not reported	Not reported	II	None	774	8960/3	0:LIVING	26	774	None
+TARGET-50-PAJNEH	NWTS-5	5	1798	Male	Not Hispanic or Latino	White	IV	None	3935	8960/3	0:LIVING	130	3935	None
+TARGET-50-PAJPAD	NWTS-5	4	1280	Female	Not reported	White	I	None	1415	8960/3	0:LIVING	47	1415	None
+TARGET-50-CAAAAA	NWTS-4	6	2068	Female	Not reported	White	IV	Relapse	475	8960/3	1:DECEASED	16	475	TUMOR
+TARGET-50-PAEJJR	NWTS-5	4	1296	Female	Not Hispanic or Latino	Black or African American	II	None	3855	8960/3	0:LIVING	127	3855	None
+TARGET-50-PAKFYV	NWTS-5	4	1246	Female	Not Hispanic or Latino	Black or African American	IIIB	Progression	680	8960/3	1:DECEASED	23	680	TUMOR
+TARGET-50-PAKMDF	NWTS-5	4	1276	Female	Not Hispanic or Latino	White	I	None	3161	8960/3	0:LIVING	104	3161	None
+TARGET-50-PAKWVW	NWTS-5	4	1126	Male	Not Hispanic or Latino	Black or African American	II	None	2551	8960/3	0:LIVING	84	2551	None
+TARGET-50-PALKAW	NWTS-5	2	368	Female	Hispanic or Latino	White	I	None	2658	8960/3	0:LIVING	88	2658	None
+TARGET-50-PAKECR	NWTS-5	4	1102	Female	Not Hispanic or Latino	White	II	None	3458	8960/3	0:LIVING	114	3458	None
+TARGET-50-PAJNBN	NWTS-5	5	1509	Male	Not reported	White	IV	Relapse	192	8960/3	1:DECEASED	25	759	TUMOR
+TARGET-50-PALMAM	NWTS-5	4	1141	Male	Not Hispanic or Latino	White	IIIB	Relapse	290	8960/3	1:DECEASED	23	678	TUMOR
+TARGET-50-PAJNGR	NWTS-5	2	611	Female	Not Hispanic or Latino	White	III	None	874	8960/3	0:LIVING	29	874	None
+TARGET-50-PAJNDB	NWTS-5	3	1048	Male	Not Hispanic or Latino	White	III	Relapse	224	8960/3	0:LIVING	50	1502	None
+TARGET-50-PAJNHW	NWTS-5	1	298	Male	Not Hispanic or Latino	White	IV	None	2709	8960/3	0:LIVING	90	2709	None
+TARGET-50-PAJLZN	NWTS-5	3	1004	Male	Not reported	Not reported	IV	Relapse	244	8960/3	0:LIVING	95	2868	None
+TARGET-50-PADWYZ	NWTS-5	2	557	Female	Not Hispanic or Latino	White	II	None	4536	8960/3	0:LIVING	150	4536	None
+TARGET-50-PAJNEB	NWTS-5	2	687	Female	Not Hispanic or Latino	White	III	None	2041	8960/3	0:LIVING	68	2041	None
+TARGET-50-PAJMVI	NWTS-5	5	1631	Female	Not reported	White	II	None	1428	8960/3	0:LIVING	47	1428	None
+TARGET-50-PAKRCC	NWTS-5	5	1466	Male	Not Hispanic or Latino	White	I	Relapse	220	8960/3	0:LIVING	106	3215	None
+TARGET-50-PAKMTZ	NWTS-5	4	1122	Male	Not Hispanic or Latino	White	III	None	2822	8960/3	0:LIVING	93	2822	None
+TARGET-50-PAJNBZ	NWTS-5	4	1281	Female	Not reported	Other	II	None	3648	8960/3	0:LIVING	120	3648	None
+TARGET-50-PAJMKN	NWTS-5	2	521	Female	Not reported	White	I	None	1761	8960/3	0:LIVING	58	1761	None
+TARGET-50-PALLCK	NWTS-5	3	994	Female	Hispanic or Latino	White	III	Relapse	278	8960/3	1:DECEASED	18	534	TUMOR
+TARGET-50-PAJNWK	NWTS-5	1	315	Male	Hispanic or Latino	White	III	None	3181	8960/3	0:LIVING	105	3181	None
+TARGET-50-PAKJHT	NWTS-5	5	1768	Female	Hispanic or Latino	White	II	None	717	8960/3	0:LIVING	24	717	None
+TARGET-50-PALFJZ	NWTS-5	2	386	Male	Not Hispanic or Latino	White	II	None	2878	8960/3	0:LIVING	95	2878	None
+TARGET-50-PAJLPW	NWTS-5	2	653	Female	Not reported	White	II	None	1614	8960/3	0:LIVING	54	1614	None
+TARGET-50-PAJNWH	NWTS-5	6	1913	Male	Not reported	White	II	None	2765	8960/3	0:LIVING	91	2765	None
+TARGET-50-PAKSCC	NWTS-5	2	691	Male	Hispanic or Latino	Other	II	Relapse	260	8960/3	0:LIVING	54	1628	None
+TARGET-50-PAJNYX	NWTS-5	9	3243	Male	Not reported	Not reported	II	None	3210	8960/3	0:LIVING	106	3210	None
+TARGET-50-PAJLWG	NWTS-5	5	1769	Female	Not Hispanic or Latino	Black or African American	II	None	4532	8960/3	0:LIVING	149	4532	None
+TARGET-50-PAKKZG	NWTS-5	7	2208	Female	Not Hispanic or Latino	White	III	Relapse	756	8960/3	1:DECEASED	54	1636	TUMOR
+TARGET-50-PAJMJR	NWTS-5	3	1025	Male	Not Hispanic or Latino	White	IV	None	3249	8960/3	0:LIVING	107	3249	None
+TARGET-50-PAJMRS	NWTS-5	7	2431	Female	Not Hispanic or Latino	Black or African American	II	None	1906	8960/3	0:LIVING	63	1906	None
+TARGET-50-PALKUD	NWTS-5	4	1189	Male	Hispanic or Latino	Other	III	None	1238	8960/3	0:LIVING	41	1238	None
+TARGET-50-PAJNHL	NWTS-5	4	1140	Male	Not Hispanic or Latino	Black or African American	III	None	3366	8960/3	0:LIVING	111	3366	None
+TARGET-50-PAJPGA	NWTS-5	5	1775	Female	Hispanic or Latino	White	III	None	3358	8960/3	0:LIVING	111	3358	None
+TARGET-50-PAJNVL	NWTS-5	3	765	Female	Not reported	White	I	None	2330	8960/3	0:LIVING	77	2330	None
+TARGET-50-PAJNNV	NWTS-5	1	357	Female	Not Hispanic or Latino	White	III	None	2851	8960/3	0:LIVING	94	2851	None
+TARGET-50-PALDEU	NWTS-5	4	1426	Female	Not Hispanic or Latino	White	IIIB/V	None	2786	8960/3	0:LIVING	92	2786	None
+TARGET-50-PADYVH	NWTS-5	7	2508	Male	Not Hispanic or Latino	White	IV	Relapse	208	8960/3	0:LIVING	135	4091	None
+TARGET-50-PAJNWA	NWTS-5	7	2369	Female	Not Hispanic or Latino	White	IV	None	2155	8960/3	0:LIVING	71	2155	None
+TARGET-50-PAJNND	NWTS-5	3	731	Male	Not reported	White	I	None	1779	8960/3	0:LIVING	59	1779	None
+TARGET-50-PAJMWN	NWTS-5	3	761	Female	Not reported	Not reported	II	None	148	8960/3	0:LIVING	5	148	None
+TARGET-50-PAJMZI	NWTS-5	2	650	Female	Not Hispanic or Latino	Black or African American	II/V	Relapse	311	8960/3	0:LIVING	78	2348	None
+TARGET-50-PAJPFK	NWTS-5	3	897	Female	Not reported	Not reported	I	None	1852	8960/3	0:LIVING	61	1852	None
+TARGET-50-PAKIZP	NWTS-5	4	1205	Male	Not Hispanic or Latino	White	III	None	3108	8960/3	0:LIVING	103	3108	None
+TARGET-50-PAJPET	NWTS-5	10	3378	Female	Hispanic or Latino	White	III	None	3070	8960/3	0:LIVING	101	3070	None
+TARGET-50-PAJPBG	NWTS-5	2	519	Female	Not Hispanic or Latino	Black or African American	I	None	1466	8960/3	0:LIVING	49	1466	None
+TARGET-50-PAJNIH	NWTS-5	6	1883	Female	Not reported	White	III	None	2630	8960/3	0:LIVING	87	2630	None
+TARGET-50-PAJNCZ	NWTS-5	2	581	Male	Not Hispanic or Latino	White	I	Relapse	155	8960/3	0:LIVING	118	3579	None
+TARGET-50-PAJNHV	NWTS-5	2	467	Male	Not Hispanic or Latino	Black or African American	I	None	3131	8960/3	0:LIVING	103	3131	None
+TARGET-50-PAJLRF	NWTS-5	4	1187	Male	Hispanic or Latino	White	I	None	2696	8960/3	0:LIVING	89	2696	None
+TARGET-50-PAEDJU	NWTS-5	5	1629	Female	Not Hispanic or Latino	White	III	None	1135	8960/3	0:LIVING	38	1135	None
+TARGET-50-PAJPGY	NWTS-5	6	2122	Female	Not Hispanic or Latino	White	II	Relapse	432	8960/3	0:LIVING	96	2910	None
+TARGET-50-PAKXSE	NWTS-5	3	912	Male	Not Hispanic or Latino	White	II	None	423	8960/3	0:LIVING	14	423	None
+TARGET-50-PAKIRF	NWTS-5	5	1761	Male	Not Hispanic or Latino	Black or African American	II	Relapse	475	8960/3	1:DECEASED	24	720	TUMOR
+TARGET-50-PAJPBR	NWTS-5	2	476	Female	Not Hispanic or Latino	White	II	None	3486	8960/3	0:LIVING	115	3486	None
+TARGET-50-PAKHBL	NWTS-5	4	1344	Female	Not Hispanic or Latino	White	II	None	1162	8960/3	0:LIVING	39	1162	None
+TARGET-50-PAJLNX	NWTS-5	2	387	Male	Not reported	White	II	None	2366	8960/3	0:LIVING	78	2366	None
+TARGET-50-PALMHS	NWTS-5	4	1390	Male	Not Hispanic or Latino	White	IIIB	None	1141	8960/3	0:LIVING	38	1141	None
+TARGET-50-PAJNXG	NWTS-5	2	592	Female	Not Hispanic or Latino	Other	I	None	1632	8960/3	0:LIVING	54	1632	None
+TARGET-50-PAJMVD	NWTS-5	1	301	Male	Not reported	White	I	None	1868	8960/3	0:LIVING	62	1868	None
+TARGET-50-PAJMVL	NWTS-5	3	989	Male	Not Hispanic or Latino	Black or African American	IIIB/V	Relapse	302	8960/3	1:DECEASED	19	562	TUMOR
+TARGET-50-PAJNLR	NWTS-5	4	1372	Male	Not Hispanic or Latino	White	III	None	3618	8960/3	0:LIVING	119	3618	None
+TARGET-50-PAJNAP	NWTS-5	7	2433	Male	Not reported	White	II	None	1754	8960/3	0:LIVING	58	1754	None
+TARGET-50-PAJNZK	NWTS-5	5	1532	Female	Not Hispanic or Latino	White	II	Relapse	149	8960/3	0:LIVING	35	1040	None
+TARGET-50-PADWNP	NWTS-5	2	554	Male	Not Hispanic or Latino	White	I	None	3976	8960/3	0:LIVING	131	3976	None
+TARGET-50-PAJLTI	NWTS-5	3	961	Male	Not Hispanic or Latino	Black or African American	I	Relapse	180	8960/3	0:LIVING	109	3295	None
+TARGET-50-PALLFV	NWTS-5	2	659	Male	Not Hispanic or Latino	White	II	None	1268	8960/3	0:LIVING	42	1268	None
+TARGET-50-PAJPCF	NWTS-5	4	1431	Female	Not Hispanic or Latino	White	II	Relapse	160	8960/3	0:LIVING	108	3283	None
+TARGET-50-PAKWZR	NWTS-5	4	1424	Male	Not Hispanic or Latino	White	III	None	2908	8960/3	0:LIVING	96	2908	None
+TARGET-50-PAKHMM	NWTS-5	9	3261	Male	Not Hispanic or Latino	White	II	Relapse	441	8960/3	1:DECEASED	20	588	MEDICAL
+TARGET-50-PAJLWW	NWTS-5	6	2155	Female	Not reported	Not reported	III	None	3521	8960/3	0:LIVING	116	3521	None
+TARGET-50-PAJLSY	NWTS-5	3	847	Female	Not Hispanic or Latino	Black or African American	II	None	2127	8960/3	0:LIVING	70	2127	None
+TARGET-50-PAKFZA	NWTS-5	3	944	Male	Not Hispanic or Latino	Black or African American	III	None	1233	8960/3	0:LIVING	41	1233	None
+TARGET-50-PAJNXS	NWTS-5	5	1495	Female	Not reported	Not reported	III	None	2364	8960/3	0:LIVING	78	2364	None
+TARGET-50-PAJLIT	NWTS-5	4	1408	Female	Not reported	White	I	Relapse	226	8960/3	0:LIVING	111	3372	None
+TARGET-50-PAJNPZ	NWTS-5	3	952	Male	Not Hispanic or Latino	White	III	Relapse	339	8960/3	1:DECEASED	21	622	TUMOR
+TARGET-50-PAJMRT	NWTS-5	4	1178	Male	Not Hispanic or Latino	White	II	None	3940	8960/3	0:LIVING	130	3940	None
+TARGET-50-PAEAFZ	NWTS-5	1	337	Female	Hispanic or Latino	Not reported	I	None	2297	8960/3	0:LIVING	76	2297	None
+TARGET-50-PAJMBN	NWTS-5	2	642	Female	Not reported	White	III	None	4195	8960/3	0:LIVING	138	4195	None
+TARGET-50-PAJNZZ	NWTS-5	2	611	Male	Not Hispanic or Latino	White	I	Relapse	202	8960/3	0:LIVING	108	3265	None
+TARGET-50-PAJLIJ	NWTS-5	5	1466	Female	Not Hispanic or Latino	Black or African American	III	Relapse	1112	8960/3	1:DECEASED	87	2616	TUMOR
+TARGET-50-PAJNAU	NWTS-5	1	310	Male	Not Hispanic or Latino	Black or African American	I	None	1710	8960/3	0:LIVING	57	1710	None
+TARGET-50-PAJNBG	NWTS-5	2	562	Male	Not reported	White	III	None	3936	8960/3	0:LIVING	130	3936	None
+TARGET-50-PAJLSM	NWTS-5	2	458	Female	Not Hispanic or Latino	Black or African American	III	Relapse	78	8960/3	1:DECEASED	9	248	TUMOR
+TARGET-50-PAJNCU	NWTS-5	6	1961	Female	Not reported	White	II	None	3697	8960/3	0:LIVING	122	3697	None
+TARGET-50-PAJMKI	NWTS-5	6	2168	Male	Not Hispanic or Latino	White	III	Relapse	268	8960/3	1:DECEASED	21	630	TUMOR
+TARGET-50-PAKJKT	NWTS-5	4	1375	Female	Not Hispanic or Latino	Other	III	None	2205	8960/3	0:LIVING	73	2205	None
+TARGET-50-PAJNWX	NWTS-5	4	1129	Male	Not Hispanic or Latino	Black or African American	II	None	1833	8960/3	0:LIVING	61	1833	None
+TARGET-50-PAJNUT	NWTS-5	5	1599	Female	Not reported	White	IIIB/V	Relapse	465	8960/3	1:DECEASED	17	496	TUMOR
+TARGET-50-PAJPDN	NWTS-5	4	1112	Female	Not Hispanic or Latino	Black or African American	II	None	1987	8960/3	0:LIVING	66	1987	None
+TARGET-50-PAKPTZ	NWTS-5	3	734	Female	Not Hispanic or Latino	White	III	None	2747	8960/3	0:LIVING	91	2747	None
+TARGET-50-PAKYGM	NWTS-5	5	1594	Male	Not Hispanic or Latino	White	III	Relapse	149	8960/3	1:DECEASED	22	663	TUMOR
+TARGET-50-PADYAS	NWTS-5	3	819	Female	Not Hispanic or Latino	White	II	None	4811	8960/3	0:LIVING	159	4811	None
+TARGET-50-PAJNSV	NWTS-5	3	958	Female	Not reported	Not reported	III	None	3265	8960/3	0:LIVING	108	3265	None
+TARGET-50-PAKYFF	NWTS-5	3	938	Male	Not Hispanic or Latino	White	II	None	2814	8960/3	0:LIVING	93	2814	None
+TARGET-50-PALJHR	NWTS-5	5	1769	Female	Not Hispanic or Latino	White	III	Relapse	152	8960/3	1:DECEASED	21	617	TUMOR
+TARGET-50-PAEFPT	NWTS-5	5	1757	Male	Not Hispanic or Latino	White	II	None	2456	8960/3	0:LIVING	81	2456	None
+TARGET-50-PAJPFR	NWTS-5	2	678	Male	Not Hispanic or Latino	White	III/V	Relapse	546	8960/3	0:LIVING	67	2035	None
+TARGET-50-PAKXWB	NWTS-5	8	2681	Female	Not Hispanic or Latino	White	III	Progression	458	8960/3	1:DECEASED	16	458	TUMOR
+TARGET-50-PAJLWZ	NWTS-5	7	2290	Female	Not reported	White	II/V	Relapse	879	8960/3	0:LIVING	112	3393	None
+TARGET-50-PAKNSG	NWTS-5	5	1549	Male	Not Hispanic or Latino	Black or African American	II	Relapse	269	8960/3	1:DECEASED	23	673	TUMOR
+TARGET-50-PAKYJS	NWTS-5	1	165	Male	Not Hispanic or Latino	Black or African American	I	None	2876	8960/3	0:LIVING	95	2876	None
+TARGET-50-PAKSJN	NWTS-5	8	2770	Male	Hispanic or Latino	White	II	None	554	8960/3	0:LIVING	19	554	None
+TARGET-50-PAJNVX	NWTS-5	4	1365	Male	Not reported	White	I	Relapse	168	8960/3	1:DECEASED	15	427	TUMOR
+TARGET-50-PAJLYG	NWTS-5	1	257	Female	Not reported	White	I	Relapse	182	8960/3	0:LIVING	143	4346	None
+TARGET-50-PAJLMH	NWTS-5	2	634	Female	Not reported	White	I	None	4767	8960/3	0:LIVING	157	4767	None
+TARGET-50-PAJNBU	NWTS-5	12	4253	Female	Not reported	White	IV	None	2460	8960/3	0:LIVING	81	2460	None
+TARGET-50-PALGMA	NWTS-5	1	105	Male	Not Hispanic or Latino	White	I	Relapse	48	8960/3	0:LIVING	82	2476	None
+TARGET-50-PAKILU	NWTS-5	4	1117	Male	Hispanic or Latino	Other	III	None	1156	8960/3	0:LIVING	39	1156	None
+TARGET-50-PALDND	NWTS-5	2	585	Male	Not Hispanic or Latino	White	I	None	1948	8960/3	0:LIVING	65	1948	None
+TARGET-50-PAJNCK	NWTS-5	5	1531	Female	Not reported	White	II	None	570	8960/3	0:LIVING	19	570	None
+TARGET-50-PAECJY	NWTS-5	2	381	Male	Not Hispanic or Latino	White	I	None	4121	8960/3	0:LIVING	136	4121	None
+TARGET-50-PAJMLS	NWTS-5	6	1910	Male	Not reported	White	III	None	408	8960/3	0:LIVING	14	408	None
+TARGET-50-PAJMFY	NWTS-5	6	1868	Female	Not reported	White	II	Relapse	258	8960/3	0:LIVING	25	748	None
+TARGET-50-PAKKNS	NWTS-5	2	547	Male	Not Hispanic or Latino	White	I	None	1795	8960/3	0:LIVING	60	1795	None
+TARGET-50-PAJNYT	NWTS-5	3	768	Male	Not Hispanic or Latino	White	III	Relapse	338	8960/3	1:DECEASED	12	354	TUMOR
+TARGET-50-PAEBXA	NWTS-5	4	1192	Female	Not Hispanic or Latino	Black or African American	III	Relapse	528	8960/3	1:DECEASED	37	1114	TUMOR
+TARGET-50-PAJLJP	NWTS-5	2	679	Female	Not reported	White	IV	None	2814	8960/3	0:LIVING	93	2814	None
+TARGET-50-PALCMK	NWTS-5	1	329	Male	Hispanic or Latino	Other	I	Relapse	141	8960/3	0:LIVING	24	715	None
+TARGET-50-PAKKSE	NWTS-5	3	847	Female	Not Hispanic or Latino	White	II	Relapse	367	8960/3	0:LIVING	64	1925	None
+TARGET-50-PAJNKJ	NWTS-5	5	1526	Male	Not Hispanic or Latino	Black or African American	III	None	2009	8960/3	0:LIVING	67	2009	None
+TARGET-50-PAJMUE	NWTS-5	4	1216	Male	Not Hispanic or Latino	Black or African American	IV	None	1041	8960/3	0:LIVING	35	1041	None
+TARGET-50-PAJPCM	NWTS-5	5	1754	Female	Not reported	White	II	None	3121	8960/3	0:LIVING	103	3121	None
+TARGET-50-PAKPEU	NWTS-5	1	287	Male	Not Hispanic or Latino	White	II	None	2182	8960/3	0:LIVING	72	2182	None
+TARGET-50-PALKNP	NWTS-5	5	1559	Female	Hispanic or Latino	White	II	None	854	8960/3	0:LIVING	29	854	None
+TARGET-50-PAJNMD	NWTS-5	3	961	Male	Not Hispanic or Latino	White	I	None	3800	8960/3	0:LIVING	125	3800	None
+TARGET-50-PAJMIP	NWTS-5	4	1261	Male	Not reported	White	II	None	2771	8960/3	0:LIVING	92	2771	None
+TARGET-50-PAJMUY	NWTS-5	2	420	Male	Not Hispanic or Latino	White	II	None	3751	8960/3	0:LIVING	124	3751	None
+TARGET-50-PAEAFB	NWTS-5	2	490	Male	Not Hispanic or Latino	White	III	Relapse	174	8960/3	1:DECEASED	71	2145	TUMOR
+TARGET-50-PAJLTD	NWTS-5	3	1080	Male	Not reported	White	II	Relapse	157	8960/3	0:LIVING	58	1757	None
+TARGET-50-PAJMME	NWTS-5	2	465	Female	Not Hispanic or Latino	White	IIIB/V	None	4067	8960/3	0:LIVING	134	4067	None
+TARGET-50-PAKGED	NWTS-5	8	2809	Female	Not Hispanic or Latino	White	III	None	1791	8960/3	0:LIVING	59	1791	None
+TARGET-50-PAKUMS	NWTS-5	4	1108	Female	Not Hispanic or Latino	White	I	None	2156	8960/3	0:LIVING	71	2156	None
+TARGET-50-PAJNUP	NWTS-5	7	2201	Female	Not reported	White	III	Relapse	357	8960/3	1:DECEASED	25	752	TUMOR
+TARGET-50-PAJMLW	NWTS-5	3	809	Female	Not reported	Not reported		None	2728	8960/3	0:LIVING	90	2728	None
+TARGET-50-PAJPHG	NWTS-5	7	2463	Female	Not Hispanic or Latino	Black or African American	III	None	1784	8960/3	0:LIVING	59	1784	None
+TARGET-50-PAJNXI	NWTS-5	7	2507	Female	Not Hispanic or Latino	Black or African American	IIIB	None	2974	8960/3	0:LIVING	98	2974	None
+TARGET-50-PAJLTL	NWTS-5	4	1396	Female	Not Hispanic or Latino	Black or African American	IV	None	3719	8960/3	0:LIVING	123	3719	None
+TARGET-50-PAKYFC	NWTS-5	3	1069	Female	Not Hispanic or Latino	Other	II	Relapse	191	8960/3	0:LIVING	21	631	None
+TARGET-50-PAJNKD	NWTS-5	2	617	Female	Not Hispanic or Latino	White	I	None	2861	8960/3	0:LIVING	95	2861	None
+TARGET-50-PAJPEW	NWTS-5	14	5082	Male	Not Hispanic or Latino	White	II	Relapse	238	8960/3	0:LIVING	107	3241	None
+TARGET-50-PALEWU	NWTS-5	1	240	Female	Not Hispanic or Latino	White	I	None	852	8960/3	0:LIVING	29	852	None
+TARGET-50-PALFJK	NWTS-5	7	2240	Male	Not Hispanic or Latino	White	IIIB	Relapse	257	8960/3	1:DECEASED	23	681	TUMOR
+TARGET-50-PADYWT	NWTS-5	5	1698	Female	Not Hispanic or Latino	White	IIIB/V	None	4767	8960/3	0:LIVING	157	4767	None
+TARGET-50-PAJNKP	NWTS-5	3	1030	Female	Not Hispanic or Latino	White	II	None	2546	8960/3	0:LIVING	84	2546	None
+TARGET-50-CAAAAB	NTWS-4	5	1757	Female	Not reported	White	III	Relapse	635	8960/3	1:DECEASED	31	936	TUMOR
+TARGET-50-PAJMUF	NWTS-5	3	829	Male	Not Hispanic or Latino	White	III	Relapse	215	8960/3	0:LIVING	117	3547	None
+TARGET-50-PAJNXB	NWTS-5	1	270	Male	Not reported	White	II	None	2929	8960/3	0:LIVING	97	2929	None
+TARGET-50-PAJLVL	NWTS-5	6	1986	Female	Not reported	White	II	None	2645	8960/3	0:LIVING	87	2645	None
+TARGET-50-PAJMRL	NWTS-5	5	1685	Male	Not Hispanic or Latino	Black or African American	II	Relapse	334	8960/3	1:DECEASED	23	686	TUMOR
+TARGET-50-PAKNFF	NWTS-5	3	833	Female	Not Hispanic or Latino	White	III	None	1143	8960/3	0:LIVING	38	1143	None
+TARGET-50-PALDWP	NWTS-5	6	2104	Male	Not Hispanic or Latino	White	III	Relapse	287	8960/3	1:DECEASED	18	528	TUMOR
+TARGET-50-PAJLVX	NWTS-5	3	959	Female	Not reported	Not reported	I	None	1032	8960/3	0:LIVING	34	1032	None
+TARGET-50-PALMII	NWTS-5	4	1137	Male	Not Hispanic or Latino	White	III	None	2312	8960/3	0:LIVING	77	2312	None
+TARGET-50-PAJLLV	NWTS-5	4	1266	Female	Not Hispanic or Latino	Black or African American	I	None	3423	8960/3	0:LIVING	113	3423	None
+TARGET-50-PAJNRL	NWTS-5	5	1476	Male	Not Hispanic or Latino	Black or African American	IV	Relapse	204	8960/3	1:DECEASED	9	256	TUMOR
+TARGET-50-PAKPIJ	NWTS-5	2	372	Male	Not Hispanic or Latino	Other	II	None	3093	8960/3	0:LIVING	102	3093	None
+TARGET-50-PAJMYU	NWTS-5	6	1924	Male	Not reported	White	IV	Relapse	202	8960/3	1:DECEASED	21	610	TUMOR
+TARGET-50-PAEIJB	NWTS-5	4	1120	Female	Not Hispanic or Latino	White	II	None	2955	8960/3	0:LIVING	98	2955	None
+TARGET-50-PALGAZ	NWTS-5	1	222	Female	Hispanic or Latino	White	I	Relapse	152	8960/3	1:DECEASED	14	422	TUMOR
+TARGET-50-PADXIP	NWTS-5	2	582	Female	Not Hispanic or Latino	White	II	None	1976	8960/3	0:LIVING	65	1976	None
+TARGET-50-PAJMLY	NWTS-5	5	1656	Male	Not Hispanic or Latino	Black or African American	IV	Relapse	370	8960/3	1:DECEASED	17	489	TUMOR
+TARGET-50-PAJPEA	NWTS-5	1	301	Female	Not Hispanic or Latino	White	II/V	Relapse	700	8960/3	1:DECEASED	39	1169	TUMOR
+TARGET-50-PALJIP	NWTS-5	5	1789	Female	Not Hispanic or Latino	White	II	Relapse	337	8960/3	1:DECEASED	26	770	TUMOR
+TARGET-50-PAJPAU	NWTS-5	4	1389	Male	Not reported	White	I	Relapse	273	8960/3	0:LIVING	78	2350	None
+TARGET-50-PAKMLA	NWTS-5	7	2435	Female	Not Hispanic or Latino	White	I	None	3122	8960/3	0:LIVING	103	3122	None
+TARGET-50-PAJMRH	NWTS-5	5	1501	Male	Not reported	White	III	Progression	228	8960/3	1:DECEASED	8	228	TUMOR
+TARGET-50-CAAAAO	NWTS-5	4	1326	Female	Not reported	Not reported	III	Relapse	330	8960/3	1:DECEASED	23	672	TUMOR
+TARGET-50-PAJLXH	NWTS-5	9	3017	Female	Not reported	White	I	None	2687	8960/3	0:LIVING	89	2687	None
+TARGET-50-PAJPGU	NWTS-5	5	1746	Male	Not reported	Not reported	II	None	2061	8960/3	0:LIVING	68	2061	None
+TARGET-50-PAKUIT	NWTS-5	4	1236	Female	Not Hispanic or Latino	White	IV	Relapse	157	8960/3	1:DECEASED	8	228	TUMOR
+TARGET-50-PADZCH	NWTS-5	1	111	Male	Not Hispanic or Latino	White	I	None	1513	8960/3	0:LIVING	50	1513	None
+TARGET-50-PAJLSV	NWTS-5	4	1166	Female	Not reported	Not reported	IV	None	1423	8960/3	0:LIVING	47	1423	None
+TARGET-50-PAJNVA	NWTS-5	2	458	Male	Not reported	White	I	None	3118	8960/3	0:LIVING	103	3118	None
+TARGET-50-PAJNWZ	NWTS-5	8	2615	Female	Not Hispanic or Latino	White	II	None	3620	8960/3	0:LIVING	120	3620	None
+TARGET-50-PALFGK	NWTS-5	4	1333	Female	Hispanic or Latino	White	II	None	1358	8960/3	0:LIVING	45	1358	None
+TARGET-50-PAJNCJ	NWTS-5	5	1762	Female	Not reported	Not reported	II	Relapse	1085	8960/3	0:LIVING	122	3689	None
+TARGET-50-PAKIDV	NWTS-5	3	985	Male	Not Hispanic or Latino	White	IIIB/V	Relapse	226	8960/3	0:LIVING	106	3200	None
+TARGET-50-PAKAPI	NWTS-5	3	919	Female	Not reported	Not reported	III	None	1884	8960/3	0:LIVING	62	1884	None
+TARGET-50-PALFYP	NWTS-5	4	1320	Male	Hispanic or Latino	White	II	None	818	8960/3	0:LIVING	27	818	None
+TARGET-50-PAJLKC	NWTS-5	7	2464	Female	Not reported	White	II	None	2930	8960/3	0:LIVING	97	2930	None
+TARGET-50-PAJLTH	NWTS-5	8	2819	Male	Not reported	White	II	Relapse	258	8960/3	0:LIVING	101	3059	None
+TARGET-50-PAJNIS	NWTS-5	2	680	Male	Not reported	White	IV	None	2611	8960/3	0:LIVING	86	2611	None
+TARGET-50-PAKNXS	NWTS-5	4	1245	Male	Not Hispanic or Latino	White	III	Relapse	320	8960/3	1:DECEASED	11	329	TUMOR
+TARGET-50-PAJLPD	NWTS-5	6	1980	Male	Not Hispanic or Latino	Black or African American	IV	None	2162	8960/3	0:LIVING	72	2162	None
+TARGET-50-PAJNMT	NWTS-5	1	131	Male	Not Hispanic or Latino	White	I	None	3700	8960/3	0:LIVING	122	3700	None
+TARGET-50-PAJNUX	NWTS-5	5	1798	Female	Not Hispanic or Latino	Black or African American	II	None	2142	8960/3	0:LIVING	71	2142	None
+TARGET-50-PAKWDE	NWTS-5	2	725	Male	Hispanic or Latino	Other	II	None	2967	8960/3	0:LIVING	98	2967	None
+TARGET-50-PAJNML	NWTS-5	3	1011	Male	Not Hispanic or Latino	White	I	None	2000	8960/3	0:LIVING	66	2000	None
+TARGET-50-PADYGD	NWTS-5	4	1215	Male	Not Hispanic or Latino	White	IV	None	3500	8960/3	0:LIVING	116	3500	None
+TARGET-50-PAJLSW	NWTS-5	6	2022	Female	Not reported	White	IV	None	3040	8960/3	0:LIVING	100	3040	None
+TARGET-50-PALGWU	NWTS-5	4	1190	Female	Not Hispanic or Latino	White	IIIB/V	Relapse	250	8960/3	1:DECEASED	20	596	TUMOR
+TARGET-50-PAJNEX	NWTS-5	2	377	Male	Not Hispanic or Latino	White	I	None	3841	8960/3	0:LIVING	127	3841	None
+TARGET-50-PAJNSK	NWTS-5	10	3505	Male	Not reported	Not reported	III	None	452	8960/3	0:LIVING	15	452	None
+TARGET-50-PAJNIY	NWTS-5	3	927	Female	Not Hispanic or Latino	White	II	None	2157	8960/3	0:LIVING	71	2157	None
+TARGET-50-PAJPCX	NWTS-5	2	390	Male	Not Hispanic or Latino	White	III	None	2541	8960/3	0:LIVING	84	2541	None
+TARGET-50-PAJNLA	NWTS-5	4	1375	Female	Not reported	Not reported	III	None	840	8960/3	0:LIVING	28	840	None
+TARGET-50-PAJMLI	NWTS-5	4	1342	Male	Not Hispanic or Latino	Black or African American	I	Relapse	251	8960/3	1:DECEASED	9	265	TUMOR AND TOXICITY
+TARGET-50-PAJNZS	NWTS-5	5	1789	Female	Not reported	White	III	None	1668	8960/3	0:LIVING	55	1668	None
+TARGET-50-PAJLTU	NWTS-5	1	183	Female	Not reported	White	I	Relapse	404	8960/3	0:LIVING	64	1931	None
+TARGET-50-PALERC	NWTS-5	1	156	Female	Not Hispanic or Latino	White	II	Relapse	46	8960/3	0:LIVING	92	2790	None
+TARGET-50-PAJNEE	NWTS-5	2	501	Male	Not Hispanic or Latino	White	III	None	1074	8960/3	0:LIVING	36	1074	None
+TARGET-50-PAJNNT	NWTS-5	8	2620	Male	Hispanic or Latino	Not reported	II	None	253	8960/3	0:LIVING	9	253	None
+TARGET-50-PALKJY	NWTS-5	7	2471	Female	Not Hispanic or Latino	Black or African American	III	None	1286	8960/3	0:LIVING	43	1286	None
+TARGET-50-CAAAAC	NWTS-5	7	2244	Female	Not Hispanic or Latino	White	III	Relapse	1184	8960/3	1:DECEASED	86	2615	TUMOR
+TARGET-50-PADZNH	NWTS-5	6	1971	Female	Not Hispanic or Latino	White	II	None	3943	8960/3	0:LIVING	130	3943	None
+TARGET-50-PADXJK	NWTS-5	2	558	Male	Not Hispanic or Latino	White	III	None	4678	8960/3	0:LIVING	154	4678	None
+TARGET-50-PAKGWP	NWTS-5	6	2033	Male	Not Hispanic or Latino	Black or African American	III	None	1387	8960/3	0:LIVING	46	1387	None
+TARGET-50-PADWHM	NWTS-5	2	724	Female	Hispanic or Latino	Not reported	III	Relapse	167	8960/3	0:LIVING	117	3541	None
+TARGET-50-PADWYJ	NWTS-5	4	1170	Female	Not Hispanic or Latino	White	III	None	685	8960/3	0:LIVING	23	685	None
+TARGET-50-PAJMSR	NWTS-5	6	2029	Male	Not reported	White	III	None	3157	8960/3	0:LIVING	104	3157	None
+TARGET-50-PAJPFC	NWTS-5	6	2170	Male	Not Hispanic or Latino	White	II	None	1950	8960/3	0:LIVING	65	1950	None
+TARGET-50-PAJMBG	NWTS-5	6	1967	Female	Not Hispanic or Latino	Black or African American	IV	Progression	242	8960/3	1:DECEASED	8	242	TUMOR
+TARGET-50-PAJMFU	NWTS-5	4	1348	Female	Hispanic or Latino	Not reported	II	None	2894	8960/3	0:LIVING	96	2894	None
+TARGET-50-PAJNHZ	NWTS-5	1	168	Female	Hispanic or Latino	Not reported	II	Relapse	158	8960/3	1:DECEASED	12	356	ESRD
+TARGET-50-PAKYXG	NWTS-5	6	2124	Female	Not Hispanic or Latino	Black or African American	IIIB	Relapse	335	8960/3	1:DECEASED	13	380	TUMOR
+TARGET-50-PALDWR	NWTS-5	9	3031	Female	Not Hispanic or Latino	Black or African American	IIIB	None	1394	8960/3	0:LIVING	46	1394	None
+TARGET-50-PAJNID	NWTS-5	4	1212	Male	Not reported	White	I	None	3706	8960/3	0:LIVING	122	3706	None
+TARGET-50-PAKNTW	NWTS-5	14	4779	Male	Not Hispanic or Latino	White	III	None	290	8960/3	0:LIVING	10	290	None
+TARGET-50-PAJLWX	NWTS-5	6	2173	Female	Not Hispanic or Latino	Black or African American	III	None	4520	8960/3	0:LIVING	149	4520	None
+TARGET-50-PAKZHG	NWTS-5	5	1583	Male	Not Hispanic or Latino	White	I	None	2523	8960/3	0:LIVING	83	2523	None
+TARGET-50-PAKFTB	NWTS-5	1	178	Male	Not Hispanic or Latino	White	I	None	2160	8960/3	0:LIVING	72	2160	None
+TARGET-50-PAECIE	NWTS-5	3	966	Female	Not Hispanic or Latino	White	III	None	3129	8960/3	0:LIVING	103	3129	None
+TARGET-50-PAJNKS	NWTS-5	5	1637	Male	Not Hispanic or Latino	White	I	None	3524	8960/3	0:LIVING	116	3524	None
+TARGET-50-PAKMUB	NWTS-5	7	2412	Male	Not Hispanic or Latino	Black or African American	II	Relapse	408	8960/3	0:LIVING	16	477	None
+TARGET-50-PAJNIE	NWTS-5	6	2144	Female	Not Hispanic or Latino	White	II	None	2392	8960/3	0:LIVING	79	2392	None
+TARGET-50-PAKZHF	NWTS-5	4	1309	Male	Not Hispanic or Latino	White	II	Relapse	246	8960/3	0:LIVING	18	519	None
+TARGET-50-PAJMMY	NWTS-5	6	1953	Male	Hispanic or Latino	White	III	Relapse	801	8960/3	0:LIVING	137	4163	None
+TARGET-50-PAJMWZ	NWTS-5	6	1834	Male	Not reported	White	II	None	1376	8960/3	0:LIVING	46	1376	None
+TARGET-50-PAJLVS	NWTS-5	5	1546	Female	Not reported	Not reported	IIIB/V	None	1068	8960/3	0:LIVING	36	1068	None
+TARGET-50-PAJMMK	NWTS-5	4	1339	Female	Not Hispanic or Latino	Black or African American	II	None	4112	8960/3	0:LIVING	136	4112	None
+TARGET-50-PAJPAX	NWTS-5	2	702	Male	Not Hispanic or Latino	White	II	None	3428	8960/3	0:LIVING	113	3428	None
+TARGET-50-PAJLVV	NWTS-5	2	620	Female	Not Hispanic or Latino	White	I	Relapse	517	8960/3	0:LIVING	140	4253	None
+TARGET-50-PADXRC	NWTS-5	4	1396	Female	Not Hispanic or Latino	Other	II	None	2934	8960/3	0:LIVING	97	2934	None
+TARGET-50-PAJNYM	NWTS-5	1	327	Female	Not reported	Not reported	I	Progression	131	8960/3	1:DECEASED	5	131	TOXICITY
+TARGET-50-PAJNLK	NWTS-5	5	1647	Female	Not reported	Not reported	III	None	2222	8960/3	0:LIVING	74	2222	None
+TARGET-50-PAKJGM	NWTS-5	3	1007	Male	Not Hispanic or Latino	White	III	Relapse	201	8960/3	1:DECEASED	14	409	TUMOR
+TARGET-50-PAJLRC	NWTS-5	2	602	Male	Not Hispanic or Latino	Black or African American	III	None	3247	8960/3	0:LIVING	107	3247	None
+TARGET-50-PAKEMV	NWTS-5	2	625	Female	Not reported	Not reported	III	None	1594	8960/3	0:LIVING	53	1594	None
+TARGET-50-PAJNRE	NWTS-5	3	770	Male	Not reported	White	III	None	2392	8960/3	0:LIVING	79	2392	None
+TARGET-50-PADYYC	NWTS-5	3	1094	Male	Not Hispanic or Latino	White	IV	None	4387	8960/3	0:LIVING	145	4387	None
+TARGET-50-PAJNVE	NWTS-5	3	800	Female	Not Hispanic or Latino	White	III	None	3382	8960/3	0:LIVING	112	3382	None
+TARGET-50-PAJMYM	NWTS-5	1	339	Female	Not Hispanic or Latino	Black or African American	II	Relapse	1609	8960/3	0:LIVING	71	2155	None
+TARGET-50-PAJNLS	NWTS-5	5	1578	Male	Not reported	White	I	None	1869	8960/3	0:LIVING	62	1869	None
+TARGET-50-PAJMWC	NWTS-5	4	1114	Female	Not Hispanic or Latino	Black or African American	IV	Progression	765	8960/3	1:DECEASED	26	765	TUMOR
+TARGET-50-PAJNNU	NWTS-5	1	199	Female	Not Hispanic or Latino	Other	II	None	503	8960/3	0:LIVING	17	503	None
+TARGET-50-CAAAAL	NWTS-5	5	1599	Female	Not Hispanic or Latino	Black or African American	III	Relapse	221	8960/3	0:LIVING	109	3289	None
+TARGET-50-PALEFG	NWTS-5	5	1688	Female	Not Hispanic or Latino	White	II	Relapse	269	8960/3	1:DECEASED	23	690	TUMOR
+TARGET-50-PAJMVJ	NWTS-5	1	213	Female	Not Hispanic or Latino	White	II	None	1488	8960/3	0:LIVING	49	1488	None
+TARGET-50-PAJPGM	NWTS-5	7	2505	Male	Not Hispanic or Latino	White	III	Progression	1811	8960/3	1:DECEASED	60	1811	SMN
+TARGET-50-PAJLZA	NWTS-5	7	2296	Male	Not reported	White	III	None	2852	8960/3	0:LIVING	94	2852	None
+TARGET-50-PAJLVB	NWTS-5	5	1567	Male	Not Hispanic or Latino	Black or African American	III	None	551	8960/3	0:LIVING	19	551	None
+TARGET-50-PAJMJB	NWTS-5	5	1482	Female	Not Hispanic or Latino	Black or African American	II	None	626	8960/3	0:LIVING	21	626	None
+TARGET-50-PAKMGV	NWTS-5	7	2223	Male	Not Hispanic or Latino	White	I	None	1061	8960/3	0:LIVING	35	1061	None
+TARGET-50-PAJLNA	NWTS-5	6	2064	Female	Not reported	White	II	None	3819	8960/3	0:LIVING	126	3819	None
+TARGET-50-PAKMKW	NWTS-5	6	1904	Male	Not Hispanic or Latino	White	III	None	2700	8960/3	0:LIVING	89	2700	None
+TARGET-50-PAKGUP	NWTS-5	11	3763	Male	Not Hispanic or Latino	Black or African American	II	None	1180	8960/3	0:LIVING	39	1180	None
+TARGET-50-PAKYPP	NWTS-5	3	1055	Female	Hispanic or Latino	Other	III	Relapse	253	8960/3	0:LIVING	82	2482	None
+TARGET-50-PAJPGF	NWTS-5	1	128	Male	Hispanic or Latino	Black or African American	I	None	1720	8960/3	0:LIVING	57	1720	None
+TARGET-50-PAJPAG	NWTS-5	5	1582	Male	Not Hispanic or Latino	Black or African American	II	None	651	8960/3	0:LIVING	22	651	None
+TARGET-50-PAJNJC	NWTS-5	2	539	Male	Not reported	White	II	None	441	8960/3	0:LIVING	15	441	None
+TARGET-50-PAJNBW	NWTS-5	3	944	Female	Not reported	White	II	None	2441	8960/3	0:LIVING	81	2441	None
+TARGET-50-PAJLZT	NWTS-5	2	475	Female	Not reported	White	III	None	2146	8960/3	0:LIVING	71	2146	None
+TARGET-50-PALKCW	NWTS-5	6	1895	Male	Not Hispanic or Latino	White	II	Relapse	399	8960/3	0:LIVING	37	1110	None
+TARGET-50-PAJLMW	NWTS-5	4	1439	Female	Not Hispanic or Latino	Black or African American	III	None	2216	8960/3	0:LIVING	73	2216	None
+TARGET-50-PAJLLI	NWTS-5	5	1631	Female	Not Hispanic or Latino	Black or African American	II	Relapse	301	8960/3	0:LIVING	122	3687	None
+TARGET-50-PAJNZU	NWTS-5	3	970	Female	Not Hispanic or Latino	White	I	Relapse	246	8960/3	0:LIVING	114	3451	None
+TARGET-50-PAKYNT	NWTS-5	3	910	Male	Not Hispanic or Latino	White	II	None	2408	8960/3	0:LIVING	80	2408	None
+TARGET-50-PAJMWF	NWTS-5	6	1987	Male	Not Hispanic or Latino	White	IV	None	1455	8960/3	0:LIVING	48	1455	None
+TARGET-50-PAKHWZ	NWTS-5	2	535	Female	Not Hispanic or Latino	White	III	None	1649	8960/3	0:LIVING	55	1649	None
+TARGET-50-PAKKJB	NWTS-5	5	1746	Male	Not Hispanic or Latino	White	I	None	1918	8960/3	0:LIVING	64	1918	None
+TARGET-50-PALJDK	NWTS-5	9	3148	Male	Not Hispanic or Latino	White	III	None	2200	8960/3	0:LIVING	73	2200	None
+TARGET-50-PAJPDF	NWTS-5	1	285	Male	Not Hispanic or Latino	Black or African American	III	None	1005	8960/3	0:LIVING	34	1005	None
+TARGET-50-PAJMED	NWTS-5	2	705	Male	Not Hispanic or Latino	White	III	None	2334	8960/3	0:LIVING	77	2334	None
+TARGET-50-PAJMXP	NWTS-5	3	805	Female	Not Hispanic or Latino	White	III	None	756	8960/3	0:LIVING	25	756	None
+TARGET-50-PAJPEY	NWTS-5	5	1772	Male	Not Hispanic or Latino	White	III	None	2150	8960/3	0:LIVING	71	2150	None
+TARGET-50-PAJNWU	NWTS-5	6	1828	Female	Not Hispanic or Latino	White	III	None	2470	8960/3	0:LIVING	82	2470	None
+TARGET-50-PAKJVW	NWTS-5	3	845	Female	Not Hispanic or Latino	White	IIIB/V	Relapse	467	8960/3	0:LIVING	103	3120	None
+TARGET-50-PAJMVC	NWTS-5	5	1548	Male	Not Hispanic or Latino	Black or African American	III	None	727	8960/3	0:LIVING	24	727	None
+TARGET-50-PAJMVG	NWTS-5	3	781	Male	Not reported	White	III	None	1636	8960/3	0:LIVING	54	1636	None
+TARGET-50-PAJNIJ	NWTS-5	5	1724	Female	Not reported	Not reported	II	None	809	8960/3	0:LIVING	27	809	None
+TARGET-50-PAJNGK	NWTS-5	4	1174	Male	Not Hispanic or Latino	White	II	None	3553	8960/3	0:LIVING	117	3553	None
+TARGET-50-PAJMVX	NWTS-5	3	912	Male	Not Hispanic or Latino	Black or African American	II	None	3246	8960/3	0:LIVING	107	3246	None
+TARGET-50-PAJNEC	NWTS-5	5	1474	Female	Not Hispanic or Latino	White	III	Relapse	394	8960/3	1:DECEASED	36	1066	TUMOR
+TARGET-50-PAJMDP	NWTS-5	5	1617	Female	Not Hispanic or Latino	Black or African American	II	None	3071	8960/3	0:LIVING	101	3071	None
+TARGET-50-PALKRS	NWTS-5	6	2003	Male	Not Hispanic or Latino	Black or African American	III	Relapse	134	8960/3	1:DECEASED	13	384	TUMOR
+TARGET-50-PAKVXU	NWTS-5	11	3745	Female	Not Hispanic or Latino	White	III	None	1509	8960/3	0:LIVING	50	1509	None
+TARGET-50-PAJNGA	NWTS-5	5	1582	Male	Not Hispanic or Latino	Black or African American	III	None	3725	8960/3	0:LIVING	123	3725	None
+TARGET-50-PAJNGC	NWTS-5	5	1789	Male	Not Hispanic or Latino	Black or African American	II	None	2691	8960/3	0:LIVING	89	2691	None
+TARGET-50-PAJMYA	NWTS-5	2	453	Male	Not reported	White	III	Relapse	145	8960/3	0:LIVING	132	3989	None
+TARGET-50-PAKMMS	NWTS-5	5	1669	Male	Not Hispanic or Latino	White	II	None	3066	8960/3	0:LIVING	101	3066	None
+TARGET-50-PAJLLF	NWTS-5	7	2423	Female	Not reported	Not reported	II	None	2536	8960/3	0:LIVING	84	2536	None
+TARGET-50-PAKMAV	NWTS-5	10	3506	Male	Not Hispanic or Latino	White	II	None	1601	8960/3	0:LIVING	53	1601	None
+TARGET-50-PAJLIP	NWTS-5	9	3037	Female	Not reported	White	III	None	2733	8960/3	0:LIVING	90	2733	None
+TARGET-50-PAJLWI	NWTS-5	3	812	Female	Not Hispanic or Latino	White	III	None	4200	8960/3	0:LIVING	139	4200	None
+TARGET-50-PAJNZI	NWTS-5	8	2842	Female	Not Hispanic or Latino	White	II	None	929	8960/3	0:LIVING	31	929	None
+TARGET-50-PAJMNZ	NWTS-5	4	1420	Male	Not Hispanic or Latino	Other	V	None	4056	8960/3	0:LIVING	134	4056	None
+TARGET-50-PAJNCA	NWTS-5	1	78	Male	Not reported	White	I	Relapse	524	8960/3	0:LIVING	122	3710	None
+TARGET-50-PAJLVI	NWTS-5	6	1868	Female	Not reported	White	III	None	1649	8960/3	0:LIVING	55	1649	None
+TARGET-50-PALLMF	NWTS-5	1	227		Not Hispanic or Latino	White	II	None	1176	8960/3	0:LIVING	39	1176	None
+TARGET-50-PAJMJM	NWTS-5	15	5319	Male	Not reported	White	III	Relapse	631	8960/3	0:LIVING	97	2924	None
+TARGET-50-PAKHFY	NWTS-5	3	1023	Female	Not Hispanic or Latino	White	II	None	788	8960/3	0:LIVING	26	788	None
+TARGET-50-PAKPET	NWTS-5	1	75	Male	Not Hispanic or Latino	White	I	None	1643	8960/3	0:LIVING	55	1643	None
+TARGET-50-PAJMEL	NWTS-5	4	1336	Female	Not Hispanic or Latino	White	IV	Relapse	373	8960/3	0:LIVING	132	4002	None
+TARGET-50-PAJPBD	NWTS-5	3	911	Male	Not reported	White	I	None	2772	8960/3	0:LIVING	92	2772	None
+TARGET-50-PAKSDG	NWTS-5	3	1002	Male	Not Hispanic or Latino	White	I	Relapse	245	8960/3	1:DECEASED	24	702	TUMOR
+TARGET-50-PAJMIY	NWTS-5	2	475	Female	Not reported	White	III	None	2448	8960/3	0:LIVING	81	2448	None
+TARGET-50-PAJNUS	NWTS-5	3	887	Male	Not Hispanic or Latino	Black or African American	IV	Relapse	203	8960/3	1:DECEASED	22	647	TUMOR
+TARGET-50-PAJPFF	NWTS-5	5	1473	Male	Not Hispanic or Latino	White	II	None	2520	8960/3	0:LIVING	83	2520	None
+TARGET-50-PAKHKU	NWTS-5	4	1269	Female	Not Hispanic or Latino	White	III	None	2036	8960/3	0:LIVING	67	2036	None
+TARGET-50-PALFME	NWTS-5	11	3703	Male	Hispanic or Latino	White	II	Relapse	154	8960/3	1:DECEASED	9	267	INFECTION
+TARGET-50-PALLCW	NWTS-5	6	1860	Female	Hispanic or Latino	White	III	Relapse	419	8960/3	0:LIVING	42	1258	None
+TARGET-50-PADWKZ	NWTS-5	6	2034	Female	Not Hispanic or Latino	White	III	None	4819	8960/3	0:LIVING	159	4819	None
+TARGET-50-PAJNHA	NWTS-5	11	3690	Female	Not Hispanic or Latino	White	IV	None	624	8960/3	0:LIVING	21	624	None
+TARGET-50-PADZSS	NWTS-5	1	227	Male	Not Hispanic or Latino	White	I	None	3975	8960/3	0:LIVING	131	3975	None
+TARGET-50-PAKLRS	NWTS-5	1	288	Female	Not Hispanic or Latino	Black or African American	II	None	1389	8960/3	0:LIVING	46	1389	None
+TARGET-50-PAJMPL	NWTS-5	2	634	Female	Not Hispanic or Latino	White	III	None	3821	8960/3	0:LIVING	126	3821	None
+TARGET-50-CAAAAP	NWTS-5	3	824	Male	Not Hispanic or Latino	White	II	None	2661	8960/3	0:LIVING	88	2661	None
+TARGET-50-PAJPBZ	NWTS-5	3	1051	Male	Hispanic or Latino	Other	III	Progression	193	8960/3	1:DECEASED	7	193	TUMOR
+TARGET-50-PAKRRF	NWTS-5	5	1695	Female	Not Hispanic or Latino	White	III	None	2221	8960/3	0:LIVING	74	2221	None
+TARGET-50-PAJLXI	NWTS-5	10	3514	Male	Not reported	White	III	None	2293	8960/3	0:LIVING	76	2293	None
+TARGET-50-PAKTLC	NWTS-5	6	2097	Female	Not Hispanic or Latino	Other	III	None	2330	8960/3	0:LIVING	77	2330	None
+TARGET-50-PADYRW	NWTS-5	8	2666	Female	Not Hispanic or Latino	White	II	Relapse	722	8960/3	0:LIVING	53	1582	None
+TARGET-50-PAJNNG	NWTS-5	5	1622	Female	Not Hispanic or Latino	White	III	None	1376	8960/3	0:LIVING	46	1376	None
+TARGET-50-PAKRZW	NWTS-5	7	2238	Female	Not reported	White	II	Relapse	421	8960/3	0:LIVING	32	954	None
+TARGET-50-PAJMPP	NWTS-5	2	639	Female	Not reported	White	I	None	2944	8960/3	0:LIVING	97	2944	None
+TARGET-50-PAJMRK	NWTS-5	4	1215	Male	Not reported	White	II	None	2160	8960/3	0:LIVING	72	2160	None
+TARGET-50-PAJPHH	NWTS-5	1	344	Female	Not Hispanic or Latino	White	I	None	2939	8960/3	0:LIVING	97	2939	None
+TARGET-50-PAJMUM	NWTS-5	5	1590	Female	Hispanic or Latino	Not reported	III	Relapse	485	8960/3	0:LIVING	127	3845	None
+TARGET-50-PALKWP	NWTS-5	6	2164	Male	Not Hispanic or Latino	White	IIIB/V	Relapse	258	8960/3	1:DECEASED	15	435	TUMOR
+TARGET-50-PAKDUM	NWTS-5	8	2696	Female	Not Hispanic or Latino	Black or African American	III	None	2240	8960/3	0:LIVING	74	2240	None
+TARGET-50-PAJNBA	NWTS-5	6	1916	Female	Not reported	White		None	3669	8960/3	0:LIVING	121	3669	None
+TARGET-50-PAJLYF	NWTS-5	3	887	Male	Not reported	Not reported	III	None	2369	8960/3	0:LIVING	78	2369	None
+TARGET-50-PALGLU	NWTS-5	4	1275	Female	Hispanic or Latino	White	III	Relapse	306	8960/3	1:DECEASED	11	326	TUMOR
+TARGET-50-PADZUB	NWTS-5	16	5557	Female	Not Hispanic or Latino	White	IV	Relapse	197	8960/3	1:DECEASED	42	1271	TUMOR
+TARGET-50-PAJLYD	NWTS-5	3	962	Male	Not Hispanic or Latino	White	II	None	4453	8960/3	0:LIVING	147	4453	None
+TARGET-50-PAKUCW	NWTS-5	15	5284	Female	Not Hispanic or Latino	White	IIIB	Progression	606	8960/3	1:DECEASED	20	606	TUMOR
+TARGET-50-PAJMDF	NWTS-5	3	866	Female	Not reported	White	I	None	1303	8960/3	0:LIVING	43	1303	None
+TARGET-50-PAEHLJ	NWTS-5	5	1631	Male	Not Hispanic or Latino	White	IIIB/V	Relapse	203	8960/3	1:DECEASED	20	593	TUMOR
+TARGET-50-PADYJI	NWTS-5	1	272	Female	Not Hispanic or Latino	White	II	None	4188	8960/3	0:LIVING	138	4188	None
+TARGET-50-PAJMWP	NWTS-5	7	2220	Male	Not Hispanic or Latino	Black or African American	III	None	2447	8960/3	0:LIVING	81	2447	None
+TARGET-50-PAJLNJ	NWTS-5	1	325	Female	Not reported	White	II	Relapse	250	8960/3	1:DECEASED	29	858	TUMOR
+TARGET-50-PAJMKJ	NWTS-5	1	276	Female	Not reported	White	II	Relapse	623	8960/3	0:LIVING	126	3830	None
+TARGET-50-PADXAY	NWTS-5	6	1958	Male	Not Hispanic or Latino	White	II	None	4795	8960/3	0:LIVING	158	4795	None
+TARGET-50-PAKWCB	NWTS-5	5	1567	Female	Not Hispanic or Latino	White	IV	None	1378	8960/3	0:LIVING	46	1378	None
+TARGET-50-PAKNRX	NWTS-5	5	1785	Male	Not Hispanic or Latino	White	II	Relapse	256	8960/3	1:DECEASED	20	586	TUMOR
+TARGET-50-PAKYNK	NWTS-5	3	782	Male	Not Hispanic or Latino	White	II	Relapse	265	8960/3	0:LIVING	35	1051	None
+TARGET-50-PAJMVU	NWTS-5	5	1638	Female	Not Hispanic or Latino	Black or African American	IV	None	2092	8960/3	0:LIVING	69	2092	None
+TARGET-50-PAJMXF	NWTS-5	5	1650	Male	Not Hispanic or Latino	White	I	Relapse	1278	8960/3	1:DECEASED	70	2099	TUMOR
+TARGET-50-PAJLPJ	NWTS-5	1	288	Female	Not reported	White	I	None	4071	8960/3	0:LIVING	134	4071	None
+TARGET-50-PAKVJN	NWTS-5	2	393	Male	Hispanic or Latino	Other	III	None	1765	8960/3	0:LIVING	59	1765	None
+TARGET-50-PAJLJH	NWTS-5	8	2602	Female	Not reported	White	II	None	2389	8960/3	0:LIVING	79	2389	None
+TARGET-50-PAKRYJ	NWTS-5	3	871	Male	Not Hispanic or Latino	Black or African American	III	None	2237	8960/3	0:LIVING	74	2237	None
+TARGET-50-PAKXFS	NWTS-5	4	1305	Female	Hispanic or Latino	White	III	Progression	87	8960/3	1:DECEASED	3	87	TUMOR
+TARGET-50-PAJPGP	NWTS-5	9	2946	Male	Not Hispanic or Latino	Black or African American	I	None	2824	8960/3	0:LIVING	93	2824	None
+TARGET-50-PAKKSG	NWTS-5	7	2383	Female	Not Hispanic or Latino	Other	III	None	569	8960/3	0:LIVING	19	569	None
+TARGET-50-PAJNCL	NWTS-5	6	2151	Male	Not reported	White	III	Relapse	236	8960/3	1:DECEASED	14	409	TUMOR
+TARGET-50-PAJMMC	NWTS-5	1	87	Female	Not reported	White	I	Relapse	164	8960/3	0:LIVING	126	3828	None
+TARGET-50-PAKMCI	NWTS-5	3	850	Male	Not Hispanic or Latino	Black or African American	III/V	None	1547	8960/3	0:LIVING	51	1547	None
+TARGET-50-PAKPRZ	NWTS-5	4	1397	Female	Not Hispanic or Latino	White	III	None	3083	8960/3	0:LIVING	102	3083	None
+TARGET-50-PAJNNF	NWTS-5	4	1401	Female	Not reported	White	II	None	1990	8960/3	0:LIVING	66	1990	None
+TARGET-50-PAJLST	NWTS-5	2	550	Female	Not reported	White	I	None	2009	8960/3	0:LIVING	67	2009	None
+TARGET-50-PALCTR	NWTS-5	1	204	Female	Hispanic or Latino	White	I	Progression	49	8960/3	1:DECEASED	2	49	TOXICITY
+TARGET-50-PAJLJG	NWTS-5	3	830	Male	Not Hispanic or Latino	Black or African American	III	None	4937	8960/3	0:LIVING	163	4937	None
+TARGET-50-PADYWB	NWTS-5	2	653	Male	Not Hispanic or Latino	White	I	None	3438	8960/3	0:LIVING	114	3438	None
+TARGET-50-PAJNRK	NWTS-5	7	2488	Male	Not Hispanic or Latino	Black or African American	III	None	1680	8960/3	0:LIVING	56	1680	None
+TARGET-50-PAKXXF	NWTS-5	5	1821	Male	Not Hispanic or Latino	White	III	Relapse	333	8960/3	1:DECEASED	14	416	TUMOR
+TARGET-50-PAKYCN	NWTS-5	9	2923	Male	Not Hispanic or Latino	White	II	None	1779	8960/3	0:LIVING	59	1779	None
+TARGET-50-PAJLXD	NWTS-5	4	1414	Male	Not reported	Not reported	III	Relapse	183	8960/3	1:DECEASED	12	361	TUMOR
+TARGET-50-PAJMVW	NWTS-5	3	1036	Male	Not Hispanic or Latino	White	IV	None	3239	8960/3	0:LIVING	107	3239	None
+TARGET-50-PADYGE	NWTS-5	3	1016	Female	Not Hispanic or Latino	White	II	Relapse	162	8960/3	1:DECEASED	13	370	TUMOR
+TARGET-50-PAJLZC	NWTS-5	5	1479	Female	Not reported	White	II	Relapse	299	8960/3	0:LIVING	147	4458	None
+TARGET-50-PAJNNY	NWTS-5	4	1100	Female	Not reported	White	II	None	2154	8960/3	0:LIVING	71	2154	None
+TARGET-50-PAJPCN	NWTS-5	7	2461	Male	Not Hispanic or Latino	Black or African American	II	Relapse	652	8960/3	0:LIVING	26	767	None
+TARGET-50-PAJNHG	NWTS-5	9	3287	Female	Not Hispanic or Latino	White	IIIB	Relapse	673	8960/3	0:LIVING	41	1240	None
+TARGET-50-PAJMMZ	NWTS-5	1	275	Male	Not reported	White	II	Relapse	155	8960/3	1:DECEASED	71	2147	SMN
+TARGET-50-PAJNTJ	NWTS-5	2	707	Male	Not Hispanic or Latino	Other	II	Relapse	152	8960/3	1:DECEASED	34	1013	TOXICITY
+TARGET-50-PAJNRH	NWTS-5	4	1340	Female	Hispanic or Latino	Other	I	None	1703	8960/3	0:LIVING	56	1703	None
+TARGET-50-PAJMKK	NWTS-5	7	2403	Male	Not reported	Not reported	II	None	4127	8960/3	0:LIVING	136	4127	None
+TARGET-50-PAJLSS	NWTS-5	5	1706	Female	Not Hispanic or Latino	White	II	None	3261	8960/3	0:LIVING	108	3261	None
+TARGET-50-PADYPH	NWTS-5	8	2702	Female	Not Hispanic or Latino	White	III	None	4355	8960/3	0:LIVING	144	4355	None
+TARGET-50-PALDAF	NWTS-5	4	1315	Female	Hispanic or Latino	White	III	None	2892	8960/3	0:LIVING	96	2892	None
+TARGET-50-PAJLIH	NWTS-5	14	4917	Male	Not reported	White		Relapse	244	8960/3	1:DECEASED	92	2783	TUMOR
+TARGET-50-PAECPC	NWTS-5	8	2742	Male	Not Hispanic or Latino	White	III	None	3004	8960/3	0:LIVING	99	3004	None
+TARGET-50-PALEBJ	NWTS-5	7	2416	Female	Not Hispanic or Latino	White	II	None	1401	8960/3	0:LIVING	47	1401	None
+TARGET-50-PAJNGB	NWTS-5	3	733	Female	Not Hispanic or Latino	White	III	None	3935	8960/3	0:LIVING	130	3935	None
+TARGET-50-PAJMKD	NWTS-5	6	2068	Male	Not reported	Not reported	II	None	3472	8960/3	0:LIVING	115	3472	None
+TARGET-50-PAJMNR	NWTS-5	3	1031	Male	Hispanic or Latino	Not reported	I	None	3902	8960/3	0:LIVING	129	3902	None
+TARGET-50-PAJLRH	NWTS-5	10	3644	Male	Not Hispanic or Latino	Black or African American	III	Relapse	1504	8960/3	0:LIVING	54	1631	None
+TARGET-50-PAJPAH	NWTS-5	3	1078	Female	Not Hispanic or Latino	White	II	Relapse	762	8960/3	0:LIVING	118	3559	None
+TARGET-50-PACFNR	NWTS-5	4	1215	Female	Not Hispanic or Latino	White	III	None	3943	8960/3	0:LIVING	130	3943	None
+TARGET-50-PAJNLT	NWTS-5	5	1546	Female	Not Hispanic or Latino	Black or African American	IV	Progression	440	8960/3	1:DECEASED	15	440	TUMOR
+TARGET-50-PALDYU	NWTS-5	2	636	Male	Not Hispanic or Latino	Black or African American	II	None	1182	8960/3	0:LIVING	39	1182	None
+TARGET-50-PAEALK	NWTS-5	3	754	Male	Not Hispanic or Latino	Black or African American	II	Relapse	228	8960/3	0:LIVING	98	2961	None
+TARGET-50-PAJPFJ	NWTS-5	2	491	Female	Hispanic or Latino	White	II	None	607	8960/3	0:LIVING	20	607	None
+TARGET-50-PALLFB	NWTS-5	8	2879	Male	Not Hispanic or Latino	White	III	Progression	343	8960/3	1:DECEASED	12	343	TUMOR
+TARGET-50-PADDLL	NWTS-5	1	193	Female	Not Hispanic or Latino	White	I	None	1552	8960/3	0:LIVING	52	1552	None
+TARGET-50-PAJNBS	NWTS-5	5	1617	Female	Not reported	White	III/V	Relapse	408	8960/3	1:DECEASED	19	567	TUMOR
+TARGET-50-PADWXC	NWTS-5	1	328	Male	Not Hispanic or Latino	White	IV	None	1557	8960/3	0:LIVING	52	1557	None
+TARGET-50-PAJLKS	NWTS-5	6	1936	Male	Not reported	White	III	None	3681	8960/3	0:LIVING	122	3681	None
+TARGET-50-PALCAB	NWTS-5	5	1514	Female	Hispanic or Latino	White	III	None	1728	8960/3	0:LIVING	57	1728	None
+TARGET-50-PAJLRP	NWTS-5	4	1259	Female	Not Hispanic or Latino	White	III	None	3974	8960/3	0:LIVING	131	3974	None
+TARGET-50-PAKFME	NWTS-5	5	1713	Female	Not Hispanic or Latino	White	III	Relapse	281	8960/3	0:LIVING	103	3110	None
+TARGET-50-PAJNIM	NWTS-5	10	3549	Male	Not Hispanic or Latino	Black or African American	II	None	1627	8960/3	0:LIVING	54	1627	None
+TARGET-50-PAJLUI	NWTS-5	5	1774	Female	Not reported	White	I	None	3822	8960/3	0:LIVING	126	3822	None
+TARGET-50-PAJMBR	NWTS-5	4	1130	Female	Not reported	White	III	None	2932	8960/3	0:LIVING	97	2932	None
+TARGET-50-PAKLYC	NWTS-5	6	1991	Female	Not Hispanic or Latino	White	II	None	1710	8960/3	0:LIVING	57	1710	None
+TARGET-50-PAJNBI	NWTS-5	2	418	Female	Not reported	White	III	None	1434	8960/3	0:LIVING	48	1434	None
+TARGET-50-PAJMUI	NWTS-5	5	1668	Female	Not Hispanic or Latino	White	IV	Progression	421	8960/3	1:DECEASED	14	421	TUMOR
+TARGET-50-PALDTE	NWTS-5	3	979	Male	Not Hispanic or Latino	White	II	Relapse	56	8960/3	0:LIVING	84	2551	None
+TARGET-50-PAJNAA	NWTS-5	10	3327	Female	Not Hispanic or Latino	White	II	None	2848	8960/3	0:LIVING	94	2848	None
+TARGET-50-PAJNVB	NWTS-5	5	1633	Female	Not reported	White	II	None	1287	8960/3	0:LIVING	43	1287	None
+TARGET-50-PAKNGF	NWTS-5	1	277	Male	Not Hispanic or Latino	White	II	None	1123	8960/3	0:LIVING	37	1123	None
+TARGET-50-PAKHYJ	NWTS-5	7	2317	Female	Not Hispanic or Latino	White	III	None	2110	8960/3	0:LIVING	70	2110	None
+TARGET-50-PAJNGJ	NWTS-5	4	1283	Female	Not Hispanic or Latino	White	II	None	1707	8960/3	0:LIVING	57	1707	None
+TARGET-50-PAJPDX	NWTS-5	4	1273	Female	Hispanic or Latino	Not reported	IIIB	Relapse	302	8960/3	0:LIVING	46	1381	None
+TARGET-50-PAJLWA	NWTS-5	4	1275	Male	Not reported	White	II	None	4331	8960/3	0:LIVING	143	4331	None
+TARGET-50-PAJMMN	NWTS-5	2	717	Female	Not reported	White	II	None	1104	8960/3	0:LIVING	37	1104	None
+TARGET-50-PAKGMU	NWTS-5	4	1121	Female	Not reported	White	II	None	2784	8960/3	0:LIVING	92	2784	None
+TARGET-50-PAKJIS	NWTS-5	1	107	Male	Not Hispanic or Latino	White	I	None	2870	8960/3	0:LIVING	95	2870	None
+TARGET-50-PAJMGI	NWTS-5	4	1385	Male	Not reported	White	IIIB	None	2042	8960/3	0:LIVING	68	2042	None
+TARGET-50-PAJPHA	NWTS-5	4	1124	Male	Not Hispanic or Latino	White	II	Relapse	302	8960/3	0:LIVING	63	1895	None
+TARGET-50-PAJMFP	NWTS-5	15	5192	Female	Not Hispanic or Latino	Black or African American	III	None	2336	8960/3	0:LIVING	77	2336	None
+TARGET-50-PAJNJL	NWTS-5	10	3367	Female	Not reported	Not reported	I	Relapse	125	8960/3	1:DECEASED	16	463	TUMOR
+TARGET-50-PAJMEN	NWTS-5	5	1508	Female	Not Hispanic or Latino	White	II	Relapse	509	8960/3	1:DECEASED	57	1732	TUMOR
+TARGET-50-PAJMPH	NWTS-5	4	1442	Female	Not Hispanic or Latino	White	I	None	2651	8960/3	0:LIVING	88	2651	None
+TARGET-50-PALBRC	NWTS-5	4	1142	Female	Not Hispanic or Latino	Black or African American	I	None	1133	8960/3	0:LIVING	38	1133	None
+TARGET-50-PAJMTR	NWTS-5	5	1498	Male	Not Hispanic or Latino	Black or African American	IV	None	1486	8960/3	0:LIVING	49	1486	None
+TARGET-50-PAJNXC	NWTS-5	3	1015	Male	Not Hispanic or Latino	Black or African American	II	None	3290	8960/3	0:LIVING	109	3290	None
+TARGET-50-PAJMAX	NWTS-5	1	342	Female	Not reported	White	I	None	2933	8960/3	0:LIVING	97	2933	None
+TARGET-50-PAKHIU	NWTS-5	4	1098	Female	Not Hispanic or Latino	White	I	None	2616	8960/3	0:LIVING	87	2616	None
+TARGET-50-PALGVY	NWTS-5	4	1182	Female	Not Hispanic or Latino	White	III	Relapse	370	8960/3	0:LIVING	43	1286	None
+TARGET-50-PAJNCN	NWTS-5	5	1678	Male	Not reported	White	II	None	1833	8960/3	0:LIVING	61	1833	None
+TARGET-50-PAEEPR	NWTS-5	3	898	Male	Not Hispanic or Latino	White	III	None	4507	8960/3	0:LIVING	149	4507	None
+TARGET-50-PAJNKA	NWTS-5	3	801	Female	Not reported	Not reported	III	None	3474	8960/3	0:LIVING	115	3474	None
+TARGET-50-PAKAPZ	NWTS-5	6	1940	Female	Not reported	Not reported	I	Relapse	241	8960/3	1:DECEASED	52	1554	TUMOR
+TARGET-50-PAECTY	NWTS-5	4	1121	Male	Not Hispanic or Latino	White	I	None	3297	8960/3	0:LIVING	109	3297	None
+TARGET-50-PAJPDC	NWTS-5	8	2904	Female	Not Hispanic or Latino	Other	II	Relapse	146	8960/3	0:LIVING	78	2365	None
+TARGET-50-PAJNWE	NWTS-5	5	1610	Female	Not Hispanic or Latino	Black or African American	II	None	2007	8960/3	0:LIVING	66	2007	None
+TARGET-50-PAJLMV	NWTS-5	4	1311	Female	Not reported	Not reported	IV	Relapse	212	8960/3	1:DECEASED	18	535	TUMOR
+TARGET-50-PALEZT	NWTS-5	13	4397	Female	Not Hispanic or Latino	White	II	None	331	8960/3	0:LIVING	11	331	None
+TARGET-50-PAJNVW	NWTS-5	3	832	Female	Not reported	Not reported	I	None	2087	8960/3	0:LIVING	69	2087	None
+TARGET-50-PAJLUB	NWTS-5	4	1359	Male	Not reported	White		None	430	8960/3	0:LIVING	15	430	None
+TARGET-50-PAKKAE	NWTS-5	7	2400	Male	Not Hispanic or Latino	White	II	None	1395	8960/3	0:LIVING	46	1395	None
+TARGET-50-PAKPDF	NWTS-5	6	1912	Female	Not Hispanic or Latino	Black or African American	III	Relapse	221	8960/3	1:DECEASED	12	345	TUMOR
+TARGET-50-CAAAAR	NWTS-5	1	314	Female	Not reported	Not reported	IV	Relapse	146	8960/3	0:LIVING	117	3542	None
+TARGET-50-PAKZGW	NWTS-5	4	1336	Female	Not Hispanic or Latino	Black or African American	I	None	3032	8960/3	0:LIVING	100	3032	None
+TARGET-50-PADXJZ	NWTS-5	3	838	Male	Not Hispanic or Latino	White	III	None	4311	8960/3	0:LIVING	142	4311	None
+TARGET-50-PAJNZY	NWTS-5	1	289	Male	Not reported	White	IIIB/V	Relapse	389	8960/3	1:DECEASED	17	494	TUMOR
+TARGET-50-PAJNVF	NWTS-5	6	1950	Female	Not Hispanic or Latino	White	II	None	439	8960/3	0:LIVING	15	439	None
+TARGET-50-PAKLDH	NWTS-5	5	1461	Female	Not Hispanic or Latino	White	II	None	1319	8960/3	0:LIVING	44	1319	None
+TARGET-50-PAJMCH	NWTS-5	5	1570	Male	Not Hispanic or Latino	White	II	None	3984	8960/3	0:LIVING	131	3984	None
+TARGET-50-PAJMRY	NWTS-5	1	314	Male	Not reported	White	II	None	2172	8960/3	0:LIVING	72	2172	None
+TARGET-50-PAJMPR	NWTS-5	2	419	Male	Not reported	White	III	None	3929	8960/3	0:LIVING	130	3929	None
+TARGET-50-PALMPF	NWTS-5	3	1080	Male	Not Hispanic or Latino	Black or African American	III	None	2766	8960/3	0:LIVING	91	2766	None
+TARGET-50-PALHNG	NWTS-5	4	1193	Male	Not Hispanic or Latino	White	III	None	2235	8960/3	0:LIVING	74	2235	None
+TARGET-50-PAJMWX	NWTS-5	3	1017	Male	Not Hispanic or Latino	White	III	None	2717	8960/3	0:LIVING	90	2717	None
+TARGET-50-PAJMXR	NWTS-5	8	2733	Female	Not Hispanic or Latino	White	IV	None	1627	8960/3	0:LIVING	54	1627	None
+TARGET-50-PAEHDE	NWTS-5	3	897	Female	Not Hispanic or Latino	White	II	None	2469	8960/3	0:LIVING	82	2469	None
+TARGET-50-PAJPER	NWTS-5	2	463	Female	Not Hispanic or Latino	White	I	None	1818	8960/3	0:LIVING	60	1818	None
+TARGET-50-PAKJJF	NWTS-5	4	1183	Female	Not Hispanic or Latino	Black or African American	II	None	2443	8960/3	0:LIVING	81	2443	None
+TARGET-50-PAJNSI	NWTS-5	2	367	Male	Not Hispanic or Latino	Other	III	Relapse	85	8960/3	1:DECEASED	19	567	TUMOR
+TARGET-50-PAKYLT	NWTS-5	7	2307	Female	Not Hispanic or Latino	White	III	None	2812	8960/3	0:LIVING	93	2812	None
+TARGET-50-PAEAMT	NWTS-5	4	1435	Male	Not Hispanic or Latino	White	II	None	469	8960/3	0:LIVING	16	469	None
+TARGET-50-PAJNWR	NWTS-5	3	750	Female	Not Hispanic or Latino	White	IV	None	2052	8960/3	0:LIVING	68	2052	None
+TARGET-50-PAJMLZ	NWTS-5	4	1324	Male	Hispanic or Latino	Not reported	II	Relapse	203	8960/3	1:DECEASED	12	358	TUMOR
+TARGET-50-PAJNGU	NWTS-5	11	3940	Female	Not reported	Not reported	IV	Relapse	798	8960/3	1:DECEASED	49	1488	TUMOR
+TARGET-50-PAJNDU	NWTS-5	7	2360	Male	Not Hispanic or Latino	White	III	Relapse	282	8960/3	0:LIVING	97	2948	None
+TARGET-50-PAKSRE	NWTS-5	2	414	Female	Not Hispanic or Latino	White	III	None	2000	8960/3	0:LIVING	66	2000	None
+TARGET-50-PAJMBZ	NWTS-5	6	2026	Female	Not Hispanic or Latino	Black or African American	III	Relapse	148	8960/3	1:DECEASED	18	547	TUMOR
+TARGET-50-PAJLSP	NWTS-5	2	706	Male	Not reported	White	II	Relapse	357	8960/3	0:LIVING	92	2789	None
+TARGET-50-PAJMPG	NWTS-5	5	1691	Female	Not Hispanic or Latino	White	III	None	2691	8960/3	0:LIVING	89	2691	None
+TARGET-50-PAJNNC	NWTS-5	1	281	Male	Not reported	Not reported	II	Relapse	228	8960/3	0:LIVING	57	1732	None
+TARGET-50-PAJMKT	NWTS-5	3	1068	Male	Not reported	White	III	None	3962	8960/3	0:LIVING	131	3962	None
+TARGET-50-PAJNSF	NWTS-5	8	2742	Male	Not Hispanic or Latino	White	IIIB	None	2127	8960/3	0:LIVING	70	2127	None
+TARGET-50-PAJNXR	NWTS-5	5	1773	Female	Not Hispanic or Latino	White	II	None	1068	8960/3	0:LIVING	36	1068	None
+TARGET-50-PAJLUW	NWTS-5	2	513	Male	Not reported	White	II	None	4550	8960/3	0:LIVING	150	4550	None
+TARGET-50-PAJNSB	NWTS-5	4	1412	Female	Not reported	Not reported	IV	None	874	8960/3	0:LIVING	29	874	None
+TARGET-50-PAJMDL	NWTS-5	6	2042	Male	Not reported	White	III	Relapse	1678	8960/3	0:LIVING	78	2358	None
+TARGET-50-PAEALI	NWTS-5	3	897	Female	Hispanic or Latino	Not reported	IV	None	3744	8960/3	0:LIVING	124	3744	None
+TARGET-50-PAJNCX	NWTS-5	5	1668	Female	Not Hispanic or Latino	Black or African American	III	None	1308	8960/3	0:LIVING	44	1308	None
+TARGET-50-PAJMSE	NWTS-5	5	1681	Female	Not reported	White	III	Relapse	169	8960/3	1:DECEASED	18	528	TUMOR
+TARGET-50-PAJNMV	NWTS-5	2	440	Female	Hispanic or Latino	Not reported	I	None	1671	8960/3	0:LIVING	55	1671	None
+TARGET-50-PALNDB	NWTS-5	3	1086	Male	Not Hispanic or Latino	Black or African American	II	None	713	8960/3	0:LIVING	24	713	None
+TARGET-50-PAJNAV	NWTS-5	4	1449	Male	Not Hispanic or Latino	Black or African American	IV	Relapse	350	8960/3	1:DECEASED	30	905	TUMOR
+TARGET-50-PAJPEP	NWTS-5	5	1781	Male	Not reported	White	III	Relapse	392	8960/3	0:LIVING	79	2394	None
+TARGET-50-PAJNDC	NWTS-5	4	1267	Female	Not Hispanic or Latino	White	II	None	3954	8960/3	0:LIVING	130	3954	None
+TARGET-50-PAKVXE	NWTS-5	4	1421	Female	Not Hispanic or Latino	Black or African American	III	None	2541	8960/3	0:LIVING	84	2541	None
+TARGET-50-PALDNR	NWTS-5	3	985	Male	Not Hispanic or Latino	White	I	None	1693	8960/3	0:LIVING	56	1693	None
+TARGET-50-PAKMSV	NWTS-5	6	1968	Male	Not Hispanic or Latino	White	III	Relapse	301	8960/3	1:DECEASED	25	733	TUMOR
+TARGET-50-PAJMEG	NWTS-5	8	2889	Female	Not Hispanic or Latino	White	III	None	3347	8960/3	0:LIVING	111	3347	None
+TARGET-50-PAKZFK	NWTS-5	4	1340	Female	Not Hispanic or Latino	White	II	Relapse	426	8960/3	0:LIVING	69	2073	None
+TARGET-50-PAJLKR	NWTS-5	7	2247	Female	Not reported	White	IV	Relapse	150	8960/3	0:LIVING	86	2589	None
+TARGET-50-PAJMVK	NWTS-5	7	2450	Female	Not Hispanic or Latino	White	III	Relapse	308	8960/3	1:DECEASED	88	2654	TUMOR
+TARGET-50-PAJLWT	NWTS-5	4	1262	Male	Not reported	White	II	Relapse	253	8960/3	1:DECEASED	33	994	TUMOR
+TARGET-50-PAECHG	NWTS-5	1	187	Male	Not Hispanic or Latino	White	IIIB/V	Relapse	410	8960/3	0:LIVING	134	4048	None
+TARGET-50-PAJNPI	NWTS-5	3	958	Male	Not reported	Not reported	II	None	2047	8960/3	0:LIVING	68	2047	None
+TARGET-50-PAJNSL	NWTS-5	1	160	Female	Not reported	White	II	Relapse	372	8960/3	0:LIVING	66	1990	None
+TARGET-50-PAJMEJ	NWTS-5	5	1706	Male	Not reported	White	II	None	2969	8960/3	0:LIVING	98	2969	None
+TARGET-50-PAJMDU	NWTS-5	1	273	Male	Not reported	White	III	Relapse	163	8960/3	1:DECEASED	11	312	TUMOR
+TARGET-50-PAJNMA	NWTS-5	4	1122	Female	Not Hispanic or Latino	White	III	None	2047	8960/3	0:LIVING	68	2047	None
+TARGET-50-PAJNCC	NWTS-5	3	797	Male	Not Hispanic or Latino	Black or African American	II	Relapse	427	8960/3	0:LIVING	94	2845	None
+TARGET-50-PAJLNC	NWTS-5	2	555	Female	Not reported	Not reported	II	None	4024	8960/3	0:LIVING	133	4024	None
+TARGET-50-PALCPP	NWTS-5	6	1909	Female	Not Hispanic or Latino	White	III	None	2008	8960/3	0:LIVING	67	2008	None
+TARGET-50-PAKTRB	NWTS-5	2	650	Female	Not Hispanic or Latino	White	I	None	3011	8960/3	0:LIVING	99	3011	None
+TARGET-50-PAKULH	NWTS-5	3	1030	Female	Hispanic or Latino	White	IIIB	Progression	375	8960/3	1:DECEASED	13	375	TUMOR
+TARGET-50-PAJNPX	NWTS-5	1	122	Female	Not Hispanic or Latino	Black or African American	I	None	2864	8960/3	0:LIVING	95	2864	None
+TARGET-50-PAJLRV	NWTS-5	2	533	Male	Not reported	White	II	Relapse	152	8960/3	0:LIVING	107	3241	None
+TARGET-50-PAKHWF	NWTS-5	4	1359	Female	Not Hispanic or Latino	White	II	None	2858	8960/3	0:LIVING	94	2858	None
+TARGET-50-PAEAND	NWTS-5	6	2151	Male	Not Hispanic or Latino	White	III	None	4356	8960/3	0:LIVING	144	4356	None
+TARGET-50-PALEZR	NWTS-5	1	177	Female	Not Hispanic or Latino	White	II	None	652	8960/3	0:LIVING	22	652	None
+TARGET-50-PAKISF	NWTS-5	3	911	Female	Not Hispanic or Latino	White	III	None	3061	8960/3	0:LIVING	101	3061	None
+TARGET-50-PAJMJT	NWTS-5	6	1921	Female	Not Hispanic or Latino	White	II	Relapse	115	8960/3	0:LIVING	133	4042	None
+TARGET-50-PAJMEP	NWTS-5	2	670	Male	Not Hispanic or Latino	White	I	Relapse	154	8960/3	1:DECEASED	52	1563	TUMOR
+TARGET-50-PAKNUD	NWTS-5	3	1069	Female	Not Hispanic or Latino	White	III	None	2764	8960/3	0:LIVING	91	2764	None
+TARGET-50-PAKGRG	NWTS-5	3	1038	Female	Not Hispanic or Latino	White	IIIB	None	3262	8960/3	0:LIVING	108	3262	None
+TARGET-50-PALIMN	NWTS-5	5	1716	Female	Not Hispanic or Latino	White	III	None	2694	8960/3	0:LIVING	89	2694	None
+TARGET-50-CAAAAJ	NWTS-5	2	401	Female	Not Hispanic or Latino	White	IV	Relapse	169	8960/3	0:LIVING	112	3385	None
+TARGET-50-PAJNHP	NWTS-5	7	2278	Female	Not Hispanic or Latino	White	I	None	1457	8960/3	0:LIVING	48	1457	None
+TARGET-50-PAJNUJ	NWTS-5	4	1286	Female	Not Hispanic or Latino	Black or African American	IIIB/V	Relapse	390	8960/3	1:DECEASED	15	456	TUMOR
+TARGET-50-PADXBA	NWTS-5	6	2134	Female	Not Hispanic or Latino	White	III	Relapse	303	8960/3	1:DECEASED	23	687	TUMOR
+TARGET-50-PADYUS	NWTS-5	5	1697	Female	Not Hispanic or Latino	White	IV	None	4778	8960/3	0:LIVING	158	4778	None
+TARGET-50-PAJLXE	NWTS-5	4	1342	Male	Not reported	White	I	None	3880	8960/3	0:LIVING	128	3880	None
+TARGET-50-PADZNG	NWTS-5	2	436	Female	Not Hispanic or Latino	White	I	None	2934	8960/3	0:LIVING	97	2934	None
+TARGET-50-PAJMKP	NWTS-5	1	344	Male	Hispanic or Latino	Other	I	None	2084	8960/3	0:LIVING	69	2084	None
+TARGET-50-PADVNN	NWTS-5	7	2268	Male	Not Hispanic or Latino	White	III	Relapse	521	8960/3	1:DECEASED	22	657	INFECTION
+TARGET-50-PAKLRW	NWTS-5	9	3064	Female	Not Hispanic or Latino	White	III	Relapse	219	8960/3	0:LIVING	107	3236	None
+TARGET-50-PAEHLE	NWTS-5	6	1830	Female	Not Hispanic or Latino	White	I	Relapse	487	8960/3	1:DECEASED	29	862	TUMOR
+TARGET-50-PAKVET	NWTS-5	2	405	Female	Not Hispanic or Latino	White	I	None	1475	8960/3	0:LIVING	49	1475	None
+TARGET-50-PADXYT	NWTS-5	7	2482	Female	Not Hispanic or Latino	Black or African American	III	None	3866	8960/3	0:LIVING	128	3866	None
+TARGET-50-PAJNBE	NWTS-5	4	1161	Female	Not reported	White	II	Relapse	169	8960/3	1:DECEASED	10	295	TOXICITY
+TARGET-50-PAJNAM	NWTS-5	4	1368	Female	Not Hispanic or Latino	White	II	None	4040	8960/3	0:LIVING	133	4040	None
+TARGET-50-PAJNFH	NWTS-5	6	2031	Female	Not reported	White	II	None	406	8960/3	0:LIVING	14	406	None
+TARGET-50-PADZTP	NWTS-5	8	2775	Female	Not Hispanic or Latino	Other	IIIB/V	Relapse	345	8960/3	1:DECEASED	15	450	TUMOR
+TARGET-50-PAKRVH	NWTS-5	8	2728	Male	Not Hispanic or Latino	White	II	Relapse	152	8960/3	0:LIVING	101	3059	None
+TARGET-50-PAJNXT	NWTS-5	6	1888	Female	Not reported	White	III	None	2927	8960/3	0:LIVING	97	2927	None
+TARGET-50-PAKMZU	NWTS-5	3	940	Male	Hispanic or Latino	White	IIIB/V	None	1098	8960/3	0:LIVING	37	1098	None
+TARGET-50-PAJPEF	NWTS-5	2	370	Female	Hispanic or Latino	Not reported	I	None	1829	8960/3	0:LIVING	61	1829	None
+TARGET-50-PAKNAL	NWTS-5	6	2070	Female	Not Hispanic or Latino	White	III	None	1492	8960/3	0:LIVING	50	1492	None
+TARGET-50-PAKLZH	NWTS-5	4	1263	Female	Not Hispanic or Latino	White	II	Relapse	616	8960/3	1:DECEASED	40	1203	TUMOR
+TARGET-50-PAKJZU	NWTS-5	7	2323	Female	Not Hispanic or Latino	White	II	None	2086	8960/3	0:LIVING	69	2086	None
+TARGET-50-PAJMZV	NWTS-5	3	969	Female	Not reported	White	II	None	434	8960/3	0:LIVING	15	434	None
+TARGET-50-PAJNGH	NWTS-5	3	851	Male	Not reported	White	I	Relapse	357	8960/3	1:DECEASED	41	1229	TUMOR
+TARGET-50-PAKWPM	NWTS-5	6	1914	Male	Not Hispanic or Latino	White	II	Relapse	179	8960/3	0:LIVING	95	2888	None
+TARGET-50-PAECJB	NWTS-5	3	807	Female	Not Hispanic or Latino	White	III	Relapse	76	8960/3	1:DECEASED	10	282	INFECTION
+TARGET-50-PAEIGE	NWTS-5	5	1550	Female	Not reported	Not reported	II	None	3932	8960/3	0:LIVING	130	3932	None
+TARGET-50-PADXWJ	NWTS-5	7	2424	Male	Not Hispanic or Latino	White	III	None	4342	8960/3	0:LIVING	143	4342	None
+TARGET-50-PAJPAR	NWTS-5	6	1950	Female	Not Hispanic or Latino	Black or African American	III	Relapse	410	8960/3	1:DECEASED	18	542	TUMOR
+TARGET-50-PAJMBP	NWTS-5	1	193	Female	Not Hispanic or Latino	White	I	None	3926	8960/3	0:LIVING	130	3926	None
+TARGET-50-PAJMMW	NWTS-5	2	536	Female	Not reported	White	III	None	2797	8960/3	0:LIVING	92	2797	None
+TARGET-50-PAJLLY	NWTS-5	6	1931	Female	Not reported	White	I	None	3480	8960/3	0:LIVING	115	3480	None
+TARGET-50-PAJMIB	NWTS-5	3	781	Female	Not reported	Not reported	III	None	2335	8960/3	0:LIVING	77	2335	None
+TARGET-50-PALMSA	NWTS-5	4	1223	Male	Not Hispanic or Latino	White	II	None	1438	8960/3	0:LIVING	48	1438	None
+TARGET-50-CAAAAH	NWTS-4	5	1710	Female	Not reported	White	III	Relapse	165	8960/3	1:DECEASED	11	311	TUMOR
+TARGET-50-PAJLLN	NWTS-5	2	542	Female	Not Hispanic or Latino	Black or African American	IIIB/V	None	3157	8960/3	0:LIVING	104	3157	None
+TARGET-50-PAJMIE	NWTS-5	4	1301	Female	Not Hispanic or Latino	Black or African American	IV	None	4255	8960/3	0:LIVING	140	4255	None
+TARGET-50-PAJNEL	NWTS-5	2	618	Female	Not reported	White	II	None	1301	8960/3	0:LIVING	43	1301	None
+TARGET-50-PAKJXM	NWTS-5	6	2162	Female	Not Hispanic or Latino	White	IIIB	None	1609	8960/3	0:LIVING	53	1609	None
+TARGET-50-PADZPL	NWTS-5	5	1718	Male	Not Hispanic or Latino	White	II	None	4378	8960/3	0:LIVING	144	4378	None
+TARGET-50-PAJMZN	NWTS-5	3	769	Male	Not reported	Not reported	I	None	1770	8960/3	0:LIVING	59	1770	None
+TARGET-50-PAENVA	NWTS-5	2	455	Female	Not reported	Not reported	I	None	2302	8960/3	0:LIVING	76	2302	None
+TARGET-50-PAJLUM	NWTS-5	5	1565	Female	Not reported	White	III	Relapse	182	8960/3	1:DECEASED	25	752	TUMOR
+TARGET-50-PAJMJL	NWTS-5	5	1595	Female	Not Hispanic or Latino	White	II	None	3108	8960/3	0:LIVING	103	3108	None
+TARGET-50-PAJMMU	NWTS-5	4	1097	Female	Not Hispanic or Latino	White	III	Relapse	1100	8960/3	0:LIVING	108	3265	None
+TARGET-50-PALAXJ	NWTS-5	5	1514	Female	Not reported	Other	III	None	2042	8960/3	0:LIVING	68	2042	None
+TARGET-50-PAJLPU	NWTS-5	3	749	Male	Not reported	White	II	None	1327	8960/3	0:LIVING	44	1327	None
+TARGET-50-PAJLWR	NWTS-5	2	560	Male	Not reported	White	I	None	2604	8960/3	0:LIVING	86	2604	None
+TARGET-50-PAJNBP	NWTS-5	5	1461	Female	Not reported	White	IIIB	Relapse	425	8960/3	1:DECEASED	21	636	TUMOR
+TARGET-50-PAJLTE	NWTS-5	4	1100	Male	Not reported	White	I	None	3992	8960/3	0:LIVING	132	3992	None
+TARGET-50-PAKMHJ	NWTS-5	1	188	Male	Not Hispanic or Latino	White	II	None	3279	8960/3	0:LIVING	108	3279	None
+TARGET-50-PAJLML	NWTS-5	4	1415	Male	Not reported	White	IV	None	4409	8960/3	0:LIVING	145	4409	None
+TARGET-50-PAKRVV	NWTS-5	3	866	Female	Hispanic or Latino	White		None	1266	8960/3	0:LIVING	42	1266	None
+TARGET-50-PAJNRW	NWTS-5	9	3048	Female	Not reported	White	II	None	3621	8960/3	0:LIVING	120	3621	None
+TARGET-50-PAJLUJ	NWTS-5	7	2326	Female	Not reported	Not reported	IV	Relapse	250	8960/3	0:LIVING	147	4449	None
+TARGET-50-PAECFM	NWTS-5	2	451	Male	Not Hispanic or Latino	White	II	None	3779	8960/3	0:LIVING	125	3779	None
+TARGET-50-PAJNKL	NWTS-5	2	405	Male	Not reported	White	I	None	1900	8960/3	0:LIVING	63	1900	None
+TARGET-50-PAKKSI	NWTS-5	6	2030	Female	Not Hispanic or Latino	White	IV	None	3071	8960/3	0:LIVING	101	3071	None
+TARGET-50-PAJMHV	NWTS-5	3	737	Female	Not Hispanic or Latino	White	II	None	4057	8960/3	0:LIVING	134	4057	None
+TARGET-50-PAJLSZ	NWTS-5	1	236	Female	Hispanic or Latino	Black or African American	I	Relapse	383	8960/3	0:LIVING	142	4305	None
+TARGET-50-PALFRD	NWTS-5	5	1785	Female	Hispanic or Latino	White	III	Relapse	429	8960/3	0:LIVING	47	1420	None
+TARGET-50-PAJLRL	NWTS-5	5	1555	Female	Not reported	White	U	Relapse	45	8960/3	0:LIVING	25	736	None
+TARGET-50-PAJMPV	NWTS-5	12	4355	Female	Not Hispanic or Latino	White	III	None	4062	8960/3	0:LIVING	134	4062	None
+TARGET-50-PAKGJK	NWTS-5	4	1433	Female	Not Hispanic or Latino	Black or African American	II	None	1855	8960/3	0:LIVING	61	1855	None
+TARGET-50-PAKHNH	NWTS-5	4	1103	Male	Not Hispanic or Latino	White	II	None	320	8960/3	0:LIVING	11	320	None
+TARGET-50-PAJLPX	NWTS-5	8	2702	Male	Not Hispanic or Latino	Black or African American	IIIB/V	None	2572	8960/3	0:LIVING	85	2572	None
+TARGET-50-PADZUD	NWTS-5	5	1706	Female	Not Hispanic or Latino	White	II	None	4560	8960/3	0:LIVING	150	4560	None
+TARGET-50-PAJPFY	NWTS-5	4	1164	Male	Not Hispanic or Latino	White	II	None	2829	8960/3	0:LIVING	94	2829	None
+TARGET-50-PAJNDS	NWTS-5	8	2655	Female	Not Hispanic or Latino	White	IV	None	3982	8960/3	0:LIVING	131	3982	None
+TARGET-50-PAJLSF	NWTS-5	6	1988	Female	Not reported	White	I	None	4522	8960/3	0:LIVING	149	4522	None
+TARGET-50-PAJMZF	NWTS-5	1	264	Male	Not reported	White	I	None	3995	8960/3	0:LIVING	132	3995	None
+TARGET-50-PAJNMZ	NWTS-5	6	2017	Female	Not Hispanic or Latino	Black or African American	III	None	1398	8960/3	0:LIVING	46	1398	None
+TARGET-50-PAJLWC	NWTS-5	2	524	Male	Not reported	White	II	None	3284	8960/3	0:LIVING	108	3284	None
+TARGET-50-PAJNKX	NWTS-5	2	518	Female	Hispanic or Latino	Other	I	None	974	8960/3	0:LIVING	33	974	None
+TARGET-50-PAJLMJ	NWTS-5	2	491	Male	Not reported	White	II	None	4695	8960/3	0:LIVING	155	4695	None
+TARGET-50-PAJMIZ	NWTS-5	7	2488	Female	Not reported	White	IIIB	Progression	180	8960/3	1:DECEASED	6	180	TUMOR
+TARGET-50-PAJMXE	NWTS-5	2	503	Female	Not Hispanic or Latino	Black or African American	III	None	3325	8960/3	0:LIVING	110	3325	None
+TARGET-50-PAJMUS	NWTS-5	9	3066	Male	Not Hispanic or Latino	Black or African American	II	None	254	8960/3	0:LIVING	9	254	None
+TARGET-50-PAKUJY	NWTS-5	3	948	Male	Not Hispanic or Latino	Black or African American	II	None	2594	8960/3	0:LIVING	86	2594	None
+TARGET-50-PAJMCB	NWTS-5	1	289	Male	Not reported	White	I	Relapse	826	8960/3	0:LIVING	137	4147	None
+TARGET-50-PALEHA	NWTS-5	5	1465	Male	Not Hispanic or Latino	White	III	None	2780	8960/3	0:LIVING	92	2780	None
+TARGET-50-PAEIIW	NWTS-5	5	1600	Female	Not Hispanic or Latino	White	IV	None	1636	8960/3	0:LIVING	54	1636	None
+TARGET-50-PADXBG	NWTS-5	5	1648	Male	Not Hispanic or Latino	White	I	None	4540	8960/3	0:LIVING	150	4540	None
+TARGET-50-PAKZER	NWTS-5	7	2271	Female	Not Hispanic or Latino	White	II	Relapse	274	8960/3	0:LIVING	94	2829	None
+TARGET-50-PAKGZY	NWTS-5	3	949	Female	Not reported	Other	II	None	1849	8960/3	0:LIVING	61	1849	None
+TARGET-50-PAJNJJ	NWTS-5	16	5698	Female	Not Hispanic or Latino	White	II	Relapse	615	8960/3	0:LIVING	102	3085	None

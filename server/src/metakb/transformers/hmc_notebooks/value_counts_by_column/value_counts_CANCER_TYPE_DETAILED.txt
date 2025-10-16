@@ -1,4 +1,48 @@
 Value counts for column: CANCER_TYPE_DETAILED
 
 CANCER_TYPE_DETAILED
-Ewing Sarcoma    11614
+Anaplastic ependymoma                                            18978
+Acute Myeloid Leukemia                                            7840
+B-Lymphoblastic Leukemia/Lymphoma                                 6937
+Ewing Sarcoma                                                     3075
+Peripheral T-Cell lymphoma, NOS                                   2216
+Neuroblastoma                                                     2054
+Optic nerve glioma                                                1251
+Hepatoblastoma                                                    1057
+Hepatocellular Carcinoma                                           917
+Osteosarcoma                                                       782
+Embryonal Rhabdomyosarcoma                                         705
+Renal Cell Carcinoma                                               646
+Non-seminomatous Mixed Germ Cell Tumor                             639
+Chondroblastic Osteosarcoma                                        604
+Pineal Germ Cell Tumor                                             530
+Ependymoma                                                         436
+Glioma                                                             360
+Rhabdomyosarcoma, Alveolar subtype                                 344
+Wilms Tumor                                                        228
+Adrenocortical carcinoma                                           219
+Glioblastoma multiforme                                            217
+Diffuse Intrinsic Pontine Glioma                                   170
+Inflammatory myofibroblastic tumor                                 168
+Medulloblastoma                                                    149
+Pleuropulmonary blastoma                                           147
+Alveolar Soft Part Sarcoma                                         138
+Mucoepidermoid carcinoma of the lung                               132
+Plexiform Schwannoma                                               128
+Anaplastic pleomorphic xanthoastrocytoma                           125
+Choroid Plexus Papilloma                                           120
+Nested stromal epithelial tumor of the liver                       119
+Pineoblastoma                                                      109
+Non-Seminomatous Germ Cell Tumor, predominantly yolk sac type      108
+Immature Teratoma                                                  104
+Pilomyxoid astrocytoma                                             102
+Nephroblastomatosis                                                102
+Atypical Teratoid/Rhabdoid Tumor                                    98
+Plexiform fibrohistiocytic tumor                                    89
+Small round blue cell tumor/ Ewing Sarcoma                          77
+Anaplastic Large Cell Lymphoma                                      66
+Hodgkin Lymphoma-like PTLD                                          62
+Pilomatrix carcinoma                                                53
+Telangiectatic Osteosarcoma                                         49
+Anaplastic medulloblastoma                                          30
+Chronic Myelogenous Leukemia                                        22

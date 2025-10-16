@@ -1,4 +1,46 @@
 Value counts for column: ONCOTREE_CODE
 
 ONCOTREE_CODE
-ES    11614
+APE       18978
+AML        7840
+BLL        6937
+ES         3152
+PTCL       2216
+NBL        2054
+GNOS       1451
+LIHB       1057
+HCC         917
+OS          782
+ERMS        705
+RCC         646
+MGCT        639
+CHOS        604
+BGCT        530
+EPM         436
+ARMS        344
+WT          330
+ACC         219
+GBM         217
+DIPG        170
+IMT         168
+HGGNOS      160
+MBL         149
+PPB         147
+ASPS        138
+LUMEC       132
+SCHW        128
+APXA        125
+CPP         120
+LIVER       119
+PBL         109
+TYST        108
+OIMT        104
+PMA         102
+ATRT         98
+MFH          89
+ALCL         66
+PTLD         62
+CUP          53
+TEOS         49
+AMBL         30
+CML          22

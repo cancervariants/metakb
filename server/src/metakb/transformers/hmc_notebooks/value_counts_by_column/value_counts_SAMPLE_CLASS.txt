@@ -1,4 +1,4 @@
 Value counts for column: SAMPLE_CLASS
 
 SAMPLE_CLASS
-Tumor    11614
+Tumor    52502

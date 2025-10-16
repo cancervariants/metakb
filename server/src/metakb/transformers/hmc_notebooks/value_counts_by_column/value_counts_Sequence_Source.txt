@@ -1,5 +1,4 @@
 Value counts for column: Sequence_Source
 
 Sequence_Source
-WXS    11439
-WGS      175
+NaN    52502

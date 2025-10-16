@@ -1,0 +1,77 @@
+#Patient Identifier	Diagnosis Age (days)	Diagnosis Age	Sex	Ethnicity Category	Race Category	First Event	Time To Event (days)	Overall Survival Status	Overall Survival Days	Overall Survival (Months)	Protocol	Neoplasm American Joint Committee on Cancer Clinical Group Stage	International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code	Histological Type	Patient Death Reason
+#Identifier to uniquely specify a patient.	Age at which a condition or disease was first diagnosed.	Age at which a condition or disease was first diagnosed.	Sex	The text for reporting information about ethnicity.	The text for reporting information about race.	First Event	Time To Event (days)	Overall patient survival status.	Overall patient survival days	Overall survival in months since initial diagonosis.	Protocol.	Stage group determined from clinical information on the tumor (T), regional node (N) and metastases (M) and by grouping cases with similar prognosis for cancer.	The third edition of the International Classification of Diseases for Oncology, published in 2000, used principally in tumor and cancer registries for coding the site (topography) and the histology (morphology) of neoplasms._The description of an anatomical region or of a body part._Named locations of, or within, the body._A system of numbered categories for representation of data.	Histological Type	Text term to identify the cause of death for a patient.
+#STRING	NUMBER	NUMBER	STRING	STRING	STRING	STRING	NUMBER	STRING	NUMBER	NUMBER	STRING	STRING	STRING	STRING	STRING
+#1	1	1	1	1	1	1	1	9	1	1	1	1	1	1	1
+PATIENT_ID	AGE_IN_DAYS	AGE	SEX	ETHNICITY	RACE	FIRST_EVENT	DAYS_TO_EVENT	OS_STATUS	OS_DAYS	OS_MONTHS	PROTOCOL	CLINICAL_STAGE	ICD_O_3_SITE	HISTOLOGICAL_TYPE	PATIENT_DEATH_REASON
+TARGET-52-PAVYKD	66.0	1.0	Female	Unknown	Unknown	Relapse	248.0	1:DECEASED	554.0	19.0	AREN03B2	II	8963/3	RT	Tumor
+TARGET-52-PASILR	618.0	2.0	Female	Not Hispanic or Latino	White	None	2835.0	0:LIVING	2835.0	94.0	AREN03B2	III	8963/3	RT	None
+TARGET-52-PARIRN	1466.0	5.0	Female	Unknown	Unknown	Relapse	35.0	1:DECEASED	386.0	13.0	AREN03B2	II/IV	8963/3	RT	Tumor
+TARGET-52-PARTKH	265.0	1.0	Male	Hispanic or Latino	White	None	2349.0	0:LIVING	2349.0	78.0	AREN03B2	II	8963/3	RT	None
+TARGET-52-PARUGK	220.0	1.0	Male	Hispanic or Latino	White	None	1.0	0:LIVING	1.0	1.0	AREN03B2	III	8963/3	RT	
+TARGET-52-NAAELY															
+TARGET-52-PAVVIT	1555.0	5.0	Male	Hispanic or Latino	White	Relapse	576.0	0:LIVING	1292.0	43.0	AREN03B2	III/IV	8963/3	RT	
+TARGET-52-NAAELV															
+TARGET-52-PASZYE	312.0	1.0	Male	Not Hispanic or Latino	White	Relapse	58.0	1:DECEASED	167.0	6.0	AREN03B2	III/IV	8963/3	RT	Tumor
+TARGET-52-PARPFY	361.0	1.0	Male	Not Hispanic or Latino	White	Death Without Remission	102.0	1:DECEASED	102.0	4.0	AREN03B2	III	8963/3	RT	Toxicity
+TARGET-52-PARRCL	214.0	1.0	Female	Hispanic or Latino	White	None	2577.0	0:LIVING	2577.0	85.0	AREN03B2	II	8963/3	RT	None
+TARGET-52-PAJNFP	352.0	1.0	Male	Not Hispanic or Latino	White	None	3584.0	0:LIVING	3584.0	118.0	NWTS-5	III	8963/3	RT	None
+TARGET-52-PAWFBL	679.0	2.0	Male	Not Hispanic or Latino	White		1297.0	0:LIVING	1297.0	43.0	AREN03B2	II	8963/3	RT	
+TARGET-52-PATXKA	102.0	1.0	Female	Not Hispanic or Latino	Black or African American	Death Without Remission	53.0	1:DECEASED	53.0	2.0	AREN03B2	III/IV	8963/3	RT	Tumor
+TARGET-52-PADWRZ	383.0	2.0	Female	Not Hispanic or Latino	White	None	2107.0	0:LIVING	2107.0	70.0	NWTS-5	III	8963/3	RT	None
+TARGET-52-PAVDPR	749.0	3.0	Male	Not Hispanic or Latino	White						AREN03B2	IIIB/IV	8963/3	RT	
+TARGET-52-PAUCGJ	281.0	1.0	Female	Not Hispanic or Latino	White	Death Without Remission	524.0	1:DECEASED	524.0	18.0	AREN03B2	II	8963/3	RT	Tumor
+TARGET-52-PADYCE	832.0	3.0	Male	Not Hispanic or Latino	Black or African American						NWTS-5		8963/3	RT	
+TARGET-52-PAJLRA	3.0	1.0	Female	Unknown	White	Death Without Remission	16.0	1:DECEASED	16.0	1.0	NWTS-5	III	8963/3	RT	Toxicity
+TARGET-52-PARGRN	147.0	1.0	Male	Not Hispanic or Latino	White	None	1322.0	0:LIVING	1322.0	44.0	AREN03B2	III/IV	8963/3	RT	None
+TARGET-52-PARECB	138.0	1.0	Female	Not Hispanic or Latino	Unknown	Relapse	480.0	1:DECEASED	1639.0	54.0	AREN03B2	III	8963/3	RT	Tumor
+TARGET-52-PAUFVP	740.0	3.0	Male	Hispanic or Latino	White	None	22.0	0:LIVING	22.0	1.0	AREN03B2	I	8963/3	RT	
+TARGET-52-PABKLN	400.0	2.0	Male	Not Hispanic or Latino	White	Relapse	189.0	1:DECEASED	236.0	8.0	NWTS-5	III	8963/3	RT	Tumor
+TARGET-52-PATAFT	343.0	1.0	Female	Not Hispanic or Latino	White	Relapse	113.0	1:DECEASED	177.0	6.0	AREN03B2	III	8963/3	RT	Tumor
+TARGET-52-PASDLA	332.0	1.0	Female	Hispanic or Latino	White	None	2399.0	0:LIVING	2399.0	79.0	AREN03B2	II	8963/3	RT	None
+TARGET-52-NAAELZ															
+TARGET-52-PAJMRB	541.0	2.0	Female	Unknown	Unknown	Relapse	72.0	1:DECEASED	120.0	4.0	NWTS-5	III	8963/3	RT	Tumor
+TARGET-52-PAKTCT	863.0	3.0	Male	Not Hispanic or Latino	White	Relapse	327.0	0:LIVING	1041.0	35.0	NWTS-5	III	8963/3	RT	None
+TARGET-52-PASAMZ	3027.0	9.0	Female	Hispanic or Latino	White	None	1746.0	0:LIVING	1746.0	58.0	AREN03B2	I	8963/3	RT	None
+TARGET-52-PAUNPA	1038.0	3.0	Male	Not Hispanic or Latino	White	None	450.0	0:LIVING	450.0	15.0	AREN03B2	II	8963/3	RT	
+TARGET-52-PADYZI	1085.0	3.0	Male	Hispanic or Latino	Unknown	Relapse	67.0	1:DECEASED	286.0	10.0	NWTS-5	III	8963/3	RT	Tumor
+TARGET-52-PATBLF	761.0	3.0	Female	Not Hispanic or Latino	White	None	66.0	0:LIVING	66.0	3.0	AREN03B2	IIIB	8963/3	RT	
+TARGET-52-PATENH	948.0	3.0	Female	Not Hispanic or Latino	White	Relapse	141.0	1:DECEASED	243.0	8.0	AREN03B2	III/IV	8963/3	RT	Tumor
+TARGET-52-PASCDH	354.0	1.0	Male	Not Hispanic or Latino	White	None	31.0	0:LIVING	31.0	2.0	AREN03B2	IIIB/IV	8963/3	RT	
+TARGET-52-PAKHTL	1141.0	4.0	Male	Not Hispanic or Latino	White	Relapse	184.0	1:DECEASED	198.0	7.0	NWTS-5	III	8963/3	RT	Tumor
+TARGET-52-PATFXW	569.0	2.0	Male	Unknown	White	None	173.0	0:LIVING	173.0	6.0	AREN03B2	II	8963/3	RT	
+TARGET-52-PAUGYZ	464.0	2.0	Female	Not Hispanic or Latino	White	Death Without Remission	232.0	1:DECEASED	232.0	8.0	AREN03B2	II	8963/3	RT	Tumor
+TARGET-52-PARKKN	2355.0	7.0	Female	Not Hispanic or Latino	Black or African American			0:LIVING			AREN03B2	IIIB	8963/3	RT	
+TARGET-52-PASVDP	141.0	1.0	Female	Not Hispanic or Latino	White	None	1.0	0:LIVING	1.0	1.0	AREN03B2	IIIB	8963/3	RT	
+TARGET-52-PARZRH	611.0	2.0	Male	Not Hispanic or Latino	White	Relapse	102.0	1:DECEASED	141.0	5.0	AREN03B2	IIIB	8963/3	RT	Tumor
+TARGET-52-PASADZ	272.0	1.0	Female	Not Hispanic or Latino	Black or African American	Relapse	230.0	1:DECEASED	397.0	14.0	AREN03B2	III	8963/3	RT	Tumor
+TARGET-52-PAKPEW	950.0	3.0	Male	Not Hispanic or Latino	White	Death Without Remission	153.0	1:DECEASED	153.0	6.0	NWTS-5	III/IV	8963/3	RT	Tumor
+TARGET-52-PAJNER	63.0	1.0	Female	Not Hispanic or Latino	White	Relapse	56.0	1:DECEASED	86.0	3.0	NWTS-5	II	8963/3	RT	Tumor
+TARGET-52-PATFZZ	399.0	2.0	Female	Not Hispanic or Latino	Black or African American	Death Without Remission	233.0	1:DECEASED	233.0	8.0	AREN03B2	III/IV	8963/3	RT	Infection
+TARGET-52-PASRHU	306.0	1.0	Male	Not Hispanic or Latino	White	Relapse	149.0	1:DECEASED	233.0	8.0	AREN03B2	III	8963/3	RT	Tumor
+TARGET-52-PAJMBW	141.0	1.0	Male	Unknown	White	None	746.0	0:LIVING	746.0	25.0	NWTS-5	II	8963/3	RT	None
+TARGET-52-PAUEKW	5386.0	15.0	Female	Not Hispanic or Latino	Other	None	625.0	0:LIVING	625.0	21.0	AREN03B2	III	8963/3	RT	
+TARGET-52-PASWZZ	64.0	1.0	Female	Not Hispanic or Latino	Other	Death Without Remission	140.0	1:DECEASED	140.0	5.0	AREN03B2	III	8963/3	RT	Tumor
+TARGET-52-PAKLYZ	527.0	2.0	Male	Not Hispanic or Latino	Unknown						NWTS-5	III	8963/3	RT	
+TARGET-52-PASXNA	286.0	1.0	Male	Not Hispanic or Latino	White	Death Without Remission	187.0	1:DECEASED	187.0	7.0	AREN03B2	III/IV	8963/3	RT	Tumor
+TARGET-52-PAJLWM	290.0	1.0	Male	Unknown	White						NWTS-5	III/IV	8963/3	RT	
+TARGET-52-PAUDPV	54.0	1.0	Female	Not Hispanic or Latino	White	Death Without Remission	80.0	1:DECEASED	80.0	3.0	AREN03B2	III/IV	8963/3	RT	Tumor
+TARGET-52-PAEHIP	175.0	1.0	Male	Unknown	Unknown	None	5799.0	0:LIVING	5799.0	191.0	NWTS-5	II	8963/3	RT	None
+TARGET-52-PAWFWK	231.0	1.0	Male	Unknown	White		992.0	0:LIVING	992.0	33.0	AREN03B2	IIIB	8963/3	RT	
+TARGET-52-PAVITI	909.0	3.0	Female	Hispanic or Latino	White		1687.0	0:LIVING	1687.0	56.0	AREN03B2	III	8963/3	RT	
+TARGET-52-PAJPHJ	346.0	1.0	Female	Not Hispanic or Latino	Black or African American	Death Without Remission	12.0	1:DECEASED	12.0	1.0	NWTS-5	IIIB	8963/3	RT	Tumor
+TARGET-52-PAUHAZ	239.0	1.0	Female	Not Hispanic or Latino	White	None	198.0	0:LIVING	198.0	7.0	AREN03B2	III	8963/3	RT	
+TARGET-52-PAVYDM	169.0	1.0	Female	Not Hispanic or Latino	Other		1291.0	0:LIVING	1291.0	43.0	AREN03B2	III	8963/3	RT	
+TARGET-52-PAVCKS	650.0	2.0	Male	Not Hispanic or Latino	White						AREN03B2	III	8963/3	RT	
+TARGET-52-PASXGF	808.0	3.0	Male	Not Hispanic or Latino	Other		197.0	0:LIVING	197.0	7.0	AREN03B2	III	8963/3	RT	
+TARGET-52-PASYNF	205.0	1.0	Male	Not Hispanic or Latino	White	Relapse	280.0	1:DECEASED	336.0	12.0	AREN03B2	III/IV	8963/3	RT	Tumor
+TARGET-52-PAREWI	307.0	1.0	Female	Not Hispanic or Latino	White	Death Without Remission	265.0	1:DECEASED	265.0	9.0	AREN03B2	III	8963/3	RT	Toxicity
+TARGET-52-PATYUA	818.0	3.0	Male	Not Hispanic or Latino	White	Relapse	246.0	1:DECEASED	294.0	10.0	AREN03B2	III	8963/3	RT	Tumor
+TARGET-52-PARZBI	526.0	2.0	Female	Not Hispanic or Latino	White	Relapse	233.0	1:DECEASED	252.0	9.0	AREN03B2	III	8963/3	RT	Tumor
+TARGET-52-PAWDGA	941.0	3.0	Male	Not Hispanic or Latino	White	Relapse	251.0	1:DECEASED	396.0	14.0	AREN03B2	III/IV	8963/3	RT	Tumor
+TARGET-52-PASGCL	830.0	3.0	Male	Hispanic or Latino	White						AREN03B2	III	8963/3	RT	
+TARGET-52-PASABD	173.0	1.0	Female	Hispanic or Latino	White	Relapse	175.0	1:DECEASED	449.0	15.0	AREN03B2	III	8963/3	RT	Tumor
+TARGET-52-PATDVL	146.0	1.0	Male	Not Hispanic or Latino	Black or African American	None	247.0	0:LIVING	247.0	9.0	AREN03B2	II	8963/3	RT	
+TARGET-52-PAJNFZ	592.0	2.0	Male	Unknown	Black or African American	Death Without Remission	48.0	1:DECEASED	48.0	2.0	NWTS-5	III/IV	8963/3	RT	Tumor
+TARGET-52-PASNED	1035.0	3.0	Female	Not Hispanic or Latino	White						AREN03B2	II	8963/3	RT	
+TARGET-52-PASGGN	130.0	1.0	Male	Not Hispanic or Latino	White	Relapse	103.0	1:DECEASED	112.0	4.0	AREN03B2	IIIB/IV	8963/3	RT	Tumor
+TARGET-52-PATXEE	580.0	2.0	Female	Not Hispanic or Latino	White	Death Without Remission	17.0	1:DECEASED	17.0	1.0	AREN03B2	III/IV	8963/3	RT	Tumor
