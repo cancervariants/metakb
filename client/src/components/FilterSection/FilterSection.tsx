@@ -58,7 +58,7 @@ const FilterSection = ({ title, options, selected, setSelected }: FilterSectionP
           '& .MuiButtonBase-root': {
             padding: 0,
           },
-          px: 0, // remove horizontal padding
+          px: 0,
         }}
       >
         <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
@@ -79,6 +79,7 @@ const FilterSection = ({ title, options, selected, setSelected }: FilterSectionP
       </AccordionSummary>
 
       <AccordionDetails>
+        {/* Search box if more than 5 options */}
         {options.length > maxVisible && (
           <TextField
             size="small"
