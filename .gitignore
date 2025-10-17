@@ -154,3 +154,11 @@ server/.env
 *.pyc
 
 **/node_modules/
+
+# big study data
+server/src/metakb/transformers/hmc_notebooks/**/*.tar.gz
+server/src/metakb/transformers/hmc_notebooks/**/*data_mrna_seq_rpkm*.txt
+# server/src/metakb/transformers/hmc_notebooks/**/*data_mutations.txt
+server/src/metakb/transformers/hmc_notebooks/**/*.tar.gz
+server/src/metakb/transformers/hmc_notebooks/**/*data_*_rpkm*.txt
+server/src/metakb/transformers/hmc_notebooks/**/*data_mrna*.txt
