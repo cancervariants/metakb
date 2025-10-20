@@ -190,7 +190,7 @@ const ResultPage = () => {
     new Set(results[activeTab].flatMap((r) => r.disease).filter(Boolean)),
   )
   const therapyOptions = Array.from(
-    new Set(results[activeTab].flatMap((r) => r.therapy.therapyNames).filter(Boolean))
+    new Set(results[activeTab].flatMap((r) => r.therapy.therapyNames).filter(Boolean)),
   )
 
   const evidenceLevelOptions = Array.from(

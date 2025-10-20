@@ -19,7 +19,7 @@ import {
   TherapyGroup,
   Condition,
 } from '../models/domain'
-import { NormalizedTherapy, TherapyInteractionType } from './results';
+import { NormalizedTherapy, TherapyInteractionType } from './results'
 
 /**
  * Type guard to check if a proposition includes a geneContextQualifier.
@@ -84,7 +84,6 @@ export function getTherapyFromProposition(
   return { therapyInteractionType: interactionType, therapyNames: therapies }
 }
 
-
 /**
  * Type guard to determine if a Therapeutic is a TherapyGroup.
  */
@@ -103,9 +102,7 @@ const getTherapyNames = (objectTherapeutic: Therapeutic): string[] | null => {
 
   if (isTherapyGroup(objectTherapeutic)) {
     // It's a TherapyGroup
-    return objectTherapeutic.therapies
-      .map((t) => t?.name)
-      .filter((n): n is string => Boolean(n))
+    return objectTherapeutic.therapies.map((t) => t?.name).filter((n): n is string => Boolean(n))
   }
 
   // Otherwise it's a single MappableConcept

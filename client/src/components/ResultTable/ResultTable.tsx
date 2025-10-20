@@ -155,19 +155,20 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
         headerName: 'Therapy',
         width: 150,
         render: (value: NormalizedResult) => {
-      const therapyData = value?.therapy
-      if (!therapyData) return ''
+          const therapyData = value?.therapy
+          if (!therapyData) return ''
 
-      const { therapyNames, therapyInteractionType } = therapyData
-      if (!therapyNames || therapyNames.length === 0) return ''
+          const { therapyNames, therapyInteractionType } = therapyData
+          if (!therapyNames || therapyNames.length === 0) return ''
 
-      const therapyList = therapyNames.join(', ')
-      const prefix = therapyInteractionType !== TherapyInteractionType.None
-          ? `${therapyInteractionType}: `
-          : ''
+          const therapyList = therapyNames.join(', ')
+          const prefix =
+            therapyInteractionType !== TherapyInteractionType.None
+              ? `${therapyInteractionType}: `
+              : ''
 
-      return `${prefix}${therapyList}`
-    },
+          return `${prefix}${therapyList}`
+        },
       },
       ...columns.slice(3),
     ]

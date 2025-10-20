@@ -75,7 +75,9 @@ export const applyFilters = (
     const diseaseMatch =
       selected.diseases.length === 0 || r.disease.some((d: string) => selected.diseases.includes(d))
 
-    const therapyMatch = selected.therapies.length === 0 || r.therapy.therapyNames.some((t: string) => selected.therapies.includes(t))
+    const therapyMatch =
+      selected.therapies.length === 0 ||
+      r.therapy.therapyNames.some((t: string) => selected.therapies.includes(t))
     const levelMatch =
       selected.evidenceLevels.length === 0 || selected.evidenceLevels.includes(r.evidence_level)
     const significanceMatch =
