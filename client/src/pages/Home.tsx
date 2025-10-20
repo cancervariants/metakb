@@ -40,10 +40,8 @@ const HomePage = () => {
         if (!res.ok) throw new Error('Failed to fetch stats')
         const data = await res.json()
         setStats(data)
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error('Error fetching stats:', error)
-        }
+      } catch {
+        setStats(null)
       }
     }
 
