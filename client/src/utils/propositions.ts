@@ -19,6 +19,7 @@ import {
   TherapyGroup,
   Condition,
 } from '../models/domain'
+import { NormalizedTherapy, TherapyInteractionType } from './results';
 
 /**
  * Type guard to check if a proposition includes a geneContextQualifier.
@@ -46,7 +47,7 @@ export function hasGeneContextQualifier(
  * Only VariantTherapeuticResponseProposition objects have therapies.
  *
  * @param prop - Proposition object (may be undefined)
- * @returns Therapy name string, or "N/A" if not applicable
+ * @returns NormalizedTherapy object containing therapy names and interaction type
  */
 export function getTherapyFromProposition(
   prop:
@@ -57,16 +58,32 @@ export function getTherapyFromProposition(
     | VariantPathogenicityProposition
     | ExperimentalVariantFunctionalImpactProposition
     | undefined,
-): string {
-  if (!prop) return 'N/A'
+): NormalizedTherapy {
+  let interactionType = TherapyInteractionType.None
+  let therapies: string[] = []
+
+  if (!prop) return { therapyInteractionType: interactionType, therapyNames: therapies }
 
   if ('objectTherapeutic' in prop) {
     const therapeutic = prop.objectTherapeutic
-    return typeof therapeutic !== 'string' ? (formatTherapies(therapeutic) ?? 'N/A') : 'N/A'
+
+    if (typeof therapeutic !== 'string') {
+      therapies = getTherapyNames(therapeutic) ?? []
+
+      if (isTherapyGroup(therapeutic)) {
+        const operator = therapeutic.membershipOperator?.toUpperCase()
+        if (operator === 'AND') {
+          interactionType = TherapyInteractionType.Combination
+        } else if (operator === 'OR') {
+          interactionType = TherapyInteractionType.Substitution
+        }
+      }
+    }
   }
 
-  return 'N/A'
+  return { therapyInteractionType: interactionType, therapyNames: therapies }
 }
+
 
 /**
  * Type guard to determine if a Therapeutic is a TherapyGroup.
@@ -76,32 +93,27 @@ function isTherapyGroup(obj: Therapeutic): obj is TherapyGroup {
 }
 
 /**
- * Formats a Therapeutic into a human-readable therapy string.
- * - For TherapyGroup, joins multiple therapies with "and"/"or"
- * - For MappableConcept of type "Therapy", returns its name
+ * Extracts human-readable therapy names from a Therapeutic object.
  *
  * @param objectTherapeutic - Therapeutic object to format
  * @returns Formatted therapy name or null if not available
  */
-const formatTherapies = (objectTherapeutic: Therapeutic): string | null => {
+const getTherapyNames = (objectTherapeutic: Therapeutic): string[] | null => {
   if (!objectTherapeutic) return null
 
   if (isTherapyGroup(objectTherapeutic)) {
     // It's a TherapyGroup
-    const names = objectTherapeutic.therapies.map((t) => t?.name).filter(Boolean)
-    if (names.length === 0) return null
-    if (names.length === 1) return names[0] ?? null
-
-    const operator = objectTherapeutic.membershipOperator?.toLowerCase() === 'or' ? 'or' : 'and'
-    return `${names.slice(0, -1).join(', ')} ${operator} ${names[names.length - 1]}`
+    return objectTherapeutic.therapies
+      .map((t) => t?.name)
+      .filter((n): n is string => Boolean(n))
   }
 
-  // Otherwise it's a MappableConcept
+  // Otherwise it's a single MappableConcept
   if (objectTherapeutic.conceptType === 'Therapy') {
-    return objectTherapeutic.name ?? null
+    return objectTherapeutic.name ? [objectTherapeutic.name] : []
   }
 
-  return null
+  return []
 }
 
 /**

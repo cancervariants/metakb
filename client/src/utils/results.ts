@@ -27,6 +27,17 @@ export const TAB_LABELS: Record<'therapeutic' | 'diagnostic' | 'prognostic', str
   prognostic: 'Prognostic',
 }
 
+export enum TherapyInteractionType {
+  Combination = 'Combination',
+  Substitution = 'Substitution',
+  None = '',
+}
+
+export interface NormalizedTherapy {
+  therapyNames: string[]
+  therapyInteractionType: TherapyInteractionType
+}
+
 /**
  * Represents a single normalized row of evidence results, aggregating evidence
  * from one or more `Statement` objects into a single table row.
@@ -39,7 +50,7 @@ export interface NormalizedResult {
   /** Associated diseases, may include multiple names */
   disease: string[]
   /** Therapy or combination therapy (if applicable) */
-  therapy: string
+  therapy: NormalizedTherapy
   /** Clinical significance string */
   significance: string
   /** All evidence statements grouped into this row */
