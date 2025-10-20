@@ -27,12 +27,17 @@ export const TAB_LABELS: Record<'therapeutic' | 'diagnostic' | 'prognostic', str
   prognostic: 'Prognostic',
 }
 
+// Represents a therapy interaction type - either combination or substitution, for groups, or None for a single therapy
 export enum TherapyInteractionType {
   Combination = 'Combination',
   Substitution = 'Substitution',
   None = '',
 }
 
+/**
+ * Represents a normalized therapy
+ * Contains a list of therapy names and the interaction type
+ */
 export interface NormalizedTherapy {
   therapyNames: string[]
   therapyInteractionType: TherapyInteractionType
