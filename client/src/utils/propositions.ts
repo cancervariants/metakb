@@ -95,7 +95,7 @@ function isTherapyGroup(obj: Therapeutic): obj is TherapyGroup {
  * Extracts human-readable therapy names from a Therapeutic object.
  *
  * @param objectTherapeutic - Therapeutic object to format
- * @returns String list of therapy names or []] if not available
+ * @returns String list of therapy names or [] if not available
  */
 const getTherapyNames = (objectTherapeutic: Therapeutic): string[] | null => {
   if (!objectTherapeutic) return null
