@@ -6,8 +6,6 @@ const Header = () => {
   const [version, setVersion] = useState('')
   const [environment, setEnvironment] = useState('')
 
-  console.log(environment)
-
   useEffect(() => {
     const run = async () => {
       const url = '/api/v2/service-info'
