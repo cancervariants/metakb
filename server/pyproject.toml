@@ -1,5 +1,6 @@
 [project]
 name = "metakb"
+version = "2.0.0-dev2"
 authors = [
     {name = "Alex H Wagner"},
     {name = "Kori Kuzma"},
@@ -45,7 +46,6 @@ dependencies = [
     "asyncclick",
     "jinja2",
 ]
-dynamic = ["version"]
 
 [project.optional-dependencies]
 deploy = [
@@ -98,11 +98,8 @@ Source = "https://github.com/cancervariants/metakb"
 metakb = "metakb.cli:cli"
 
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm>=8"]
+requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
-
-[tool.setuptools_scm]
-root = ".."
 
 [tool.setuptools.packages.find]
 where = ["src"]

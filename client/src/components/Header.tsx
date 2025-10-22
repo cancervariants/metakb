@@ -4,6 +4,9 @@ import { Link } from 'react-router-dom'
 
 const Header = () => {
   const [version, setVersion] = useState('')
+  const [environment, setEnvironment] = useState('')
+
+  console.log(environment)
 
   useEffect(() => {
     const run = async () => {
@@ -14,6 +17,7 @@ const Header = () => {
       if (!res.ok) throw new Error(`Service info API request failed: ${res.status}`)
       const data = await res.json()
       setVersion(data.version)
+      setEnvironment(data.environment)
     }
     run()
   }, [])
@@ -25,7 +29,10 @@ const Header = () => {
           MetaKB
         </Typography>
       </Link>
-      <Typography>{version ? `v${version}` : ''}</Typography>
+      <Typography>
+        {version ? `v${version}` : ''}
+        {environment && !['prod'].includes(environment) ? ` [${environment}]` : ''}
+      </Typography>
     </AppBar>
   )
 }
