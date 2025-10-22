@@ -30,8 +30,8 @@ const Header = () => {
         </Typography>
       </Link>
       <Typography>
-        {version ? `v${version}` : ''}
-        {environment && !['prod'].includes(environment) ? ` [${environment}]` : ''}
+        {version ? `version ${version}` : 'version ?'}
+        {environment && environment != 'prod' ? ` [${environment}]` : ''}
       </Typography>
     </AppBar>
   )
