@@ -22,6 +22,7 @@ from metakb import DATE_FMT, __version__
 from metakb.config import get_config
 from metakb.harvesters.civic import CivicHarvester
 from metakb.harvesters.moa import MoaHarvester
+from metakb.harvesters.poda import FdaPodaHarvester
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
     IllegalUpdateError,
@@ -549,6 +550,7 @@ def _harvest_sources(
     harvester_sources = {
         SourceName.CIVIC: CivicHarvester,
         SourceName.MOA: MoaHarvester,
+        SourceName.FDA_PODA: FdaPodaHarvester,
     }
     if sources:
         harvester_sources = {k: v for k, v in harvester_sources.items() if k in sources}
