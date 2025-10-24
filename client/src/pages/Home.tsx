@@ -33,7 +33,7 @@ const HomePage = () => {
 
     const fetchStats = async () => {
       try {
-        const res = await fetch(`/api/v2/stats`, {
+        const res = await fetch(`/api/stats`, {
           headers: { 'Content-Type': 'application/json' },
           signal: controller.signal,
         })

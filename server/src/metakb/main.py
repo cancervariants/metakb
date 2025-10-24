@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     driver.close()
 
 
-API_PREFIX = "/api/v2"
+API_PREFIX = "/api"
 
 
 app = FastAPI(
@@ -64,7 +64,7 @@ app = FastAPI(
         "url": "https://www.nationwidechildrens.org/specialties/institute-for-genomic-medicine/research-labs/wagner-lab",
     },
     docs_url=API_PREFIX,
-    openapi_url="/api/v2/openapi.json",
+    openapi_url="/api/openapi.json",
     swagger_ui_parameters={"tryItOutEnabled": True},
     lifespan=lifespan,
 )
