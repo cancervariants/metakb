@@ -64,7 +64,7 @@ app = FastAPI(
         "url": "https://www.nationwidechildrens.org/specialties/institute-for-genomic-medicine/research-labs/wagner-lab",
     },
     docs_url=API_PREFIX,
-    openapi_url="{API_PREFIX}/openapi.json",
+    openapi_url=f"{API_PREFIX}/openapi.json",
     swagger_ui_parameters={"tryItOutEnabled": True},
     lifespan=lifespan,
 )
