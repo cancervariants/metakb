@@ -3,12 +3,21 @@ import Header from '../components/Header'
 import { Box, Button, Link, MenuItem, Select, TextField, Typography } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 
 const HomePage = () => {
   const navigate = useNavigate()
 
-  const [searchType, setSearchType] = React.useState('gene')
-  const [searchQuery, setSearchQuery] = React.useState('')
+  const [searchType, setSearchType] = useState('gene')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [stats, setStats] = useState<{
+    num_conditions: number
+    num_documents: number
+    num_genes: number
+    num_statements: number
+    num_therapeutics: number
+    num_variations: number
+  } | null>(null)
 
   const doSearch = () => {
     if (!searchQuery.trim()) return
@@ -18,6 +27,27 @@ const HomePage = () => {
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') doSearch()
   }
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`/api/v2/stats`, {
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+        })
+        if (!res.ok) throw new Error('Failed to fetch stats')
+        const data = await res.json()
+        setStats(data)
+      } catch {
+        setStats(null)
+      }
+    }
+
+    fetchStats()
+    return () => controller.abort()
+  }, [])
 
   return (
     <>
@@ -49,6 +79,55 @@ const HomePage = () => {
           >
             Search harmonized data across multiple genomic knowledgebases.
           </Typography>
+          {stats && (
+            <Box
+              id="stats-container"
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              flexWrap="wrap"
+              gap={6}
+              mb={6}
+            >
+              <Box textAlign="center">
+                <Typography variant="h4" color="primary" fontWeight="bold">
+                  {stats.num_documents?.toLocaleString()}
+                </Typography>
+                <Typography variant="body1">Documents</Typography>
+              </Box>
+              <Box textAlign="center">
+                <Typography variant="h4" color="primary" fontWeight="bold">
+                  {stats.num_genes?.toLocaleString()}
+                </Typography>
+                <Typography variant="body1">Genes</Typography>
+              </Box>
+              <Box textAlign="center">
+                <Typography variant="h4" color="primary" fontWeight="bold">
+                  {stats.num_variations?.toLocaleString()}
+                </Typography>
+                <Typography variant="body1">Variations</Typography>
+              </Box>
+              <Box textAlign="center">
+                <Typography variant="h4" color="primary" fontWeight="bold">
+                  {stats.num_conditions?.toLocaleString()}
+                </Typography>
+                <Typography variant="body1">Tumor Types</Typography>
+              </Box>
+              <Box textAlign="center">
+                <Typography variant="h4" color="primary" fontWeight="bold">
+                  {stats.num_statements?.toLocaleString()}
+                </Typography>
+                <Typography variant="body1">Evidence Records</Typography>
+              </Box>
+              <Box textAlign="center">
+                <Typography variant="h4" color="primary" fontWeight="bold">
+                  {stats.num_therapeutics?.toLocaleString()}
+                </Typography>
+                <Typography variant="body1">Drugs</Typography>
+              </Box>
+            </Box>
+          )}
+
           <Box id="search-container" mb={50}>
             <Select
               value={searchType}

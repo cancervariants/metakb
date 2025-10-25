@@ -7,7 +7,7 @@ const Header = () => {
 
   useEffect(() => {
     const run = async () => {
-      const url = '/cv-api/api/v2/service-info'
+      const url = '/api/v2/service-info'
       const res = await fetch(url, {
         headers: { 'Content-Type': 'application/json' },
       })
