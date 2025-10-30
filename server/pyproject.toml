@@ -1,6 +1,6 @@
 [project]
 name = "metakb"
-version = "2.0.0-dev2"
+version = "2.0.0-a1"
 authors = [
     {name = "Alex H Wagner"},
     {name = "Kori Kuzma"},
