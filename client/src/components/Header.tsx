@@ -5,6 +5,7 @@ import GitHubIcon from '@mui/icons-material/GitHub'
 
 const Header = () => {
   const [version, setVersion] = useState('')
+  const [environment, setEnvironment] = useState('')
 
   useEffect(() => {
     const run = async () => {
@@ -15,6 +16,7 @@ const Header = () => {
       if (!res.ok) throw new Error(`Service info API request failed: ${res.status}`)
       const data = await res.json()
       setVersion(data.version)
+      setEnvironment(data.environment)
     }
     run()
   }, [])
@@ -30,7 +32,8 @@ const Header = () => {
           </Link>
           {version && (
             <Typography variant="body2" color="white" sx={{ opacity: 0.8 }}>
-              v{version}
+              {version ? `version ${version}` : 'version ?'}
+              {environment && environment != 'prod' ? ` [${environment}]` : ''}
             </Typography>
           )}
         </Box>
