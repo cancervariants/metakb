@@ -71,7 +71,7 @@ Ensure that both the MetaKB Neo4j and Normalizers databases are running.
 #### 5. Start the development servers
 
 - Frontend: [http://localhost:5173](http://localhost:5173)
-- Backend Swagger docs: [http://localhost:8000/api/v2](http://localhost:8000/api/v2)
+- Backend Swagger docs: [http://localhost:8000/api](http://localhost:8000/api)
 
 ---
 
@@ -85,7 +85,7 @@ source venv/bin/activate
 uvicorn src.metakb.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-You can then visit [http://localhost:8000/api/v2](http://localhost:8000/api/v2) for the Swagger UI.
+You can then visit [http://localhost:8000/api](http://localhost:8000/api) for the Swagger UI.
 
 ---
 

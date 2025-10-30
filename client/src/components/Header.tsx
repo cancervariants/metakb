@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { AppBar, Typography } from '@mui/material'
+import { AppBar, Box, IconButton, Toolbar, Typography } from '@mui/material'
 import { Link } from 'react-router-dom'
+import GitHubIcon from '@mui/icons-material/GitHub'
 
 const Header = () => {
   const [version, setVersion] = useState('')
@@ -8,7 +9,7 @@ const Header = () => {
 
   useEffect(() => {
     const run = async () => {
-      const url = '/api/v2/service-info'
+      const url = '/api/service-info'
       const res = await fetch(url, {
         headers: { 'Content-Type': 'application/json' },
       })
@@ -22,15 +23,35 @@ const Header = () => {
 
   return (
     <AppBar position="static" color="header" sx={{ padding: 2 }}>
-      <Link to="/">
-        <Typography variant="h4" fontWeight="bold" color="white">
-          MetaKB
-        </Typography>
-      </Link>
-      <Typography>
-        {version ? `version ${version}` : 'version ?'}
-        {environment && environment != 'prod' ? ` [${environment}]` : ''}
-      </Typography>
+      <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Typography variant="h4" fontWeight="bold" color="white">
+              MetaKB
+            </Typography>
+          </Link>
+          {version && (
+            <Typography variant="body2" color="white" sx={{ opacity: 0.8 }}>
+              {version ? `version ${version}` : 'version ?'}
+              {environment && environment != 'prod' ? ` [${environment}]` : ''}
+            </Typography>
+          )}
+        </Box>
+
+        <IconButton
+          component="a"
+          href="https://github.com/cancervariants/metakb"
+          target="_blank"
+          rel="noopener noreferrer"
+          color="inherit"
+        >
+          {' '}
+          <Box display="flex" alignItems="center" gap={1}>
+            <GitHubIcon fontSize="large" />
+            <Typography>Visit us on GitHub!</Typography>
+          </Box>
+        </IconButton>
+      </Toolbar>
     </AppBar>
   )
 }
