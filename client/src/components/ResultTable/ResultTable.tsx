@@ -19,7 +19,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import ResultTableRow from './ResultTableRow'
 import { ResultColumn } from './types'
-import { NormalizedResult } from '../../utils'
+import { NormalizedResult, TherapyInteractionType } from '../../utils'
 
 interface TablePaginationActionsProps {
   count: number
@@ -154,7 +154,21 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
         field: 'therapy',
         headerName: 'Therapy',
         width: 150,
-        render: (value: NormalizedResult) => value?.therapy,
+        render: (value: NormalizedResult) => {
+          const therapyData = value?.therapy
+          if (!therapyData) return ''
+
+          const { therapyNames, therapyInteractionType } = therapyData
+          if (!therapyNames || therapyNames.length === 0) return ''
+
+          const therapyList = therapyNames.join(', ')
+          const prefix =
+            therapyInteractionType !== TherapyInteractionType.None
+              ? `${therapyInteractionType}: `
+              : ''
+
+          return `${prefix}${therapyList}`
+        },
       },
       ...columns.slice(3),
     ]
