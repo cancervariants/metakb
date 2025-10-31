@@ -27,7 +27,7 @@ const Header = () => {
         <Box display="flex" alignItems="center" gap={2}>
           <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
             <Typography variant="h4" fontWeight="bold" color="white">
-              MetaKB
+              MetaKB Jr.
             </Typography>
           </Link>
           {version && (
