@@ -100,6 +100,7 @@ class MethodId(str, Enum):
 
     CIVIC_EID_SOP = "civic.method:2019"
     MOA_ASSERTION_BIORXIV = "moa.method:2021"
+    FDA_APPROV_SOP = "fda_poda.method:1"  # TODO
 
 
 class CivicEvidenceLevel(str, Enum):
@@ -185,6 +186,16 @@ class Transformer(ABC):
                 title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
                 doi="10.1038/s43018-021-00243-3",
                 pmid=35121878,
+            ),
+        ),
+        Method(
+            id=MethodId.FDA_APPROV_SOP,
+            name="Federal Drug Administration Development & Approval Process for Drugs",
+            reportedIn=Document(
+                name="Development & Approval Process | Drugs",
+                title="Development & Approval Process | Drugs",
+                documentType="webpage",
+                urls=["https://www.fda.gov/drugs/development-approval-process-drugs"],
             ),
         ),
     ]
