@@ -1,10 +1,18 @@
 """Declare search API endpoints"""
 
+from collections import defaultdict
 from time import perf_counter
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from ga4gh.va_spec.aac_2017 import (
+    VariantDiagnosticStudyStatement,
+    VariantPrognosticStudyStatement,
+    VariantTherapeuticResponseStudyStatement,
+)
 from ga4gh.va_spec.base import (
+    Statement,
+    TherapyGroup,
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
@@ -15,6 +23,7 @@ from metakb.repository.base import AbstractRepository
 from metakb.restapi.dependencies import get_repository
 from metakb.schemas.api import (
     BatchSearchStatementsResponse,
+    EntityStatementsIndex,
     SearchStatementsQuery,
     SearchStatementsResponse,
     ServiceMeta,
@@ -43,6 +52,81 @@ limit_description = "The maximum number of results to return. Use for pagination
 
 
 api_router = APIRouter()
+
+
+def _build_statement_results(
+    statements: list[
+        Statement
+        | VariantTherapeuticResponseStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantDiagnosticStudyStatement
+    ],
+) -> tuple[
+    list[VariantTherapeuticResponseStudyStatement | Statement],
+    list[VariantDiagnosticStudyStatement | Statement],
+    list[VariantPrognosticStudyStatement | Statement],
+    EntityStatementsIndex,
+]:
+    """Group statements by type and build entity-statement index
+
+    :statements: list of statements to return from search
+    :return: grouped statements lists, and full entity-statement index object
+    :raise ValueError: if unrecognized statement type is included
+    """
+    therapeutic_statements: list[
+        VariantTherapeuticResponseStudyStatement | Statement
+    ] = []
+    diagnostic_statements: list[VariantDiagnosticStudyStatement | Statement] = []
+    prognostic_statements: list[VariantPrognosticStudyStatement | Statement] = []
+    entity_statements_index = {
+        "variants": defaultdict(list),
+        "combo_therapies": defaultdict(list),
+        "drugs": defaultdict(list),
+        "predicates": defaultdict(list),
+        "tumor_types": defaultdict(list),
+    }
+    for statement in statements:
+        variant_id = statement.proposition.subjectVariant.id
+        entity_statements_index["variants"][variant_id] = statement.id
+        predicate = statement.proposition.predicate.value
+        entity_statements_index["predicates"][predicate].append(statement.id)
+
+        if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
+            therapeutic = statement.proposition.objectTherapeutic
+            if isinstance(therapeutic.root, TherapyGroup):
+                for drug in therapeutic.root.therapies:
+                    entity_statements_index["drugs"][drug.id].append(statement.id)
+                entity_statements_index["combo_therapies"][therapeutic.root.id].append(
+                    statement.id
+                )
+            else:
+                entity_statements_index["drugs"][therapeutic.root.id].append(
+                    statement.id
+                )
+            entity_statements_index["tumor_types"][
+                statement.proposition.conditionQualifier.root.id
+            ].append(statement.id)
+            therapeutic_statements.append(statement)
+        elif isinstance(statement.proposition, VariantDiagnosticProposition):
+            entity_statements_index["tumor_types"][
+                statement.proposition.objectCondition.root.id
+            ].append(statement.id)
+            diagnostic_statements.append(statement)
+        elif isinstance(statement.proposition, VariantPrognosticProposition):
+            entity_statements_index["tumor_types"][
+                statement.proposition.objectCondition.root.id
+            ].append(statement.id)
+            prognostic_statements.append(statement)
+        else:
+            msg = f"Unrecognized proposition type `{type(statement.proposition)}` in {statement}"
+            raise ValueError(msg)  # noqa: TRY004
+
+    return (
+        therapeutic_statements,
+        diagnostic_statements,
+        prognostic_statements,
+        EntityStatementsIndex(**entity_statements_index),
+    )
 
 
 @api_router.get(
@@ -87,47 +171,27 @@ async def get_statements(
             detail="At least one search parameter (variation, disease, therapy, gene, statement_id) must be provided.",
         ) from e
 
-    mapped_terms = {term.term_type.value: term for term in search_results.search_terms}
-
-    # group statements
-    grouped_statements = {
-        "therapeutic_statements": {},
-        "diagnostic_statements": {},
-        "prognostic_statements": {},
-    }
-    statement_ids = []
-    for statement in search_results.statements:
-        statement_ids.append(statement.id)
-        variant_id = statement.proposition.subjectVariant.id
-        predicate = statement.proposition.predicate
-        if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
-            key = f"{variant_id}|{statement.proposition.conditionQualifier.root.id}|{statement.proposition.objectTherapeutic.root.id}|{predicate}"
-            grouped_statements["therapeutic_statements"].setdefault(key, []).append(
-                statement
-            )
-        elif isinstance(statement.proposition, VariantDiagnosticProposition):
-            key = f"{variant_id}|{statement.proposition.objectCondition.root.id}|{predicate}"
-            grouped_statements["diagnostic_statements"].setdefault(key, []).append(
-                statement
-            )
-        elif isinstance(statement.proposition, VariantPrognosticProposition):
-            key = f"{variant_id}|{statement.proposition.objectCondition.root.id}|{predicate}"
-            grouped_statements["prognostic_statements"].setdefault(key, []).append(
-                statement
-            )
-        else:
-            msg = f"Unrecognized proposition type `{type(statement.proposition)}` in {statement}"
-            raise ValueError(msg)  # noqa: TRY004
+    full_query = SearchStatementsQuery(
+        **{term.term_type.value: term for term in search_results.search_terms}
+    )
+    (
+        therapeutic_statements,
+        diagnostic_statements,
+        prognostic_statements,
+        entity_statements_index,
+    ) = _build_statement_results(search_results.statements)
 
     end_time = perf_counter()
     return SearchStatementsResponse(
-        query=SearchStatementsQuery(**mapped_terms),
+        query=full_query,
+        entity_statements_index=entity_statements_index,
+        therapeutic_statements=therapeutic_statements,
+        diagnostic_statements=diagnostic_statements,
+        prognostic_statements=prognostic_statements,
         start=start,
         limit=limit,
         service_meta_=ServiceMeta(),
-        statement_ids=statement_ids,
         duration_s=end_time - start_time,
-        **grouped_statements,
     )
 
 

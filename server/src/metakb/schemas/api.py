@@ -147,22 +147,34 @@ class SearchStatementsQuery(BaseModel):
     statement_id: SearchTerm | None = None
 
 
+class EntityStatementsIndex(BaseModel):
+    """Inverted index mapping concept IDs (grouped by entity type) back to statement IDs.
+
+    Use for e.g. client search result filtering.
+    """
+
+    variants: dict[str, list[str]] = {}
+    combo_therapies: dict[str, list[str]] = {}  # combo of drugs -- uses hashed id
+    drugs: dict[str, list[str]] = {}
+    predicates: dict[str, list[str]] = {}
+    tumor_types: dict[str, list[str]] = {}
+
+
 class SearchStatementsResponse(BaseModel):
     """Define model for /search_statements HTTP endpoint response."""
 
     query: SearchStatementsQuery
     start: int
     limit: int | None
-    statement_ids: list[str]
-    therapeutic_statements: dict[
-        str, list[VariantTherapeuticResponseStudyStatement | Statement]
-    ] = {}
-    diagnostic_statements: dict[
-        str, list[VariantDiagnosticStudyStatement | Statement]
-    ] = {}
-    prognostic_statements: dict[
-        str, list[VariantPrognosticStudyStatement | Statement]
-    ] = {}
+    therapeutic_statements: list[
+        VariantTherapeuticResponseStudyStatement | Statement
+    ] = []
+    diagnostic_statements: list[VariantDiagnosticStudyStatement | Statement] = []
+    prognostic_statements: list[VariantPrognosticStudyStatement | Statement] = []
+    # map concept IDs to statements, grouped by entity
+    # eg: contains property for drugs that's a dict between drug concept IDs and associated statements
+    #     ditto for tumor_types, variants, etc
+    entity_statements_index: EntityStatementsIndex
     duration_s: float
     service_meta_: ServiceMeta
 
