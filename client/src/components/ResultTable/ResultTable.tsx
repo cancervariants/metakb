@@ -20,6 +20,10 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import ResultTableRow from './ResultTableRow'
 import { ResultColumn } from './types'
 import { NormalizedResult, TherapyInteractionType } from '../../utils'
+import { normalizeEvidenceLevelFromStrength } from '../../utils/normalization'
+import { EvidenceLevel } from '../../models/codings'
+import { PieChart, Pie, Cell, Tooltip } from 'recharts'
+import theme from '../../theme'
 
 interface TablePaginationActionsProps {
   count: number
@@ -110,7 +114,55 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       field: 'evidence_level',
       headerName: 'Evidence Level',
       width: 150,
-      render: (value: NormalizedResult) => value?.evidence_level,
+      render: (value: NormalizedResult) => {
+        const supportingEvidence = value.grouped_evidence
+        // get array of normalized codes from supporting evidence
+        const codeGroups = supportingEvidence.map((evidence) =>
+          normalizeEvidenceLevelFromStrength(evidence.strength),
+        )
+
+        // format into object with counts
+        const counts = codeGroups.reduce<Record<EvidenceLevel, number>>(
+          (acc, code) => {
+            if (code && Object.values(EvidenceLevel).includes(code as EvidenceLevel)) {
+              acc[code as EvidenceLevel] = (acc[code as EvidenceLevel] || 0) + 1
+            }
+            return acc
+          },
+          { A: 0, B: 0, C: 0, D: 0, E: 0 },
+        )
+        // format object with counts into expected object format for recharts Pie
+        const data = Object.entries(counts)
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          .filter(([_, value]) => value > 0)
+          .map(([level, value]) => ({
+            name: level,
+            value,
+          }))
+        const levelColor = theme.palette.evidence
+
+        return (
+          <Box display="flex" gap={3} alignItems="center">
+            {value?.evidence_level}
+            <PieChart width={40} height={40}>
+              <Tooltip />
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={12}
+                outerRadius={20}
+                paddingAngle={2}
+                label={false}
+              >
+                {data.map((entry, idx) => (
+                  <Cell key={`cell-${idx}`} fill={levelColor[entry.name as EvidenceLevel]} />
+                ))}
+              </Pie>
+            </PieChart>
+          </Box>
+        )
+      },
     },
     {
       field: 'disease',
