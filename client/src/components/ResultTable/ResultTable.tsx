@@ -179,7 +179,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
     {
       field: 'resultCount',
       headerName: 'Records',
-      width: 150,
+      width: 10,
       render: (value: NormalizedResult) => {
         return value?.grouped_evidence.length
       },
