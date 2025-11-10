@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "turbo run dev --parallel",
     "prepare": "husky",
-    "lint-staged": "lint-staged",
+    "lint-staged": "lint-staged --fail-on-changes --continue-on-error --no-revert",
     "format": "pnpm --filter client format && ruff check server --fix && ruff format server"
   },
   "devDependencies": {
