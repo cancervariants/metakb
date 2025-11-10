@@ -24,8 +24,8 @@
       "pre-commit run trailing-whitespace --files",
       "pre-commit run end-of-file-fixer --files",
       "pre-commit run check-merge-conflict --files",
-      "pre-commit run detect-aws-credentials --allow-missing-credentials --files",
-      "pre-commit run mixed-line-ending --fix=lf --files"
+      "pre-commit run detect-aws-credentials --files",
+      "pre-commit run mixed-line-ending --files"
     ]
   },
   "dependencies": {
