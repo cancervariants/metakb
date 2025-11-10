@@ -154,6 +154,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
                 outerRadius={20}
                 paddingAngle={2}
                 label={false}
+                animationDuration={200}
               >
                 {data.map((entry, idx) => (
                   <Cell key={`cell-${idx}`} fill={levelColor[entry.name as EvidenceLevel]} />
