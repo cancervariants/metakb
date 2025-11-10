@@ -15,8 +15,11 @@
   },
   "lint-staged": {
     "server/**/*.py": [
-      "ruff check --fix",
-      "ruff format"
+      "ruff format",
+      "ruff check --fix --exit-non-zero-on-fix"
+    ],
+    "*": [
+      "pre-commit run check-added-large-files --files"
     ]
   },
   "dependencies": {
