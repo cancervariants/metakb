@@ -1,15 +1,18 @@
-from dataclasses import dataclass
 from pathlib import Path
 
 from ga4gh.cat_vrs.models import CategoricalVariant
 
 from metakb.normalizers import ViccNormalizers
-from metakb.transformers.base import MethodId, Transformer
+from metakb.transformers.base import MethodId, Transformer, _HarvestedData
 
 
-@dataclass()
-class _FdaApprovalsCache:
-    variations: list[CategoricalVariant]
+class CivicHarvestedData(_HarvestedData):
+    """Define output for harvested data from CIViC"""
+
+    genes: list[dict]
+    evidence: list[dict]
+    molecular_profiles: list[dict]
+    assertions: list[dict]
 
 
 class CivicTransformer(Transformer):
@@ -33,6 +36,6 @@ class CivicTransformer(Transformer):
 
         # Method will always be the same
         self.processed_data.methods = [
-            self.methods_mapping[MethodId.CIVIC_EID_SOP.value]
+            self.methods_mapping[MethodId.FDA_APPROV_SOP.value]
         ]
         self._cache = self._create_cache()

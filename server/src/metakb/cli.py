@@ -21,8 +21,8 @@ from botocore.config import Config
 from metakb import DATE_FMT, __version__
 from metakb.config import get_config
 from metakb.harvesters.civic import CivicHarvester
+from metakb.harvesters.fda_poda import FdaPodaHarvester
 from metakb.harvesters.moa import MoaHarvester
-from metakb.harvesters.poda import FdaPodaHarvester
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
     IllegalUpdateError,
