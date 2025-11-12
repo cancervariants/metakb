@@ -9,6 +9,7 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  Tooltip,
   useTheme,
 } from '@mui/material'
 import FirstPageIcon from '@mui/icons-material/FirstPage'
@@ -22,7 +23,7 @@ import { ResultColumn } from './types'
 import { NormalizedResult, TherapyInteractionType } from '../../utils'
 import { normalizeEvidenceLevelFromStrength } from '../../utils/normalization'
 import { EvidenceLevel } from '../../models/codings'
-import { PieChart, Pie, Cell, Tooltip } from 'recharts'
+import { PieChart, Pie, Cell } from 'recharts'
 import theme from '../../theme'
 
 interface TablePaginationActionsProps {
@@ -142,25 +143,41 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
         const levelColor = theme.palette.evidence
 
         return (
-          <Box display="flex" gap={3} alignItems="center">
+          <Box id="evidence-level-container" display="flex" gap={3} alignItems="center">
             {value?.evidence_level}
-            <PieChart width={40} height={40}>
-              <Tooltip />
-              <Pie
-                data={data}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={12}
-                outerRadius={20}
-                paddingAngle={2}
-                label={false}
-                animationDuration={200}
-              >
-                {data.map((entry, idx) => (
-                  <Cell key={`cell-${idx}`} fill={levelColor[entry.name as EvidenceLevel]} />
-                ))}
-              </Pie>
-            </PieChart>
+            <Tooltip
+              arrow
+              followCursor
+              enterDelay={100}
+              title={
+                <Box id="evidence-level-breakdown-tooltip">
+                  {data.map((d) => (
+                    <div key={d.name}>
+                      {d.name}: {d.value}
+                    </div>
+                  ))}
+                </Box>
+              }
+            >
+              <Box id="evidence-level-pie-chart-container">
+                <PieChart width={40} height={40}>
+                  <Pie
+                    data={data}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={12}
+                    outerRadius={20}
+                    paddingAngle={2}
+                    label={false}
+                    animationDuration={200}
+                  >
+                    {data.map((entry, idx) => (
+                      <Cell key={`cell-${idx}`} fill={levelColor[entry.name as EvidenceLevel]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </Box>
+            </Tooltip>
           </Box>
         )
       },
