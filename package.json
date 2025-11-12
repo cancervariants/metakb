@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "turbo run dev --parallel",
     "prepare": "husky",
-    "lint-staged": "lint-staged",
+    "lint-staged": "lint-staged --fail-on-changes --continue-on-error --no-revert",
     "format": "pnpm --filter client format && ruff check server --fix && ruff format server"
   },
   "devDependencies": {
@@ -15,8 +15,17 @@
   },
   "lint-staged": {
     "server/**/*.py": [
-      "ruff check --fix",
-      "ruff format"
+      "ruff format",
+      "ruff check --fix --exit-non-zero-on-fix"
+    ],
+    "*": [
+      "pre-commit run check-added-large-files --files",
+      "pre-commit run detect-private-key --files",
+      "pre-commit run trailing-whitespace --files",
+      "pre-commit run end-of-file-fixer --files",
+      "pre-commit run check-merge-conflict --files",
+      "pre-commit run detect-aws-credentials --files",
+      "pre-commit run mixed-line-ending --files"
     ]
   },
   "dependencies": {
