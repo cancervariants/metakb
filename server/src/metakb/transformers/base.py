@@ -71,7 +71,7 @@ NORMALIZER_INSTANCE_TO_ATTR = {
 _CacheType = TypeVar("_CacheType", bound="_TransformedRecordsCache")
 
 
-def _sanitize_name(name: str) -> str:
+def sanitize_name(name: str) -> str:
     """Trim leading and trailing whitespace and replace whitespace characters with
     underscores
 
@@ -135,7 +135,7 @@ class ViccConceptVocab(BaseModel):
     definition: StrictStr
 
 
-class _TransformedRecordsCache(BaseModel):
+class TransformedRecordsCache(BaseModel):
     """Define model for caching transformed records"""
 
     therapies: ClassVar[dict[str, MappableConcept]] = {}

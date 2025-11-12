@@ -34,15 +34,15 @@ from metakb.normalizers import (
 from metakb.transformers.base import (
     MethodId,
     MoaEvidenceLevel,
+    TransformedRecordsCache,
     Transformer,
-    _sanitize_name,
-    _TransformedRecordsCache,
+    sanitize_name,
 )
 
 logger = logging.getLogger(__name__)
 
 
-class _MoaTransformedCache(_TransformedRecordsCache):
+class _MoaTransformedCache(TransformedRecordsCache):
     """Create model for caching MOA data"""
 
     variations: ClassVar[dict[str, dict]] = {}
@@ -228,7 +228,7 @@ class MoaTransformer(Transformer):
             feature = variant["feature"]
             moa_variation = None
             gene = variant.get("gene") or variant.get("gene1")
-            moa_gene = self._cache.genes[_sanitize_name(gene)] if gene else None
+            moa_gene = self._cache.genes[sanitize_name(gene)] if gene else None
             protein_change = variant.get("protein_change")
             constraints = None
             extensions = []
@@ -388,7 +388,7 @@ class MoaTransformer(Transformer):
                 )
                 id_ = f"moa.{gene_norm_resp.gene.id}"
             else:
-                id_ = f"moa.gene:{_sanitize_name(gene)}"
+                id_ = f"moa.gene:{sanitize_name(gene)}"
                 extensions.append(self._get_vicc_normalizer_failure_ext())
 
             moa_gene = MappableConcept(
@@ -398,7 +398,7 @@ class MoaTransformer(Transformer):
                 mappings=mappings or None,
                 extensions=extensions or None,
             )
-            self._cache.genes[_sanitize_name(gene)] = moa_gene
+            self._cache.genes[sanitize_name(gene)] = moa_gene
             self.processed_data.genes.append(moa_gene)
 
     def _add_documents(self, sources: list) -> None:
@@ -456,7 +456,7 @@ class MoaTransformer(Transformer):
             )
             therapy_id = f"moa.ctid:{therapeutic_digest}"
         else:
-            therapy_id = f"moa.therapy:{_sanitize_name(therapy_name)}"
+            therapy_id = f"moa.therapy:{sanitize_name(therapy_name)}"
             therapies = [{"name": therapy_name}]
             membership_operator = None
 
@@ -711,7 +711,7 @@ class MoaTransformer(Transformer):
         if not normalized_disease_id:
             logger.debug("Disease Normalizer unable to normalize: %s", queries)
             extensions.append(self._get_vicc_normalizer_failure_ext())
-            id_ = f"moa.disease:{_sanitize_name(disease_name)}"
+            id_ = f"moa.disease:{sanitize_name(disease_name)}"
         else:
             id_ = f"moa.{disease_norm_resp.disease.id}"
             mappings.extend(

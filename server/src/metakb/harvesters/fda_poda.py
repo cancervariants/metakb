@@ -8,14 +8,15 @@ import json
 from pathlib import Path
 
 import requests
+from ga4gh.va_spec.base import Statement
 from wags_tails.base_source import DataSource
 from wags_tails.utils.downloads import HTTPS_REQUEST_TIMEOUT, download_http
 
 from metakb.harvesters.base import Harvester, _HarvestedData
 
 
-class _FdaPodaHarvestedData(_HarvestedData):
-    statements: list[dict]
+class FdaPodaHarvestedData(_HarvestedData):
+    statements: list[Statement]
     variants: list[dict]
 
 
@@ -49,4 +50,4 @@ class FdaPodaHarvester(Harvester):
 
     def harvest(self) -> _HarvestedData:
         source_data = self._get_fda_poda_data()
-        return _FdaPodaHarvestedData(variants=[], **source_data)
+        return FdaPodaHarvestedData(variants=[], **source_data)
