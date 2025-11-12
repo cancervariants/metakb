@@ -1,16 +1,13 @@
-import logging
 from pathlib import Path
 from typing import ClassVar
-import uuid
 
 from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
 from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.base import (
-    Condition,
-    ConditionSet,
     Document,
     Statement,
     TherapyGroup,
+    VariantTherapeuticResponseProposition,
 )
 from ga4gh.vrs.models import Allele
 
@@ -18,12 +15,10 @@ from metakb.harvesters.fda_poda import FdaPodaHarvestedData
 from metakb.normalizers import ViccNormalizers
 from metakb.transformers.base import (
     MethodId,
+    TransformedData,
     TransformedRecordsCache,
     Transformer,
-    sanitize_name,
 )
-
-_logger = logging.getLogger(__name__)
 
 
 class _FdaTransformedCache(TransformedRecordsCache):
@@ -53,105 +48,96 @@ class FdaPodaTransformer(Transformer):
         self.processed_data.methods = [
             self.methods_mapping[MethodId.FDA_APPROV_SOP.value]
         ]
-        self._cache = self._create_cache()
-
-    def _create_cache(self) -> _FdaTransformedCache:
-        return _FdaTransformedCache()
 
     async def transform(self, harvested_data: FdaPodaHarvestedData) -> None:
         """Transform harvested data to the Common Data Model.
 
         :param harvested_data: Source harvested data
         """
-        genes = [s.proposition.geneContextQualifier for s in harvested_data.statements]
-        self._add_genes(genes)
-        variants = [s.proposition.subjectVariant for s in harvested_data.statements]
-        await self._add_categorical_variants(variants)
-        diseases = [s.proposition.conditionQualifier for s in harvested_data.statements]
-        self._add_diseases(diseases)
-        documents = [d for s in harvested_data.statements for d in s.reportedIn]
-        self._add_documents(documents)
-
-        for statements in harvested_data.statements:
-            pass
-
-    def _add_genes(self, genes: list[MappableConcept]) -> None:
-        """Create gene objects
-
-        Mutates ``genes`` arg and the instance cache
-
-        :param genes: All genes in FDA PODA data artifact
-        """
-        for gene in genes:
-            name: str = gene.name  # type: ignore[reportAssignmentType]
-            gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(
-                name
+        cdm = {
+            "statements_evidence": [],
+            "categorical_variants": [],
+            "variations": [],
+            "genes": [],
+            "therapies": [],
+            "conditions": [],
+            "methods": [],
+            "documents": [],
+        }
+        for statement in harvested_data.statements:
+            proposition: VariantTherapeuticResponseProposition = statement.proposition  # type: ignore
+            variant_query = proposition.subjectVariant.name
+            normalized_variation = await self.vicc_normalizers.normalize_variation(
+                variant_query
             )
-            if normalized_gene_id:
-                gene.mappings = [
-                    self._get_vicc_normalizer_mappings(
-                        normalized_gene_id, gene_norm_resp
-                    )
-                ]
-                gene.id = f"fda_poda.{gene_norm_resp.gene.id}"
-            else:
-                gene.extensions = [self._get_vicc_normalizer_failure_ext()]
-            self._cache.genes[sanitize_name(name)] = gene
-            self.processed_data.genes.append(gene)
-
-    async def _add_categorical_variants(
-        self, variants: list[CategoricalVariant]
-    ) -> None:
-        """Create normalized Categorical Variant objects
-
-        Mutates ``variants`` arg and instance cache
-
-        :param variants: Input variants
-        """
-        for variant in variants:
-            variant_id: str = variant.id  # type: ignore[reportAssignmentType]
-            extensions = []
-
-            query: str = variant.name  # type: ignore[reportAssignmentType]
-            vrs_variation = await self.vicc_normalizers.normalize_variation(query)
-
-            if not vrs_variation:
-                _logger.debug(
-                    "Variation Normalizer unable to normalize query: %s",
-                    query,
-                )
-                extensions.append(self._get_vicc_normalizer_failure_ext())
-            else:
-                if not isinstance(vrs_variation, Allele):
+            if normalized_variation:
+                if isinstance(normalized_variation, Allele):
+                    proposition.subjectVariant.constraints = [
+                        DefiningAlleleConstraint(allele=normalized_variation)
+                    ]
+                    cdm["variants"].append(normalized_variation)
+                else:
                     raise NotImplementedError
-                variant.constraints = [DefiningAlleleConstraint(allele=vrs_variation)]
+            cdm["categorical_variants"].append(proposition.subjectVariant)
 
-            self._cache.categorical_variants[variant_id] = variant
-            self.processed_data.categorical_variants.append(variant)
-
-    def _add_diseases(self, diseases: list[Condition]) -> None:
-        for disease in diseases:
-            if isinstance(disease.root, ConditionSet):
-                raise NotImplementedError
-            query = disease.root.name
-            response, normalized_id = self.vicc_normalizers.normalize_disease(query)
-            if normalized_id:
-                disease.root.mappings = [
-                    self._get_vicc_normalizer_mappings(normalized_id, response)
-                ]
-                disease.root.id = f"fda_poda.{response.disease.id}"
+            gene_query = proposition.geneContextQualifier.name
+            normalized_gene_response, normalized_gene_id = (
+                self.vicc_normalizers.normalize_gene(gene_query)
+            )
+            gene_mappings = proposition.geneContextQualifier.mappings or []
+            gene_extensions = proposition.geneContextQualifier.extensions or []
+            if normalized_gene_id:
+                gene_mappings.extend(
+                    self._get_vicc_normalizer_mappings(
+                        normalized_gene_id, normalized_gene_response
+                    )
+                )
             else:
-                disease.root.extensions = [self._get_vicc_normalizer_failure_ext()]
-            self._cache.conditions[sanitize_name(disease.root.name)] = disease.root
-            self.processed_data.conditions.append(disease.root)
+                gene_extensions.append(self._get_vicc_normalizer_failure_ext())
+            cdm["genes"].append(proposition.geneContextQualifier)
 
-    def _add_documents(self, documents: list[Document]) -> None:
-        for document in documents:
-            # TODO remove this once IDs are in source artifact
-            if not document.id:
-                document.id = f"fda_poda.doc:{uuid.uuid1()}"
-            self._cache.documents[document.id] = document
-            self.processed_data.documents.append(document)
+            if not isinstance(proposition.conditionQualifier.root, MappableConcept):
+                raise NotImplementedError
+            disease_query = proposition.conditionQualifier.root.name
+            normalized_disease_response, normalized_disease_id = (
+                self.vicc_normalizers.normalize_disease(disease_query)
+            )
+            disease_mappings = proposition.conditionQualifier.root.mappings or []
+            disease_extensions = proposition.conditionQualifier.root.extensions or []
+            if normalized_disease_id:
+                disease_mappings.extend(
+                    self._get_vicc_normalizer_mappings(
+                        normalized_disease_id, normalized_disease_response
+                    )
+                )
+            else:
+                disease_extensions.append(self._get_vicc_normalizer_failure_ext())
+            cdm["conditions"].append(proposition.conditionQualifier)
+
+            if not isinstance(proposition.objectTherapeutic.root, MappableConcept):
+                raise NotImplementedError
+            therapy_query = proposition.objectTherapeutic.root.name
+            normalized_therapy_response, normalized_therapy_id = (
+                self.vicc_normalizers.normalize_therapy(therapy_query)
+            )
+            therapy_mappings = proposition.objectTherapeutic.root.mappings or []
+            therapy_extensions = proposition.objectTherapeutic.root.extensions or []
+            if normalized_therapy_id:
+                therapy_mappings.extend(
+                    self._get_vicc_normalizer_mappings(
+                        normalized_therapy_id, normalized_therapy_response
+                    )
+                )
+            else:
+                therapy_extensions.append(self._get_vicc_normalizer_failure_ext())
+            cdm["therapies"].append(proposition.objectTherapeutic)
+
+            if not cdm["methods"]:
+                cdm["methods"].append(statement.specifiedBy)
+            cdm["documents"].extend(statement.reportedIn)
+            cdm["statements_evidence"].append(statement)
+
+        self.transformed_data = TransformedData(**cdm)
 
     def _get_therapy(self, therapy: dict) -> MappableConcept | None:
         """Get therapy mappable concept for source therapy object
@@ -159,6 +145,7 @@ class FdaPodaTransformer(Transformer):
         :param therapy: source therapy object
         :return: therapy mappable concept
         """
+        raise NotImplementedError
 
     def _get_therapeutic_substitute_group(
         self,
@@ -171,3 +158,4 @@ class FdaPodaTransformer(Transformer):
         :param therapies: List of therapy objects
         :return: Therapeutic Substitute Group
         """
+        raise NotImplementedError

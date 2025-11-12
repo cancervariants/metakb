@@ -38,8 +38,7 @@ from metakb.repository.neo4j_repository import (
 )
 from metakb.schemas.app import SourceName
 from metakb.services.manage_data import load_from_json
-from metakb.transformers import CivicTransformer, MoaTransformer
-from metakb.transformers.fda_poda import FdaPodaTransformer
+from metakb.transformers import CivicTransformer, FdaPodaTransformer, MoaTransformer
 from metakb.utils import configure_logs
 
 _logger = logging.getLogger(__name__)
