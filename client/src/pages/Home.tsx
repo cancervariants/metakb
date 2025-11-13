@@ -184,7 +184,8 @@ const HomePage = () => {
               <Box display="flex" alignItems="center" mb={1}>
                 <RocketLaunchIcon color="secondary" sx={{ mr: 1 }} />
                 <Typography variant="body2" color="text.secondary">
-                  Version 2.0 now in early development — improved harmonization and search accuracy.
+                  Version 2.0 is now in early development, bringing a refined knowledge model and
+                  higher-quality harmonized data.
                 </Typography>
               </Box>
 
