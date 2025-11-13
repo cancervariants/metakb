@@ -1,9 +1,12 @@
 import * as React from 'react'
 import Header from '../components/Header'
 import { Box, Button, Link, MenuItem, Select, TextField, Typography } from '@mui/material'
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch'
 import SearchIcon from '@mui/icons-material/Search'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import Footer from '../components/Footer'
+import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 
 const HomePage = () => {
   const navigate = useNavigate()
@@ -50,9 +53,9 @@ const HomePage = () => {
   }, [])
 
   return (
-    <>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Header />
-      <main>
+      <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         <Box
           id="main-page-container"
           m={5}
@@ -68,7 +71,7 @@ const HomePage = () => {
             variant="h5"
             color="primary"
             fontWeight="bold"
-            mb={2}
+            mb={4}
             sx={{
               width: '50%',
               justifyContent: 'center',
@@ -87,7 +90,7 @@ const HomePage = () => {
               alignItems="center"
               flexWrap="wrap"
               gap={6}
-              mb={6}
+              mb={10}
             >
               <Box textAlign="center">
                 <Typography variant="h4" color="primary" fontWeight="bold">
@@ -128,7 +131,7 @@ const HomePage = () => {
             </Box>
           )}
 
-          <Box id="search-container" mb={50}>
+          <Box id="search-container" mb={10}>
             <Select
               value={searchType}
               onChange={(e) => setSearchType(e.target.value)}
@@ -173,9 +176,30 @@ const HomePage = () => {
               )}
             </Box>
           </Box>
+          <Box id="latest-updates-section" my={8} width="100%" maxWidth={800}>
+            <Typography variant="h6" color="primary" mb={2}>
+              Latest Updates
+            </Typography>
+            <Box sx={{ bgcolor: 'grey.100', borderRadius: 1, p: 2 }}>
+              <Box display="flex" alignItems="center" mb={1}>
+                <RocketLaunchIcon color="secondary" sx={{ mr: 1 }} />
+                <Typography variant="body2" color="text.secondary">
+                  Version 2.0 now in early development — improved harmonization and search accuracy.
+                </Typography>
+              </Box>
+
+              <Box display="flex" alignItems="center">
+                <AutoStoriesIcon color="primary" sx={{ mr: 1 }} />
+                <Typography variant="body2" color="text.secondary">
+                  More data sources coming soon!
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
         </Box>
-      </main>
-    </>
+      </Box>
+      <Footer />
+    </Box>
   )
 }
 
