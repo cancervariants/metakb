@@ -9,6 +9,7 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  Tooltip,
   useTheme,
 } from '@mui/material'
 import FirstPageIcon from '@mui/icons-material/FirstPage'
@@ -20,6 +21,10 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import ResultTableRow from './ResultTableRow'
 import { ResultColumn } from './types'
 import { NormalizedResult, TherapyInteractionType } from '../../utils'
+import { normalizeEvidenceLevelFromStrength } from '../../utils/normalization'
+import { EvidenceLevel } from '../../models/codings'
+import { PieChart, Pie, Cell } from 'recharts'
+import theme from '../../theme'
 
 interface TablePaginationActionsProps {
   count: number
@@ -110,7 +115,72 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       field: 'evidence_level',
       headerName: 'Evidence Level',
       width: 150,
-      render: (value: NormalizedResult) => value?.evidence_level,
+      render: (value: NormalizedResult) => {
+        const supportingEvidence = value.grouped_evidence
+        // get array of normalized codes from supporting evidence
+        const codeGroups = supportingEvidence.map((evidence) =>
+          normalizeEvidenceLevelFromStrength(evidence.strength),
+        )
+
+        // format into object with counts
+        const counts = codeGroups.reduce<Record<EvidenceLevel, number>>(
+          (acc, code) => {
+            if (code && Object.values(EvidenceLevel).includes(code as EvidenceLevel)) {
+              acc[code as EvidenceLevel] = (acc[code as EvidenceLevel] || 0) + 1
+            }
+            return acc
+          },
+          { A: 0, B: 0, C: 0, D: 0, E: 0 },
+        )
+        // format object with counts into expected object format for recharts Pie
+        const data = Object.entries(counts)
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          .filter(([_, value]) => value > 0)
+          .map(([level, value]) => ({
+            name: level,
+            value,
+          }))
+        const levelColor = theme.palette.evidence
+
+        return (
+          <Box id="evidence-level-container" display="flex" gap={3} alignItems="center">
+            {value?.evidence_level}
+            <Tooltip
+              arrow
+              followCursor
+              enterDelay={100}
+              title={
+                <Box id="evidence-level-breakdown-tooltip">
+                  {data.map((d) => (
+                    <div key={d.name}>
+                      {d.name}: {d.value}
+                    </div>
+                  ))}
+                </Box>
+              }
+            >
+              <Box id="evidence-level-pie-chart-container">
+                <PieChart width={40} height={40}>
+                  <Pie
+                    data={data}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={12}
+                    outerRadius={20}
+                    paddingAngle={2}
+                    label={false}
+                    animationDuration={200}
+                  >
+                    {data.map((entry, idx) => (
+                      <Cell key={`cell-${idx}`} fill={levelColor[entry.name as EvidenceLevel]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </Box>
+            </Tooltip>
+          </Box>
+        )
+      },
     },
     {
       field: 'disease',
@@ -127,7 +197,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
     {
       field: 'resultCount',
       headerName: 'Records',
-      width: 150,
+      width: 10,
       render: (value: NormalizedResult) => {
         return value?.grouped_evidence.length
       },

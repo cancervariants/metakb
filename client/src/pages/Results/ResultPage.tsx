@@ -25,6 +25,7 @@ import {
   TAB_LABELS,
   getEntityMetadataFromProposition,
 } from '../../utils'
+import { EvidenceLegend } from '../../components/ResultTable/EvidenceLegend'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -297,9 +298,10 @@ const ResultPage = () => {
                 <Tab label={`Prognostic (${filteredByTab.prognostic.length})`} value="prognostic" />
               </Tabs>
               <Box id="search-type-label" m={2}>
-                <Typography variant="h6" fontWeight="bold">
+                <Typography variant="h6" fontWeight="bold" mb={2}>
                   {TAB_LABELS[activeTab]} Search Results ({filteredResults?.length})
                 </Typography>
+                <EvidenceLegend />
               </Box>
               {hasInitialResults ? (
                 <Box display="flex">
