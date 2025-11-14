@@ -1,11 +1,9 @@
 import * as React from 'react'
-import Header from '../components/Header'
 import { Box, Button, Link, MenuItem, Select, TextField, Typography } from '@mui/material'
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch'
 import SearchIcon from '@mui/icons-material/Search'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import Footer from '../components/Footer'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 
 const HomePage = () => {
@@ -53,9 +51,8 @@ const HomePage = () => {
   }, [])
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <Header />
-      <Box component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+    <>
+      <Box component="main">
         <Box
           id="main-page-container"
           m={5}
@@ -199,8 +196,7 @@ const HomePage = () => {
           </Box>
         </Box>
       </Box>
-      <Footer />
-    </Box>
+    </>
   )
 }
 

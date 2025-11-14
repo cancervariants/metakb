@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import Header from '../../components/Header'
 import {
   Alert,
   Box,
@@ -26,7 +25,6 @@ import {
   getEntityMetadataFromProposition,
 } from '../../utils'
 import { EvidenceLegend } from '../../components/ResultTable/EvidenceLegend'
-import Footer from '../../components/Footer'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -251,9 +249,8 @@ const ResultPage = () => {
   const hasFilteredResults = filteredResults.length > 0
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Header />
-      <Box id="result-page-container" m={5} sx={{ flexGrow: 1 }}>
+    <>
+      <Box id="result-page-container" m={5}>
         {loading && <CircularProgress />}
         {error && <Alert severity="error">{error}</Alert>}
         {!loading && !error && (
@@ -390,8 +387,7 @@ const ResultPage = () => {
           </Box>
         )}
       </Box>
-      <Footer />
-    </Box>
+    </>
   )
 }
 
