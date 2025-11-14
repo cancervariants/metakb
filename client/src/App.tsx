@@ -11,10 +11,10 @@ function App() {
       <Router>
         <Routes>
           <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/search" element={<ResultPage />} />
-          {/* Fallback for invalid routes */}
-          <Route path="*" element={<Home />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/search" element={<ResultPage />} />
+            {/* Fallback for invalid routes */}
+            <Route path="*" element={<Home />} />
           </Route>
         </Routes>
       </Router>
