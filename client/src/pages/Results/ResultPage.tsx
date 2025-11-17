@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import Header from '../../components/Header'
 import {
   Alert,
   Box,
@@ -251,7 +250,6 @@ const ResultPage = () => {
 
   return (
     <>
-      <Header />
       <Box id="result-page-container" m={5}>
         {loading && <CircularProgress />}
         {error && <Alert severity="error">{error}</Alert>}

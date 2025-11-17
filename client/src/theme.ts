@@ -4,10 +4,12 @@ import { PaletteColorOptions, PaletteColor } from '@mui/material/styles'
 declare module '@mui/material/styles' {
   interface Palette {
     header: PaletteColor
+    footer: PaletteColor
     evidence: Record<'A' | 'B' | 'C' | 'D' | 'E', string>
   }
   interface PaletteOptions {
     header?: PaletteColorOptions
+    footer?: PaletteColorOptions
     evidence?: Partial<Record<'A' | 'B' | 'C' | 'D' | 'E', string>>
   }
 }
@@ -25,6 +27,10 @@ export const themeOptions: ThemeOptions = {
     secondary: { main: '#A1D044' },
     header: {
       main: '#18252B',
+      contrastText: '#FFFFFF',
+    },
+    footer: {
+      main: '#7E7E7E',
       contrastText: '#FFFFFF',
     },
     evidence: {
