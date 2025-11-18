@@ -48,8 +48,8 @@ from metakb.normalizers import (
 from metakb.transformers.base import (
     CivicEvidenceLevel,
     MethodId,
+    TransformedRecordsCache,
     Transformer,
-    _TransformedRecordsCache,
 )
 
 _logger = logging.getLogger(__name__)
@@ -179,7 +179,7 @@ CIVIC_EVIDENCE_LEVEL_TO_NAME = MappingProxyType(
 )
 
 
-class _CivicTransformedCache(_TransformedRecordsCache):
+class _CivicTransformedCache(TransformedRecordsCache):
     """Create model for caching CIViC data"""
 
     variations: ClassVar[dict[str, _VariationCache]] = {}

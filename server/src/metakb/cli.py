@@ -21,6 +21,7 @@ from botocore.config import Config
 from metakb import DATE_FMT, __version__
 from metakb.config import get_config
 from metakb.harvesters.civic import CivicHarvester
+from metakb.harvesters.fda_poda import FdaPodaHarvester
 from metakb.harvesters.moa import MoaHarvester
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
@@ -37,7 +38,7 @@ from metakb.repository.neo4j_repository import (
 )
 from metakb.schemas.app import SourceName
 from metakb.services.manage_data import load_from_json
-from metakb.transformers import CivicTransformer, MoaTransformer
+from metakb.transformers import CivicTransformer, FdaPodaTransformer, MoaTransformer
 from metakb.utils import configure_logs
 
 _logger = logging.getLogger(__name__)
@@ -549,6 +550,7 @@ def _harvest_sources(
     harvester_sources = {
         SourceName.CIVIC: CivicHarvester,
         SourceName.MOA: MoaHarvester,
+        SourceName.FDA_PODA: FdaPodaHarvester,
     }
     if sources:
         harvester_sources = {k: v for k, v in harvester_sources.items() if k in sources}
@@ -598,11 +600,14 @@ async def _transform_source(
     transformer_sources = {
         SourceName.CIVIC: CivicTransformer,
         SourceName.MOA: MoaTransformer,
+        SourceName.FDA_PODA: FdaPodaTransformer,
     }
     _echo_info(f"Transforming {source.as_print_case()}...")
     start = timer()
-    transformer: CivicTransformer | MoaTransformer = transformer_sources[source](
-        normalizers=normalizer_handler, harvester_path=harvest_file
+    transformer: CivicTransformer | MoaTransformer | FdaPodaTransformer = (
+        transformer_sources[source](
+            normalizers=normalizer_handler, harvester_path=harvest_file
+        )
     )
     harvested_data = transformer.extract_harvested_data()
     await transformer.transform(harvested_data)
