@@ -5,7 +5,11 @@ import logging
 from pathlib import Path
 from typing import ClassVar
 
-from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
+from ga4gh.cat_vrs.models import (
+    CategoricalVariant,
+    DefiningAlleleConstraint,
+    FeatureContextConstraint,
+)
 from ga4gh.core import sha512t24u
 from ga4gh.core.models import (
     Coding,
@@ -39,7 +43,7 @@ from metakb.transformers.base import (
     _TransformedRecordsCache,
 )
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class _MoaTransformedCache(_TransformedRecordsCache):
@@ -111,7 +115,7 @@ class MoaTransformer(Transformer):
         # Check cache for variation record (which contains gene information)
         variation_gene_map = self._cache.variations.get(variant_id)
         if not variation_gene_map:
-            logger.debug(
+            _logger.debug(
                 "%s has no variation for variant_id %s", assertion_id, variant_id
             )
             return
@@ -136,7 +140,7 @@ class MoaTransformer(Transformer):
         # Add disease
         moa_disease = self._add_disease(assertion["disease"])
         if not moa_disease:
-            logger.debug(
+            _logger.debug(
                 "%s has no disease for disease %s", assertion_id, assertion["disease"]
             )
             return
@@ -169,7 +173,7 @@ class MoaTransformer(Transformer):
             prop_params["objectTherapeutic"] = self._get_therapy_or_group(assertion)
 
             if not prop_params["objectTherapeutic"]:
-                logger.debug(
+                _logger.debug(
                     "%s has no therapy for therapy_name %s",
                     assertion_id,
                     assertion["therapy"]["name"],
@@ -233,8 +237,47 @@ class MoaTransformer(Transformer):
             constraints = None
             extensions = []
 
-            if "rearrangement_type" in variant or not protein_change or not gene:
-                logger.debug(
+            if (
+                variant["feature_type"] == "somatic_variant"
+                and variant["alternate_allele"] is None
+                and feature == gene
+                and protein_change is None
+                # no slam-dunk catvar solution exists for defining specific exons as features --
+                # see https://github.com/ga4gh/cat-vrs/discussions/161
+                and variant["exon"] is None
+            ):
+                gene_norm_resp, normalized_gene_id = (
+                    self.vicc_normalizers.normalize_gene(feature)
+                )
+                if not normalized_gene_id:
+                    _logger.debug("Unable to normalize feature term: %s", feature)
+                    extensions.append(self._get_vicc_normalizer_failure_ext())
+                else:
+                    mappings = []
+                    extensions = []
+                    if normalized_gene_id:
+                        mappings.extend(
+                            self._get_vicc_normalizer_mappings(
+                                normalized_gene_id, gene_norm_resp
+                            )
+                        )
+                        id_ = f"moa.{gene_norm_resp.gene.id}"
+                    else:
+                        id_ = f"moa.gene:{_sanitize_name(feature)}"
+                        extensions.append(self._get_vicc_normalizer_failure_ext())
+
+                    gene_concept = MappableConcept(
+                        id=id_,
+                        conceptType="Gene",
+                        name=gene,
+                        mappings=mappings or None,
+                        extensions=extensions or None,
+                    )
+                    constraints = [
+                        FeatureContextConstraint(featureContext=gene_concept)
+                    ]
+            elif "rearrangement_type" in variant or not protein_change or not gene:
+                _logger.debug(
                     "Variation Normalizer does not support %s: %s",
                     moa_variant_id,
                     feature,
@@ -249,7 +292,7 @@ class MoaTransformer(Transformer):
                 vrs_variation = await self.vicc_normalizers.normalize_variation(query)
 
                 if not vrs_variation:
-                    logger.debug(
+                    _logger.debug(
                         "Variation Normalizer unable to normalize: moa.variant: %s using query: %s",
                         variant_id,
                         query,
@@ -355,12 +398,12 @@ class MoaTransformer(Transformer):
                 genomic_params["name"] = gnomad_vcf
                 members = [Variation(**genomic_params)]
             else:
-                logger.debug(
+                _logger.debug(
                     "Variation Normalizer unable to normalize genomic representation: %s",
                     gnomad_vcf,
                 )
         else:
-            logger.debug(
+            _logger.debug(
                 "Not enough enough information provided to create genomic representation: %s",
                 moa_rep_coord,
             )
@@ -432,7 +475,7 @@ class MoaTransformer(Transformer):
         therapy = assertion["therapy"]
         therapy_name = therapy["name"]
         if not therapy_name:
-            logger.debug("%s has no therapy_name", assertion["id"])
+            _logger.debug("%s has no therapy_name", assertion["id"])
             return None
 
         therapy_type = therapy["type"]
@@ -503,7 +546,7 @@ class MoaTransformer(Transformer):
         :param is_disease: ``True`` if ``cached_obj`` is a disease. ``False`` if
             ``cached_obj`` is a therapy
         """
-        logger.debug(
+        _logger.debug(
             "MOA %s and %s resolve to same concept %s",
             moa_concept_label,
             cached_label,
@@ -585,7 +628,7 @@ class MoaTransformer(Transformer):
         ) = self.vicc_normalizers.normalize_therapy(name)
 
         if not normalized_therapeutic_id:
-            logger.debug("Therapy Normalizer unable to normalize: %s", therapy)
+            _logger.debug("Therapy Normalizer unable to normalize: %s", therapy)
             extensions.append(self._get_vicc_normalizer_failure_ext())
             id_ = therapy_id
         else:
@@ -709,7 +752,7 @@ class MoaTransformer(Transformer):
                 break
 
         if not normalized_disease_id:
-            logger.debug("Disease Normalizer unable to normalize: %s", queries)
+            _logger.debug("Disease Normalizer unable to normalize: %s", queries)
             extensions.append(self._get_vicc_normalizer_failure_ext())
             id_ = f"moa.disease:{_sanitize_name(disease_name)}"
         else:
