@@ -27,6 +27,7 @@ from typing import Any, Literal, Self
 from ga4gh.cat_vrs.models import (
     CategoricalVariant,
     DefiningAlleleConstraint,
+    FeatureContextConstraint,
 )
 from ga4gh.core.models import Coding, ConceptMapping, Extension, MappableConcept
 from ga4gh.va_spec.base import (
@@ -228,6 +229,34 @@ class DefiningAlleleConstraintNode(BaseNode):
         )
 
 
+class FeatureContextConstraintNode(BaseNode):
+    """Node model for Cat-VRS FeatureContextConstraint"""
+
+    id: str
+    has_feature_context: GeneNode
+
+    @classmethod
+    def from_gks(cls, constraint: FeatureContextConstraint, constraint_id: str) -> Self:
+        """Create new node instance from a Cat-VRS FeatureContextConstraint
+
+        :param constraint: original constraint object
+        :param constraint_id: database identifier. Our working convention is to
+            incorporate the container categorical variant's ID as part of this, which means
+            we need to get this arg separately
+        :return: node instance
+        """
+        return cls(
+            id=constraint_id,
+            has_feature_context=GeneNode.from_gks(constraint.featureContext),
+        )
+
+    def to_gks(self) -> FeatureContextConstraint:
+        """Create cat-vrs-python feature context constraint class instance"""
+        return FeatureContextConstraint(
+            featureContext=self.has_feature_context.to_gks(),
+        )
+
+
 class CategoricalVariantNode(BaseNode):
     """Node model for Categorical Variant."""
 
@@ -237,7 +266,7 @@ class CategoricalVariantNode(BaseNode):
     aliases: list[str] = []
     extensions: str
     mappings: str
-    has_constraint: DefiningAlleleConstraintNode
+    has_constraint: DefiningAlleleConstraintNode | FeatureContextConstraintNode
     has_members: list[AlleleNode]
 
     @classmethod
@@ -252,6 +281,11 @@ class CategoricalVariantNode(BaseNode):
                 f"{catvar.id}:{constraint.root.type}:{constraint.root.allele.id}"
             )
             constraint_node = DefiningAlleleConstraintNode.from_gks(
+                constraint.root, constraint_id
+            )
+        elif constraint.root.type == "FeatureContextConstraint":
+            constraint_id = f"{catvar.id}:{constraint.root.type}:{constraint.root.featureContext.id}"
+            constraint_node = FeatureContextConstraintNode.from_gks(
                 constraint.root, constraint_id
             )
         else:

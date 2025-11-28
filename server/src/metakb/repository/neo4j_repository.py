@@ -203,14 +203,14 @@ class Neo4jRepository(AbstractRepository):
         """
         if catvar.constraints and len(catvar.constraints) == 1:
             constraint = catvar.constraints[0]
-
+            catvar_node = CategoricalVariantNode.from_gks(catvar)
             if constraint.root.type == "DefiningAlleleConstraint":
-                catvar_node = CategoricalVariantNode.from_gks(catvar)
-                tx.run(
-                    queries_catalog.load_dac_catvar(),
-                    cv=catvar_node.model_dump(mode="json"),
-                )
-            # in the future, handle other kinds of catvars here
+                query = queries_catalog.load_dac_catvar()
+            elif constraint.root.type == "FeatureContextConstraint":
+                query = queries_catalog.load_fcc_catvar()
+            else:
+                raise TypeError
+            tx.run(query, cv=catvar_node.model_dump(mode="json"))
         else:
             msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar.id} is {catvar.constraints}"
             raise ValueError(msg)
