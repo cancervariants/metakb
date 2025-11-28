@@ -413,10 +413,211 @@ def moa_not_normalizable_stmt(
     }
 
 
+@pytest.fixture(scope="session")
+def moa_aid135_study_stmt():
+    return {
+        "id": "moa.assertion:135",
+        "type": "Statement",
+        "description": "Somatic homologous recombination mutations were predictive of platinum sensitivity compared with cases without homologous recombination mutations in Ovarian, Fallopian Tube, and Peritoneal Carcinomas.",
+        "specifiedBy": {
+            "id": "moa.method:2021",
+            "type": "Method",
+            "name": "MOAlmanac (2021)",
+            "reportedIn": {
+                "type": "Document",
+                "name": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
+                "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+                "doi": "10.1038/s43018-021-00243-3",
+                "pmid": 35121878,
+            },
+        },
+        "reportedIn": [
+            {
+                "id": "moa.source:59",
+                "type": "Document",
+                "extensions": [{"name": "source_type", "value": "Journal"}],
+                "title": "Pennington KP, Walsh T, Harrell MI, et al. Germline and somatic mutations in homologous recombination genes predict platinum response and survival in ovarian, fallopian tube, and peritoneal carcinomas. Clin Cancer Res. 2014;20(3):764-75.",
+                "urls": ["https://doi.org/10.1158/1078-0432.CCR-13-2287"],
+                "doi": "10.1158/1078-0432.CCR-13-2287",
+                "pmid": 24240112,
+            }
+        ],
+        "proposition": {
+            "type": "VariantTherapeuticResponseProposition",
+            "subjectVariant": {
+                "id": "moa.variant:131",
+                "type": "CategoricalVariant",
+                "name": "BARD1",
+                "extensions": [],
+                "constraints": [
+                    {
+                        "type": "FeatureContextConstraint",
+                        "featureContext": {
+                            "id": "moa.normalize.gene.hgnc:952",
+                            "conceptType": "Gene",
+                            "name": "BARD1",
+                            "mappings": [
+                                {
+                                    "extensions": [
+                                        {
+                                            "name": "vicc_normalizer_priority",
+                                            "value": True,
+                                        }
+                                    ],
+                                    "coding": {
+                                        "id": "hgnc:952",
+                                        "name": "BARD1",
+                                        "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+                                        "code": "HGNC:952",
+                                    },
+                                    "relation": "exactMatch",
+                                },
+                                {
+                                    "extensions": [
+                                        {
+                                            "name": "vicc_normalizer_priority",
+                                            "value": False,
+                                        }
+                                    ],
+                                    "coding": {
+                                        "id": "ncbigene:580",
+                                        "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                                        "code": "580",
+                                    },
+                                    "relation": "exactMatch",
+                                },
+                            ],
+                        },
+                    }
+                ],
+                "mappings": [
+                    {
+                        "coding": {
+                            "id": "moa.variant:131",
+                            "system": "https://moalmanac.org",
+                            "code": "131",
+                        },
+                        "relation": "exactMatch",
+                    }
+                ],
+            },
+            "geneContextQualifier": {
+                "id": "moa.normalize.gene.hgnc:952",
+                "conceptType": "Gene",
+                "name": "BARD1",
+                "mappings": [
+                    {
+                        "extensions": [
+                            {"name": "vicc_normalizer_priority", "value": True}
+                        ],
+                        "coding": {
+                            "id": "hgnc:952",
+                            "name": "BARD1",
+                            "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+                            "code": "HGNC:952",
+                        },
+                        "relation": "exactMatch",
+                    },
+                    {
+                        "extensions": [
+                            {"name": "vicc_normalizer_priority", "value": False}
+                        ],
+                        "coding": {
+                            "id": "ncbigene:580",
+                            "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                            "code": "580",
+                        },
+                        "relation": "exactMatch",
+                    },
+                ],
+            },
+            "alleleOriginQualifier": {"name": "somatic"},
+            "predicate": "predictsSensitivityTo",
+            "objectTherapeutic": {
+                "id": "moa.normalize.therapy.ncit:C1450",
+                "conceptType": "Therapy",
+                "name": "Platinum Compound",
+                "mappings": [
+                    {
+                        "extensions": [
+                            {"name": "vicc_normalizer_priority", "value": True}
+                        ],
+                        "coding": {
+                            "id": "ncit:C1450",
+                            "name": "Platinum Compound",
+                            "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                            "code": "C1450",
+                        },
+                        "relation": "exactMatch",
+                    }
+                ],
+            },
+            "conditionQualifier": {
+                "id": "moa.normalize.disease.ncit:C7633",
+                "conceptType": "Disease",
+                "name": "Peritoneal Mesothelioma",
+                "mappings": [
+                    {
+                        "coding": {
+                            "id": "oncotree:PEMESO",
+                            "name": "Peritoneal Mesothelioma",
+                            "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
+                            "code": "PEMESO",
+                        },
+                        "relation": "exactMatch",
+                    },
+                    {
+                        "extensions": [
+                            {"name": "vicc_normalizer_priority", "value": True}
+                        ],
+                        "coding": {
+                            "id": "ncit:C7633",
+                            "name": "Peritoneal Mesothelial Neoplasm",
+                            "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                            "code": "C7633",
+                        },
+                        "relation": "exactMatch",
+                    },
+                    {
+                        "extensions": [
+                            {"name": "vicc_normalizer_priority", "value": False}
+                        ],
+                        "coding": {
+                            "id": "MONDO_0006362",
+                            "system": "https://purl.obolibrary.org/obo/",
+                            "code": "MONDO:0006362",
+                        },
+                        "relation": "exactMatch",
+                    },
+                ],
+            },
+        },
+        "direction": "supports",
+        "strength": {
+            "primaryCoding": {
+                "system": "https://moalmanac.org/about",
+                "code": "Inferential evidence",
+            },
+            "mappings": [
+                {
+                    "coding": {
+                        "name": "inferential evidence",
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000010",
+                    },
+                    "relation": "exactMatch",
+                }
+            ],
+        },
+    }
+
+
 @pytest.fixture(scope="module")
-def statements(moa_aid66_study_stmt, moa_aid154_study_stmt):
+def statements(
+    moa_aid66_study_stmt: dict, moa_aid154_study_stmt: dict, moa_aid135_study_stmt: dict
+):
     """Create test fixture for MOA therapeutic statements."""
-    return [moa_aid66_study_stmt, moa_aid154_study_stmt]
+    return [moa_aid66_study_stmt, moa_aid154_study_stmt, moa_aid135_study_stmt]
 
 
 def test_moa_cdm(normalizable_data, statements, check_transformed_cdm):
