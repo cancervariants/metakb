@@ -447,7 +447,7 @@ def moa_aid120_study_stmt():
             "subjectVariant": {
                 "id": "moa.variant:120",
                 "type": "CategoricalVariant",
-                "name": "ARID1A",
+                "name": "ARID1A Mutation",
                 "extensions": [],
                 "constraints": [
                     {

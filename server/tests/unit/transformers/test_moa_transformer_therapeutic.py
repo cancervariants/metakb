@@ -447,7 +447,7 @@ def moa_aid135_study_stmt():
             "subjectVariant": {
                 "id": "moa.variant:131",
                 "type": "CategoricalVariant",
-                "name": "BARD1",
+                "name": "BARD1 Mutation",
                 "extensions": [],
                 "constraints": [
                     {

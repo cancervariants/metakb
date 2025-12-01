@@ -249,6 +249,7 @@ class MoaTransformer(Transformer):
                 gene_norm_resp, normalized_gene_id = (
                     self.vicc_normalizers.normalize_gene(feature)
                 )
+                feature = f"{feature} Mutation"
                 if not normalized_gene_id:
                     _logger.debug("Unable to normalize feature term: %s", feature)
                     extensions.append(self._get_vicc_normalizer_failure_ext())
