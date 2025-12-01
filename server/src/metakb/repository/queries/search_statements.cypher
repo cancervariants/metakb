@@ -1,3 +1,4 @@
+// ------ Process input args -----
 // Expect all params to be lists (possibly empty), never null:
 // $statement_ids, $variation_ids, $condition_ids, $gene_ids, $therapy_ids
 MATCH (s:Statement)
@@ -119,6 +120,7 @@ CALL (s) {
   RETURN [x IN tmp WHERE x IS NOT NULL] AS evidence_lines
 }
 
+// ----- return everything -----
 RETURN DISTINCT
   s,
   str,
