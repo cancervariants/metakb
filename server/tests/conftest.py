@@ -2170,6 +2170,197 @@ def moa_source45():
 
 
 @pytest.fixture(scope="session")
+def moa_aid120_study_stmt():
+    return {
+        "id": "moa.assertion:120",
+        "type": "Statement",
+        "description": "ARID1A mutations were associated with poorer prognosis in a study of 109 microdissected pancreatic adenocarcinoma tumors.",
+        "specifiedBy": {
+            "id": "moa.method:2021",
+            "type": "Method",
+            "name": "MOAlmanac (2021)",
+            "reportedIn": {
+                "type": "Document",
+                "name": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
+                "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+                "doi": "10.1038/s43018-021-00243-3",
+                "pmid": 35121878,
+            },
+        },
+        "reportedIn": [
+            {
+                "id": "moa.source:54",
+                "type": "Document",
+                "extensions": [{"name": "source_type", "value": "Journal"}],
+                "title": "Witkiewicz AK, Mcmillan EA, Balaji U, et al. Whole-exome sequencing of pancreatic cancer defines genetic diversity and therapeutic targets. Nat Commun. 2015;6:6744.",
+                "urls": ["https://doi.org/10.1038/ncomms7744"],
+                "doi": "10.1038/ncomms7744",
+                "pmid": 25855536,
+            }
+        ],
+        "proposition": {
+            "type": "VariantPrognosticProposition",
+            "subjectVariant": {
+                "id": "moa.variant:120",
+                "type": "CategoricalVariant",
+                "name": "ARID1A",
+                "extensions": [],
+                "constraints": [
+                    {
+                        "type": "FeatureContextConstraint",
+                        "featureContext": {
+                            "id": "moa.normalize.gene.hgnc:11110",
+                            "conceptType": "Gene",
+                            "name": "ARID1A",
+                            "mappings": [
+                                {
+                                    "extensions": [
+                                        {
+                                            "name": "vicc_normalizer_priority",
+                                            "value": True,
+                                        }
+                                    ],
+                                    "coding": {
+                                        "id": "hgnc:11110",
+                                        "name": "ARID1A",
+                                        "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+                                        "code": "HGNC:11110",
+                                    },
+                                    "relation": "exactMatch",
+                                },
+                                {
+                                    "extensions": [
+                                        {
+                                            "name": "vicc_normalizer_priority",
+                                            "value": False,
+                                        }
+                                    ],
+                                    "coding": {
+                                        "id": "ncbigene:8289",
+                                        "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                                        "code": "8289",
+                                    },
+                                    "relation": "exactMatch",
+                                },
+                            ],
+                        },
+                    }
+                ],
+                "mappings": [
+                    {
+                        "coding": {
+                            "id": "moa.variant:120",
+                            "system": "https://moalmanac.org",
+                            "code": "120",
+                        },
+                        "relation": "exactMatch",
+                    }
+                ],
+            },
+            "geneContextQualifier": {
+                "id": "moa.normalize.gene.hgnc:11110",
+                "conceptType": "Gene",
+                "name": "ARID1A",
+                "mappings": [
+                    {
+                        "extensions": [
+                            {"name": "vicc_normalizer_priority", "value": True}
+                        ],
+                        "coding": {
+                            "id": "hgnc:11110",
+                            "name": "ARID1A",
+                            "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+                            "code": "HGNC:11110",
+                        },
+                        "relation": "exactMatch",
+                    },
+                    {
+                        "extensions": [
+                            {"name": "vicc_normalizer_priority", "value": False}
+                        ],
+                        "coding": {
+                            "id": "ncbigene:8289",
+                            "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                            "code": "8289",
+                        },
+                        "relation": "exactMatch",
+                    },
+                ],
+            },
+            "alleleOriginQualifier": {"name": "somatic"},
+            "predicate": "associatedWithWorseOutcomeFor",
+            "objectCondition": {
+                "id": "moa.normalize.disease.ncit:C8294",
+                "conceptType": "Disease",
+                "name": "Pancreatic Adenocarcinoma",
+                "mappings": [
+                    {
+                        "coding": {
+                            "id": "oncotree:PAAD",
+                            "name": "Pancreatic Adenocarcinoma",
+                            "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
+                            "code": "PAAD",
+                        },
+                        "relation": "exactMatch",
+                    },
+                    {
+                        "extensions": [
+                            {"name": "vicc_normalizer_priority", "value": True}
+                        ],
+                        "coding": {
+                            "id": "ncit:C8294",
+                            "name": "Pancreatic Adenocarcinoma",
+                            "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                            "code": "C8294",
+                        },
+                        "relation": "exactMatch",
+                    },
+                    {
+                        "extensions": [
+                            {"name": "vicc_normalizer_priority", "value": False}
+                        ],
+                        "coding": {
+                            "id": "DOID:4074",
+                            "system": "https://disease-ontology.org/?id=",
+                            "code": "DOID:4074",
+                        },
+                        "relation": "exactMatch",
+                    },
+                    {
+                        "extensions": [
+                            {"name": "vicc_normalizer_priority", "value": False}
+                        ],
+                        "coding": {
+                            "id": "MONDO_0006047",
+                            "system": "https://purl.obolibrary.org/obo/",
+                            "code": "MONDO:0006047",
+                        },
+                        "relation": "exactMatch",
+                    },
+                ],
+            },
+        },
+        "direction": "disputes",
+        "strength": {
+            "primaryCoding": {
+                "system": "https://moalmanac.org/about",
+                "code": "Clinical evidence",
+            },
+            "mappings": [
+                {
+                    "coding": {
+                        "name": "observational study evidence",
+                        "system": "https://go.osu.edu/evidence-codes",
+                        "code": "e000007",
+                    },
+                    "relation": "exactMatch",
+                }
+            ],
+        },
+    }
+
+
+@pytest.fixture(scope="session")
 def assertion_checks():
     """Check that actual data matches expected data
 

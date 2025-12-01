@@ -47,6 +47,7 @@ from metakb.repository.neo4j_models import (
     DocumentNode,
     DrugNode,
     EvidenceLineNode,
+    FeatureContextConstraintNode,
     GeneNode,
     LiteralSequenceExpressionNode,
     MethodNode,
@@ -437,14 +438,22 @@ class Neo4jRepository(AbstractRepository):
         :param record: Neo4j result row
         :return: A statement node with all entities/supporting data filled in
         """
-        defining_allele_node = self._make_allele_node(
-            record["defining_allele"],
-            record["defining_allele_sl"],
-            record["defining_allele_se"],
-        )
-        constraint_node = DefiningAlleleConstraintNode(
-            has_defining_allele=defining_allele_node, **record["constraint"]
-        )
+        if record.get("defining_allele"):
+            defining_allele_node = self._make_allele_node(
+                record["defining_allele"],
+                record["defining_allele_sl"],
+                record["defining_allele_se"],
+            )
+            constraint_node = DefiningAlleleConstraintNode(
+                has_defining_allele=defining_allele_node, **record["constraint"]
+            )
+        elif feature_context_vals := record.get("feature_context"):
+            feature_context_node = GeneNode(**feature_context_vals)
+            constraint_node = FeatureContextConstraintNode(
+                has_feature_context=feature_context_node, **record["constraint"]
+            )
+        else:
+            raise ValueError
         member_nodes = [
             self._make_allele_node(m["allele"], m["location"], m["state"])
             for m in record["members"]
