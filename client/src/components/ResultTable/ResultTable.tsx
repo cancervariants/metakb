@@ -112,9 +112,9 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       render: (value: NormalizedResult) => value?.variant_name,
     },
     {
-      field: 'evidence_level',
-      headerName: 'Evidence Level',
-      width: 150,
+      field: 'evidence_summary',
+      headerName: 'Evidence Summary',
+      width: 100,
       render: (value: NormalizedResult) => {
         const supportingEvidence = value.grouped_evidence
         // get array of normalized codes from supporting evidence
@@ -143,8 +143,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
         const levelColor = theme.palette.evidence
 
         return (
-          <Box id="evidence-level-container" display="flex" gap={3} alignItems="center">
-            {value?.evidence_level}
+          <Box id="evidence-level-container" display="flex" flexDirection="column">
             <Tooltip
               arrow
               followCursor
@@ -159,7 +158,16 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
                 </Box>
               }
             >
-              <Box id="evidence-level-pie-chart-container">
+              <Box
+                sx={{
+                  position: 'relative',
+                  width: 40,
+                  height: 40,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 <PieChart width={40} height={40}>
                   <Pie
                     data={data}
@@ -176,8 +184,23 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
                     ))}
                   </Pie>
                 </PieChart>
+
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    pointerEvents: 'none', // this is so the cursor will remain the same on hover
+                    color: theme.palette.text.primary,
+                  }}
+                >
+                  {value?.evidence_level}
+                </Box>
               </Box>
             </Tooltip>
+            <Box sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
+              {value.grouped_evidence.length} records
+            </Box>
           </Box>
         )
       },
@@ -191,16 +214,8 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
     {
       field: 'significance',
       headerName: 'Significance',
-      width: 150,
+      width: 100,
       render: (value: NormalizedResult) => value?.significance,
-    },
-    {
-      field: 'resultCount',
-      headerName: 'Records',
-      width: 10,
-      render: (value: NormalizedResult) => {
-        return value?.grouped_evidence.length
-      },
     },
     {
       field: 'expandRow',
