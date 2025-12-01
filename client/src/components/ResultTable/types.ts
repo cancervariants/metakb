@@ -22,7 +22,10 @@ import { NormalizedResult } from '../../utils'
  *   - `expandRow`: UI-only column for expand/collapse toggles
  *   - `resultCount`: Derived column for showing evidence record counts
  */
-type ColumnField = Exclude<keyof NormalizedResult, 'grouped_evidence'> | 'expandRow' | 'evidence_summary'
+type ColumnField =
+  | Exclude<keyof NormalizedResult, 'grouped_evidence'>
+  | 'expandRow'
+  | 'evidence_summary'
 
 /**
  * Represents a single column definition in the results table.

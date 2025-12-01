@@ -199,7 +199,8 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
               </Box>
             </Tooltip>
             <Box sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
-              {value.grouped_evidence.length} records
+              {value.grouped_evidence.length}{' '}
+              {`record${value.grouped_evidence.length > 1 ? 's' : ''}`}
             </Box>
           </Box>
         )
