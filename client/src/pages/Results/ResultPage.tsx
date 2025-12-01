@@ -25,6 +25,7 @@ import {
   getEntityMetadataFromProposition,
 } from '../../utils'
 import { EvidenceLegend } from '../../components/ResultTable/EvidenceLegend'
+import { VariantDiseaseHeatmap } from './VariantDiseaseHeatmap'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -93,6 +94,9 @@ const ResultPage = () => {
 
   const sortedResults = useMemo(() => {
     const variantCounts = buildCountMap(filteredResults, 'variant_name')
+    // star rating
+    // max evidence level
+    // most relevant
 
     return [...filteredResults].sort((a, b) => {
       // variant cluster by total count (desc)
@@ -372,7 +376,10 @@ const ResultPage = () => {
                   </Box>
                   <Box id="results" width="100%" p={2}>
                     {hasFilteredResults ? (
-                      <ResultTable results={sortedResults} resultType={activeTab} />
+                      <>
+                        <VariantDiseaseHeatmap data={filteredResults} />
+                        <ResultTable results={sortedResults} resultType={activeTab} />
+                      </>
                     ) : (
                       <Alert severity="info" sx={{ width: '100%' }}>
                         No results match your current filters.

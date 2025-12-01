@@ -166,3 +166,38 @@ export const normalizeResults = (data: Record<string, Statement[]>): NormalizedR
     ]
   })
 }
+
+export interface VisxColumn {
+  bins: { count: number }[]
+}
+
+export interface VisxHeatmapData {
+  columns: VisxColumn[]
+  variants: string[]
+  diseases: string[]
+}
+
+export function buildVariantDiseaseMatrix(results: NormalizedResult[]) {
+  const variants = Array.from(new Set(results.map((r) => r.variant_name))).sort()
+  const diseases = Array.from(new Set(results.flatMap((r) => r.disease))).sort()
+
+  // Create a variant × disease matrix
+  const matrix = variants.map(() => diseases.map(() => 0))
+
+  results.forEach((row) => {
+    const vIdx = variants.indexOf(row.variant_name)
+    const evidence = row.grouped_evidence.length
+
+    row.disease.forEach((d) => {
+      const dIdx = diseases.indexOf(d)
+      matrix[vIdx][dIdx] += evidence
+    })
+  })
+
+  // Convert to VisX rows (NOT columns!)
+  const rows = matrix.map((rowVals) => ({
+    bins: rowVals.map((count) => ({ count })),
+  }))
+
+  return { rows, variants, diseases }
+}
