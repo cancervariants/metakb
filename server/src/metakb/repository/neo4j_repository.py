@@ -608,6 +608,7 @@ class Neo4jRepository(AbstractRepository):
         * Combo-therapy specific search
         * Specific logic for searching diseases/conditionsets
         * Search on source values rather than normalized values
+        * Searching non-allele catvars (e.g. feature context catvars)
 
         :param variation_ids: list of normalized variation IDs
         :param gene_ids: list of normalized gene IDs
@@ -620,7 +621,7 @@ class Neo4jRepository(AbstractRepository):
         """
         if limit is None:
             limit = CYPHER_PAGE_LIMIT
-        # IDs args MUST be lists -- can't be null
+        # IDs args MUST be lists -- can't be null or the Cypher query will error out
         result = self.session.execute_read(
             lambda tx, **kwargs: list(
                 tx.run(queries_catalog.search_statements(), **kwargs)
