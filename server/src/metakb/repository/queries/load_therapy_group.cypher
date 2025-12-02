@@ -12,12 +12,21 @@ MERGE (member_drug:Therapeutic:Drug {id: m.id})
   ON CREATE SET
     member_drug +=
       {
-        normalized_id: m.normalized_id,
+        // normalized_id: m.normalized_id,
         name: m.name,
         mappings: m.mappings,
         aliases: m.aliases,
         extensions: m.extensions
       }
+MERGE (normalized_member_drug:NormalizedDrug {id: m.normalized_drug.id})
+  ON CREATE SET
+    normalized_member_drug +=
+      {
+        name: m.normalized_drug.name,
+        mappings: m.normalized_drug.mappings,
+        extensions: m.normalized_drug.extensions
+      }
+MERGE (member_drug)-[:NORMALIZES_TO]->(normalized_member_drug)
 FOREACH (_ IN
 CASE
   WHEN tg.membership_operator = 'OR' THEN [1]

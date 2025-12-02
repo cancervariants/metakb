@@ -289,11 +289,41 @@ class CategoricalVariantNode(BaseNode):
         )
 
 
+class NormalizedGeneNode(BaseNode):
+    """Node model for a normalized Gene"""
+
+    id: str
+    name: str
+    mappings: str
+    extensions: str
+
+    @classmethod
+    def from_gks(cls, normalized_gene: MappableConcept) -> Self:
+        """Create Node instance from GKS class"""
+        return cls(
+            id=normalized_gene.id,
+            name=normalized_gene.name,
+            mappings=_Mappings(normalized_gene.mappings or []).model_dump_json(),
+            extensions=_Extensions(normalized_gene.extensions or []).model_dump_json(),
+        )
+
+    def to_gks(self) -> MappableConcept:
+        """Create GKS class for Gene from node."""
+        return MappableConcept(
+            id=self.id,
+            conceptType="Gene",
+            name=self.name if self.name else None,
+            mappings=_Mappings(json.loads(self.mappings)).root or None,
+            extensions=_Extensions(json.loads(self.extensions)).root or None,
+        )
+
+
 class GeneNode(BaseNode):
     """Node model for Gene."""
 
     id: str
-    normalized_id: str
+    description: str
+    normalized_gene: NormalizedGeneNode
     name: str
     mappings: str
     extensions: str
@@ -301,16 +331,20 @@ class GeneNode(BaseNode):
     @classmethod
     def from_gks(cls, gene: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
-        normalized_id = None
+        normalized_gene = None
         for mapping in gene.mappings:
             for ext in mapping.extensions:
                 if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
-                    normalized_id = mapping.coding.id
+                    normalized_gene = MappableConcept(
+                        id=mapping.coding.id,
+                        name=mapping.coding.name,
+                        conceptType="Gene",
+                    )
                     break
-            if normalized_id:
+            if normalized_gene:
                 break
         else:
-            msg = f"Unable to locate normalized ID in gene {gene}"
+            msg = f"Unable to locate normalized drug in source record for gene: {gene}"
             raise ValueError(msg)
         description = ""
         if extensions := gene.extensions:
@@ -319,7 +353,7 @@ class GeneNode(BaseNode):
                     description = extension.value
         return cls(
             id=gene.id,
-            normalized_id=normalized_id,
+            normalized_gene=NormalizedGeneNode.from_gks(normalized_gene),
             description=description,
             name=gene.name,
             mappings=_Mappings(gene.mappings or []).model_dump_json(),
@@ -337,6 +371,32 @@ class GeneNode(BaseNode):
         )
 
 
+class NormalizedDiseaseNode(BaseNode):
+    """Node model for a normalized Disease"""
+
+    id: str
+    name: str
+    mappings: str
+
+    @classmethod
+    def from_gks(cls, normalized_disease: MappableConcept) -> Self:
+        """Create Node instance from GKS class"""
+        return cls(
+            id=normalized_disease.id,
+            name=normalized_disease.name,
+            mappings=_Mappings(normalized_disease.mappings or []).model_dump_json(),
+        )
+
+    def to_gks(self) -> MappableConcept:
+        """Create GKS class for Disease from node."""
+        return MappableConcept(
+            id=self.id,
+            conceptType="Disease",
+            name=self.name if self.name else None,
+            mappings=_Mappings(json.loads(self.mappings)).root or None,
+        )
+
+
 class DiseaseNode(BaseNode):
     """Node model for an individual Disease.
 
@@ -344,14 +404,14 @@ class DiseaseNode(BaseNode):
     """
 
     id: str
-    normalized_id: str
+    normalized_disease: NormalizedDiseaseNode
     name: str
     mappings: str
 
     @classmethod
     def from_gks(cls, disease: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
-        normalized_id = None
+        normalized_disease = None
         for mapping in disease.mappings:
             if extensions := mapping.extensions:
                 for extension in extensions:
@@ -359,16 +419,20 @@ class DiseaseNode(BaseNode):
                         extension.name == NormalizerExtensionName.PRIORITY
                         and extension.value
                     ):
-                        normalized_id = mapping.coding.id
+                        normalized_disease = MappableConcept(
+                            id=mapping.coding.id,
+                            name=mapping.coding.name,
+                            conceptType="Gene",
+                        )
                         break
-                if normalized_id:
+                if normalized_disease:
                     break
-        if not normalized_id:
+        if not normalized_disease:
             msg = f"Unable to locate normalized ID in disease {disease}"
             raise ValueError(msg)
         return cls(
             id=disease.id,
-            normalized_id=normalized_id,
+            normalized_disease=NormalizedDiseaseNode.from_gks(normalized_disease),
             name=disease.name or "",
             mappings=_Mappings(disease.mappings or []).model_dump_json(),
         )
@@ -378,8 +442,39 @@ class DiseaseNode(BaseNode):
         return MappableConcept(
             id=self.id,
             conceptType="Disease",
+            name=self.name,
+            mappings=_Mappings(json.loads(self.mappings)).root,
+        )
+
+
+class NormalizedDrugNode(BaseNode):
+    """Node model for Normalized Drug"""
+
+    id: str
+    name: str
+    extensions: str
+    mappings: str
+
+    @classmethod
+    def from_gks(cls, normalized_therapy: MappableConcept) -> Self:
+        """Create Node instance from GKS class."""
+        return cls(
+            id=normalized_therapy.id,
+            name=normalized_therapy.name or "",
+            mappings=_Mappings(normalized_therapy.mappings or []).model_dump_json(),
+            extensions=_Extensions(
+                normalized_therapy.extensions or []
+            ).model_dump_json(),
+        )
+
+    def to_gks(self) -> MappableConcept:
+        """Create GKS MappableConcept (drug) from node."""
+        return MappableConcept(
+            id=self.id,
+            conceptType="Therapy",
             name=self.name if self.name else None,
             mappings=_Mappings(json.loads(self.mappings)).root,
+            extensions=_Extensions(json.loads(self.extensions)).root,
         )
 
 
@@ -387,7 +482,7 @@ class DrugNode(BaseNode):
     """Node model for Drug."""
 
     id: str
-    normalized_id: str
+    normalized_drug: NormalizedDrugNode
     name: str
     extensions: str
     mappings: str
@@ -395,20 +490,24 @@ class DrugNode(BaseNode):
     @classmethod
     def from_gks(cls, therapy: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
-        normalized_id = None
+        normalized_drug = None
         for mapping in therapy.mappings:
             for ext in mapping.extensions:
                 if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
-                    normalized_id = mapping.coding.id
+                    normalized_drug = MappableConcept(
+                        id=mapping.coding.id,
+                        name=mapping.coding.name,
+                        conceptType="Drug",
+                    )
                     break
-            if normalized_id:
+            if normalized_drug:
                 break
         else:
-            msg = f"Unable to locate normalized ID in therapy {therapy}"
+            msg = f"Unable to locate normalized drug in source record for therapy: {therapy}"
             raise ValueError(msg)
         return cls(
             id=therapy.id,
-            normalized_id=normalized_id,
+            normalized_drug=NormalizedDrugNode.from_gks(normalized_drug),
             name=therapy.name or "",
             mappings=_Mappings(therapy.mappings or []).model_dump_json(),
             extensions=_Extensions(therapy.extensions or []).model_dump_json(),

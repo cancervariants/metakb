@@ -452,8 +452,8 @@ class Neo4jRepository(AbstractRepository):
         variant_node = CategoricalVariantNode(
             has_constraint=constraint_node, has_members=member_nodes, **record["cv"]
         )
-        gene_node = GeneNode(**record["g"])
-        condition_node = DiseaseNode(**record["c"])
+        gene_node = GeneNode(**record["gene_obj"])
+        condition_node = DiseaseNode(**record["disease_obj"])
         method_node = MethodNode(
             has_document=DocumentNode(**record["method_doc"]), **record["method"]
         )

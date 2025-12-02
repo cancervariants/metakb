@@ -4,8 +4,9 @@ MATCH (s:Statement)
 WHERE $statement_ids = [] OR s.id IN $statement_ids
 
 MATCH (s)-[:HAS_SUBJECT_VARIANT]->(cv:CategoricalVariant)
-MATCH (s)-[:HAS_TUMOR_TYPE]->(c:Condition)
-MATCH (s)-[:HAS_GENE_CONTEXT]->(g:Gene)
+MATCH
+  (s)-[:HAS_TUMOR_TYPE]->(c:Condition)-[:NORMALIZES_TO]->(nd:NormalizedDisease)
+MATCH (s)-[:HAS_GENE_CONTEXT]->(g:Gene)-[:NORMALIZES_TO]->(ng:NormalizedGene)
 WHERE
   ($variation_ids = [] OR
     EXISTS {
@@ -19,20 +20,30 @@ WHERE
       MATCH (cv)-[:HAS_MEMBER]->(a:Allele)
       WHERE a.id IN $variation_ids
     }) AND
-  ($condition_ids = [] OR c.normalized_id IN $condition_ids) AND
-  ($gene_ids = [] OR g.normalized_id IN $gene_ids) AND
+  ($condition_ids = [] OR nd.id IN $condition_ids) AND
+  ($gene_ids = [] OR ng.id IN $gene_ids) AND
   ($therapy_ids = [] OR
     EXISTS {
-      MATCH (s)-[:HAS_THERAPEUTIC]->(t:Therapeutic)
-      WHERE t.normalized_id IN $therapy_ids
+      MATCH
+        (s)-[:HAS_THERAPEUTIC]->
+        (t:Therapeutic)-[:NORMALIZES_TO]->
+        (nd:NormalizedDrug)
+      WHERE nd.id IN $therapy_ids
     } OR
     EXISTS {
       MATCH
         (s)-[:HAS_THERAPEUTIC]->
         (:TherapyGroup)-[:HAS_SUBSTITUTE|HAS_COMPONENT]->
-        (d:Drug)
-      WHERE d.normalized_id IN $therapy_ids
+        (d:Drug)-[:NORMALIZES_TO]->
+        (nd:NormalizedDrug)
+      WHERE nd.id IN $therapy_ids
     })
+
+WITH
+  s,
+  cv,
+  c {.*, normalized_disease: nd} AS disease_obj,
+  g {.*, normalized_gene: ng} AS gene_obj
 
 // get basic statement info
 MATCH (s)-[:HAS_STRENGTH]->(str:Strength)
@@ -42,7 +53,10 @@ OPTIONAL MATCH (s)-[:HAS_CLASSIFICATION]->(classification:Classification)
 
 // Get therapeutic components
 OPTIONAL MATCH (s)-[:HAS_THERAPEUTIC]->(tg:TherapyGroup)
-OPTIONAL MATCH (tg)-[:HAS_SUBSTITUTE|HAS_COMPONENT]->(tm:Drug)
+OPTIONAL MATCH
+  (tg)-[:HAS_SUBSTITUTE|HAS_COMPONENT]->
+  (tm:Drug)-[:NORMALIZES_TO]->
+  (tm_nd:NormalizedDrug)
 WITH
   s,
   str,
@@ -50,12 +64,13 @@ WITH
   method_doc,
   classification,
   cv,
-  c,
-  g,
+  disease_obj,
+  gene_obj,
   tg,
-  collect(DISTINCT tm) AS tmembers
+  collect(DISTINCT tm {.*, normalized_drug: tm_nd}) AS tmembers
 
-OPTIONAL MATCH (s)-[:HAS_THERAPEUTIC]->(td:Drug)
+OPTIONAL MATCH
+  (s)-[:HAS_THERAPEUTIC]->(td:Drug)-[:NORMALIZES_TO]->(td_nd:NormalizedDrug)
 WITH
   s,
   str,
@@ -63,13 +78,13 @@ WITH
   method_doc,
   classification,
   cv,
-  c,
-  g,
+  disease_obj,
+  gene_obj,
   CASE
     WHEN tg IS NOT NULL THEN {therapy_group: tg, members: tmembers}
   END AS therapy_group,
   CASE
-    WHEN tg IS NULL THEN td
+    WHEN tg IS NULL THEN td {.*, normalized_drug: td_nd}
   END AS drug
 
 // Get catvar components
@@ -106,7 +121,8 @@ CALL (s) {
       CASE
         WHEN line IS NULL THEN null
         ELSE line {.*, evidence_item_ids: item_ids}
-      END) AS tmp
+      END
+    ) AS tmp
   RETURN [x IN tmp WHERE x IS NOT NULL] AS evidence_lines
 }
 
@@ -122,12 +138,11 @@ RETURN DISTINCT
   defining_allele_sl,
   defining_allele_se,
   members,
-  c,
-  g,
+  disease_obj,
+  gene_obj,
   therapy_group,
   drug,
   documents,
   evidence_lines
-ORDER BY s.id
-SKIP $start
+ORDER BY s.id SKIP $start
 LIMIT $limit;
