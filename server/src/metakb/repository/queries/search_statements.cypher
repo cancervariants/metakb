@@ -5,7 +5,7 @@ WHERE $statement_ids = [] OR s.id IN $statement_ids
 
 MATCH (s)-[:HAS_SUBJECT_VARIANT]->(cv:CategoricalVariant)
 MATCH
-  (s)-[:HAS_TUMOR_TYPE]->(c:Condition)-[:NORMALIZES_TO]->(nd:NormalizedDisease)
+  (s)-[:HAS_TUMOR_TYPE]->(c:Condition)-[:NORMALIZES_TO]->(nc:NormalizedDisease)
 MATCH (s)-[:HAS_GENE_CONTEXT]->(g:Gene)-[:NORMALIZES_TO]->(ng:NormalizedGene)
 WHERE
   ($variation_ids = [] OR
@@ -20,13 +20,13 @@ WHERE
       MATCH (cv)-[:HAS_MEMBER]->(a:Allele)
       WHERE a.id IN $variation_ids
     }) AND
-  ($condition_ids = [] OR nd.id IN $condition_ids) AND
+  ($condition_ids = [] OR nc.id IN $condition_ids) AND
   ($gene_ids = [] OR ng.id IN $gene_ids) AND
   ($therapy_ids = [] OR
     EXISTS {
       MATCH
         (s)-[:HAS_THERAPEUTIC]->
-        (t:Therapeutic)-[:NORMALIZES_TO]->
+        (:Therapeutic)-[:NORMALIZES_TO]->
         (nd:NormalizedDrug)
       WHERE nd.id IN $therapy_ids
     } OR
@@ -34,7 +34,7 @@ WHERE
       MATCH
         (s)-[:HAS_THERAPEUTIC]->
         (:TherapyGroup)-[:HAS_SUBSTITUTE|HAS_COMPONENT]->
-        (d:Drug)-[:NORMALIZES_TO]->
+        (:Drug)-[:NORMALIZES_TO]->
         (nd:NormalizedDrug)
       WHERE nd.id IN $therapy_ids
     })
@@ -42,7 +42,7 @@ WHERE
 WITH
   s,
   cv,
-  c {.*, normalized_disease: nd} AS disease_obj,
+  c {.*, normalized_disease: nc} AS disease_obj,
   g {.*, normalized_gene: ng} AS gene_obj
 
 // get basic statement info
