@@ -600,7 +600,7 @@ class EvidenceLineNode(BaseNode):
     id: str
     direction: Direction
     has_evidence_items: list[
-        TherapeuticReponseStatementNode
+        TherapeuticResponseStatementNode
         | DiagnosticStatementNode
         | PrognosticStatementNode
     ] = Field(min_length=1)
@@ -615,7 +615,7 @@ class EvidenceLineNode(BaseNode):
             match proposition_type:
                 case "VariantTherapeuticResponseProposition":
                     evidence_items.append(
-                        TherapeuticReponseStatementNode.from_gks(item)
+                        TherapeuticResponseStatementNode.from_gks(item)
                     )
                 case "VariantDiagnosticProposition":
                     evidence_items.append(DiagnosticStatementNode.from_gks(item))
@@ -696,7 +696,7 @@ class StatementNodeBase(BaseNode):
     has_variant: CategoricalVariantNode
 
 
-class TherapeuticReponseStatementNode(StatementNodeBase):
+class TherapeuticResponseStatementNode(StatementNodeBase):
     """Node model for an evidence statement about a therapeutic response proposition"""
 
     predicate: TherapeuticResponsePredicate
