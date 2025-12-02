@@ -76,6 +76,76 @@ def test_statement_roundtrip(
 
 
 @pytest.mark.ci_only
+def test_therapygroup_statement_roundtrip(
+    repository: Neo4jRepository, civic_eid1462_studystatement: dict
+):
+    """Test that statement based on a TherapyGroup roundtrips correctly"""
+    statement = Statement(**civic_eid1462_studystatement)
+    repository.load_statement(statement)
+
+    eid_result = repository.search_statements(statement_ids=["civic.eid:1462"])
+    assert len(eid_result) == 1
+    assert eid_result[0].id == "civic.eid:1462"
+    assert eid_result[0].proposition.subjectVariant.id == "civic.mpid:580"
+    assert (
+        sorted(
+            eid_result[0].proposition.objectTherapeutic.root.therapies,
+            key=lambda th: th.id,
+        )[0].id
+        == "civic.tid:19"
+    )
+    assert (
+        sorted(
+            eid_result[0].proposition.objectTherapeutic.root.therapies,
+            key=lambda th: th.id,
+        )[1].id
+        == "civic.tid:4"
+    )
+    assert eid_result[0].proposition.conditionQualifier.root.id == "civic.did:206"
+    assert eid_result[0].proposition.geneContextQualifier.id == "civic.gid:5"
+
+    therapy_result = repository.search_statements(therapy_ids=["rxcui:1147220"])
+    assert therapy_result == eid_result
+    therapy_result = repository.search_statements(therapy_ids=["rxcui:1425098"])
+    assert therapy_result == eid_result
+
+    gene_result = repository.search_statements(gene_ids=["hgnc:1097"])
+    assert gene_result == eid_result
+
+    disease_result = repository.search_statements(disease_ids=["ncit:C3510"])
+    assert disease_result == eid_result
+
+    var_result = repository.search_statements(
+        variation_ids=["ga4gh:VA.XRWGe8uqJAtKogVsF7P6jH8Cn_pjl8mu"]
+    )
+    assert var_result == eid_result
+
+    all_combo_result = repository.search_statements(
+        therapy_ids=["rxcui:1147220", "rxcui:1425098"],
+        gene_ids=["hgnc:1097"],
+        disease_ids=["ncit:C3510"],
+        variation_ids=["ga4gh:VA.XRWGe8uqJAtKogVsF7P6jH8Cn_pjl8mu"],
+        statement_ids=["civic.eid:1462"],
+    )
+    assert all_combo_result == eid_result
+
+    entity_combo_result = repository.search_statements(
+        therapy_ids=["rxcui:1147220"],
+        gene_ids=["hgnc:1097"],
+        disease_ids=["ncit:C3510"],
+        variation_ids=["ga4gh:VA.XRWGe8uqJAtKogVsF7P6jH8Cn_pjl8mu"],
+    )
+    assert entity_combo_result == eid_result
+
+    partial_combo_result = repository.search_statements(
+        therapy_ids=["rxcui:1425098"],
+        gene_ids=["hgnc:1097"],
+        disease_ids=["ncit:C3510"],
+    )
+    assert partial_combo_result == eid_result
+
+
+@pytest.mark.ci_only
 def test_get_stats(repository: Neo4jRepository):
     """If we had a robust test dataset, we could check for specific expected counts, but for now this just checks that they're nonzero"""
     stats = repository.get_stats()
