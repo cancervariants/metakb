@@ -377,7 +377,11 @@ const ResultPage = () => {
                   <Box id="results" width="100%" p={2}>
                     {hasFilteredResults ? (
                       <>
-                        <VariantDiseaseHeatmap data={filteredResults} />
+                        <VariantDiseaseHeatmap
+                          data={filteredResults}
+                          limitCols={10}
+                          limitRows={10}
+                        />
                         <ResultTable results={sortedResults} resultType={activeTab} />
                       </>
                     ) : (

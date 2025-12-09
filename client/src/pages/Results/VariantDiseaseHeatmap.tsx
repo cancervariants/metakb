@@ -10,62 +10,81 @@ interface Props {
   data: NormalizedResult[]
   width?: number
   height?: number
+  limitRows?: number
+  limitCols?: number
 }
 
-export function VariantDiseaseHeatmap({ data, width = 1000, height = 700 }: Props) {
-  const { rows, variants, diseases } = buildVariantDiseaseMatrix(data)
+export function VariantDiseaseHeatmap({
+  data,
+  width = 450,
+  height = 300,
+  limitRows,
+  limitCols,
+}: Props) {
+  const { columns, variants, diseases } = buildVariantDiseaseMatrix(data, limitRows, limitCols)
 
-  const margin = { top: 20, bottom: 120, left: 160, right: 20 }
+  const margin = { top: 20, bottom: 120, left: 165, right: 20 }
 
   const xMax = width - margin.left - margin.right
   const yMax = height - margin.top - margin.bottom
 
-  // Flatten all evidence counts for color scale domain
-  const allCounts = rows.flatMap((r) => r.bins.map((b) => b.count))
-  const maxVal = Math.max(...allCounts)
+  const allCounts = columns.flatMap((c) => c.bins.map((b) => b.count))
+  const maxVal = Math.max(...allCounts, 0)
 
   const xScale = scaleBand<number>({
-    domain: diseases.map((_, i) => i), // columns index
+    domain: diseases.map((_, i) => i), // columns = diseases
     range: [0, xMax],
     padding: 0.05,
   })
 
   const yScale = scaleBand<number>({
-    domain: variants.map((_, i) => i), // rows index
+    domain: variants.map((_, i) => i), // rows = variants
     range: [0, yMax],
     padding: 0.05,
   })
 
   const colorScale = scaleLinear({
     domain: [0, maxVal],
-    range: ['#e0f2fe', '#0c4a6e'], // light blue → dark blue
+    range: ['#e0f2fe', '#0c4a6e'],
   })
 
-  const { tooltipData, tooltipLeft, tooltipTop, showTooltip, hideTooltip } = useTooltip()
+  const { tooltipData, tooltipLeft, tooltipTop, showTooltip, hideTooltip } = useTooltip<{
+    value: number
+    variant: string
+    disease: string
+  }>()
+
+  function truncateLabel(label: string, maxLength = 20) {
+    return label.length > maxLength ? label.slice(0, maxLength) + '…' : label
+  }
+
+  // must appease Typescript overlords
+  const x = (i: number) => xScale(i)!;
+  const y = (i: number) => yScale(i)!;
 
   return (
     <div style={{ position: 'relative' }}>
       <svg width={width} height={height}>
         <Group top={margin.top} left={margin.left}>
           <HeatmapRect
-            data={rows}
-            xScale={xScale}
-            yScale={yScale}
+            data={columns}
+            xScale={x}
+            yScale={y}
             colorScale={colorScale}
             binWidth={xScale.bandwidth()}
             binHeight={yScale.bandwidth()}
             gap={2}
           >
             {(heatmapData) =>
-              heatmapData.map((rowCells, rowIndex) =>
-                rowCells.map((cell, colIndex) => {
-                  const value = cell.bin.count
-
+              heatmapData.map((columnCells, columnIndex) =>
+                columnCells.map((cell, rowIndex) => {
+                  const cellBin = cell.bin as {count: number}
+                  const value = cellBin.count
                   if (value === 0) return null
 
                   return (
                     <rect
-                      key={`${rowIndex}-${colIndex}`}
+                      key={`${columnIndex}-${rowIndex}`}
                       x={cell.x}
                       y={cell.y}
                       width={cell.width}
@@ -78,7 +97,7 @@ export function VariantDiseaseHeatmap({ data, width = 1000, height = 700 }: Prop
                           tooltipData: {
                             value,
                             variant: variants[rowIndex],
-                            disease: diseases[colIndex],
+                            disease: diseases[columnIndex],
                           },
                         })
                       }
@@ -90,10 +109,11 @@ export function VariantDiseaseHeatmap({ data, width = 1000, height = 700 }: Prop
             }
           </HeatmapRect>
 
+          {/* Y axis: variants (rows) */}
           <AxisLeft
             scale={yScale}
-            tickFormat={(i) => diseases[i]}
-            tickValues={diseases.map((_, i) => i)}
+            tickFormat={(i) => truncateLabel(variants[i])}
+            tickValues={variants.map((_, i) => i)}
             tickLabelProps={() => ({
               fontSize: 11,
               textAnchor: 'end',
@@ -101,11 +121,12 @@ export function VariantDiseaseHeatmap({ data, width = 1000, height = 700 }: Prop
             })}
           />
 
+          {/* X axis: diseases (columns) */}
           <AxisBottom
             scale={xScale}
             top={yMax}
-            tickFormat={(i) => variants[i]}
-            tickValues={variants.map((_, i) => i)}
+            tickFormat={(i) => truncateLabel(diseases[i])}
+            tickValues={diseases.map((_, i) => i)}
             tickLabelProps={() => ({
               fontSize: 11,
               angle: -45,
@@ -118,7 +139,7 @@ export function VariantDiseaseHeatmap({ data, width = 1000, height = 700 }: Prop
       {tooltipData ? (
         <Tooltip top={tooltipTop} left={tooltipLeft} style={tooltipStyles}>
           <strong>{tooltipData.variant}</strong> → <strong>{tooltipData.disease}</strong>
-          <div>{tooltipData.count} supporting evidence</div>
+          <div>{tooltipData.value} supporting evidence</div>
         </Tooltip>
       ) : null}
     </div>
