@@ -55,7 +55,7 @@ from metakb.repository.neo4j_models import (
     ReferenceLengthExpressionNode,
     SequenceLocationNode,
     StrengthNode,
-    TherapeuticReponseStatementNode,
+    TherapeuticResponseStatementNode,
     TherapyGroupNode,
 )
 from metakb.repository.queries import catalog as queries_catalog
@@ -303,7 +303,7 @@ class Neo4jRepository(AbstractRepository):
         """
         match statement.proposition:
             case VariantTherapeuticResponseProposition():
-                statement_node = TherapeuticReponseStatementNode.from_gks(statement)
+                statement_node = TherapeuticResponseStatementNode.from_gks(statement)
             case VariantDiagnosticProposition():
                 statement_node = DiagnosticStatementNode.from_gks(statement)
             case VariantPrognosticProposition():
@@ -431,7 +431,7 @@ class Neo4jRepository(AbstractRepository):
     ) -> (
         DiagnosticStatementNode
         | PrognosticStatementNode
-        | TherapeuticReponseStatementNode
+        | TherapeuticResponseStatementNode
     ):
         """Given an individual Neo4j result row, produce the repository statement node
 
@@ -487,7 +487,7 @@ class Neo4jRepository(AbstractRepository):
 
         match record["s"]["proposition_type"]:
             case "VariantTherapeuticResponseProposition":
-                statement = TherapeuticReponseStatementNode(
+                statement = TherapeuticResponseStatementNode(
                     has_method=method_node,
                     has_documents=document_nodes,
                     has_strength=strength_node,
@@ -533,7 +533,7 @@ class Neo4jRepository(AbstractRepository):
     def _get_evidence_line_statement_node(
         self, statement_id: str
     ) -> (
-        TherapeuticReponseStatementNode
+        TherapeuticResponseStatementNode
         | DiagnosticStatementNode
         | PrognosticStatementNode
         | None
