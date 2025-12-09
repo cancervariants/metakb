@@ -94,9 +94,6 @@ const ResultPage = () => {
 
   const sortedResults = useMemo(() => {
     const variantCounts = buildCountMap(filteredResults, 'variant_name')
-    // star rating
-    // max evidence level
-    // most relevant
 
     return [...filteredResults].sort((a, b) => {
       // variant cluster by total count (desc)
