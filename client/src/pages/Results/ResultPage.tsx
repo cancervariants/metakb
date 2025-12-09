@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import Header from '../../components/Header'
 import {
   Alert,
   Box,
@@ -25,6 +24,7 @@ import {
   TAB_LABELS,
   getEntityMetadataFromProposition,
 } from '../../utils'
+import { EvidenceLegend } from '../../components/ResultTable/EvidenceLegend'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -179,9 +179,9 @@ const ResultPage = () => {
 
   useEffect(() => {
     if (searchQuery) {
-      document.title = `${TAB_LABELS[activeTab]} results for "${searchQuery}" | VICC MetaKB`
+      document.title = `${TAB_LABELS[activeTab]} results for "${searchQuery}" | VICC MetaKB Jr.`
     } else {
-      document.title = 'VICC | MetaKB'
+      document.title = 'VICC | MetaKB Jr.'
     }
   }, [activeTab, searchQuery])
 
@@ -250,7 +250,6 @@ const ResultPage = () => {
 
   return (
     <>
-      <Header />
       <Box id="result-page-container" m={5}>
         {loading && <CircularProgress />}
         {error && <Alert severity="error">{error}</Alert>}
@@ -297,9 +296,10 @@ const ResultPage = () => {
                 <Tab label={`Prognostic (${filteredByTab.prognostic.length})`} value="prognostic" />
               </Tabs>
               <Box id="search-type-label" m={2}>
-                <Typography variant="h6" fontWeight="bold">
+                <Typography variant="h6" fontWeight="bold" mb={2}>
                   {TAB_LABELS[activeTab]} Search Results ({filteredResults?.length})
                 </Typography>
+                <EvidenceLegend />
               </Box>
               {hasInitialResults ? (
                 <Box display="flex">

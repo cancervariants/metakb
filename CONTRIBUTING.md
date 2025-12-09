@@ -63,7 +63,7 @@ MetaKB uses automated tooling to maintain consistent code quality across the pro
 - To manually check or fix:
 
   ```bash
-  ruff check server
+  ruff check --fix server
   ruff format server
   ```
 

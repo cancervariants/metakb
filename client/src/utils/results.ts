@@ -14,6 +14,7 @@
  */
 
 import { Statement } from '../models/domain'
+import { normalizeEvidenceLevelFromStrength } from './normalization'
 import {
   getDiseaseFromProposition,
   getTherapyFromProposition,
@@ -145,10 +146,10 @@ export const normalizeResults = (data: Record<string, Statement[]>): NormalizedR
 
     // get highest evidence level for display
     const highestEvidenceLevel = arr.reduce((highest, item) => {
-      const code = item?.strength?.primaryCoding?.code ?? 'N/A'
-      const rank = evidenceOrder[code] ?? 999
+      const level = normalizeEvidenceLevelFromStrength(item.strength)
+      const rank = evidenceOrder[level] ?? 999
       const bestRank = evidenceOrder[highest] ?? 999
-      return rank < bestRank ? code : highest
+      return rank < bestRank ? level : highest
     }, 'N/A')
     return [
       {
