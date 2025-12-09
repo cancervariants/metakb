@@ -1,7 +1,12 @@
 from pathlib import Path
+import re
 from typing import ClassVar
 
-from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
+from ga4gh.cat_vrs.models import (
+    CategoricalVariant,
+    DefiningAlleleConstraint,
+    FeatureContextConstraint,
+)
 from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.base import (
     Document,
@@ -18,6 +23,7 @@ from metakb.transformers.base import (
     TransformedData,
     TransformedRecordsCache,
     Transformer,
+    sanitize_name,
 )
 
 
@@ -66,7 +72,7 @@ class FdaPodaTransformer(Transformer):
         }
         for statement in harvested_data.statements:
             proposition: VariantTherapeuticResponseProposition = statement.proposition  # type: ignore
-            variant_query = proposition.subjectVariant.name
+            variant_query: str = proposition.subjectVariant.name  # type: ignore[reportAssignmentType]
             normalized_variation = await self.vicc_normalizers.normalize_variation(
                 variant_query
             )
@@ -78,6 +84,37 @@ class FdaPodaTransformer(Transformer):
                     cdm["variants"].append(normalized_variation)
                 else:
                     raise NotImplementedError
+            else:
+                if featurecontext_match := re.match(r"(.+) Mutation", variant_query):
+                    gene_query = featurecontext_match.groups()[0]
+                    normalized_gene_response, normalized_gene_id = (
+                        self.vicc_normalizers.normalize_gene(gene_query)
+                    )
+                    if normalized_gene_response and normalized_gene_id:
+                        mappings = []
+                        extensions = []
+                        if normalized_gene_id:
+                            mappings.extend(
+                                self._get_vicc_normalizer_mappings(
+                                    normalized_gene_id, normalized_gene_response
+                                )
+                            )
+                            id_ = f"moa.{normalized_gene_response.gene.id}"
+                        else:
+                            id_ = f"moa.gene:{sanitize_name(gene_query)}"
+                            extensions.append(self._get_vicc_normalizer_failure_ext())
+
+                        gene_concept = MappableConcept(
+                            id=id_,
+                            conceptType="Gene",
+                            name=gene_query,
+                            mappings=mappings or None,
+                            extensions=extensions or None,
+                        )
+                        proposition.subjectVariant.constraints = [
+                            FeatureContextConstraint(featureContext=gene_concept)
+                        ]
+
             cdm["categorical_variants"].append(proposition.subjectVariant)
 
             gene_query = proposition.geneContextQualifier.name
