@@ -59,8 +59,8 @@ export function VariantDiseaseHeatmap({
   }
 
   // must appease Typescript overlords
-  const x = (i: number) => xScale(i)!;
-  const y = (i: number) => yScale(i)!;
+  const x = (i: number) => xScale(i)!
+  const y = (i: number) => yScale(i)!
 
   return (
     <div style={{ position: 'relative' }}>
@@ -78,7 +78,7 @@ export function VariantDiseaseHeatmap({
             {(heatmapData) =>
               heatmapData.map((columnCells, columnIndex) =>
                 columnCells.map((cell, rowIndex) => {
-                  const cellBin = cell.bin as {count: number}
+                  const cellBin = cell.bin as { count: number }
                   const value = cellBin.count
                   if (value === 0) return null
 
