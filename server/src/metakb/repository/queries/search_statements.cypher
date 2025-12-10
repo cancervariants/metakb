@@ -86,10 +86,15 @@ CALL (cv) {
   WITH cv
   OPTIONAL MATCH (cv)-[:HAS_MEMBER]->(m:Allele)
   OPTIONAL MATCH (m)-[:HAS_LOCATION]->(sl:SequenceLocation)
+  OPTIONAL MATCH (sl)-[:HAS_SEQUENCE_REFERENCE]->(sr:SequenceReference)
   OPTIONAL MATCH (m)-[:HAS_STATE]->(se:SequenceExpression)
-  WITH m, sl, se
-  WHERE m IS NOT NULL AND sl IS NOT NULL AND se IS NOT NULL
-  RETURN collect(DISTINCT {allele: m, location: sl, state: se}) AS members
+  WITH m, sl, sr, se
+  WHERE m IS NOT NULL AND sl IS NOT NULL AND sr IS NOT NULL AND se IS NOT NULL
+  RETURN
+    collect(
+      DISTINCT
+      {allele: m, location: sl {.*, has_sequence_reference: sr}, state: se}
+    ) AS members
 }
 
 // get documents
@@ -123,7 +128,7 @@ RETURN DISTINCT
   cv,
   constraint,
   defining_allele,
-  defining_allele_sl,
+  defining_allele_sl {.*, has_sequence_reference: defining_allele_sr} AS defining_allele_sl,
   defining_allele_se,
   members,
   c,
