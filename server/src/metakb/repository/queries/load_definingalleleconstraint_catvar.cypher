@@ -23,6 +23,7 @@ MERGE
         expressions: $cv.has_constraint.has_defining_allele.expressions
       }
 MERGE (constr)-[:HAS_DEFINING_ALLELE]->(allele)
+// bind `loc` for readability
 WITH
   cv,
   constr,
