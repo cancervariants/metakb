@@ -78,6 +78,9 @@ MATCH
   (constraint:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->
   (defining_allele:Allele)
 MATCH (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
+MATCH
+  (defining_allele_sl)-[:HAS_SEQUENCE_REFERENCE]->
+  (defining_allele_sr:SequenceReference)
 MATCH (defining_allele)-[:HAS_STATE]->(defining_allele_se:SequenceExpression)
 CALL (cv) {
   WITH cv
@@ -106,7 +109,8 @@ CALL (s) {
       CASE
         WHEN line IS NULL THEN null
         ELSE line {.*, evidence_item_ids: item_ids}
-      END) AS tmp
+      END
+    ) AS tmp
   RETURN [x IN tmp WHERE x IS NOT NULL] AS evidence_lines
 }
 
@@ -128,6 +132,5 @@ RETURN DISTINCT
   drug,
   documents,
   evidence_lines
-ORDER BY s.id
-SKIP $start
+ORDER BY s.id SKIP $start
 LIMIT $limit;
