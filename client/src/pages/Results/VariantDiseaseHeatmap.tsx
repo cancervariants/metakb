@@ -54,6 +54,11 @@ export function VariantDiseaseHeatmap({
     disease: string
   }>()
 
+  // don't display heatmap if there's only one cell
+  if (variants.length == 1 && diseases.length == 1) {
+    return <></>
+  }
+
   function truncateLabel(label: string, maxLength = 20) {
     return label.length > maxLength ? label.slice(0, maxLength) + '…' : label
   }
@@ -139,7 +144,9 @@ export function VariantDiseaseHeatmap({
       {tooltipData ? (
         <Tooltip top={tooltipTop} left={tooltipLeft} style={tooltipStyles}>
           <strong>{tooltipData.variant}</strong> → <strong>{tooltipData.disease}</strong>
-          <div>{tooltipData.value} supporting evidence</div>
+          <div>
+            {tooltipData.value} evidence {`item${tooltipData.value > 1 ? 's' : ''}`}
+          </div>
         </Tooltip>
       ) : null}
     </div>
