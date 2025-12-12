@@ -79,6 +79,21 @@ class BaseNode(BaseModel, abc.ABC):
         """Return corresponding GKS class."""
 
 
+class SequenceReferenceNode(BaseNode):
+    """Node model for a sequence reference"""
+
+    refget_accession: str
+
+    @classmethod
+    def from_gks(cls, sequence_reference: SequenceReference) -> Self:
+        """Create Node instance from GKS class."""
+        return cls(refget_accession=sequence_reference.refgetAccession)
+
+    def to_gks(self) -> SequenceReference:
+        """Return VRS SequenceReference"""
+        return SequenceReference(refgetAccession=self.refget_accession)
+
+
 class SequenceLocationNode(BaseNode):
     """Node model for SequenceLocation"""
 
@@ -87,7 +102,7 @@ class SequenceLocationNode(BaseNode):
     # will need to think about how to handle null case in the future
     start: int
     end: int
-    refget_accession: str
+    has_sequence_reference: SequenceReferenceNode
     sequence: str = ""
 
     @classmethod
@@ -97,7 +112,9 @@ class SequenceLocationNode(BaseNode):
             id=sequence_location.id,
             start=sequence_location.start,
             end=sequence_location.end,
-            refget_accession=sequence_location.sequenceReference.refgetAccession,
+            has_sequence_reference=SequenceReferenceNode.from_gks(
+                sequence_location.sequenceReference
+            ),
             sequence=sequence_location.sequence.root
             if sequence_location.sequence
             else "",
@@ -109,7 +126,7 @@ class SequenceLocationNode(BaseNode):
             id=self.id,
             start=self.start,
             end=self.end,
-            sequenceReference=SequenceReference(refgetAccession=self.refget_accession),
+            sequenceReference=self.has_sequence_reference.to_gks(),
             sequence=self.sequence if self.sequence else None,
         )
 
