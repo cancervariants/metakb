@@ -1,3 +1,4 @@
+// ----- Declare base CV node + nodes related to constraint -----
 MERGE (cv:Variation:CategoricalVariant:ProteinSequenceConsequence {id: $cv.id})
   ON CREATE SET
     cv +=
@@ -22,20 +23,18 @@ MERGE
         expressions: $cv.has_constraint.has_defining_allele.expressions
       }
 MERGE (constr)-[:HAS_DEFINING_ALLELE]->(allele)
-MERGE
-  (sl:Location:SequenceLocation
-    {id: $cv.has_constraint.has_defining_allele.has_location.id})
-  ON CREATE SET
-    sl +=
-      {
-        digest: $cv.has_constraint.has_defining_allele.has_location.digest,
-        start: $cv.has_constraint.has_defining_allele.has_location.start,
-        end: $cv.has_constraint.has_defining_allele.has_location.end,
-        refget_accession:
-          $cv.has_constraint.has_defining_allele.has_location.refget_accession,
-        sequence: $cv.has_constraint.has_defining_allele.has_location.sequence
-      }
+// bind `loc` for readability
+WITH
+  cv,
+  constr,
+  allele,
+  $cv.has_constraint.has_defining_allele.has_location AS loc
+MERGE (sl:Location:SequenceLocation {id: loc.id})
+  ON CREATE SET sl += loc {.digest, .start, .end, .sequence}
 MERGE (allele)-[:HAS_LOCATION]->(sl)
+WITH cv, constr, allele, sl, loc, loc.has_sequence_reference AS loc_sr
+MERGE (sr:SequenceReference {refget_accession: loc_sr.refget_accession})
+MERGE (sl)-[:HAS_SEQUENCE_REFERENCE]->(sr)
 
 // handle different kinds of state objects
 FOREACH (_ IN
@@ -70,6 +69,7 @@ END |
   MERGE (allele)-[:HAS_STATE]->(rle)
 )
 
+// ----- Declare base CV node + nodes related to constraint -----
 WITH cv
 UNWIND $cv.has_members AS m
 MERGE (member_allele:Variation:MolecularVariation:Allele {id: m.id})
@@ -88,6 +88,10 @@ MERGE (member_sl:Location:SequenceLocation {id: m.has_location.id})
         sequence: m.has_location.sequence
       }
 MERGE (member_allele)-[:HAS_LOCATION]->(member_sl)
+MERGE
+  (member_sr:SequenceReference
+    {refget_accession: m.has_location.has_sequence_reference.refget_accession})
+MERGE (member_sl)-[:HAS_SEQUENCE_REFERENCE]->(member_sr)
 
 // handle different kinds of state objects
 FOREACH (_ IN

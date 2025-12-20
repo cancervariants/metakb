@@ -349,7 +349,6 @@ class Neo4jRepository(AbstractRepository):
     ) -> AlleleNode:
         """Build a VRS Allele node from the raw Neo4j node results
 
-
         :param allele_record: Neo4j allele record
         :param sl_record: Neo4j sequence location record
         :param se_record: Neo4j sequence expression record
