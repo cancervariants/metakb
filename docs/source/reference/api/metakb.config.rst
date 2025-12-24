@@ -1,4 +1,4 @@
-﻿metakb.config
+metakb.config
 =============
 
 .. automodule:: metakb.config
