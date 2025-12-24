@@ -1,4 +1,4 @@
-﻿metakb.harvesters.civic
+metakb.harvesters.civic
 =======================
 
 .. automodule:: metakb.harvesters.civic

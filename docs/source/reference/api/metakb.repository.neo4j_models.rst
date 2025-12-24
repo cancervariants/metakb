@@ -1,4 +1,4 @@
-﻿metakb.repository.neo4j_models
+metakb.repository.neo4j_models
 ==============================
 
 .. automodule:: metakb.repository.neo4j_models

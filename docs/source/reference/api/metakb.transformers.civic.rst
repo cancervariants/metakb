@@ -1,4 +1,4 @@
-﻿metakb.transformers.civic
+metakb.transformers.civic
 =========================
 
 .. automodule:: metakb.transformers.civic
