@@ -606,15 +606,11 @@ class Transformer(ABC):
                 )
                 or (
                     is_disease
-                    and mapping.coding.id.startswith(
-                        DiseaseNamespacePrefix.DOID.value
-                    )
+                    and mapping.coding.id.startswith(DiseaseNamespacePrefix.DOID.value)
                 )
                 or (
                     is_therapy
-                    and mapping.coding.id.startswith(
-                        TherapyNamespacePrefix.NCIT.value
-                    )
+                    and mapping.coding.id.startswith(TherapyNamespacePrefix.NCIT.value)
                 )
             ):
                 mappings.append(
