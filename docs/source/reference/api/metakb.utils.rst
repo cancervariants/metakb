@@ -1,4 +1,4 @@
-﻿metakb.utils
+metakb.utils
 ============
 
 .. automodule:: metakb.utils

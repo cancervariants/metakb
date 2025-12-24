@@ -1,4 +1,4 @@
-﻿metakb.transformers.base
+metakb.transformers.base
 ========================
 
 .. automodule:: metakb.transformers.base

@@ -1,4 +1,4 @@
-﻿metakb.schemas.app
+metakb.schemas.app
 ==================
 
 .. automodule:: metakb.schemas.app

@@ -25,15 +25,15 @@ jobs:
           --health-timeout 5s
           --health-retries 30
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 
@@ -53,15 +53,15 @@ jobs:
       run:
         working-directory: ./server
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 
@@ -73,29 +73,18 @@ jobs:
 
   precommit_hooks:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        cmd:
-          - "end-of-file-fixer"
-          - "trailing-whitespace"
-          - "mixed-line-ending"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - uses: j178/prek-action@v1
         with:
-          python-version: 3.12
-
-      - uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: ${{ matrix.cmd }} --all-files
+          extra_args: '--all-files --skip "ruff-format" --skip "ruff-check"'
 
   lint_frontend:
     name: Frontend lint + format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: pnpm/action-setup@v4
         with:
@@ -122,7 +111,7 @@ jobs:
     name: Attempt frontend build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: pnpm/action-setup@v4
         with:
@@ -149,15 +138,15 @@ jobs:
       run:
         working-directory: ./server
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: 3.11
+          python-version: 3.12
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 

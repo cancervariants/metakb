@@ -91,7 +91,7 @@ def get_mappings_normalizer_id(mappings: list[dict | ConceptMapping]) -> str | N
     normalizer_id = None
     for mapping in mappings:
         if isinstance(mapping, ConceptMapping):
-            mapping = mapping.model_dump()
+            mapping = mapping.model_dump()  # noqa: PLW2901
         extensions = mapping.get("extensions") or []
         for ext in extensions:
             if ext["name"] == NormalizerExtensionName.PRIORITY and ext["value"]:

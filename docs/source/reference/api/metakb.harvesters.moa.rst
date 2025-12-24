@@ -1,4 +1,4 @@
-﻿metakb.harvesters.moa
+metakb.harvesters.moa
 =====================
 
 .. automodule:: metakb.harvesters.moa

@@ -1,7 +1,7 @@
 """Declare search API endpoints"""
 
 from time import perf_counter
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from ga4gh.va_spec.base import (
@@ -10,7 +10,6 @@ from ga4gh.va_spec.base import (
     VariantTherapeuticResponseProposition,
 )
 
-from metakb.normalizers import ViccNormalizers
 from metakb.repository.base import AbstractRepository
 from metakb.restapi.dependencies import get_repository
 from metakb.schemas.api import (
@@ -24,6 +23,10 @@ from metakb.services.search import (
     batch_search_statements,
     search_statements,
 )
+
+if TYPE_CHECKING:
+    from metakb.normalizers import ViccNormalizers
+
 
 search_stmts_summary = (
     "Get nested statements from queried concepts that match all conditions provided."

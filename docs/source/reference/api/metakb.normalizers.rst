@@ -1,4 +1,4 @@
-﻿metakb.normalizers
+metakb.normalizers
 ==================
 
 .. automodule:: metakb.normalizers

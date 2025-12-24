@@ -1,4 +1,4 @@
-﻿metakb.repository.base
+metakb.repository.base
 ======================
 
 .. automodule:: metakb.repository.base

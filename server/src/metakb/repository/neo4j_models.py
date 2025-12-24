@@ -531,12 +531,11 @@ class DocumentNode(BaseNode):
         if not document.id:
             if pmid := document.pmid:
                 doc_id = f"pmid:{pmid}"
+            elif doi := document.doi:
+                doc_id = f"doi:{doi}"
             else:
-                if doi := document.doi:
-                    doc_id = f"doi:{doi}"
-                else:
-                    msg = f"Unable to create internal ID for document {document}"
-                    raise ValueError(msg)
+                msg = f"Unable to create internal ID for document {document}"
+                raise ValueError(msg)
             _logger.info("Designating %s as ID for document %s", doc_id, document)
         else:
             doc_id = document.id

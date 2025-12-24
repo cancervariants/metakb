@@ -560,7 +560,7 @@ class Neo4jRepository(AbstractRepository):
         if len(result) == 0:
             # TODO warning or error?
             return None
-        if len(result) >= 2:
+        if len(result) >= 2:  # noqa: PLR2004
             # should be impossible due to uniqueness constraint, how to log?
             raise RuntimeError
         return self._get_statement_node_from_result(result[0])
