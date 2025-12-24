@@ -5,6 +5,7 @@ import json
 import logging
 import re
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from enum import Enum
 from pathlib import Path
 from typing import ClassVar, TypeVar
@@ -148,18 +149,18 @@ class TransformedData(BaseModel):
     statements_evidence: list[Statement] = Field(
         [], description="Statement objects for evidence records"
     )
-    statements_assertions: list[
+    statements_assertions: Sequence[
         VariantTherapeuticResponseStudyStatement
         | VariantPrognosticStudyStatement
         | VariantDiagnosticStudyStatement
     ] = Field([], description="Statement objects for assertion records")
-    categorical_variants: list[CategoricalVariant] = []
-    variations: list[CopyNumberChange | CopyNumberCount | Allele] = []
-    genes: list[MappableConcept] = []
-    therapies: list[MappableConcept | TherapyGroup] = []
-    conditions: list[MappableConcept] = []
-    methods: list[Method] = []
-    documents: list[Document] = []
+    categorical_variants: Sequence[CategoricalVariant] = []
+    variations: Sequence[CopyNumberChange | CopyNumberCount | Allele] = []
+    genes: Sequence[MappableConcept] = []
+    therapies: Sequence[MappableConcept | TherapyGroup] = []
+    conditions: Sequence[MappableConcept] = []
+    methods: Sequence[Method] = []
+    documents: Sequence[Document] = []
 
 
 class Transformer(ABC):
@@ -315,9 +316,9 @@ class Transformer(ABC):
         :param harvested_data: Source harvested data
         """
 
-    @abstractmethod
     def _create_cache() -> _CacheType:
         """Create cache for transformed records"""
+        raise NotImplementedError
 
     def extract_harvested_data(self) -> _HarvestedData:
         """Get harvested data from file.
@@ -388,15 +389,14 @@ class Transformer(ABC):
         """
         return Extension(name=NormalizerExtensionName.FAILURE.value, value=True)
 
-    @abstractmethod
     def _get_therapy(self, therapy: dict) -> MappableConcept | None:
         """Get therapy mappable concept for source therapy object
 
         :param therapy: source therapy object
         :return: therapy mappable concept
         """
+        raise NotImplementedError
 
-    @abstractmethod
     def _get_therapeutic_substitute_group(
         self,
         therapeutic_sub_group_id: str,
@@ -408,6 +408,7 @@ class Transformer(ABC):
         :param therapies: List of therapy objects
         :return: Therapeutic Substitute Group
         """
+        raise NotImplementedError
 
     def _get_combination_therapy(
         self,
