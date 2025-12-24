@@ -1,4 +1,4 @@
-﻿metakb.transformers.moa
+metakb.transformers.moa
 =======================
 
 .. automodule:: metakb.transformers.moa
