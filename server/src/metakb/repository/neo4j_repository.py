@@ -47,6 +47,7 @@ from metakb.repository.neo4j_models import (
     DocumentNode,
     DrugNode,
     EvidenceLineNode,
+    FeatureContextConstraintNode,
     GeneNode,
     LiteralSequenceExpressionNode,
     MethodNode,
@@ -203,14 +204,14 @@ class Neo4jRepository(AbstractRepository):
         """
         if catvar.constraints and len(catvar.constraints) == 1:
             constraint = catvar.constraints[0]
-
+            catvar_node = CategoricalVariantNode.from_gks(catvar)
             if constraint.root.type == "DefiningAlleleConstraint":
-                catvar_node = CategoricalVariantNode.from_gks(catvar)
-                tx.run(
-                    queries_catalog.load_dac_catvar(),
-                    cv=catvar_node.model_dump(mode="json"),
-                )
-            # in the future, handle other kinds of catvars here
+                query = queries_catalog.load_dac_catvar()
+            elif constraint.root.type == "FeatureContextConstraint":
+                query = queries_catalog.load_fcc_catvar()
+            else:
+                raise TypeError
+            tx.run(query, cv=catvar_node.model_dump(mode="json"))
         else:
             msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar.id} is {catvar.constraints}"
             raise ValueError(msg)
@@ -436,14 +437,22 @@ class Neo4jRepository(AbstractRepository):
         :param record: Neo4j result row
         :return: A statement node with all entities/supporting data filled in
         """
-        defining_allele_node = self._make_allele_node(
-            record["defining_allele"],
-            record["defining_allele_sl"],
-            record["defining_allele_se"],
-        )
-        constraint_node = DefiningAlleleConstraintNode(
-            has_defining_allele=defining_allele_node, **record["constraint"]
-        )
+        if record.get("defining_allele"):
+            defining_allele_node = self._make_allele_node(
+                record["defining_allele"],
+                record["defining_allele_sl"],
+                record["defining_allele_se"],
+            )
+            constraint_node = DefiningAlleleConstraintNode(
+                has_defining_allele=defining_allele_node, **record["constraint"]
+            )
+        elif feature_context_vals := record.get("feature_context"):
+            feature_context_node = GeneNode(**feature_context_vals)
+            constraint_node = FeatureContextConstraintNode(
+                has_feature_context=feature_context_node, **record["constraint"]
+            )
+        else:
+            raise ValueError
         member_nodes = [
             self._make_allele_node(m["allele"], m["location"], m["state"])
             for m in record["members"]
@@ -598,6 +607,7 @@ class Neo4jRepository(AbstractRepository):
         * Combo-therapy specific search
         * Specific logic for searching diseases/conditionsets
         * Search on source values rather than normalized values
+        * Searching non-allele catvars (e.g. feature context catvars)
 
         :param variation_ids: list of normalized variation IDs
         :param gene_ids: list of normalized gene IDs
@@ -610,7 +620,7 @@ class Neo4jRepository(AbstractRepository):
         """
         if limit is None:
             limit = CYPHER_PAGE_LIMIT
-        # IDs args MUST be lists -- can't be null
+        # IDs args MUST be lists -- can't be null or the Cypher query will error out
         result = self.session.execute_read(
             lambda tx, **kwargs: list(
                 tx.run(queries_catalog.search_statements(), **kwargs)

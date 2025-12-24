@@ -1,3 +1,4 @@
+// ------ Process input args -----
 // Expect all params to be lists (possibly empty), never null:
 // $statement_ids, $variation_ids, $condition_ids, $gene_ids, $therapy_ids
 MATCH (s:Statement)
@@ -34,13 +35,13 @@ WHERE
       WHERE d.normalized_id IN $therapy_ids
     })
 
-// get basic statement info
+//  ----- get basic statement info  -----
 MATCH (s)-[:HAS_STRENGTH]->(str:Strength)
 MATCH (s)-[:IS_SPECIFIED_BY]->(method:Method)
 MATCH (method)-[:IS_REPORTED_IN]->(method_doc:Document)
 OPTIONAL MATCH (s)-[:HAS_CLASSIFICATION]->(classification:Classification)
 
-// Get therapeutic components
+// ----- Get therapeutic components -----
 OPTIONAL MATCH (s)-[:HAS_THERAPEUTIC]->(tg:TherapyGroup)
 OPTIONAL MATCH (tg)-[:HAS_SUBSTITUTE|HAS_COMPONENT]->(tm:Drug)
 WITH
@@ -72,16 +73,28 @@ WITH
     WHEN tg IS NULL THEN td
   END AS drug
 
-// Get catvar components
-MATCH
-  (cv)-[:HAS_CONSTRAINT]->
+// ----- Get catvar components -----
+MATCH (cv)-[:HAS_CONSTRAINT]->(constraint)
+// Either get constraint for Feature Context...
+OPTIONAL MATCH
+  (constraint:FeatureContextConstraint)-[:HAS_FEATURE_CONTEXT]->
+  (feature_context:Gene)
+// ...or for Defining Allele
+OPTIONAL MATCH
   (constraint:DefiningAlleleConstraint)-[:HAS_DEFINING_ALLELE]->
   (defining_allele:Allele)
-MATCH (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
-MATCH
+OPTIONAL MATCH
+  (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
+OPTIONAL MATCH
+  (defining_allele)-[:HAS_STATE]->(defining_allele_se:SequenceExpression)
+OPTIONAL MATCH
+  (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
+OPTIONAL MATCH
   (defining_allele_sl)-[:HAS_SEQUENCE_REFERENCE]->
   (defining_allele_sr:SequenceReference)
-MATCH (defining_allele)-[:HAS_STATE]->(defining_allele_se:SequenceExpression)
+OPTIONAL MATCH
+  (defining_allele)-[:HAS_STATE]->(defining_allele_se:SequenceExpression)
+// Then get members
 CALL (cv) {
   WITH cv
   OPTIONAL MATCH (cv)-[:HAS_MEMBER]->(m:Allele)
@@ -97,13 +110,13 @@ CALL (cv) {
     ) AS members
 }
 
-// get documents
+// ----- get documents -----
 CALL (s) {
   MATCH (s)-[:IS_REPORTED_IN]->(doc:Document)
   RETURN collect(DISTINCT doc) AS documents
 }
 
-// get evidence line IDs
+// ----- get evidence line IDs -----
 CALL (s) {
   WITH s
   OPTIONAL MATCH (s)-[:HAS_EVIDENCE_LINE]->(line:EvidenceLine)
@@ -119,6 +132,7 @@ CALL (s) {
   RETURN [x IN tmp WHERE x IS NOT NULL] AS evidence_lines
 }
 
+// ----- return everything -----
 RETURN DISTINCT
   s,
   str,
@@ -130,6 +144,7 @@ RETURN DISTINCT
   defining_allele,
   defining_allele_sl {.*, has_sequence_reference: defining_allele_sr} AS defining_allele_sl,
   defining_allele_se,
+  feature_context,
   members,
   c,
   g,
