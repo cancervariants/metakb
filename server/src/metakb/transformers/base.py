@@ -334,10 +334,9 @@ class Transformer(ABC):
                 msg = f"Unable to open harvest file under default filename: {default_path.absolute().as_uri()}"
                 raise FileNotFoundError(msg)
             self.harvester_path = default_path
-        else:
-            if not self.harvester_path.exists():
-                msg = f"Unable to open harvester file: {self.harvester_path}"
-                raise FileNotFoundError(msg)
+        elif not self.harvester_path.exists():
+            msg = f"Unable to open harvester file: {self.harvester_path}"
+            raise FileNotFoundError(msg)
 
         with self.harvester_path.open() as f:
             _harvested_data_child = _HarvestedData.get_subclass_by_prefix(self.name)
@@ -584,50 +583,48 @@ class Transformer(ABC):
                         match_on_coding_id=True,
                     )
                 )
-            else:
-                if is_disease and mapping.coding.code.root.lower().startswith(
-                    DiseaseNamespacePrefix.MONDO.value
-                ):
-                    mappings.append(
-                        _update_mapping(
-                            mapping,
-                            normalized_id,
-                            normalizer_label,
-                            match_on_coding_id=False,
+            elif is_disease and mapping.coding.code.root.lower().startswith(
+                DiseaseNamespacePrefix.MONDO.value
+            ):
+                mappings.append(
+                    _update_mapping(
+                        mapping,
+                        normalized_id,
+                        normalizer_label,
+                        match_on_coding_id=False,
+                    )
+                )
+            elif (
+                (
+                    is_gene
+                    and mapping.coding.id.startswith(
+                        (
+                            GeneNamespacePrefix.NCBI.value,
+                            GeneNamespacePrefix.HGNC.value,
                         )
                     )
-                else:
-                    if (
-                        (
-                            is_gene
-                            and mapping.coding.id.startswith(
-                                (
-                                    GeneNamespacePrefix.NCBI.value,
-                                    GeneNamespacePrefix.HGNC.value,
-                                )
-                            )
-                        )
-                        or (
-                            is_disease
-                            and mapping.coding.id.startswith(
-                                DiseaseNamespacePrefix.DOID.value
-                            )
-                        )
-                        or (
-                            is_therapy
-                            and mapping.coding.id.startswith(
-                                TherapyNamespacePrefix.NCIT.value
-                            )
-                        )
-                    ):
-                        mappings.append(
-                            _update_mapping(
-                                mapping,
-                                normalized_id,
-                                normalizer_label,
-                                match_on_coding_id=True,
-                            )
-                        )
+                )
+                or (
+                    is_disease
+                    and mapping.coding.id.startswith(
+                        DiseaseNamespacePrefix.DOID.value
+                    )
+                )
+                or (
+                    is_therapy
+                    and mapping.coding.id.startswith(
+                        TherapyNamespacePrefix.NCIT.value
+                    )
+                )
+            ):
+                mappings.append(
+                    _update_mapping(
+                        mapping,
+                        normalized_id,
+                        normalizer_label,
+                        match_on_coding_id=True,
+                    )
+                )
         return mappings
 
     def create_json(self, cdm_filepath: Path | None = None) -> None:

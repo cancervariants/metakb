@@ -794,7 +794,7 @@ class CivicTransformer(Transformer):
             aliases = []
             for a in variant["variant_aliases"]:
                 if SNP_RE.match(a):
-                    a = a.lower()
+                    a = a.lower()  # noqa: PLW2901
                     mappings.append(
                         ConceptMapping(
                             coding=Coding(
@@ -1075,7 +1075,7 @@ class CivicTransformer(Transformer):
 
         for therapy in therapies_in:
             therapy_id = f"civic.tid:{therapy['id']}"
-            therapy = self._add_therapy(therapy_id, [therapy], membership_operator=None)
+            therapy = self._add_therapy(therapy_id, [therapy], membership_operator=None)  # noqa: PLW2901
             if not therapy:
                 return None
 
