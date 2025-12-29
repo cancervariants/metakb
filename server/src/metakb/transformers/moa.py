@@ -335,7 +335,10 @@ class MoaTransformer(Transformer):
 
         if variant.get("gene2"):
             # it's a fusion
-            pass
+            _logger.debug(
+                "Not attempting variant normalization because it looks like a fusion: %s",
+                variant,
+            )
         elif (
             variant["feature_type"] == "somatic_variant"
             and variant["alternate_allele"] is None
@@ -356,14 +359,7 @@ class MoaTransformer(Transformer):
                         FeatureContextConstraint(featureContext=normalized_gene)
                     ],
                 )
-        elif "rearrangement_type" in variant or not protein_change or not gene:
-            # it's some other unsupported stuff
-            _logger.debug(
-                "Variation Normalizer does not support %s: %s",
-                variant_id,
-                feature,
-            )
-        else:
+        elif "rearrangement_type" not in variant and protein_change and gene:
             # it's a defining allele constraint-based catvar
             query = f"{gene} {protein_change[2:]}"
             vrs_variation = await self.vicc_normalizers.normalize_variation(query)
@@ -374,13 +370,19 @@ class MoaTransformer(Transformer):
                     query,
                 )
             else:
-                # Create VRS Variation object
                 moa_variation = Variation(**vrs_variation.model_dump(exclude_none=True))
                 normalized_catvar = CategoricalVariant(
                     id=f"catvar:{vrs_variation.id}",
                     name=query,
                     constraints=[DefiningAlleleConstraint(allele=moa_variation.root)],
                 )
+        else:
+            # it's some other unsupported stuff, don't try to normalize it
+            _logger.debug(
+                "Variation Normalizer does not support %s: %s",
+                variant_id,
+                feature,
+            )
 
         extensions, members, mappings = await self._get_variant_extras(variant)
         return normalized_catvar, CategoricalVariant(
