@@ -214,13 +214,17 @@ class MoaTransformer(Transformer):
                     )
             statements.append(statement)
         self.processed_data = TransformedData(
+            # TODO not quite right per se. "evidence" should also include stuff within assertions' evidence lines
             statements_evidence=[s for s in statements if not s.hasEvidenceLines],
             statements_assertions=[s for s in statements if s.hasEvidenceLines],
         )
 
     @staticmethod
     def _build_method() -> Method:
-        """Return MOA assertion method"""
+        """Return MOA assertion method
+
+        :return: Reference for MOA curation method
+        """
         return Method(
             id=MethodId.MOA_ASSERTION_BIORXIV,
             name="MOAlmanac (2021)",
@@ -234,7 +238,10 @@ class MoaTransformer(Transformer):
 
     @staticmethod
     def _build_aggregate_method() -> Method:
-        """Return tmp aggregation method"""
+        """Return tmp aggregation Method
+
+        :return: working aggregation Method
+        """
         return Method(
             id="metakb.method:2026",
             name="MetaKB (2026)",
@@ -266,7 +273,14 @@ class MoaTransformer(Transformer):
     def _normalize_moa_disease(
         self, name: str, oncotree_code: str, oncotree_term: str
     ) -> tuple[Condition | None, Condition]:
-        """Transform MOA disease object to GKS MappableConcept and attempt normalization"""
+        """Transform MOA disease object to GKS MappableConcept and attempt normalization
+
+        :param name: disease name
+        :param oncotree_code: oncotree ID (e.g. "CML")
+        :param oncotree_term: disease name in Oncotree
+        :return: normalized disease concept, if successful, and original MOA disease
+            structured as GKS MappableConcept
+        """
         disease_id = f"moa.disease:{name}"
         queries = [name]
         mappings = []
@@ -306,18 +320,22 @@ class MoaTransformer(Transformer):
     async def _normalize_moa_variant(
         self, variant: dict
     ) -> tuple[CategoricalVariant | None, CategoricalVariant]:
-        """Transform MOA variant to CatVar and attempt normalization"""
-        # TODO variation normalizer not working?
+        """Transform MOA variant to CatVar and attempt normalization
+
+        :param variant: entire MOA variant object. The object keys are sort of unreliable
+            so we just pass through the whole thing and work it out within the method
+        :return: normalized variation as a CatVar, if successful, and original MOA variant
+            as a text catvar
+        """
         variant_id = f"moa.variant:{variant['id']}"
         feature = variant["feature"]
         gene = variant.get("gene") or variant.get("gene1")
         protein_change = variant.get("protein_change")
         normalized_catvar = None
 
-        # it's a fusion
         if variant.get("gene2"):
+            # it's a fusion
             pass
-        # it's a feature context constraint-based catvar
         elif (
             variant["feature_type"] == "somatic_variant"
             and variant["alternate_allele"] is None
@@ -327,6 +345,7 @@ class MoaTransformer(Transformer):
             # see https://github.com/ga4gh/cat-vrs/discussions/161
             and variant["exon"] is None
         ):
+            # it's a feature context constraint-based catvar
             normalized_gene, _ = self._normalize_moa_gene(feature)
             feature = f"{feature} Mutation"
             if normalized_gene:
@@ -337,15 +356,15 @@ class MoaTransformer(Transformer):
                         FeatureContextConstraint(featureContext=normalized_gene)
                     ],
                 )
-        # it's some other unsupported stuff
         elif "rearrangement_type" in variant or not protein_change or not gene:
+            # it's some other unsupported stuff
             _logger.debug(
                 "Variation Normalizer does not support %s: %s",
                 variant_id,
                 feature,
             )
-        # it's a defining allele constraint-based catvar
         else:
+            # it's a defining allele constraint-based catvar
             query = f"{gene} {protein_change[2:]}"
             vrs_variation = await self.vicc_normalizers.normalize_variation(query)
             if not vrs_variation:
@@ -375,7 +394,11 @@ class MoaTransformer(Transformer):
     async def _get_variant_extras(
         self, variant: dict
     ) -> tuple[list[Extension], list[Variation], list[ConceptMapping]]:
-        """Add extensions/members/mappings to MOA CatVar"""
+        """Add extensions/members/mappings to MOA CatVar
+
+        :param variant: original MOA variant object
+        :return: tuple with constructed Extensions, catvar members, and mappings
+        """
         extensions = []
         coordinates_keys = [
             "chromosome",
@@ -392,16 +415,15 @@ class MoaTransformer(Transformer):
             extensions.append(
                 Extension(name="MOA representative coordinate", value=moa_rep_coord)
             )
-
-        if variant.get("locus"):
-            extensions.append(Extension(name="MOA locus", value=variant["locus"]))
+        if locus := variant.get("locus"):
+            extensions.append(Extension(name="MOA locus", value=locus))
         members = await self._get_variation_members(moa_rep_coord)
         mappings = []
-        if variant.get("rsid"):
+        if rsid := variant.get("rsid"):
             mappings.append(
                 ConceptMapping(
                     coding=Coding(
-                        code=variant["rsid"],
+                        code=code(rsid),
                         system="https://www.ncbi.nlm.nih.gov/snp/",
                     ),
                     relation=Relation.RELATED_MATCH,
@@ -455,7 +477,7 @@ class MoaTransformer(Transformer):
         return members
 
     def _build_document(self, source: dict) -> Document:
-        """Convert MOA source to GKS Document
+        """Convert GKS Document from MOA source object
 
         :param source: raw MOA source object
         :return: equivalent Document
