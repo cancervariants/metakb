@@ -1,6 +1,7 @@
 """A module to convert MOA resources to common data model"""
 
 import logging
+from functools import cache
 from pathlib import Path
 
 from ga4gh.cat_vrs.models import (
@@ -14,19 +15,26 @@ from ga4gh.core.models import (
     Extension,
     MappableConcept,
     Relation,
+    code,
 )
 from ga4gh.va_spec.aac_2017 import (
+    Classification,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
 from ga4gh.va_spec.base import (
+    Condition,
     Direction,
     Document,
     EvidenceLine,
+    MembershipOperator,
+    Method,
     PrognosticPredicate,
     Statement,
+    System,
     Therapeutic,
     TherapeuticResponsePredicate,
+    TherapyGroup,
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
@@ -35,7 +43,7 @@ from ga4gh.vrs.models import Variation
 from metakb.config import get_config
 from metakb.harvesters.moa import MoaHarvestedData
 from metakb.normalizers import ViccNormalizers
-from metakb.transformers.base import MoaEvidenceLevel, Transformer
+from metakb.transformers.base import MethodId, TransformedData, Transformer
 
 _logger = logging.getLogger(__name__)
 
@@ -72,60 +80,118 @@ class MoaTransformer(Transformer):
         # loop through statements
         # try to normalize variant, disease, drug
         # if success -> aggregated
-        # otherwise -> no
-        # need to handle therapy combos obviously
+        # otherwise -> not aggregated
 
         :param harvested_data: MOA harvested data
         """
-        sources_map = {source["id"] for source in harvested_data.sources}
+        sources_map = {
+            source["id"]: self._build_document(source)
+            for source in harvested_data.sources
+        }
+        method = self._build_method()
+        aggregate_method = self._build_aggregate_method()
+        tmp_classification = MappableConcept(
+            id="metakb.classification:1",
+            name="tmp metakb tr classification",
+            primaryCoding=Coding(
+                system=System.AMP_ASCO_CAP, code=code(Classification.TIER_I)
+            ),
+        )
         statements = []
         for assertion in harvested_data.assertions:
-            normalized_gene, gene = self._normalize_moa_gene(
-                assertion["variant"]["gene"]
-            )
+            if moa_gene_value := assertion["variant"].get("gene"):
+                normalized_gene, gene = self._normalize_moa_gene(moa_gene_value)
+            else:
+                normalized_gene, gene = None, None
             normalized_disease, disease = self._normalize_moa_disease(
-                assertion["disease"]
-            )
-            normalized_therapy, therapy = self._normalize_moa_therapy(
-                assertion["therapy"]
+                assertion["disease"]["name"],
+                assertion["disease"]["oncotree_code"],
+                assertion["disease"]["oncotree_term"],
             )
             normalized_variant, variant = await self._normalize_moa_variant(
                 assertion["variant"]
             )
             did_normalize = (
-                normalized_gene
-                and normalized_disease
-                and normalized_therapy
-                and normalized_variant
+                normalized_gene and normalized_disease and normalized_variant
             )
             if assertion["favorable_prognosis"] == "":
-                statement = VariantTherapeuticResponseStudyStatement(
+                if (
+                    assertion["therapy"]["resistance"] == ""
+                    and assertion["therapy"]["sensitivity"] == ""
+                ):
+                    # handle cases like assertion ID 849
+                    _logger.error(
+                        "No prognostic or sensitity/resistance response available for assertion: %s",
+                        assertion,
+                    )
+                    continue
+                normalized_therapy, therapy = self._normalize_moa_therapy(
+                    assertion["therapy"]["name"], assertion["therapy"]["type"]
+                )
+                if (
+                    assertion["therapy"]["resistance"] != ""
+                ):  # can be either 0, 1, or ""
+                    predicate = TherapeuticResponsePredicate.RESISTANCE
+                    direction = (
+                        Direction.SUPPORTS
+                        if assertion["therapy"]["resistance"]
+                        else Direction.DISPUTES
+                    )
+                else:
+                    predicate = TherapeuticResponsePredicate.SENSITIVITY
+                    direction = (
+                        Direction.SUPPORTS
+                        if assertion["therapy"]["sensitivity"]
+                        else Direction.DISPUTES
+                    )
+                statement = Statement(
                     proposition=VariantTherapeuticResponseProposition(
                         geneContextQualifier=gene,
                         subjectVariant=variant,
                         conditionQualifier=disease,
                         objectTherapeutic=therapy,
+                        predicate=predicate,
                     ),
-                    reportedIn=self._add_document(sources_map[assertion["source_id"]]),
+                    direction=direction,
+                    reportedIn=[sources_map[assertion["source_id"]]],
+                    specifiedBy=method,
                 )
-                if did_normalize:
-                    statement = VariantPrognosticStudyStatement(
+                if did_normalize and normalized_therapy:
+                    statement = VariantTherapeuticResponseStudyStatement(
                         proposition=VariantTherapeuticResponseProposition(
                             geneContextQualifier=normalized_gene,
                             subjectVariant=normalized_variant,
                             conditionQualifier=normalized_disease,
                             objectTherapeutic=normalized_therapy,
+                            predicate=predicate,
                         ),
-                        hasEvidenceLines=EvidenceLine(hasEvidenceItems=[statement]),
+                        direction=direction,
+                        specifiedBy=aggregate_method,
+                        classification=tmp_classification,
+                        hasEvidenceLines=[
+                            EvidenceLine(
+                                hasEvidenceItems=[statement],
+                                directionOfEvidenceProvided=Direction.SUPPORTS,  # TODO is this right?
+                            )
+                        ],
                     )
             else:
-                statement = VariantPrognosticStudyStatement(
+                if assertion["favorable_prognosis"]:
+                    predicate = PrognosticPredicate.BETTER_OUTCOME
+                    direction = Direction.SUPPORTS
+                else:
+                    predicate = PrognosticPredicate.WORSE_OUTCOME
+                    direction = Direction.DISPUTES
+                statement = Statement(
                     proposition=VariantPrognosticProposition(
                         geneContextQualifier=gene,
                         subjectVariant=variant,
                         objectCondition=disease,
+                        predicate=predicate,
                     ),
-                    reportedIn=self._add_document(sources_map[assertion["source_id"]]),
+                    direction=direction,
+                    reportedIn=[sources_map[assertion["source_id"]]],
+                    specifiedBy=method,
                 )
                 if did_normalize:
                     statement = VariantPrognosticStudyStatement(
@@ -133,11 +199,54 @@ class MoaTransformer(Transformer):
                             geneContextQualifier=normalized_gene,
                             subjectVariant=normalized_variant,
                             objectCondition=normalized_disease,
+                            predicate=predicate,
                         ),
-                        hasEvidenceLines=EvidenceLine(hasEvidenceItems=[statement]),
+                        direction=direction,
+                        # TODO figure these out
+                        specifiedBy=aggregate_method,
+                        classification=tmp_classification,
+                        hasEvidenceLines=[
+                            EvidenceLine(
+                                hasEvidenceItems=[statement],
+                                directionOfEvidenceProvided=Direction.SUPPORTS,  # TODO is this right?
+                            )
+                        ],
                     )
             statements.append(statement)
+        self.processed_data = TransformedData(
+            statements_evidence=[s for s in statements if not s.hasEvidenceLines],
+            statements_assertions=[s for s in statements if s.hasEvidenceLines],
+        )
 
+    @staticmethod
+    def _build_method() -> Method:
+        """Return MOA assertion method"""
+        return Method(
+            id=MethodId.MOA_ASSERTION_BIORXIV,
+            name="MOAlmanac (2021)",
+            reportedIn=Document(
+                name="Reardon, B., Moore, N.D., Moore, N.S. et al.",
+                title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+                doi="10.1038/s43018-021-00243-3",
+                pmid="35121878",
+            ),
+        )
+
+    @staticmethod
+    def _build_aggregate_method() -> Method:
+        """Return tmp aggregation method"""
+        return Method(
+            id="metakb.method:2026",
+            name="MetaKB (2026)",
+            reportedIn=Document(
+                name="Wagnerds et al",
+                title="MetaKB v2",
+                doi="10.1038/1111-1-1111-111-1111",
+                pmid="9999999",
+            ),
+        )
+
+    @cache  # noqa: B019
     def _normalize_moa_gene(
         self,
         gene_name: str,
@@ -153,44 +262,44 @@ class MoaTransformer(Transformer):
             normalized_gene = None
         return normalized_gene, moa_gene
 
+    @cache  # noqa: B019
     def _normalize_moa_disease(
-        self, disease: dict
-    ) -> tuple[MappableConcept | None, MappableConcept]:
+        self, name: str, oncotree_code: str, oncotree_term: str
+    ) -> tuple[Condition | None, Condition]:
         """Transform MOA disease object to GKS MappableConcept and attempt normalization"""
-        name = disease["name"]
         disease_id = f"moa.disease:{name}"
         queries = [name]
         mappings = []
-        ot_code = disease["oncotree_code"]
-        ot_term = disease["oncotree_term"]
-        if ot_code:
+        if oncotree_code:
             mappings.append(
                 ConceptMapping(
                     coding=Coding(
-                        id=f"oncotree:{ot_code}",
-                        code=ot_code,
+                        id=f"oncotree:{oncotree_code}",
+                        code=code(oncotree_code),
                         system="https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
-                        name=ot_term,
+                        name=oncotree_term,
                     ),
                     relation=Relation.EXACT_MATCH,
                 )
             )
-            queries.append(f"oncotree:{disease['oncotree_code']}")
-        if ot_term:
-            queries.append(ot_term)
-        moa_disease = MappableConcept(
-            id=disease_id,
-            conceptType="Disease",
-            name=name,
-            mappings=mappings,
+            queries.append(f"oncotree:{oncotree_code}")
+        if oncotree_term:
+            queries.append(oncotree_term)
+        moa_disease = Condition(
+            MappableConcept(
+                id=disease_id,
+                conceptType="Disease",
+                name=name,
+                mappings=mappings,
+            )
         )
         normalized_disease = None
         for query in queries:
             normalize_response, _ = self.vicc_normalizers.normalize_disease(query)
             if normalize_response and normalize_response.disease:
-                normalized_disease = normalize_response.disease
-                normalized_disease.extensions = []
-                normalized_disease.mappings = []
+                normalized_disease = Condition(normalize_response.disease)
+                normalized_disease.root.extensions = []
+                normalized_disease.root.mappings = []
                 break
         return normalized_disease, moa_disease
 
@@ -198,7 +307,8 @@ class MoaTransformer(Transformer):
         self, variant: dict
     ) -> tuple[CategoricalVariant | None, CategoricalVariant]:
         """Transform MOA variant to CatVar and attempt normalization"""
-        variant_id = f"moa.variant{variant['id']}"
+        # TODO variation normalizer not working?
+        variant_id = f"moa.variant:{variant['id']}"
         feature = variant["feature"]
         gene = variant.get("gene") or variant.get("gene1")
         protein_change = variant.get("protein_change")
@@ -217,8 +327,8 @@ class MoaTransformer(Transformer):
             # see https://github.com/ga4gh/cat-vrs/discussions/161
             and variant["exon"] is None
         ):
-            feature = f"{feature} Mutation"
             normalized_gene, _ = self._normalize_moa_gene(feature)
+            feature = f"{feature} Mutation"
             if normalized_gene:
                 normalized_catvar = CategoricalVariant(
                     id=f"catvar:{feature}",
@@ -246,9 +356,7 @@ class MoaTransformer(Transformer):
                 )
             else:
                 # Create VRS Variation object
-                params = vrs_variation.model_dump(exclude_none=True)
-                params["id"] = vrs_variation.id
-                moa_variation = Variation(**params)
+                moa_variation = Variation(**vrs_variation.model_dump(exclude_none=True))
                 normalized_catvar = CategoricalVariant(
                     id=f"catvar:{vrs_variation.id}",
                     name=query,
@@ -326,12 +434,13 @@ class MoaTransformer(Transformer):
             )
 
             if vrs_genomic_variation:
-                genomic_params = vrs_genomic_variation.model_dump(exclude_none=True)
-                genomic_params["extensions"] = (
-                    None  # Don't care about capturing extensions for now
+                vrs_genomic_variation.extensions = (
+                    None  # don't care about capturing extensions for now
                 )
-                genomic_params["name"] = gnomad_vcf
-                members = [Variation(**genomic_params)]
+                vrs_genomic_variation.name = gnomad_vcf
+                members = [
+                    Variation(**vrs_genomic_variation.model_dump(exclude_none=True))
+                ]
             else:
                 _logger.debug(
                     "Variation Normalizer unable to normalize genomic representation: %s",
@@ -339,318 +448,101 @@ class MoaTransformer(Transformer):
                 )
         else:
             _logger.debug(
-                "Not enough enough information provided to create genomic representation: %s",
+                "Not enough information provided to create genomic representation: %s",
                 moa_rep_coord,
             )
 
         return members
 
-    def _add_document(self, source: dict) -> None:
-        """Create document object"""
+    def _build_document(self, source: dict) -> Document:
+        """Convert MOA source to GKS Document
+
+        :param source: raw MOA source object
+        :return: equivalent Document
+        """
         source_id = source["id"]
         return Document(
             id=f"moa.source:{source_id}",
             title=source["citation"],
             urls=[source["url"]] if source["url"] else None,
-            pmid=source["pmid"] if source["pmid"] else None,
+            pmid=str(source["pmid"]) if source["pmid"] else None,
             doi=source["doi"] if source["doi"] else None,
             extensions=[Extension(name="source_type", value=source["type"])],
         )
 
+    @cache  # noqa: B019
     def _normalize_moa_therapy(
-        self, therapy: dict
+        self, name: str, therapy_type: str
     ) -> tuple[Therapeutic | None, Therapeutic]:
-        name = therapy["name"]
-        if not name:
-            raise ValueError
-        if "+" in name:
-            pass  # TODO handle combo case
+        """Convert MOA Therapy into GKS Therapeutic and also try to get normalized version
 
-        drug = Therapeutic(
+        :param name: name of therapy (might be a combo of names)
+        :param therapy_type: MOA therapy type (currently just used to check if combination)
+        :return: tuple containing normalized concept (if successful) and original MOA concept
+        """
+        if not name:
+            _logger.error(
+                "Attempted to normalize empty therapeutic; wrong kind of assertion?"
+            )
+            raise ValueError
+
+        if "+" in name:
+            # check for supported combo types. Skipping HORMONE and CHEMOTHERAPY for now
+            if therapy_type.upper() not in {
+                "COMBINATION THERAPY",
+                "IMMUNOTHERAPY",
+                "RADIATION THERAPY",
+                "TARGETED THERAPY",
+            }:
+                return None, Therapeutic(
+                    root=MappableConcept(
+                        id=f"moa.drug:{name}", conceptType="Drug", name=name
+                    )
+                )
+            moa_drugs = [
+                MappableConcept(
+                    id=f"moa.drug:{member.strip()}",
+                    conceptType="Drug",
+                    name=member.strip(),
+                )
+                for member in name.split("+")
+            ]
+            moa_combo_therapy = Therapeutic(
+                root=TherapyGroup(
+                    membershipOperator=MembershipOperator.AND, therapies=moa_drugs
+                )
+            )
+            normalized_drugs = []
+            for moa_drug in moa_drugs:
+                normalize_response, _ = self.vicc_normalizers.normalize_therapy(
+                    moa_drug.name
+                )
+                if normalize_response and normalize_response.therapy:
+                    normalize_response.therapy.extensions = []
+                    normalize_response.therapy.mappings = []
+                    normalized_drugs.append(normalize_response.therapy)
+                else:
+                    normalized_drugs.append(None)
+                    break
+            if all(normalized_drugs):
+                normalized_combo_therapy = Therapeutic(
+                    root=TherapyGroup(
+                        membershipOperator=MembershipOperator.AND,
+                        therapies=normalized_drugs,
+                    )
+                )
+            else:
+                normalized_combo_therapy = None
+            return normalized_combo_therapy, moa_combo_therapy
+
+        therapy = Therapeutic(
             root=MappableConcept(id=f"moa.drug:{name}", conceptType="Drug", name=name)
         )
-        normalized_drug = None
-        return normalized_drug, drug
-
-    #     if "+" in therapy_name:
-    #         # Indicates multiple therapies
-    #         if therapy_type.upper() in {
-    #             "COMBINATION THERAPY",
-    #             "IMMUNOTHERAPY",
-    #             "RADIATION THERAPY",
-    #             "TARGETED THERAPY",
-    #         }:
-    #             membership_operator = MembershipOperator.AND
-    #         else:
-    #             # skipping HORMONE and CHEMOTHERAPY for now
-    #             return None
-    #
-    #         therapies = [{"name": tn.strip()} for tn in therapy_name.split("+")]
-    #         therapeutic_digest = self._get_digest_for_str_lists(
-    #             [f"moa.therapy:{tn}" for tn in therapies]
-    #         )
-    #         therapy_id = f"moa.ctid:{therapeutic_digest}"
-    #     else:
-    #         therapy_id = f"moa.therapy:{_sanitize_name(therapy_name)}"
-    #         therapies = [{"name": therapy_name}]
-    #         membership_operator = None
-    #
-    #     return self._add_therapy(
-    #         therapy_id,
-    #         therapies,
-    #         membership_operator,
-    #         therapy_type,
-    #     )
-
-    # def _resolve_concept_discrepancy(
-    #     self,
-    #     cached_id: str,
-    #     cached_obj: MappableConcept,
-    #     cached_label: str,
-    #     moa_concept_label: str,
-    #     is_disease: bool = False,
-    # ) -> None:
-    #     """Resolve conflict where MOA disease or therapy resolve to same normalized
-    #     concept
-    #
-    #     The min name will be used as the primary name for the mappable concept, and
-    #     the other name will be added as an alias in extensions.
-    #     The cache will be updated with updated object.
-    #     The cached object will be removed from ``self.processed_data``
-    #
-    #     :param cached_id: ID found in cache
-    #     :param cached_obj: Mappable concept found in cache for ``cached_id``. This will
-    #         be mutated
-    #     :param cached_label: Label for ``cached_obj``
-    #     :param moa_concept_label: MOA concept name
-    #     :param is_disease: ``True`` if ``cached_obj`` is a disease. ``False`` if
-    #         ``cached_obj`` is a therapy
-    #     """
-    #     _logger.debug(
-    #         "MOA %s and %s resolve to same concept %s",
-    #         moa_concept_label,
-    #         cached_label,
-    #         cached_id,
-    #     )
-    #     alias = max(moa_concept_label, cached_label)
-    #     cached_obj.name = min(moa_concept_label, cached_label)
-    #     extensions = cached_obj.extensions or []
-    #
-    #     aliases_ext = next(
-    #         (ext for ext in extensions if ext.name == "aliases"),
-    #         None,
-    #     )
-    #     if aliases_ext:
-    #         if cached_obj.name in aliases_ext.value:
-    #             aliases_ext.value.remove(cached_obj.name)
-    #         aliases_ext.value.append(alias)
-    #     else:
-    #         extensions.append(Extension(name="aliases", value=[alias]))
-    #         cached_obj.extensions = extensions
-    #
-    #     if is_disease:
-    #         self.processed_data.conditions = [
-    #             c for c in self.processed_data.conditions if c.id != cached_obj.id
-    #         ]
-    #         cache = self._cache.conditions
-    #     else:
-    #         self.processed_data.therapies = [
-    #             t for t in self.processed_data.therapies if t.id != cached_id
-    #         ]
-    #         cache = self._cache.normalized_therapies
-    #
-    #     cache[cached_id] = cached_obj
-
-    # def _get_therapy(self, therapy_id: str, therapy: dict) -> MappableConcept:
-    #     """Get Therapy mappable concept for a MOA therapy name.
-    #
-    #     Will run `name` through therapy-normalizer.
-    #
-    #     :param therapy_id: Generated therapy ID
-    #     :param therapy: MOA therapy name
-    #     :return: Therapy represented as a mappable concept
-    #     """
-    #
-    #     def _resolve_therapy_discrepancy(
-    #         cached_id: str, moa_concept_label: str
-    #     ) -> MappableConcept:
-    #         """Resolve conflict where MOA therapy labels resolve to the same normalized
-    #         concept
-    #
-    #         If conflict occurs, the min name will be used as the primary name for the
-    #         mappable concept, and the other name will be added as an alias in
-    #         extensions. The cache will be updated.
-    #
-    #         :param cached_id: Cached ID for therapy concept that is in
-    #             ``self._cache.normalized_therapies``
-    #         :param moa_concept_label: MOA provided name for therapy concept
-    #         :return: Therapy represented as a mappable concept
-    #         """
-    #         therapy_norm_obj = self._cache.normalized_therapies[cached_id]
-    #         og_therapy_norm_label = therapy_norm_obj.name
-    #         if moa_concept_label != og_therapy_norm_label:
-    #             self._resolve_concept_discrepancy(
-    #                 cached_id,
-    #                 therapy_norm_obj,
-    #                 og_therapy_norm_label,
-    #                 moa_concept_label,
-    #                 is_disease=False,
-    #             )
-    #         return therapy_norm_obj
-    #
-    #     mappings = []
-    #     extensions = []
-    #     name = therapy["name"]
-    #
-    #     (
-    #         therapy_norm_resp,
-    #         normalized_therapeutic_id,
-    #     ) = self.vicc_normalizers.normalize_therapy(name)
-    #
-    #     if not normalized_therapeutic_id:
-    #         _logger.debug("Therapy Normalizer unable to normalize: %s", therapy)
-    #         extensions.append(self._get_vicc_normalizer_failure_ext())
-    #         id_ = therapy_id
-    #     else:
-    #         id_ = f"moa.{therapy_norm_resp.therapy.id}"
-    #
-    #         if id_ in self._cache.normalized_therapies:
-    #             return _resolve_therapy_discrepancy(id_, name)
-    #
-    #         regulatory_approval_extension = (
-    #             self.vicc_normalizers.get_regulatory_approval_extension(
-    #                 therapy_norm_resp
-    #             )
-    #         )
-    #
-    #         if regulatory_approval_extension:
-    #             extensions.append(regulatory_approval_extension)
-    #
-    #         mappings.extend(
-    #             self._get_vicc_normalizer_mappings(
-    #                 normalized_therapeutic_id, therapy_norm_resp
-    #             )
-    #         )
-    #
-    #     therapy_concept = MappableConcept(
-    #         id=id_,
-    #         conceptType="Therapy",
-    #         name=name,
-    #         mappings=mappings or None,
-    #         extensions=extensions or None,
-    #     )
-    #     self._cache.normalized_therapies[id_] = therapy_concept
-    #     return therapy_concept
-
-    async def _add_variant_study_stmt(self, assertion: dict) -> None:
-        """Create Variant Study Statements from MOA assertions.
-        Will add associated values to ``processed_data`` instance variable
-        (``therapies``, ``conditions``, and ``statements``).
-        ``_cache`` will also be mutated for associated therapies and conditions.
-
-        :param assertions: MOA assertion record
-        """
-        assertion_id = f"moa.assertion:{assertion['id']}"
-        variant_id = assertion["variant"]["id"]
-
-        # Check cache for variation record (which contains gene information)
-        variation_gene_map = self._cache.variations.get(variant_id)
-        if not variation_gene_map:
-            _logger.debug(
-                "%s has no variation for variant_id %s", assertion_id, variant_id
-            )
-            return
-
-        # Get strength
-        predictive_implication = (
-            assertion["predictive_implication"]
-            .strip()
-            .replace(" ", "_")
-            .replace("-", "_")
-            .upper()
-        )
-        evidence_level = MoaEvidenceLevel[predictive_implication]
-        strength = MappableConcept(
-            primaryCoding=Coding(
-                system="https://moalmanac.org/about",
-                code=evidence_level.value,
-            ),
-            mappings=self.evidence_level_to_vicc_concept_mapping[evidence_level],
-        )
-
-        # Add disease
-        moa_disease = self._add_disease(assertion["disease"])
-        if not moa_disease:
-            _logger.debug(
-                "%s has no disease for disease %s", assertion_id, assertion["disease"]
-            )
-            return
-
-        # Add document
-        document = self._cache.documents.get(assertion["source_id"])
-
-        feature_type = assertion["variant"]["feature_type"]
-        if feature_type == "somatic_variant":
-            allele_origin_qualifier = MappableConcept(name="somatic")
-        elif feature_type == "germline_variant":
-            allele_origin_qualifier = MappableConcept(name="germline")
+        normalize_response, _ = self.vicc_normalizers.normalize_therapy(name)
+        if normalize_response and normalize_response.therapy:
+            normalize_response.therapy.extensions = []
+            normalize_response.therapy.mappings = []
+            normalized_therapy = Therapeutic(root=normalize_response.therapy)
         else:
-            allele_origin_qualifier = None
-
-        stmt_params = {
-            "id": assertion_id,
-            "description": assertion["description"],
-            "strength": strength,
-            "specifiedBy": self.processed_data.methods[0],
-            "reportedIn": [document],
-        }
-        prop_params = {
-            "alleleOriginQualifier": allele_origin_qualifier,
-            "geneContextQualifier": variation_gene_map["moa_gene"],
-            "subjectVariant": variation_gene_map["cv"],
-        }
-
-        if assertion["favorable_prognosis"] == "":  # can be either 0, 1, or ""
-            prop_params["objectTherapeutic"] = self._get_therapy_or_group(assertion)
-
-            if not prop_params["objectTherapeutic"]:
-                _logger.debug(
-                    "%s has no therapy for therapy_name %s",
-                    assertion_id,
-                    assertion["therapy"]["name"],
-                )
-                return
-
-            if assertion["therapy"]["resistance"] != "":  # can be either 0, 1, or ""
-                predicate = TherapeuticResponsePredicate.RESISTANCE
-                stmt_params["direction"] = (
-                    Direction.SUPPORTS
-                    if assertion["therapy"]["resistance"]
-                    else Direction.DISPUTES
-                )
-            else:
-                predicate = TherapeuticResponsePredicate.SENSITIVITY
-                stmt_params["direction"] = (
-                    Direction.SUPPORTS
-                    if assertion["therapy"]["sensitivity"]
-                    else Direction.DISPUTES
-                )
-
-            prop_params["predicate"] = predicate
-            prop_params["conditionQualifier"] = moa_disease
-            stmt_params["proposition"] = VariantTherapeuticResponseProposition(
-                **prop_params
-            )
-        else:
-            if assertion["favorable_prognosis"]:
-                predicate = PrognosticPredicate.BETTER_OUTCOME
-                direction = Direction.SUPPORTS
-            else:
-                predicate = PrognosticPredicate.WORSE_OUTCOME
-                direction = Direction.DISPUTES
-
-            prop_params["predicate"] = predicate
-            stmt_params["direction"] = direction
-            prop_params["objectCondition"] = moa_disease
-            stmt_params["proposition"] = VariantPrognosticProposition(**prop_params)
-        self.processed_data.statements_evidence.append(Statement(**stmt_params))
+            normalized_therapy = None
+        return normalized_therapy, therapy

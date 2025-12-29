@@ -174,7 +174,7 @@ class Transformer(ABC):
                 name="Danos et al., 2019, Genome Med.",
                 title="Standard operating procedure for curation and clinical interpretation of variants in cancer",
                 doi="10.1186/s13073-019-0687-x",
-                pmid=31779674,
+                pmid="31779674",
             ),
             methodType="variant curation standard operating procedure",
         ),
@@ -185,7 +185,7 @@ class Transformer(ABC):
                 name="Reardon, B., Moore, N.D., Moore, N.S. et al.",
                 title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
                 doi="10.1038/s43018-021-00243-3",
-                pmid=35121878,
+                pmid="35121878",
             ),
         ),
     ]
