@@ -1,4 +1,4 @@
-﻿metakb.services.search
+metakb.services.search
 ======================
 
 .. automodule:: metakb.services.search

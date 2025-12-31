@@ -22,9 +22,13 @@ def repository():
 
 
 @pytest.mark.ci_only
-def test_statement_roundtrip(
+def test_basic_statement_roundtrip(
     repository: Neo4jRepository, civic_eid2997_study_stmt: dict
 ):
+    """Test roundtripping of a pretty standard statement, CIViC EID 2997
+
+    * subject variant has a DefiningAlleleConstraint
+    """
     statement = Statement(**civic_eid2997_study_stmt)
     repository.load_statement(statement)
 
@@ -73,6 +77,51 @@ def test_statement_roundtrip(
         disease_ids=["ncit:C2926"],
     )
     assert partial_combo_result == eid_result
+
+
+@pytest.mark.ci_only
+def test_feature_context_statement_roundtrip(
+    repository: Neo4jRepository, moa_aid120_study_stmt: dict
+):
+    """Test roundtripping of a statement that uses a gene mutation subject: MOA assertion 120
+
+    * prognostic proposition
+    * subject variant has a FeatureContextConstraint ("ARID1A mutation")
+    """
+    statement = Statement(**moa_aid120_study_stmt)
+    repository.load_statement(statement)
+
+    eid_result = repository.search_statements(statement_ids=["moa.assertion:120"])
+    assert len(eid_result) == 1
+    assert eid_result[0].id == "moa.assertion:120"
+    assert eid_result[0].proposition.subjectVariant.id == "moa.variant:120"
+    assert (
+        eid_result[0].proposition.objectCondition.root.id
+        == "moa.normalize.disease.ncit:C8294"
+    )
+    assert (
+        eid_result[0].proposition.geneContextQualifier.id
+        == "moa.normalize.gene.hgnc:11110"
+    )
+
+    gene_result = repository.search_statements(gene_ids=["hgnc:11110"])
+    assert gene_result == eid_result
+
+    disease_result = repository.search_statements(disease_ids=["ncit:C8294"])
+    assert disease_result == eid_result
+
+    all_combo_result = repository.search_statements(
+        gene_ids=["hgnc:11110"],
+        disease_ids=["ncit:C8294"],
+        statement_ids=["moa.assertion:120"],
+    )
+    assert all_combo_result == eid_result
+
+    entity_combo_result = repository.search_statements(
+        gene_ids=["hgnc:11110"],
+        disease_ids=["ncit:C8294"],
+    )
+    assert entity_combo_result == eid_result
 
 
 @pytest.mark.ci_only

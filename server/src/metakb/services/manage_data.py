@@ -106,12 +106,12 @@ def is_loadable_statement(statement: Statement) -> bool:
                 proposition.subjectVariant.constraints,
             )
             success = False
-        if (
-            proposition.subjectVariant.constraints[0].root.type
-            != "DefiningAlleleConstraint"
-        ):
+        if proposition.subjectVariant.constraints[0].root.type not in {
+            "DefiningAlleleConstraint",
+            "FeatureContextConstraint",
+        }:
             _logger.info(
-                "%s could not be loaded because it doesn't use a DefiningAlleleConstraint: %s",
+                "%s could not be loaded because it doesn't use a supported constraint type: %s",
                 statement.id,
                 proposition.subjectVariant.constraints,
             )

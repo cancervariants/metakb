@@ -21,6 +21,7 @@ def test_is_loadable_statement(
     assert is_loadable_statement(Statement(**civic_aid6_statement))
     assert is_loadable_statement(statements["civic.eid:7157"])
     assert is_loadable_statement(statements["moa.assertion:66"])
+    assert is_loadable_statement(statements["moa.assertion:120"])
 
     # variant didn't normalize
     assert not is_loadable_statement(statements["civic.eid:116"])

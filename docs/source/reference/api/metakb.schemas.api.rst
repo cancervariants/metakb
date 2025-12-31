@@ -1,4 +1,4 @@
-﻿metakb.schemas.api
+metakb.schemas.api
 ==================
 
 .. automodule:: metakb.schemas.api
