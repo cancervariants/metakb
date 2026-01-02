@@ -98,6 +98,24 @@ def is_loadable_statement(statement: Statement) -> bool:
             proposition.subjectVariant,
         )
         success = False
+    else:
+        if len(proposition.subjectVariant.constraints) != 1:
+            _logger.info(
+                "%s could not be loaded because it contains more than 1 constraint: %s",
+                statement.id,
+                proposition.subjectVariant.constraints,
+            )
+            success = False
+        if proposition.subjectVariant.constraints[0].root.type not in {
+            "DefiningAlleleConstraint",
+            "FeatureContextConstraint",
+        }:
+            _logger.info(
+                "%s could not be loaded because it doesn't use a supported constraint type: %s",
+                statement.id,
+                proposition.subjectVariant.constraints,
+            )
+            success = False
     if isinstance(proposition, VariantTherapeuticResponseProposition):
         if not _is_loadable_condition(
             proposition.conditionQualifier.root, statement.id

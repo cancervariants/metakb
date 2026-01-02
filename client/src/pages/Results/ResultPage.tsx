@@ -25,6 +25,7 @@ import {
   getEntityMetadataFromProposition,
 } from '../../utils'
 import { EvidenceLegend } from '../../components/ResultTable/EvidenceLegend'
+import { VariantDiseaseHeatmap } from './VariantDiseaseHeatmap'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -372,7 +373,14 @@ const ResultPage = () => {
                   </Box>
                   <Box id="results" width="100%" p={2}>
                     {hasFilteredResults ? (
-                      <ResultTable results={sortedResults} resultType={activeTab} />
+                      <>
+                        <VariantDiseaseHeatmap
+                          data={filteredResults}
+                          limitCols={10}
+                          limitRows={10}
+                        />
+                        <ResultTable results={sortedResults} resultType={activeTab} />
+                      </>
                     ) : (
                       <Alert severity="info" sx={{ width: '100%' }}>
                         No results match your current filters.

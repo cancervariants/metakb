@@ -32,7 +32,7 @@ We welcome contributions! Please review the following guidelines before submitti
 
 ## 💬 Questions?
 
-- Ask any questions about MetaKB in the [mailing list](todo).
+- Ask any questions about MetaKB in the [GitHub discusssions section](https://github.com/cancervariants/metakb/discussions).
 
 ---
 

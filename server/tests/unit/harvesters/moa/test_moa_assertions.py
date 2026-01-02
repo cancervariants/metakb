@@ -10,9 +10,9 @@ from metakb.harvesters.moa import MoaHarvester
 from metakb.schemas.app import SourceName
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def assertion164():
-    """Create a fixture for assertion #165."""
+    """Create a fixture for assertion #164."""
     return {
         "id": 164,
         "context": "Resistance to BRAFi monotherapy",
@@ -38,7 +38,7 @@ def assertion164():
         "validated": True,
         "source_id": 70,
         "variant": {
-            "id": 145,
+            "id": 144,
             "alternate_allele": "T",
             "cdna_change": "c.1799T>A",
             "chromosome": "7",
@@ -52,6 +52,51 @@ def assertion164():
             "start_position": "140453136",
             "variant_annotation": "Missense",
             "feature": "BRAF p.V600E (Missense)",
+        },
+    }
+
+
+@pytest.fixture(scope="session")
+def assertion120():
+    return {
+        "id": 120,
+        "context": "",
+        "deprecated": False,
+        "description": "ARID1A mutations were associated with poorer prognosis in a study of 109 microdissected pancreatic adenocarcinoma tumors.",
+        "disease": {
+            "name": "Pancreatic Adenocarcinoma",
+            "oncotree_code": "PAAD",
+            "oncotree_term": "Pancreatic Adenocarcinoma",
+        },
+        "therapy": {
+            "name": "",
+            "type": "",
+            "strategy": "",
+            "resistance": "",
+            "sensitivity": "",
+        },
+        "predictive_implication": "Clinical evidence",
+        "favorable_prognosis": 0,
+        "created_on": "10/02/25",
+        "last_updated": "2017-11-03",
+        "submitted_by": "breardon@broadinstitute.org",
+        "validated": True,
+        "source_id": 54,
+        "variant": {
+            "id": 120,
+            "alternate_allele": None,
+            "cdna_change": None,
+            "chromosome": None,
+            "end_position": None,
+            "exon": None,
+            "feature_type": "somatic_variant",
+            "gene": "ARID1A",
+            "protein_change": None,
+            "reference_allele": None,
+            "rsid": None,
+            "start_position": None,
+            "variant_annotation": None,
+            "feature": "ARID1A",
         },
     }
 
@@ -79,3 +124,28 @@ def test_assertion_164(test_get_all_assertions, test_get_all_variants, assertion
             actual = a
             break
     assert actual == assertion164
+
+
+@patch.object(MoaHarvester, "_get_all_variants")
+@patch.object(MoaHarvester, "_get_all_assertions")
+def test_assertion_120(test_get_all_assertions, test_get_all_variants, assertion120):
+    """Test moa harvester works correctly for assertions."""
+    moa_harvester_test_dir = TEST_HARVESTERS_DIR / SourceName.MOA.value
+    with (moa_harvester_test_dir / "assertions.json").open() as f:
+        data = json.load(f)
+    test_get_all_assertions.return_value = data
+
+    with (moa_harvester_test_dir / "variants.json").open() as f:
+        data = json.load(f)
+    test_get_all_variants.return_value = data
+
+    assertion_resp = MoaHarvester()._get_all_assertions()
+    _, variants_list = MoaHarvester().harvest_variants()
+    assertions = MoaHarvester().harvest_assertions(assertion_resp, variants_list)
+
+    actual = None
+    for a in assertions:
+        if a["id"] == assertion120["id"]:
+            actual = a
+            break
+    assert actual == assertion120

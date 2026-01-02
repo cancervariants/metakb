@@ -166,3 +166,159 @@ export const normalizeResults = (data: Record<string, Statement[]>): NormalizedR
     ]
   })
 }
+
+/**
+ * A single column of data for a VisX <HeatmapRect>.
+ *
+ * VisX interprets the *outer* dimension of the heatmap data as COLUMNS.
+ * Each column contains a list of "bins", where each bin represents
+ * a cell in the heatmap for:
+ *
+ *    (variant at rowIndex, disease at columnIndex)
+ *
+ * The index of each bin corresponds directly to the row index (variant index).
+ *
+ * For example, bins[3] is the cell located at:
+ *    - row:    variants[3]
+ *    - column: diseases[columnIndex]
+ */
+export interface VisxColumn {
+  bins: { count: number }[]
+}
+
+/**
+ * Full data structure expected by VisX <HeatmapRect>.
+ *
+ * columns:
+ *    - The outer array
+ *    - Each item represents a single disease (x-axis column)
+ *    - columns[i] corresponds to diseases[i]
+ *
+ * variants:
+ *    - Ordered list of variant names (y-axis labels / rows)
+ *    - The index of a variant corresponds to the rowIndex inside each column's bins[]
+ *
+ * diseases:
+ *    - Ordered list of disease names (x-axis labels / columns)
+ *    - The index of a disease corresponds to the columnIndex in the heatmap
+ *
+ * Mapping summary:
+ *
+ *      columns[columnIndex].bins[rowIndex].count
+ *
+ *  gives the evidence count for:
+ *      variants[rowIndex]   (y-axis row)
+ *      diseases[columnIndex] (x-axis column)
+ *
+ * This strict indexing alignment is required so that:
+ *    - <AxisLeft> ticks use variants[rowIndex]
+ *    - <AxisBottom> ticks use diseases[columnIndex]
+ *    - <HeatmapRect> draws cells in the correct positions
+ */
+export interface VisxHeatmapData {
+  columns: VisxColumn[]
+  variants: string[]
+  diseases: string[]
+}
+
+/**
+ * Constructs a variant x disease evidence matrix formatted for consumption by the VisX <HeatmapRect> component.
+ *
+ * This function:
+ *   1. Extracts unique variants and diseases from the input results
+ *   2. Computes the total evidence counts per variant and per disease
+ *   3. Applies optional limiting (only keep the top N variants or diseases)
+ *   4. Builds a rectangular matrix of shape: matrix[diseaseIndex][variantIndex]
+ *      Each cell holds the aggregated evidence count for variants[variantIndex] and diseases[diseaseIndex]
+ *   5. Converts the matrix into the VisX heatmap data format:
+ *      {
+ *        columns: [
+ *             { bins: [ {count}, {count}, ... ] },  // column 0 (disease 0)
+ *             { bins: [ {count}, {count}, ... ] },  // column 1
+ *             ...
+ *           ],
+ *           variants: string[],   // row labels
+ *           diseases: string[]    // column labels
+ *       }
+ *
+ *      The `columns` array aligns 1:1 with `diseases`, and each column's
+ *      `bins` array aligns 1:1 with `variants`. This ensures that:
+ *
+ *         - variants[rowIndex] always corresponds to bin[rowIndex]
+ *         - diseases[columnIndex] always corresponds to columns[columnIndex]
+ *
+ * @param results A list of normalized result objects
+ * @param limitRows Optional maximum number of variants (rows)
+ * @param limitCols Optional maximum number of diseases (columns) to retain
+ * @returns
+ */
+export function buildVariantDiseaseMatrix(
+  results: NormalizedResult[],
+  limitRows?: number,
+  limitCols?: number,
+): VisxHeatmapData {
+  // 1. Unique lists (unsorted)
+  let variants = Array.from(new Set(results.map((r) => r.variant_name)))
+  let diseases = Array.from(new Set(results.flatMap((r) => r.disease)))
+
+  // 2. Variant totals
+  const variantTotals = variants.map((v) =>
+    results
+      .filter((r) => r.variant_name === v)
+      .reduce((sum, r) => sum + r.grouped_evidence.length, 0),
+  )
+
+  // sort variants by total desc and limit
+  let variantSortOrder = variants
+    .map((v, i) => ({ v, total: variantTotals[i] }))
+    .sort((a, b) => b.total - a.total)
+
+  if (limitRows && limitRows < variantSortOrder.length) {
+    variantSortOrder = variantSortOrder.slice(0, limitRows)
+  }
+
+  variants = variantSortOrder.map((v) => v.v)
+
+  // 3. Disease totals
+  const diseaseTotals = diseases.map((d) =>
+    results
+      .filter((r) => r.disease.includes(d))
+      .reduce((sum, r) => sum + r.grouped_evidence.length, 0),
+  )
+
+  // sort diseases by total desc and limit
+  let diseaseSortOrder = diseases
+    .map((d, i) => ({ d, total: diseaseTotals[i] }))
+    .sort((a, b) => b.total - a.total)
+
+  if (limitCols && limitCols < diseaseSortOrder.length) {
+    diseaseSortOrder = diseaseSortOrder.slice(0, limitCols)
+  }
+
+  diseases = diseaseSortOrder.map((d) => d.d)
+
+  // 4. Build matrix [columns][rows] = [disease][variant]
+  const matrix = diseases.map(() => variants.map(() => 0))
+
+  results.forEach((row) => {
+    const evidence = row.grouped_evidence.length
+
+    const vIdx = variants.indexOf(row.variant_name)
+    if (vIdx === -1) return
+
+    row.disease.forEach((d) => {
+      const dIdx = diseases.indexOf(d)
+      if (dIdx === -1) return
+
+      // column = disease, row = variant
+      matrix[dIdx][vIdx] += evidence
+    })
+  })
+
+  // 5. Convert to VisX columns
+  const columns: VisxColumn[] = matrix.map((colVals) => ({
+    bins: colVals.map((count) => ({ count })),
+  }))
+
+  return { columns, variants, diseases }
+}

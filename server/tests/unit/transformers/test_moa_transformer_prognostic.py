@@ -414,9 +414,13 @@ def moa_aid532_study_stmt(
 
 
 @pytest.fixture(scope="module")
-def statements(moa_aid141_study_stmt, moa_aid532_study_stmt):
+def statements(
+    moa_aid141_study_stmt: dict,
+    moa_aid532_study_stmt: dict,
+    moa_aid120_study_stmt: dict,
+):
     """Create test fixture for MOA prognostic statements."""
-    return [moa_aid141_study_stmt, moa_aid532_study_stmt]
+    return [moa_aid141_study_stmt, moa_aid532_study_stmt, moa_aid120_study_stmt]
 
 
 def test_moa_cdm(data, statements, check_transformed_cdm):

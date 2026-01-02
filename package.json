@@ -10,8 +10,8 @@
   "devDependencies": {
     "husky": "^9.1.7",
     "json-schema-to-typescript": "^15.0.4",
-    "lint-staged": "^15.5.1",
-    "turbo": "^1.12.3"
+    "lint-staged": "^16.2.7",
+    "turbo": "^1.13.4"
   },
   "lint-staged": {
     "server/**/*.py": [
@@ -19,16 +19,10 @@
       "ruff check --fix --exit-non-zero-on-fix"
     ],
     "*": [
-      "pre-commit run check-added-large-files --files",
-      "pre-commit run detect-private-key --files",
-      "pre-commit run trailing-whitespace --files",
-      "pre-commit run end-of-file-fixer --files",
-      "pre-commit run check-merge-conflict --files",
-      "pre-commit run detect-aws-credentials --files",
-      "pre-commit run mixed-line-ending --files"
+      "prek run --skip ruff-check --skip ruff-format --files"
     ]
   },
   "dependencies": {
-    "@mui/x-data-grid": "^8.10.2"
+    "@mui/x-data-grid": "^8.21.0"
   }
 }

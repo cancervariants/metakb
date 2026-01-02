@@ -1,4 +1,4 @@
-﻿metakb.services.manage_data
+metakb.services.manage_data
 ===========================
 
 .. automodule:: metakb.services.manage_data
