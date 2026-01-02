@@ -26,6 +26,7 @@ requires-python = ">=3.11"
 description = "A search interface for cancer variant interpretations assembled by aggregating and harmonizing across multiple cancer variant interpretation knowledgebases."
 license = {file = "LICENSE"}
 dependencies = [
+    "agct~=0.1.1",
     "ga4gh.vrs>=2.1.4,<3.0",
     "ga4gh.cat_vrs~=0.6.0",
     "ga4gh.va_spec~=0.3.0",
