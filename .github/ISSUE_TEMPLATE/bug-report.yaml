@@ -5,13 +5,15 @@ body:
   - type: textarea
     attributes:
       label: Describe the bug
-      description: Provide a clear and concise description of what the bug is.
+      description: Provide a clear and concise description of what the bug is. Include screenshots if applicable.
     validations:
       required: true
   - type: textarea
     attributes:
       label: Steps to reproduce
-      description: Provide detailed steps to replicate the bug.
+      description: | 
+        Provide detailed steps to replicate the bug. Make sure to describe the current behavior. 
+        If applicable, include full errors, stack traces, and/or relevant logs. 
       placeholder: |
         1. In this environment...
         2. With this config...
@@ -21,73 +23,37 @@ body:
       required: true
   - type: textarea
     attributes:
-      label: Expected behavior
-      description: What did you expect to happen?
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: Current behavior
-      description: |
-        What actually happened?
-
-        Include full errors, stack traces, and/or relevant logs.
-    validations:
-      required: true
-  - type: textarea
-    attributes:
       label: Acceptance Criteria
       description: |
         Provide the criteria that must be met in order for this issue to be considered fixed.
-        Be specific, and consider potential edge cases.
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: Possible reason(s)
-      description: Provide any insights into what might be causing the issue.
-    validations:
-      required: false
-  - type: textarea
-    attributes:
-      label: Suggested fix
-      description: Provide any suggestions on how to resolve the bug.
-    validations:
-      required: false
-  - type: textarea
-    attributes:
-      label: Branch, commit, and/or version
-      description: Provide the branch, commit, and/or version you're using.
+        Be specific, and consider potential edge cases. The criteria should be observable and testable.
       placeholder: |
-        branch: issue-1
-        commit: abc123d
+        Given a user or system is in ... (a page, workflow, or state)
+        And ... (optional other criteria that needs to be met)
+        When the user ... (action)
+        Then ... (expected outcome)
+        And ... (additional observable outcome)
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Screenshots
-      description: If applicable, add screenshots with descriptions to help explain your problem.
+      label: Possible reason(s)/Suggested Fix
+      description: Provide any insights into what might be causing the issue and/or how to resolve it.
     validations:
       required: false
   - type: textarea
     attributes:
-      label: Environment details
-      description: Provide environment details (OS name and version, etc).
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: Additional details
-      description: Provide any other additional details about the problem.
-    validations:
-      required: false
-  - type: dropdown
-    attributes:
-      label: Contribution
-      description: Can you contribute to the development of this feature?
-      options:
-        - "Yes, I can create a PR for this fix."
-        - "Yes, but I can only provide ideas and feedback."
-        - "No, I cannot contribute."
-    validations:
-      required: false
+      label: Environment & Version
+      description: |
+        Provide the branch, commit, and/or version you're using, along with environment details
+        (e.g., OS name and version, browser, runtime, deployment environment).
+      placeholder: |
+        branch:
+        commit:
+        version:
+        browser (if applicable - Chrome, Firefox, Safari, etc.):
+        deployment environment (dev, prod, staging, local):
+        operating system (Mac, Windows, Linux, other):
+      validations:
+        required: true
+
