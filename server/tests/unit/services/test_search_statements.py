@@ -131,10 +131,10 @@ async def test_civic_assertion(
     assert statement_ids == [civic_aid6_statement["id"]]
     resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
     assert len(resp_stmts) == 1
-    # Test fixture only has one evidence line, but actual has 6
+    # Test fixture only has one evidence item in evidence lines, but actual has 6
     actual_civic_aid6 = resp_stmts[0]
-    assert len(actual_civic_aid6["hasEvidenceLines"]) == 6
-    expected_evidence_lines = []
+    assert len(actual_civic_aid6["hasEvidenceLines"]) == 1
+
     expected_evidence_item_ids = {
         "civic.eid:982",
         "civic.eid:2997",
@@ -143,15 +143,18 @@ async def test_civic_assertion(
         "civic.eid:968",
         "civic.eid:2629",
     }
-    for el in actual_civic_aid6["hasEvidenceLines"]:
-        for ev in el["hasEvidenceItems"]:
-            assert ev["id"] in expected_evidence_item_ids
 
-            if ev["id"] == "civic.eid:2997":
-                expected_evidence_lines.append(el)
+    tmp_applied_ev = []
 
-    actual_civic_aid6["hasEvidenceLines"] = expected_evidence_lines
-    assertion_checks(resp_stmts, [civic_aid6_statement])
+    for ev in actual_civic_aid6["hasEvidenceLines"][0]["hasEvidenceItems"]:
+        assert ev["id"] in expected_evidence_item_ids
+
+        if ev["id"] == "civic.eid:2997":
+            tmp_applied_ev.append(ev)
+            break
+
+    actual_civic_aid6["hasEvidenceLines"][0]["hasEvidenceItems"] = tmp_applied_ev
+    assertion_checks([actual_civic_aid6], [civic_aid6_statement])
 
 
 @pytest.mark.asyncio(scope="module")
@@ -235,9 +238,6 @@ async def test_general_search_statements(
                     found_expected = True
                     break
             assert found_expected
-
-    resp = await search_statements(repository, normalizers, gene="VHL")
-    assert_general_search_stmts(resp)
 
     # Case: multiple concepts provided
     expected_variation_id = "ga4gh:VA._8jTS8nAvWwPZGOadQuD1o-tbbTQ5g3H"

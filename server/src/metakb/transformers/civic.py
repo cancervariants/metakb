@@ -49,6 +49,7 @@ from metakb.transformers.base import (
     Transformer,
     _TransformedRecordsCache,
 )
+from metakb.utils import get_digest_for_str_lists
 
 _logger = logging.getLogger(__name__)
 
@@ -409,7 +410,7 @@ class CivicTransformer(Transformer):
             therapy_group_or_cond_set.membershipOperator
         ]
 
-        digest = self._get_digest_for_str_lists(ids)
+        digest = get_digest_for_str_lists(ids)
         return f"{ns_prefix}:{digest}"
 
     async def _resolve_entity(

@@ -17,7 +17,6 @@ from disease.schemas import (
 )
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
-from ga4gh.core import sha512t24u
 from ga4gh.core.models import (
     Coding,
     ConceptMapping,
@@ -38,7 +37,7 @@ from ga4gh.va_spec.base import (
     Statement,
     TherapyGroup,
 )
-from ga4gh.vrs.models import Allele, CopyNumberChange, CopyNumberCount
+from ga4gh.vrs.models import Allele
 from gene.schemas import (
     NamespacePrefix as GeneNamespacePrefix,
 )
@@ -154,8 +153,8 @@ class TransformedData(BaseModel):
         | VariantPrognosticStudyStatement
         | VariantDiagnosticStudyStatement
     ] = Field([], description="Statement objects for assertion records")
-    categorical_variants: list[CategoricalVariant] = []
-    variations: list[CopyNumberChange | CopyNumberCount | Allele] = []
+    categorical_variants: list[CategoricalVariant | ProteinSequenceConsequence] = []
+    variations: list[Allele] = []
     genes: list[MappableConcept] = []
     therapies: list[MappableConcept] = []
     therapy_groups: list[TherapyGroup] = []
@@ -358,19 +357,6 @@ class Transformer(ABC):
                     )
                 ]
         return concept_mappings
-
-    @staticmethod
-    def _get_digest_for_str_lists(str_list: list[str]) -> str:
-        """Create digest for a list of strings
-
-        :param str_list: List of strings to get digest for
-        :return: Digest
-        """
-        str_list.sort()
-        blob = json.dumps(str_list, separators=(",", ":"), sort_keys=True).encode(
-            "ascii"
-        )
-        return sha512t24u(blob)
 
     @staticmethod
     def _get_vicc_normalizer_failure_ext() -> Extension:

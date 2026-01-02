@@ -29,6 +29,6 @@ def find_and_check_stmt(
             f"Did not find statement ID {expected_stmt['id']} in statements"
         )
         resp_stmts = [actual_stmt.model_dump(exclude_none=True)]
-        assertion_checks(resp_stmts, [expected_stmt])
+        assertion_checks(resp_stmts, [expected_stmt], is_cdm=False)
     else:
         assert actual_stmt is None

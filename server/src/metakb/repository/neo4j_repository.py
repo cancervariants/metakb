@@ -9,7 +9,7 @@ from urllib.parse import urlparse, urlunparse
 import boto3
 from botocore.exceptions import ClientError
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import MappableConcept
+from ga4gh.core.models import MappableConcept, iriReference
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
@@ -17,6 +17,7 @@ from ga4gh.va_spec.aac_2017 import (
 )
 from ga4gh.va_spec.base import (
     Condition,
+    ConditionSet,
     Document,
     Method,
     Statement,
@@ -41,6 +42,7 @@ from metakb.repository.neo4j_models import (
     AlleleNode,
     CategoricalVariantNode,
     ClassificationNode,
+    ConditionSetNode,
     DefiningAlleleConstraintNode,
     DiagnosticStatementNode,
     DiseaseNode,
@@ -50,6 +52,7 @@ from metakb.repository.neo4j_models import (
     GeneNode,
     LiteralSequenceExpressionNode,
     MethodNode,
+    PhenotypeNode,
     PrognosticStatementNode,
     ReferenceLengthExpressionNode,
     SequenceLocationNode,
@@ -215,16 +218,18 @@ class Neo4jRepository(AbstractRepository):
             msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar.id} is {catvar.constraints}"
             raise ValueError(msg)
 
-    def add_document(self, tx: Transaction, document: Document) -> None:
-        """Add document to DB
+    def add_document(self, tx: Transaction, document: Document | iriReference) -> None:
+        """Add document to DB (skips iriReferences)
 
         :param tx: Neo4j transaction
         :param document: VA-Spec document
         """
-        document_node = DocumentNode.from_gks(document)
-        tx.run(
-            queries_catalog.load_document(), doc=document_node.model_dump(mode="json")
-        )
+        if isinstance(document, Document):
+            document_node = DocumentNode.from_gks(document)
+            tx.run(
+                queries_catalog.load_document(),
+                doc=document_node.model_dump(mode="json"),
+            )
 
     def add_gene(
         self,
@@ -242,20 +247,41 @@ class Neo4jRepository(AbstractRepository):
     def add_condition(self, tx: Transaction, condition: Condition) -> None:
         """Add condition to DB.
 
-        For now, only handles individual diseases.
-
         :param tx: Neo4j transaction
-        :param condition: VA-Spec condition
+        :param condition: VA-Spec condition (disease, phenotype, or conditionset)
+        :raises NotImplementedError: If unsupported condition type or unsupported
+            conceptType
         """
-        root = condition.root
-        if isinstance(root, MappableConcept) and root.conceptType == "Disease":
-            disease_node = DiseaseNode.from_gks(root)
+        cond = getattr(condition, "root", condition)
+        if isinstance(cond, ConditionSet):
+            node = ConditionSetNode.from_gks(cond)
+            tx.run(
+                queries_catalog.load_condition_set(),
+                condition_set=node.model_dump(mode="json"),
+            )
+
+            for child in cond.conditions:
+                self.add_condition(tx, child)
+            return
+
+        if not isinstance(cond, MappableConcept):
+            msg = f"Unsupported condition type: {type(cond)}"
+            raise NotImplementedError(msg)
+
+        if cond.conceptType == "Disease":
+            disease_node = DiseaseNode.from_gks(cond)
             tx.run(
                 queries_catalog.load_disease(),
                 disease=disease_node.model_dump(mode="json"),
             )
+        elif cond.conceptType == "Phenotype":
+            phenotype_node = PhenotypeNode.from_gks(cond)
+            tx.run(
+                queries_catalog.load_phenotype(),
+                phenotype=phenotype_node.model_dump(mode="json"),
+            )
         else:
-            msg = f"Unsupported condition type: {condition}"
+            msg = f"Unsupported conceptType: {cond.conceptType}"
             raise NotImplementedError(msg)
 
     def add_therapeutic(self, tx: Transaction, therapeutic: Therapeutic) -> None:
@@ -368,6 +394,70 @@ class Neo4jRepository(AbstractRepository):
             **allele_record,
         )
 
+    def _make_condition_node(
+        self, condition_set_record: dict | None, condition_record: Node | None
+    ) -> ConditionSetNode | DiseaseNode | PhenotypeNode:
+        """Build a VA Condition Node from the raw Neo4j node results
+
+        :param condition_set_record: Neo4j condition set record
+        :param condition_record: Neo4j condition record
+        :return: Repository ConditionSetNode, DiseaseNode, or PhenotypeNode
+        :raises ValueError: For unexpected condition records or if neither
+            ``condition_set_record`` or ``condition_record`` provided
+        """
+
+        def build(
+            record: dict | Node,
+        ) -> ConditionSetNode | DiseaseNode | PhenotypeNode | None:
+            """Recursively build a condition node from neo4j record"""
+            if isinstance(record, dict):
+                set_node = record["condition_set"]
+                children = [
+                    child
+                    for child in (build(c) for c in record.get("conditions") or [])
+                    if child is not None
+                ]
+
+                if not children:
+                    return None
+
+                if len(children) == 1:
+                    return children[0]
+
+                return ConditionSetNode(
+                    id=set_node["id"],
+                    membership_operator=set_node["membership_operator"],
+                    extensions=set_node.get("extensions"),
+                    conditions=children,
+                )
+
+            if isinstance(record, Node):
+                node_type = record.get("node_type")
+
+                if node_type == "ConditionSet":
+                    # Skip standalone ConditionSet nodes, they must be handled by dict wrapper
+                    return None
+
+                if node_type == "Disease":
+                    return DiseaseNode(**dict(record))
+
+                if node_type == "Phenotype":
+                    return PhenotypeNode(**dict(record))
+
+            msg = f"Unexpected condition record: {record}"
+            raise ValueError(msg)
+
+        # Prefer condition_record if present
+        if condition_record:
+            return build(condition_record)
+
+        # Otherwise condition_set_record
+        if condition_set_record:
+            return build(condition_set_record)
+
+        msg = "Must provide either `condition_set_record` or `condition_record`"
+        raise ValueError(msg)
+
     @staticmethod
     def _make_therapeutic_node(
         therapy_group_record: Node | None, drug_record: Node | None
@@ -453,7 +543,9 @@ class Neo4jRepository(AbstractRepository):
             has_constraint=constraint_node, has_members=member_nodes, **record["cv"]
         )
         gene_node = GeneNode(**record["g"])
-        condition_node = DiseaseNode(**record["c"])
+        condition_node = self._make_condition_node(
+            record["condition_set"], record["condition"]
+        )
         method_node = MethodNode(
             has_document=DocumentNode(**record["method_doc"]), **record["method"]
         )
@@ -466,6 +558,9 @@ class Neo4jRepository(AbstractRepository):
                 has_evidence_items=[
                     self._get_evidence_line_statement_node(statement_id)
                     for statement_id in record_line["evidence_item_ids"]
+                ],
+                strength_of_evidence_provided=record_line[
+                    "strength_of_evidence_provided"
                 ],
             )
             for record_line in record["evidence_lines"]

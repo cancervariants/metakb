@@ -28,8 +28,15 @@ from ga4gh.cat_vrs.models import (
     CategoricalVariant,
     DefiningAlleleConstraint,
 )
-from ga4gh.core.models import Coding, ConceptMapping, Extension, MappableConcept
+from ga4gh.core.models import (
+    Coding,
+    ConceptMapping,
+    Extension,
+    MappableConcept,
+    iriReference,
+)
 from ga4gh.va_spec.base import (
+    ConditionSet,
     DiagnosticPredicate,
     Direction,
     Document,
@@ -338,12 +345,10 @@ class GeneNode(BaseNode):
 
 
 class DiseaseNode(BaseNode):
-    """Node model for an individual Disease.
-
-    More complex models will need to be built to handle conditionsets/etc.
-    """
+    """Node model for an individual Disease."""
 
     id: str
+    node_type: Literal["Disease"] = "Disease"
     normalized_id: str
     name: str
     mappings: str
@@ -381,6 +386,94 @@ class DiseaseNode(BaseNode):
             name=self.name if self.name else None,
             mappings=_Mappings(json.loads(self.mappings)).root,
         )
+
+
+class PhenotypeNode(BaseNode):
+    """Node model for Phenotype."""
+
+    id: str
+    node_type: Literal["Phenotype"] = "Phenotype"
+    name: str
+    mappings: str
+
+    @classmethod
+    def from_gks(cls, phenotype: MappableConcept) -> Self:
+        """Create Node instance from GKS class."""
+        return cls(
+            id=phenotype.id,
+            name=phenotype.name or "",
+            mappings=_Mappings(phenotype.mappings or []).model_dump_json(),
+        )
+
+    def to_gks(self) -> MappableConcept:
+        """Create GKS class for Phenotype from node."""
+        return MappableConcept(
+            id=self.id,
+            conceptType="Phenotype",
+            name=self.name or None,
+            mappings=_Mappings(json.loads(self.mappings)).root or None,
+        )
+
+
+class ConditionSetNode(BaseNode):
+    """Node model for ConditionSet."""
+
+    id: str
+    node_type: Literal["ConditionSet"] = "ConditionSet"
+    membership_operator: MembershipOperator
+    conditions: list[DiseaseNode | PhenotypeNode | ConditionSetNode] = Field(
+        min_length=2
+    )
+    extensions: str
+
+    @classmethod
+    def from_gks(cls, condition_set: ConditionSet) -> Self:
+        """Create Node instance from GKS class."""
+        conditions: list[ConditionSetNode | DiseaseNode | PhenotypeNode] = [
+            _get_condition_node(condition) for condition in condition_set.conditions
+        ]
+
+        return cls(
+            id=condition_set.id,
+            extensions=_Extensions(condition_set.extensions or []).model_dump_json(),
+            membership_operator=MembershipOperator(condition_set.membershipOperator),
+            conditions=conditions,
+        )
+
+    def to_gks(self) -> ConditionSet:
+        """Create ConditionSet GKS class from Node instance."""
+        extensions = _Extensions(json.loads(self.extensions)).root
+        return ConditionSet(
+            id=self.id,
+            membershipOperator=self.membership_operator,
+            conditions=[condition.to_gks() for condition in self.conditions],
+            extensions=extensions or None,
+        )
+
+
+ConditionSetNode.model_rebuild()
+
+
+def _get_condition_node(
+    condition: MappableConcept | ConditionSet,
+) -> ConditionSetNode | PhenotypeNode | DiseaseNode:
+    """Get condition node for a GKS condition
+
+    :param condition: GKS condition
+    :raises ValueError: If condition type is not supported
+    :return: Condition node
+    """
+    if isinstance(condition, MappableConcept):
+        if condition.conceptType == "Disease":
+            return DiseaseNode.from_gks(condition)
+
+        if condition.conceptType == "Phenotype":
+            return PhenotypeNode.from_gks(condition)
+
+        msg = f"Condition type not supported: {condition.conceptType}"
+        raise ValueError(msg)
+
+    return ConditionSetNode.from_gks(condition)
 
 
 class DrugNode(BaseNode):
@@ -466,6 +559,7 @@ class DocumentNode(BaseNode):
     pmid: str
     doi: str
     urls: list[str]
+    aliases: list[str]
     extensions: str
 
     @classmethod
@@ -504,6 +598,7 @@ class DocumentNode(BaseNode):
             id=doc_id,
             title=document.title if document.title else "",
             urls=document.urls if document.urls else [],
+            aliases=document.aliases or [],
             pmid=str(document.pmid) if document.pmid else "",
             name=document.name if document.name else "",
             doi=document.doi if document.doi else "",
@@ -521,6 +616,7 @@ class DocumentNode(BaseNode):
             pmid=self.pmid if self.pmid else None,
             doi=self.doi if self.doi else None,
             urls=self.urls if self.urls else None,
+            aliases=self.aliases or None,
             extensions=extensions if extensions else None,
         )
 
@@ -589,7 +685,7 @@ class StrengthNode(BaseNode):
         )
         return MappableConcept(
             name=self.name if self.name else None,
-            mappings=_Mappings(json.loads(self.mappings)).root,
+            mappings=_Mappings(json.loads(self.mappings)).root or None,
             primaryCoding=coding,
         )
 
@@ -604,6 +700,7 @@ class EvidenceLineNode(BaseNode):
         | DiagnosticStatementNode
         | PrognosticStatementNode
     ] = Field(min_length=1)
+    strength_of_evidence_provided: str
 
     @classmethod
     def from_gks(cls, evidence_line: EvidenceLine) -> Self:
@@ -627,6 +724,7 @@ class EvidenceLineNode(BaseNode):
             id=evidence_line_id,
             direction=evidence_line.directionOfEvidenceProvided,
             has_evidence_items=evidence_items,
+            strength_of_evidence_provided=evidence_line.strengthOfEvidenceProvided.model_dump_json(),
         )
 
     def to_gks(self) -> EvidenceLine:
@@ -634,6 +732,11 @@ class EvidenceLineNode(BaseNode):
         return EvidenceLine(
             directionOfEvidenceProvided=self.direction,
             hasEvidenceItems=[st.to_gks() for st in self.has_evidence_items],
+            strengthOfEvidenceProvided=MappableConcept(
+                **json.loads(self.strength_of_evidence_provided)
+            )
+            if self.strength_of_evidence_provided
+            else None,
         )
 
 
@@ -678,6 +781,7 @@ class StatementNodeBase(BaseNode):
     """
 
     id: str
+    url: str
     description: str
     direction: Direction
     has_method: MethodNode
@@ -691,9 +795,30 @@ class StatementNodeBase(BaseNode):
     )
     has_evidence_lines: list[EvidenceLineNode]
     has_classification: ClassificationNode | None
-    has_condition: DiseaseNode
+    has_condition: DiseaseNode | PhenotypeNode | ConditionSetNode
     has_gene: GeneNode
     has_variant: CategoricalVariantNode
+
+    @staticmethod
+    def _get_document_nodes_and_url(
+        reported_in: list[Document | iriReference],
+    ) -> tuple[list[DocumentNode], str]:
+        """Get document nodes and url
+
+        Assumes there is only one iriReference in list
+
+        :param reported_in: Reported in documents
+        :return: List of document nodes and url for statement
+        """
+        document_nodes = []
+        url = ""
+
+        for d in reported_in:
+            if isinstance(d, Document):
+                document_nodes.append(DocumentNode.from_gks(d))
+            elif not url:
+                url = d.root
+        return document_nodes, url
 
 
 class TherapeuticReponseStatementNode(StatementNodeBase):
@@ -721,11 +846,8 @@ class TherapeuticReponseStatementNode(StatementNodeBase):
             if statement.hasEvidenceLines
             else []
         )
-        document_nodes = (
-            [DocumentNode.from_gks(d) for d in statement.reportedIn]
-            if statement.reportedIn
-            else []
-        )
+        document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
+
         match tr_proposition.objectTherapeutic.root:
             case TherapyGroup():
                 therapeutic_node = TherapyGroupNode.from_gks(
@@ -745,13 +867,14 @@ class TherapeuticReponseStatementNode(StatementNodeBase):
 
         return cls(
             id=statement.id,
+            url=url,
             description=statement.description or "",
             direction=statement.direction,
             has_method=method_node,
             has_documents=document_nodes,
             has_strength=strength_node,
             predicate=tr_proposition.predicate,
-            has_condition=DiseaseNode.from_gks(tr_proposition.conditionQualifier.root),
+            has_condition=_get_condition_node(tr_proposition.conditionQualifier.root),
             has_gene=GeneNode.from_gks(tr_proposition.geneContextQualifier),
             has_variant=CategoricalVariantNode.from_gks(tr_proposition.subjectVariant),
             has_therapeutic=therapeutic_node,
@@ -772,8 +895,10 @@ class TherapeuticReponseStatementNode(StatementNodeBase):
             alleleOriginQualifier=MappableConcept(name=self.allele_origin_qualifier),
         )
         reported_in = (
-            [d.to_gks() for d in self.has_documents] if self.has_documents else None
+            [d.to_gks() for d in self.has_documents] if self.has_documents else []
         )
+        if self.url:
+            reported_in.append(iriReference(self.url))
         evidence_lines = (
             [el.to_gks() for el in self.has_evidence_lines]
             if self.has_evidence_lines
@@ -788,7 +913,7 @@ class TherapeuticReponseStatementNode(StatementNodeBase):
             specifiedBy=self.has_method.to_gks(),
             direction=self.direction,
             strength=self.has_strength.to_gks(),
-            reportedIn=reported_in,
+            reportedIn=reported_in or None,
             proposition=proposition,
             hasEvidenceLines=evidence_lines,
             classification=classification,
@@ -816,11 +941,7 @@ class DiagnosticStatementNode(StatementNodeBase):
             if statement.hasEvidenceLines
             else []
         )
-        document_nodes = (
-            [DocumentNode.from_gks(d) for d in statement.reportedIn]
-            if statement.reportedIn
-            else []
-        )
+        document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
         classification_node = (
             ClassificationNode.from_gks(statement.classification)
             if statement.classification
@@ -829,13 +950,14 @@ class DiagnosticStatementNode(StatementNodeBase):
 
         return cls(
             id=statement.id,
+            url=url,
             description=statement.description or "",
             direction=statement.direction,
             has_method=method,
             has_documents=document_nodes,
             has_strength=strength_node,
             predicate=diagnostic_proposition.predicate,
-            has_condition=DiseaseNode.from_gks(
+            has_condition=_get_condition_node(
                 diagnostic_proposition.objectCondition.root
             ),
             has_gene=GeneNode.from_gks(diagnostic_proposition.geneContextQualifier),
@@ -858,8 +980,10 @@ class DiagnosticStatementNode(StatementNodeBase):
             alleleOriginQualifier=MappableConcept(name=self.allele_origin_qualifier),
         )
         reported_in = (
-            [d.to_gks() for d in self.has_documents] if self.has_documents else None
+            [d.to_gks() for d in self.has_documents] if self.has_documents else []
         )
+        if self.url:
+            reported_in.append(iriReference(self.url))
         evidence_lines = (
             [el.to_gks() for el in self.has_evidence_lines]
             if self.has_evidence_lines
@@ -902,11 +1026,7 @@ class PrognosticStatementNode(StatementNodeBase):
             if statement.hasEvidenceLines
             else []
         )
-        document_nodes = (
-            [DocumentNode.from_gks(d) for d in statement.reportedIn]
-            if statement.reportedIn
-            else []
-        )
+        document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
         classification_node = (
             ClassificationNode.from_gks(statement.classification)
             if statement.classification
@@ -915,13 +1035,14 @@ class PrognosticStatementNode(StatementNodeBase):
 
         return cls(
             id=statement.id,
+            url=url,
             description=statement.description or "",
             direction=statement.direction,
             has_method=method_node,
             has_documents=document_nodes,
             has_strength=strength_node,
             predicate=prognostic_proposition.predicate,
-            has_condition=DiseaseNode.from_gks(
+            has_condition=_get_condition_node(
                 prognostic_proposition.objectCondition.root
             ),
             has_gene=GeneNode.from_gks(prognostic_proposition.geneContextQualifier),
@@ -944,8 +1065,10 @@ class PrognosticStatementNode(StatementNodeBase):
             alleleOriginQualifier=MappableConcept(name=self.allele_origin_qualifier),
         )
         reported_in = (
-            [d.to_gks() for d in self.has_documents] if self.has_documents else None
+            [d.to_gks() for d in self.has_documents] if self.has_documents else []
         )
+        if self.url:
+            reported_in.append(iriReference(self.url))
         evidence_lines = (
             [el.to_gks() for el in self.has_evidence_lines]
             if self.has_evidence_lines
