@@ -30,7 +30,7 @@ dependencies = [
     "ga4gh.cat_vrs~=0.7.1",
     "ga4gh.va_spec~=0.4.1",
     "gene-normalizer[etl]~=0.10.2",
-    "variation-normalizer~=0.14.1",
+    "variation-normalizer @ git+https://github.com/cancervariants/variation-normalization.git@ebd78fe09ac37088bf4658e1ae62b7b23a34a522",
     "disease-normalizer[etl]~=0.11.2",
     "thera-py[etl]~=0.11.0",
     "civicpy @ git+https://github.com/griffithlab/civicpy.git@d55d0a5d4e96c4642f8a9cc37edb1e61696bb2e1",
