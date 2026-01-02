@@ -56,4 +56,3 @@ body:
         operating system (Mac, Windows, Linux, other):
       validations:
         required: true
-
