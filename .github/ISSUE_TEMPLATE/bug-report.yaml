@@ -11,9 +11,9 @@ body:
   - type: textarea
     attributes:
       label: Steps to reproduce
-      description: | 
-        Provide detailed steps to replicate the bug. Make sure to describe the current behavior. 
-        If applicable, include full errors, stack traces, and/or relevant logs. 
+      description: |
+        Provide detailed steps to replicate the bug. Make sure to describe the current behavior.
+        If applicable, include full errors, stack traces, and/or relevant logs.
       placeholder: |
         1. In this environment...
         2. With this config...
