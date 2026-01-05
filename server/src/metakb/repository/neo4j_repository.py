@@ -432,16 +432,16 @@ class Neo4jRepository(AbstractRepository):
                 )
 
             if isinstance(record, Node):
-                node_type = record.get("node_type")
+                node_labels = record.labels
 
-                if node_type == "ConditionSet":
+                if "ConditionSet" in node_labels:
                     # Skip standalone ConditionSet nodes, they must be handled by dict wrapper
                     return None
 
-                if node_type == "Disease":
+                if "Disease" in node_labels:
                     return DiseaseNode(**dict(record))
 
-                if node_type == "Phenotype":
+                if "Phenotype" in node_labels:
                     return PhenotypeNode(**dict(record))
 
             msg = f"Unexpected condition record: {record}"

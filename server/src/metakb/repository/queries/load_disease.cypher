@@ -1,9 +1,9 @@
-MERGE (d:Disease:Condition {id: $disease.id})
-  ON CREATE SET
-    d +=
-      {
-        normalized_id: $disease.normalized_id,
-        name: $disease.name,
-        mappings: $disease.mappings,
-        node_type: 'Disease'
-      }
+MERGE (d:Condition {id: $disease.id})
+ON CREATE SET
+  d +=
+    {
+      normalized_id: $disease.normalized_id,
+      name: $disease.name,
+      mappings: $disease.mappings
+    }
+SET d:Disease

@@ -348,7 +348,6 @@ class DiseaseNode(BaseNode):
     """Node model for an individual Disease."""
 
     id: str
-    node_type: Literal["Disease"] = "Disease"
     normalized_id: str
     name: str
     mappings: str
@@ -392,7 +391,6 @@ class PhenotypeNode(BaseNode):
     """Node model for Phenotype."""
 
     id: str
-    node_type: Literal["Phenotype"] = "Phenotype"
     name: str
     mappings: str
 
@@ -419,7 +417,6 @@ class ConditionSetNode(BaseNode):
     """Node model for ConditionSet."""
 
     id: str
-    node_type: Literal["ConditionSet"] = "ConditionSet"
     membership_operator: MembershipOperator
     conditions: list[DiseaseNode | PhenotypeNode | ConditionSetNode] = Field(
         min_length=2
