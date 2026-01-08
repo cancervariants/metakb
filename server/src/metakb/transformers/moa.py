@@ -439,8 +439,13 @@ class MoaTransformer(Transformer):
     ) -> tuple[list[Extension], list[Variation], list[ConceptMapping]]:
         """Add extensions/members/mappings to MOA CatVar
 
+        Todo:
+        * should members be generated? They're created as normalized alleles, which
+          feels philosophically out of step with the other changes here.
+
         :param variant: original MOA variant object
         :return: tuple with constructed Extensions, catvar members, and mappings
+
         """
         extensions = []
         coordinates_keys = [
