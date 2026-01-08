@@ -102,7 +102,7 @@ typing-inspection==0.4.2
 tzdata==2025.2
 ujson==5.11.0
 url-normalize==2.2.1
-urllib3==2.5.0
+urllib3==2.6.3
 uvicorn==0.37.0
 uvloop==0.21.0
 variation-normalizer==0.14.2
