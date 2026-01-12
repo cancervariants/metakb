@@ -378,6 +378,7 @@ class MoaTransformer(Transformer):
                 break
         return normalized_disease, moa_disease
 
+    @cache  # noqa: B019
     async def _normalize_moa_variant(
         self, variant: dict
     ) -> tuple[CategoricalVariant | None, CategoricalVariant]:
