@@ -77,10 +77,11 @@ class MoaTransformer(Transformer):
         """Transform MOA harvested JSON to common data model. Will store transformed
         results in ``processed_data`` instance variable.
 
-        # loop through statements
-        # try to normalize variant, disease, drug, gene
-        # if success -> aggregated
-        # otherwise -> not aggregated
+        For each statement:
+        * Build its base GKS equivalent
+        * Try to normalize variant, disease, gene(, drug)
+        * If they all normalize, also build the aggregate statement, supported by
+          an evidence line to the base statement
 
         :param harvested_data: MOA harvested data
         """
@@ -88,15 +89,16 @@ class MoaTransformer(Transformer):
             source["id"]: self._build_document(source)
             for source in harvested_data.sources
         }
-        method = self._build_method()
-        agg_method = self._build_aggregate_method()
+        # TODO figure out classification
+        # I think this should be calculable on a per-statement basis -- just need to figure it out
+        # probably gets moved out of this method:
         tmp_class = MappableConcept(
             id="metakb.classification:1",
             name="tmp metakb tr classification",
             primaryCoding=Coding(
                 system=System.AMP_ASCO_CAP, code=code(Classification.TIER_I)
             ),
-        )  # TODO figure this out for real!!!
+        )
         statements = []
         aggregated_statements = []
         for assertion in harvested_data.assertions:
@@ -113,11 +115,11 @@ class MoaTransformer(Transformer):
                     )
                     continue
                 aggregated_statement, statement = await self._build_tr_statement(
-                    assertion, source, method, agg_method, tmp_class
+                    assertion, source, tmp_class
                 )
             else:
                 aggregated_statement, statement = await self._build_prog_statement(
-                    assertion, source, method, agg_method, tmp_class
+                    assertion, source, tmp_class
                 )
             statements.append(statement)
             if aggregated_statement:
@@ -130,10 +132,16 @@ class MoaTransformer(Transformer):
         self,
         assertion: dict,
         source: Document,
-        method: Method,
-        agg_method: Method,
         tmp_class: MappableConcept,
     ) -> tuple[VariantPrognosticStudyStatement | None, Statement]:
+        """Construct a prognostic statement and an aggregate parent assertion, if possible
+
+        :param assertion: MOA assertion object (un-transformed)
+        :param source: document from which MOA curated the statement
+        :param tmp_class: (temporary) classification object
+        :return: either an aggregate statement or None, and the MOA assertion modeled as
+            a GKS statement
+        """
         aggregated_statement = None
         if moa_gene_value := assertion["variant"].get("gene"):
             normalized_gene, gene = self._normalize_moa_gene(moa_gene_value)
@@ -164,7 +172,7 @@ class MoaTransformer(Transformer):
             ),
             direction=direction,
             reportedIn=[source],
-            specifiedBy=method,
+            specifiedBy=self._build_method(),
         )
         if normalized_gene and normalized_disease and normalized_variant:
             aggregated_statement = VariantPrognosticStudyStatement(
@@ -176,7 +184,7 @@ class MoaTransformer(Transformer):
                     predicate=predicate,
                 ),
                 direction=direction,
-                specifiedBy=agg_method,
+                specifiedBy=self._build_aggregate_method(),
                 classification=tmp_class,
                 hasEvidenceLines=[
                     EvidenceLine(
@@ -191,10 +199,16 @@ class MoaTransformer(Transformer):
         self,
         assertion: dict,
         source: Document,
-        method: Method,
-        agg_method: Method,
         tmp_class: MappableConcept,
     ) -> tuple[VariantTherapeuticResponseStudyStatement | None, Statement]:
+        """Construct a therapeutic response statement and an aggregate parent assertion, if possible.
+
+        :param assertion: MOA assertion object (un-transformed)
+        :param source: document from which MOA curated the statement
+        :param tmp_class: (temporary) classification object
+        :return: either an aggregate statement or None, and the MOA assertion modeled as
+            a GKS statement
+        """
         aggregated_statement = None
         if moa_gene_value := assertion["variant"].get("gene"):
             normalized_gene, gene = self._normalize_moa_gene(moa_gene_value)
@@ -231,7 +245,7 @@ class MoaTransformer(Transformer):
             ),
             direction=direction,
             reportedIn=[source],
-            specifiedBy=method,
+            specifiedBy=self._build_method(),
         )
         if (
             normalized_disease
@@ -249,7 +263,7 @@ class MoaTransformer(Transformer):
                     predicate=predicate,
                 ),
                 direction=direction,
-                specifiedBy=agg_method,
+                specifiedBy=self._build_aggregate_method(),
                 classification=tmp_class,
                 hasEvidenceLines=[
                     EvidenceLine(
@@ -279,7 +293,9 @@ class MoaTransformer(Transformer):
 
     @staticmethod
     def _build_aggregate_method() -> Method:
-        """Return tmp aggregation Method
+        """Return method for aggregate classification.
+
+        This is temporary/ a placeholder. It should probably be elevated to the base class.
 
         :return: working aggregation Method
         """
@@ -299,7 +315,11 @@ class MoaTransformer(Transformer):
         self,
         gene_name: str,
     ) -> tuple[MappableConcept | None, MappableConcept]:
-        """Transform MOA gene name to GKS MappableConcept and attempt normalization"""
+        """Transform MOA gene name to GKS MappableConcept and attempt normalization
+
+        :param gene_name: name of gene given by MOA
+        :return: Normalized gene if available, and MOA gene modeled as GKS gene entity
+        """
         normalized_gene_response, _ = self.vicc_normalizers.normalize_gene(gene_name)
         moa_gene = MappableConcept(id=f"moa.gene:{gene_name}", name=gene_name)
         if normalized_gene_response and normalized_gene_response.gene:
@@ -442,6 +462,7 @@ class MoaTransformer(Transformer):
         Todo:
         * should members be generated? They're created as normalized alleles, which
           feels philosophically out of step with the other changes here.
+          (Figure out before merging)
 
         :param variant: original MOA variant object
         :return: tuple with constructed Extensions, catvar members, and mappings
