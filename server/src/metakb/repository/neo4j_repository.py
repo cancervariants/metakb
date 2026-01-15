@@ -265,8 +265,8 @@ class Neo4jRepository(AbstractRepository):
             return
 
         if not isinstance(cond, MappableConcept):
-            msg = f"Unsupported condition type: {type(cond)}"
-            raise NotImplementedError(msg)
+            msg = f"Unsupported condition type: {cond}"
+            raise TypeError(msg)
 
         if cond.conceptType == "Disease":
             disease_node = DiseaseNode.from_gks(cond)
