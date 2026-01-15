@@ -1,9 +1,6 @@
 """Provide miscellaneous helper utilities."""
 
-import json
 import logging
-
-from ga4gh.core import sha512t24u
 
 from metakb.config import get_config
 from metakb.schemas.api import ServiceEnvironment
@@ -60,14 +57,3 @@ def configure_logs(log_level: int = logging.INFO, quiet_upstream: bool = True) -
         handler = logging.StreamHandler()
         handler.setLevel(logging.DEBUG)
         logger.addHandler(handler)
-
-
-def get_digest_for_str_lists(str_list: list[str]) -> str:
-    """Create digest for a list of strings
-
-    :param str_list: List of strings to get digest for
-    :return: Digest
-    """
-    str_list.sort()
-    blob = json.dumps(str_list, separators=(",", ":"), sort_keys=True).encode("ascii")
-    return sha512t24u(blob)

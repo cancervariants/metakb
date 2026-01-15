@@ -40,7 +40,6 @@ from metakb.transformers.base import (
     _sanitize_name,
     _TransformedRecordsCache,
 )
-from metakb.utils import get_digest_for_str_lists
 
 logger = logging.getLogger(__name__)
 
@@ -455,7 +454,7 @@ class MoaTransformer(Transformer):
                 return None
 
             therapies = [{"name": tn.strip()} for tn in therapy_name.split("+")]
-            therapeutic_digest = get_digest_for_str_lists(
+            therapeutic_digest = self._get_digest_for_str_lists(
                 [f"moa.therapy:{tn}" for tn in therapies]
             )
             therapy_id = f"moa.ctid:{therapeutic_digest}"

@@ -17,6 +17,7 @@ from disease.schemas import (
 )
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
+from ga4gh.core import sha512t24u
 from ga4gh.core.models import (
     Coding,
     ConceptMapping,
@@ -357,6 +358,19 @@ class Transformer(ABC):
                     )
                 ]
         return concept_mappings
+
+    @staticmethod
+    def _get_digest_for_str_lists(str_list: list[str]) -> str:
+        """Create digest for a list of strings
+
+        :param str_list: List of strings to get digest for
+        :return: Digest
+        """
+        str_list.sort()
+        blob = json.dumps(str_list, separators=(",", ":"), sort_keys=True).encode(
+            "ascii"
+        )
+        return sha512t24u(blob)
 
     @staticmethod
     def _get_vicc_normalizer_failure_ext() -> Extension:
