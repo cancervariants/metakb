@@ -1,13 +1,9 @@
 """Neo4j implementation of the repository abstraction."""
 
-import ast
 import logging
-import os
 from typing import NamedTuple
 from urllib.parse import urlparse, urlunparse
 
-import boto3
-from botocore.exceptions import ClientError
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.aac_2017 import (
@@ -67,29 +63,6 @@ _logger = logging.getLogger(__name__)
 CYPHER_PAGE_LIMIT = 999999999
 
 
-def _get_secret() -> str:
-    """Get secrets for MetaKB instances.
-
-    :return: code structured as string for consumption in ``ast.literal_eval``
-    """
-    secret_name = os.environ["METAKB_DB_SECRET"]
-    region_name = "us-east-2"
-
-    # Create a Secrets Manager client
-    session = boto3.session.Session()
-    client = session.client(service_name="secretsmanager", region_name=region_name)
-
-    try:
-        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-    except ClientError:
-        # For a list of exceptions thrown, see
-        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-        _logger.exception("Encountered ClientError while fetching secrets")
-        raise
-    else:
-        return get_secret_value_response["SecretString"]
-
-
 class Neo4jCredentialsError(Exception):
     """Raise for invalid or unparseable Neo4j credentials"""
 
@@ -133,20 +106,24 @@ def _parse_connection_params(url: str) -> _Neo4jConnectionParams:
 def get_driver(
     url: str | None = None,
 ) -> Driver:
-    """Get DB connection given provided connection params, or fall back on environment
-    params/defaults if not provided.
+    """Get a Neo4j DB connection using a resolved url.
 
     Connection URL resolved in the following order:
 
-    * If in a prod environment, ignore all other configs and fetch from AWS Secrets Manager
-    * If connection string is provided, use it
-    * If connection string is given by env var ``METAKB_DB_URL``, use it
-    * Otherwise, fall back on default
+    * If a connection string is provided via the ``url`` argument, use it
+    * Otherwise, fall back on ``METAKB_DB_URL`` environment variable
 
-    :param url: connection string for Neo4j DB. Formatted as ``bolt://<username>:<password>@<hostname>``
+    This function intentionally avoids any direct dependency on AWS services.
+    In deployed environments, ``METAKB_DB_URL`` is expected to be provided by infrastructure
+    (e.g. CloudFormation) based on stored secrets.
+
+    :param url: connection string for Neo4j DB. Formatted as ``bolt://<username>:<password>@<hostname>:<port>``
     :return: Neo4j driver instance
+    :raises Neo4jCredentialsError: If no valid connection URL can be resolved
     """
     configs = get_config()
+
+    # log overrides in deployed environments
     if configs.env in (
         ServiceEnvironment.PROD,
         ServiceEnvironment.STAGING,
@@ -157,18 +134,27 @@ def get_driver(
                 "Overriding DB connection string from `url` param because %s environment is declared",
                 configs.env,
             )
-        if configs.db_url:
+        elif configs.db_url:
             _logger.warning(
                 "Overriding DB connection string from env variable because %s environment is declared",
                 configs.env,
             )
-        secret = ast.literal_eval(_get_secret())
-        url = f"bolt://{secret['username']}:{secret['password']}@{secret['host']}:{secret['port']}"
-    elif url:
-        pass  # use argument if given
+        else:
+            _logger.error(
+                "No DB connection URL provided in %s environment; "
+                "METAKB_DB_URL is expected to be set",
+                configs.env,
+            )
+
+    # determine connection url
+    if url:
+        resolved_url = url
+    elif configs.db_url:
+        resolved_url = configs.db_url
     else:
-        url = configs.db_url
-    connection_params = _parse_connection_params(url)
+        err_msg = "Neo4j connection requires METAKB_DB_URL to be set"
+        raise Neo4jCredentialsError(err_msg)
+    connection_params = _parse_connection_params(resolved_url)
     return GraphDatabase.driver(
         connection_params.url,
         auth=(connection_params.username, connection_params.password),
