@@ -27,7 +27,6 @@ WITH
 
 OPTIONAL MATCH (s)-[:HAS_TUMOR_TYPE]->(c:Condition)
 WHERE cs is NULL
-
 WITH
   s,
   str,

@@ -57,7 +57,6 @@ WHERE cond_member:Condition OR cond_member:ConditionSet
 // condition
 OPTIONAL MATCH (s)-[:HAS_TUMOR_TYPE]->(c:Condition)
 WHERE condition_set IS NULL
-
 WITH
   s,
   str,
