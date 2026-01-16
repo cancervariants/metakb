@@ -248,7 +248,7 @@ class Neo4jRepository(AbstractRepository):
 
         :param tx: Neo4j transaction
         :param condition: VA-Spec condition (disease, phenotype, or conditionset)
-        :raises TypeError: If invalid condition type or unsupported conceptType
+        :raises TypeError: If invalid condition type or conceptType
         """
         cond = getattr(condition, "root", condition)
         if isinstance(cond, ConditionSet):
