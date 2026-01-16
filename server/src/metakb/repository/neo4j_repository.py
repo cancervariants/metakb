@@ -394,10 +394,46 @@ class Neo4jRepository(AbstractRepository):
             **allele_record,
         )
 
+    def _build_condition_set_record(
+        self,
+        condition_set: Node,
+        cond_rels: list[list],
+    ) -> dict:
+        """Build a condition set record
+
+        :param condition_set: Condition set node
+        :param cond_rels: HAS_CONDITION relationships
+        :return: Condition set to be passed to ``_make_condition_node``
+        """
+
+        def build(node: Node) -> dict:
+            """Build a nested condition set"""
+            return {
+                "condition_set": node,
+                "conditions": [
+                    build(child) if "ConditionSet" in child.labels else child
+                    for child in children_map.get(node["id"], {}).values()
+                ],
+            }
+
+        # condition set ID -> child condition nodes
+        children_map: dict[str, dict[str, Node]] = {}
+
+        for rel_path in cond_rels:
+            for rel in rel_path:
+                parent_id = rel.start_node["id"]
+                child = rel.end_node
+                children_map.setdefault(parent_id, {})[child["id"]] = child
+
+        return build(condition_set)
+
     def _make_condition_node(
         self, condition_set_record: dict | None, condition_record: Node | None
     ) -> ConditionSetNode | DiseaseNode | PhenotypeNode:
         """Build a VA Condition Node from the raw Neo4j node results
+
+        Attempts to build standalone condition first. If null, attempts to build
+        condition set record.
 
         :param condition_set_record: Neo4j condition set record
         :param condition_record: Neo4j condition record
@@ -447,11 +483,9 @@ class Neo4jRepository(AbstractRepository):
             msg = f"Unexpected condition record: {record}"
             raise ValueError(msg)
 
-        # Prefer condition_record if present
         if condition_record:
             return build(condition_record)
 
-        # Otherwise condition_set_record
         if condition_set_record:
             return build(condition_set_record)
 
@@ -543,9 +577,20 @@ class Neo4jRepository(AbstractRepository):
             has_constraint=constraint_node, has_members=member_nodes, **record["cv"]
         )
         gene_node = GeneNode(**record["g"])
+
+        if condition_set := record.get("condition_set"):
+            condition_set_record = self._build_condition_set_record(
+                condition_set,
+                record["condition_rels"],
+            )
+        else:
+            condition_set_record = None
+
         condition_node = self._make_condition_node(
-            record["condition_set"], record["condition"]
+            condition_set_record=condition_set_record,
+            condition_record=record.get("condition"),
         )
+
         method_node = MethodNode(
             has_document=DocumentNode(**record["method_doc"]), **record["method"]
         )

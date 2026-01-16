@@ -23,9 +23,11 @@ WITH
   cv,
   g,
   cs,
-  collect(DISTINCT c) AS conditions
+  collect(DISTINCT c) AS _conditions
 
 OPTIONAL MATCH (s)-[:HAS_TUMOR_TYPE]->(c:Condition)
+WHERE cs is NULL
+
 WITH
   s,
   str,
@@ -35,7 +37,7 @@ WITH
   cv,
   g,
   CASE
-    WHEN cs IS NOT NULL THEN {condition_set: cs, conditions: conditions}
+    WHEN cs IS NOT NULL THEN {condition_set: cs, conditions: _conditions}
   END AS conditions,
   CASE
     WHEN cs IS NULL THEN c

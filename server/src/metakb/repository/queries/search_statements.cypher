@@ -25,7 +25,7 @@ WHERE
     } OR EXISTS {
       MATCH
         (s)-[:HAS_TUMOR_TYPE]->
-        (:ConditionSet)-[:HAS_CONDITION]->
+        (:ConditionSet)-[:HAS_CONDITION*0..]->
         (cond:Condition)
       WHERE cond.normalized_id IN $condition_ids
     }) AND
@@ -49,20 +49,15 @@ MATCH (s)-[:IS_SPECIFIED_BY]->(method:Method)
 MATCH (method)-[:IS_REPORTED_IN]->(method_doc:Document)
 OPTIONAL MATCH (s)-[:HAS_CLASSIFICATION]->(classification:Classification)
 
-OPTIONAL MATCH (s)-[:HAS_TUMOR_TYPE]->(cs:ConditionSet)
-OPTIONAL MATCH (cs)-[:HAS_CONDITION]->(cs_cond:Condition)
-WITH
-  s,
-  str,
-  method,
-  method_doc,
-  classification,
-  cv,
-  g,
-  cs,
-  collect(DISTINCT cs_cond) AS cs_conditions
+// condition set
+OPTIONAL MATCH (s)-[:HAS_TUMOR_TYPE]->(condition_set:ConditionSet)
+OPTIONAL MATCH cond_path = (condition_set)-[:HAS_CONDITION*0..]->(cond_member)
+WHERE cond_member:Condition OR cond_member:ConditionSet
 
+// condition
 OPTIONAL MATCH (s)-[:HAS_TUMOR_TYPE]->(c:Condition)
+WHERE condition_set IS NULL
+
 WITH
   s,
   str,
@@ -71,14 +66,10 @@ WITH
   classification,
   cv,
   g,
-  cs,
-  cs_conditions,
-  CASE
-    WHEN cs IS NOT NULL THEN {condition_set: cs, conditions: cs_conditions}
-  END AS condition_set,
-  CASE
-    WHEN cs IS NULL THEN c ELSE null
-  END AS condition
+  condition_set,
+  c AS condition,
+  collect(DISTINCT cond_member) AS condition_nodes,
+  collect(DISTINCT relationships(cond_path)) AS condition_rels
 
 // Get therapeutic components
 OPTIONAL MATCH (s)-[:HAS_THERAPEUTIC]->(tg:TherapyGroup)
@@ -92,6 +83,8 @@ WITH
   cv,
   condition_set,
   condition,
+  condition_nodes,
+  condition_rels,
   g,
   tg,
   collect(DISTINCT tm) AS tmembers
@@ -106,6 +99,8 @@ WITH
   cv,
   condition_set,
   condition,
+  condition_nodes,
+  condition_rels,
   g,
   CASE
     WHEN tg IS NOT NULL THEN {therapy_group: tg, members: tmembers}
@@ -167,6 +162,8 @@ RETURN DISTINCT
   members,
   condition_set,
   condition,
+  condition_nodes,
+  condition_rels,
   g,
   therapy_group,
   drug,
