@@ -708,6 +708,18 @@ def aid93_object_condition():
                 "mappings": [
                     {
                         "coding": {
+                            "id": "ncit:C186547",
+                            "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                            "code": "C186547",
+                            "name": "Central Nervous System Neuroblastoma, FOXR2-Activated",
+                        },
+                        "relation": "exactMatch",
+                        "extensions": [
+                            get_vicc_normalizer_priority_ext(is_priority=True),
+                        ],
+                    },
+                    {
+                        "coding": {
                             "id": "DOID:0080906",
                             "system": "https://disease-ontology.org/?id=",
                             "code": "DOID:0080906",
@@ -723,11 +735,10 @@ def aid93_object_condition():
                             "id": "MONDO_0859597",
                             "system": "https://purl.obolibrary.org/obo/",
                             "code": "MONDO:0859597",
-                            "name": "cns neuroblastoma with FOXR2 activation",
                         },
                         "relation": "exactMatch",
                         "extensions": [
-                            get_vicc_normalizer_priority_ext(is_priority=True),
+                            get_vicc_normalizer_priority_ext(is_priority=False),
                         ],
                     },
                 ],

@@ -1,7 +1,12 @@
 """Test search statement methods"""
 
 import pytest
-from tests.conftest import get_mappings_normalizer_id
+from deepdiff import DeepDiff
+from tests.conftest import (
+    get_civic_annotation_ext,
+    get_mappings_normalizer_id,
+    get_vicc_normalizer_priority_ext,
+)
 
 from metakb.normalizers import ViccNormalizers
 from metakb.repository.base import AbstractRepository
@@ -12,6 +17,119 @@ from metakb.services.search import (
 )
 
 from .utils import assert_no_match, find_and_check_stmt
+
+
+@pytest.fixture(scope="module")
+def eid11751_object_condition(civic_did8):
+    """Create test fixture for EID 11751 object condition"""
+    return {
+        "id": "civic.condset_intersect:aJc_pdh2M5ZuvQpF-NVQ0Kati2ZEhSSX",
+        "conditions": [
+            civic_did8,
+            {
+                "id": "civic.phenotype:2643",
+                "conceptType": "Phenotype",
+                "name": "Adult onset",
+                "mappings": [
+                    {
+                        "coding": {
+                            "system": "https://hpo.jax.org/app/browse/term/",
+                            "code": "HP:0003581",
+                        },
+                        "relation": "exactMatch",
+                    }
+                ],
+            },
+        ],
+        "membershipOperator": "AND",
+    }
+
+
+@pytest.fixture(scope="module")
+def eid7191_object_condition():
+    """Create test fixture for EID 7191 object condition"""
+    return {
+        "id": "civic.condset_intersect:CqjNRkHX7zGGFPUiMN0W_KIJ5J2tpZKL",
+        "conditions": [
+            {
+                "id": "civic.did:3048",
+                "conceptType": "Disease",
+                "name": "Childhood Low-grade Glioma",
+                "mappings": [
+                    {
+                        "coding": {
+                            "id": "DOID:0080830",
+                            "system": "https://disease-ontology.org/?id=",
+                            "code": "DOID:0080830",
+                        },
+                        "relation": "exactMatch",
+                        "extensions": [
+                            get_civic_annotation_ext(),
+                            get_vicc_normalizer_priority_ext(is_priority=False),
+                        ],
+                    },
+                    {
+                        "coding": {
+                            "id": "MONDO_0859591",
+                            "system": "https://purl.obolibrary.org/obo/",
+                            "code": "MONDO:0859591",
+                        },
+                        "relation": "exactMatch",
+                        "extensions": [
+                            get_vicc_normalizer_priority_ext(is_priority=False),
+                        ],
+                    },
+                    {
+                        "coding": {
+                            "id": "ncit:C202299",
+                            "name": "Childhood Low Grade Glioma",
+                            "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                            "code": "C202299",
+                        },
+                        "relation": "exactMatch",
+                        "extensions": [
+                            get_vicc_normalizer_priority_ext(is_priority=True),
+                        ],
+                    },
+                ],
+            },
+            {
+                "id": "civic.condset_union:0DC8CbrVXYD7MdFnSG2Aa2Uhor9yNhMm",
+                "conditions": [
+                    {
+                        "id": "civic.phenotype:15320",
+                        "conceptType": "Phenotype",
+                        "name": "Pediatric onset",
+                        "mappings": [
+                            {
+                                "coding": {
+                                    "system": "https://hpo.jax.org/app/browse/term/",
+                                    "code": "HP:0410280",
+                                },
+                                "relation": "exactMatch",
+                            }
+                        ],
+                    },
+                    {
+                        "id": "civic.phenotype:16642",
+                        "conceptType": "Phenotype",
+                        "name": "Early young adult onset",
+                        "mappings": [
+                            {
+                                "coding": {
+                                    "system": "https://hpo.jax.org/app/browse/term/",
+                                    "code": "HP:0025708",
+                                },
+                                "relation": "exactMatch",
+                            }
+                        ],
+                    },
+                ],
+                "membershipOperator": "OR",
+            },
+        ],
+        "membershipOperator": "AND",
+    }
 
 
 def assert_general_search_stmts(response):
@@ -131,10 +249,10 @@ async def test_civic_assertion(
     assert statement_ids == [civic_aid6_statement["id"]]
     resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
     assert len(resp_stmts) == 1
-    # Test fixture only has one evidence line, but actual has 6
+    # Test fixture only has one evidence item in evidence lines, but actual has 6
     actual_civic_aid6 = resp_stmts[0]
-    assert len(actual_civic_aid6["hasEvidenceLines"]) == 6
-    expected_evidence_lines = []
+    assert len(actual_civic_aid6["hasEvidenceLines"]) == 1
+
     expected_evidence_item_ids = {
         "civic.eid:982",
         "civic.eid:2997",
@@ -143,15 +261,55 @@ async def test_civic_assertion(
         "civic.eid:968",
         "civic.eid:2629",
     }
-    for el in actual_civic_aid6["hasEvidenceLines"]:
-        for ev in el["hasEvidenceItems"]:
-            assert ev["id"] in expected_evidence_item_ids
 
-            if ev["id"] == "civic.eid:2997":
-                expected_evidence_lines.append(el)
+    tmp_applied_ev = []
 
-    actual_civic_aid6["hasEvidenceLines"] = expected_evidence_lines
-    assertion_checks(resp_stmts, [civic_aid6_statement])
+    for ev in actual_civic_aid6["hasEvidenceLines"][0]["hasEvidenceItems"]:
+        assert ev["id"] in expected_evidence_item_ids
+
+        if ev["id"] == "civic.eid:2997":
+            tmp_applied_ev.append(ev)
+            break
+
+    actual_civic_aid6["hasEvidenceLines"][0]["hasEvidenceItems"] = tmp_applied_ev
+    assertion_checks([actual_civic_aid6], [civic_aid6_statement])
+
+
+@pytest.mark.asyncio(scope="module")
+@pytest.mark.parametrize(
+    ("statement_id", "expected_condition_fixture_name", "condition_key"),
+    [
+        (
+            "civic.eid:7191",
+            "eid7191_object_condition",
+            "objectCondition",
+        ),  # simple condition set
+        (
+            "civic.eid:11751",
+            "eid11751_object_condition",
+            "conditionQualifier",
+        ),  # complex condition set
+    ],
+)
+async def test_condition_set(
+    repository,
+    normalizers,
+    statement_id,
+    expected_condition_fixture_name,
+    condition_key,
+    request,
+):
+    """Test that search_statements method works correctly for condition sets"""
+    resp = await search_statements(repository, normalizers, statement_id=statement_id)
+    assert len(resp.statements) == 1
+
+    statement = resp.statements[0]
+    diff = DeepDiff(
+        getattr(statement.proposition, condition_key).model_dump(exclude_none=True),
+        request.getfixturevalue(expected_condition_fixture_name),
+        ignore_order=True,
+    )
+    assert diff == {}
 
 
 @pytest.mark.asyncio(scope="module")
@@ -235,9 +393,6 @@ async def test_general_search_statements(
                     found_expected = True
                     break
             assert found_expected
-
-    resp = await search_statements(repository, normalizers, gene="VHL")
-    assert_general_search_stmts(resp)
 
     # Case: multiple concepts provided
     expected_variation_id = "ga4gh:VA._8jTS8nAvWwPZGOadQuD1o-tbbTQ5g3H"

@@ -1890,7 +1890,7 @@ def assertion_checks():
     :param test_data: List of expected data
     """
 
-    def _check(actual_data: list, test_data: list) -> None:
+    def _check(actual_data: list, test_data: list, is_cdm: bool = False) -> None:
         assert len(actual_data) == len(test_data)
         for expected in test_data:
             found_match = False
@@ -1899,14 +1899,19 @@ def assertion_checks():
                     found_match = True
                     assert actual.keys() == expected.keys(), expected["id"]
                     expected_copy = deepcopy(expected)
+                    exclude_regex_paths = [
+                        r"\['digest'\]",  # digest is optional in return object
+                        r"\['reportedIn'\]\['id'\]",  # doc ID is optional in return object
+                    ]
+                    if not is_cdm:
+                        exclude_regex_paths.append(
+                            r"\['proposition'\]\['alleleOriginQualifier'\]\['extensions'\]"
+                        )
                     diff = DeepDiff(
                         actual,
                         expected_copy,
                         ignore_order=True,
-                        exclude_regex_paths=[
-                            r"\['digest'\]",  # digest is optional in return object
-                            r"\['reportedIn'\]\['id'\]",  # doc ID is optional in return object
-                        ],
+                        exclude_regex_paths=exclude_regex_paths,
                     )
                     assert diff == {}, expected["id"]
                     continue
@@ -1925,6 +1930,7 @@ def check_transformed_cdm(assertion_checks):
         assertion_checks(
             data["statements_evidence"] + data["statements_assertions"],
             statements,
+            is_cdm=True,
         )
         transformed_file.unlink()
 

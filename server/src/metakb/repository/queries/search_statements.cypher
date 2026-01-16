@@ -4,7 +4,6 @@ MATCH (s:Statement)
 WHERE $statement_ids = [] OR s.id IN $statement_ids
 
 MATCH (s)-[:HAS_SUBJECT_VARIANT]->(cv:CategoricalVariant)
-MATCH (s)-[:HAS_TUMOR_TYPE]->(c:Condition)
 MATCH (s)-[:HAS_GENE_CONTEXT]->(g:Gene)
 WHERE
   ($variation_ids = [] OR
@@ -19,7 +18,17 @@ WHERE
       MATCH (cv)-[:HAS_MEMBER]->(a:Allele)
       WHERE a.id IN $variation_ids
     }) AND
-  ($condition_ids = [] OR c.normalized_id IN $condition_ids) AND
+  ($condition_ids = [] OR
+    EXISTS {
+      MATCH (s)-[:HAS_TUMOR_TYPE]->(cond:Condition)
+      WHERE cond.normalized_id IN $condition_ids
+    } OR EXISTS {
+      MATCH
+        (s)-[:HAS_TUMOR_TYPE]->
+        (:ConditionSet)-[:HAS_CONDITION*0..]->
+        (cond:Condition)
+      WHERE cond.normalized_id IN $condition_ids
+    }) AND
   ($gene_ids = [] OR g.normalized_id IN $gene_ids) AND
   ($therapy_ids = [] OR
     EXISTS {
@@ -29,7 +38,7 @@ WHERE
     EXISTS {
       MATCH
         (s)-[:HAS_THERAPEUTIC]->
-        (:TherapyGroup)-[:HAS_SUBSTITUTE|HAS_COMPONENT]->
+        (:TherapyGroup)-[:HAS_THERAPY]->
         (d:Drug)
       WHERE d.normalized_id IN $therapy_ids
     })
@@ -40,9 +49,14 @@ MATCH (s)-[:IS_SPECIFIED_BY]->(method:Method)
 MATCH (method)-[:IS_REPORTED_IN]->(method_doc:Document)
 OPTIONAL MATCH (s)-[:HAS_CLASSIFICATION]->(classification:Classification)
 
-// Get therapeutic components
-OPTIONAL MATCH (s)-[:HAS_THERAPEUTIC]->(tg:TherapyGroup)
-OPTIONAL MATCH (tg)-[:HAS_SUBSTITUTE|HAS_COMPONENT]->(tm:Drug)
+// condition set
+OPTIONAL MATCH (s)-[:HAS_TUMOR_TYPE]->(condition_set:ConditionSet)
+OPTIONAL MATCH cond_path = (condition_set)-[:HAS_CONDITION*0..]->(cond_member)
+WHERE cond_member:Condition OR cond_member:ConditionSet
+
+// condition
+OPTIONAL MATCH (s)-[:HAS_TUMOR_TYPE]->(c:Condition)
+WHERE condition_set IS NULL
 WITH
   s,
   str,
@@ -50,7 +64,26 @@ WITH
   method_doc,
   classification,
   cv,
-  c,
+  g,
+  condition_set,
+  c AS condition,
+  collect(DISTINCT cond_member) AS condition_nodes,
+  collect(DISTINCT relationships(cond_path)) AS condition_rels
+
+// Get therapeutic components
+OPTIONAL MATCH (s)-[:HAS_THERAPEUTIC]->(tg:TherapyGroup)
+OPTIONAL MATCH (tg)-[:HAS_THERAPY]->(tm:Drug)
+WITH
+  s,
+  str,
+  method,
+  method_doc,
+  classification,
+  cv,
+  condition_set,
+  condition,
+  condition_nodes,
+  condition_rels,
   g,
   tg,
   collect(DISTINCT tm) AS tmembers
@@ -63,7 +96,10 @@ WITH
   method_doc,
   classification,
   cv,
-  c,
+  condition_set,
+  condition,
+  condition_nodes,
+  condition_rels,
   g,
   CASE
     WHEN tg IS NOT NULL THEN {therapy_group: tg, members: tmembers}
@@ -79,7 +115,7 @@ MATCH
   (defining_allele:Allele)
 MATCH (defining_allele)-[:HAS_LOCATION]->(defining_allele_sl:SequenceLocation)
 MATCH (defining_allele)-[:HAS_STATE]->(defining_allele_se:SequenceExpression)
-CALL (cv) {
+CALL {
   WITH cv
   OPTIONAL MATCH (cv)-[:HAS_MEMBER]->(m:Allele)
   OPTIONAL MATCH (m)-[:HAS_LOCATION]->(sl:SequenceLocation)
@@ -90,13 +126,14 @@ CALL (cv) {
 }
 
 // get documents
-CALL (s) {
+CALL {
+  WITH s
   MATCH (s)-[:IS_REPORTED_IN]->(doc:Document)
   RETURN collect(DISTINCT doc) AS documents
 }
 
 // get evidence line IDs
-CALL (s) {
+CALL {
   WITH s
   OPTIONAL MATCH (s)-[:HAS_EVIDENCE_LINE]->(line:EvidenceLine)
   OPTIONAL MATCH (line)-[:HAS_EVIDENCE_ITEM]->(ei:Statement)
@@ -122,7 +159,10 @@ RETURN DISTINCT
   defining_allele_sl,
   defining_allele_se,
   members,
-  c,
+  condition_set,
+  condition,
+  condition_nodes,
+  condition_rels,
   g,
   therapy_group,
   drug,
