@@ -56,6 +56,11 @@ def load_dac_catvar() -> str:
 
 
 @cache
+def load_fcc_catvar() -> str:
+    return _load("load_featurecontextconstraint_catvar.cypher")
+
+
+@cache
 def load_document() -> str:
     return _load("load_document.cypher")
 

@@ -1,5 +1,7 @@
 """Test search statement methods"""
 
+import re
+
 import pytest
 from deepdiff import DeepDiff
 from tests.conftest import (
@@ -508,10 +510,12 @@ async def test_paginate(repository, normalizers):
 
     # test raises exceptions
     with pytest.raises(
-        PaginationParamError, match="Invalid start value: -1. Must be nonnegative."
+        PaginationParamError,
+        match=re.escape("Invalid start value: -1. Must be nonnegative."),
     ):
         await search_statements(repository, normalizers, variation=braf_va_id, start=-1)
     with pytest.raises(
-        PaginationParamError, match="Invalid limit value: -1. Must be nonnegative."
+        PaginationParamError,
+        match=re.escape("Invalid limit value: -1. Must be nonnegative."),
     ):
         await search_statements(repository, normalizers, variation=braf_va_id, limit=-1)

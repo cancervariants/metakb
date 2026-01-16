@@ -1,4 +1,4 @@
-﻿metakb.repository.queries.catalog
+metakb.repository.queries.catalog
 =================================
 
 .. automodule:: metakb.repository.queries.catalog

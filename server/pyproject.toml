@@ -16,7 +16,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -24,9 +23,10 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 description = "A search interface for cancer variant interpretations assembled by aggregating and harmonizing across multiple cancer variant interpretation knowledgebases."
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
-    "ga4gh.vrs>=2.1.4,<3.0",
+    "ga4gh.vrs>=2.2.0,<3.0",
     "ga4gh.cat_vrs~=0.7.1",
     "ga4gh.va_spec~=0.4.1",
     "gene-normalizer[etl]~=0.10.2",
@@ -65,8 +65,8 @@ tests = [
     "pyyaml",
 ]
 dev = [
-    "pre-commit>=4.2.0",
-    "ruff==0.12.1",
+    "prek>=0.2.23",
+    "ruff==0.14.10",
     "fastapi[standard]",
 ]
 codegen = [
@@ -98,7 +98,7 @@ Source = "https://github.com/cancervariants/metakb"
 metakb = "metakb.cli:cli"
 
 [build-system]
-requires = ["setuptools>=64"]
+requires = ["setuptools>=77.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
@@ -123,91 +123,55 @@ src = ["src"]
 exclude = ["../docs/*", "codebuild/*"]
 
 [tool.ruff.lint]
-select = [
-    "F",  # https://docs.astral.sh/ruff/rules/#pyflakes-f
-    "E", "W",  # https://docs.astral.sh/ruff/rules/#pycodestyle-e-w
-    "I",  # https://docs.astral.sh/ruff/rules/#isort-i
-    "N",  # https://docs.astral.sh/ruff/rules/#pep8-naming-n
-    "D",  # https://docs.astral.sh/ruff/rules/#pydocstyle-d
-    "UP",  # https://docs.astral.sh/ruff/rules/#pyupgrade-up
-    "ANN",  # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
-    "ASYNC",  # https://docs.astral.sh/ruff/rules/#flake8-async-async
-    "S",  # https://docs.astral.sh/ruff/rules/#flake8-bandit-s
-    "B",  # https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
-    "A",  # https://docs.astral.sh/ruff/rules/#flake8-builtins-a
-    "C4",  # https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
-    "DTZ",  # https://docs.astral.sh/ruff/rules/#flake8-datetimez-dtz
-    "T10",  # https://docs.astral.sh/ruff/rules/#flake8-datetimez-dtz
-    "EM",  # https://docs.astral.sh/ruff/rules/#flake8-errmsg-em
-    "LOG",  # https://docs.astral.sh/ruff/rules/#flake8-logging-log
-    "G",  # https://docs.astral.sh/ruff/rules/#flake8-logging-format-g
-    "INP",  # https://docs.astral.sh/ruff/rules/#flake8-no-pep420-inp
-    "PIE",  # https://docs.astral.sh/ruff/rules/#flake8-pie-pie
-    "T20",  # https://docs.astral.sh/ruff/rules/#flake8-print-t20
-    "PT",  # https://docs.astral.sh/ruff/rules/#flake8-pytest-style-pt
-    "Q",  # https://docs.astral.sh/ruff/rules/#flake8-quotes-q
-    "RSE",  # https://docs.astral.sh/ruff/rules/#flake8-raise-rse
-    "RET",  # https://docs.astral.sh/ruff/rules/#flake8-return-ret
-    "SLF",  # https://docs.astral.sh/ruff/rules/#flake8-self-slf
-    "SLOT",  # https://docs.astral.sh/ruff/rules/#flake8-slots-slot
-    "SIM",  # https://docs.astral.sh/ruff/rules/#flake8-simplify-sim
-    "ARG",  # https://docs.astral.sh/ruff/rules/#flake8-unused-arguments-arg
-    "PTH",  # https://docs.astral.sh/ruff/rules/#flake8-use-pathlib-pth
-    "PGH",  # https://docs.astral.sh/ruff/rules/#pygrep-hooks-pgh
-    "FAST",  # https://docs.astral.sh/ruff/rules/#fastapi-fast
-    "PLC",  # https://docs.astral.sh/ruff/rules/#convention-c
-    "PLE",  # https://docs.astral.sh/ruff/rules/#error-e_1
-    "TRY",  # https://docs.astral.sh/ruff/rules/#tryceratops-try
-    "PERF",  # https://docs.astral.sh/ruff/rules/#perflint-perf
-    "FURB",  # https://docs.astral.sh/ruff/rules/#refurb-furb
-    "RUF",  # https://docs.astral.sh/ruff/rules/#ruff-specific-rules-ruf
-]
-fixable = [
-    "I",
-    "F401",
-    "D",
-    "UP",
-    "ANN",
-    "B",
-    "C4",
-    "LOG",
-    "G",
-    "PIE",
-    "PT",
-    "RSE",
-    "SIM",
-    "FAST",
-    "PLC",
-    "PLE",
-    "TRY",
-    "PERF",
-    "FURB",
-    "RUF"
-]
-# ANN002 - missing-type-args
-# ANN003 - missing-type-kwargs
-# D203 - one-blank-line-before-class
-# D205 - blank-line-after-summary
-# D206 - indent-with-spaces*
-# D213 - multi-line-summary-second-line
-# D300 - triple-single-quotes*
-# D400 - ends-in-period
-# D415 - ends-in-punctuation
-# E111 - indentation-with-invalid-multiple*
-# E114 - indentation-with-invalid-multiple-comment*
-# E117 - over-indented*
-# E501 - line-too-long*
-# W191 - tab-indentation*
-# S321 - suspicious-ftp-lib-usage
-# PLC0206 - dict-index-missing-items
-# *ignored for compatibility with formatter
+select = ["ALL"]
 ignore = [
-    "ANN002", "ANN003",
-    "D203", "D205", "D206", "D213", "D300", "D400", "D415",
-    "E111", "E114", "E117", "E501",
+    # unused
+    "AIR",
+    "ERA",
+    "YTT",
+    "BLE",
+    "FBT",
+    "CPY",
+    "DJ",
+    "EXE",
+    "FIX",
+    "FA",
+    "PYI",
+    "TD",
+    "C90",
+    "NPY",
+    "PD",
+    # ignore for compatibility with formatter
+    "D206",
+    "D300",
+    "W191",
+    "E111",
+    "E114",
+    "E117",
+    "E501",
     "W191",
     "S321",
+    "COM812",
+    "COM819",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    # don't require types on *args, **kwargs
+    "ANN002",
+    "ANN003",
+    # subjective pylint thresholds
+    "PLR0904",
+    "PLR091",
+    "PLR1702",
     "PLC0206",
+    # misc unnecessary stuff
+    "S321",
+    "D203",
+    "D205",
+    "D213",
+    "D400",
+    "D415",
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -223,6 +187,7 @@ ignore = [
 # ARG001 - unused-function-argument
 # SLF001 - private-member-acces
 # N815 - mixed-case-variable-in-class-scope
+# PLR2004 - magic-value-comparison
 "tests/*" = [
     "ANN001",
     "ANN2",
@@ -234,7 +199,8 @@ ignore = [
     "D104",
     "INP001",
     "SLF001",
-    "ARG001"
+    "ARG001",
+    "PLR2004",
 ]
 "src/metakb/schemas/*" = ["ANN102", "N815"]
 "src/metakb/repository/queries/catalog.py" = ["D103"]

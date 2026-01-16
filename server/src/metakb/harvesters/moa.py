@@ -1,6 +1,7 @@
 """A module for the Molecular Oncology Almanac harvester"""
 
 import logging
+from http import HTTPStatus
 
 import requests
 import requests_cache
@@ -44,7 +45,7 @@ class MoaHarvester(Harvester):
         genes = []
         with requests_cache.disabled():
             r = requests.get("https://moalmanac.org/api/genes", timeout=60)
-            if r.status_code == 200:
+            if r.status_code == HTTPStatus.OK:
                 genes = r.json()
         return genes
 
@@ -222,7 +223,7 @@ class MoaHarvester(Harvester):
             )
         elif feature_type == "neoantigen_burden":
             feature = "{}".format(v["classification"])
-        elif feature_type == "knockdown" or feature_type == "silencing":
+        elif feature_type in {"knockdown", "silencing"}:
             feature = "{}{}".format(
                 v["gene"], f" ({v['technique']})" if v["technique"] else ""
             )

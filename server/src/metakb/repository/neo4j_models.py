@@ -27,6 +27,7 @@ from typing import Any, Literal, Self
 from ga4gh.cat_vrs.models import (
     CategoricalVariant,
     DefiningAlleleConstraint,
+    FeatureContextConstraint,
 )
 from ga4gh.core.models import (
     Coding,
@@ -86,6 +87,21 @@ class BaseNode(BaseModel, abc.ABC):
         """Return corresponding GKS class."""
 
 
+class SequenceReferenceNode(BaseNode):
+    """Node model for a sequence reference"""
+
+    refget_accession: str
+
+    @classmethod
+    def from_gks(cls, sequence_reference: SequenceReference) -> Self:
+        """Create Node instance from GKS class."""
+        return cls(refget_accession=sequence_reference.refgetAccession)
+
+    def to_gks(self) -> SequenceReference:
+        """Return VRS SequenceReference"""
+        return SequenceReference(refgetAccession=self.refget_accession)
+
+
 class SequenceLocationNode(BaseNode):
     """Node model for SequenceLocation"""
 
@@ -94,7 +110,7 @@ class SequenceLocationNode(BaseNode):
     # will need to think about how to handle null case in the future
     start: int
     end: int
-    refget_accession: str
+    has_sequence_reference: SequenceReferenceNode
     sequence: str = ""
 
     @classmethod
@@ -104,7 +120,9 @@ class SequenceLocationNode(BaseNode):
             id=sequence_location.id,
             start=sequence_location.start,
             end=sequence_location.end,
-            refget_accession=sequence_location.sequenceReference.refgetAccession,
+            has_sequence_reference=SequenceReferenceNode.from_gks(
+                sequence_location.sequenceReference
+            ),
             sequence=sequence_location.sequence.root
             if sequence_location.sequence
             else "",
@@ -116,7 +134,7 @@ class SequenceLocationNode(BaseNode):
             id=self.id,
             start=self.start,
             end=self.end,
-            sequenceReference=SequenceReference(refgetAccession=self.refget_accession),
+            sequenceReference=self.has_sequence_reference.to_gks(),
             sequence=self.sequence if self.sequence else None,
         )
 
@@ -235,6 +253,34 @@ class DefiningAlleleConstraintNode(BaseNode):
         )
 
 
+class FeatureContextConstraintNode(BaseNode):
+    """Node model for Cat-VRS FeatureContextConstraint"""
+
+    id: str
+    has_feature_context: GeneNode
+
+    @classmethod
+    def from_gks(cls, constraint: FeatureContextConstraint, constraint_id: str) -> Self:
+        """Create new node instance from a Cat-VRS FeatureContextConstraint
+
+        :param constraint: original constraint object
+        :param constraint_id: database identifier. Our working convention is to
+            incorporate the container categorical variant's ID as part of this, which means
+            we need to get this arg separately
+        :return: node instance
+        """
+        return cls(
+            id=constraint_id,
+            has_feature_context=GeneNode.from_gks(constraint.featureContext),
+        )
+
+    def to_gks(self) -> FeatureContextConstraint:
+        """Create cat-vrs-python feature context constraint class instance"""
+        return FeatureContextConstraint(
+            featureContext=self.has_feature_context.to_gks(),
+        )
+
+
 class CategoricalVariantNode(BaseNode):
     """Node model for Categorical Variant."""
 
@@ -244,7 +290,7 @@ class CategoricalVariantNode(BaseNode):
     aliases: list[str] = []
     extensions: str
     mappings: str
-    has_constraint: DefiningAlleleConstraintNode
+    has_constraint: DefiningAlleleConstraintNode | FeatureContextConstraintNode
     has_members: list[AlleleNode]
 
     @classmethod
@@ -259,6 +305,11 @@ class CategoricalVariantNode(BaseNode):
                 f"{catvar.id}:{constraint.root.type}:{constraint.root.allele.id}"
             )
             constraint_node = DefiningAlleleConstraintNode.from_gks(
+                constraint.root, constraint_id
+            )
+        elif constraint.root.type == "FeatureContextConstraint":
+            constraint_id = f"{catvar.id}:{constraint.root.type}:{constraint.root.featureContext.id}"
+            constraint_node = FeatureContextConstraintNode.from_gks(
                 constraint.root, constraint_id
             )
         else:
@@ -571,12 +622,11 @@ class DocumentNode(BaseNode):
         if not document.id:
             if pmid := document.pmid:
                 doc_id = f"pmid:{pmid}"
+            elif doi := document.doi:
+                doc_id = f"doi:{doi}"
             else:
-                if doi := document.doi:
-                    doc_id = f"doi:{doi}"
-                else:
-                    msg = f"Unable to create internal ID for document {document}"
-                    raise ValueError(msg)
+                msg = f"Unable to create internal ID for document {document}"
+                raise ValueError(msg)
             _logger.info("Designating %s as ID for document %s", doc_id, document)
         else:
             doc_id = document.id
@@ -693,7 +743,7 @@ class EvidenceLineNode(BaseNode):
     id: str
     direction: Direction
     has_evidence_items: list[
-        TherapeuticReponseStatementNode
+        TherapeuticResponseStatementNode
         | DiagnosticStatementNode
         | PrognosticStatementNode
     ] = Field(min_length=1)
@@ -709,7 +759,7 @@ class EvidenceLineNode(BaseNode):
             match proposition_type:
                 case "VariantTherapeuticResponseProposition":
                     evidence_items.append(
-                        TherapeuticReponseStatementNode.from_gks(item)
+                        TherapeuticResponseStatementNode.from_gks(item)
                     )
                 case "VariantDiagnosticProposition":
                     evidence_items.append(DiagnosticStatementNode.from_gks(item))
@@ -818,7 +868,7 @@ class StatementNodeBase(BaseNode):
         return document_nodes, url
 
 
-class TherapeuticReponseStatementNode(StatementNodeBase):
+class TherapeuticResponseStatementNode(StatementNodeBase):
     """Node model for an evidence statement about a therapeutic response proposition"""
 
     predicate: TherapeuticResponsePredicate
