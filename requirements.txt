@@ -31,8 +31,8 @@ disease-normalizer==0.11.2
 executing==2.2.1
 fastapi==0.118.2
 fastobo==0.13.0
-ga4gh-cat-vrs==0.7.1
-ga4gh-va-spec==0.4.2
+ga4gh-cat-vrs==0.7.2
+ga4gh-va-spec==0.4.3
 ga4gh-vrs==2.2.0
 gene-normalizer==0.10.3
 gffutils==0.13
