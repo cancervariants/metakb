@@ -9,7 +9,7 @@ from urllib.parse import urlparse, urlunparse
 import boto3
 from botocore.exceptions import ClientError
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import MappableConcept, iriReference
+from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
@@ -218,18 +218,17 @@ class Neo4jRepository(AbstractRepository):
             msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar.id} is {catvar.constraints}"
             raise ValueError(msg)
 
-    def add_document(self, tx: Transaction, document: Document | iriReference) -> None:
-        """Add document to DB (skips iriReferences)
+    def add_document(self, tx: Transaction, document: Document) -> None:
+        """Add document to DB
 
         :param tx: Neo4j transaction
         :param document: VA-Spec document
         """
-        if isinstance(document, Document):
-            document_node = DocumentNode.from_gks(document)
-            tx.run(
-                queries_catalog.load_document(),
-                doc=document_node.model_dump(mode="json"),
-            )
+        document_node = DocumentNode.from_gks(document)
+        tx.run(
+            queries_catalog.load_document(),
+            doc=document_node.model_dump(mode="json"),
+        )
 
     def add_gene(
         self,
@@ -249,8 +248,7 @@ class Neo4jRepository(AbstractRepository):
 
         :param tx: Neo4j transaction
         :param condition: VA-Spec condition (disease, phenotype, or conditionset)
-        :raises NotImplementedError: If unsupported condition type or unsupported
-            conceptType
+        :raises TypeError: If invalid condition type or unsupported conceptType
         """
         cond = getattr(condition, "root", condition)
         if isinstance(cond, ConditionSet):
@@ -265,7 +263,7 @@ class Neo4jRepository(AbstractRepository):
             return
 
         if not isinstance(cond, MappableConcept):
-            msg = f"Unsupported condition type: {cond}"
+            msg = f"Unrecognized condition type: {cond}"
             raise TypeError(msg)
 
         if cond.conceptType == "Disease":
@@ -281,8 +279,8 @@ class Neo4jRepository(AbstractRepository):
                 phenotype=phenotype_node.model_dump(mode="json"),
             )
         else:
-            msg = f"Unsupported conceptType: {cond.conceptType}"
-            raise NotImplementedError(msg)
+            msg = f"Unrecognized conceptType: {cond}"
+            raise TypeError(msg)
 
     def add_therapeutic(self, tx: Transaction, therapeutic: Therapeutic) -> None:
         """Add a therapeutic -- either an individual Drug or a group.
@@ -363,8 +361,11 @@ class Neo4jRepository(AbstractRepository):
                 raise NotImplementedError(proposition)
             if statement.reportedIn:
                 for document in statement.reportedIn:
-                    self.add_document(tx, document)
-            self.add_document(tx, statement.specifiedBy.reportedIn)
+                    if isinstance(document, Document):
+                        self.add_document(tx, document)
+
+            if isinstance(statement.specifiedBy.reportedIn, Document):
+                self.add_document(tx, statement.specifiedBy.reportedIn)
             self.add_method(tx, statement.specifiedBy)
             self.add_statement(tx, statement)
 
