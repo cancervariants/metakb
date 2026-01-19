@@ -1,16 +1,17 @@
-from metakb.harvesters.base import Harvester, _HarvestedData
 import logging
 import os
 import tarfile
-import requests
+
 import pandas as pd
-from typing import Dict, List
+import requests
+
+from metakb.harvesters.base import Harvester, _HarvestedData
 
 # --------------------------
 # Config
 # --------------------------
 
-STUDIES: List[str] = [
+STUDIES: list[str] = [
     "pptc_2019",
     "all_phase2_target_2018_pub",
     "rt_target_2018_pub",
@@ -57,18 +58,15 @@ def _download_and_extract_one(study: str) -> None:
     try:
         r.raise_for_status()
     except requests.HTTPError:
-        print(f"HTTP {r.status_code} for {url}\n{(r.text or '')[:300]}")
         raise
 
     with open(out, "wb") as f:
         for chunk in r.iter_content(1024 * 1024):
             if chunk:
                 f.write(chunk)
-    print(f"Downloaded {out}")
 
     with tarfile.open(out, mode="r:gz") as tar:
         tar.extractall(path=FILE_PATH)
-    print(f"Extracted {study} → {FILE_PATH}")
 
 
 def _ensure_study_dir(study: str) -> str:
@@ -77,7 +75,6 @@ def _ensure_study_dir(study: str) -> str:
     study_dir = os.path.join(base, study)
 
     if not os.path.isdir(study_dir):
-        print(f"Study folder missing: {study_dir}. Downloading…")
         _download_and_extract_one(study)
 
         # Recheck and fallback
@@ -87,7 +84,8 @@ def _ensure_study_dir(study: str) -> str:
                 study_dir = os.path.join(base, matches[0])
 
     if not os.path.isdir(study_dir):
-        raise FileNotFoundError(f"Could not locate study directory for '{study}' in {base}")
+        msg = f"Could not locate study directory for '{study}' in {base}"
+        raise FileNotFoundError(msg)
     return study_dir
 
 
@@ -108,7 +106,8 @@ class cBioportalHarvestedData(_HarvestedData):
 
 class cBioportalHarvester(Harvester):
     """Reads cBioPortal study folders under FILE_PATH."""
-    def __init__(self, studies: List[str] | None = None):
+
+    def __init__(self, studies: list[str] | None = None):
         self.studies = studies or STUDIES
         self.basepath = FILE_PATH
         os.makedirs(self.basepath, exist_ok=True)
@@ -141,12 +140,11 @@ class cBioportalHarvester(Harvester):
             variants=variants, patients=patients, samples=samples, metadata=metadata
         )
 
-    def harvest(self, study: str | None = None) -> cBioportalHarvestedData | Dict[str, cBioportalHarvestedData]:
+    def harvest(self, study: str | None = None) -> cBioportalHarvestedData | dict[str, cBioportalHarvestedData]:
         if study is not None:
             return self._read_one(study)
-        out: Dict[str, cBioportalHarvestedData] = {}
+        out: dict[str, cBioportalHarvestedData] = {}
         for s in self.studies:
-            print(f"Harvesting: {s}")
             out[s] = self._read_one(s)
         return out
 
@@ -159,7 +157,6 @@ if __name__ == "__main__":
     os.makedirs(COMPRESSED_PATH, exist_ok=True)
     for s in STUDIES:
         _ensure_study_dir(s)
-    print("All studies ensured under data/cbioportal/, with .tar.gz in compressed_data/")
 
 
     # def __init__(self, study = STUDY_NAME[0]): # TODO: hard coded for now, eventually for study in STUDY_NAME

@@ -738,7 +738,7 @@ class cBioportalTransformerBase(Transformer):
         # -----------------------------------------
         AGE_COL = "AGE"
         age_bins = [-1, 0, 5, 10, 15, 18, 25, 40, 60, 120]
-        age_labels = ["<1", "1–5", "6–10", "11–15", "16–18", "19–25", "26–40", "41–60", "60+"]
+        age_labels = ["<1", "1-5", "6-10", "11-15", "16-18", "19-25", "26-40", "41-60", "60+"]
 
         age_df = combined.copy()
         age_df[AGE_COL] = pd.to_numeric(
