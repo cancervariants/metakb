@@ -86,15 +86,15 @@ class cBioportalTransformerBase(Transformer):
         # Collect mappable genes + QC per study so we can write combined outputs at the end
         self.mappable_genes_by_study: Dict[str, List[MappableConcept]] = {}
         self.gene_qc_by_study: Dict[str, Dict[str, Any]] = {}
-        
+
         # Track failed normalizations
         self.failed_genes: List[Dict[str, str]] = []
         self.failed_variants: List[Dict[str, str]] = []
-        
+
         # Cache for normalized genes and variants to avoid duplicate API calls
         self.gene_cache: Dict[str, Tuple[Any, Optional[str]]] = {}  # symbol -> (response, normalized_id)
         self.variant_cache: Dict[str, Optional[str]] = {}  # variant_notation -> vrs_id
-        
+
         # Track current study being processed (for genome build lookup)
         self.current_study: Optional[str] = None
 
@@ -195,7 +195,7 @@ class cBioportalTransformerBase(Transformer):
                     logger.warning("Normalizer error for symbol %s: %s", symbol, e)
                     normalized_id = None
                     norm_response = None
-                
+
                 # Store in cache
                 self.gene_cache[symbol] = (norm_response, normalized_id)
 
@@ -214,7 +214,7 @@ class cBioportalTransformerBase(Transformer):
                 # Check if this symbol has already been recorded for this study
                 study_id_val = df.iloc[0].get("STUDY_ID", "") if len(df) > 0 else ""
                 already_tracked = any(
-                    f["gene_symbol"] == symbol and f["study_id"] == study_id_val 
+                    f["gene_symbol"] == symbol and f["study_id"] == study_id_val
                     for f in self.failed_genes
                 )
                 if not already_tracked:
@@ -264,30 +264,30 @@ class cBioportalTransformerBase(Transformer):
         """
         Normalize variant using VICC variation normalizer with caching.
         Uses the genome build appropriate for the current study.
-        
+
         Args:
             variant_notation: Genomic notation (e.g., "8-67380528-T-C")
-            
+
         Returns:
             VRS variant ID or None if normalization fails
         """
         # Determine genome build for current study
         genome_build = self.study_genome_build.get(self.current_study, DEFAULT_GENOME_BUILD)
-        
+
         # Create cache key that includes genome build
         cache_key = f"{variant_notation}|{genome_build}"
-        
+
         # Check cache first
         if cache_key in self.variant_cache:
             return self.variant_cache[cache_key]
-        
+
         base_url = "https://normalize.cancervariants.org/variation/"
         params = {
             "q": variant_notation,
             "hgvs_dup_del_mode": "default",
             "input_assembly": genome_build
         }
-        
+
         vrs_id = None
         try:
             response = requests.get(
@@ -299,16 +299,16 @@ class cBioportalTransformerBase(Transformer):
                 data = response.json()
                 if "variation" in data and "id" in data["variation"]:
                     vrs_id = data["variation"]["id"]
-            
+
             # Rate limiting
             time.sleep(self.rate_limit_delay)
         except Exception as e:
             logger.warning(f"Variant normalization failed for {variant_notation} ({genome_build}): {e}")
-        
+
         # Store in cache with genome build in key
         self.variant_cache[cache_key] = vrs_id
         return vrs_id
-    
+
     def _create_tumor_variant_frequency_result(
         self,
         variant_notation: str,
@@ -323,7 +323,7 @@ class cBioportalTransformerBase(Transformer):
     ) -> Optional[dict]:
         """
         Create a TumorVariantFrequencyStudyResult object.
-        
+
         Args:
             variant_notation: Genomic notation (e.g., "8-67380528-T-C")
             affected_count: Number of samples with the variant
@@ -334,7 +334,7 @@ class cBioportalTransformerBase(Transformer):
             cancer_type_detailed: Detailed cancer type (optional)
             oncotree_code: OncoTree code (optional)
             sample_ids: List of sample IDs with this variant (optional)
-            
+
         Returns:
             TumorVariantFrequencyStudyResult dict or None if normalization fails
         """
@@ -357,17 +357,17 @@ class cBioportalTransformerBase(Transformer):
                             "variant_notation": variant_notation
                         })
             return None
-        
+
         # Calculate frequency
         affected_frequency = float(affected_count) / float(total_count)
-        
+
         # Build study group
         study_group = {
             "id": study_id,
             "label": study_label,
             "type": "StudyGroup"
         }
-        
+
         # Add characteristics to study group if available
         characteristics = []
         if cancer_type:
@@ -380,10 +380,10 @@ class cBioportalTransformerBase(Transformer):
                 "label": f"OncoTree: {oncotree_code}",
                 "value": oncotree_code
             })
-        
+
         if characteristics:
             study_group["characteristics"] = characteristics
-        
+
         # Build the study result
         result = {
             "type": "TumorVariantFrequencyStudyResult",
@@ -394,66 +394,66 @@ class cBioportalTransformerBase(Transformer):
             "affectedFrequency": round(affected_frequency, 6),
             "sampleGroup": study_group
         }
-        
+
         # Add optional description
         if cancer_type_detailed:
             result["description"] = (
                 f"Frequency of variant in {cancer_type_detailed} samples "
                 f"from {study_label}"
             )
-        
+
         return result
-    
+
     def _calculate_variant_frequencies(
-            self, 
-            df: pd.DataFrame, 
+            self,
+            df: pd.DataFrame,
             study_id: str) -> List[dict]:
         """
         Calculate variant frequencies for all unique variants in a study.
-        
+
         Args:
             df: DataFrame with variant data (must have Gnomad_Notation column)
             study_id: Study identifier
-            
+
         Returns:
             List of TumorVariantFrequencyStudyResult objects
         """
         if "Gnomad_Notation" not in df.columns:
             logger.warning(f"No Gnomad_Notation column in study {study_id}")
             return []
-        
+
         # Get study metadata from first row
         study_label = df["STUDY_ID"].iloc[0] if "STUDY_ID" in df.columns else study_id
-        
+
         # Get total unique samples in study
         total_samples = df["SAMPLE_ID"].nunique() if "SAMPLE_ID" in df.columns else len(df)
-        
+
         # Group by variant and count unique samples with each variant
         variant_counts = df.groupby("Gnomad_Notation")["SAMPLE_ID"].nunique().reset_index()
         variant_counts.columns = ["Gnomad_Notation", "affected_count"]
-        
+
         results = []
-        
+
         for _, row in tqdm(
-            variant_counts.iterrows(), 
+            variant_counts.iterrows(),
             total=len(variant_counts),
             desc=f"Creating frequency results for {study_id}",
             unit="variant"
         ):
             variant = row["Gnomad_Notation"]
             affected = int(row["affected_count"])
-            
+
             # Get additional metadata from first occurrence of this variant
             variant_rows = df[df["Gnomad_Notation"] == variant]
             first_row = variant_rows.iloc[0]
-            
+
             cancer_type = first_row.get("CANCER_TYPE")
             cancer_type_detailed = first_row.get("CANCER_TYPE_DETAILED")
             oncotree_code = first_row.get("ONCOTREE_CODE")
-            
+
             # Get sample IDs for failure tracking
             sample_ids = variant_rows["SAMPLE_ID"].tolist() if "SAMPLE_ID" in variant_rows.columns else None
-            
+
             # Create study result (uses cached normalization)
             study_result = self._create_tumor_variant_frequency_result(
                 variant_notation=variant,
@@ -466,10 +466,10 @@ class cBioportalTransformerBase(Transformer):
                 oncotree_code=oncotree_code,
                 sample_ids=sample_ids
             )
-            
+
             if study_result:
                 results.append(study_result)
-        
+
         return results
 
     def _write_frequency_results_json(
@@ -481,10 +481,10 @@ class cBioportalTransformerBase(Transformer):
         """Write TumorVariantFrequencyStudyResult objects to JSON file."""
         Path(out_dir).mkdir(parents=True, exist_ok=True)
         out_path = os.path.join(out_dir, f"{study}_tumor_variant_frequencies.json")
-        
+
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(frequency_results, f, indent=2)
-        
+
         return out_path
 
 
@@ -493,24 +493,24 @@ class cBioportalTransformerBase(Transformer):
         payload = {
             "frequency_results_by_study": self.frequency_results_by_study
         }
-        
+
         Path(os.path.dirname(out_path)).mkdir(parents=True, exist_ok=True)
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2)
-        
+
         return out_path
 
 
     def _create_frequency_qc_summary(self) -> pd.DataFrame:
         """Create QC summary for frequency results."""
         qc_data = []
-        
+
         for study, results in self.frequency_results_by_study.items():
             total = len(results)
             normalized = sum(1 for r in results if r.get("focusVariant"))
             failed = total - normalized
             pct = (normalized / total * 100.0) if total else 0.0
-            
+
             qc_data.append({
                 "STUDY_ID": study,
                 "total_variants": total,
@@ -518,7 +518,7 @@ class cBioportalTransformerBase(Transformer):
                 "failed_normalization": failed,
                 "pct_normalized": round(pct, 2)
             })
-        
+
         return pd.DataFrame(qc_data).sort_values("STUDY_ID")
 
     def _write_mappable_genes_json(
@@ -582,7 +582,7 @@ class cBioportalTransformerBase(Transformer):
         self.current_study = study
         genome_build = self.study_genome_build.get(study, DEFAULT_GENOME_BUILD)
         logger.info("Processing study %s with genome build: %s", study, genome_build)
-        
+
         transformer_cls = self._load_transformer(study)
         transformer = transformer_cls()
 
@@ -682,7 +682,7 @@ class cBioportalTransformerBase(Transformer):
         mappable_genes_dir = os.path.join(save_loc, "mappable_genes")
         frequencies_dir = os.path.join(save_loc, "frequencies")
         norm_failures_dir = os.path.join(save_loc, "norm_failures")
-        
+
         os.makedirs(mappable_genes_dir, exist_ok=True)
         os.makedirs(frequencies_dir, exist_ok=True)
         os.makedirs(norm_failures_dir, exist_ok=True)
@@ -772,27 +772,27 @@ class cBioportalTransformerBase(Transformer):
         # -----------------------------------------
         if self.failed_genes:
             failed_genes_df = pd.DataFrame(self.failed_genes)
-            
+
             # Write combined file with all studies
             combined_genes_path = os.path.join(norm_failures_dir, "combined_failed_gene_normalizations.csv")
             failed_genes_df.to_csv(combined_genes_path, index=False)
             print(f"Saved combined failed gene normalizations to: {combined_genes_path}")
-            
+
             # Write per-study files
             for study_id in failed_genes_df['study_id'].unique():
                 study_genes = failed_genes_df[failed_genes_df['study_id'] == study_id]
                 failed_genes_path = os.path.join(norm_failures_dir, f"{study_id}_failed_gene_normalizations.csv")
                 study_genes.to_csv(failed_genes_path, index=False)
                 print(f"Saved failed gene normalizations for {study_id} to: {failed_genes_path}")
-        
+
         if self.failed_variants:
             failed_variants_df = pd.DataFrame(self.failed_variants)
-            
+
             # Write combined file with all studies
             combined_variants_path = os.path.join(norm_failures_dir, "combined_failed_variant_normalizations.csv")
             failed_variants_df.to_csv(combined_variants_path, index=False)
             print(f"Saved combined failed variant normalizations to: {combined_variants_path}")
-            
+
             # Write per-study files
             for study_id in failed_variants_df['study_id'].unique():
                 study_variants = failed_variants_df[failed_variants_df['study_id'] == study_id]

@@ -33,7 +33,7 @@ MUT_HEADERS = ['Hugo_Symbol',
             'Center',
             'NCBI_Build',
             'Chromosome',
-            'Start_Position', 
+            'Start_Position',
             'End_Position',
             'Consequence',
             'Variant_Classification',
@@ -53,7 +53,7 @@ MUT_HEADERS = ['Hugo_Symbol',
             # 'AAChange',
             'Amino_Acid_Change']
 
-#this study has both race and ethnicity. 
+#this study has both race and ethnicity.
 #choose race column and rename ethnicity to match other study data
 PATIENT_HEADERS = ['PATIENT_ID',
                    'AGE',
@@ -86,11 +86,11 @@ class cBioportalTransformer(Transformer):
 
     def _get_therapy(self, therapy):
         return super()._get_therapy(therapy)
-    
+
     def _create_cache(self):
         pass
 
-    
+
     def transform(self, harvested_data):
 
 
@@ -158,13 +158,13 @@ class cBioportalTransformer(Transformer):
             file_path = os.path.join(save_loc, f'{study}_patient_dupes.csv')
             dupes.to_csv(file_path, index=False)
         # assign age to NAs
-            # self.patients["AGE"] = self.patients["AGE"].replace(r'^\s*$', pd.NA, regex=True).fillna("<21")    
+            # self.patients["AGE"] = self.patients["AGE"].replace(r'^\s*$', pd.NA, regex=True).fillna("<21")
         # remove duplicates, but keep first occurrence
             self.patients = self.patients.drop_duplicates()
             print(f"\nDataFrame shape after removing duplicates: {self.patients.shape}")
         else:
             print("No duplicate rows found.")
-        
+
         # SAMPLE DF
         # Check duplicate count
         num_duplicates = self.samples.duplicated().sum()
@@ -178,13 +178,13 @@ class cBioportalTransformer(Transformer):
             dupes = self.samples[self.samples.duplicated(keep=False)]
             file_path = os.path.join(save_loc, f'{study}_samples_dupes.csv')
             dupes.to_csv(file_path, index=False)
-            
+
         # remove duplicates, but keep first occurrence
             self.samples = self.samples.drop_duplicates()
             print(f"\nDataFrame shape after removing duplicates: {self.samples.shape}")
         else:
             print("No duplicate rows found.")
-        
+
         # combine dataframes
         init_combined_df = self.variants.merge(self.samples, on='SAMPLE_ID', how='left')
         combined_df = init_combined_df.merge(self.patients, on='PATIENT_ID', how='left')
@@ -234,7 +234,7 @@ class cBioportalTransformer(Transformer):
         final_df = final_df.replace(r'^\s*$', pd.NA, regex=True).fillna("No_Data")
         file_path = os.path.join(save_loc, f'{study}_final_no_NAs.csv')
         final_df.to_csv(file_path, index=False)
-        
+
 
         self.final_df = final_df
 
@@ -245,11 +245,11 @@ class cBioportalTransformer(Transformer):
 
         #Drop unnecessary columnns
         # final_df = final_df.drop(['SAMPLE_CLASS',
-        #                           'temp_Gnomad_Notation', 
-        #                           'Chrom_23', 
-        #                           'Chr23_X', 
-        #                           'Chr23_Y', 
-        #                           'x_hgnc_id', 
+        #                           'temp_Gnomad_Notation',
+        #                           'Chrom_23',
+        #                           'Chr23_X',
+        #                           'Chr23_Y',
+        #                           'x_hgnc_id',
         #                           'y_hgnc_id',
         #                           'ambig_chrom',
         #                           'gene_hgnc_id',
@@ -260,8 +260,8 @@ class cBioportalTransformer(Transformer):
 
         return final_df
 
-        
-        
+
+
         #Convert CBP data df to a list of dictionaries (each row its own dictionary)
         # genes = df.to_dict(orient='records')
         #Take just a subset to test
@@ -271,7 +271,7 @@ class cBioportalTransformer(Transformer):
         # TODO: Method's for mapping cleaned up data to Common Data Model format
         # civic.py transformer may have some logic to reuse here
         # test fixture is the end result for a single entry
-        #   
+        #
         # TODO: Output one CDM per study or one CDM total?
 
         pass

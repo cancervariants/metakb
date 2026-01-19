@@ -35,7 +35,7 @@ MUT_HEADERS = ['Hugo_Symbol',
             'Center',
             'NCBI_Build',
             'Chromosome',
-            'Start_Position', 
+            'Start_Position',
             'End_Position',
             'Consequence',
             'Variant_Classification',
@@ -86,7 +86,7 @@ class cBioportalTransformer(Transformer):
 
     def _get_therapy(self, therapy):
         return super()._get_therapy(therapy)
-    
+
     def _create_cache(self):
         pass
 
@@ -98,7 +98,7 @@ class cBioportalTransformer(Transformer):
         ----------
         df : pd.DataFrame
             Must contain column 'Chromosome'.
-        
+
         Returns
         -------
         dataframe
@@ -108,16 +108,16 @@ class cBioportalTransformer(Transformer):
         df["Chrom_23"] = df["Chromosome"].astype(str).str.strip().eq("23")
         df.loc[df["Chromosome"] == 23, "Chrom_23"] = True
         return df
-    
+
     def _chr23_female(self, df):
         """
         Convert Chromosome 23 to 'X' for rows where SEX is female.
-        
+
         Parameters
         ----------
         df : pd.DataFrame
             Must contain columns 'Chromosome' and 'SEX'.
-        
+
         Returns
         -------
         dataframe
@@ -125,11 +125,11 @@ class cBioportalTransformer(Transformer):
         # Ensure we’re comparing like with like
         chr_col = df["Chromosome"].astype(str).str.strip()
         sex_col = df["SEX"].astype(str).str.upper().str.strip()   # handles 'F', 'f', 'Female', etc.
-        
+
         mask = (chr_col == "23") & (sex_col.str.startswith("F"))
         df.loc[mask, "Chromosome"] = "X"
         return df
-    
+
     def _add_cols_chrom_23_male(self, df):
         """
         Create "Chr23_X and Chr23_Y" columns, fill with false
@@ -138,7 +138,7 @@ class cBioportalTransformer(Transformer):
         ----------
         df : pd.DataFrame
             Must contain column 'Chromosome'.
-        
+
         Returns
         -------
         dataframe
@@ -146,7 +146,7 @@ class cBioportalTransformer(Transformer):
         df["Chr23_X"] = False
         df["Chr23_Y"] = False
         return df
-    
+
     def _chr23_to_X(self, variant: str) -> str:
         """
         Convert a single '23-' prefix in a variant string to 'X-'.
@@ -155,13 +155,13 @@ class cBioportalTransformer(Transformer):
         ----------
         variant : str
             A GnomAD-style variant (e.g., '23-2408485-G-C').
-        
+
         Returns
         -------
         variant: str
         """
         return PATTERN.sub('X-', variant) if isinstance(variant, str) else variant
-    
+
     def _chr23_to_Y(self, variant: str) -> str:
         """
         Convert a single '23-' prefix in a variant string to 'Y-'.
@@ -170,13 +170,13 @@ class cBioportalTransformer(Transformer):
         ----------
         variant : str
             A GnomAD-style variant (e.g., '23-2408485-G-C').
-        
+
         Returns
         -------
         variant: str
         """
         return PATTERN.sub('Y-', variant) if isinstance(variant, str) else variant
-    
+
     def _test_variant_tokenization(self, variant: str, delay=0.5):
         """
         Fetch normalized variant info from VICC API for a single variant string.
@@ -220,7 +220,7 @@ class cBioportalTransformer(Transformer):
             })
         time.sleep(delay)
         return pd.DataFrame(results)
-    
+
     #test tokenization on X chromosome
     def _check_for_x_variant(self, df, variant):
         """
@@ -232,7 +232,7 @@ class cBioportalTransformer(Transformer):
             Must contain column 'Chromosome'.
         variant : str
             A GnomAD-style variant (e.g., '23-2408485-G-C').
-        
+
         Returns
         -------
         dataframe
@@ -281,7 +281,7 @@ class cBioportalTransformer(Transformer):
         if hgnc_id is not None:
             df.loc[mask, "x_hgnc_id"] = hgnc_id
         return df
-    
+
     #test tokenizationo n Y chromosome
     def _check_for_y_variant(self, df, variant):
         """
@@ -293,7 +293,7 @@ class cBioportalTransformer(Transformer):
             Must contain column 'Chromosome'.
         variant : str
             A GnomAD-style variant (e.g., '23-2408485-G-C').
-        
+
         Returns
         -------
         dataframe
@@ -354,7 +354,7 @@ class cBioportalTransformer(Transformer):
             Must contain column 'Chromosome'.
         variant : str
             A GnomAD-style variant (e.g., '23-2408485-G-C').
-        
+
         Returns
         -------
         dataframe
@@ -370,14 +370,14 @@ class cBioportalTransformer(Transformer):
     #reassign chromosome for male chromosome 23 variants
     def _correct_male_chrom23(self, df):
         """
-        Correct male chromosome 23 variants. 
+        Correct male chromosome 23 variants.
         Notes if variant is ambiguous in new col ("XY" for tokenizes to both X and Y. "neither if it tokenizes to neither X nor Y)
 
         Parameters
         ----------
         df : pd.DataFrame
             Must contain column 'Chromosome'.
-        
+
         Returns
         -------
         dataframe
@@ -417,7 +417,7 @@ class cBioportalTransformer(Transformer):
         ----------
         df : pd.DataFrame
             Must contain column 'Chromosome'.
-        
+
         Returns
         -------
         dataframe
@@ -514,7 +514,7 @@ class cBioportalTransformer(Transformer):
                     print(f"⚠️ Could not extract HGNC ID for {row['Hugo_Symbol']}: {e}")
         print(df.head())
         return df
-    
+
     # query gene normalizer
     def _populate_gene_hgnc_col(self, gene_list, df):
         # Add the column once
@@ -542,18 +542,18 @@ class cBioportalTransformer(Transformer):
                 continue
             # Apply to matching rows
             df.loc[
-                (df["Chrom_23"] == True) & 
-                (df["SEX"].str.strip().str.lower() == "male") & 
+                (df["Chrom_23"] == True) &
+                (df["SEX"].str.strip().str.lower() == "male") &
                 (df["Hugo_Symbol"].str.strip() == gene.strip()),
                 "gene_hgnc_id"
             ] = hgnc_id
         return df
-    
+
     #check to see if gene hgnc id matches x/y variant hgnc id
     def _validate_gene_hgnc_match(self, df):
         """
         Compare gene_hgnc_id to x_hgnc_id or y_hgnc_id for Chromosome 23 variants in male samples.
-        
+
         Adds a column 'hgnc_id_match':
             - "untested" (default)
             - set to matching hgnc_id if match is found
@@ -600,7 +600,7 @@ class cBioportalTransformer(Transformer):
         study_out_dir = os.path.join(base_dir, "munged_data")
         save_loc = os.path.join(study_out_dir, study)
         os.makedirs(save_loc, exist_ok=True)
-        
+
         # study_df_folder = os.path.join(save_loc, study, "FILE")
 
         # for harvested_data_obj in harvested_data:
@@ -650,13 +650,13 @@ class cBioportalTransformer(Transformer):
             file_path = os.path.join(save_loc, f'{study}_patient_dupes.csv')
             dupes.to_csv(file_path, index=False)
         # assign age to NAs
-            self.patients["AGE"] = self.patients["AGE"].replace(r'^\s*$', pd.NA, regex=True).fillna("<21")    
+            self.patients["AGE"] = self.patients["AGE"].replace(r'^\s*$', pd.NA, regex=True).fillna("<21")
         # remove duplicates, but keep first occurrence
             self.patients = self.patients.drop_duplicates()
             print(f"\nDataFrame shape after removing duplicates: {self.patients.shape}")
         else:
             print("No duplicate rows found.")
-        
+
         # SAMPLE DF
         # Check duplicate count
         num_duplicates = self.samples.duplicated().sum()
@@ -669,13 +669,13 @@ class cBioportalTransformer(Transformer):
             dupes = self.samples[self.samples.duplicated(keep=False)]
             file_path = os.path.join(save_loc, f'{study}_samples_dupes.csv')
             dupes.to_csv(file_path, index=False)
-            
+
         # remove duplicates, but keep first occurrence
             self.samples = self.samples.drop_duplicates()
             print(f"\nDataFrame shape after removing duplicates: {self.samples.shape}")
         else:
             print("No duplicate rows found.")
-        
+
         # combine dataframes
         init_combined_df = self.variants.merge(self.samples, on='SAMPLE_ID', how='left')
         combined_df = init_combined_df.merge(self.patients, on='PATIENT_ID', how='left')
@@ -698,7 +698,7 @@ class cBioportalTransformer(Transformer):
             print(f"\nDataFrame shape after removing duplicates: {combined_df.shape}")
         else:
             print("No duplicate rows found.")
-        
+
         # remove data from cell lines
         original_shape = combined_df.shape
         print(f"Original shape: {original_shape}")
@@ -718,7 +718,7 @@ class cBioportalTransformer(Transformer):
 
         #filling in NaNs - AGE, ETHNICITY, Consequence
         # combined_df = combined_df.fillna('No_Data')
-    
+
         # correcting Chromosome 23 samples
         # construct temporary Gnomad variant ID column
         combined_df["temp_Gnomad_Notation"] = combined_df.apply(
@@ -813,10 +813,10 @@ class cBioportalTransformer(Transformer):
         final_df = final_df.replace(r'^\s*$', pd.NA, regex=True).fillna("No_Data")
         file_path = os.path.join(save_loc, f'{study}_final_no_NAs.csv')
         final_df.to_csv(file_path, index=False)
-        
+
 
         self.final_df = final_df
-    
+
 
 
         # Save final DF with extra logic columns
@@ -825,11 +825,11 @@ class cBioportalTransformer(Transformer):
 
         #Drop unnecessary columnns
         final_df = final_df.drop(['SAMPLE_CLASS',
-                                  'temp_Gnomad_Notation', 
-                                  'Chrom_23', 
-                                  'Chr23_X', 
-                                  'Chr23_Y', 
-                                  'x_hgnc_id', 
+                                  'temp_Gnomad_Notation',
+                                  'Chrom_23',
+                                  'Chr23_X',
+                                  'Chr23_Y',
+                                  'x_hgnc_id',
                                   'y_hgnc_id',
                                   'ambig_chrom',
                                   'gene_hgnc_id',
@@ -840,8 +840,8 @@ class cBioportalTransformer(Transformer):
 
         return final_df
 
-        
-    
+
+
         #Convert CBP data df to a list of dictionaries (each row its own dictionary)
         # genes = df.to_dict(orient='records')
         #Take just a subset to test
@@ -851,7 +851,7 @@ class cBioportalTransformer(Transformer):
         # TODO: Method's for mapping cleaned up data to Common Data Model format
         # civic.py transformer may have some logic to reuse here
         # test fixture is the end result for a single entry
-        #   
+        #
         # TODO: Output one CDM per study or one CDM total?
 
         pass
