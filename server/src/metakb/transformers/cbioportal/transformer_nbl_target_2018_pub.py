@@ -1,32 +1,19 @@
 import os
 from os import environ
+
 environ["AWS_ACCESS_KEY_ID"]="dummy"
 environ["AWS_SECRET_ACCESS_KEY"]="dummy"
 environ["AWS_SESSION_TOKEN"]="dummy"
 
-from metakb.transformers.base import (
-    Transformer
-)
-import pandas as pd
-import requests
-import time
-import pprint
-from urllib.parse import quote_plus
-import re
-import json
-from tqdm import tqdm
-from typing import List
-
 import logging
+import re
+
+import pandas as pd
+
+from metakb.transformers.base import Transformer
+
 _logger = logging.getLogger(__name__)
 
-from ga4gh.core.models import (
-    Coding,
-    ConceptMapping,
-    Extension,
-    MappableConcept,
-    Relation,
-)
 
 MUT_HEADERS = ['Hugo_Symbol',
             'Entrez_Gene_Id',
@@ -75,7 +62,7 @@ class cBioportalTransformer(Transformer):
 
     # TODO: TypeError: Can't instantiate abstract class cBioportalTransformer without an implementation for abstract method '_create_cache'
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.final_df = None
 
@@ -87,7 +74,7 @@ class cBioportalTransformer(Transformer):
     def _get_therapy(self, therapy):
         return super()._get_therapy(therapy)
 
-    def _create_cache(self):
+    def _create_cache(self) -> None:
         pass
 
 
@@ -122,20 +109,16 @@ class cBioportalTransformer(Transformer):
         #     self.variants["Sequence_Source"] = "No_data"
         # Check duplicate count
         num_duplicates = self.variants.duplicated().sum()
-        print(f"Number of duplicate rows : {num_duplicates}")
         # print duplicates (excluding first instance)
         if num_duplicates > 0:
-            print("\nDuplicate rows (excluding first instance):")
-            print(self.variants[self.variants.duplicated()])
         # save duplicate rows to file
             dupes = self.variants[self.variants.duplicated(keep=False)]
             file_path = os.path.join(save_loc, f'{study}_mut_dupes.csv')
             dupes.to_csv(file_path, index=False)
         # remove duplicates, but keep first occurrence
             self.variants = self.variants.drop_duplicates()
-            print(f"\nDataFrame shape after removing duplicates: {self.variants.shape}")
         else:
-            print("No duplicate rows found.")
+            pass
 
         # PATIENT DF
         # Rename RACE → ETHNICITY if present
@@ -143,11 +126,8 @@ class cBioportalTransformer(Transformer):
             self.patients = self.patients.rename(columns={"RACE": "ETHNICITY"})
         # Check duplicate count
         num_duplicates = self.patients.duplicated().sum()
-        print(f"Number of duplicate rows : {num_duplicates}")
         # print duplicates (excluding first instance)
         if num_duplicates > 0:
-            print("\nDuplicate rows (excluding first instance):")
-            print(self.patients[self.patients.duplicated()])
         # save duplicate rows to file
             dupes = self.patients[self.patients.duplicated(keep=False)]
             file_path = os.path.join(save_loc, f'{study}_patient_dupes.csv')
@@ -156,18 +136,14 @@ class cBioportalTransformer(Transformer):
             # self.patients["AGE"] = self.patients["AGE"].replace(r'^\s*$', pd.NA, regex=True).fillna("<21")
         # remove duplicates, but keep first occurrence
             self.patients = self.patients.drop_duplicates()
-            print(f"\nDataFrame shape after removing duplicates: {self.patients.shape}")
         else:
-            print("No duplicate rows found.")
+            pass
 
         # SAMPLE DF
         # Check duplicate count
         num_duplicates = self.samples.duplicated().sum()
-        print(f"Number of duplicate rows : {num_duplicates}")
         # print duplicates (excluding first instance)
         if num_duplicates > 0:
-            print("\nDuplicate rows (excluding first instance):")
-            print(self.samples[self.samples.duplicated()])
         # save duplicate rows to file
             dupes = self.samples[self.samples.duplicated(keep=False)]
             file_path = os.path.join(save_loc, f'{study}_samples_dupes.csv')
@@ -175,9 +151,8 @@ class cBioportalTransformer(Transformer):
 
         # remove duplicates, but keep first occurrence
             self.samples = self.samples.drop_duplicates()
-            print(f"\nDataFrame shape after removing duplicates: {self.samples.shape}")
         else:
-            print("No duplicate rows found.")
+            pass
 
         # combine dataframes
         init_combined_df = self.variants.merge(self.samples, on='SAMPLE_ID', how='left')
@@ -191,16 +166,12 @@ class cBioportalTransformer(Transformer):
         # remove duplicates from combined dataframe
         # Check duplicate count
         num_duplicates = combined_df.duplicated().sum()
-        print(f"Number of duplicate rows : {num_duplicates}")
         # print duplicates (excluding first instance)
         if num_duplicates > 0:
-            print("\nDuplicate rows (excluding first instance):")
-            print(combined_df[combined_df.duplicated()])
         # remove duplicates, but keep first occurrence
             combined_df = combined_df.drop_duplicates()
-            print(f"\nDataFrame shape after removing duplicates: {combined_df.shape}")
         else:
-            print("No duplicate rows found.")
+            pass
 
         # construct Gnomad variant ID column
         combined_df["Gnomad_Notation"] = combined_df.apply(
@@ -219,7 +190,6 @@ class cBioportalTransformer(Transformer):
         file_path = os.path.join(save_loc, f'{study}_patient_variant_dupes.csv')
         patient_variant_dupes.to_csv(file_path, index=False)
         # print the number of rows removed
-        print(f"Removed {patient_variant_dupes.shape[0]} rows with duplicated Gnomad_Notation per PATIENT_ID.")
         # post_validation_df_cleaned.to_csv("final_cbp_df.csv", index=False)
 
 
@@ -268,4 +238,3 @@ class cBioportalTransformer(Transformer):
         #
         # TODO: Output one CDM per study or one CDM total?
 
-        pass

@@ -4,22 +4,19 @@ from __future__ import annotations
 import importlib
 import json
 import logging
-from pathlib import Path
-from typing import Dict, Any, List, Tuple, Optional
 import os
-from os import environ
-import requests
 import time
+from os import environ
+from pathlib import Path
+from typing import Any, Never
+
+import requests
 
 environ["AWS_ACCESS_KEY_ID"] = "dummy"
 environ["AWS_SECRET_ACCESS_KEY"] = "dummy"
 environ["AWS_SESSION_TOKEN"] = "dummy"
 
-from metakb.transformers.base import Transformer
-
-from tqdm import tqdm
 import pandas as pd
-
 from ga4gh.core.models import (
     Coding,
     ConceptMapping,
@@ -27,6 +24,9 @@ from ga4gh.core.models import (
     MappableConcept,
     Relation,
 )
+from tqdm import tqdm
+
+from metakb.transformers.base import Transformer
 
 logger = logging.getLogger(__name__)
 
@@ -65,17 +65,16 @@ TRANSFORMER_CLASS_NAME = "cBioportalTransformer"
 
 
 class cBioportalTransformerBase(Transformer):
-    """
-    Orchestrates per-study cBioportal transformers AND performs centralized
+    """Orchestrates per-study cBioportal transformers AND performs centralized
     gene mapping via the VICC normalizers.
     """
 
     def __init__(
         self,
-        study_to_module: Dict[str, str] | None = None,
+        study_to_module: dict[str, str] | None = None,
         transformer_class_name: str = TRANSFORMER_CLASS_NAME,
         rate_limit_delay: float = 0.1,  # 100ms between API calls
-        study_genome_build: Dict[str, str] | None = None,
+        study_genome_build: dict[str, str] | None = None,
     ) -> None:
         super().__init__()  # initialize Transformer's internals
         self.study_to_module = study_to_module or STUDY_TO_MODULE
@@ -84,19 +83,19 @@ class cBioportalTransformerBase(Transformer):
         self.study_genome_build = study_genome_build or STUDY_GENOME_BUILD
 
         # Collect mappable genes + QC per study so we can write combined outputs at the end
-        self.mappable_genes_by_study: Dict[str, List[MappableConcept]] = {}
-        self.gene_qc_by_study: Dict[str, Dict[str, Any]] = {}
+        self.mappable_genes_by_study: dict[str, list[MappableConcept]] = {}
+        self.gene_qc_by_study: dict[str, dict[str, Any]] = {}
 
         # Track failed normalizations
-        self.failed_genes: List[Dict[str, str]] = []
-        self.failed_variants: List[Dict[str, str]] = []
+        self.failed_genes: list[dict[str, str]] = []
+        self.failed_variants: list[dict[str, str]] = []
 
         # Cache for normalized genes and variants to avoid duplicate API calls
-        self.gene_cache: Dict[str, Tuple[Any, Optional[str]]] = {}  # symbol -> (response, normalized_id)
-        self.variant_cache: Dict[str, Optional[str]] = {}  # variant_notation -> vrs_id
+        self.gene_cache: dict[str, tuple[Any, str | None]] = {}  # symbol -> (response, normalized_id)
+        self.variant_cache: dict[str, str | None] = {}  # variant_notation -> vrs_id
 
         # Track current study being processed (for genome build lookup)
-        self.current_study: Optional[str] = None
+        self.current_study: str | None = None
 
     # ======================================================
     #  Required abstract methods from Transformer
@@ -107,16 +106,19 @@ class cBioportalTransformerBase(Transformer):
 
     def _get_therapeutic_substitute_group(
         self, therapeutic_sub_group_id, therapies, therapy_interaction_type
-    ):
+    ) -> None:
         return None
 
-    def _get_therapy(self, therapy):
+    def _get_therapy(self, therapy) -> None:
         return None
 
-    def transform(self, harvested_data):
-        raise NotImplementedError(
+    def transform(self, harvested_data) -> Never:
+        msg = (
             "cBioportalTransformerBase is an orchestrator. "
             "Use `run_transformers({study: harvested_data})` instead of `.transform()`."
+        )
+        raise NotImplementedError(
+            msg
         )
 
     # ======================================================
@@ -125,7 +127,7 @@ class cBioportalTransformerBase(Transformer):
 
     def _get_exact_gene_mappings(
         self, hgnc_id: str | None, gene_symbol: str
-    ) -> List[ConceptMapping]:
+    ) -> list[ConceptMapping]:
         """Return EXACT_MATCH mapping for HGNC ID, if we have one."""
         if not hgnc_id or hgnc_id == "untested":
             return []
@@ -147,13 +149,13 @@ class cBioportalTransformerBase(Transformer):
 
     def _add_genes(
         self, transformer, df: pd.DataFrame
-    ) -> Tuple[List[MappableConcept], Dict[str, Any]]:
-        """
-        Central gene mapping: runs for EVERY study automatically.
+    ) -> tuple[list[MappableConcept], dict[str, Any]]:
+        """Central gene mapping: runs for EVERY study automatically.
         Uses the transformer's `vicc_normalizers`.
 
         Returns:
           (mappable_genes, qc_dict)
+
         """
         if "Hugo_Symbol" not in df.columns:
             logger.warning("No 'Hugo_Symbol' column found; skipping gene mapping.")
@@ -172,7 +174,7 @@ class cBioportalTransformerBase(Transformer):
         # Unique gene symbols across the DataFrame
         symbols = df["Hugo_Symbol"].dropna().drop_duplicates().tolist()
 
-        mappable: List[MappableConcept] = []
+        mappable: list[MappableConcept] = []
         normalized_hgnc = 0
         failed = 0
 
@@ -260,9 +262,8 @@ class cBioportalTransformerBase(Transformer):
         }
         return mappable, qc
 
-    def _normalize_variant(self, variant_notation: str) -> Optional[str]:
-        """
-        Normalize variant using VICC variation normalizer with caching.
+    def _normalize_variant(self, variant_notation: str) -> str | None:
+        """Normalize variant using VICC variation normalizer with caching.
         Uses the genome build appropriate for the current study.
 
         Args:
@@ -270,6 +271,7 @@ class cBioportalTransformerBase(Transformer):
 
         Returns:
             VRS variant ID or None if normalization fails
+
         """
         # Determine genome build for current study
         genome_build = self.study_genome_build.get(self.current_study, DEFAULT_GENOME_BUILD)
@@ -316,13 +318,12 @@ class cBioportalTransformerBase(Transformer):
         total_count: int,
         study_id: str,
         study_label: str,
-        cancer_type: Optional[str] = None,
-        cancer_type_detailed: Optional[str] = None,
-        oncotree_code: Optional[str] = None,
-        sample_ids: Optional[List[str]] = None,
-    ) -> Optional[dict]:
-        """
-        Create a TumorVariantFrequencyStudyResult object.
+        cancer_type: str | None = None,
+        cancer_type_detailed: str | None = None,
+        oncotree_code: str | None = None,
+        sample_ids: list[str] | None = None,
+    ) -> dict | None:
+        """Create a TumorVariantFrequencyStudyResult object.
 
         Args:
             variant_notation: Genomic notation (e.g., "8-67380528-T-C")
@@ -337,6 +338,7 @@ class cBioportalTransformerBase(Transformer):
 
         Returns:
             TumorVariantFrequencyStudyResult dict or None if normalization fails
+
         """
         # Normalize variant to get VRS ID (uses cache internally)
         vrs_id = self._normalize_variant(variant_notation)
@@ -407,9 +409,8 @@ class cBioportalTransformerBase(Transformer):
     def _calculate_variant_frequencies(
             self,
             df: pd.DataFrame,
-            study_id: str) -> List[dict]:
-        """
-        Calculate variant frequencies for all unique variants in a study.
+            study_id: str) -> list[dict]:
+        """Calculate variant frequencies for all unique variants in a study.
 
         Args:
             df: DataFrame with variant data (must have Gnomad_Notation column)
@@ -417,6 +418,7 @@ class cBioportalTransformerBase(Transformer):
 
         Returns:
             List of TumorVariantFrequencyStudyResult objects
+
         """
         if "Gnomad_Notation" not in df.columns:
             logger.warning(f"No Gnomad_Notation column in study {study_id}")
@@ -475,7 +477,7 @@ class cBioportalTransformerBase(Transformer):
     def _write_frequency_results_json(
         self,
         study: str,
-        frequency_results: List[dict],
+        frequency_results: list[dict],
         out_dir: str
     ) -> str:
         """Write TumorVariantFrequencyStudyResult objects to JSON file."""
@@ -522,7 +524,7 @@ class cBioportalTransformerBase(Transformer):
         return pd.DataFrame(qc_data).sort_values("STUDY_ID")
 
     def _write_mappable_genes_json(
-        self, study: str, mappable_genes: List[MappableConcept], out_dir: str
+        self, study: str, mappable_genes: list[MappableConcept], out_dir: str
     ) -> str:
         """Write this study's mappable genes to JSON and return the output path."""
         Path(out_dir).mkdir(parents=True, exist_ok=True)
@@ -536,8 +538,7 @@ class cBioportalTransformerBase(Transformer):
         return out_path
 
     def _write_all_mappable_genes_json(self, out_path: str) -> str:
-        """
-        Merge all studies' mappable genes into one JSON file.
+        """Merge all studies' mappable genes into one JSON file.
 
         Format:
           {
@@ -564,17 +565,21 @@ class cBioportalTransformerBase(Transformer):
     def _load_transformer(self, study: str):
         mod_path = self.study_to_module.get(study)
         if not mod_path:
-            raise ImportError(
+            msg = (
                 f"No transformer module registered for '{study}'. "
                 f"Add to STUDY_TO_MODULE in base.py."
+            )
+            raise ImportError(
+                msg
             )
 
         module = importlib.import_module(mod_path)
         try:
             return getattr(module, self.transformer_class_name)
         except AttributeError:
+            msg = f"Module '{mod_path}' does not define class '{self.transformer_class_name}'."
             raise ImportError(
-                f"Module '{mod_path}' does not define class '{self.transformer_class_name}'."
+                msg
             )
 
     def _transform_one(self, study: str, harvested: Any) -> pd.DataFrame:
@@ -606,25 +611,21 @@ class cBioportalTransformerBase(Transformer):
 
         # Write per-study frequency results JSON
         if hasattr(self, "_frequency_results_out_dir"):
-            freq_out_path = self._write_frequency_results_json(
+            self._write_frequency_results_json(
                 study, frequency_results, self._frequency_results_out_dir
             )
-            print(f"Saved [{study}] variant frequency results to: {freq_out_path}")
 
-        print(f"[{study}] Created {len(frequency_results)} frequency results")
 
         # Attach them so caller can use `.mappable_genes`
         transformer.mappable_genes = mappable_genes
 
         # Write per-study mappable genes JSON
         if hasattr(self, "_mappable_genes_out_dir"):
-            out_path = self._write_mappable_genes_json(
+            self._write_mappable_genes_json(
                 study, mappable_genes, self._mappable_genes_out_dir
             )
-            print(f"Saved [{study}] mappable genes JSON to: {out_path}")
 
         # Simple debug output
-        print(f"[{study}] mappable_genes count: {len(mappable_genes)}")
         logger.info("[%s] mappable_genes count: %d", study, len(mappable_genes))
 
         if "STUDY_ID" not in df.columns:
@@ -632,9 +633,10 @@ class cBioportalTransformerBase(Transformer):
 
         return df
 
-    def run_transformers(self, harvested: Dict[str, Any]) -> pd.DataFrame:
+    def run_transformers(self, harvested: dict[str, Any]) -> pd.DataFrame:
         if not isinstance(harvested, dict):
-            raise TypeError("run_transformers() requires a dict:  {study: harvested_data}")
+            msg = "run_transformers() requires a dict:  {study: harvested_data}"
+            raise TypeError(msg)
 
         # -----------------------------------------
         # Output directory (define ONCE, BEFORE loop)
@@ -654,15 +656,13 @@ class cBioportalTransformerBase(Transformer):
         #frequency results
         self._frequency_results_out_dir = os.path.join(save_loc, "frequency_results")
         os.makedirs(self._frequency_results_out_dir, exist_ok=True)
-        print(f"Writing per-study frequency results JSON to: {self._frequency_results_out_dir}")
 
         # Initialize storage for frequency results
         self.frequency_results_by_study = {}
 
         os.makedirs(self._mappable_genes_out_dir, exist_ok=True)
-        print(f"Writing per-study mappable genes JSON to: {self._mappable_genes_out_dir}")
 
-        dfs: List[pd.DataFrame] = []
+        dfs: list[pd.DataFrame] = []
 
         for study, hdata in tqdm(
             harvested.items(), desc="Transforming studies", unit="study"
@@ -672,7 +672,8 @@ class cBioportalTransformerBase(Transformer):
             dfs.append(df)
 
         if not dfs:
-            raise ValueError("No frames returned by transformers.")
+            msg = "No frames returned by transformers."
+            raise ValueError(msg)
 
         combined = pd.concat(dfs, ignore_index=True, sort=False)
 
@@ -698,12 +699,10 @@ class cBioportalTransformerBase(Transformer):
         )
         gene_qc_out_path = os.path.join(mappable_genes_dir, "gene_qc_summary_per_study.csv")
         gene_qc_df.to_csv(gene_qc_out_path, index=False)
-        print(f"Saved gene QC summary table to: {gene_qc_out_path}")
 
         # Merged mappable genes JSON (all studies in one file)
         merged_genes_out_path = os.path.join(mappable_genes_dir, "mappable_genes_all_studies.json")
         self._write_all_mappable_genes_json(merged_genes_out_path)
-        print(f"Saved merged mappable genes JSON to: {merged_genes_out_path}")
 
         # -----------------------------------------
         # Frequency results and QC
@@ -711,13 +710,11 @@ class cBioportalTransformerBase(Transformer):
         # Write merged frequency results
         merged_freq_out_path = os.path.join(frequencies_dir, "frequency_results_all_studies.json")
         self._write_all_frequency_results_json(merged_freq_out_path)
-        print(f"Saved merged frequency results JSON to: {merged_freq_out_path}")
 
         # Frequency QC summary
         freq_qc_df = self._create_frequency_qc_summary()
         freq_qc_out_path = os.path.join(frequencies_dir, "frequency_qc_summary_per_study.csv")
         freq_qc_df.to_csv(freq_qc_out_path, index=False)
-        print(f"Saved frequency QC summary to: {freq_qc_out_path}")
 
         # -----------------------------------------
         # ETHNICITY counts: rows=ETHNICITY, cols=STUDY_ID
@@ -735,7 +732,6 @@ class cBioportalTransformerBase(Transformer):
         )
         ethnicity_out_path = os.path.join(save_loc, "ethnicity_counts_per_study_wide.csv")
         ethnicity_table.to_csv(ethnicity_out_path, index=True)
-        print(f"Saved ETHNICITY wide table to: {ethnicity_out_path}")
 
         # -----------------------------------------
         # AGE bucket counts: rows=STUDY_ID, cols=AGE_RANGE
@@ -760,12 +756,11 @@ class cBioportalTransformerBase(Transformer):
             age_df.groupby(["STUDY_ID", "AGE_RANGE"])
             .size()
             .unstack("AGE_RANGE", fill_value=0)
-            .reindex(columns=age_labels + ["Unknown"], fill_value=0)
+            .reindex(columns=[*age_labels, "Unknown"], fill_value=0)
             .sort_index()
         )
         age_out_path = os.path.join(save_loc, "age_range_counts_per_study_wide.csv")
         age_table.to_csv(age_out_path, index=True)
-        print(f"Saved AGE wide table to: {age_out_path}")
 
         # -----------------------------------------
         # Failed normalizations CSVs
@@ -776,14 +771,12 @@ class cBioportalTransformerBase(Transformer):
             # Write combined file with all studies
             combined_genes_path = os.path.join(norm_failures_dir, "combined_failed_gene_normalizations.csv")
             failed_genes_df.to_csv(combined_genes_path, index=False)
-            print(f"Saved combined failed gene normalizations to: {combined_genes_path}")
 
             # Write per-study files
             for study_id in failed_genes_df['study_id'].unique():
                 study_genes = failed_genes_df[failed_genes_df['study_id'] == study_id]
                 failed_genes_path = os.path.join(norm_failures_dir, f"{study_id}_failed_gene_normalizations.csv")
                 study_genes.to_csv(failed_genes_path, index=False)
-                print(f"Saved failed gene normalizations for {study_id} to: {failed_genes_path}")
 
         if self.failed_variants:
             failed_variants_df = pd.DataFrame(self.failed_variants)
@@ -791,35 +784,28 @@ class cBioportalTransformerBase(Transformer):
             # Write combined file with all studies
             combined_variants_path = os.path.join(norm_failures_dir, "combined_failed_variant_normalizations.csv")
             failed_variants_df.to_csv(combined_variants_path, index=False)
-            print(f"Saved combined failed variant normalizations to: {combined_variants_path}")
 
             # Write per-study files
             for study_id in failed_variants_df['study_id'].unique():
                 study_variants = failed_variants_df[failed_variants_df['study_id'] == study_id]
                 failed_variants_path = os.path.join(norm_failures_dir, f"{study_id}_failed_variant_normalizations.csv")
                 study_variants.to_csv(failed_variants_path, index=False)
-                print(f"Saved failed variant normalizations for {study_id} to: {failed_variants_path}")
 
         # -----------------------------------------
         # Cache statistics
         # -----------------------------------------
-        print(f"\nCache Statistics:")
-        print(f"  Unique genes cached: {len(self.gene_cache)}")
-        print(f"  Unique variants cached: {len(self.variant_cache)}")
-        print(f"  Total API calls saved by caching: ~{len(self.gene_cache) + len(self.variant_cache)}")
 
         # -----------------------------------------
         # Save combined dataframe to CSV on disk
         # -----------------------------------------
         output_path = os.path.join(save_loc, "combined_cBioPortal_transformed.csv")
         combined.to_csv(output_path, index=False)
-        print(f"Saved combined transformer output to: {output_path}")
 
         return combined
 
 
 # Convenience function to keep old API working if you want
-def run_transformers(harvested: Dict[str, Any]) -> pd.DataFrame:
+def run_transformers(harvested: dict[str, Any]) -> pd.DataFrame:
     base = cBioportalTransformerBase()
     return base.run_transformers(harvested)
 
@@ -833,5 +819,3 @@ if __name__ == "__main__":
 
     base = cBioportalTransformerBase()
     df = base.run_transformers(data)
-    print(df.head())
-    print("Combined shape:", df.shape)
