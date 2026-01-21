@@ -272,4 +272,3 @@ class cBioportalTransformer(Transformer):
         # test fixture is the end result for a single entry
         #
         # TODO: Output one CDM per study or one CDM total?
-

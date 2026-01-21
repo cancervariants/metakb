@@ -19,7 +19,6 @@ from metakb.transformers.base import Transformer
 _logger = logging.getLogger(__name__)
 
 
-
 MUT_HEADERS = [
     "Hugo_Symbol",
     "Entrez_Gene_Id",
@@ -879,4 +878,3 @@ class cBioportalTransformer(Transformer):
         # test fixture is the end result for a single entry
         #
         # TODO: Output one CDM per study or one CDM total?
-
