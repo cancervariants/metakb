@@ -1,4 +1,5 @@
 """Module for deploying MetaKB EB environment."""
+
 import boto3
 import time
 
@@ -8,9 +9,7 @@ terminate_time = 12
 eb_app_name = "metakb"
 eb_env_name = "metakb-dev-env"
 sc_product_id = "prod-m4b65t5jgmcm4"
-print(
-    f"Launching new Service Catalog Product for staging environment: " f"{eb_app_name}"
-)
+print(f"Launching new Service Catalog Product for staging environment: {eb_app_name}")
 sc_product_artifacts = servicecatalog.list_provisioning_artifacts(
     ProductId=sc_product_id
 )

@@ -29,8 +29,8 @@ STUDIES: list[str] = [
     "chl_sccc_2023",
 ]
 
-FILE_PATH = "data/cbioportal"          # where extracted studies go
-COMPRESSED_PATH = "compressed_data"    # where .tar.gz files go
+FILE_PATH = "data/cbioportal"  # where extracted studies go
+COMPRESSED_PATH = "compressed_data"  # where .tar.gz files go
 FILE_TYPES = [
     "data_mutations",
     "data_clinical_patient",
@@ -46,6 +46,7 @@ SPECIAL_VARIANT_SKIPROWS = {"pancan_mappyacts_2022", "chl_sccc_2023"}
 # Helpers
 # --------------------------
 
+
 def _download_and_extract_one(study: str) -> None:
     """Download one study tarball into compressed_data/ and extract into data/cbioportal/."""
     os.makedirs(FILE_PATH, exist_ok=True)
@@ -54,7 +55,9 @@ def _download_and_extract_one(study: str) -> None:
     url = f"https://cbioportal-datahub.s3.amazonaws.com/{study}.tar.gz"
     out = os.path.join(COMPRESSED_PATH, f"{study}.tar.gz")
 
-    r = requests.get(url, stream=True, timeout=60, headers={"User-Agent": "python-requests"})
+    r = requests.get(
+        url, stream=True, timeout=60, headers={"User-Agent": "python-requests"}
+    )
     try:
         r.raise_for_status()
     except requests.HTTPError:
@@ -93,6 +96,7 @@ def _ensure_study_dir(study: str) -> str:
 # Data Model
 # --------------------------
 
+
 class cBioportalHarvestedData(_HarvestedData):
     variants: list[dict]
     patients: list[dict]
@@ -103,6 +107,7 @@ class cBioportalHarvestedData(_HarvestedData):
 # --------------------------
 # Harvester
 # --------------------------
+
 
 class cBioportalHarvester(Harvester):
     """Reads cBioPortal study folders under FILE_PATH."""
@@ -118,29 +123,46 @@ class cBioportalHarvester(Harvester):
 
         variants = pd.read_csv(
             os.path.join(study_dir, f"{FILE_TYPES[0]}.txt"),
-            sep="\t", skiprows=variant_skip, dtype=str, keep_default_na=False, low_memory=False,
+            sep="\t",
+            skiprows=variant_skip,
+            dtype=str,
+            keep_default_na=False,
+            low_memory=False,
         ).to_dict(orient="records")
 
         patients = pd.read_csv(
             os.path.join(study_dir, f"{FILE_TYPES[1]}.txt"),
-            sep="\t", skiprows=4, dtype=str, keep_default_na=False, low_memory=False,
+            sep="\t",
+            skiprows=4,
+            dtype=str,
+            keep_default_na=False,
+            low_memory=False,
         ).to_dict(orient="records")
 
         samples = pd.read_csv(
             os.path.join(study_dir, f"{FILE_TYPES[2]}.txt"),
-            sep="\t", skiprows=4, dtype=str, keep_default_na=False, low_memory=False,
+            sep="\t",
+            skiprows=4,
+            dtype=str,
+            keep_default_na=False,
+            low_memory=False,
         ).to_dict(orient="records")
 
         metadata = pd.read_csv(
             os.path.join(study_dir, f"{FILE_TYPES[3]}.txt"),
-            sep="\t", dtype=str, keep_default_na=False, low_memory=False,
+            sep="\t",
+            dtype=str,
+            keep_default_na=False,
+            low_memory=False,
         ).to_dict(orient="records")
 
         return cBioportalHarvestedData(
             variants=variants, patients=patients, samples=samples, metadata=metadata
         )
 
-    def harvest(self, study: str | None = None) -> cBioportalHarvestedData | dict[str, cBioportalHarvestedData]:
+    def harvest(
+        self, study: str | None = None
+    ) -> cBioportalHarvestedData | dict[str, cBioportalHarvestedData]:
         if study is not None:
             return self._read_one(study)
         out: dict[str, cBioportalHarvestedData] = {}
@@ -158,7 +180,6 @@ if __name__ == "__main__":
     for s in STUDIES:
         _ensure_study_dir(s)
 
-
     # def __init__(self, study = STUDY_NAME[0]): # TODO: hard coded for now, eventually for study in STUDY_NAME
-        #TODO: Methods to download and gunzip?
-        # TODO: Proposed usage: g = cBioportalHarvester(), data_by_study = g.harvest() ---> data_by_study['es_dfarber_broad_2014'] (one harvestedData obj per study, accessible by dictionary)
+    # TODO: Methods to download and gunzip?
+    # TODO: Proposed usage: g = cBioportalHarvester(), data_by_study = g.harvest() ---> data_by_study['es_dfarber_broad_2014'] (one harvestedData obj per study, accessible by dictionary)

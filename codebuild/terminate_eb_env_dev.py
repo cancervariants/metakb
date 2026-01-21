@@ -1,4 +1,5 @@
 """Module for terminating MetaKB EB environment."""
+
 import boto3
 import json
 import time
