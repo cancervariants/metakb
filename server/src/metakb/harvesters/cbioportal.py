@@ -52,7 +52,8 @@ def _download_and_extract_one(study: str) -> None:
     os.makedirs(FILE_PATH, exist_ok=True)
     os.makedirs(COMPRESSED_PATH, exist_ok=True)
 
-    url = f"https://cbioportal-datahub.s3.amazonaws.com/{study}.tar.gz"
+    # url = f"https://cbioportal-datahub.s3.amazonaws.com/{study}.tar.gz"
+    url = f"https://datahub.assets.cbioportal.org/{study}.tar.gz"
     out = os.path.join(COMPRESSED_PATH, f"{study}.tar.gz")
 
     r = requests.get(
