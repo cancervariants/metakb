@@ -18,17 +18,4 @@ MERGE (member_drug:Therapeutic:Drug {id: m.id})
         aliases: m.aliases,
         extensions: m.extensions
       }
-FOREACH (_ IN
-CASE
-  WHEN tg.membership_operator = 'OR' THEN [1]
-  ELSE []
-END |
-  MERGE (thg)-[:HAS_SUBSTITUTE]->(member_drug)
-)
-FOREACH (_ IN
-CASE
-  WHEN tg.membership_operator <> 'OR' THEN [1]
-  ELSE []
-END |
-  MERGE (thg)-[:HAS_COMPONENT]->(member_drug)
-)
+MERGE (thg)-[:HAS_THERAPY]->(member_drug)

@@ -1,33 +1,40 @@
 """Test CIViC Transformation to common data model for diagnostic."""
 
-import json
-
 import pytest
 import pytest_asyncio
+from civicpy import civic as civicpy
+from deepdiff import DeepDiff
+from ga4gh.va_spec.aac_2017 import (
+    VariantDiagnosticStudyStatement,
+)
+from ga4gh.va_spec.base import ConditionSet
 from tests.conftest import (
-    TEST_TRANSFORMERS_DIR,
     get_civic_annotation_ext,
     get_vicc_normalizer_priority_ext,
 )
 
-from metakb.transformers.civic import CivicTransformer
-
-DATA_DIR = TEST_TRANSFORMERS_DIR / "diagnostic"
 FILENAME = "civic_cdm.json"
 
 
-@pytest_asyncio.fixture(scope="module")
-async def data(normalizers):
+@pytest_asyncio.fixture
+async def data(civic_cdm_data):
     """Create a CIViC Transformer test fixture."""
-    harvester_path = DATA_DIR / "civic_harvester.json"
-    c = CivicTransformer(
-        data_dir=DATA_DIR, harvester_path=harvester_path, normalizers=normalizers
-    )
-    harvested_data = c.extract_harvested_data()
-    await c.transform(harvested_data)
-    c.create_json(DATA_DIR / FILENAME)
-    with (DATA_DIR / FILENAME).open() as f:
-        return json.load(f)
+    eids = [2, 74]
+    evidence_items = [civicpy.get_evidence_by_id(eid) for eid in eids]
+    return await civic_cdm_data(evidence_items, [], FILENAME)
+
+
+@pytest_asyncio.fixture
+async def phenotype_assertions():
+    """Create a test fixture for assertions with phenotype data"""
+    phenotype_assertions = []
+    for aid in [115, 93]:
+        assertion = civicpy.get_assertion_by_id(aid)
+        assertion.evidence_items = []
+        assertion.evidence_ids = []
+        phenotype_assertions.append(assertion)
+
+    return phenotype_assertions
 
 
 @pytest.fixture(scope="module")
@@ -47,9 +54,6 @@ def civic_mpid99():
                     "digest": "Dy7soaZQU1vH9Eb93xG_pJyhu7xTDDC9",
                     "expressions": [
                         {"syntax": "hgvs.p", "value": "NP_006197.1:p.Asp842Val"},
-                        {"syntax": "hgvs.c", "value": "NM_006206.4:c.2525A>T"},
-                        {"syntax": "hgvs.c", "value": "ENST00000257290.5:c.2525A>T"},
-                        {"syntax": "hgvs.g", "value": "NC_000004.11:g.55152093A>T"},
                     ],
                     "location": {
                         "id": "ga4gh:SL.xuh2OFm73UN7_0uLySrRY2Xe3FW7KJ5h",
@@ -65,6 +69,20 @@ def civic_mpid99():
                     },
                     "state": {"type": "LiteralSequenceExpression", "sequence": "V"},
                 },
+                "relations": [
+                    {
+                        "primaryCoding": {
+                            "system": "http://www.sequenceontology.org",
+                            "code": "liftover_to",
+                        }
+                    },
+                    {
+                        "primaryCoding": {
+                            "system": "http://www.sequenceontology.org",
+                            "code": "translation_of",
+                        }
+                    },
+                ],
                 "type": "DefiningAlleleConstraint",
             }
         ],
@@ -138,7 +156,33 @@ def civic_mpid99():
                 "coding": {
                     "id": "civic.vid:99",
                     "code": "99",
-                    "system": "https://civicdb.org/variants/",
+                    "system": "https://civicdb.org/links/variant/",
+                    "extensions": [
+                        {"name": "subtype", "value": "gene_variant"},
+                        {
+                            "name": "variant_types",
+                            "value": [
+                                {
+                                    "coding": {
+                                        "id": "civic.variant_type:47",
+                                        "name": "Missense Variant",
+                                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                                        "code": "SO:0001583",
+                                    },
+                                    "relation": "exactMatch",
+                                }
+                            ],
+                        },
+                    ],
+                    "name": "D842V",
+                },
+                "relation": "exactMatch",
+            },
+            {
+                "coding": {
+                    "id": "civic.mpid:99",
+                    "system": "https://civicdb.org/links/molecular_profile/",
+                    "code": "99",
                 },
                 "relation": "exactMatch",
             },
@@ -164,14 +208,12 @@ def civic_mpid99():
                 "value": 100.5,
             },
             {
-                "name": "Variant types",
+                "name": "expressions",
                 "value": [
-                    {
-                        "id": "SO:0001583",
-                        "code": "SO:0001583",
-                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "name": "missense_variant",
-                    }
+                    {"syntax": "hgvs.p", "value": "NP_006197.1:p.Asp842Val"},
+                    {"syntax": "hgvs.c", "value": "NM_006206.4:c.2525A>T"},
+                    {"syntax": "hgvs.c", "value": "ENST00000257290.5:c.2525A>T"},
+                    {"syntax": "hgvs.g", "value": "NC_000004.11:g.55152093A>T"},
                 ],
             },
         ],
@@ -292,7 +334,10 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
         "proposition": {
             "type": "VariantDiagnosticProposition",
             "predicate": "isDiagnosticExclusionCriterionFor",
-            "alleleOriginQualifier": {"name": "somatic"},
+            "alleleOriginQualifier": {
+                "name": "somatic",
+                "extensions": [{"name": "civic_variant_origin", "value": "SOMATIC"}],
+            },
             "subjectVariant": civic_mpid99,
             "geneContextQualifier": civic_gid38,
             "objectCondition": civic_did2,
@@ -300,12 +345,17 @@ def civic_eid2_study_stmt(civic_method, civic_mpid99, civic_gid38, civic_did2):
         "specifiedBy": civic_method,
         "reportedIn": [
             {
-                "id": "civic.source:52",
+                "id": "civic.sid:52",
                 "name": "Lasota et al., 2004",
                 "title": "A great majority of GISTs with PDGFRA mutations represent gastric tumors of low or no malignant potential.",
-                "pmid": 15146165,
+                "pmid": "15146165",
                 "type": "Document",
-            }
+                "urls": [
+                    "https://civicdb.org/links/source/52",
+                    "http://www.ncbi.nlm.nih.gov/pubmed/15146165",
+                ],
+            },
+            "https://civicdb.org/links/evidence/2",
         ],
         "type": "Statement",
     }
@@ -328,9 +378,6 @@ def civic_mpid113():
                     "digest": "hEybNB_CeKflfFhT5AKOU5i1lgZPP-aS",
                     "expressions": [
                         {"syntax": "hgvs.p", "value": "NP_065681.1:p.Met918Thr"},
-                        {"syntax": "hgvs.c", "value": "NM_020975.4:c.2753T>C"},
-                        {"syntax": "hgvs.c", "value": "ENST00000355710.3:c.2753T>C"},
-                        {"syntax": "hgvs.g", "value": "NC_000010.10:g.43617416T>C"},
                     ],
                     "location": {
                         "id": "ga4gh:SL.oIeqSfOEuqO7KNOPt8YUIa9vo1f6yMao",
@@ -346,6 +393,20 @@ def civic_mpid113():
                     },
                     "state": {"type": "LiteralSequenceExpression", "sequence": "T"},
                 },
+                "relations": [
+                    {
+                        "primaryCoding": {
+                            "system": "http://www.sequenceontology.org",
+                            "code": "liftover_to",
+                        }
+                    },
+                    {
+                        "primaryCoding": {
+                            "system": "http://www.sequenceontology.org",
+                            "code": "translation_of",
+                        }
+                    },
+                ],
                 "type": "DefiningAlleleConstraint",
             }
         ],
@@ -419,7 +480,33 @@ def civic_mpid113():
                 "coding": {
                     "id": "civic.vid:113",
                     "code": "113",
-                    "system": "https://civicdb.org/variants/",
+                    "system": "https://civicdb.org/links/variant/",
+                    "extensions": [
+                        {"name": "subtype", "value": "gene_variant"},
+                        {
+                            "name": "variant_types",
+                            "value": [
+                                {
+                                    "coding": {
+                                        "id": "civic.variant_type:47",
+                                        "name": "Missense Variant",
+                                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                                        "code": "SO:0001583",
+                                    },
+                                    "relation": "exactMatch",
+                                }
+                            ],
+                        },
+                    ],
+                    "name": "M918T",
+                },
+                "relation": "exactMatch",
+            },
+            {
+                "coding": {
+                    "id": "civic.mpid:113",
+                    "system": "https://civicdb.org/links/molecular_profile/",
+                    "code": "113",
                 },
                 "relation": "exactMatch",
             },
@@ -445,14 +532,12 @@ def civic_mpid113():
                 "value": 86.0,
             },
             {
-                "name": "Variant types",
+                "name": "expressions",
                 "value": [
-                    {
-                        "id": "SO:0001583",
-                        "code": "SO:0001583",
-                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
-                        "name": "missense_variant",
-                    }
+                    {"syntax": "hgvs.p", "value": "NP_065681.1:p.Met918Thr"},
+                    {"syntax": "hgvs.c", "value": "NM_020975.4:c.2753T>C"},
+                    {"syntax": "hgvs.c", "value": "ENST00000355710.3:c.2753T>C"},
+                    {"syntax": "hgvs.g", "value": "NC_000010.10:g.43617416T>C"},
                 ],
             },
         ],
@@ -583,7 +668,10 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
         "proposition": {
             "type": "VariantDiagnosticProposition",
             "predicate": "isDiagnosticInclusionCriterionFor",
-            "alleleOriginQualifier": {"name": "somatic"},
+            "alleleOriginQualifier": {
+                "name": "somatic",
+                "extensions": [{"name": "civic_variant_origin", "value": "SOMATIC"}],
+            },
             "subjectVariant": civic_mpid113,
             "geneContextQualifier": civic_gid42,
             "objectCondition": civic_did15,
@@ -591,14 +679,176 @@ def civic_eid74_study_stmt(civic_method, civic_mpid113, civic_gid42, civic_did15
         "specifiedBy": civic_method,
         "reportedIn": [
             {
-                "id": "civic.source:44",
+                "id": "civic.sid:44",
                 "name": "Elisei et al., 2008",
                 "title": "Prognostic significance of somatic RET oncogene mutations in sporadic medullary thyroid cancer: a 10-year follow-up study.",
-                "pmid": 18073307,
+                "pmid": "18073307",
                 "type": "Document",
-            }
+                "urls": [
+                    "https://civicdb.org/links/source/44",
+                    "http://www.ncbi.nlm.nih.gov/pubmed/18073307",
+                ],
+            },
+            "https://civicdb.org/links/evidence/74",
         ],
         "type": "Statement",
+    }
+
+
+@pytest.fixture(scope="module")
+def aid93_object_condition():
+    """Create test fixture for AID 93 object condition"""
+    return {
+        "id": "civic.condset_intersect:pJqdfQV9U73-EeZ45TntflMPBQYyjSIT",
+        "conditions": [
+            {
+                "id": "civic.did:3225",
+                "conceptType": "Disease",
+                "name": "CNS Neuroblastoma With FOXR2 Activation",
+                "mappings": [
+                    {
+                        "coding": {
+                            "id": "ncit:C186547",
+                            "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                            "code": "C186547",
+                            "name": "Central Nervous System Neuroblastoma, FOXR2-Activated",
+                        },
+                        "relation": "exactMatch",
+                        "extensions": [
+                            get_vicc_normalizer_priority_ext(is_priority=True),
+                        ],
+                    },
+                    {
+                        "coding": {
+                            "id": "DOID:0080906",
+                            "system": "https://disease-ontology.org/?id=",
+                            "code": "DOID:0080906",
+                        },
+                        "relation": "exactMatch",
+                        "extensions": [
+                            get_civic_annotation_ext(),
+                            get_vicc_normalizer_priority_ext(is_priority=False),
+                        ],
+                    },
+                    {
+                        "coding": {
+                            "id": "MONDO_0859597",
+                            "system": "https://purl.obolibrary.org/obo/",
+                            "code": "MONDO:0859597",
+                        },
+                        "relation": "exactMatch",
+                        "extensions": [
+                            get_vicc_normalizer_priority_ext(is_priority=False),
+                        ],
+                    },
+                ],
+            },
+            {
+                "id": "civic.phenotype:15320",
+                "conceptType": "Phenotype",
+                "name": "Pediatric onset",
+                "mappings": [
+                    {
+                        "coding": {
+                            "system": "https://hpo.jax.org/app/browse/term/",
+                            "code": "HP:0410280",
+                        },
+                        "relation": "exactMatch",
+                    }
+                ],
+            },
+        ],
+        "membershipOperator": "AND",
+    }
+
+
+@pytest.fixture(scope="module")
+def aid115_object_condition():
+    """Create test fixture for AID 115 object condition"""
+    return {
+        "id": "civic.condset_intersect:4WeLQvX7p2PjYxSYIRep5HQacNuawmSj",
+        "conditions": [
+            {
+                "id": "civic.did:3387",
+                "conceptType": "Disease",
+                "name": "Diffuse Astrocytoma, MYB- Or MYBL1-altered",
+                "mappings": [
+                    {
+                        "coding": {
+                            "id": "DOID:0081279",
+                            "system": "https://disease-ontology.org/?id=",
+                            "code": "DOID:0081279",
+                        },
+                        "relation": "exactMatch",
+                        "extensions": [
+                            get_civic_annotation_ext(),
+                            get_vicc_normalizer_priority_ext(is_priority=False),
+                        ],
+                    },
+                    {
+                        "coding": {
+                            "id": "MONDO_0859615",
+                            "system": "https://purl.obolibrary.org/obo/",
+                            "code": "MONDO:0859615",
+                            "name": "diffuse astrocytoma, MYB- or MYBL1-altered",
+                        },
+                        "relation": "exactMatch",
+                        "extensions": [
+                            get_vicc_normalizer_priority_ext(is_priority=True),
+                        ],
+                    },
+                ],
+            },
+            {
+                "id": "civic.condset_union:kjakcUE5QVQqAMalnC9FUQnx0kPQGfG0",
+                "conditions": [
+                    {
+                        "id": "civic.phenotype:8121",
+                        "conceptType": "Phenotype",
+                        "name": "Childhood onset",
+                        "mappings": [
+                            {
+                                "coding": {
+                                    "system": "https://hpo.jax.org/app/browse/term/",
+                                    "code": "HP:0011463",
+                                },
+                                "relation": "exactMatch",
+                            }
+                        ],
+                    },
+                    {
+                        "id": "civic.phenotype:2656",
+                        "conceptType": "Phenotype",
+                        "name": "Juvenile onset",
+                        "mappings": [
+                            {
+                                "coding": {
+                                    "system": "https://hpo.jax.org/app/browse/term/",
+                                    "code": "HP:0003621",
+                                },
+                                "relation": "exactMatch",
+                            }
+                        ],
+                    },
+                    {
+                        "id": "civic.phenotype:2643",
+                        "conceptType": "Phenotype",
+                        "name": "Adult onset",
+                        "mappings": [
+                            {
+                                "coding": {
+                                    "system": "https://hpo.jax.org/app/browse/term/",
+                                    "code": "HP:0003581",
+                                },
+                                "relation": "exactMatch",
+                            }
+                        ],
+                    },
+                ],
+                "membershipOperator": "OR",
+            },
+        ],
+        "membershipOperator": "AND",
     }
 
 
@@ -608,6 +858,44 @@ def statements(civic_eid2_study_stmt, civic_eid74_study_stmt):
     return [civic_eid2_study_stmt, civic_eid74_study_stmt]
 
 
-def test_civic_cdm(data, statements, check_transformed_cdm):
+def test_civic_cdm(data, statements, check_transformed_cdm, tmp_path):
     """Test that civic transformation works correctly."""
-    check_transformed_cdm(data, statements, DATA_DIR / FILENAME)
+    check_transformed_cdm(data, statements, tmp_path / FILENAME)
+
+
+@pytest.mark.asyncio
+async def test_phenotypes(
+    civic_cdm_data,
+    phenotype_assertions,
+    aid93_object_condition,
+    aid115_object_condition,
+):
+    """Test that civic transformation works correctly for phenotype data"""
+    data = await civic_cdm_data([], phenotype_assertions, FILENAME)
+    assertions_dict = data["statements_assertions"]
+
+    assert len(assertions_dict) == 2
+    assertions = [VariantDiagnosticStudyStatement(**a) for a in assertions_dict]
+    assert {a.id for a in assertions} == {"civic.aid:93", "civic.aid:115"}
+
+    for assertion in assertions:
+        condition = assertion.proposition.objectCondition.root
+        assert isinstance(condition, ConditionSet)
+        expected_condition = (
+            aid115_object_condition
+            if assertion.id == "civic.aid:115"
+            else aid93_object_condition
+        )
+        condition_dict = condition.model_dump(exclude_none=True)
+
+        diff = DeepDiff(
+            condition_dict,
+            expected_condition,
+            ignore_order=True,
+        )
+        assert diff == {}, assertion.id
+
+        assert condition_dict in data["condition_sets"]
+        assert condition_dict not in data["conditions"]
+
+    assert len(data["conditions"]) == 6

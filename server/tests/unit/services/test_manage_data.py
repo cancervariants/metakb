@@ -22,6 +22,7 @@ def test_is_loadable_statement(
     assert is_loadable_statement(statements["civic.eid:7157"])
     assert is_loadable_statement(statements["moa.assertion:66"])
     assert is_loadable_statement(statements["moa.assertion:120"])
+    assert is_loadable_statement(statements["moa.assertion:166"])
 
     # variant didn't normalize
     assert not is_loadable_statement(statements["civic.eid:116"])
@@ -31,9 +32,6 @@ def test_is_loadable_statement(
 
     # drug in therapygroup and variant both didn't normalize
     assert not is_loadable_statement(statements["civic.eid:12014"])
-
-    # drug didn't normalize
-    assert not is_loadable_statement(statements["moa.assertion:166"])
 
     # variant in evidence line didn't normalize
     assert not is_loadable_statement(statements["civic.aid:20"])
