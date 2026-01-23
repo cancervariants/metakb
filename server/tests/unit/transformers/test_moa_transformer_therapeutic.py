@@ -428,7 +428,7 @@ def moa_aid135_study_stmt():
                 "name": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
                 "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
                 "doi": "10.1038/s43018-021-00243-3",
-                "pmid": 35121878,
+                "pmid": "35121878",
             },
         },
         "reportedIn": [
@@ -439,7 +439,7 @@ def moa_aid135_study_stmt():
                 "title": "Pennington KP, Walsh T, Harrell MI, et al. Germline and somatic mutations in homologous recombination genes predict platinum response and survival in ovarian, fallopian tube, and peritoneal carcinomas. Clin Cancer Res. 2014;20(3):764-75.",
                 "urls": ["https://doi.org/10.1158/1078-0432.CCR-13-2287"],
                 "doi": "10.1158/1078-0432.CCR-13-2287",
-                "pmid": 24240112,
+                "pmid": "24240112",
             }
         ],
         "proposition": {
@@ -620,11 +620,21 @@ def statements(
     return [moa_aid66_study_stmt, moa_aid154_study_stmt, moa_aid135_study_stmt]
 
 
-def test_moa_cdm(normalizable_data, statements, check_transformed_cdm):
+def test_moa_cdm(
+    normalizable_data, statements, check_transformed_cdm, moa_aid154_study_stmt
+):
     """Test that moa transformation works correctly."""
     check_transformed_cdm(
         normalizable_data, statements, DATA_DIR / NORMALIZABLE_FILENAME
     )
+
+    combo_therapy_id = moa_aid154_study_stmt["proposition"]["objectTherapeutic"]["id"]
+
+    therapy_group_ids = [tg["id"] for tg in normalizable_data["therapy_groups"]]
+    assert combo_therapy_id in therapy_group_ids
+
+    therapy_ids = [t["id"] for t in normalizable_data["therapies"]]
+    assert combo_therapy_id not in therapy_ids
 
 
 def test_moa_cdm_not_normalizable(

@@ -76,6 +76,16 @@ def load_disease() -> str:
 
 
 @cache
+def load_phenotype() -> str:
+    return _load("load_phenotype.cypher")
+
+
+@cache
+def load_condition_set() -> str:
+    return _load("load_condition_set.cypher")
+
+
+@cache
 def load_drug() -> str:
     return _load("load_drug.cypher")
 
