@@ -1,0 +1,158 @@
+services:
+  ########################
+  # MetaKB
+  ########################
+  metakb:
+    image: python:3.12
+    volumes:
+      - .:/app
+    working_dir: /app/server
+    environment:
+      AWS_ACCESS_KEY_ID: dummy
+      AWS_SECRET_ACCESS_KEY: dummy
+      AWS_DEFAULT_REGION: us-east-2
+      METAKB_DB_URL: "bolt://neo4j:password@neo4j:7687"
+      UTA_DB_URL: "postgresql://anonymous@uta:5432/uta/uta_20241220"
+      SEQREPO_ROOT_DIR: /usr/local/share/seqrepo/2024-12-20
+      GENE_NORM_DB_URL: http://gene-dynamodb-local:8000
+      DISEASE_NORM_DB_URL: http://disease-dynamodb-local:8000
+      THERAPY_NORM_DB_URL: http://therapy-dynamodb-local:8000
+    ports:
+      - 127.0.0.1:8000:8000
+    command: >
+      sh -c "
+      pip install -e . &&
+      uvicorn src.metakb.main:app --host 0.0.0.0 --port 8000
+      "
+
+
+  ########################
+  # Gene Normalizer
+  ########################
+  gene-api:
+    image: cancervariants/gene-normalizer-api:0.11.1
+    environment:
+      AWS_ACCESS_KEY_ID: dummy
+      AWS_SECRET_ACCESS_KEY: dummy
+      AWS_DEFAULT_REGION: us-east-2
+      GENE_NORM_DB_URL: http://gene-dynamodb-local:8000
+    ports:
+      - 127.0.0.1:8001:80
+    depends_on:
+      gene-dynamodb-local:
+        condition: service_started
+    working_dir: /tmp
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+
+  gene-dynamodb-local:
+    image: cancervariants/gene-normalizer-ddb:2025-12-29
+    ports:
+      - 127.0.0.1:8011:8000
+
+  ########################
+  # Disease Normalizer
+  ########################
+  disease-api:
+    image: cancervariants/disease-normalizer-api:0.13.0
+    environment:
+      AWS_ACCESS_KEY_ID: dummy
+      AWS_SECRET_ACCESS_KEY: dummy
+      AWS_DEFAULT_REGION: us-east-2
+      DISEASE_NORM_DB_URL: http://disease-dynamodb-local:8000
+    ports:
+      - 127.0.0.1:8002:80
+    depends_on:
+      disease-dynamodb-local:
+        condition: service_started
+    working_dir: /tmp
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+
+  disease-dynamodb-local:
+    image: cancervariants/disease-normalizer-ddb:2025-12-29
+    ports:
+      - 127.0.0.1:8012:8000
+
+  ########################
+  # Therapy Normalizer
+  ########################
+  therapy-api:
+    image: cancervariants/therapy-normalizer-api:0.13.0
+    environment:
+      AWS_ACCESS_KEY_ID: dummy
+      AWS_SECRET_ACCESS_KEY: dummy
+      AWS_DEFAULT_REGION: us-east-2
+      THERAPY_NORM_DB_URL: http://therapy-dynamodb-local:8000
+    ports:
+      - 127.0.0.1:8003:80
+    depends_on:
+      therapy-dynamodb-local:
+        condition: service_started
+    working_dir: /tmp
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+
+  therapy-dynamodb-local:
+    image: cancervariants/therapy-normalizer-ddb:2025-12-29
+    ports:
+      - 127.0.0.1:8013:8000
+
+  ########################
+  # Variation Normalizer
+  ########################
+  variation-api:
+    image: cancervariants/variation-normalizer-api:0.15.1
+    environment:
+      SEQREPO_ROOT_DIR: /usr/local/share/seqrepo/2024-12-20
+      AWS_ACCESS_KEY_ID: dummy
+      AWS_SECRET_ACCESS_KEY: dummy
+      AWS_DEFAULT_REGION: us-east-2
+      GENE_NORM_DB_URL: http://gene-dynamodb-local:8000
+      UTA_DB_URL: postgresql://anonymous@uta:5432/uta/uta_20241220
+      WAGS_TAILS_DIR: /tmp/wags_tails
+    ports:
+      - 127.0.0.1:8004:80
+    depends_on:
+      uta:
+        condition: service_started
+      gene-dynamodb-local:
+        condition: service_started
+    volumes:
+      - uta_vol:/var/lib/postgresql/data
+      - /usr/local/share/seqrepo:/usr/local/share/seqrepo
+    working_dir: /tmp
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+
+  uta:
+    # Test:
+    # psql -XAt postgres://anonymous@localhost/uta -c 'select count(*) from uta_20241220.transcript'
+    # 329090
+    image: biocommons/uta:uta_20241220
+    environment:
+      - POSTGRES_PASSWORD=some-password-that-you-make-up
+    volumes:
+      - uta_vol:/var/lib/postgresql/data
+      - ./uta-setup.sql:/docker-entrypoint-initdb.d/uta-setup.sql
+    ports:
+      - 127.0.0.1:5432:5432
+
+volumes:
+  uta_vol:
