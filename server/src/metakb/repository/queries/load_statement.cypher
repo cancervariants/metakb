@@ -3,6 +3,7 @@ MERGE (statement:Statement {id: $statement.id})
   ON CREATE SET
     statement +=
       {
+        url: $statement.url,
         description: $statement.description,
         predicate: $statement.predicate,
         proposition_type: $statement.proposition_type,
@@ -47,8 +48,75 @@ END |
   MERGE (t:Therapeutic {id: statement_therapeutic.id})
   MERGE (statement)-[:HAS_THERAPEUTIC]->(t)
 )
-MERGE (c:Condition {id: $statement.has_condition.id})
-MERGE (statement)-[:HAS_TUMOR_TYPE]->(c)
+
+// replace condition block
+WITH statement, $statement.has_condition AS conditionInput
+
+CALL {
+  WITH conditionInput
+  WITH conditionInput
+  WHERE conditionInput IS NOT NULL
+
+  CALL {
+    // ConditionSet case
+    WITH conditionInput
+    WITH conditionInput
+    WHERE conditionInput.conditions IS NOT NULL
+
+    MERGE (conditionSet:ConditionSet {id: conditionInput.id})
+      SET conditionSet.membershipOperator = conditionInput.membershipOperator
+
+    WITH conditionSet, conditionInput
+    UNWIND conditionInput.conditions AS childInput
+
+    CALL {
+      // child condition set
+      WITH childInput
+      WITH childInput
+      WHERE childInput.conditions IS NOT NULL
+
+      MERGE (childConditionSet:ConditionSet {id: childInput.id})
+        SET childConditionSet.membershipOperator = childInput.membershipOperator
+
+      RETURN childConditionSet AS childNode
+
+      UNION
+
+      // child condition
+      WITH childInput
+      WITH childInput
+      WHERE childInput.conditions IS NULL
+
+      MERGE (childCondition:Condition {id: childInput.id})
+        SET childCondition += childInput
+
+      RETURN childCondition AS childNode
+    }
+
+    MERGE (conditionSet)-[:HAS_CONDITION]->(childNode)
+    RETURN conditionSet AS builtCondition
+
+    UNION
+
+    // Condition case
+    WITH conditionInput
+    WITH conditionInput
+    WHERE conditionInput.conditions IS NULL
+
+    MERGE (condition:Condition {id: conditionInput.id})
+      SET condition += conditionInput
+
+    RETURN condition AS builtCondition
+  }
+
+  RETURN builtCondition
+}
+
+WITH statement, builtCondition
+FOREACH (_ IN CASE WHEN builtCondition IS NOT NULL THEN [1] ELSE [] END |
+  MERGE (statement)-[:HAS_TUMOR_TYPE]->(builtCondition)
+)
+
 MERGE (method:Method {id: $statement.has_method.id})
 MERGE (statement)-[:IS_SPECIFIED_BY]->(method)
 MERGE (cv:CategoricalVariant {id: $statement.has_variant.id})
@@ -71,7 +139,7 @@ CALL {
   WITH statement, coalesce($statement.has_evidence_lines, []) AS ev_lines
   UNWIND ev_lines AS ev_line
   MERGE (el:EvidenceLine {id: ev_line.id})
-    ON CREATE SET el += {direction: ev_line.direction}
+    ON CREATE SET el += {direction: ev_line.direction, strength_of_evidence_provided: ev_line.strength_of_evidence_provided}
   MERGE (statement)-[:HAS_EVIDENCE_LINE]->(el)
 
   WITH statement, el, ev_line

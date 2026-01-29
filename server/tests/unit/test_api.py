@@ -19,7 +19,7 @@ def client():
     "ignore:jsonschema\\.RefResolver is deprecated:DeprecationWarning"
 )
 def test_service_info(client: TestClient, test_data_dir: Path):
-    response = client.get("/service-info")
+    response = client.get("/api/service-info")
     response.raise_for_status()
 
     with (test_data_dir / "general" / "service_info_openapi.yaml").open() as f:

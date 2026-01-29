@@ -1,4 +1,9 @@
-"""A module to convert MOA resources to common data model"""
+"""A module to convert MOA resources to common data model
+
+Todo:
+* reincorporate the "concept discrepancy" stuff
+
+"""
 
 import logging
 from functools import cache
@@ -42,7 +47,9 @@ from ga4gh.vrs.models import Variation
 
 from metakb.config import get_config
 from metakb.harvesters.moa import MoaHarvestedData
-from metakb.normalizers import ViccNormalizers
+from metakb.normalizers import (
+    ViccNormalizers,
+)
 from metakb.transformers.base import MethodId, TransformedData, Transformer
 
 _logger = logging.getLogger(__name__)
