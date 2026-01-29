@@ -69,8 +69,6 @@ NORMALIZER_INSTANCE_TO_ATTR = {
     NormalizedGene: "gene",
 }
 
-_CacheType = TypeVar("_CacheType", bound="_TransformedRecordsCache")
-
 
 def _sanitize_name(name: str) -> str:
     """Trim leading and trailing whitespace and replace whitespace characters with
@@ -135,34 +133,16 @@ class ViccConceptVocab(BaseModel):
     definition: StrictStr
 
 
-class _TransformedRecordsCache(BaseModel):
-    """Define model for caching transformed records"""
-
-    therapies: ClassVar[dict[str, MappableConcept]] = {}
-    conditions: ClassVar[dict[str, MappableConcept]] = {}
-    genes: ClassVar[dict[str, MappableConcept]] = {}
-
-
 class TransformedData(BaseModel):
     """Define model for transformed data"""
 
-    statements_evidence: list[Statement] = Field(
-        [], description="Statement objects for evidence records"
-    )
-    statements_assertions: Sequence[
-        VariantTherapeuticResponseStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantDiagnosticStudyStatement
-    ] = Field([], description="Statement objects for assertion records")
-    categorical_variants: Sequence[CategoricalVariant | ProteinSequenceConsequence] = []
-    variations: Sequence[CopyNumberChange | CopyNumberCount | Allele] = []
-    genes: Sequence[MappableConcept] = []
-    therapies: Sequence[MappableConcept] = []
-    therapy_groups: Sequence[TherapyGroup] = []
-    conditions: Sequence[MappableConcept] = []
-    condition_sets: Sequence[ConditionSet] = []
-    methods: Sequence[Method] = []
-    documents: Sequence[Document] = []
+    statements: dict[str, Statement] = {}
+    variants: dict[str, CategoricalVariant] = {}
+    genes: dict[str, MappableConcept] = {}
+    therapeutics: dict[str, MappableConcept] = {}
+    conditions: dict[str, MappableConcept] = {}
+    methods: dict[str, Method] = {}
+    documents: dict[str, Document] = {}
 
 
 class Transformer(ABC):
@@ -296,7 +276,6 @@ class Transformer(ABC):
         :param harvester_path: Path to previously harvested data
         :param normalizers: normalizer collection instance
         """
-        self._cache = self._create_cache()
         self.name = self.__class__.__name__.lower().split("transformer")[0]
         if data_dir:
             self.data_dir = data_dir
@@ -317,10 +296,6 @@ class Transformer(ABC):
 
         :param harvested_data: Source harvested data
         """
-
-    def _create_cache() -> _CacheType:
-        """Create cache for transformed records"""
-        raise NotImplementedError
 
     def extract_harvested_data(self) -> _HarvestedData:
         """Get harvested data from file.

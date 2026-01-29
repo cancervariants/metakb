@@ -28,10 +28,12 @@ from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence, SystemUri
 from ga4gh.core.models import (
     Coding,
     MappableConcept,
+    iriReference,
 )
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
+    ExperimentalVariantFunctionalImpactProposition,
     MembershipOperator,
     Statement,
     TherapyGroup,
@@ -45,10 +47,7 @@ from pydantic.dataclasses import dataclass
 from metakb.normalizers import (
     ViccNormalizers,
 )
-from metakb.transformers.base import (
-    Transformer,
-    _TransformedRecordsCache,
-)
+from metakb.transformers.base import Transformer
 
 _logger = logging.getLogger(__name__)
 
@@ -140,20 +139,6 @@ class MolecularProfileNameComponents:
     c_change: str | None
 
 
-class _CivicTransformedCache(_TransformedRecordsCache):
-    """Create model for caching CIViC data"""
-
-    categorical_variants: ClassVar[
-        dict[str, CategoricalVariant | ProteinSequenceConsequence]
-    ] = {}
-    evidence: ClassVar[
-        dict[
-            str,
-            Statement,
-        ]
-    ] = {}
-
-
 class CivicTransformer(Transformer):
     """A class for transforming CIViC to the common data model."""
 
@@ -173,7 +158,6 @@ class CivicTransformer(Transformer):
             data_dir=data_dir, harvester_path=harvester_path, normalizers=normalizers
         )
 
-        self._cache = self._create_cache()
         self._concept_norm_method = MappingProxyType(
             {
                 ConceptType.DISEASE: self.vicc_normalizers.normalize_disease,
@@ -183,64 +167,80 @@ class CivicTransformer(Transformer):
         )
 
     async def transform(self) -> None:
-        """Normalize CIViC evidence items and assertions and add annotations
-
-        Updated records will store results in ``processed_data`` and ``_cache`` instance
-        variables.
-        """
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
         for evidence_item in accepted_evidence_items:
-            await self._annotate_evidence(evidence_item)
+            await self._transform_evidence(evidence_item)
 
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         for assertion in accepted_assertions:
             await self._annotate_assertion(assertion)
 
-    def _create_cache(self) -> _CivicTransformedCache:
-        """Create cache for transformed records"""
-        return _CivicTransformedCache()
-
-    async def _annotate_evidence(
+    async def _transform_evidence(
         self, evidence_item: civicpy.Evidence | CivicGksEvidence
-    ) -> Statement | None:
-        """Annotate evidence with additional information, such as normalizer info
-
-        Annotated evidence will be added to the ``processed_data.statements_evidence``
-        and ``_cache.evidence`` instance variables.
-
-        :param evidence_item: CIViC evidence item
-        :return: Statement for CIViC evidence item, if able to annotate
-        """
+    ) -> None:
         if not isinstance(evidence_item, CivicGksEvidence):
             try:
-                gks_evidence_item = CivicGksEvidence(evidence_item)
+                statement = Statement(**CivicGksEvidence(evidence_item).model_dump())
             except Exception as e:
                 _logger.warning(e)
-                return None
+                return
         else:
-            gks_evidence_item = evidence_item
+            statement = Statement(**evidence_item.model_dump())
 
-        try:
-            updated_proposition = await self._get_updated_proposition(
-                gks_evidence_item.proposition
+        # handle universal statement traits first
+        if statement.specifiedBy not in self.processed_data.methods:
+            self.processed_data.methods[statement.specifiedBy.id] = (
+                statement.specifiedBy
             )
-        except NotImplementedError:
-            return None
+        statement.specifiedBy = iriReference(root=statement.specifiedBy.id)
 
-        if not self.processed_data.methods:
-            self.processed_data.methods.append(gks_evidence_item.specifiedBy)
+        refed_documents = []
+        for document in statement.reportedIn:
+            if document.id not in self.processed_data.documents:
+                self.processed_data.documents[document.id] = document
+            refed_documents.append(iriReference(root=document.id))
+        statement.reportedIn = refed_documents
 
-        for document in gks_evidence_item.reportedIn or []:
-            if document not in self.processed_data.documents:
-                self.processed_data.documents.append(document)
+        if statement.proposition.type == "VariantDiagnosticProposition":
+            await self._transform_diag_statement(statement)
+        else:
+            raise NotImplementedError
 
-        annotated_gks_evidence_item = Statement(
-            **gks_evidence_item.model_dump(exclude_none=True, exclude={"proposition"}),
-            proposition=updated_proposition,
-        )
-        self._cache.evidence[gks_evidence_item.id] = annotated_gks_evidence_item
-        self.processed_data.statements_evidence.append(annotated_gks_evidence_item)
-        return annotated_gks_evidence_item
+        ############### OLD UNDER HERE
+        # try:
+        #     updated_proposition = await self._normalize_proposition(
+        #         gks_evidence_item.proposition
+        #     )
+        # except NotImplementedError:
+        #     return
+        #
+        # if not self.processed_data.methods:
+        #     self.processed_data.methods.append(gks_evidence_item.specifiedBy)
+        #
+        # for document in gks_evidence_item.reportedIn or []:
+        #     if document not in self.processed_data.documents:
+        #         self.processed_data.documents.append(document)
+        #
+        # annotated_gks_evidence_item = Statement(
+        #     **gks_evidence_item.model_dump(exclude_none=True, exclude={"proposition"}),
+        #     proposition=updated_proposition,
+        # )
+        # self._cache.evidence[gks_evidence_item.id] = annotated_gks_evidence_item
+        # self.processed_data.statements_evidence.append(annotated_gks_evidence_item)
+
+    async def _transform_diag_statement(self, statement: Statement):
+        gene = statement.proposition.geneContextQualifier
+        if gene.id not in self.processed_data.genes:
+            self.processed_data.genes[gene.id] = gene
+            # TODO normalize gene
+        statement.proposition.geneContextQualifier = iriReference(root=gene.id)
+
+        # handle therapeutic
+        # handle condition
+        # handle gene
+        # handle variant
+
+    #################### OLD STUFF BELOW
 
     async def _annotate_assertion(self, assertion: civicpy.Assertion) -> None:
         """Annotate assertion with additional information, such as normalizer info
@@ -266,7 +266,7 @@ class CivicTransformer(Transformer):
             if cached_evidence:
                 return cached_evidence
 
-            annotated_evidence = await self._annotate_evidence(ev)
+            annotated_evidence = await self._transform_evidence(ev)
             if not annotated_evidence:
                 _logger.warning(
                     "%s is unable to resolve evidence item %s in evidence lines",
@@ -282,7 +282,7 @@ class CivicTransformer(Transformer):
             return
 
         try:
-            updated_proposition = await self._get_updated_proposition(
+            updated_proposition = await self._normalize_proposition(
                 gks_assertion.proposition
             )
         except NotImplementedError:
@@ -301,15 +301,17 @@ class CivicTransformer(Transformer):
         )
         self.processed_data.statements_assertions.append(annotated_assertion)
 
-    async def _get_updated_proposition(
+    async def _normalize_proposition(
         self,
         proposition: VariantDiagnosticProposition
         | VariantPrognosticProposition
-        | VariantTherapeuticResponseProposition,
+        | VariantTherapeuticResponseProposition
+        | ExperimentalVariantFunctionalImpactProposition,
     ) -> (
         VariantDiagnosticProposition
         | VariantPrognosticProposition
         | VariantTherapeuticResponseProposition
+        | ExperimentalVariantFunctionalImpactProposition
         | None
     ):
         """Get updated proposition
