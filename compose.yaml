@@ -17,7 +17,7 @@ services:
     command: >
       sh -c "
       pip install . &&
-      uvicorn src.metakb.main:app --host 0.0.0.0 --port 8000
+      uvicorn src.metakb.main:app --reload --host 0.0.0.0 --port 8000
       "
     volumes:
       - /usr/local/share/seqrepo:/usr/local/share/seqrepo
