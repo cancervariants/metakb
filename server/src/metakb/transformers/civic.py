@@ -201,39 +201,24 @@ class CivicTransformer(Transformer):
             refed_documents.append(iriReference(root=document.id))
         statement.reportedIn = refed_documents
 
+        # handle proposition terms and create aggregate statements
         if statement.proposition.type == "VariantDiagnosticProposition":
             await self._transform_diag_statement(statement)
         else:
             raise NotImplementedError
 
-        ############### OLD UNDER HERE
-        # try:
-        #     updated_proposition = await self._normalize_proposition(
-        #         gks_evidence_item.proposition
-        #     )
-        # except NotImplementedError:
-        #     return
-        #
-        # if not self.processed_data.methods:
-        #     self.processed_data.methods.append(gks_evidence_item.specifiedBy)
-        #
-        # for document in gks_evidence_item.reportedIn or []:
-        #     if document not in self.processed_data.documents:
-        #         self.processed_data.documents.append(document)
-        #
-        # annotated_gks_evidence_item = Statement(
-        #     **gks_evidence_item.model_dump(exclude_none=True, exclude={"proposition"}),
-        #     proposition=updated_proposition,
-        # )
-        # self._cache.evidence[gks_evidence_item.id] = annotated_gks_evidence_item
-        # self.processed_data.statements_evidence.append(annotated_gks_evidence_item)
-
-    async def _transform_diag_statement(self, statement: Statement):
+    async def _transform_diag_statement(self, statement: Statement) -> None:
         gene = statement.proposition.geneContextQualifier
         if gene.id not in self.processed_data.genes:
             self.processed_data.genes[gene.id] = gene
-            # TODO normalize gene
+            normalized_gene = self._normalize_gene(gene)
         statement.proposition.geneContextQualifier = iriReference(root=gene.id)
+
+        variant = statement.proposition.subjectVariant
+        if variant.id not in self.processed_data.variants:
+            self.processed_data.variants[variant.id] = variant
+            normalized_variant = self._normalize_variant(variant)
+        statement.proposition.subjectVariant = iriReference(root=variant.id)
 
         # handle therapeutic
         # handle condition
