@@ -57,7 +57,7 @@ class Harvester(ABC, Generic[T]):
         """
 
     def save_harvested_data_to_file(
-        self, harvested_data: _HarvestedData, harvested_filepath: Path | None = None
+        self, harvested_data: T, harvested_filepath: Path | None = None
     ) -> bool:
         """Save harvested data to JSON file.
 
@@ -81,7 +81,10 @@ class Harvester(ABC, Generic[T]):
 
         try:
             with (harvested_filepath).open("w+") as f:
-                json.dump(harvested_data.model_dump(), f, indent=2)
+                if isinstance(harvested_data, list):
+                    json.dump([h.model_dump() for h in harvested_data], f, indent=2)
+                else:
+                    json.dump(harvested_data.model_dump(), f, indent=2)
         except Exception:
             logger.exception("Error creating %s harvester JSON", src_name)
             return False
