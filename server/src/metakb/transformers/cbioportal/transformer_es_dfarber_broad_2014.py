@@ -5,6 +5,7 @@ environ["AWS_ACCESS_KEY_ID"] = "dummy"
 environ["AWS_SECRET_ACCESS_KEY"] = "dummy"
 environ["AWS_SESSION_TOKEN"] = "dummy"
 
+import contextlib
 import json
 import logging
 import re
@@ -66,7 +67,7 @@ class cBioportalTransformer(Transformer):
 
     # TODO: TypeError: Can't instantiate abstract class cBioportalTransformer without an implementation for abstract method '_create_cache'
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.final_df = None
 
@@ -81,7 +82,7 @@ class cBioportalTransformer(Transformer):
     def _get_therapy(self, therapy):
         return super()._get_therapy(therapy)
 
-    def _create_cache(self):
+    def _create_cache(self) -> None:
         pass
 
     def _flag_rows_chrom_23(self, df):
@@ -238,21 +239,16 @@ class cBioportalTransformer(Transformer):
         try:
             parsed_response = json.loads(raw_response)
         except json.JSONDecodeError:
-            print(f"❌ Failed to parse JSON for: {variant_x}")
             return df
         # Ensure 'variation' is in the parsed response
         if "variation" not in parsed_response:
-            print(f"⚠️ 'variation' key not found for: {variant_x}")
             return df
         # Try to extract hgnc_id if available
         hgnc_id = None
-        try:
+        with contextlib.suppress(KeyError, IndexError, TypeError):
             hgnc_id = parsed_response["variation"]["extensions"][0]["value"][0][
                 "hgnc_id"
             ]
-            print(f"✅ Extracted HGNC ID for {variant_x}: {hgnc_id}")
-        except (KeyError, IndexError, TypeError):
-            print(f"⚠️ No HGNC ID found for: {variant_x}")
         # Initialize columns if needed
         if "x_hgnc_id" not in df.columns:
             df["x_hgnc_id"] = "no_value"
@@ -270,7 +266,6 @@ class cBioportalTransformer(Transformer):
         # Mask: match rows on reconstructed X-variant and Chromosome == 23
         chrom_col = df["Chromosome"].astype(str).str.strip()
         mask = (chrom_col == "23") & (reconstructed == variant_x)
-        print(f"🧪 Matched {mask.sum()} row(s) for {variant_x}")
         # Set Chr23_X = True
         df.loc[mask, "Chr23_X"] = True
         # Set x_hgnc_id if available
@@ -303,21 +298,16 @@ class cBioportalTransformer(Transformer):
         try:
             parsed_response = json.loads(raw_response)
         except json.JSONDecodeError:
-            print(f"❌ Failed to parse JSON for: {variant_y}")
             return df
         # Ensure 'variation' is in the parsed response
         if "variation" not in parsed_response:
-            print(f"⚠️ 'variation' key not found for: {variant_y}")
             return df
         # Try to extract hgnc_id if available
         hgnc_id = None
-        try:
+        with contextlib.suppress(KeyError, IndexError, TypeError):
             hgnc_id = parsed_response["variation"]["extensions"][0]["value"][0][
                 "hgnc_id"
             ]
-            print(f"✅ Extracted HGNC ID for {variant_y}: {hgnc_id}")
-        except (KeyError, IndexError, TypeError):
-            print(f"⚠️ No HGNC ID found for: {variant_y}")
         # Initialize columns if needed
         if "y_hgnc_id" not in df.columns:
             df["y_hgnc_id"] = "no_value"
@@ -335,7 +325,6 @@ class cBioportalTransformer(Transformer):
         # Mask: match rows on reconstructed Y-variant and Chromosome == 23
         chrom_col = df["Chromosome"].astype(str).str.strip()
         mask = (chrom_col == "23") & (reconstructed == variant_y)
-        print(f"🧪 Matched {mask.sum()} row(s) for {variant_y}")
         # Set Chr23_Y = True
         df.loc[mask, "Chr23_Y"] = True
         # Set y_hgnc_id if available
@@ -364,8 +353,7 @@ class cBioportalTransformer(Transformer):
         if "Chr23_Y" not in df.columns:
             df["Chr23_Y"] = False
         df = self._check_for_x_variant(df, variant)  # pass **both** args
-        df = self._check_for_y_variant(df, variant)
-        return df
+        return self._check_for_y_variant(df, variant)
 
     # reassign chromosome for male chromosome 23 variants
     def _correct_male_chrom23(self, df):
@@ -405,14 +393,7 @@ class cBioportalTransformer(Transformer):
         # Check for ambiguous rows
         ambig_rows = df[df["ambig_chrom"].isin(["XY", "neither"])]
         if not ambig_rows.empty:
-            print(
-                f"⚠️ Found {len(ambig_rows)} row(s) with ambiguous chromosome identification."
-            )
-            print(
-                ambig_rows[
-                    ["temp_Gnomad_Notation", "Hugo_Symbol", "ambig_chrom"]
-                ].head()
-            )
+            pass
         return df
 
     def _resolve_ambiguous_chromosomes(self, df):
@@ -433,7 +414,7 @@ class cBioportalTransformer(Transformer):
         dataframe
 
         """
-        chrom23_male_mask = (df["Chrom_23"] == True) & (
+        chrom23_male_mask = (df["Chrom_23"]) & (
             df["SEX"].str.lower().str.strip() == "male"
         )
 
@@ -443,31 +424,21 @@ class cBioportalTransformer(Transformer):
             ambig_status = row.get("ambig_chrom", "not_set")
 
             # ⚠️ Raise general warnings, regardless of ambig_chrom
-            if x_id != "no_value" and y_id != "no_value":
-                print(
-                    f"⚠️ Row {idx}: Both x_hgnc_id and y_hgnc_id have values. Manual check recommended."
-                )
-            elif x_id == "no_value" and y_id == "no_value":
-                print(f"❌ Row {idx}: Neither x_hgnc_id nor y_hgnc_id has a value.")
+            if (x_id != "no_value" and y_id != "no_value") or (x_id == "no_value" and y_id == "no_value"):
+                pass
 
             # ✅ Try resolving ambiguous chromosomes
             if ambig_status in ["XY", "neither"]:
                 if x_id != "no_value" and y_id == "no_value":
                     df.at[idx, "Chromosome"] = "X"
                     df.at[idx, "ambig_chrom"] = "resolved_X"
-                    print(f"✅ Resolved index {idx} to Chromosome X")
                 elif y_id != "no_value" and x_id == "no_value":
                     df.at[idx, "Chromosome"] = "Y"
                     df.at[idx, "ambig_chrom"] = "resolved_Y"
-                    print(f"✅ Resolved index {idx} to Chromosome Y")
                 elif x_id != "no_value" and y_id != "no_value":
-                    print(
-                        f"⚠️ Index {idx}: Ambiguous Chromosome with both HGNC IDs present."
-                    )
+                    pass
                 else:
-                    print(
-                        f"❌ Index {idx}: Ambiguous Chromosome with no HGNC ID found."
-                    )
+                    pass
 
         return df
 
@@ -522,9 +493,8 @@ class cBioportalTransformer(Transformer):
                     full_id = result["gene"]["id"]  # e.g., "normalize.gene.hgnc:447"
                     hgnc_id = full_id.split(":")[-1]  # Extract "447"
                     df.at[idx, "gene_hgnc_id"] = hgnc_id
-                except Exception as e:
-                    print(f"⚠️ Could not extract HGNC ID for {row['Hugo_Symbol']}: {e}")
-        print(df.head())
+                except Exception:
+                    pass
         return df
 
     # query gene normalizer
@@ -534,27 +504,22 @@ class cBioportalTransformer(Transformer):
             df["gene_hgnc_id"] = None
         for gene in tqdm(gene_list, desc="Processing genes"):
             # for gene in gene_list:
-            print(f"▶️ Checking gene: {gene}")
             gene_df = self._test_gene_tokenization(gene)
             # Extract and parse JSON string from the response
             raw_response = gene_df.loc[0, "response"]
             try:
                 parsed_response = json.loads(raw_response)
             except json.JSONDecodeError:
-                print(f"❌ Failed to parse JSON for: {gene}")
                 continue
             if "gene" not in parsed_response:
-                print(f"⚠️ 'gene' key not found for: {gene}")
                 continue
             try:
                 hgnc_id = parsed_response["gene"]["id"].split(":")[-1]
-                print(f"✅ Extracted HGNC ID for {gene}: {hgnc_id}")
             except (KeyError, IndexError, TypeError):
-                print(f"⚠️ No HGNC ID found for: {gene}")
                 continue
             # Apply to matching rows
             df.loc[
-                (df["Chrom_23"] == True)
+                (df["Chrom_23"])
                 & (df["SEX"].str.strip().str.lower() == "male")
                 & (df["Hugo_Symbol"].str.strip() == gene.strip()),
                 "gene_hgnc_id",
@@ -576,7 +541,7 @@ class cBioportalTransformer(Transformer):
         if "hgnc_id_match" not in df.columns:
             df["hgnc_id_match"] = "untested"
         # Define mask for male Chr23 variants
-        mask = (df["Chrom_23"] == True) & (df["SEX"].str.strip().str.lower() == "male")
+        mask = (df["Chrom_23"]) & (df["SEX"].str.strip().str.lower() == "male")
         for idx, row in df[mask].iterrows():
             gene_id = str(row.get("gene_hgnc_id", "")).strip()
             chrom = str(row.get("Chromosome", "")).strip()
@@ -587,17 +552,11 @@ class cBioportalTransformer(Transformer):
                     df.at[idx, "hgnc_id_match"] = gene_id
                 else:
                     df.at[idx, "hgnc_id_match"] = "no_match"
-                    print(
-                        f"❌ Row {idx}: X chromosome mismatch. gene_hgnc_id={gene_id}, x_hgnc_id={x_id}"
-                    )
             elif chrom == "Y":
                 if gene_id == y_id and gene_id != "no_value":
                     df.at[idx, "hgnc_id_match"] = gene_id
                 else:
                     df.at[idx, "hgnc_id_match"] = "no_match"
-                    print(
-                        f"❌ Row {idx}: Y chromosome mismatch. gene_hgnc_id={gene_id}, y_hgnc_id={y_id}"
-                    )
         return df
 
     def transform(self, harvested_data):
@@ -635,11 +594,8 @@ class cBioportalTransformer(Transformer):
         #     self.variants["Sequence_Source"] = "No_data"
         # Check duplicate count
         num_duplicates = self.variants.duplicated().sum()
-        print(f"Number of duplicate rows : {num_duplicates}")
         # print duplicates (excluding first instance)
         if num_duplicates > 0:
-            print("\nDuplicate rows (excluding first instance):")
-            print(self.variants[self.variants.duplicated()])
             # save duplicate rows to file
             dupes = self.variants[self.variants.duplicated(keep=False)]
             file_path = os.path.join(save_loc, f"{study}_mut_dupes.csv")
@@ -647,18 +603,14 @@ class cBioportalTransformer(Transformer):
 
             # remove duplicates, but keep first occurrence
             self.variants = self.variants.drop_duplicates()
-            print(f"\nDataFrame shape after removing duplicates: {self.variants.shape}")
         else:
-            print("No duplicate rows found.")
+            pass
 
         # PATIENT DF
         # Check duplicate count
         num_duplicates = self.patients.duplicated().sum()
-        print(f"Number of duplicate rows : {num_duplicates}")
         # print duplicates (excluding first instance)
         if num_duplicates > 0:
-            print("\nDuplicate rows (excluding first instance):")
-            print(self.patients[self.patients.duplicated()])
             # save duplicate rows to file
             dupes = self.patients[self.patients.duplicated(keep=False)]
             file_path = os.path.join(save_loc, f"{study}_patient_dupes.csv")
@@ -669,18 +621,14 @@ class cBioportalTransformer(Transformer):
             )
             # remove duplicates, but keep first occurrence
             self.patients = self.patients.drop_duplicates()
-            print(f"\nDataFrame shape after removing duplicates: {self.patients.shape}")
         else:
-            print("No duplicate rows found.")
+            pass
 
         # SAMPLE DF
         # Check duplicate count
         num_duplicates = self.samples.duplicated().sum()
-        print(f"Number of duplicate rows : {num_duplicates}")
         # print duplicates (excluding first instance)
         if num_duplicates > 0:
-            print("\nDuplicate rows (excluding first instance):")
-            print(self.samples[self.samples.duplicated()])
             # save duplicate rows to file
             dupes = self.samples[self.samples.duplicated(keep=False)]
             file_path = os.path.join(save_loc, f"{study}_samples_dupes.csv")
@@ -688,9 +636,8 @@ class cBioportalTransformer(Transformer):
 
             # remove duplicates, but keep first occurrence
             self.samples = self.samples.drop_duplicates()
-            print(f"\nDataFrame shape after removing duplicates: {self.samples.shape}")
         else:
-            print("No duplicate rows found.")
+            pass
 
         # combine dataframes
         init_combined_df = self.variants.merge(self.samples, on="SAMPLE_ID", how="left")
@@ -704,29 +651,22 @@ class cBioportalTransformer(Transformer):
         # remove duplicates from combined dataframe
         # Check duplicate count
         num_duplicates = combined_df.duplicated().sum()
-        print(f"Number of duplicate rows : {num_duplicates}")
         # print duplicates (excluding first instance)
         if num_duplicates > 0:
-            print("\nDuplicate rows (excluding first instance):")
-            print(combined_df[combined_df.duplicated()])
             # remove duplicates, but keep first occurrence
             combined_df = combined_df.drop_duplicates()
-            print(f"\nDataFrame shape after removing duplicates: {combined_df.shape}")
         else:
-            print("No duplicate rows found.")
+            pass
 
         # remove data from cell lines
         original_shape = combined_df.shape
-        print(f"Original shape: {original_shape}")
         # lines to remove
         removed_df = combined_df[combined_df["SAMPLE_CLASS"] == "Cell line"]
         # remove cell lines
         filtered_df = combined_df[combined_df["SAMPLE_CLASS"] != "Cell line"]
         # calculate how many rows were removed
-        rows_removed = original_shape[0] - filtered_df.shape[0]
-        print(f"Removed {rows_removed} rows where SAMPLE_CLASS == 'Cell line'")
+        original_shape[0] - filtered_df.shape[0]
         # print new shape
-        print(f"New shape: {filtered_df.shape}")
         # reassign df
         combined_df = filtered_df
         file_path = os.path.join(save_loc, f"{study}_cell_line_data.csv")
@@ -753,12 +693,11 @@ class cBioportalTransformer(Transformer):
         chrom_23_list = (
             combined_df[
                 (combined_df["SEX"].str.lower() == "male")
-                & (combined_df["Chrom_23"] == True)
+                & (combined_df["Chrom_23"])
             ]["temp_Gnomad_Notation"]
             .dropna()
             .tolist()
         )
-        print("Total variants in list:", len(chrom_23_list))
 
         # initialize x_hgnc_id and y_hgnc_id
         if "x_hgnc_id" not in combined_df.columns:
@@ -772,15 +711,11 @@ class cBioportalTransformer(Transformer):
         # Iterate through each chromosome 23 variant for male samples
         for variant in tqdm(chrom_23_list, desc="Processing variants"):
             # for variant in chrom_23_list:
-            print(f"▶️ Checking variant: {variant}")  # Add this line
             result_df = self._chr23_male(result_df, variant)
         # Now all updates are preserved in result_df
-        print(result_df["Chr23_X"].value_counts(dropna=False))
-        print(result_df["Chr23_Y"].value_counts(dropna=False))
 
         # correct male 23 chromosomes and check for ambiguous results
         result_df = self._correct_male_chrom23(result_df)
-        print(result_df["ambig_chrom"].value_counts())
 
         # resolve ambiguous chromosomes
         result_df = self._resolve_ambiguous_chromosomes(result_df)
@@ -792,19 +727,16 @@ class cBioportalTransformer(Transformer):
         gene_list = (
             result_df[
                 (result_df["SEX"].str.lower() == "male")
-                & (result_df["Chrom_23"] == True)
+                & (result_df["Chrom_23"])
             ]["Hugo_Symbol"]
             .dropna()
             .tolist()
         )
-        print("Total genes in list:", len(gene_list))
-        print("Sample of gene_list:", gene_list[:5])
 
         # run gene tokenization
         # Start with a copy of your combined_df
         result_post_23_df = result_df.copy()
         result_post_23_df = self._populate_gene_hgnc_col(gene_list, result_post_23_df)
-        print(result_post_23_df["gene_hgnc_id"].value_counts(dropna=False))
 
         # check hgnc id matches between variation and gene normalizers
         post_validation_df = self._validate_gene_hgnc_match(result_post_23_df)
@@ -829,9 +761,6 @@ class cBioportalTransformer(Transformer):
         file_path = os.path.join(save_loc, f"{study}_patient_variant_dupes.csv")
         patient_variant_dupes.to_csv(file_path, index=False)
         # print the number of rows removed
-        print(
-            f"Removed {patient_variant_dupes.shape[0]} rows with duplicated Gnomad_Notation per PATIENT_ID."
-        )
         # post_validation_df_cleaned.to_csv("final_cbp_df.csv", index=False)
 
         # filling NaNs

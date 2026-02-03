@@ -48,46 +48,43 @@ SPECIAL_VARIANT_SKIPROWS = {"pancan_mappyacts_2022", "chl_sccc_2023"}
 
 
 def _download_and_extract_one(study: str) -> None:
-    """Download one study tarball into compressed_data/ and extract into data/cbioportal/."""
-    os.makedirs(FILE_PATH, exist_ok=True)
-    os.makedirs(COMPRESSED_PATH, exist_ok=True)
+    """Download one study tarball into compressed_data and extract into data/cbioportal/."""
+    Path(FILE_PATH).mkdir(parents=True, exist_ok=True)
+    Path(COMPRESSED_PATH).mkdir(parents=True, exist_ok=True)
 
-    # url = f"https://cbioportal-datahub.s3.amazonaws.com/{study}.tar.gz"
     url = f"https://datahub.assets.cbioportal.org/{study}.tar.gz"
-    out = os.path.join(COMPRESSED_PATH, f"{study}.tar.gz")
+    out = Path(COMPRESSED_PATH) / f"{study}.tar.gz"
 
     r = requests.get(
         url, stream=True, timeout=60, headers={"User-Agent": "python-requests"}
     )
-    try:
-        r.raise_for_status()
-    except requests.HTTPError:
-        raise
+    
+    r.raise_for_status()
 
-    with open(out, "wb") as f:
+    with Path.open(out, "wb") as f:
         for chunk in r.iter_content(1024 * 1024):
             if chunk:
                 f.write(chunk)
 
     with tarfile.open(out, mode="r:gz") as tar:
-        tar.extractall(path=FILE_PATH)
+        tar.extractall(path=FILE_PATH) # noqa: S202
 
 
 def _ensure_study_dir(study: str) -> str:
     """Ensure data/cbioportal/<study> exists; download if missing."""
-    base = os.path.abspath(FILE_PATH)
-    study_dir = os.path.join(base, study)
+    base = Path(FILE_PATH).resolve()
+    study_dir = base / study
 
-    if not os.path.isdir(study_dir):
+    if not study_dir.is_dir():
         _download_and_extract_one(study)
 
         # Recheck and fallback
-        if not os.path.isdir(study_dir):
-            matches = [d for d in os.listdir(base) if d.startswith(study)]
+        if not study_dir.is_dir():
+            matches = [d for d in base.iterdir() if d.startswith(study)]
             if matches:
-                study_dir = os.path.join(base, matches[0])
+                study_dir = base / matches[0]
 
-    if not os.path.isdir(study_dir):
+    if not study_dir.is_dir():
         msg = f"Could not locate study directory for '{study}' in {base}"
         raise FileNotFoundError(msg)
     return study_dir
