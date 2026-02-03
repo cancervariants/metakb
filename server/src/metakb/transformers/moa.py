@@ -4,11 +4,7 @@ import logging
 from functools import cache
 from pathlib import Path
 
-from ga4gh.cat_vrs.models import (
-    CategoricalVariant,
-    DefiningAlleleConstraint,
-    FeatureContextConstraint,
-)
+from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import (
     Coding,
     ConceptMapping,
@@ -18,7 +14,6 @@ from ga4gh.core.models import (
     code,
 )
 from ga4gh.va_spec.aac_2017 import (
-    Classification,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
@@ -26,12 +21,10 @@ from ga4gh.va_spec.base import (
     Condition,
     Direction,
     Document,
-    EvidenceLine,
     MembershipOperator,
     Method,
     PrognosticPredicate,
     Statement,
-    System,
     Therapeutic,
     TherapeuticResponsePredicate,
     TherapyGroup,
@@ -42,9 +35,7 @@ from ga4gh.vrs.models import Variation
 
 from metakb.config import get_config
 from metakb.harvesters.moa import MoaHarvestedData
-from metakb.normalizers import (
-    ViccNormalizers,
-)
+from metakb.normalizers import ViccNormalizers
 from metakb.transformers.base import MethodId, TransformedData, Transformer
 
 _logger = logging.getLogger(__name__)
@@ -58,26 +49,6 @@ MOA_METHOD = Method(
         doi="10.1038/s43018-021-00243-3",
         pmid="35121878",
     ),
-)
-
-METAKB_METHOD = Method(
-    id="metakb.method:2026",
-    name="MetaKB (2026)",
-    reportedIn=Document(
-        name="Wagnerds et al",
-        title="MetaKB v2",
-        doi="10.1038/1111-1-1111-111-1111",
-        pmid="9999999",
-    ),
-)
-
-# TODO figure out classification
-# Just a static value for now -- will need to write a classification calculation method
-# and calculate/recalculate on a per-statement basis
-METAKB_CLASSIFICATION = MappableConcept(
-    id="metakb.classification:1",
-    name="tmp metakb tr classification",
-    primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(Classification.TIER_I)),
 )
 
 
@@ -122,8 +93,8 @@ class MoaTransformer(Transformer):
             source["id"]: self._build_document(source)
             for source in harvested_data.sources
         }
-        statements = []
-        aggregated_statements = []
+        statements: list[Statement] = []
+        aggregated_statements: list[Statement] = []
         for assertion in harvested_data.assertions:
             source = sources_map[assertion["source_id"]]
             if assertion["favorable_prognosis"] == "":
@@ -148,7 +119,7 @@ class MoaTransformer(Transformer):
             if aggregated_statement:
                 aggregated_statements.append(aggregated_statement)
         self.processed_data = TransformedData(
-            statements_evidence=statements, statements_assertions=aggregated_statements
+            statements=[s.id for s in statements + aggregated_statements]
         )
 
     async def _build_prog_statement(
@@ -163,19 +134,16 @@ class MoaTransformer(Transformer):
         :return: either an aggregate statement or None, and the MOA assertion modeled as
             a GKS statement
         """
-        aggregated_statement = None
         if moa_gene_value := assertion["variant"].get("gene"):
-            normalized_gene, gene = self._normalize_moa_gene(moa_gene_value)
+            gene = MappableConcept(id=f"moa.gene:{moa_gene_value}", name=moa_gene_value)
         else:
-            normalized_gene, gene = None, None
-        normalized_disease, disease = self._normalize_moa_disease(
+            gene = None
+        disease = self._build_moa_disease(
             assertion["disease"]["name"],
             assertion["disease"]["oncotree_code"],
             assertion["disease"]["oncotree_term"],
         )
-        normalized_variant, variant = await self._normalize_moa_variant(
-            assertion["variant"]
-        )
+        variant = self._build_moa_variant(assertion["variant"])
         if assertion["favorable_prognosis"]:
             predicate = PrognosticPredicate.BETTER_OUTCOME
             direction = Direction.SUPPORTS
@@ -195,25 +163,7 @@ class MoaTransformer(Transformer):
             reportedIn=[source],
             specifiedBy=MOA_METHOD,
         )
-        if normalized_gene and normalized_disease and normalized_variant:
-            aggregated_statement = VariantPrognosticStudyStatement(
-                id="metakb:id that sums up the proposition parts",
-                proposition=VariantPrognosticProposition(
-                    geneContextQualifier=normalized_gene,
-                    subjectVariant=normalized_variant,
-                    objectCondition=normalized_disease,
-                    predicate=predicate,
-                ),
-                direction=direction,
-                specifiedBy=METAKB_METHOD,
-                classification=METAKB_CLASSIFICATION,
-                hasEvidenceLines=[
-                    EvidenceLine(
-                        hasEvidenceItems=[statement],
-                        directionOfEvidenceProvided=Direction.SUPPORTS,  # TODO is this right?
-                    )
-                ],
-            )
+        aggregated_statement = await self._build_aggregated_prog_statement(statement)
         return aggregated_statement, statement
 
     async def _build_tr_statement(
@@ -228,23 +178,18 @@ class MoaTransformer(Transformer):
         :return: either an aggregate statement or None, and the MOA assertion modeled as
             a GKS statement
         """
-        aggregated_statement = None
         if moa_gene_value := assertion["variant"].get("gene"):
-            normalized_gene, gene = self._normalize_moa_gene(moa_gene_value)
+            gene = MappableConcept(id=f"moa.gene:{moa_gene_value}", name=moa_gene_value)
         else:
-            normalized_gene, gene = None, None
-        normalized_disease, disease = self._normalize_moa_disease(
+            gene = None
+        disease = self._build_moa_disease(
             assertion["disease"]["name"],
             assertion["disease"]["oncotree_code"],
             assertion["disease"]["oncotree_term"],
         )
-        normalized_variant, variant = await self._normalize_moa_variant(
-            assertion["variant"]
-        )
+        variant = self._build_moa_variant(assertion["variant"])
         therapy = assertion["therapy"]
-        normalized_therapy, moa_therapy = self._normalize_moa_therapy(
-            therapy["name"], therapy["type"]
-        )
+        moa_therapy = self._build_moa_therapy(therapy["name"], therapy["type"])
         resistance, sensitivity = therapy["resistance"], therapy["sensitivity"]
         if resistance != "":  # can be either 0, 1, or ""
             predicate = TherapeuticResponsePredicate.RESISTANCE
@@ -266,187 +211,102 @@ class MoaTransformer(Transformer):
             reportedIn=[source],
             specifiedBy=MOA_METHOD,
         )
-        if (
-            normalized_disease
-            and normalized_gene
-            and normalized_variant
-            and normalized_therapy
-        ):
-            aggregated_statement = VariantTherapeuticResponseStudyStatement(
-                id="metakb:id that sums up the proposition parts",
-                proposition=VariantTherapeuticResponseProposition(
-                    geneContextQualifier=normalized_gene,
-                    subjectVariant=normalized_variant,
-                    conditionQualifier=normalized_disease,
-                    objectTherapeutic=normalized_therapy,
-                    predicate=predicate,
-                ),
-                direction=direction,
-                specifiedBy=METAKB_METHOD,
-                classification=METAKB_CLASSIFICATION,
-                hasEvidenceLines=[
-                    EvidenceLine(
-                        hasEvidenceItems=[statement],
-                        directionOfEvidenceProvided=Direction.SUPPORTS,
-                    )
-                ],
-            )
+        aggregated_statement = await self._build_aggregated_tr_statement(statement)
         return aggregated_statement, statement
 
-    @cache  # noqa: B019
-    def _normalize_moa_gene(
-        self,
-        gene_name: str,
-    ) -> tuple[MappableConcept | None, MappableConcept]:
-        """Transform MOA gene name to GKS MappableConcept and attempt normalization
-
-        :param gene_name: name of gene given by MOA
-        :return: Normalized gene if available, and MOA gene modeled as GKS gene entity
-        """
-        normalized_gene_response, _ = self.vicc_normalizers.normalize_gene(gene_name)
-        moa_gene = MappableConcept(id=f"moa.gene:{gene_name}", name=gene_name)
-        if normalized_gene_response and normalized_gene_response.gene:
-            normalized_gene = normalized_gene_response.gene
-            normalized_gene.extensions = None
-            normalized_gene.mappings = None
-        else:
-            normalized_gene = None
-        return normalized_gene, moa_gene
-
-    @cache  # noqa: B019
-    def _normalize_moa_disease(
-        self, name: str, oncotree_code: str, oncotree_term: str
-    ) -> tuple[Condition | None, Condition]:
-        """Transform MOA disease object to GKS MappableConcept and attempt normalization
-
-        :param name: disease name
-        :param oncotree_code: oncotree ID (e.g. "CML")
-        :param oncotree_term: disease name in Oncotree
-        :return: normalized disease concept, if successful, and original MOA disease
-            structured as GKS MappableConcept
-        """
+    def _build_moa_disease(
+        self, name: str, oncotree_code: str | None, oncotree_term: str | None
+    ) -> Condition:
         disease_id = f"moa.disease:{name}"
-        queries = [name]
-        mappings = []
         if oncotree_code:
-            mappings.append(
-                ConceptMapping(
-                    coding=Coding(
-                        id=f"oncotree:{oncotree_code}",
-                        code=code(oncotree_code),
-                        system="https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
-                        name=oncotree_term,
-                    ),
-                    relation=Relation.EXACT_MATCH,
+            mappings = [
+                (
+                    ConceptMapping(
+                        coding=Coding(
+                            id=f"oncotree:{oncotree_code}",
+                            code=code(oncotree_code),
+                            system="https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
+                            name=oncotree_term,
+                        ),
+                        relation=Relation.EXACT_MATCH,
+                    )
                 )
-            )
-            queries.append(f"oncotree:{oncotree_code}")
-        if oncotree_term:
-            queries.append(oncotree_term)
-        moa_disease = Condition(
+            ]
+        else:
+            mappings = None
+        if oncotree_term and name != oncotree_term:
+            extensions = [Extension(name="aliases", value=["oncotree_term"])]
+        else:
+            extensions = None
+        return Condition(
             MappableConcept(
                 id=disease_id,
                 conceptType="Disease",
                 name=name,
                 mappings=mappings,
+                extensions=extensions,
             )
         )
-        normalized_disease = None
-        for query in queries:
-            response, _ = self.vicc_normalizers.normalize_disease(query)
-            if response and response.disease:
-                normalized_disease = Condition(response.disease)
-                normalized_disease.root.extensions = None
-                normalized_disease.root.mappings = None
-                break
-        return normalized_disease, moa_disease
 
     @cache  # noqa: B019
-    async def _normalize_moa_variant(
-        self, variant: dict
-    ) -> tuple[CategoricalVariant | None, CategoricalVariant]:
-        """Transform MOA variant to CatVar and attempt normalization
+    def _build_moa_variant(self, variant: dict) -> CategoricalVariant:
+        """Transform MOA variant to CatVar
+
+        TODO: some open questions here about how much to build out --
+        * should we make a basic gene mappableconcept as the constraint for the feature catvar?
 
         :param variant: entire MOA variant object. The object keys are sort of unreliable
             so we just pass through the whole thing and work it out within the method
-        :return: normalized variation as a CatVar, if successful, and original MOA variant
-            as a text catvar
+        :return: original MOA variant as a text catvar
         """
         variant_id = f"moa.variant:{variant['id']}"
-        feature = variant["feature"]
+        feature_name = variant["feature"]
         gene = variant.get("gene") or variant.get("gene1")
         protein_change = variant.get("protein_change")
-        normalized_catvar = None
 
         if variant.get("gene2"):
             # it's a fusion
-            _logger.debug(
-                "Not attempting variant normalization because it looks like a fusion: %s",
-                variant,
-            )
+            pass
         elif (
             variant["feature_type"] == "somatic_variant"
             and variant["alternate_allele"] is None
-            and feature == gene
+            and feature_name == gene
             and protein_change is None
             # no slam-dunk catvar solution exists for defining specific exons as features --
             # see https://github.com/ga4gh/cat-vrs/discussions/161
             and variant["exon"] is None
         ):
             # it's a feature context constraint-based catvar
-            normalized_gene, _ = self._normalize_moa_gene(feature)
-            feature = f"{feature} Mutation"
-            if normalized_gene:
-                normalized_catvar = CategoricalVariant(
-                    id=f"catvar:{feature}",
-                    name=feature,
-                    constraints=[
-                        FeatureContextConstraint(featureContext=normalized_gene)
-                    ],
-                )
+            feature = f"{feature_name} Mutation"
         elif "rearrangement_type" not in variant and protein_change and gene:
             # it's a defining allele constraint-based catvar
-            query = f"{gene} {protein_change[2:]}"
-            vrs_variation = await self.vicc_normalizers.normalize_variation(query)
-            if not vrs_variation:
-                _logger.debug(
-                    "Variation Normalizer unable to normalize: moa.variant: %s using query: %s",
-                    variant_id,
-                    query,
-                )
-            else:
-                moa_variation = Variation(**vrs_variation.model_dump(exclude_none=True))
-                normalized_catvar = CategoricalVariant(
-                    id=f"catvar:{vrs_variation.id}",
-                    name=query,
-                    constraints=[DefiningAlleleConstraint(allele=moa_variation.root)],
-                )
+            pass
         else:
-            # it's some other unsupported stuff, don't try to normalize it
+            # it's some other unsupported stuff
             _logger.debug(
                 "Variation Normalizer does not support %s: %s",
                 variant_id,
-                feature,
+                feature_name,
             )
 
-        extensions, members, mappings = await self._get_variant_extras(variant)
-        return normalized_catvar, CategoricalVariant(
+        extensions, mappings = self._get_variant_extras(variant)
+        return CategoricalVariant(
             id=variant_id,
-            name=feature,
+            name=feature_name,
             extensions=extensions,
-            members=members,
             mappings=mappings,
         )
 
-    async def _get_variant_extras(
+    def _get_variant_extras(
         self, variant: dict
-    ) -> tuple[list[Extension], list[Variation], list[ConceptMapping]]:
+    ) -> tuple[list[Extension], list[ConceptMapping]]:
         """Add extensions/members/mappings to MOA CatVar
 
         Todo:
         * should members be generated? They're created as normalized alleles, which
           feels philosophically out of step with the other changes here.
           (Figure out before merging)
+          - removing this for now
 
         :param variant: original MOA variant object
         :return: tuple with constructed Extensions, catvar members, and mappings
@@ -470,7 +330,6 @@ class MoaTransformer(Transformer):
             )
         if locus := variant.get("locus"):
             extensions.append(Extension(name="MOA locus", value=locus))
-        members = await self._get_variation_members(moa_rep_coord)
         mappings = []
         if rsid := variant.get("rsid"):
             mappings.append(
@@ -482,7 +341,7 @@ class MoaTransformer(Transformer):
                     relation=Relation.RELATED_MATCH,
                 )
             )
-        return extensions, members, mappings
+        return extensions, mappings
 
     async def _get_variation_members(self, moa_rep_coord: dict) -> list[Variation]:
         """Get members field for variation object. This is the related variant concepts.
@@ -527,14 +386,13 @@ class MoaTransformer(Transformer):
 
         return members
 
-    def _normalize_combo_therapy(
-        self, name: str
-    ) -> tuple[Therapeutic | None, Therapeutic]:
-        """Convert MOA combo therapy into GKS Therapeutic and also try to get normalized version
+    def _build_moa_combo_therapy(self, name: str, therapy_type: str) -> Therapeutic:
+        """Convert MOA combo therapy into GKS Therapeutic
 
         :param name: name of therapy (should include a " + " in the middle)
+        :param therapy_type: MOA therapy type value (probably reflective of combo therapy)
         :param therapy_type: MOA therapy type (currently just used to check if combination)
-        :return: tuple containing normalized concept (if successful) and original MOA concept
+        :return: original MOA concept as GKS therapeutic
         """
         moa_drugs = [
             MappableConcept(
@@ -544,41 +402,21 @@ class MoaTransformer(Transformer):
             )
             for member in name.split("+")
         ]
-        moa_combo_therapy = Therapeutic(
+        return Therapeutic(
             root=TherapyGroup(
-                membershipOperator=MembershipOperator.AND, therapies=moa_drugs
+                membershipOperator=MembershipOperator.AND,
+                therapies=moa_drugs,
+                extensions=[Extension(name="moa_therapy_type", value=therapy_type)],
             )
         )
-        normalized_drugs = []
-        for moa_drug in moa_drugs:
-            response, _ = self.vicc_normalizers.normalize_therapy(moa_drug.name)
-            if response and response.therapy:
-                response.therapy.extensions = None
-                response.therapy.mappings = None
-                normalized_drugs.append(response.therapy)
-            else:
-                normalized_drugs.append(None)
-                break
-        if all(normalized_drugs):
-            normalized_combo_therapy = Therapeutic(
-                root=TherapyGroup(
-                    membershipOperator=MembershipOperator.AND,
-                    therapies=normalized_drugs,
-                )
-            )
-        else:
-            normalized_combo_therapy = None
-        return normalized_combo_therapy, moa_combo_therapy
 
     @cache  # noqa: B019
-    def _normalize_moa_therapy(
-        self, name: str, therapy_type: str
-    ) -> tuple[Therapeutic | None, Therapeutic]:
-        """Convert MOA Therapy into GKS Therapeutic and also try to get normalized version
+    def _build_moa_therapy(self, name: str, therapy_type: str) -> Therapeutic:
+        """Convert MOA Therapy into GKS Therapeutic
 
         :param name: name of therapy (might be a combo of names)
         :param therapy_type: MOA therapy type (currently just used to check if combination)
-        :return: tuple containing normalized concept (if successful) and original MOA concept
+        :return: original MOA concept as GKS therapeutic
         """
         if not name:
             _logger.error(
@@ -593,19 +431,19 @@ class MoaTransformer(Transformer):
             "RADIATION THERAPY",
             "TARGETED THERAPY",
         }:
-            return self._normalize_combo_therapy(name)
+            return self._build_moa_combo_therapy(name, therapy_type)
 
-        therapy = Therapeutic(
-            root=MappableConcept(id=f"moa.drug:{name}", conceptType="Drug", name=name)
+        extensions = None
+        if therapy_type:
+            extensions = [Extension(name="moa_therapy_type", value=therapy_type)]
+        return Therapeutic(
+            root=MappableConcept(
+                id=f"moa.drug:{name}",
+                conceptType="Drug",
+                name=name,
+                extensions=extensions,
+            )
         )
-        response, _ = self.vicc_normalizers.normalize_therapy(name)
-        if response and response.therapy:
-            response.therapy.extensions = []
-            response.therapy.mappings = []
-            normalized_therapy = Therapeutic(root=response.therapy)
-        else:
-            normalized_therapy = None
-        return normalized_therapy, therapy
 
     def _build_document(self, source: dict) -> Document:
         """Convert GKS Document from MOA source object

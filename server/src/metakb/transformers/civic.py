@@ -6,6 +6,7 @@ import re
 from enum import Enum, StrEnum
 from pathlib import Path
 from types import MappingProxyType
+from typing import ClassVar
 
 from civicpy import civic as civicpy
 from civicpy.exports.civic_gks_record import (
@@ -27,12 +28,10 @@ from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence, SystemUri
 from ga4gh.core.models import (
     Coding,
     MappableConcept,
-    iriReference,
 )
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
-    ExperimentalVariantFunctionalImpactProposition,
     MembershipOperator,
     Statement,
     TherapyGroup,
@@ -46,7 +45,9 @@ from pydantic.dataclasses import dataclass
 from metakb.normalizers import (
     ViccNormalizers,
 )
-from metakb.transformers.base import Transformer
+from metakb.transformers.base import (
+    Transformer,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -153,6 +154,8 @@ class CivicTransformer(Transformer):
         :param harvester_path: Path to previously harvested CIViC data
         :param normalizers: normalizer collection instance
         """
+        # TODO dont do this
+        harvester_path = Path("tests/data/civicpy_cache_20250929.pkl")
         super().__init__(
             data_dir=data_dir, harvester_path=harvester_path, normalizers=normalizers
         )
@@ -166,65 +169,48 @@ class CivicTransformer(Transformer):
         )
 
     async def transform(self) -> None:
+        """Normalize CIViC evidence items and assertions and add annotations
+
+        Updated records will store results in ``processed_data`` and ``_cache`` instance
+        variables.
+        """
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
+        statements = []
         for evidence_item in accepted_evidence_items:
-            await self._transform_evidence(evidence_item)
+            aggregated_statement, statement = await self._build_statement_from_evidence(
+                evidence_item
+            )
+            statements += [aggregated_statement, statement]
 
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         for assertion in accepted_assertions:
             await self._annotate_assertion(assertion)
 
-    async def _transform_evidence(
+    async def _build_statement_from_evidence(
         self, evidence_item: civicpy.Evidence | CivicGksEvidence
-    ) -> None:
+    ) -> tuple[Statement | None, Statement]:
+        """Annotate evidence with additional information, such as normalizer info
+
+        Annotated evidence will be added to the ``processed_data.statements_evidence``
+        and ``_cache.evidence`` instance variables.
+
+        :param evidence_item: CIViC evidence item
+        :return: Statement for CIViC evidence item, if able to annotate
+        """
         if not isinstance(evidence_item, CivicGksEvidence):
-            try:
-                statement = Statement(**CivicGksEvidence(evidence_item).model_dump())
-            except Exception as e:
-                _logger.warning(e)
-                return
+            statement = Statement(**CivicGksEvidence(evidence_item).model_dump())
         else:
             statement = Statement(**evidence_item.model_dump())
 
-        # handle universal statement traits first
-        if statement.specifiedBy not in self.processed_data.methods:
-            self.processed_data.methods[statement.specifiedBy.id] = (
-                statement.specifiedBy
-            )
-        statement.specifiedBy = iriReference(root=statement.specifiedBy.id)
-
-        refed_documents = []
-        for document in statement.reportedIn:
-            if document.id not in self.processed_data.documents:
-                self.processed_data.documents[document.id] = document
-            refed_documents.append(iriReference(root=document.id))
-        statement.reportedIn = refed_documents
-
-        # handle proposition terms and create aggregate statements
-        if statement.proposition.type == "VariantDiagnosticProposition":
-            await self._transform_diag_statement(statement)
+        if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
+            aggregate_statement = self._build_aggregated_tr_statement(statement)
+        elif isinstance(statement.proposition, VariantDiagnosticProposition):
+            aggregate_statement = self._build_aggregated_diag_statement(statement)
+        elif isinstance(statement.proposition, VariantPrognosticProposition):
+            aggregate_statement = self._build_aggregated_prog_statement(statement)
         else:
             raise NotImplementedError
-
-    async def _transform_diag_statement(self, statement: Statement) -> None:
-        gene = statement.proposition.geneContextQualifier
-        if gene.id not in self.processed_data.genes:
-            self.processed_data.genes[gene.id] = gene
-            normalized_gene = self._normalize_gene(gene)
-        statement.proposition.geneContextQualifier = iriReference(root=gene.id)
-
-        variant = statement.proposition.subjectVariant
-        if variant.id not in self.processed_data.variants:
-            self.processed_data.variants[variant.id] = variant
-            normalized_variant = self._normalize_variant(variant)
-        statement.proposition.subjectVariant = iriReference(root=variant.id)
-
-        # handle therapeutic
-        # handle condition
-        # handle gene
-        # handle variant
-
-    #################### OLD STUFF BELOW
+        return None, statement
 
     async def _annotate_assertion(self, assertion: civicpy.Assertion) -> None:
         """Annotate assertion with additional information, such as normalizer info
@@ -250,7 +236,7 @@ class CivicTransformer(Transformer):
             if cached_evidence:
                 return cached_evidence
 
-            annotated_evidence = await self._transform_evidence(ev)
+            annotated_evidence = await self._build_statement_from_evidence(ev)
             if not annotated_evidence:
                 _logger.warning(
                     "%s is unable to resolve evidence item %s in evidence lines",
@@ -266,7 +252,7 @@ class CivicTransformer(Transformer):
             return
 
         try:
-            updated_proposition = await self._normalize_proposition(
+            updated_proposition = await self._get_updated_proposition(
                 gks_assertion.proposition
             )
         except NotImplementedError:
@@ -285,17 +271,15 @@ class CivicTransformer(Transformer):
         )
         self.processed_data.statements_assertions.append(annotated_assertion)
 
-    async def _normalize_proposition(
+    async def _get_updated_proposition(
         self,
         proposition: VariantDiagnosticProposition
         | VariantPrognosticProposition
-        | VariantTherapeuticResponseProposition
-        | ExperimentalVariantFunctionalImpactProposition,
+        | VariantTherapeuticResponseProposition,
     ) -> (
         VariantDiagnosticProposition
         | VariantPrognosticProposition
         | VariantTherapeuticResponseProposition
-        | ExperimentalVariantFunctionalImpactProposition
         | None
     ):
         """Get updated proposition
