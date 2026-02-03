@@ -10,16 +10,31 @@ The intent of the project is to leverage the collective knowledge of the dispara
 
 ### Prerequisites
 
+- Docker and Docker Compose v2
 - A newer version of Python 3 (preferably 3.11+)
 - [Node.js](https://nodejs.org/en) (v18 or later)
 - [pnpm](https://pnpm.io/) package manager
-- [Neo4j Desktop](https://neo4j.com/developer/neo4j-desktop) and Java (for local databases)
+- Optional (but useful): [Neo4j Desktop](https://neo4j.com/developer/neo4j-desktop) and Java (for local databases)
 
 Check your python version with:
 
 ```bash
 python3 --version
 ```
+
+### Architecture Overview
+
+MetaKB is composed of several services. Most are orchestrated with Docker Compose (except for the frontend)
+
+- MetaKB API - FastAPI Backend (`server/`)
+- MetaKB UI - Vite + React + Typescript frontend (`client/`)
+- Neo4j - Graph database
+- Normalizer services - Gene, disease, and therapy normalizers (DynamoDB-backed)
+
+Two compose configurations are provided:
+
+- `compose-dev.yaml` - Local development (editable installs, hot reload)
+- `compose.yaml` - Image-based setup
 
 ### Monorepo Installation & Setup
 
@@ -38,82 +53,55 @@ cd metakb
 pnpm install
 ```
 
-#### 3. Set up the Python backend
+#### 3. Start the API
+
+From the root of the repo you can run either:
+
+Image-based start up:
 
 ```bash
-cd server
-python3 -m venv venv
-source venv/bin/activate
-pip install -e .
+docker compose up
 ```
 
-#### 4. Set up required services
+to reset everything:
 
-Before starting the app, you must set up required dependencies:
-
-- [Neo4j Setup](#setting-up-neo4j)
-- [Setting up Normalizers](#setting-up-normalizers)
-- [Environment Variables](#environment-variables)
-
-These services are required for the backend to function correctly.
-
-Once all service and data dependencies are available, clear the graph, load normalizer data, and initiate harvest, transform, and data loading operations:
-
-```shell
-metakb update-normalizers
-metakb update --refresh_source_caches
+```bash
+docker compose down -v
 ```
 
-The `--help` flag can be provided to any CLI command to bring up additional documentation.
+or for local development:
 
-Ensure that both the MetaKB Neo4j and Normalizers databases are running.
+```bash
+docker compose -f compose-dev.yaml up
+```
 
-#### 5. Start the development servers
+similarly, to reset:
 
-##### Frontend
+```bash
+docker compose -f compose-dev.yaml down -v
+```
+
+#### 4. Start the frontend
+
+In a new terminal tab:
 
 ```bash
 cd client
 pnpm dev
 ```
 
-You can visit [http://localhost:5173](http://localhost:5173) to see the UI.
+Once running, you can visit:
 
-##### Backend
-
-```bash
-cd server
-source venv/bin/activate
-uvicorn src.metakb.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-You can then visit [http://localhost:8000/api](http://localhost:8000/api) for the Swagger UI.
-
----
-
-### Setting up Neo4j
-
-The MetaKB uses [Neo4j](https://neo4j.com/) for its database backend. To run a local MetaKB instance, you'll need to run a Neo4j database instance as well. The easiest way to do this is from Neo4j Desktop.
-
-First, follow the [desktop setup instructions](https://neo4j.com/developer/neo4j-desktop) to download, install, and open Neo4j Desktop for the first time.
-
-Once you have opened Neo4j desktop, use the `New` button in the upper-left region of the window to create a new project. Within that project, click the `Add` button in the upper-right region of the window and select `Local DBMS`. The name of the DBMS doesn't matter, but the password will be used later to connect the database to MetaKB (we have been using `password` by default). Select version `5.14.0` (other versions have not been tested). Click `Create`. Then, click the row within the project screen corresponding to your newly-created DBMS, and click the green `Start` button to start the database service.
-
-The graph will initially be empty, but once you have successfully loaded data, Neo4j Desktop provides an interface for exploring and visualizing relationships within the graph. To access it, click the blue "Open" button. The prompt at the top of this window processes [Cypher queries](https://neo4j.com/docs/cypher-refcard/current/); to start, try `MATCH (n:Statement {id:"civic.eid:1409"}) RETURN n`. Buttons on the left-hand edge of the results pane let you select graph, tabular, or textual output.
+- API: [http://localhost:8000](http://localhost:8000)
+- Swagger UI: [http://localhost:8000/api](http://localhost:8000/api)
+- Neo4j Browser: [http://localhost:7474](http://localhost:7474) (user: `neo4j`, password: `password`)
+- UI: [http://localhost:5173](http://localhost:5173)
 
 ### Setting up normalizers
 
-The MetaKB calls a number of normalizer libraries to transform resource data and resolve incoming search queries. These will be installed as part of the package requirements, but may require additional setup.
+The normalizers are set up for you when using Docker Compose.
 
-First, [follow these instructions for deploying DynamoDB locally on your computer](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html). Once setup, in a separate terminal instance, navigate to its source directory and run the following to start the database instance:
-
-```sh
-java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb
-```
-
-Next, initialize the [Variation Normalizer](https://github.com/cancervariants/variation-normalization) by following the instructions in the [README](https://github.com/cancervariants/variation-normalization#installation). When setting up the UTA database, [these](https://github.com/ga4gh/vrs-python/tree/main/docs/setup_help) docs may be helpful.
-
-The MetaKB can acquire all other needed normalizer data, except for that of [OMIM](https://www.omim.org/downloads), which must be manually placed:
+MetaKB can acquire all other needed normalizer data, except for that of [OMIM](https://www.omim.org/downloads), which must be manually placed:
 
 ```sh
 cp ~/YOUR/PATH/TO/mimTitles.txt ~/.local/share/wags_tails/omim/omim_<date>.tsv  # replace <date> with date of data acquisition formatted as YYYYMMDD
@@ -123,19 +111,60 @@ cp ~/YOUR/PATH/TO/mimTitles.txt ~/.local/share/wags_tails/omim/omim_<date>.tsv  
 
 MetaKB relies on environment variables to set in order to work.
 
-- Always Required:
-  - `UTA_DB_URL`
-    - Used in Variation Normalizer which relies on UTA Tools
-    - Format: `driver://user:pass@host/database/schema`
-    - More info can be found [here](https://github.com/GenomicMedLab/uta-tools#connecting-to-the-database)
+- Common variables include:
+  - `UTA_DB_URL` - PostgreSQL connection string for UTA
+  - `METAKB_DB_URL` - Neo4j connection string
+  - `SEQREPO_ROOT_DIR` - Local SeqRepo path
 
-    Example:
+These are already set appropriately in the Compose files, but they can be modified to support local development with other locations or versions if needed.
 
-    ```shell script
-    export UTA_DB_URL=postgresql://uta_admin:password@localhost:5432/uta/uta_20210129
-    ```
+### Neo4j Snapshot Image
 
-## Running tests
+MetaKB uses a pre-populated Neo4j image published to the GitHub Container Registry: `ghcr.io/cancervariants/metakb-neo4j:<tag>`
+
+See `docker/neo4j/README.md` for full documentation on generating a Neo4j dump, building the snapshot image, and pushing to GHCR.
+
+Note: Most developers will not need to rebuild this image.
+
+### MetaKB API Image
+
+The MetaKB backend itself is also distributed as a Docker image: `ghcr.io/cancervariants/metakb:<tag>`
+
+This image:
+
+- Contains the FastAPI backend
+- Installs all Python dependencies at build time
+- Does not include dev-only behavior (no bind mounts, no reload)
+
+The image should be rebuilt and pushed for new releases.
+
+#### Building and pushing the MetaKB API image
+
+Note: most contributors will not need to do this routinely
+
+From the repository root:
+
+```bash
+docker build -t metakb:local .
+```
+
+Tag and push:
+
+```bash
+docker tag metakb:local ghcr.io/cancervariants/metakb:<tag>
+```
+
+```bash
+docker push ghcr.io/cancervariants/metakb:<tag>
+```
+
+Recommended tags:
+
+- Feature branches: `issue-123-brief-description`
+- Snapshots: `YYYYMMDD`
+- Releases: semantic versioning corresponding with the MetaKB release (e.g. `2.0.1`)
+
+## Testing
 
 ### Unit tests
 
