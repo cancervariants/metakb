@@ -84,7 +84,7 @@ def is_loadable_statement(statement: Statement) -> bool:
         for evidence_line in evidence_lines:
             for evidence_item in evidence_line.hasEvidenceItems:
                 if not is_loadable_statement(evidence_item):
-                    _logger.info(
+                    _logger.debug(
                         "%s could not be loaded because %s is not supported",
                         statement.id,
                         evidence_item.id,
@@ -92,7 +92,7 @@ def is_loadable_statement(statement: Statement) -> bool:
                     success = False
     proposition = statement.proposition
     if not proposition.subjectVariant.constraints:
-        _logger.info(
+        _logger.debug(
             "%s could not be loaded because subject variant object lacks constraints: %s",
             statement.id,
             proposition.subjectVariant,
@@ -100,7 +100,7 @@ def is_loadable_statement(statement: Statement) -> bool:
         success = False
     else:
         if len(proposition.subjectVariant.constraints) != 1:
-            _logger.info(
+            _logger.debug(
                 "%s could not be loaded because it contains more than 1 constraint: %s",
                 statement.id,
                 proposition.subjectVariant.constraints,
@@ -110,7 +110,7 @@ def is_loadable_statement(statement: Statement) -> bool:
             "DefiningAlleleConstraint",
             "FeatureContextConstraint",
         }:
-            _logger.info(
+            _logger.debug(
                 "%s could not be loaded because it doesn't use a supported constraint type: %s",
                 statement.id,
                 proposition.subjectVariant.constraints,
@@ -124,7 +124,7 @@ def is_loadable_statement(statement: Statement) -> bool:
         therapeutic = proposition.objectTherapeutic.root
         if isinstance(therapeutic, MappableConcept):
             if _has_normalize_failure(therapeutic.extensions):
-                _logger.info(
+                _logger.debug(
                     "%s could not be loaded because drug failed to normalize: %s",
                     statement.id,
                     therapeutic,
@@ -133,7 +133,7 @@ def is_loadable_statement(statement: Statement) -> bool:
         elif isinstance(therapeutic, TherapyGroup):
             for drug in therapeutic.therapies:
                 if _has_normalize_failure(drug.extensions):
-                    _logger.info(
+                    _logger.debug(
                         "%s could not be loaded because drug in therapygroup failed to normalize: %s",
                         statement.id,
                         drug,
@@ -152,7 +152,7 @@ def is_loadable_statement(statement: Statement) -> bool:
     if proposition.geneContextQualifier and _has_normalize_failure(
         proposition.geneContextQualifier.extensions
     ):
-        _logger.info(
+        _logger.debug(
             "%s could not be loaded because gene failed to normalize: %s",
             statement.id,
             proposition.geneContextQualifier,
