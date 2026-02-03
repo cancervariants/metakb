@@ -55,7 +55,11 @@ pnpm install
 
 #### 3. Start the API
 
-From the root of the repo you can run either:
+For now, we must manually get uta data. Before starting the api, you will need to grab `uta_20241220.pgd.gz` from [biocommons (click here)](https://dl.biocommons.org/uta/)
+
+Download the file and drag it into the `uta-setup/` folder in this repo. Docker will handle the rest!
+
+Now, we can start the API. From the root of the repo you can run either:
 
 Image-based start up:
 
@@ -109,14 +113,12 @@ cp ~/YOUR/PATH/TO/mimTitles.txt ~/.local/share/wags_tails/omim/omim_<date>.tsv  
 
 ### Environment Variables
 
-MetaKB relies on environment variables to set in order to work.
+MetaKB relies on environment variables to be set in order to work. These are already set appropriately in the Compose files, but they can be modified to support local development with other locations or versions if needed.
 
 - Common variables include:
   - `UTA_DB_URL` - PostgreSQL connection string for UTA
   - `METAKB_DB_URL` - Neo4j connection string
   - `SEQREPO_ROOT_DIR` - Local SeqRepo path
-
-These are already set appropriately in the Compose files, but they can be modified to support local development with other locations or versions if needed.
 
 ### Neo4j Snapshot Image
 
