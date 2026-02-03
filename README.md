@@ -58,6 +58,7 @@ pnpm install
 For now, we must manually get uta data. Before starting the api, you will need to grab `uta_20241220.pgd.gz` from [biocommons (click here)](https://dl.biocommons.org/uta/)
 
 Download the file and drag it into the `uta-setup/` folder in this repo. Docker will handle the rest!
+Note: if you opt to use a different version of the uta `gz` than the one specified, you will need to update `init-uta.sh` and `uta-setup.sql`
 
 Now, we can start the API. From the root of the repo you can run either:
 

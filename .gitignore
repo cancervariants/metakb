@@ -162,3 +162,6 @@ biome.json
 
 # Neo4j snapshot input
 docker/neo4j/*.dump
+
+# Temporary(?) uta-setup workaround
+uta-setup/**/*.pgd.gz
