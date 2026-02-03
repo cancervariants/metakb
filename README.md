@@ -10,7 +10,7 @@ The intent of the project is to leverage the collective knowledge of the dispara
 
 ### Prerequisites
 
-- Docker and Docker Compose v2
+- Docker and Docker Compose v2 (required)
 - A newer version of Python 3 (preferably 3.11+)
 - [Node.js](https://nodejs.org/en) (v18 or later)
 - [pnpm](https://pnpm.io/) package manager
@@ -47,18 +47,12 @@ git clone https://github.com/cancervariants/metakb
 cd metakb
 ```
 
-#### 2. Install dependencies
-
-```bash
-pnpm install
-```
-
-#### 3. Start the API
+#### 2. Start the API
 
 For now, we must manually get uta data. Before starting the api, you will need to grab `uta_20241220.pgd.gz` from [biocommons (click here)](https://dl.biocommons.org/uta/)
 
-Download the file and drag it into the `uta-setup/` folder in this repo. Docker will handle the rest!
-Note: if you opt to use a different version of the uta `gz` than the one specified, you will need to update `init-uta.sh` and `uta-setup.sql`
+Download the file and drag it into the `uta-init/` folder in this repo. Docker will handle the rest!
+Note: if you opt to use a different version of the uta `gz` than the one specified, you will need to update `init-uta.sh` and `uta-setup.sql` to match the version you chose.
 
 Now, we can start the API. From the root of the repo you can run either:
 
@@ -68,27 +62,35 @@ Image-based start up:
 docker compose up
 ```
 
-to reset everything:
-
-```bash
-docker compose down -v
-```
-
 or for local development:
 
 ```bash
 docker compose -f compose-dev.yaml up
 ```
 
-similarly, to reset:
+to reset everything (if using image-based start):
+
+```bash
+docker compose down -v
+```
+
+similarly, to reset local development containers:
 
 ```bash
 docker compose -f compose-dev.yaml down -v
 ```
 
-#### 4. Start the frontend
+#### 3. Start the frontend
 
-In a new terminal tab:
+Open a new terminal tab.
+
+From the root repository, install frontend dependencies:
+
+```bash
+pnpm install
+```
+
+Start the frontend in the `client directory`
 
 ```bash
 cd client

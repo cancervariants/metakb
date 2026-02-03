@@ -64,9 +64,9 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - uta_vol:/var/lib/postgresql/data
-      - ./uta-setup/create-roles.sql:/docker-entrypoint-initdb.d/create-roles.sql:ro
-      - ./uta-setup/uta_20241220.pgd.gz:/docker-entrypoint-initdb.d/uta_20241220.pgd.gz:ro
-      - ./uta-setup/init-uta.sh:/docker-entrypoint-initdb.d/init-uta.sh:ro
+      - ./uta-init/create-roles.sql:/docker-entrypoint-initdb.d/create-roles.sql:ro
+      - ./uta-init/uta_20241220.pgd.gz:/docker-entrypoint-initdb.d/uta_20241220.pgd.gz:ro
+      - ./uta-init/init-uta.sh:/docker-entrypoint-initdb.d/init-uta.sh:ro
     ports:
       - 127.0.0.1:5432:5432
 
