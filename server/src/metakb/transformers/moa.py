@@ -1,9 +1,4 @@
-"""A module to convert MOA resources to common data model
-
-Todo:
-* reincorporate the "concept discrepancy" stuff
-
-"""
+"""A module to convert MOA resources to common data model"""
 
 import logging
 from functools import cache
@@ -54,6 +49,37 @@ from metakb.transformers.base import MethodId, TransformedData, Transformer
 
 _logger = logging.getLogger(__name__)
 
+MOA_METHOD = Method(
+    id=MethodId.MOA_ASSERTION_BIORXIV,
+    name="MOAlmanac (2021)",
+    reportedIn=Document(
+        name="Reardon, B., Moore, N.D., Moore, N.S. et al.",
+        title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+        doi="10.1038/s43018-021-00243-3",
+        pmid="35121878",
+    ),
+)
+
+METAKB_METHOD = Method(
+    id="metakb.method:2026",
+    name="MetaKB (2026)",
+    reportedIn=Document(
+        name="Wagnerds et al",
+        title="MetaKB v2",
+        doi="10.1038/1111-1-1111-111-1111",
+        pmid="9999999",
+    ),
+)
+
+# TODO figure out classification
+# Just a static value for now -- will need to write a classification calculation method
+# and calculate/recalculate on a per-statement basis
+METAKB_CLASSIFICATION = MappableConcept(
+    id="metakb.classification:1",
+    name="tmp metakb tr classification",
+    primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(Classification.TIER_I)),
+)
+
 
 class MoaTransformer(Transformer):
     """A class for transforming MOA resources to common data model."""
@@ -96,16 +122,6 @@ class MoaTransformer(Transformer):
             source["id"]: self._build_document(source)
             for source in harvested_data.sources
         }
-        # TODO figure out classification
-        # I think this should be calculable on a per-statement basis -- just need to figure it out
-        # probably gets moved out of this method:
-        tmp_class = MappableConcept(
-            id="metakb.classification:1",
-            name="tmp metakb tr classification",
-            primaryCoding=Coding(
-                system=System.AMP_ASCO_CAP, code=code(Classification.TIER_I)
-            ),
-        )
         statements = []
         aggregated_statements = []
         for assertion in harvested_data.assertions:
@@ -122,11 +138,11 @@ class MoaTransformer(Transformer):
                     )
                     continue
                 aggregated_statement, statement = await self._build_tr_statement(
-                    assertion, source, tmp_class
+                    assertion, source
                 )
             else:
                 aggregated_statement, statement = await self._build_prog_statement(
-                    assertion, source, tmp_class
+                    assertion, source
                 )
             statements.append(statement)
             if aggregated_statement:
@@ -139,13 +155,11 @@ class MoaTransformer(Transformer):
         self,
         assertion: dict,
         source: Document,
-        tmp_class: MappableConcept,
     ) -> tuple[VariantPrognosticStudyStatement | None, Statement]:
         """Construct a prognostic statement and an aggregate parent assertion, if possible
 
         :param assertion: MOA assertion object (un-transformed)
         :param source: document from which MOA curated the statement
-        :param tmp_class: (temporary) classification object
         :return: either an aggregate statement or None, and the MOA assertion modeled as
             a GKS statement
         """
@@ -179,7 +193,7 @@ class MoaTransformer(Transformer):
             ),
             direction=direction,
             reportedIn=[source],
-            specifiedBy=self._build_method(),
+            specifiedBy=MOA_METHOD,
         )
         if normalized_gene and normalized_disease and normalized_variant:
             aggregated_statement = VariantPrognosticStudyStatement(
@@ -192,7 +206,7 @@ class MoaTransformer(Transformer):
                 ),
                 direction=direction,
                 specifiedBy=self._build_aggregate_method(),
-                classification=tmp_class,
+                classification=METAKB_CLASSIFICATION,
                 hasEvidenceLines=[
                     EvidenceLine(
                         hasEvidenceItems=[statement],
@@ -206,13 +220,11 @@ class MoaTransformer(Transformer):
         self,
         assertion: dict,
         source: Document,
-        tmp_class: MappableConcept,
     ) -> tuple[VariantTherapeuticResponseStudyStatement | None, Statement]:
         """Construct a therapeutic response statement and an aggregate parent assertion, if possible.
 
         :param assertion: MOA assertion object (un-transformed)
         :param source: document from which MOA curated the statement
-        :param tmp_class: (temporary) classification object
         :return: either an aggregate statement or None, and the MOA assertion modeled as
             a GKS statement
         """
@@ -252,7 +264,7 @@ class MoaTransformer(Transformer):
             ),
             direction=direction,
             reportedIn=[source],
-            specifiedBy=self._build_method(),
+            specifiedBy=MOA_METHOD,
         )
         if (
             normalized_disease
@@ -271,32 +283,15 @@ class MoaTransformer(Transformer):
                 ),
                 direction=direction,
                 specifiedBy=self._build_aggregate_method(),
-                classification=tmp_class,
+                classification=METAKB_CLASSIFICATION,
                 hasEvidenceLines=[
                     EvidenceLine(
                         hasEvidenceItems=[statement],
-                        directionOfEvidenceProvided=Direction.SUPPORTS,  # TODO is this right?
+                        directionOfEvidenceProvided=Direction.SUPPORTS,
                     )
                 ],
             )
         return aggregated_statement, statement
-
-    @staticmethod
-    def _build_method() -> Method:
-        """Return MOA assertion method
-
-        :return: Reference for MOA curation method
-        """
-        return Method(
-            id=MethodId.MOA_ASSERTION_BIORXIV,
-            name="MOAlmanac (2021)",
-            reportedIn=Document(
-                name="Reardon, B., Moore, N.D., Moore, N.S. et al.",
-                title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
-                doi="10.1038/s43018-021-00243-3",
-                pmid="35121878",
-            ),
-        )
 
     @staticmethod
     def _build_aggregate_method() -> Method:
