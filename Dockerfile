@@ -7,22 +7,20 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Install system deps
-RUN apt-get update && apt-get install -y \
-    gcc \
+# TODO: remove git dep once civicpy is updated in pypi
+RUN apt-get update && \
+    apt-get install -y libpq-dev gcc git \
     && rm -rf /var/lib/apt/lists/*
 
+
 # Copy only dependency files first
-COPY server/pyproject.toml server/pyproject.toml
-COPY server/README.md server/README.md
+COPY server /app/server
 
 WORKDIR /app/server
 
 # Install Python dependencies
 RUN pip install --upgrade pip \
     && pip install .
-
-# Copy application code
-COPY server /app/server
 
 # Expose API port
 EXPOSE 8000
