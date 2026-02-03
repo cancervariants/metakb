@@ -159,3 +159,6 @@ server/src/metakb/data/*
 
 **/.neo4j_data/
 biome.json
+
+# Neo4j snapshot input
+docker/neo4j/*.dump

@@ -1,21 +1,25 @@
 services:
   metakb:
-    image: python:3.12
+    image: python:3.12-slim
     working_dir: /app/server
     environment:
       AWS_ACCESS_KEY_ID: dummy
       AWS_SECRET_ACCESS_KEY: dummy
       AWS_DEFAULT_REGION: us-east-2
-      UTA_DB_URL: "postgresql://anonymous@uta:5432/uta/uta_20241220"
+      UTA_DB_URL: "postgresql://uta_admin:some-password-that-you-make-up@uta:5432/uta"
       SEQREPO_ROOT_DIR: /usr/local/share/seqrepo/2024-12-20
       GENE_NORM_DB_URL: http://gene-dynamodb-local:8000
       DISEASE_NORM_DB_URL: http://disease-dynamodb-local:8000
       THERAPY_NORM_DB_URL: http://therapy-dynamodb-local:8000
+      METAKB_DB_URL: "bolt://neo4j:password@neo4j:7687"
     ports:
       - 127.0.0.1:8000:8000
+    depends_on:
+      - neo4j
+      - uta
     command: >
       sh -c "
-      pip install -e . &&
+      pip install -e /app/server . &&
       uvicorn src.metakb.main:app --reload --host 0.0.0.0 --port 8000
       "
     volumes:
@@ -51,6 +55,13 @@ services:
     ports:
       - 127.0.0.1:5432:5432
 
+  neo4j:
+    image: ghcr.io/cancervariants/metakb-neo4j:20260116
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/password
+
 volumes:
   uta_vol:
-    external: true
