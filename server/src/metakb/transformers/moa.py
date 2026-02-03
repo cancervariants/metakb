@@ -205,7 +205,7 @@ class MoaTransformer(Transformer):
                     predicate=predicate,
                 ),
                 direction=direction,
-                specifiedBy=self._build_aggregate_method(),
+                specifiedBy=METAKB_METHOD,
                 classification=METAKB_CLASSIFICATION,
                 hasEvidenceLines=[
                     EvidenceLine(
@@ -282,7 +282,7 @@ class MoaTransformer(Transformer):
                     predicate=predicate,
                 ),
                 direction=direction,
-                specifiedBy=self._build_aggregate_method(),
+                specifiedBy=METAKB_METHOD,
                 classification=METAKB_CLASSIFICATION,
                 hasEvidenceLines=[
                     EvidenceLine(
@@ -292,25 +292,6 @@ class MoaTransformer(Transformer):
                 ],
             )
         return aggregated_statement, statement
-
-    @staticmethod
-    def _build_aggregate_method() -> Method:
-        """Return method for aggregate classification.
-
-        This is temporary/ a placeholder. It should probably be elevated to the base class.
-
-        :return: working aggregation Method
-        """
-        return Method(
-            id="metakb.method:2026",
-            name="MetaKB (2026)",
-            reportedIn=Document(
-                name="Wagnerds et al",
-                title="MetaKB v2",
-                doi="10.1038/1111-1-1111-111-1111",
-                pmid="9999999",
-            ),
-        )
 
     @cache  # noqa: B019
     def _normalize_moa_gene(
