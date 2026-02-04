@@ -49,10 +49,52 @@ cd metakb
 
 #### 2. Start the API
 
-For now, we must manually get uta data. Before starting the api, you will need to grab `uta_20241220.pgd.gz` from [biocommons (click here)](https://dl.biocommons.org/uta/)
+##### Get UTA data
+
+For now, we must manually get UTA data. Before starting the api, you will need to grab `uta_20241220.pgd.gz` from [biocommons (click here)](https://dl.biocommons.org/uta/)
 
 Download the file and drag it into the `uta-init/` folder in this repo. Docker will handle the rest!
 Note: if you opt to use a different version of the uta `gz` than the one specified, you will need to update `init-uta.sh` and `uta-setup.sql` to match the version you chose.
+
+##### Set up SeqRepo
+
+Additionally, some of the normalizer services rely on [seqrepo](https://github.com/biocommons/biocommons.seqrepo), which we need to set up before starting MetaKB.
+
+Run:
+
+```shell
+pip install seqrepo
+sudo mkdir /usr/local/share/seqrepo
+sudo chown $USER /usr/local/share/seqrepo
+seqrepo pull -i 2024-12-20/  # Replace with latest version using `seqrepo list-remote-instances` if outdated
+```
+
+Note: if you use a different version than specified, you may need to manually update `SEQREPO_ROOT_DIR` in the compose files.
+
+If you get an error similar to the one below:
+
+```shell
+PermissionError: [Error 13] Permission denied: '/usr/local/share/seqrepo/2024-12-20/._fkuefgd' -> '/usr/local/share/seqrepo/2024-12-20/'
+```
+
+You will want to do the following:\
+(_Might not be .\_fkuefgd, so replace with your error message path_)
+
+```shell
+sudo mv /usr/local/share/seqrepo/2024-12-20._fkuefgd /usr/local/share/seqrepo/2024-12-20
+exit
+```
+
+##### Virtual environment
+
+You'll want to work in a virtual environment. To set that up, run the following from the root of this project:
+
+```bash
+virtualenv venv
+source venv/bin/activate
+```
+
+##### Starting the API
 
 Now, we can start the API. From the root of the repo you can run either:
 
@@ -90,7 +132,7 @@ From the root repository, install frontend dependencies:
 pnpm install
 ```
 
-Start the frontend in the `client directory`
+Start the frontend in the `client` directory
 
 ```bash
 cd client
@@ -174,6 +216,8 @@ Recommended tags:
 ### Unit tests
 
 To run unit tests, make sure you have a venv active and proper dependencies installed.
+
+If you have a venv already set up from running the API, `deactivate` it and run the following:
 
 ```bash
 cd server
