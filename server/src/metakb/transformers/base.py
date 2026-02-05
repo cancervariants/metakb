@@ -1,23 +1,18 @@
 """A module for the Transformer base class."""
 
 import datetime
+from functools import cache
 import json
 import logging
 import re
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
 from enum import Enum
 from pathlib import Path
-from typing import ClassVar, TypeVar
+from typing import ClassVar
 
-from disease.schemas import (
-    NamespacePrefix as DiseaseNamespacePrefix,
-)
-from disease.schemas import (
-    NormalizationService as NormalizedDisease,
-)
+from disease.schemas import  NamespacePrefix as DiseaseNamespacePrefix
+from disease.schemas import  NormalizationService as DiseaseNormalizationResult
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
 from ga4gh.core import sha512t24u
 from ga4gh.core.models import (
     Coding,
@@ -25,38 +20,32 @@ from ga4gh.core.models import (
     Extension,
     MappableConcept,
     Relation,
+    code,
 )
 from ga4gh.va_spec.aac_2017 import (
+    Classification,
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
 from ga4gh.va_spec.base import (
+    Condition,
     ConditionSet,
     Direction,
     Document,
     EvidenceLine,
     Method,
     Statement,
-    TherapyGroup,
+    System,
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from ga4gh.vrs.models import Allele, CopyNumberChange, CopyNumberCount
-from gene.schemas import (
-    NamespacePrefix as GeneNamespacePrefix,
-)
-from gene.schemas import (
-    NormalizeService as NormalizedGene,
-)
-from pydantic import BaseModel, Field, StrictStr
-from therapy.schemas import (
-    NamespacePrefix as TherapyNamespacePrefix,
-)
-from therapy.schemas import (
-    NormalizationService as NormalizedTherapy,
-)
+from gene.schemas import  NamespacePrefix as GeneNamespacePrefix
+from gene.schemas import  NormalizeService as GeneNormalizationResult
+from pydantic import BaseModel, StrictStr
+from therapy.schemas import  NamespacePrefix as TherapyNamespacePrefix
+from therapy.schemas import  NormalizationService as TherapyNormalizationResult
 
 from metakb import DATE_FMT
 from metakb.config import get_config
@@ -69,9 +58,9 @@ logger = logging.getLogger(__name__)
 
 # Normalizer response type to attribute name
 NORMALIZER_INSTANCE_TO_ATTR = {
-    NormalizedDisease: "disease",
-    NormalizedTherapy: "therapy",
-    NormalizedGene: "gene",
+    DiseaseNormalizationResult: "disease",
+    TherapyNormalizationResult: "therapy",
+    GeneNormalizationResult: "gene",
 }
 
 
@@ -105,12 +94,6 @@ def _sanitize_name(name: str) -> str:
     """
     return re.sub(r"\s+", "_", name.strip())
 
-
-class NormalizerExtensionName(str, Enum):
-    """Define constraints for normalizer extension names"""
-
-    PRIORITY = "vicc_normalizer_priority"  # concept mapping is merged concept ID
-    FAILURE = "vicc_normalizer_failure"  # normalizer failed or is not supported
 
 
 class EcoLevel(str, Enum):
@@ -565,6 +548,103 @@ class Transformer(ABC):
             json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
 
     ##### NEW STUFF HERE
+
+    @cache  # noqa: B019
+    def _send_disease_normalizer_query(self, term: str) -> NormalizationService:
+        return self.vicc_normalizers.normalize_disease(term)[0]
+
+    def _normalize_disease(self, disease: MappableConcept) -> MappableConcept | None:
+        queries = []
+        if disease.id:
+            queries.append(disease.id)
+        if disease.name:
+            queries.append(disease.name)
+        if disease.mappings:
+            queries += [str(m.coding.code) for m in disease.mappings]
+        if disease.extensions:
+            for ext in disease.extensions:
+                if ext.name == "Aliases":
+                    queries += ext.value
+        for query in queries:
+            result = self._send_disease_normalizer_query(query)
+            if result.disease:
+                normalized_disease = result.disease
+                normalized_disease.mappings = None
+                normalized_disease.extensions = None
+                return normalized_disease
+        return None
+
+    def _resolve_condition_set(
+        self, condition_set: ConditionSet
+    ) -> ConditionSet | None:
+        members: list[MappableConcept | ConditionSet] = []
+        for condition in condition_set.conditions:
+            if isinstance(condition, MappableConcept):
+                if condition.conceptType == "Phenotype":
+                    members.append(condition)
+                elif condition.conceptType == "Disease":
+                    normalized_disease = self._normalize_disease(condition)
+                    if not normalized_disease:
+                        return None
+                else:
+                    raise ValueError
+            elif isinstance(condition, ConditionSet):
+                normalized_condition_set = self._resolve_condition_set(condition)
+                if not normalized_condition_set:
+                    return None
+                members.append(normalized_condition_set)
+            else:
+                raise TypeError
+        return ConditionSet(
+            conditions=members, membershipOperator=condition_set.membershipOperator
+        )
+
+    def _normalize_condition(self, condition: Condition) -> Condition | None:
+        """Attempt full normalization of source Condition.
+
+        Treat phenotypes as "normalized" and copy them up to the normalized object.
+
+        :param condition: source Condition object
+        :return: normalized equivalent, if available
+        """
+        if isinstance(condition.root, ConditionSet):
+            normalized_condition_set = self._resolve_condition_set(condition.root)
+            if normalized_condition_set:
+                return Condition(root=normalized_condition_set)
+            return None
+        if condition.root.conceptType == "Phenotype":
+            return condition
+        if condition.root.conceptType == "Disease":
+            normalized_disease = self._normalize_disease(condition.root)
+            if normalized_disease:
+                return Condition(root=normalized_disease)
+            return None
+        raise ValueError
+
+    def _send_gene_normalizer_query(self, term: str) -> NormalizedGene:
+
+
+    def _normalize_gene(self, gene: MappableConcept) -> MappableConcept | None:
+        queries = []
+        if gene.id:
+            queries.append(gene.id)
+        if gene.name:
+            queries.append(gene.name)
+        if gene.mappings:
+            queries += [str(m.coding.code) for m in gene.mappings]
+        if gene.extensions:
+            for ext in gene.extensions:
+                if ext.name == "Aliases":
+                    queries += ext.value
+        for query in queries:
+            result = self._send_gene_normalizer_query(query)
+            if result.gene:
+                normalized_gene = result.gene
+                normalized_gene.mappings = None
+                normalized_gene.extensions = None
+                return normalized_gene
+        return None
+
     async def _build_aggregated_diag_statement(
         self, statement: Statement
     ) -> VariantDiagnosticStudyStatement | None:
@@ -577,7 +657,7 @@ class Transformer(ABC):
         normalized_disease = self._normalize_condition(prop.objectCondition)
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
         normalized_variant = self._normalize_variant(prop.subjectVariant)
-        if all((normalized_disease, normalized_gene, normalized_variant)):
+        if all([normalized_disease, normalized_gene, normalized_variant]):
             return VariantDiagnosticStudyStatement(
                 id="metakb:id that sums up the proposition parts",
                 proposition=VariantDiagnosticProposition(

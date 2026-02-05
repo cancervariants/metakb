@@ -6,7 +6,6 @@ import re
 from enum import Enum, StrEnum
 from pathlib import Path
 from types import MappingProxyType
-from typing import ClassVar
 
 from civicpy import civic as civicpy
 from civicpy.exports.civic_gks_record import (
