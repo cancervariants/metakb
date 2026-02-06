@@ -38,19 +38,15 @@ MUT_HEADERS = [
     "RefSeq",
     "Protein_position",
     "Codons",
-    "AAChange",
     "Amino_Acid_Change",
 ]
 
-PATIENT_HEADERS = [
-    "PATIENT_ID",
-    "AGE",
-    "SEX",
-]
+PATIENT_HEADERS = ["PATIENT_ID", "AGE", "SEX", "RACE"]
 
 SAMPLE_HEADERS = [
     "PATIENT_ID",
     "SAMPLE_ID",
+    "SAMPLE_CLASS",
     "ONCOTREE_CODE",
     "CANCER_TYPE",
     "CANCER_TYPE_DETAILED",
@@ -59,10 +55,10 @@ SAMPLE_HEADERS = [
 
 
 class cBioportalTransformer(cBioportalStudyTransformer):
-    """Transformer for es_iocurie_2014 study."""
+    """Transformer for all_phase2_target_2018_pub study."""
 
     def get_study_name(self) -> str:
-        return "es_iocurie_2014"
+        return "all_phase2_target_2018_pub"
 
     def get_mut_headers(self) -> list[str]:
         return MUT_HEADERS
@@ -72,8 +68,3 @@ class cBioportalTransformer(cBioportalStudyTransformer):
 
     def get_sample_headers(self) -> list[str]:
         return SAMPLE_HEADERS
-
-    def get_variant_transformations(self) -> dict:
-        return {
-            "amino_acid_change_source": "AAChange"
-        }
