@@ -595,6 +595,85 @@ class cBioportalTransformerBase(Transformer):
 
         df = transformer.transform(harvested)
 
+        # Add AGE_TERM column based on AGE values
+        logger.info("Adding AGE_TERM classifications for study: %s", study)
+        if "AGE" in df.columns:
+            # Convert AGE to numeric, handling any non-numeric values
+            df["AGE"] = pd.to_numeric(df["AGE"], errors='coerce')
+            
+            # Create AGE_TERM based on age ranges
+            def classify_age(age):
+                if pd.isna(age):
+                    return "Unknown"
+                elif age <= 0.069:
+                    return "Congenital"
+                elif age <= 16:
+                    return "Pediatric"
+                else:
+                    return "Adult"
+            
+            df["AGE_TERM"] = df["AGE"].apply(classify_age)
+            logger.info("[%s] AGE_TERM distribution: %s", study, df["AGE_TERM"].value_counts().to_dict())
+        else:
+            logger.warning("[%s] No AGE column found; setting AGE_TERM to 'Unknown'", study)
+            df["AGE_TERM"] = "Unknown"
+
+        # Harmonize ETHNICITY column
+        logger.info("Harmonizing ETHNICITY terms for study: %s", study)
+        if "ETHNICITY" in df.columns:
+            # Mapping dictionary for ethnicity harmonization
+            ETHNICITY_MAPPING = {
+                # White/European
+                "European": "White",
+                "White/Europe": "White",
+                "White/Latin America": "White",
+                "White/North Africa": "White",
+                
+                # Black/African
+                "African": "Black or African American",
+                "Black": "Black or African American",
+                "Black/Sub-Saharan Africa": "Black or African American",
+                
+                # Asian
+                "EastAsian": "Asian",
+                "Asian Indian": "Asian",
+                
+                # South Asian or Hispanic (Option A - combined category)
+                "SouthAsianOrHispanic": "Asian or Hispanic",
+                
+                # Hispanic/Latino
+                "Hispanic": "Hispanic or Latino",
+                
+                # Pacific Islander
+                "Native Hawaiian or other Pacific Islander": "Native Hawaiian or Pacific Islander",
+                
+                # Native American
+                "American Indian or Alaska Native": "American Indian or Alaska Native",
+                
+                # Mixed/Other/Unknown -> No_Data
+                "Mixed_or_Unknown": "Other or Mixed",
+                "Other": "Other or Mixed",
+                "Unknown": "No_Data",
+                "Not reported": "No_Data",
+                "Not Reported": "No_Data",
+                "No_data": "No_Data",
+                "No_Data": "No_Data",
+            }
+            
+            # Keep original ethnicity in a separate column
+            df["ETHNICITY_ORIGINAL"] = df["ETHNICITY"]
+            
+            # Apply mapping to create harmonized column
+            df["ETHNICITY_HARMONIZED"] = df["ETHNICITY"].replace(ETHNICITY_MAPPING)
+            
+            # Log the harmonized distribution
+            logger.info("[%s] ETHNICITY_HARMONIZED distribution: %s", 
+                       study, df["ETHNICITY_HARMONIZED"].value_counts().to_dict())
+        else:
+            logger.warning("[%s] No ETHNICITY column found; setting ETHNICITY_HARMONIZED to 'No_Data'", study)
+            df["ETHNICITY_ORIGINAL"] = "No_Data"
+            df["ETHNICITY_HARMONIZED"] = "No_Data"
+
         logger.info("Adding gene mappings for study: %s", study)
         mappable_genes, gene_qc = self._add_genes(transformer, df)
 
