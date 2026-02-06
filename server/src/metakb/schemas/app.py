@@ -9,6 +9,7 @@ class SourceName(str, Enum):
     CIVIC = "civic"
     MOA = "moa"
     CBIOPORTAL = "cbioportal"
+    FDA_PODA = "fda_poda"
 
     def as_print_case(self) -> str:
         """Provide enum value with natural print casing (i.e. value-specific for
@@ -17,13 +18,15 @@ class SourceName(str, Enum):
         :return: correctly-cased string
         :raise ValueError: if called on a source value that we forgot to define here
         """
-        if self == "civic":
+        if self == self.CIVIC:
             return "CIViC"
-        if self == "moa":
+        if self == self.MOA:
             return "MOA"
-        if self == "cbioportal":
+        if self == self.CBIOPORTAL:
             return "cBioPortal"
-        raise NotImplementedError
+        if self == self.FDA_PODA:
+            return "FDA PODA"
+        raise ValueError
 
     def __repr__(self) -> str:
         """Print as simple string rather than enum wrapper, e.g. 'civic' instead of
