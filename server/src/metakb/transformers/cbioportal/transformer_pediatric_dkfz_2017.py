@@ -1,13 +1,10 @@
-import os
 from os import environ
-from pathlib import Path
 
 environ["AWS_ACCESS_KEY_ID"] = "dummy"
 environ["AWS_SECRET_ACCESS_KEY"] = "dummy"
 environ["AWS_SESSION_TOKEN"] = "dummy"
 
 import logging
-import re
 
 import pandas as pd
 
@@ -85,11 +82,11 @@ class cBioportalTransformer(cBioportalStudyTransformer):
         """Apply DKFZ-specific variant transformations."""
         # Replace empty/whitespace Center values with 'DKFZ'
         df["Center"] = df["Center"].replace(r"^\s*\.?\s*$", "DKFZ", regex=True)
-        
+
         # Fix chromosome for RAB36 gene
         df.loc[
             (df["Hugo_Symbol"] == "RAB36") & (df["Chromosome"] == "NA"),
             "Chromosome",
         ] = 22
-        
+
         return df

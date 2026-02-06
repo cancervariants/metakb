@@ -1,6 +1,4 @@
-import os
 from os import environ
-from pathlib import Path
 
 environ["AWS_ACCESS_KEY_ID"] = "dummy"
 environ["AWS_SECRET_ACCESS_KEY"] = "dummy"
@@ -16,7 +14,10 @@ import pandas as pd
 import requests
 from tqdm import tqdm
 
-from metakb.transformers.cbioportal.base import cBioportalStudyTransformer, cBioportalTransformerBase
+from metakb.transformers.cbioportal.base import (
+    cBioportalStudyTransformer,
+    cBioportalTransformerBase,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -65,7 +66,7 @@ PATTERN = re.compile(r"^23-")
 
 class cBioportalTransformer(cBioportalStudyTransformer):
     """Transformer for es_dfarber_broad_2014 study.
-    
+
     This study has extensive custom logic for handling chromosome 23 variants,
     which requires special processing to determine X vs Y chromosome assignment
     in male samples.
@@ -159,16 +160,16 @@ class cBioportalTransformer(cBioportalStudyTransformer):
             return df
         if "variation" not in parsed_response:
             return df
-        
+
         hgnc_id = None
         with contextlib.suppress(KeyError, IndexError, TypeError):
             hgnc_id = parsed_response["variation"]["extensions"][0]["value"][0]["hgnc_id"]
-        
+
         if "x_hgnc_id" not in df.columns:
             df["x_hgnc_id"] = "no_value"
         if "Chr23_X" not in df.columns:
             df["Chr23_X"] = False
-        
+
         reconstructed = (
             "X-"
             + df["Start_Position"].astype(str).str.strip()
@@ -177,14 +178,14 @@ class cBioportalTransformer(cBioportalStudyTransformer):
             + "-"
             + df["Tumor_Seq_Allele2"].astype(str).str.strip()
         )
-        
+
         chrom_col = df["Chromosome"].astype(str).str.strip()
         mask = (chrom_col == "23") & (reconstructed == variant_x)
         df.loc[mask, "Chr23_X"] = True
-        
+
         if hgnc_id is not None:
             df.loc[mask, "x_hgnc_id"] = hgnc_id
-        
+
         return df
 
     def _check_for_y_variant(self, df, variant):
@@ -198,16 +199,16 @@ class cBioportalTransformer(cBioportalStudyTransformer):
             return df
         if "variation" not in parsed_response:
             return df
-        
+
         hgnc_id = None
         with contextlib.suppress(KeyError, IndexError, TypeError):
             hgnc_id = parsed_response["variation"]["extensions"][0]["value"][0]["hgnc_id"]
-        
+
         if "y_hgnc_id" not in df.columns:
             df["y_hgnc_id"] = "no_value"
         if "Chr23_Y" not in df.columns:
             df["Chr23_Y"] = False
-        
+
         reconstructed = (
             "Y-"
             + df["Start_Position"].astype(str).str.strip()
@@ -216,14 +217,14 @@ class cBioportalTransformer(cBioportalStudyTransformer):
             + "-"
             + df["Tumor_Seq_Allele2"].astype(str).str.strip()
         )
-        
+
         chrom_col = df["Chromosome"].astype(str).str.strip()
         mask = (chrom_col == "23") & (reconstructed == variant_y)
         df.loc[mask, "Chr23_Y"] = True
-        
+
         if hgnc_id is not None:
             df.loc[mask, "y_hgnc_id"] = hgnc_id
-        
+
         return df
 
     def _chr23_male(self, df, variant):
@@ -270,7 +271,7 @@ class cBioportalTransformer(cBioportalStudyTransformer):
         def resolve_row(row):
             if row.get("ambig_chrom") not in ["XY", "neither"]:
                 return row
-            
+
             x_hgnc = str(row.get("x_hgnc_id", "no_value"))
             y_hgnc = str(row.get("y_hgnc_id", "no_value"))
             gene_hgnc = str(row.get("gene_hgnc_id", "no_value"))
@@ -293,8 +294,7 @@ class cBioportalTransformer(cBioportalStudyTransformer):
 
             return row
 
-        df = df.apply(resolve_row, axis=1)
-        return df
+        return df.apply(resolve_row, axis=1)
 
     # ========================================================================
     # Override transform to include chromosome 23 processing
@@ -304,13 +304,13 @@ class cBioportalTransformer(cBioportalStudyTransformer):
         """Custom transformation with chromosome 23 processing."""
         study = self.get_study_name()
         save_loc = cBioportalTransformerBase.setup_save_location(study)
-        
+
         # Extract data
         self.variants = pd.DataFrame(harvested_data.variants).filter(self.get_mut_headers())
         self.patients = pd.DataFrame(harvested_data.patients).filter(self.get_patient_headers())
         self.samples = pd.DataFrame(harvested_data.samples).filter(self.get_sample_headers())
         self.metadata = pd.DataFrame(harvested_data.metadata)
-        
+
         # Process variants
         variant_transforms = self.get_variant_transformations()
         self.variants = cBioportalTransformerBase.filter_and_rename_variants(
@@ -322,7 +322,7 @@ class cBioportalTransformer(cBioportalStudyTransformer):
         self.variants = cBioportalTransformerBase.handle_duplicates(
             self.variants, study, save_loc, "mut"
         )
-        
+
         # Process patients
         patient_transforms = self.get_patient_transformations()
         self.patients = cBioportalTransformerBase.filter_and_rename_patients(
@@ -334,7 +334,7 @@ class cBioportalTransformer(cBioportalStudyTransformer):
         self.patients = cBioportalTransformerBase.handle_duplicates(
             self.patients, study, save_loc, "patient"
         )
-        
+
         # Process samples
         sample_transforms = self.get_sample_transformations()
         self.samples = cBioportalTransformerBase.filter_and_rename_samples(
@@ -346,7 +346,7 @@ class cBioportalTransformer(cBioportalStudyTransformer):
         self.samples = cBioportalTransformerBase.handle_duplicates(
             self.samples, study, save_loc, "samples"
         )
-        
+
         # Combine dataframes
         combined_df = cBioportalTransformerBase.combine_dataframes(
             self.variants, self.samples, self.patients, self.metadata
@@ -354,55 +354,55 @@ class cBioportalTransformer(cBioportalStudyTransformer):
         combined_df = cBioportalTransformerBase.handle_duplicates(
             combined_df, study, save_loc, "combined"
         )
-        
+
         # ========================================================================
         # CUSTOM CHROMOSOME 23 PROCESSING
         # ========================================================================
-        
+
         # Flag chromosome 23 rows
         combined_df = self._flag_rows_chrom_23(combined_df)
-        
+
         # Convert female chr23 → X
         combined_df = self._chr23_female(combined_df)
-        
+
         # Add columns for male chr23 processing
         combined_df = self._add_cols_chrom_23_male(combined_df)
-        
+
         # Add Gnomad notation BEFORE processing male chr23
         combined_df = cBioportalTransformerBase.add_gnomad_notation(combined_df)
-        
+
         # Identify unique chr23 variants in males for API testing
         chr23_mask = (
             combined_df["Chrom_23"]
             & (combined_df["SEX"].str.strip().str.lower() == "male")
         )
         unique_chr23_variants = combined_df.loc[chr23_mask, "Gnomad_Notation"].unique()
-        
+
         # Process each unique chr23 variant
         _logger.info(f"Processing {len(unique_chr23_variants)} unique chr23 variants...")
         for variant in tqdm(unique_chr23_variants, desc="Chr23 variants"):
             combined_df = self._chr23_male(combined_df, variant)
-        
+
         # Correct male chr23 assignments
         combined_df = self._correct_male_chrom23(combined_df)
-        
+
         # Resolve ambiguous cases using HGNC ID matching
         combined_df = self._resolve_ambiguous_chromosomes(combined_df)
-        
+
         # ========================================================================
         # CONTINUE WITH STANDARD PROCESSING
         # ========================================================================
-        
+
         # Remove patient-variant duplicates
         final_df = cBioportalTransformerBase.remove_patient_variant_duplicates(
             combined_df, study, save_loc
         )
-        
+
         # Fill missing values
         final_df = cBioportalTransformerBase.fill_missing_values(final_df)
-        
+
         # Save outputs
         cBioportalTransformerBase.save_study_outputs(final_df, study, save_loc)
-        
+
         self.final_df = final_df
         return final_df

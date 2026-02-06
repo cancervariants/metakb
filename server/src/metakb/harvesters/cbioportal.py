@@ -1,7 +1,7 @@
 import logging
-from pathlib import Path
 import os
 import tarfile
+from pathlib import Path
 
 import pandas as pd
 import requests
@@ -59,7 +59,7 @@ def _download_and_extract_one(study: str) -> None:
     r = requests.get(
         url, stream=True, timeout=60, headers={"User-Agent": "python-requests"}
     )
-    
+
     r.raise_for_status()
 
     with Path.open(out, "wb") as f:

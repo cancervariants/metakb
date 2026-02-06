@@ -600,18 +600,17 @@ class cBioportalTransformerBase(Transformer):
         if "AGE" in df.columns:
             # Convert AGE to numeric, handling any non-numeric values
             df["AGE"] = pd.to_numeric(df["AGE"], errors='coerce')
-            
+
             # Create AGE_TERM based on age ranges
-            def classify_age(age):
+            def classify_age(age) -> str:
                 if pd.isna(age):
                     return "Unknown"
-                elif age <= 0.069:
+                if age <= 0.069:
                     return "Congenital"
-                elif age <= 16:
+                if age <= 16:
                     return "Pediatric"
-                else:
-                    return "Adult"
-            
+                return "Adult"
+
             df["AGE_TERM"] = df["AGE"].apply(classify_age)
             logger.info("[%s] AGE_TERM distribution: %s", study, df["AGE_TERM"].value_counts().to_dict())
         else:
@@ -628,28 +627,28 @@ class cBioportalTransformerBase(Transformer):
                 "White/Europe": "White",
                 "White/Latin America": "White",
                 "White/North Africa": "White",
-                
+
                 # Black/African
                 "African": "Black or African American",
                 "Black": "Black or African American",
                 "Black/Sub-Saharan Africa": "Black or African American",
-                
+
                 # Asian
                 "EastAsian": "Asian",
                 "Asian Indian": "Asian",
-                
+
                 # South Asian or Hispanic (Option A - combined category)
                 "SouthAsianOrHispanic": "Asian or Hispanic",
-                
+
                 # Hispanic/Latino
                 "Hispanic": "Hispanic or Latino",
-                
+
                 # Pacific Islander
                 "Native Hawaiian or other Pacific Islander": "Native Hawaiian or Pacific Islander",
-                
+
                 # Native American
                 "American Indian or Alaska Native": "American Indian or Alaska Native",
-                
+
                 # Mixed/Other/Unknown -> No_Data
                 "Mixed_or_Unknown": "Other or Mixed",
                 "Other": "Other or Mixed",
@@ -659,15 +658,15 @@ class cBioportalTransformerBase(Transformer):
                 "No_data": "No_Data",
                 "No_Data": "No_Data",
             }
-            
+
             # Keep original ethnicity in a separate column
             df["ETHNICITY_ORIGINAL"] = df["ETHNICITY"]
-            
+
             # Apply mapping to create harmonized column
             df["ETHNICITY_HARMONIZED"] = df["ETHNICITY"].replace(ETHNICITY_MAPPING)
-            
+
             # Log the harmonized distribution
-            logger.info("[%s] ETHNICITY_HARMONIZED distribution: %s", 
+            logger.info("[%s] ETHNICITY_HARMONIZED distribution: %s",
                        study, df["ETHNICITY_HARMONIZED"].value_counts().to_dict())
         else:
             logger.warning("[%s] No ETHNICITY column found; setting ETHNICITY_HARMONIZED to 'No_Data'", study)
@@ -921,28 +920,29 @@ class cBioportalTransformerBase(Transformer):
     # ====================
     # Static utility methods for study transformers
     # ====================
-    
+
     @staticmethod
     def setup_save_location(study: str, base_dir: Path | None = None) -> Path:
         """Create and return the save location for a study's output files.
-        
+
         Args:
             study: Study identifier
             base_dir: Base directory (defaults to current directory's parent/transformers)
-            
+
         Returns:
             Path object for the study's save location
+
         """
         if base_dir is None:
             loc = Path.cwd()
             base_dir = loc.parent / "transformers"
-        
+
         study_out_dir = base_dir / "munged_data"
         save_loc = study_out_dir / study
         save_loc.mkdir(parents=True, exist_ok=True)
-        
+
         return save_loc
-    
+
     @staticmethod
     def filter_and_rename_variants(
         variants_df: pd.DataFrame,
@@ -953,15 +953,15 @@ class cBioportalTransformerBase(Transformer):
         df = variants_df.filter(mut_headers)
         df.columns = df.columns.str.strip()
         df = df.rename(columns={"Tumor_Sample_Barcode": "SAMPLE_ID"})
-        
+
         if amino_acid_change_source and amino_acid_change_source in df.columns:
             df = df.rename(columns={amino_acid_change_source: "Amino_Acid_Change"})
-        
+
         if "Amino_Acid_Change" not in df.columns:
             df["Amino_Acid_Change"] = "No_data"
-            
+
         return df
-    
+
     @staticmethod
     def filter_and_rename_patients(
         patients_df: pd.DataFrame,
@@ -971,21 +971,21 @@ class cBioportalTransformerBase(Transformer):
     ) -> pd.DataFrame:
         """Filter patient columns and perform common transformations."""
         df = patients_df.filter(patient_headers)
-        
+
         if ethnicity_source in df.columns and ethnicity_source != "ETHNICITY":
             df = df.rename(columns={ethnicity_source: "ETHNICITY"})
-        
+
         if age_source and age_source in df.columns:
             df = df.rename(columns={age_source: "AGE"})
-        
+
         if "ETHNICITY" not in df.columns:
             df["ETHNICITY"] = "No_data"
-        
+
         if "SEX" not in df.columns:
             df["SEX"] = "No_data"
-            
+
         return df
-    
+
     @staticmethod
     def filter_and_rename_samples(
         samples_df: pd.DataFrame,
@@ -994,15 +994,15 @@ class cBioportalTransformerBase(Transformer):
     ) -> pd.DataFrame:
         """Filter sample columns and perform common transformations."""
         df = samples_df.filter(sample_headers)
-        
+
         if sequence_source and sequence_source in df.columns:
             df = df.rename(columns={sequence_source: "Sequence_Source"})
-        
+
         if "ONCOTREE_CODE_CANCER_TYPE" in df.columns:
             df = df.rename(columns={"ONCOTREE_CODE_CANCER_TYPE": "ONCOTREE_CODE"})
-            
+
         return df
-    
+
     @staticmethod
     def handle_duplicates(
         df: pd.DataFrame,
@@ -1012,16 +1012,16 @@ class cBioportalTransformerBase(Transformer):
     ) -> pd.DataFrame:
         """Check for and handle duplicates in a DataFrame."""
         num_duplicates = df.duplicated().sum()
-        
+
         if num_duplicates > 0:
             dupes = df[df.duplicated(keep=False)]
             file_path = save_loc / f"{study}_{df_type}_dupes.csv"
             dupes.to_csv(file_path, index=False)
             logger.info(f"Saved {num_duplicates} {df_type} duplicates to {file_path}")
             df = df.drop_duplicates()
-        
+
         return df
-    
+
     @staticmethod
     def combine_dataframes(
         variants: pd.DataFrame,
@@ -1033,17 +1033,17 @@ class cBioportalTransformerBase(Transformer):
         """Combine variant, sample, and patient dataframes."""
         init_combined_df = variants.merge(samples, on="SAMPLE_ID", how="left")
         combined_df = init_combined_df.merge(patients, on="PATIENT_ID", how="left")
-        
+
         if study_id_override:
             study_id = study_id_override
         else:
             study_id = metadata.iloc[0, 0]
             study_id = study_id.replace("cancer_study_identifier: ", "")
-        
+
         combined_df["STUDY_ID"] = study_id
-        
+
         return combined_df
-    
+
     @staticmethod
     def add_gnomad_notation(df: pd.DataFrame) -> pd.DataFrame:
         """Add Gnomad variant notation column."""
@@ -1052,7 +1052,7 @@ class cBioportalTransformerBase(Transformer):
             axis=1,
         )
         return df
-    
+
     @staticmethod
     def remove_patient_variant_duplicates(
         df: pd.DataFrame,
@@ -1063,21 +1063,20 @@ class cBioportalTransformerBase(Transformer):
         dupe_mask = df.duplicated(subset=["PATIENT_ID", "Gnomad_Notation"], keep="first")
         patient_variant_dupes = df[dupe_mask]
         final_df = df[~dupe_mask]
-        
+
         if len(patient_variant_dupes) > 0:
             file_path = save_loc / f"{study}_patient_variant_dupes.csv"
             patient_variant_dupes.to_csv(file_path, index=False)
             logger.info(f"Removed {len(patient_variant_dupes)} patient-variant duplicates")
-        
+
         return final_df
-    
+
     @staticmethod
     def fill_missing_values(df: pd.DataFrame) -> pd.DataFrame:
         """Fill NaN and empty string values with 'No_Data'."""
         df = df.fillna("No_Data")
-        df = df.replace(r"^\s*$", pd.NA, regex=True).fillna("No_Data")
-        return df
-    
+        return df.replace(r"^\s*$", pd.NA, regex=True).fillna("No_Data")
+
     @staticmethod
     def save_study_outputs(
         df: pd.DataFrame,
@@ -1088,10 +1087,10 @@ class cBioportalTransformerBase(Transformer):
         file_path = save_loc / f"{study}_final_no_NAs.csv"
         df.to_csv(file_path, index=False)
         logger.info(f"Saved final data (no NAs) to {file_path}")
-        
+
         file_path = save_loc / f"{study}_final_df_logic_cols.csv"
         df.to_csv(file_path, index=False)
-        
+
         file_path = save_loc / f"{study}_final_df_clean.csv"
         df.to_csv(file_path, index=False)
         logger.info(f"Saved clean final data to {file_path}")
@@ -1099,7 +1098,7 @@ class cBioportalTransformerBase(Transformer):
 
 class cBioportalStudyTransformer(Transformer):
     """Base class for individual study transformers with common transformation logic."""
-    
+
     def __init__(self) -> None:
         super().__init__()
         self.final_df = None
@@ -1107,7 +1106,7 @@ class cBioportalStudyTransformer(Transformer):
         self.patients = None
         self.samples = None
         self.metadata = None
-    
+
     def _get_therapeutic_substitute_group(
         self, therapeutic_sub_group_id, therapies, therapy_interaction_type
     ):
@@ -1118,60 +1117,56 @@ class cBioportalStudyTransformer(Transformer):
     def _get_therapy(self, therapy):
         return super()._get_therapy(therapy)
 
-    def _create_cache(self):
+    def _create_cache(self) -> None:
         return None
-    
+
     @abstractmethod
     def get_study_name(self) -> str:
         """Return the study identifier."""
-        pass
-    
+
     @abstractmethod
     def get_mut_headers(self) -> list[str]:
         """Return the list of mutation/variant column headers to keep."""
-        pass
-    
+
     @abstractmethod
     def get_patient_headers(self) -> list[str]:
         """Return the list of patient column headers to keep."""
-        pass
-    
+
     @abstractmethod
     def get_sample_headers(self) -> list[str]:
         """Return the list of sample column headers to keep."""
-        pass
-    
+
     def get_variant_transformations(self) -> dict[str, Any]:
         """Return study-specific variant transformations."""
         return {}
-    
+
     def get_patient_transformations(self) -> dict[str, Any]:
         """Return study-specific patient transformations."""
         return {"ethnicity_source": "RACE"}
-    
+
     def get_sample_transformations(self) -> dict[str, Any]:
         """Return study-specific sample transformations."""
         return {}
-    
+
     def apply_custom_variant_logic(self, df: pd.DataFrame) -> pd.DataFrame:
         """Apply any custom variant transformations."""
         return df
-    
+
     def apply_custom_sample_logic(self, df: pd.DataFrame) -> pd.DataFrame:
         """Apply any custom sample transformations."""
         return df
-    
+
     def transform(self, harvested_data) -> pd.DataFrame:
         """Standard transformation pipeline for cBioportal studies."""
         study = self.get_study_name()
         save_loc = cBioportalTransformerBase.setup_save_location(study)
-        
+
         # Extract data
         self.variants = pd.DataFrame(harvested_data.variants).filter(self.get_mut_headers())
         self.patients = pd.DataFrame(harvested_data.patients).filter(self.get_patient_headers())
         self.samples = pd.DataFrame(harvested_data.samples).filter(self.get_sample_headers())
         self.metadata = pd.DataFrame(harvested_data.metadata)
-        
+
         # Process variants
         variant_transforms = self.get_variant_transformations()
         self.variants = cBioportalTransformerBase.filter_and_rename_variants(
@@ -1179,20 +1174,20 @@ class cBioportalStudyTransformer(Transformer):
             self.get_mut_headers(),
             amino_acid_change_source=variant_transforms.get("amino_acid_change_source")
         )
-        
+
         if "center_value" in variant_transforms:
             self.variants["Center"] = variant_transforms["center_value"]
-        
+
         if "additional_columns" in variant_transforms:
             for col, default_val in variant_transforms["additional_columns"].items():
                 if col not in self.variants.columns:
                     self.variants[col] = default_val
-        
+
         self.variants = self.apply_custom_variant_logic(self.variants)
         self.variants = cBioportalTransformerBase.handle_duplicates(
             self.variants, study, save_loc, "mut"
         )
-        
+
         # Process patients
         patient_transforms = self.get_patient_transformations()
         self.patients = cBioportalTransformerBase.filter_and_rename_patients(
@@ -1204,7 +1199,7 @@ class cBioportalStudyTransformer(Transformer):
         self.patients = cBioportalTransformerBase.handle_duplicates(
             self.patients, study, save_loc, "patient"
         )
-        
+
         # Process samples
         sample_transforms = self.get_sample_transformations()
         self.samples = cBioportalTransformerBase.filter_and_rename_samples(
@@ -1216,7 +1211,7 @@ class cBioportalStudyTransformer(Transformer):
         self.samples = cBioportalTransformerBase.handle_duplicates(
             self.samples, study, save_loc, "samples"
         )
-        
+
         # Combine dataframes
         combined_df = cBioportalTransformerBase.combine_dataframes(
             self.variants, self.samples, self.patients, self.metadata
@@ -1224,21 +1219,21 @@ class cBioportalStudyTransformer(Transformer):
         combined_df = cBioportalTransformerBase.handle_duplicates(
             combined_df, study, save_loc, "combined"
         )
-        
+
         # Add Gnomad notation
         combined_df = cBioportalTransformerBase.add_gnomad_notation(combined_df)
-        
+
         # Remove patient-variant duplicates
         final_df = cBioportalTransformerBase.remove_patient_variant_duplicates(
             combined_df, study, save_loc
         )
-        
+
         # Fill missing values
         final_df = cBioportalTransformerBase.fill_missing_values(final_df)
-        
+
         # Save outputs
         cBioportalTransformerBase.save_study_outputs(final_df, study, save_loc)
-        
+
         self.final_df = final_df
         return final_df
 

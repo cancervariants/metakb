@@ -1,15 +1,10 @@
-import os
 from os import environ
-from pathlib import Path
 
 environ["AWS_ACCESS_KEY_ID"] = "dummy"
 environ["AWS_SECRET_ACCESS_KEY"] = "dummy"
 environ["AWS_SESSION_TOKEN"] = "dummy"
 
 import logging
-import re
-
-import pandas as pd
 
 from metakb.transformers.cbioportal.base import cBioportalStudyTransformer
 
