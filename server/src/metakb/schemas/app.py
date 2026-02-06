@@ -8,6 +8,7 @@ class SourceName(str, Enum):
 
     CIVIC = "civic"
     MOA = "moa"
+    CBIOPORTAL = "cbioportal"
 
     def as_print_case(self) -> str:
         """Provide enum value with natural print casing (i.e. value-specific for
@@ -20,7 +21,9 @@ class SourceName(str, Enum):
             return "CIViC"
         if self == "moa":
             return "MOA"
-        raise ValueError
+        if self == "cbioportal":
+            return "cBioPortal"
+        raise NotImplementedError
 
     def __repr__(self) -> str:
         """Print as simple string rather than enum wrapper, e.g. 'civic' instead of

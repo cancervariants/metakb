@@ -20,8 +20,7 @@ from botocore.config import Config
 
 from metakb import DATE_FMT, __version__
 from metakb.config import get_config
-from metakb.harvesters.civic import CivicHarvester
-from metakb.harvesters.moa import MoaHarvester
+from metakb.harvesters import CBioPortalHarvester, CivicHarvester, MoaHarvester
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
     IllegalUpdateError,
@@ -549,6 +548,7 @@ def _harvest_sources(
     harvester_sources = {
         SourceName.CIVIC: CivicHarvester,
         SourceName.MOA: MoaHarvester,
+        SourceName.CBIOPORTAL: CBioPortalHarvester,
     }
     if sources:
         harvester_sources = {k: v for k, v in harvester_sources.items() if k in sources}
@@ -568,9 +568,7 @@ def _harvest_sources(
             source.harvest(update_cache=True, update_from_remote=False)
         else:
             harvested_data = source.harvest()
-
-            if name == SourceName.MOA:
-                source.save_harvested_data_to_file(harvested_data, output_file)
+            source.save_harvested_data_to_file(harvested_data, output_file)
         end = timer()
         _echo_info(f"{name.as_print_case()} harvest finished in {(end - start):.2f} s")
 
