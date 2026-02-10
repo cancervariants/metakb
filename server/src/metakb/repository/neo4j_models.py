@@ -63,7 +63,7 @@ from ga4gh.vrs.models import (
 )
 from pydantic import BaseModel, Field, RootModel
 
-from metakb.transformers.base import NormalizerExtensionName
+# from metakb.transformers.base import NormalizerExtensionName
 
 _logger = logging.getLogger(__name__)
 

@@ -1,18 +1,16 @@
 """A module for the Transformer base class."""
 
 import datetime
-from functools import cache
 import json
 import logging
-import re
 from abc import ABC, abstractmethod
 from enum import Enum
+from functools import cache
 from pathlib import Path
 from typing import ClassVar
 
-from disease.schemas import  NamespacePrefix as DiseaseNamespacePrefix
-from disease.schemas import  NormalizationService as DiseaseNormalizationResult
-from ga4gh.cat_vrs.models import CategoricalVariant
+from disease.schemas import NormalizationService as NormalizedDisease
+from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
 from ga4gh.core import sha512t24u
 from ga4gh.core.models import (
     Coding,
@@ -37,15 +35,16 @@ from ga4gh.va_spec.base import (
     Method,
     Statement,
     System,
+    Therapeutic,
+    TherapyGroup,
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from gene.schemas import  NamespacePrefix as GeneNamespacePrefix
-from gene.schemas import  NormalizeService as GeneNormalizationResult
+from ga4gh.vrs.models import Allele, CopyNumberChange, CopyNumberCount
+from gene.schemas import NormalizeService as NormalizedGene
 from pydantic import BaseModel, StrictStr
-from therapy.schemas import  NamespacePrefix as TherapyNamespacePrefix
-from therapy.schemas import  NormalizationService as TherapyNormalizationResult
+from therapy.schemas import NormalizationService as NormalizedTherapy
 
 from metakb import DATE_FMT
 from metakb.config import get_config
@@ -57,11 +56,11 @@ from metakb.normalizers import (
 logger = logging.getLogger(__name__)
 
 # Normalizer response type to attribute name
-NORMALIZER_INSTANCE_TO_ATTR = {
-    DiseaseNormalizationResult: "disease",
-    TherapyNormalizationResult: "therapy",
-    GeneNormalizationResult: "gene",
-}
+# NORMALIZER_INSTANCE_TO_ATTR = {
+#     DiseaseNormalizationResult: "disease",
+#     TherapyNormalizationResult: "therapy",
+#     GeneNormalizationResult: "gene",
+# }
 
 
 # TODO figure out classification, method, etc
@@ -355,130 +354,130 @@ class Transformer(ABC):
         )
         return sha512t24u(blob)
 
-    @staticmethod
-    def _get_vicc_normalizer_failure_ext() -> Extension:
-        """Return extension for a VICC normalizer failure
+    # @staticmethod
+    # def _get_vicc_normalizer_failure_ext() -> Extension:
+    #     """Return extension for a VICC normalizer failure
+    #
+    #     :return: Extension for VICC normalizer failure
+    #     """
+    #     return Extension(name=NormalizerExtensionName.FAILURE.value, value=True)
 
-        :return: Extension for VICC normalizer failure
-        """
-        return Extension(name=NormalizerExtensionName.FAILURE.value, value=True)
-
-    @staticmethod
-    def _get_vicc_normalizer_mappings(
-        normalized_id: str,
-        normalizer_resp: NormalizedDisease | NormalizedTherapy | NormalizedGene,
-    ) -> list[ConceptMapping]:
-        """Get VICC Normalizer mappable concept
-
-        :param normalized_id: Normalized ID from VICC normalizer
-        :param normalizer_resp: Response from VICC normalizer
-        :return: List of VICC Normalizer data represented as mappable concept
-        """
-
-        def _update_mapping(
-            mapping: ConceptMapping,
-            normalized_id: str,
-            normalizer_label: str,
-            match_on_coding_id: bool = True,
-        ) -> Extension:
-            """Update ``mapping`` to include extension on whether ``mapping`` contains
-            code that matches the merged record's primary identifier.
-
-            :param mapping: ConceptMapping from vicc normalizer. This will be mutated.
-                Extensions will be added. Label will be added if mapping identifier
-                matches normalized merged identifier.
-            :param normalized_id: Concept ID from normalized record
-            :param normalizer_label: Label from normalized record
-            :param match_on_coding_id: Whether to match on ``coding.id`` or
-                ``coding.code`` (MONDO is represented differently)
-            :return: ConceptMapping with normalizer extension added as well as name (
-                if mapping id matches normalized merged id)
-            """
-            is_priority = (
-                normalized_id == mapping.coding.id
-                if match_on_coding_id
-                else normalized_id == mapping.coding.code.root.lower()
-            )
-
-            merged_id_ext = Extension(
-                name=NormalizerExtensionName.PRIORITY.value, value=is_priority
-            )
-            if mapping.extensions:
-                mapping.extensions.append(merged_id_ext)
-            else:
-                mapping.extensions = [merged_id_ext]
-
-            if is_priority:
-                mapping.coding.name = normalizer_label
-
-            return mapping
-
-        mappings: list[ConceptMapping] = []
-        attr_name = NORMALIZER_INSTANCE_TO_ATTR[type(normalizer_resp)]
-        normalizer_resp_obj = getattr(normalizer_resp, attr_name)
-        normalizer_label = normalizer_resp_obj.name
-        is_disease = isinstance(normalizer_resp, NormalizedDisease)
-        is_gene = isinstance(normalizer_resp, NormalizedGene)
-        is_therapy = isinstance(normalizer_resp, NormalizedTherapy)
-
-        normalizer_mappings = [
-            ConceptMapping(
-                coding=normalizer_resp_obj.primaryCoding,
-                relation=Relation.EXACT_MATCH,
-            ),
-        ]
-        if normalizer_resp_obj.mappings:
-            normalizer_mappings.extend(normalizer_resp_obj.mappings)
-
-        for mapping in normalizer_mappings:
-            if normalized_id == mapping.coding.id:
-                mappings.append(
-                    _update_mapping(
-                        mapping,
-                        normalized_id,
-                        normalizer_label,
-                        match_on_coding_id=True,
-                    )
-                )
-            elif is_disease and mapping.coding.code.root.lower().startswith(
-                DiseaseNamespacePrefix.MONDO.value
-            ):
-                mappings.append(
-                    _update_mapping(
-                        mapping,
-                        normalized_id,
-                        normalizer_label,
-                        match_on_coding_id=False,
-                    )
-                )
-            elif (
-                (
-                    is_gene
-                    and mapping.coding.id.startswith(
-                        (
-                            GeneNamespacePrefix.NCBI.value,
-                            GeneNamespacePrefix.HGNC.value,
-                        )
-                    )
-                )
-                or (
-                    is_disease
-                    and mapping.coding.id.startswith(DiseaseNamespacePrefix.DOID.value)
-                )
-                or (
-                    is_therapy
-                    and mapping.coding.id.startswith(TherapyNamespacePrefix.NCIT.value)
-                )
-            ):
-                mappings.append(
-                    _update_mapping(
-                        mapping,
-                        normalized_id,
-                        normalizer_label,
-                        match_on_coding_id=True,
-                    )
-                )
-        return mappings
+    # @staticmethod
+    # def _get_vicc_normalizer_mappings(
+    #     normalized_id: str,
+    #     normalizer_resp: NormalizedDisease | NormalizedTherapy | NormalizedGene,
+    # ) -> list[ConceptMapping]:
+    #     """Get VICC Normalizer mappable concept
+    #
+    #     :param normalized_id: Normalized ID from VICC normalizer
+    #     :param normalizer_resp: Response from VICC normalizer
+    #     :return: List of VICC Normalizer data represented as mappable concept
+    #     """
+    #
+    #     def _update_mapping(
+    #         mapping: ConceptMapping,
+    #         normalized_id: str,
+    #         normalizer_label: str,
+    #         match_on_coding_id: bool = True,
+    #     ) -> Extension:
+    #         """Update ``mapping`` to include extension on whether ``mapping`` contains
+    #         code that matches the merged record's primary identifier.
+    #
+    #         :param mapping: ConceptMapping from vicc normalizer. This will be mutated.
+    #             Extensions will be added. Label will be added if mapping identifier
+    #             matches normalized merged identifier.
+    #         :param normalized_id: Concept ID from normalized record
+    #         :param normalizer_label: Label from normalized record
+    #         :param match_on_coding_id: Whether to match on ``coding.id`` or
+    #             ``coding.code`` (MONDO is represented differently)
+    #         :return: ConceptMapping with normalizer extension added as well as name (
+    #             if mapping id matches normalized merged id)
+    #         """
+    #         is_priority = (
+    #             normalized_id == mapping.coding.id
+    #             if match_on_coding_id
+    #             else normalized_id == mapping.coding.code.root.lower()
+    #         )
+    #
+    #         merged_id_ext = Extension(
+    #             name=NormalizerExtensionName.PRIORITY.value, value=is_priority
+    #         )
+    #         if mapping.extensions:
+    #             mapping.extensions.append(merged_id_ext)
+    #         else:
+    #             mapping.extensions = [merged_id_ext]
+    #
+    #         if is_priority:
+    #             mapping.coding.name = normalizer_label
+    #
+    #         return mapping
+    #
+    #     mappings: list[ConceptMapping] = []
+    #     attr_name = NORMALIZER_INSTANCE_TO_ATTR[type(normalizer_resp)]
+    #     normalizer_resp_obj = getattr(normalizer_resp, attr_name)
+    #     normalizer_label = normalizer_resp_obj.name
+    #     is_disease = isinstance(normalizer_resp, NormalizedDisease)
+    #     is_gene = isinstance(normalizer_resp, NormalizedGene)
+    #     is_therapy = isinstance(normalizer_resp, NormalizedTherapy)
+    #
+    #     normalizer_mappings = [
+    #         ConceptMapping(
+    #             coding=normalizer_resp_obj.primaryCoding,
+    #             relation=Relation.EXACT_MATCH,
+    #         ),
+    #     ]
+    #     if normalizer_resp_obj.mappings:
+    #         normalizer_mappings.extend(normalizer_resp_obj.mappings)
+    #
+    #     for mapping in normalizer_mappings:
+    #         if normalized_id == mapping.coding.id:
+    #             mappings.append(
+    #                 _update_mapping(
+    #                     mapping,
+    #                     normalized_id,
+    #                     normalizer_label,
+    #                     match_on_coding_id=True,
+    #                 )
+    #             )
+    #         elif is_disease and mapping.coding.code.root.lower().startswith(
+    #             DiseaseNamespacePrefix.MONDO.value
+    #         ):
+    #             mappings.append(
+    #                 _update_mapping(
+    #                     mapping,
+    #                     normalized_id,
+    #                     normalizer_label,
+    #                     match_on_coding_id=False,
+    #                 )
+    #             )
+    #         elif (
+    #             (
+    #                 is_gene
+    #                 and mapping.coding.id.startswith(
+    #                     (
+    #                         GeneNamespacePrefix.NCBI.value,
+    #                         GeneNamespacePrefix.HGNC.value,
+    #                     )
+    #                 )
+    #             )
+    #             or (
+    #                 is_disease
+    #                 and mapping.coding.id.startswith(DiseaseNamespacePrefix.DOID.value)
+    #             )
+    #             or (
+    #                 is_therapy
+    #                 and mapping.coding.id.startswith(TherapyNamespacePrefix.NCIT.value)
+    #             )
+    #         ):
+    #             mappings.append(
+    #                 _update_mapping(
+    #                     mapping,
+    #                     normalized_id,
+    #                     normalizer_label,
+    #                     match_on_coding_id=True,
+    #                 )
+    #             )
+    #     return mappings
 
     def _merge_mappings(
         self,
@@ -539,7 +538,7 @@ class Transformer(ABC):
     ##### NEW STUFF HERE
 
     @cache  # noqa: B019
-    def _send_disease_normalizer_query(self, term: str) -> NormalizationService:
+    def _send_disease_normalizer_query(self, term: str) -> NormalizedDisease:
         return self.vicc_normalizers.normalize_disease(term)[0]
 
     def _normalize_disease(self, disease: MappableConcept) -> MappableConcept | None:
@@ -610,10 +609,15 @@ class Transformer(ABC):
             return None
         raise ValueError
 
+    @cache  # noqa: B019
     def _send_gene_normalizer_query(self, term: str) -> NormalizedGene:
+        return self.vicc_normalizers.normalize_gene(term)[0]
 
-
-    def _normalize_gene(self, gene: MappableConcept) -> MappableConcept | None:
+    def _normalize_gene(self, gene: MappableConcept | None) -> MappableConcept | None:
+        # the gene context in a proposition is often None, eg in a fusion
+        # we don't know how to model this for now so we'll just skip it
+        if gene is None:
+            return None
         queries = []
         if gene.id:
             queries.append(gene.id)
@@ -634,6 +638,71 @@ class Transformer(ABC):
                 return normalized_gene
         return None
 
+    @cache  # noqa: B019
+    async def _send_variant_normalizer_query(
+        self, query: str
+    ) -> Allele | CopyNumberChange | CopyNumberCount | None:
+        return await self.vicc_normalizers.normalize_variation(query)
+
+    async def _normalize_variant(
+        self, variant: CategoricalVariant
+    ) -> CategoricalVariant | None:
+        queries = [variant.name]
+        result = None
+        for query in queries:
+            result = await self._send_variant_normalizer_query(query)
+            if result:
+                break
+        if isinstance(result, Allele):
+            constraints = [DefiningAlleleConstraint(allele=result)]
+        else:
+            raise NotImplementedError
+        return CategoricalVariant(id="some cv id pattern", constraints=constraints)
+
+    @cache  # noqa: B019
+    def _send_therapy_normalizer_query(self, query: str) -> NormalizedTherapy:
+        return self.vicc_normalizers.normalize_therapy(query)[0]
+
+    def _normalize_drug(self, drug: MappableConcept) -> MappableConcept | None:
+        queries = []
+        if drug.id:
+            queries.append(drug.id)
+        if drug.name:
+            queries.append(drug.name)
+        if drug.mappings:
+            queries += [str(m.coding.code) for m in drug.mappings]
+        if drug.extensions:
+            for ext in drug.extensions:
+                if ext.name == "Aliases":
+                    queries += ext.value
+        for query in queries:
+            result = self._send_therapy_normalizer_query(query)
+            if result.drug:
+                normalized_drug = result.drug
+                normalized_drug.mappings = None
+                normalized_drug.extensions = None
+                return normalized_drug
+        return None
+
+    def _normalize_therapeutic(self, therapeutic: Therapeutic) -> Therapeutic | None:
+        if isinstance(therapeutic.root, MappableConcept):
+            return self._normalize_drug(self, therapeutic.root)
+        if isinstance(therapeutic.root, TherapyGroup):
+            normalized_members = []
+            for drug in therapeutic.root.therapies:
+                normalized_members.append(self._normalize_drug(drug))
+            if all(normalized_members):
+                return Therapeutic(
+                    root=TherapyGroup(
+                        id="make up a string TODO",
+                        therapies=normalized_members,
+                        membershipOperator=therapeutic.root.membershipOperator,
+                    )
+                )
+            return None
+
+        raise NotImplementedError
+
     async def _build_aggregated_diag_statement(
         self, statement: Statement
     ) -> VariantDiagnosticStudyStatement | None:
@@ -645,7 +714,7 @@ class Transformer(ABC):
         prop: VariantDiagnosticProposition = statement.proposition
         normalized_disease = self._normalize_condition(prop.objectCondition)
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
-        normalized_variant = self._normalize_variant(prop.subjectVariant)
+        normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all([normalized_disease, normalized_gene, normalized_variant]):
             return VariantDiagnosticStudyStatement(
                 id="metakb:id that sums up the proposition parts",
@@ -678,7 +747,7 @@ class Transformer(ABC):
         prop: VariantPrognosticProposition = statement.proposition
         normalized_disease = self._normalize_condition(prop.objectCondition)
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
-        normalized_variant = self._normalize_variant(prop.subjectVariant)
+        normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all((normalized_disease, normalized_gene, normalized_variant)):
             return VariantPrognosticStudyStatement(
                 id="metakb:id that sums up the proposition parts",

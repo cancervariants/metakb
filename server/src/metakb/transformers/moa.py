@@ -1,7 +1,6 @@
 """A module to convert MOA resources to common data model"""
 
 import logging
-from functools import cache
 from pathlib import Path
 
 from ga4gh.cat_vrs.models import CategoricalVariant
@@ -248,7 +247,6 @@ class MoaTransformer(Transformer):
             )
         )
 
-    @cache  # noqa: B019
     def _build_moa_variant(self, variant: dict) -> CategoricalVariant:
         """Transform MOA variant to CatVar
 
@@ -410,7 +408,6 @@ class MoaTransformer(Transformer):
             )
         )
 
-    @cache  # noqa: B019
     def _build_moa_therapy(self, name: str, therapy_type: str) -> Therapeutic:
         """Convert MOA Therapy into GKS Therapeutic
 
