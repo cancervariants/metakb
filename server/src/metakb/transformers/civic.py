@@ -168,18 +168,16 @@ class CivicTransformer(Transformer):
         )
 
     async def transform(self) -> None:
-        """Normalize CIViC evidence items and assertions and add annotations
-
-        Updated records will store results in ``processed_data`` and ``_cache`` instance
-        variables.
-        """
+        """Normalize CIViC evidence items and assertions and add annotations"""
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
         statements = []
         for evidence_item in accepted_evidence_items:
             aggregated_statement, statement = await self._build_statement_from_evidence(
                 evidence_item
             )
-            statements += [aggregated_statement, statement]
+            statements += [statement]
+            if aggregated_statement:
+                statements += [aggregated_statement]
 
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         for assertion in accepted_assertions:
@@ -188,28 +186,21 @@ class CivicTransformer(Transformer):
     async def _build_statement_from_evidence(
         self, evidence_item: civicpy.Evidence | CivicGksEvidence
     ) -> tuple[Statement | None, Statement]:
-        """Annotate evidence with additional information, such as normalizer info
-
-        Annotated evidence will be added to the ``processed_data.statements_evidence``
-        and ``_cache.evidence`` instance variables.
-
-        :param evidence_item: CIViC evidence item
-        :return: Statement for CIViC evidence item, if able to annotate
-        """
+        """Annotate evidence with additional information, such as normalizer info"""
         if not isinstance(evidence_item, CivicGksEvidence):
             statement = Statement(**CivicGksEvidence(evidence_item).model_dump())
         else:
             statement = Statement(**evidence_item.model_dump())
 
         if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
-            aggregate_statement = self._build_aggregated_tr_statement(statement)
+            aggregate_statement = await self._build_aggregated_tr_statement(statement)
         elif isinstance(statement.proposition, VariantDiagnosticProposition):
-            aggregate_statement = self._build_aggregated_diag_statement(statement)
+            aggregate_statement = await self._build_aggregated_diag_statement(statement)
         elif isinstance(statement.proposition, VariantPrognosticProposition):
-            aggregate_statement = self._build_aggregated_prog_statement(statement)
+            aggregate_statement = await self._build_aggregated_prog_statement(statement)
         else:
             raise NotImplementedError
-        return None, statement
+        return aggregate_statement, statement
 
     async def _annotate_assertion(self, assertion: civicpy.Assertion) -> None:
         """Annotate assertion with additional information, such as normalizer info

@@ -85,17 +85,6 @@ METAKB_CLASSIFICATION = MappableConcept(
 )
 
 
-def _sanitize_name(name: str) -> str:
-    """Trim leading and trailing whitespace and replace whitespace characters with
-    underscores
-
-    :param name: Name to sanitize
-    :return: Sanitized string with whitespace characters replaced by underscores
-    """
-    return re.sub(r"\s+", "_", name.strip())
-
-
-
 class EcoLevel(str, Enum):
     """Define constraints for Evidence Ontology levels"""
 
