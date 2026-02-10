@@ -45,7 +45,6 @@ dependencies = [
     "botocore",
     "asyncclick",
     "jinja2",
-    "psycopg2-binary>=2.9.10",
 ]
 
 [project.optional-dependencies]
@@ -69,6 +68,7 @@ dev = [
     "prek>=0.2.23",
     "ruff==0.14.10",
     "fastapi[standard]",
+    "psycopg2-binary>=2.9.10",
 ]
 codegen = [
     "pydantic-to-typescript>=2.0.0",
