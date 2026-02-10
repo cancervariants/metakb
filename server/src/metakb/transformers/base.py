@@ -3,14 +3,20 @@
 import datetime
 import json
 import logging
+import re
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import cache
 from pathlib import Path
 from typing import ClassVar
 
+from async_lru import alru_cache
 from disease.schemas import NormalizationService as NormalizedDisease
-from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
+from ga4gh.cat_vrs.models import (
+    CategoricalVariant,
+    DefiningAlleleConstraint,
+    FeatureContextConstraint,
+)
 from ga4gh.core import sha512t24u
 from ga4gh.core.models import (
     Coding,
@@ -638,6 +644,7 @@ class Transformer(ABC):
                 return normalized_gene
         return None
 
+    @alru_cache
     async def _send_variant_normalizer_query(
         self, query: str
     ) -> Allele | CopyNumberChange | CopyNumberCount | None:
@@ -649,11 +656,20 @@ class Transformer(ABC):
         queries = [variant.name]
         result = None
         for query in queries:
+            if match := re.match(r"(.*) Mutation", query):
+                gene_name = match.groups()[0]
+                normalized_gene_result = self._send_gene_normalizer_query(gene_name)
+                if normalized_gene_result.gene:
+                    constraints = [
+                        FeatureContextConstraint(
+                            featureContext=normalized_gene_result.gene
+                        )
+                    ]
+                    break
             result = await self._send_variant_normalizer_query(query)
-            if result:
+            if result and isinstance(result, Allele):
+                constraints = [DefiningAlleleConstraint(allele=result)]
                 break
-        if isinstance(result, Allele):
-            constraints = [DefiningAlleleConstraint(allele=result)]
         else:
             _logger.debug(
                 "Failed to normalize variant: %s", variant.model_dump(exclude_none=True)
