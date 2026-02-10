@@ -713,9 +713,9 @@ class Transformer(ABC):
                 return Therapeutic(root=drug_result)
             return None
         if isinstance(therapeutic.root, TherapyGroup):
-            normalized_members = []
-            for drug in therapeutic.root.therapies:
-                normalized_members.append(self._normalize_drug(drug))
+            normalized_members = [
+                self._normalize_drug(drug) for drug in therapeutic.root.therapies
+            ]
             if all(normalized_members):
                 return Therapeutic(
                     root=TherapyGroup(
