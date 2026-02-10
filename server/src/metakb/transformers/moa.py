@@ -118,7 +118,7 @@ class MoaTransformer(Transformer):
             if aggregated_statement:
                 aggregated_statements.append(aggregated_statement)
         self.processed_data = TransformedData(
-            statements=[s.id for s in statements + aggregated_statements]
+            statements={s.id: s for s in statements + aggregated_statements}
         )
 
     async def _build_prog_statement(
@@ -252,45 +252,58 @@ class MoaTransformer(Transformer):
 
         TODO: some open questions here about how much to build out --
         * should we make a basic gene mappableconcept as the constraint for the feature catvar?
+        * use extensions to bring in more info on a per-variant-type basis (e.g. for tougher constraints)
 
         :param variant: entire MOA variant object. The object keys are sort of unreliable
             so we just pass through the whole thing and work it out within the method
         :return: original MOA variant as a text catvar
         """
         variant_id = f"moa.variant:{variant['id']}"
-        feature_name = variant["feature"]
-        gene = variant.get("gene") or variant.get("gene1")
+        moa_feature_name = variant["feature"]
+        moa_primary_gene = variant.get("gene") or variant.get("gene1")
         protein_change = variant.get("protein_change")
 
         if variant.get("gene2"):
-            # it's a fusion
-            pass
+            # it's a fusion!
+            # once we know how to normalize them, we may want to bring in some
+            # fusion-specific variant attributes as Extensions to help inform
+            # reconstruction of the adjacency constraint(s)
+            _logger.debug(
+                "Unsupported MOA fusion variant ID %s: %s",
+                variant_id,
+                variant,
+            )
+            name = moa_feature_name
         elif (
             variant["feature_type"] == "somatic_variant"
             and variant["alternate_allele"] is None
-            and feature_name == gene
+            and moa_feature_name == moa_primary_gene
             and protein_change is None
             # no slam-dunk catvar solution exists for defining specific exons as features --
             # see https://github.com/ga4gh/cat-vrs/discussions/161
             and variant["exon"] is None
         ):
-            # it's a feature context constraint-based catvar
-            feature = f"{feature_name} Mutation"
-        elif "rearrangement_type" not in variant and protein_change and gene:
-            # it's a defining allele constraint-based catvar
-            pass
+            # it's a feature context constraint-based catvar!
+            # for now, just use the "<gene name> Mutation" pattern
+            name = f"{moa_feature_name} Mutation"
+        elif (
+            "rearrangement_type" not in variant and protein_change and moa_primary_gene
+        ):
+            # it's a defining allele constraint-based catvar!
+            name = f"{moa_primary_gene} {protein_change[2:]}"
         else:
-            # it's some other unsupported stuff
+            # it's some other unsupported stuff. Log it and circle back later
+            name = moa_feature_name  # TODO
             _logger.debug(
-                "Variation Normalizer does not support %s: %s",
+                "Unsupported MOA variant ID %s: %s",
                 variant_id,
-                feature_name,
+                moa_feature_name,
             )
 
         extensions, mappings = self._get_variant_extras(variant)
         return CategoricalVariant(
             id=variant_id,
-            name=feature_name,
+            name=name,
             extensions=extensions,
             mappings=mappings,
         )
@@ -324,10 +337,10 @@ class MoaTransformer(Transformer):
         moa_rep_coord = {k: variant.get(k) for k in coordinates_keys}
         if any(moa_rep_coord.values()):
             extensions.append(
-                Extension(name="MOA representative coordinate", value=moa_rep_coord)
+                Extension(name="moa_representative_coordinate", value=moa_rep_coord)
             )
         if locus := variant.get("locus"):
-            extensions.append(Extension(name="MOA locus", value=locus))
+            extensions.append(Extension(name="moa_locus", value=locus))
         mappings = []
         if rsid := variant.get("rsid"):
             mappings.append(
@@ -338,6 +351,12 @@ class MoaTransformer(Transformer):
                     ),
                     relation=Relation.RELATED_MATCH,
                 )
+            )
+        if feature_type := variant.get("feature_type"):
+            extensions.append(Extension(name="moa_feature_type", value=feature_type))
+        if annotation := variant.get("variant_annotation"):
+            extensions.append(
+                Extension(name="moa_variant_annotation", value=annotation)
             )
         return extensions, mappings
 

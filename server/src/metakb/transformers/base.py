@@ -53,7 +53,7 @@ from metakb.normalizers import (
     ViccNormalizers,
 )
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 # Normalizer response type to attribute name
 # NORMALIZER_INSTANCE_TO_ATTR = {
@@ -638,7 +638,6 @@ class Transformer(ABC):
                 return normalized_gene
         return None
 
-    @cache  # noqa: B019
     async def _send_variant_normalizer_query(
         self, query: str
     ) -> Allele | CopyNumberChange | CopyNumberCount | None:
@@ -656,8 +655,15 @@ class Transformer(ABC):
         if isinstance(result, Allele):
             constraints = [DefiningAlleleConstraint(allele=result)]
         else:
-            raise NotImplementedError
-        return CategoricalVariant(id="some cv id pattern", constraints=constraints)
+            _logger.debug(
+                "Failed to normalize variant: %s", variant.model_dump(exclude_none=True)
+            )
+            return None
+        return CategoricalVariant(
+            id="idk: some cv id pattern TODO",
+            name="idk some pattern TODO",
+            constraints=constraints,
+        )
 
     @cache  # noqa: B019
     def _send_therapy_normalizer_query(self, query: str) -> NormalizedTherapy:
@@ -677,8 +683,8 @@ class Transformer(ABC):
                     queries += ext.value
         for query in queries:
             result = self._send_therapy_normalizer_query(query)
-            if result.drug:
-                normalized_drug = result.drug
+            if result.therapy:
+                normalized_drug = result.therapy
                 normalized_drug.mappings = None
                 normalized_drug.extensions = None
                 return normalized_drug
@@ -686,7 +692,10 @@ class Transformer(ABC):
 
     def _normalize_therapeutic(self, therapeutic: Therapeutic) -> Therapeutic | None:
         if isinstance(therapeutic.root, MappableConcept):
-            return self._normalize_drug(self, therapeutic.root)
+            drug_result = self._normalize_drug(therapeutic.root)
+            if drug_result:
+                return Therapeutic(root=drug_result)
+            return None
         if isinstance(therapeutic.root, TherapyGroup):
             normalized_members = []
             for drug in therapeutic.root.therapies:
@@ -780,7 +789,7 @@ class Transformer(ABC):
         prop: VariantTherapeuticResponseProposition = statement.proposition
         normalized_disease = self._normalize_condition(prop.conditionQualifier)
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
-        normalized_variant = self._normalize_variant(prop.subjectVariant)
+        normalized_variant = await self._normalize_variant(prop.subjectVariant)
         normalized_therapeutic = self._normalize_therapeutic(prop.objectTherapeutic)
         if all(
             (
