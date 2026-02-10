@@ -45,6 +45,7 @@ dependencies = [
     "botocore",
     "asyncclick",
     "jinja2",
+    "pandas>=2.3.3, <3.0",
 ]
 
 [project.optional-dependencies]
