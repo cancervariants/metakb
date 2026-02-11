@@ -280,7 +280,7 @@ install only the required packages (`pip install -e .`) and update the
 To generate run the below command from `server` directory (ensure you have started the venv):
 
 ```commandline
-pip freeze --exclude-editable > ../requirements.txt
+uv pip compile pyproject.toml --extra deploy -o ../requirements.txt --no-annotate
 ```
 
 ## License
