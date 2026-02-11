@@ -7,9 +7,8 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Install system deps
-# TODO: remove git dep once civicpy is updated in pypi
 RUN apt-get update && \
-    apt-get install -y libpq-dev gcc git \
+    apt-get install -y libpq-dev gcc \
     && rm -rf /var/lib/apt/lists/*
 
 
