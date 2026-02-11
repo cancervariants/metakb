@@ -18,7 +18,6 @@ services:
       - uta
     volumes:
       - /usr/local/share/seqrepo:/usr/local/share/seqrepo
-      - uta_vol:/var/lib/postgresql/data
 
   gene-dynamodb-local:
     image: cancervariants/gene-normalizer-ddb:2025-12-29
