@@ -311,13 +311,7 @@ class MoaTransformer(Transformer):
     def _get_variant_extras(
         self, variant: dict
     ) -> tuple[list[Extension], list[ConceptMapping]]:
-        """Add extensions/members/mappings to MOA CatVar
-
-        Todo:
-        * should members be generated? They're created as normalized alleles, which
-          feels philosophically out of step with the other changes here.
-          (Figure out before merging)
-          - removing this for now
+        """Add extensions/mappings to MOA CatVar
 
         :param variant: original MOA variant object
         :return: tuple with constructed Extensions, catvar members, and mappings
