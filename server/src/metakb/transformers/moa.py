@@ -1,6 +1,7 @@
 """A module to convert MOA resources to common data model"""
 
 import logging
+from enum import StrEnum
 from pathlib import Path
 
 from ga4gh.cat_vrs.models import CategoricalVariant
@@ -35,7 +36,12 @@ from ga4gh.vrs.models import Variation
 from metakb.config import get_config
 from metakb.harvesters.moa import MoaHarvestedData
 from metakb.normalizers import ViccNormalizers
-from metakb.transformers.base import MethodId, TransformedData, Transformer
+from metakb.transformers.base import (
+    MethodId,
+    MoaEvidenceLevel,
+    TransformedData,
+    Transformer,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -121,6 +127,23 @@ class MoaTransformer(Transformer):
             statements={s.id: s for s in statements + aggregated_statements}
         )
 
+    def _build_strength(self, assertion: dict) -> MappableConcept:
+        predictive_implication = (
+            assertion["predictive_implication"]
+            .strip()
+            .replace(" ", "_")
+            .replace("-", "_")
+            .upper()
+        )
+        evidence_level = MoaEvidenceLevel[predictive_implication]
+        return MappableConcept(
+            primaryCoding=Coding(
+                system="https://moalmanac.org/about",
+                code=code(evidence_level.value),
+            ),
+            mappings=self.evidence_level_to_vicc_concept_mapping[evidence_level],
+        )
+
     async def _build_prog_statement(
         self,
         assertion: dict,
@@ -149,6 +172,8 @@ class MoaTransformer(Transformer):
         else:
             predicate = PrognosticPredicate.WORSE_OUTCOME
             direction = Direction.DISPUTES
+        strength = self._build_strength(assertion)
+
         statement = Statement(
             id=f"moa.assertion:{assertion['id']}",
             description=assertion["description"],
@@ -161,6 +186,7 @@ class MoaTransformer(Transformer):
             direction=direction,
             reportedIn=[source],
             specifiedBy=MOA_METHOD,
+            strength=strength,
         )
         aggregated_statement = await self._build_aggregated_prog_statement(statement)
         return aggregated_statement, statement
@@ -196,6 +222,8 @@ class MoaTransformer(Transformer):
         else:
             predicate = TherapeuticResponsePredicate.SENSITIVITY
             direction = Direction.SUPPORTS if sensitivity else Direction.DISPUTES
+        strength = self._build_strength(assertion)
+
         statement = Statement(
             id=f"moa.assertion:{assertion['id']}",
             description=assertion["description"],
@@ -209,6 +237,7 @@ class MoaTransformer(Transformer):
             direction=direction,
             reportedIn=[source],
             specifiedBy=MOA_METHOD,
+            strength=strength,
         )
         aggregated_statement = await self._build_aggregated_tr_statement(statement)
         return aggregated_statement, statement
