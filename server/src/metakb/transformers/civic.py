@@ -1,22 +1,15 @@
 """A module for to transform CIViC."""
 
-import inspect
 import logging
-import re
 from enum import Enum, StrEnum
 from pathlib import Path
 from types import MappingProxyType
 
 from civicpy import civic as civicpy
 from civicpy.exports.civic_gks_record import (
-    CivicGksDisease,
     CivicGksEvidence,
-    CivicGksGene,
-    CivicGksMolecularProfile,
-    CivicGksPhenotype,
-    CivicGksTherapy,
+    CivicGksRecordError,
     CivicGksTherapyGroup,
-    create_gks_record_from_assertion,
 )
 from ga4gh.cat_vrs.models import (
     CategoricalVariant,
@@ -29,18 +22,17 @@ from ga4gh.core.models import (
     MappableConcept,
 )
 from ga4gh.va_spec.base import (
-    Condition,
     ConditionSet,
     MembershipOperator,
     Statement,
-    TherapyGroup,
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from ga4gh.vrs.models import Allele, Expression, Syntax, Variation
+from ga4gh.vrs.models import Allele, Syntax, Variation
 from pydantic.dataclasses import dataclass
 
+from metakb.config import get_config
 from metakb.normalizers import (
     ViccNormalizers,
 )
@@ -153,18 +145,14 @@ class CivicTransformer(Transformer):
         :param harvester_path: Path to previously harvested CIViC data
         :param normalizers: normalizer collection instance
         """
-        # TODO dont do this
-        harvester_path = Path("tests/data/civicpy_cache_20250929.pkl")
-        super().__init__(
-            data_dir=data_dir, harvester_path=harvester_path, normalizers=normalizers
-        )
-
-        self._concept_norm_method = MappingProxyType(
-            {
-                ConceptType.DISEASE: self.vicc_normalizers.normalize_disease,
-                ConceptType.GENE: self.vicc_normalizers.normalize_gene,
-                ConceptType.THERAPY: self.vicc_normalizers.normalize_therapy,
-            }
+        self.name = self.__class__.__name__.lower().split("transformer")[0]
+        if data_dir:
+            self.data_dir = data_dir
+        else:
+            self.data_dir = get_config().data_dir / self.name
+        self.harvester_path = harvester_path
+        self.vicc_normalizers = (
+            ViccNormalizers() if normalizers is None else normalizers
         )
 
     async def transform(self) -> None:
@@ -172,344 +160,44 @@ class CivicTransformer(Transformer):
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
         statements = []
         for evidence_item in accepted_evidence_items:
-            aggregated_statement, statement = await self._build_statement_from_evidence(
-                evidence_item
-            )
-            statements += [statement]
-            if aggregated_statement:
-                statements += [aggregated_statement]
-
-        accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
-        for assertion in accepted_assertions:
-            await self._annotate_assertion(assertion)
-
-    async def _build_statement_from_evidence(
-        self, evidence_item: civicpy.Evidence | CivicGksEvidence
-    ) -> tuple[Statement | None, Statement]:
-        """Annotate evidence with additional information, such as normalizer info"""
-        if not isinstance(evidence_item, CivicGksEvidence):
-            statement = Statement(**CivicGksEvidence(evidence_item).model_dump())
-        else:
-            statement = Statement(**evidence_item.model_dump())
-
-        if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
-            aggregate_statement = await self._build_aggregated_tr_statement(statement)
-        elif isinstance(statement.proposition, VariantDiagnosticProposition):
-            aggregate_statement = await self._build_aggregated_diag_statement(statement)
-        elif isinstance(statement.proposition, VariantPrognosticProposition):
-            aggregate_statement = await self._build_aggregated_prog_statement(statement)
-        else:
-            raise NotImplementedError
-        return aggregate_statement, statement
-
-    async def _annotate_assertion(self, assertion: civicpy.Assertion) -> None:
-        """Annotate assertion with additional information, such as normalizer info
-
-        Annotated assertion will be added to the
-        ``processed_data.statements_assertions`` instance variable.
-
-        :param assertion: CIViC assertion
-        :return: AAC Study Statement for CIViC assertion, if able to annotate
-        """
-
-        async def _resolve_evidence(
-            ev: CivicGksEvidence, assertion_id: str
-        ) -> Statement | None:
-            """Get annotated evidence from cache or create annotated evidence
-            (and add to cache)
-
-            :param ev: CIViC GKS evidence item
-            :param assertion_id: ID of assertion that ``ev`` belongs to
-            :return: Annotated evidence, if able to resolve
-            """
-            cached_evidence = self._cache.evidence.get(ev.id)
-            if cached_evidence:
-                return cached_evidence
-
-            annotated_evidence = await self._build_statement_from_evidence(ev)
-            if not annotated_evidence:
-                _logger.warning(
-                    "%s is unable to resolve evidence item %s in evidence lines",
-                    assertion_id,
-                    ev.id,
-                )
-            return annotated_evidence
-
-        try:
-            gks_assertion = create_gks_record_from_assertion(assertion)
-        except Exception as e:
-            _logger.warning(e)
-            return
-
-        try:
-            updated_proposition = await self._get_updated_proposition(
-                gks_assertion.proposition
-            )
-        except NotImplementedError:
-            return
-
-        for el in gks_assertion.hasEvidenceLines or []:
-            el.hasEvidenceItems = [
-                annotated_ev
-                for ev_item in el.hasEvidenceItems
-                if (annotated_ev := await _resolve_evidence(ev_item, gks_assertion.id))
-            ]
-
-        annotated_assertion = gks_assertion.__class__.__base__(
-            **gks_assertion.model_dump(exclude_none=True, exclude={"proposition"}),
-            proposition=updated_proposition,
-        )
-        self.processed_data.statements_assertions.append(annotated_assertion)
-
-    async def _get_updated_proposition(
-        self,
-        proposition: VariantDiagnosticProposition
-        | VariantPrognosticProposition
-        | VariantTherapeuticResponseProposition,
-    ) -> (
-        VariantDiagnosticProposition
-        | VariantPrognosticProposition
-        | VariantTherapeuticResponseProposition
-        | None
-    ):
-        """Get updated proposition
-
-        The updated proposition will include additional information, such as normalizer
-        info.
-
-        :param proposition: Proposition for a given statement
-        :return: Annotated proposition
-        """
-
-        async def _add_therapy(therapy: CivicGksTherapy) -> MappableConcept:
-            """Create or get therapy given CIViC therapy.
-            First looks in cache for existing therapy, if not found will attempt to
-            transform. Will add CIViC therapy ID to ``processed_data.therapies`` and
-            ``_cache.therapies``
-
-            :param therapy: CIViC Therapy object
-            :return: Therapy represented as mappable concept
-            """
-            return await self._resolve_entity(
-                therapy,
-                self._cache.therapies,
-                self.processed_data.therapies,
-            )
-
-        updated_molecular_profile = await self._resolve_entity(
-            proposition.subjectVariant,
-            self._cache.categorical_variants,
-            self.processed_data.categorical_variants,
-        )
-
-        if getattr(proposition, "objectCondition", None):
-            condition_key = "objectCondition"
-        else:
-            condition_key = "conditionQualifier"
-
-        condition = getattr(proposition, condition_key)
-        if condition and isinstance(condition.root, ConditionSet):
-            updated_condition = await self._resolve_condition_set(condition.root)
-        else:
-            updated_condition = await self._resolve_entity(
-                condition.root,
-                self._cache.conditions,
-                self.processed_data.conditions,
-            )
-        updated_condition = Condition(root=updated_condition)
-
-        updated_gene = await self._resolve_entity(
-            proposition.geneContextQualifier,
-            self._cache.genes,
-            self.processed_data.genes,
-        )
-
-        updated_mappings = {
-            condition_key: updated_condition,
-            "geneContextQualifier": updated_gene,
-            "subjectVariant": updated_molecular_profile,
-        }
-        therapeutic = getattr(proposition, "objectTherapeutic", None)
-        if therapeutic:
-            if isinstance(therapeutic.root, TherapyGroup):
-                therapy_member_ids = []
-                therapies = []
-                for therapy_member in therapeutic.root.therapies:
-                    therapy_member_ids.append(therapy_member.id)
-                    therapies.append(await _add_therapy(therapy_member))
-
-                updated_therapeutic = TherapyGroup(
-                    **therapeutic.model_dump(exclude_none=True, exclude={"therapies"}),
-                    id=self._compute_id(therapeutic.root, therapy_member_ids),
-                    therapies=therapies,
-                )
-                if updated_therapeutic not in self.processed_data.therapy_groups:
-                    self.processed_data.therapy_groups.append(updated_therapeutic)
-
-            else:
-                updated_therapeutic = await _add_therapy(therapeutic.root)
-
-            updated_mappings["objectTherapeutic"] = updated_therapeutic
-
-        return proposition.model_copy(update=updated_mappings)
-
-    def _compute_id(
-        self,
-        therapy_group_or_cond_set: CivicGksTherapyGroup | ConditionSet,
-        ids: list[str],
-    ) -> str:
-        """Compute identifier for therapy group or condition set
-
-        :param therapy_group_or_cond_set: Therapy group or condition set
-        :param ids: List of IDs for therapies or conditions in
-            ``therapy_group_or_cond_set``
-        :return: Computed identifier
-        """
-        ns_prefix = NAMESPACE_PREFIX_MAP[therapy_group_or_cond_set.__class__][
-            therapy_group_or_cond_set.membershipOperator
-        ]
-
-        digest = self._get_digest_for_str_lists(ids)
-        return f"{ns_prefix}:{digest}"
-
-    async def _resolve_entity(
-        self,
-        entity: CivicGksTherapy
-        | CivicGksDisease
-        | CivicGksPhenotype
-        | CivicGksGene
-        | CivicGksMolecularProfile,
-        cache: dict,
-        processed_list: list,
-    ) -> CategoricalVariant | ProteinSequenceConsequence | MappableConcept:
-        """Get annotated entity from cache or create annotated entity
-
-        Annotated entity will be added to the ``processed_list`` and ``cache``
-
-        :param entity: The entity to annotate with the VICC normalizers
-            If entity is CivicGksPhenotype, will not attempt to annotate
-        :param cache: Concept cache
-        :param processed_list: List of processed data
-        :return: Annotated entity
-        """
-        entityt_id = entity.id
-        entity_obj = cache.get(entityt_id)
-        if entity_obj:
-            return entity_obj
-
-        if isinstance(entity, CivicGksMolecularProfile):
-            annotated_entity = await self._get_annotated_mp(entity)
-        elif isinstance(entity, CivicGksDisease | CivicGksGene | CivicGksTherapy):
-            annotated_entity = self._get_annotated_mappable_concept(entity)
-        else:
-            annotated_entity = entity
-
-        if inspect.isawaitable(annotated_entity):
-            annotated_entity = await annotated_entity
-
-        cache[entityt_id] = annotated_entity
-        processed_list.append(annotated_entity)
-        return annotated_entity
-
-    async def _resolve_condition_set(self, condition_set: ConditionSet) -> ConditionSet:
-        """Get annotated condition set
-
-        Conditions will be added to the ``processed_data.conditions`` and
-        ``_cache.conditions``
-
-        :param condition_set: Condition set
-        :return: Annotated condition set
-        """
-        updated_conditions = []
-        condition_ids = []
-        for condition in condition_set.conditions:
-            if isinstance(condition, CivicGksDisease | CivicGksPhenotype):
-                condition_ids.append(condition.id)
-                updated_conditions.append(
-                    await self._resolve_entity(
-                        condition,
-                        self._cache.conditions,
-                        self.processed_data.conditions,
+            if not isinstance(evidence_item, CivicGksEvidence):
+                try:
+                    statement = Statement(
+                        **CivicGksEvidence(evidence_item).model_dump()
                     )
+                except CivicGksRecordError:
+                    _logger.warning(
+                        "Unable to model civic evidence item %s as a GKS statement",
+                        evidence_item,
+                    )
+                    continue
+            else:
+                statement = Statement(**evidence_item.model_dump())
+
+            statements += [statement]
+
+            if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
+                aggregate_statement = await self._build_aggregated_tr_statement(
+                    statement
                 )
-            elif isinstance(condition, ConditionSet):
-                _condition_set = await self._resolve_condition_set(condition)
-                condition_ids.append(_condition_set.id)
-                updated_conditions.append(_condition_set)
-
-        condition_set = ConditionSet(
-            **condition_set.model_dump(
-                exclude_none=True,
-                exclude={
-                    "conditions",
-                },
-            ),
-            conditions=updated_conditions,
-            id=self._compute_id(condition_set, condition_ids),
-        )
-        if condition_set not in self.processed_data.condition_sets:
-            self.processed_data.condition_sets.append(condition_set)
-        return condition_set
-
-    def _get_annotated_mappable_concept(
-        self,
-        entity: CivicGksGene | CivicGksDisease | CivicGksTherapy,
-    ) -> MappableConcept:
-        """Get annotated info for a CIViC entity
-
-        :param entity: CIViC entity (gene, disease, or therapy) that can be represented
-            as a mappable concept
-        :return: Mappable concept with additional info, such as normalizer info
-        """
-        concept_type = entity.conceptType
-        entity_id = entity.id
-        entity_mappings = entity.mappings or []
-
-        queries = [
-            mapping.coding.code.root
-            if concept_type == ConceptType.DISEASE
-            else mapping.coding.id
-            for mapping in entity_mappings
-        ]
-        queries.append(entity.name)
-
-        extensions = entity.extensions or []
-        if aliases_ext := next(
-            (ext for ext in extensions if ext.name == "aliases"), None
-        ):
-            queries.extend(aliases_ext.value)
-
-        normalized_id = None
-        for query in queries:
-            norm_resp, normalized_id = self._concept_norm_method[concept_type](query)
-            if normalized_id:
-                break
-
-        if not normalized_id:
-            _logger.debug(
-                "Unable to normalize concept %s using queries: %s", entity_id, queries
-            )
-            extensions.append(self._get_vicc_normalizer_failure_ext())
-            mappings = entity_mappings
-        else:
-            if concept_type == ConceptType.THERAPY:
-                regulatory_approval_extension = (
-                    self.vicc_normalizers.get_regulatory_approval_extension(norm_resp)
+            elif isinstance(statement.proposition, VariantDiagnosticProposition):
+                aggregate_statement = await self._build_aggregated_diag_statement(
+                    statement
                 )
+            elif isinstance(statement.proposition, VariantPrognosticProposition):
+                aggregate_statement = await self._build_aggregated_prog_statement(
+                    statement
+                )
+            else:
+                raise NotImplementedError
 
-                if regulatory_approval_extension:
-                    extensions.append(regulatory_approval_extension)
+            if aggregate_statement:
+                statements += [aggregate_statement]
 
-            normalizer_mappings = self._get_vicc_normalizer_mappings(
-                normalized_id, norm_resp
-            )
-            mappings = self._merge_mappings(entity_mappings, normalizer_mappings)
-
-        return MappableConcept(
-            **entity.model_dump(exclude_none=True, exclude={"extensions", "mappings"}),
-            extensions=extensions or None,
-            mappings=mappings or None,
-        )
+        # TODO assertions could get weird
+        # accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
+        # for assertion in accepted_assertions:
+        #     await self._annotate_assertion(assertion)
 
     async def _get_annotated_mp(
         self, molecular_profile: civicpy.MolecularProfile
@@ -642,81 +330,81 @@ class CivicTransformer(Transformer):
             extensions=extensions or None,
         )
 
-    async def _get_mp_members(
-        self, expressions: list[Expression], syntax_to_exclude: Syntax
-    ) -> list[Variation]:
-        """Get molecular profile members. This is the related variant concepts.
+    # async def _get_mp_members(
+    #     self, expressions: list[Expression], syntax_to_exclude: Syntax
+    # ) -> list[Variation]:
+    #     """Get molecular profile members. This is the related variant concepts.
+    #
+    #     Successfully normalized variants will be stored in ``processed_data.variations``
+    #
+    #     :param expressions: List of HGVS expressions
+    #     :param syntax_to_exclude: Syntax expression to exclude since it's included in
+    #         the defining allele constraint
+    #     :return: List containing one VRS variation record for each associated HGVS
+    #         expression, if variation-normalizer was able to normalize
+    #     """
+    #     members = []
+    #     for expression in expressions:
+    #         if expression.syntax == syntax_to_exclude:
+    #             continue
+    #
+    #         hgvs_expr = expression.value
+    #         normalized_variation = await self.vicc_normalizers.normalize_variation(
+    #             hgvs_expr
+    #         )
+    #
+    #         if normalized_variation:
+    #             updated_variation = Variation(
+    #                 **normalized_variation.model_dump(
+    #                     exclude_none=True, exclude={"extensions", "name", "expressions"}
+    #                 ),
+    #                 extensions=None,
+    #                 name=hgvs_expr,
+    #                 expressions=[expression],
+    #             )
+    #             members.append(updated_variation)
+    #             self.processed_data.variations.append(updated_variation.root)
+    #     return members
 
-        Successfully normalized variants will be stored in ``processed_data.variations``
+    # @staticmethod
+    # def _parse_mp_name(
+    #     molecular_profile_name: str,
+    # ) -> MolecularProfileNameComponents | None:
+    #     """Extract components from molecular profile name
+    #
+    #     :param molecular_profile_name: CIViC Molecular Profile name
+    #     :return: Molecular profile name components if pattern matches, otherwise None
+    #     """
+    #     match = re.match(MP_NAME_PATTERN, molecular_profile_name)
+    #     return MolecularProfileNameComponents(**match.groupdict()) if match else None
 
-        :param expressions: List of HGVS expressions
-        :param syntax_to_exclude: Syntax expression to exclude since it's included in
-            the defining allele constraint
-        :return: List containing one VRS variation record for each associated HGVS
-            expression, if variation-normalizer was able to normalize
-        """
-        members = []
-        for expression in expressions:
-            if expression.syntax == syntax_to_exclude:
-                continue
-
-            hgvs_expr = expression.value
-            normalized_variation = await self.vicc_normalizers.normalize_variation(
-                hgvs_expr
-            )
-
-            if normalized_variation:
-                updated_variation = Variation(
-                    **normalized_variation.model_dump(
-                        exclude_none=True, exclude={"extensions", "name", "expressions"}
-                    ),
-                    extensions=None,
-                    name=hgvs_expr,
-                    expressions=[expression],
-                )
-                members.append(updated_variation)
-                self.processed_data.variations.append(updated_variation.root)
-        return members
-
-    @staticmethod
-    def _parse_mp_name(
-        molecular_profile_name: str,
-    ) -> MolecularProfileNameComponents | None:
-        """Extract components from molecular profile name
-
-        :param molecular_profile_name: CIViC Molecular Profile name
-        :return: Molecular profile name components if pattern matches, otherwise None
-        """
-        match = re.match(MP_NAME_PATTERN, molecular_profile_name)
-        return MolecularProfileNameComponents(**match.groupdict()) if match else None
-
-    @staticmethod
-    def _is_supported_variant_query(molecular_profile_name: str, mpid: int) -> bool:
-        """Determine if a molecular profile name is supported by the
-        variation-normalizer.
-
-        This is used to skip normalization on variants that the variation-normalizer
-        is known not to support
-
-        :param molecular_profile_name: CIViC Molecular Profile name
-        :param mpid: CIViC molecular profile ID
-        :return: ``True`` if the molecular_profile_name is supported in the
-            variation-normalizer. ``False`` otherwise
-        """
-        vname_lower = molecular_profile_name.lower()
-
-        is_frameshift = vname_lower.endswith("fs")
-        has_unsupported_chars = any(c in vname_lower for c in ("-", "/"))
-        unable_to_normalize_names = bool(
-            set(vname_lower.split()) & UNABLE_TO_NORMALIZE_VAR_NAMES
-        )
-
-        if is_frameshift or has_unsupported_chars or unable_to_normalize_names:
-            _logger.debug(
-                "Variation Normalizer does not support %s: %s",
-                mpid,
-                molecular_profile_name,
-            )
-            return False
-
-        return True
+    # @staticmethod
+    # def _is_supported_variant_query(molecular_profile_name: str, mpid: int) -> bool:
+    #     """Determine if a molecular profile name is supported by the
+    #     variation-normalizer.
+    #
+    #     This is used to skip normalization on variants that the variation-normalizer
+    #     is known not to support
+    #
+    #     :param molecular_profile_name: CIViC Molecular Profile name
+    #     :param mpid: CIViC molecular profile ID
+    #     :return: ``True`` if the molecular_profile_name is supported in the
+    #         variation-normalizer. ``False`` otherwise
+    #     """
+    #     vname_lower = molecular_profile_name.lower()
+    #
+    #     is_frameshift = vname_lower.endswith("fs")
+    #     has_unsupported_chars = any(c in vname_lower for c in ("-", "/"))
+    #     unable_to_normalize_names = bool(
+    #         set(vname_lower.split()) & UNABLE_TO_NORMALIZE_VAR_NAMES
+    #     )
+    #
+    #     if is_frameshift or has_unsupported_chars or unable_to_normalize_names:
+    #         _logger.debug(
+    #             "Variation Normalizer does not support %s: %s",
+    #             mpid,
+    #             molecular_profile_name,
+    #         )
+    #         return False
+    #
+    #     return True

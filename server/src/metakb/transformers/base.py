@@ -16,7 +16,9 @@ from ga4gh.cat_vrs.models import (
     CategoricalVariant,
     DefiningAlleleConstraint,
     FeatureContextConstraint,
+    Relation,
 )
+from ga4gh.cat_vrs.recipes import SystemUri
 from ga4gh.core.models import Coding, MappableConcept, code
 from ga4gh.va_spec.aac_2017 import (
     Classification,
@@ -365,6 +367,7 @@ class Transformer(ABC):
                     normalized_disease = self._normalize_disease(condition)
                     if not normalized_disease:
                         return None
+                    members.append(normalized_disease)
                 else:
                     raise ValueError
             elif isinstance(condition, ConditionSet):
@@ -441,7 +444,7 @@ class Transformer(ABC):
         queries = [variant.name]
         result = None
         for query in queries:
-            if match := re.match(r"(.*) Mutation", query):
+            if match := re.match(r"(.*) (Mutation|MUTATION)", query):
                 gene_name = match.groups()[0]
                 normalized_gene_result = self._send_gene_normalizer_query(gene_name)
                 if normalized_gene_result.gene:
@@ -453,7 +456,25 @@ class Transformer(ABC):
                     break
             result = await self._send_variant_normalizer_query(query)
             if result and isinstance(result, Allele):
-                constraints = [DefiningAlleleConstraint(allele=result)]
+                constraints = [
+                    DefiningAlleleConstraint(
+                        allele=result,
+                        relations=[
+                            MappableConcept(
+                                primaryCoding=Coding(
+                                    system=SystemUri.SEQUENCE_ONTOLOGY,
+                                    code=code(Relation.LIFTOVER_TO),
+                                ),
+                            ),
+                            MappableConcept(
+                                primaryCoding=Coding(
+                                    system=SystemUri.SEQUENCE_ONTOLOGY,
+                                    code=code(Relation.TRANSLATION_OF),
+                                ),
+                            ),
+                        ],
+                    )
+                ]
                 break
         else:
             _logger.debug(
