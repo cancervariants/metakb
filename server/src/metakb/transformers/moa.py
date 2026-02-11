@@ -1,7 +1,6 @@
 """A module to convert MOA resources to common data model"""
 
 import logging
-from enum import StrEnum
 from pathlib import Path
 
 from ga4gh.cat_vrs.models import CategoricalVariant
@@ -45,7 +44,7 @@ from metakb.transformers.base import (
 
 _logger = logging.getLogger(__name__)
 
-MOA_METHOD = Method(
+_MOA_METHOD = Method(
     id=MethodId.MOA_ASSERTION_BIORXIV,
     name="MOAlmanac (2021)",
     reportedIn=Document(
@@ -81,6 +80,21 @@ class MoaTransformer(Transformer):
         self.vicc_normalizers = (
             ViccNormalizers() if normalizers is None else normalizers
         )
+
+        concept_mappings: dict[str, list[ConceptMapping]] = {}
+        for item in self._vicc_concept_vocabs:
+            for exact_mapping in item.exact_mappings:
+                concept_mappings[exact_mapping] = [
+                    ConceptMapping(
+                        coding=Coding(
+                            system="https://go.osu.edu/evidence-codes",
+                            code=item.id.split("vicc:")[-1],
+                            name=item.term,
+                        ),
+                        relation=Relation.EXACT_MATCH,
+                    )
+                ]
+        self.evidence_level_to_vicc_concept_mapping = concept_mappings
 
     async def transform(self, harvested_data: MoaHarvestedData) -> None:
         """Transform MOA harvested JSON to common data model. Will store transformed
@@ -185,7 +199,7 @@ class MoaTransformer(Transformer):
             ),
             direction=direction,
             reportedIn=[source],
-            specifiedBy=MOA_METHOD,
+            specifiedBy=_MOA_METHOD,
             strength=strength,
         )
         aggregated_statement = await self._build_aggregated_prog_statement(statement)
@@ -236,7 +250,7 @@ class MoaTransformer(Transformer):
             ),
             direction=direction,
             reportedIn=[source],
-            specifiedBy=MOA_METHOD,
+            specifiedBy=_MOA_METHOD,
             strength=strength,
         )
         aggregated_statement = await self._build_aggregated_tr_statement(statement)
@@ -443,6 +457,7 @@ class MoaTransformer(Transformer):
         ]
         return Therapeutic(
             root=TherapyGroup(
+                id=f"moa.drug_combo:{name}",
                 membershipOperator=MembershipOperator.AND,
                 therapies=moa_drugs,
                 extensions=[Extension(name="moa_therapy_type", value=therapy_type)],

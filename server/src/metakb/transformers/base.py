@@ -16,8 +16,8 @@ from ga4gh.cat_vrs.models import (
     CategoricalVariant,
     DefiningAlleleConstraint,
     FeatureContextConstraint,
-    Relation,
 )
+from ga4gh.cat_vrs.models import Relation as CategoryMemberRelation
 from ga4gh.cat_vrs.recipes import SystemUri
 from ga4gh.core.models import Coding, MappableConcept, code
 from ga4gh.va_spec.aac_2017 import (
@@ -274,9 +274,6 @@ class Transformer(ABC):
             ViccNormalizers() if normalizers is None else normalizers
         )
         self.processed_data = TransformedData()
-        self.evidence_level_to_vicc_concept_mapping = (
-            self._evidence_level_to_vicc_concept_mapping()
-        )
 
     @abstractmethod
     async def transform(self, *args, **kwargs) -> None:
@@ -329,6 +326,8 @@ class Transformer(ABC):
 
         with cdm_filepath.open("w+") as f:
             json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
+
+    ### Entity normalization
 
     @lru_cache(1024)  # noqa: B019
     def _send_disease_normalizer_query(self, term: str) -> NormalizedDisease:
@@ -463,13 +462,13 @@ class Transformer(ABC):
                             MappableConcept(
                                 primaryCoding=Coding(
                                     system=SystemUri.SEQUENCE_ONTOLOGY,
-                                    code=code(Relation.LIFTOVER_TO),
+                                    code=code(CategoryMemberRelation.LIFTOVER_TO),
                                 ),
                             ),
                             MappableConcept(
                                 primaryCoding=Coding(
                                     system=SystemUri.SEQUENCE_ONTOLOGY,
-                                    code=code(Relation.TRANSLATION_OF),
+                                    code=code(CategoryMemberRelation.TRANSLATION_OF),
                                 ),
                             ),
                         ],
@@ -533,6 +532,8 @@ class Transformer(ABC):
             return None
 
         raise NotImplementedError
+
+    ### statement construction
 
     async def _build_aggregated_diag_statement(
         self, statement: Statement
