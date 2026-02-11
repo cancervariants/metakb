@@ -6,7 +6,7 @@ import logging
 import re
 from abc import ABC, abstractmethod
 from enum import Enum
-from functools import cache
+from functools import lru_cache
 from pathlib import Path
 from typing import ClassVar
 
@@ -17,15 +17,7 @@ from ga4gh.cat_vrs.models import (
     DefiningAlleleConstraint,
     FeatureContextConstraint,
 )
-from ga4gh.core import sha512t24u
-from ga4gh.core.models import (
-    Coding,
-    ConceptMapping,
-    Extension,
-    MappableConcept,
-    Relation,
-    code,
-)
+from ga4gh.core.models import Coding, MappableConcept, code
 from ga4gh.va_spec.aac_2017 import (
     Classification,
     VariantDiagnosticStudyStatement,
@@ -55,18 +47,9 @@ from therapy.schemas import NormalizationService as NormalizedTherapy
 from metakb import DATE_FMT
 from metakb.config import get_config
 from metakb.harvesters.base import _HarvestedData
-from metakb.normalizers import (
-    ViccNormalizers,
-)
+from metakb.normalizers import ViccNormalizers
 
 _logger = logging.getLogger(__name__)
-
-# Normalizer response type to attribute name
-# NORMALIZER_INSTANCE_TO_ATTR = {
-#     DiseaseNormalizationResult: "disease",
-#     TherapyNormalizationResult: "therapy",
-#     GeneNormalizationResult: "gene",
-# }
 
 
 # TODO figure out classification, method, etc
@@ -323,202 +306,6 @@ class Transformer(ABC):
             _harvested_data_child = _HarvestedData.get_subclass_by_prefix(self.name)
             return _harvested_data_child(**json.load(f))
 
-    def _evidence_level_to_vicc_concept_mapping(
-        self,
-    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, list[ConceptMapping]]:
-        """Get mapping of source evidence level to vicc concept vocab
-
-        :return: Dictionary containing mapping from source evidence level (key)
-            to corresponding vicc concept vocab (value) represented as a list of
-            ConceptMapping
-        """
-        concept_mappings: dict[str, list[ConceptMapping]] = {}
-        for item in self._vicc_concept_vocabs:
-            for exact_mapping in item.exact_mappings:
-                concept_mappings[exact_mapping] = [
-                    ConceptMapping(
-                        coding=Coding(
-                            system="https://go.osu.edu/evidence-codes",
-                            code=item.id.split("vicc:")[-1],
-                            name=item.term,
-                        ),
-                        relation=Relation.EXACT_MATCH,
-                    )
-                ]
-        return concept_mappings
-
-    @staticmethod
-    def _get_digest_for_str_lists(str_list: list[str]) -> str:
-        """Create digest for a list of strings
-
-        :param str_list: List of strings to get digest for
-        :return: Digest
-        """
-        str_list.sort()
-        blob = json.dumps(str_list, separators=(",", ":"), sort_keys=True).encode(
-            "ascii"
-        )
-        return sha512t24u(blob)
-
-    # @staticmethod
-    # def _get_vicc_normalizer_failure_ext() -> Extension:
-    #     """Return extension for a VICC normalizer failure
-    #
-    #     :return: Extension for VICC normalizer failure
-    #     """
-    #     return Extension(name=NormalizerExtensionName.FAILURE.value, value=True)
-
-    # @staticmethod
-    # def _get_vicc_normalizer_mappings(
-    #     normalized_id: str,
-    #     normalizer_resp: NormalizedDisease | NormalizedTherapy | NormalizedGene,
-    # ) -> list[ConceptMapping]:
-    #     """Get VICC Normalizer mappable concept
-    #
-    #     :param normalized_id: Normalized ID from VICC normalizer
-    #     :param normalizer_resp: Response from VICC normalizer
-    #     :return: List of VICC Normalizer data represented as mappable concept
-    #     """
-    #
-    #     def _update_mapping(
-    #         mapping: ConceptMapping,
-    #         normalized_id: str,
-    #         normalizer_label: str,
-    #         match_on_coding_id: bool = True,
-    #     ) -> Extension:
-    #         """Update ``mapping`` to include extension on whether ``mapping`` contains
-    #         code that matches the merged record's primary identifier.
-    #
-    #         :param mapping: ConceptMapping from vicc normalizer. This will be mutated.
-    #             Extensions will be added. Label will be added if mapping identifier
-    #             matches normalized merged identifier.
-    #         :param normalized_id: Concept ID from normalized record
-    #         :param normalizer_label: Label from normalized record
-    #         :param match_on_coding_id: Whether to match on ``coding.id`` or
-    #             ``coding.code`` (MONDO is represented differently)
-    #         :return: ConceptMapping with normalizer extension added as well as name (
-    #             if mapping id matches normalized merged id)
-    #         """
-    #         is_priority = (
-    #             normalized_id == mapping.coding.id
-    #             if match_on_coding_id
-    #             else normalized_id == mapping.coding.code.root.lower()
-    #         )
-    #
-    #         merged_id_ext = Extension(
-    #             name=NormalizerExtensionName.PRIORITY.value, value=is_priority
-    #         )
-    #         if mapping.extensions:
-    #             mapping.extensions.append(merged_id_ext)
-    #         else:
-    #             mapping.extensions = [merged_id_ext]
-    #
-    #         if is_priority:
-    #             mapping.coding.name = normalizer_label
-    #
-    #         return mapping
-    #
-    #     mappings: list[ConceptMapping] = []
-    #     attr_name = NORMALIZER_INSTANCE_TO_ATTR[type(normalizer_resp)]
-    #     normalizer_resp_obj = getattr(normalizer_resp, attr_name)
-    #     normalizer_label = normalizer_resp_obj.name
-    #     is_disease = isinstance(normalizer_resp, NormalizedDisease)
-    #     is_gene = isinstance(normalizer_resp, NormalizedGene)
-    #     is_therapy = isinstance(normalizer_resp, NormalizedTherapy)
-    #
-    #     normalizer_mappings = [
-    #         ConceptMapping(
-    #             coding=normalizer_resp_obj.primaryCoding,
-    #             relation=Relation.EXACT_MATCH,
-    #         ),
-    #     ]
-    #     if normalizer_resp_obj.mappings:
-    #         normalizer_mappings.extend(normalizer_resp_obj.mappings)
-    #
-    #     for mapping in normalizer_mappings:
-    #         if normalized_id == mapping.coding.id:
-    #             mappings.append(
-    #                 _update_mapping(
-    #                     mapping,
-    #                     normalized_id,
-    #                     normalizer_label,
-    #                     match_on_coding_id=True,
-    #                 )
-    #             )
-    #         elif is_disease and mapping.coding.code.root.lower().startswith(
-    #             DiseaseNamespacePrefix.MONDO.value
-    #         ):
-    #             mappings.append(
-    #                 _update_mapping(
-    #                     mapping,
-    #                     normalized_id,
-    #                     normalizer_label,
-    #                     match_on_coding_id=False,
-    #                 )
-    #             )
-    #         elif (
-    #             (
-    #                 is_gene
-    #                 and mapping.coding.id.startswith(
-    #                     (
-    #                         GeneNamespacePrefix.NCBI.value,
-    #                         GeneNamespacePrefix.HGNC.value,
-    #                     )
-    #                 )
-    #             )
-    #             or (
-    #                 is_disease
-    #                 and mapping.coding.id.startswith(DiseaseNamespacePrefix.DOID.value)
-    #             )
-    #             or (
-    #                 is_therapy
-    #                 and mapping.coding.id.startswith(TherapyNamespacePrefix.NCIT.value)
-    #             )
-    #         ):
-    #             mappings.append(
-    #                 _update_mapping(
-    #                     mapping,
-    #                     normalized_id,
-    #                     normalizer_label,
-    #                     match_on_coding_id=True,
-    #                 )
-    #             )
-    #     return mappings
-
-    def _merge_mappings(
-        self,
-        source_mappings: list[ConceptMapping],
-        normalizer_mappings: list[ConceptMapping],
-    ) -> list[ConceptMapping]:
-        """Merge source and normalizer concept mappings
-
-        Source mappings will be annotated with source annotation extension to retain
-        provenance of original source mapping.
-
-        :param source_mappings: List of concept mappings directly from a source
-        :param normalizer_mappings: List of concept mappings from VICC normalizer
-        :return: A list of merged concept mappings
-        """
-        merged_mappings = normalizer_mappings.copy()
-        code_to_idx = {m.coding.code.root: idx for idx, m in enumerate(merged_mappings)}
-        source_anno_exts = [Extension(name=f"{self.name}_annotation", value=True)]
-
-        for source_mapping in source_mappings:
-            code = source_mapping.coding.code.root
-            idx = code_to_idx.get(code)
-
-            base_mapping = merged_mappings[idx] if idx is not None else source_mapping
-            extensions = (base_mapping.extensions or []) + source_anno_exts
-
-            updated_mapping = base_mapping.model_copy(update={"extensions": extensions})
-
-            if idx is not None:
-                merged_mappings[idx] = updated_mapping
-            else:
-                code_to_idx[code] = len(merged_mappings)
-                merged_mappings.append(updated_mapping)
-        return merged_mappings
-
     def create_json(self, cdm_filepath: Path | None = None) -> None:
         """Create a composite JSON for transformed data.
 
@@ -541,9 +328,7 @@ class Transformer(ABC):
         with cdm_filepath.open("w+") as f:
             json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
 
-    ##### NEW STUFF HERE
-
-    @cache  # noqa: B019
+    @lru_cache(1024)  # noqa: B019
     def _send_disease_normalizer_query(self, term: str) -> NormalizedDisease:
         return self.vicc_normalizers.normalize_disease(term)[0]
 
@@ -615,7 +400,7 @@ class Transformer(ABC):
             return None
         raise ValueError
 
-    @cache  # noqa: B019
+    @lru_cache(1024)  # noqa: B019
     def _send_gene_normalizer_query(self, term: str) -> NormalizedGene:
         return self.vicc_normalizers.normalize_gene(term)[0]
 
@@ -644,7 +429,7 @@ class Transformer(ABC):
                 return normalized_gene
         return None
 
-    @alru_cache
+    @alru_cache(1024)
     async def _send_variant_normalizer_query(
         self, query: str
     ) -> Allele | CopyNumberChange | CopyNumberCount | None:
@@ -681,7 +466,7 @@ class Transformer(ABC):
             constraints=constraints,
         )
 
-    @cache  # noqa: B019
+    @lru_cache(1024)  # noqa: B019
     def _send_therapy_normalizer_query(self, query: str) -> NormalizedTherapy:
         return self.vicc_normalizers.normalize_therapy(query)[0]
 
@@ -797,9 +582,9 @@ class Transformer(ABC):
     async def _build_aggregated_tr_statement(
         self, statement: Statement
     ) -> VariantTherapeuticResponseStudyStatement | None:
-        """Attempt construction of an aggregate therapeutic reseponse study statement given a MOA statement
+        """Attempt construction of an aggregate therapeutic reseponse study statement given a source statement
 
-        :param statement: MOA TR assertion
+        :param statement: source TR assertion
         :return: aggregate statement if all terms normalize
         """
         prop: VariantTherapeuticResponseProposition = statement.proposition

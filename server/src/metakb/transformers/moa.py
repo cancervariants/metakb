@@ -234,7 +234,7 @@ class MoaTransformer(Transformer):
         else:
             mappings = None
         if oncotree_term and name != oncotree_term:
-            extensions = [Extension(name="aliases", value=["oncotree_term"])]
+            extensions = [Extension(name="aliases", value=[oncotree_term])]
         else:
             extensions = None
         return Condition(
@@ -408,7 +408,6 @@ class MoaTransformer(Transformer):
 
         :param name: name of therapy (should include a " + " in the middle)
         :param therapy_type: MOA therapy type value (probably reflective of combo therapy)
-        :param therapy_type: MOA therapy type (currently just used to check if combination)
         :return: original MOA concept as GKS therapeutic
         """
         moa_drugs = [
