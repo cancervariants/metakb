@@ -35,28 +35,22 @@ services:
     ports:
       - "8013:8000"
 
-  # eventually add back if/when the image is fixed?
-  # uta:
-  #   image: biocommons/uta:uta_20241220
-  #   environment:
-  #     POSTGRES_PASSWORD: some-password-that-you-make-up
-  #   volumes:
-  #     - uta_vol:/var/lib/postgresql/data
-  #     - ./uta-setup.sql:/docker-entrypoint-initdb.d/uta-setup.sql
-  #   ports:
-  #     - "5432:5432"
   uta:
-    image: postgres:17
+    # Test:
+    # psql -XAt postgres://anonymous@localhost:5432/uta -c 'select count(*) from uta_20241220.transcript'
+    # 329090
+    image: biocommons/uta:uta_20241220
     environment:
-      - POSTGRES_USER=uta_admin
       - POSTGRES_PASSWORD=some-password-that-you-make-up
-      - POSTGRES_DB=uta
-      - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - uta_vol:/var/lib/postgresql/data
-      - ./uta-init/create-roles.sql:/docker-entrypoint-initdb.d/create-roles.sql:ro
-      - ./uta-init/uta_20241220.pgd.gz:/docker-entrypoint-initdb.d/uta_20241220.pgd.gz:ro
-      - ./uta-init/init-uta.sh:/docker-entrypoint-initdb.d/init-uta.sh:ro
+      - type: bind
+        source: ./uta-init/uta_20241220.pgd.gz
+        target: /tmp/uta_20241220.pgd.gz
+        read_only: true
+        bind:
+          create_host_path: false
+      - ./uta-init/uta-setup.sql:/docker-entrypoint-initdb.d/uta-setup.sql
     ports:
       - 127.0.0.1:5432:5432
 
@@ -70,3 +64,4 @@ services:
 
 volumes:
   uta_vol:
+    external: true
