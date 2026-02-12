@@ -12,18 +12,7 @@ from civicpy.exports.civic_gks_record import (
     CivicGksRecordError,
     CivicGksTherapyGroup,
 )
-from ga4gh.cat_vrs.models import (
-    CategoricalVariant,
-    Constraint,
-    DefiningAlleleConstraint,
-)
-from ga4gh.cat_vrs.models import Relation as CategoryMemberRelation
-from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence, SystemUri
-from ga4gh.core.models import (
-    Coding,
-    MappableConcept,
-    code,
-)
+from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.va_spec.base import (
     ConditionSet,
     MembershipOperator,
@@ -37,12 +26,8 @@ from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
 from metakb.config import get_config
-from metakb.normalizers import (
-    ViccNormalizers,
-)
-from metakb.transformers.base import (
-    Transformer,
-)
+from metakb.normalizers import ViccNormalizers
+from metakb.transformers.base import Transformer
 from metakb.transformers.catvars import (
     build_copynumberchange_catvar,
     build_proteinsequenceconsequence_catvar,

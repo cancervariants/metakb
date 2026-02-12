@@ -4,7 +4,7 @@ import datetime
 import json
 import logging
 from abc import ABC, abstractmethod
-from enum import Enum, StrEnum
+from enum import StrEnum
 from functools import lru_cache
 from pathlib import Path
 from typing import ClassVar
@@ -430,7 +430,6 @@ class Transformer(ABC):
     async def _send_variant_normalizer_query(
         self, query: str
     ) -> Allele | CopyNumberChange | CopyNumberCount | None:
-        print(query)
         return await self.vicc_normalizers.normalize_variation(query)
 
     @abstractmethod
