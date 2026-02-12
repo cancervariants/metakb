@@ -131,30 +131,6 @@ class TransformedData(BaseModel):
 class Transformer(ABC):
     """A base class for transforming harvester data."""
 
-    _methods: ClassVar[list[Method]] = [
-        Method(
-            id=MethodId.CIVIC_EID_SOP,
-            name="CIViC Curation SOP (2019)",
-            reportedIn=Document(
-                name="Danos et al., 2019, Genome Med.",
-                title="Standard operating procedure for curation and clinical interpretation of variants in cancer",
-                doi="10.1186/s13073-019-0687-x",
-                pmid="31779674",
-            ),
-            methodType="variant curation standard operating procedure",
-        ),
-        Method(
-            id=MethodId.MOA_ASSERTION_BIORXIV,
-            name="MOAlmanac (2021)",
-            reportedIn=Document(
-                name="Reardon, B., Moore, N.D., Moore, N.S. et al.",
-                title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
-                doi="10.1038/s43018-021-00243-3",
-                pmid="35121878",
-            ),
-        ),
-    ]
-    methods_mapping: ClassVar[dict[MethodId, Method]] = {m.id: m for m in _methods}
     _vicc_concept_vocabs: ClassVar[list[ViccConceptVocab]] = [
         ViccConceptVocab(
             id="vicc:e000000",
@@ -378,7 +354,9 @@ class Transformer(ABC):
     def _normalize_condition(self, condition: Condition) -> Condition | None:
         """Attempt full normalization of source Condition.
 
-        Treat phenotypes as "normalized" and copy them up to the normalized object.
+        Treat phenotypes as "normalized" and copy them up to the normalized object. In
+        the future, we might want to be more careful about this, maybe check for a
+        preferred namespace or try to map over to HPO.
 
         :param condition: source Condition object
         :return: normalized equivalent, if available
