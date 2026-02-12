@@ -21,6 +21,12 @@ LIFTOVER_TO_RELATION = MappableConcept(
         system=SystemUri.GKS_ALLELE_RELATION, code=code(Relation.LIFTOVER_TO)
     )
 )
+TRANSLATION_OF_RELATION = MappableConcept(
+    primaryCoding=Coding(
+        system=SystemUri.SEQUENCE_ONTOLOGY,
+        code=code(Relation.TRANSLATION_OF),
+    ),
+)
 
 
 def build_copynumberchange_catvar(variant: CopyNumberChange) -> CategoricalCnv:
@@ -69,12 +75,7 @@ def build_proteinsequenceconsequence_catvar(
                     allele=allele,
                     relations=[
                         LIFTOVER_TO_RELATION,
-                        MappableConcept(
-                            primaryCoding=Coding(
-                                system=SystemUri.SEQUENCE_ONTOLOGY,
-                                code=code(Relation.TRANSLATION_OF),
-                            ),
-                        ),
+                        TRANSLATION_OF_RELATION,
                     ],
                 )
             )

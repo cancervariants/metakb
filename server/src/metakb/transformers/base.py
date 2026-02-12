@@ -302,6 +302,13 @@ class Transformer(ABC):
 
     @lru_cache(1024)  # noqa: B019
     def _send_disease_normalizer_query(self, term: str) -> NormalizedDisease:
+        """Dispatch query to the Disease Normalizer
+
+        Refactored into an individual method to support simple caching
+
+        :param query: disease query to normalize
+        :return: Gene Normalizer service response
+        """
         return self.vicc_normalizers.normalize_disease(term)[0]
 
     def _normalize_disease(self, disease: MappableConcept) -> MappableConcept | None:
@@ -377,6 +384,13 @@ class Transformer(ABC):
 
     @lru_cache(1024)  # noqa: B019
     def _send_gene_normalizer_query(self, term: str) -> NormalizedGene:
+        """Dispatch query to the Gene Normalizer
+
+        Refactored into an individual method to support simple caching
+
+        :param query: gene query to normalize
+        :return: Gene Normalizer service response
+        """
         return self.vicc_normalizers.normalize_gene(term)[0]
 
     def _normalize_gene(self, gene: MappableConcept | None) -> MappableConcept | None:
@@ -408,6 +422,13 @@ class Transformer(ABC):
     async def _send_variant_normalizer_query(
         self, query: str
     ) -> Allele | CopyNumberChange | CopyNumberCount | None:
+        """Dispatch query to the Variation Normalizer
+
+        Refactored into an individual method to support simple caching
+
+        :param query: variation expression to normalize
+        :return: Variation Normalizer service response
+        """
         return await self.vicc_normalizers.normalize_variation(query)
 
     @abstractmethod
@@ -426,9 +447,21 @@ class Transformer(ABC):
 
     @lru_cache(1024)  # noqa: B019
     def _send_therapy_normalizer_query(self, query: str) -> NormalizedTherapy:
+        """Dispatch query to the therapy normalizer
+
+        Refactored into an individual method to support simple caching
+
+        :param query: therapy query to normalize
+        :return: thera-py service response
+        """
         return self.vicc_normalizers.normalize_therapy(query)[0]
 
     def _normalize_drug(self, drug: MappableConcept) -> MappableConcept | None:
+        """Attempt normalization of a drug
+
+        :param drug: source drug object
+        :return: normalized drug, if successful
+        """
         queries = []
         if drug.id:
             queries.append(drug.id)
@@ -450,6 +483,11 @@ class Transformer(ABC):
         return None
 
     def _normalize_therapeutic(self, therapeutic: Therapeutic) -> Therapeutic | None:
+        """Attempt normalization of a Therapeutic (drug or drug combo)
+
+        :param therapeutic: source entity
+        :return: normalized equivalent, if successful
+        """
         if isinstance(therapeutic.root, MappableConcept):
             drug_result = self._normalize_drug(therapeutic.root)
             if drug_result:
