@@ -200,63 +200,12 @@ class CivicTransformer(Transformer):
         # for assertion in accepted_assertions:
         #     await self._annotate_assertion(assertion)
 
-    @staticmethod
-    def _parse_mp_name(
-        molecular_profile_name: str,
-    ) -> MolecularProfileNameComponents | None:
-        """Extract components from molecular profile name
-
-        :param molecular_profile_name: CIViC Molecular Profile name
-        :return: Molecular profile name components if pattern matches, otherwise None
-        """
-        match = re.match(MP_NAME_PATTERN, molecular_profile_name)
-        return MolecularProfileNameComponents(**match.groupdict()) if match else None
-
-    def _is_supported_variant_query(
-        self,
-        parsed_components: MolecularProfileNameComponents,
-        variant_expr: str,
-        variant_id: str,
-    ) -> bool:
-        """Validate whether the variant appears to be normalizable as a known CatVar
-
-        For now, this is a yes/no check. In the future, when more kinds of catvars are
-        supported, I think this should change into a "variant classifier" that returns
-        what kind of variant the name appears to be, and then that can be checked against
-        a list of supported/unsupported variants and dispatched accordingly.
-
-        :param parsed_components:
-        :param variant_expr: expression parsed from molecular profile name
-        :param variant_id: CIViC molecular profile ID. Used for logging.
-        :return: whether variant is supported or not
-        """
-        if parsed_components.c_change:
-            msg = f"cDNA variant (ID: {variant_id}) not yet supported. This will be added in issue-225"
-            _logger.warning(msg)
-            return False
-
-        pdot_change_expr_lower = variant_expr.lower()
-        if (
-            # is frameshift mutation
-            (pdot_change_expr_lower.endswith("fs"))
-            # has unsupported chars in gene or p. change
-            or any(c in pdot_change_expr_lower for c in ("-", "/"))
-            # contains a keyword indicating a known normalization failure
-            or bool(set(pdot_change_expr_lower.split()) & UNABLE_TO_NORMALIZE_VAR_NAMES)
-        ):
-            _logger.debug(
-                "Variation Normalizer does not support variant ID %s: '%s'",
-                variant_id,
-                variant_expr,
-            )
-            return False
-        return True
-
     async def _normalize_variant(
         self, variant: CategoricalVariant
     ) -> CategoricalVariant | None:
-        """TODO
+        """Build the normalized equivalent of a GKS-ified molecular profile from CIVIC
 
+        :param variant: CIViC molecular profile
         :return: Categorical Variant or Protein Sequence Consequence with additional
             info, such as normalizer info.
             A Protein Sequence Consequence will be returned only if the molecular
@@ -297,3 +246,55 @@ class CivicTransformer(Transformer):
         if isinstance(normalized_variation, CopyNumberChange):
             return build_copynumberchange_catvar(normalized_variation)
         raise NotImplementedError
+
+    @staticmethod
+    def _parse_mp_name(
+        molecular_profile_name: str,
+    ) -> MolecularProfileNameComponents | None:
+        """Extract components from molecular profile name
+
+        :param molecular_profile_name: CIViC Molecular Profile name
+        :return: Molecular profile name components if pattern matches, otherwise None
+        """
+        match = re.match(MP_NAME_PATTERN, molecular_profile_name)
+        return MolecularProfileNameComponents(**match.groupdict()) if match else None
+
+    @staticmethod
+    def _is_supported_variant_query(
+        parsed_components: MolecularProfileNameComponents,
+        variant_expr: str,
+        variant_id: str,
+    ) -> bool:
+        """Validate whether the variant appears to be normalizable as a known CatVar
+
+        For now, this is a yes/no check. In the future, when more kinds of catvars are
+        supported, I think this should change into a "variant classifier" that returns
+        what kind of variant the name appears to be, and then that can be checked against
+        a list of supported/unsupported variants and dispatched accordingly.
+
+        :param parsed_components:
+        :param variant_expr: expression parsed from molecular profile name
+        :param variant_id: CIViC molecular profile ID. Used for logging.
+        :return: whether variant is supported or not
+        """
+        if parsed_components.c_change:
+            msg = f"cDNA variant (ID: {variant_id}) not yet supported. This will be added in issue-225"
+            _logger.warning(msg)
+            return False
+
+        pdot_change_expr_lower = variant_expr.lower()
+        if (
+            # is frameshift mutation
+            (pdot_change_expr_lower.endswith("fs"))
+            # has unsupported chars in gene or p. change
+            or any(c in pdot_change_expr_lower for c in ("-", "/"))
+            # contains a keyword indicating a known normalization failure
+            or bool(set(pdot_change_expr_lower.split()) & UNABLE_TO_NORMALIZE_VAR_NAMES)
+        ):
+            _logger.debug(
+                "Variation Normalizer does not support variant ID %s: '%s'",
+                variant_id,
+                variant_expr,
+            )
+            return False
+        return True
