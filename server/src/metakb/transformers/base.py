@@ -430,6 +430,7 @@ class Transformer(ABC):
     async def _send_variant_normalizer_query(
         self, query: str
     ) -> Allele | CopyNumberChange | CopyNumberCount | None:
+        print(query)
         return await self.vicc_normalizers.normalize_variation(query)
 
     @abstractmethod

@@ -295,7 +295,7 @@ class CivicTransformer(Transformer):
         ):
             return None
 
-        normalized_variation = await self.vicc_normalizers.normalize_variation(
+        normalized_variation = await self._send_variant_normalizer_query(
             pdot_expression
         )
 
@@ -311,7 +311,4 @@ class CivicTransformer(Transformer):
             return build_proteinsequenceconsequence_catvar(normalized_variation)
         if isinstance(normalized_variation, CopyNumberChange):
             return build_copynumberchange_catvar(normalized_variation)
-        import ipdb
-
-        ipdb.set_trace()
         raise NotImplementedError
