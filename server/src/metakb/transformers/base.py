@@ -3,9 +3,8 @@
 import datetime
 import json
 import logging
-import re
 from abc import ABC, abstractmethod
-from enum import Enum
+from enum import Enum, StrEnum
 from functools import lru_cache
 from pathlib import Path
 from typing import ClassVar
@@ -14,11 +13,7 @@ from async_lru import alru_cache
 from disease.schemas import NormalizationService as NormalizedDisease
 from ga4gh.cat_vrs.models import (
     CategoricalVariant,
-    DefiningAlleleConstraint,
-    FeatureContextConstraint,
 )
-from ga4gh.cat_vrs.models import Relation as CategoryMemberRelation
-from ga4gh.cat_vrs.recipes import SystemUri
 from ga4gh.core.models import Coding, MappableConcept, code
 from ga4gh.va_spec.aac_2017 import (
     Classification,
@@ -75,21 +70,21 @@ METAKB_CLASSIFICATION = MappableConcept(
 )
 
 
-class EcoLevel(str, Enum):
+class EcoLevel(StrEnum):
     """Define constraints for Evidence Ontology levels"""
 
     EVIDENCE = "ECO:0000000"
     CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
 
 
-class MethodId(str, Enum):
+class MethodId(StrEnum):
     """Create method id constants"""
 
     CIVIC_EID_SOP = "civic.method:2019"
     MOA_ASSERTION_BIORXIV = "moa.method:2021"
 
 
-class CivicEvidenceLevel(str, Enum):
+class CivicEvidenceLevel(StrEnum):
     """Define constraints for CIViC evidence levels"""
 
     A = "A"
@@ -99,7 +94,7 @@ class CivicEvidenceLevel(str, Enum):
     E = "E"
 
 
-class MoaEvidenceLevel(str, Enum):
+class MoaEvidenceLevel(StrEnum):
     """Define constraints MOAlmanac evidence levels"""
 
     FDA_APPROVED = "FDA-Approved"
@@ -437,54 +432,19 @@ class Transformer(ABC):
     ) -> Allele | CopyNumberChange | CopyNumberCount | None:
         return await self.vicc_normalizers.normalize_variation(query)
 
+    @abstractmethod
     async def _normalize_variant(
         self, variant: CategoricalVariant
     ) -> CategoricalVariant | None:
-        queries = [variant.name]
-        result = None
-        for query in queries:
-            if match := re.match(r"(.*) (Mutation|MUTATION)", query):
-                gene_name = match.groups()[0]
-                normalized_gene_result = self._send_gene_normalizer_query(gene_name)
-                if normalized_gene_result.gene:
-                    constraints = [
-                        FeatureContextConstraint(
-                            featureContext=normalized_gene_result.gene
-                        )
-                    ]
-                    break
-            result = await self._send_variant_normalizer_query(query)
-            if result and isinstance(result, Allele):
-                constraints = [
-                    DefiningAlleleConstraint(
-                        allele=result,
-                        relations=[
-                            MappableConcept(
-                                primaryCoding=Coding(
-                                    system=SystemUri.SEQUENCE_ONTOLOGY,
-                                    code=code(CategoryMemberRelation.LIFTOVER_TO),
-                                ),
-                            ),
-                            MappableConcept(
-                                primaryCoding=Coding(
-                                    system=SystemUri.SEQUENCE_ONTOLOGY,
-                                    code=code(CategoryMemberRelation.TRANSLATION_OF),
-                                ),
-                            ),
-                        ],
-                    )
-                ]
-                break
-        else:
-            _logger.debug(
-                "Failed to normalize variant: %s", variant.model_dump(exclude_none=True)
-            )
-            return None
-        return CategoricalVariant(
-            id="idk: some cv id pattern TODO",
-            name="idk some pattern TODO",
-            constraints=constraints,
-        )
+        """Attempt normalization of a source variant object.
+
+        It's tricky to build universal normalization techniques that grab the right
+        data from each source, so for now, we'll require each source transformer
+        to reimplement it. It's plausible that it could be made generic in the future.
+
+        :param variant: incoming source variant object
+        :return: either a normalized CatVar, or None
+        """
 
     @lru_cache(1024)  # noqa: B019
     def _send_therapy_normalizer_query(self, query: str) -> NormalizedTherapy:

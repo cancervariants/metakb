@@ -1,6 +1,7 @@
 """A module for to transform CIViC."""
 
 import logging
+import re
 from enum import Enum, StrEnum
 from pathlib import Path
 from types import MappingProxyType
@@ -14,12 +15,14 @@ from civicpy.exports.civic_gks_record import (
 from ga4gh.cat_vrs.models import (
     CategoricalVariant,
     Constraint,
-    Relation,
+    DefiningAlleleConstraint,
 )
+from ga4gh.cat_vrs.models import Relation as CategoryMemberRelation
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence, SystemUri
 from ga4gh.core.models import (
     Coding,
     MappableConcept,
+    code,
 )
 from ga4gh.va_spec.base import (
     ConditionSet,
@@ -29,7 +32,8 @@ from ga4gh.va_spec.base import (
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from ga4gh.vrs.models import Allele, Syntax, Variation
+from ga4gh.vrs.models import Allele, CopyNumberChange
+from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
 from metakb.config import get_config
@@ -38,6 +42,10 @@ from metakb.normalizers import (
 )
 from metakb.transformers.base import (
     Transformer,
+)
+from metakb.transformers.catvars import (
+    build_copynumberchange_catvar,
+    build_proteinsequenceconsequence_catvar,
 )
 
 _logger = logging.getLogger(__name__)
@@ -155,24 +163,32 @@ class CivicTransformer(Transformer):
             ViccNormalizers() if normalizers is None else normalizers
         )
 
+    @staticmethod
+    def _evitem_to_vaspec(
+        evidence_item: civicpy.Evidence | BaseModel,
+    ) -> Statement | None:
+        if isinstance(evidence_item, civicpy.Evidence):
+            try:
+                return Statement(**CivicGksEvidence(evidence_item).model_dump())
+            except CivicGksRecordError:
+                return None
+        elif isinstance(evidence_item, CivicGksEvidence):
+            return Statement(**evidence_item.model_dump())
+        else:
+            raise TypeError
+
     async def transform(self) -> None:
         """Normalize CIViC evidence items and assertions and add annotations"""
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
         statements = []
         for evidence_item in accepted_evidence_items:
-            if not isinstance(evidence_item, CivicGksEvidence):
-                try:
-                    statement = Statement(
-                        **CivicGksEvidence(evidence_item).model_dump()
-                    )
-                except CivicGksRecordError:
-                    _logger.warning(
-                        "Unable to model civic evidence item %s as a GKS statement",
-                        evidence_item,
-                    )
-                    continue
-            else:
-                statement = Statement(**evidence_item.model_dump())
+            statement = self._evitem_to_vaspec(evidence_item)
+            if not statement:
+                _logger.warning(
+                    "Unable to model civic evidence item %s as a GKS statement",
+                    evidence_item,
+                )
+                continue
 
             statements += [statement]
 
@@ -199,212 +215,103 @@ class CivicTransformer(Transformer):
         # for assertion in accepted_assertions:
         #     await self._annotate_assertion(assertion)
 
-    async def _get_annotated_mp(
-        self, molecular_profile: civicpy.MolecularProfile
-    ) -> CategoricalVariant | ProteinSequenceConsequence:
-        """Get annotated info for a CIViC molecular profile
+    @staticmethod
+    def _parse_mp_name(
+        molecular_profile_name: str,
+    ) -> MolecularProfileNameComponents | None:
+        """Extract components from molecular profile name
 
-        :param molecular_profile: CIViC molecular profile
+        :param molecular_profile_name: CIViC Molecular Profile name
+        :return: Molecular profile name components if pattern matches, otherwise None
+        """
+        match = re.match(MP_NAME_PATTERN, molecular_profile_name)
+        return MolecularProfileNameComponents(**match.groupdict()) if match else None
+
+    def _is_supported_variant_query(
+        self,
+        parsed_components: MolecularProfileNameComponents,
+        variant_expr: str,
+        variant_id: str,
+    ) -> bool:
+        """Validate whether the variant appears to be normalizable as a known CatVar
+
+        For now, this is a yes/no check. In the future, when more kinds of catvars are
+        supported, I think this should change into a "variant classifier" that returns
+        what kind of variant the name appears to be, and then that can be checked against
+        a list of supported/unsupported variants and dispatched accordingly.
+
+        :param parsed_components:
+        :param variant_expr: expression parsed from molecular profile name
+        :param variant_id: CIViC molecular profile ID. Used for logging.
+        :return: whether variant is supported or not
+        """
+        if parsed_components.c_change:
+            msg = f"cDNA variant (ID: {variant_id}) not yet supported. This will be added in issue-225"
+            _logger.warning(msg)
+            return False
+
+        pdot_change_expr_lower = variant_expr.lower()
+        if (
+            # is frameshift mutation
+            (pdot_change_expr_lower.endswith("fs"))
+            # has unsupported chars in gene or p. change
+            or any(c in pdot_change_expr_lower for c in ("-", "/"))
+            # contains a keyword indicating a known normalization failure
+            or bool(set(pdot_change_expr_lower.split()) & UNABLE_TO_NORMALIZE_VAR_NAMES)
+        ):
+            _logger.debug(
+                "Variation Normalizer does not support variant ID %s: '%s'",
+                variant_id,
+                variant_expr,
+            )
+            return False
+        return True
+
+    async def _normalize_variant(
+        self, variant: CategoricalVariant
+    ) -> CategoricalVariant | None:
+        """TODO
+
         :return: Categorical Variant or Protein Sequence Consequence with additional
             info, such as normalizer info.
             A Protein Sequence Consequence will be returned only if the molecular
             profile is a protein variant and it successfully normalizes, otherwise a
             Categorical Variant will be returned.
-        :raises NotImplementedError: For molecular profiles with c. in the name.
-            This will be added in issue-225.
         """
-
-        def _get_psc_constraints(allele: Allele) -> list[Constraint]:
-            """Get protein sequence consequence constraints
-
-            :param allele: VRS allele
-            :return: Protein sequence consequence constraints
-            """
-            return [
-                Constraint(
-                    type="DefiningAlleleConstraint",
-                    allele=allele,
-                    relations=[
-                        MappableConcept(
-                            primaryCoding=Coding(
-                                system=SystemUri.SEQUENCE_ONTOLOGY,
-                                code=Relation.LIFTOVER_TO,
-                            ),
-                        ),
-                        MappableConcept(
-                            primaryCoding=Coding(
-                                system=SystemUri.SEQUENCE_ONTOLOGY,
-                                code=Relation.TRANSLATION_OF,
-                            ),
-                        ),
-                    ],
-                )
-            ]
-
-        mp_id = molecular_profile.id
-        constraints = None
-        members = None
         normalized_variation = None
-        annotated_variation = None
-        extensions = molecular_profile.extensions or []
 
-        mp_match = self._parse_mp_name(molecular_profile.name)
-        if not mp_match:
+        parsed_mp_components = self._parse_mp_name(variant.name)
+        if not parsed_mp_components:
             _logger.warning(
                 "Unable to parse molecular profile %i name %s",
-                mp_id,
-                molecular_profile.name,
+                variant.id,
+                variant.name,
             )
-            mp_name = None
-        else:
-            is_cdna = bool(mp_match.c_change)
-            if is_cdna:
-                msg = "cDNA variant not yet supported. This will be added in issue-225"
-                _logger.warning(msg)
-                raise NotImplementedError(msg)
+            return None
 
-            mp_name = f"{mp_match.gene} {mp_match.p_change}"
+        pdot_expression = f"{parsed_mp_components.gene} {parsed_mp_components.p_change}"
+        if not self._is_supported_variant_query(
+            parsed_mp_components, pdot_expression, variant.id
+        ):
+            return None
 
-            is_supported_query = self._is_supported_variant_query(mp_name, mp_id)
-
-            if is_supported_query:
-                normalized_variation = await self.vicc_normalizers.normalize_variation(
-                    mp_name
-                )
+        normalized_variation = await self.vicc_normalizers.normalize_variation(
+            pdot_expression
+        )
 
         if not normalized_variation:
-            if is_supported_query:
-                _logger.debug(
-                    "Variation Normalizer unable to normalize %s using query %s",
-                    mp_id,
-                    mp_name,
-                )
-            extensions.append(self._get_vicc_normalizer_failure_ext())
-        else:
-            # Create VRS Variation object
-            variant_concept_mapping = next(
-                m
-                for m in molecular_profile.mappings
-                if m.coding.id.startswith("civic.vid")
+            _logger.debug(
+                "Variation Normalizer query `%s` from MPID %s appeared valid and supported, but failed to normalize",
+                pdot_expression,
+                variant.id,
             )
-            annotated_variation = Variation(
-                **normalized_variation.model_dump(exclude_none=True),
-                name=variant_concept_mapping.coding.name,
-            )
+            return None
 
-            # Get members
-            syntax = Syntax.HGVS_P
-            syntax_expressions = []
-            if expressions_ext := next(
-                (
-                    ext
-                    for ext in molecular_profile.extensions
-                    if ext.name == "expressions"
-                ),
-                None,
-            ):
-                expressions = expressions_ext.value
-                members = await self._get_mp_members(
-                    expressions, syntax_to_exclude=syntax
-                )
-                syntax_expressions = [
-                    expr for expr in expressions if expr.syntax == syntax
-                ]
+        if isinstance(normalized_variation, Allele):
+            return build_proteinsequenceconsequence_catvar(normalized_variation)
+        if isinstance(normalized_variation, CopyNumberChange):
+            return build_copynumberchange_catvar(normalized_variation)
+        import ipdb
 
-            annotated_variation_root = annotated_variation.root
-            if isinstance(annotated_variation_root, Allele):
-                if syntax_expressions:
-                    annotated_variation_root.expressions = syntax_expressions
-
-                constraints = _get_psc_constraints(annotated_variation_root)
-
-        cat_vrs_cls = (
-            CategoricalVariant if not constraints else ProteinSequenceConsequence
-        )
-        return cat_vrs_cls(
-            **molecular_profile.model_dump(
-                exclude_none=True, exclude={"members", "constraints", "extensions"}
-            ),
-            members=members,
-            constraints=constraints,
-            extensions=extensions or None,
-        )
-
-    # async def _get_mp_members(
-    #     self, expressions: list[Expression], syntax_to_exclude: Syntax
-    # ) -> list[Variation]:
-    #     """Get molecular profile members. This is the related variant concepts.
-    #
-    #     Successfully normalized variants will be stored in ``processed_data.variations``
-    #
-    #     :param expressions: List of HGVS expressions
-    #     :param syntax_to_exclude: Syntax expression to exclude since it's included in
-    #         the defining allele constraint
-    #     :return: List containing one VRS variation record for each associated HGVS
-    #         expression, if variation-normalizer was able to normalize
-    #     """
-    #     members = []
-    #     for expression in expressions:
-    #         if expression.syntax == syntax_to_exclude:
-    #             continue
-    #
-    #         hgvs_expr = expression.value
-    #         normalized_variation = await self.vicc_normalizers.normalize_variation(
-    #             hgvs_expr
-    #         )
-    #
-    #         if normalized_variation:
-    #             updated_variation = Variation(
-    #                 **normalized_variation.model_dump(
-    #                     exclude_none=True, exclude={"extensions", "name", "expressions"}
-    #                 ),
-    #                 extensions=None,
-    #                 name=hgvs_expr,
-    #                 expressions=[expression],
-    #             )
-    #             members.append(updated_variation)
-    #             self.processed_data.variations.append(updated_variation.root)
-    #     return members
-
-    # @staticmethod
-    # def _parse_mp_name(
-    #     molecular_profile_name: str,
-    # ) -> MolecularProfileNameComponents | None:
-    #     """Extract components from molecular profile name
-    #
-    #     :param molecular_profile_name: CIViC Molecular Profile name
-    #     :return: Molecular profile name components if pattern matches, otherwise None
-    #     """
-    #     match = re.match(MP_NAME_PATTERN, molecular_profile_name)
-    #     return MolecularProfileNameComponents(**match.groupdict()) if match else None
-
-    # @staticmethod
-    # def _is_supported_variant_query(molecular_profile_name: str, mpid: int) -> bool:
-    #     """Determine if a molecular profile name is supported by the
-    #     variation-normalizer.
-    #
-    #     This is used to skip normalization on variants that the variation-normalizer
-    #     is known not to support
-    #
-    #     :param molecular_profile_name: CIViC Molecular Profile name
-    #     :param mpid: CIViC molecular profile ID
-    #     :return: ``True`` if the molecular_profile_name is supported in the
-    #         variation-normalizer. ``False`` otherwise
-    #     """
-    #     vname_lower = molecular_profile_name.lower()
-    #
-    #     is_frameshift = vname_lower.endswith("fs")
-    #     has_unsupported_chars = any(c in vname_lower for c in ("-", "/"))
-    #     unable_to_normalize_names = bool(
-    #         set(vname_lower.split()) & UNABLE_TO_NORMALIZE_VAR_NAMES
-    #     )
-    #
-    #     if is_frameshift or has_unsupported_chars or unable_to_normalize_names:
-    #         _logger.debug(
-    #             "Variation Normalizer does not support %s: %s",
-    #             mpid,
-    #             molecular_profile_name,
-    #         )
-    #         return False
-    #
-    #     return True
+        ipdb.set_trace()
+        raise NotImplementedError

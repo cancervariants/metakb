@@ -1,6 +1,7 @@
 """A module to convert MOA resources to common data model"""
 
 import logging
+import re
 from pathlib import Path
 
 from ga4gh.cat_vrs.models import CategoricalVariant
@@ -30,7 +31,7 @@ from ga4gh.va_spec.base import (
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from ga4gh.vrs.models import Variation
+from ga4gh.vrs.models import Allele, Variation
 
 from metakb.config import get_config
 from metakb.harvesters.moa import MoaHarvestedData
@@ -40,6 +41,10 @@ from metakb.transformers.base import (
     MoaEvidenceLevel,
     TransformedData,
     Transformer,
+)
+from metakb.transformers.catvars import (
+    build_featurecontext_catvar,
+    build_proteinsequenceconsequence_catvar,
 )
 
 _logger = logging.getLogger(__name__)
@@ -289,6 +294,25 @@ class MoaTransformer(Transformer):
                 extensions=extensions,
             )
         )
+
+    async def _normalize_variant(
+        self, variant: CategoricalVariant
+    ) -> CategoricalVariant | None:
+        queries = [variant.name]
+        result = None
+        for query in queries:
+            if match := re.match(r"(.*) (Mutation|MUTATION)", query):
+                gene_name = match.groups()[0]
+                normalized_gene_result = self._send_gene_normalizer_query(gene_name)
+                if normalized_gene_result.gene:
+                    return build_featurecontext_catvar(normalized_gene_result.gene)
+            result = await self._send_variant_normalizer_query(query)
+            if result and isinstance(result, Allele):
+                return build_proteinsequenceconsequence_catvar(result)
+        _logger.debug(
+            "Failed to normalize variant: %s", variant.model_dump(exclude_none=True)
+        )
+        return None
 
     def _build_moa_variant(self, variant: dict) -> CategoricalVariant:
         """Transform MOA variant to CatVar
