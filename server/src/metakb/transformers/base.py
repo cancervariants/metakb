@@ -49,6 +49,9 @@ from metakb.normalizers import ViccNormalizers
 _logger = logging.getLogger(__name__)
 
 
+_NORMALIZER_CACHE_SIZE = 2048
+
+
 # TODO figure out classification, method, etc
 # Just a static value for now -- will need to write a classification calculation method
 # and calculate/recalculate on a per-statement basis
@@ -300,7 +303,7 @@ class Transformer(ABC):
 
     ### Entity normalization
 
-    @lru_cache(1024)  # noqa: B019
+    @lru_cache(_NORMALIZER_CACHE_SIZE)  # noqa: B019
     def _send_disease_normalizer_query(self, term: str) -> NormalizedDisease:
         """Dispatch query to the Disease Normalizer
 
@@ -382,7 +385,7 @@ class Transformer(ABC):
             return None
         raise ValueError
 
-    @lru_cache(1024)  # noqa: B019
+    @lru_cache(_NORMALIZER_CACHE_SIZE)  # noqa: B019
     def _send_gene_normalizer_query(self, term: str) -> NormalizedGene:
         """Dispatch query to the Gene Normalizer
 
@@ -418,7 +421,7 @@ class Transformer(ABC):
                 return normalized_gene
         return None
 
-    @alru_cache(1024)
+    @alru_cache(_NORMALIZER_CACHE_SIZE)
     async def _send_variant_normalizer_query(
         self, query: str
     ) -> Allele | CopyNumberChange | CopyNumberCount | None:
@@ -445,7 +448,7 @@ class Transformer(ABC):
         :return: either a normalized CatVar, or None
         """
 
-    @lru_cache(1024)  # noqa: B019
+    @lru_cache(_NORMALIZER_CACHE_SIZE)  # noqa: B019
     def _send_therapy_normalizer_query(self, query: str) -> NormalizedTherapy:
         """Dispatch query to the therapy normalizer
 

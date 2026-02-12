@@ -27,7 +27,7 @@ from pydantic.dataclasses import dataclass
 
 from metakb.config import get_config
 from metakb.normalizers import ViccNormalizers
-from metakb.transformers.base import Transformer
+from metakb.transformers.base import TransformedData, Transformer
 from metakb.transformers.catvars import (
     build_copynumberchange_catvar,
     build_proteinsequenceconsequence_catvar,
@@ -199,6 +199,13 @@ class CivicTransformer(Transformer):
         # accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         # for assertion in accepted_assertions:
         #     await self._annotate_assertion(assertion)
+        self.processed_data = TransformedData(
+            statements={
+                s.id: s
+                for s in statements
+                # + aggregated_statements
+            }
+        )
 
     async def _normalize_variant(
         self, variant: CategoricalVariant

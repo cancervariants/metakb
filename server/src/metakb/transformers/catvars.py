@@ -31,7 +31,7 @@ TRANSLATION_OF_RELATION = MappableConcept(
 
 def build_copynumberchange_catvar(variant: CopyNumberChange) -> CategoricalCnv:
     """Build a CopyNumberChange catvar"""
-    cv_id = "metakb.cv:TODO FIXME"
+    cv_id = f"metakb.cv.cnc:{variant.copyChange}_{variant.id.split(':')[1]}"
     cv_name = "TODO FIXME"
     return CategoricalCnv(
         id=cv_id,
@@ -64,7 +64,7 @@ def build_proteinsequenceconsequence_catvar(
 
     TODO: actually do that ^
     """
-    cv_id = "metakb.cv:TODO FIXME"
+    cv_id = f"metakb.cv.psq:{allele.id.split(':')[1]}"
     cv_name = "TODO FIXME"
     return ProteinSequenceConsequence(
         id=cv_id,
@@ -87,7 +87,7 @@ def build_featurecontext_catvar(feature: MappableConcept) -> CategoricalVariant:
     """Build a simple FeatureContextConstraint-based catvar"""
     if feature.conceptType != "Gene":
         raise ValueError
-    cv_id = "TODO METAKB FIXME"
+    cv_id = f"metakb.cv.fc:{feature.id.replace(':', '_')}"
     cv_name = "TODO METAKB FIXME"
     return CategoricalVariant(
         id=cv_id,
