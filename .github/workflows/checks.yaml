@@ -143,6 +143,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
+          # use 3.12 for docs. currently, build fails on newer Python releases
           python-version: 3.12
 
       - name: Install uv
