@@ -195,17 +195,12 @@ class CivicTransformer(Transformer):
             if aggregate_statement:
                 statements += [aggregate_statement]
 
-        # TODO assertions could get weird
+        # TODO handle civic assertions
         # accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         # for assertion in accepted_assertions:
         #     await self._annotate_assertion(assertion)
-        self.processed_data = TransformedData(
-            statements={
-                s.id: s
-                for s in statements
-                # + aggregated_statements
-            }
-        )
+
+        self.processed_data = TransformedData(statements={s.id: s for s in statements})
 
     async def _normalize_variant(
         self, variant: CategoricalVariant

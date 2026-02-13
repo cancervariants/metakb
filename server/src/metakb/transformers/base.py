@@ -14,6 +14,7 @@ from disease.schemas import NormalizationService as NormalizedDisease
 from ga4gh.cat_vrs.models import (
     CategoricalVariant,
 )
+from ga4gh.core import sha512t24u
 from ga4gh.core.models import Coding, MappableConcept, code
 from ga4gh.va_spec.aac_2017 import (
     Classification,
@@ -301,6 +302,25 @@ class Transformer(ABC):
         with cdm_filepath.open("w+") as f:
             json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
 
+    ### Identity hashing
+
+    @staticmethod
+    def _compute_combo_id(
+        source_name: str,
+        combo_class: type[TherapyGroup] | type[ConditionSet],
+        operator: str,
+        ids: list[str],
+    ) -> str:
+        """Compute identifier for therapy group or condition set"""
+        if not all(ids):
+            raise ValueError
+        ids.append(operator)
+        ids.sort()
+        blob = json.dumps(ids, separators=(",", ":"), sort_keys=True).encode("ascii")
+        digest = sha512t24u(blob)
+        combo_class_abbrev = "tg" if combo_class is TherapyGroup else "cs"
+        return f"{source_name}.{combo_class_abbrev}:{digest}"
+
     ### Entity normalization
 
     @lru_cache(_NORMALIZER_CACHE_SIZE)  # noqa: B019
@@ -357,8 +377,22 @@ class Transformer(ABC):
                 members.append(normalized_condition_set)
             else:
                 raise TypeError
+        if not condition_set.id:
+            condition_set.id = self._compute_combo_id(
+                self.name,
+                ConditionSet,
+                condition_set.membershipOperator,
+                [c.id for c in condition_set.conditions],
+            )
         return ConditionSet(
-            conditions=members, membershipOperator=condition_set.membershipOperator
+            conditions=members,
+            membershipOperator=condition_set.membershipOperator,
+            id=self._compute_combo_id(
+                "metakb",
+                ConditionSet,
+                condition_set.membershipOperator,
+                [c.id for c in members],
+            ),
         )
 
     def _normalize_condition(self, condition: Condition) -> Condition | None:
