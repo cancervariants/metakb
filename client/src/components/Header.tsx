@@ -1,5 +1,6 @@
-import { AppBar, Box, Toolbar, Typography } from '@mui/material'
+import { AppBar, Box, Toolbar } from '@mui/material'
 import { Link } from 'react-router-dom'
+import metakbJrLogo from '../assets/metakbjr-logo.png'
 
 const Header = () => {
   return (
@@ -7,9 +8,12 @@ const Header = () => {
       <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box display="flex" alignItems="center" gap={2}>
           <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <Typography variant="h4" fontWeight="bold" color="white">
-              MetaKB Jr.
-            </Typography>
+            <Box
+              component="img"
+              src={metakbJrLogo}
+              alt="MetaKB Jr."
+              sx={{ height: 75, width: 'auto', display: 'block' }}
+            />
           </Link>
         </Box>
       </Toolbar>
