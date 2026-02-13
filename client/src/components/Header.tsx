@@ -12,7 +12,7 @@ const Header = () => {
               component="img"
               src={metakbJrLogo}
               alt="MetaKB Jr."
-              sx={{ height: 75, width: 'auto', display: 'block', padding: 1}}
+              sx={{ height: 75, width: 'auto', display: 'block', padding: 1 }}
             />
           </Link>
         </Box>
