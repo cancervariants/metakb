@@ -41,22 +41,10 @@ from metakb.transformers.base import (
     MethodId,
     MoaEvidenceLevel,
     Transformer,
-    _sanitize_name,
-    _TransformedRecordsCache,
+    sanitize_name,
 )
 
 _logger = logging.getLogger(__name__)
-
-
-class _MoaTransformedCache(_TransformedRecordsCache):
-    """Create model for caching MOA data"""
-
-    variations: ClassVar[dict[str, dict]] = {}
-    documents: ClassVar[dict[str, Document]] = {}
-    normalized_therapies: ClassVar[
-        dict[str, MappableConcept]
-    ] = {}  # normalized_id: therapy
-    therapy_groups: ClassVar[dict[str, TherapyGroup]] = {}
 
 
 class MoaTransformer(Transformer):
@@ -82,11 +70,6 @@ class MoaTransformer(Transformer):
         self.processed_data.methods = [
             self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]
         ]
-        self._cache = self._create_cache()
-
-    def _create_cache(self) -> _MoaTransformedCache:
-        """Create cache for transformed records"""
-        return _MoaTransformedCache()
 
     async def transform(self, harvested_data: MoaHarvestedData) -> None:
         """Transform MOA harvested JSON to common data model. Will store transformed
@@ -108,7 +91,6 @@ class MoaTransformer(Transformer):
         """Create Variant Study Statements from MOA assertions.
         Will add associated values to ``processed_data`` instance variable
         (``therapies``, ``conditions``, and ``statements``).
-        ``_cache`` will also be mutated for associated therapies and conditions.
 
         :param assertions: MOA assertion record
         """
@@ -220,8 +202,7 @@ class MoaTransformer(Transformer):
     async def _add_categorical_variants(self, variants: list[dict]) -> None:
         """Create Categorical Variant objects for all MOA variant records.
 
-        Mutates instance variables ``_cache['variations']`` and
-        ``processed_data.variations``
+        Mutates instance variable ``processed_data.variations``
 
         :param variants: All variants in MOAlmanac
         """
@@ -235,7 +216,7 @@ class MoaTransformer(Transformer):
             feature = variant["feature"]
             moa_variation = None
             gene = variant.get("gene") or variant.get("gene1")
-            moa_gene = self._cache.genes[_sanitize_name(gene)] if gene else None
+            moa_gene = self._cache.genes[sanitize_name(gene)] if gene else None
             protein_change = variant.get("protein_change")
             constraints = None
             extensions = []
@@ -267,7 +248,7 @@ class MoaTransformer(Transformer):
                         )
                         id_ = f"moa.{gene_norm_resp.gene.id}"
                     else:
-                        id_ = f"moa.gene:{_sanitize_name(feature)}"
+                        id_ = f"moa.gene:{sanitize_name(feature)}"
                         extensions.append(self._get_vicc_normalizer_failure_ext())
 
                     gene_concept = MappableConcept(
@@ -435,7 +416,7 @@ class MoaTransformer(Transformer):
                 )
                 id_ = f"moa.{gene_norm_resp.gene.id}"
             else:
-                id_ = f"moa.gene:{_sanitize_name(gene)}"
+                id_ = f"moa.gene:{sanitize_name(gene)}"
                 extensions.append(self._get_vicc_normalizer_failure_ext())
 
             moa_gene = MappableConcept(
@@ -445,7 +426,7 @@ class MoaTransformer(Transformer):
                 mappings=mappings or None,
                 extensions=extensions or None,
             )
-            self._cache.genes[_sanitize_name(gene)] = moa_gene
+            self._cache.genes[sanitize_name(gene)] = moa_gene
             self.processed_data.genes.append(moa_gene)
 
     def _add_documents(self, sources: list) -> None:
@@ -503,7 +484,7 @@ class MoaTransformer(Transformer):
             )
             therapy_id = f"moa.ctid:{therapeutic_digest}"
         else:
-            therapy_id = f"moa.therapy:{_sanitize_name(therapy_name)}"
+            therapy_id = f"moa.therapy:{sanitize_name(therapy_name)}"
             therapies = [{"name": therapy_name}]
             membership_operator = None
 
@@ -631,7 +612,7 @@ class MoaTransformer(Transformer):
         therapies = []
 
         for therapy in therapies_in:
-            therapy_id = f"moa.therapy:{_sanitize_name(therapy['name'])}"
+            therapy_id = f"moa.therapy:{sanitize_name(therapy['name'])}"
             therapy_mc = self._add_therapy(
                 therapy_id,
                 [therapy],
@@ -836,7 +817,7 @@ class MoaTransformer(Transformer):
         if not normalized_disease_id:
             _logger.debug("Disease Normalizer unable to normalize: %s", queries)
             extensions.append(self._get_vicc_normalizer_failure_ext())
-            id_ = f"moa.disease:{_sanitize_name(disease_name)}"
+            id_ = f"moa.disease:{sanitize_name(disease_name)}"
         else:
             id_ = f"moa.{disease_norm_resp.disease.id}"
             mappings.extend(

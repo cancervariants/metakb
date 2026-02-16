@@ -19,16 +19,9 @@ from civicpy.exports.civic_gks_record import (
     CivicGksTherapyGroup,
     create_gks_record_from_assertion,
 )
-from ga4gh.cat_vrs.models import (
-    CategoricalVariant,
-    Constraint,
-    Relation,
-)
+from ga4gh.cat_vrs.models import CategoricalVariant, Constraint, Relation
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence, SystemUri
-from ga4gh.core.models import (
-    Coding,
-    MappableConcept,
-)
+from ga4gh.core.models import Coding, MappableConcept
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
@@ -42,13 +35,8 @@ from ga4gh.va_spec.base import (
 from ga4gh.vrs.models import Allele, Expression, Syntax, Variation
 from pydantic.dataclasses import dataclass
 
-from metakb.normalizers import (
-    ViccNormalizers,
-)
-from metakb.transformers.base import (
-    Transformer,
-    _TransformedRecordsCache,
-)
+from metakb.normalizers import ViccNormalizers
+from metakb.transformers.base import Transformer
 
 _logger = logging.getLogger(__name__)
 
@@ -95,7 +83,7 @@ UNABLE_TO_NORMALIZE_VAR_NAMES = {
 }
 
 
-class ConceptType(str, Enum):
+class ConceptType(StrEnum):
     """Define constraints for Concept Types"""
 
     GENE = "Gene"
@@ -140,20 +128,6 @@ class MolecularProfileNameComponents:
     c_change: str | None
 
 
-class _CivicTransformedCache(_TransformedRecordsCache):
-    """Create model for caching CIViC data"""
-
-    categorical_variants: ClassVar[
-        dict[str, CategoricalVariant | ProteinSequenceConsequence]
-    ] = {}
-    evidence: ClassVar[
-        dict[
-            str,
-            Statement,
-        ]
-    ] = {}
-
-
 class CivicTransformer(Transformer):
     """A class for transforming CIViC to the common data model."""
 
@@ -173,7 +147,6 @@ class CivicTransformer(Transformer):
             data_dir=data_dir, harvester_path=harvester_path, normalizers=normalizers
         )
 
-        self._cache = self._create_cache()
         self._concept_norm_method = MappingProxyType(
             {
                 ConceptType.DISEASE: self.vicc_normalizers.normalize_disease,
@@ -185,8 +158,7 @@ class CivicTransformer(Transformer):
     async def transform(self) -> None:
         """Normalize CIViC evidence items and assertions and add annotations
 
-        Updated records will store results in ``processed_data`` and ``_cache`` instance
-        variables.
+        Updated records will store results in ``processed_data`` instance variable.
         """
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
         for evidence_item in accepted_evidence_items:
@@ -196,17 +168,13 @@ class CivicTransformer(Transformer):
         for assertion in accepted_assertions:
             await self._annotate_assertion(assertion)
 
-    def _create_cache(self) -> _CivicTransformedCache:
-        """Create cache for transformed records"""
-        return _CivicTransformedCache()
-
     async def _annotate_evidence(
         self, evidence_item: civicpy.Evidence | CivicGksEvidence
     ) -> Statement | None:
         """Annotate evidence with additional information, such as normalizer info
 
         Annotated evidence will be added to the ``processed_data.statements_evidence``
-        and ``_cache.evidence`` instance variables.
+        instance variable.
 
         :param evidence_item: CIViC evidence item
         :return: Statement for CIViC evidence item, if able to annotate
@@ -238,7 +206,6 @@ class CivicTransformer(Transformer):
             **gks_evidence_item.model_dump(exclude_none=True, exclude={"proposition"}),
             proposition=updated_proposition,
         )
-        self._cache.evidence[gks_evidence_item.id] = annotated_gks_evidence_item
         self.processed_data.statements_evidence.append(annotated_gks_evidence_item)
         return annotated_gks_evidence_item
 
@@ -255,17 +222,12 @@ class CivicTransformer(Transformer):
         async def _resolve_evidence(
             ev: CivicGksEvidence, assertion_id: str
         ) -> Statement | None:
-            """Get annotated evidence from cache or create annotated evidence
-            (and add to cache)
+            """Create annotated evidence
 
             :param ev: CIViC GKS evidence item
             :param assertion_id: ID of assertion that ``ev`` belongs to
             :return: Annotated evidence, if able to resolve
             """
-            cached_evidence = self._cache.evidence.get(ev.id)
-            if cached_evidence:
-                return cached_evidence
-
             annotated_evidence = await self._annotate_evidence(ev)
             if not annotated_evidence:
                 _logger.warning(
@@ -322,23 +284,20 @@ class CivicTransformer(Transformer):
         """
 
         async def _add_therapy(therapy: CivicGksTherapy) -> MappableConcept:
-            """Create or get therapy given CIViC therapy.
-            First looks in cache for existing therapy, if not found will attempt to
-            transform. Will add CIViC therapy ID to ``processed_data.therapies`` and
-            ``_cache.therapies``
+            """Create therapy given CIViC therapy.
+
+            Attempt to transform. Will add CIViC therapy ID to ``processed_data.therapies``
 
             :param therapy: CIViC Therapy object
             :return: Therapy represented as mappable concept
             """
             return await self._resolve_entity(
                 therapy,
-                self._cache.therapies,
                 self.processed_data.therapies,
             )
 
         updated_molecular_profile = await self._resolve_entity(
             proposition.subjectVariant,
-            self._cache.categorical_variants,
             self.processed_data.categorical_variants,
         )
 
@@ -353,14 +312,12 @@ class CivicTransformer(Transformer):
         else:
             updated_condition = await self._resolve_entity(
                 condition.root,
-                self._cache.conditions,
                 self.processed_data.conditions,
             )
         updated_condition = Condition(root=updated_condition)
 
         updated_gene = await self._resolve_entity(
             proposition.geneContextQualifier,
-            self._cache.genes,
             self.processed_data.genes,
         )
 
@@ -419,24 +376,17 @@ class CivicTransformer(Transformer):
         | CivicGksPhenotype
         | CivicGksGene
         | CivicGksMolecularProfile,
-        cache: dict,
         processed_list: list,
     ) -> CategoricalVariant | ProteinSequenceConsequence | MappableConcept:
-        """Get annotated entity from cache or create annotated entity
+        """Create annotated entity
 
-        Annotated entity will be added to the ``processed_list`` and ``cache``
+        Annotated entity will be added to the ``processed_list``
 
         :param entity: The entity to annotate with the VICC normalizers
             If entity is CivicGksPhenotype, will not attempt to annotate
-        :param cache: Concept cache
         :param processed_list: List of processed data
         :return: Annotated entity
         """
-        entityt_id = entity.id
-        entity_obj = cache.get(entityt_id)
-        if entity_obj:
-            return entity_obj
-
         if isinstance(entity, CivicGksMolecularProfile):
             annotated_entity = await self._get_annotated_mp(entity)
         elif isinstance(entity, CivicGksDisease | CivicGksGene | CivicGksTherapy):
@@ -447,15 +397,13 @@ class CivicTransformer(Transformer):
         if inspect.isawaitable(annotated_entity):
             annotated_entity = await annotated_entity
 
-        cache[entityt_id] = annotated_entity
         processed_list.append(annotated_entity)
         return annotated_entity
 
     async def _resolve_condition_set(self, condition_set: ConditionSet) -> ConditionSet:
         """Get annotated condition set
 
-        Conditions will be added to the ``processed_data.conditions`` and
-        ``_cache.conditions``
+        Conditions will be added to the ``processed_data.conditions`` variable
 
         :param condition_set: Condition set
         :return: Annotated condition set
@@ -468,7 +416,6 @@ class CivicTransformer(Transformer):
                 updated_conditions.append(
                     await self._resolve_entity(
                         condition,
-                        self._cache.conditions,
                         self.processed_data.conditions,
                     )
                 )

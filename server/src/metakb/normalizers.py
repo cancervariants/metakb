@@ -1,10 +1,12 @@
 """Handle construction of and relay requests to VICC normalizer services."""
 
 import logging
-from collections.abc import Iterable
-from enum import Enum
+from collections.abc import Callable, Iterable
+from enum import StrEnum
+from functools import lru_cache
 from os import environ
 
+from async_lru import alru_cache
 from botocore.exceptions import TokenRetrievalError
 from disease.cli import update as update_disease_db
 from disease.database import create_db as create_disease_db
@@ -42,6 +44,9 @@ __all__ = [
 _logger = logging.getLogger(__name__)
 
 
+DEFAULT_CACHE_SIZE = 1024
+
+
 class ViccNormalizers:
     """Manage VICC concept normalization services.
 
@@ -56,7 +61,7 @@ class ViccNormalizers:
     more.
     """
 
-    def __init__(self, db_url: str | None = None) -> None:
+    def __init__(self, db_url: str | None = None, cache_size: int | None = -1) -> None:
         """Initialize normalizers. Construct a normalizer instance for each service
         (gene, variation, disease, therapy) and retain them as instance properties.
 
@@ -76,13 +81,22 @@ class ViccNormalizers:
             connecting a DynamoDB backend. If not given, each normalizer falls back
             on default behavior for connecting to a database, which includes checking
             their corresponding environment variables.
+        :param cache_size: size of LRU cache used for each normalizer
         """
-        self.gene_query_handler = GeneQueryHandler(create_gene_db(db_url))
-        self.variation_normalizer = VariationQueryHandler(
-            gene_query_handler=self.gene_query_handler
+        if cache_size == -1:
+            cache_size = DEFAULT_CACHE_SIZE
+        gene_query_handler = GeneQueryHandler(create_gene_db(db_url))
+        self._normalize_gene = lru_cache(cache_size)(gene_query_handler.normalize)
+        disease_query_handler = DiseaseQueryHandler(create_disease_db(db_url))
+        self._normalize_disease = lru_cache(cache_size)(disease_query_handler.normalize)
+        therapy_query_handler = TherapyQueryHandler(create_therapy_db(db_url))
+        self._normalize_therapy = lru_cache(cache_size)(therapy_query_handler.normalize)
+        variation_query_handler = VariationQueryHandler(
+            gene_query_handler=gene_query_handler
         )
-        self.disease_query_handler = DiseaseQueryHandler(create_disease_db(db_url))
-        self.therapy_query_handler = TherapyQueryHandler(create_therapy_db(db_url))
+        self._normalize_variation = alru_cache(cache_size)(
+            variation_query_handler.normalize_handler.normalize
+        )
 
     async def normalize_variation(
         self, query: str
@@ -94,9 +108,7 @@ class ViccNormalizers:
         :return: A normalized variation, if available.
         """
         try:
-            variation_norm_resp = (
-                await self.variation_normalizer.normalize_handler.normalize(query)
-            )
+            variation_norm_resp = await self._normalize_variation(query)
             if variation_norm_resp and variation_norm_resp.variation:
                 return variation_norm_resp.variation
         except TokenRetrievalError:
@@ -120,7 +132,7 @@ class ViccNormalizers:
         :raises TokenRetrievalError: If AWS credentials are expired
         :return: Gene normalization response and normalized gene ID, if available.
         """
-        return self._normalize_concept(query, self.gene_query_handler, "gene")
+        return self._normalize_concept(query, self._normalize_gene, "gene")
 
     def normalize_disease(self, query: str) -> tuple[NormalizedDisease, str | None]:
         """Attempt to normalize a disease query
@@ -137,7 +149,7 @@ class ViccNormalizers:
         :raises TokenRetrievalError: If AWS credentials are expired
         :return: Disease normalization response and normalized disease ID, if available.
         """
-        return self._normalize_concept(query, self.disease_query_handler, "disease")
+        return self._normalize_concept(query, self._normalize_disease, "disease")
 
     def normalize_therapy(self, query: str) -> tuple[NormalizedTherapy, str | None]:
         """Attempt to normalize a therapy query
@@ -151,7 +163,7 @@ class ViccNormalizers:
         :raises TokenRetrievalError: If AWS credentials are expired
         :return: Therapy normalization response and normalized therapy ID, if available.
         """
-        return self._normalize_concept(query, self.therapy_query_handler, "therapy")
+        return self._normalize_concept(query, self._normalize_therapy, "therapy")
 
     @staticmethod
     def get_regulatory_approval_extension(
@@ -221,7 +233,7 @@ class ViccNormalizers:
     @staticmethod
     def _normalize_concept(
         query: str,
-        query_handler: GeneQueryHandler | DiseaseQueryHandler | TherapyQueryHandler,
+        normalizer_callback: Callable,
         concept_name: str,
     ) -> tuple[NormalizedGene | NormalizedDisease | NormalizedTherapy, str | None]:
         """Attempt to normalize a concept
@@ -236,7 +248,7 @@ class ViccNormalizers:
         normalized_id = None
 
         try:
-            normalizer_resp = query_handler.normalize(query)
+            normalizer_resp = normalizer_callback(query)
         except TokenRetrievalError:
             raise
         except Exception:
@@ -254,7 +266,7 @@ class ViccNormalizers:
         return normalizer_resp, normalized_id
 
 
-class NormalizerName(str, Enum):
+class NormalizerName(StrEnum):
     """Constrain normalizer CLI options."""
 
     GENE = "gene"

@@ -5,7 +5,7 @@ import json
 import logging
 import re
 from abc import ABC, abstractmethod
-from enum import Enum
+from enum import Enum, StrEnum
 from pathlib import Path
 from typing import ClassVar, TypeVar
 
@@ -69,10 +69,8 @@ NORMALIZER_INSTANCE_TO_ATTR = {
     NormalizedGene: "gene",
 }
 
-_CacheType = TypeVar("_CacheType", bound="_TransformedRecordsCache")
 
-
-def _sanitize_name(name: str) -> str:
+def sanitize_name(name: str) -> str:
     """Trim leading and trailing whitespace and replace whitespace characters with
     underscores
 
@@ -82,28 +80,28 @@ def _sanitize_name(name: str) -> str:
     return re.sub(r"\s+", "_", name.strip())
 
 
-class NormalizerExtensionName(str, Enum):
+class NormalizerExtensionName(StrEnum):
     """Define constraints for normalizer extension names"""
 
     PRIORITY = "vicc_normalizer_priority"  # concept mapping is merged concept ID
     FAILURE = "vicc_normalizer_failure"  # normalizer failed or is not supported
 
 
-class EcoLevel(str, Enum):
+class EcoLevel(StrEnum):
     """Define constraints for Evidence Ontology levels"""
 
     EVIDENCE = "ECO:0000000"
     CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
 
 
-class MethodId(str, Enum):
+class MethodId(StrEnum):
     """Create method id constants"""
 
     CIVIC_EID_SOP = "civic.method:2019"
     MOA_ASSERTION_BIORXIV = "moa.method:2021"
 
 
-class CivicEvidenceLevel(str, Enum):
+class CivicEvidenceLevel(StrEnum):
     """Define constraints for CIViC evidence levels"""
 
     A = "A"
@@ -113,7 +111,7 @@ class CivicEvidenceLevel(str, Enum):
     E = "E"
 
 
-class MoaEvidenceLevel(str, Enum):
+class MoaEvidenceLevel(StrEnum):
     """Define constraints MOAlmanac evidence levels"""
 
     FDA_APPROVED = "FDA-Approved"
@@ -133,14 +131,6 @@ class ViccConceptVocab(BaseModel):
     parents: list[StrictStr] = []
     exact_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
     definition: StrictStr
-
-
-class _TransformedRecordsCache(BaseModel):
-    """Define model for caching transformed records"""
-
-    therapies: ClassVar[dict[str, MappableConcept]] = {}
-    conditions: ClassVar[dict[str, MappableConcept]] = {}
-    genes: ClassVar[dict[str, MappableConcept]] = {}
 
 
 class TransformedData(BaseModel):
@@ -285,7 +275,6 @@ class Transformer(ABC):
         :param harvester_path: Path to previously harvested data
         :param normalizers: normalizer collection instance
         """
-        self._cache = self._create_cache()
         self.name = self.__class__.__name__.lower().split("transformer")[0]
         if data_dir:
             self.data_dir = data_dir
@@ -306,10 +295,6 @@ class Transformer(ABC):
 
         :param harvested_data: Source harvested data
         """
-
-    @abstractmethod
-    def _create_cache() -> _CacheType:
-        """Create cache for transformed records"""
 
     def extract_harvested_data(self) -> _HarvestedData:
         """Get harvested data from file.
