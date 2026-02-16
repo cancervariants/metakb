@@ -41,6 +41,7 @@ from ga4gh.va_spec.base import (
 )
 from ga4gh.vrs.models import Allele, Expression, Syntax, Variation
 from pydantic.dataclasses import dataclass
+from tqdm import tqdm
 
 from metakb.normalizers import (
     ViccNormalizers,
@@ -189,12 +190,18 @@ class CivicTransformer(Transformer):
         variables.
         """
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
-        for evidence_item in accepted_evidence_items:
-            await self._annotate_evidence(evidence_item)
-
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
-        for assertion in accepted_assertions:
-            await self._annotate_assertion(assertion)
+        pbar = tqdm(
+            total=len(accepted_evidence_items) + len(accepted_assertions),
+        )
+        for item in accepted_evidence_items:
+            await self._annotate_evidence(item)
+            pbar.update(1)
+        for item in accepted_assertions:
+            await self._annotate_assertion(item)
+            pbar.update(1)
+
+        pbar.close()
 
     def _create_cache(self) -> _CivicTransformedCache:
         """Create cache for transformed records"""
