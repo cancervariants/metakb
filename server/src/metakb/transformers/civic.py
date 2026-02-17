@@ -6,7 +6,6 @@ import re
 from enum import Enum, StrEnum
 from pathlib import Path
 from types import MappingProxyType
-from typing import ClassVar
 
 from civicpy import civic as civicpy
 from civicpy.exports.civic_gks_record import (
@@ -288,19 +287,6 @@ class CivicTransformer(Transformer):
         :param proposition: Proposition for a given statement
         :return: Annotated proposition
         """
-        # async def _add_therapy(therapy: CivicGksTherapy) -> MappableConcept:
-        #     """Create or get therapy given CIViC therapy.
-        #
-        #     Will add CIViC therapy ID to ``processed_data.therapies``
-        #
-        #     :param therapy: CIViC Therapy object
-        #     :return: Therapy represented as mappable concept
-        #     """
-        #     return await self._resolve_entity(
-        #         therapy,
-        #         self.processed_data.therapies,
-        #     )
-
         updated_molecular_profile = await self._resolve_entity(
             proposition.subjectVariant,
             self.processed_data.categorical_variants,
