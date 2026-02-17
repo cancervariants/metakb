@@ -22,6 +22,7 @@ from ga4gh.va_spec.base import (
     Direction,
     Document,
     MembershipOperator,
+    Method,
     PrognosticPredicate,
     Statement,
     TherapeuticResponsePredicate,
@@ -38,7 +39,6 @@ from metakb.normalizers import (
 )
 from metakb.schemas.app import SourceName
 from metakb.transformers.base import (
-    MethodId,
     MoaEvidenceLevel,
     Transformer,
     _sanitize_name,
@@ -78,15 +78,23 @@ class MoaTransformer(Transformer):
             data_dir=data_dir, harvester_path=harvester_path, normalizers=normalizers
         )
 
-        # Method will always be the same
-        self.processed_data.methods = [
-            self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]
-        ]
         self._cache = self._create_cache()
 
     def _create_cache(self) -> _MoaTransformedCache:
         """Create cache for transformed records"""
         return _MoaTransformedCache()
+
+    def _create_method(self) -> Method:
+        return Method(
+            id="moa.method:2021",
+            name="MOAlmanac (2021)",
+            reportedIn=Document(
+                name="Reardon, B., Moore, N.D., Moore, N.S. et al.",
+                title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+                doi="10.1038/s43018-021-00243-3",
+                pmid="35121878",
+            ),
+        )
 
     async def transform(self, harvested_data: MoaHarvestedData) -> None:
         """Transform MOA harvested JSON to common data model. Will store transformed
@@ -163,7 +171,7 @@ class MoaTransformer(Transformer):
             "id": assertion_id,
             "description": assertion["description"],
             "strength": strength,
-            "specifiedBy": self.processed_data.methods[0],
+            "specifiedBy": self._create_method(),
             "reportedIn": [document],
         }
         prop_params = {
