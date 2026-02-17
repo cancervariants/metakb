@@ -87,6 +87,7 @@ class MoaTransformer(Transformer):
         for assertion in harvested_data.assertions:
             await self._add_variant_study_stmt(assertion, docs_map)
             pbar.update(1)
+        pbar.close()
 
     async def _add_variant_study_stmt(
         self, assertion: dict, docs_map: dict[str, Document]
