@@ -9,12 +9,8 @@ from enum import Enum
 from pathlib import Path
 from typing import ClassVar, TypeVar
 
-from disease.schemas import (
-    NamespacePrefix as DiseaseNamespacePrefix,
-)
-from disease.schemas import (
-    NormalizationService as NormalizedDisease,
-)
+from disease.schemas import NamespacePrefix as DiseaseNamespacePrefix
+from disease.schemas import NormalizationService as NormalizedDisease
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
 from ga4gh.core import sha512t24u
@@ -39,26 +35,16 @@ from ga4gh.va_spec.base import (
     TherapyGroup,
 )
 from ga4gh.vrs.models import Allele
-from gene.schemas import (
-    NamespacePrefix as GeneNamespacePrefix,
-)
-from gene.schemas import (
-    NormalizeService as NormalizedGene,
-)
+from gene.schemas import NamespacePrefix as GeneNamespacePrefix
+from gene.schemas import NormalizeService as NormalizedGene
 from pydantic import BaseModel, Field, StrictStr
-from therapy.schemas import (
-    NamespacePrefix as TherapyNamespacePrefix,
-)
-from therapy.schemas import (
-    NormalizationService as NormalizedTherapy,
-)
+from therapy.schemas import NamespacePrefix as TherapyNamespacePrefix
+from therapy.schemas import NormalizationService as NormalizedTherapy
 
 from metakb import DATE_FMT
 from metakb.config import get_config
 from metakb.harvesters.base import _HarvestedData
-from metakb.normalizers import (
-    ViccNormalizers,
-)
+from metakb.normalizers import ViccNormalizers
 
 logger = logging.getLogger(__name__)
 
@@ -68,8 +54,6 @@ NORMALIZER_INSTANCE_TO_ATTR = {
     NormalizedTherapy: "therapy",
     NormalizedGene: "gene",
 }
-
-_CacheType = TypeVar("_CacheType", bound="_TransformedRecordsCache")
 
 
 def _sanitize_name(name: str) -> str:
@@ -133,14 +117,6 @@ class ViccConceptVocab(BaseModel):
     parents: list[StrictStr] = []
     exact_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
     definition: StrictStr
-
-
-class _TransformedRecordsCache(BaseModel):
-    """Define model for caching transformed records"""
-
-    therapies: ClassVar[dict[str, MappableConcept]] = {}
-    conditions: ClassVar[dict[str, MappableConcept]] = {}
-    genes: ClassVar[dict[str, MappableConcept]] = {}
 
 
 class TransformedData(BaseModel):
@@ -285,7 +261,6 @@ class Transformer(ABC):
         :param harvester_path: Path to previously harvested data
         :param normalizers: normalizer collection instance
         """
-        self._cache = self._create_cache()
         self.name = self.__class__.__name__.lower().split("transformer")[0]
         if data_dir:
             self.data_dir = data_dir
@@ -306,10 +281,6 @@ class Transformer(ABC):
 
         :param harvested_data: Source harvested data
         """
-
-    @abstractmethod
-    def _create_cache() -> _CacheType:
-        """Create cache for transformed records"""
 
     def extract_harvested_data(self) -> _HarvestedData:
         """Get harvested data from file.

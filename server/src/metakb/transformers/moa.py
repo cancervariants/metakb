@@ -43,21 +43,20 @@ from metakb.transformers.base import (
     MoaEvidenceLevel,
     Transformer,
     _sanitize_name,
-    _TransformedRecordsCache,
 )
 
 _logger = logging.getLogger(__name__)
 
 
-class _MoaTransformedCache(_TransformedRecordsCache):
-    """Create model for caching MOA data"""
-
-    variations: ClassVar[dict[str, dict]] = {}
-    documents: ClassVar[dict[str, Document]] = {}
-    normalized_therapies: ClassVar[
-        dict[str, MappableConcept]
-    ] = {}  # normalized_id: therapy
-    therapy_groups: ClassVar[dict[str, TherapyGroup]] = {}
+# class _MoaTransformedCache(_TransformedRecordsCache):
+#     """Create model for caching MOA data"""
+#
+#     variations: ClassVar[dict[str, dict]] = {}
+#     documents: ClassVar[dict[str, Document]] = {}
+#     normalized_therapies: ClassVar[
+#         dict[str, MappableConcept]
+#     ] = {}  # normalized_id: therapy
+#     therapy_groups: ClassVar[dict[str, TherapyGroup]] = {}
 
 
 class MoaTransformer(Transformer):
@@ -83,11 +82,6 @@ class MoaTransformer(Transformer):
         self.processed_data.methods = [
             self.methods_mapping[MethodId.MOA_ASSERTION_BIORXIV.value]
         ]
-        self._cache = self._create_cache()
-
-    def _create_cache(self) -> _MoaTransformedCache:
-        """Create cache for transformed records"""
-        return _MoaTransformedCache()
 
     async def transform(self, harvested_data: MoaHarvestedData) -> None:
         """Transform MOA harvested JSON to common data model. Will store transformed
@@ -97,7 +91,6 @@ class MoaTransformer(Transformer):
         """
         total = (
             len(harvested_data.genes)
-            + len(harvested_data.variants)
             + len(harvested_data.sources)
             + len(harvested_data.assertions)
         )
@@ -108,9 +101,7 @@ class MoaTransformer(Transformer):
         for gene in harvested_data.genes:
             self._create_gene(gene)
             pbar.update(1)
-        for variant in harvested_data.variants:
-            await self._add_categorical_variant(variant)
-            pbar.update(1)
+        variants_map = {}
         for source in harvested_data.sources:
             self._add_document(source)
             pbar.update(1)
@@ -124,20 +115,11 @@ class MoaTransformer(Transformer):
         """Create Variant Study Statements from MOA assertions.
         Will add associated values to ``processed_data`` instance variable
         (``therapies``, ``conditions``, and ``statements``).
-        ``_cache`` will also be mutated for associated therapies and conditions.
 
         :param assertions: MOA assertion record
         """
         assertion_id = f"moa.assertion:{assertion['id']}"
-        variant_id = assertion["variant"]["id"]
-
-        # Check cache for variation record (which contains gene information)
-        variation_gene_map = self._cache.variations.get(variant_id)
-        if not variation_gene_map:
-            _logger.debug(
-                "%s has no variation for variant_id %s", assertion_id, variant_id
-            )
-            return
+        variant = await self._create_categorical_variant(assertion["variant"])
 
         # Get strength
         predictive_implication = (
@@ -185,7 +167,7 @@ class MoaTransformer(Transformer):
         prop_params = {
             "alleleOriginQualifier": allele_origin_qualifier,
             "geneContextQualifier": variation_gene_map["moa_gene"],
-            "subjectVariant": variation_gene_map["cv"],
+            "subjectVariant": variant,
         }
 
         if assertion["favorable_prognosis"] == "":  # can be either 0, 1, or ""
@@ -233,7 +215,7 @@ class MoaTransformer(Transformer):
             stmt_params["proposition"] = VariantPrognosticProposition(**prop_params)
         self.processed_data.statements_evidence.append(Statement(**stmt_params))
 
-    async def _add_categorical_variant(self, variant: dict) -> None:
+    async def _create_categorical_variant(self, variant: dict) -> None:
         """Create Categorical Variant object for MOA variant record
 
         Mutates instance variables ``_cache['variations']`` and
