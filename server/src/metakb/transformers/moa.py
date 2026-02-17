@@ -3,7 +3,6 @@
 import json
 import logging
 from pathlib import Path
-from typing import ClassVar
 
 from ga4gh.cat_vrs.models import (
     CategoricalVariant,
@@ -17,6 +16,7 @@ from ga4gh.core.models import (
     Extension,
     MappableConcept,
     Relation,
+    code,
 )
 from ga4gh.va_spec.base import (
     Direction,
@@ -34,9 +34,7 @@ from pydantic import ValidationError
 from tqdm import tqdm
 
 from metakb.harvesters.moa import MoaHarvestedData
-from metakb.normalizers import (
-    ViccNormalizers,
-)
+from metakb.normalizers import ViccNormalizers
 from metakb.schemas.app import SourceName
 from metakb.transformers.base import (
     MethodId,
@@ -89,34 +87,30 @@ class MoaTransformer(Transformer):
 
         :param harvested_data: MOA harvested data
         """
-        total = (
-            len(harvested_data.genes)
-            + len(harvested_data.sources)
-            + len(harvested_data.assertions)
-        )
+        total = len(harvested_data.sources) + len(harvested_data.assertions)
         pbar = tqdm(total=total)
 
-        # Add gene, variant, and source data to ``processed_data`` instance variable
-        # (``genes``, ``variations``, and ``documents``)
-        for gene in harvested_data.genes:
-            self._create_gene(gene)
-            pbar.update(1)
-        variants_map = {}
+        docs_map = {}
         for source in harvested_data.sources:
-            self._add_document(source)
+            source_doc = self._create_document(source)
+            docs_map[source_doc.id] = source_doc
             pbar.update(1)
 
         # Add variant therapeutic response study statement data. Will update `statements`
         for assertion in harvested_data.assertions:
-            await self._add_variant_study_stmt(assertion)
+            await self._add_variant_study_stmt(assertion, docs_map)
             pbar.update(1)
 
-    async def _add_variant_study_stmt(self, assertion: dict) -> None:
+    async def _add_variant_study_stmt(
+        self, assertion: dict, docs_map: dict[str, Document]
+    ) -> None:
         """Create Variant Study Statements from MOA assertions.
+
         Will add associated values to ``processed_data`` instance variable
         (``therapies``, ``conditions``, and ``statements``).
 
         :param assertions: MOA assertion record
+        :param docs_map:
         """
         assertion_id = f"moa.assertion:{assertion['id']}"
         variant = await self._create_categorical_variant(assertion["variant"])
@@ -133,7 +127,7 @@ class MoaTransformer(Transformer):
         strength = MappableConcept(
             primaryCoding=Coding(
                 system="https://moalmanac.org/about",
-                code=evidence_level.value,
+                code=code(evidence_level.value),
             ),
             mappings=self.evidence_level_to_vicc_concept_mapping[evidence_level],
         )
@@ -146,9 +140,16 @@ class MoaTransformer(Transformer):
             )
             return
 
-        # Add document
-        document = self._cache.documents.get(assertion["source_id"])
+        # Add gene
+        if gene_name := assertion["variant"].get("gene"):
+            moa_gene = self._create_gene(gene_name)
+        else:
+            return
 
+        # Add document
+        document = docs_map[assertion["source_id"]]
+
+        # Add allele origin
         feature_type = assertion["variant"]["feature_type"]
         if feature_type == "somatic_variant":
             allele_origin_qualifier = MappableConcept(name="somatic")
@@ -166,7 +167,7 @@ class MoaTransformer(Transformer):
         }
         prop_params = {
             "alleleOriginQualifier": allele_origin_qualifier,
-            "geneContextQualifier": variation_gene_map["moa_gene"],
+            "geneContextQualifier": moa_gene,
             "subjectVariant": variant,
         }
 
@@ -218,8 +219,7 @@ class MoaTransformer(Transformer):
     async def _create_categorical_variant(self, variant: dict) -> None:
         """Create Categorical Variant object for MOA variant record
 
-        Mutates instance variables ``_cache['variations']`` and
-        ``processed_data.variations``
+        Mutates instance variable ``processed_data.variations``
 
         :param variant: variants in MOAlmanac
         """
@@ -231,8 +231,7 @@ class MoaTransformer(Transformer):
         moa_variant_id = f"moa.variant:{variant_id}"
         feature = variant["feature"]
         moa_variation = None
-        gene = variant.get("gene") or variant.get("gene1")
-        moa_gene = self._cache.genes[_sanitize_name(gene)] if gene else None
+        moa_gene_value = variant.get("gene") or variant.get("gene1")
         protein_change = variant.get("protein_change")
         constraints = None
         extensions = []
@@ -240,7 +239,7 @@ class MoaTransformer(Transformer):
         if (
             variant["feature_type"] == "somatic_variant"
             and variant["alternate_allele"] is None
-            and feature == gene
+            and feature == moa_gene_value
             and protein_change is None
             # no slam-dunk catvar solution exists for defining specific exons as features --
             # see https://github.com/ga4gh/cat-vrs/discussions/161
@@ -270,12 +269,14 @@ class MoaTransformer(Transformer):
                 gene_concept = MappableConcept(
                     id=id_,
                     conceptType="Gene",
-                    name=gene,
+                    name=gene_norm_resp.gene.name if gene_norm_resp.gene else None,
                     mappings=mappings or None,
                     extensions=extensions or None,
                 )
                 constraints = [FeatureContextConstraint(featureContext=gene_concept)]
-        elif "rearrangement_type" in variant or not protein_change or not gene:
+        elif (
+            "rearrangement_type" in variant or not protein_change or not moa_gene_value
+        ):
             _logger.debug(
                 "Variation Normalizer does not support %s: %s",
                 moa_variant_id,
@@ -286,24 +287,29 @@ class MoaTransformer(Transformer):
             # Form query and run through variation-normalizer
             # For now, the normalizer only support amino acid substitution
             vrs_variation = None
-            gene = moa_gene.name
-            query = f"{gene} {protein_change[2:]}"
-            vrs_variation = await self.vicc_normalizers.normalize_variation(query)
-
-            if not vrs_variation:
-                _logger.debug(
-                    "Variation Normalizer unable to normalize: moa.variant: %s using query: %s",
-                    variant_id,
-                    query,
-                )
+            normalize_gene_response = self.vicc_normalizers.normalize_gene(
+                moa_gene_value
+            )
+            if not normalize_gene_response[0].gene:
                 extensions.append(self._get_vicc_normalizer_failure_ext())
             else:
-                # Create VRS Variation object
-                params = vrs_variation.model_dump(exclude_none=True)
-                moa_variant_id = f"moa.variant:{variant_id}"
-                params["id"] = vrs_variation.id
-                moa_variation = Variation(**params)
-                constraints = [DefiningAlleleConstraint(allele=moa_variation.root)]
+                query = f"{normalize_gene_response[0].gene.name} {protein_change[2:]}"
+                vrs_variation = await self.vicc_normalizers.normalize_variation(query)
+
+                if not vrs_variation:
+                    _logger.debug(
+                        "Variation Normalizer unable to normalize: moa.variant: %s using query: %s",
+                        variant_id,
+                        query,
+                    )
+                    extensions.append(self._get_vicc_normalizer_failure_ext())
+                else:
+                    # Create VRS Variation object
+                    params = vrs_variation.model_dump(exclude_none=True)
+                    moa_variant_id = f"moa.variant:{variant_id}"
+                    params["id"] = vrs_variation.id
+                    moa_variation = Variation(**params)
+                    constraints = [DefiningAlleleConstraint(allele=moa_variation.root)]
 
         # Add MOA representative coordinate data to extensions
         coordinates_keys = [
@@ -332,7 +338,7 @@ class MoaTransformer(Transformer):
             ConceptMapping(
                 coding=Coding(
                     id=moa_variant_id,
-                    code=str(variant_id),
+                    code=code(str(variant_id)),
                     system="https://moalmanac.org",
                 ),
                 relation=Relation.EXACT_MATCH,
@@ -359,10 +365,6 @@ class MoaTransformer(Transformer):
             members=members,
         )
 
-        self._cache.variations[variant_id] = {
-            "cv": cv,
-            "moa_gene": moa_gene,
-        }
         self.processed_data.categorical_variants.append(cv)
 
     async def _get_variation_members(
@@ -409,12 +411,13 @@ class MoaTransformer(Transformer):
 
         return members
 
-    def _create_gene(self, gene: str) -> None:
+    def _create_gene(self, gene: str) -> MappableConcept:
         """Create gene object for MOA gene record
 
         Mutates instance variables ``_cache['genes']`` and ``processed_data.genes``
 
         :param gene: gene from MOAlmanac
+        :return:
         """
         gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(gene)
         mappings = []
@@ -435,13 +438,13 @@ class MoaTransformer(Transformer):
             mappings=mappings or None,
             extensions=extensions or None,
         )
-        self._cache.genes[_sanitize_name(gene)] = moa_gene
         self.processed_data.genes.append(moa_gene)
+        return moa_gene
 
-    def _add_document(self, source: dict) -> None:
+    def _create_document(self, source: dict) -> Document:
         """Create document object for MOA source
 
-        Mutates instance variables ``processed_data.documents`` and ``self._cache.documents"]``
+        Mutates instance variable ``processed_data.documents``
 
         :param sources: All sources in MOA
         """
@@ -454,8 +457,8 @@ class MoaTransformer(Transformer):
             doi=source["doi"] or None,
             extensions=[Extension(name="source_type", value=source["type"])],
         )
-        self._cache.documents[source_id] = document
         self.processed_data.documents.append(document)
+        return document
 
     def _get_therapy_or_group(
         self, assertion: dict
