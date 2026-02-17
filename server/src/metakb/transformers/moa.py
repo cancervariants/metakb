@@ -120,6 +120,8 @@ class MoaTransformer(Transformer):
             await self._add_variant_study_stmt(assertion)
             pbar.update(1)
 
+        pbar.close()
+
     async def _add_variant_study_stmt(self, assertion: dict) -> None:
         """Create Variant Study Statements from MOA assertions.
         Will add associated values to ``processed_data`` instance variable
