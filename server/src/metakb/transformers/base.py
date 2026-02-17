@@ -7,7 +7,7 @@ import re
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import ClassVar, TypeVar
+from typing import ClassVar
 
 from disease.schemas import NamespacePrefix as DiseaseNamespacePrefix
 from disease.schemas import NormalizationService as NormalizedDisease
