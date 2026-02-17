@@ -1,6 +1,5 @@
 """A module to convert MOA resources to common data model"""
 
-import json
 import logging
 from pathlib import Path
 
@@ -9,7 +8,6 @@ from ga4gh.cat_vrs.models import (
     DefiningAlleleConstraint,
     FeatureContextConstraint,
 )
-from ga4gh.core import sha512t24u
 from ga4gh.core.models import (
     Coding,
     ConceptMapping,
@@ -44,17 +42,6 @@ from metakb.transformers.base import (
 )
 
 _logger = logging.getLogger(__name__)
-
-
-# class _MoaTransformedCache(_TransformedRecordsCache):
-#     """Create model for caching MOA data"""
-#
-#     variations: ClassVar[dict[str, dict]] = {}
-#     documents: ClassVar[dict[str, Document]] = {}
-#     normalized_therapies: ClassVar[
-#         dict[str, MappableConcept]
-#     ] = {}  # normalized_id: therapy
-#     therapy_groups: ClassVar[dict[str, TherapyGroup]] = {}
 
 
 class MoaTransformer(Transformer):
@@ -93,7 +80,7 @@ class MoaTransformer(Transformer):
         docs_map = {}
         for source in harvested_data.sources:
             source_doc = self._create_document(source)
-            docs_map[source_doc.id] = source_doc
+            docs_map[source["id"]] = source_doc
             pbar.update(1)
 
         # Add variant therapeutic response study statement data. Will update `statements`
@@ -113,7 +100,6 @@ class MoaTransformer(Transformer):
         :param docs_map:
         """
         assertion_id = f"moa.assertion:{assertion['id']}"
-        variant = await self._create_categorical_variant(assertion["variant"])
 
         # Get strength
         predictive_implication = (
@@ -132,8 +118,13 @@ class MoaTransformer(Transformer):
             mappings=self.evidence_level_to_vicc_concept_mapping[evidence_level],
         )
 
+        # Add variant
+        variant = await self._create_categorical_variant(assertion["variant"])
+        if not variant:
+            return
+
         # Add disease
-        moa_disease = self._add_disease(assertion["disease"])
+        moa_disease = self._create_disease(assertion["disease"])
         if not moa_disease:
             _logger.debug(
                 "%s has no disease for disease %s", assertion_id, assertion["disease"]
@@ -172,7 +163,7 @@ class MoaTransformer(Transformer):
         }
 
         if assertion["favorable_prognosis"] == "":  # can be either 0, 1, or ""
-            prop_params["objectTherapeutic"] = self._get_therapy_or_group(assertion)
+            prop_params["objectTherapeutic"] = self._create_therapeutic(assertion)
 
             if not prop_params["objectTherapeutic"]:
                 _logger.debug(
@@ -216,16 +207,19 @@ class MoaTransformer(Transformer):
             stmt_params["proposition"] = VariantPrognosticProposition(**prop_params)
         self.processed_data.statements_evidence.append(Statement(**stmt_params))
 
-    async def _create_categorical_variant(self, variant: dict) -> None:
+    async def _create_categorical_variant(
+        self, variant: dict
+    ) -> CategoricalVariant | None:
         """Create Categorical Variant object for MOA variant record
 
         Mutates instance variable ``processed_data.variations``
 
         :param variant: variants in MOAlmanac
+        :return:
         """
         if variant.get("gene2"):
             # Do not support gene fusions for now
-            return
+            return None
 
         variant_id = variant["id"]
         moa_variant_id = f"moa.variant:{variant_id}"
@@ -366,6 +360,7 @@ class MoaTransformer(Transformer):
         )
 
         self.processed_data.categorical_variants.append(cv)
+        return cv
 
     async def _get_variation_members(
         self, moa_rep_coord: dict
@@ -414,7 +409,7 @@ class MoaTransformer(Transformer):
     def _create_gene(self, gene: str) -> MappableConcept:
         """Create gene object for MOA gene record
 
-        Mutates instance variables ``_cache['genes']`` and ``processed_data.genes``
+        Mutates instance variable ``processed_data.genes``
 
         :param gene: gene from MOAlmanac
         :return:
@@ -460,7 +455,7 @@ class MoaTransformer(Transformer):
         self.processed_data.documents.append(document)
         return document
 
-    def _get_therapy_or_group(
+    def _create_therapeutic(
         self, assertion: dict
     ) -> MappableConcept | TherapyGroup | None:
         """Get therapy mappable concept (single) or therapy group (multiple)
@@ -506,65 +501,6 @@ class MoaTransformer(Transformer):
             therapy_type,
         )
 
-    def _resolve_concept_discrepancy(
-        self,
-        cached_id: str,
-        cached_obj: MappableConcept,
-        cached_label: str,
-        moa_concept_label: str,
-        is_disease: bool = False,
-    ) -> None:
-        """Resolve conflict where MOA disease or therapy resolve to same normalized
-        concept
-
-        The min name will be used as the primary name for the mappable concept, and
-        the other name will be added as an alias in extensions.
-        The cache will be updated with updated object.
-        The cached object will be removed from ``self.processed_data``
-
-        :param cached_id: ID found in cache
-        :param cached_obj: Mappable concept found in cache for ``cached_id``. This will
-            be mutated
-        :param cached_label: Label for ``cached_obj``
-        :param moa_concept_label: MOA concept name
-        :param is_disease: ``True`` if ``cached_obj`` is a disease. ``False`` if
-            ``cached_obj`` is a therapy
-        """
-        _logger.debug(
-            "MOA %s and %s resolve to same concept %s",
-            moa_concept_label,
-            cached_label,
-            cached_id,
-        )
-        alias = max(moa_concept_label, cached_label)
-        cached_obj.name = min(moa_concept_label, cached_label)
-        extensions = cached_obj.extensions or []
-
-        aliases_ext = next(
-            (ext for ext in extensions if ext.name == "aliases"),
-            None,
-        )
-        if aliases_ext:
-            if cached_obj.name in aliases_ext.value:
-                aliases_ext.value.remove(cached_obj.name)
-            aliases_ext.value.append(alias)
-        else:
-            extensions.append(Extension(name="aliases", value=[alias]))
-            cached_obj.extensions = extensions
-
-        if is_disease:
-            self.processed_data.conditions = [
-                c for c in self.processed_data.conditions if c.id != cached_obj.id
-            ]
-            cache = self._cache.conditions
-        else:
-            self.processed_data.therapies = [
-                t for t in self.processed_data.therapies if t.id != cached_id
-            ]
-            cache = self._cache.normalized_therapies
-
-        cache[cached_id] = cached_obj
-
     def _add_therapy(
         self,
         therapy_id: str,
@@ -572,9 +508,9 @@ class MoaTransformer(Transformer):
         membership_operator: MembershipOperator | None,
         therapy_type: str | None = None,
     ) -> MappableConcept | None:
-        """Create or get therapy mappable concept given therapies
-        First look in ``_cache`` for existing therapy, if not found will attempt to
-        transform. Will add ``therapy_id`` to ``therapies`` and ``_cache.therapies``
+        """Create therapy mappable concept given therapies
+
+        Will add ``therapy_id`` to ``therapies``
 
         :param therapy_id: ID for therapy
         :param therapies: List of therapy objects. If `membership_operator` is `None`,
@@ -583,21 +519,13 @@ class MoaTransformer(Transformer):
         :param therapy_type: Therapy type
         :return: Therapy mappable concept, if ``therapy_type`` is supported
         """
-        therapy = self._cache.therapies.get(
-            therapy_id
-        ) or self._cache.therapy_groups.get(therapy_id)
-        if therapy:
-            return therapy
-
         if membership_operator is None:
             therapy = self._get_therapy(therapy_id, therapies[0])
-            self._cache.therapies[therapy_id] = therapy
             self.processed_data.therapies.append(therapy)
         elif membership_operator == MembershipOperator.AND:
             therapy = self._get_combination_therapy(
                 therapy_id, therapies, therapy_type=therapy_type
             )
-            self._cache.therapy_groups[therapy_id] = therapy
             self.processed_data.therapy_groups.append(therapy)
         else:
             _logger.debug(
@@ -664,34 +592,6 @@ class MoaTransformer(Transformer):
         :param therapy: MOA therapy name
         :return: Therapy represented as a mappable concept
         """
-
-        def _resolve_therapy_discrepancy(
-            cached_id: str, moa_concept_label: str
-        ) -> MappableConcept:
-            """Resolve conflict where MOA therapy labels resolve to the same normalized
-            concept
-
-            If conflict occurs, the min name will be used as the primary name for the
-            mappable concept, and the other name will be added as an alias in
-            extensions. The cache will be updated.
-
-            :param cached_id: Cached ID for therapy concept that is in
-                ``self._cache.normalized_therapies``
-            :param moa_concept_label: MOA provided name for therapy concept
-            :return: Therapy represented as a mappable concept
-            """
-            therapy_norm_obj = self._cache.normalized_therapies[cached_id]
-            og_therapy_norm_label = therapy_norm_obj.name
-            if moa_concept_label != og_therapy_norm_label:
-                self._resolve_concept_discrepancy(
-                    cached_id,
-                    therapy_norm_obj,
-                    og_therapy_norm_label,
-                    moa_concept_label,
-                    is_disease=False,
-                )
-            return therapy_norm_obj
-
         mappings = []
         extensions = []
         name = therapy["name"]
@@ -708,9 +608,6 @@ class MoaTransformer(Transformer):
         else:
             id_ = f"moa.{therapy_norm_resp.therapy.id}"
 
-            if id_ in self._cache.normalized_therapies:
-                return _resolve_therapy_discrepancy(id_, name)
-
             regulatory_approval_extension = (
                 self.vicc_normalizers.get_regulatory_approval_extension(
                     therapy_norm_resp
@@ -726,68 +623,22 @@ class MoaTransformer(Transformer):
                 )
             )
 
-        therapy_concept = MappableConcept(
+        return MappableConcept(
             id=id_,
             conceptType="Therapy",
             name=name,
             mappings=mappings or None,
             extensions=extensions or None,
         )
-        self._cache.normalized_therapies[id_] = therapy_concept
-        return therapy_concept
 
-    def _add_disease(self, disease: dict) -> MappableConcept | None:
+    def _create_disease(self, disease: dict) -> MappableConcept | None:
         """Create or get disease given MOA disease.
-
-        First looks in cache for existing disease, if not found will attempt to
-        transform. Will generate a digest from the original MOA disease object oncotree
-        fields. This will be used as the key in the caches. Will add the generated
-        digest to ``processed_data.conditions`` and ``_cache['conditions']``.
 
         Since there may be duplicate Oncotree code/terms with different names, the first
         name will be used as the Disease name. Others will be added to the extensions
         aliases field.
 
         :param disease: MOA disease object
-        :return: Disease represented as a mappable concept
-        """
-        if not all(value for value in disease.values()):
-            return None
-
-        # Since MOA disease objects do not have an ID, we will create a digest from
-        # the original MOA disease object.
-        # The `name` is as written in the source text. In an upcoming MOA release, these
-        # will have leading underscore to differentiate "raw" values
-        oncotree_code = disease["oncotree_code"]
-        oncotree_key = "oncotree_code" if oncotree_code else "oncotree_term"
-        oncotree_value = oncotree_code or disease[oncotree_key]
-        oncotree_kv = [f"{oncotree_key}:{oncotree_value}"]
-        blob = json.dumps(oncotree_kv, separators=(",", ":")).encode("ascii")
-        disease_id = sha512t24u(blob)
-        moa_disease = self._cache.conditions.get(disease_id)
-        if moa_disease:
-            source_disease_name = disease["name"]
-            if source_disease_name != moa_disease.name:
-                self._resolve_concept_discrepancy(
-                    disease_id,
-                    moa_disease,
-                    moa_disease.name,
-                    source_disease_name,
-                    is_disease=True,
-                )
-                self.processed_data.conditions.append(moa_disease)
-            return moa_disease
-
-        moa_disease = None
-        moa_disease = self._get_disease(disease)
-        self._cache.conditions[disease_id] = moa_disease
-        self.processed_data.conditions.append(moa_disease)
-        return moa_disease
-
-    def _get_disease(self, disease: dict) -> MappableConcept:
-        """Get Disease object for a MOA disease
-
-        :param disease: MOA disease record
         :return: Disease represented as a mappable concept
         """
         queries = []
@@ -817,6 +668,7 @@ class MoaTransformer(Transformer):
         if disease_name:
             queries.append(disease_name)
 
+        normalized_disease_id = None
         for query in queries:  # Order matters (use highest match first)
             (
                 disease_norm_resp,
@@ -837,10 +689,13 @@ class MoaTransformer(Transformer):
                 )
             )
 
-        return MappableConcept(
+        moa_disease = MappableConcept(
             id=id_,
             conceptType="Disease",
             name=disease_name,
             mappings=mappings or None,
             extensions=extensions or None,
         )
+
+        self.processed_data.conditions.append(moa_disease)
+        return moa_disease
