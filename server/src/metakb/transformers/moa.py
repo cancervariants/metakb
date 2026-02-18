@@ -31,6 +31,7 @@ from ga4gh.va_spec.base import (
 )
 from ga4gh.vrs.models import Variation
 from pydantic import ValidationError
+from tqdm import tqdm
 
 from metakb.harvesters.moa import MoaHarvestedData
 from metakb.normalizers import (
@@ -94,15 +95,32 @@ class MoaTransformer(Transformer):
 
         :param harvested_data: MOA harvested data
         """
+        total = (
+            len(harvested_data.genes)
+            + len(harvested_data.variants)
+            + len(harvested_data.sources)
+            + len(harvested_data.assertions)
+        )
+        pbar = tqdm(total=total)
+
         # Add gene, variant, and source data to ``processed_data`` instance variable
         # (``genes``, ``variations``, and ``documents``)
-        self._add_genes(harvested_data.genes)
-        await self._add_categorical_variants(harvested_data.variants)
-        self._add_documents(harvested_data.sources)
+        for gene in harvested_data.genes:
+            self._create_gene(gene)
+            pbar.update(1)
+        for variant in harvested_data.variants:
+            await self._add_categorical_variant(variant)
+            pbar.update(1)
+        for source in harvested_data.sources:
+            self._add_document(source)
+            pbar.update(1)
 
         # Add variant therapeutic response study statement data. Will update `statements`
         for assertion in harvested_data.assertions:
             await self._add_variant_study_stmt(assertion)
+            pbar.update(1)
+
+        pbar.close()
 
     async def _add_variant_study_stmt(self, assertion: dict) -> None:
         """Create Variant Study Statements from MOA assertions.
@@ -217,158 +235,155 @@ class MoaTransformer(Transformer):
             stmt_params["proposition"] = VariantPrognosticProposition(**prop_params)
         self.processed_data.statements_evidence.append(Statement(**stmt_params))
 
-    async def _add_categorical_variants(self, variants: list[dict]) -> None:
-        """Create Categorical Variant objects for all MOA variant records.
+    async def _add_categorical_variant(self, variant: dict) -> None:
+        """Create Categorical Variant object for MOA variant record
 
         Mutates instance variables ``_cache['variations']`` and
         ``processed_data.variations``
 
-        :param variants: All variants in MOAlmanac
+        :param variant: variants in MOAlmanac
         """
-        for variant in variants:
-            if variant.get("gene2"):
-                # Do not support gene fusions for now
-                continue
+        if variant.get("gene2"):
+            # Do not support gene fusions for now
+            return
 
-            variant_id = variant["id"]
-            moa_variant_id = f"moa.variant:{variant_id}"
-            feature = variant["feature"]
-            moa_variation = None
-            gene = variant.get("gene") or variant.get("gene1")
-            moa_gene = self._cache.genes[_sanitize_name(gene)] if gene else None
-            protein_change = variant.get("protein_change")
-            constraints = None
-            extensions = []
+        variant_id = variant["id"]
+        moa_variant_id = f"moa.variant:{variant_id}"
+        feature = variant["feature"]
+        moa_variation = None
+        gene = variant.get("gene") or variant.get("gene1")
+        moa_gene = self._cache.genes[_sanitize_name(gene)] if gene else None
+        protein_change = variant.get("protein_change")
+        constraints = None
+        extensions = []
 
-            if (
-                variant["feature_type"] == "somatic_variant"
-                and variant["alternate_allele"] is None
-                and feature == gene
-                and protein_change is None
-                # no slam-dunk catvar solution exists for defining specific exons as features --
-                # see https://github.com/ga4gh/cat-vrs/discussions/161
-                and variant["exon"] is None
-            ):
-                gene_norm_resp, normalized_gene_id = (
-                    self.vicc_normalizers.normalize_gene(feature)
-                )
-                feature = f"{feature} Mutation"
-                if not normalized_gene_id:
-                    _logger.debug("Unable to normalize feature term: %s", feature)
-                    extensions.append(self._get_vicc_normalizer_failure_ext())
-                else:
-                    mappings = []
-                    extensions = []
-                    if normalized_gene_id:
-                        mappings.extend(
-                            self._get_vicc_normalizer_mappings(
-                                normalized_gene_id, gene_norm_resp
-                            )
+        if (
+            variant["feature_type"] == "somatic_variant"
+            and variant["alternate_allele"] is None
+            and feature == gene
+            and protein_change is None
+            # no slam-dunk catvar solution exists for defining specific exons as features --
+            # see https://github.com/ga4gh/cat-vrs/discussions/161
+            and variant["exon"] is None
+        ):
+            gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(
+                feature
+            )
+            feature = f"{feature} Mutation"
+            if not normalized_gene_id:
+                _logger.debug("Unable to normalize feature term: %s", feature)
+                extensions.append(self._get_vicc_normalizer_failure_ext())
+            else:
+                mappings = []
+                extensions = []
+                if normalized_gene_id:
+                    mappings.extend(
+                        self._get_vicc_normalizer_mappings(
+                            normalized_gene_id, gene_norm_resp
                         )
-                        id_ = f"moa.{gene_norm_resp.gene.id}"
-                    else:
-                        id_ = f"moa.gene:{_sanitize_name(feature)}"
-                        extensions.append(self._get_vicc_normalizer_failure_ext())
-
-                    gene_concept = MappableConcept(
-                        id=id_,
-                        conceptType="Gene",
-                        name=gene,
-                        mappings=mappings or None,
-                        extensions=extensions or None,
                     )
-                    constraints = [
-                        FeatureContextConstraint(featureContext=gene_concept)
-                    ]
-            elif "rearrangement_type" in variant or not protein_change or not gene:
+                    id_ = f"moa.{gene_norm_resp.gene.id}"
+                else:
+                    id_ = f"moa.gene:{_sanitize_name(feature)}"
+                    extensions.append(self._get_vicc_normalizer_failure_ext())
+
+                gene_concept = MappableConcept(
+                    id=id_,
+                    conceptType="Gene",
+                    name=gene,
+                    mappings=mappings or None,
+                    extensions=extensions or None,
+                )
+                constraints = [FeatureContextConstraint(featureContext=gene_concept)]
+        elif "rearrangement_type" in variant or not protein_change or not gene:
+            _logger.debug(
+                "Variation Normalizer does not support %s: %s",
+                moa_variant_id,
+                feature,
+            )
+            extensions.append(self._get_vicc_normalizer_failure_ext())
+        else:
+            # Form query and run through variation-normalizer
+            # For now, the normalizer only support amino acid substitution
+            vrs_variation = None
+            gene = moa_gene.name
+            query = f"{gene} {protein_change[2:]}"
+            vrs_variation = await self.vicc_normalizers.normalize_variation(query)
+
+            if not vrs_variation:
                 _logger.debug(
-                    "Variation Normalizer does not support %s: %s",
-                    moa_variant_id,
-                    feature,
+                    "Variation Normalizer unable to normalize: moa.variant: %s using query: %s",
+                    variant_id,
+                    query,
                 )
                 extensions.append(self._get_vicc_normalizer_failure_ext())
             else:
-                # Form query and run through variation-normalizer
-                # For now, the normalizer only support amino acid substitution
-                vrs_variation = None
-                gene = moa_gene.name
-                query = f"{gene} {protein_change[2:]}"
-                vrs_variation = await self.vicc_normalizers.normalize_variation(query)
+                # Create VRS Variation object
+                params = vrs_variation.model_dump(exclude_none=True)
+                moa_variant_id = f"moa.variant:{variant_id}"
+                params["id"] = vrs_variation.id
+                moa_variation = Variation(**params)
+                constraints = [DefiningAlleleConstraint(allele=moa_variation.root)]
 
-                if not vrs_variation:
-                    _logger.debug(
-                        "Variation Normalizer unable to normalize: moa.variant: %s using query: %s",
-                        variant_id,
-                        query,
-                    )
-                    extensions.append(self._get_vicc_normalizer_failure_ext())
-                else:
-                    # Create VRS Variation object
-                    params = vrs_variation.model_dump(exclude_none=True)
-                    moa_variant_id = f"moa.variant:{variant_id}"
-                    params["id"] = vrs_variation.id
-                    moa_variation = Variation(**params)
-                    constraints = [DefiningAlleleConstraint(allele=moa_variation.root)]
-
-            # Add MOA representative coordinate data to extensions
-            coordinates_keys = [
-                "chromosome",
-                "start_position",
-                "end_position",
-                "reference_allele",
-                "alternate_allele",
-                "cdna_change",
-                "protein_change",
-                "exon",
-            ]
-            moa_rep_coord = {k: variant.get(k) for k in coordinates_keys}
-            if any(moa_rep_coord.values()):
-                extensions.append(
-                    Extension(name="MOA representative coordinate", value=moa_rep_coord)
-                )
-
-            if variant.get("locus"):
-                extensions.append(Extension(name="MOA locus", value=variant["locus"]))
-
-            members = await self._get_variation_members(moa_rep_coord)
-
-            # Add mappings data
-            mappings = [
-                ConceptMapping(
-                    coding=Coding(
-                        id=moa_variant_id,
-                        code=str(variant_id),
-                        system="https://moalmanac.org",
-                    ),
-                    relation=Relation.EXACT_MATCH,
-                )
-            ]
-
-            if variant.get("rsid"):
-                mappings.append(
-                    ConceptMapping(
-                        coding=Coding(
-                            code=variant["rsid"],
-                            system="https://www.ncbi.nlm.nih.gov/snp/",
-                        ),
-                        relation=Relation.RELATED_MATCH,
-                    )
-                )
-
-            cv = CategoricalVariant(
-                id=moa_variant_id,
-                name=feature,
-                constraints=constraints,
-                mappings=mappings or None,
-                extensions=extensions,
-                members=members,
+        # Add MOA representative coordinate data to extensions
+        coordinates_keys = [
+            "chromosome",
+            "start_position",
+            "end_position",
+            "reference_allele",
+            "alternate_allele",
+            "cdna_change",
+            "protein_change",
+            "exon",
+        ]
+        moa_rep_coord = {k: variant.get(k) for k in coordinates_keys}
+        if any(moa_rep_coord.values()):
+            extensions.append(
+                Extension(name="MOA representative coordinate", value=moa_rep_coord)
             )
 
-            self._cache.variations[variant_id] = {
-                "cv": cv,
-                "moa_gene": moa_gene,
-            }
-            self.processed_data.categorical_variants.append(cv)
+        if variant.get("locus"):
+            extensions.append(Extension(name="MOA locus", value=variant["locus"]))
+
+        members = await self._get_variation_members(moa_rep_coord)
+
+        # Add mappings data
+        mappings = [
+            ConceptMapping(
+                coding=Coding(
+                    id=moa_variant_id,
+                    code=str(variant_id),
+                    system="https://moalmanac.org",
+                ),
+                relation=Relation.EXACT_MATCH,
+            )
+        ]
+
+        if variant.get("rsid"):
+            mappings.append(
+                ConceptMapping(
+                    coding=Coding(
+                        code=variant["rsid"],
+                        system="https://www.ncbi.nlm.nih.gov/snp/",
+                    ),
+                    relation=Relation.RELATED_MATCH,
+                )
+            )
+
+        cv = CategoricalVariant(
+            id=moa_variant_id,
+            name=feature,
+            constraints=constraints,
+            mappings=mappings or None,
+            extensions=extensions,
+            members=members,
+        )
+
+        self._cache.variations[variant_id] = {
+            "cv": cv,
+            "moa_gene": moa_gene,
+        }
+        self.processed_data.categorical_variants.append(cv)
 
     async def _get_variation_members(
         self, moa_rep_coord: dict
@@ -414,59 +429,53 @@ class MoaTransformer(Transformer):
 
         return members
 
-    def _add_genes(self, genes: list[str]) -> None:
-        """Create gene objects for all MOA gene records.
+    def _create_gene(self, gene: str) -> None:
+        """Create gene object for MOA gene record
 
         Mutates instance variables ``_cache['genes']`` and ``processed_data.genes``
 
-        :param genes: All genes in MOAlmanac
+        :param gene: gene from MOAlmanac
         """
-        for gene in genes:
-            gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(
-                gene
+        gene_norm_resp, normalized_gene_id = self.vicc_normalizers.normalize_gene(gene)
+        mappings = []
+        extensions = []
+        if normalized_gene_id:
+            mappings.extend(
+                self._get_vicc_normalizer_mappings(normalized_gene_id, gene_norm_resp)
             )
-            mappings = []
-            extensions = []
-            if normalized_gene_id:
-                mappings.extend(
-                    self._get_vicc_normalizer_mappings(
-                        normalized_gene_id, gene_norm_resp
-                    )
-                )
-                id_ = f"moa.{gene_norm_resp.gene.id}"
-            else:
-                id_ = f"moa.gene:{_sanitize_name(gene)}"
-                extensions.append(self._get_vicc_normalizer_failure_ext())
+            id_ = f"moa.{gene_norm_resp.gene.id}"
+        else:
+            id_ = f"moa.gene:{_sanitize_name(gene)}"
+            extensions.append(self._get_vicc_normalizer_failure_ext())
 
-            moa_gene = MappableConcept(
-                id=id_,
-                conceptType="Gene",
-                name=gene,
-                mappings=mappings or None,
-                extensions=extensions or None,
-            )
-            self._cache.genes[_sanitize_name(gene)] = moa_gene
-            self.processed_data.genes.append(moa_gene)
+        moa_gene = MappableConcept(
+            id=id_,
+            conceptType="Gene",
+            name=gene,
+            mappings=mappings or None,
+            extensions=extensions or None,
+        )
+        self._cache.genes[_sanitize_name(gene)] = moa_gene
+        self.processed_data.genes.append(moa_gene)
 
-    def _add_documents(self, sources: list) -> None:
-        """Create document objects for all MOA sources.
-        Mutates instance variables ``processed_data.documents`` and
-        ``self._cache.documents"]``
+    def _add_document(self, source: dict) -> None:
+        """Create document object for MOA source
+
+        Mutates instance variables ``processed_data.documents`` and ``self._cache.documents"]``
 
         :param sources: All sources in MOA
         """
-        for source in sources:
-            source_id = source["id"]
-            document = Document(
-                id=f"moa.source:{source_id}",
-                title=source["citation"],
-                urls=[source["url"]] if source["url"] else None,
-                pmid=str(source["pmid"]) if source["pmid"] else None,
-                doi=source["doi"] if source["doi"] else None,
-                extensions=[Extension(name="source_type", value=source["type"])],
-            )
-            self._cache.documents[source_id] = document
-            self.processed_data.documents.append(document)
+        source_id = source["id"]
+        document = Document(
+            id=f"moa.source:{source_id}",
+            title=source["citation"],
+            urls=[source["url"]] if source["url"] else None,
+            pmid=str(source["pmid"]) if source["pmid"] else None,
+            doi=source["doi"] or None,
+            extensions=[Extension(name="source_type", value=source["type"])],
+        )
+        self._cache.documents[source_id] = document
+        self.processed_data.documents.append(document)
 
     def _get_therapy_or_group(
         self, assertion: dict
