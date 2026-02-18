@@ -38,6 +38,8 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
           <Collapse in={open} timeout="auto" unmountOnExit>
             {row.grouped_evidence.map((e: Statement) => {
               const { evidenceLabel, evidenceUrl } = getEvidenceLabelUrl(e.id || '')
+              const evidenceSource = e.id ? getEvidenceSource(e.id) : null
+              const originalCode = e.strength?.primaryCoding?.code
 
               return (
                 <Box key={e.id} margin={1} sx={{ border: '1px solid #ccc', mb: 2, p: 2 }}>
@@ -53,10 +55,15 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
                   </div>
                   <div>
                     <strong>Evidence Level:</strong>{' '}
-                    {normalizeEvidenceLevelFromStrength(e.strength)}{' '}
-                    <span style={{ color: 'grey' }}>
-                      ({getEvidenceSource(e.id)}: {e.strength?.primaryCoding?.code ?? 'NA'})
-                    </span>
+                    {normalizeEvidenceLevelFromStrength(e.strength)}
+                    {evidenceSource && originalCode ? (
+                      <>
+                        {' '}
+                        <span style={{ color: 'grey' }}>
+                          ({evidenceSource}: {originalCode})
+                        </span>
+                      </>
+                    ) : null}
                   </div>
                   <div>
                     <strong>Description:</strong> {e.description}
