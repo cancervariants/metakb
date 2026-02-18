@@ -326,7 +326,7 @@ class CivicTransformer(Transformer):
                     therapy_member_ids.append(therapy_member.id)
                     therapies.append(
                         await self._resolve_entity(
-                            therapeutic, self.processed_data.therapies
+                            therapy_member, self.processed_data.therapies
                         )
                     )
 
