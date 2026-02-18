@@ -85,6 +85,10 @@ class MoaTransformer(Transformer):
         return _MoaTransformedCache()
 
     def _create_method(self) -> Method:
+        """Get MOA classification method object for use in study statements
+
+        :return: MOA method
+        """
         return Method(
             id="moa.method:2021",
             name="MOAlmanac (2021)",
