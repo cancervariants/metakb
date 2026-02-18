@@ -98,7 +98,7 @@ class MoaTransformer(Transformer):
         (``therapies``, ``conditions``, and ``statements``).
 
         :param assertions: MOA assertion record
-        :param docs_map:
+        :param docs_map: map from moa source ID to corresponding GKS Document object
         """
         assertion_id = f"moa.assertion:{assertion['id']}"
 
@@ -216,7 +216,7 @@ class MoaTransformer(Transformer):
         Mutates instance variable ``processed_data.variations``
 
         :param variant: variants in MOAlmanac
-        :return:
+        :return: constructed categorical variant object, if able to normalize
         """
         if variant.get("gene2"):
             # Do not support gene fusions for now

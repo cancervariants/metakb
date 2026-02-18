@@ -67,11 +67,11 @@ class ViccNormalizers:
         """Initialize normalizers. Construct a normalizer instance for each service
         (gene, variation, disease, therapy) and retain them as instance properties.
 
-        >>> from metakb.normalizers import ViccNormalizers
-        >>> norm = ViccNormalizers()
-
-        Note that gene concept lookups within the Variation Normalizer are resolved
-        using the Gene Normalizer instance, rather than creating a second sub-instance.
+        * Gene concept lookups within the Variation Normalizer are resolved using the
+          Gene Normalizer instance, rather than creating a second sub-instance.
+        * The normalizers are exposed interally as callback functions wrapped in an
+          ``lru_cache`` at initialization, so that a configurable cache size variable
+          can be passed to the caching wrapper
 
         :param db_url: optional definition of shared normalizer database. Because the
             same parameter is passed to each concept normalizer, this only works for
