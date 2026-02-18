@@ -81,13 +81,6 @@ class EcoLevel(str, Enum):
     CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
 
 
-class MethodId(str, Enum):
-    """Create method id constants"""
-
-    CIVIC_EID_SOP = "civic.method:2019"
-    MOA_ASSERTION_BIORXIV = "moa.method:2021"
-
-
 class CivicEvidenceLevel(str, Enum):
     """Define constraints for CIViC evidence levels"""
 
@@ -145,19 +138,6 @@ class TransformedData(BaseModel):
 class Transformer(ABC):
     """A base class for transforming harvester data."""
 
-    _methods: ClassVar[list[Method]] = [
-        Method(
-            id=MethodId.MOA_ASSERTION_BIORXIV,
-            name="MOAlmanac (2021)",
-            reportedIn=Document(
-                name="Reardon, B., Moore, N.D., Moore, N.S. et al.",
-                title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
-                doi="10.1038/s43018-021-00243-3",
-                pmid="35121878",
-            ),
-        ),
-    ]
-    methods_mapping: ClassVar[dict[MethodId, Method]] = {m.id: m for m in _methods}
     _vicc_concept_vocabs: ClassVar[list[ViccConceptVocab]] = [
         ViccConceptVocab(
             id="vicc:e000000",
