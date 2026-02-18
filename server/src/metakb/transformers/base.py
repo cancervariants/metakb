@@ -34,6 +34,7 @@ from ga4gh.va_spec.aac_2017 import (
 from ga4gh.va_spec.base import (
     ConditionSet,
     Document,
+    MembershipOperator,
     Method,
     Statement,
     TherapyGroup,
@@ -300,12 +301,65 @@ class Transformer(ABC):
             self._evidence_level_to_vicc_concept_mapping()
         )
 
+    ### Basic/public behavior
+
     @abstractmethod
     async def transform(self, *args, **kwargs) -> None:
         """Transform harvested data to the Common Data Model.
 
         :param harvested_data: Source harvested data
         """
+
+    ### Identity minting
+
+    @staticmethod
+    def _compute_combo_id(
+        source_prefix: str,
+        combo_class: type[TherapyGroup] | type[ConditionSet],
+        operator: MembershipOperator,
+        ids: list[str],
+    ) -> str:
+        """Compute identifier for concept set (eg therapy group or condition set)
+
+        >>> self._compute_combo_id(
+        ...     SourceName.MOA.value,
+        ...     TherapyGroup,
+        ...     MembershipOperator.AND,
+        ...     ["moa.therapy:imatinib", "moa.therapy:trastuzumab"],
+        ... )
+        'moa.tg:ojf-glrsMg7fNrGKoGwGEF0OTyssCuCA'
+
+        These values should generally be for internal use only, so it's not super
+        important that they are especially meaningful, but they should be consistent
+
+        :param source_prefix: prefix to use in ID namespace
+        :param combo_class: type of entity combination
+        :param operator: operator enum instance from concept set
+        :param ids: list of entity IDs to combine, must all be non-empty/non-null
+        :return: CURIE designating the combination in a deterministic way
+        :raise ValueError: if unrecognized combo_class type or if IDs list contains
+            null or empty values
+        """
+        if not all(ids):
+            raise ValueError
+        ids.sort()
+        # use the whole membership operator enum string (ie "MembershipOperator.OR")
+        # to distinguish from an improbable clash w/ a real entity name
+        ids.append(str(operator))
+        blob = json.dumps(ids, separators=(",", ":"), sort_keys=True).encode("ascii")
+        digest = sha512t24u(blob)
+
+        if combo_class is TherapyGroup:
+            combo_class_abbrev = "tg"
+        elif combo_class is ConditionSet:
+            combo_class_abbrev = "cs"
+        else:
+            raise ValueError
+        return f"{source_prefix.lower()}.{combo_class_abbrev}:{digest}"
+
+    ### Other stuff
+    # TODO: future PRs on this feature branch will add organization as needed;
+    # remove this TODO by the end of #664
 
     @abstractmethod
     def _create_cache() -> _CacheType:
@@ -357,19 +411,6 @@ class Transformer(ABC):
                     )
                 ]
         return concept_mappings
-
-    @staticmethod
-    def _get_digest_for_str_lists(str_list: list[str]) -> str:
-        """Create digest for a list of strings
-
-        :param str_list: List of strings to get digest for
-        :return: Digest
-        """
-        str_list.sort()
-        blob = json.dumps(str_list, separators=(",", ":"), sort_keys=True).encode(
-            "ascii"
-        )
-        return sha512t24u(blob)
 
     @staticmethod
     def _get_vicc_normalizer_failure_ext() -> Extension:
