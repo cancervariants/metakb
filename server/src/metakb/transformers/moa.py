@@ -486,10 +486,12 @@ class MoaTransformer(Transformer):
                 return None
 
             therapies = [{"name": tn.strip()} for tn in therapy_name.split("+")]
-            therapeutic_digest = self._get_digest_for_str_lists(
-                [f"moa.therapy:{tn}" for tn in therapies]
+            therapy_id = self._compute_combo_id(
+                self.name,
+                TherapyGroup,
+                membership_operator,
+                [f"moa.therapy:{t['name']}" for t in therapies],
             )
-            therapy_id = f"moa.ctid:{therapeutic_digest}"
         else:
             therapy_id = f"moa.therapy:{_sanitize_name(therapy_name)}"
             therapies = [{"name": therapy_name}]
