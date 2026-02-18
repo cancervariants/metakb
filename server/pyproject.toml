@@ -47,6 +47,7 @@ dependencies = [
     "jinja2",
     "pandas>=2.3.3, <3.0",
     "async-lru",
+    "tqdm",
 ]
 
 [project.optional-dependencies]
