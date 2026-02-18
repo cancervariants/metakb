@@ -380,7 +380,12 @@ class CivicTransformer(Transformer):
 
                 updated_therapeutic = TherapyGroup(
                     **therapeutic.model_dump(exclude_none=True, exclude={"therapies"}),
-                    id=self._compute_id(therapeutic.root, therapy_member_ids),
+                    id=self._compute_combo_id(
+                        self.name,
+                        TherapyGroup,
+                        therapeutic.root.membershipOperator,
+                        therapy_member_ids,
+                    ),
                     therapies=therapies,
                 )
                 if updated_therapeutic not in self.processed_data.therapy_groups:
@@ -392,25 +397,6 @@ class CivicTransformer(Transformer):
             updated_mappings["objectTherapeutic"] = updated_therapeutic
 
         return proposition.model_copy(update=updated_mappings)
-
-    def _compute_id(
-        self,
-        therapy_group_or_cond_set: CivicGksTherapyGroup | ConditionSet,
-        ids: list[str],
-    ) -> str:
-        """Compute identifier for therapy group or condition set
-
-        :param therapy_group_or_cond_set: Therapy group or condition set
-        :param ids: List of IDs for therapies or conditions in
-            ``therapy_group_or_cond_set``
-        :return: Computed identifier
-        """
-        ns_prefix = NAMESPACE_PREFIX_MAP[therapy_group_or_cond_set.__class__][
-            therapy_group_or_cond_set.membershipOperator
-        ]
-
-        digest = self._get_digest_for_str_lists(ids)
-        return f"{ns_prefix}:{digest}"
 
     async def _resolve_entity(
         self,
@@ -485,7 +471,9 @@ class CivicTransformer(Transformer):
                 },
             ),
             conditions=updated_conditions,
-            id=self._compute_id(condition_set, condition_ids),
+            id=self._compute_combo_id(
+                self.name, ConditionSet, condition_set.membershipOperator, condition_ids
+            ),
         )
         if condition_set not in self.processed_data.condition_sets:
             self.processed_data.condition_sets.append(condition_set)
