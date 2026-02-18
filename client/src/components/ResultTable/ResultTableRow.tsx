@@ -4,7 +4,8 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import { Statement } from '../../models/domain'
 import { ResultColumn } from './types'
-import { getEvidenceLabelUrl, NormalizedResult } from '../../utils'
+import { getEvidenceLabelUrl, getEvidenceSource, NormalizedResult } from '../../utils'
+import { normalizeEvidenceLevelFromStrength } from '../../utils/normalization'
 
 const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = ({
   row,
@@ -51,7 +52,11 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
                     </Link>
                   </div>
                   <div>
-                    <strong>Evidence Level:</strong> {e.strength?.primaryCoding?.code}
+                    <strong>Evidence Level:</strong>{' '}
+                    {normalizeEvidenceLevelFromStrength(e.strength)}{' '}
+                    <span style={{ color: 'grey' }}>
+                      ({getEvidenceSource(e.id)}: {e.strength?.primaryCoding?.code ?? 'NA'})
+                    </span>
                   </div>
                   <div>
                     <strong>Description:</strong> {e.description}
