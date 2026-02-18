@@ -85,6 +85,16 @@ sudo mv /usr/local/share/seqrepo/2024-12-20._fkuefgd /usr/local/share/seqrepo/20
 exit
 ```
 
+You will also need to add this to your Virtual file shares in Docker Desktop. To do this:
+
+1. Open Docker Desktop
+2. Go to Settings
+3. Go to Resources
+4. Scroll down to Virtual file shares
+5. Click the + button to add a new one
+6. Paste `/usr/local/share/seqrepo`
+7. Click Apply
+
 ##### Virtual environment
 
 You'll want to work in a virtual environment. To set that up, run the following from the root of this project:
