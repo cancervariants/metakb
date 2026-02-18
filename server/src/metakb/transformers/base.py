@@ -28,11 +28,13 @@ from ga4gh.va_spec.aac_2017 import (
     VariantTherapeuticResponseStudyStatement,
 )
 from ga4gh.va_spec.base import (
+    Condition,
     ConditionSet,
     Document,
     MembershipOperator,
     Method,
     Statement,
+    Therapeutic,
     TherapyGroup,
 )
 from ga4gh.vrs.models import Allele
@@ -285,6 +287,51 @@ class Transformer(ABC):
         :param harvested_data: Source harvested data
         """
 
+    def extract_harvested_data(self) -> _HarvestedData:
+        """Get harvested data from file.
+
+        :return: Harvested data
+        """
+        if self.harvester_path is None:
+            today = datetime.datetime.strftime(
+                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
+            )
+            default_fname = f"{self.name}_harvester_{today}.json"
+            default_path = self.data_dir / "harvester" / default_fname
+            if not default_path.exists():
+                msg = f"Unable to open harvest file under default filename: {default_path.absolute().as_uri()}"
+                raise FileNotFoundError(msg)
+            self.harvester_path = default_path
+        elif not self.harvester_path.exists():
+            msg = f"Unable to open harvester file: {self.harvester_path}"
+            raise FileNotFoundError(msg)
+
+        with self.harvester_path.open() as f:
+            _harvested_data_child = _HarvestedData.get_subclass_by_prefix(self.name)
+            return _harvested_data_child(**json.load(f))
+
+    def create_json(self, cdm_filepath: Path | None = None) -> None:
+        """Create a composite JSON for transformed data.
+
+        :param cdm_filepath: Path to the JSON file locatio at which the CDM output will be
+            saved. If not provided, will use the default path of
+            ``<METAKB_DATA_DIR>/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``,
+            where ``<METAKB_DATA_DIR>`` is the configurable data root directory.
+            See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
+        """
+        if not cdm_filepath:
+            transformers_dir = self.data_dir / "transformers"
+            transformers_dir.mkdir(exist_ok=True, parents=True)
+            today = datetime.datetime.strftime(
+                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
+            )
+            cdm_filepath = transformers_dir / f"{self.name}_cdm_{today}.json"
+
+        cdm_filepath.parent.mkdir(parents=True, exist_ok=True)
+
+        with cdm_filepath.open("w+") as f:
+            json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
+
     ### Identity minting
 
     @staticmethod
@@ -332,32 +379,190 @@ class Transformer(ABC):
             raise ValueError
         return f"{source_prefix.lower()}.{combo_class_abbrev}:{digest}"
 
-    ### Other stuff
-    # TODO: future PRs on this feature branch will add organization as needed;
-    # remove this TODO by the end of #664
+    ### Entity normalization
 
-    def extract_harvested_data(self) -> _HarvestedData:
-        """Get harvested data from file.
+    @staticmethod
+    def _get_mappableconcept_queries(concept: MappableConcept) -> list[str]:
+        """Get queries to submit to normalizer for a given entity concept
 
-        :return: Harvested data
+        Note the assumption that aliases live in an extension named ``"Aliases"``
+
+        :param concept: gene/drug/disease object
+        :return: list of relevant queries for normalization
         """
-        if self.harvester_path is None:
-            today = datetime.datetime.strftime(
-                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
-            )
-            default_fname = f"{self.name}_harvester_{today}.json"
-            default_path = self.data_dir / "harvester" / default_fname
-            if not default_path.exists():
-                msg = f"Unable to open harvest file under default filename: {default_path.absolute().as_uri()}"
-                raise FileNotFoundError(msg)
-            self.harvester_path = default_path
-        elif not self.harvester_path.exists():
-            msg = f"Unable to open harvester file: {self.harvester_path}"
-            raise FileNotFoundError(msg)
+        queries = []
+        if concept.id:
+            queries.append(concept.id)
+        if concept.name:
+            queries.append(concept.name)
+        if concept.mappings:
+            queries += [str(m.coding.code) for m in concept.mappings]
+        if concept.extensions:
+            for ext in concept.extensions:
+                if ext.name == "Aliases":
+                    if isinstance(ext.value, list):
+                        queries += ext.value
+                    else:
+                        raise ValueError
+        return queries
 
-        with self.harvester_path.open() as f:
-            _harvested_data_child = _HarvestedData.get_subclass_by_prefix(self.name)
-            return _harvested_data_child(**json.load(f))
+    def _normalize_disease(self, disease: MappableConcept) -> MappableConcept | None:
+        """Retrieve normalized disease concept
+
+        :param disease: source-derived disease concept
+        :return: either a successful normalized object, or ``None`` if unsuccessful
+        """
+        for query in self._get_mappableconcept_queries(disease):
+            result = self.vicc_normalizers.normalize_disease(query)[0]
+            if result.disease:
+                normalized_disease = result.disease
+                normalized_disease.mappings = None
+                normalized_disease.extensions = None
+                return normalized_disease
+        return None
+
+    def _resolve_condition_set(
+        self, condition_set: ConditionSet
+    ) -> ConditionSet | None:
+        """Return normalized equivalent of ConditionSet
+
+        :param condition_set: source-derived ConditionSet
+        :return: concept set with normalized equivalents of all inputs, or ``None`` if unsuccessful
+        """
+        members: list[MappableConcept | ConditionSet] = []
+        for condition in condition_set.conditions:
+            if isinstance(condition, MappableConcept):
+                if condition.conceptType == "Phenotype":
+                    members.append(condition)
+                elif condition.conceptType == "Disease":
+                    normalized_disease = self._normalize_disease(condition)
+                    if not normalized_disease:
+                        return None
+                    members.append(normalized_disease)
+                else:
+                    raise ValueError
+            elif isinstance(condition, ConditionSet):
+                normalized_condition_set = self._resolve_condition_set(condition)
+                if not normalized_condition_set:
+                    return None
+                members.append(normalized_condition_set)
+            else:
+                raise TypeError
+        if not condition_set.id:
+            condition_set.id = self._compute_combo_id(
+                self.name,
+                ConditionSet,
+                condition_set.membershipOperator,
+                [c.id for c in condition_set.conditions],
+            )
+        return ConditionSet(
+            conditions=members,
+            membershipOperator=condition_set.membershipOperator,
+            id=self._compute_combo_id(
+                "metakb",
+                ConditionSet,
+                condition_set.membershipOperator,
+                [c.id for c in members],
+            ),
+        )
+
+    def _normalize_condition(self, condition: Condition) -> Condition | None:
+        """Attempt full normalization of source Condition.
+
+        Treat phenotypes as "normalized" and copy them up to the normalized object. In
+        the future, we might want to be more careful about this, maybe check for a
+        preferred namespace or try to map over to HPO.
+
+        :param condition: source Condition object
+        :return: normalized equivalent, if available
+        """
+        if isinstance(condition.root, ConditionSet):
+            normalized_condition_set = self._resolve_condition_set(condition.root)
+            if normalized_condition_set:
+                return Condition(root=normalized_condition_set)
+            return None
+        if condition.root.conceptType == "Phenotype":
+            return condition
+        if condition.root.conceptType == "Disease":
+            normalized_disease = self._normalize_disease(condition.root)
+            if normalized_disease:
+                return Condition(root=normalized_disease)
+            return None
+        raise ValueError
+
+    def _normalize_gene(self, gene: MappableConcept | None) -> MappableConcept | None:
+        """Attempt normalization of a source Gene
+
+        :param gene: source-derived gene object
+        :return: normalized equivalent if successful, else ``None``
+        """
+        # the gene context in a proposition is often None, eg in a fusion
+        # we don't know how to model this for now so we'll just skip it
+        if gene is None:
+            return None
+        for query in self._get_mappableconcept_queries(gene):
+            result = self.vicc_normalizers.normalize_gene(query)[0]
+            if result.gene:
+                normalized_gene = result.gene
+                normalized_gene.mappings = None
+                normalized_gene.extensions = None
+                return normalized_gene
+        return None
+
+    def _normalize_drug(self, drug: MappableConcept) -> MappableConcept | None:
+        """Attempt normalization of a drug
+
+        :param drug: source drug object
+        :return: normalized drug, if successful
+        """
+        for query in self._get_mappableconcept_queries(drug):
+            result = self.vicc_normalizers.normalize_therapy(query)[0]
+            if result.therapy:
+                normalized_drug = result.therapy
+                normalized_drug.mappings = None
+                normalized_drug.extensions = None
+                return normalized_drug
+        return None
+
+    def _normalize_therapeutic(self, therapeutic: Therapeutic) -> Therapeutic | None:
+        """Attempt normalization of a Therapeutic (drug or drug combo)
+
+        :param therapeutic: source entity
+        :return: normalized equivalent, if successful
+        """
+        if isinstance(therapeutic.root, MappableConcept):
+            drug_result = self._normalize_drug(therapeutic.root)
+            if drug_result:
+                return Therapeutic(root=drug_result)
+            return None
+        normalized_members = [
+            self._normalize_drug(drug) for drug in therapeutic.root.therapies
+        ]
+        if all(normalized_members):
+            return Therapeutic(
+                root=TherapyGroup(
+                    id="make up a string TODO",
+                    therapies=normalized_members,
+                    membershipOperator=therapeutic.root.membershipOperator,
+                )
+            )
+        return None
+
+    @abstractmethod
+    async def _normalize_variant(
+        self, variant: CategoricalVariant
+    ) -> CategoricalVariant | None:
+        """Attempt normalization of a source variant object.
+
+        It's tricky to build universal normalization techniques that grab the right
+        data from each source, so for now, we'll require each source transformer
+        to reimplement it. It's plausible that it could be made generic in the future.
+
+        :param variant: incoming source variant object
+        :return: either a normalized CatVar, or None
+        """
+
+    ### Handle evidence
 
     def _evidence_level_to_vicc_concept_mapping(
         self,
@@ -382,184 +587,3 @@ class Transformer(ABC):
                     )
                 ]
         return concept_mappings
-
-    @staticmethod
-    def _get_vicc_normalizer_failure_ext() -> Extension:
-        """Return extension for a VICC normalizer failure
-
-        :return: Extension for VICC normalizer failure
-        """
-        return Extension(name=NormalizerExtensionName.FAILURE.value, value=True)
-
-    @staticmethod
-    def _get_vicc_normalizer_mappings(
-        normalized_id: str,
-        normalizer_resp: NormalizedDisease | NormalizedTherapy | NormalizedGene,
-    ) -> list[ConceptMapping]:
-        """Get VICC Normalizer mappable concept
-
-        :param normalized_id: Normalized ID from VICC normalizer
-        :param normalizer_resp: Response from VICC normalizer
-        :return: List of VICC Normalizer data represented as mappable concept
-        """
-
-        def _update_mapping(
-            mapping: ConceptMapping,
-            normalized_id: str,
-            normalizer_label: str,
-            match_on_coding_id: bool = True,
-        ) -> Extension:
-            """Update ``mapping`` to include extension on whether ``mapping`` contains
-            code that matches the merged record's primary identifier.
-
-            :param mapping: ConceptMapping from vicc normalizer. This will be mutated.
-                Extensions will be added. Label will be added if mapping identifier
-                matches normalized merged identifier.
-            :param normalized_id: Concept ID from normalized record
-            :param normalizer_label: Label from normalized record
-            :param match_on_coding_id: Whether to match on ``coding.id`` or
-                ``coding.code`` (MONDO is represented differently)
-            :return: ConceptMapping with normalizer extension added as well as name (
-                if mapping id matches normalized merged id)
-            """
-            is_priority = (
-                normalized_id == mapping.coding.id
-                if match_on_coding_id
-                else normalized_id == mapping.coding.code.root.lower()
-            )
-
-            merged_id_ext = Extension(
-                name=NormalizerExtensionName.PRIORITY.value, value=is_priority
-            )
-            if mapping.extensions:
-                mapping.extensions.append(merged_id_ext)
-            else:
-                mapping.extensions = [merged_id_ext]
-
-            if is_priority:
-                mapping.coding.name = normalizer_label
-
-            return mapping
-
-        mappings: list[ConceptMapping] = []
-        attr_name = NORMALIZER_INSTANCE_TO_ATTR[type(normalizer_resp)]
-        normalizer_resp_obj = getattr(normalizer_resp, attr_name)
-        normalizer_label = normalizer_resp_obj.name
-        is_disease = isinstance(normalizer_resp, NormalizedDisease)
-        is_gene = isinstance(normalizer_resp, NormalizedGene)
-        is_therapy = isinstance(normalizer_resp, NormalizedTherapy)
-
-        normalizer_mappings = [
-            ConceptMapping(
-                coding=normalizer_resp_obj.primaryCoding,
-                relation=Relation.EXACT_MATCH,
-            ),
-        ]
-        if normalizer_resp_obj.mappings:
-            normalizer_mappings.extend(normalizer_resp_obj.mappings)
-
-        for mapping in normalizer_mappings:
-            if normalized_id == mapping.coding.id:
-                mappings.append(
-                    _update_mapping(
-                        mapping,
-                        normalized_id,
-                        normalizer_label,
-                        match_on_coding_id=True,
-                    )
-                )
-            elif is_disease and mapping.coding.code.root.lower().startswith(
-                DiseaseNamespacePrefix.MONDO.value
-            ):
-                mappings.append(
-                    _update_mapping(
-                        mapping,
-                        normalized_id,
-                        normalizer_label,
-                        match_on_coding_id=False,
-                    )
-                )
-            elif (
-                (
-                    is_gene
-                    and mapping.coding.id.startswith(
-                        (
-                            GeneNamespacePrefix.NCBI.value,
-                            GeneNamespacePrefix.HGNC.value,
-                        )
-                    )
-                )
-                or (
-                    is_disease
-                    and mapping.coding.id.startswith(DiseaseNamespacePrefix.DOID.value)
-                )
-                or (
-                    is_therapy
-                    and mapping.coding.id.startswith(TherapyNamespacePrefix.NCIT.value)
-                )
-            ):
-                mappings.append(
-                    _update_mapping(
-                        mapping,
-                        normalized_id,
-                        normalizer_label,
-                        match_on_coding_id=True,
-                    )
-                )
-        return mappings
-
-    def _merge_mappings(
-        self,
-        source_mappings: list[ConceptMapping],
-        normalizer_mappings: list[ConceptMapping],
-    ) -> list[ConceptMapping]:
-        """Merge source and normalizer concept mappings
-
-        Source mappings will be annotated with source annotation extension to retain
-        provenance of original source mapping.
-
-        :param source_mappings: List of concept mappings directly from a source
-        :param normalizer_mappings: List of concept mappings from VICC normalizer
-        :return: A list of merged concept mappings
-        """
-        merged_mappings = normalizer_mappings.copy()
-        code_to_idx = {m.coding.code.root: idx for idx, m in enumerate(merged_mappings)}
-        source_anno_exts = [Extension(name=f"{self.name}_annotation", value=True)]
-
-        for source_mapping in source_mappings:
-            code = source_mapping.coding.code.root
-            idx = code_to_idx.get(code)
-
-            base_mapping = merged_mappings[idx] if idx is not None else source_mapping
-            extensions = (base_mapping.extensions or []) + source_anno_exts
-
-            updated_mapping = base_mapping.model_copy(update={"extensions": extensions})
-
-            if idx is not None:
-                merged_mappings[idx] = updated_mapping
-            else:
-                code_to_idx[code] = len(merged_mappings)
-                merged_mappings.append(updated_mapping)
-        return merged_mappings
-
-    def create_json(self, cdm_filepath: Path | None = None) -> None:
-        """Create a composite JSON for transformed data.
-
-        :param cdm_filepath: Path to the JSON file locatio at which the CDM output will be
-            saved. If not provided, will use the default path of
-            ``<METAKB_DATA_DIR>/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``,
-            where ``<METAKB_DATA_DIR>`` is the configurable data root directory.
-            See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
-        """
-        if not cdm_filepath:
-            transformers_dir = self.data_dir / "transformers"
-            transformers_dir.mkdir(exist_ok=True, parents=True)
-            today = datetime.datetime.strftime(
-                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
-            )
-            cdm_filepath = transformers_dir / f"{self.name}_cdm_{today}.json"
-
-        cdm_filepath.parent.mkdir(parents=True, exist_ok=True)
-
-        with cdm_filepath.open("w+") as f:
-            json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
