@@ -9,7 +9,6 @@ from enum import Enum
 from pathlib import Path
 from typing import ClassVar
 
-from disease.schemas import NamespacePrefix as DiseaseNamespacePrefix
 from disease.schemas import NormalizationService as NormalizedDisease
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
@@ -17,7 +16,6 @@ from ga4gh.core import sha512t24u
 from ga4gh.core.models import (
     Coding,
     ConceptMapping,
-    Extension,
     MappableConcept,
     Relation,
     iriReference,
@@ -38,10 +36,8 @@ from ga4gh.va_spec.base import (
     TherapyGroup,
 )
 from ga4gh.vrs.models import Allele
-from gene.schemas import NamespacePrefix as GeneNamespacePrefix
 from gene.schemas import NormalizeService as NormalizedGene
 from pydantic import BaseModel, Field, StrictStr
-from therapy.schemas import NamespacePrefix as TherapyNamespacePrefix
 from therapy.schemas import NormalizationService as NormalizedTherapy
 
 from metakb import DATE_FMT
@@ -81,13 +77,6 @@ class EcoLevel(str, Enum):
 
     EVIDENCE = "ECO:0000000"
     CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
-
-
-class MethodId(str, Enum):
-    """Create method id constants"""
-
-    CIVIC_EID_SOP = "civic.method:2019"
-    MOA_ASSERTION_BIORXIV = "moa.method:2021"
 
 
 class CivicEvidenceLevel(str, Enum):
@@ -147,19 +136,6 @@ class TransformedData(BaseModel):
 class Transformer(ABC):
     """A base class for transforming harvester data."""
 
-    _methods: ClassVar[list[Method]] = [
-        Method(
-            id=MethodId.MOA_ASSERTION_BIORXIV,
-            name="MOAlmanac (2021)",
-            reportedIn=Document(
-                name="Reardon, B., Moore, N.D., Moore, N.S. et al.",
-                title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
-                doi="10.1038/s43018-021-00243-3",
-                pmid="35121878",
-            ),
-        ),
-    ]
-    methods_mapping: ClassVar[dict[MethodId, Method]] = {m.id: m for m in _methods}
     _vicc_concept_vocabs: ClassVar[list[ViccConceptVocab]] = [
         ViccConceptVocab(
             id="vicc:e000000",
