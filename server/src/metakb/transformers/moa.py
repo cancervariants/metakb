@@ -60,8 +60,9 @@ class MoaTransformer(Transformer):
         )
 
     async def transform(self, harvested_data: MoaHarvestedData) -> None:
-        """Transform MOA harvested JSON to common data model. Will store transformed
-        results in ``processed_data`` instance variable.
+        """Transform MOA harvested JSON to common data model.
+
+        Will store transformed results in ``processed_data`` instance variable.
 
         For each statement:
         * Build its base GKS equivalent
