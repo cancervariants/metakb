@@ -25,7 +25,7 @@ import {
   getEntityMetadataFromProposition,
 } from '../../utils'
 import { EvidenceLegend } from '../../components/ResultTable/EvidenceLegend'
-import { VariantDiseaseHeatmap } from './VariantDiseaseHeatmap'
+import { VariantDiseaseHeatmap } from '../../components/VariantDiseaseHeatmap/VariantDiseaseHeatmap'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'

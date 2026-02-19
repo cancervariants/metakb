@@ -1,0 +1,66 @@
+services:
+  metakb:
+    image: ghcr.io/cancervariants/metakb:issue-671-docker-startup
+    environment:
+      AWS_ACCESS_KEY_ID: dummy
+      AWS_SECRET_ACCESS_KEY: dummy
+      AWS_DEFAULT_REGION: us-east-2
+      UTA_DB_URL: postgresql://anonymous@uta:5432/uta/uta_20241220
+      SEQREPO_ROOT_DIR: /usr/local/share/seqrepo/2024-12-20
+      GENE_NORM_DB_URL: http://gene-dynamodb-local:8000
+      DISEASE_NORM_DB_URL: http://disease-dynamodb-local:8000
+      THERAPY_NORM_DB_URL: http://therapy-dynamodb-local:8000
+      METAKB_DB_URL: "bolt://neo4j:password@neo4j:7687"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - neo4j
+      - uta
+    volumes:
+      - /usr/local/share/seqrepo:/usr/local/share/seqrepo
+
+  gene-dynamodb-local:
+    image: cancervariants/gene-normalizer-ddb:2025-12-29
+    ports:
+      - "8011:8000"
+
+  disease-dynamodb-local:
+    image: cancervariants/disease-normalizer-ddb:2025-12-29
+    ports:
+      - "8012:8000"
+
+  therapy-dynamodb-local:
+    image: cancervariants/therapy-normalizer-ddb:2025-12-29
+    ports:
+      - "8013:8000"
+
+  uta:
+    # Test:
+    # psql -XAt postgres://anonymous@localhost:5432/uta -c 'select count(*) from uta_20241220.transcript'
+    # 329090
+    image: biocommons/uta:uta_20241220
+    environment:
+      - POSTGRES_PASSWORD=some-password-that-you-make-up
+    volumes:
+      - uta_vol:/var/lib/postgresql/data
+      - type: bind
+        source: ./uta-init/uta_20241220.pgd.gz
+        target: /tmp/uta_20241220.pgd.gz
+        read_only: true
+        bind:
+          create_host_path: false
+      - ./uta-init/uta-setup.sql:/docker-entrypoint-initdb.d/uta-setup.sql
+    ports:
+      - 127.0.0.1:5432:5432
+
+  neo4j:
+    image: ghcr.io/cancervariants/metakb-neo4j:20260116
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/password
+
+volumes:
+  uta_vol:
+    external: true

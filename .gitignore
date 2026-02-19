@@ -169,3 +169,8 @@ age_range_counts.csv
 base.py
 ethnicity_counts.csv
 
+# Neo4j snapshot input
+docker/neo4j/*.dump
+
+# Temporary(?) workaround for populating uta
+uta-init/**/*.pgd.gz
