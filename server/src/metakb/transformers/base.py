@@ -18,9 +18,11 @@ from ga4gh.core.models import (
     ConceptMapping,
     MappableConcept,
     Relation,
+    code,
     iriReference,
 )
 from ga4gh.va_spec.aac_2017 import (
+    Classification,
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
@@ -28,16 +30,22 @@ from ga4gh.va_spec.aac_2017 import (
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
+    Direction,
     Document,
+    EvidenceLine,
     MembershipOperator,
     Method,
     Statement,
+    System,
     Therapeutic,
     TherapyGroup,
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
 )
 from ga4gh.vrs.models import Allele
 from gene.schemas import NormalizeService as NormalizedGene
-from pydantic import BaseModel, Field, StrictStr
+from pydantic import BaseModel, StrictStr
 from therapy.schemas import NormalizationService as NormalizedTherapy
 
 from metakb import DATE_FMT
@@ -53,6 +61,27 @@ NORMALIZER_INSTANCE_TO_ATTR = {
     NormalizedTherapy: "therapy",
     NormalizedGene: "gene",
 }
+
+
+# TODO figure out classification, method, etc
+# Just a static value for now -- will need to write a classification calculation method
+# and calculate/recalculate on a per-statement basis
+METAKB_METHOD = Method(
+    id="metakb.method:2026",
+    name="MetaKB (2026)",
+    reportedIn=Document(
+        name="Wagnerds et al",
+        title="MetaKB v2",
+        doi="10.1038/1111-1-1111-111-1111",
+        pmid="9999999",
+    ),
+)
+
+METAKB_CLASSIFICATION = MappableConcept(
+    id="metakb.classification:1",
+    name="tmp metakb tr classification",
+    primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(Classification.TIER_I)),
+)
 
 
 def _sanitize_name(name: str) -> str:
@@ -114,14 +143,7 @@ class ViccConceptVocab(BaseModel):
 class TransformedData(BaseModel):
     """Define model for transformed data"""
 
-    statements_evidence: list[Statement] = Field(
-        [], description="Statement objects for evidence records"
-    )
-    statements_assertions: list[
-        VariantTherapeuticResponseStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantDiagnosticStudyStatement
-    ] = Field([], description="Statement objects for assertion records")
+    statements: list[Statement] = []
     categorical_variants: list[CategoricalVariant | ProteinSequenceConsequence] = []
     variations: list[Allele] = []
     genes: list[MappableConcept] = []
@@ -249,7 +271,7 @@ class Transformer(ABC):
         self.vicc_normalizers = (
             ViccNormalizers() if normalizers is None else normalizers
         )
-        self.processed_data = TransformedData()
+        self.processed_data = None
         self.evidence_level_to_vicc_concept_mapping = (
             self._evidence_level_to_vicc_concept_mapping()
         )
@@ -354,6 +376,11 @@ class Transformer(ABC):
         else:
             raise ValueError
         return f"{source_prefix.lower()}.{combo_class_abbrev}:{digest}"
+
+    ### Evidence aggregation
+
+    def _get_aggregated_statement(self, statement: Statement) -> Statement | None:
+        raise NotImplementedError
 
     ### Entity normalization
 
@@ -538,6 +565,132 @@ class Transformer(ABC):
         :return: either a normalized CatVar, or None
         """
 
+    ### statement construction
+
+    async def _create_aggregate_statement(
+        self, statement: Statement
+    ) -> (
+        VariantDiagnosticStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantTherapeuticResponseStudyStatement
+        | None
+    ):
+        if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
+            return await self._build_aggregated_tr_statement(statement)
+        if isinstance(statement.proposition, VariantDiagnosticProposition):
+            return await self._build_aggregated_diag_statement(statement)
+        if isinstance(statement.proposition, VariantPrognosticProposition):
+            return await self._build_aggregated_prog_statement(statement)
+        raise ValueError
+
+    async def _build_aggregated_diag_statement(
+        self, statement: Statement
+    ) -> VariantDiagnosticStudyStatement | None:
+        """Attempt construction of an aggregate diagnostic study statement given a source statement
+
+        :param statement: diagnostic statement
+        :return: aggregate statement if all terms normalize
+        """
+        prop: VariantDiagnosticProposition = statement.proposition
+        normalized_disease = self._normalize_condition(prop.objectCondition)
+        normalized_gene = self._normalize_gene(prop.geneContextQualifier)
+        normalized_variant = await self._normalize_variant(prop.subjectVariant)
+        if all([normalized_disease, normalized_gene, normalized_variant]):
+            return VariantDiagnosticStudyStatement(
+                id="metakb:id that sums up the proposition parts",
+                proposition=VariantDiagnosticProposition(
+                    geneContextQualifier=normalized_gene,
+                    subjectVariant=normalized_variant,
+                    objectCondition=normalized_disease,
+                    predicate=statement.proposition.predicate,
+                ),
+                direction=statement.direction,
+                specifiedBy=METAKB_METHOD,
+                classification=METAKB_CLASSIFICATION,
+                hasEvidenceLines=[
+                    EvidenceLine(
+                        hasEvidenceItems=[statement],
+                        directionOfEvidenceProvided=Direction.SUPPORTS,
+                    )
+                ],
+            )
+        return None
+
+    async def _build_aggregated_prog_statement(
+        self, statement: Statement
+    ) -> VariantPrognosticStudyStatement | None:
+        """Attempt construction of an aggregate prognostic study statement given a source statement
+
+        :param statement: prognostic statement
+        :return: aggregate statement if all terms normalize
+        """
+        prop: VariantPrognosticProposition = statement.proposition
+        normalized_disease = self._normalize_condition(prop.objectCondition)
+        normalized_gene = self._normalize_gene(prop.geneContextQualifier)
+        normalized_variant = await self._normalize_variant(prop.subjectVariant)
+        if all((normalized_disease, normalized_gene, normalized_variant)):
+            return VariantPrognosticStudyStatement(
+                id="metakb:id that sums up the proposition parts",
+                proposition=VariantPrognosticProposition(
+                    geneContextQualifier=normalized_gene,
+                    subjectVariant=normalized_variant,
+                    objectCondition=normalized_disease,
+                    predicate=statement.proposition.predicate,
+                ),
+                direction=statement.direction,
+                specifiedBy=METAKB_METHOD,
+                classification=METAKB_CLASSIFICATION,
+                hasEvidenceLines=[
+                    EvidenceLine(
+                        hasEvidenceItems=[statement],
+                        directionOfEvidenceProvided=Direction.SUPPORTS,
+                    )
+                ],
+            )
+        return None
+
+    async def _build_aggregated_tr_statement(
+        self, statement: Statement
+    ) -> VariantTherapeuticResponseStudyStatement | None:
+        """Attempt construction of an aggregate therapeutic reseponse study statement given a source statement
+
+        :param statement: source TR assertion
+        :return: aggregate statement if all terms normalize
+        """
+        prop: VariantTherapeuticResponseProposition = statement.proposition
+        normalized_disease = self._normalize_condition(prop.conditionQualifier)
+        normalized_gene = self._normalize_gene(prop.geneContextQualifier)
+        normalized_variant = await self._normalize_variant(prop.subjectVariant)
+        normalized_therapeutic = self._normalize_therapeutic(prop.objectTherapeutic)
+        if all(
+            (
+                normalized_disease,
+                normalized_gene,
+                normalized_variant,
+                normalized_therapeutic,
+            )
+        ):
+            return VariantTherapeuticResponseStudyStatement(
+                id="metakb:id that sums up the proposition parts",
+                proposition=VariantTherapeuticResponseProposition(
+                    geneContextQualifier=normalized_gene,
+                    subjectVariant=normalized_variant,
+                    objectTherapeutic=normalized_therapeutic,
+                    conditionQualifier=normalized_disease,
+                    predicate=statement.proposition.predicate,
+                ),
+                direction=statement.direction,
+                specifiedBy=METAKB_METHOD,
+                classification=METAKB_CLASSIFICATION,
+                hasEvidenceLines=[
+                    EvidenceLine(
+                        hasEvidenceItems=[statement],
+                        directionOfEvidenceProvided=Direction.SUPPORTS,
+                    )
+                ],
+            )
+        return None
+
     ### Handle evidence
 
     def _evidence_level_to_vicc_concept_mapping(
@@ -556,7 +709,7 @@ class Transformer(ABC):
                     ConceptMapping(
                         coding=Coding(
                             system="https://go.osu.edu/evidence-codes",
-                            code=item.id.split("vicc:")[-1],
+                            code=code(item.id.split("vicc:")[-1]),
                             name=item.term,
                         ),
                         relation=Relation.EXACT_MATCH,
