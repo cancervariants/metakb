@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 from tqdm import tqdm
 
-from metakb.transformers.base import Transformer
+from metakb.transformers.base import TransformedData, Transformer
 from metakb.transformers.catvars import (
     build_copynumberchange_catvar,
     build_proteinsequenceconsequence_catvar,
@@ -110,6 +110,7 @@ class CivicTransformer(Transformer):
         #     await self._transform_assertion(item)
         #     pbar.update(1)
         pbar.close()
+        self.processed_data = TransformedData(statements=statements)
 
     @staticmethod
     def _evitem_to_vaspec(
