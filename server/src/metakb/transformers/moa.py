@@ -47,22 +47,6 @@ _logger = logging.getLogger(__name__)
 class MoaTransformer(Transformer):
     """A class for transforming MOA resources to common data model."""
 
-    def __init__(
-        self,
-        data_dir: Path | None = None,
-        harvester_path: Path | None = None,
-        normalizers: ViccNormalizers | None = None,
-    ) -> None:
-        """Initialize MOAlmanac Transformer class.
-
-        :param data_dir: Path to source data directory
-        :param harvester_path: Path to previously harvested MOA data
-        :param normalizers: normalizer collection instance
-        """
-        super().__init__(
-            data_dir=data_dir, harvester_path=harvester_path, normalizers=normalizers
-        )
-
     def _create_method(self) -> Method:
         """Get MOA classification method object for use in study statements
 
@@ -96,11 +80,11 @@ class MoaTransformer(Transformer):
 
         # Add variant therapeutic response study statement data. Will update `statements`
         for assertion in harvested_data.assertions:
-            await self._add_variant_study_stmt(assertion, docs_map)
+            await self._transform_assertion(assertion, docs_map)
             pbar.update(1)
         pbar.close()
 
-    async def _add_variant_study_stmt(
+    async def _transform_assertion(
         self, assertion: dict, docs_map: dict[str, Document]
     ) -> None:
         """Create Variant Study Statements from MOA assertions.

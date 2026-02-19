@@ -91,34 +91,6 @@ class ConceptType(str, Enum):
     THERAPY = "Therapy"
 
 
-class TherapyGroupNamespacePrefix(StrEnum):
-    """Define therapy group namespace prefixes"""
-
-    COMBINATION = "civic.ctid"
-    SUBSTITUTES = "civic.tsgid"
-
-
-class ConditionSetNamespacePrefix(StrEnum):
-    """Define condition set namespace prefixes"""
-
-    UNION = "civic.condset_union"
-    INTERSECTION = "civic.condset_intersect"
-
-
-NAMESPACE_PREFIX_MAP = MappingProxyType(
-    {
-        CivicGksTherapyGroup: {
-            MembershipOperator.OR: TherapyGroupNamespacePrefix.SUBSTITUTES,
-            MembershipOperator.AND: TherapyGroupNamespacePrefix.COMBINATION,
-        },
-        ConditionSet: {
-            MembershipOperator.OR: ConditionSetNamespacePrefix.UNION,
-            MembershipOperator.AND: ConditionSetNamespacePrefix.INTERSECTION,
-        },
-    }
-)
-
-
 @dataclass
 class MolecularProfileNameComponents:
     """Define components for molecular profile name"""
@@ -131,30 +103,6 @@ class MolecularProfileNameComponents:
 class CivicTransformer(Transformer):
     """A class for transforming CIViC to the common data model."""
 
-    def __init__(
-        self,
-        data_dir: Path | None = None,
-        harvester_path: Path | None = None,
-        normalizers: ViccNormalizers | None = None,
-    ) -> None:
-        """Initialize CIViC Transformer class.
-
-        :param data_dir: Path to source data directory
-        :param harvester_path: Path to previously harvested CIViC data
-        :param normalizers: normalizer collection instance
-        """
-        super().__init__(
-            data_dir=data_dir, harvester_path=harvester_path, normalizers=normalizers
-        )
-
-        self._concept_norm_method = MappingProxyType(
-            {
-                ConceptType.DISEASE: self.vicc_normalizers.normalize_disease,
-                ConceptType.GENE: self.vicc_normalizers.normalize_gene,
-                ConceptType.THERAPY: self.vicc_normalizers.normalize_therapy,
-            }
-        )
-
     async def transform(self) -> None:
         """Normalize CIViC evidence items and assertions and add annotations
 
@@ -166,15 +114,15 @@ class CivicTransformer(Transformer):
             total=len(accepted_evidence_items) + len(accepted_assertions),
         )
         for item in accepted_evidence_items:
-            await self._annotate_evidence(item)
+            await self._transform_evidence(item)
             pbar.update(1)
         for item in accepted_assertions:
-            await self._annotate_assertion(item)
+            await self._transform_assertion(item)
             pbar.update(1)
 
         pbar.close()
 
-    async def _annotate_evidence(
+    async def _transform_evidence(
         self, evidence_item: civicpy.Evidence | CivicGksEvidence
     ) -> Statement | None:
         """Annotate evidence with additional information, such as normalizer info
@@ -214,7 +162,7 @@ class CivicTransformer(Transformer):
         self.processed_data.statements_evidence.append(annotated_gks_evidence_item)
         return annotated_gks_evidence_item
 
-    async def _annotate_assertion(self, assertion: civicpy.Assertion) -> None:
+    async def _transform_assertion(self, assertion: civicpy.Assertion) -> None:
         """Annotate assertion with additional information, such as normalizer info
 
         Annotated assertion will be added to the
@@ -233,7 +181,7 @@ class CivicTransformer(Transformer):
             :param assertion_id: ID of assertion that ``ev`` belongs to
             :return: Annotated evidence, if able to resolve
             """
-            annotated_evidence = await self._annotate_evidence(ev)
+            annotated_evidence = await self._transform_evidence(ev)
             if not annotated_evidence:
                 _logger.warning(
                     "%s is unable to resolve evidence item %s in evidence lines",
