@@ -94,13 +94,6 @@ def _sanitize_name(name: str) -> str:
     return re.sub(r"\s+", "_", name.strip())
 
 
-class NormalizerExtensionName(str, Enum):
-    """Define constraints for normalizer extension names"""
-
-    PRIORITY = "vicc_normalizer_priority"  # concept mapping is merged concept ID
-    FAILURE = "vicc_normalizer_failure"  # normalizer failed or is not supported
-
-
 class EcoLevel(str, Enum):
     """Define constraints for Evidence Ontology levels"""
 

@@ -2,8 +2,9 @@
 
 Provide constructor functions and also define rules/methods for minting IDs.
 
-TODO
+Todo:
 * Figure out name and ID conventions for "normalized" objects
+
 """
 
 from ga4gh.cat_vrs.models import (
@@ -38,7 +39,7 @@ def build_copynumberchange_catvar(variant: CopyNumberChange) -> CategoricalCnv:
     :param variant: VRS copynumberchange variant
     :return: CategoricalCNV using the input variant, with MetaKB name and ID
     """
-    cv_id = f"metakb.cv.cnc:{variant.copyChange}_{variant.id.split(':')[1]}"
+    cv_id = f"metakb.cv:CNC_{variant.copyChange}_{variant.id.split(':')[1]}"
     cv_name = "TODO FIXME"
     return CategoricalCnv(
         id=cv_id,
@@ -69,8 +70,8 @@ def build_proteinsequenceconsequence_catvar(
     :param allele: VRS allele
     :return: ProteinSequenceConsequence-based catvar with MetaKB name and ID
     """
-    cv_id = f"metakb.cv.psq:{allele.id.split(':')[1]}"
-    cv_name = "TODO FIXME"
+    cv_id = f"metakb.cv:PSQ_{allele.id.split(':')[1]}"
+    cv_name = "TODO FIXME"  # figure out how to autogenerate name
     return ProteinSequenceConsequence(
         id=cv_id,
         name=cv_name,
@@ -96,7 +97,7 @@ def build_featurecontext_catvar(feature: MappableConcept) -> CategoricalVariant:
     """
     if feature.conceptType != "Gene":
         raise ValueError
-    cv_id = f"metakb.cv.fc:{feature.id.replace(':', '_')}"
+    cv_id = f"metakb.cv:FC_{feature.id.replace(':', '_')}"
     cv_name = "TODO METAKB FIXME"
     return CategoricalVariant(
         id=cv_id,

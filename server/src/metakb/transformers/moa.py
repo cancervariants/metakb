@@ -1,6 +1,7 @@
 """A module to convert MOA resources to common data model"""
 
 import logging
+import re
 
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import (
@@ -25,9 +26,11 @@ from ga4gh.va_spec.base import (
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
+from ga4gh.vrs.models import Allele
 from tqdm import tqdm
 
 from metakb.harvesters.moa import MoaHarvestedData
+from metakb.transformers import catvars as build_catvars
 from metakb.transformers.base import (
     MoaEvidenceLevel,
     TransformedData,
@@ -68,24 +71,33 @@ class MoaTransformer(Transformer):
 
         :param harvested_data: MOA harvested data
         """
-        total = len(harvested_data.sources) + len(harvested_data.assertions)
-        pbar = tqdm(total=total)
-
         docs_map = {}
         for source in harvested_data.sources:
             source_doc = self._create_document(source)
             docs_map[source["id"]] = source_doc
-            pbar.update(1)
 
         # Add variant therapeutic response study statement data. Will update `statements`
-        statements = []
-        for assertion in harvested_data.assertions:
+        statements: list[Statement] = []
+        for assertion in tqdm(harvested_data.assertions):
             source = docs_map[assertion["source_id"]]
-            statement = self._create_statement(assertion, source)
-            statements.append(statement)
-            # TODO normalize statement
-            pbar.update(1)
-        pbar.close()
+            if transformed_statement := self._create_statement(assertion, source):
+                statements.append(transformed_statement)
+                if aggregate_statement := await self._create_aggregate_statement(
+                    transformed_statement
+                ):
+                    # include this statement as an item within an existing evidence line
+                    # if there is already an aggregate statement for this set of entities
+                    for existing_statement in statements:
+                        if (
+                            existing_statement.proposition
+                            == aggregate_statement.proposition
+                        ):
+                            existing_statement.hasEvidenceLines[
+                                0
+                            ].hasEvidenceItems.append(transformed_statement)
+                            break
+                    else:
+                        statements.append(aggregate_statement)
         self.processed_data = TransformedData(statements=statements)
 
     def _create_statement(self, assertion: dict, source: Document) -> Statement | None:
@@ -402,4 +414,22 @@ class MoaTransformer(Transformer):
     async def _normalize_variant(
         self, variant: CategoricalVariant
     ) -> CategoricalVariant | None:
-        raise NotImplementedError
+        queries = [variant.name]
+        result = None
+        for query in queries:
+            if match := re.match(r"(.*) (Mutation|MUTATION)", query):
+                gene_name = match.groups()[0]
+                normalized_gene_result = self.vicc_normalizers.normalize_gene(
+                    gene_name
+                )[0]
+                if normalized_gene_result.gene:
+                    return build_catvars.build_featurecontext_catvar(
+                        normalized_gene_result.gene
+                    )
+            result = await self.vicc_normalizers.normalize_variation(query)
+            if result and isinstance(result, Allele):
+                return build_catvars.build_proteinsequenceconsequence_catvar(result)
+        _logger.debug(
+            "Failed to normalize variant: %s", variant.model_dump(exclude_none=True)
+        )
+        return None
