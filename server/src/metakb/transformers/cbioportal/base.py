@@ -528,7 +528,7 @@ class CBioportalTransformerBase(Transformer):
         results = []
         variant_groups = df.groupby("Gnomad_Notation")
 
-        for _variant, group in variant_groups:
+        for variant, group in variant_groups:
             first_row = group.iloc[0]
             vrs_id = first_row.get("vrs_id")
             if pd.isna(vrs_id) or not vrs_id:
@@ -1052,7 +1052,12 @@ class CBioportalTransformerBase(Transformer):
         amino_acid_change_source: str | None = None
     ) -> pd.DataFrame:
         """Filter variant columns and perform common transformations."""
-        df = variants_df.filter(mut_headers)
+        # Keep Sequence_Source from mutations if it exists, even if not in mut_headers
+        keep_cols = list(mut_headers)
+        if "Sequence_Source" in variants_df.columns and "Sequence_Source" not in keep_cols:
+            keep_cols.append("Sequence_Source")
+
+        df = variants_df.filter(keep_cols)
         df.columns = df.columns.str.strip()
         df = df.rename(columns={"Tumor_Sample_Barcode": "SAMPLE_ID"})
 
@@ -1092,16 +1097,48 @@ class CBioportalTransformerBase(Transformer):
     def filter_and_rename_samples(
         samples_df: pd.DataFrame,
         sample_headers: list[str],
-        sequence_source: str | None = None
     ) -> pd.DataFrame:
         """Filter sample columns and perform common transformations."""
         df = samples_df.filter(sample_headers)
 
-        if sequence_source and sequence_source in df.columns:
-            df = df.rename(columns={sequence_source: "Sequence_Source"})
-
         if "ONCOTREE_CODE_CANCER_TYPE" in df.columns:
             df = df.rename(columns={"ONCOTREE_CODE_CANCER_TYPE": "ONCOTREE_CODE"})
+
+        return df
+
+    @staticmethod
+    def resolve_sequence_source(
+        df: pd.DataFrame,
+        fallback_column: str | None = None,
+    ) -> pd.DataFrame:
+        """Resolve the Sequence_Source column with row-level fallback.
+
+        Priority:
+          1. ``Sequence_Source`` from the mutations data (if populated)
+          2. A study-specific fallback column from the samples data
+          3. ``"No_Data"``
+
+        :param df: Combined DataFrame (variants + samples + patients)
+        :param fallback_column: Column name to use as fallback (e.g. GENE_PANEL,
+            PLATFORM). Provided by each study's ``get_sample_transformations()``.
+        :return: DataFrame with a ``Sequence_Source`` column
+        """
+        # If Sequence_Source came from mutations, fill gaps with fallback
+        if "Sequence_Source" not in df.columns:
+            df["Sequence_Source"] = pd.NA
+
+        if fallback_column and fallback_column in df.columns:
+            mask = (
+                df["Sequence_Source"].isna()
+                | (df["Sequence_Source"] == "")
+                | (df["Sequence_Source"] == "No_Data")
+            )
+            df.loc[mask, "Sequence_Source"] = df.loc[mask, fallback_column]
+            # Drop the original fallback column now that it's merged
+            if fallback_column != "Sequence_Source":
+                df = df.drop(columns=[fallback_column])
+
+        df["Sequence_Source"] = df["Sequence_Source"].fillna("No_Data")
 
         return df
 
@@ -1311,7 +1348,6 @@ class CBioportalStudyTransformer(Transformer):
         self.samples = CBioportalTransformerBase.filter_and_rename_samples(
             self.samples,
             self.get_sample_headers(),
-            sequence_source=sample_transforms.get("sequence_source")
         )
         self.samples = self.apply_custom_sample_logic(self.samples)
         self.samples = CBioportalTransformerBase.handle_duplicates(
@@ -1324,6 +1360,12 @@ class CBioportalStudyTransformer(Transformer):
         )
         combined_df = CBioportalTransformerBase.handle_duplicates(
             combined_df, study, save_loc, "combined"
+        )
+
+        # Resolve Sequence_Source (mutations first, then sample fallback)
+        combined_df = CBioportalTransformerBase.resolve_sequence_source(
+            combined_df,
+            fallback_column=sample_transforms.get("sequence_source"),
         )
 
         # Add Gnomad notation
