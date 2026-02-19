@@ -3,8 +3,8 @@
 from os import environ
 
 environ["AWS_ACCESS_KEY_ID"] = "dummy"
-environ["AWS_SECRET_ACCESS_KEY"] = "dummy" # noqa: S105
-environ["AWS_SESSION_TOKEN"] = "dummy" # noqa: S105
+environ["AWS_SECRET_ACCESS_KEY"] = "dummy"  # noqa: S105
+environ["AWS_SESSION_TOKEN"] = "dummy"  # noqa: S105
 
 import logging
 
@@ -70,12 +70,8 @@ class CBioportalTransformer(CBioportalStudyTransformer):
 
     def get_variant_transformations(self) -> dict:
         """Return variant column transformation mappings."""
-        return {
-            "center_value": "St. Jude Children's Research Hospital"
-        }
+        return {"center_value": "St. Jude Children's Research Hospital"}
 
     def get_sample_transformations(self) -> dict:
         """Return sample column transformation mappings."""
-        return {
-            "sequence_source": "PLATFORM"
-        }
+        return {"sequence_source": "PLATFORM"}
