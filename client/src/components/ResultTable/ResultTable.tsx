@@ -280,7 +280,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
                     placement="top"
                     enterTouchDelay={0}
                     title={<EvidenceLegend />}
-                    slotProps={{'popper': popperProps}}
+                    slotProps={{ popper: popperProps }}
                   >
                     <IconButton
                       size="small"
