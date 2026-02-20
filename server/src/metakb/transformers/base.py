@@ -12,7 +12,6 @@ from typing import ClassVar
 from disease.schemas import NormalizationService as NormalizedDisease
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
-from ga4gh.core import sha512t24u
 from ga4gh.core.models import (
     Coding,
     ConceptMapping,
@@ -33,7 +32,6 @@ from ga4gh.va_spec.base import (
     Direction,
     Document,
     EvidenceLine,
-    MembershipOperator,
     Method,
     Statement,
     System,
@@ -52,6 +50,7 @@ from metakb import DATE_FMT
 from metakb.config import get_config
 from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import ViccNormalizers
+from metakb.transformers.identifiers import compute_aggr_statement_id, compute_combo_id
 
 logger = logging.getLogger(__name__)
 
@@ -323,58 +322,6 @@ class Transformer(ABC):
         with cdm_filepath.open("w+") as f:
             json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
 
-    ### Identity minting
-
-    @staticmethod
-    def _compute_combo_id(
-        source_prefix: str,
-        combo_class: type[TherapyGroup] | type[ConditionSet],
-        operator: MembershipOperator,
-        ids: list[str],
-    ) -> str:
-        """Compute identifier for concept set (eg therapy group or condition set)
-
-        >>> self._compute_combo_id(
-        ...     SourceName.MOA.value,
-        ...     TherapyGroup,
-        ...     MembershipOperator.AND,
-        ...     ["moa.therapy:imatinib", "moa.therapy:trastuzumab"],
-        ... )
-        'moa.tg:ojf-glrsMg7fNrGKoGwGEF0OTyssCuCA'
-
-        These values should generally be for internal use only, so it's not super
-        important that they are especially meaningful, but they should be consistent
-
-        :param source_prefix: prefix to use in ID namespace
-        :param combo_class: type of entity combination
-        :param operator: operator enum instance from concept set
-        :param ids: list of entity IDs to combine, must all be non-empty/non-null
-        :return: CURIE designating the combination in a deterministic way
-        :raise ValueError: if unrecognized combo_class type or if IDs list contains
-            null or empty values
-        """
-        if not all(ids):
-            raise ValueError
-        ids.sort()
-        # use the whole membership operator enum string (ie "MembershipOperator.OR")
-        # to distinguish from an improbable clash w/ a real entity name
-        ids.append(str(operator))
-        blob = json.dumps(ids, separators=(",", ":"), sort_keys=True).encode("ascii")
-        digest = sha512t24u(blob)
-
-        if combo_class is TherapyGroup:
-            combo_class_abbrev = "tg"
-        elif combo_class is ConditionSet:
-            combo_class_abbrev = "cs"
-        else:
-            raise ValueError
-        return f"{source_prefix.lower()}.{combo_class_abbrev}:{digest}"
-
-    ### Evidence aggregation
-
-    def _get_aggregated_statement(self, statement: Statement) -> Statement | None:
-        raise NotImplementedError
-
     ### Entity normalization
 
     @staticmethod
@@ -445,7 +392,7 @@ class Transformer(ABC):
             else:
                 raise TypeError
         if not condition_set.id:
-            condition_set.id = self._compute_combo_id(
+            condition_set.id = compute_combo_id(
                 self.name,
                 ConditionSet,
                 condition_set.membershipOperator,
@@ -454,7 +401,7 @@ class Transformer(ABC):
         return ConditionSet(
             conditions=members,
             membershipOperator=condition_set.membershipOperator,
-            id=self._compute_combo_id(
+            id=compute_combo_id(
                 "metakb",
                 ConditionSet,
                 condition_set.membershipOperator,
@@ -589,8 +536,7 @@ class Transformer(ABC):
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
         normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all([normalized_disease, normalized_gene, normalized_variant]):
-            return VariantDiagnosticStudyStatement(
-                id="metakb:id that sums up the proposition parts",
+            statement = VariantDiagnosticStudyStatement(
                 proposition=VariantDiagnosticProposition(
                     geneContextQualifier=normalized_gene,
                     subjectVariant=normalized_variant,
@@ -607,6 +553,8 @@ class Transformer(ABC):
                     )
                 ],
             )
+            statement.id = compute_aggr_statement_id(statement)
+            return statement
         return None
 
     async def _build_aggregated_prog_statement(
@@ -622,8 +570,7 @@ class Transformer(ABC):
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
         normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all((normalized_disease, normalized_gene, normalized_variant)):
-            return VariantPrognosticStudyStatement(
-                id="metakb:id that sums up the proposition parts",
+            statement = VariantPrognosticStudyStatement(
                 proposition=VariantPrognosticProposition(
                     geneContextQualifier=normalized_gene,
                     subjectVariant=normalized_variant,
@@ -640,6 +587,8 @@ class Transformer(ABC):
                     )
                 ],
             )
+            statement.id = compute_aggr_statement_id(statement)
+            return statement
         return None
 
     async def _build_aggregated_tr_statement(
@@ -663,8 +612,7 @@ class Transformer(ABC):
                 normalized_therapeutic,
             )
         ):
-            return VariantTherapeuticResponseStudyStatement(
-                id="metakb:id that sums up the proposition parts",
+            statement = VariantTherapeuticResponseStudyStatement(
                 proposition=VariantTherapeuticResponseProposition(
                     geneContextQualifier=normalized_gene,
                     subjectVariant=normalized_variant,
@@ -682,6 +630,8 @@ class Transformer(ABC):
                     )
                 ],
             )
+            statement.id = compute_aggr_statement_id(statement)
+            return statement
         return None
 
     ### Handle evidence
