@@ -18,6 +18,7 @@ import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight'
 import LastPageIcon from '@mui/icons-material/LastPage'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import ResultTableRow from './ResultTableRow'
 import { ResultColumn } from './types'
 import { NormalizedResult, TherapyInteractionType } from '../../utils'
@@ -25,6 +26,7 @@ import { normalizeEvidenceLevelFromStrength } from '../../utils/normalization'
 import { EvidenceLevel } from '../../models/codings'
 import { PieChart, Pie, Cell } from 'recharts'
 import theme from '../../theme'
+import { EvidenceLegend } from './EvidenceLegend'
 
 interface TablePaginationActionsProps {
   count: number
@@ -260,13 +262,38 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
     ]
   }
 
+  const popperProps = {
+    modifiers: [{ name: 'offset', options: { offset: [0, 8] } }],
+  }
+
   return (
     <Table>
       <TableHead>
         <TableRow>
           {columns.map((column) => (
             <TableCell key={column.field} style={{ width: column.width }}>
-              {column.headerName}
+              {column.field === 'evidence_summary' ? (
+                <Box display="flex" alignItems="center" gap={0.75}>
+                  {column.headerName}
+                  <Tooltip
+                    arrow
+                    placement="top"
+                    enterTouchDelay={0}
+                    title={<EvidenceLegend />}
+                    slotProps={{'popper': popperProps}}
+                  >
+                    <IconButton
+                      size="small"
+                      aria-label="Show evidence level legend"
+                      sx={{ p: 0.25 }}
+                    >
+                      <HelpOutlineIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              ) : (
+                column.headerName
+              )}
             </TableCell>
           ))}
         </TableRow>

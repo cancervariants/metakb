@@ -24,7 +24,6 @@ import {
   TAB_LABELS,
   getEntityMetadataFromProposition,
 } from '../../utils'
-import { EvidenceLegend } from '../../components/ResultTable/EvidenceLegend'
 import { VariantDiseaseHeatmap } from '../../components/VariantDiseaseHeatmap/VariantDiseaseHeatmap'
 
 type SearchType = 'gene' | 'variation'
@@ -300,7 +299,6 @@ const ResultPage = () => {
                 <Typography variant="h6" fontWeight="bold" mb={2}>
                   {TAB_LABELS[activeTab]} Search Results ({filteredResults?.length})
                 </Typography>
-                <EvidenceLegend />
               </Box>
               {hasInitialResults ? (
                 <Box display="flex">
