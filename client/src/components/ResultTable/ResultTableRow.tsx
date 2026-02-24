@@ -44,16 +44,19 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
               const normalizedLevel = normalizeEvidenceLevelFromStrength(e.strength)
               const levelColor =
                 normalizedLevel in theme.palette.evidence
-                  ? theme.palette.evidence[
-                      normalizedLevel as keyof typeof theme.palette.evidence
-                    ]
+                  ? theme.palette.evidence[normalizedLevel as keyof typeof theme.palette.evidence]
                   : '#ccc'
 
               return (
                 <Box
                   key={e.id}
                   margin={1}
-                  sx={{ border: '1px solid #ccc', borderLeft: `6px solid ${levelColor}`, mb: 2, p: 2 }}
+                  sx={{
+                    border: '1px solid #ccc',
+                    borderLeft: `6px solid ${levelColor}`,
+                    mb: 2,
+                    p: 2,
+                  }}
                 >
                   <div>
                     <Link
@@ -66,8 +69,7 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
                     </Link>
                   </div>
                   <div>
-                    <strong>Evidence Level:</strong>{' '}
-                    {normalizedLevel}
+                    <strong>Evidence Level:</strong> {normalizedLevel}
                     {evidenceSource && originalCode ? (
                       <>
                         {' '}
