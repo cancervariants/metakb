@@ -64,10 +64,10 @@ STUDY_GENOME_BUILD = {
 
 DEFAULT_GENOME_BUILD = "GRCh37"
 
-TRANSFORMER_CLASS_NAME = "CBioportalTransformer"
+TRANSFORMER_CLASS_NAME = "CBioPortalTransformer"
 
 
-class CBioportalTransformerBase(Transformer):
+class CBioPortalTransformerBase(Transformer):
     """Orchestrates per-study cBioportal transformers AND performs centralized
     gene mapping via the VICC normalizers.
     """
@@ -134,7 +134,7 @@ class CBioportalTransformerBase(Transformer):
         :raises NotImplementedError: cBioportalTransformerBase is an orchestrator
         """
         msg = (
-            "CBioportalTransformerBase is an orchestrator. "
+            "CBioPortalTransformerBase is an orchestrator. "
             "Use `run_transformers({study: harvested_data})` instead of `.transform()`."
         )
         raise NotImplementedError(
@@ -148,7 +148,13 @@ class CBioportalTransformerBase(Transformer):
     def _get_exact_gene_mappings(
         self, hgnc_id: str | None, gene_symbol: str
     ) -> list[ConceptMapping]:
-        """Return EXACT_MATCH mapping for HGNC ID, if we have one."""
+        """Return EXACT_MATCH mapping for HGNC ID, if we have one.
+
+        :param hgnc_id: HGNC identifier string (e.g. "8619"), or None if unavailable.
+        :param gene_symbol: Hugo gene symbol used as the display name in the mapping.
+        :return: List containing a single EXACT_MATCH ConceptMapping if a valid
+            HGNC ID is provided, otherwise an empty list.
+        """
         if not hgnc_id or hgnc_id == "untested":
             return []
 
@@ -173,9 +179,14 @@ class CBioportalTransformerBase(Transformer):
         """Central gene mapping: runs for EVERY study automatically.
         Uses the transformer's `vicc_normalizers`.
 
-        Returns:
-          (mappable_genes, qc_dict)
-
+        :param transformer: The study-level transformer instance, used to access
+            ``vicc_normalizers`` for gene symbol normalization.
+        :param df: Combined DataFrame for the study, must contain a ``Hugo_Symbol``
+            column. A ``gene_hgnc_id`` column will be added or updated in place.
+        :return: A tuple of (mappable_genes, qc_dict) where ``mappable_genes`` is a
+            list of GA4GH MappableConcept objects and ``qc_dict`` contains summary
+            metrics with keys ``total_unique_symbols``, ``normalized_hgnc``,
+            ``failed``, and ``pct_normalized``.
         """
         if "Hugo_Symbol" not in df.columns:
             logger.warning("No 'Hugo_Symbol' column found; skipping gene mapping.")
@@ -432,10 +443,10 @@ class CBioportalTransformerBase(Transformer):
         # -- freq_variant_this_study --
         # variant count within study / total unique samples in study
         if sample_col:
-            study_total = combined.groupby(study_col)[sample_col].transform("nunique")
+            study_total = combined.groupby(study_col)[sample_col].transform("count")
             study_variant_count = combined.groupby([study_col, variant_col])[
                 sample_col
-            ].transform("nunique")
+            ].transform("count")
             combined["freq_variant_this_study"] = (
                 study_variant_count / study_total
             ).round(6)
@@ -453,10 +464,10 @@ class CBioportalTransformerBase(Transformer):
         if cancer_col in combined.columns and sample_col:
             cancer_study_total = combined.groupby([study_col, cancer_col])[
                 sample_col
-            ].transform("nunique")
+            ].transform("count")
             cancer_study_variant = combined.groupby(
                 [study_col, cancer_col, variant_col]
-            )[sample_col].transform("nunique")
+            )[sample_col].transform("count")
             combined["freq_variant_cancer_this_study"] = (
                 cancer_study_variant / cancer_study_total
             ).round(6)
@@ -467,10 +478,10 @@ class CBioportalTransformerBase(Transformer):
         if multi_study:
             # freq_variant_all_studies
             if sample_col:
-                global_total = combined[sample_col].nunique()
+                global_total = combined[sample_col].count()
                 global_variant_count = combined.groupby(variant_col)[
                     sample_col
-                ].transform("nunique")
+                ].transform("count")
                 combined["freq_variant_all_studies"] = (
                     global_variant_count / global_total
                 ).round(6)
@@ -487,10 +498,10 @@ class CBioportalTransformerBase(Transformer):
             if cancer_col in combined.columns and sample_col:
                 cancer_global_total = combined.groupby(cancer_col)[
                     sample_col
-                ].transform("nunique")
+                ].transform("count")
                 cancer_global_variant = combined.groupby([cancer_col, variant_col])[
                     sample_col
-                ].transform("nunique")
+                ].transform("count")
                 combined["freq_variant_cancer_all_studies"] = (
                     cancer_global_variant / cancer_global_total
                 ).round(6)
@@ -521,9 +532,9 @@ class CBioportalTransformerBase(Transformer):
             return []
 
         study_label = df["STUDY_ID"].iloc[0] if "STUDY_ID" in df.columns else study_id
-        total_samples = (
-            df["SAMPLE_ID"].nunique() if "SAMPLE_ID" in df.columns else len(df)
-        )
+        total_samples = int(
+    df["SAMPLE_ID"].count() if "SAMPLE_ID" in df.columns else len(df)
+)
 
         results = []
         variant_groups = df.groupby("Gnomad_Notation")
@@ -534,8 +545,8 @@ class CBioportalTransformerBase(Transformer):
             if pd.isna(vrs_id) or not vrs_id:
                 continue
 
-            affected = (
-                group["SAMPLE_ID"].nunique()
+            affected = int(
+                group["SAMPLE_ID"].count()
                 if "SAMPLE_ID" in group.columns
                 else len(group)
             )
@@ -1302,7 +1313,7 @@ class CBioportalStudyTransformer(Transformer):
     def transform(self, harvested_data: CBioPortalHarvestedData) -> pd.DataFrame:
         """Run the standard transformation pipeline for cBioportal studies."""
         study = self.get_study_name()
-        save_loc = CBioportalTransformerBase.setup_save_location(study)
+        save_loc = CBioPortalTransformerBase.setup_save_location(study)
 
         # Extract data
         self.variants = pd.DataFrame(harvested_data.variants).filter(self.get_mut_headers())
@@ -1312,7 +1323,7 @@ class CBioportalStudyTransformer(Transformer):
 
         # Process variants
         variant_transforms = self.get_variant_transformations()
-        self.variants = CBioportalTransformerBase.filter_and_rename_variants(
+        self.variants = CBioPortalTransformerBase.filter_and_rename_variants(
             self.variants,
             self.get_mut_headers(),
             amino_acid_change_source=variant_transforms.get("amino_acid_change_source")
@@ -1327,60 +1338,60 @@ class CBioportalStudyTransformer(Transformer):
                     self.variants[col] = default_val
 
         self.variants = self.apply_custom_variant_logic(self.variants)
-        self.variants = CBioportalTransformerBase.handle_duplicates(
+        self.variants = CBioPortalTransformerBase.handle_duplicates(
             self.variants, study, save_loc, "mut"
         )
 
         # Process patients
         patient_transforms = self.get_patient_transformations()
-        self.patients = CBioportalTransformerBase.filter_and_rename_patients(
+        self.patients = CBioPortalTransformerBase.filter_and_rename_patients(
             self.patients,
             self.get_patient_headers(),
             ethnicity_source=patient_transforms.get("ethnicity_source", "RACE"),
             age_source=patient_transforms.get("age_source")
         )
-        self.patients = CBioportalTransformerBase.handle_duplicates(
+        self.patients = CBioPortalTransformerBase.handle_duplicates(
             self.patients, study, save_loc, "patient"
         )
 
         # Process samples
         sample_transforms = self.get_sample_transformations()
-        self.samples = CBioportalTransformerBase.filter_and_rename_samples(
+        self.samples = CBioPortalTransformerBase.filter_and_rename_samples(
             self.samples,
             self.get_sample_headers(),
         )
         self.samples = self.apply_custom_sample_logic(self.samples)
-        self.samples = CBioportalTransformerBase.handle_duplicates(
+        self.samples = CBioPortalTransformerBase.handle_duplicates(
             self.samples, study, save_loc, "samples"
         )
 
         # Combine dataframes
-        combined_df = CBioportalTransformerBase.combine_dataframes(
+        combined_df = CBioPortalTransformerBase.combine_dataframes(
             self.variants, self.samples, self.patients, self.metadata
         )
-        combined_df = CBioportalTransformerBase.handle_duplicates(
+        combined_df = CBioPortalTransformerBase.handle_duplicates(
             combined_df, study, save_loc, "combined"
         )
 
         # Resolve Sequence_Source (mutations first, then sample fallback)
-        combined_df = CBioportalTransformerBase.resolve_sequence_source(
+        combined_df = CBioPortalTransformerBase.resolve_sequence_source(
             combined_df,
             fallback_column=sample_transforms.get("sequence_source"),
         )
 
         # Add Gnomad notation
-        combined_df = CBioportalTransformerBase.add_gnomad_notation(combined_df)
+        combined_df = CBioPortalTransformerBase.add_gnomad_notation(combined_df)
 
         # Remove patient-variant duplicates
-        final_df = CBioportalTransformerBase.remove_patient_variant_duplicates(
+        final_df = CBioPortalTransformerBase.remove_patient_variant_duplicates(
             combined_df, study, save_loc
         )
 
         # Fill missing values
-        final_df = CBioportalTransformerBase.fill_missing_values(final_df)
+        final_df = CBioPortalTransformerBase.fill_missing_values(final_df)
 
         # Save outputs
-        CBioportalTransformerBase.save_study_outputs(final_df, study, save_loc)
+        CBioPortalTransformerBase.save_study_outputs(final_df, study, save_loc)
 
         self.final_df = final_df
         return final_df
@@ -1393,7 +1404,7 @@ def run_transformers(harvested: dict[str, Any]) -> pd.DataFrame:
     :param harvested: Mapping of study names to their harvested data
     :return: Combined DataFrame of all transformed study data
     """
-    base = CBioportalTransformerBase()
+    base = CBioPortalTransformerBase()
     return base.run_transformers(harvested)
 
 
@@ -1404,5 +1415,5 @@ if __name__ == "__main__":
     harvester = cBioportalHarvester()
     data = harvester.harvest()  # all studies
 
-    base = CBioportalTransformerBase()
+    base = CBioPortalTransformerBase()
     df = base.run_transformers(data)
