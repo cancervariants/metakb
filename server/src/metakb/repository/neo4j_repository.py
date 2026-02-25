@@ -685,7 +685,6 @@ class Neo4jRepository(AbstractRepository):
             limit=9999,
         )
         if len(result) == 0:
-            # TODO warning or error?
             return None
         if len(result) >= 2:  # noqa: PLR2004
             # should be impossible due to uniqueness constraint, how to log?
