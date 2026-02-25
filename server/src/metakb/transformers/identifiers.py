@@ -47,13 +47,14 @@ def compute_aggr_statement_id(statement: Statement) -> str:
     ]
     if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
         member_ids += [
-            statement.proposition.conditionQualifier.id,
-            statement.proposition.objectTherapeutic.id,
+            statement.proposition.conditionQualifier.root.id,
+            statement.proposition.objectTherapeutic.root.id,
         ]
     else:
-        member_ids += [statement.proposition.objectCondition]
+        member_ids += [statement.proposition.objectCondition.root.id]
 
     digest = _hash_array(member_ids)
+
     return f"metakb.assertion:{digest}"
 
 

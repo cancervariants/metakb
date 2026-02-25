@@ -3,13 +3,11 @@
 import datetime
 import json
 import logging
-import re
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
 from typing import ClassVar
 
-from disease.schemas import NormalizationService as NormalizedDisease
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
 from ga4gh.core.models import (
@@ -42,9 +40,7 @@ from ga4gh.va_spec.base import (
     VariantTherapeuticResponseProposition,
 )
 from ga4gh.vrs.models import Allele
-from gene.schemas import NormalizeService as NormalizedGene
 from pydantic import BaseModel, StrictStr
-from therapy.schemas import NormalizationService as NormalizedTherapy
 
 from metakb import DATE_FMT
 from metakb.config import get_config
@@ -53,14 +49,6 @@ from metakb.normalizers import ViccNormalizers
 from metakb.transformers.identifiers import compute_aggr_statement_id, compute_combo_id
 
 logger = logging.getLogger(__name__)
-
-# Normalizer response type to attribute name
-NORMALIZER_INSTANCE_TO_ATTR = {
-    NormalizedDisease: "disease",
-    NormalizedTherapy: "therapy",
-    NormalizedGene: "gene",
-}
-
 
 # TODO figure out classification, method, etc
 # Just a static value for now -- will need to write a classification calculation method
@@ -81,16 +69,6 @@ METAKB_CLASSIFICATION = MappableConcept(
     name="tmp metakb tr classification",
     primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(Classification.TIER_I)),
 )
-
-
-def _sanitize_name(name: str) -> str:
-    """Trim leading and trailing whitespace and replace whitespace characters with
-    underscores
-
-    :param name: Name to sanitize
-    :return: Sanitized string with whitespace characters replaced by underscores
-    """
-    return re.sub(r"\s+", "_", name.strip())
 
 
 class EcoLevel(str, Enum):
@@ -309,6 +287,8 @@ class Transformer(ABC):
             where ``<METAKB_DATA_DIR>`` is the configurable data root directory.
             See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
         """
+        if self.processed_data is None:
+            raise ValueError
         if not cdm_filepath:
             transformers_dir = self.data_dir / "transformers"
             transformers_dir.mkdir(exist_ok=True, parents=True)
@@ -394,13 +374,6 @@ class Transformer(ABC):
                 members.append(normalized_condition_set)
             else:
                 raise TypeError
-        if not condition_set.id:
-            condition_set.id = compute_combo_id(
-                self.name,
-                ConditionSet,
-                condition_set.membershipOperator,
-                [c.id for c in condition_set.conditions],
-            )
         return ConditionSet(
             conditions=members,
             membershipOperator=condition_set.membershipOperator,
@@ -487,7 +460,12 @@ class Transformer(ABC):
         if all(normalized_members):
             return Therapeutic(
                 root=TherapyGroup(
-                    id="make up a string TODO",
+                    id=compute_combo_id(
+                        "metakb",
+                        TherapyGroup,
+                        therapeutic.root.membershipOperator,
+                        [d.id for d in normalized_members],
+                    ),
                     therapies=normalized_members,
                     membershipOperator=therapeutic.root.membershipOperator,
                 )
@@ -615,7 +593,7 @@ class Transformer(ABC):
                 normalized_therapeutic,
             )
         ):
-            statement = VariantTherapeuticResponseStudyStatement(
+            aggr_statement = VariantTherapeuticResponseStudyStatement(
                 proposition=VariantTherapeuticResponseProposition(
                     geneContextQualifier=normalized_gene,
                     subjectVariant=normalized_variant,
@@ -633,8 +611,8 @@ class Transformer(ABC):
                     )
                 ],
             )
-            statement.id = compute_aggr_statement_id(statement)
-            return statement
+            aggr_statement.id = compute_aggr_statement_id(aggr_statement)
+            return aggr_statement
         return None
 
     ### Handle evidence

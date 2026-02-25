@@ -36,6 +36,7 @@ from metakb.transformers.base import (
     TransformedData,
     Transformer,
 )
+from metakb.transformers.identifiers import compute_combo_id
 
 _logger = logging.getLogger(__name__)
 
@@ -353,10 +354,13 @@ class MoaTransformer(Transformer):
             )
             for member in name.split("+")
         ]
+        operator = MembershipOperator.AND
         return Therapeutic(
             root=TherapyGroup(
-                id=f"moa.drug_combo:{name}",
-                membershipOperator=MembershipOperator.AND,
+                id=compute_combo_id(
+                    self.name, TherapyGroup, operator, [d.id for d in moa_drugs]
+                ),
+                membershipOperator=operator,
                 therapies=moa_drugs,
                 extensions=[Extension(name="moa_therapy_type", value=therapy_type)],
             )

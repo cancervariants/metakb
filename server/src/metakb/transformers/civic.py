@@ -10,7 +10,12 @@ from civicpy.exports.civic_gks_record import (
     create_gks_record_from_assertion,
 )
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.va_spec.base import Statement
+from ga4gh.va_spec.base import (
+    ConditionSet,
+    Statement,
+    TherapyGroup,
+    VariantTherapeuticResponseProposition,
+)
 from ga4gh.vrs.models import Allele, CopyNumberChange
 from pydantic.dataclasses import dataclass
 from tqdm import tqdm
@@ -20,6 +25,7 @@ from metakb.transformers.catvars import (
     build_copynumberchange_catvar,
     build_proteinsequenceconsequence_catvar,
 )
+from metakb.transformers.identifiers import compute_combo_id
 
 _logger = logging.getLogger(__name__)
 
@@ -91,19 +97,18 @@ class CivicTransformer(Transformer):
         """
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
-        pbar = tqdm(
-            total=len(accepted_evidence_items) + len(accepted_assertions),
-        )
         statements = []
-        for item in accepted_evidence_items:
-            transformed_statement = self._evitem_to_vaspec(item)
+        for item in tqdm([*accepted_evidence_items, *accepted_assertions]):
+            transformed_statement = self._civic_claim_to_statement(item)
             if not transformed_statement:
                 _logger.warning(
-                    "Unable to model civic evidence item %s as a GKS statement",
+                    "Unable to model civic statement %s (type: %s) as a GKS statement",
                     item,
+                    type(item),
                 )
                 continue
             statements.append(transformed_statement)
+
             if aggregate_statement := await self._create_aggregate_statement(
                 transformed_statement
             ):
@@ -120,52 +125,100 @@ class CivicTransformer(Transformer):
                         break
                 else:
                     statements.append(aggregate_statement)
-            pbar.update(1)
-        for item in accepted_assertions:
-            try:
-                gks_assertion = create_gks_record_from_assertion(item)
-                transformed_assertion = Statement(**gks_assertion.model_dump())
-            except (NotImplementedError, CivicGksRecordError):
-                _logger.warning(
-                    "unable to model CIViC assertion %s as a GKS statement", item.id
-                )
-                continue
-            statements.append(transformed_assertion)
-            if aggregate_statement := await self._create_aggregate_statement(
-                transformed_assertion
-            ):
-                # include this statement as an item within an existing evidence line
-                # if there is already an aggregate statement for this set of entities
-                for existing_statement in statements:
-                    if (
-                        existing_statement.proposition
-                        == aggregate_statement.proposition
-                    ):
-                        existing_statement.hasEvidenceLines[0].hasEvidenceItems.append(
-                            transformed_assertion
-                        )
-                        break
-                else:
-                    statements.append(aggregate_statement)
-            pbar.update(1)
-        pbar.close()
         self.processed_data = TransformedData(statements=statements)
 
-    @staticmethod
-    def _evitem_to_vaspec(
-        evidence_item: civicpy.Evidence | CivicGksEvidence,
-    ) -> Statement | None:
-        """Convert CIViC ev item to a va-spec-python object
+    def _ensure_therapygroup_id(self, therapy_group: TherapyGroup) -> None:
+        """Ensure that a therapy group has an ID
 
-        :param evidence_item: ev item from civic
-        :return: valid ``Statement`` if able to convert
+        :param therapy_group: therapy group object from CIViC
         """
-        if isinstance(evidence_item, civicpy.Evidence):
+        if therapy_group.id:
+            _logger.info("CIViC therapy group # %s already has an ID", therapy_group.id)
+            return
+        therapy_group.id = compute_combo_id(
+            self.name,
+            TherapyGroup,
+            therapy_group.membershipOperator,
+            [th.id for th in therapy_group.therapies],
+        )
+
+    def _ensure_conditionset_id(self, condition_set: ConditionSet) -> None:
+        """Ensure that a ConditionSet, and everything it contains, has an ID
+
+        :param condition_set: incoming condition set that may or may not have an ID
+        """
+        if condition_set.id:
+            _logger.info("CIViC condition set # %s already has an ID", condition_set.id)
+            return
+        for member in condition_set.conditions:
+            if isinstance(member, ConditionSet):
+                self._ensure_conditionset_id(member)
+        condition_set.id = compute_combo_id(
+            self.name,
+            ConditionSet,
+            condition_set.membershipOperator,
+            [c.id for c in condition_set.conditions],
+        )
+
+    def _civic_claim_to_statement(
+        self,
+        item: civicpy.Evidence | CivicGksEvidence | civicpy.Assertion,
+    ) -> Statement | None:
+        """From the CIViC evidence item/assertion, create an ingestable VA-Spec statement
+
+        civicpy gets us 99% of the way there, but we need to
+
+        1) transform them into ``ga4gh.va_spec`` classes
+        2) mint IDs for some combo elements that CIViC doesn't provide
+        3) do the same for anything contained within an evidence line
+
+        :param item: CIViC evidence item or assertion
+        :return: completely transformed VA-Spec statement object
+        """
+        statement = None
+        if isinstance(item, civicpy.Evidence):
             try:
-                return Statement(**CivicGksEvidence(evidence_item).model_dump())
+                statement = Statement(**CivicGksEvidence(item).model_dump())
             except CivicGksRecordError:
+                _logger.warning(
+                    "Unable to convert civic evidence item %s to a Statement via CivicGksEvidence",
+                    item.id,
+                )
                 return None
-        return Statement(**evidence_item.model_dump())
+        elif isinstance(item, CivicGksEvidence):
+            statement = Statement(**item.model_dump())
+        elif isinstance(item, civicpy.Assertion):
+            try:
+                statement = create_gks_record_from_assertion(item)
+            except (NotImplementedError, CivicGksRecordError):
+                _logger.warning(
+                    "unable to convert CIViC assertion %s to a Statement: unsupported type",
+                    item.id,
+                )
+                return None
+        else:
+            msg = f"Received unexpected item type while transforming CIViC claims to GKS: {type(item)}"
+            raise TypeError(msg)
+
+        if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
+            if isinstance(statement.proposition.objectTherapeutic, TherapyGroup):
+                self._ensure_therapygroup_id(statement.proposition.objectTherapeutic)
+            if isinstance(statement.proposition.conditionQualifier.root, ConditionSet):
+                self._ensure_conditionset_id(
+                    statement.proposition.conditionQualifier.root
+                )
+        elif isinstance(statement.proposition.objectCondition.root, ConditionSet):
+            self._ensure_conditionset_id(statement.proposition.objectCondition.root)
+
+        if statement.hasEvidenceLines:
+            for ev_line in statement.hasEvidenceLines:
+                if ev_line.hasEvidenceItems:
+                    ev_line.hasEvidenceItems = [
+                        self._civic_claim_to_statement(i)
+                        for i in ev_line.hasEvidenceItems
+                    ]
+
+        return statement
 
     async def _normalize_variant(
         self, variant: CategoricalVariant
