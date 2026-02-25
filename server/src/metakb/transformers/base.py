@@ -612,7 +612,7 @@ class Transformer(ABC):
                 normalized_therapeutic,
             )
         ):
-            statement = VariantTherapeuticResponseStudyStatement(
+            aggr_statement = VariantTherapeuticResponseStudyStatement(
                 proposition=VariantTherapeuticResponseProposition(
                     geneContextQualifier=normalized_gene,
                     subjectVariant=normalized_variant,
@@ -630,8 +630,8 @@ class Transformer(ABC):
                     )
                 ],
             )
-            statement.id = compute_aggr_statement_id(statement)
-            return statement
+            aggr_statement.id = compute_aggr_statement_id(statement)
+            return aggr_statement
         return None
 
     ### Handle evidence
