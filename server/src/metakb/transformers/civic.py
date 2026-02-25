@@ -188,7 +188,14 @@ class CivicTransformer(Transformer):
         elif isinstance(item, CivicGksEvidence):
             statement = Statement(**item.model_dump())
         elif isinstance(item, civicpy.Assertion):
-            statement = create_gks_record_from_assertion(item)
+            try:
+                statement = create_gks_record_from_assertion(item)
+            except NotImplementedError:
+                _logger.warning(
+                    "unable to convert CIViC assertion %s to a Statement: unsupported type",
+                    item.id,
+                )
+                return None
         else:
             msg = f"Received unexpected item type while transforming CIViC claims to GKS: {type(item)}"
             raise TypeError(msg)
