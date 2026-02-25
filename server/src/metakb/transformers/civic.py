@@ -91,19 +91,18 @@ class CivicTransformer(Transformer):
         """
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
-        pbar = tqdm(
-            total=len(accepted_evidence_items) + len(accepted_assertions),
-        )
         statements = []
-        for item in accepted_evidence_items:
-            transformed_statement = self._evitem_to_vaspec(item)
+        for item in tqdm([*accepted_evidence_items, *accepted_assertions]):
+            transformed_statement = self._civic_claim_to_statement(item)
             if not transformed_statement:
                 _logger.warning(
-                    "Unable to model civic evidence item %s as a GKS statement",
+                    "Unable to model civic statement %s (type: %s) as a GKS statement",
                     item,
+                    type(item),
                 )
                 continue
             statements.append(transformed_statement)
+
             if aggregate_statement := await self._create_aggregate_statement(
                 transformed_statement
             ):
@@ -120,36 +119,34 @@ class CivicTransformer(Transformer):
                         break
                 else:
                     statements.append(aggregate_statement)
-            pbar.update(1)
-        for item in accepted_assertions:
-            try:
-                gks_assertion = create_gks_record_from_assertion(item)
-                transformed_assertion = Statement(**gks_assertion.model_dump())
-            except (NotImplementedError, CivicGksRecordError):
-                _logger.warning(
-                    "unable to model CIViC assertion %s as a GKS statement", item.id
-                )
-                continue
-            statements.append(transformed_assertion)
-            if aggregate_statement := await self._create_aggregate_statement(
-                transformed_assertion
-            ):
-                # include this statement as an item within an existing evidence line
-                # if there is already an aggregate statement for this set of entities
-                for existing_statement in statements:
-                    if (
-                        existing_statement.proposition
-                        == aggregate_statement.proposition
-                    ):
-                        existing_statement.hasEvidenceLines[0].hasEvidenceItems.append(
-                            transformed_assertion
-                        )
-                        break
-                else:
-                    statements.append(aggregate_statement)
-            pbar.update(1)
-        pbar.close()
         self.processed_data = TransformedData(statements=statements)
+
+    @staticmethod
+    def _civic_claim_to_statement(
+        item: civicpy.Evidence | CivicGksEvidence | civicpy.Assertion,
+    ) -> Statement | None:
+        """From the CIViC evidence item/assertion, create an ingestable VA-Spec statement
+
+        civicpy gets us 99% of the way there, but we need to generate IDs for a few things
+        that CIViC doesn't provide
+        """
+        statement = None
+        if isinstance(item, civicpy.Evidence):
+            try:
+                statement = Statement(**CivicGksEvidence(item).model_dump())
+            except CivicGksRecordError:
+                _logger.warning(
+                    "Unable to convert civic evidence item %s to a Statement via CivicGksEvidence",
+                    item.id,
+                )
+                return None
+        elif isinstance(item, CivicGksEvidence):
+            statement = Statement(**item.model_dump())
+        elif isinstance(item, civicpy.Assertion):
+            statement = create_gks_record_from_assertion(item)
+
+        # TODO recursively ensure everything has an ID
+        return statement
 
     @staticmethod
     def _evitem_to_vaspec(
