@@ -190,7 +190,7 @@ class CivicTransformer(Transformer):
         elif isinstance(item, civicpy.Assertion):
             try:
                 statement = create_gks_record_from_assertion(item)
-            except NotImplementedError:
+            except (NotImplementedError, CivicGksRecordError):
                 _logger.warning(
                     "unable to convert CIViC assertion %s to a Statement: unsupported type",
                     item.id,
@@ -219,22 +219,6 @@ class CivicTransformer(Transformer):
                     ]
 
         return statement
-
-    @staticmethod
-    def _evitem_to_vaspec(
-        evidence_item: civicpy.Evidence | CivicGksEvidence,
-    ) -> Statement | None:
-        """Convert CIViC ev item to a va-spec-python object
-
-        :param evidence_item: ev item from civic
-        :return: valid ``Statement`` if able to convert
-        """
-        if isinstance(evidence_item, civicpy.Evidence):
-            try:
-                return Statement(**CivicGksEvidence(evidence_item).model_dump())
-            except CivicGksRecordError:
-                return None
-        return Statement(**evidence_item.model_dump())
 
     async def _normalize_variant(
         self, variant: CategoricalVariant
