@@ -371,13 +371,6 @@ class Transformer(ABC):
                 members.append(normalized_condition_set)
             else:
                 raise TypeError
-        # if not condition_set.id:
-        #     condition_set.id = compute_combo_id(
-        #         self.name,
-        #         ConditionSet,
-        #         condition_set.membershipOperator,
-        #         [c.id for c in condition_set.conditions],
-        #     )
         return ConditionSet(
             conditions=members,
             membershipOperator=condition_set.membershipOperator,
@@ -615,7 +608,7 @@ class Transformer(ABC):
                     )
                 ],
             )
-            aggr_statement.id = compute_aggr_statement_id(statement)
+            aggr_statement.id = compute_aggr_statement_id(aggr_statement)
             return aggr_statement
         return None
 

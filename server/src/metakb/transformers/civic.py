@@ -10,7 +10,12 @@ from civicpy.exports.civic_gks_record import (
     create_gks_record_from_assertion,
 )
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.va_spec.base import Statement
+from ga4gh.va_spec.base import (
+    ConditionSet,
+    Statement,
+    TherapyGroup,
+    VariantTherapeuticResponseProposition,
+)
 from ga4gh.vrs.models import Allele, CopyNumberChange
 from pydantic.dataclasses import dataclass
 from tqdm import tqdm
@@ -20,6 +25,7 @@ from metakb.transformers.catvars import (
     build_copynumberchange_catvar,
     build_proteinsequenceconsequence_catvar,
 )
+from metakb.transformers.identifiers import compute_combo_id
 
 _logger = logging.getLogger(__name__)
 
@@ -121,14 +127,53 @@ class CivicTransformer(Transformer):
                     statements.append(aggregate_statement)
         self.processed_data = TransformedData(statements=statements)
 
-    @staticmethod
+    def _ensure_therapygroup_id(self, therapy_group: TherapyGroup) -> None:
+        """Ensure that a therapy group has an ID
+
+        :param therapy_group: therapy group object from CIViC
+        """
+        if therapy_group.id:
+            _logger.info("CIViC therapy group # %s already has an ID", therapy_group.id)
+            return
+        therapy_group.id = compute_combo_id(
+            self.name,
+            TherapyGroup,
+            therapy_group.membershipOperator,
+            [th.id for th in therapy_group.therapies],
+        )
+
+    def _ensure_conditionset_id(self, condition_set: ConditionSet) -> None:
+        """Ensure that a ConditionSet, and everything it contains, has an ID
+
+        :param condition_set: incoming condition set that may or may not have an ID
+        """
+        if condition_set.id:
+            _logger.info("CIViC condition set # %s already has an ID", condition_set.id)
+            return
+        for member in condition_set.conditions:
+            if isinstance(member, ConditionSet):
+                self._ensure_conditionset_id(member)
+        condition_set.id = compute_combo_id(
+            self.name,
+            ConditionSet,
+            condition_set.membershipOperator,
+            [c.id for c in condition_set.conditions],
+        )
+
     def _civic_claim_to_statement(
+        self,
         item: civicpy.Evidence | CivicGksEvidence | civicpy.Assertion,
     ) -> Statement | None:
         """From the CIViC evidence item/assertion, create an ingestable VA-Spec statement
 
-        civicpy gets us 99% of the way there, but we need to generate IDs for a few things
-        that CIViC doesn't provide
+        civicpy gets us 99% of the way there, but we need to
+
+        1) transform them into ``ga4gh.va_spec`` classes
+        2) mint IDs for some combo elements that CIViC doesn't provide
+        3) do the same for anything contained within an evidence line
+
+        :param item: CIViC evidence item or assertion
+        :return: completely transformed VA-Spec statement object
         """
         statement = None
         if isinstance(item, civicpy.Evidence):
@@ -144,8 +189,28 @@ class CivicTransformer(Transformer):
             statement = Statement(**item.model_dump())
         elif isinstance(item, civicpy.Assertion):
             statement = create_gks_record_from_assertion(item)
+        else:
+            msg = f"Received unexpected item type while transforming CIViC claims to GKS: {type(item)}"
+            raise TypeError(msg)
 
-        # TODO recursively ensure everything has an ID
+        if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
+            if isinstance(statement.proposition.objectTherapeutic, TherapyGroup):
+                self._ensure_therapygroup_id(statement.proposition.objectTherapeutic)
+            if isinstance(statement.proposition.conditionQualifier.root, ConditionSet):
+                self._ensure_conditionset_id(
+                    statement.proposition.conditionQualifier.root
+                )
+        elif isinstance(statement.proposition.objectCondition.root, ConditionSet):
+            self._ensure_conditionset_id(statement.proposition.objectCondition.root)
+
+        if statement.hasEvidenceLines:
+            for ev_line in statement.hasEvidenceLines:
+                if ev_line.hasEvidenceItems:
+                    ev_line.hasEvidenceItems = [
+                        self._civic_claim_to_statement(i)
+                        for i in ev_line.hasEvidenceItems
+                    ]
+
         return statement
 
     @staticmethod

@@ -54,6 +54,7 @@ def compute_aggr_statement_id(statement: Statement) -> str:
         member_ids += [statement.proposition.objectCondition.root.id]
 
     digest = _hash_array(member_ids)
+
     return f"metakb.assertion:{digest}"
 
 
