@@ -9,7 +9,7 @@ from metakb.services.manage_data import is_loadable_statement
 
 @pytest.fixture(scope="session")
 def statements(test_data_dir: Path):
-    with (test_data_dir / "statements_to_load.json").open() as f:
+    with (test_data_dir / "services" / "statements_to_load.json").open() as f:
         data = json.load(f)
     return {k: Statement(**v) for k, v in data.items()}
 
