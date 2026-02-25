@@ -47,6 +47,8 @@ def test_normalize_conditionset(
     assert result.root.conditions[1].id == "metakb.cs:xw9sBMfjiKmjf6Xda1sUamhi76oLETPO"
 
     assert result.root.conditions[1].membershipOperator == "OR"
+    # eventually these should be normalized out of source IDs too
+    # see https://github.com/cancervariants/metakb/issues/726
     assert result.root.conditions[1].conditions[0].id == "civic.phenotype:8121"
     assert result.root.conditions[1].conditions[1].id == "civic.phenotype:2656"
     assert result.root.conditions[1].conditions[2].id == "civic.phenotype:16642"

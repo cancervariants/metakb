@@ -349,9 +349,6 @@ class Transformer(ABC):
     ) -> ConditionSet | None:
         """Return normalized equivalent of ConditionSet
 
-        Critically, this also updates the input ConditionSet's ID in place if it's missing.
-        For clarity purposes, it might be good to refactor this out and do so beforehand.
-
         :param condition_set: source-derived ConditionSet
         :return: concept set with normalized equivalents of all inputs, or ``None`` if unsuccessful
         """

@@ -291,7 +291,7 @@ class MoaTransformer(Transformer):
             id=variant_id,
             name=name,
             extensions=extensions,
-            mappings=mappings,
+            mappings=mappings or None,
         )
 
     def _get_variant_extras(
