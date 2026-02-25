@@ -1,3 +1,5 @@
+"""Test methods in the Transformer base class, not tied to specific sources"""
+
 import json
 from pathlib import Path
 
@@ -32,7 +34,7 @@ def test_normalize_disease(transformer: Transformer, conditions: dict[str, Condi
 def test_normalize_conditionset(
     transformer: Transformer, conditions: dict[str, Condition]
 ):
-    conditionset = conditions["civic_plexiform_neurofibroma_nonadult"]
+    conditionset = conditions["civic_cs_plexiform_neurofibroma_nonadult"]
 
     result = transformer._normalize_condition(conditionset)
     assert result is not None

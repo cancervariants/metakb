@@ -13,7 +13,7 @@
       }
     ]
   },
-  "civic_plexiform_neurofibroma_nonadult": {
+  "civic_cs_plexiform_neurofibroma_nonadult": {
     "conditions": [
       {
         "id": "civic.did:1215",
