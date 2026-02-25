@@ -50,7 +50,7 @@ from metakb.transformers.identifiers import compute_aggr_statement_id, compute_c
 
 logger = logging.getLogger(__name__)
 
-# TODO figure out classification, method, etc
+# TODO figure out classification, method, etc for MetaKB assertions
 # Just a static value for now -- will need to write a classification calculation method
 # and calculate/recalculate on a per-statement basis
 METAKB_METHOD = Method(

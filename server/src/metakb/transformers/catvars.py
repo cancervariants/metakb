@@ -3,7 +3,7 @@
 Provide constructor functions and also define rules/methods for minting IDs.
 
 Todo:
-* Figure out name conventions for "normalized" objects
+* Figure out name conventions for "normalized" objects (https://github.com/cancervariants/metakb/issues/727)
 
 """
 
