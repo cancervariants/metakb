@@ -33,23 +33,18 @@ def test_normalize_conditionset(
     transformer: Transformer, conditions: dict[str, Condition]
 ):
     conditionset = conditions["civic_plexiform_neurofibroma_nonadult"]
-    assert conditionset.root.id is None, "This is supposed to be null for testing"
-    assert conditionset.root.conditions[1].id is None, (
-        "This is supposed to be null for testing"
-    )
 
     result = transformer._normalize_condition(conditionset)
     assert result is not None
     assert isinstance(result.root, ConditionSet)
-    assert conditionset.root.id == "civic.cs:ri5aNePF5Ixr88FSebPlLvh2fiGDwwe8", (
-        "Check that input ID is added in-place"
-    )
-    assert result.root.id == "idk"
+    assert result.root.id == "metakb.cs:LQCCZxv68jeT4Ngbaf4_ABKwEHZKoKDB"
     assert result.root.membershipOperator == "AND"
-    assert result.root.conditions[0].id == "civic.did:1215"
+    assert result.root.conditions[0].id == "normalize.disease.ncit:C3797"
 
-    assert (
-        conditionset.root.conditions[1].id
-        == "civic.cs:9JGUt5j3jvRoENkOSxHOi8SUk0Tabgxk"
-    ), "Check that input ID of contained conditionset is added in-place"
     assert isinstance(result.root.conditions[1], ConditionSet)
+    assert result.root.conditions[1].id == "metakb.cs:xw9sBMfjiKmjf6Xda1sUamhi76oLETPO"
+
+    assert result.root.conditions[1].membershipOperator == "OR"
+    assert result.root.conditions[1].conditions[0].id == "civic.phenotype:8121"
+    assert result.root.conditions[1].conditions[1].id == "civic.phenotype:2656"
+    assert result.root.conditions[1].conditions[2].id == "civic.phenotype:16642"
