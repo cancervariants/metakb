@@ -63,7 +63,10 @@ from ga4gh.vrs.models import (
 )
 from pydantic import BaseModel, Field, RootModel
 
-from metakb.transformers.base import NormalizerExtensionName
+from metakb.transformers.base import (
+    NORMALIZED_VARIANT_NAME_EXT,
+    NormalizerExtensionName,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -287,6 +290,7 @@ class CategoricalVariantNode(BaseNode):
     id: str
     name: str
     description: str
+    normalized_name: str = ""
     aliases: list[str] = []
     extensions: str
     mappings: str
@@ -321,11 +325,18 @@ class CategoricalVariantNode(BaseNode):
             if catvar.members
             else []
         )
+        normalized_name = ""
+        if catvar.extensions:
+            for extension in catvar.extensions:
+                if extension.name == NORMALIZED_VARIANT_NAME_EXT and extension.value:
+                    normalized_name = str(extension.value)
+                    break
 
         return cls(
             id=catvar.id,
             name=catvar.name or "",
             description=catvar.description or "",
+            normalized_name=normalized_name,
             aliases=catvar.aliases or [],
             extensions=_Extensions(catvar.extensions or []).model_dump_json(),
             mappings=_Mappings(catvar.mappings or []).model_dump_json(),

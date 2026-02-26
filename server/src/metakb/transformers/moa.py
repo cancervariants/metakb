@@ -29,7 +29,7 @@ from ga4gh.va_spec.base import (
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from ga4gh.vrs.models import Variation
+from ga4gh.vrs.models import Allele, Variation
 from pydantic import ValidationError
 
 from metakb.harvesters.moa import MoaHarvestedData
@@ -38,6 +38,7 @@ from metakb.normalizers import (
 )
 from metakb.schemas.app import SourceName
 from metakb.transformers.base import (
+    NORMALIZED_VARIANT_NAME_EXT,
     MethodId,
     MoaEvidenceLevel,
     Transformer,
@@ -309,6 +310,26 @@ class MoaTransformer(Transformer):
                     params["id"] = vrs_variation.id
                     moa_variation = Variation(**params)
                     constraints = [DefiningAlleleConstraint(allele=moa_variation.root)]
+                    if isinstance(moa_variation.root, Allele):
+                        try:
+                            normalized_name = (
+                                self.get_normalized_protein_consequence_name(
+                                    moa_variation.root
+                                )
+                            )
+                        except Exception:
+                            _logger.debug(
+                                "Unable to derive normalized_name for MOA variation %s",
+                                moa_variant_id,
+                                exc_info=True,
+                            )
+                        else:
+                            extensions.append(
+                                Extension(
+                                    name=NORMALIZED_VARIANT_NAME_EXT,
+                                    value=normalized_name,
+                                )
+                            )
 
             # Add MOA representative coordinate data to extensions
             coordinates_keys = [

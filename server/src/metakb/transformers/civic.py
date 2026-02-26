@@ -27,6 +27,7 @@ from ga4gh.cat_vrs.models import (
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence, SystemUri
 from ga4gh.core.models import (
     Coding,
+    Extension,
     MappableConcept,
 )
 from ga4gh.va_spec.base import (
@@ -46,6 +47,7 @@ from metakb.normalizers import (
     ViccNormalizers,
 )
 from metakb.transformers.base import (
+    NORMALIZED_VARIANT_NAME_EXT,
     Transformer,
     _TransformedRecordsCache,
 )
@@ -669,6 +671,23 @@ class CivicTransformer(Transformer):
                     annotated_variation_root.expressions = syntax_expressions
 
                 constraints = _get_psc_constraints(annotated_variation_root)
+                try:
+                    normalized_name = self.get_normalized_protein_consequence_name(
+                        annotated_variation_root
+                    )
+                except Exception:
+                    _logger.debug(
+                        "Unable to derive normalized_name for CIViC molecular profile %s",
+                        molecular_profile.id,
+                        exc_info=True,
+                    )
+                else:
+                    extensions.append(
+                        Extension(
+                            name=NORMALIZED_VARIANT_NAME_EXT,
+                            value=normalized_name,
+                        )
+                    )
 
         cat_vrs_cls = (
             CategoricalVariant if not constraints else ProteinSequenceConsequence
