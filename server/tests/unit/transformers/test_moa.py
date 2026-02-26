@@ -2,6 +2,7 @@ import pytest
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import Coding, ConceptMapping, Extension, Relation, code
 
+from metakb.transformers.base import Transformer
 from metakb.transformers.moa import MoaTransformer
 
 
@@ -82,6 +83,7 @@ def moa_variants() -> dict[str, dict]:
     }
 
 
+@pytest.mark.ci_ok
 def test_create_moa_variant(transformer: MoaTransformer, moa_variants: dict[str, dict]):
     result = transformer._create_moa_variant(moa_variants["1"])
     assert result == CategoricalVariant(
@@ -159,3 +161,15 @@ def test_create_moa_variant(transformer: MoaTransformer, moa_variants: dict[str,
             Extension(name="moa_variant_annotation", value="Nonsense"),
         ],
     )
+
+
+def test_normalize_moa_variant(transformer: MoaTransformer):
+    pass
+
+
+def test_create_moa_therapeutic(transformer: Transformer):
+    pass
+
+
+def test_transform(transformer: Transformer):
+    pass
