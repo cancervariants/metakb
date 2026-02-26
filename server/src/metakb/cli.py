@@ -34,6 +34,7 @@ from metakb.normalizers import (
     IllegalUpdateError,
     NormalizerName,
     ViccNormalizers,
+    probe_variation_normalizer_runtime,
     update_normalizer,
 )
 from metakb.normalizers import check_normalizers as check_normalizer_health
@@ -177,14 +178,9 @@ async def _get_preflighted_normalizers(
             raise click.ClickException(msg) from e
 
     # Probe variation normalizer for UTA/SeqRepo readiness.
-    # Use raw normalize handler rather than wrapper so exceptions are not suppressed.
-    try:
-        variation_norm_resp = (
-            await normalizer_handler.variation_normalizer.normalize_handler.normalize(
-                "BRAF V600E"
-            )
-        )
-    except Exception as e:
+    probe_result = await probe_variation_normalizer_runtime(normalizer_handler)
+    if probe_result.error:
+        e = probe_result.error
         if (
             isinstance(e, AttributeError)
             and "ValidationInfo" in str(e)
@@ -208,23 +204,13 @@ async def _get_preflighted_normalizers(
             f"Original error: {e}"
         )
         raise click.ClickException(msg) from e
-    variation_probe = (
-        variation_norm_resp.variation
-        if hasattr(variation_norm_resp, "variation")
-        else None
-    )
-    if variation_probe is None:
-        warnings = (
-            variation_norm_resp.warnings
-            if hasattr(variation_norm_resp, "warnings")
-            else None
-        )
+    if not probe_result.variation_found:
         msg = (
             "Variation normalizer probe returned no result for 'BRAF V600E'. "
             "This indicates variation normalization is not operational in this "
             "environment (commonly UTA/SeqRepo misconfiguration or inaccessible "
             "normalizer dependencies).\n"
-            f"Variation normalizer warnings: {warnings}"
+            f"Variation normalizer warnings: {probe_result.warnings}"
         )
         raise click.ClickException(msg)
 
