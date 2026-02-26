@@ -3,7 +3,9 @@ to graph datastore.
 """
 
 import datetime
+import importlib.metadata as importlib_metadata
 import logging
+import os
 import re
 import tempfile
 from collections.abc import Generator
@@ -17,6 +19,7 @@ import boto3
 from boto3.exceptions import ResourceLoadException
 from botocore import UNSIGNED
 from botocore.config import Config
+from botocore.exceptions import ClientError, EndpointConnectionError
 
 from metakb import DATE_FMT, __version__
 from metakb.config import get_config
@@ -67,6 +70,165 @@ def _help_msg(msg: str = "") -> None:
     click.echo(msg) if msg else click.echo(ctx.get_help())
 
     ctx.exit()
+
+
+def _get_transform_env_diagnostics(normalizer_db_url: str | None) -> list[str]:
+    """Collect baseline environment diagnostics for transform preflight.
+    This is a helper function for ensuring environment variables are properly set prior to running transform.
+
+    :param normalizer_db_url: optional explicit normalizer database URL
+    :return: list of issues found
+    """
+    diagnostics: list[str] = []
+
+    if not normalizer_db_url:
+        normalizer_env = {
+            "GENE_NORM_DB_URL": os.environ.get("GENE_NORM_DB_URL"),
+            "DISEASE_NORM_DB_URL": os.environ.get("DISEASE_NORM_DB_URL"),
+            "THERAPY_NORM_DB_URL": os.environ.get("THERAPY_NORM_DB_URL"),
+        }
+        for env_name, value in normalizer_env.items():
+            if not value:
+                diagnostics.append(
+                    f"{env_name} is not set (required when running CLI from host)."
+                )
+
+    seqrepo_root = os.environ.get("SEQREPO_ROOT_DIR")
+    if not seqrepo_root:
+        diagnostics.append("SEQREPO_ROOT_DIR is not set.")
+    elif not Path(seqrepo_root).exists():
+        diagnostics.append(
+            f"SEQREPO_ROOT_DIR points to a path that does not exist: {seqrepo_root}"
+        )
+
+    if not os.environ.get("UTA_DB_URL"):
+        diagnostics.append("UTA_DB_URL is not set.")
+
+    return diagnostics
+
+
+async def _get_preflighted_normalizers(
+    normalizer_db_url: str | None,
+) -> ViccNormalizers:
+    """Initialize normalizer dependencies for transform workflows and verify that they are online.
+
+    :param normalizer_db_url: optional explicit normalizer database URL
+    :raises click.ClickException: If required dependencies are unavailable
+    :return: initialized normalizer container
+    """
+    diagnostics = _get_transform_env_diagnostics(normalizer_db_url)
+    if diagnostics:
+        msg = "\n".join(
+            [
+                "Transform preflight failed due to missing local configuration:",
+                *[f"- {d}" for d in diagnostics],
+                "Tip: when running from host with compose-dev services, set "
+                "GENE_NORM_DB_URL=http://localhost:8011, "
+                "DISEASE_NORM_DB_URL=http://localhost:8012, "
+                "THERAPY_NORM_DB_URL=http://localhost:8013, plus UTA_DB_URL and "
+                "SEQREPO_ROOT_DIR.",
+            ]
+        )
+        raise click.ClickException(msg)
+
+    try:
+        normalizer_handler = ViccNormalizers(normalizer_db_url)
+    except EndpointConnectionError as e:
+        msg = (
+            "Unable to connect to one or more normalizer databases. "
+            "Check GENE_NORM_DB_URL/DISEASE_NORM_DB_URL/THERAPY_NORM_DB_URL.\n"
+            f"Original error: {e}"
+        )
+        raise click.ClickException(msg) from e
+    except ClientError as e:
+        msg = (
+            "Normalizer endpoint responded with an unexpected API error. "
+            "This often means the URL points at a non-normalizer service "
+            "(for example, MetaKB API on :8000 instead of DynamoDB local).\n"
+            f"Original error: {e}"
+        )
+        raise click.ClickException(msg) from e
+    except Exception as e:
+        msg = (
+            "Failed to initialize normalizers. Verify normalizer endpoints, UTA DB "
+            "connectivity, and SeqRepo configuration.\n"
+            f"Original error: {e}"
+        )
+        raise click.ClickException(msg) from e
+
+    # Probe concept normalizers to fail fast if services are misconfigured.
+    concept_probes = (
+        ("gene", lambda: normalizer_handler.normalize_gene("BRAF")),
+        (
+            "disease",
+            lambda: normalizer_handler.normalize_disease("melanoma"),
+        ),
+        ("therapy", lambda: normalizer_handler.normalize_therapy("aspirin")),
+    )
+    for concept_name, probe in concept_probes:
+        try:
+            probe()
+        except Exception as e:
+            msg = (
+                f"{concept_name.capitalize()} normalizer probe failed. "
+                "Confirm endpoint accessibility and loaded tables.\n"
+                f"Original error: {e}"
+            )
+            raise click.ClickException(msg) from e
+
+    # Probe variation normalizer for UTA/SeqRepo readiness.
+    # Use raw normalize handler rather than wrapper so exceptions are not suppressed.
+    try:
+        variation_norm_resp = (
+            await normalizer_handler.variation_normalizer.normalize_handler.normalize(
+                "BRAF V600E"
+            )
+        )
+    except Exception as e:
+        if (
+            isinstance(e, AttributeError)
+            and "ValidationInfo" in str(e)
+            and "warnings" in str(e)
+        ):
+            pydantic_version = importlib_metadata.version("pydantic")
+            variation_norm_version = importlib_metadata.version("variation-normalizer")
+            msg = (
+                "Variation normalizer failed due to a dependency compatibility issue.\n"
+                f"Detected pydantic=={pydantic_version}, variation-normalizer=={variation_norm_version}.\n"
+                "Known symptom: AttributeError involving `ValidationInfo` and "
+                "`warnings`.\n"
+                "Try pinning pydantic below 2.12 in this environment, e.g.:\n"
+                '  pip install "pydantic<2.12"'
+            )
+            raise click.ClickException(msg) from e
+        msg = (
+            "Variation normalizer probe failed. This typically indicates UTA or "
+            "SeqRepo is unavailable/misconfigured (check UTA_DB_URL and "
+            "SEQREPO_ROOT_DIR).\n"
+            f"Original error: {e}"
+        )
+        raise click.ClickException(msg) from e
+    variation_probe = (
+        variation_norm_resp.variation
+        if hasattr(variation_norm_resp, "variation")
+        else None
+    )
+    if variation_probe is None:
+        warnings = (
+            variation_norm_resp.warnings
+            if hasattr(variation_norm_resp, "warnings")
+            else None
+        )
+        msg = (
+            "Variation normalizer probe returned no result for 'BRAF V600E'. "
+            "This indicates variation normalization is not operational in this "
+            "environment (commonly UTA/SeqRepo misconfiguration or inaccessible "
+            "normalizer dependencies).\n"
+            f"Variation normalizer warnings: {warnings}"
+        )
+        raise click.ClickException(msg)
+
+    return normalizer_handler
 
 
 @click.group()
@@ -333,7 +495,7 @@ async def transform_file(
     :param harvest_file: path to harvest output file
     :param source_name: name of source that harvested file comes from
     """  # noqa: D301
-    normalizer_handler = ViccNormalizers(normalizer_db_url)
+    normalizer_handler = await _get_preflighted_normalizers(normalizer_db_url)
     await _transform_source(
         source_name, normalizer_handler, harvest_file, output_directory
     )
@@ -610,8 +772,13 @@ async def _transform_source(
     transformer: CivicTransformer | MoaTransformer = transformer_sources[source](
         normalizers=normalizer_handler, harvester_path=harvest_file
     )
-    harvested_data = transformer.extract_harvested_data()
-    await transformer.transform(harvested_data)
+    if source == SourceName.CIVIC:
+        # CIViC transform uses civicpy cache directly and does not require a harvested
+        # JSON payload.
+        await transformer.transform()
+    else:
+        harvested_data = transformer.extract_harvested_data()
+        await transformer.transform(harvested_data)
     end = timer()
     _echo_info(
         f"{source.as_print_case()} transformation finished in {(end - start):.2f} s."
@@ -641,7 +808,7 @@ async def _transform_sources(
     _echo_info("Transforming harvested data to CDM...")
     if not sources:
         sources = tuple(SourceName)
-    normalizer_handler = ViccNormalizers(normalizer_db_url)
+    normalizer_handler = await _get_preflighted_normalizers(normalizer_db_url)
     total_start = timer()
     for source in sources:
         await _transform_source(
