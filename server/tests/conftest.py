@@ -3,6 +3,7 @@
 import json
 import logging
 from copy import deepcopy
+from enum import StrEnum
 from pathlib import Path
 
 import pytest
@@ -12,11 +13,19 @@ from ga4gh.core.models import ConceptMapping
 from metakb.harvesters.base import Harvester
 from metakb.normalizers import ViccNormalizers
 from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
-from metakb.transformers.base import NormalizerExtensionName, Transformer
+from metakb.transformers.base import Transformer
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
 TEST_HARVESTERS_DIR = TEST_DATA_DIR / "harvesters"
 TEST_TRANSFORMERS_DIR = TEST_DATA_DIR / "transformers"
+
+
+# TODO remove in #665
+class NormalizerExtensionName(StrEnum):
+    """Define constraints for normalizer extension names"""
+
+    PRIORITY = "vicc_normalizer_priority"  # concept mapping is merged concept ID
+    FAILURE = "vicc_normalizer_failure"  # normalizer failed or is not supported
 
 
 def pytest_addoption(parser):
