@@ -1,5 +1,5 @@
 import { useState, FC } from 'react'
-import { Box, Collapse, IconButton, Link, TableCell, TableRow } from '@mui/material'
+import { Box, Collapse, IconButton, Link, TableCell, TableRow, useTheme } from '@mui/material'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import { Statement } from '../../models/domain'
@@ -12,6 +12,7 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
   columns,
 }) => {
   const [open, setOpen] = useState(false)
+  const theme = useTheme()
 
   return (
     <>
@@ -40,9 +41,23 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
               const { evidenceLabel, evidenceUrl } = getEvidenceLabelUrl(e.id || '')
               const evidenceSource = e.id ? getEvidenceSource(e.id) : null
               const originalCode = e.strength?.primaryCoding?.code
+              const normalizedLevel = normalizeEvidenceLevelFromStrength(e.strength)
+              const levelColor =
+                normalizedLevel in theme.palette.evidence
+                  ? theme.palette.evidence[normalizedLevel as keyof typeof theme.palette.evidence]
+                  : '#ccc'
 
               return (
-                <Box key={e.id} margin={1} sx={{ border: '1px solid #ccc', mb: 2, p: 2 }}>
+                <Box
+                  key={e.id}
+                  margin={1}
+                  sx={{
+                    border: '1px solid #ccc',
+                    borderLeft: `6px solid ${levelColor}`,
+                    mb: 2,
+                    p: 2,
+                  }}
+                >
                   <div>
                     <Link
                       href={evidenceUrl}
@@ -54,8 +69,7 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
                     </Link>
                   </div>
                   <div>
-                    <strong>Evidence Level:</strong>{' '}
-                    {normalizeEvidenceLevelFromStrength(e.strength)}
+                    <strong>Evidence Level:</strong> {normalizedLevel}
                     {evidenceSource && originalCode ? (
                       <>
                         {' '}

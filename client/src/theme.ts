@@ -35,10 +35,10 @@ export const themeOptions: ThemeOptions = {
     },
     evidence: {
       A: '#1f77b4', // blue
-      B: '#ff7f0e', // orange
-      C: '#2ca02c', // green
-      D: '#d62728', // red
-      E: '#9467bd', // purple
+      B: '#2ca02c', // green
+      C: '#f1c40f', // yellow
+      D: '#ff7f0e', // orange
+      E: '#d62728', // red
     },
   },
 }

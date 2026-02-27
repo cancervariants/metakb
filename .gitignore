@@ -160,14 +160,6 @@ server/src/metakb/data/*
 **/.neo4j_data/
 biome.json
 
-# cBioportal
-server/src/metakb/transformers/munged_data
-server/src/metakb/transformers/hmc_notebooks
-server/src/metakb/harvesters/compressed_data
-server/src/metakb/harvesters/data
-age_range_counts.csv
-ethnicity_counts.csv
-
 # Neo4j snapshot input
 docker/neo4j/*.dump
 
