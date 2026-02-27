@@ -7,7 +7,8 @@ def test_normalize_variant():
 
 @pytest.mark.ci_ok
 def test_civic_claim_to_statement():
-    # TODO find something that fails each error case
+    # TODO construct a case for each kind of valid input
+    # TODO esp find something that fails each error case
     pass
 
 

@@ -101,7 +101,7 @@ def test_normalize_condition(
 def test_normalize_therapeutic(
     transformer: Transformer, unnormalized_therapeutics: dict[str, Therapeutic]
 ):
-    # TODO maybe these need IDs added first?
+    # TODO maybe these need IDs added first? we'll see if they pass
     result = transformer._normalize_therapeutic(
         unnormalized_therapeutics["moa_bosutinib"]
     )
@@ -137,6 +137,10 @@ def test_normalize_therapeutic(
     )
 
 
-def test_build_aggregate_statement(transformer: Transformer):
+@pytest.mark.asyncio
+async def test_build_aggregate_statement(transformer: Transformer):
     # maybe one for each type of statement
-    pass
+    statement = None  # TODO
+    result = await transformer._build_aggregated_diag_statement(statement)
+    assert result is not None
+    assert result.id == "metakb.assertion:"
