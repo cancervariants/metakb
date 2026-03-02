@@ -1,0 +1,68 @@
+{
+  "1": {
+    "id": 1,
+    "feature_type": "rearrangement",
+    "gene1": "BCR",
+    "gene2": "ABL1",
+    "locus": null,
+    "rearrangement_type": "Fusion",
+    "feature": "BCR--ABL1 Fusion"
+  },
+  "30": {
+    "id": 30,
+    "feature_type": "rearrangement",
+    "gene1": "FGFR2",
+    "gene2": null,
+    "locus": null,
+    "rearrangement_type": null,
+    "feature": "FGFR2"
+  },
+  "66": {
+    "id": 66,
+    "alternate_allele": "T",
+    "cdna_change": "c.944C>T",
+    "chromosome": "9",
+    "end_position": "133748283",
+    "exon": "5",
+    "feature_type": "somatic_variant",
+    "gene": "ABL1",
+    "protein_change": "p.T315I",
+    "reference_allele": "C",
+    "rsid": "rs121913459",
+    "start_position": "133748283",
+    "variant_annotation": "Missense",
+    "feature": "ABL1 p.T315I (Missense)"
+  },
+  "74": {
+    "id": 74,
+    "alternate_allele": null,
+    "cdna_change": null,
+    "chromosome": "9",
+    "end_position": null,
+    "exon": null,
+    "feature_type": "somatic_variant",
+    "gene": "ABL1",
+    "protein_change": null,
+    "reference_allele": null,
+    "rsid": null,
+    "start_position": null,
+    "variant_annotation": null,
+    "feature": "ABL1"
+  },
+  "118": {
+    "id": 118,
+    "alternate_allele": null,
+    "cdna_change": null,
+    "chromosome": null,
+    "end_position": null,
+    "exon": null,
+    "feature_type": "somatic_variant",
+    "gene": "ARID1A",
+    "protein_change": null,
+    "reference_allele": null,
+    "rsid": null,
+    "start_position": null,
+    "variant_annotation": "Nonsense",
+    "feature": "ARID1A (Nonsense)"
+  }
+}

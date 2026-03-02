@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import pytest
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import Coding, ConceptMapping, Extension, Relation, code
@@ -12,75 +15,11 @@ def transformer() -> MoaTransformer:
 
 
 @pytest.fixture(scope="session")
-def moa_variants() -> dict[str, dict]:
-    return {
-        "1": {
-            "id": 1,
-            "feature_type": "rearrangement",
-            "gene1": "BCR",
-            "gene2": "ABL1",
-            "locus": None,
-            "rearrangement_type": "Fusion",
-            "feature": "BCR--ABL1 Fusion",
-        },
-        "30": {
-            "id": 30,
-            "feature_type": "rearrangement",
-            "gene1": "FGFR2",
-            "gene2": None,
-            "locus": None,
-            "rearrangement_type": None,
-            "feature": "FGFR2",
-        },
-        "66": {
-            "id": 66,
-            "alternate_allele": "T",
-            "cdna_change": "c.944C>T",
-            "chromosome": "9",
-            "end_position": "133748283",
-            "exon": "5",
-            "feature_type": "somatic_variant",
-            "gene": "ABL1",
-            "protein_change": "p.T315I",
-            "reference_allele": "C",
-            "rsid": "rs121913459",
-            "start_position": "133748283",
-            "variant_annotation": "Missense",
-            "feature": "ABL1 p.T315I (Missense)",
-        },
-        "74": {
-            "id": 74,
-            "alternate_allele": None,
-            "cdna_change": None,
-            "chromosome": "9",
-            "end_position": None,
-            "exon": None,
-            "feature_type": "somatic_variant",
-            "gene": "ABL1",
-            "protein_change": None,
-            "reference_allele": None,
-            "rsid": None,
-            "start_position": None,
-            "variant_annotation": None,
-            "feature": "ABL1",
-        },
-        "118": {
-            "id": 118,
-            "alternate_allele": None,
-            "cdna_change": None,
-            "chromosome": None,
-            "end_position": None,
-            "exon": None,
-            "feature_type": "somatic_variant",
-            "gene": "ARID1A",
-            "protein_change": None,
-            "reference_allele": None,
-            "rsid": None,
-            "start_position": None,
-            "variant_annotation": "Nonsense",
-            "feature": "ARID1A (Nonsense)",
-        },
-    }
+def moa_variants(test_data_dir: Path) -> dict[str, dict]:
+    with (
+        test_data_dir / "transformers" / "moa_create_variants_input.json"
+    ).open() as f:
+        return json.load(f)
 
 
 @pytest.mark.ci_ok
