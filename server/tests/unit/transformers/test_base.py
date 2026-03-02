@@ -9,6 +9,7 @@ from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
     MembershipOperator,
+    Statement,
     Therapeutic,
     TherapyGroup,
 )
@@ -38,6 +39,15 @@ def unnormalized_therapeutics(test_data_dir: Path) -> dict[str, Therapeutic]:
     ).open() as f:
         data = json.load(f)
         return {k: Therapeutic(**v) for k, v in data.items()}
+
+
+@pytest.fixture(scope="session")
+def statements(test_data_dir: Path) -> dict[str, Statement]:
+    with (
+        test_data_dir / "transformers" / "base_build_statements_input.json"
+    ).open() as f:
+        data = json.load(f)
+        return {k: Statement(**v) for k, v in data.items()}
 
 
 def test_normalize_condition(
@@ -101,7 +111,6 @@ def test_normalize_condition(
 def test_normalize_therapeutic(
     transformer: Transformer, unnormalized_therapeutics: dict[str, Therapeutic]
 ):
-    # TODO maybe these need IDs added first? we'll see if they pass
     result = transformer._normalize_therapeutic(
         unnormalized_therapeutics["moa_bosutinib"]
     )
@@ -138,9 +147,25 @@ def test_normalize_therapeutic(
 
 
 @pytest.mark.asyncio
-async def test_build_aggregate_statement(transformer: Transformer):
-    # maybe one for each type of statement
-    statement = None  # TODO
-    result = await transformer._build_aggregated_diag_statement(statement)
+async def test_build_aggregate_statement(
+    transformer: Transformer, statements: dict[str, Statement]
+):
+    statement = statements["civic.eid:1420"]
+    result = await transformer._create_aggregate_statement(statement)
     assert result is not None
-    assert result.id == "metakb.assertion:"
+    assert result.id == "metakb.assertion:4gC5ssHb7KMEkMsRgjmjVhavKnSwI2dG"
+
+    statement = statements["civic.eid:6034"]
+    result = await transformer._create_aggregate_statement(statement)
+    assert result is not None
+    assert result.id == "metakb.assertion:7AW-8b42uh6NAemKiN5xlV0XWiarFdYN"
+
+    statement = statements["moa.assertion:66"]
+    result = await transformer._create_aggregate_statement(statement)
+    assert result is not None
+    assert result.id == "metakb.assertion:F-6C4CgAIyw3cf2zdxRVOVfe3L1GbHqa"
+
+    # smoothly handle failed normalization
+    statement = statements["moa.assertion:1"]
+    result = await transformer._create_aggregate_statement(statement)
+    assert result is None
