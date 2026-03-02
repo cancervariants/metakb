@@ -1,0 +1,67 @@
+# Bytecode files
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+.venv/
+
+# Debug and log files
+*.log
+debug*.txt
+
+# Data and media
+data/
+media/
+
+# Temporary files and directories
+tmp/
+temp/
+*.swp
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+
+# Distribution files
+dist/
+build/
+*.egg-info/
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+secrets/
+
+# Git
+.git/
+.gitignore
+
+# Tests & coverage
+tests/
+test/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docs / misc
+README*
+docs/
+
+# CI
+.github/
+
+# Docker artifacts
+docker/neo4j/*.dump
+
+# Node / frontend
+node_modules/
+npm-debug.log
+yarn-error.log

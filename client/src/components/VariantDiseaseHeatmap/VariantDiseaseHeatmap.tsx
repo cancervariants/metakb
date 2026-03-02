@@ -3,8 +3,7 @@ import { HeatmapRect } from '@visx/heatmap'
 import { Group } from '@visx/group'
 import { AxisBottom, AxisLeft } from '@visx/axis'
 import { useTooltip, Tooltip, defaultStyles as tooltipStyles } from '@visx/tooltip'
-
-import { buildVariantDiseaseMatrix, type NormalizedResult } from '../../utils'
+import { NormalizedResult, buildVariantDiseaseMatrix } from '../../utils'
 
 interface Props {
   data: NormalizedResult[]

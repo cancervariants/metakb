@@ -36,7 +36,7 @@ export const LegendSwatch: React.FC<LegendSwatchProps> = ({ color, label, descri
       {label}
     </Typography>
     {description && (
-      <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }} aria-label={description}>
+      <Typography variant="body2" color="inherit" sx={{ ml: 0.5 }} aria-label={description}>
         {description}
       </Typography>
     )}
