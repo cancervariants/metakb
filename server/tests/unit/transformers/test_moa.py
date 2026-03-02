@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 import pytest
-from ga4gh.cat_vrs.models import CategoricalVariant
+from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
 from ga4gh.core.models import Coding, ConceptMapping, Extension, Relation, code
 
 from metakb.transformers.base import Transformer
@@ -20,6 +20,15 @@ def moa_variants(test_data_dir: Path) -> dict[str, dict]:
         test_data_dir / "transformers" / "moa_create_variants_input.json"
     ).open() as f:
         return json.load(f)
+
+
+@pytest.fixture(scope="session")
+def moa_catvars(test_data_dir: Path) -> dict[str, CategoricalVariant]:
+    with (
+        test_data_dir / "transformers" / "moa_normalize_variants_input.json"
+    ).open() as f:
+        data = json.load(f)
+        return {k: CategoricalVariant(**v) for k, v in data.items()}
 
 
 @pytest.mark.ci_ok
@@ -102,9 +111,30 @@ def test_create_moa_variant(transformer: MoaTransformer, moa_variants: dict[str,
     )
 
 
-def test_normalize_moa_variant(transformer: MoaTransformer):
-    # TODO
-    pass
+@pytest.mark.asyncio
+async def test_normalize_moa_variant(
+    transformer: MoaTransformer, moa_catvars: dict[str, CategoricalVariant]
+):
+    result = await transformer._normalize_variant(moa_catvars["moa.variant:120"])
+    assert result is not None
+    assert result.id == "metakb.cv:FC.hgnc_11110"
+    assert result.name == "ARID1A Mutation"
+    assert result.constraints
+    assert len(result.constraints) == 1
+
+    result = await transformer._normalize_variant(moa_catvars["moa.variant:141"])
+    assert result is not None
+    assert result.id == "metakb.cv:PSQ.VA.pDuCLNI3mHF25uUPNSDM8LbP8p4Fsuay"
+    assert result.name == "BCOR N1425S"
+    assert result.constraints
+    assert len(result.constraints) == 1
+    assert isinstance(result.constraints[0], DefiningAlleleConstraint)
+
+    result = await transformer._normalize_variant(moa_catvars["moa.variant:27"])
+    assert result is None
+
+    result = await transformer._normalize_variant(moa_catvars["moa.variant:286"])
+    assert result is None
 
 
 def test_create_moa_therapeutic(transformer: Transformer):
