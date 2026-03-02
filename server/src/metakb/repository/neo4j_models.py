@@ -358,6 +358,7 @@ class GeneNode(BaseNode):
     def from_gks(cls, gene: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
         normalized_id = None
+        # revisit in https://github.com/cancervariants/metakb/issues/665
         # for mapping in gene.mappings:
         #     for ext in mapping.extensions:
         #         if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
@@ -405,6 +406,7 @@ class DiseaseNode(BaseNode):
     def from_gks(cls, disease: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
         normalized_id = None
+        # revisit in https://github.com/cancervariants/metakb/issues/665
         # for mapping in disease.mappings:
         #     if extensions := mapping.extensions:
         #         for extension in extensions:
@@ -535,6 +537,7 @@ class DrugNode(BaseNode):
     def from_gks(cls, therapy: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
         normalized_id = None
+        # revisit in https://github.com/cancervariants/metakb/issues/665
         # for mapping in therapy.mappings:
         #     for ext in mapping.extensions:
         #         if ext.name == NormalizerExtensionName.PRIORITY and ext.value:

@@ -50,9 +50,8 @@ from metakb.transformers.identifiers import compute_aggr_statement_id, compute_c
 
 logger = logging.getLogger(__name__)
 
-# TODO figure out classification, method, etc for MetaKB assertions
-# Just a static value for now -- will need to write a classification calculation method
-# and calculate/recalculate on a per-statement basis
+# TODO figure out method, etc for MetaKB assertions
+# https://github.com/cancervariants/metakb/issues/739
 METAKB_METHOD = Method(
     id="metakb.method:2026",
     name="MetaKB (2026)",
@@ -388,6 +387,9 @@ class Transformer(ABC):
         Treat phenotypes as "normalized" and copy them up to the normalized object. In
         the future, we might want to be more careful about this, maybe check for a
         preferred namespace or try to map over to HPO.
+
+        Note that `condition.root` might be a `ConditionSet` of arbitrary depth, so
+        the calls to `_resolve_condition_set` can be recursive.
 
         :param condition: source Condition object
         :return: normalized equivalent, if available
