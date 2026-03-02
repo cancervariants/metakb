@@ -25,7 +25,7 @@ def transformer() -> Transformer:
 @pytest.fixture(scope="session")
 def unnormalized_conditions(test_data_dir: Path) -> dict[str, Condition]:
     with (
-        test_data_dir / "transformers" / "base_normalize_conditions_input.json"
+        test_data_dir / "transformers" / "base_normalize_condition_input.json"
     ).open() as f:
         data = json.load(f)
         return {k: Condition(**v) for k, v in data.items()}
@@ -75,9 +75,9 @@ def test_normalize_condition(
     )
     assert result is not None
     assert isinstance(result.root, ConditionSet)
-    assert result.root.id == "metakb.cs:"
+    assert result.root.id == "metakb.cs:0R1gHdNY0FtvAxjs5K5MNFwFjdRsSswE"
     assert result.root.membershipOperator == MembershipOperator.AND
-    assert result.root.conditions[0].id == "normalize.disease.ncit:"
+    assert result.root.conditions[0].id == "normalize.disease.ncit:C3224"
     assert result.root.conditions[1].id == "civic.phenotype:10817"
 
     fake_disease = MappableConcept(
@@ -107,7 +107,7 @@ def test_normalize_therapeutic(
     )
     assert result is not None
     assert isinstance(result.root, MappableConcept)
-    assert result.root.id == "normalize.therapy.ncit:"
+    assert result.root.id == "normalize.therapy.rxcui:1307619"
 
     result = transformer._normalize_therapeutic(
         unnormalized_therapeutics["moa_azacitidine_panobinostat"]
