@@ -130,6 +130,8 @@ class CivicTransformer(Transformer):
     def _ensure_therapygroup_id(self, therapy_group: TherapyGroup) -> None:
         """Ensure that a therapy group has an ID
 
+        Modifies incoming object in-place if necessary.
+
         :param therapy_group: therapy group object from CIViC
         """
         if therapy_group.id:
@@ -144,6 +146,8 @@ class CivicTransformer(Transformer):
 
     def _ensure_conditionset_id(self, condition_set: ConditionSet) -> None:
         """Ensure that a ConditionSet, and everything it contains, has an ID
+
+        Modifies incoming object in-place if necessary.
 
         :param condition_set: incoming condition set that may or may not have an ID
         """
@@ -202,8 +206,10 @@ class CivicTransformer(Transformer):
             raise TypeError(msg)
 
         if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
-            if isinstance(statement.proposition.objectTherapeutic, TherapyGroup):
-                self._ensure_therapygroup_id(statement.proposition.objectTherapeutic)
+            if isinstance(statement.proposition.objectTherapeutic.root, TherapyGroup):
+                self._ensure_therapygroup_id(
+                    statement.proposition.objectTherapeutic.root
+                )
             if isinstance(statement.proposition.conditionQualifier.root, ConditionSet):
                 self._ensure_conditionset_id(
                     statement.proposition.conditionQualifier.root
