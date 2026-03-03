@@ -20,7 +20,12 @@ from botocore.config import Config
 
 from metakb import DATE_FMT, __version__
 from metakb.config import get_config
-from metakb.harvesters import CBioPortalHarvester, CivicHarvester, MoaHarvester
+from metakb.harvesters import (
+    CBioPortalHarvester,
+    CivicHarvester,
+    FdaPodaHarvester,
+    MoaHarvester,
+)
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
     IllegalUpdateError,
@@ -548,6 +553,7 @@ def _harvest_sources(
     harvester_sources = {
         SourceName.CIVIC: CivicHarvester,
         SourceName.MOA: MoaHarvester,
+        SourceName.FDA_PODA: FdaPodaHarvester,
         SourceName.CBIOPORTAL: CBioPortalHarvester,
     }
     if sources:
@@ -557,18 +563,21 @@ def _harvest_sources(
     for name, source_class in harvester_sources.items():
         _echo_info(f"Harvesting {name.as_print_case()}...")
         start = timer()
-        source = source_class()
+
+        if name == SourceName.CIVIC and refresh_cache:
+            # Use latest civic data
+            _echo_info("(CIViCPy cache is also being updated)")
+            source = source_class(update_cache=True, update_from_remote=False)
+        else:
+            source = source_class()
 
         output_file = (
             output_directory / f"{name.value}_harvester_{_current_date_string()}.json"
             if output_directory
             else None
         )
-        if name == SourceName.CIVIC and refresh_cache:
-            source.harvest(update_cache=True, update_from_remote=False)
-        else:
-            harvested_data = source.harvest()
-            source.save_harvested_data_to_file(harvested_data, output_file)
+        harvested_data = source.harvest()
+        source.save_harvested_data_to_file(harvested_data, output_file)
         end = timer()
         _echo_info(f"{name.as_print_case()} harvest finished in {(end - start):.2f} s")
 
@@ -601,11 +610,8 @@ async def _transform_source(
     transformer: CivicTransformer | MoaTransformer = transformer_sources[source](
         normalizers=normalizer_handler, harvester_path=harvest_file
     )
-    if source == SourceName.MOA:
-        harvested_data = transformer.extract_harvested_data()
-        await transformer.transform(harvested_data)
-    else:
-        await transformer.transform()
+    harvested_data = transformer.extract_harvested_data()
+    await transformer.transform(harvested_data)
     end = timer()
     _echo_info(
         f"{source.as_print_case()} transformation finished in {(end - start):.2f} s."

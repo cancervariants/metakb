@@ -12,8 +12,9 @@ export const EvidenceLegend: React.FC = () => {
       component="ul"
       sx={{
         display: 'flex',
-        flexWrap: 'wrap',
-        gap: 2,
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: 0.75,
         p: 0,
         m: 0,
         listStyle: 'none',
