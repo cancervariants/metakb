@@ -966,14 +966,6 @@ class CBioPortalTransformerBase(Transformer):
         )
         eth_df["ETHNICITY"] = eth_df["ETHNICITY"].replace("", pd.NA).fillna("Unknown")
 
-        ethnicity_table = (
-            eth_df.groupby(["ETHNICITY", "STUDY_ID"])
-            .size()
-            .unstack("STUDY_ID", fill_value=0)
-            .sort_index()
-        )
-        ethnicity_out_path = save_loc / "ethnicity_counts_per_study_wide.csv"
-        ethnicity_table.to_csv(ethnicity_out_path, index=True)
 
         # -----------------------------------------
         # AGE bucket counts: rows=STUDY_ID, cols=AGE_RANGE
@@ -1006,15 +998,6 @@ class CBioPortalTransformerBase(Transformer):
             age_df["AGE_RANGE"].cat.add_categories(["Unknown"]).fillna("Unknown")
         )
 
-        age_table = (
-            age_df.groupby(["STUDY_ID", "AGE_RANGE"])
-            .size()
-            .unstack("AGE_RANGE", fill_value=0)
-            .reindex(columns=[*age_labels, "Unknown"], fill_value=0)
-            .sort_index()
-        )
-        age_out_path = save_loc / "age_range_counts_per_study_wide.csv"
-        age_table.to_csv(age_out_path, index=True)
 
         # -----------------------------------------
         # Failed normalizations CSVs
@@ -1261,14 +1244,7 @@ class CBioPortalTransformerBase(Transformer):
         save_loc: Path
     ) -> None:
         """Save final study outputs to CSV files."""
-        file_path = save_loc / f"{study}_final_no_NAs.csv"
-        df.to_csv(file_path, index=False)
-        logger.info("Saved final data (no NAs) to %s", file_path)
-
-        file_path = save_loc / f"{study}_final_df_logic_cols.csv"
-        df.to_csv(file_path, index=False)
-
-        file_path = save_loc / f"{study}_final_df_clean.csv"
+        file_path = save_loc / f"{study}_df_premerge.csv"
         df.to_csv(file_path, index=False)
         logger.info("Saved clean final data to %s", file_path)
 
@@ -1365,9 +1341,6 @@ class CBioPortalStudyTransformer(Transformer):
                     self.variants[col] = default_val
 
         self.variants = self.apply_custom_variant_logic(self.variants)
-        self.variants = CBioPortalTransformerBase.handle_duplicates(
-            self.variants, study, save_loc, "mut"
-        )
 
         # Process patients
         patient_transforms = self.get_patient_transformations()
@@ -1377,9 +1350,6 @@ class CBioPortalStudyTransformer(Transformer):
             ethnicity_source=patient_transforms.get("ethnicity_source", "RACE"),
             age_source=patient_transforms.get("age_source")
         )
-        self.patients = CBioPortalTransformerBase.handle_duplicates(
-            self.patients, study, save_loc, "patient"
-        )
 
         # Process samples
         sample_transforms = self.get_sample_transformations()
@@ -1388,9 +1358,6 @@ class CBioPortalStudyTransformer(Transformer):
             self.get_sample_headers(),
         )
         self.samples = self.apply_custom_sample_logic(self.samples)
-        self.samples = CBioPortalTransformerBase.handle_duplicates(
-            self.samples, study, save_loc, "samples"
-        )
 
         # Combine dataframes
         combined_df = CBioPortalTransformerBase.combine_dataframes(
