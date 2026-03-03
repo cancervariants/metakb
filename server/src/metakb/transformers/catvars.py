@@ -71,7 +71,9 @@ def build_proteinsequenceconsequence_catvar(
     :return: ProteinSequenceConsequence-based catvar with MetaKB name and ID
     """
     cv_id = f"metakb.cv:PSQ.{allele.id.split(':')[1]}"
-    cv_name = "tmp name"
+    cv_name = (
+        "tmp name"  # TODO: plug in https://github.com/cancervariants/metakb/issues/727
+    )
     return ProteinSequenceConsequence(
         id=cv_id,
         name=cv_name,
