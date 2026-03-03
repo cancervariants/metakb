@@ -9,6 +9,7 @@ from ga4gh.va_spec.base import ConditionSet, TherapyGroup
 from metakb.transformers.civic import CivicTransformer
 
 
+# this needs to be scoped for each function, for reasons relating to the ALRU cache and pytest event loops
 @pytest.fixture
 def civic_transformer() -> CivicTransformer:
     return CivicTransformer()
