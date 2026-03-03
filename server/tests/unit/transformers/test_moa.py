@@ -3,13 +3,21 @@ from pathlib import Path
 
 import pytest
 from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
-from ga4gh.core.models import Coding, ConceptMapping, Extension, Relation, code
+from ga4gh.core.models import (
+    Coding,
+    ConceptMapping,
+    Extension,
+    MappableConcept,
+    Relation,
+    code,
+)
+from ga4gh.va_spec.base import MembershipOperator, Therapeutic, TherapyGroup
 
-from metakb.transformers.base import Transformer
+from metakb.harvesters.moa import MoaHarvestedData
 from metakb.transformers.moa import MoaTransformer
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def transformer() -> MoaTransformer:
     return MoaTransformer()
 
@@ -29,6 +37,13 @@ def moa_catvars(test_data_dir: Path) -> dict[str, CategoricalVariant]:
     ).open() as f:
         data = json.load(f)
         return {k: CategoricalVariant(**v) for k, v in data.items()}
+
+
+@pytest.fixture(scope="session")
+def moa_harvested_data(test_data_dir: Path) -> MoaHarvestedData:
+    with (test_data_dir / "transformers" / "moa_harvested_data.json").open() as f:
+        data = json.load(f)
+        return MoaHarvestedData(genes=[], variants=[], **data)
 
 
 @pytest.mark.ci_ok
@@ -137,11 +152,67 @@ async def test_normalize_moa_variant(
     assert result is None
 
 
-def test_create_moa_therapeutic(transformer: Transformer):
-    # TODO
-    pass
+def test_create_moa_therapeutic(transformer: MoaTransformer):
+    result = transformer._create_moa_therapy("Nilotinib", "Targeted therapy")
+    assert result == Therapeutic(
+        root=MappableConcept(
+            id="moa.drug:Nilotinib",
+            extensions=[
+                Extension(
+                    name="moa_therapy_type",
+                    value="Targeted therapy",
+                )
+            ],
+            conceptType="Drug",
+            name="Nilotinib",
+        )
+    )
+
+    result = transformer._create_moa_therapy(
+        "Azacitidine + Panobinostat", "Combination therapy"
+    )
+    assert result == Therapeutic(
+        root=TherapyGroup(
+            id="moa.tg:wbkLIrtKaCrCn0Vni_lJnf2TbDvnv3Kp",
+            extensions=[
+                Extension(
+                    name="moa_therapy_type",
+                    value="Combination therapy",
+                )
+            ],
+            therapies=[
+                MappableConcept(
+                    id="moa.drug:Azacitidine",
+                    conceptType="Drug",
+                    name="Azacitidine",
+                ),
+                MappableConcept(
+                    id="moa.drug:Panobinostat",
+                    conceptType="Drug",
+                    name="Panobinostat",
+                ),
+            ],
+            membershipOperator=MembershipOperator("AND"),
+        )
+    )
+
+    with pytest.raises(ValueError):  # noqa: PT011
+        transformer._create_moa_therapy(None, None)
 
 
-def test_transform(transformer: Transformer):
-    # TODO
-    pass
+@pytest.mark.asyncio
+async def test_transform(
+    transformer: MoaTransformer, moa_harvested_data: MoaHarvestedData
+):
+    await transformer.transform(moa_harvested_data)
+    result = transformer.processed_data
+
+    statement = next(s for s in result.statements if s.id == "moa.assertion:66")
+    assert statement
+
+    aggr_statement = next(
+        s
+        for s in result.statements
+        if s.id == "metakb.assertion:F-6C4CgAIyw3cf2zdxRVOVfe3L1GbHqa"
+    )
+    assert aggr_statement
