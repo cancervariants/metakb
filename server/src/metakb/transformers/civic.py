@@ -202,8 +202,10 @@ class CivicTransformer(Transformer):
             raise TypeError(msg)
 
         if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
-            if isinstance(statement.proposition.objectTherapeutic, TherapyGroup):
-                self._ensure_therapygroup_id(statement.proposition.objectTherapeutic)
+            if isinstance(statement.proposition.objectTherapeutic.root, TherapyGroup):
+                self._ensure_therapygroup_id(
+                    statement.proposition.objectTherapeutic.root
+                )
             if isinstance(statement.proposition.conditionQualifier.root, ConditionSet):
                 self._ensure_conditionset_id(
                     statement.proposition.conditionQualifier.root

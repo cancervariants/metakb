@@ -33,7 +33,7 @@ dependencies = [
     "variation-normalizer~=0.15.2",
     "disease-normalizer[etl]~=0.11.2",
     "thera-py[etl]~=0.11.0",
-    "civicpy==5.1.1",
+    "civicpy~=5.2.0",
     "requests",
     "pydantic==2.*",
     "pydantic-settings",

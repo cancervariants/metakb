@@ -1,0 +1,101 @@
+{
+  "phenotype_union": {
+    "conditions": [
+      {
+        "id": "civic.phenotype:8121",
+        "conceptType": "Phenotype",
+        "name": "Childhood onset",
+        "mappings": [
+          {
+            "coding": {
+              "system": "https://hpo.jax.org/app/browse/term/",
+              "code": "HP:0011463"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      },
+      {
+        "id": "civic.phenotype:2656",
+        "conceptType": "Phenotype",
+        "name": "Juvenile onset",
+        "mappings": [
+          {
+            "coding": {
+              "system": "https://hpo.jax.org/app/browse/term/",
+              "code": "HP:0003621"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      },
+      {
+        "id": "civic.phenotype:16642",
+        "conceptType": "Phenotype",
+        "name": "Early young adult onset",
+        "mappings": [
+          {
+            "coding": {
+              "system": "https://hpo.jax.org/app/browse/term/",
+              "code": "HP:0025708"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      }
+    ],
+    "membershipOperator": "OR"
+  },
+  "pediatric b-all": {
+    "conditions": [
+      {
+        "id": "civic.did:3005",
+        "conceptType": "Disease",
+        "name": "B-lymphoblastic Leukemia/lymphoma",
+        "mappings": [
+          {
+            "coding": {
+              "system": "https://disease-ontology.org/?id=",
+              "code": "DOID:0080630"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      },
+      {
+        "conditions": [
+          {
+            "id": "civic.phenotype:15320",
+            "conceptType": "Phenotype",
+            "name": "Pediatric onset",
+            "mappings": [
+              {
+                "coding": {
+                  "system": "https://hpo.jax.org/app/browse/term/",
+                  "code": "HP:0410280"
+                },
+                "relation": "exactMatch"
+              }
+            ]
+          },
+          {
+            "id": "civic.phenotype:16642",
+            "conceptType": "Phenotype",
+            "name": "Early young adult onset",
+            "mappings": [
+              {
+                "coding": {
+                  "system": "https://hpo.jax.org/app/browse/term/",
+                  "code": "HP:0025708"
+                },
+                "relation": "exactMatch"
+              }
+            ]
+          }
+        ],
+        "membershipOperator": "OR"
+      }
+    ],
+    "membershipOperator": "AND"
+  }
+}
