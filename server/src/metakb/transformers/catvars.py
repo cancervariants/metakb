@@ -97,7 +97,8 @@ def build_featurecontext_catvar(feature: MappableConcept) -> CategoricalVariant:
     """
     if feature.conceptType != "Gene":
         raise ValueError
-    cv_id = f"metakb.cv:FC.{feature.id.replace(':', '_')}"
+    feature_id = feature.id.removeprefix("normalize.gene.").replace(":", "_")
+    cv_id = f"metakb.cv:FC.{feature_id}"
     cv_name = f"{feature.name} Mutation"
     return CategoricalVariant(
         id=cv_id,
