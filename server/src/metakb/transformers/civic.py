@@ -174,6 +174,7 @@ class CivicTransformer(Transformer):
 
         :param item: CIViC evidence item or assertion
         :return: completely transformed VA-Spec statement object
+        :raise TypeError: if unrecognized item type is given
         """
         statement = None
         if isinstance(item, civicpy.Evidence):
@@ -226,11 +227,9 @@ class CivicTransformer(Transformer):
         """Build the normalized equivalent of a GKS-ified molecular profile from CIVIC
 
         :param variant: CIViC molecular profile
-        :return: Categorical Variant or Protein Sequence Consequence with additional
-            info, such as normalizer info.
-            A Protein Sequence Consequence will be returned only if the molecular
-            profile is a protein variant and it successfully normalizes, otherwise a
-            Categorical Variant will be returned.
+        :return: Fully fleshed-out categorical variant entailed by normalization of the
+            source variant, if successful
+        :raise NotImplementedError: if variant normalizes to unrecognized/unsupported type
         """
         normalized_variation = None
 
