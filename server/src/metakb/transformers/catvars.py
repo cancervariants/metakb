@@ -71,7 +71,9 @@ def build_proteinsequenceconsequence_catvar(
     :return: ProteinSequenceConsequence-based catvar with MetaKB name and ID
     """
     cv_id = f"metakb.cv:PSQ.{allele.id.split(':')[1]}"
-    cv_name = "tmp name"
+    cv_name = (
+        "tmp name"  # TODO: plug in https://github.com/cancervariants/metakb/issues/727
+    )
     return ProteinSequenceConsequence(
         id=cv_id,
         name=cv_name,
@@ -97,7 +99,8 @@ def build_featurecontext_catvar(feature: MappableConcept) -> CategoricalVariant:
     """
     if feature.conceptType != "Gene":
         raise ValueError
-    cv_id = f"metakb.cv:FC.{feature.id.replace(':', '_')}"
+    feature_id = feature.id.removeprefix("normalize.gene.").replace(":", "_")
+    cv_id = f"metakb.cv:FC.{feature_id}"
     cv_name = f"{feature.name} Mutation"
     return CategoricalVariant(
         id=cv_id,
