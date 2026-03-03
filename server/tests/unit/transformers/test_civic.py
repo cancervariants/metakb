@@ -9,7 +9,7 @@ from ga4gh.va_spec.base import ConditionSet, TherapyGroup
 from metakb.transformers.civic import CivicTransformer
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def civic_transformer() -> CivicTransformer:
     return CivicTransformer()
 
