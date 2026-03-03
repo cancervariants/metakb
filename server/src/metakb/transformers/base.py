@@ -258,6 +258,7 @@ class Transformer(ABC):
         """Get harvested data from file.
 
         :return: Harvested data
+        :raise FileNotFoundError: harvest file not found
         """
         if self.harvester_path is None:
             today = datetime.datetime.strftime(
@@ -285,6 +286,7 @@ class Transformer(ABC):
             ``<METAKB_DATA_DIR>/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``,
             where ``<METAKB_DATA_DIR>`` is the configurable data root directory.
             See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
+        :raise ValueError: if data variable hasn't been populated by transform method yet
         """
         if self.processed_data is None:
             raise ValueError
@@ -311,6 +313,7 @@ class Transformer(ABC):
 
         :param concept: gene/drug/disease object
         :return: list of relevant queries for normalization
+        :raise ValueError: if Aliases extension doesn't contain a list for its value
         """
         queries = []
         if concept.id:
@@ -350,6 +353,8 @@ class Transformer(ABC):
 
         :param condition_set: source-derived ConditionSet
         :return: concept set with normalized equivalents of all inputs, or ``None`` if unsuccessful
+        :raise ValueError: if unrecognized concept type
+        :raise TypeError: if a member isn't a conditionset or mappableconcept
         """
         members: list[MappableConcept | ConditionSet] = []
         for condition in condition_set.conditions:
@@ -393,6 +398,7 @@ class Transformer(ABC):
 
         :param condition: source Condition object
         :return: normalized equivalent, if available
+        :raise ValueError: if concept has an unrecognized concept type
         """
         if isinstance(condition.root, ConditionSet):
             normalized_condition_set = self._resolve_condition_set(condition.root)
@@ -495,6 +501,15 @@ class Transformer(ABC):
         | VariantTherapeuticResponseStudyStatement
         | None
     ):
+        """Attempt to build higher-order MetaKB assertion that wraps provided statement
+
+        Try normalization of contained entities. If successful, then create a normalized
+        statement, and insert the provided source statement into a supporting ``EvidenceLine``.
+
+        :param statement: raw statement from source
+        :return: higher-order MetaKB assertion if successful
+        :raise ValueError: if unrecognized proposition type
+        """
         if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
             return await self._build_aggregated_tr_statement(statement)
         if isinstance(statement.proposition, VariantDiagnosticProposition):

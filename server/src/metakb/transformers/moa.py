@@ -372,6 +372,8 @@ class MoaTransformer(Transformer):
         :param name: name of therapy (might be a combo of names)
         :param therapy_type: MOA therapy type (currently just used to check if combination)
         :return: original MOA concept as GKS therapeutic
+        :raise ValueError: if therapy name is empty (probably indicates misclassification
+            of the MOA assertion)
         """
         if not name:
             _logger.error(
