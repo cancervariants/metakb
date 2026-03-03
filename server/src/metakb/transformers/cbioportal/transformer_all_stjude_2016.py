@@ -8,7 +8,7 @@ environ["AWS_SESSION_TOKEN"] = "dummy"  # noqa: S105
 
 import logging
 
-from metakb.transformers.cbioportal.base import CBioportalStudyTransformer
+from metakb.transformers.cbioportal.base import CBioPortalStudyTransformer
 
 _logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ SAMPLE_HEADERS = [
 ]
 
 
-class CBioportalTransformer(CBioportalStudyTransformer):
+class CBioPortalTransformer(CBioPortalStudyTransformer):
     """Transformer for all_stjude_2016 study."""
 
     def get_study_name(self) -> str:

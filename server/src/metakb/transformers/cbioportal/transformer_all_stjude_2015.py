@@ -2,7 +2,7 @@
 
 from os import environ
 
-from metakb.transformers.cbioportal.base import CBioportalStudyTransformer
+from metakb.transformers.cbioportal.base import CBioPortalStudyTransformer
 
 environ["AWS_ACCESS_KEY_ID"] = "dummy"
 environ["AWS_SECRET_ACCESS_KEY"] = "dummy"  # noqa: S105
@@ -50,7 +50,7 @@ SAMPLE_HEADERS = [
 ]
 
 
-class CBioportalTransformer(CBioportalStudyTransformer):
+class CBioPortalTransformer(CBioPortalStudyTransformer):
     """Transformer for all_stjude_2015 study."""
 
     def get_study_name(self) -> str:
