@@ -166,7 +166,6 @@ server/src/metakb/transformers/hmc_notebooks
 server/src/metakb/harvesters/compressed_data
 server/src/metakb/harvesters/data
 age_range_counts.csv
-base.py
 ethnicity_counts.csv
 
 # Neo4j snapshot input
