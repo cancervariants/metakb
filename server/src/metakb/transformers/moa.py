@@ -357,6 +357,7 @@ class MoaTransformer(Transformer):
 
             cv = CategoricalVariant(
                 id=moa_variant_id,
+                name=feature,
                 constraints=constraints,
                 mappings=mappings or None,
                 extensions=extensions,
