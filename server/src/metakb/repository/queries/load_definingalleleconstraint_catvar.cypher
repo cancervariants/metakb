@@ -4,7 +4,6 @@ MERGE (cv:Variation:CategoricalVariant:ProteinSequenceConsequence {id: $cv.id})
     cv +=
       {
         name: $cv.name,
-        normalized_name: $cv.normalized_name,
         description: $cv.description,
         aliases: $cv.aliases,
         extensions: $cv.extensions,

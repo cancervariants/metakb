@@ -289,7 +289,6 @@ class CategoricalVariantNode(BaseNode):
     id: str
     name: str
     description: str
-    normalized_name: str = ""
     aliases: list[str] = []
     extensions: str
     mappings: str
@@ -328,7 +327,6 @@ class CategoricalVariantNode(BaseNode):
             id=catvar.id,
             name=catvar.name or "",
             description=catvar.description or "",
-            normalized_name=catvar.name or "",
             aliases=catvar.aliases or [],
             extensions=_Extensions(catvar.extensions or []).model_dump_json(),
             mappings=_Mappings(catvar.mappings or []).model_dump_json(),

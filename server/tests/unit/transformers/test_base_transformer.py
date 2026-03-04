@@ -132,7 +132,7 @@ def test_get_normalized_protein_consequence_name_non_protein_sequence(tmp_path) 
         transformer.get_normalized_protein_consequence_name(allele)
 
 
-def test_categorical_variant_node_uses_name_for_normalized_name() -> None:
+def test_categorical_variant_node_uses_normalized_name_for_name() -> None:
     allele = _get_test_allele()
     cv = CategoricalVariant(
         id="civic.mpid:1",
@@ -140,4 +140,4 @@ def test_categorical_variant_node_uses_name_for_normalized_name() -> None:
         constraints=[DefiningAlleleConstraint(allele=allele)],
     )
     cv_node = CategoricalVariantNode.from_gks(cv)
-    assert cv_node.normalized_name == "BRAF V600E"
+    assert cv_node.name == "BRAF V600E"
