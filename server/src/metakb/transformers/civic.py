@@ -267,7 +267,11 @@ class CivicTransformer(Transformer):
             return None
 
         if isinstance(normalized_variation, Allele):
-            return build_proteinsequenceconsequence_catvar(normalized_variation)
+            return build_proteinsequenceconsequence_catvar(
+                self.vicc_normalizers.seqrepo_access,
+                self.vicc_normalizers.transcript_mappings,
+                normalized_variation,
+            )
         if isinstance(normalized_variation, CopyNumberChange):
             return build_copynumberchange_catvar(normalized_variation)
         raise NotImplementedError
