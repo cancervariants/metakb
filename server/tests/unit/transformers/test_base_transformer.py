@@ -5,12 +5,10 @@ from unittest.mock import Mock
 
 import pytest
 from ga4gh.cat_vrs.models import CategoricalVariant, DefiningAlleleConstraint
-from ga4gh.core.models import Extension
 from ga4gh.vrs.models import Allele
 
 from metakb.repository.neo4j_models import CategoricalVariantNode
 from metakb.transformers.base import (
-    NORMALIZED_VARIANT_NAME_EXT,
     Transformer,
     _TransformedRecordsCache,
 )
@@ -27,6 +25,9 @@ class _DummySeqRepoAccess:
     def translate_alias(self, _: str) -> tuple[list[str], None]:
         return self._aliases, None
 
+    def translate_identifier(self, _: str) -> tuple[list[str], None]:
+        return self._aliases, None
+
     @staticmethod
     def extract_sequence_type(alias: str) -> str | None:
         if "refseq:NP_" in alias or "refseq:XP_" in alias:
@@ -35,8 +36,16 @@ class _DummySeqRepoAccess:
 
 
 class _DummyVariationNormalizer:
-    def __init__(self, aliases: list[str]) -> None:
+    def __init__(self, aliases: list[str], gene_name: str | None = "BRAF") -> None:
         self.seqrepo_access = _DummySeqRepoAccess(aliases)
+        self.gnomad_vcf_to_protein_handler = SimpleNamespace(
+            mane_transcript=SimpleNamespace(
+                transcript_mappings=SimpleNamespace(
+                    get_gene_symbol_from_refeq_protein=lambda _: gene_name,
+                    get_gene_symbol_from_ensembl_protein=lambda _: gene_name,
+                )
+            )
+        )
 
 
 class _DummyTransformer(Transformer):
@@ -78,7 +87,7 @@ def _get_transformer(
     gene_name: str | None = "BRAF",
 ) -> _DummyTransformer:
     normalizers = Mock()
-    normalizers.variation_normalizer = _DummyVariationNormalizer(aliases)
+    normalizers.variation_normalizer = _DummyVariationNormalizer(aliases, gene_name)
     if gene_name:
         normalizers.normalize_gene = Mock(
             return_value=(
@@ -123,13 +132,12 @@ def test_get_normalized_protein_consequence_name_non_protein_sequence(tmp_path) 
         transformer.get_normalized_protein_consequence_name(allele)
 
 
-def test_categorical_variant_node_extracts_normalized_name_extension() -> None:
+def test_categorical_variant_node_uses_name_for_normalized_name() -> None:
     allele = _get_test_allele()
     cv = CategoricalVariant(
         id="civic.mpid:1",
-        name="BRAF p.V600E",
+        name="BRAF V600E",
         constraints=[DefiningAlleleConstraint(allele=allele)],
-        extensions=[Extension(name=NORMALIZED_VARIANT_NAME_EXT, value="BRAF V600E")],
     )
     cv_node = CategoricalVariantNode.from_gks(cv)
     assert cv_node.normalized_name == "BRAF V600E"

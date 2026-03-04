@@ -38,7 +38,6 @@ from metakb.normalizers import (
 )
 from metakb.schemas.app import SourceName
 from metakb.transformers.base import (
-    NORMALIZED_VARIANT_NAME_EXT,
     MethodId,
     MoaEvidenceLevel,
     Transformer,
@@ -240,6 +239,7 @@ class MoaTransformer(Transformer):
             protein_change = variant.get("protein_change")
             constraints = None
             extensions = []
+            variant_name = feature
 
             if (
                 variant["feature_type"] == "somatic_variant"
@@ -324,12 +324,7 @@ class MoaTransformer(Transformer):
                                 exc_info=True,
                             )
                         else:
-                            extensions.append(
-                                Extension(
-                                    name=NORMALIZED_VARIANT_NAME_EXT,
-                                    value=normalized_name,
-                                )
-                            )
+                            variant_name = normalized_name
 
             # Add MOA representative coordinate data to extensions
             coordinates_keys = [
@@ -378,7 +373,7 @@ class MoaTransformer(Transformer):
 
             cv = CategoricalVariant(
                 id=moa_variant_id,
-                name=feature,
+                name=variant_name,
                 constraints=constraints,
                 mappings=mappings or None,
                 extensions=extensions,

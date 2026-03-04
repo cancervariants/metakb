@@ -61,7 +61,6 @@ from metakb.normalizers import (
 )
 
 logger = logging.getLogger(__name__)
-NORMALIZED_VARIANT_NAME_EXT = "normalized_name"
 
 # Normalizer response type to attribute name
 NORMALIZER_INSTANCE_TO_ATTR = {

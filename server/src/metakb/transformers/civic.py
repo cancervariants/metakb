@@ -27,7 +27,6 @@ from ga4gh.cat_vrs.models import (
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence, SystemUri
 from ga4gh.core.models import (
     Coding,
-    Extension,
     MappableConcept,
 )
 from ga4gh.va_spec.base import (
@@ -47,7 +46,6 @@ from metakb.normalizers import (
     ViccNormalizers,
 )
 from metakb.transformers.base import (
-    NORMALIZED_VARIANT_NAME_EXT,
     Transformer,
     _TransformedRecordsCache,
 )
@@ -601,6 +599,7 @@ class CivicTransformer(Transformer):
         normalized_variation = None
         annotated_variation = None
         extensions = molecular_profile.extensions or []
+        variant_name = molecular_profile.name
 
         mp_match = self._parse_mp_name(molecular_profile.name)
         if not mp_match:
@@ -682,20 +681,17 @@ class CivicTransformer(Transformer):
                         exc_info=True,
                     )
                 else:
-                    extensions.append(
-                        Extension(
-                            name=NORMALIZED_VARIANT_NAME_EXT,
-                            value=normalized_name,
-                        )
-                    )
+                    variant_name = normalized_name
 
         cat_vrs_cls = (
             CategoricalVariant if not constraints else ProteinSequenceConsequence
         )
         return cat_vrs_cls(
             **molecular_profile.model_dump(
-                exclude_none=True, exclude={"members", "constraints", "extensions"}
+                exclude_none=True,
+                exclude={"members", "constraints", "extensions", "name"},
             ),
+            name=variant_name,
             members=members,
             constraints=constraints,
             extensions=extensions or None,
