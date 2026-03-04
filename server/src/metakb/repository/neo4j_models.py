@@ -349,7 +349,6 @@ class GeneNode(BaseNode):
     """Node model for Gene."""
 
     id: str
-    normalized_id: str
     name: str
     mappings: str
     extensions: str
@@ -357,18 +356,6 @@ class GeneNode(BaseNode):
     @classmethod
     def from_gks(cls, gene: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
-        normalized_id = None
-        # revisit in https://github.com/cancervariants/metakb/issues/665
-        # for mapping in gene.mappings:
-        #     for ext in mapping.extensions:
-        #         if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
-        #             normalized_id = mapping.coding.id
-        #             break
-        #     if normalized_id:
-        #         break
-        # else:
-        #     msg = f"Unable to locate normalized ID in gene {gene}"
-        #     raise ValueError(msg)
         description = ""
         if extensions := gene.extensions:
             for extension in extensions:
@@ -376,7 +363,6 @@ class GeneNode(BaseNode):
                     description = extension.value
         return cls(
             id=gene.id,
-            normalized_id=normalized_id,
             description=description,
             name=gene.name,
             mappings=_Mappings(gene.mappings or []).model_dump_json(),
@@ -398,32 +384,14 @@ class DiseaseNode(BaseNode):
     """Node model for an individual Disease."""
 
     id: str
-    normalized_id: str
     name: str
     mappings: str
 
     @classmethod
     def from_gks(cls, disease: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
-        normalized_id = None
-        # revisit in https://github.com/cancervariants/metakb/issues/665
-        # for mapping in disease.mappings:
-        #     if extensions := mapping.extensions:
-        #         for extension in extensions:
-        #             if (
-        #                 extension.name == NormalizerExtensionName.PRIORITY
-        #                 and extension.value
-        #             ):
-        #                 normalized_id = mapping.coding.id
-        #                 break
-        #         if normalized_id:
-        #             break
-        # if not normalized_id:
-        #     msg = f"Unable to locate normalized ID in disease {disease}"
-        #     raise ValueError(msg)
         return cls(
             id=disease.id,
-            normalized_id=normalized_id,
             name=disease.name or "",
             mappings=_Mappings(disease.mappings or []).model_dump_json(),
         )
@@ -528,7 +496,6 @@ class DrugNode(BaseNode):
     """Node model for Drug."""
 
     id: str
-    normalized_id: str
     name: str
     extensions: str
     mappings: str
@@ -536,21 +503,8 @@ class DrugNode(BaseNode):
     @classmethod
     def from_gks(cls, therapy: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
-        normalized_id = None
-        # revisit in https://github.com/cancervariants/metakb/issues/665
-        # for mapping in therapy.mappings:
-        #     for ext in mapping.extensions:
-        #         if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
-        #             normalized_id = mapping.coding.id
-        #             break
-        #     if normalized_id:
-        #         break
-        # else:
-        #     msg = f"Unable to locate normalized ID in therapy {therapy}"
-        #     raise ValueError(msg)
         return cls(
             id=therapy.id,
-            normalized_id=normalized_id,
             name=therapy.name or "",
             mappings=_Mappings(therapy.mappings or []).model_dump_json(),
             extensions=_Extensions(therapy.extensions or []).model_dump_json(),

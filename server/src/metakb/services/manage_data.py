@@ -194,9 +194,8 @@ def load_from_json(src_transformed_cdm: Path, repository: AbstractRepository) ->
     _logger.info("Loading data from %s", src_transformed_cdm)
     with src_transformed_cdm.open() as f:
         dumped_data = json.load(f)
-        statements = [
-            Statement(**i)
-            for i in dumped_data.get("statements_evidence", [])
-            + dumped_data.get("statements_assertions", [])
-        ]
+        statements = [Statement(**i) for i in dumped_data.get("statements", [])]
+        import ipdb
+
+        ipdb.set_trace()
         add_transformed_data(statements, repository)
