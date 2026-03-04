@@ -599,7 +599,6 @@ class CivicTransformer(Transformer):
         normalized_variation = None
         annotated_variation = None
         extensions = molecular_profile.extensions or []
-        variant_name = molecular_profile.name
 
         mp_match = self._parse_mp_name(molecular_profile.name)
         if not mp_match:
@@ -670,18 +669,6 @@ class CivicTransformer(Transformer):
                     annotated_variation_root.expressions = syntax_expressions
 
                 constraints = _get_psc_constraints(annotated_variation_root)
-                try:
-                    normalized_name = self.get_normalized_protein_consequence_name(
-                        annotated_variation_root
-                    )
-                except Exception:
-                    _logger.debug(
-                        "Unable to derive normalized_name for CIViC molecular profile %s",
-                        molecular_profile.id,
-                        exc_info=True,
-                    )
-                else:
-                    variant_name = normalized_name
 
         cat_vrs_cls = (
             CategoricalVariant if not constraints else ProteinSequenceConsequence
@@ -691,7 +678,6 @@ class CivicTransformer(Transformer):
                 exclude_none=True,
                 exclude={"members", "constraints", "extensions", "name"},
             ),
-            name=variant_name,
             members=members,
             constraints=constraints,
             extensions=extensions or None,

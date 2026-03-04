@@ -29,7 +29,7 @@ from ga4gh.va_spec.base import (
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from ga4gh.vrs.models import Allele, Variation
+from ga4gh.vrs.models import Variation
 from pydantic import ValidationError
 
 from metakb.harvesters.moa import MoaHarvestedData
@@ -239,7 +239,6 @@ class MoaTransformer(Transformer):
             protein_change = variant.get("protein_change")
             constraints = None
             extensions = []
-            variant_name = feature
 
             if (
                 variant["feature_type"] == "somatic_variant"
@@ -310,21 +309,6 @@ class MoaTransformer(Transformer):
                     params["id"] = vrs_variation.id
                     moa_variation = Variation(**params)
                     constraints = [DefiningAlleleConstraint(allele=moa_variation.root)]
-                    if isinstance(moa_variation.root, Allele):
-                        try:
-                            normalized_name = (
-                                self.get_normalized_protein_consequence_name(
-                                    moa_variation.root
-                                )
-                            )
-                        except Exception:
-                            _logger.debug(
-                                "Unable to derive normalized_name for MOA variation %s",
-                                moa_variant_id,
-                                exc_info=True,
-                            )
-                        else:
-                            variant_name = normalized_name
 
             # Add MOA representative coordinate data to extensions
             coordinates_keys = [
@@ -373,7 +357,6 @@ class MoaTransformer(Transformer):
 
             cv = CategoricalVariant(
                 id=moa_variant_id,
-                name=variant_name,
                 constraints=constraints,
                 mappings=mappings or None,
                 extensions=extensions,
