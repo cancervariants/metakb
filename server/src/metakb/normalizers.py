@@ -96,6 +96,10 @@ class ViccNormalizers:
         self._normalize_variation = alru_cache(cache_size)(
             variation_query_handler.normalize_handler.normalize
         )
+        # direct access is needed for tasks like protein/gene mapping and sequence lookup
+        # during transformation
+        self.seqrepo_access = variation_query_handler.seqrepo_access
+        self.transcript_mappings = variation_query_handler.gnomad_vcf_to_protein_handler.mane_transcript.transcript_mappings
 
     async def normalize_variation(
         self, query: str
