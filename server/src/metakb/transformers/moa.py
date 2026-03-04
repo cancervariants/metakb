@@ -435,7 +435,11 @@ class MoaTransformer(Transformer):
                     )
             result = await self.vicc_normalizers.normalize_variation(query)
             if result and isinstance(result, Allele):
-                return build_catvars.build_proteinsequenceconsequence_catvar(result)
+                return build_catvars.build_proteinsequenceconsequence_catvar(
+                    self.vicc_normalizers.seqrepo_access,
+                    self.vicc_normalizers.transcript_mappings,
+                    result,
+                )
         _logger.debug(
             "Failed to normalize variant: %s", variant.model_dump(exclude_none=True)
         )
