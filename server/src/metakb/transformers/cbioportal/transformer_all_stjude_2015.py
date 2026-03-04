@@ -1,17 +1,6 @@
 """Transformer for the all_stjude_2015 cBioPortal study."""
 
-from os import environ
-
 from metakb.transformers.cbioportal.base import CBioportalStudyTransformer
-
-environ["AWS_ACCESS_KEY_ID"] = "dummy"
-environ["AWS_SECRET_ACCESS_KEY"] = "dummy"  # noqa: S105
-environ["AWS_SESSION_TOKEN"] = "dummy"  # noqa: S105
-
-import logging
-
-_logger = logging.getLogger(__name__)
-
 
 MUT_HEADERS = [
     "Hugo_Symbol",
