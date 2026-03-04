@@ -610,8 +610,13 @@ async def _transform_source(
     transformer: CivicTransformer | MoaTransformer = transformer_sources[source](
         normalizers=normalizer_handler, harvester_path=harvest_file
     )
-    harvested_data = transformer.extract_harvested_data()
-    await transformer.transform(harvested_data)
+    if source == SourceName.CIVIC:
+        # CIViC transform uses civicpy cache directly and does not require a harvested
+        # JSON payload.
+        await transformer.transform()
+    else:
+        harvested_data = transformer.extract_harvested_data()
+        await transformer.transform(harvested_data)
     end = timer()
     _echo_info(
         f"{source.as_print_case()} transformation finished in {(end - start):.2f} s."

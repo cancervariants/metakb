@@ -3,91 +3,71 @@
 import datetime
 import json
 import logging
-import re
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import ClassVar, TypeVar
+from typing import ClassVar
 
-from disease.schemas import (
-    NamespacePrefix as DiseaseNamespacePrefix,
-)
-from disease.schemas import (
-    NormalizationService as NormalizedDisease,
-)
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
-from ga4gh.core import sha512t24u
 from ga4gh.core.models import (
     Coding,
     ConceptMapping,
-    Extension,
     MappableConcept,
     Relation,
+    code,
     iriReference,
 )
 from ga4gh.va_spec.aac_2017 import (
+    Classification,
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
 from ga4gh.va_spec.base import (
+    Condition,
     ConditionSet,
+    Direction,
     Document,
-    MembershipOperator,
+    EvidenceLine,
     Method,
     Statement,
+    System,
+    Therapeutic,
     TherapyGroup,
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
 )
 from ga4gh.vrs.models import Allele
-from gene.schemas import (
-    NamespacePrefix as GeneNamespacePrefix,
-)
-from gene.schemas import (
-    NormalizeService as NormalizedGene,
-)
-from pydantic import BaseModel, Field, StrictStr
-from therapy.schemas import (
-    NamespacePrefix as TherapyNamespacePrefix,
-)
-from therapy.schemas import (
-    NormalizationService as NormalizedTherapy,
-)
+from pydantic import BaseModel, StrictStr
 
 from metakb import DATE_FMT
 from metakb.config import get_config
 from metakb.harvesters.base import _HarvestedData
-from metakb.normalizers import (
-    ViccNormalizers,
-)
+from metakb.normalizers import ViccNormalizers
+from metakb.transformers.identifiers import compute_aggr_statement_id, compute_combo_id
 
 logger = logging.getLogger(__name__)
 
-# Normalizer response type to attribute name
-NORMALIZER_INSTANCE_TO_ATTR = {
-    NormalizedDisease: "disease",
-    NormalizedTherapy: "therapy",
-    NormalizedGene: "gene",
-}
+# TODO figure out method, etc for MetaKB assertions
+# https://github.com/cancervariants/metakb/issues/739
+METAKB_METHOD = Method(
+    id="metakb.method:2026",
+    name="MetaKB (2026)",
+    reportedIn=Document(
+        name="Wagnerds et al",
+        title="MetaKB v2",
+        doi="10.1038/1111-1-1111-111-1111",
+        pmid="9999999",
+    ),
+)
 
-_CacheType = TypeVar("_CacheType", bound="_TransformedRecordsCache")
-
-
-def _sanitize_name(name: str) -> str:
-    """Trim leading and trailing whitespace and replace whitespace characters with
-    underscores
-
-    :param name: Name to sanitize
-    :return: Sanitized string with whitespace characters replaced by underscores
-    """
-    return re.sub(r"\s+", "_", name.strip())
-
-
-class NormalizerExtensionName(str, Enum):
-    """Define constraints for normalizer extension names"""
-
-    PRIORITY = "vicc_normalizer_priority"  # concept mapping is merged concept ID
-    FAILURE = "vicc_normalizer_failure"  # normalizer failed or is not supported
+METAKB_CLASSIFICATION = MappableConcept(
+    id="metakb.classification:1",
+    name="tmp metakb tr classification",
+    primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(Classification.TIER_I)),
+)
 
 
 class EcoLevel(str, Enum):
@@ -129,25 +109,10 @@ class ViccConceptVocab(BaseModel):
     definition: StrictStr
 
 
-class _TransformedRecordsCache(BaseModel):
-    """Define model for caching transformed records"""
-
-    therapies: ClassVar[dict[str, MappableConcept]] = {}
-    conditions: ClassVar[dict[str, MappableConcept]] = {}
-    genes: ClassVar[dict[str, MappableConcept]] = {}
-
-
 class TransformedData(BaseModel):
     """Define model for transformed data"""
 
-    statements_evidence: list[Statement] = Field(
-        [], description="Statement objects for evidence records"
-    )
-    statements_assertions: list[
-        VariantTherapeuticResponseStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantDiagnosticStudyStatement
-    ] = Field([], description="Statement objects for assertion records")
+    statements: list[Statement] = []
     categorical_variants: list[CategoricalVariant | ProteinSequenceConsequence] = []
     variations: list[Allele] = []
     genes: list[MappableConcept] = []
@@ -266,7 +231,6 @@ class Transformer(ABC):
         :param harvester_path: Path to previously harvested data
         :param normalizers: normalizer collection instance
         """
-        self._cache = self._create_cache()
         self.name = self.__class__.__name__.lower().split("transformer")[0]
         if data_dir:
             self.data_dir = data_dir
@@ -276,7 +240,7 @@ class Transformer(ABC):
         self.vicc_normalizers = (
             ViccNormalizers() if normalizers is None else normalizers
         )
-        self.processed_data = TransformedData()
+        self.processed_data = None
         self.evidence_level_to_vicc_concept_mapping = (
             self._evidence_level_to_vicc_concept_mapping()
         )
@@ -290,65 +254,11 @@ class Transformer(ABC):
         :param harvested_data: Source harvested data
         """
 
-    ### Identity minting
-
-    @staticmethod
-    def _compute_combo_id(
-        source_prefix: str,
-        combo_class: type[TherapyGroup] | type[ConditionSet],
-        operator: MembershipOperator,
-        ids: list[str],
-    ) -> str:
-        """Compute identifier for concept set (eg therapy group or condition set)
-
-        >>> self._compute_combo_id(
-        ...     SourceName.MOA.value,
-        ...     TherapyGroup,
-        ...     MembershipOperator.AND,
-        ...     ["moa.therapy:imatinib", "moa.therapy:trastuzumab"],
-        ... )
-        'moa.tg:ojf-glrsMg7fNrGKoGwGEF0OTyssCuCA'
-
-        These values should generally be for internal use only, so it's not super
-        important that they are especially meaningful, but they should be consistent
-
-        :param source_prefix: prefix to use in ID namespace
-        :param combo_class: type of entity combination
-        :param operator: operator enum instance from concept set
-        :param ids: list of entity IDs to combine, must all be non-empty/non-null
-        :return: CURIE designating the combination in a deterministic way
-        :raise ValueError: if unrecognized combo_class type or if IDs list contains
-            null or empty values
-        """
-        if not all(ids):
-            raise ValueError
-        ids.sort()
-        # use the whole membership operator enum string (ie "MembershipOperator.OR")
-        # to distinguish from an improbable clash w/ a real entity name
-        ids.append(str(operator))
-        blob = json.dumps(ids, separators=(",", ":"), sort_keys=True).encode("ascii")
-        digest = sha512t24u(blob)
-
-        if combo_class is TherapyGroup:
-            combo_class_abbrev = "tg"
-        elif combo_class is ConditionSet:
-            combo_class_abbrev = "cs"
-        else:
-            raise ValueError
-        return f"{source_prefix.lower()}.{combo_class_abbrev}:{digest}"
-
-    ### Other stuff
-    # TODO: future PRs on this feature branch will add organization as needed;
-    # remove this TODO by the end of #664
-
-    @abstractmethod
-    def _create_cache() -> _CacheType:
-        """Create cache for transformed records"""
-
     def extract_harvested_data(self) -> _HarvestedData:
         """Get harvested data from file.
 
         :return: Harvested data
+        :raise FileNotFoundError: harvest file not found
         """
         if self.harvester_path is None:
             today = datetime.datetime.strftime(
@@ -368,6 +278,359 @@ class Transformer(ABC):
             _harvested_data_child = _HarvestedData.get_subclass_by_prefix(self.name)
             return _harvested_data_child(**json.load(f))
 
+    def create_json(self, cdm_filepath: Path | None = None) -> None:
+        """Create a composite JSON for transformed data.
+
+        :param cdm_filepath: Path to the JSON file locatio at which the CDM output will be
+            saved. If not provided, will use the default path of
+            ``<METAKB_DATA_DIR>/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``,
+            where ``<METAKB_DATA_DIR>`` is the configurable data root directory.
+            See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
+        :raise ValueError: if data variable hasn't been populated by transform method yet
+        """
+        if self.processed_data is None:
+            raise ValueError
+        if not cdm_filepath:
+            transformers_dir = self.data_dir / "transformers"
+            transformers_dir.mkdir(exist_ok=True, parents=True)
+            today = datetime.datetime.strftime(
+                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
+            )
+            cdm_filepath = transformers_dir / f"{self.name}_cdm_{today}.json"
+
+        cdm_filepath.parent.mkdir(parents=True, exist_ok=True)
+
+        with cdm_filepath.open("w+") as f:
+            json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
+
+    ### Entity normalization
+
+    @staticmethod
+    def _get_mappableconcept_queries(concept: MappableConcept) -> list[str]:
+        """Get queries to submit to normalizer for a given entity concept
+
+        Note the assumption that aliases live in an extension named ``"Aliases"``
+
+        :param concept: gene/drug/disease object
+        :return: list of relevant queries for normalization
+        :raise ValueError: if Aliases extension doesn't contain a list for its value
+        """
+        queries = []
+        if concept.id:
+            queries.append(concept.id)
+        if concept.name:
+            queries.append(concept.name)
+        if concept.mappings:
+            queries += [str(m.coding.code) for m in concept.mappings]
+        if concept.extensions:
+            for ext in concept.extensions:
+                if ext.name == "Aliases":
+                    if isinstance(ext.value, list):
+                        queries += ext.value
+                    else:
+                        raise ValueError
+        return queries
+
+    def _normalize_disease(self, disease: MappableConcept) -> MappableConcept | None:
+        """Retrieve normalized disease concept
+
+        :param disease: source-derived disease concept
+        :return: either a successful normalized object, or ``None`` if unsuccessful
+        """
+        for query in self._get_mappableconcept_queries(disease):
+            result = self.vicc_normalizers.normalize_disease(query)[0]
+            if result.disease:
+                normalized_disease = result.disease
+                normalized_disease.mappings = None
+                normalized_disease.extensions = None
+                return normalized_disease
+        return None
+
+    def _resolve_condition_set(
+        self, condition_set: ConditionSet
+    ) -> ConditionSet | None:
+        """Return normalized equivalent of ConditionSet
+
+        :param condition_set: source-derived ConditionSet
+        :return: concept set with normalized equivalents of all inputs, or ``None`` if unsuccessful
+        :raise ValueError: if unrecognized concept type
+        :raise TypeError: if a member isn't a conditionset or mappableconcept
+        """
+        members: list[MappableConcept | ConditionSet] = []
+        for condition in condition_set.conditions:
+            if isinstance(condition, MappableConcept):
+                if condition.conceptType == "Phenotype":
+                    members.append(condition)
+                elif condition.conceptType == "Disease":
+                    normalized_disease = self._normalize_disease(condition)
+                    if not normalized_disease:
+                        return None
+                    members.append(normalized_disease)
+                else:
+                    raise ValueError
+            elif isinstance(condition, ConditionSet):
+                normalized_condition_set = self._resolve_condition_set(condition)
+                if not normalized_condition_set:
+                    return None
+                members.append(normalized_condition_set)
+            else:
+                raise TypeError
+        return ConditionSet(
+            conditions=members,
+            membershipOperator=condition_set.membershipOperator,
+            id=compute_combo_id(
+                "metakb",
+                ConditionSet,
+                condition_set.membershipOperator,
+                [c.id for c in members],
+            ),
+        )
+
+    def _normalize_condition(self, condition: Condition) -> Condition | None:
+        """Attempt full normalization of source Condition.
+
+        Treat phenotypes as "normalized" and copy them up to the normalized object. In
+        the future, we might want to be more careful about this, maybe check for a
+        preferred namespace or try to map over to HPO.
+
+        Note that `condition.root` might be a `ConditionSet` of arbitrary depth, so
+        the calls to `_resolve_condition_set` can be recursive.
+
+        :param condition: source Condition object
+        :return: normalized equivalent, if available
+        :raise ValueError: if concept has an unrecognized concept type
+        """
+        if isinstance(condition.root, ConditionSet):
+            normalized_condition_set = self._resolve_condition_set(condition.root)
+            if normalized_condition_set:
+                return Condition(root=normalized_condition_set)
+            return None
+        if condition.root.conceptType == "Phenotype":
+            return condition
+        if condition.root.conceptType == "Disease":
+            normalized_disease = self._normalize_disease(condition.root)
+            if normalized_disease:
+                return Condition(root=normalized_disease)
+            return None
+        raise ValueError
+
+    def _normalize_gene(self, gene: MappableConcept | None) -> MappableConcept | None:
+        """Attempt normalization of a source Gene
+
+        :param gene: source-derived gene object
+        :return: normalized equivalent if successful, else ``None``
+        """
+        # the gene context in a proposition is often None, eg in a fusion
+        # we don't know how to model this for now so we'll just skip it
+        if gene is None:
+            return None
+        for query in self._get_mappableconcept_queries(gene):
+            result = self.vicc_normalizers.normalize_gene(query)[0]
+            if result.gene:
+                normalized_gene = result.gene
+                normalized_gene.mappings = None
+                normalized_gene.extensions = None
+                return normalized_gene
+        return None
+
+    def _normalize_drug(self, drug: MappableConcept) -> MappableConcept | None:
+        """Attempt normalization of a drug
+
+        :param drug: source drug object
+        :return: normalized drug, if successful
+        """
+        for query in self._get_mappableconcept_queries(drug):
+            result = self.vicc_normalizers.normalize_therapy(query)[0]
+            if result.therapy:
+                normalized_drug = result.therapy
+                normalized_drug.mappings = None
+                normalized_drug.extensions = None
+                return normalized_drug
+        return None
+
+    def _normalize_therapeutic(self, therapeutic: Therapeutic) -> Therapeutic | None:
+        """Attempt normalization of a Therapeutic (drug or drug combo)
+
+        :param therapeutic: source entity
+        :return: normalized equivalent, if successful
+        """
+        if isinstance(therapeutic.root, MappableConcept):
+            drug_result = self._normalize_drug(therapeutic.root)
+            if drug_result:
+                return Therapeutic(root=drug_result)
+            return None
+        normalized_members = [
+            self._normalize_drug(drug) for drug in therapeutic.root.therapies
+        ]
+        if all(normalized_members):
+            return Therapeutic(
+                root=TherapyGroup(
+                    id=compute_combo_id(
+                        "metakb",
+                        TherapyGroup,
+                        therapeutic.root.membershipOperator,
+                        [d.id for d in normalized_members],
+                    ),
+                    therapies=normalized_members,
+                    membershipOperator=therapeutic.root.membershipOperator,
+                )
+            )
+        return None
+
+    @abstractmethod
+    async def _normalize_variant(
+        self, variant: CategoricalVariant
+    ) -> CategoricalVariant | None:
+        """Attempt normalization of a source variant object.
+
+        It's tricky to build universal normalization techniques that grab the right
+        data from each source, so for now, we'll require each source transformer
+        to reimplement it. It's plausible that it could be made generic in the future.
+
+        :param variant: incoming source variant object
+        :return: either a normalized CatVar, or None
+        """
+
+    ### statement construction
+
+    async def _create_aggregate_statement(
+        self, statement: Statement
+    ) -> (
+        VariantDiagnosticStudyStatement
+        | VariantPrognosticStudyStatement
+        | VariantTherapeuticResponseStudyStatement
+        | None
+    ):
+        """Attempt to build higher-order MetaKB assertion that wraps provided statement
+
+        Try normalization of contained entities. If successful, then create a normalized
+        statement, and insert the provided source statement into a supporting ``EvidenceLine``.
+
+        :param statement: raw statement from source
+        :return: higher-order MetaKB assertion if successful
+        :raise ValueError: if unrecognized proposition type
+        """
+        if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
+            return await self._build_aggregated_tr_statement(statement)
+        if isinstance(statement.proposition, VariantDiagnosticProposition):
+            return await self._build_aggregated_diag_statement(statement)
+        if isinstance(statement.proposition, VariantPrognosticProposition):
+            return await self._build_aggregated_prog_statement(statement)
+        raise ValueError
+
+    async def _build_aggregated_diag_statement(
+        self, statement: Statement
+    ) -> VariantDiagnosticStudyStatement | None:
+        """Attempt construction of an aggregate diagnostic study statement given a source statement
+
+        :param statement: diagnostic statement
+        :return: aggregate statement if all terms normalize
+        """
+        prop: VariantDiagnosticProposition = statement.proposition
+        normalized_disease = self._normalize_condition(prop.objectCondition)
+        normalized_gene = self._normalize_gene(prop.geneContextQualifier)
+        normalized_variant = await self._normalize_variant(prop.subjectVariant)
+        if all([normalized_disease, normalized_gene, normalized_variant]):
+            statement = VariantDiagnosticStudyStatement(
+                proposition=VariantDiagnosticProposition(
+                    geneContextQualifier=normalized_gene,
+                    subjectVariant=normalized_variant,
+                    objectCondition=normalized_disease,
+                    predicate=statement.proposition.predicate,
+                ),
+                direction=statement.direction,
+                specifiedBy=METAKB_METHOD,
+                classification=METAKB_CLASSIFICATION,
+                hasEvidenceLines=[
+                    EvidenceLine(
+                        hasEvidenceItems=[statement],
+                        directionOfEvidenceProvided=Direction.SUPPORTS,
+                    )
+                ],
+            )
+            statement.id = compute_aggr_statement_id(statement)
+            return statement
+        return None
+
+    async def _build_aggregated_prog_statement(
+        self, statement: Statement
+    ) -> VariantPrognosticStudyStatement | None:
+        """Attempt construction of an aggregate prognostic study statement given a source statement
+
+        :param statement: prognostic statement
+        :return: aggregate statement if all terms normalize
+        """
+        prop: VariantPrognosticProposition = statement.proposition
+        normalized_disease = self._normalize_condition(prop.objectCondition)
+        normalized_gene = self._normalize_gene(prop.geneContextQualifier)
+        normalized_variant = await self._normalize_variant(prop.subjectVariant)
+        if all((normalized_disease, normalized_gene, normalized_variant)):
+            statement = VariantPrognosticStudyStatement(
+                proposition=VariantPrognosticProposition(
+                    geneContextQualifier=normalized_gene,
+                    subjectVariant=normalized_variant,
+                    objectCondition=normalized_disease,
+                    predicate=statement.proposition.predicate,
+                ),
+                direction=statement.direction,
+                specifiedBy=METAKB_METHOD,
+                classification=METAKB_CLASSIFICATION,
+                hasEvidenceLines=[
+                    EvidenceLine(
+                        hasEvidenceItems=[statement],
+                        directionOfEvidenceProvided=Direction.SUPPORTS,
+                    )
+                ],
+            )
+            statement.id = compute_aggr_statement_id(statement)
+            return statement
+        return None
+
+    async def _build_aggregated_tr_statement(
+        self, statement: Statement
+    ) -> VariantTherapeuticResponseStudyStatement | None:
+        """Attempt construction of an aggregate therapeutic reseponse study statement given a source statement
+
+        :param statement: source TR assertion
+        :return: aggregate statement if all terms normalize
+        """
+        prop: VariantTherapeuticResponseProposition = statement.proposition
+        normalized_disease = self._normalize_condition(prop.conditionQualifier)
+        normalized_gene = self._normalize_gene(prop.geneContextQualifier)
+        normalized_variant = await self._normalize_variant(prop.subjectVariant)
+        normalized_therapeutic = self._normalize_therapeutic(prop.objectTherapeutic)
+        if all(
+            (
+                normalized_disease,
+                normalized_gene,
+                normalized_variant,
+                normalized_therapeutic,
+            )
+        ):
+            aggr_statement = VariantTherapeuticResponseStudyStatement(
+                proposition=VariantTherapeuticResponseProposition(
+                    geneContextQualifier=normalized_gene,
+                    subjectVariant=normalized_variant,
+                    objectTherapeutic=normalized_therapeutic,
+                    conditionQualifier=normalized_disease,
+                    predicate=statement.proposition.predicate,
+                ),
+                direction=statement.direction,
+                specifiedBy=METAKB_METHOD,
+                classification=METAKB_CLASSIFICATION,
+                hasEvidenceLines=[
+                    EvidenceLine(
+                        hasEvidenceItems=[statement],
+                        directionOfEvidenceProvided=Direction.SUPPORTS,
+                    )
+                ],
+            )
+            aggr_statement.id = compute_aggr_statement_id(aggr_statement)
+            return aggr_statement
+        return None
+
+    ### Handle evidence
+
     def _evidence_level_to_vicc_concept_mapping(
         self,
     ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, list[ConceptMapping]]:
@@ -384,191 +647,10 @@ class Transformer(ABC):
                     ConceptMapping(
                         coding=Coding(
                             system="https://go.osu.edu/evidence-codes",
-                            code=item.id.split("vicc:")[-1],
+                            code=code(item.id.split("vicc:")[-1]),
                             name=item.term,
                         ),
                         relation=Relation.EXACT_MATCH,
                     )
                 ]
         return concept_mappings
-
-    @staticmethod
-    def _get_vicc_normalizer_failure_ext() -> Extension:
-        """Return extension for a VICC normalizer failure
-
-        :return: Extension for VICC normalizer failure
-        """
-        return Extension(name=NormalizerExtensionName.FAILURE.value, value=True)
-
-    @staticmethod
-    def _get_vicc_normalizer_mappings(
-        normalized_id: str,
-        normalizer_resp: NormalizedDisease | NormalizedTherapy | NormalizedGene,
-    ) -> list[ConceptMapping]:
-        """Get VICC Normalizer mappable concept
-
-        :param normalized_id: Normalized ID from VICC normalizer
-        :param normalizer_resp: Response from VICC normalizer
-        :return: List of VICC Normalizer data represented as mappable concept
-        """
-
-        def _update_mapping(
-            mapping: ConceptMapping,
-            normalized_id: str,
-            normalizer_label: str,
-            match_on_coding_id: bool = True,
-        ) -> Extension:
-            """Update ``mapping`` to include extension on whether ``mapping`` contains
-            code that matches the merged record's primary identifier.
-
-            :param mapping: ConceptMapping from vicc normalizer. This will be mutated.
-                Extensions will be added. Label will be added if mapping identifier
-                matches normalized merged identifier.
-            :param normalized_id: Concept ID from normalized record
-            :param normalizer_label: Label from normalized record
-            :param match_on_coding_id: Whether to match on ``coding.id`` or
-                ``coding.code`` (MONDO is represented differently)
-            :return: ConceptMapping with normalizer extension added as well as name (
-                if mapping id matches normalized merged id)
-            """
-            is_priority = (
-                normalized_id == mapping.coding.id
-                if match_on_coding_id
-                else normalized_id == mapping.coding.code.root.lower()
-            )
-
-            merged_id_ext = Extension(
-                name=NormalizerExtensionName.PRIORITY.value, value=is_priority
-            )
-            if mapping.extensions:
-                mapping.extensions.append(merged_id_ext)
-            else:
-                mapping.extensions = [merged_id_ext]
-
-            if is_priority:
-                mapping.coding.name = normalizer_label
-
-            return mapping
-
-        mappings: list[ConceptMapping] = []
-        attr_name = NORMALIZER_INSTANCE_TO_ATTR[type(normalizer_resp)]
-        normalizer_resp_obj = getattr(normalizer_resp, attr_name)
-        normalizer_label = normalizer_resp_obj.name
-        is_disease = isinstance(normalizer_resp, NormalizedDisease)
-        is_gene = isinstance(normalizer_resp, NormalizedGene)
-        is_therapy = isinstance(normalizer_resp, NormalizedTherapy)
-
-        normalizer_mappings = [
-            ConceptMapping(
-                coding=normalizer_resp_obj.primaryCoding,
-                relation=Relation.EXACT_MATCH,
-            ),
-        ]
-        if normalizer_resp_obj.mappings:
-            normalizer_mappings.extend(normalizer_resp_obj.mappings)
-
-        for mapping in normalizer_mappings:
-            if normalized_id == mapping.coding.id:
-                mappings.append(
-                    _update_mapping(
-                        mapping,
-                        normalized_id,
-                        normalizer_label,
-                        match_on_coding_id=True,
-                    )
-                )
-            elif is_disease and mapping.coding.code.root.lower().startswith(
-                DiseaseNamespacePrefix.MONDO.value
-            ):
-                mappings.append(
-                    _update_mapping(
-                        mapping,
-                        normalized_id,
-                        normalizer_label,
-                        match_on_coding_id=False,
-                    )
-                )
-            elif (
-                (
-                    is_gene
-                    and mapping.coding.id.startswith(
-                        (
-                            GeneNamespacePrefix.NCBI.value,
-                            GeneNamespacePrefix.HGNC.value,
-                        )
-                    )
-                )
-                or (
-                    is_disease
-                    and mapping.coding.id.startswith(DiseaseNamespacePrefix.DOID.value)
-                )
-                or (
-                    is_therapy
-                    and mapping.coding.id.startswith(TherapyNamespacePrefix.NCIT.value)
-                )
-            ):
-                mappings.append(
-                    _update_mapping(
-                        mapping,
-                        normalized_id,
-                        normalizer_label,
-                        match_on_coding_id=True,
-                    )
-                )
-        return mappings
-
-    def _merge_mappings(
-        self,
-        source_mappings: list[ConceptMapping],
-        normalizer_mappings: list[ConceptMapping],
-    ) -> list[ConceptMapping]:
-        """Merge source and normalizer concept mappings
-
-        Source mappings will be annotated with source annotation extension to retain
-        provenance of original source mapping.
-
-        :param source_mappings: List of concept mappings directly from a source
-        :param normalizer_mappings: List of concept mappings from VICC normalizer
-        :return: A list of merged concept mappings
-        """
-        merged_mappings = normalizer_mappings.copy()
-        code_to_idx = {m.coding.code.root: idx for idx, m in enumerate(merged_mappings)}
-        source_anno_exts = [Extension(name=f"{self.name}_annotation", value=True)]
-
-        for source_mapping in source_mappings:
-            code = source_mapping.coding.code.root
-            idx = code_to_idx.get(code)
-
-            base_mapping = merged_mappings[idx] if idx is not None else source_mapping
-            extensions = (base_mapping.extensions or []) + source_anno_exts
-
-            updated_mapping = base_mapping.model_copy(update={"extensions": extensions})
-
-            if idx is not None:
-                merged_mappings[idx] = updated_mapping
-            else:
-                code_to_idx[code] = len(merged_mappings)
-                merged_mappings.append(updated_mapping)
-        return merged_mappings
-
-    def create_json(self, cdm_filepath: Path | None = None) -> None:
-        """Create a composite JSON for transformed data.
-
-        :param cdm_filepath: Path to the JSON file locatio at which the CDM output will be
-            saved. If not provided, will use the default path of
-            ``<METAKB_DATA_DIR>/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``,
-            where ``<METAKB_DATA_DIR>`` is the configurable data root directory.
-            See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
-        """
-        if not cdm_filepath:
-            transformers_dir = self.data_dir / "transformers"
-            transformers_dir.mkdir(exist_ok=True, parents=True)
-            today = datetime.datetime.strftime(
-                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
-            )
-            cdm_filepath = transformers_dir / f"{self.name}_cdm_{today}.json"
-
-        cdm_filepath.parent.mkdir(parents=True, exist_ok=True)
-
-        with cdm_filepath.open("w+") as f:
-            json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)

@@ -63,8 +63,6 @@ from ga4gh.vrs.models import (
 )
 from pydantic import BaseModel, Field, RootModel
 
-from metakb.transformers.base import NormalizerExtensionName
-
 _logger = logging.getLogger(__name__)
 
 # Helper models to enable quick serialization of array properties
@@ -360,16 +358,17 @@ class GeneNode(BaseNode):
     def from_gks(cls, gene: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
         normalized_id = None
-        for mapping in gene.mappings:
-            for ext in mapping.extensions:
-                if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
-                    normalized_id = mapping.coding.id
-                    break
-            if normalized_id:
-                break
-        else:
-            msg = f"Unable to locate normalized ID in gene {gene}"
-            raise ValueError(msg)
+        # revisit in https://github.com/cancervariants/metakb/issues/665
+        # for mapping in gene.mappings:
+        #     for ext in mapping.extensions:
+        #         if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
+        #             normalized_id = mapping.coding.id
+        #             break
+        #     if normalized_id:
+        #         break
+        # else:
+        #     msg = f"Unable to locate normalized ID in gene {gene}"
+        #     raise ValueError(msg)
         description = ""
         if extensions := gene.extensions:
             for extension in extensions:
@@ -407,20 +406,21 @@ class DiseaseNode(BaseNode):
     def from_gks(cls, disease: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
         normalized_id = None
-        for mapping in disease.mappings:
-            if extensions := mapping.extensions:
-                for extension in extensions:
-                    if (
-                        extension.name == NormalizerExtensionName.PRIORITY
-                        and extension.value
-                    ):
-                        normalized_id = mapping.coding.id
-                        break
-                if normalized_id:
-                    break
-        if not normalized_id:
-            msg = f"Unable to locate normalized ID in disease {disease}"
-            raise ValueError(msg)
+        # revisit in https://github.com/cancervariants/metakb/issues/665
+        # for mapping in disease.mappings:
+        #     if extensions := mapping.extensions:
+        #         for extension in extensions:
+        #             if (
+        #                 extension.name == NormalizerExtensionName.PRIORITY
+        #                 and extension.value
+        #             ):
+        #                 normalized_id = mapping.coding.id
+        #                 break
+        #         if normalized_id:
+        #             break
+        # if not normalized_id:
+        #     msg = f"Unable to locate normalized ID in disease {disease}"
+        #     raise ValueError(msg)
         return cls(
             id=disease.id,
             normalized_id=normalized_id,
@@ -537,16 +537,17 @@ class DrugNode(BaseNode):
     def from_gks(cls, therapy: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
         normalized_id = None
-        for mapping in therapy.mappings:
-            for ext in mapping.extensions:
-                if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
-                    normalized_id = mapping.coding.id
-                    break
-            if normalized_id:
-                break
-        else:
-            msg = f"Unable to locate normalized ID in therapy {therapy}"
-            raise ValueError(msg)
+        # revisit in https://github.com/cancervariants/metakb/issues/665
+        # for mapping in therapy.mappings:
+        #     for ext in mapping.extensions:
+        #         if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
+        #             normalized_id = mapping.coding.id
+        #             break
+        #     if normalized_id:
+        #         break
+        # else:
+        #     msg = f"Unable to locate normalized ID in therapy {therapy}"
+        #     raise ValueError(msg)
         return cls(
             id=therapy.id,
             normalized_id=normalized_id,
