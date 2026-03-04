@@ -63,9 +63,7 @@ from ga4gh.vrs.models import (
 )
 from pydantic import BaseModel, Field, RootModel
 
-from metakb.transformers.base import (
-    NormalizerExtensionName,
-)
+from metakb.transformers.base import NormalizerExtensionName
 
 _logger = logging.getLogger(__name__)
 
@@ -323,6 +321,7 @@ class CategoricalVariantNode(BaseNode):
             if catvar.members
             else []
         )
+
         return cls(
             id=catvar.id,
             name=catvar.name or "",
