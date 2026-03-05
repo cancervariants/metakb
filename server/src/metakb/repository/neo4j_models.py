@@ -731,9 +731,7 @@ class EvidenceLineNode(BaseNode):
             id=evidence_line_id,
             direction=evidence_line.directionOfEvidenceProvided,
             has_evidence_items=evidence_items,
-            strength_of_evidence_provided=evidence_line.strengthOfEvidenceProvided.model_dump_json()
-            if evidence_line.strengthOfEvidenceProvided
-            else "",
+            strength_of_evidence_provided=evidence_line.strengthOfEvidenceProvided.model_dump_json(),
         )
 
     def to_gks(self) -> EvidenceLine:
@@ -743,9 +741,7 @@ class EvidenceLineNode(BaseNode):
             hasEvidenceItems=[st.to_gks() for st in self.has_evidence_items],
             strengthOfEvidenceProvided=MappableConcept(
                 **json.loads(self.strength_of_evidence_provided)
-            )
-            if self.strength_of_evidence_provided
-            else None,
+            ),
         )
 
 
@@ -855,7 +851,10 @@ class TherapeuticResponseStatementNode(StatementNodeBase):
             if statement.hasEvidenceLines
             else []
         )
-        document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
+        if statement.reportedIn:
+            document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
+        else:
+            document_nodes, url = [], ""
 
         match tr_proposition.objectTherapeutic.root:
             case TherapyGroup():
@@ -950,7 +949,10 @@ class DiagnosticStatementNode(StatementNodeBase):
             if statement.hasEvidenceLines
             else []
         )
-        document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
+        if statement.reportedIn:
+            document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
+        else:
+            document_nodes, url = [], ""
         classification_node = (
             ClassificationNode.from_gks(statement.classification)
             if statement.classification
@@ -1035,7 +1037,10 @@ class PrognosticStatementNode(StatementNodeBase):
             if statement.hasEvidenceLines
             else []
         )
-        document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
+        if statement.reportedIn:
+            document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
+        else:
+            document_nodes, url = [], ""
         classification_node = (
             ClassificationNode.from_gks(statement.classification)
             if statement.classification

@@ -12,6 +12,7 @@ from civicpy.exports.civic_gks_record import (
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.va_spec.base import (
     ConditionSet,
+    Document,
     Statement,
     TherapyGroup,
     VariantTherapeuticResponseProposition,
@@ -224,6 +225,11 @@ class CivicTransformer(Transformer):
                         self._civic_claim_to_statement(i)
                         for i in ev_line.hasEvidenceItems
                     ]
+            assertion_ref = Document(urls=[item.site_link])
+            if statement.reportedIn:
+                statement.reportedIn.append(assertion_ref)
+            else:
+                statement.reportedIn = [assertion_ref]
 
         return statement
 

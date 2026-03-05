@@ -18,14 +18,13 @@ from ga4gh.core.models import (
     code,
     iriReference,
 )
+from ga4gh.va_spec.aac_2017 import Classification as AacClassification
+from ga4gh.va_spec.aac_2017 import Strength as AacStrength
 from ga4gh.va_spec.aac_2017 import (
-    Classification,
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
-from ga4gh.va_spec.aac_2017 import Classification as AacClassification
-from ga4gh.va_spec.aac_2017 import Strength as AacStrength
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
@@ -563,6 +562,7 @@ class Transformer(ABC):
                 EvidenceLine(
                     hasEvidenceItems=[statement],
                     directionOfEvidenceProvided=Direction.SUPPORTS,
+                    strengthOfEvidenceProvided=statement.strength,
                 )
             ]
             statement = VariantDiagnosticStudyStatement(
@@ -600,6 +600,7 @@ class Transformer(ABC):
                 EvidenceLine(
                     hasEvidenceItems=[statement],
                     directionOfEvidenceProvided=Direction.SUPPORTS,
+                    strengthOfEvidenceProvided=statement.strength,
                 )
             ]
             statement = VariantPrognosticStudyStatement(
@@ -612,12 +613,7 @@ class Transformer(ABC):
                 ),
                 direction=statement.direction,
                 specifiedBy=METAKB_METHOD,
-                hasEvidenceLines=[
-                    EvidenceLine(
-                        hasEvidenceItems=[statement],
-                        directionOfEvidenceProvided=Direction.SUPPORTS,
-                    )
-                ],
+                hasEvidenceLines=evidence,
                 strength=self._get_assertion_strength(evidence),
                 classification=self._get_assertion_classification(evidence),
             )
@@ -650,6 +646,7 @@ class Transformer(ABC):
                 EvidenceLine(
                     hasEvidenceItems=[statement],
                     directionOfEvidenceProvided=Direction.SUPPORTS,
+                    strengthOfEvidenceProvided=statement.strength,
                 )
             ]
             aggr_statement = VariantTherapeuticResponseStudyStatement(
@@ -663,12 +660,7 @@ class Transformer(ABC):
                 ),
                 direction=statement.direction,
                 specifiedBy=METAKB_METHOD,
-                hasEvidenceLines=[
-                    EvidenceLine(
-                        hasEvidenceItems=[statement],
-                        directionOfEvidenceProvided=Direction.SUPPORTS,
-                    )
-                ],
+                hasEvidenceLines=evidence,
                 strength=self._get_assertion_strength(evidence),
                 classification=self._get_assertion_classification(evidence),
             )

@@ -240,7 +240,23 @@
               }
             }
           ],
-          "directionOfEvidenceProvided": "supports"
+          "directionOfEvidenceProvided": "supports",
+          "strengthOfEvidenceProvided": {
+            "primaryCoding": {
+              "system": "https://moalmanac.org/about",
+              "code": "Preclinical evidence"
+            },
+            "mappings": [
+              {
+                "coding": {
+                  "name": "preclinical evidence",
+                  "system": "https://go.osu.edu/evidence-codes",
+                  "code": "e000009"
+                },
+                "relation": "exactMatch"
+              }
+            ]
+          }
         }
       ]
     }
