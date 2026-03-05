@@ -17,11 +17,12 @@ class RepositoryStats(BaseModel):
     """Define structure for reporting entity counts from the DB"""
 
     num_genes: int
-    num_therapeutics: int
-    num_conditions: int
+    num_drugs: int
+    num_diseases: int
     num_variations: int
-    num_statements: int
+    num_source_statements: int
     num_documents: int
+    num_metakb_assertions: int
 
 
 class AbstractRepository(abc.ABC):

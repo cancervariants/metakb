@@ -334,9 +334,12 @@ class Transformer(ABC):
         """
         for query in self._get_mappableconcept_queries(disease):
             result = self.vicc_normalizers.normalize_disease(query)[0]
+            # deepcopying creates some redundant work, but avoids non idempotent strangeness
+            result = result.model_copy()
             if result.disease:
                 normalized_disease = result.disease
-                normalized_disease.id.replace(":", "_").replace(
+                normalized_disease.id = normalized_disease.id.replace(":", "_")
+                normalized_disease.id = normalized_disease.id.replace(
                     "normalize.disease.", "metakb.disease:"
                 )
                 normalized_disease.mappings = None
@@ -424,9 +427,12 @@ class Transformer(ABC):
             return None
         for query in self._get_mappableconcept_queries(gene):
             result = self.vicc_normalizers.normalize_gene(query)[0]
+            # deepcopying creates some redundant work, but avoids non idempotent strangeness
+            result = result.model_copy()
             if result.gene:
                 normalized_gene = result.gene
-                normalized_gene.id.replace(":", "_").replace(
+                normalized_gene.id = normalized_gene.id.replace(":", "_")
+                normalized_gene.id = normalized_gene.id.replace(
                     "normalize.gene.", "metakb.gene:"
                 )
                 normalized_gene.mappings = None
@@ -442,9 +448,12 @@ class Transformer(ABC):
         """
         for query in self._get_mappableconcept_queries(drug):
             result = self.vicc_normalizers.normalize_therapy(query)[0]
+            # deepcopying creates some redundant work, but avoids non idempotent strangeness
+            result = result.model_copy()
             if result.therapy:
                 normalized_drug = result.therapy
-                normalized_drug.id.replace(":", "_").replace(
+                normalized_drug.id = normalized_drug.id.replace(":", "_")
+                normalized_drug.id = normalized_drug.id.replace(
                     "normalize.therapy.", "metakb.therapy:"
                 )
                 normalized_drug.mappings = None
