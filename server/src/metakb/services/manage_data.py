@@ -1,108 +1,52 @@
 """Load and manage data for the database."""
 
-# TODO lots to update here
-
 import json
 import logging
 from pathlib import Path
 
-from ga4gh.core.models import Extension, MappableConcept
-from ga4gh.va_spec.base import (
-    ConditionSet,
-    Statement,
-    TherapyGroup,
-    VariantDiagnosticProposition,
-    VariantPrognosticProposition,
-    VariantTherapeuticResponseProposition,
-)
+from ga4gh.va_spec.base import Statement
+from tqdm import tqdm
 
 from metakb.repository.base import AbstractRepository
 
 _logger = logging.getLogger(__name__)
 
 
-def _has_normalize_failure(extensions: list[Extension] | None) -> bool:
-    """Check if extensions contain indication of normalization failure
-
-    :param extensions: list of extensions from an entity object
-    :return: True if contains normalize failure
-    """
-    if extensions:
-        for extension in extensions:
-            if extension.name == "vicc_normalizer_failure" and extension.value:
-                return True
-    return False
+SUPPORTED_CATVAR_CONSTRAINTS = {"DefiningAlleleConstraint", "FeatureContextConstraint"}
 
 
-def _is_loadable_condition(
-    condition: MappableConcept | ConditionSet, statement_id: str
-) -> bool:
-    """Check if condition or condition set can be loaded into DB
+def is_loadable_assertion(statement: Statement) -> bool:
+    """Check whether an assertion can be loaded to DB
 
-    :param condition: condition or conditionset to check
-    :param statement_id: ID to use in logging failure message
-    :return: whether condition is loadable
-    :raise ValueError: if unsupported type of condition (eg IRI ref) is provided
-    """
-    if isinstance(condition, MappableConcept):
-        if _has_normalize_failure(condition.extensions):
-            _logger.info(
-                "%s could not be loaded because condition failed to normalize: %s",
-                statement_id,
-                condition,
-            )
-            return False
-    elif isinstance(condition, ConditionSet):
-        for member_condition in condition.conditions:
-            if _has_normalize_failure(member_condition.extensions):
-                _logger.info(
-                    "%s could not be loaded because condition in ConditionSet failed to normalize: %s",
-                    statement_id,
-                    condition,
-                )
-                return False
-    else:
-        raise ValueError  # noqa: TRY004
-    return True
+    Requirements:
 
-
-def is_loadable_statement(statement: Statement) -> bool:
-    """Check whether statement can be loaded to DB
-
-    * All entity terms need to have normalized
-    * For variations, that means the catvar must have a constraint
-    * For StudyStatements that are supported by other statements via evidence lines,
-        all supporting statements must be loadable for the overarching StudyStatement
-        to be loadable
+    * Must be a higher-order (MetaKB) assertion
+    * Double-check that entity terms are of supported types/structures
+       * Categorical variant contains exactly 1 constraint
 
     :param statement: incoming statement from CDM. All parameters must be fully materialized,
         not simply referenced as IRIs
     :return: whether statement can be loaded given current data support policy
     :raise NotImplementedError: if unsupported proposition type is provided
-    :raise ValueError: if unsupported type used for therapeutic (eg string IRI)
+    :raise ValueError: if unrecognized type used for therapeutic (eg string IRI)
     """
     success = True
-    is_aggregate_statement = bool(statement.hasEvidenceLines)
-    if evidence_lines := statement.hasEvidenceLines:
-        for evidence_line in evidence_lines:
-            for evidence_item in evidence_line.hasEvidenceItems:
-                if not is_loadable_statement(evidence_item):
-                    _logger.debug(
-                        "%s could not be loaded because %s is not supported",
-                        statement.id,
-                        evidence_item.id,
-                    )
-                    success = False
+
+    if not statement.id.startswith("metakb.assertion"):
+        _logger.debug(
+            "%s could not be loaded because it's not a MetaKB assertion", statement.id
+        )
+        success = False
     proposition = statement.proposition
     constraints = proposition.subjectVariant.constraints
-    if is_aggregate_statement and not constraints:
+    if not constraints:
         _logger.debug(
             "%s could not be loaded because assertion subject variant lacks constraints: %s",
             statement.id,
             proposition.subjectVariant,
         )
         success = False
-    if constraints:
+    else:
         if len(constraints) != 1:
             _logger.debug(
                 "%s could not be loaded because it contains more than 1 constraint: %s",
@@ -110,58 +54,13 @@ def is_loadable_statement(statement: Statement) -> bool:
                 constraints,
             )
             success = False
-        if constraints[0].root.type not in {
-            "DefiningAlleleConstraint",
-            "FeatureContextConstraint",
-        }:
+        if constraints[0].root.type not in SUPPORTED_CATVAR_CONSTRAINTS:
             _logger.debug(
                 "%s could not be loaded because it doesn't use a supported constraint type: %s",
                 statement.id,
                 constraints,
             )
             success = False
-    if isinstance(proposition, VariantTherapeuticResponseProposition):
-        if not _is_loadable_condition(
-            proposition.conditionQualifier.root, statement.id
-        ):
-            success = False
-        therapeutic = proposition.objectTherapeutic.root
-        if isinstance(therapeutic, MappableConcept):
-            if _has_normalize_failure(therapeutic.extensions):
-                _logger.debug(
-                    "%s could not be loaded because drug failed to normalize: %s",
-                    statement.id,
-                    therapeutic,
-                )
-                success = False
-        elif isinstance(therapeutic, TherapyGroup):
-            for drug in therapeutic.therapies:
-                if _has_normalize_failure(drug.extensions):
-                    _logger.debug(
-                        "%s could not be loaded because drug in therapygroup failed to normalize: %s",
-                        statement.id,
-                        drug,
-                    )
-                    success = False
-        else:
-            raise ValueError  # noqa: TRY004
-    elif isinstance(
-        proposition, VariantDiagnosticProposition | VariantPrognosticProposition
-    ):
-        if not _is_loadable_condition(proposition.objectCondition.root, statement.id):
-            success = False
-    else:
-        msg = f"Unsupported proposition type: {proposition.type}"
-        raise NotImplementedError(msg)
-    if proposition.geneContextQualifier and _has_normalize_failure(
-        proposition.geneContextQualifier.extensions
-    ):
-        _logger.debug(
-            "%s could not be loaded because gene failed to normalize: %s",
-            statement.id,
-            proposition.geneContextQualifier,
-        )
-        success = False
     if success:
         _logger.info("Success. %s can be loaded.", statement.id)
     else:
@@ -169,26 +68,30 @@ def is_loadable_statement(statement: Statement) -> bool:
     return success
 
 
-def add_transformed_data(
-    statements: list[Statement], repository: AbstractRepository
-) -> None:
-    """Add set of data formatted per Common Data Model to DB.
+def add_statement(statement: Statement, repository: AbstractRepository) -> None:
+    """Load a GKS statement to the repository
 
-    :param statements: Statements from CDM
+    If it's a higher-order claim -- ie it's supported by additional evidence -- load those
+    items first.
+
+    :param statement: incoming statement. Assumed valid -- check for supportedness beforehand.
     :param repository: data repository instance
     """
-    loaded_stmt_count = 0
-    for statement in statements:
-        if not is_loadable_statement(statement):
-            continue
-        repository.load_statement(statement)
-        loaded_stmt_count += 1
-
-    _logger.info("Successfully loaded %s statements.", loaded_stmt_count)
+    if statement.hasEvidenceLines:
+        for line in statement.hasEvidenceLines:
+            for item in line.hasEvidenceItems:
+                add_statement(item, repository)
+    repository.load_statement(statement)
 
 
 def load_from_json(src_transformed_cdm: Path, repository: AbstractRepository) -> None:
     """Load evidence into DB from given CDM JSON file.
+
+    Iterate through the provided statements. If a statement looks like a MetaKB assertion,
+    then try to load
+
+    1. all constituent evidence items, recursively
+    2. the assertion itself
 
     :param src_transformed_cdm: path to file for a source's transformed data to
         common data model containing statements, variation, therapies, conditions,
@@ -199,4 +102,11 @@ def load_from_json(src_transformed_cdm: Path, repository: AbstractRepository) ->
     with src_transformed_cdm.open() as f:
         dumped_data = json.load(f)
         statements = [Statement(**i) for i in dumped_data.get("statements", [])]
-        add_transformed_data(statements, repository)
+        loaded_stmt_count = 0
+        for statement in tqdm(statements):
+            if not is_loadable_assertion(statement):
+                continue
+            add_statement(statement, repository)
+            loaded_stmt_count += 1
+
+    _logger.info("Successfully loaded %s statements.", loaded_stmt_count)

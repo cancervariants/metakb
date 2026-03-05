@@ -61,6 +61,11 @@ def load_fcc_catvar() -> str:
 
 
 @cache
+def load_text_catvar() -> str:
+    return _load("load_text_catvar.cypher")
+
+
+@cache
 def load_document() -> str:
     return _load("load_document.cypher")
 

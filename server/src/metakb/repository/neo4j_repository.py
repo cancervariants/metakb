@@ -185,25 +185,25 @@ class Neo4jRepository(AbstractRepository):
     def add_catvar(self, tx: Transaction, catvar: CategoricalVariant) -> None:
         """Add categorical variant to DB
 
-        Currently validates that the constraint property exists and has a length of
+        Currently validates that the constraint property, if it exists, has a length of
         exactly 1.
 
         :param tx: Neo4j transaction
         :param catvar: a full Categorical Variant object
+        :raise NotImplementedError: if unrecognized type of constraint is provided
         """
+        catvar_node = CategoricalVariantNode.from_gks(catvar)
         if catvar.constraints and len(catvar.constraints) == 1:
             constraint = catvar.constraints[0]
-            catvar_node = CategoricalVariantNode.from_gks(catvar)
             if constraint.root.type == "DefiningAlleleConstraint":
                 query = queries_catalog.load_dac_catvar()
             elif constraint.root.type == "FeatureContextConstraint":
                 query = queries_catalog.load_fcc_catvar()
             else:
-                raise TypeError
-            tx.run(query, cv=catvar_node.model_dump(mode="json"))
+                raise NotImplementedError
         else:
-            msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar.id} is {catvar.constraints}"
-            raise ValueError(msg)
+            query = queries_catalog.load_text_catvar()
+        tx.run(query, cv=catvar_node.model_dump(mode="json"))
 
     def add_document(self, tx: Transaction, document: Document) -> None:
         """Add document to DB
