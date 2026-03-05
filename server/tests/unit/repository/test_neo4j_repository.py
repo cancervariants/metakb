@@ -34,7 +34,7 @@ def cdm(test_data_dir: Path):
 
 @pytest.mark.ci_only
 def test_basic_statement_roundtrip(repository: Neo4jRepository, cdm: dict):
-    """Test roundtripping of a basic set of statements
+    """Test roundtripping of a ... TODO
 
     * subject variant has a DefiningAlleleConstraint
     """
