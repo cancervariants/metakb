@@ -547,6 +547,7 @@ class Transformer(ABC):
                         directionOfEvidenceProvided=Direction.SUPPORTS,
                     )
                 ],
+                strength=statement.strength,  # TODO this is a placeholder -- calculate accurately in #739
             )
             statement.id = compute_aggr_statement_id(statement)
             return statement
@@ -581,6 +582,7 @@ class Transformer(ABC):
                         directionOfEvidenceProvided=Direction.SUPPORTS,
                     )
                 ],
+                strength=statement.strength,  # TODO this is a placeholder -- calculate accurately in #739
             )
             statement.id = compute_aggr_statement_id(statement)
             return statement
@@ -624,6 +626,7 @@ class Transformer(ABC):
                         directionOfEvidenceProvided=Direction.SUPPORTS,
                     )
                 ],
+                strength=statement.strength,  # TODO this is a placeholder -- calculate accurately in #739
             )
             aggr_statement.id = compute_aggr_statement_id(aggr_statement)
             return aggr_statement
