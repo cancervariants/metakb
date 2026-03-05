@@ -24,6 +24,8 @@ from ga4gh.va_spec.aac_2017 import (
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
+from ga4gh.va_spec.aac_2017 import Classification as AacClassification
+from ga4gh.va_spec.aac_2017 import Strength as AacStrength
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
@@ -61,12 +63,6 @@ METAKB_METHOD = Method(
         doi="10.1038/1111-1-1111-111-1111",
         pmid="9999999",
     ),
-)
-
-METAKB_CLASSIFICATION = MappableConcept(
-    id="metakb.classification:1",
-    name="tmp metakb tr classification",
-    primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(Classification.TIER_I)),
 )
 
 
@@ -518,6 +514,38 @@ class Transformer(ABC):
             return await self._build_aggregated_prog_statement(statement)
         raise ValueError
 
+    # TODO these are placeholders -- calculate accurately in #739
+    @staticmethod
+    def _get_assertion_strength(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
+        """Get strength for the assertion supported by provided evidence
+
+        I don't really know what I'm doing here. This should be figured out in #739,
+        hopefully I have the interface right. Maybe this should be moved to another module.
+
+        :param evidence: supporting evidence for the assertion
+        :return: strength concept
+        """
+        return MappableConcept(
+            primaryCoding=Coding(
+                system=System.AMP_ASCO_CAP, code=code(AacStrength.LEVEL_D)
+            ),
+        )
+
+    @staticmethod
+    def _get_assertion_classification(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
+        """Get classification for the assertion supported by the provided evidence
+
+        Ditto above
+
+        :param evidence: supporting evidence for the assertion
+        :return: classification concept
+        """
+        return MappableConcept(
+            primaryCoding=Coding(
+                system=System.AMP_ASCO_CAP, code=code(AacClassification.TIER_IV)
+            )
+        )
+
     async def _build_aggregated_diag_statement(
         self, statement: Statement
     ) -> VariantDiagnosticStudyStatement | None:
@@ -531,23 +559,25 @@ class Transformer(ABC):
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
         normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all([normalized_disease, normalized_gene, normalized_variant]):
+            evidence = [
+                EvidenceLine(
+                    hasEvidenceItems=[statement],
+                    directionOfEvidenceProvided=Direction.SUPPORTS,
+                )
+            ]
             statement = VariantDiagnosticStudyStatement(
                 proposition=VariantDiagnosticProposition(
                     geneContextQualifier=normalized_gene,
                     subjectVariant=normalized_variant,
                     objectCondition=normalized_disease,
                     predicate=statement.proposition.predicate,
+                    alleleOriginQualifier=prop.alleleOriginQualifier,
                 ),
                 direction=statement.direction,
                 specifiedBy=METAKB_METHOD,
-                classification=METAKB_CLASSIFICATION,
-                hasEvidenceLines=[
-                    EvidenceLine(
-                        hasEvidenceItems=[statement],
-                        directionOfEvidenceProvided=Direction.SUPPORTS,
-                    )
-                ],
-                strength=statement.strength,  # TODO this is a placeholder -- calculate accurately in #739
+                hasEvidenceLines=evidence,
+                strength=self._get_assertion_strength(evidence),
+                classification=self._get_assertion_classification(evidence),
             )
             statement.id = compute_aggr_statement_id(statement)
             return statement
@@ -566,23 +596,30 @@ class Transformer(ABC):
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
         normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all((normalized_disease, normalized_gene, normalized_variant)):
+            evidence = [
+                EvidenceLine(
+                    hasEvidenceItems=[statement],
+                    directionOfEvidenceProvided=Direction.SUPPORTS,
+                )
+            ]
             statement = VariantPrognosticStudyStatement(
                 proposition=VariantPrognosticProposition(
                     geneContextQualifier=normalized_gene,
                     subjectVariant=normalized_variant,
                     objectCondition=normalized_disease,
                     predicate=statement.proposition.predicate,
+                    alleleOriginQualifier=prop.alleleOriginQualifier,
                 ),
                 direction=statement.direction,
                 specifiedBy=METAKB_METHOD,
-                classification=METAKB_CLASSIFICATION,
                 hasEvidenceLines=[
                     EvidenceLine(
                         hasEvidenceItems=[statement],
                         directionOfEvidenceProvided=Direction.SUPPORTS,
                     )
                 ],
-                strength=statement.strength,  # TODO this is a placeholder -- calculate accurately in #739
+                strength=self._get_assertion_strength(evidence),
+                classification=self._get_assertion_classification(evidence),
             )
             statement.id = compute_aggr_statement_id(statement)
             return statement
@@ -609,6 +646,12 @@ class Transformer(ABC):
                 normalized_therapeutic,
             )
         ):
+            evidence = [
+                EvidenceLine(
+                    hasEvidenceItems=[statement],
+                    directionOfEvidenceProvided=Direction.SUPPORTS,
+                )
+            ]
             aggr_statement = VariantTherapeuticResponseStudyStatement(
                 proposition=VariantTherapeuticResponseProposition(
                     geneContextQualifier=normalized_gene,
@@ -616,17 +659,18 @@ class Transformer(ABC):
                     objectTherapeutic=normalized_therapeutic,
                     conditionQualifier=normalized_disease,
                     predicate=statement.proposition.predicate,
+                    alleleOriginQualifier=prop.alleleOriginQualifier,
                 ),
                 direction=statement.direction,
                 specifiedBy=METAKB_METHOD,
-                classification=METAKB_CLASSIFICATION,
                 hasEvidenceLines=[
                     EvidenceLine(
                         hasEvidenceItems=[statement],
                         directionOfEvidenceProvided=Direction.SUPPORTS,
                     )
                 ],
-                strength=statement.strength,  # TODO this is a placeholder -- calculate accurately in #739
+                strength=self._get_assertion_strength(evidence),
+                classification=self._get_assertion_classification(evidence),
             )
             aggr_statement.id = compute_aggr_statement_id(aggr_statement)
             return aggr_statement

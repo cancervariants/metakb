@@ -20,7 +20,7 @@
         "subjectVariant": {
           "id": "metakb.cv:PSQ.VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
           "type": "CategoricalVariant",
-          "name": "ga4gh:VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
+          "name": "ABL1 T315I",
           "constraints": [
             {
               "type": "DefiningAlleleConstraint",
@@ -72,6 +72,9 @@
             "code": "HGNC:76"
           }
         },
+        "alleleOriginQualifier": {
+          "name": "somatic"
+        },
         "predicate": "predictsResistanceTo",
         "objectTherapeutic": {
           "id": "normalize.therapy.rxcui:282388",
@@ -95,12 +98,16 @@
         }
       },
       "direction": "supports",
-      "classification": {
-        "id": "metakb.classification:1",
-        "name": "tmp metakb tr classification",
+      "strength": {
         "primaryCoding": {
           "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
-          "code": "Tier I"
+          "code": "Level D"
+        }
+      },
+      "classification": {
+        "primaryCoding": {
+          "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+          "code": "Tier IV"
         }
       },
       "hasEvidenceLines": [
@@ -181,6 +188,9 @@
                 "geneContextQualifier": {
                   "id": "moa.gene:ABL1",
                   "name": "ABL1"
+                },
+                "alleleOriginQualifier": {
+                  "name": "somatic"
                 },
                 "predicate": "predictsResistanceTo",
                 "objectTherapeutic": {

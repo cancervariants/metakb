@@ -32,14 +32,15 @@ def cdm(test_data_dir: Path):
     return data
 
 
-# @pytest.mark.ci_only
+@pytest.mark.ci_only
 def test_basic_statement_roundtrip(repository: Neo4jRepository, cdm: dict):
-    """Test roundtripping of a pretty standard statement, CIViC EID 2997
+    """Test roundtripping of a basic set of statements
 
     * subject variant has a DefiningAlleleConstraint
     """
     statement = cdm["statements"][0]
     repository.load_statement(statement)
+
     # statement = Statement(**civic_eid2997_study_stmt)
     # repository.load_statement(statement)
     #

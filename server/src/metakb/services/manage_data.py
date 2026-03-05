@@ -1,5 +1,7 @@
 """Load and manage data for the database."""
 
+# TODO lots to update here
+
 import json
 import logging
 from pathlib import Path
@@ -80,6 +82,7 @@ def is_loadable_statement(statement: Statement) -> bool:
     :raise ValueError: if unsupported type used for therapeutic (eg string IRI)
     """
     success = True
+    is_aggregate_statement = bool(statement.hasEvidenceLines)
     if evidence_lines := statement.hasEvidenceLines:
         for evidence_line in evidence_lines:
             for evidence_item in evidence_line.hasEvidenceItems:
@@ -91,29 +94,30 @@ def is_loadable_statement(statement: Statement) -> bool:
                     )
                     success = False
     proposition = statement.proposition
-    if not proposition.subjectVariant.constraints:
+    constraints = proposition.subjectVariant.constraints
+    if is_aggregate_statement and not constraints:
         _logger.debug(
-            "%s could not be loaded because subject variant object lacks constraints: %s",
+            "%s could not be loaded because assertion subject variant lacks constraints: %s",
             statement.id,
             proposition.subjectVariant,
         )
         success = False
-    else:
-        if len(proposition.subjectVariant.constraints) != 1:
+    if constraints:
+        if len(constraints) != 1:
             _logger.debug(
                 "%s could not be loaded because it contains more than 1 constraint: %s",
                 statement.id,
-                proposition.subjectVariant.constraints,
+                constraints,
             )
             success = False
-        if proposition.subjectVariant.constraints[0].root.type not in {
+        if constraints[0].root.type not in {
             "DefiningAlleleConstraint",
             "FeatureContextConstraint",
         }:
             _logger.debug(
                 "%s could not be loaded because it doesn't use a supported constraint type: %s",
                 statement.id,
-                proposition.subjectVariant.constraints,
+                constraints,
             )
             success = False
     if isinstance(proposition, VariantTherapeuticResponseProposition):
@@ -195,7 +199,4 @@ def load_from_json(src_transformed_cdm: Path, repository: AbstractRepository) ->
     with src_transformed_cdm.open() as f:
         dumped_data = json.load(f)
         statements = [Statement(**i) for i in dumped_data.get("statements", [])]
-        import ipdb
-
-        ipdb.set_trace()
         add_transformed_data(statements, repository)

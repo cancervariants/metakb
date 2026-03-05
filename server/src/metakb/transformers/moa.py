@@ -121,6 +121,13 @@ class MoaTransformer(Transformer):
         variant = self._create_moa_variant(assertion["variant"])
         strength = self._create_study_strength(assertion)
 
+        if assertion["variant"]["feature_type"] == "somatic_variant":
+            allele_origin_qualifier = MappableConcept(name="somatic")
+        elif assertion["variant"]["feature_type"] == "germline_variant":
+            allele_origin_qualifier = MappableConcept(name="germline")
+        else:
+            allele_origin_qualifier = None
+
         if assertion["favorable_prognosis"] == "":
             if (
                 assertion["therapy"]["resistance"] == ""
@@ -152,6 +159,7 @@ class MoaTransformer(Transformer):
                 conditionQualifier=disease,
                 objectTherapeutic=therapy,
                 predicate=predicate,
+                alleleOriginQualifier=allele_origin_qualifier,
             )
         else:
             if assertion["favorable_prognosis"]:
@@ -166,6 +174,7 @@ class MoaTransformer(Transformer):
                 subjectVariant=variant,
                 objectCondition=disease,
                 predicate=predicate,
+                alleleOriginQualifier=allele_origin_qualifier,
             )
         return Statement(
             id=f"moa.assertion:{assertion['id']}",

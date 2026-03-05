@@ -288,31 +288,35 @@ class CategoricalVariantNode(BaseNode):
     aliases: list[str] = []
     extensions: str
     mappings: str
-    has_constraint: DefiningAlleleConstraintNode | FeatureContextConstraintNode
+    has_constraint: DefiningAlleleConstraintNode | FeatureContextConstraintNode | None
     has_members: list[AlleleNode]
 
     @classmethod
     def from_gks(cls, catvar: CategoricalVariant) -> Self:
         """Create Node instance from GKS class."""
-        if len(catvar.constraints) != 1:
-            msg = "Only single-constraint catvars are currently supported"
-            raise ValueError(msg)
-        constraint = catvar.constraints[0]
-        if constraint.root.type == "DefiningAlleleConstraint":
-            constraint_id = (
-                f"{catvar.id}:{constraint.root.type}:{constraint.root.allele.id}"
-            )
-            constraint_node = DefiningAlleleConstraintNode.from_gks(
-                constraint.root, constraint_id
-            )
-        elif constraint.root.type == "FeatureContextConstraint":
-            constraint_id = f"{catvar.id}:{constraint.root.type}:{constraint.root.featureContext.id}"
-            constraint_node = FeatureContextConstraintNode.from_gks(
-                constraint.root, constraint_id
-            )
+        if catvar.constraints:
+            if len(catvar.constraints) > 1:
+                msg = "Only 0- or 1-constraint catvars are currently supported"
+                raise ValueError(msg)
+
+            constraint = catvar.constraints[0]
+            if constraint.root.type == "DefiningAlleleConstraint":
+                constraint_id = (
+                    f"{catvar.id}:{constraint.root.type}:{constraint.root.allele.id}"
+                )
+                constraint_node = DefiningAlleleConstraintNode.from_gks(
+                    constraint.root, constraint_id
+                )
+            elif constraint.root.type == "FeatureContextConstraint":
+                constraint_id = f"{catvar.id}:{constraint.root.type}:{constraint.root.featureContext.id}"
+                constraint_node = FeatureContextConstraintNode.from_gks(
+                    constraint.root, constraint_id
+                )
+            else:
+                msg = f"Unrecognized constraint type: {constraint}"
+                raise ValueError(msg)
         else:
-            msg = f"Unrecognized constraint type: {constraint}"
-            raise ValueError(msg)
+            constraint_node = None
 
         members = (
             [AlleleNode.from_gks(m.root) for m in catvar.members]
@@ -333,14 +337,15 @@ class CategoricalVariantNode(BaseNode):
 
     def to_gks(self) -> CategoricalVariant:
         """Construct cat-vrs-python CategoricalVariant instance"""
+        constraints = [self.has_constraint.to_gks()] if self.has_constraint else None
         return CategoricalVariant(
             id=self.id,
-            name=self.name or None,
+            name=self.name or "",
             aliases=self.aliases or None,
             description=self.description or None,
             extensions=_Extensions(json.loads(self.extensions)).root,
             mappings=_Mappings(json.loads(self.mappings)).root,
-            constraints=[self.has_constraint.to_gks()],
+            constraints=constraints,
             members=[m.to_gks() for m in self.has_members],
         )
 
@@ -726,7 +731,9 @@ class EvidenceLineNode(BaseNode):
             id=evidence_line_id,
             direction=evidence_line.directionOfEvidenceProvided,
             has_evidence_items=evidence_items,
-            strength_of_evidence_provided=evidence_line.strengthOfEvidenceProvided.model_dump_json(),
+            strength_of_evidence_provided=evidence_line.strengthOfEvidenceProvided.model_dump_json()
+            if evidence_line.strengthOfEvidenceProvided
+            else "",
         )
 
     def to_gks(self) -> EvidenceLine:
