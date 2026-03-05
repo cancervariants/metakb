@@ -336,6 +336,9 @@ class Transformer(ABC):
             result = self.vicc_normalizers.normalize_disease(query)[0]
             if result.disease:
                 normalized_disease = result.disease
+                normalized_disease.id.replace(":", "_").replace(
+                    "normalize.disease.", "metakb.disease:"
+                )
                 normalized_disease.mappings = None
                 normalized_disease.extensions = None
                 return normalized_disease
@@ -423,6 +426,9 @@ class Transformer(ABC):
             result = self.vicc_normalizers.normalize_gene(query)[0]
             if result.gene:
                 normalized_gene = result.gene
+                normalized_gene.id.replace(":", "_").replace(
+                    "normalize.gene.", "metakb.gene:"
+                )
                 normalized_gene.mappings = None
                 normalized_gene.extensions = None
                 return normalized_gene
@@ -438,6 +444,9 @@ class Transformer(ABC):
             result = self.vicc_normalizers.normalize_therapy(query)[0]
             if result.therapy:
                 normalized_drug = result.therapy
+                normalized_drug.id.replace(":", "_").replace(
+                    "normalize.therapy.", "metakb.therapy:"
+                )
                 normalized_drug.mappings = None
                 normalized_drug.extensions = None
                 return normalized_drug
