@@ -3,6 +3,8 @@
 Provide constructor functions and also define rules/methods for minting IDs.
 """
 
+import logging
+
 from cool_seq_tool.handlers import SeqRepoAccess
 from cool_seq_tool.sources import TranscriptMappings
 from ga4gh.cat_vrs.models import (
@@ -17,6 +19,8 @@ from ga4gh.cat_vrs.models import (
 from ga4gh.cat_vrs.recipes import CategoricalCnv, ProteinSequenceConsequence, SystemUri
 from ga4gh.core.models import Coding, MappableConcept, code
 from ga4gh.vrs.models import Allele, CopyNumberChange
+
+_logger = logging.getLogger(__name__)
 
 LIFTOVER_TO_RELATION = MappableConcept(
     primaryCoding=Coding(
@@ -162,9 +166,16 @@ def build_proteinsequenceconsequence_catvar(
     :return: ProteinSequenceConsequence-based catvar with MetaKB name and ID
     """
     cv_id = f"metakb.cv:PSQ.{allele.id.split(':')[1]}"
-    cv_name = get_normalized_protein_consequence_name(
-        seqrepo_access, transcript_mappings, allele
-    )
+    cv_name = allele.id  # acceptable default for now
+    try:
+        cv_name = get_normalized_protein_consequence_name(
+            seqrepo_access, transcript_mappings, allele
+        )
+    except NotImplementedError:
+        _logger.debug(
+            "Unable to generate name for protein sequence consequence allele: %s",
+            allele,
+        )
     return ProteinSequenceConsequence(
         id=cv_id,
         name=cv_name,

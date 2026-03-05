@@ -287,27 +287,16 @@ async def probe_variation_normalizer_runtime(
     :return: probe result with variation/warnings data or captured exception
     """
     try:
-        variation_norm_resp = (
-            await normalizers.variation_normalizer.normalize_handler.normalize(query)
-        )
+        variation = await normalizers.normalize_variation(query)
     except Exception as e:
+        _logger.exception(
+            "Encountered exception during preflight variation normalizer probe"
+        )
         return VariationRuntimeProbeResult(
             variation_found=False, warnings=None, error=e
         )
-
-    variation = (
-        variation_norm_resp.variation
-        if hasattr(variation_norm_resp, "variation")
-        else None
-    )
-    warnings = (
-        variation_norm_resp.warnings
-        if hasattr(variation_norm_resp, "warnings")
-        else None
-    )
     return VariationRuntimeProbeResult(
-        variation_found=variation is not None,
-        warnings=warnings,
+        variation_found=variation is not None, warnings=[]
     )
 
 
