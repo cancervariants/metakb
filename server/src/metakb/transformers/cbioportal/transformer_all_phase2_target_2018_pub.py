@@ -1,4 +1,4 @@
-"""Transformer for the all_stjude_2016 cBioPortal study."""
+"""Transformer for the all_phase2_target_2018_pub cBioPortal study."""
 
 from metakb.transformers.cbioportal.base import CBioPortalStudyTransformer
 
