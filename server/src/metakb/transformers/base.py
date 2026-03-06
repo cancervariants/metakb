@@ -335,7 +335,7 @@ class Transformer(ABC):
         for query in self._get_mappableconcept_queries(disease):
             result = self.vicc_normalizers.normalize_disease(query)[0]
             # deepcopying creates some redundant work, but avoids non idempotent strangeness
-            result = result.model_copy()
+            result = result.model_copy(deep=True)
             if result.disease:
                 normalized_disease = result.disease
                 normalized_disease.id = normalized_disease.id.replace(":", "_")
@@ -428,7 +428,7 @@ class Transformer(ABC):
         for query in self._get_mappableconcept_queries(gene):
             result = self.vicc_normalizers.normalize_gene(query)[0]
             # deepcopying creates some redundant work, but avoids non idempotent strangeness
-            result = result.model_copy()
+            result = result.model_copy(deep=True)
             if result.gene:
                 normalized_gene = result.gene
                 normalized_gene.id = normalized_gene.id.replace(":", "_")
@@ -449,7 +449,7 @@ class Transformer(ABC):
         for query in self._get_mappableconcept_queries(drug):
             result = self.vicc_normalizers.normalize_therapy(query)[0]
             # deepcopying creates some redundant work, but avoids non idempotent strangeness
-            result = result.model_copy()
+            result = result.model_copy(deep=True)
             if result.therapy:
                 normalized_drug = result.therapy
                 normalized_drug.id = normalized_drug.id.replace(":", "_")
