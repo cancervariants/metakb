@@ -15,8 +15,8 @@ from typing import Any
 import requests
 
 environ["AWS_ACCESS_KEY_ID"] = "dummy"
-environ["AWS_SECRET_ACCESS_KEY"] = "dummy" # noqa: S105
-environ["AWS_SESSION_TOKEN"] = "dummy" # noqa: S105
+environ["AWS_SECRET_ACCESS_KEY"] = "dummy"  # noqa: S105
+environ["AWS_SESSION_TOKEN"] = "dummy"  # noqa: S105
 
 import pandas as pd
 from ga4gh.core.models import (
@@ -137,9 +137,7 @@ class CBioPortalTransformerBase(Transformer):
             "CBioPortalTransformerBase is an orchestrator. "
             "Use `run_transformers({study: harvested_data})` instead of `.transform()`."
         )
-        raise NotImplementedError(
-            msg
-        )
+        raise NotImplementedError(msg)
 
     # ======================================================
     #  Gene-mapping utilities (instance methods)
@@ -227,7 +225,6 @@ class CBioPortalTransformerBase(Transformer):
         if "Entrez_Gene_Id" not in df.columns:
             df["Entrez_Gene_Id"] = pd.NA
 
-
         # Unique gene symbols across the DataFrame
         symbols = df["Hugo_Symbol"].dropna().drop_duplicates().tolist()
 
@@ -293,9 +290,11 @@ class CBioPortalTransformerBase(Transformer):
             entrez_id = self._get_entrez_id(norm_response)
             if entrez_id:
                 df.loc[
-                    (df["Hugo_Symbol"] == symbol) &
-                    (df["Entrez_Gene_Id"].isna() | df["Entrez_Gene_Id"].eq("No_Data")),
-                    "Entrez_Gene_Id"
+                    (df["Hugo_Symbol"] == symbol)
+                    & (
+                        df["Entrez_Gene_Id"].isna() | df["Entrez_Gene_Id"].eq("No_Data")
+                    ),
+                    "Entrez_Gene_Id",
                 ] = entrez_id
 
             # Build GA4GH mapping objects
@@ -395,14 +394,19 @@ class CBioPortalTransformerBase(Transformer):
         :return: DataFrame with a ``vrs_id`` column added
         """
         if "Gnomad_Notation" not in df.columns:
-            logger.warning("No Gnomad_Notation column in study %s; skipping variant normalization.", study_id)
+            logger.warning(
+                "No Gnomad_Notation column in study %s; skipping variant normalization.",
+                study_id,
+            )
             df["vrs_id"] = None
             return df
 
         unique_variants = df["Gnomad_Notation"].dropna().drop_duplicates().tolist()
         vrs_map: dict[str, str | None] = {}
 
-        for variant in tqdm(unique_variants, desc=f"Normalizing variants for {study_id}", unit="variant"):
+        for variant in tqdm(
+            unique_variants, desc=f"Normalizing variants for {study_id}", unit="variant"
+        ):
             vrs_id = self._normalize_variant(variant)
             vrs_map[variant] = vrs_id
 
@@ -435,7 +439,11 @@ class CBioPortalTransformerBase(Transformer):
         pct = (normalized / total * 100.0) if total else 0.0
         logger.info(
             "[%s] Variant normalization: %d/%d (%.1f%%) succeeded, %d failed",
-            study_id, normalized, total, pct, failed,
+            study_id,
+            normalized,
+            total,
+            pct,
+            failed,
         )
 
         return df
@@ -547,9 +555,7 @@ class CBioPortalTransformerBase(Transformer):
             combined["freq_variant_all_studies"] = uncalculated
             combined["freq_variant_cancer_all_studies"] = uncalculated
 
-        logger.info(
-            "Added variant frequency columns (multi_study=%s)", multi_study
-        )
+        logger.info("Added variant frequency columns (multi_study=%s)", multi_study)
         return combined
 
     def _build_frequency_results_from_df(
@@ -570,7 +576,7 @@ class CBioPortalTransformerBase(Transformer):
         study_label = df["STUDY_ID"].iloc[0] if "STUDY_ID" in df.columns else study_id
         total_samples = int(
             df["SAMPLE_ID"].count() if "SAMPLE_ID" in df.columns else len(df)
-            )
+        )
 
         results = []
         variant_groups = df.groupby("Gnomad_Notation")
@@ -730,20 +736,18 @@ class CBioPortalTransformerBase(Transformer):
                 f"No transformer module registered for '{study}'. "
                 f"Add to STUDY_TO_MODULE in base.py."
             )
-            raise ImportError(
-                msg
-            )
+            raise ImportError(msg)
 
         module = importlib.import_module(mod_path)
         try:
             return getattr(module, self.transformer_class_name)
         except AttributeError as err:
             msg = f"Module '{mod_path}' does not define class '{self.transformer_class_name}'."
-            raise ImportError(
-                msg
-            ) from err
+            raise ImportError(msg) from err
 
-    def _transform_one(self, study: str, harvested: CBioPortalHarvestedData) -> pd.DataFrame:
+    def _transform_one(
+        self, study: str, harvested: CBioPortalHarvestedData
+    ) -> pd.DataFrame:
         # Set current study for genome build lookup
         self.current_study = study
         genome_build = self.study_genome_build.get(study, DEFAULT_GENOME_BUILD)
@@ -758,7 +762,7 @@ class CBioPortalTransformerBase(Transformer):
         logger.info("Adding AGE_TERM classifications for study: %s", study)
         if "AGE" in df.columns:
             # Convert AGE to numeric, handling any non-numeric values
-            df["AGE"] = pd.to_numeric(df["AGE"], errors='coerce')
+            df["AGE"] = pd.to_numeric(df["AGE"], errors="coerce")
 
             # Age range cutoffs (in years)
             _age_congenital_max = 0.07
@@ -775,9 +779,15 @@ class CBioPortalTransformerBase(Transformer):
                 return "Adult"
 
             df["AGE_TERM"] = df["AGE"].apply(classify_age)
-            logger.info("[%s] AGE_TERM distribution: %s", study, df["AGE_TERM"].value_counts().to_dict())
+            logger.info(
+                "[%s] AGE_TERM distribution: %s",
+                study,
+                df["AGE_TERM"].value_counts().to_dict(),
+            )
         else:
-            logger.warning("[%s] No AGE column found; setting AGE_TERM to 'Unknown'", study)
+            logger.warning(
+                "[%s] No AGE column found; setting AGE_TERM to 'Unknown'", study
+            )
             df["AGE_TERM"] = "Unknown"
 
         # Harmonize ETHNICITY column
@@ -790,28 +800,21 @@ class CBioPortalTransformerBase(Transformer):
                 "White/Europe": "White",
                 "White/Latin America": "White",
                 "White/North Africa": "White",
-
                 # Black/African
                 "African": "Black or African American",
                 "Black": "Black or African American",
                 "Black/Sub-Saharan Africa": "Black or African American",
-
                 # Asian
                 "EastAsian": "Asian",
                 "Asian Indian": "Asian",
-
                 # South Asian or Hispanic (Option A - combined category)
                 "SouthAsianOrHispanic": "Asian or Hispanic",
-
                 # Hispanic/Latino
                 "Hispanic": "Hispanic or Latino",
-
                 # Pacific Islander
                 "Native Hawaiian or other Pacific Islander": "Native Hawaiian or Pacific Islander",
-
                 # Native American
                 "American Indian or Alaska Native": "American Indian or Alaska Native",
-
                 # Mixed/Other/Unknown -> No_Data
                 "Mixed_or_Unknown": "Other or Mixed",
                 "Other": "Other or Mixed",
@@ -829,10 +832,16 @@ class CBioPortalTransformerBase(Transformer):
             df["ETHNICITY_HARMONIZED"] = df["ETHNICITY"].replace(ethnicity_mapping)
 
             # Log the harmonized distribution
-            logger.info("[%s] ETHNICITY_HARMONIZED distribution: %s",
-                       study, df["ETHNICITY_HARMONIZED"].value_counts().to_dict())
+            logger.info(
+                "[%s] ETHNICITY_HARMONIZED distribution: %s",
+                study,
+                df["ETHNICITY_HARMONIZED"].value_counts().to_dict(),
+            )
         else:
-            logger.warning("[%s] No ETHNICITY column found; setting ETHNICITY_HARMONIZED to 'No_Data'", study)
+            logger.warning(
+                "[%s] No ETHNICITY column found; setting ETHNICITY_HARMONIZED to 'No_Data'",
+                study,
+            )
             df["ETHNICITY_ORIGINAL"] = "No_Data"
             df["ETHNICITY_HARMONIZED"] = "No_Data"
 
@@ -874,9 +883,7 @@ class CBioPortalTransformerBase(Transformer):
         """
         if not isinstance(harvested, dict):
             msg = "run_transformers() requires a dict:  {study: harvested_data}"
-            raise TypeError(
-                msg
-            )
+            raise TypeError(msg)
 
         # -----------------------------------------
         # Output directory (define ONCE, BEFORE loop)
@@ -952,9 +959,7 @@ class CBioPortalTransformerBase(Transformer):
             self.frequency_results_by_study[study_id] = freq_results
 
             # Write per-study frequency JSON
-            self._write_frequency_results_json(
-                study_id, freq_results, frequencies_dir
-            )
+            self._write_frequency_results_json(study_id, freq_results, frequencies_dir)
 
         # Write merged frequency results
         merged_freq_out_path = frequencies_dir / "frequency_results_all_studies.json"
@@ -974,7 +979,6 @@ class CBioPortalTransformerBase(Transformer):
             "ETHNICITY", pd.Series(pd.NA, index=eth_df.index)
         )
         eth_df["ETHNICITY"] = eth_df["ETHNICITY"].replace("", pd.NA).fillna("Unknown")
-
 
         # -----------------------------------------
         # AGE bucket counts: rows=STUDY_ID, cols=AGE_RANGE
@@ -1007,7 +1011,6 @@ class CBioPortalTransformerBase(Transformer):
             age_df["AGE_RANGE"].cat.add_categories(["Unknown"]).fillna("Unknown")
         )
 
-
         # -----------------------------------------
         # Failed normalizations CSVs
         # -----------------------------------------
@@ -1015,20 +1018,26 @@ class CBioPortalTransformerBase(Transformer):
             failed_genes_df = pd.DataFrame(self.failed_genes)
 
             # Write combined file with all studies
-            combined_genes_path = norm_failures_dir / "combined_failed_gene_normalizations.csv"
+            combined_genes_path = (
+                norm_failures_dir / "combined_failed_gene_normalizations.csv"
+            )
             failed_genes_df.to_csv(combined_genes_path, index=False)
 
             # Write per-study files
             for study_id in failed_genes_df["study_id"].unique():
                 study_genes = failed_genes_df[failed_genes_df["study_id"] == study_id]
-                failed_genes_path = norm_failures_dir / f"{study_id}_failed_gene_normalizations.csv"
+                failed_genes_path = (
+                    norm_failures_dir / f"{study_id}_failed_gene_normalizations.csv"
+                )
                 study_genes.to_csv(failed_genes_path, index=False)
 
         if self.failed_variants:
             failed_variants_df = pd.DataFrame(self.failed_variants)
 
             # Write combined file with all studies
-            combined_variants_path = norm_failures_dir / "combined_failed_variant_normalizations.csv"
+            combined_variants_path = (
+                norm_failures_dir / "combined_failed_variant_normalizations.csv"
+            )
             failed_variants_df.to_csv(combined_variants_path, index=False)
 
             # Write per-study files
@@ -1036,7 +1045,9 @@ class CBioPortalTransformerBase(Transformer):
                 study_variants = failed_variants_df[
                     failed_variants_df["study_id"] == study_id
                 ]
-                failed_variants_path = norm_failures_dir / f"{study_id}_failed_variant_normalizations.csv"
+                failed_variants_path = (
+                    norm_failures_dir / f"{study_id}_failed_variant_normalizations.csv"
+                )
                 study_variants.to_csv(failed_variants_path, index=False)
 
         # -----------------------------------------
@@ -1046,8 +1057,6 @@ class CBioPortalTransformerBase(Transformer):
         combined.to_csv(output_path, index=False)
 
         return combined
-
-
 
     # ====================
     # Static utility methods for study transformers
@@ -1079,12 +1088,15 @@ class CBioPortalTransformerBase(Transformer):
     def filter_and_rename_variants(
         variants_df: pd.DataFrame,
         mut_headers: list[str],
-        amino_acid_change_source: str | None = None
+        amino_acid_change_source: str | None = None,
     ) -> pd.DataFrame:
         """Filter variant columns and perform common transformations."""
         # Keep Sequence_Source from mutations if it exists, even if not in mut_headers
         keep_cols = list(mut_headers)
-        if "Sequence_Source" in variants_df.columns and "Sequence_Source" not in keep_cols:
+        if (
+            "Sequence_Source" in variants_df.columns
+            and "Sequence_Source" not in keep_cols
+        ):
             keep_cols.append("Sequence_Source")
 
         df = variants_df.filter(keep_cols)
@@ -1104,7 +1116,7 @@ class CBioPortalTransformerBase(Transformer):
         patients_df: pd.DataFrame,
         patient_headers: list[str],
         ethnicity_source: str = "RACE",
-        age_source: str | None = None
+        age_source: str | None = None,
     ) -> pd.DataFrame:
         """Filter patient columns and perform common transformations."""
         df = patients_df.filter(patient_headers)
@@ -1174,10 +1186,7 @@ class CBioPortalTransformerBase(Transformer):
 
     @staticmethod
     def handle_duplicates(
-        df: pd.DataFrame,
-        study: str,
-        save_loc: Path,
-        df_type: str
+        df: pd.DataFrame, study: str, save_loc: Path, df_type: str
     ) -> pd.DataFrame:
         """Check for and handle duplicates in a DataFrame."""
         num_duplicates = df.duplicated().sum()
@@ -1186,7 +1195,9 @@ class CBioPortalTransformerBase(Transformer):
             dupes = df[df.duplicated(keep=False)]
             file_path = save_loc / f"{study}_{df_type}_dupes.csv"
             dupes.to_csv(file_path, index=False)
-            logger.info("Saved %s %s duplicates to %s", num_duplicates, df_type, file_path)
+            logger.info(
+                "Saved %s %s duplicates to %s", num_duplicates, df_type, file_path
+            )
             df = df.drop_duplicates()
 
         return df
@@ -1197,7 +1208,7 @@ class CBioPortalTransformerBase(Transformer):
         samples: pd.DataFrame,
         patients: pd.DataFrame,
         metadata: pd.DataFrame,
-        study_id_override: str | None = None
+        study_id_override: str | None = None,
     ) -> pd.DataFrame:
         """Combine variant, sample, and patient dataframes."""
         init_combined_df = variants.merge(samples, on="SAMPLE_ID", how="left")
@@ -1224,19 +1235,21 @@ class CBioPortalTransformerBase(Transformer):
 
     @staticmethod
     def remove_patient_variant_duplicates(
-        df: pd.DataFrame,
-        study: str,
-        save_loc: Path
+        df: pd.DataFrame, study: str, save_loc: Path
     ) -> pd.DataFrame:
         """Remove duplicate variants per patient."""
-        dupe_mask = df.duplicated(subset=["PATIENT_ID", "Gnomad_Notation"], keep="first")
+        dupe_mask = df.duplicated(
+            subset=["PATIENT_ID", "Gnomad_Notation"], keep="first"
+        )
         patient_variant_dupes = df[dupe_mask]
         final_df = df[~dupe_mask]
 
         if len(patient_variant_dupes) > 0:
             file_path = save_loc / f"{study}_patient_variant_dupes.csv"
             patient_variant_dupes.to_csv(file_path, index=False)
-            logger.info("Removed %s patient-variant duplicates", len(patient_variant_dupes))
+            logger.info(
+                "Removed %s patient-variant duplicates", len(patient_variant_dupes)
+            )
 
         return final_df
 
@@ -1247,11 +1260,7 @@ class CBioPortalTransformerBase(Transformer):
         return df.replace(r"^\s*$", pd.NA, regex=True).fillna("No_Data")
 
     @staticmethod
-    def save_study_outputs(
-        df: pd.DataFrame,
-        study: str,
-        save_loc: Path
-    ) -> None:
+    def save_study_outputs(df: pd.DataFrame, study: str, save_loc: Path) -> None:
         """Save final study outputs to CSV files."""
         file_path = save_loc / f"{study}_df_premerge.csv"
         df.to_csv(file_path, index=False)
@@ -1328,9 +1337,15 @@ class CBioPortalStudyTransformer(Transformer):
         save_loc = CBioPortalTransformerBase.setup_save_location(study)
 
         # Extract data
-        self.variants = pd.DataFrame(harvested_data.variants).filter(self.get_mut_headers())
-        self.patients = pd.DataFrame(harvested_data.patients).filter(self.get_patient_headers())
-        self.samples = pd.DataFrame(harvested_data.samples).filter(self.get_sample_headers())
+        self.variants = pd.DataFrame(harvested_data.variants).filter(
+            self.get_mut_headers()
+        )
+        self.patients = pd.DataFrame(harvested_data.patients).filter(
+            self.get_patient_headers()
+        )
+        self.samples = pd.DataFrame(harvested_data.samples).filter(
+            self.get_sample_headers()
+        )
         self.metadata = pd.DataFrame(harvested_data.metadata)
 
         # Process variants
@@ -1338,7 +1353,7 @@ class CBioPortalStudyTransformer(Transformer):
         self.variants = CBioPortalTransformerBase.filter_and_rename_variants(
             self.variants,
             self.get_mut_headers(),
-            amino_acid_change_source=variant_transforms.get("amino_acid_change_source")
+            amino_acid_change_source=variant_transforms.get("amino_acid_change_source"),
         )
 
         if "center_value" in variant_transforms:
@@ -1357,7 +1372,7 @@ class CBioPortalStudyTransformer(Transformer):
             self.patients,
             self.get_patient_headers(),
             ethnicity_source=patient_transforms.get("ethnicity_source", "RACE"),
-            age_source=patient_transforms.get("age_source")
+            age_source=patient_transforms.get("age_source"),
         )
 
         # Process samples
