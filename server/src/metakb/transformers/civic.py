@@ -10,6 +10,7 @@ from civicpy.exports.civic_gks_record import (
     create_gks_record_from_assertion,
 )
 from ga4gh.cat_vrs.models import CategoricalVariant
+from ga4gh.core.models import iriReference
 from ga4gh.va_spec.base import (
     ConditionSet,
     Document,
@@ -225,11 +226,18 @@ class CivicTransformer(Transformer):
                         self._civic_claim_to_statement(i)
                         for i in ev_line.hasEvidenceItems
                     ]
-            assertion_ref = Document(urls=[item.site_link])
-            if statement.reportedIn:
-                statement.reportedIn.append(assertion_ref)
-            else:
-                statement.reportedIn = [assertion_ref]
+            reported_in = []
+            for doc in statement.reportedIn:
+                if isinstance(doc, iriReference) and doc.root.startswith(
+                    "https://civicdb.org"
+                ):
+                    reported_in.append(
+                        Document(id=doc.root, name=statement.id, urls=[doc.root])
+                    )
+                else:
+                    reported_in.append(doc)
+
+            statement.reportedIn = reported_in
 
         return statement
 

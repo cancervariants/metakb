@@ -584,6 +584,8 @@ def load_cdm(
         version = _retrieve_s3_cdms() if from_s3 else "*"
 
         for src in sorted([s.value for s in SourceName]):
+            if src in {SourceName.CBIOPORTAL, SourceName.FDA_PODA}:
+                continue  # TODO implement in respective GH issues: #729, #728
             pattern = f"{src}_cdm_{version}.json"
             globbed = (get_config().data_dir / src / "transformers").glob(pattern)
 
