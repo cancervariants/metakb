@@ -1,0 +1,56 @@
+"""Transformer for the all_stjude_2016 cBioPortal study."""
+
+from metakb.transformers.cbioportal.base import cBioportalStudyTransformer
+
+MUT_HEADERS = [
+    "Hugo_Symbol",
+    "Entrez_Gene_Id",
+    "Center",
+    "NCBI_Build",
+    "Chromosome",
+    "Start_Position",
+    "End_Position",
+    "Consequence",
+    "Variant_Classification",
+    "Variant_Type",
+    "Reference_Allele",
+    "Tumor_Seq_Allele2",
+    "Tumor_Sample_Barcode",
+    "Sequence_Source",
+    "HGVSc",
+    "HGVSp",
+    "HGVSp_Short",
+    "Transcript_ID",
+    "RefSeq",
+    "Protein_position",
+    "Codons",
+    "Amino_Acid_Change",
+]
+
+PATIENT_HEADERS = ["PATIENT_ID", "AGE", "SEX", "RACE"]
+
+SAMPLE_HEADERS = [
+    "PATIENT_ID",
+    "SAMPLE_ID",
+    "SAMPLE_CLASS",
+    "ONCOTREE_CODE",
+    "CANCER_TYPE",
+    "CANCER_TYPE_DETAILED",
+    "TMB_NONSYNONYMOUS",
+]
+
+
+class cBioportalTransformer(cBioportalStudyTransformer):
+    """Transformer for all_phase2_target_2018_pub study."""
+
+    def get_study_name(self) -> str:
+        return "all_phase2_target_2018_pub"
+
+    def get_mut_headers(self) -> list[str]:
+        return MUT_HEADERS
+
+    def get_patient_headers(self) -> list[str]:
+        return PATIENT_HEADERS
+
+    def get_sample_headers(self) -> list[str]:
+        return SAMPLE_HEADERS
