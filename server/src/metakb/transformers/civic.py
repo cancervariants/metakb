@@ -675,7 +675,8 @@ class CivicTransformer(Transformer):
         )
         return cat_vrs_cls(
             **molecular_profile.model_dump(
-                exclude_none=True, exclude={"members", "constraints", "extensions"}
+                exclude_none=True,
+                exclude={"members", "constraints", "extensions"},
             ),
             members=members,
             constraints=constraints,

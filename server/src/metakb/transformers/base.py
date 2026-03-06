@@ -530,10 +530,98 @@ class Transformer(ABC):
                 merged_mappings.append(updated_mapping)
         return merged_mappings
 
+    def get_normalized_protein_consequence_name(self, allele: Allele) -> str:
+        """Return normalized protein consequence name for a VRS Allele.
+
+        The output format is ``"<gene name> <REF><POS><ALT>"``.
+
+        :param allele: VRS Allele
+        :raises ValueError: If allele does not appear to be on a protein sequence, or
+            if a gene association cannot be determined
+        :raises NotImplementedError: If normalization for this allele is unsupported.
+            For now, this includes alleles lacking ``location.sequence`` and edit types
+            where ``len(location.sequence) != len(state.sequence)``.
+        :return: Normalized protein consequence string
+        """
+        location_seq = allele.location.sequence
+        if location_seq is None:
+            msg = (
+                "Protein consequence normalization requires location.sequence to be "
+                "present on the input allele."
+            )
+            raise NotImplementedError(msg)
+
+        ref = getattr(location_seq, "root", location_seq)
+        if not hasattr(allele.state, "sequence"):
+            msg = (
+                "Protein consequence normalization currently supports sequence-based "
+                "Allele states only."
+            )
+            raise NotImplementedError(msg)
+        alt = getattr(allele.state.sequence, "root", allele.state.sequence)
+        if len(ref) != len(alt):
+            msg = (
+                "Protein consequence normalization currently supports SNP-like edits "
+                "only (equal ref/alt lengths)."
+            )
+            raise NotImplementedError(msg)
+
+        seqrepo_access = self.vicc_normalizers.variation_normalizer.seqrepo_access
+        refget_accession = getattr(
+            allele.location.sequenceReference.refgetAccession,
+            "root",
+            allele.location.sequenceReference.refgetAccession,
+        )
+        alias_candidates: set[str] = set()
+        for query in (f"ga4gh:{refget_accession}", refget_accession):
+            aliases, _ = seqrepo_access.translate_alias(query)
+            alias_candidates.update(aliases)
+            identifiers, _ = seqrepo_access.translate_identifier(query)
+            alias_candidates.update(identifiers)
+
+        def _is_protein_alias(alias: str) -> bool:
+            if seqrepo_access.extract_sequence_type(alias) == "p":
+                return True
+            accession = alias.split(":", 1)[1] if ":" in alias else alias
+            return accession.startswith(("NP_", "XP_", "ENSP"))
+
+        protein_aliases = [
+            alias for alias in alias_candidates if _is_protein_alias(alias)
+        ]
+        if not protein_aliases:
+            msg = (
+                f"Allele {allele.id} sequence reference {refget_accession} is not a "
+                "protein sequence."
+            )
+            raise ValueError(msg)
+
+        gene_name = None
+        transcript_mappings = self.vicc_normalizers.variation_normalizer.gnomad_vcf_to_protein_handler.mane_transcript.transcript_mappings
+        for protein_alias in protein_aliases:
+            accession = (
+                protein_alias.split(":", 1)[1]
+                if ":" in protein_alias
+                else protein_alias
+            )
+            gene_symbol = transcript_mappings.get_gene_symbol_from_refeq_protein(
+                accession
+            ) or transcript_mappings.get_gene_symbol_from_ensembl_protein(accession)
+            if gene_symbol:
+                gene_name = gene_symbol
+                break
+
+        if not gene_name:
+            msg = f"Unable to determine gene association for allele {allele.id}"
+            raise ValueError(msg)
+
+        # VRS SequenceLocation uses inter-residue coordinates, so convert to residue.
+        pos = allele.location.start + 1
+        return f"{gene_name} {ref}{pos}{alt}"
+
     def create_json(self, cdm_filepath: Path | None = None) -> None:
         """Create a composite JSON for transformed data.
 
-        :param cdm_filepath: Path to the JSON file locatio at which the CDM output will be
+        :param cdm_filepath: Path to the JSON file location at which the CDM output will be
             saved. If not provided, will use the default path of
             ``<METAKB_DATA_DIR>/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``,
             where ``<METAKB_DATA_DIR>`` is the configurable data root directory.

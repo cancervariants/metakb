@@ -2,6 +2,7 @@
 
 import logging
 from collections.abc import Iterable
+from dataclasses import dataclass
 from enum import Enum
 from os import environ
 
@@ -34,8 +35,10 @@ __all__ = [
     "NORMALIZER_AWS_ENV_VARS",
     "IllegalUpdateError",
     "NormalizerName",
+    "VariationRuntimeProbeResult",
     "ViccNormalizers",
     "check_normalizers",
+    "probe_variation_normalizer_runtime",
     "update_normalizer",
 ]
 
@@ -252,6 +255,51 @@ class ViccNormalizers:
                 )[-1]
 
         return normalizer_resp, normalized_id
+
+
+@dataclass
+class VariationRuntimeProbeResult:
+    """Define result model for variation-normalizer runtime probes."""
+
+    variation_found: bool
+    warnings: list[str] | None
+    error: Exception | None = None
+
+
+async def probe_variation_normalizer_runtime(
+    normalizers: ViccNormalizers, query: str = "BRAF V600E"
+) -> VariationRuntimeProbeResult:
+    """Probe variation-normalizer runtime readiness for a query.
+
+    This helper intentionally does not suppress exceptions so callers can present targeted diagnostics.
+
+    :param normalizers: initialized normalizer container
+    :param query: variation query to test
+    :return: probe result with variation/warnings data or captured exception
+    """
+    try:
+        variation_norm_resp = (
+            await normalizers.variation_normalizer.normalize_handler.normalize(query)
+        )
+    except Exception as e:
+        return VariationRuntimeProbeResult(
+            variation_found=False, warnings=None, error=e
+        )
+
+    variation = (
+        variation_norm_resp.variation
+        if hasattr(variation_norm_resp, "variation")
+        else None
+    )
+    warnings = (
+        variation_norm_resp.warnings
+        if hasattr(variation_norm_resp, "warnings")
+        else None
+    )
+    return VariationRuntimeProbeResult(
+        variation_found=variation is not None,
+        warnings=warnings,
+    )
 
 
 class NormalizerName(str, Enum):

@@ -2,15 +2,6 @@
 
 from metakb.transformers.cbioportal.base import CBioPortalStudyTransformer
 
-environ["AWS_ACCESS_KEY_ID"] = "dummy"
-environ["AWS_SECRET_ACCESS_KEY"] = "dummy"  # noqa: S105
-environ["AWS_SESSION_TOKEN"] = "dummy"  # noqa: S105
-
-import logging
-
-_logger = logging.getLogger(__name__)
-
-
 MUT_HEADERS = [
     "Hugo_Symbol",
     "Entrez_Gene_Id",
