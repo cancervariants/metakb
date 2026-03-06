@@ -1,6 +1,6 @@
 """Transformer for the all_stjude_2016 cBioPortal study."""
 
-from metakb.transformers.cbioportal.base import cBioportalStudyTransformer
+from metakb.transformers.cbioportal.base import CBioPortalStudyTransformer
 
 MUT_HEADERS = [
     "Hugo_Symbol",
@@ -40,7 +40,7 @@ SAMPLE_HEADERS = [
 ]
 
 
-class cBioportalTransformer(cBioportalStudyTransformer):
+class CBioPortalTransformer(CBioPortalStudyTransformer):
     """Transformer for all_phase2_target_2018_pub study."""
 
     def get_study_name(self) -> str:
