@@ -1,7 +1,5 @@
 """Transformer for the all_stjude_2015 cBioPortal study."""
 
-from os import environ
-
 from metakb.transformers.cbioportal.base import CBioPortalStudyTransformer
 
 environ["AWS_ACCESS_KEY_ID"] = "dummy"

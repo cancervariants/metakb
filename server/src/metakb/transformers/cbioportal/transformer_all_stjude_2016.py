@@ -1,7 +1,5 @@
 """Transformer for the all_stjude_2016 cBioPortal study."""
 
-from os import environ
-
 environ["AWS_ACCESS_KEY_ID"] = "dummy"
 environ["AWS_SECRET_ACCESS_KEY"] = "dummy"  # noqa: S105
 environ["AWS_SESSION_TOKEN"] = "dummy"  # noqa: S105
