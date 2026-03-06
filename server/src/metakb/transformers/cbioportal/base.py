@@ -58,9 +58,7 @@ STUDY_TO_MODULE = {
 # Map study → genome build
 # Default is GRCh37, only specify exceptions
 # -----------------------------
-STUDY_GENOME_BUILD = {
-    "pancan_mappyacts_2022": "GRCh38",
-}
+STUDY_GENOME_BUILD = {"pancan_mappyacts_2022": "GRCh38"}
 
 DEFAULT_GENOME_BUILD = "GRCh37"
 
@@ -1219,7 +1217,9 @@ class CBioPortalTransformerBase(Transformer):
     def add_gnomad_notation(df: pd.DataFrame) -> pd.DataFrame:
         """Add Gnomad variant notation column."""
         df["Gnomad_Notation"] = df.apply(
-            lambda row: f"{row['Chromosome']}-{row['Start_Position']}-{row['Reference_Allele']}-{row['Tumor_Seq_Allele2']}",
+            lambda row: (
+                f"{row['Chromosome']}-{row['Start_Position']}-{row['Reference_Allele']}-{row['Tumor_Seq_Allele2']}"
+            ),
             axis=1,
         )
         return df
