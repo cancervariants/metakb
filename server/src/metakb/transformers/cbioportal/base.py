@@ -145,7 +145,7 @@ class CBioPortalTransformerBase(Transformer):
     #  Gene-mapping utilities (instance methods)
     # ======================================================
 
-    def _get_entrez_id(self, norm_response) -> str | None:
+    def _get_entrez_id(self, norm_response: object) -> str | None:
         """Extract NCBI Entrez Gene ID from VICC normalizer response mappings."""
         if not norm_response:
             return None
@@ -157,7 +157,7 @@ class CBioPortalTransformerBase(Transformer):
         except AttributeError:
             pass
         return None
-    
+
     def _get_exact_gene_mappings(
         self, hgnc_id: str | None, gene_symbol: str
     ) -> list[ConceptMapping]:
@@ -214,7 +214,7 @@ class CBioPortalTransformerBase(Transformer):
         # Ensure columns exist to store HGNC and Entrez IDs resolved from the normalizer
         if "gene_hgnc_id" not in df.columns:
             df["gene_hgnc_id"] = pd.NA
-        
+
         if "Entrez_Gene_Id" not in df.columns:
             df["Entrez_Gene_Id"] = pd.NA
 
@@ -279,7 +279,7 @@ class CBioPortalTransformerBase(Transformer):
 
             if hgnc_numeric:
                 df.loc[df["Hugo_Symbol"] == symbol, "gene_hgnc_id"] = hgnc_numeric
-            
+
             # get entrez id
             entrez_id = self._get_entrez_id(norm_response)
             if entrez_id:
@@ -566,7 +566,7 @@ class CBioPortalTransformerBase(Transformer):
         results = []
         variant_groups = df.groupby("Gnomad_Notation")
 
-        for variant, group in variant_groups:
+        for _variant, group in variant_groups:
             first_row = group.iloc[0]
             vrs_id = first_row.get("vrs_id")
             if pd.isna(vrs_id) or not vrs_id:
