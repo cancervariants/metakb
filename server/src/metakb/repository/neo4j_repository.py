@@ -599,10 +599,6 @@ class Neo4jRepository(AbstractRepository):
                     self._get_statement_node_from_result(item)
                     for item in record_line["evidence_items"]
                 ],
-                # has_evidence_items=[
-                #     self._get_evidence_line_statement_node(statement_id)
-                #     for statement_id in record_line["evidence_item_ids"]
-                # ],
                 strength_of_evidence_provided=record_line[
                     "strength_of_evidence_provided"
                 ],

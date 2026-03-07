@@ -4,6 +4,7 @@ import json
 import logging
 from pathlib import Path
 
+import asyncclick as click
 from ga4gh.va_spec.base import Statement
 from tqdm import tqdm
 
@@ -84,7 +85,9 @@ def add_statement(statement: Statement, repository: AbstractRepository) -> None:
     repository.load_statement(statement)
 
 
-def load_from_json(src_transformed_cdm: Path, repository: AbstractRepository) -> None:
+def load_from_json(
+    src_transformed_cdm: Path, repository: AbstractRepository, silent: bool = True
+) -> None:
     """Load evidence into DB from given CDM JSON file.
 
     Iterate through the provided statements. If a statement looks like a MetaKB assertion,
@@ -97,13 +100,16 @@ def load_from_json(src_transformed_cdm: Path, repository: AbstractRepository) ->
         common data model containing statements, variation, therapies, conditions,
         genes, methods, documents, etc.
     :param repository: data repository instance
+    :param silent: whether to suppress printing to console
     """
     _logger.info("Loading data from %s", src_transformed_cdm)
+    if not silent:
+        click.echo(f"Loading {src_transformed_cdm}")
     with src_transformed_cdm.open() as f:
         dumped_data = json.load(f)
         statements = [Statement(**i) for i in dumped_data.get("statements", [])]
         loaded_stmt_count = 0
-        for statement in tqdm(statements):
+        for statement in tqdm(statements, disable=silent):
             if not is_loadable_assertion(statement):
                 continue
             add_statement(statement, repository)

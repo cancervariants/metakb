@@ -579,7 +579,7 @@ def load_cdm(
 
     if cdm_files:
         for file in cdm_files:
-            load_from_json(file, repository)
+            load_from_json(file, repository, silent=False)
     else:
         version = _retrieve_s3_cdms() if from_s3 else "*"
 
@@ -595,7 +595,7 @@ def load_cdm(
                 msg = f"No valid transformation file found matching pattern: {pattern}"
                 raise FileNotFoundError(msg) from e
 
-            load_from_json(path, repository)
+            load_from_json(path, repository, silent=False)
 
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
