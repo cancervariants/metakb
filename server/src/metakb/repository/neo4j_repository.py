@@ -513,21 +513,10 @@ class Neo4jRepository(AbstractRepository):
         :param statement_id: ID of the statement minted by the source
         :return: complete statement if available
         """
-        results = self.session.execute_read(
-            lambda tx, **kwargs: list(
-                tx.run(queries_catalog.search_statements(), **kwargs)
-            ),
-            variation_ids=[],
-            therapy_ids=[],
-            condition_ids=[],
-            gene_ids=[],
-            statement_ids=[statement_id],
-            start=0,
-            limit=1,
-        )
-        if not results:
+        result = self._execute_search_statements(statement_ids=[statement_id])
+        if not result:
             return None
-        processed_results = self._get_statements_from_results(results)
+        processed_results = self._get_statements_from_results(result)
         if len(processed_results) != 1:
             _logger.error(
                 "Unexpected quantity of statements in processed results list: %s",
@@ -655,41 +644,6 @@ class Neo4jRepository(AbstractRepository):
                 msg = f"Unrecognized statement node: {record['s']}"
                 raise ValueError(msg)
         return statement
-
-    def _get_evidence_line_statement_node(
-        self, statement_id: str
-    ) -> (
-        TherapeuticResponseStatementNode
-        | DiagnosticStatementNode
-        | PrognosticStatementNode
-        | None
-    ):
-        """Get the DB node model for a statement ID, to be attached to an Evidence Line.
-
-        This gives us a single level of recursion for statements that are supported by
-        evidence lines.
-
-        :param statement_id: ID of statement to fetch
-        :return: Node model containing all parts of the statement
-        """
-        result = self.session.execute_read(
-            lambda tx, **kwargs: list(
-                tx.run(queries_catalog.search_statements(), **kwargs)
-            ),
-            variation_ids=[],
-            therapy_ids=[],
-            condition_ids=[],
-            gene_ids=[],
-            statement_ids=[statement_id],
-            start=0,
-            limit=9999,
-        )
-        if len(result) == 0:
-            return None
-        if len(result) >= 2:  # noqa: PLR2004
-            # should be impossible due to uniqueness constraint, how to log?
-            raise RuntimeError
-        return self._get_statement_node_from_result(result[0])
 
     def _get_statements_from_results(self, records: list[Record]) -> list[Statement]:
         """Craft a list of GKS-compliant Statement objects given the results of a Neo4j cypher lookup
