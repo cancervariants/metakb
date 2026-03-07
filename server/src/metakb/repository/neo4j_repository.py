@@ -563,7 +563,7 @@ class Neo4jRepository(AbstractRepository):
                 has_feature_context=feature_context_node, **record["constraint"]
             )
         else:
-            raise ValueError
+            constraint_node = None
         member_nodes = [
             self._make_allele_node(m["allele"], m["location"], m["state"])
             for m in record["members"]
@@ -596,9 +596,13 @@ class Neo4jRepository(AbstractRepository):
                 id=record_line["direction"],
                 direction=record_line["direction"],
                 has_evidence_items=[
-                    self._get_evidence_line_statement_node(statement_id)
-                    for statement_id in record_line["evidence_item_ids"]
+                    self._get_statement_node_from_result(item)
+                    for item in record_line["evidence_items"]
                 ],
+                # has_evidence_items=[
+                #     self._get_evidence_line_statement_node(statement_id)
+                #     for statement_id in record_line["evidence_item_ids"]
+                # ],
                 strength_of_evidence_provided=record_line[
                     "strength_of_evidence_provided"
                 ],
@@ -707,6 +711,73 @@ class Neo4jRepository(AbstractRepository):
             statements.append(statement.to_gks())
         return statements
 
+    def _execute_search_statements(
+        self,
+        variation_ids: list[str] | None = None,
+        gene_ids: list[str] | None = None,
+        therapy_ids: list[str] | None = None,
+        disease_ids: list[str] | None = None,
+        statement_ids: list[str] | None = None,
+        start: int = 0,
+        limit: int | None = None,
+    ) -> list[Record]:
+        """Execute a statements search query and return raw Neo4j records
+
+        This is refactored into an independent function because it needs to be recursive;
+        since statements can contain statements, we need to execute a new query for each
+        level of the tree. The awkward double-loop through `result` is because it lets
+        us run a single query for all statements at a single level of the tree, rather than
+        sending a new query to the DB for every branch.
+
+        :param variation_ids: list of normalized variation IDs
+        :param gene_ids: list of normalized gene IDs
+        :param therapy_ids: list of normalized therapy IDs
+        :param disease_ids: list of normalized disease IDs
+        :param statement_ids: list of source statement IDs
+        :param start: pagination start point
+        :param limit: page size
+        :return: list of neo4j result records
+        """
+        if limit is None:
+            limit = CYPHER_PAGE_LIMIT
+
+        # IDs args MUST be lists -- can't be null or the Cypher query will error out
+        result = self.session.execute_read(
+            lambda tx, **kwargs: list(
+                tx.run(queries_catalog.search_statements(), **kwargs)
+            ),
+            statement_ids=statement_ids or [],
+            variation_ids=variation_ids or [],
+            condition_ids=disease_ids or [],
+            gene_ids=gene_ids or [],
+            therapy_ids=therapy_ids or [],
+            start=start,
+            limit=limit,
+        )
+
+        # get all child evidence item ids
+        ev_item_ids = []
+        for row in result:
+            for ev_line in row.get("evidence_lines", []):
+                ev_item_ids.extend(ev_line["evidence_item_ids"])
+
+        if ev_item_ids:
+            # fetch corresponding statements
+            child_result_map = {
+                r["s"]["id"]: r
+                for r in self._execute_search_statements(statement_ids=ev_item_ids)
+            }
+
+            # plug them back into the right evidence lines
+            for row in result:
+                for ev_line in row["evidence_lines"]:
+                    ev_line_items = []
+                    for ev_id in ev_line["evidence_item_ids"]:
+                        ev_line_items.append(child_result_map[ev_id])  # noqa: PERF401
+                    ev_line["evidence_items"] = ev_line_items
+
+        return result
+
     def search_statements(
         self,
         variation_ids: list[str] | None = None,
@@ -744,20 +815,14 @@ class Neo4jRepository(AbstractRepository):
         :param limit: page size
         :return: list of statements matching provided criteria
         """
-        if limit is None:
-            limit = CYPHER_PAGE_LIMIT
-        # IDs args MUST be lists -- can't be null or the Cypher query will error out
-        result = self.session.execute_read(
-            lambda tx, **kwargs: list(
-                tx.run(queries_catalog.search_statements(), **kwargs)
-            ),
-            statement_ids=statement_ids or [],
-            variation_ids=variation_ids or [],
-            condition_ids=disease_ids or [],
-            gene_ids=gene_ids or [],
-            therapy_ids=therapy_ids or [],
-            start=start,
-            limit=limit,
+        result = self._execute_search_statements(
+            variation_ids,
+            gene_ids,
+            therapy_ids,
+            disease_ids,
+            statement_ids,
+            start,
+            limit,
         )
         return self._get_statements_from_results(result)
 
