@@ -1,7 +1,7 @@
 {
   "statements": [
     {
-      "id": "metakb.assertion:F-6C4CgAIyw3cf2zdxRVOVfe3L1GbHqa",
+      "id": "metakb.assertion:WRdtjMzgdMFsPX2i4MgN-BTFz_C3ITZQ",
       "type": "Statement",
       "specifiedBy": {
         "id": "metakb.method:2026",
@@ -18,31 +18,31 @@
       "proposition": {
         "type": "VariantTherapeuticResponseProposition",
         "subjectVariant": {
-          "id": "metakb.cv:PSQ.VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
+          "id": "metakb.cv:PSQ.VA.sMA9h8fzDi0RvweMlxtD0_Oi8B-JZ1V-",
           "type": "CategoricalVariant",
-          "name": "ABL1 T315I",
+          "name": "EGFR T790M",
           "constraints": [
             {
               "type": "DefiningAlleleConstraint",
               "allele": {
-                "id": "ga4gh:VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
+                "id": "ga4gh:VA.sMA9h8fzDi0RvweMlxtD0_Oi8B-JZ1V-",
                 "type": "Allele",
-                "digest": "D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ",
+                "digest": "sMA9h8fzDi0RvweMlxtD0_Oi8B-JZ1V-",
                 "location": {
-                  "id": "ga4gh:SL.jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
+                  "id": "ga4gh:SL.UOSDv-_5QNbKqgbCf--isFjvNZ5ZST09",
                   "type": "SequenceLocation",
-                  "digest": "jGElwyBPYNWI-BkFFHKfgLJynt9zuNPs",
+                  "digest": "UOSDv-_5QNbKqgbCf--isFjvNZ5ZST09",
                   "sequenceReference": {
                     "type": "SequenceReference",
-                    "refgetAccession": "SQ.dmFigTG-0fY6I54swb7PoDuxCeT6O3Wg"
+                    "refgetAccession": "SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE"
                   },
-                  "start": 314,
-                  "end": 315,
+                  "start": 789,
+                  "end": 790,
                   "sequence": "T"
                 },
                 "state": {
                   "type": "LiteralSequenceExpression",
-                  "sequence": "I"
+                  "sequence": "M"
                 }
               },
               "relations": [
@@ -63,37 +63,43 @@
           ]
         },
         "geneContextQualifier": {
-          "id": "normalize.gene.hgnc:76",
+          "id": "metakb.gene:hgnc_3236",
           "conceptType": "Gene",
-          "name": "ABL1",
+          "name": "EGFR",
           "primaryCoding": {
-            "id": "hgnc:76",
+            "id": "hgnc:3236",
             "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
-            "code": "HGNC:76"
+            "code": "HGNC:3236"
           }
         },
         "alleleOriginQualifier": {
+          "extensions": [
+            {
+              "name": "civic_variant_origin",
+              "value": "SOMATIC"
+            }
+          ],
           "name": "somatic"
         },
         "predicate": "predictsResistanceTo",
         "objectTherapeutic": {
-          "id": "normalize.therapy.rxcui:282388",
+          "id": "metakb.therapy:rxcui_337525",
           "conceptType": "Therapy",
-          "name": "imatinib",
+          "name": "erlotinib",
           "primaryCoding": {
-            "id": "rxcui:282388",
+            "id": "rxcui:337525",
             "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
-            "code": "282388"
+            "code": "337525"
           }
         },
         "conditionQualifier": {
-          "id": "normalize.disease.ncit:C3174",
+          "id": "metakb.disease:ncit_C2926",
           "conceptType": "Disease",
-          "name": "Chronic Myeloid Leukemia, BCR-ABL1 Positive",
+          "name": "Lung Non-Small Cell Carcinoma",
           "primaryCoding": {
-            "id": "ncit:C3174",
+            "id": "ncit:C2926",
             "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-            "code": "C3174"
+            "code": "C2926"
           }
         }
       },
@@ -115,9 +121,563 @@
           "type": "EvidenceLine",
           "hasEvidenceItems": [
             {
-              "id": "moa.assertion:66",
+              "id": "civic.eid:238",
               "type": "Statement",
-              "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
+              "description": "The T790M mutation in EGFR has been shown to confer resistance to the tyrosine kinase inhibitor erlotinib, and patients harboring this mutation that are placed on the drug are likely to relapse.",
+              "specifiedBy": {
+                "id": "civic.method:2019",
+                "type": "Method",
+                "name": "CIViC Curation SOP (2019)",
+                "methodType": "curation",
+                "reportedIn": {
+                  "id": "pmid:31779674",
+                  "type": "Document",
+                  "name": "Danos et al., 2019, Genome Med.",
+                  "aliases": ["CIViC curation SOP"],
+                  "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+                  "urls": [
+                    "https://doi.org/10.1186/s13073-019-0687-x",
+                    "https://pubmed.ncbi.nlm.nih.gov/31779674/"
+                  ],
+                  "doi": "10.1186/s13073-019-0687-x",
+                  "pmid": "31779674"
+                }
+              },
+              "reportedIn": [
+                {
+                  "id": "civic.sid:167",
+                  "type": "Document",
+                  "name": "Denis et al., 2015",
+                  "title": "EGFR T790M resistance mutation in non small-cell lung carcinoma.",
+                  "urls": [
+                    "https://civicdb.org/links/source/167",
+                    "http://www.ncbi.nlm.nih.gov/pubmed/25668228"
+                  ],
+                  "pmid": "25668228"
+                },
+                "https://civicdb.org/links/evidence/238"
+              ],
+              "proposition": {
+                "type": "VariantTherapeuticResponseProposition",
+                "subjectVariant": {
+                  "id": "civic.mpid:34",
+                  "type": "CategoricalVariant",
+                  "name": "EGFR T790M",
+                  "description": "EGFR T790M was one of the very first mutations recognized to confer resistance to targeted therapies in non-small cell lung cancer. While successful in amplified EGFR, the efficacy of the first and second generation TKI's (erlotinib, gefitinib, neratinib) in treating patients harboring this mutation before treatment is notably lower. This lack of efficacy can likely be to blame for the poorer prognosis for patients with this mutation as compared to patients with wildtype EGFR or other types of EGFR mutations. Approximately half of EGFR mutant tumors with acquired resistance to TKI inhibition have been shown to harbor this mutation, implicating it as a mechanism of acquired therapy resistence. A third generation TKI (osimertinib) has been approved for the treatment of EGFR T790M mutant NSCLC. Patients positive for T790M in a plasma-based test have similar outcomes like those with tumor biopsy testing.",
+                  "aliases": ["THR790MET"],
+                  "extensions": [
+                    {
+                      "name": "CIViC Molecular Profile Score",
+                      "value": 406.25
+                    },
+                    {
+                      "name": "expressions",
+                      "value": [
+                        {
+                          "id": null,
+                          "extensions": null,
+                          "syntax": "hgvs.c",
+                          "value": "ENST00000275493.2:c.2369C>T",
+                          "syntax_version": null
+                        },
+                        {
+                          "id": null,
+                          "extensions": null,
+                          "syntax": "hgvs.g",
+                          "value": "NC_000007.13:g.55249071C>T",
+                          "syntax_version": null
+                        },
+                        {
+                          "id": null,
+                          "extensions": null,
+                          "syntax": "hgvs.c",
+                          "value": "NM_005228.4:c.2369C>T",
+                          "syntax_version": null
+                        },
+                        {
+                          "id": null,
+                          "extensions": null,
+                          "syntax": "hgvs.p",
+                          "value": "NP_005219.2:p.Thr790Met",
+                          "syntax_version": null
+                        }
+                      ]
+                    },
+                    {
+                      "name": "CIViC representative coordinate",
+                      "value": {
+                        "chromosome": "7",
+                        "start": 55249071,
+                        "stop": 55249071,
+                        "reference_bases": "C",
+                        "variant_bases": "T",
+                        "ensembl_version": 75,
+                        "representative_transcript": "ENST00000275493.2",
+                        "reference_build": "GRCh37",
+                        "type": "coordinates"
+                      }
+                    }
+                  ],
+                  "mappings": [
+                    {
+                      "coding": {
+                        "id": "civic.mpid:34",
+                        "system": "https://civicdb.org/links/molecular_profile/",
+                        "code": "34"
+                      },
+                      "relation": "exactMatch"
+                    },
+                    {
+                      "coding": {
+                        "id": "civic.vid:34",
+                        "extensions": [
+                          {
+                            "name": "subtype",
+                            "value": "gene_variant"
+                          },
+                          {
+                            "name": "variant_types",
+                            "value": [
+                              {
+                                "id": null,
+                                "extensions": null,
+                                "coding": {
+                                  "id": "civic.variant_type:47",
+                                  "extensions": null,
+                                  "name": "Missense Variant",
+                                  "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                                  "systemVersion": null,
+                                  "code": "SO:0001583",
+                                  "iris": null
+                                },
+                                "relation": "exactMatch"
+                              }
+                            ]
+                          }
+                        ],
+                        "name": "T790M",
+                        "system": "https://civicdb.org/links/variant/",
+                        "code": "34"
+                      },
+                      "relation": "exactMatch"
+                    },
+                    {
+                      "coding": {
+                        "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+                        "code": "CA090928"
+                      },
+                      "relation": "relatedMatch"
+                    },
+                    {
+                      "coding": {
+                        "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+                        "code": "16613"
+                      },
+                      "relation": "relatedMatch"
+                    },
+                    {
+                      "coding": {
+                        "system": "https://www.ncbi.nlm.nih.gov/snp/",
+                        "code": "rs121434569"
+                      },
+                      "relation": "relatedMatch"
+                    }
+                  ]
+                },
+                "geneContextQualifier": {
+                  "id": "civic.gid:19",
+                  "extensions": [
+                    {
+                      "name": "aliases",
+                      "value": [
+                        "EGFR",
+                        "ERBB",
+                        "ERBB1",
+                        "ERRP",
+                        "HER1",
+                        "NISBD2",
+                        "NNCIS",
+                        "PIG61",
+                        "mENA"
+                      ]
+                    },
+                    {
+                      "name": "description",
+                      "value": "EGFR is widely recognized for its importance in cancer. Amplification and mutations have been shown to be driving events in many cancer types. Its role in non-small cell lung cancer, glioblastoma and basal-like breast cancers has spurred many research and drug development efforts. Tyrosine kinase inhibitors have shown efficacy in EGFR amplfied tumors, most notably gefitinib and erlotinib. Mutations in EGFR have been shown to confer resistance to these drugs, particularly the variant T790M, which has been functionally characterized as a resistance marker for both of these drugs. The later generation TKI's have seen some success in treating these resistant cases, and targeted sequencing of the EGFR locus has become a common practice in treatment of non-small cell lung cancer. Overproduction of ligands is another possible mechanism of activation of EGFR. ERBB ligands include EGF, TGF-a, AREG, EPG, BTC, HB-EGF, EPR and NRG1-4 (for detailed information please refer to the respective ligand section)."
+                    }
+                  ],
+                  "conceptType": "Gene",
+                  "name": "EGFR",
+                  "mappings": [
+                    {
+                      "coding": {
+                        "id": "ncbigene:1956",
+                        "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                        "code": "1956"
+                      },
+                      "relation": "exactMatch"
+                    }
+                  ]
+                },
+                "alleleOriginQualifier": {
+                  "extensions": [
+                    {
+                      "name": "civic_variant_origin",
+                      "value": "SOMATIC"
+                    }
+                  ],
+                  "name": "somatic"
+                },
+                "predicate": "predictsResistanceTo",
+                "objectTherapeutic": {
+                  "id": "civic.tid:15",
+                  "conceptType": "Therapy",
+                  "name": "Erlotinib",
+                  "mappings": [
+                    {
+                      "coding": {
+                        "id": "ncit:C65530",
+                        "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                        "code": "C65530"
+                      },
+                      "relation": "exactMatch"
+                    }
+                  ]
+                },
+                "conditionQualifier": {
+                  "id": "civic.did:8",
+                  "conceptType": "Disease",
+                  "name": "Lung Non-small Cell Carcinoma",
+                  "mappings": [
+                    {
+                      "coding": {
+                        "system": "https://disease-ontology.org/?id=",
+                        "code": "DOID:3908"
+                      },
+                      "relation": "exactMatch"
+                    }
+                  ]
+                }
+              },
+              "direction": "supports",
+              "strength": {
+                "name": "Validated association",
+                "primaryCoding": {
+                  "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                  "code": "A"
+                },
+                "mappings": [
+                  {
+                    "coding": {
+                      "name": "authoritative evidence",
+                      "system": "https://go.osu.edu/evidence-codes",
+                      "code": "e000001"
+                    },
+                    "relation": "exactMatch"
+                  }
+                ]
+              }
+            }
+          ],
+          "directionOfEvidenceProvided": "supports",
+          "strengthOfEvidenceProvided": {
+            "name": "Validated association",
+            "primaryCoding": {
+              "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+              "code": "A"
+            },
+            "mappings": [
+              {
+                "coding": {
+                  "name": "authoritative evidence",
+                  "system": "https://go.osu.edu/evidence-codes",
+                  "code": "e000001"
+                },
+                "relation": "exactMatch"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "metakb.assertion:zk-WDclkxtcOEnxIH6VClRKRqbPXEURy",
+      "type": "Statement",
+      "specifiedBy": {
+        "id": "metakb.method:2026",
+        "type": "Method",
+        "name": "MetaKB (2026)",
+        "reportedIn": {
+          "type": "Document",
+          "name": "Wagnerds et al",
+          "title": "MetaKB v2",
+          "doi": "10.1038/1111-1-1111-111-1111",
+          "pmid": "9999999"
+        }
+      },
+      "proposition": {
+        "type": "VariantPrognosticProposition",
+        "subjectVariant": {
+          "id": "metakb.cv:FC.hgnc_11110",
+          "type": "CategoricalVariant",
+          "name": "ARID1A Mutation",
+          "constraints": [
+            {
+              "type": "FeatureContextConstraint",
+              "featureContext": {
+                "id": "normalize.gene.hgnc:11110",
+                "extensions": [
+                  {
+                    "name": "aliases",
+                    "value": [
+                      "MRD14",
+                      "BAF250",
+                      "hELD",
+                      "BM029",
+                      "hOSA1",
+                      "SMARCF1",
+                      "P270",
+                      "ELD",
+                      "BAF250a",
+                      "C10rf4",
+                      "OSA1",
+                      "C1orf4",
+                      "B120",
+                      "CSS2"
+                    ]
+                  },
+                  {
+                    "name": "symbol_status",
+                    "value": "approved"
+                  },
+                  {
+                    "name": "approved_name",
+                    "value": "AT-rich interaction domain 1A"
+                  },
+                  {
+                    "name": "previous_symbols",
+                    "value": ["BM029", "SMARCF1", "C1orf4"]
+                  },
+                  {
+                    "name": "strand",
+                    "value": "+"
+                  },
+                  {
+                    "name": "ensembl_locations",
+                    "value": [
+                      {
+                        "id": "ga4gh:SL.43tUx-PAeyWdZoFZKTKyh3SAGQATYR1h",
+                        "type": "SequenceLocation",
+                        "digest": "43tUx-PAeyWdZoFZKTKyh3SAGQATYR1h",
+                        "sequenceReference": {
+                          "type": "SequenceReference",
+                          "refgetAccession": "SQ.Ya6Rs7DHhDeg7YaOSg1EoNi3U_nQ9SvO"
+                        },
+                        "start": 26693235,
+                        "end": 26782104
+                      }
+                    ]
+                  },
+                  {
+                    "name": "ncbi_locations",
+                    "value": [
+                      {
+                        "id": "ga4gh:SL.sg0uwDu5wbn3wiIeAb_5rbP4aa85yaW4",
+                        "type": "SequenceLocation",
+                        "digest": "sg0uwDu5wbn3wiIeAb_5rbP4aa85yaW4",
+                        "sequenceReference": {
+                          "type": "SequenceReference",
+                          "refgetAccession": "SQ.Ya6Rs7DHhDeg7YaOSg1EoNi3U_nQ9SvO"
+                        },
+                        "start": 26696014,
+                        "end": 26782104
+                      }
+                    ]
+                  },
+                  {
+                    "name": "hgnc_locus_type",
+                    "value": "gene with protein product"
+                  },
+                  {
+                    "name": "ncbi_gene_type",
+                    "value": "protein-coding"
+                  },
+                  {
+                    "name": "ensembl_biotype",
+                    "value": "protein_coding"
+                  }
+                ],
+                "conceptType": "Gene",
+                "name": "ARID1A",
+                "primaryCoding": {
+                  "id": "hgnc:11110",
+                  "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+                  "code": "HGNC:11110"
+                },
+                "mappings": [
+                  {
+                    "coding": {
+                      "id": "ncbigene:8289",
+                      "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                      "code": "8289"
+                    },
+                    "relation": "exactMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "ensembl:ENSG00000117713",
+                      "system": "https://www.ensembl.org/id/",
+                      "code": "ENSG00000117713"
+                    },
+                    "relation": "exactMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "cosmic:ARID1A",
+                      "system": "http://cancer.sanger.ac.uk/cosmic/gene/overview?ln=",
+                      "code": "ARID1A"
+                    },
+                    "relation": "relatedMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "ccds:CCDS44091",
+                      "system": "http://www.ncbi.nlm.nih.gov/CCDS/CcdsBrowse.cgi?REQUEST=CCDS&DATA=",
+                      "code": "CCDS44091"
+                    },
+                    "relation": "relatedMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "ena.embl:AB001895",
+                      "system": "https://www.ebi.ac.uk/ena/browser/view/",
+                      "code": "AB001895"
+                    },
+                    "relation": "relatedMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "uniprot:O14497",
+                      "system": "http://purl.uniprot.org/uniprot/",
+                      "code": "O14497"
+                    },
+                    "relation": "relatedMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "pubmed:9630625",
+                      "system": "https://pubmed.ncbi.nlm.nih.gov/",
+                      "code": "9630625"
+                    },
+                    "relation": "relatedMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "vega:OTTHUMG00000004004",
+                      "system": "https://vega.archive.ensembl.org/Homo_sapiens/Gene/Summary?g=",
+                      "code": "OTTHUMG00000004004"
+                    },
+                    "relation": "relatedMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "ccds:CCDS285",
+                      "system": "http://www.ncbi.nlm.nih.gov/CCDS/CcdsBrowse.cgi?REQUEST=CCDS&DATA=",
+                      "code": "CCDS285"
+                    },
+                    "relation": "relatedMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "omim:603024",
+                      "system": "https://www.omim.org/MIM:",
+                      "code": "603024"
+                    },
+                    "relation": "relatedMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "orphanet:293103",
+                      "system": "http://www.orpha.net/consor/cgi-bin/OC_Exp.php?Lng=EN&Expert=",
+                      "code": "293103"
+                    },
+                    "relation": "relatedMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "ucsc:uc001bmv.2",
+                      "system": "http://genome.cse.ucsc.edu/cgi-bin/hgGene?org=Human&hgg_chrom=none&hgg_type=knownGene&hgg_gene=",
+                      "code": "uc001bmv.2"
+                    },
+                    "relation": "relatedMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "pubmed:9434167",
+                      "system": "https://pubmed.ncbi.nlm.nih.gov/",
+                      "code": "9434167"
+                    },
+                    "relation": "relatedMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "refseq:NM_139135",
+                      "system": "https://www.ncbi.nlm.nih.gov/nuccore/",
+                      "code": "NM_139135"
+                    },
+                    "relation": "relatedMatch"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "geneContextQualifier": {
+          "id": "metakb.gene:hgnc_11110",
+          "conceptType": "Gene",
+          "name": "ARID1A",
+          "primaryCoding": {
+            "id": "hgnc:11110",
+            "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+            "code": "HGNC:11110"
+          }
+        },
+        "alleleOriginQualifier": {
+          "name": "somatic"
+        },
+        "predicate": "associatedWithWorseOutcomeFor",
+        "objectCondition": {
+          "id": "metakb.disease:ncit_C8294",
+          "conceptType": "Disease",
+          "name": "Pancreatic Adenocarcinoma",
+          "primaryCoding": {
+            "id": "ncit:C8294",
+            "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+            "code": "C8294"
+          }
+        }
+      },
+      "direction": "disputes",
+      "strength": {
+        "primaryCoding": {
+          "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+          "code": "Level D"
+        }
+      },
+      "classification": {
+        "primaryCoding": {
+          "system": "AMP/ASCO/CAP (AAC) Guidelines, 2017",
+          "code": "Tier IV"
+        }
+      },
+      "hasEvidenceLines": [
+        {
+          "type": "EvidenceLine",
+          "hasEvidenceItems": [
+            {
+              "id": "moa.assertion:120",
+              "type": "Statement",
+              "description": "ARID1A mutations were associated with poorer prognosis in a study of 109 microdissected pancreatic adenocarcinoma tumors.",
               "specifiedBy": {
                 "id": "moa.method:2021",
                 "type": "Method",
@@ -132,7 +692,7 @@
               },
               "reportedIn": [
                 {
-                  "id": "moa.source:45",
+                  "id": "moa.source:54",
                   "type": "Document",
                   "extensions": [
                     {
@@ -140,99 +700,63 @@
                       "value": "Journal"
                     }
                   ],
-                  "title": "Gorre, Mercedes E., et al. Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification. Science 293.5531 (2001): 876-880.",
-                  "urls": ["https://doi.org/10.1126/science.1062538"],
-                  "doi": "10.1126/science.1062538",
-                  "pmid": "11423618"
+                  "title": "Witkiewicz AK, Mcmillan EA, Balaji U, et al. Whole-exome sequencing of pancreatic cancer defines genetic diversity and therapeutic targets. Nat Commun. 2015;6:6744.",
+                  "urls": ["https://doi.org/10.1038/ncomms7744"],
+                  "doi": "10.1038/ncomms7744",
+                  "pmid": "25855536"
                 }
               ],
               "proposition": {
-                "type": "VariantTherapeuticResponseProposition",
+                "type": "VariantPrognosticProposition",
                 "subjectVariant": {
-                  "id": "moa.variant:66",
+                  "id": "moa.variant:120",
                   "type": "CategoricalVariant",
-                  "name": "ABL1 T315I",
+                  "name": "ARID1A Mutation",
                   "extensions": [
-                    {
-                      "name": "moa_representative_coordinate",
-                      "value": {
-                        "chromosome": "9",
-                        "start_position": "133748283",
-                        "end_position": "133748283",
-                        "reference_allele": "C",
-                        "alternate_allele": "T",
-                        "cdna_change": "c.944C>T",
-                        "protein_change": "p.T315I",
-                        "exon": "5"
-                      }
-                    },
                     {
                       "name": "moa_feature_type",
                       "value": "somatic_variant"
-                    },
-                    {
-                      "name": "moa_variant_annotation",
-                      "value": "Missense"
                     }
                   ],
-                  "mappings": [
-                    {
-                      "coding": {
-                        "system": "https://www.ncbi.nlm.nih.gov/snp/",
-                        "code": "rs121913459"
-                      },
-                      "relation": "relatedMatch"
-                    }
-                  ]
+                  "mappings": []
                 },
                 "geneContextQualifier": {
-                  "id": "moa.gene:ABL1",
-                  "name": "ABL1"
+                  "id": "moa.gene:ARID1A",
+                  "name": "ARID1A"
                 },
                 "alleleOriginQualifier": {
                   "name": "somatic"
                 },
-                "predicate": "predictsResistanceTo",
-                "objectTherapeutic": {
-                  "id": "moa.drug:Imatinib",
-                  "extensions": [
-                    {
-                      "name": "moa_therapy_type",
-                      "value": "Targeted therapy"
-                    }
-                  ],
-                  "conceptType": "Drug",
-                  "name": "Imatinib"
-                },
-                "conditionQualifier": {
-                  "id": "moa.disease:Chronic Myelogenous Leukemia",
+                "predicate": "associatedWithWorseOutcomeFor",
+                "objectCondition": {
+                  "id": "moa.disease:Pancreatic Adenocarcinoma",
                   "conceptType": "Disease",
-                  "name": "Chronic Myelogenous Leukemia",
+                  "name": "Pancreatic Adenocarcinoma",
                   "mappings": [
                     {
                       "coding": {
-                        "id": "oncotree:CML",
-                        "name": "Chronic Myelogenous Leukemia",
+                        "id": "oncotree:PAAD",
+                        "name": "Pancreatic Adenocarcinoma",
                         "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
-                        "code": "CML"
+                        "code": "PAAD"
                       },
                       "relation": "exactMatch"
                     }
                   ]
                 }
               },
-              "direction": "supports",
+              "direction": "disputes",
               "strength": {
                 "primaryCoding": {
                   "system": "https://moalmanac.org/about",
-                  "code": "Preclinical evidence"
+                  "code": "Clinical evidence"
                 },
                 "mappings": [
                   {
                     "coding": {
-                      "name": "preclinical evidence",
+                      "name": "observational study evidence",
                       "system": "https://go.osu.edu/evidence-codes",
-                      "code": "e000009"
+                      "code": "e000007"
                     },
                     "relation": "exactMatch"
                   }
@@ -244,14 +768,14 @@
           "strengthOfEvidenceProvided": {
             "primaryCoding": {
               "system": "https://moalmanac.org/about",
-              "code": "Preclinical evidence"
+              "code": "Clinical evidence"
             },
             "mappings": [
               {
                 "coding": {
-                  "name": "preclinical evidence",
+                  "name": "observational study evidence",
                   "system": "https://go.osu.edu/evidence-codes",
-                  "code": "e000009"
+                  "code": "e000007"
                 },
                 "relation": "exactMatch"
               }
