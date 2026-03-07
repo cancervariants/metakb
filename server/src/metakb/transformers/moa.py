@@ -435,13 +435,9 @@ class MoaTransformer(Transformer):
         for query in queries:
             if match := re.match(r"(.*) (Mutation|MUTATION)", query):
                 gene_name = match.groups()[0]
-                normalized_gene_result = self.vicc_normalizers.normalize_gene(
-                    gene_name
-                )[0]
-                if normalized_gene_result.gene:
-                    return build_catvars.build_featurecontext_catvar(
-                        normalized_gene_result.gene
-                    )
+                normalized_gene = self._normalize_gene(gene_name)
+                if normalized_gene:
+                    return build_catvars.build_featurecontext_catvar(normalized_gene)
             result = await self.vicc_normalizers.normalize_variation(query)
             if result and isinstance(result, Allele):
                 return build_catvars.build_proteinsequenceconsequence_catvar(
