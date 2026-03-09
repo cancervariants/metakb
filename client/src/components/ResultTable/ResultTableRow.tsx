@@ -2,7 +2,7 @@ import { useState, FC } from 'react'
 import { Box, Collapse, IconButton, Link, TableCell, TableRow, useTheme } from '@mui/material'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import { Statement } from '../../models/domain'
+import { EvidenceLine, Statement } from '../../models/domain'
 import { ResultColumn } from './types'
 import { getEvidenceLabelUrl, getEvidenceSource, NormalizedResult } from '../../utils'
 import { normalizeEvidenceLevelFromStrength } from '../../utils/normalization'
@@ -37,7 +37,11 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
       <TableRow>
         <TableCell colSpan={columns.length} style={{ paddingBottom: 0, paddingTop: 0 }}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            {row.grouped_evidence.map((e: Statement) => {
+            {row.grouped_evidence.map((e: EvidenceLine) => {
+              const supportingEvidence = e.hasEvidenceItems
+              // for each evidence line
+              // show the little box thing for it
+              // and then a little indented box thing for supporting evidence items for the evidence lines
               const { evidenceLabel, evidenceUrl } = getEvidenceLabelUrl(e.id || '')
               const evidenceSource = e.id ? getEvidenceSource(e.id) : null
               const originalCode = e.strength?.primaryCoding?.code
