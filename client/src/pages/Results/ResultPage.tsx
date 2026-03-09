@@ -119,8 +119,6 @@ const ResultPage = () => {
     })
   }, [filteredResults])
 
-  console.log(sortedResults)
-
   // Fetch when URL params change (source of truth is the URL)
   useEffect(() => {
     if (!typeFromUrl || !queryFromUrl.trim()) {
