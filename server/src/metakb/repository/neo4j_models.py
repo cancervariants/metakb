@@ -288,31 +288,35 @@ class CategoricalVariantNode(BaseNode):
     aliases: list[str] = []
     extensions: str
     mappings: str
-    has_constraint: DefiningAlleleConstraintNode | FeatureContextConstraintNode
+    has_constraint: DefiningAlleleConstraintNode | FeatureContextConstraintNode | None
     has_members: list[AlleleNode]
 
     @classmethod
     def from_gks(cls, catvar: CategoricalVariant) -> Self:
         """Create Node instance from GKS class."""
-        if len(catvar.constraints) != 1:
-            msg = "Only single-constraint catvars are currently supported"
-            raise ValueError(msg)
-        constraint = catvar.constraints[0]
-        if constraint.root.type == "DefiningAlleleConstraint":
-            constraint_id = (
-                f"{catvar.id}:{constraint.root.type}:{constraint.root.allele.id}"
-            )
-            constraint_node = DefiningAlleleConstraintNode.from_gks(
-                constraint.root, constraint_id
-            )
-        elif constraint.root.type == "FeatureContextConstraint":
-            constraint_id = f"{catvar.id}:{constraint.root.type}:{constraint.root.featureContext.id}"
-            constraint_node = FeatureContextConstraintNode.from_gks(
-                constraint.root, constraint_id
-            )
+        if catvar.constraints:
+            if len(catvar.constraints) > 1:
+                msg = "Only 0- or 1-constraint catvars are currently supported"
+                raise ValueError(msg)
+
+            constraint = catvar.constraints[0]
+            if constraint.root.type == "DefiningAlleleConstraint":
+                constraint_id = (
+                    f"{catvar.id}:{constraint.root.type}:{constraint.root.allele.id}"
+                )
+                constraint_node = DefiningAlleleConstraintNode.from_gks(
+                    constraint.root, constraint_id
+                )
+            elif constraint.root.type == "FeatureContextConstraint":
+                constraint_id = f"{catvar.id}:{constraint.root.type}:{constraint.root.featureContext.id}"
+                constraint_node = FeatureContextConstraintNode.from_gks(
+                    constraint.root, constraint_id
+                )
+            else:
+                msg = f"Unrecognized constraint type: {constraint}"
+                raise ValueError(msg)
         else:
-            msg = f"Unrecognized constraint type: {constraint}"
-            raise ValueError(msg)
+            constraint_node = None
 
         members = (
             [AlleleNode.from_gks(m.root) for m in catvar.members]
@@ -333,14 +337,15 @@ class CategoricalVariantNode(BaseNode):
 
     def to_gks(self) -> CategoricalVariant:
         """Construct cat-vrs-python CategoricalVariant instance"""
+        constraints = [self.has_constraint.to_gks()] if self.has_constraint else None
         return CategoricalVariant(
             id=self.id,
-            name=self.name or None,
+            name=self.name or "",
             aliases=self.aliases or None,
             description=self.description or None,
             extensions=_Extensions(json.loads(self.extensions)).root,
             mappings=_Mappings(json.loads(self.mappings)).root,
-            constraints=[self.has_constraint.to_gks()],
+            constraints=constraints,
             members=[m.to_gks() for m in self.has_members],
         )
 
@@ -349,7 +354,6 @@ class GeneNode(BaseNode):
     """Node model for Gene."""
 
     id: str
-    normalized_id: str
     name: str
     mappings: str
     extensions: str
@@ -357,18 +361,6 @@ class GeneNode(BaseNode):
     @classmethod
     def from_gks(cls, gene: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
-        normalized_id = None
-        # revisit in https://github.com/cancervariants/metakb/issues/665
-        # for mapping in gene.mappings:
-        #     for ext in mapping.extensions:
-        #         if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
-        #             normalized_id = mapping.coding.id
-        #             break
-        #     if normalized_id:
-        #         break
-        # else:
-        #     msg = f"Unable to locate normalized ID in gene {gene}"
-        #     raise ValueError(msg)
         description = ""
         if extensions := gene.extensions:
             for extension in extensions:
@@ -376,7 +368,6 @@ class GeneNode(BaseNode):
                     description = extension.value
         return cls(
             id=gene.id,
-            normalized_id=normalized_id,
             description=description,
             name=gene.name,
             mappings=_Mappings(gene.mappings or []).model_dump_json(),
@@ -398,32 +389,14 @@ class DiseaseNode(BaseNode):
     """Node model for an individual Disease."""
 
     id: str
-    normalized_id: str
     name: str
     mappings: str
 
     @classmethod
     def from_gks(cls, disease: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
-        normalized_id = None
-        # revisit in https://github.com/cancervariants/metakb/issues/665
-        # for mapping in disease.mappings:
-        #     if extensions := mapping.extensions:
-        #         for extension in extensions:
-        #             if (
-        #                 extension.name == NormalizerExtensionName.PRIORITY
-        #                 and extension.value
-        #             ):
-        #                 normalized_id = mapping.coding.id
-        #                 break
-        #         if normalized_id:
-        #             break
-        # if not normalized_id:
-        #     msg = f"Unable to locate normalized ID in disease {disease}"
-        #     raise ValueError(msg)
         return cls(
             id=disease.id,
-            normalized_id=normalized_id,
             name=disease.name or "",
             mappings=_Mappings(disease.mappings or []).model_dump_json(),
         )
@@ -528,7 +501,6 @@ class DrugNode(BaseNode):
     """Node model for Drug."""
 
     id: str
-    normalized_id: str
     name: str
     extensions: str
     mappings: str
@@ -536,21 +508,8 @@ class DrugNode(BaseNode):
     @classmethod
     def from_gks(cls, therapy: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
-        normalized_id = None
-        # revisit in https://github.com/cancervariants/metakb/issues/665
-        # for mapping in therapy.mappings:
-        #     for ext in mapping.extensions:
-        #         if ext.name == NormalizerExtensionName.PRIORITY and ext.value:
-        #             normalized_id = mapping.coding.id
-        #             break
-        #     if normalized_id:
-        #         break
-        # else:
-        #     msg = f"Unable to locate normalized ID in therapy {therapy}"
-        #     raise ValueError(msg)
         return cls(
             id=therapy.id,
-            normalized_id=normalized_id,
             name=therapy.name or "",
             mappings=_Mappings(therapy.mappings or []).model_dump_json(),
             extensions=_Extensions(therapy.extensions or []).model_dump_json(),
@@ -782,9 +741,7 @@ class EvidenceLineNode(BaseNode):
             hasEvidenceItems=[st.to_gks() for st in self.has_evidence_items],
             strengthOfEvidenceProvided=MappableConcept(
                 **json.loads(self.strength_of_evidence_provided)
-            )
-            if self.strength_of_evidence_provided
-            else None,
+            ),
         )
 
 
@@ -894,7 +851,10 @@ class TherapeuticResponseStatementNode(StatementNodeBase):
             if statement.hasEvidenceLines
             else []
         )
-        document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
+        if statement.reportedIn:
+            document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
+        else:
+            document_nodes, url = [], ""
 
         match tr_proposition.objectTherapeutic.root:
             case TherapyGroup():
@@ -989,7 +949,10 @@ class DiagnosticStatementNode(StatementNodeBase):
             if statement.hasEvidenceLines
             else []
         )
-        document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
+        if statement.reportedIn:
+            document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
+        else:
+            document_nodes, url = [], ""
         classification_node = (
             ClassificationNode.from_gks(statement.classification)
             if statement.classification
@@ -1074,7 +1037,10 @@ class PrognosticStatementNode(StatementNodeBase):
             if statement.hasEvidenceLines
             else []
         )
-        document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
+        if statement.reportedIn:
+            document_nodes, url = cls._get_document_nodes_and_url(statement.reportedIn)
+        else:
+            document_nodes, url = [], ""
         classification_node = (
             ClassificationNode.from_gks(statement.classification)
             if statement.classification

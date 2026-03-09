@@ -185,25 +185,25 @@ class Neo4jRepository(AbstractRepository):
     def add_catvar(self, tx: Transaction, catvar: CategoricalVariant) -> None:
         """Add categorical variant to DB
 
-        Currently validates that the constraint property exists and has a length of
+        Currently validates that the constraint property, if it exists, has a length of
         exactly 1.
 
         :param tx: Neo4j transaction
         :param catvar: a full Categorical Variant object
+        :raise NotImplementedError: if unrecognized type of constraint is provided
         """
+        catvar_node = CategoricalVariantNode.from_gks(catvar)
         if catvar.constraints and len(catvar.constraints) == 1:
             constraint = catvar.constraints[0]
-            catvar_node = CategoricalVariantNode.from_gks(catvar)
             if constraint.root.type == "DefiningAlleleConstraint":
                 query = queries_catalog.load_dac_catvar()
             elif constraint.root.type == "FeatureContextConstraint":
                 query = queries_catalog.load_fcc_catvar()
             else:
-                raise TypeError
-            tx.run(query, cv=catvar_node.model_dump(mode="json"))
+                raise NotImplementedError
         else:
-            msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar.id} is {catvar.constraints}"
-            raise ValueError(msg)
+            query = queries_catalog.load_text_catvar()
+        tx.run(query, cv=catvar_node.model_dump(mode="json"))
 
     def add_document(self, tx: Transaction, document: Document) -> None:
         """Add document to DB
@@ -513,21 +513,10 @@ class Neo4jRepository(AbstractRepository):
         :param statement_id: ID of the statement minted by the source
         :return: complete statement if available
         """
-        results = self.session.execute_read(
-            lambda tx, **kwargs: list(
-                tx.run(queries_catalog.search_statements(), **kwargs)
-            ),
-            variation_ids=[],
-            therapy_ids=[],
-            condition_ids=[],
-            gene_ids=[],
-            statement_ids=[statement_id],
-            start=0,
-            limit=1,
-        )
-        if not results:
+        result = self._execute_search_statements(statement_ids=[statement_id])
+        if not result:
             return None
-        processed_results = self._get_statements_from_results(results)
+        processed_results = self._get_statements_from_results(result)
         if len(processed_results) != 1:
             _logger.error(
                 "Unexpected quantity of statements in processed results list: %s",
@@ -563,7 +552,7 @@ class Neo4jRepository(AbstractRepository):
                 has_feature_context=feature_context_node, **record["constraint"]
             )
         else:
-            raise ValueError
+            constraint_node = None
         member_nodes = [
             self._make_allele_node(m["allele"], m["location"], m["state"])
             for m in record["members"]
@@ -596,8 +585,8 @@ class Neo4jRepository(AbstractRepository):
                 id=record_line["direction"],
                 direction=record_line["direction"],
                 has_evidence_items=[
-                    self._get_evidence_line_statement_node(statement_id)
-                    for statement_id in record_line["evidence_item_ids"]
+                    self._get_statement_node_from_result(item)
+                    for item in record_line["evidence_items"]
                 ],
                 strength_of_evidence_provided=record_line[
                     "strength_of_evidence_provided"
@@ -656,41 +645,6 @@ class Neo4jRepository(AbstractRepository):
                 raise ValueError(msg)
         return statement
 
-    def _get_evidence_line_statement_node(
-        self, statement_id: str
-    ) -> (
-        TherapeuticResponseStatementNode
-        | DiagnosticStatementNode
-        | PrognosticStatementNode
-        | None
-    ):
-        """Get the DB node model for a statement ID, to be attached to an Evidence Line.
-
-        This gives us a single level of recursion for statements that are supported by
-        evidence lines.
-
-        :param statement_id: ID of statement to fetch
-        :return: Node model containing all parts of the statement
-        """
-        result = self.session.execute_read(
-            lambda tx, **kwargs: list(
-                tx.run(queries_catalog.search_statements(), **kwargs)
-            ),
-            variation_ids=[],
-            therapy_ids=[],
-            condition_ids=[],
-            gene_ids=[],
-            statement_ids=[statement_id],
-            start=0,
-            limit=9999,
-        )
-        if len(result) == 0:
-            return None
-        if len(result) >= 2:  # noqa: PLR2004
-            # should be impossible due to uniqueness constraint, how to log?
-            raise RuntimeError
-        return self._get_statement_node_from_result(result[0])
-
     def _get_statements_from_results(self, records: list[Record]) -> list[Statement]:
         """Craft a list of GKS-compliant Statement objects given the results of a Neo4j cypher lookup
 
@@ -706,6 +660,73 @@ class Neo4jRepository(AbstractRepository):
             statement = self._get_statement_node_from_result(record)
             statements.append(statement.to_gks())
         return statements
+
+    def _execute_search_statements(
+        self,
+        variation_ids: list[str] | None = None,
+        gene_ids: list[str] | None = None,
+        therapy_ids: list[str] | None = None,
+        disease_ids: list[str] | None = None,
+        statement_ids: list[str] | None = None,
+        start: int = 0,
+        limit: int | None = None,
+    ) -> list[Record]:
+        """Execute a statements search query and return raw Neo4j records
+
+        This is refactored into an independent function because it needs to be recursive;
+        since statements can contain statements, we need to execute a new query for each
+        level of the tree. The awkward double-loop through `result` is because it lets
+        us run a single query for all statements at a single level of the tree, rather than
+        sending a new query to the DB for every branch.
+
+        :param variation_ids: list of normalized variation IDs
+        :param gene_ids: list of normalized gene IDs
+        :param therapy_ids: list of normalized therapy IDs
+        :param disease_ids: list of normalized disease IDs
+        :param statement_ids: list of source statement IDs
+        :param start: pagination start point
+        :param limit: page size
+        :return: list of neo4j result records
+        """
+        if limit is None:
+            limit = CYPHER_PAGE_LIMIT
+
+        # IDs args MUST be lists -- can't be null or the Cypher query will error out
+        result = self.session.execute_read(
+            lambda tx, **kwargs: list(
+                tx.run(queries_catalog.search_statements(), **kwargs)
+            ),
+            statement_ids=statement_ids or [],
+            variation_ids=variation_ids or [],
+            condition_ids=disease_ids or [],
+            gene_ids=gene_ids or [],
+            therapy_ids=therapy_ids or [],
+            start=start,
+            limit=limit,
+        )
+
+        # get all child evidence item ids
+        ev_item_ids = []
+        for row in result:
+            for ev_line in row.get("evidence_lines", []):
+                ev_item_ids.extend(ev_line["evidence_item_ids"])
+
+        if ev_item_ids:
+            # fetch corresponding statements
+            child_result_map = {
+                r["s"]["id"]: r
+                for r in self._execute_search_statements(statement_ids=ev_item_ids)
+            }
+
+            # plug them back into the right evidence lines
+            for row in result:
+                for ev_line in row["evidence_lines"]:
+                    ev_line_items = []
+                    for ev_id in ev_line["evidence_item_ids"]:
+                        ev_line_items.append(child_result_map[ev_id])  # noqa: PERF401
+                    ev_line["evidence_items"] = ev_line_items
+
+        return result
 
     def search_statements(
         self,
@@ -744,20 +765,14 @@ class Neo4jRepository(AbstractRepository):
         :param limit: page size
         :return: list of statements matching provided criteria
         """
-        if limit is None:
-            limit = CYPHER_PAGE_LIMIT
-        # IDs args MUST be lists -- can't be null or the Cypher query will error out
-        result = self.session.execute_read(
-            lambda tx, **kwargs: list(
-                tx.run(queries_catalog.search_statements(), **kwargs)
-            ),
-            statement_ids=statement_ids or [],
-            variation_ids=variation_ids or [],
-            condition_ids=disease_ids or [],
-            gene_ids=gene_ids or [],
-            therapy_ids=therapy_ids or [],
-            start=start,
-            limit=limit,
+        result = self._execute_search_statements(
+            variation_ids,
+            gene_ids,
+            therapy_ids,
+            disease_ids,
+            statement_ids,
+            start,
+            limit,
         )
         return self._get_statements_from_results(result)
 

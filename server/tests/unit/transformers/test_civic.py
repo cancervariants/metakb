@@ -131,5 +131,5 @@ async def test_transform(test_data_dir: Path, civic_transformer: CivicTransforme
     assert civic_transformer.processed_data.statements[0].id == "civic.eid:238"
     assert (
         civic_transformer.processed_data.statements[1].id
-        == "metakb.assertion:_Wpc6TL2w1os7cxYT6pse5m0EGoM-nMk"
+        == "metakb.assertion:WRdtjMzgdMFsPX2i4MgN-BTFz_C3ITZQ"
     )
