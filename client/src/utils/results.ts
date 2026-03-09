@@ -129,7 +129,6 @@ const isEvidenceLineWithItems = (line: unknown): line is EvidenceLineWithItems =
 const isStatement = (item: unknown): item is Statement =>
   typeof item === 'object' && item !== null && 'proposition' in item
 
-
 /**
  * Normalizes raw evidence statements into `NormalizedResult` rows
  * suitable for display in the results table.
