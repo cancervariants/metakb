@@ -531,12 +531,12 @@ class Transformer(ABC):
             return await self._build_aggregated_prog_statement(statement)
         raise ValueError
 
-    # TODO these are placeholders -- calculate accurately in #739
+    # TODO these are placeholders -- calculate accurately in #639 and #739
     @staticmethod
     def _get_assertion_strength(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
         """Get strength for the assertion supported by provided evidence
 
-        I don't really know what I'm doing here. This should be figured out in #739,
+        I don't really know what I'm doing here. This should be figured out in #639 and #739,
         hopefully I have the interface right. Maybe this should be moved to another module.
 
         :param evidence: supporting evidence for the assertion
@@ -552,7 +552,7 @@ class Transformer(ABC):
     def _get_assertion_classification(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
         """Get classification for the assertion supported by the provided evidence
 
-        Ditto above
+        See above re placeholder values
 
         :param evidence: supporting evidence for the assertion
         :return: classification concept
