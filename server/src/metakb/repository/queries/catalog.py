@@ -116,10 +116,5 @@ def search_statements() -> str:
 
 
 @cache
-def get_statements() -> str:
-    return _load("get_statements.cypher")
-
-
-@cache
 def get_counts() -> str:
     return _load("get_counts.cypher")

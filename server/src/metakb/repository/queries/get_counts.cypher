@@ -1,7 +1,5 @@
 // 'label' property should be the same as the key in `metakb.repository.base.RepositoryStats` model
 // to enable clean unpacking of result into response object
-// 'label' property should be the same as the key in `metakb.repository.base.RepositoryStats` model
-// to enable clean unpacking of result into response object
 MATCH (g:Gene)
 WHERE g.id STARTS WITH "metakb"
 RETURN {label: 'num_genes', count: count(g)} AS info
