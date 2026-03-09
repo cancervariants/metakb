@@ -1,0 +1,45 @@
+{
+  "moa.variant:120": {
+    "id": "moa.variant:120",
+    "type": "CategoricalVariant",
+    "name": "ARID1A Mutation",
+    "extensions": [{ "name": "moa_feature_type", "value": "somatic_variant" }]
+  },
+  "moa.variant:141": {
+    "id": "moa.variant:141",
+    "type": "CategoricalVariant",
+    "name": "BCOR N1425S",
+    "extensions": [
+      {
+        "name": "moa_representative_coordinate",
+        "value": {
+          "chromosome": "X",
+          "start_position": "39921444",
+          "end_position": "39921444",
+          "reference_allele": "T",
+          "alternate_allele": "C",
+          "cdna_change": "c.4376A>G",
+          "protein_change": "p.N1425S",
+          "exon": "10"
+        }
+      },
+      { "name": "moa_feature_type", "value": "somatic_variant" },
+      { "name": "moa_variant_annotation", "value": "Missense" }
+    ]
+  },
+  "moa.variant:27": {
+    "id": "moa.variant:27",
+    "type": "CategoricalVariant",
+    "name": "EWSR1--FLI1 Fusion",
+    "extensions": [{ "name": "moa_feature_type", "value": "rearrangement" }]
+  },
+  "moa.variant:286": {
+    "id": "moa.variant:286",
+    "type": "CategoricalVariant",
+    "name": "EZH2 (Frameshift)",
+    "extensions": [
+      { "name": "moa_feature_type", "value": "somatic_variant" },
+      { "name": "moa_variant_annotation", "value": "Frameshift" }
+    ]
+  }
+}

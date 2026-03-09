@@ -1,0 +1,115 @@
+{
+  "civic.did:8": {
+    "id": "civic.did:8",
+    "conceptType": "Disease",
+    "name": "Lung Non-small Cell Carcinoma",
+    "mappings": [
+      {
+        "coding": {
+          "system": "https://disease-ontology.org/?id=",
+          "code": "DOID:3908"
+        },
+        "relation": "exactMatch"
+      }
+    ]
+  },
+  "civic_cs_plexiform_neurofibroma_nonadult": {
+    "conditions": [
+      {
+        "id": "civic.did:1215",
+        "conceptType": "Disease",
+        "name": "Plexiform Neurofibroma",
+        "mappings": [
+          {
+            "coding": {
+              "system": "https://disease-ontology.org/?id=",
+              "code": "DOID:5151"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      },
+      {
+        "conditions": [
+          {
+            "id": "civic.phenotype:8121",
+            "conceptType": "Phenotype",
+            "name": "Childhood onset",
+            "mappings": [
+              {
+                "coding": {
+                  "system": "https://hpo.jax.org/app/browse/term/",
+                  "code": "HP:0011463"
+                },
+                "relation": "exactMatch"
+              }
+            ]
+          },
+          {
+            "id": "civic.phenotype:2656",
+            "conceptType": "Phenotype",
+            "name": "Juvenile onset",
+            "mappings": [
+              {
+                "coding": {
+                  "system": "https://hpo.jax.org/app/browse/term/",
+                  "code": "HP:0003621"
+                },
+                "relation": "exactMatch"
+              }
+            ]
+          },
+          {
+            "id": "civic.phenotype:16642",
+            "conceptType": "Phenotype",
+            "name": "Early young adult onset",
+            "mappings": [
+              {
+                "coding": {
+                  "system": "https://hpo.jax.org/app/browse/term/",
+                  "code": "HP:0025708"
+                },
+                "relation": "exactMatch"
+              }
+            ]
+          }
+        ],
+        "membershipOperator": "OR"
+      }
+    ],
+    "membershipOperator": "AND"
+  },
+  "civic_melanoma_brain_mets": {
+    "conditions": [
+      {
+        "id": "civic.did:7",
+        "conceptType": "Disease",
+        "name": "Melanoma",
+        "mappings": [
+          {
+            "coding": {
+              "system": "https://disease-ontology.org/?id=",
+              "code": "DOID:1909"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      },
+      {
+        "id": "civic.phenotype:10817",
+        "conceptType": "Phenotype",
+        "name": "Brain neoplasm",
+        "mappings": [
+          {
+            "coding": {
+              "system": "https://hpo.jax.org/app/browse/term/",
+              "code": "HP:0030692"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      }
+    ],
+    "membershipOperator": "AND"
+  }
+}
