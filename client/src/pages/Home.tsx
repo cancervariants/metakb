@@ -12,11 +12,11 @@ const HomePage = () => {
   const [searchType, setSearchType] = useState('gene')
   const [searchQuery, setSearchQuery] = useState('')
   const [stats, setStats] = useState<{
-    num_conditions: number
-    num_documents: number
+    num_diseases: number
+    num_metakb_assertions: number
     num_genes: number
-    num_statements: number
-    num_therapeutics: number
+    num_source_statements: number
+    num_drugs: number
     num_variations: number
   } | null>(null)
 
@@ -91,12 +91,6 @@ const HomePage = () => {
             >
               <Box textAlign="center">
                 <Typography variant="h4" color="primary" fontWeight="bold">
-                  {stats.num_documents?.toLocaleString()}
-                </Typography>
-                <Typography variant="body1">Documents</Typography>
-              </Box>
-              <Box textAlign="center">
-                <Typography variant="h4" color="primary" fontWeight="bold">
                   {stats.num_genes?.toLocaleString()}
                 </Typography>
                 <Typography variant="body1">Genes</Typography>
@@ -109,19 +103,25 @@ const HomePage = () => {
               </Box>
               <Box textAlign="center">
                 <Typography variant="h4" color="primary" fontWeight="bold">
-                  {stats.num_conditions?.toLocaleString()}
+                  {stats.num_diseases?.toLocaleString()}
                 </Typography>
                 <Typography variant="body1">Tumor Types</Typography>
               </Box>
               <Box textAlign="center">
                 <Typography variant="h4" color="primary" fontWeight="bold">
-                  {stats.num_statements?.toLocaleString()}
+                  {stats.num_metakb_assertions?.toLocaleString()}
+                </Typography>
+                <Typography variant="body1">Assertions</Typography>
+              </Box>
+              <Box textAlign="center">
+                <Typography variant="h4" color="primary" fontWeight="bold">
+                  {stats.num_source_statements?.toLocaleString()}
                 </Typography>
                 <Typography variant="body1">Evidence Records</Typography>
               </Box>
               <Box textAlign="center">
                 <Typography variant="h4" color="primary" fontWeight="bold">
-                  {stats.num_therapeutics?.toLocaleString()}
+                  {stats.num_drugs?.toLocaleString()}
                 </Typography>
                 <Typography variant="body1">Drugs</Typography>
               </Box>
