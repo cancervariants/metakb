@@ -12,7 +12,6 @@ MERGE (member_drug:Therapeutic:Drug {id: m.id})
   ON CREATE SET
     member_drug +=
       {
-        normalized_id: m.normalized_id,
         name: m.name,
         mappings: m.mappings,
         aliases: m.aliases,

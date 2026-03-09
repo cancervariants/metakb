@@ -132,7 +132,7 @@ async def test_normalize_moa_variant(
 ):
     result = await transformer._normalize_variant(moa_catvars["moa.variant:120"])
     assert result is not None
-    assert result.id == "metakb.cv:FC.hgnc_11110"
+    assert result.id == "metakb.cv:FC.metakb.gene_hgnc_11110"
     assert result.name == "ARID1A Mutation"
     assert result.constraints
     assert len(result.constraints) == 1
@@ -213,6 +213,6 @@ async def test_transform(
     aggr_statement = next(
         s
         for s in result.statements
-        if s.id == "metakb.assertion:F-6C4CgAIyw3cf2zdxRVOVfe3L1GbHqa"
+        if s.id == "metakb.assertion:FjG0sW5kHU9anpIRFlFMkx42a8nZbNCp"
     )
     assert aggr_statement

@@ -5,9 +5,7 @@ import re
 import pytest
 from deepdiff import DeepDiff
 from tests.conftest import (
-    get_civic_annotation_ext,
     get_mappings_normalizer_id,
-    get_vicc_normalizer_priority_ext,
 )
 
 from metakb.normalizers import ViccNormalizers
@@ -65,10 +63,7 @@ def eid7191_object_condition():
                             "code": "DOID:0080830",
                         },
                         "relation": "exactMatch",
-                        "extensions": [
-                            get_civic_annotation_ext(),
-                            get_vicc_normalizer_priority_ext(is_priority=False),
-                        ],
+                        "extensions": [],
                     },
                     {
                         "coding": {
@@ -77,9 +72,7 @@ def eid7191_object_condition():
                             "code": "MONDO:0859591",
                         },
                         "relation": "exactMatch",
-                        "extensions": [
-                            get_vicc_normalizer_priority_ext(is_priority=False),
-                        ],
+                        "extensions": [],
                     },
                     {
                         "coding": {
@@ -89,9 +82,7 @@ def eid7191_object_condition():
                             "code": "C202299",
                         },
                         "relation": "exactMatch",
-                        "extensions": [
-                            get_vicc_normalizer_priority_ext(is_priority=True),
-                        ],
+                        "extensions": [],
                     },
                 ],
             },

@@ -22,26 +22,24 @@ WHERE
   ($condition_ids = [] OR
     EXISTS {
       MATCH (s)-[:HAS_TUMOR_TYPE]->(cond:Condition)
-      WHERE cond.normalized_id IN $condition_ids
-    } OR EXISTS {
+      WHERE cond.id IN $condition_ids
+    } OR
+    EXISTS {
       MATCH
         (s)-[:HAS_TUMOR_TYPE]->
         (:ConditionSet)-[:HAS_CONDITION*0..]->
         (cond:Condition)
-      WHERE cond.normalized_id IN $condition_ids
+      WHERE cond.id IN $condition_ids
     }) AND
-  ($gene_ids = [] OR g.normalized_id IN $gene_ids) AND
+  ($gene_ids = [] OR g.id IN $gene_ids) AND
   ($therapy_ids = [] OR
     EXISTS {
       MATCH (s)-[:HAS_THERAPEUTIC]->(t:Therapeutic)
-      WHERE t.normalized_id IN $therapy_ids
+      WHERE t.id IN $therapy_ids
     } OR
     EXISTS {
-      MATCH
-        (s)-[:HAS_THERAPEUTIC]->
-        (:TherapyGroup)-[:HAS_THERAPY]->
-        (d:Drug)
-      WHERE d.normalized_id IN $therapy_ids
+      MATCH (s)-[:HAS_THERAPEUTIC]->(:TherapyGroup)-[:HAS_THERAPY]->(d:Drug)
+      WHERE d.id IN $therapy_ids
     })
 
 //  ----- get basic statement info  -----
@@ -110,7 +108,7 @@ WITH
   END AS drug
 
 // ----- Get catvar components -----
-MATCH (cv)-[:HAS_CONSTRAINT]->(constraint)
+OPTIONAL MATCH (cv)-[:HAS_CONSTRAINT]->(constraint)
 // Either get constraint for Feature Context...
 OPTIONAL MATCH
   (constraint:FeatureContextConstraint)-[:HAS_FEATURE_CONTEXT]->
