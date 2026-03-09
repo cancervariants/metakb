@@ -119,6 +119,16 @@ export const evidenceOrder: Record<string, number> = {
   'N/A': 999,
 }
 
+type EvidenceLineWithItems = {
+  hasEvidenceItems?: unknown[] | null
+}
+
+const isEvidenceLineWithItems = (line: unknown): line is EvidenceLineWithItems =>
+  typeof line === 'object' && line !== null && 'hasEvidenceItems' in line
+
+const isStatement = (item: unknown): item is Statement =>
+  typeof item === 'object' && item !== null && 'proposition' in item
+
 /**
  * Normalizes raw evidence statements into `NormalizedResult` rows
  * suitable for display in the results table.
@@ -128,7 +138,6 @@ export const evidenceOrder: Record<string, number> = {
  * This function:
  *  - Flattens grouped evidence into rows
  *  - Extracts display metadata (variant name, disease(s), therapy, significance)
- *  - Computes the "highest" evidence level using `evidenceOrder`
  *  - Collects all source databases referenced by the evidence
  *  - Preserves the full set of underlying `Statement`s in `grouped_evidence`
  *
@@ -142,26 +151,24 @@ export const normalizeResults = (data: Record<string, Statement[]>): NormalizedR
   return Object.values(data).flatMap((arr) => {
     if (!Array.isArray(arr) || arr.length === 0) return []
 
-    const first = arr[0] // use first item for metadata
+    const groupedEvidence = arr
+      .flatMap((statement) => statement.hasEvidenceLines ?? [])
+      .flatMap((line) => (isEvidenceLineWithItems(line) ? (line.hasEvidenceItems ?? []) : []))
+      .filter(isStatement)
 
-    // get highest evidence level for display
-    const highestEvidenceLevel = arr.reduce((highest, item) => {
-      const level = normalizeEvidenceLevelFromStrength(item.strength)
-      const rank = evidenceOrder[level] ?? 999
-      const bestRank = evidenceOrder[highest] ?? 999
-      return rank < bestRank ? level : highest
-    }, 'N/A')
+    const assertion = arr[0]
+
     return [
       {
-        variant_name: getVariantNameFromProposition(first?.proposition),
-        evidence_level: highestEvidenceLevel,
-        disease: getDiseaseFromProposition(first?.proposition),
-        therapy: getTherapyFromProposition(first?.proposition),
-        significance: first?.proposition?.predicate
-          ? formatSignificance(first?.proposition?.predicate)
+        variant_name: getVariantNameFromProposition(assertion?.proposition),
+        evidence_level: normalizeEvidenceLevelFromStrength(assertion?.strength),
+        disease: getDiseaseFromProposition(assertion?.proposition),
+        therapy: getTherapyFromProposition(assertion?.proposition),
+        significance: assertion?.proposition?.predicate
+          ? formatSignificance(assertion?.proposition?.predicate)
           : 'N/A',
-        sources: getSources(arr),
-        grouped_evidence: arr,
+        sources: getSources(groupedEvidence),
+        grouped_evidence: groupedEvidence,
       },
     ]
   })
