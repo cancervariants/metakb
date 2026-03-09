@@ -1,0 +1,570 @@
+{
+  "civic.eid:6034": {
+    "id": "civic.eid:6034",
+    "type": "Statement",
+    "description": "FOXL2 mutations were found in 94% of pathologically confirmed A-GCTs (95/101), in one of eight juvenile granulosa cell tumours (J-GCTs), and in two of 19 SLCTs.",
+    "specifiedBy": {
+      "id": "civic.method:2019",
+      "type": "Method",
+      "name": "CIViC Curation SOP (2019)",
+      "methodType": "curation",
+      "reportedIn": {
+        "id": "pmid:31779674",
+        "type": "Document",
+        "name": "Danos et al., 2019, Genome Med.",
+        "aliases": ["CIViC curation SOP"],
+        "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+        "urls": [
+          "https://doi.org/10.1186/s13073-019-0687-x",
+          "https://pubmed.ncbi.nlm.nih.gov/31779674/"
+        ],
+        "doi": "10.1186/s13073-019-0687-x",
+        "pmid": "31779674"
+      }
+    },
+    "reportedIn": [
+      {
+        "id": "civic.sid:2237",
+        "type": "Document",
+        "name": "Goulvent et al., 2016",
+        "title": "DICER1 and FOXL2 mutations in ovarian sex cord-stromal tumours: a GINECO Group study.",
+        "urls": [
+          "https://civicdb.org/links/source/2237",
+          "http://www.ncbi.nlm.nih.gov/pubmed/26033501"
+        ],
+        "pmid": "26033501"
+      },
+      "https://civicdb.org/links/evidence/6034"
+    ],
+    "proposition": {
+      "type": "VariantDiagnosticProposition",
+      "subjectVariant": {
+        "id": "civic.mpid:198",
+        "type": "CategoricalVariant",
+        "name": "FOXL2 C134W",
+        "description": "The variant C134W on the FOXL2 gene was revealed to have a high frequency (95-97%) in the adult form of granulosa cell tumors that comprises 5% of ovarian cancers. Due to the mutation\\'s high frequency, future therapeutics might target for this single apparent mechanism. However, the consequence of this mutation remain unknown.",
+        "extensions": [
+          { "name": "CIViC Molecular Profile Score", "value": 70.0 },
+          {
+            "name": "expressions",
+            "value": [
+              {
+                "id": null,
+                "extensions": null,
+                "syntax": "hgvs.g",
+                "value": "NC_000003.11:g.138665163G>C",
+                "syntax_version": null
+              }
+            ]
+          },
+          {
+            "name": "CIViC representative coordinate",
+            "value": {
+              "chromosome": "3",
+              "start": 138665163,
+              "stop": 138665163,
+              "reference_bases": "G",
+              "variant_bases": "C",
+              "ensembl_version": 75,
+              "representative_transcript": "ENST00000330315.3",
+              "reference_build": "GRCh37",
+              "type": "coordinates"
+            }
+          }
+        ],
+        "mappings": [
+          {
+            "coding": {
+              "id": "civic.mpid:198",
+              "system": "https://civicdb.org/links/molecular_profile/",
+              "code": "198"
+            },
+            "relation": "exactMatch"
+          },
+          {
+            "coding": {
+              "id": "civic.vid:198",
+              "extensions": [
+                { "name": "subtype", "value": "gene_variant" },
+                {
+                  "name": "variant_types",
+                  "value": [
+                    {
+                      "id": null,
+                      "extensions": null,
+                      "coding": {
+                        "id": "civic.variant_type:47",
+                        "extensions": null,
+                        "name": "Missense Variant",
+                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                        "systemVersion": null,
+                        "code": "SO:0001583",
+                        "iris": null
+                      },
+                      "relation": "exactMatch"
+                    }
+                  ]
+                }
+              ],
+              "name": "C134W",
+              "system": "https://civicdb.org/links/variant/",
+              "code": "198"
+            },
+            "relation": "exactMatch"
+          },
+          {
+            "coding": {
+              "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+              "code": "CA16602790"
+            },
+            "relation": "relatedMatch"
+          }
+        ]
+      },
+      "geneContextQualifier": {
+        "id": "civic.gid:72",
+        "extensions": [
+          {
+            "name": "aliases",
+            "value": ["BPES", "BPES1", "FOXL2", "PFRK", "PINTO", "POF3"]
+          }
+        ],
+        "conceptType": "Gene",
+        "name": "FOXL2",
+        "mappings": [
+          {
+            "coding": {
+              "id": "ncbigene:668",
+              "system": "https://www.ncbi.nlm.nih.gov/gene/",
+              "code": "668"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      },
+      "alleleOriginQualifier": {
+        "extensions": [{ "name": "civic_variant_origin", "value": "SOMATIC" }],
+        "name": "somatic"
+      },
+      "predicate": "isDiagnosticInclusionCriterionFor",
+      "objectCondition": {
+        "id": "civic.did:2969",
+        "conceptType": "Disease",
+        "name": "Ovarian Sex-cord Stromal Tumor",
+        "mappings": [
+          {
+            "coding": {
+              "system": "https://disease-ontology.org/?id=",
+              "code": "DOID:0080369"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      }
+    },
+    "direction": "supports",
+    "strength": {
+      "name": "Validated association",
+      "primaryCoding": {
+        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+        "code": "A"
+      },
+      "mappings": [
+        {
+          "coding": {
+            "name": "authoritative evidence",
+            "system": "https://go.osu.edu/evidence-codes",
+            "code": "e000001"
+          },
+          "relation": "exactMatch"
+        }
+      ]
+    }
+  },
+  "civic.eid:1420": {
+    "id": "civic.eid:1420",
+    "type": "Statement",
+    "description": "Study examined rare SNPs on MAP2K7 among a discovery and two validation cohorts. It was discovered that the E116K genotype was associated with a reduced median survival time of 4 and 7 months for E/K or K/K genotypes (P=2.61E-7) and an increased cancer death risk for heterozygous (HR=1.49) and homozygous (HR=1.94) genotypes for a pooled cohort. Further nude mice harboring this variant showed increased xenograft growth and metastasis.",
+    "specifiedBy": {
+      "id": "civic.method:2019",
+      "type": "Method",
+      "name": "CIViC Curation SOP (2019)",
+      "methodType": "curation",
+      "reportedIn": {
+        "id": "pmid:31779674",
+        "type": "Document",
+        "name": "Danos et al., 2019, Genome Med.",
+        "aliases": ["CIViC curation SOP"],
+        "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+        "urls": [
+          "https://doi.org/10.1186/s13073-019-0687-x",
+          "https://pubmed.ncbi.nlm.nih.gov/31779674/"
+        ],
+        "doi": "10.1186/s13073-019-0687-x",
+        "pmid": "31779674"
+      }
+    },
+    "reportedIn": [
+      {
+        "id": "civic.sid:962",
+        "type": "Document",
+        "name": "Qiu et al., 2016",
+        "title": "The MKK7 p.Glu116Lys Rare Variant Serves as a Predictor for Lung Cancer Risk and Prognosis in Chinese.",
+        "urls": [
+          "https://civicdb.org/links/source/962",
+          "http://www.ncbi.nlm.nih.gov/pubmed/27028764",
+          "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4814107"
+        ],
+        "pmid": "27028764"
+      },
+      "https://civicdb.org/links/evidence/1420"
+    ],
+    "proposition": {
+      "type": "VariantPrognosticProposition",
+      "subjectVariant": {
+        "id": "civic.mpid:562",
+        "type": "CategoricalVariant",
+        "name": "MAP2K7 E116K",
+        "aliases": ["GLU116LYS"],
+        "extensions": [
+          { "name": "CIViC Molecular Profile Score", "value": 25.0 },
+          {
+            "name": "expressions",
+            "value": [
+              {
+                "id": null,
+                "extensions": null,
+                "syntax": "hgvs.g",
+                "value": "NC_000019.9:g.7975157G>A",
+                "syntax_version": null
+              }
+            ]
+          },
+          {
+            "name": "CIViC representative coordinate",
+            "value": {
+              "chromosome": "19",
+              "start": 7975157,
+              "stop": 7975157,
+              "reference_bases": "G",
+              "variant_bases": "A",
+              "ensembl_version": 75,
+              "representative_transcript": "ENST00000397979.3",
+              "reference_build": "GRCh37",
+              "type": "coordinates"
+            }
+          }
+        ],
+        "mappings": [
+          {
+            "coding": {
+              "id": "civic.mpid:562",
+              "system": "https://civicdb.org/links/molecular_profile/",
+              "code": "562"
+            },
+            "relation": "exactMatch"
+          },
+          {
+            "coding": {
+              "id": "civic.vid:566",
+              "extensions": [
+                { "name": "subtype", "value": "gene_variant" },
+                {
+                  "name": "variant_types",
+                  "value": [
+                    {
+                      "id": null,
+                      "extensions": null,
+                      "coding": {
+                        "id": "civic.variant_type:47",
+                        "extensions": null,
+                        "name": "Missense Variant",
+                        "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                        "systemVersion": null,
+                        "code": "SO:0001583",
+                        "iris": null
+                      },
+                      "relation": "exactMatch"
+                    }
+                  ]
+                }
+              ],
+              "name": "E116K",
+              "system": "https://civicdb.org/links/variant/",
+              "code": "566"
+            },
+            "relation": "exactMatch"
+          },
+          {
+            "coding": {
+              "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+              "code": "CA304968685"
+            },
+            "relation": "relatedMatch"
+          },
+          {
+            "coding": {
+              "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+              "code": "NONE FOUND"
+            },
+            "relation": "relatedMatch"
+          }
+        ]
+      },
+      "geneContextQualifier": {
+        "id": "civic.gid:4546",
+        "extensions": [
+          {
+            "name": "aliases",
+            "value": [
+              "JNKK2",
+              "MAP2K7",
+              "MAPKK7",
+              "MEK",
+              "MEK 7",
+              "MKK7",
+              "PRKMK7",
+              "SAPKK-4",
+              "SAPKK4"
+            ]
+          }
+        ],
+        "conceptType": "Gene",
+        "name": "MAP2K7",
+        "mappings": [
+          {
+            "coding": {
+              "id": "ncbigene:5609",
+              "system": "https://www.ncbi.nlm.nih.gov/gene/",
+              "code": "5609"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      },
+      "alleleOriginQualifier": {
+        "extensions": [
+          { "name": "civic_variant_origin", "value": "COMMON_GERMLINE" }
+        ],
+        "name": "germline"
+      },
+      "predicate": "associatedWithWorseOutcomeFor",
+      "objectCondition": {
+        "id": "civic.did:23",
+        "conceptType": "Disease",
+        "name": "Lung Cancer",
+        "mappings": [
+          {
+            "coding": {
+              "system": "https://disease-ontology.org/?id=",
+              "code": "DOID:1324"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      }
+    },
+    "direction": "supports",
+    "strength": {
+      "name": "Clinical evidence",
+      "primaryCoding": {
+        "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+        "code": "B"
+      },
+      "mappings": [
+        {
+          "coding": {
+            "name": "clinical cohort evidence",
+            "system": "https://go.osu.edu/evidence-codes",
+            "code": "e000005"
+          },
+          "relation": "exactMatch"
+        }
+      ]
+    }
+  },
+  "moa.assertion:66": {
+    "id": "moa.assertion:66",
+    "type": "Statement",
+    "description": "T315I mutant ABL1 in p210 BCR-ABL cells resulted in retained high levels of phosphotyrosine at increasing concentrations of inhibitor STI-571, whereas wildtype appropriately received inhibition.",
+    "specifiedBy": {
+      "id": "moa.method:2021",
+      "type": "Method",
+      "name": "MOAlmanac (2021)",
+      "reportedIn": {
+        "type": "Document",
+        "name": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
+        "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+        "doi": "10.1038/s43018-021-00243-3",
+        "pmid": "35121878"
+      }
+    },
+    "reportedIn": [
+      {
+        "id": "moa.source:45",
+        "type": "Document",
+        "extensions": [{ "name": "source_type", "value": "Journal" }],
+        "title": "Gorre, Mercedes E., et al. Clinical resistance to STI-571 cancer therapy caused by BCR-ABL gene mutation or amplification. Science 293.5531 (2001): 876-880.",
+        "urls": ["https://doi.org/10.1126/science.1062538"],
+        "doi": "10.1126/science.1062538",
+        "pmid": "11423618"
+      }
+    ],
+    "proposition": {
+      "type": "VariantTherapeuticResponseProposition",
+      "subjectVariant": {
+        "id": "moa.variant:66",
+        "type": "CategoricalVariant",
+        "name": "ABL1 T315I",
+        "extensions": [
+          {
+            "name": "moa_representative_coordinate",
+            "value": {
+              "chromosome": "9",
+              "start_position": "133748283",
+              "end_position": "133748283",
+              "reference_allele": "C",
+              "alternate_allele": "T",
+              "cdna_change": "c.944C>T",
+              "protein_change": "p.T315I",
+              "exon": "5"
+            }
+          },
+          { "name": "moa_feature_type", "value": "somatic_variant" },
+          { "name": "moa_variant_annotation", "value": "Missense" }
+        ],
+        "mappings": [
+          {
+            "coding": {
+              "system": "https://www.ncbi.nlm.nih.gov/snp/",
+              "code": "rs121913459"
+            },
+            "relation": "relatedMatch"
+          }
+        ]
+      },
+      "geneContextQualifier": { "id": "moa.gene:ABL1", "name": "ABL1" },
+      "predicate": "predictsResistanceTo",
+      "objectTherapeutic": {
+        "id": "moa.drug:Imatinib",
+        "extensions": [
+          { "name": "moa_therapy_type", "value": "Targeted therapy" }
+        ],
+        "conceptType": "Drug",
+        "name": "Imatinib"
+      },
+      "conditionQualifier": {
+        "id": "moa.disease:Chronic Myelogenous Leukemia",
+        "conceptType": "Disease",
+        "name": "Chronic Myelogenous Leukemia",
+        "mappings": [
+          {
+            "coding": {
+              "id": "oncotree:CML",
+              "name": "Chronic Myelogenous Leukemia",
+              "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
+              "code": "CML"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      }
+    },
+    "direction": "supports",
+    "strength": {
+      "primaryCoding": {
+        "system": "https://moalmanac.org/about",
+        "code": "Preclinical evidence"
+      },
+      "mappings": [
+        {
+          "coding": {
+            "name": "preclinical evidence",
+            "system": "https://go.osu.edu/evidence-codes",
+            "code": "e000009"
+          },
+          "relation": "exactMatch"
+        }
+      ]
+    }
+  },
+  "moa.assertion:1": {
+    "id": "moa.assertion:1",
+    "type": "Statement",
+    "description": "The U.S. Food and Drug Administration (FDA) granted approval for bosutinib for adult patients with chronic, accelerated, or blast phase Philidelphia chromosome-positive (Ph+) CML with resistance or intolernace to prior therapy.",
+    "specifiedBy": {
+      "id": "moa.method:2021",
+      "type": "Method",
+      "name": "MOAlmanac (2021)",
+      "reportedIn": {
+        "type": "Document",
+        "name": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
+        "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+        "doi": "10.1038/s43018-021-00243-3",
+        "pmid": "35121878"
+      }
+    },
+    "reportedIn": [
+      {
+        "id": "moa.source:1",
+        "type": "Document",
+        "extensions": [{ "name": "source_type", "value": "FDA" }],
+        "title": "Pfizer Inc. Bosulif (bosutinib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2021/203341s020lbl.pdf. Revised May 2021. Accessed September 16, 2021.",
+        "urls": [
+          "https://www.accessdata.fda.gov/drugsatfda_docs/label/2021/203341s020lbl.pdf"
+        ]
+      }
+    ],
+    "proposition": {
+      "type": "VariantTherapeuticResponseProposition",
+      "subjectVariant": {
+        "id": "moa.variant:1",
+        "type": "CategoricalVariant",
+        "name": "BCR--ABL1 Fusion",
+        "extensions": [{ "name": "moa_feature_type", "value": "rearrangement" }]
+      },
+      "predicate": "predictsSensitivityTo",
+      "objectTherapeutic": {
+        "id": "moa.drug:Bosutinib",
+        "extensions": [
+          { "name": "moa_therapy_type", "value": "Targeted therapy" }
+        ],
+        "conceptType": "Drug",
+        "name": "Bosutinib"
+      },
+      "conditionQualifier": {
+        "id": "moa.disease:Chronic Myelogenous Leukemia",
+        "conceptType": "Disease",
+        "name": "Chronic Myelogenous Leukemia",
+        "mappings": [
+          {
+            "coding": {
+              "id": "oncotree:CML",
+              "name": "Chronic Myelogenous Leukemia",
+              "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
+              "code": "CML"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      }
+    },
+    "direction": "supports",
+    "strength": {
+      "primaryCoding": {
+        "system": "https://moalmanac.org/about",
+        "code": "FDA-Approved"
+      },
+      "mappings": [
+        {
+          "coding": {
+            "name": "FDA recognized evidence",
+            "system": "https://go.osu.edu/evidence-codes",
+            "code": "e000002"
+          },
+          "relation": "exactMatch"
+        }
+      ]
+    }
+  }
+}

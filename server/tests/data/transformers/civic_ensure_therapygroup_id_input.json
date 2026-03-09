@@ -1,0 +1,188 @@
+{
+  "neratinib/trastuzumab": {
+    "therapies": [
+      {
+        "id": "civic.tid:52",
+        "extensions": [
+          {
+            "name": "aliases",
+            "value": [
+              "(2E)-N-(4-((3-chloro-4-((pyridin-2-yl)methoxy)phenyl)amino)-3-cyano-7-ethoxyquinolin-6-yl)-4-(dimethylamino)but-2-enamide",
+              "2-Butenamide, N-(4-((3-chloro-4-(2-pyridinylmethoxy)phenyl)amino)-3-cyano-7-ethoxy-6-quinolinyl)-4-(dimethylamino)-, (2E)-",
+              "HKI 272",
+              "HKI-272",
+              "HKI272",
+              "PB 272",
+              "PB-272"
+            ]
+          }
+        ],
+        "conceptType": "Therapy",
+        "name": "Neratinib",
+        "mappings": [
+          {
+            "coding": {
+              "id": "ncit:C49094",
+              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+              "code": "C49094"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      },
+      {
+        "id": "civic.tid:84",
+        "extensions": [
+          {
+            "name": "aliases",
+            "value": [
+              "ABP 980",
+              "ALT02",
+              "Anti-ERB-2",
+              "Anti-HER2/c-erbB2 Monoclonal Antibody",
+              "Anti-c-ERB-2",
+              "Anti-c-erbB2 Monoclonal Antibody",
+              "Anti-erbB-2",
+              "Anti-erbB2 Monoclonal Antibody",
+              "Anti-p185-HER2",
+              "Biceltis",
+              "C-erb-2 Monoclonal Antibody",
+              "CANMab",
+              "CT-P06",
+              "CT-P6",
+              "HER2 Monoclonal Antibody",
+              "HLX 02",
+              "HLX-02",
+              "HLX02",
+              "Herceptin",
+              "Herceptin Biosimilar PF-05280014",
+              "Herceptin Trastuzumab Biosimilar PF-05280014",
+              "Hercessi",
+              "Herclon",
+              "Hertraz",
+              "Herwenda",
+              "Herzuma",
+              "Immunoglobulin G 1 (Human-Mouse Monoclonal RhuMab HER2gamma1-Chain Antihuman P185(Sup C-erbB2) Receptor), Disulfide With Human-Mouse Monoclonal RhuMab HER2 Light Chain, Dimer",
+              "Kanjinti",
+              "MoAb HER2",
+              "Monoclonal Antibody C-erb-2",
+              "Monoclonal Antibody HER2",
+              "Ogivri",
+              "Ontruzant",
+              "PF 05280014",
+              "PF-05280014",
+              "PF05280014",
+              "QL 1701",
+              "QL-1701",
+              "QL1701",
+              "RO0452317",
+              "RhuMAb HER2",
+              "SB3",
+              "Trastuzumab Biosimilar ABP 980",
+              "Trastuzumab Biosimilar ALT02",
+              "Trastuzumab Biosimilar CT-P6",
+              "Trastuzumab Biosimilar EG12014",
+              "Trastuzumab Biosimilar HLX02",
+              "Trastuzumab Biosimilar PF-05280014",
+              "Trastuzumab Biosimilar QL1701",
+              "Trastuzumab Biosimilar SB3",
+              "Trastuzumab Biosimilar SIBP-01",
+              "Trastuzumab-anns",
+              "Trastuzumab-dkst",
+              "Trastuzumab-dttb",
+              "Trastuzumab-herw",
+              "Trastuzumab-pkrb",
+              "Trastuzumab-qyyp",
+              "Trastuzumab-strf",
+              "Trastuzumab-zerc",
+              "Trazimera",
+              "Zercepac"
+            ]
+          }
+        ],
+        "conceptType": "Therapy",
+        "name": "Trastuzumab",
+        "mappings": [
+          {
+            "coding": {
+              "id": "ncit:C1647",
+              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+              "code": "C1647"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      }
+    ],
+    "membershipOperator": "OR"
+  },
+  "dabrafenib + trametinib": {
+    "therapies": [
+      {
+        "id": "civic.tid:22",
+        "extensions": [
+          {
+            "name": "aliases",
+            "value": [
+              "BRAF Inhibitor GSK2118436",
+              "Benzenesulfonamide, N-(3-(5-(2-amino-4-pyrimidinyl)-2-(1,1-dimethylethyl)-4-thiazolyl)-2-fluorophenyl)-2,6-difluoro-",
+              "GSK 2118436",
+              "GSK 2118436A",
+              "GSK-2118436",
+              "GSK-2118436A",
+              "GSK2118436",
+              "GSK2118436A"
+            ]
+          }
+        ],
+        "conceptType": "Therapy",
+        "name": "Dabrafenib",
+        "mappings": [
+          {
+            "coding": {
+              "id": "ncit:C82386",
+              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+              "code": "C82386"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      },
+      {
+        "id": "civic.tid:19",
+        "extensions": [
+          {
+            "name": "aliases",
+            "value": [
+              "GSK 1120212",
+              "GSK 212",
+              "GSK-1120212",
+              "GSK-212",
+              "GSK1120212",
+              "GSK212",
+              "JTP 74057",
+              "JTP-74057",
+              "JTP74057",
+              "MEK Inhibitor GSK1120212",
+              "Mekinist",
+              "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide"
+            ]
+          }
+        ],
+        "conceptType": "Therapy",
+        "name": "Trametinib",
+        "mappings": [
+          {
+            "coding": {
+              "id": "ncit:C77908",
+              "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+              "code": "C77908"
+            },
+            "relation": "exactMatch"
+          }
+        ]
+      }
+    ],
+    "membershipOperator": "AND"
+  }
+}
