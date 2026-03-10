@@ -531,6 +531,58 @@ class Transformer(ABC):
             return await self._build_aggregated_prog_statement(statement)
         raise ValueError
 
+    @staticmethod
+    def calculate_star_rating(
+        aggregate_statement: (
+            VariantDiagnosticStudyStatement
+            | VariantPrognosticStudyStatement
+            | VariantTherapeuticResponseStudyStatement
+        ),
+    ) -> int:
+        """Calculate star rating for an aggregate statement.
+
+        The criteria at the time of writing is as follows:
+            - 1-star: single submission from a clinical lab or online resource OR multiple, dissenting submissions
+            - 2-star: submissions from multiple evidence records that are concordant (CIViC AIDs demonstrate concordance)
+            - 3-star: submissions from ClinGen Somatic Cancer Variant Curation Expert Panels (currently only applies to CIViC records)
+            - 4-star: knowledge from WHO / NCCN / FDA Pediatric Approvals / other regulatory or professional guidelines
+
+        :param aggregate_statement: The MetaKB assertion
+        :return: The star rating as an integer (1-4)
+        """
+        flattened_evidence: list[Statement] = []
+        star_rating = 1
+        for evidence_line in aggregate_statement.hasEvidenceLines or []:
+            for evidence_item in evidence_line.hasEvidenceItems or []:
+                if not isinstance(evidence_item, Statement):
+                    # skip non-Statements for now
+                    continue
+                flattened_evidence.append(evidence_item)
+        for evidence in flattened_evidence:
+            evidence_id = (evidence.id or "").lower()
+
+            evidence_strength = evidence.strength
+            strength_mappings = evidence_strength.mappings if evidence_strength else []
+            for mapping in strength_mappings:
+                mapped_code = mapping.coding.code
+                if getattr(mapped_code, "root", mapped_code) in {
+                    "e000001",
+                    "e000002",
+                    "e000003",
+                }:
+                    # for now, this criteria takes priority over any others - if any supporting evidence is a professional guideline, return 4 stars, no other checks needed
+                    return 4
+
+            if "civic.aid:" in evidence_id:
+                # TODO: check whether CIViC assertion evidence was reported by an SC-VCEP.
+                # pending convo with Alex/looking at the approvals section on a record
+                # also unsure if SC-VCEP approval only applies to AIDs or if it also applies to EIDs
+                star_rating = 2
+
+            # check if the evidence is discordant, if so, downgrade?
+
+        return star_rating
+
     # TODO these are placeholders -- calculate accurately in #639 and #739
     @staticmethod
     def _get_assertion_strength(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
