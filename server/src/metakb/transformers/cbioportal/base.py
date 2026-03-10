@@ -58,7 +58,9 @@ STUDY_TO_MODULE = {
 # Map study → genome build
 # Default is GRCh37, only specify exceptions
 # -----------------------------
-STUDY_GENOME_BUILD = {"pancan_mappyacts_2022": "GRCh38"}
+STUDY_GENOME_BUILD = {
+    "pancan_mappyacts_2022": "GRCh38",
+}
 
 DEFAULT_GENOME_BUILD = "GRCh37"
 
@@ -146,10 +148,19 @@ class CBioPortalTransformerBase(Transformer):
         if not norm_response:
             return None
         try:
+            # First check mappings
             for mapping in getattr(norm_response.gene, "mappings", []) or []:
                 coding_id = getattr(mapping.coding, "id", "")
                 if coding_id.lower().startswith("ncbigene:"):
                     return coding_id.split(":", 1)[1]
+
+            # Fall back to primaryCoding if not found in mappings
+            primary = getattr(norm_response.gene, "primaryCoding", None)
+            if primary:
+                primary_id = getattr(primary, "id", "")
+                if primary_id.lower().startswith("ncbigene:"):
+                    return primary_id.split(":", 1)[1]
+
         except AttributeError:
             pass
         return None
@@ -1217,9 +1228,7 @@ class CBioPortalTransformerBase(Transformer):
     def add_gnomad_notation(df: pd.DataFrame) -> pd.DataFrame:
         """Add Gnomad variant notation column."""
         df["Gnomad_Notation"] = df.apply(
-            lambda row: (
-                f"{row['Chromosome']}-{row['Start_Position']}-{row['Reference_Allele']}-{row['Tumor_Seq_Allele2']}"
-            ),
+            lambda row: f"{row['Chromosome']}-{row['Start_Position']}-{row['Reference_Allele']}-{row['Tumor_Seq_Allele2']}",
             axis=1,
         )
         return df
