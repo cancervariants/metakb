@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from ga4gh.core.models import Coding, MappableConcept, code
 from ga4gh.va_spec.base import Statement
 
 from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
@@ -151,3 +152,36 @@ def test_get_stats(repository: Neo4jRepository):
     stats = repository.get_stats()
     for k, v in stats.model_dump().items():
         assert v, f"Count of {k} is {v}"
+
+
+@pytest.mark.ci_only
+def test_get_all_assertion_ids(repository: Neo4jRepository):
+    all_ids = repository.get_all_assertion_ids()
+    assert set(all_ids) == {
+        "metakb.assertion:WRdtjMzgdMFsPX2i4MgN-BTFz_C3ITZQ",
+        "metakb.assertion:zk-WDclkxtcOEnxIH6VClRKRqbPXEURy",
+    }
+
+
+@pytest.mark.ci_only
+def test_update_assertion(repository: Neo4jRepository, cdm: dict):
+    assertion_id = "metakb.assertion:WRdtjMzgdMFsPX2i4MgN-BTFz_C3ITZQ"
+    new_strength = MappableConcept(
+        primaryCoding=Coding(
+            code=code("fake_code"), system="AMP/ASCO/CAP (AAC) Guidelines, 2017"
+        )
+    )
+    repository.update_assertion_strength(assertion_id, new_strength)
+
+    new_assertion_copy = repository.search_statements(statement_ids=[assertion_id])[0]
+    assert new_assertion_copy.strength.model_dump(
+        exclude_none=True
+    ) == new_strength.model_dump(exclude_none=True)
+
+    old_strength = cdm["statements"][0].strength
+    repository.update_assertion_strength(assertion_id, old_strength)
+
+    new_assertion_copy = repository.search_statements(statement_ids=[assertion_id])[0]
+    assert new_assertion_copy.strength.model_dump(
+        exclude_none=True
+    ) == old_strength.model_dump(exclude_none=True)
