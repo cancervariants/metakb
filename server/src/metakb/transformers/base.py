@@ -13,14 +13,12 @@ from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
 from ga4gh.core.models import (
     Coding,
     ConceptMapping,
-    Extension,
     MappableConcept,
     Relation,
     code,
     iriReference,
 )
 from ga4gh.va_spec.aac_2017 import Classification as AacClassification
-from ga4gh.va_spec.aac_2017 import Strength as AacStrength
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,

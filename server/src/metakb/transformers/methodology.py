@@ -186,7 +186,7 @@ def normalize_evidence_level(
     return level_mapping[src_level]
 
 
-def get_assertion_strength(evidence_lines: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
+def get_assertion_strength(evidence_lines: list[EvidenceLine]) -> MappableConcept:
     """Get strength for the assertion supported by provided evidence
 
     I don't really know what I'm doing here. This should be figured out in #639 and #739,
