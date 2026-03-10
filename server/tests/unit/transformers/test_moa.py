@@ -19,7 +19,10 @@ from metakb.transformers.moa import MoaTransformer
 
 @pytest.fixture
 def transformer() -> MoaTransformer:
-    return MoaTransformer()
+    return MoaTransformer(
+        # need to avoid triggering the normalizer factory method
+        normalizers="dummy value"
+    )
 
 
 @pytest.fixture(scope="session")
