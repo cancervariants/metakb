@@ -96,6 +96,7 @@ class CBioPortalTransformerBase(Transformer):
         self.mappable_genes_by_study: dict[str, list[MappableConcept]] = {}
         self.mappable_variants_by_study: dict[str, list[MappableConcept]] = {}
         self.gene_qc_by_study: dict[str, dict[str, Any]] = {}
+        self.variant_qc_by_study: dict[str, dict[str, Any]] = {}
 
         # Track failed normalizations
         self.failed_genes: list[dict[str, str]] = []
@@ -493,6 +494,13 @@ class CBioPortalTransformerBase(Transformer):
             pct,
             failed,
         )
+
+        self.variant_qc_by_study[study_id] = {
+            "total_unique_variants": total,
+            "normalized_vrs": normalized,
+            "failed": failed,
+            "pct_normalized": round(pct, 2),
+        }
 
         return df
 
@@ -945,10 +953,6 @@ class CBioPortalTransformerBase(Transformer):
         logger.info("Normalizing variants for study: %s", study)
         df = self._normalize_variants(df, study)
 
-        # Normalize variants to VRS IDs
-        logger.info("Normalizing variants for study: %s", study)
-        df = self._normalize_variants(df, study)
-
         # Build mappable variants (after vrs_id column exists)
         mappable_variants = self._add_variants(df)
         self.mappable_variants_by_study[study] = mappable_variants
@@ -1012,10 +1016,12 @@ class CBioPortalTransformerBase(Transformer):
         # Create subdirectories for organized output
         # -----------------------------------------
         mappable_genes_dir = save_loc / "mappable_genes"
+        mappable_variants_dir = save_loc / "mappable_variants" 
         frequencies_dir = save_loc / "frequencies"
         norm_failures_dir = save_loc / "norm_failures"
 
         mappable_genes_dir.mkdir(parents=True, exist_ok=True)
+        mappable_variants_dir.mkdir(parents=True, exist_ok=True)
         frequencies_dir.mkdir(parents=True, exist_ok=True)
         norm_failures_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1031,12 +1037,18 @@ class CBioPortalTransformerBase(Transformer):
         gene_qc_out_path = mappable_genes_dir / "gene_qc_summary_per_study.csv"
         gene_qc_df.to_csv(gene_qc_out_path, index=False)
 
+        variant_qc_df = (
+            pd.DataFrame.from_dict(self.variant_qc_by_study, orient="index")
+            .reset_index()
+            .rename(columns={"index": "STUDY_ID"})
+            .sort_values("STUDY_ID")
+        )
+        variant_qc_out_path = mappable_variants_dir / "variant_qc_summary_per_study.csv"
+        variant_qc_df.to_csv(variant_qc_out_path, index=False)
+
         # Merged mappable genes JSON (all studies in one file)
         merged_genes_out_path = mappable_genes_dir / "mappable_genes_all_studies.json"
         self._write_all_mappable_genes_json(merged_genes_out_path)
-
-        mappable_variants_dir = save_loc / "mappable_variants"
-        mappable_variants_dir.mkdir(parents=True, exist_ok=True)
 
         # Per-study variant JSON files
         for study_id, mappable_variants in self.mappable_variants_by_study.items():
