@@ -87,16 +87,25 @@ class MoaTransformer(Transformer):
                 if aggregate_statement := await self._create_aggregate_statement(
                     transformed_statement
                 ):
-                    # include this statement as an item within an existing evidence line
-                    # if there is already an aggregate statement for this set of entities
+                    strength_value = aggregate_statement.hasEvidenceLines[
+                        0
+                    ].strengthOfEvidenceProvided.primaryCoding.code.root
                     for existing_statement in statements:
                         if (
                             existing_statement.proposition
                             == aggregate_statement.proposition
                         ):
-                            existing_statement.hasEvidenceLines[
-                                0
-                            ].hasEvidenceItems.append(transformed_statement)
+                            for line in existing_statement.hasEvidenceLines:
+                                if (
+                                    line.strengthOfEvidenceProvided.primaryCoding.code.root
+                                    == strength_value
+                                ):
+                                    line.hasEvidenceItems.append(transformed_statement)
+                                    break
+                            else:
+                                existing_statement.hasEvidenceLines.append(
+                                    aggregate_statement.hasEvidenceLines[0]
+                                )
                             break
                     else:
                         statements.append(aggregate_statement)

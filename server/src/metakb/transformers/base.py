@@ -13,6 +13,7 @@ from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
 from ga4gh.core.models import (
     Coding,
     ConceptMapping,
+    Extension,
     MappableConcept,
     Relation,
     code,
@@ -48,6 +49,7 @@ from metakb.config import get_config
 from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import ViccNormalizers
 from metakb.transformers.identifiers import compute_aggr_statement_id, compute_combo_id
+from metakb.transformers.methodology import get_aac_strength, get_assertion_strength
 
 logger = logging.getLogger(__name__)
 
@@ -506,6 +508,21 @@ class Transformer(ABC):
 
     ### statement construction
 
+    @staticmethod
+    def _get_assertion_classification(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
+        """Get classification for the assertion supported by the provided evidence
+
+        See above re placeholder values
+
+        :param evidence: supporting evidence for the assertion
+        :return: classification concept
+        """
+        return MappableConcept(
+            primaryCoding=Coding(
+                system=System.AMP_ASCO_CAP, code=code(AacClassification.TIER_IV)
+            )
+        )
+
     async def _create_aggregate_statement(
         self, statement: Statement
     ) -> (
@@ -531,38 +548,6 @@ class Transformer(ABC):
             return await self._build_aggregated_prog_statement(statement)
         raise ValueError
 
-    # TODO these are placeholders -- calculate accurately in #639 and #739
-    @staticmethod
-    def _get_assertion_strength(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
-        """Get strength for the assertion supported by provided evidence
-
-        I don't really know what I'm doing here. This should be figured out in #639 and #739,
-        hopefully I have the interface right. Maybe this should be moved to another module.
-
-        :param evidence: supporting evidence for the assertion
-        :return: strength concept
-        """
-        return MappableConcept(
-            primaryCoding=Coding(
-                system=System.AMP_ASCO_CAP, code=code(AacStrength.LEVEL_D)
-            ),
-        )
-
-    @staticmethod
-    def _get_assertion_classification(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
-        """Get classification for the assertion supported by the provided evidence
-
-        See above re placeholder values
-
-        :param evidence: supporting evidence for the assertion
-        :return: classification concept
-        """
-        return MappableConcept(
-            primaryCoding=Coding(
-                system=System.AMP_ASCO_CAP, code=code(AacClassification.TIER_IV)
-            )
-        )
-
     async def _build_aggregated_diag_statement(
         self, statement: Statement
     ) -> VariantDiagnosticStudyStatement | None:
@@ -576,11 +561,14 @@ class Transformer(ABC):
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
         normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all([normalized_disease, normalized_gene, normalized_variant]):
+            aac_strength = get_aac_strength(statement.strength)
+            if not aac_strength:
+                return None
             evidence = [
                 EvidenceLine(
                     hasEvidenceItems=[statement],
                     directionOfEvidenceProvided=Direction.SUPPORTS,
-                    strengthOfEvidenceProvided=statement.strength,
+                    strengthOfEvidenceProvided=aac_strength,
                 )
             ]
             statement = VariantDiagnosticStudyStatement(
@@ -594,7 +582,7 @@ class Transformer(ABC):
                 direction=statement.direction,
                 specifiedBy=METAKB_METHOD,
                 hasEvidenceLines=evidence,
-                strength=self._get_assertion_strength(evidence),
+                strength=get_assertion_strength(evidence),
                 classification=self._get_assertion_classification(evidence),
             )
             statement.id = compute_aggr_statement_id(statement)
@@ -614,11 +602,14 @@ class Transformer(ABC):
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
         normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all((normalized_disease, normalized_gene, normalized_variant)):
+            aac_strength = get_aac_strength(statement.strength)
+            if not aac_strength:
+                return None
             evidence = [
                 EvidenceLine(
                     hasEvidenceItems=[statement],
                     directionOfEvidenceProvided=Direction.SUPPORTS,
-                    strengthOfEvidenceProvided=statement.strength,
+                    strengthOfEvidenceProvided=aac_strength,
                 )
             ]
             statement = VariantPrognosticStudyStatement(
@@ -632,7 +623,7 @@ class Transformer(ABC):
                 direction=statement.direction,
                 specifiedBy=METAKB_METHOD,
                 hasEvidenceLines=evidence,
-                strength=self._get_assertion_strength(evidence),
+                strength=get_assertion_strength(evidence),
                 classification=self._get_assertion_classification(evidence),
             )
             statement.id = compute_aggr_statement_id(statement)
@@ -660,11 +651,14 @@ class Transformer(ABC):
                 normalized_therapeutic,
             )
         ):
+            aac_strength = get_aac_strength(statement.strength)
+            if not aac_strength:
+                return None
             evidence = [
                 EvidenceLine(
                     hasEvidenceItems=[statement],
                     directionOfEvidenceProvided=Direction.SUPPORTS,
-                    strengthOfEvidenceProvided=statement.strength,
+                    strengthOfEvidenceProvided=aac_strength,
                 )
             ]
             aggr_statement = VariantTherapeuticResponseStudyStatement(
@@ -679,7 +673,7 @@ class Transformer(ABC):
                 direction=statement.direction,
                 specifiedBy=METAKB_METHOD,
                 hasEvidenceLines=evidence,
-                strength=self._get_assertion_strength(evidence),
+                strength=get_assertion_strength(evidence),
                 classification=self._get_assertion_classification(evidence),
             )
             aggr_statement.id = compute_aggr_statement_id(aggr_statement)
