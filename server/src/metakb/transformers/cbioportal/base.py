@@ -331,11 +331,13 @@ class CBioPortalTransformerBase(Transformer):
             "pct_normalized": round(pct, 2),
         }
         return mappable, qc
-    
+
     def _add_variants(self, df: pd.DataFrame) -> list[MappableConcept]:
         """Build MappableConcept objects for normalized variants in the DataFrame."""
         if "Gnomad_Notation" not in df.columns or "vrs_id" not in df.columns:
-            logger.warning("Missing Gnomad_Notation or vrs_id column; skipping variant mapping.")
+            logger.warning(
+                "Missing Gnomad_Notation or vrs_id column; skipping variant mapping."
+            )
             return []
 
         mappable: list[MappableConcept] = []
@@ -349,7 +351,7 @@ class CBioPortalTransformerBase(Transformer):
         for _, row in variant_df.iterrows():
             notation = row["Gnomad_Notation"]
             vrs_id = row.get("vrs_id")
-            symbol = row.get("Hugo_Symbol", "")
+            row.get("Hugo_Symbol", "")
 
             if vrs_id and not pd.isna(vrs_id):
                 mappings = [
@@ -1016,7 +1018,7 @@ class CBioPortalTransformerBase(Transformer):
         # Create subdirectories for organized output
         # -----------------------------------------
         mappable_genes_dir = save_loc / "mappable_genes"
-        mappable_variants_dir = save_loc / "mappable_variants" 
+        mappable_variants_dir = save_loc / "mappable_variants"
         frequencies_dir = save_loc / "frequencies"
         norm_failures_dir = save_loc / "norm_failures"
 
@@ -1052,10 +1054,14 @@ class CBioPortalTransformerBase(Transformer):
 
         # Per-study variant JSON files
         for study_id, mappable_variants in self.mappable_variants_by_study.items():
-            self._write_mappable_variants_json(study_id, mappable_variants, mappable_variants_dir)
+            self._write_mappable_variants_json(
+                study_id, mappable_variants, mappable_variants_dir
+            )
 
         # Merged variants JSON (all studies in one file)
-        merged_variants_out_path = mappable_variants_dir / "mappable_variants_all_studies.json"
+        merged_variants_out_path = (
+            mappable_variants_dir / "mappable_variants_all_studies.json"
+        )
         self._write_all_mappable_variants_json(merged_variants_out_path)
 
         # -----------------------------------------

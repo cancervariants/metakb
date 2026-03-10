@@ -61,8 +61,4 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
 
     def get_variant_transformations(self) -> dict:
         """Return sample column transformation mappings."""
-        return {
-            "additional_columns": {
-                "Sequence_Source": "No_data"
-            }
-        }
+        return {"additional_columns": {"Sequence_Source": "No_data"}}
