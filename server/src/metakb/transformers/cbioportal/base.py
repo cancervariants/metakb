@@ -94,6 +94,7 @@ class CBioPortalTransformerBase(Transformer):
 
         # Collect mappable genes + QC per study so we can write combined outputs at the end
         self.mappable_genes_by_study: dict[str, list[MappableConcept]] = {}
+        self.mappable_variants_by_study: dict[str, list[MappableConcept]] = {}
         self.gene_qc_by_study: dict[str, dict[str, Any]] = {}
 
         # Track failed normalizations
@@ -329,6 +330,53 @@ class CBioPortalTransformerBase(Transformer):
             "pct_normalized": round(pct, 2),
         }
         return mappable, qc
+    
+    def _add_variants(self, df: pd.DataFrame) -> list[MappableConcept]:
+        """Build MappableConcept objects for normalized variants in the DataFrame."""
+        if "Gnomad_Notation" not in df.columns or "vrs_id" not in df.columns:
+            logger.warning("Missing Gnomad_Notation or vrs_id column; skipping variant mapping.")
+            return []
+
+        mappable: list[MappableConcept] = []
+
+        variant_df = (
+            df[["Gnomad_Notation", "vrs_id", "Hugo_Symbol"]]
+            .dropna(subset=["Gnomad_Notation"])
+            .drop_duplicates(subset=["Gnomad_Notation"])
+        )
+
+        for _, row in variant_df.iterrows():
+            notation = row["Gnomad_Notation"]
+            vrs_id = row.get("vrs_id")
+            symbol = row.get("Hugo_Symbol", "")
+
+            if vrs_id and not pd.isna(vrs_id):
+                mappings = [
+                    ConceptMapping(
+                        coding=Coding(
+                            id=vrs_id,
+                            name=notation,
+                            code=vrs_id,
+                            system="https://vrs.ga4gh.org/",
+                        ),
+                        relation=Relation.EXACT_MATCH,
+                    )
+                ]
+                extensions = None
+            else:
+                mappings = []
+                extensions = [self._get_vicc_normalizer_failure_ext()]
+
+            mappable.append(
+                MappableConcept(
+                    conceptType="Variant",
+                    name=notation,
+                    mappings=mappings,
+                    extensions=extensions,
+                )
+            )
+
+        return mappable
 
     def _normalize_variant(self, variant_notation: str) -> str | None:
         """Normalize variant using VICC variation normalizer with caching.
@@ -725,6 +773,35 @@ class CBioPortalTransformerBase(Transformer):
             json.dump(payload, f, indent=2)
         return out_path
 
+    def _write_mappable_variants_json(
+        self, study: str, mappable_variants: list[MappableConcept], out_dir: str | Path
+    ) -> Path:
+        """Write this study's mappable variants to JSON."""
+        out_dir = Path(out_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / f"{study}_mappable_variants.json"
+
+        payload = [mv.model_dump(exclude_none=True) for mv in mappable_variants]
+        with out_path.open("w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
+
+        return out_path
+
+    def _write_all_mappable_variants_json(self, out_path: str | Path) -> Path:
+        """Merge all studies' mappable variants into one JSON file."""
+        out_path = Path(out_path)
+        payload = {
+            "mappable_variants_by_study": {
+                study: [mv.model_dump(exclude_none=True) for mv in variants]
+                for study, variants in self.mappable_variants_by_study.items()
+            }
+        }
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with out_path.open("w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
+
+        return out_path
+
     # ======================================================
     #  Loading and running transformers (instance methods)
     # ======================================================
@@ -868,6 +945,15 @@ class CBioPortalTransformerBase(Transformer):
         logger.info("Normalizing variants for study: %s", study)
         df = self._normalize_variants(df, study)
 
+        # Normalize variants to VRS IDs
+        logger.info("Normalizing variants for study: %s", study)
+        df = self._normalize_variants(df, study)
+
+        # Build mappable variants (after vrs_id column exists)
+        mappable_variants = self._add_variants(df)
+        self.mappable_variants_by_study[study] = mappable_variants
+        logger.info("[%s] mappable_variants count: %d", study, len(mappable_variants))
+
         if "STUDY_ID" not in df.columns:
             df = df.assign(STUDY_ID=study)
 
@@ -948,6 +1034,17 @@ class CBioPortalTransformerBase(Transformer):
         # Merged mappable genes JSON (all studies in one file)
         merged_genes_out_path = mappable_genes_dir / "mappable_genes_all_studies.json"
         self._write_all_mappable_genes_json(merged_genes_out_path)
+
+        mappable_variants_dir = save_loc / "mappable_variants"
+        mappable_variants_dir.mkdir(parents=True, exist_ok=True)
+
+        # Per-study variant JSON files
+        for study_id, mappable_variants in self.mappable_variants_by_study.items():
+            self._write_mappable_variants_json(study_id, mappable_variants, mappable_variants_dir)
+
+        # Merged variants JSON (all studies in one file)
+        merged_variants_out_path = mappable_variants_dir / "mappable_variants_all_studies.json"
+        self._write_all_mappable_variants_json(merged_variants_out_path)
 
         # -----------------------------------------
         # Frequency results and QC
