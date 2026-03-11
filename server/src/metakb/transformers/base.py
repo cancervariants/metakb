@@ -4,9 +4,7 @@ import datetime
 import json
 import logging
 from abc import ABC, abstractmethod
-from enum import Enum
 from pathlib import Path
-from typing import ClassVar
 
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
@@ -40,68 +38,23 @@ from ga4gh.va_spec.base import (
     VariantTherapeuticResponseProposition,
 )
 from ga4gh.vrs.models import Allele
-from pydantic import BaseModel, StrictStr
+from pydantic import BaseModel
 
 from metakb import DATE_FMT
 from metakb.config import get_config
 from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import ViccNormalizers
 from metakb.transformers.identifiers import compute_aggr_statement_id, compute_combo_id
-from metakb.transformers.methodology import get_aac_strength, get_assertion_strength
-
-logger = logging.getLogger(__name__)
-
-# TODO figure out method, etc for MetaKB assertions
-# https://github.com/cancervariants/metakb/issues/739
-METAKB_METHOD = Method(
-    id="metakb.method:2026",
-    name="MetaKB (2026)",
-    reportedIn=Document(
-        name="Wagnerds et al",
-        title="MetaKB v2",
-        doi="10.1038/1111-1-1111-111-1111",
-        pmid="9999999",
-    ),
+from metakb.transformers.methodology import (
+    METAKB_METHOD,
+    CivicEvidenceLevel,
+    MoaEvidenceLevel,
+    aggregate_assertion_evidence,
+    get_aac_strength,
+    vicc_concept_vocabs,
 )
 
-
-class EcoLevel(str, Enum):
-    """Define constraints for Evidence Ontology levels"""
-
-    EVIDENCE = "ECO:0000000"
-    CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
-
-
-class CivicEvidenceLevel(str, Enum):
-    """Define constraints for CIViC evidence levels"""
-
-    A = "A"
-    B = "B"
-    C = "C"
-    D = "D"
-    E = "E"
-
-
-class MoaEvidenceLevel(str, Enum):
-    """Define constraints MOAlmanac evidence levels"""
-
-    FDA_APPROVED = "FDA-Approved"
-    GUIDELINE = "Guideline"
-    CLINICAL_TRIAL = "Clinical trial"
-    CLINICAL_EVIDENCE = "Clinical evidence"
-    PRECLINICAL = "Preclinical evidence"
-    INFERENTIAL = "Inferential evidence"
-
-
-class ViccConceptVocab(BaseModel):
-    """Define VICC Concept Vocab model"""
-
-    id: StrictStr
-    domain: StrictStr
-    term: StrictStr
-    parents: list[StrictStr] = []
-    exact_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
-    definition: StrictStr
+logger = logging.getLogger(__name__)
 
 
 class TransformedData(BaseModel):
@@ -121,97 +74,6 @@ class TransformedData(BaseModel):
 
 class Transformer(ABC):
     """A base class for transforming harvester data."""
-
-    _vicc_concept_vocabs: ClassVar[list[ViccConceptVocab]] = [
-        ViccConceptVocab(
-            id="vicc:e000000",
-            domain="EvidenceStrength",
-            term="evidence",
-            parents=[],
-            exact_mappings={EcoLevel.EVIDENCE},
-            definition="A type of information that is used to support statements.",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000001",
-            domain="EvidenceStrength",
-            term="authoritative evidence",
-            parents=["vicc:e000000"],
-            exact_mappings={CivicEvidenceLevel.A},
-            definition="Evidence derived from an authoritative source describing a proven or consensus statement.",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000002",
-            domain="EvidenceStrength",
-            term="FDA recognized evidence",
-            parents=["vicc:e000001"],
-            exact_mappings={MoaEvidenceLevel.FDA_APPROVED},
-            definition="Evidence derived from statements recognized by the US Food and Drug Administration.",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000003",
-            domain="EvidenceStrength",
-            term="professional guideline evidence",
-            parents=["vicc:e000001"],
-            exact_mappings={MoaEvidenceLevel.GUIDELINE},
-            definition="Evidence derived from statements by professional society guidelines",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000004",
-            domain="EvidenceStrength",
-            term="clinical evidence",
-            parents=["vicc:e000000"],
-            exact_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
-            definition="Evidence derived from clinical research studies",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000005",
-            domain="EvidenceStrength",
-            term="clinical cohort evidence",
-            parents=["vicc:e000004"],
-            exact_mappings={CivicEvidenceLevel.B},
-            definition="Evidence derived from the clinical study of a participant cohort",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000006",
-            domain="EvidenceStrength",
-            term="interventional study evidence",
-            parents=["vicc:e000005"],
-            exact_mappings={MoaEvidenceLevel.CLINICAL_TRIAL},
-            definition="Evidence derived from interventional studies of clinical cohorts (clinical trials)",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000007",
-            domain="EvidenceStrength",
-            term="observational study evidence",
-            parents=["vicc:e000005"],
-            exact_mappings={MoaEvidenceLevel.CLINICAL_EVIDENCE},
-            definition="Evidence derived from observational studies of clinical cohorts",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000008",
-            domain="EvidenceStrength",
-            term="case study evidence",
-            parents=["vicc:e000004"],
-            exact_mappings={CivicEvidenceLevel.C},
-            definition="Evidence derived from clinical study of a single participant",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000009",
-            domain="EvidenceStrength",
-            term="preclinical evidence",
-            parents=["vicc:e000000"],
-            exact_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
-            definition="Evidence derived from the study of model organisms",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000010",
-            domain="EvidenceStrength",
-            term="inferential evidence",
-            parents=["vicc:e000000"],
-            exact_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
-            definition="Evidence derived by inference",
-        ),
-    ]
 
     def __init__(
         self,
@@ -565,10 +427,11 @@ class Transformer(ABC):
             evidence = [
                 EvidenceLine(
                     hasEvidenceItems=[statement],
-                    directionOfEvidenceProvided=Direction.SUPPORTS,
+                    directionOfEvidenceProvided=statement.direction,
                     strengthOfEvidenceProvided=aac_strength,
                 )
             ]
+            strength, direction = aggregate_assertion_evidence(evidence)
             statement = VariantDiagnosticStudyStatement(
                 proposition=VariantDiagnosticProposition(
                     geneContextQualifier=normalized_gene,
@@ -577,10 +440,10 @@ class Transformer(ABC):
                     predicate=statement.proposition.predicate,
                     alleleOriginQualifier=prop.alleleOriginQualifier,
                 ),
-                direction=statement.direction,
+                direction=direction,
                 specifiedBy=METAKB_METHOD,
                 hasEvidenceLines=evidence,
-                strength=get_assertion_strength(evidence),
+                strength=strength,
                 classification=self._get_assertion_classification(evidence),
             )
             statement.id = compute_aggr_statement_id(statement)
@@ -610,6 +473,7 @@ class Transformer(ABC):
                     strengthOfEvidenceProvided=aac_strength,
                 )
             ]
+            strength, direction = aggregate_assertion_evidence(evidence)
             statement = VariantPrognosticStudyStatement(
                 proposition=VariantPrognosticProposition(
                     geneContextQualifier=normalized_gene,
@@ -618,10 +482,10 @@ class Transformer(ABC):
                     predicate=statement.proposition.predicate,
                     alleleOriginQualifier=prop.alleleOriginQualifier,
                 ),
-                direction=statement.direction,
+                direction=direction,
                 specifiedBy=METAKB_METHOD,
                 hasEvidenceLines=evidence,
-                strength=get_assertion_strength(evidence),
+                strength=strength,
                 classification=self._get_assertion_classification(evidence),
             )
             statement.id = compute_aggr_statement_id(statement)
@@ -659,6 +523,7 @@ class Transformer(ABC):
                     strengthOfEvidenceProvided=aac_strength,
                 )
             ]
+            strength, direction = aggregate_assertion_evidence(evidence)
             aggr_statement = VariantTherapeuticResponseStudyStatement(
                 proposition=VariantTherapeuticResponseProposition(
                     geneContextQualifier=normalized_gene,
@@ -668,10 +533,10 @@ class Transformer(ABC):
                     predicate=statement.proposition.predicate,
                     alleleOriginQualifier=prop.alleleOriginQualifier,
                 ),
-                direction=statement.direction,
+                direction=direction,
                 specifiedBy=METAKB_METHOD,
                 hasEvidenceLines=evidence,
-                strength=get_assertion_strength(evidence),
+                strength=strength,
                 classification=self._get_assertion_classification(evidence),
             )
             aggr_statement.id = compute_aggr_statement_id(aggr_statement)
@@ -690,7 +555,7 @@ class Transformer(ABC):
             ConceptMapping
         """
         concept_mappings: dict[str, list[ConceptMapping]] = {}
-        for item in self._vicc_concept_vocabs:
+        for item in vicc_concept_vocabs:
             for exact_mapping in item.exact_mappings:
                 concept_mappings[exact_mapping] = [
                     ConceptMapping(

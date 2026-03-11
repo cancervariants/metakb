@@ -14,6 +14,7 @@ from ga4gh.va_spec.aac_2017 import (
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
+    Direction,
     Document,
     Method,
     Statement,
@@ -820,4 +821,19 @@ class Neo4jRepository(AbstractRepository):
                 queries_catalog.update_assertion_strength(),
                 statement_id=assertion_id,
                 strength=strength_node.model_dump(mode="json"),
+            )
+
+    def update_assertion_properties(
+        self, assertion_id: str, direction: Direction
+    ) -> None:
+        """Update mutable properties for a higher-order assertion
+
+        :param assertion_id: ID of the assertion node
+        :param direction: new direction property
+        """
+        with self.session.begin_transaction() as tx:
+            tx.run(
+                queries_catalog.update_assertion_properties(),
+                statement_id=assertion_id,
+                direction=direction.value,
             )

@@ -1,12 +1,33 @@
 """Provide definitions and basic functions relating to assessments and methods."""
 
+from collections.abc import Sequence
 from enum import StrEnum
 
 from ga4gh.core.models import Coding, code
 from ga4gh.va_spec.aac_2017.models import Strength as AmpAscoCapStrength
-from ga4gh.va_spec.base import EvidenceLine, System
+from ga4gh.va_spec.base import (
+    Direction,
+    Document,
+    EvidenceLine,
+    Method,
+    Statement,
+    System,
+)
 from gene.query import MappableConcept
 from pydantic import BaseModel, StrictStr
+
+# TODO figure out method, etc for MetaKB assertions
+# https://github.com/cancervariants/metakb/issues/739
+METAKB_METHOD = Method(
+    id="metakb.method:2026",
+    name="MetaKB (2026)",
+    reportedIn=Document(
+        name="Wagnerds et al",
+        title="MetaKB v2",
+        doi="10.1038/1111-1-1111-111-1111",
+        pmid="9999999",
+    ),
+)
 
 
 class EcoLevel(StrEnum):
@@ -35,6 +56,34 @@ class MoaEvidenceLevel(StrEnum):
     CLINICAL_EVIDENCE = "Clinical evidence"
     PRECLINICAL = "Preclinical evidence"
     INFERENTIAL = "Inferential evidence"
+
+
+EVIDENCE_LEVEL_MAPPING = {
+    CivicEvidenceLevel.A: AmpAscoCapStrength.LEVEL_A,
+    CivicEvidenceLevel.B: AmpAscoCapStrength.LEVEL_B,
+    CivicEvidenceLevel.C: AmpAscoCapStrength.LEVEL_C,
+    CivicEvidenceLevel.D: AmpAscoCapStrength.LEVEL_D,
+    CivicEvidenceLevel.E: None,
+    MoaEvidenceLevel.CLINICAL_EVIDENCE: AmpAscoCapStrength.LEVEL_C,
+    MoaEvidenceLevel.CLINICAL_TRIAL: AmpAscoCapStrength.LEVEL_C,
+    MoaEvidenceLevel.FDA_APPROVED: AmpAscoCapStrength.LEVEL_A,
+    MoaEvidenceLevel.GUIDELINE: AmpAscoCapStrength.LEVEL_A,
+    MoaEvidenceLevel.INFERENTIAL: None,
+    MoaEvidenceLevel.PRECLINICAL: AmpAscoCapStrength.LEVEL_D,
+}
+
+
+def normalize_evidence_level(
+    src_level: CivicEvidenceLevel | MoaEvidenceLevel,
+) -> AmpAscoCapStrength | None:
+    """Convert source evidence levels into a normalized AMP/ASCO/CAP level
+
+    Use to generate assessment strength values.
+
+    :param src_level: evidence level from source statement
+    :return: normalized equivalent if available
+    """
+    return EVIDENCE_LEVEL_MAPPING[src_level]
 
 
 class ViccConceptVocab(BaseModel):
@@ -139,67 +188,138 @@ vicc_concept_vocabs = [
     ),
 ]
 
+AAC_STRENGTH_CONCEPTS = {
+    AmpAscoCapStrength.LEVEL_A: MappableConcept(
+        primaryCoding=Coding(
+            system=System.AMP_ASCO_CAP, code=code(AmpAscoCapStrength.LEVEL_A)
+        )
+    ),
+    AmpAscoCapStrength.LEVEL_B: MappableConcept(
+        primaryCoding=Coding(
+            system=System.AMP_ASCO_CAP, code=code(AmpAscoCapStrength.LEVEL_B)
+        )
+    ),
+    AmpAscoCapStrength.LEVEL_C: MappableConcept(
+        primaryCoding=Coding(
+            system=System.AMP_ASCO_CAP, code=code(AmpAscoCapStrength.LEVEL_C)
+        )
+    ),
+    AmpAscoCapStrength.LEVEL_D: MappableConcept(
+        primaryCoding=Coding(
+            system=System.AMP_ASCO_CAP, code=code(AmpAscoCapStrength.LEVEL_D)
+        )
+    ),
+}
+
 
 def get_aac_strength(
     strength: MappableConcept,
 ) -> MappableConcept | None:
+    """Get AMP/ASCO/CAP strength from a source-provided strength of evidence value
+
+    :param strength: source strength instance
+    :return: the equivalent AMP/ASCO/CAP strength concept, if available
+    :raise NotImplementedError: if unrecognized concept system is provided
+    """
     if (
         strength.primaryCoding.system
         == "https://civic.readthedocs.io/en/latest/model/evidence/level.html"
     ):
         src_level = CivicEvidenceLevel(strength.primaryCoding.code.root)
+        aac_strength_level = normalize_evidence_level(src_level)
     elif strength.primaryCoding.system == "https://moalmanac.org/about":
         src_level = MoaEvidenceLevel(strength.primaryCoding.code.root)
+        aac_strength_level = normalize_evidence_level(src_level)
+    elif strength.primaryCoding.system == System.AMP_ASCO_CAP:
+        aac_strength_level = AmpAscoCapStrength(strength.primaryCoding.code.root)
     else:
         raise NotImplementedError
-    normalized_level = normalize_evidence_level(src_level)
-    if not normalized_level:
+    if not aac_strength_level:
         return None
-    return MappableConcept(
-        primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(normalized_level)),
+    return AAC_STRENGTH_CONCEPTS[aac_strength_level]
+
+
+_AAC_STRENGTH_RANK = {
+    AmpAscoCapStrength.LEVEL_A.value: 0,
+    AmpAscoCapStrength.LEVEL_B.value: 1,
+    AmpAscoCapStrength.LEVEL_C.value: 2,
+    AmpAscoCapStrength.LEVEL_D.value: 3,
+}
+
+
+def aggregate_assertion_evidence(
+    evidence_lines: Sequence[EvidenceLine],
+) -> tuple[MappableConcept, Direction]:
+    """Calculate aggregate values for the assertion supported by provided evidence
+
+    * Get the highest single strength value in any contained evidence item
+    * Take directionality from the highest-strength evidence. In the case of a tie,
+      direction is "neutral"
+
+    :param evidence_lines: supporting evidence lines for the assertion
+    :return: aggregate strength and direction
+    """
+    if not evidence_lines:
+        msg = "evidence_lines must not be empty"
+        raise ValueError(msg)
+
+    best_line = evidence_lines[0]
+    best_strength = best_line.strengthOfEvidenceProvided
+    best_rank = _AAC_STRENGTH_RANK[best_strength.primaryCoding.code.root]
+    tied_directions = {best_line.directionOfEvidenceProvided}
+
+    for line in evidence_lines[1:]:
+        strength = line.strengthOfEvidenceProvided
+        rank = _AAC_STRENGTH_RANK[strength.primaryCoding.code.root]
+        direction = line.directionOfEvidenceProvided
+
+        if rank < best_rank:
+            best_line = line
+            best_strength = strength
+            best_rank = rank
+            tied_directions = {direction}
+        elif rank == best_rank:
+            tied_directions.add(direction)
+
+    aggregate_direction = (
+        tied_directions.pop() if len(tied_directions) == 1 else Direction.NEUTRAL
     )
 
+    return best_strength, aggregate_direction
 
-def normalize_evidence_level(
-    src_level: CivicEvidenceLevel | MoaEvidenceLevel,
-) -> AmpAscoCapStrength | None:
-    """Convert source evidence levels into a normalized AMP/ASCO/CAP level
 
-    Use to generate assessment strength values
+def merge_assertions(existing_assertion: Statement, new_assertion: Statement) -> None:
+    """Fold evidence lines from a new assertion into an existing assertion and recalculate aggregate values
 
-    :param src_level: evidence level from source statement
-    :return: normalized equivalent if available
+    **``existing_assertion`` is modified in place!!!** This is on purpose, to enable
+    us to modify previous instances of an assertion that are located in array without
+    having to pop the instance out, get the updated version, and add it back in
+
+    This currently recalculates the strength value for the assertion, but it could also
+    be a good place to calculate evidence star rating in the future.
+
+    :param existing_assertion: the existing version of the assertion
+    :param new_assertion: the newly-generated copy of the assertion
+    :raise ValueError: if attempting to merge two assertions with different propositions/IDs
     """
-    level_mapping = {
-        CivicEvidenceLevel.A: AmpAscoCapStrength.LEVEL_A,
-        CivicEvidenceLevel.B: AmpAscoCapStrength.LEVEL_B,
-        CivicEvidenceLevel.C: AmpAscoCapStrength.LEVEL_C,
-        CivicEvidenceLevel.D: AmpAscoCapStrength.LEVEL_D,
-        CivicEvidenceLevel.E: None,
-        MoaEvidenceLevel.CLINICAL_EVIDENCE: AmpAscoCapStrength.LEVEL_C,
-        MoaEvidenceLevel.CLINICAL_TRIAL: AmpAscoCapStrength.LEVEL_C,
-        MoaEvidenceLevel.FDA_APPROVED: AmpAscoCapStrength.LEVEL_A,
-        MoaEvidenceLevel.GUIDELINE: AmpAscoCapStrength.LEVEL_A,
-        MoaEvidenceLevel.INFERENTIAL: None,
-        MoaEvidenceLevel.PRECLINICAL: AmpAscoCapStrength.LEVEL_D,
-    }
-    return level_mapping[src_level]
+    if existing_assertion.id != new_assertion.id:
+        raise ValueError
 
+    for line in new_assertion.hasEvidenceLines:
+        for existing_line in existing_assertion.hasEvidenceLines:
+            if (
+                (
+                    line.strengthOfEvidenceProvided.primaryCoding
+                    == existing_line.strengthOfEvidenceProvided.primaryCoding
+                )
+                and line.directionOfEvidenceProvided
+                == existing_line.directionOfEvidenceProvided
+            ):
+                existing_line.hasEvidenceItems.extend(line.hasEvidenceItems)
+                break
+        else:
+            existing_assertion.hasEvidenceLines.append(line)
 
-def get_assertion_strength(evidence_lines: list[EvidenceLine]) -> MappableConcept:
-    """Get strength for the assertion supported by provided evidence
-
-    I don't really know what I'm doing here. This should be figured out in #639 and #739,
-    hopefully I have the interface right.
-
-    :param evidence: supporting evidence for the assertion
-    :return: strength concept
-    """
-    max_strength = evidence_lines[0].strengthOfEvidenceProvided
-    for line in evidence_lines[1:]:
-        if (
-            line.strengthOfEvidenceProvided.primaryCoding.code.root
-            < max_strength.primaryCoding.code.root
-        ):
-            max_strength = line.strengthOfEvidenceProvided
-    return max_strength
+    existing_assertion.strength, existing_assertion.direction = (
+        aggregate_assertion_evidence(existing_assertion.hasEvidenceLines)
+    )

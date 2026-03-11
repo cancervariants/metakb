@@ -37,6 +37,7 @@ from metakb.transformers.base import (
     Transformer,
 )
 from metakb.transformers.identifiers import compute_combo_id
+from metakb.transformers.methodology import merge_assertions
 
 _logger = logging.getLogger(__name__)
 
@@ -84,28 +85,16 @@ class MoaTransformer(Transformer):
             source = docs_map[assertion["source_id"]]
             if transformed_statement := self._create_statement(assertion, source):
                 statements.append(transformed_statement)
+
                 if aggregate_statement := await self._create_aggregate_statement(
                     transformed_statement
                 ):
-                    strength_value = aggregate_statement.hasEvidenceLines[
-                        0
-                    ].strengthOfEvidenceProvided.primaryCoding.code.root
                     for existing_statement in statements:
                         if (
                             existing_statement.proposition
                             == aggregate_statement.proposition
                         ):
-                            for line in existing_statement.hasEvidenceLines:
-                                if (
-                                    line.strengthOfEvidenceProvided.primaryCoding.code.root
-                                    == strength_value
-                                ):
-                                    line.hasEvidenceItems.append(transformed_statement)
-                                    break
-                            else:
-                                existing_statement.hasEvidenceLines.append(
-                                    aggregate_statement.hasEvidenceLines[0]
-                                )
+                            merge_assertions(existing_statement, aggregate_statement)
                             break
                     else:
                         statements.append(aggregate_statement)
