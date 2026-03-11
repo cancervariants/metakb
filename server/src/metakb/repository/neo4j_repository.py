@@ -811,8 +811,8 @@ class Neo4jRepository(AbstractRepository):
     ) -> None:
         """Update strength associated with an assertion
 
-        :param assertion_id:
-        :param strength:
+        :param assertion_id: ID of statement to update
+        :param strength: new strength concept
         """
         strength_node = StrengthNode.from_gks(strength)
         with self.session.begin_transaction() as tx:

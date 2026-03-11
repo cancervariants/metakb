@@ -118,6 +118,6 @@ class AbstractRepository(abc.ABC):
     ) -> None:
         """Update strength associated with an assertion
 
-        :param assertion_id:
-        :param strength:
+        :param assertion_id: ID of statement to update
+        :param strength: new strength concept
         """
