@@ -118,3 +118,13 @@ def search_statements() -> str:
 @cache
 def get_counts() -> str:
     return _load("get_counts.cypher")
+
+
+@cache
+def get_all_assertion_ids() -> str:
+    return _load("get_all_assertion_ids.cypher")
+
+
+@cache
+def update_assertion_strength() -> str:
+    return _load("update_assertion_strength.cypher")

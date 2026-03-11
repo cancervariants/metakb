@@ -2,6 +2,7 @@
 
 import abc
 
+from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
@@ -106,3 +107,17 @@ class AbstractRepository(abc.ABC):
     @abc.abstractmethod
     def teardown_db(self) -> None:
         """Reset repository storage."""
+
+    @abc.abstractmethod
+    def get_all_assertion_ids(self) -> list[str]:
+        """Return all assertion IDs"""
+
+    @abc.abstractmethod
+    def update_assertion_strength(
+        self, assertion_id: str, strength: MappableConcept
+    ) -> None:
+        """Update strength associated with an assertion
+
+        :param assertion_id: ID of statement to update
+        :param strength: new strength concept
+        """
