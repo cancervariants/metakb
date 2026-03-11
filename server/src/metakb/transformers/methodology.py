@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from enum import StrEnum
 
-from ga4gh.core.models import Coding, code
+from ga4gh.core.models import Coding, Relation, code
 from ga4gh.va_spec.aac_2017.models import Strength as AmpAscoCapStrength
 from ga4gh.va_spec.base import (
     Direction,
@@ -13,7 +13,7 @@ from ga4gh.va_spec.base import (
     Statement,
     System,
 )
-from gene.query import MappableConcept
+from gene.query import ConceptMapping, MappableConcept
 from pydantic import BaseModel, StrictStr
 
 # TODO figure out method, etc for MetaKB assertions
@@ -29,12 +29,21 @@ METAKB_METHOD = Method(
     ),
 )
 
+ECO_SYSTEM = "http://purl.obolibrary.org/obo/eco.owl"
+
 
 class EcoLevel(StrEnum):
     """Define constraints for Evidence Ontology levels"""
 
     EVIDENCE = "ECO:0000000"
     CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
+
+    def get_system(self) -> str:
+        """Get evidence coding system value"""
+        return ECO_SYSTEM
+
+
+CIVIC_SYSTEM = "https://civic.readthedocs.io/en/latest/model/evidence/level.html"
 
 
 class CivicEvidenceLevel(StrEnum):
@@ -46,6 +55,13 @@ class CivicEvidenceLevel(StrEnum):
     D = "D"
     E = "E"
 
+    def get_system(self) -> str:
+        """Get evidence coding system value"""
+        return CIVIC_SYSTEM
+
+
+MOA_SYSTEM = "https://moalmanac.org/about"
+
 
 class MoaEvidenceLevel(StrEnum):
     """Define constraints MOAlmanac evidence levels"""
@@ -56,6 +72,10 @@ class MoaEvidenceLevel(StrEnum):
     CLINICAL_EVIDENCE = "Clinical evidence"
     PRECLINICAL = "Preclinical evidence"
     INFERENTIAL = "Inferential evidence"
+
+    def get_system(self) -> str:
+        """Get evidence coding system value"""
+        return MOA_SYSTEM
 
 
 EVIDENCE_LEVEL_MAPPING = {
@@ -86,7 +106,7 @@ def normalize_evidence_level(
     return EVIDENCE_LEVEL_MAPPING[src_level]
 
 
-class ViccConceptVocab(BaseModel):
+class ViccConceptVocabEntry(BaseModel):
     """Define VICC Concept Vocab model"""
 
     id: StrictStr
@@ -96,9 +116,30 @@ class ViccConceptVocab(BaseModel):
     exact_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
     definition: StrictStr
 
+    def to_mapcon(self) -> MappableConcept:
+        """Construct Mappable Concept instance
 
-vicc_concept_vocabs = [
-    ViccConceptVocab(
+        :return: simple MappableConcept equivalent
+        """
+        exact_mappings = [
+            ConceptMapping(
+                coding=Coding(system=em.get_system(), code=code(em.value)),
+                relation=Relation.EXACT_MATCH,
+            )
+            for em in self.exact_mappings
+        ]
+        return MappableConcept(
+            name=self.term,
+            primaryCoding=Coding(
+                system="https://go.osu.edu/evidence-codes",
+                code=code(self.id.split("vicc:")[-1]),
+            ),
+            mappings=exact_mappings,
+        )
+
+
+_vicc_concept_vocab = [
+    ViccConceptVocabEntry(
         id="vicc:e000000",
         domain="EvidenceStrength",
         term="evidence",
@@ -106,7 +147,7 @@ vicc_concept_vocabs = [
         exact_mappings={EcoLevel.EVIDENCE},
         definition="A type of information that is used to support statements.",
     ),
-    ViccConceptVocab(
+    ViccConceptVocabEntry(
         id="vicc:e000001",
         domain="EvidenceStrength",
         term="authoritative evidence",
@@ -114,7 +155,7 @@ vicc_concept_vocabs = [
         exact_mappings={CivicEvidenceLevel.A},
         definition="Evidence derived from an authoritative source describing a proven or consensus statement.",
     ),
-    ViccConceptVocab(
+    ViccConceptVocabEntry(
         id="vicc:e000002",
         domain="EvidenceStrength",
         term="FDA recognized evidence",
@@ -122,7 +163,7 @@ vicc_concept_vocabs = [
         exact_mappings={MoaEvidenceLevel.FDA_APPROVED},
         definition="Evidence derived from statements recognized by the US Food and Drug Administration.",
     ),
-    ViccConceptVocab(
+    ViccConceptVocabEntry(
         id="vicc:e000003",
         domain="EvidenceStrength",
         term="professional guideline evidence",
@@ -130,7 +171,7 @@ vicc_concept_vocabs = [
         exact_mappings={MoaEvidenceLevel.GUIDELINE},
         definition="Evidence derived from statements by professional society guidelines",
     ),
-    ViccConceptVocab(
+    ViccConceptVocabEntry(
         id="vicc:e000004",
         domain="EvidenceStrength",
         term="clinical evidence",
@@ -138,7 +179,7 @@ vicc_concept_vocabs = [
         exact_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
         definition="Evidence derived from clinical research studies",
     ),
-    ViccConceptVocab(
+    ViccConceptVocabEntry(
         id="vicc:e000005",
         domain="EvidenceStrength",
         term="clinical cohort evidence",
@@ -146,7 +187,7 @@ vicc_concept_vocabs = [
         exact_mappings={CivicEvidenceLevel.B},
         definition="Evidence derived from the clinical study of a participant cohort",
     ),
-    ViccConceptVocab(
+    ViccConceptVocabEntry(
         id="vicc:e000006",
         domain="EvidenceStrength",
         term="interventional study evidence",
@@ -154,7 +195,7 @@ vicc_concept_vocabs = [
         exact_mappings={MoaEvidenceLevel.CLINICAL_TRIAL},
         definition="Evidence derived from interventional studies of clinical cohorts (clinical trials)",
     ),
-    ViccConceptVocab(
+    ViccConceptVocabEntry(
         id="vicc:e000007",
         domain="EvidenceStrength",
         term="observational study evidence",
@@ -162,7 +203,7 @@ vicc_concept_vocabs = [
         exact_mappings={MoaEvidenceLevel.CLINICAL_EVIDENCE},
         definition="Evidence derived from observational studies of clinical cohorts",
     ),
-    ViccConceptVocab(
+    ViccConceptVocabEntry(
         id="vicc:e000008",
         domain="EvidenceStrength",
         term="case study evidence",
@@ -170,7 +211,7 @@ vicc_concept_vocabs = [
         exact_mappings={CivicEvidenceLevel.C},
         definition="Evidence derived from clinical study of a single participant",
     ),
-    ViccConceptVocab(
+    ViccConceptVocabEntry(
         id="vicc:e000009",
         domain="EvidenceStrength",
         term="preclinical evidence",
@@ -178,7 +219,7 @@ vicc_concept_vocabs = [
         exact_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
         definition="Evidence derived from the study of model organisms",
     ),
-    ViccConceptVocab(
+    ViccConceptVocabEntry(
         id="vicc:e000010",
         domain="EvidenceStrength",
         term="inferential evidence",
@@ -187,6 +228,12 @@ vicc_concept_vocabs = [
         definition="Evidence derived by inference",
     ),
 ]
+
+exact_mapping_index = {
+    mapping: entry for entry in _vicc_concept_vocab for mapping in entry.exact_mappings
+}
+
+vicc_concept_vocab_map = {v.id: v for v in _vicc_concept_vocab}
 
 AAC_STRENGTH_CONCEPTS = {
     AmpAscoCapStrength.LEVEL_A: MappableConcept(
@@ -221,13 +268,10 @@ def get_aac_strength(
     :return: the equivalent AMP/ASCO/CAP strength concept, if available
     :raise NotImplementedError: if unrecognized concept system is provided
     """
-    if (
-        strength.primaryCoding.system
-        == "https://civic.readthedocs.io/en/latest/model/evidence/level.html"
-    ):
+    if strength.primaryCoding.system == CIVIC_SYSTEM:
         src_level = CivicEvidenceLevel(strength.primaryCoding.code.root)
         aac_strength_level = normalize_evidence_level(src_level)
-    elif strength.primaryCoding.system == "https://moalmanac.org/about":
+    elif strength.primaryCoding.system == MOA_SYSTEM:
         src_level = MoaEvidenceLevel(strength.primaryCoding.code.root)
         aac_strength_level = normalize_evidence_level(src_level)
     elif strength.primaryCoding.system == System.AMP_ASCO_CAP:
@@ -247,7 +291,7 @@ _AAC_STRENGTH_RANK = {
 }
 
 
-def aggregate_assertion_evidence(
+def calculate_aggregate_values(
     evidence_lines: Sequence[EvidenceLine],
 ) -> tuple[MappableConcept, Direction]:
     """Calculate aggregate values for the assertion supported by provided evidence
@@ -321,5 +365,5 @@ def merge_assertions(existing_assertion: Statement, new_assertion: Statement) ->
             existing_assertion.hasEvidenceLines.append(line)
 
     existing_assertion.strength, existing_assertion.direction = (
-        aggregate_assertion_evidence(existing_assertion.hasEvidenceLines)
+        calculate_aggregate_values(existing_assertion.hasEvidenceLines)
     )

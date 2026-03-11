@@ -32,12 +32,15 @@ from tqdm import tqdm
 from metakb.harvesters.moa import MoaHarvestedData
 from metakb.transformers import catvars as build_catvars
 from metakb.transformers.base import (
-    MoaEvidenceLevel,
     TransformedData,
     Transformer,
 )
 from metakb.transformers.identifiers import compute_combo_id
-from metakb.transformers.methodology import merge_assertions
+from metakb.transformers.methodology import (
+    MOA_SYSTEM,
+    MoaEvidenceLevel,
+    merge_assertions,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -200,10 +203,9 @@ class MoaTransformer(Transformer):
         evidence_level = MoaEvidenceLevel[predictive_implication]
         return MappableConcept(
             primaryCoding=Coding(
-                system="https://moalmanac.org/about",
+                system=MOA_SYSTEM,
                 code=code(evidence_level.value),
             ),
-            mappings=self.evidence_level_to_vicc_concept_mapping[evidence_level],
         )
 
     def _create_moa_disease(

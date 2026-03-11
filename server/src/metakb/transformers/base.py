@@ -8,14 +8,7 @@ from pathlib import Path
 
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
-from ga4gh.core.models import (
-    Coding,
-    ConceptMapping,
-    MappableConcept,
-    Relation,
-    code,
-    iriReference,
-)
+from ga4gh.core.models import Coding, MappableConcept, code, iriReference
 from ga4gh.va_spec.aac_2017 import Classification as AacClassification
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
@@ -47,11 +40,8 @@ from metakb.normalizers import ViccNormalizers
 from metakb.transformers.identifiers import compute_aggr_statement_id, compute_combo_id
 from metakb.transformers.methodology import (
     METAKB_METHOD,
-    CivicEvidenceLevel,
-    MoaEvidenceLevel,
-    aggregate_assertion_evidence,
+    calculate_aggregate_values,
     get_aac_strength,
-    vicc_concept_vocabs,
 )
 
 logger = logging.getLogger(__name__)
@@ -98,9 +88,6 @@ class Transformer(ABC):
             ViccNormalizers() if normalizers is None else normalizers
         )
         self.processed_data = None
-        self.evidence_level_to_vicc_concept_mapping = (
-            self._evidence_level_to_vicc_concept_mapping()
-        )
 
     ### Basic/public behavior
 
@@ -368,11 +355,13 @@ class Transformer(ABC):
 
     ### statement construction
 
+    # TODO finish in 766
+
     @staticmethod
     def _get_assertion_classification(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
         """Get classification for the assertion supported by the provided evidence
 
-        See above re placeholder values
+        TODO this is a placeholder! it is not final!
 
         :param evidence: supporting evidence for the assertion
         :return: classification concept
@@ -431,7 +420,7 @@ class Transformer(ABC):
                     strengthOfEvidenceProvided=aac_strength,
                 )
             ]
-            strength, direction = aggregate_assertion_evidence(evidence)
+            strength, direction = calculate_aggregate_values(evidence)
             statement = VariantDiagnosticStudyStatement(
                 proposition=VariantDiagnosticProposition(
                     geneContextQualifier=normalized_gene,
@@ -473,7 +462,7 @@ class Transformer(ABC):
                     strengthOfEvidenceProvided=aac_strength,
                 )
             ]
-            strength, direction = aggregate_assertion_evidence(evidence)
+            strength, direction = calculate_aggregate_values(evidence)
             statement = VariantPrognosticStudyStatement(
                 proposition=VariantPrognosticProposition(
                     geneContextQualifier=normalized_gene,
@@ -523,7 +512,7 @@ class Transformer(ABC):
                     strengthOfEvidenceProvided=aac_strength,
                 )
             ]
-            strength, direction = aggregate_assertion_evidence(evidence)
+            strength, direction = calculate_aggregate_values(evidence)
             aggr_statement = VariantTherapeuticResponseStudyStatement(
                 proposition=VariantTherapeuticResponseProposition(
                     geneContextQualifier=normalized_gene,
@@ -542,29 +531,3 @@ class Transformer(ABC):
             aggr_statement.id = compute_aggr_statement_id(aggr_statement)
             return aggr_statement
         return None
-
-    ### Handle evidence
-
-    def _evidence_level_to_vicc_concept_mapping(
-        self,
-    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, list[ConceptMapping]]:
-        """Get mapping of source evidence level to vicc concept vocab
-
-        :return: Dictionary containing mapping from source evidence level (key)
-            to corresponding vicc concept vocab (value) represented as a list of
-            ConceptMapping
-        """
-        concept_mappings: dict[str, list[ConceptMapping]] = {}
-        for item in vicc_concept_vocabs:
-            for exact_mapping in item.exact_mappings:
-                concept_mappings[exact_mapping] = [
-                    ConceptMapping(
-                        coding=Coding(
-                            system="https://go.osu.edu/evidence-codes",
-                            code=code(item.id.split("vicc:")[-1]),
-                            name=item.term,
-                        ),
-                        relation=Relation.EXACT_MATCH,
-                    )
-                ]
-        return concept_mappings
