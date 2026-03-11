@@ -9,6 +9,7 @@ from ga4gh.va_spec.aac_2017 import (
     VariantTherapeuticResponseStudyStatement,
 )
 from ga4gh.va_spec.base import (
+    Direction,
     Statement,
 )
 from pydantic import BaseModel
@@ -118,6 +119,16 @@ class AbstractRepository(abc.ABC):
     ) -> None:
         """Update strength associated with an assertion
 
-        :param assertion_id:
-        :param strength:
+        :param assertion_id: ID of statement to update
+        :param strength: new strength concept
+        """
+
+    @abc.abstractmethod
+    def update_assertion_properties(
+        self, assertion_id: str, direction: Direction
+    ) -> None:
+        """Update mutable properties for a higher-order assertion
+
+        :param assertion_id: ID of the assertion node
+        :param direction: new direction property
         """
