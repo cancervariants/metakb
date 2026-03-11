@@ -39,7 +39,7 @@ from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import ViccNormalizers
 from metakb.transformers.identifiers import compute_aggr_statement_id, compute_combo_id
 from metakb.transformers.methodology import (
-    METAKB_METHOD,
+    AMP_ASCO_CAP_METHOD,
     calculate_aggregate_values,
     get_aac_strength,
 )
@@ -435,7 +435,7 @@ class Transformer(ABC):
                     alleleOriginQualifier=prop.alleleOriginQualifier,
                 ),
                 direction=direction,
-                specifiedBy=METAKB_METHOD,
+                specifiedBy=AMP_ASCO_CAP_METHOD,
                 hasEvidenceLines=evidence,
                 strength=strength,
                 classification=self._get_assertion_classification(evidence),
@@ -482,7 +482,7 @@ class Transformer(ABC):
                     alleleOriginQualifier=prop.alleleOriginQualifier,
                 ),
                 direction=direction,
-                specifiedBy=METAKB_METHOD,
+                specifiedBy=AMP_ASCO_CAP_METHOD,
                 hasEvidenceLines=evidence,
                 strength=strength,
                 classification=self._get_assertion_classification(evidence),
@@ -538,7 +538,7 @@ class Transformer(ABC):
                     alleleOriginQualifier=prop.alleleOriginQualifier,
                 ),
                 direction=direction,
-                specifiedBy=METAKB_METHOD,
+                specifiedBy=AMP_ASCO_CAP_METHOD,
                 hasEvidenceLines=evidence,
                 strength=strength,
                 classification=self._get_assertion_classification(evidence),

@@ -19,16 +19,14 @@ from pydantic import BaseModel, StrictStr
 
 _logger = logging.getLogger()
 
-# TODO figure out method, etc for MetaKB assertions
-# https://github.com/cancervariants/metakb/issues/739
-METAKB_METHOD = Method(
-    id="metakb.method:2026",
-    name="MetaKB (2026)",
+
+AMP_ASCO_CAP_METHOD = Method(
+    id="amp_asco_cap.method:2017",
+    name="AMP/ASCO/CAP Interpretation Guidelines",
     reportedIn=Document(
-        name="Wagnerds et al",
-        title="MetaKB v2",
-        doi="10.1038/1111-1-1111-111-1111",
-        pmid="9999999",
+        title=" Standards and Guidelines for the Interpretation and Reporting of Sequence Variants in Cancer: A Joint Consensus Recommendation of the Association for Molecular Pathology, American Society of Clinical Oncology, and College of American Pathologists",
+        doi="10.1016/j.jmoldx.2016.10.002 ",
+        pmid="27993330",
     ),
 )
 
