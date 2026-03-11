@@ -44,7 +44,7 @@ from metakb.transformers.methodology import (
     get_aac_strength,
 )
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class TransformedData(BaseModel):
@@ -355,7 +355,7 @@ class Transformer(ABC):
 
     ### statement construction
 
-    # TODO finish in 766
+    # TODO finish in #766
 
     @staticmethod
     def _get_assertion_classification(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
@@ -412,6 +412,11 @@ class Transformer(ABC):
         if all([normalized_disease, normalized_gene, normalized_variant]):
             aac_strength = get_aac_strength(statement.strength)
             if not aac_strength:
+                _logger.debug(
+                    "Unable to build aggregate assertion for %s because strength value is too low/unsupported: %s",
+                    statement.id,
+                    statement.strength.primaryCoding,
+                )
                 return None
             evidence = [
                 EvidenceLine(
@@ -454,6 +459,11 @@ class Transformer(ABC):
         if all((normalized_disease, normalized_gene, normalized_variant)):
             aac_strength = get_aac_strength(statement.strength)
             if not aac_strength:
+                _logger.debug(
+                    "Unable to build aggregate assertion for %s because strength value is too low/unsupported: %s",
+                    statement.id,
+                    statement.strength.primaryCoding,
+                )
                 return None
             evidence = [
                 EvidenceLine(
@@ -504,6 +514,11 @@ class Transformer(ABC):
         ):
             aac_strength = get_aac_strength(statement.strength)
             if not aac_strength:
+                _logger.debug(
+                    "Unable to build aggregate assertion for %s because strength value is too low/unsupported: %s",
+                    statement.id,
+                    statement.strength.primaryCoding,
+                )
                 return None
             evidence = [
                 EvidenceLine(

@@ -1,5 +1,6 @@
 """Provide definitions and basic functions relating to assessments and methods."""
 
+import logging
 from collections.abc import Sequence
 from enum import StrEnum
 
@@ -16,6 +17,8 @@ from ga4gh.va_spec.base import (
 from gene.query import ConceptMapping, MappableConcept
 from pydantic import BaseModel, StrictStr
 
+_logger = logging.getLogger()
+
 # TODO figure out method, etc for MetaKB assertions
 # https://github.com/cancervariants/metakb/issues/739
 METAKB_METHOD = Method(
@@ -29,25 +32,48 @@ METAKB_METHOD = Method(
     ),
 )
 
-ECO_SYSTEM = "http://purl.obolibrary.org/obo/eco.owl"
 
+class _EvidenceLevelMixin:
+    """Abstract EvidenceLevel enum class
 
-class EcoLevel(StrEnum):
-    """Define constraints for Evidence Ontology levels"""
+    abc.ABC doesn't play nicely with enums so this doesn't implement any instance guards
+    """
 
-    EVIDENCE = "ECO:0000000"
-    CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
+    _SYSTEM: str
 
     def get_system(self) -> str:
         """Get evidence coding system value"""
-        return ECO_SYSTEM
+        return self._SYSTEM
+
+    def get_mapcon(self) -> MappableConcept:
+        """Create MappableConcept for evidence strength"""
+        return MappableConcept(
+            primaryCoding=Coding(
+                system=self.get_system(),
+                code=code(self.value),
+            ),
+        )
+
+
+ECO_SYSTEM = "http://purl.obolibrary.org/obo/eco.owl"
+
+
+class EcoLevel(_EvidenceLevelMixin, StrEnum):
+    """Define constraints for Evidence Ontology levels"""
+
+    _SYSTEM = ECO_SYSTEM
+
+    EVIDENCE = "ECO:0000000"
+    CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
 
 
 CIVIC_SYSTEM = "https://civic.readthedocs.io/en/latest/model/evidence/level.html"
 
 
-class CivicEvidenceLevel(StrEnum):
+class CivicEvidenceLevel(_EvidenceLevelMixin, StrEnum):
     """Define constraints for CIViC evidence levels"""
+
+    _SYSTEM = CIVIC_SYSTEM
 
     A = "A"
     B = "B"
@@ -55,16 +81,14 @@ class CivicEvidenceLevel(StrEnum):
     D = "D"
     E = "E"
 
-    def get_system(self) -> str:
-        """Get evidence coding system value"""
-        return CIVIC_SYSTEM
-
 
 MOA_SYSTEM = "https://moalmanac.org/about"
 
 
-class MoaEvidenceLevel(StrEnum):
+class MoaEvidenceLevel(_EvidenceLevelMixin, StrEnum):
     """Define constraints MOAlmanac evidence levels"""
+
+    _SYSTEM = MOA_SYSTEM
 
     FDA_APPROVED = "FDA-Approved"
     GUIDELINE = "Guideline"
@@ -72,10 +96,6 @@ class MoaEvidenceLevel(StrEnum):
     CLINICAL_EVIDENCE = "Clinical evidence"
     PRECLINICAL = "Preclinical evidence"
     INFERENTIAL = "Inferential evidence"
-
-    def get_system(self) -> str:
-        """Get evidence coding system value"""
-        return MOA_SYSTEM
 
 
 EVIDENCE_LEVEL_MAPPING = {
@@ -107,7 +127,11 @@ def normalize_evidence_level(
 
 
 class ViccConceptVocabEntry(BaseModel):
-    """Define VICC Concept Vocab model"""
+    """Define VICC Concept Vocab model
+
+    We use a custom pydantic class rather than a base mappableconcept to preserve
+    richer data (e.g. concept parentage)
+    """
 
     id: StrictStr
     domain: StrictStr
@@ -229,33 +253,20 @@ _vicc_concept_vocab = [
     ),
 ]
 
-exact_mapping_index = {
+# source evidence level enum instance -> vicc concept vocab entry
+vicc_concept_vocab_exact_mapping_index = {
     mapping: entry for entry in _vicc_concept_vocab for mapping in entry.exact_mappings
 }
 
-vicc_concept_vocab_map = {v.id: v for v in _vicc_concept_vocab}
+# vicc concept ID -> vocab entry
+vicc_concept_vocab_index = {v.id: v for v in _vicc_concept_vocab}
 
-AAC_STRENGTH_CONCEPTS = {
-    AmpAscoCapStrength.LEVEL_A: MappableConcept(
-        primaryCoding=Coding(
-            system=System.AMP_ASCO_CAP, code=code(AmpAscoCapStrength.LEVEL_A)
-        )
-    ),
-    AmpAscoCapStrength.LEVEL_B: MappableConcept(
-        primaryCoding=Coding(
-            system=System.AMP_ASCO_CAP, code=code(AmpAscoCapStrength.LEVEL_B)
-        )
-    ),
-    AmpAscoCapStrength.LEVEL_C: MappableConcept(
-        primaryCoding=Coding(
-            system=System.AMP_ASCO_CAP, code=code(AmpAscoCapStrength.LEVEL_C)
-        )
-    ),
-    AmpAscoCapStrength.LEVEL_D: MappableConcept(
-        primaryCoding=Coding(
-            system=System.AMP_ASCO_CAP, code=code(AmpAscoCapStrength.LEVEL_D)
-        )
-    ),
+# AMP/ASCO/CAP strength level enum values -> Strength MappableConcepts
+aac_strength_index = {
+    i: MappableConcept(
+        primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(i.value))
+    )
+    for i in AmpAscoCapStrength
 }
 
 
@@ -277,10 +288,14 @@ def get_aac_strength(
     elif strength.primaryCoding.system == System.AMP_ASCO_CAP:
         aac_strength_level = AmpAscoCapStrength(strength.primaryCoding.code.root)
     else:
+        _logger.debug(
+            "Tried to get A/A/C strength equivalent for unrecognized strength object: %s",
+            strength,
+        )
         raise NotImplementedError
     if not aac_strength_level:
         return None
-    return AAC_STRENGTH_CONCEPTS[aac_strength_level]
+    return aac_strength_index[aac_strength_level]
 
 
 _AAC_STRENGTH_RANK = {
@@ -333,7 +348,7 @@ def calculate_aggregate_values(
 
 
 def merge_assertions(existing_assertion: Statement, new_assertion: Statement) -> None:
-    """Fold evidence lines from a new assertion into an existing assertion and recalculate aggregate values
+    """Fold evidence lines from a new assertion into ``existing_assertion`` and recalculate aggregate values
 
     **``existing_assertion`` is modified in place!!!** This is on purpose, to enable
     us to modify previous instances of an assertion that are located in array without
@@ -347,7 +362,13 @@ def merge_assertions(existing_assertion: Statement, new_assertion: Statement) ->
     :raise ValueError: if attempting to merge two assertions with different propositions/IDs
     """
     if existing_assertion.id != new_assertion.id:
-        raise ValueError
+        _logger.error(
+            "Attempting to merge assertions %s with %s. This should be impossible -- investigate further.",
+            existing_assertion.id,
+            new_assertion.id,
+        )
+        msg = "Tried to merge assertions of distinct propositions"
+        raise ValueError(msg)
 
     for line in new_assertion.hasEvidenceLines:
         for existing_line in existing_assertion.hasEvidenceLines:
