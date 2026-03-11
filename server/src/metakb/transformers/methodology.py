@@ -124,6 +124,15 @@ def normalize_evidence_level(
     return EVIDENCE_LEVEL_MAPPING[src_level]
 
 
+# AMP/ASCO/CAP strength level enum values -> Strength MappableConcepts
+aac_strength_index = {
+    i: MappableConcept(
+        primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(i.value))
+    )
+    for i in AmpAscoCapStrength
+}
+
+
 class ViccConceptVocabEntry(BaseModel):
     """Define VICC Concept Vocab model
 
@@ -135,7 +144,8 @@ class ViccConceptVocabEntry(BaseModel):
     domain: StrictStr
     term: StrictStr
     parents: list[StrictStr] = []
-    exact_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
+    source_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
+    aac_mapping: AmpAscoCapStrength | None = None
     definition: StrictStr
 
     def to_mapcon(self) -> MappableConcept:
@@ -148,7 +158,7 @@ class ViccConceptVocabEntry(BaseModel):
                 coding=Coding(system=em.get_system(), code=code(em.value)),
                 relation=Relation.EXACT_MATCH,
             )
-            for em in self.exact_mappings
+            for em in self.source_mappings
         ]
         return MappableConcept(
             name=self.term,
@@ -166,7 +176,7 @@ _vicc_concept_vocab = [
         domain="EvidenceStrength",
         term="evidence",
         parents=[],
-        exact_mappings={EcoLevel.EVIDENCE},
+        source_mappings={EcoLevel.EVIDENCE},
         definition="A type of information that is used to support statements.",
     ),
     ViccConceptVocabEntry(
@@ -174,7 +184,8 @@ _vicc_concept_vocab = [
         domain="EvidenceStrength",
         term="authoritative evidence",
         parents=["vicc:e000000"],
-        exact_mappings={CivicEvidenceLevel.A},
+        source_mappings={CivicEvidenceLevel.A},
+        aac_mapping=AmpAscoCapStrength.LEVEL_A,
         definition="Evidence derived from an authoritative source describing a proven or consensus statement.",
     ),
     ViccConceptVocabEntry(
@@ -182,7 +193,8 @@ _vicc_concept_vocab = [
         domain="EvidenceStrength",
         term="FDA recognized evidence",
         parents=["vicc:e000001"],
-        exact_mappings={MoaEvidenceLevel.FDA_APPROVED},
+        source_mappings={MoaEvidenceLevel.FDA_APPROVED},
+        aac_mapping=AmpAscoCapStrength.LEVEL_A,
         definition="Evidence derived from statements recognized by the US Food and Drug Administration.",
     ),
     ViccConceptVocabEntry(
@@ -190,7 +202,8 @@ _vicc_concept_vocab = [
         domain="EvidenceStrength",
         term="professional guideline evidence",
         parents=["vicc:e000001"],
-        exact_mappings={MoaEvidenceLevel.GUIDELINE},
+        source_mappings={MoaEvidenceLevel.GUIDELINE},
+        aac_mapping=AmpAscoCapStrength.LEVEL_A,
         definition="Evidence derived from statements by professional society guidelines",
     ),
     ViccConceptVocabEntry(
@@ -198,7 +211,7 @@ _vicc_concept_vocab = [
         domain="EvidenceStrength",
         term="clinical evidence",
         parents=["vicc:e000000"],
-        exact_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
+        source_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
         definition="Evidence derived from clinical research studies",
     ),
     ViccConceptVocabEntry(
@@ -206,7 +219,8 @@ _vicc_concept_vocab = [
         domain="EvidenceStrength",
         term="clinical cohort evidence",
         parents=["vicc:e000004"],
-        exact_mappings={CivicEvidenceLevel.B},
+        source_mappings={CivicEvidenceLevel.B},
+        aac_mapping=AmpAscoCapStrength.LEVEL_B,
         definition="Evidence derived from the clinical study of a participant cohort",
     ),
     ViccConceptVocabEntry(
@@ -214,7 +228,8 @@ _vicc_concept_vocab = [
         domain="EvidenceStrength",
         term="interventional study evidence",
         parents=["vicc:e000005"],
-        exact_mappings={MoaEvidenceLevel.CLINICAL_TRIAL},
+        source_mappings={MoaEvidenceLevel.CLINICAL_TRIAL},
+        aac_mapping=AmpAscoCapStrength.LEVEL_C,
         definition="Evidence derived from interventional studies of clinical cohorts (clinical trials)",
     ),
     ViccConceptVocabEntry(
@@ -222,7 +237,8 @@ _vicc_concept_vocab = [
         domain="EvidenceStrength",
         term="observational study evidence",
         parents=["vicc:e000005"],
-        exact_mappings={MoaEvidenceLevel.CLINICAL_EVIDENCE},
+        source_mappings={MoaEvidenceLevel.CLINICAL_EVIDENCE},
+        aac_mapping=AmpAscoCapStrength.LEVEL_C,
         definition="Evidence derived from observational studies of clinical cohorts",
     ),
     ViccConceptVocabEntry(
@@ -230,7 +246,8 @@ _vicc_concept_vocab = [
         domain="EvidenceStrength",
         term="case study evidence",
         parents=["vicc:e000004"],
-        exact_mappings={CivicEvidenceLevel.C},
+        source_mappings={CivicEvidenceLevel.C},
+        aac_mapping=AmpAscoCapStrength.LEVEL_C,
         definition="Evidence derived from clinical study of a single participant",
     ),
     ViccConceptVocabEntry(
@@ -238,7 +255,8 @@ _vicc_concept_vocab = [
         domain="EvidenceStrength",
         term="preclinical evidence",
         parents=["vicc:e000000"],
-        exact_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
+        source_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
+        aac_mapping=AmpAscoCapStrength.LEVEL_D,
         definition="Evidence derived from the study of model organisms",
     ),
     ViccConceptVocabEntry(
@@ -246,26 +264,18 @@ _vicc_concept_vocab = [
         domain="EvidenceStrength",
         term="inferential evidence",
         parents=["vicc:e000000"],
-        exact_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
+        source_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
         definition="Evidence derived by inference",
     ),
 ]
 
 # source evidence level enum instance -> vicc concept vocab entry
 vicc_concept_vocab_exact_mapping_index = {
-    mapping: entry for entry in _vicc_concept_vocab for mapping in entry.exact_mappings
+    mapping: entry for entry in _vicc_concept_vocab for mapping in entry.source_mappings
 }
 
 # vicc concept ID -> vocab entry
 vicc_concept_vocab_index = {v.id: v for v in _vicc_concept_vocab}
-
-# AMP/ASCO/CAP strength level enum values -> Strength MappableConcepts
-aac_strength_index = {
-    i: MappableConcept(
-        primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(i.value))
-    )
-    for i in AmpAscoCapStrength
-}
 
 
 def get_aac_strength(
