@@ -173,6 +173,19 @@ class CBioPortalTransformerBase(Transformer):
             pass
         return None
 
+    def _get_refseq_id(self, norm_response: object) -> str | None:
+        """Extract RefSeq accession from VICC normalizer response mappings."""
+        if not norm_response:
+            return None
+        try:
+            for mapping in getattr(norm_response.gene, "mappings", []) or []:
+                coding_id = getattr(mapping.coding, "id", "")
+                if coding_id.lower().startswith("refseq:"):
+                    return coding_id.split(":", 1)[1]
+        except AttributeError:
+            pass
+        return None
+
     def _get_exact_gene_mappings(
         self, hgnc_id: str | None, gene_symbol: str
     ) -> list[ConceptMapping]:
@@ -232,6 +245,9 @@ class CBioPortalTransformerBase(Transformer):
 
         if "Entrez_Gene_Id" not in df.columns:
             df["Entrez_Gene_Id"] = pd.NA
+        
+        if "RefSeq" not in df.columns:
+            df["RefSeq"] = pd.NA
 
         # Unique gene symbols across the DataFrame
         symbols = df["Hugo_Symbol"].dropna().drop_duplicates().tolist()
@@ -305,6 +321,17 @@ class CBioPortalTransformerBase(Transformer):
                     "Entrez_Gene_Id",
                 ] = entrez_id
 
+            # get RefSeq:
+            refseq_id = self._get_refseq_id(norm_response)
+            if refseq_id:
+                df.loc[
+                    (df["Hugo_Symbol"] == symbol)
+                    & (
+                        df["RefSeq"].isna() | df["RefSeq"].eq("No_Data")
+                    ),
+                    "RefSeq",
+                ] = refseq_id
+
             # Build GA4GH mapping objects
             if not normalized_id:
                 mappings = self._get_exact_gene_mappings(None, symbol)
@@ -326,6 +353,7 @@ class CBioPortalTransformerBase(Transformer):
 
         df["gene_hgnc_id"] = df["gene_hgnc_id"].fillna("No_Data")
         df["Entrez_Gene_Id"] = df["Entrez_Gene_Id"].fillna("No_Data")
+        df["RefSeq"] = df["RefSeq"].fillna("No_Data")
 
         total = len(symbols)
         pct = (normalized_hgnc / total * 100.0) if total else 0.0
