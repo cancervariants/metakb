@@ -518,11 +518,11 @@ class CBioPortalTransformerBase(Transformer):
         """Add four variant frequency columns to the combined DataFrame.
 
         Columns added:
-          - freq_variant_all_studies: variant count / total samples across ALL studies
-          - freq_variant_this_study: variant count in study / total samples in study
-          - freq_variant_cancer_all_studies: variant count for cancer type across ALL
+          - freq_variant_inter_study: variant count / total samples across ALL studies
+          - freq_variant_intra_study: variant count in study / total samples in study
+          - freq_variant_cancer_inter_study: variant count for cancer type across ALL
               studies / total samples of that cancer type across ALL studies
-          - freq_variant_cancer_this_study: variant count for cancer type in study /
+          - freq_variant_cancer_intra_study: variant count for cancer type in study /
               total samples of that cancer type in study
 
         When only a single study is being transformed, the cross-study columns
@@ -537,10 +537,10 @@ class CBioPortalTransformerBase(Transformer):
 
         if "Gnomad_Notation" not in combined.columns:
             logger.warning("No Gnomad_Notation column; skipping frequency columns.")
-            combined["freq_variant_all_studies"] = uncalculated
-            combined["freq_variant_this_study"] = uncalculated
-            combined["freq_variant_cancer_all_studies"] = uncalculated
-            combined["freq_variant_cancer_this_study"] = uncalculated
+            combined["freq_variant_inter_study"] = uncalculated
+            combined["freq_variant_intra_study"] = uncalculated
+            combined["freq_variant_cancer_inter_study"] = uncalculated
+            combined["freq_variant_cancer_intra_study"] = uncalculated
             return combined
 
         sample_col = "SAMPLE_ID" if "SAMPLE_ID" in combined.columns else None
@@ -548,14 +548,14 @@ class CBioPortalTransformerBase(Transformer):
         study_col = "STUDY_ID"
         cancer_col = "CANCER_TYPE"
 
-        # -- freq_variant_this_study --
+        # -- freq_variant_intra_study --
         # variant count within study / total unique samples in study
         if sample_col:
             study_total = combined.groupby(study_col)[sample_col].transform("count")
             study_variant_count = combined.groupby([study_col, variant_col])[
                 sample_col
             ].transform("count")
-            combined["freq_variant_this_study"] = (
+            combined["freq_variant_intra_study"] = (
                 study_variant_count / study_total
             ).round(6)
         else:
@@ -563,11 +563,11 @@ class CBioPortalTransformerBase(Transformer):
             study_variant_count = combined.groupby([study_col, variant_col])[
                 variant_col
             ].transform("count")
-            combined["freq_variant_this_study"] = (
+            combined["freq_variant_intra_study"] = (
                 study_variant_count / study_total
             ).round(6)
 
-        # -- freq_variant_cancer_this_study --
+        # -- freq_variant_cancer_intra_study --
         # variant count for cancer type in study / total samples of cancer type in study
         if cancer_col in combined.columns and sample_col:
             cancer_study_total = combined.groupby([study_col, cancer_col])[
@@ -576,21 +576,21 @@ class CBioPortalTransformerBase(Transformer):
             cancer_study_variant = combined.groupby(
                 [study_col, cancer_col, variant_col]
             )[sample_col].transform("count")
-            combined["freq_variant_cancer_this_study"] = (
+            combined["freq_variant_cancer_intra_study"] = (
                 cancer_study_variant / cancer_study_total
             ).round(6)
         else:
-            combined["freq_variant_cancer_this_study"] = uncalculated
+            combined["freq_variant_cancer_intra_study"] = uncalculated
 
         # -- Cross-study columns (only when multiple studies) --
         if multi_study:
-            # freq_variant_all_studies
+            # freq_variant_inter_study
             if sample_col:
                 global_total = combined[sample_col].count()
                 global_variant_count = combined.groupby(variant_col)[
                     sample_col
                 ].transform("count")
-                combined["freq_variant_all_studies"] = (
+                combined["freq_variant_inter_study"] = (
                     global_variant_count / global_total
                 ).round(6)
             else:
@@ -598,11 +598,11 @@ class CBioPortalTransformerBase(Transformer):
                 global_variant_count = combined.groupby(variant_col)[
                     variant_col
                 ].transform("count")
-                combined["freq_variant_all_studies"] = (
+                combined["freq_variant_inter_study"] = (
                     global_variant_count / global_total
                 ).round(6)
 
-            # freq_variant_cancer_all_studies
+            # freq_variant_cancer_inter_study
             if cancer_col in combined.columns and sample_col:
                 cancer_global_total = combined.groupby(cancer_col)[
                     sample_col
@@ -610,14 +610,14 @@ class CBioPortalTransformerBase(Transformer):
                 cancer_global_variant = combined.groupby([cancer_col, variant_col])[
                     sample_col
                 ].transform("count")
-                combined["freq_variant_cancer_all_studies"] = (
+                combined["freq_variant_cancer_inter_study"] = (
                     cancer_global_variant / cancer_global_total
                 ).round(6)
             else:
-                combined["freq_variant_cancer_all_studies"] = uncalculated
+                combined["freq_variant_cancer_inter_study"] = uncalculated
         else:
-            combined["freq_variant_all_studies"] = uncalculated
-            combined["freq_variant_cancer_all_studies"] = uncalculated
+            combined["freq_variant_inter_study"] = uncalculated
+            combined["freq_variant_cancer_inter_study"] = uncalculated
 
         logger.info("Added variant frequency columns (multi_study=%s)", multi_study)
         return combined
@@ -710,10 +710,10 @@ class CBioPortalTransformerBase(Transformer):
             row = {"STUDY_ID": study_id, "total_unique_variants": total}
 
             for freq_col in [
-                "freq_variant_this_study",
-                "freq_variant_cancer_this_study",
-                "freq_variant_all_studies",
-                "freq_variant_cancer_all_studies",
+                "freq_variant_intra_study",
+                "freq_variant_cancer_intra_study",
+                "freq_variant_inter_study",
+                "freq_variant_cancer_inter_study",
             ]:
                 if freq_col in study_df.columns:
                     calculable = (
@@ -1054,52 +1054,52 @@ class CBioPortalTransformerBase(Transformer):
         # Frequency results — all 4 types
         # -----------------------------------------
 
-        # freq_variant_this_study — per study
+        # freq_variant_intra_study — per study
         for study_id in combined["STUDY_ID"].unique():
             study_df = combined[combined["STUDY_ID"] == study_id]
             self.freq_results_this_study[study_id] = self._build_frequency_results(
-                study_df, freq_col="freq_variant_this_study", study_id=study_id
+                study_df, freq_col="freq_variant_intra_study", study_id=study_id
             )
 
         self._write_frequency_json(
             payload=self.freq_results_this_study,
-            filename="freq_variant_this_study.json",
+            filename="freq_variant_intra_study.json",
             out_dir=frequencies_dir,
         )
 
-        # freq_variant_all_studies — single combined list
+        # freq_variant_inter_study — single combined list
         self.freq_results_all_studies = self._build_frequency_results(
-            combined, freq_col="freq_variant_all_studies"
+            combined, freq_col="freq_variant_inter_study"
         )
         self._write_frequency_json(
             payload=self.freq_results_all_studies,
-            filename="freq_variant_all_studies.json",
+            filename="freq_variant_inter_study.json",
             out_dir=frequencies_dir,
         )
 
-        # freq_variant_cancer_this_study — per study, grouped by cancer
+        # freq_variant_cancer_intra_study — per study, grouped by cancer
         for study_id in combined["STUDY_ID"].unique():
             study_df = combined[combined["STUDY_ID"] == study_id]
             self.freq_results_cancer_this_study[study_id] = self._build_frequency_results(
                 study_df,
-                freq_col="freq_variant_cancer_this_study",
+                freq_col="freq_variant_cancer_intra_study",
                 study_id=study_id,
                 group_by_cancer=True,
             )
 
         self._write_frequency_json(
             payload=self.freq_results_cancer_this_study,
-            filename="freq_variant_cancer_this_study.json",
+            filename="freq_variant_cancer_intra_study.json",
             out_dir=frequencies_dir,
         )
 
-        # freq_variant_cancer_all_studies — single combined list, grouped by cancer
+        # freq_variant_cancer_inter_study — single combined list, grouped by cancer
         self.freq_results_cancer_all_studies = self._build_frequency_results(
-            combined, freq_col="freq_variant_cancer_all_studies", group_by_cancer=True
+            combined, freq_col="freq_variant_cancer_inter_study", group_by_cancer=True
         )
         self._write_frequency_json(
             payload=self.freq_results_cancer_all_studies,
-            filename="freq_variant_cancer_all_studies.json",
+            filename="freq_variant_cancer_inter_study.json",
             out_dir=frequencies_dir,
         )
 
