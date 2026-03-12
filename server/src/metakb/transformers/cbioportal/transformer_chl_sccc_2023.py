@@ -77,9 +77,7 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
 
     def get_variant_transformations(self) -> dict:
         """Return study-specific variant transformations."""
-        return {
-            "center_value": "Weill Cornell Medical College"
-        }
+        return {"center_value": "Weill Cornell Medical College"}
 
     def transform(self, harvested_data: CBioPortalHarvestedData) -> pd.DataFrame:
         """Override transform to handle hardcoded study ID.
@@ -91,9 +89,15 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         save_loc = CBioPortalTransformerBase.setup_save_location(study)
 
         # Extract data
-        self.variants = pd.DataFrame(harvested_data.variants).filter(self.get_mut_headers())
-        self.patients = pd.DataFrame(harvested_data.patients).filter(self.get_patient_headers())
-        self.samples = pd.DataFrame(harvested_data.samples).filter(self.get_sample_headers())
+        self.variants = pd.DataFrame(harvested_data.variants).filter(
+            self.get_mut_headers()
+        )
+        self.patients = pd.DataFrame(harvested_data.patients).filter(
+            self.get_patient_headers()
+        )
+        self.samples = pd.DataFrame(harvested_data.samples).filter(
+            self.get_sample_headers()
+        )
         self.metadata = pd.DataFrame(harvested_data.metadata)
 
         # Process variants
@@ -101,7 +105,7 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         self.variants = CBioPortalTransformerBase.filter_and_rename_variants(
             self.variants,
             self.get_mut_headers(),
-            amino_acid_change_source=variant_transforms.get("amino_acid_change_source")
+            amino_acid_change_source=variant_transforms.get("amino_acid_change_source"),
         )
 
         if "center_value" in variant_transforms:
@@ -118,7 +122,7 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
             self.patients,
             self.get_patient_headers(),
             ethnicity_source=patient_transforms.get("ethnicity_source", "RACE"),
-            age_source=patient_transforms.get("age_source")
+            age_source=patient_transforms.get("age_source"),
         )
         self.patients = CBioPortalTransformerBase.handle_duplicates(
             self.patients, study, save_loc, "patient"
@@ -138,7 +142,7 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
             self.samples,
             self.patients,
             self.metadata,
-            study_id_override="chl_sccc_2023"  # Hardcoded study ID
+            study_id_override="chl_sccc_2023",  # Hardcoded study ID
         )
         combined_df = CBioPortalTransformerBase.handle_duplicates(
             combined_df, study, save_loc, "combined"

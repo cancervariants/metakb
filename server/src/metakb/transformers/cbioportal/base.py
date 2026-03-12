@@ -326,9 +326,7 @@ class CBioPortalTransformerBase(Transformer):
             if refseq_id:
                 df.loc[
                     (df["Hugo_Symbol"] == symbol)
-                    & (
-                        df["RefSeq"].isna() | df["RefSeq"].eq("No_Data")
-                    ),
+                    & (df["RefSeq"].isna() | df["RefSeq"].eq("No_Data")),
                     "RefSeq",
                 ] = refseq_id
 
@@ -656,7 +654,7 @@ class CBioPortalTransformerBase(Transformer):
         freq_col: str,
         study_id: str | None = None,
         group_by_cancer: bool = False,
-        ) -> list[dict]:
+    ) -> list[dict]:
         """Build frequency result dicts for a given frequency column.
 
         :param df: DataFrame (already filtered to study if study_id provided)
@@ -1108,11 +1106,13 @@ class CBioPortalTransformerBase(Transformer):
         # freq_variant_cancer_intra_study — per study, grouped by cancer
         for study_id in combined["STUDY_ID"].unique():
             study_df = combined[combined["STUDY_ID"] == study_id]
-            self.freq_results_cancer_this_study[study_id] = self._build_frequency_results(
-                study_df,
-                freq_col="freq_variant_cancer_intra_study",
-                study_id=study_id,
-                group_by_cancer=True,
+            self.freq_results_cancer_this_study[study_id] = (
+                self._build_frequency_results(
+                    study_df,
+                    freq_col="freq_variant_cancer_intra_study",
+                    study_id=study_id,
+                    group_by_cancer=True,
+                )
             )
 
         self._write_frequency_json(
