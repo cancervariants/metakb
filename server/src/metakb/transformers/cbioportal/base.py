@@ -245,7 +245,7 @@ class CBioPortalTransformerBase(Transformer):
 
         if "Entrez_Gene_Id" not in df.columns:
             df["Entrez_Gene_Id"] = pd.NA
-        
+
         if "RefSeq" not in df.columns:
             df["RefSeq"] = pd.NA
 
@@ -673,7 +673,7 @@ class CBioPortalTransformerBase(Transformer):
         if group_by_cancer and "CANCER_TYPE" in df.columns:
             group_cols.append("CANCER_TYPE")
 
-        for keys, group in df.groupby(group_cols):
+        for _keys, group in df.groupby(group_cols):
             first_row = group.iloc[0]
             vrs_id = first_row.get("vrs_id")
             if pd.isna(vrs_id) or not vrs_id:
@@ -706,10 +706,10 @@ class CBioPortalTransformerBase(Transformer):
 
     def _write_frequency_json(
         self,
-        payload: Any,
+        payload: dict[str, list[dict]] | list[dict],
         filename: str,
         out_dir: Path,
-        ) -> Path:
+    ) -> Path:
         """Write frequency results to a JSON file.
 
         :param payload: Data to serialize

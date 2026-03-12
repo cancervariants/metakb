@@ -1,20 +1,12 @@
-from os import environ
-
-environ["AWS_ACCESS_KEY_ID"] = "dummy"
-environ["AWS_SECRET_ACCESS_KEY"] = "dummy"
-environ["AWS_SESSION_TOKEN"] = "dummy"
-
-import logging
+"""Transformer for the chl_sccc_2023 cBioPortal study."""
 
 import pandas as pd
 
+from metakb.harvesters.cbioportal import CBioPortalHarvestedData
 from metakb.transformers.cbioportal.base import (
-    cBioportalStudyTransformer,
-    cBioportalTransformerBase,
+    CBioPortalStudyTransformer,
+    CBioPortalTransformerBase,
 )
-
-_logger = logging.getLogger(__name__)
-
 
 MUT_HEADERS = [
     "Hugo_Symbol",
@@ -58,7 +50,7 @@ SAMPLE_HEADERS = [
 ]
 
 
-class cBioportalTransformer(cBioportalStudyTransformer):
+class CBioPortalTransformer(CBioPortalStudyTransformer):
     """Transformer for chl_sccc_2023 study.
 
     This study has some unique characteristics:
@@ -68,30 +60,35 @@ class cBioportalTransformer(cBioportalStudyTransformer):
     """
 
     def get_study_name(self) -> str:
+        """Return the study identifier."""
         return "chl_sccc_2023"
 
     def get_mut_headers(self) -> list[str]:
+        """Return the list of mutation/variant column headers to keep."""
         return MUT_HEADERS
 
     def get_patient_headers(self) -> list[str]:
+        """Return the list of patient column headers to keep."""
         return PATIENT_HEADERS
 
     def get_sample_headers(self) -> list[str]:
+        """Return the list of sample column headers to keep."""
         return SAMPLE_HEADERS
 
     def get_variant_transformations(self) -> dict:
+        """Return study-specific variant transformations."""
         return {
             "center_value": "Weill Cornell Medical College"
         }
 
-    def transform(self, harvested_data) -> pd.DataFrame:
+    def transform(self, harvested_data: CBioPortalHarvestedData) -> pd.DataFrame:
         """Override transform to handle hardcoded study ID.
 
         This study doesn't have a proper metadata field with study identifier,
         so we need to override the combine step.
         """
         study = self.get_study_name()
-        save_loc = cBioportalTransformerBase.setup_save_location(study)
+        save_loc = CBioPortalTransformerBase.setup_save_location(study)
 
         # Extract data
         self.variants = pd.DataFrame(harvested_data.variants).filter(self.get_mut_headers())
@@ -101,7 +98,7 @@ class cBioportalTransformer(cBioportalStudyTransformer):
 
         # Process variants
         variant_transforms = self.get_variant_transformations()
-        self.variants = cBioportalTransformerBase.filter_and_rename_variants(
+        self.variants = CBioPortalTransformerBase.filter_and_rename_variants(
             self.variants,
             self.get_mut_headers(),
             amino_acid_change_source=variant_transforms.get("amino_acid_change_source")
@@ -111,59 +108,61 @@ class cBioportalTransformer(cBioportalStudyTransformer):
             self.variants["Center"] = variant_transforms["center_value"]
 
         self.variants = self.apply_custom_variant_logic(self.variants)
-        self.variants = cBioportalTransformerBase.handle_duplicates(
+        self.variants = CBioPortalTransformerBase.handle_duplicates(
             self.variants, study, save_loc, "mut"
         )
 
         # Process patients
         patient_transforms = self.get_patient_transformations()
-        self.patients = cBioportalTransformerBase.filter_and_rename_patients(
+        self.patients = CBioPortalTransformerBase.filter_and_rename_patients(
             self.patients,
             self.get_patient_headers(),
             ethnicity_source=patient_transforms.get("ethnicity_source", "RACE"),
             age_source=patient_transforms.get("age_source")
         )
-        self.patients = cBioportalTransformerBase.handle_duplicates(
+        self.patients = CBioPortalTransformerBase.handle_duplicates(
             self.patients, study, save_loc, "patient"
         )
 
         # Process samples
         sample_transforms = self.get_sample_transformations()
-        self.samples = cBioportalTransformerBase.filter_and_rename_samples(
+        self.samples = CBioPortalTransformerBase.filter_and_rename_samples(
             self.samples,
             self.get_sample_headers(),
-            sequence_source=sample_transforms.get("sequence_source")
         )
         self.samples = self.apply_custom_sample_logic(self.samples)
-        self.samples = cBioportalTransformerBase.handle_duplicates(
-            self.samples, study, save_loc, "samples"
-        )
 
         # Combine dataframes - USE HARDCODED STUDY ID
-        combined_df = cBioportalTransformerBase.combine_dataframes(
+        combined_df = CBioPortalTransformerBase.combine_dataframes(
             self.variants,
             self.samples,
             self.patients,
             self.metadata,
             study_id_override="chl_sccc_2023"  # Hardcoded study ID
         )
-        combined_df = cBioportalTransformerBase.handle_duplicates(
+        combined_df = CBioPortalTransformerBase.handle_duplicates(
             combined_df, study, save_loc, "combined"
         )
 
+        # Resolve Sequence_Source (mutations first, then sample fallback)
+        combined_df = CBioPortalTransformerBase.resolve_sequence_source(
+            combined_df,
+            fallback_column=sample_transforms.get("sequence_source"),
+        )
+
         # Add Gnomad notation
-        combined_df = cBioportalTransformerBase.add_gnomad_notation(combined_df)
+        combined_df = CBioPortalTransformerBase.add_gnomad_notation(combined_df)
 
         # Remove patient-variant duplicates
-        final_df = cBioportalTransformerBase.remove_patient_variant_duplicates(
+        final_df = CBioPortalTransformerBase.remove_patient_variant_duplicates(
             combined_df, study, save_loc
         )
 
         # Fill missing values
-        final_df = cBioportalTransformerBase.fill_missing_values(final_df)
+        final_df = CBioPortalTransformerBase.fill_missing_values(final_df)
 
         # Save outputs
-        cBioportalTransformerBase.save_study_outputs(final_df, study, save_loc)
+        CBioPortalTransformerBase.save_study_outputs(final_df, study, save_loc)
 
         self.final_df = final_df
         return final_df
