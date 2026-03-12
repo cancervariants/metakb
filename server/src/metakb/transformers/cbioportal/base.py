@@ -98,6 +98,12 @@ class CBioPortalTransformerBase(Transformer):
         self.gene_qc_by_study: dict[str, dict[str, Any]] = {}
         self.variant_qc_by_study: dict[str, dict[str, Any]] = {}
 
+        # Frequency results stores
+        self.freq_results_this_study: dict[str, list[dict]] = {}
+        self.freq_results_all_studies: list[dict] = []
+        self.freq_results_cancer_this_study: dict[str, list[dict]] = {}
+        self.freq_results_cancer_all_studies: list[dict] = []
+
         # Track failed normalizations
         self.failed_genes: list[dict[str, str]] = []
         self.failed_variants: list[dict[str, str]] = []
@@ -616,137 +622,117 @@ class CBioPortalTransformerBase(Transformer):
         logger.info("Added variant frequency columns (multi_study=%s)", multi_study)
         return combined
 
-    def _build_frequency_results_from_df(
-        self, df: pd.DataFrame, study_id: str
-    ) -> list[dict]:
-        """Build TumorVariantFrequencyStudyResult dicts from the combined DataFrame.
+    def _build_frequency_results(
+        self,
+        df: pd.DataFrame,
+        freq_col: str,
+        study_id: str | None = None,
+        group_by_cancer: bool = False,
+        ) -> list[dict]:
+        """Build frequency result dicts for a given frequency column.
 
-        Uses the vrs_id and frequency columns already present in the DataFrame
-        to construct JSON-serializable result objects per unique variant.
-
-        :param df: DataFrame for a single study (filtered from the combined DF)
-        :param study_id: Study identifier
+        :param df: DataFrame (already filtered to study if study_id provided)
+        :param freq_col: Column name to use for frequency value
+        :param study_id: Study identifier, or None for cross-study results
+        :param group_by_cancer: Whether to include cancer type grouping
         :return: List of frequency result dicts
         """
         if "Gnomad_Notation" not in df.columns:
             return []
 
-        study_label = df["STUDY_ID"].iloc[0] if "STUDY_ID" in df.columns else study_id
-        total_samples = int(
-            df["SAMPLE_ID"].count() if "SAMPLE_ID" in df.columns else len(df)
-        )
-
         results = []
-        variant_groups = df.groupby("Gnomad_Notation")
+        group_cols = ["Gnomad_Notation"]
+        if group_by_cancer and "CANCER_TYPE" in df.columns:
+            group_cols.append("CANCER_TYPE")
 
-        for _variant, group in variant_groups:
+        for keys, group in df.groupby(group_cols):
             first_row = group.iloc[0]
             vrs_id = first_row.get("vrs_id")
             if pd.isna(vrs_id) or not vrs_id:
                 continue
 
-            affected = int(
-                group["SAMPLE_ID"].count()
-                if "SAMPLE_ID" in group.columns
-                else len(group)
-            )
+            freq_value = first_row.get(freq_col)
+            if freq_value == "uncalculated" or pd.isna(freq_value):
+                continue
 
-            cancer_type = first_row.get("CANCER_TYPE")
-            cancer_type_detailed = first_row.get("CANCER_TYPE_DETAILED")
-            oncotree_code = first_row.get("ONCOTREE_CODE")
-
-            # Build study group
-            study_group = {"id": study_id, "label": study_label, "type": "StudyGroup"}
-            characteristics = []
-            if cancer_type and cancer_type != "No_Data":
-                characteristics.append({"label": cancer_type, "value": cancer_type})
-            if oncotree_code and oncotree_code != "No_Data":
-                characteristics.append(
-                    {"label": f"OncoTree: {oncotree_code}", "value": oncotree_code}
-                )
-            if characteristics:
-                study_group["characteristics"] = characteristics
-
-            affected_frequency = float(affected) / float(total_samples)
-
+            label = study_id or "all_studies"
             result = {
                 "type": "TumorVariantFrequencyStudyResult",
-                "id": f"{study_id}:{vrs_id}",
+                "id": f"{label}:{vrs_id}",
                 "focusVariant": vrs_id,
-                "affectedSampleCount": affected,
-                "totalSampleCount": total_samples,
-                "affectedFrequency": round(affected_frequency, 6),
-                "sampleGroup": study_group,
+                "affectedFrequency": float(freq_value),
+                "frequencyType": freq_col,
             }
 
-            if cancer_type_detailed and cancer_type_detailed != "No_Data":
-                result["description"] = (
-                    f"Frequency of variant in {cancer_type_detailed} samples "
-                    f"from {study_label}"
-                )
+            if study_id:
+                result["studyId"] = study_id
+
+            if group_by_cancer and "CANCER_TYPE" in df.columns:
+                cancer_type = first_row.get("CANCER_TYPE")
+                if cancer_type and cancer_type != "No_Data":
+                    result["cancerType"] = cancer_type
 
             results.append(result)
 
         return results
 
-    def _write_frequency_results_json(
-        self, study: str, frequency_results: list[dict], out_dir: str | Path
-    ) -> Path:
-        """Write TumorVariantFrequencyStudyResult objects to JSON file.
+    def _write_frequency_json(
+        self,
+        payload: Any,
+        filename: str,
+        out_dir: Path,
+        ) -> Path:
+        """Write frequency results to a JSON file.
 
-        :param study: Study identifier
-        :param frequency_results: List of frequency result dicts
+        :param payload: Data to serialize
+        :param filename: Output filename (without directory)
         :param out_dir: Output directory
         :return: Path to the written file
         """
-        out_dir = Path(out_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
-        out_path = out_dir / f"{study}_tumor_variant_frequencies.json"
-
-        with out_path.open("w", encoding="utf-8") as f:
-            json.dump(frequency_results, f, indent=2)
-
-        return out_path
-
-    def _write_all_frequency_results_json(self, out_path: str | Path) -> Path:
-        """Merge all studies' frequency results into one JSON file.
-
-        :param out_path: Path for the combined JSON file
-        :return: Path to the written file
-        """
-        out_path = Path(out_path)
-        payload = {"frequency_results_by_study": self.frequency_results_by_study}
-
-        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / filename
         with out_path.open("w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2)
-
         return out_path
 
-    def _create_frequency_qc_summary(self) -> pd.DataFrame:
-        """Create QC summary for frequency results.
+    def _create_frequency_qc_summary(self, combined: pd.DataFrame) -> pd.DataFrame:
+        """Create QC summary across all 4 frequency types.
 
-        :return: DataFrame with per-study frequency QC metrics
+        :param combined: Combined DataFrame with all frequency columns
+        :return: DataFrame with one row per study and QC metrics for all 4 frequency types
         """
-        qc_data = []
+        qc_rows = []
 
-        for study, results in self.frequency_results_by_study.items():
-            total = len(results)
-            normalized = sum(1 for r in results if r.get("focusVariant"))
-            failed = total - normalized
-            pct = (normalized / total * 100.0) if total else 0.0
+        for study_id in combined["STUDY_ID"].unique():
+            study_df = combined[combined["STUDY_ID"] == study_id]
+            total = study_df["Gnomad_Notation"].dropna().nunique()
 
-            qc_data.append(
-                {
-                    "STUDY_ID": study,
-                    "total_variants": total,
-                    "normalized_variants": normalized,
-                    "failed_normalization": failed,
-                    "pct_normalized": round(pct, 2),
-                }
-            )
+            row = {"STUDY_ID": study_id, "total_unique_variants": total}
 
-        return pd.DataFrame(qc_data).sort_values("STUDY_ID")
+            for freq_col in [
+                "freq_variant_this_study",
+                "freq_variant_cancer_this_study",
+                "freq_variant_all_studies",
+                "freq_variant_cancer_all_studies",
+            ]:
+                if freq_col in study_df.columns:
+                    calculable = (
+                        study_df[freq_col]
+                        .apply(lambda v: v != "uncalculated" and not pd.isna(v))
+                        .sum()
+                    )
+                else:
+                    calculable = 0
+
+                failed = total - calculable
+                pct = round((calculable / total * 100.0) if total else 0.0, 2)
+                row[f"{freq_col}_calculable"] = int(calculable)
+                row[f"{freq_col}_failed"] = int(failed)
+                row[f"{freq_col}_pct"] = pct
+
+            qc_rows.append(row)
+
+        return pd.DataFrame(qc_rows).sort_values("STUDY_ID")
 
     def _write_mappable_genes_json(
         self, study: str, mappable_genes: list[MappableConcept], out_dir: str
@@ -1065,23 +1051,60 @@ class CBioPortalTransformerBase(Transformer):
         self._write_all_mappable_variants_json(merged_variants_out_path)
 
         # -----------------------------------------
-        # Frequency results and QC
+        # Frequency results — all 4 types
         # -----------------------------------------
-        self.frequency_results_by_study = {}
+
+        # freq_variant_this_study — per study
         for study_id in combined["STUDY_ID"].unique():
             study_df = combined[combined["STUDY_ID"] == study_id]
-            freq_results = self._build_frequency_results_from_df(study_df, study_id)
-            self.frequency_results_by_study[study_id] = freq_results
+            self.freq_results_this_study[study_id] = self._build_frequency_results(
+                study_df, freq_col="freq_variant_this_study", study_id=study_id
+            )
 
-            # Write per-study frequency JSON
-            self._write_frequency_results_json(study_id, freq_results, frequencies_dir)
+        self._write_frequency_json(
+            payload=self.freq_results_this_study,
+            filename="freq_variant_this_study.json",
+            out_dir=frequencies_dir,
+        )
 
-        # Write merged frequency results
-        merged_freq_out_path = frequencies_dir / "frequency_results_all_studies.json"
-        self._write_all_frequency_results_json(merged_freq_out_path)
+        # freq_variant_all_studies — single combined list
+        self.freq_results_all_studies = self._build_frequency_results(
+            combined, freq_col="freq_variant_all_studies"
+        )
+        self._write_frequency_json(
+            payload=self.freq_results_all_studies,
+            filename="freq_variant_all_studies.json",
+            out_dir=frequencies_dir,
+        )
 
-        # Frequency QC summary
-        freq_qc_df = self._create_frequency_qc_summary()
+        # freq_variant_cancer_this_study — per study, grouped by cancer
+        for study_id in combined["STUDY_ID"].unique():
+            study_df = combined[combined["STUDY_ID"] == study_id]
+            self.freq_results_cancer_this_study[study_id] = self._build_frequency_results(
+                study_df,
+                freq_col="freq_variant_cancer_this_study",
+                study_id=study_id,
+                group_by_cancer=True,
+            )
+
+        self._write_frequency_json(
+            payload=self.freq_results_cancer_this_study,
+            filename="freq_variant_cancer_this_study.json",
+            out_dir=frequencies_dir,
+        )
+
+        # freq_variant_cancer_all_studies — single combined list, grouped by cancer
+        self.freq_results_cancer_all_studies = self._build_frequency_results(
+            combined, freq_col="freq_variant_cancer_all_studies", group_by_cancer=True
+        )
+        self._write_frequency_json(
+            payload=self.freq_results_cancer_all_studies,
+            filename="freq_variant_cancer_all_studies.json",
+            out_dir=frequencies_dir,
+        )
+
+        # Frequency QC summary (all 4 types in one CSV)
+        freq_qc_df = self._create_frequency_qc_summary(combined)
         freq_qc_out_path = frequencies_dir / "frequency_qc_summary_per_study.csv"
         freq_qc_df.to_csv(freq_qc_out_path, index=False)
 
