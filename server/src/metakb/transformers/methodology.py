@@ -14,7 +14,6 @@ from ga4gh.va_spec.base import (
     Statement,
     System,
 )
-from ga4gh.vrs.models import sys
 from gene.query import ConceptMapping, MappableConcept
 from pydantic import BaseModel, StrictStr
 
