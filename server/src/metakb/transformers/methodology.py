@@ -14,11 +14,14 @@ from ga4gh.va_spec.base import (
     Statement,
     System,
 )
+from ga4gh.vrs.models import sys
 from gene.query import ConceptMapping, MappableConcept
 from pydantic import BaseModel, StrictStr
 
 _logger = logging.getLogger()
 
+
+# --- Global assertion method ---
 
 AMP_ASCO_CAP_METHOD = Method(
     id="amp_asco_cap.method:2017",
@@ -30,48 +33,45 @@ AMP_ASCO_CAP_METHOD = Method(
     ),
 )
 
+# --- Evidence levels and coding systems ---
 
-class _EvidenceLevelMixin:
-    """Abstract EvidenceLevel enum class
 
-    abc.ABC doesn't play nicely with enums so this doesn't implement any instance guards
-    """
-
-    _SYSTEM: str
-
-    def get_system(self) -> str:
-        """Get evidence coding system value"""
-        return self._SYSTEM
-
-    def get_mapcon(self) -> MappableConcept:
-        """Create MappableConcept for evidence strength"""
-        return MappableConcept(
-            primaryCoding=Coding(
-                system=self.get_system(),
-                code=code(self.value),
-            ),
-        )
+# class _EvidenceLevelMixin:
+#     """Abstract EvidenceLevel enum class
+#
+#     abc.ABC doesn't play nicely with enums so this doesn't implement any instance guards
+#     """
+#
+#     _SYSTEM: str
+#
+#     def get_system(self) -> str:
+#         """Get evidence coding system value"""
+#         return self._SYSTEM
+#
+#     def get_mapcon(self) -> MappableConcept:
+#         """Create MappableConcept for evidence strength"""
+#         return MappableConcept(
+#             primaryCoding=Coding(
+#                 system=self.get_system(),
+#                 code=code(self.value),
+#             ),
+#         )
 
 
 ECO_SYSTEM = "http://purl.obolibrary.org/obo/eco.owl"
+CIVIC_SYSTEM = "https://civic.readthedocs.io/en/latest/model/evidence/level.html"
+MOA_SYSTEM = "https://moalmanac.org/about"
 
 
-class EcoLevel(_EvidenceLevelMixin, StrEnum):
+class EcoLevel(StrEnum):
     """Define constraints for Evidence Ontology levels"""
-
-    _SYSTEM = ECO_SYSTEM
 
     EVIDENCE = "ECO:0000000"
     CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
 
 
-CIVIC_SYSTEM = "https://civic.readthedocs.io/en/latest/model/evidence/level.html"
-
-
-class CivicEvidenceLevel(_EvidenceLevelMixin, StrEnum):
+class CivicEvidenceLevel(StrEnum):
     """Define constraints for CIViC evidence levels"""
-
-    _SYSTEM = CIVIC_SYSTEM
 
     A = "A"
     B = "B"
@@ -80,10 +80,7 @@ class CivicEvidenceLevel(_EvidenceLevelMixin, StrEnum):
     E = "E"
 
 
-MOA_SYSTEM = "https://moalmanac.org/about"
-
-
-class MoaEvidenceLevel(_EvidenceLevelMixin, StrEnum):
+class MoaEvidenceLevel(StrEnum):
     """Define constraints MOAlmanac evidence levels"""
 
     _SYSTEM = MOA_SYSTEM
@@ -96,41 +93,61 @@ class MoaEvidenceLevel(_EvidenceLevelMixin, StrEnum):
     INFERENTIAL = "Inferential evidence"
 
 
-EVIDENCE_LEVEL_MAPPING = {
-    CivicEvidenceLevel.A: AmpAscoCapStrength.LEVEL_A,
-    CivicEvidenceLevel.B: AmpAscoCapStrength.LEVEL_B,
-    CivicEvidenceLevel.C: AmpAscoCapStrength.LEVEL_C,
-    CivicEvidenceLevel.D: AmpAscoCapStrength.LEVEL_D,
-    CivicEvidenceLevel.E: None,
-    MoaEvidenceLevel.CLINICAL_EVIDENCE: AmpAscoCapStrength.LEVEL_C,
-    MoaEvidenceLevel.CLINICAL_TRIAL: AmpAscoCapStrength.LEVEL_C,
-    MoaEvidenceLevel.FDA_APPROVED: AmpAscoCapStrength.LEVEL_A,
-    MoaEvidenceLevel.GUIDELINE: AmpAscoCapStrength.LEVEL_A,
-    MoaEvidenceLevel.INFERENTIAL: None,
-    MoaEvidenceLevel.PRECLINICAL: AmpAscoCapStrength.LEVEL_D,
-}
+def get_evidence_level_coding(
+    evidence_level: EcoLevel
+    | CivicEvidenceLevel
+    | MoaEvidenceLevel
+    | AmpAscoCapStrength,
+) -> Coding:
+    match evidence_level:
+        case EcoLevel():
+            system = ECO_SYSTEM
+        case CivicEvidenceLevel():
+            system = CIVIC_SYSTEM
+        case MoaEvidenceLevel():
+            system = MOA_SYSTEM
+        case AmpAscoCapStrength():
+            system = System.AMP_ASCO_CAP
+        case _:
+            raise ValueError
+    return Coding(system=system, code=code(evidence_level.value))
 
 
-def normalize_evidence_level(
-    src_level: CivicEvidenceLevel | MoaEvidenceLevel,
-) -> AmpAscoCapStrength | None:
-    """Convert source evidence levels into a normalized AMP/ASCO/CAP level
+# EVIDENCE_LEVEL_MAPPING = {
+#     CivicEvidenceLevel.A: AmpAscoCapStrength.LEVEL_A,
+#     CivicEvidenceLevel.B: AmpAscoCapStrength.LEVEL_B,
+#     CivicEvidenceLevel.C: AmpAscoCapStrength.LEVEL_C,
+#     CivicEvidenceLevel.D: AmpAscoCapStrength.LEVEL_D,
+#     CivicEvidenceLevel.E: None,
+#     MoaEvidenceLevel.CLINICAL_EVIDENCE: AmpAscoCapStrength.LEVEL_C,
+#     MoaEvidenceLevel.CLINICAL_TRIAL: AmpAscoCapStrength.LEVEL_C,
+#     MoaEvidenceLevel.FDA_APPROVED: AmpAscoCapStrength.LEVEL_A,
+#     MoaEvidenceLevel.GUIDELINE: AmpAscoCapStrength.LEVEL_A,
+#     MoaEvidenceLevel.INFERENTIAL: None,
+#     MoaEvidenceLevel.PRECLINICAL: AmpAscoCapStrength.LEVEL_D,
+# }
+#
+#
+# def normalize_evidence_level(
+#     src_level: CivicEvidenceLevel | MoaEvidenceLevel,
+# ) -> AmpAscoCapStrength | None:
+#     """Convert source evidence levels into a normalized AMP/ASCO/CAP level
+#
+#     Use to generate assessment strength values.
+#
+#     :param src_level: evidence level from source statement
+#     :return: normalized equivalent if available
+#     """
+#     return EVIDENCE_LEVEL_MAPPING[src_level]
 
-    Use to generate assessment strength values.
 
-    :param src_level: evidence level from source statement
-    :return: normalized equivalent if available
-    """
-    return EVIDENCE_LEVEL_MAPPING[src_level]
-
-
-# AMP/ASCO/CAP strength level enum values -> Strength MappableConcepts
-aac_strength_index = {
-    i: MappableConcept(
-        primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(i.value))
-    )
-    for i in AmpAscoCapStrength
-}
+# # AMP/ASCO/CAP strength level enum values -> Strength MappableConcepts
+# aac_strength_index = {
+#     i: MappableConcept(
+#         primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(i.value))
+#     )
+#     for i in AmpAscoCapStrength
+# }
 
 
 class ViccConceptVocabEntry(BaseModel):
@@ -147,27 +164,6 @@ class ViccConceptVocabEntry(BaseModel):
     source_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
     aac_mapping: AmpAscoCapStrength | None = None
     definition: StrictStr
-
-    def to_mapcon(self) -> MappableConcept:
-        """Construct Mappable Concept instance
-
-        :return: simple MappableConcept equivalent
-        """
-        exact_mappings = [
-            ConceptMapping(
-                coding=Coding(system=em.get_system(), code=code(em.value)),
-                relation=Relation.EXACT_MATCH,
-            )
-            for em in self.source_mappings
-        ]
-        return MappableConcept(
-            name=self.term,
-            primaryCoding=Coding(
-                system="https://go.osu.edu/evidence-codes",
-                code=code(self.id.split("vicc:")[-1]),
-            ),
-            mappings=exact_mappings,
-        )
 
 
 _vicc_concept_vocab = [
@@ -276,6 +272,39 @@ vicc_concept_vocab_exact_mapping_index = {
 
 # vicc concept ID -> vocab entry
 vicc_concept_vocab_index = {v.id: v for v in _vicc_concept_vocab}
+
+
+def get_evidence_code(
+    src_level: CivicEvidenceLevel | MoaEvidenceLevel,
+) -> MappableConcept:
+    vicc_vocab_entry = vicc_concept_vocab_exact_mapping_index[src_level]
+
+    return MappableConcept(
+        name=vicc_vocab_entry.term,
+        primaryCoding=Coding(
+            system="https://go.osu.edu/evidence-codes",
+            code=code(vicc_vocab_entry.id.split("vicc:")[-1]),
+        ),
+    )
+
+
+def to_mapcon(self) -> MappableConcept:
+    """Construct Mappable Concept instance
+
+    :return: simple MappableConcept equivalent
+    """
+    exact_mappings = [
+        ConceptMapping(
+            coding=get_evidence_level_coding(em),
+            relation=Relation.EXACT_MATCH,
+        )
+        for em in self.source_mappings
+    ]
+    return MappableConcept(
+        name=self.term,
+        primaryCoding=get_evidence_level_coding(),
+        mappings=exact_mappings,
+    )
 
 
 def get_aac_strength(
